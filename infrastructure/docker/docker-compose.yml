@@ -1,0 +1,113 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:16
+
+    container_name: intervu-postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: intervu_ai
+
+    ports:
+      - '5432:5432'
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7
+
+    container_name: intervu-redis
+
+    restart: always
+
+    ports:
+      - '6379:6379'
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/api.Dockerfile
+
+    container_name: intervu-api
+
+    restart: always
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    env_file:
+      - ../../.env
+
+    ports:
+      - '3000:3000'
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    environment:
+      NODE_ENV: production
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/worker.Dockerfile
+
+    container_name: intervu-worker
+
+    restart: always
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    env_file:
+      - ../../.env
+
+    environment:
+      NODE_ENV: production
+      ENABLE_GENERATION_QUEUE: 'true'
+      ENABLE_EVALUATION_QUEUE: 'true'
+      ENABLE_ANALYTICS_QUEUE: 'true'
+      WORKER_CONCURRENCY: '5'
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('ioredis').createConnection(process.env.REDIS_URL).ping().catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  redis_data:
