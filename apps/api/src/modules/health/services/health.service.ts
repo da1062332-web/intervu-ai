@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RedisConnectionManager } from '@/cache/redis-connection.manager';
+import { RedisConnectionManager } from '../../../cache/redis-connection.manager';
 
 export interface ServiceHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';

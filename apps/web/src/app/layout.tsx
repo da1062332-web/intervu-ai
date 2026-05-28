@@ -1,11 +1,17 @@
 import '../styles/globals.css';
 
 import type { Metadata } from 'next';
-
-import { ThemeProvider }
-  from '@/components/providers/theme-provider';
-
+import type { ReactNode } from 'react';
+import { JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
+
+import { AppProviders } from '../components/providers/app-providers';
+import { cn } from '@/lib/utils';
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+});
 
 export const metadata: Metadata = {
   title: 'InterVu AI',
@@ -17,19 +23,20 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html
       lang="en"
       suppressHydrationWarning
+      className={cn('font-mono', jetbrainsMono.variable)}
     >
       <body>
-        <ThemeProvider>
+        <AppProviders>
           {children}
 
           <Toaster richColors />
-        </ThemeProvider>
+        </AppProviders>
       </body>
     </html>
   );

@@ -1,25 +1,58 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { authApi } from '@/services/api/auth.api';
+import { normalizeApiError } from '@/services/api/error';
+import { notifySuccess } from '@/services/notifications/toast';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] =
+    useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // TODO: Implement actual login logic
-    setTimeout(() => {
-      setIsLoading(false);
+  const loginMutation = useMutation({
+    mutationFn: authApi.login,
+    onSuccess: () => {
+      notifySuccess('Welcome back.');
       router.push('/dashboard');
-    }, 1000);
+    },
+    onError: (error) => {
+      const normalized =
+        normalizeApiError(error);
+      setFormError(normalized.message);
+    },
+  });
+
+  const handleLogin = async (
+    e: React.FormEvent,
+  ) => {
+    e.preventDefault();
+    setFormError(null);
+
+    try {
+      await loginMutation.mutateAsync({
+        email,
+        password,
+      });
+    } catch {
+      // Errors are normalized and surfaced via mutation onError + toast.
+    }
   };
 
   return (
@@ -32,7 +65,16 @@ export default function LoginPage() {
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form
+          onSubmit={handleLogin}
+          className="space-y-4"
+        >
+          {formError && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
+              {formError}
+            </div>
+          )}
+
           <div className="space-y-2">
             <label
               htmlFor="email"
@@ -45,7 +87,9 @@ export default function LoginPage() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               required
             />
           </div>
@@ -60,9 +104,13 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(
+                  e.target.value,
+                )
+              }
               required
             />
           </div>
@@ -70,9 +118,13 @@ export default function LoginPage() {
           <Button
             type="submit"
             className="w-full"
-            disabled={isLoading}
+            disabled={
+              loginMutation.isPending
+            }
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {loginMutation.isPending
+              ? 'Signing in...'
+              : 'Sign in'}
           </Button>
         </form>
       </CardContent>
@@ -80,12 +132,12 @@ export default function LoginPage() {
       <CardFooter className="flex-col">
         <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account?{' '}
-          <a
+          <Link
             href="/signup"
             className="text-blue-600 hover:underline dark:text-blue-400"
           >
             Sign up
-          </a>
+          </Link>
         </p>
       </CardFooter>
     </Card>
