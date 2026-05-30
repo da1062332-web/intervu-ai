@@ -1,0 +1,36 @@
+{
+  "name": "@intervu-ai/worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+
+  "scripts": {
+    "start": "node dist/main",
+    "start:dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+
+  "dependencies": {
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.0.0",
+    "zod": "^3.23.0",
+    "pino": "^8.0.0",
+    "pino-pretty": "^10.0.0",
+
+    "@intervu-ai/shared-types": "*",
+    "@intervu-ai/shared-logger": "*"
+  },
+
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.22.3",
+    "typescript": "^5.4.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
+  }
+}
