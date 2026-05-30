@@ -17,42 +17,14 @@ interface ThemeProviderProps {
 }
 
 function ThemeStateBridge(): null {
-  const storeTheme = useUIStore(
-    (state) => state.theme,
-  );
-  const setStoreTheme = useUIStore(
-    (state) => state.setTheme,
-  );
-  const {
-    theme: activeTheme,
-    setTheme,
-  } = useTheme();
+  const setStoreTheme = useUIStore((state) => state.setTheme);
+  const { theme: activeTheme } = useTheme();
 
   React.useEffect(() => {
-    if (
-      storeTheme &&
-      activeTheme !== storeTheme
-    ) {
-      setTheme(storeTheme);
-    }
-  }, [
-    activeTheme,
-    setTheme,
-    storeTheme,
-  ]);
-
-  React.useEffect(() => {
-    if (
-      activeTheme === 'light' ||
-      activeTheme === 'dark' ||
-      activeTheme === 'system'
-    ) {
+    if (activeTheme === 'light' || activeTheme === 'dark' || activeTheme === 'system') {
       setStoreTheme(activeTheme as ThemeMode);
     }
-  }, [
-    activeTheme,
-    setStoreTheme,
-  ]);
+  }, [activeTheme, setStoreTheme]);
 
   return null;
 }
@@ -65,6 +37,7 @@ export function ThemeProvider({
       attribute="class"
       defaultTheme="system"
       enableSystem
+      disableTransitionOnChange
     >
       <ThemeStateBridge />
       {children}

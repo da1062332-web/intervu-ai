@@ -2,11 +2,21 @@ import '../styles/globals.css';
 
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { JetBrains_Mono } from 'next/font/google';
+import { Inter, Outfit, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
 
 import { AppProviders } from '../components/providers/app-providers';
 import { cn } from '@/lib/utils';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+});
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -15,9 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'InterVu AI',
-
-  description:
-    'AI-powered interview platform',
+  description: 'AI-powered interview platform',
 };
 
 export default function RootLayout({
@@ -29,12 +37,15 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn('font-mono', jetbrainsMono.variable)}
+      className={cn(
+        inter.variable,
+        outfit.variable,
+        jetbrainsMono.variable
+      )}
     >
       <body>
         <AppProviders>
           {children}
-
           <Toaster richColors />
         </AppProviders>
       </body>
