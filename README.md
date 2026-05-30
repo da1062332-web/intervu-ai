@@ -108,8 +108,8 @@ Create `apps/api/.env` with values similar to:
 
 ```env
 NODE_ENV=development
-PORT=3000
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/intervu_ai
+PORT=4000
+DATABASE_URL=postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=replace-with-a-long-secret-at-least-32-chars
 JWT_REFRESH_SECRET=replace-with-another-long-secret-at-least-32-chars
@@ -125,7 +125,7 @@ Important:
 Create `apps/web/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
 ### 4. Set worker env vars
