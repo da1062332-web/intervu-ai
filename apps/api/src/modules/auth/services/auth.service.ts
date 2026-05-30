@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as argon2 from 'argon2';
+import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
 import { AppConfigService } from '../../../config';
@@ -53,7 +53,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         email,
-        passwordHash: await argon2.hash(dto.password),
+        passwordHash: await bcrypt.hash(dto.password, 10),
         fullName: dto.fullName ?? null,
       },
     });
@@ -68,7 +68,7 @@ export class AuthService {
     });
 
     const isValid =
-      user != null && (await argon2.verify(user.passwordHash, dto.password));
+      user != null && (await bcrypt.compare(dto.password, user.passwordHash));
     if (!isValid || !user) {
       throw new UnauthorizedException('Invalid email or password');
     }

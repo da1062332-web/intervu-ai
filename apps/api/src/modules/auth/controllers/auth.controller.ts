@@ -18,6 +18,7 @@ import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { SignupDto } from '../dto/signup.dto';
 import { CurrentUser } from '../decorators/current-user.decorator';
+import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AuthUser } from '../interfaces/auth-user.interface';
 import { AuthService, AuthResponse } from '../services/auth.service';
@@ -32,6 +33,7 @@ interface RequestMeta {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('signup')
   @ApiOperation({ summary: 'Register a new candidate account' })
   @ApiBody({ type: SignupDto })
@@ -44,6 +46,7 @@ export class AuthController {
     return this.authService.signup(dto, this.getMeta(req));
   }
 
+  @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiBody({ type: LoginDto })
@@ -56,6 +59,7 @@ export class AuthController {
     return this.authService.login(dto, this.getMeta(req));
   }
 
+  @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   @ApiBody({ type: RefreshTokenDto })
@@ -68,6 +72,7 @@ export class AuthController {
     return this.authService.refresh(dto.refreshToken, this.getMeta(req));
   }
 
+  @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
   @ApiBody({ type: RefreshTokenDto })
