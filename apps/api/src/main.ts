@@ -7,6 +7,7 @@ import {
   HttpExceptionFilter,
   ResponseInterceptor,
 } from './common';
+import { RedisConnectionManager } from './cache';
 import { AppConfigService } from './config';
 
 async function bootstrap() {
@@ -17,6 +18,8 @@ async function bootstrap() {
   // Get config service
   const configService = app.get(AppConfigService);
   const port = configService.port;
+
+  await RedisConnectionManager.connect(configService.redisUrl);
 
   // Security middleware
   app.use(
@@ -36,7 +39,6 @@ async function bootstrap() {
 
   // API prefix and versioning
   app.setGlobalPrefix('api/v1');
-  app.enableVersioning();
 
   // Global pipes
   app.useGlobalPipes(

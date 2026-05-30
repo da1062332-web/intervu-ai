@@ -110,6 +110,22 @@ export class AuthService {
     };
   }
 
+  async logout(refreshToken: string): Promise<void> {
+    const stored = await this.prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+      select: { revoked: true },
+    });
+
+    if (!stored || stored.revoked) {
+      return;
+    }
+
+    await this.prisma.refreshToken.update({
+      where: { token: refreshToken },
+      data: { revoked: true },
+    });
+  }
+
   private async buildAuthResponse(
     user: {
       id: string;

@@ -1,5 +1,4 @@
-import { Worker, Job } from 'bullmq';
-import Redis from 'ioredis';
+import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { AnalyticsQueuePayload } from '@intervu-ai/shared-types';
 
@@ -7,11 +6,11 @@ export class AnalyticsQueueProcessor {
   private worker: Worker;
   private logger: AppLogger;
 
-  constructor(redis: Redis, logger: AppLogger) {
+  constructor(connection: ConnectionOptions, logger: AppLogger) {
     this.logger = logger;
 
     this.worker = new Worker('analytics', this.processJob.bind(this), {
-      connection: redis,
+      connection,
       concurrency: 10,
     });
 

@@ -1,5 +1,4 @@
-import { Queue, QueueOptions } from 'bullmq';
-import Redis from 'ioredis';
+import { Queue, type ConnectionOptions, type QueueOptions } from 'bullmq';
 
 type QueueConfig = Omit<QueueOptions, 'connection'>;
 
@@ -54,7 +53,7 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
 export class QueueFactory {
   private static queues: Map<string, Queue> = new Map();
 
-  static createQueue(name: string, redis: Redis): Queue {
+  static createQueue(name: string, connection: ConnectionOptions): Queue {
     if (this.queues.has(name)) {
       return this.queues.get(name)!;
     }
@@ -62,7 +61,7 @@ export class QueueFactory {
     const config = QUEUE_CONFIG[name] || QUEUE_CONFIG.analytics;
     const queue = new Queue(name, {
       ...config,
-      connection: redis,
+      connection,
     });
 
     this.queues.set(name, queue);

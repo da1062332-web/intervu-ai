@@ -1,9 +1,11 @@
 import { QueueFactory, QueueService, QueueType } from '@/queue';
 import { AppLogger } from '@intervu-ai/shared-logger';
+import { type ConnectionOptions } from 'bullmq';
 import Redis from 'ioredis';
 
 describe('Queue System Integration Tests', () => {
   let redis: Redis;
+  let connection: ConnectionOptions;
   let queueService: QueueService;
   let logger: AppLogger;
 
@@ -13,6 +15,10 @@ describe('Queue System Integration Tests', () => {
       port: 6379,
       retryStrategy: () => null,
     });
+    connection = {
+      host: 'localhost',
+      port: 6379,
+    };
 
     logger = new AppLogger({
       name: 'test',
@@ -20,9 +26,9 @@ describe('Queue System Integration Tests', () => {
     });
 
     // Create queues
-    QueueFactory.createQueue(QueueType.GENERATION, redis);
-    QueueFactory.createQueue(QueueType.EVALUATION, redis);
-    QueueFactory.createQueue(QueueType.ANALYTICS, redis);
+    QueueFactory.createQueue(QueueType.GENERATION, connection);
+    QueueFactory.createQueue(QueueType.EVALUATION, connection);
+    QueueFactory.createQueue(QueueType.ANALYTICS, connection);
 
     queueService = new QueueService(logger);
   });

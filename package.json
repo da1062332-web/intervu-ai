@@ -9,6 +9,7 @@
   ],
 
   "scripts": {
+    "postinstall": "npm run prisma:generate --workspace @intervu-ai/database",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",

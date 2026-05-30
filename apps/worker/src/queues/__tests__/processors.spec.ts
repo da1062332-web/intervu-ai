@@ -2,11 +2,12 @@ import { GenerationQueueProcessor } from '../queues/generation.queue';
 import { EvaluationQueueProcessor } from '../queues/evaluation.queue';
 import { AnalyticsQueueProcessor } from '../queues/analytics.queue';
 import { AppLogger } from '@intervu-ai/shared-logger';
+import { type ConnectionOptions, Queue } from 'bullmq';
 import Redis from 'ioredis';
-import { Queue } from 'bullmq';
 
 describe('Worker Queue Processors', () => {
   let redis: Redis;
+  let connection: ConnectionOptions;
   let logger: AppLogger;
   let generationQueue: Queue;
   let evaluationQueue: Queue;
@@ -19,6 +20,10 @@ describe('Worker Queue Processors', () => {
       retryStrategy: () => null,
       maxRetriesPerRequest: null,
     });
+    connection = {
+      host: 'localhost',
+      port: 6379,
+    };
 
     logger = new AppLogger({
       name: 'worker-test',
@@ -26,9 +31,9 @@ describe('Worker Queue Processors', () => {
     });
 
     // Create queues
-    generationQueue = new Queue('generation', { connection: redis });
-    evaluationQueue = new Queue('evaluation', { connection: redis });
-    analyticsQueue = new Queue('analytics', { connection: redis });
+    generationQueue = new Queue('generation', { connection });
+    evaluationQueue = new Queue('evaluation', { connection });
+    analyticsQueue = new Queue('analytics', { connection });
   });
 
   afterAll(async () => {
@@ -47,7 +52,7 @@ describe('Worker Queue Processors', () => {
 
   describe('Generation Queue Processor', () => {
     it('should initialize without errors', async () => {
-      const processor = new GenerationQueueProcessor(redis, logger);
+      const processor = new GenerationQueueProcessor(connection, logger);
       expect(processor).toBeDefined();
       await processor.close();
     });
@@ -73,7 +78,7 @@ describe('Worker Queue Processors', () => {
 
   describe('Evaluation Queue Processor', () => {
     it('should initialize without errors', async () => {
-      const processor = new EvaluationQueueProcessor(redis, logger);
+      const processor = new EvaluationQueueProcessor(connection, logger);
       expect(processor).toBeDefined();
       await processor.close();
     });
@@ -99,7 +104,7 @@ describe('Worker Queue Processors', () => {
 
   describe('Analytics Queue Processor', () => {
     it('should initialize without errors', async () => {
-      const processor = new AnalyticsQueueProcessor(redis, logger);
+      const processor = new AnalyticsQueueProcessor(connection, logger);
       expect(processor).toBeDefined();
       await processor.close();
     });
@@ -127,9 +132,9 @@ describe('Worker Queue Processors', () => {
 
   describe('Multiple Processors', () => {
     it('should handle multiple processors simultaneously', async () => {
-      const genProcessor = new GenerationQueueProcessor(redis, logger);
-      const evalProcessor = new EvaluationQueueProcessor(redis, logger);
-      const analyticsProcessor = new AnalyticsQueueProcessor(redis, logger);
+      const genProcessor = new GenerationQueueProcessor(connection, logger);
+      const evalProcessor = new EvaluationQueueProcessor(connection, logger);
+      const analyticsProcessor = new AnalyticsQueueProcessor(connection, logger);
 
       // Add jobs to different queues
       await generationQueue.add('gen-1', {

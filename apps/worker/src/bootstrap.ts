@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { GenerationQueueProcessor } from './queues/generation.queue';
 import { EvaluationQueueProcessor } from './queues/evaluation.queue';
@@ -9,6 +10,7 @@ export class WorkerBootstrap {
   private config: WorkerConfigService;
   private logger: AppLogger;
   private redis!: Redis;
+  private bullMqConnection!: ConnectionOptions;
   private processors: Array<{
     name: string;
     processor: any;
@@ -27,6 +29,7 @@ export class WorkerBootstrap {
       // Connect to Redis
       this.logger.info('Connecting to Redis', { redisUrl: this.config.redisUrl });
       this.redis = new Redis(this.config.redisUrl);
+      this.bullMqConnection = { url: this.config.redisUrl };
 
       await this.redis.ping();
       this.logger.info('Connected to Redis successfully');
@@ -49,19 +52,19 @@ export class WorkerBootstrap {
 
   private initializeProcessors(): void {
     if (this.config.enableGenerationQueue) {
-      const generationProcessor = new GenerationQueueProcessor(this.redis, this.logger);
+      const generationProcessor = new GenerationQueueProcessor(this.bullMqConnection, this.logger);
       this.processors.push({ name: 'generation', processor: generationProcessor });
       this.logger.info('Generation queue processor initialized');
     }
 
     if (this.config.enableEvaluationQueue) {
-      const evaluationProcessor = new EvaluationQueueProcessor(this.redis, this.logger);
+      const evaluationProcessor = new EvaluationQueueProcessor(this.bullMqConnection, this.logger);
       this.processors.push({ name: 'evaluation', processor: evaluationProcessor });
       this.logger.info('Evaluation queue processor initialized');
     }
 
     if (this.config.enableAnalyticsQueue) {
-      const analyticsProcessor = new AnalyticsQueueProcessor(this.redis, this.logger);
+      const analyticsProcessor = new AnalyticsQueueProcessor(this.bullMqConnection, this.logger);
       this.processors.push({ name: 'analytics', processor: analyticsProcessor });
       this.logger.info('Analytics queue processor initialized');
     }
