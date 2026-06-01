@@ -2,10 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "../../",
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@intervu-ai/shared-types": ["../../../packages/shared-types/src"],
+      "@intervu-ai/shared-logger": ["../../../packages/shared-logger/src"]
     }
   },
   "include": ["src/**/*"],

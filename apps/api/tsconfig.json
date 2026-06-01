@@ -19,7 +19,7 @@
     "sourceMap": true,
 
     "outDir": "./dist",
-
+    "rootDir": "../../",
     "baseUrl": "./",
 
     "incremental": true,
@@ -27,8 +27,8 @@
     "paths": {
       "@/*": ["src/*"],
 
-      "@intervu-ai/shared-types": ["../../packages/shared-types/dist"],
-      "@intervu-ai/shared-logger": ["../../packages/shared-logger/dist"]
+      "@intervu-ai/shared-types": ["../../packages/shared-types/src"],
+      "@intervu-ai/shared-logger": ["../../packages/shared-logger/src"]
     }
   },
 
