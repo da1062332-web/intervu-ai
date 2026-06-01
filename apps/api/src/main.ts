@@ -4,10 +4,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import {
-  ValidationPipe,
-  HttpExceptionFilter,
+  ZodValidationPipe,
+  GlobalExceptionFilter,
   ResponseInterceptor,
-} from './common';
+} from '@intervu-ai/validation-core';
 import { RedisConnectionManager } from './cache';
 import { AppConfigService } from './config';
 
@@ -51,19 +51,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Global pipes
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
+
+  app.useGlobalPipes(new ZodValidationPipe());
 
   // Global filters
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   // Global interceptors
   app.useGlobalInterceptors(new ResponseInterceptor());
