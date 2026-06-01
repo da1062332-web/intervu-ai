@@ -1,5 +1,5 @@
 {
-  "name": "@intervu-ai/shared-logger",
+  "name": "@intervu-ai/generation",
   "version": "1.0.0",
   "private": true,
   "main": "./dist/index.js",
@@ -10,23 +10,15 @@
       "default": "./dist/index.js"
     }
   },
-
   "scripts": {
     "build": "tsc",
     "type-check": "tsc --noEmit"
   },
-
   "dependencies": {
-    "pino": "^8.0.0",
-    "pino-pretty": "^10.0.0",
-    "pino-http": "^8.0.0",
-    "uuid": "^9.0.0",
+    "@intervu-ai/shared-types": "*",
     "zod": "^3.23.0"
   },
-
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/uuid": "^9.0.0",
     "typescript": "^5.4.0"
   }
 }

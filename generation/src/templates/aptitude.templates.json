@@ -1,0 +1,268 @@
+[
+  {
+    "templateId": "APT_PERCENTAGE_001",
+    "type": "aptitude",
+    "topic": "percentages",
+    "difficulty": "medium",
+    "variables": [
+      {
+        "name": "percent_increase",
+        "type": "number",
+        "range": {
+          "min": 10,
+          "max": 50,
+          "step": 5
+        }
+      }
+    ],
+    "constraints": [
+      {
+        "rule": "percent_increase > 0",
+        "severity": "critical"
+      }
+    ],
+    "questionTemplate": "If the price of petrol is increased by {percent_increase}%, by how much percent must a motorist reduce the consumption of petrol so as not to increase his expenditure?",
+    "solutionTemplate": {
+      "steps": [
+        "Let the original price be 100 and consumption be 100, so original expenditure = 100 * 100 = 10000.",
+        "New price = 100 + {percent_increase}.",
+        "To keep expenditure at 10000, new consumption = 10000 / (100 + {percent_increase}).",
+        "Reduction in consumption = 100 - 10000 / (100 + {percent_increase}) = ({percent_increase} / (100 + {percent_increase})) * 100."
+      ],
+      "finalAnswer": "(percent_increase / (100 + percent_increase)) * 100"
+    },
+    "metadata": {
+      "w1_steps": 3.0,
+      "w2_number_complexity": 2.0,
+      "w3_concept_overlap": 1.5,
+      "w4_trick_factor": 2.0
+    }
+  },
+  {
+    "templateId": "APT_TIME_WORK_001",
+    "type": "aptitude",
+    "topic": "time_work",
+    "difficulty": "easy",
+    "variables": [
+      {
+        "name": "worker_A",
+        "type": "string",
+        "options": ["Alice", "Amit", "Rahul", "Anil"]
+      },
+      {
+        "name": "worker_B",
+        "type": "string",
+        "options": ["Bob", "Bipin", "Vijay", "Suresh"]
+      },
+      {
+        "name": "days_A",
+        "type": "number",
+        "range": {
+          "min": 10,
+          "max": 30,
+          "step": 2
+        }
+      },
+      {
+        "name": "days_B",
+        "type": "number",
+        "range": {
+          "min": 10,
+          "max": 30,
+          "step": 2
+        }
+      }
+    ],
+    "constraints": [
+      {
+        "rule": "days_A != days_B",
+        "severity": "critical"
+      }
+    ],
+    "questionTemplate": "{worker_A} can complete a project in {days_A} days, and {worker_B} can complete the same project in {days_B} days. Working together, in how many days will they finish the project?",
+    "solutionTemplate": {
+      "steps": [
+        "{worker_A}'s 1-day work = 1 / {days_A}.",
+        "{worker_B}'s 1-day work = 1 / {days_B}.",
+        "Combined 1-day work = 1 / {days_A} + 1 / {days_B} = ({days_A} + {days_B}) / ({days_A} * {days_B}).",
+        "Total days required = ({days_A} * {days_B}) / ({days_A} + {days_B})."
+      ],
+      "finalAnswer": "(days_A * days_B) / (days_A + days_B)"
+    },
+    "metadata": {
+      "w1_steps": 2.0,
+      "w2_number_complexity": 1.5,
+      "w3_concept_overlap": 1.0,
+      "w4_trick_factor": 1.0
+    }
+  },
+  {
+    "templateId": "APT_PROFIT_LOSS_001",
+    "type": "aptitude",
+    "topic": "profit_loss",
+    "difficulty": "medium",
+    "variables": [
+      {
+        "name": "cost_price",
+        "type": "number",
+        "range": {
+          "min": 100,
+          "max": 1000,
+          "step": 10
+        }
+      },
+      {
+        "name": "selling_price",
+        "type": "number",
+        "range": {
+          "min": 120,
+          "max": 1500,
+          "step": 10
+        }
+      }
+    ],
+    "constraints": [
+      {
+        "rule": "selling_price != cost_price",
+        "severity": "critical"
+      }
+    ],
+    "questionTemplate": "A retailer purchases a product for Rs. {cost_price} and sells it at Rs. {selling_price}. Calculate the net profit or loss percentage for this transaction.",
+    "solutionTemplate": {
+      "steps": [
+        "Cost Price (CP) = Rs. {cost_price}.",
+        "Selling Price (SP) = Rs. {selling_price}.",
+        "Net Difference = SP - CP.",
+        "If difference is positive, profit % = (difference / CP) * 100. If negative, loss % = ((-difference) / CP) * 100."
+      ],
+      "finalAnswer": "((selling_price - cost_price) / cost_price) * 100"
+    },
+    "metadata": {
+      "w1_steps": 3.0,
+      "w2_number_complexity": 2.0,
+      "w3_concept_overlap": 2.0,
+      "w4_trick_factor": 1.5
+    }
+  },
+  {
+    "templateId": "APT_RATIOS_001",
+    "type": "aptitude",
+    "topic": "ratios",
+    "difficulty": "medium",
+    "variables": [
+      {
+        "name": "ratio_A",
+        "type": "number",
+        "range": {
+          "min": 2,
+          "max": 7,
+          "step": 1
+        }
+      },
+      {
+        "name": "ratio_B",
+        "type": "number",
+        "range": {
+          "min": 3,
+          "max": 11,
+          "step": 1
+        }
+      },
+      {
+        "name": "increment",
+        "type": "number",
+        "range": {
+          "min": 4,
+          "max": 20,
+          "step": 2
+        }
+      },
+      {
+        "name": "multiplier",
+        "type": "number",
+        "range": {
+          "min": 5,
+          "max": 15,
+          "step": 1
+        }
+      }
+    ],
+    "constraints": [
+      {
+        "rule": "ratio_A < ratio_B",
+        "severity": "critical"
+      }
+    ],
+    "questionTemplate": "Two numbers are in the ratio {ratio_A}:{ratio_B}. If {increment} is added to each number, the ratio of the resulting numbers becomes {(ratio_A * multiplier + increment)}:{(ratio_B * multiplier + increment)} (after simplifying). Find the sum of the original two numbers.",
+    "solutionTemplate": {
+      "steps": [
+        "Let the two numbers be {ratio_A}x and {ratio_B}x.",
+        "After adding {increment} to each, the equation is ({ratio_A}x + {increment}) / ({ratio_B}x + {increment}) = {new_ratio_A} / {new_ratio_B}.",
+        "Cross-multiplying, we solve for x = {multiplier}.",
+        "Sum of original numbers = ({ratio_A} + {ratio_B}) * x."
+      ],
+      "finalAnswer": "(ratio_A + ratio_B) * multiplier"
+    },
+    "metadata": {
+      "w1_steps": 4.0,
+      "w2_number_complexity": 2.5,
+      "w3_concept_overlap": 2.0,
+      "w4_trick_factor": 2.0
+    }
+  },
+  {
+    "templateId": "APT_NUMBER_SYSTEMS_001",
+    "type": "aptitude",
+    "topic": "number_systems",
+    "difficulty": "hard",
+    "variables": [
+      {
+        "name": "sum_digits_reversed",
+        "type": "number",
+        "range": {
+          "min": 22,
+          "max": 176,
+          "step": 11
+        }
+      },
+      {
+        "name": "digit_difference",
+        "type": "number",
+        "range": {
+          "min": 1,
+          "max": 7,
+          "step": 1
+        }
+      }
+    ],
+    "constraints": [
+      {
+        "rule": "(sum_digits_reversed / 11 + digit_difference) % 2 === 0",
+        "severity": "critical"
+      },
+      {
+        "rule": "sum_digits_reversed / 11 > digit_difference",
+        "severity": "critical"
+      }
+    ],
+    "questionTemplate": "The sum of a two-digit number and the number obtained by reversing its digits is {sum_digits_reversed}. If the digits differ by {digit_difference}, find the original number, given that its tens digit is greater than its units digit.",
+    "solutionTemplate": {
+      "steps": [
+        "Let the tens digit be x and units digit be y. The original number is 10x + y.",
+        "The reversed number is 10y + x.",
+        "Sum = (10x + y) + (10y + x) = 11(x + y) = {sum_digits_reversed} => x + y = {sum_digits_reversed} / 11.",
+        "We are given that x - y = {digit_difference}.",
+        "Adding these two equations, we get 2x = {sum_digits_reversed}/11 + {digit_difference}.",
+        "Solving for x and y, we get tens digit = {x} and units digit = {y}.",
+        "Thus, the original number is 10 * {x} + {y}."
+      ],
+      "finalAnswer": "(((sum_digits_reversed / 11) + digit_difference) / 2) * 10 + (((sum_digits_reversed / 11) - digit_difference) / 2)"
+    },
+    "metadata": {
+      "w1_steps": 4.0,
+      "w2_number_complexity": 3.0,
+      "w3_concept_overlap": 2.5,
+      "w4_trick_factor": 3.0
+    }
+  }
+]

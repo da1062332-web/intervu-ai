@@ -25,6 +25,10 @@
   
         "@intervu-ai/shared-validation": [
           "packages/shared-validation/src"
+        ],
+  
+        "@intervu-ai/generation": [
+          "generation/src"
         ]
       }
     }
