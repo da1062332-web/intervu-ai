@@ -18,16 +18,31 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
+    let code = 'INTERNAL_SERVER_ERROR';
+    let message: any = exception.message;
+
+    if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+      code = (exceptionResponse as any).code || (exceptionResponse as any).error || code;
+      const msg = (exceptionResponse as any).message;
+      if (msg) {
+        message = Array.isArray(msg) ? msg[0] : msg;
+      }
+    }
+
+    if (code === 'INTERNAL_SERVER_ERROR' || !code) {
+      if (status === HttpStatus.BAD_REQUEST) code = 'BAD_REQUEST';
+      else if (status === HttpStatus.UNAUTHORIZED) code = 'UNAUTHORIZED';
+      else if (status === HttpStatus.FORBIDDEN) code = 'FORBIDDEN';
+      else if (status === HttpStatus.NOT_FOUND) code = 'NOT_FOUND';
+      else if (status === HttpStatus.CONFLICT) code = 'CONFLICT';
+    }
+
     const errorResponse = {
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: (request as any).url,
-      method: (request as any).method,
-      message:
-        typeof exceptionResponse === 'object'
-          ? (exceptionResponse as any).message
-          : exception.message,
-      ...(typeof exceptionResponse === 'object' && exceptionResponse),
+      success: false,
+      error: {
+        code,
+        message,
+      },
     };
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {

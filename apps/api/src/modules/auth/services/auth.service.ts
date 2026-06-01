@@ -8,9 +8,10 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
 import { AppConfigService } from '../../../config';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { LoginDto } from '../dto/login.dto';
+import { UserRepository } from '../../users/repositories/user.repository';
+import { SessionRepository } from '../../users/repositories/session.repository';
 import { SignupDto } from '../dto/signup.dto';
+import { LoginDto } from '../dto/login.dto';
 import { AuthUserRole } from '../interfaces/auth-user.interface';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
@@ -33,7 +34,8 @@ export interface AuthResponse {
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepository: UserRepository,
+    private readonly sessionRepository: SessionRepository,
     private readonly jwtService: JwtService,
     private readonly configService: AppConfigService,
   ) {}
@@ -41,21 +43,16 @@ export class AuthService {
   async signup(dto: SignupDto, meta?: AuthMeta): Promise<AuthResponse> {
     const email = dto.email.trim().toLowerCase();
 
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
+    const existingUser = await this.userRepository.findByEmail(email);
 
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        passwordHash: await bcrypt.hash(dto.password, 10),
-        fullName: dto.fullName ?? null,
-      },
+    const user = await this.userRepository.create({
+      email,
+      passwordHash: await bcrypt.hash(dto.password, 10),
+      fullName: dto.fullName ?? null,
     });
 
     return this.buildAuthResponse(user, meta);
@@ -63,9 +60,7 @@ export class AuthService {
 
   async login(dto: LoginDto, meta?: AuthMeta): Promise<AuthResponse> {
     const email = dto.email.trim().toLowerCase();
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.userRepository.findByEmail(email);
 
     const isValid =
       user != null && (await bcrypt.compare(dto.password, user.passwordHash));
@@ -82,23 +77,25 @@ export class AuthService {
   ): Promise<Pick<AuthResponse, 'accessToken' | 'refreshToken'>> {
     const payload = this.verifyRefreshToken(refreshToken);
 
-    const stored = await this.prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      select: { revoked: true, expiresAt: true },
-    });
+    const stored = await this.sessionRepository.findRefreshToken(refreshToken);
 
     if (!stored || stored.revoked || stored.expiresAt <= new Date()) {
       throw new UnauthorizedException('Refresh token is not active');
     }
 
-    await this.prisma.refreshToken.update({
-      where: { token: refreshToken },
-      data: { revoked: true },
-    });
+    // Revoke the old refresh token
+    await this.sessionRepository.revokeRefreshToken(refreshToken);
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-    });
+    // Also terminate the old session (cascade will clean up refresh token link if needed)
+    if (stored.sessionId) {
+      try {
+        await this.sessionRepository.delete(stored.sessionId);
+      } catch {
+        // Ignore if already deleted
+      }
+    }
+
+    const user = await this.userRepository.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -111,19 +108,21 @@ export class AuthService {
   }
 
   async logout(refreshToken: string): Promise<void> {
-    const stored = await this.prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      select: { revoked: true },
-    });
+    const stored = await this.sessionRepository.findRefreshToken(refreshToken);
 
     if (!stored || stored.revoked) {
       return;
     }
 
-    await this.prisma.refreshToken.update({
-      where: { token: refreshToken },
-      data: { revoked: true },
-    });
+    await this.sessionRepository.revokeRefreshToken(refreshToken);
+
+    if (stored.sessionId) {
+      try {
+        await this.sessionRepository.delete(stored.sessionId);
+      } catch {
+        // Ignore if already deleted
+      }
+    }
   }
 
   private async buildAuthResponse(
@@ -153,12 +152,21 @@ export class AuthService {
     user: { id: string; email: string; role: AuthUserRole },
     meta?: AuthMeta,
   ): Promise<{ accessToken: string; refreshToken: string }> {
+    // 1. Create a session first to generate its ID
+    const session = await this.sessionRepository.createSession({
+      userId: user.id,
+      userAgent: meta?.userAgent ?? null,
+      ipAddress: meta?.ipAddress ?? null,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
+    });
+
     const accessToken = this.jwtService.sign(
       {
         sub: user.id,
         email: user.email,
         role: user.role,
         type: 'access',
+        sessionId: session.id,
       },
       {
         jwtid: randomUUID(),
@@ -172,6 +180,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         type: 'refresh',
+        sessionId: session.id,
       },
       {
         secret: this.configService.jwtRefreshSecret,
@@ -180,21 +189,12 @@ export class AuthService {
       },
     );
 
-    await this.prisma.session.create({
-      data: {
-        userId: user.id,
-        userAgent: meta?.userAgent ?? null,
-        ipAddress: meta?.ipAddress ?? null,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
-      },
-    });
-
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        token: refreshToken,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-      },
+    // 2. Persist the refresh token, linked to the session
+    await this.sessionRepository.createRefreshToken({
+      userId: user.id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days
+      sessionId: session.id,
     });
 
     return { accessToken, refreshToken };

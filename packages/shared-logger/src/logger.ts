@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 export interface LogContext {
   correlationId?: string;
@@ -74,14 +74,14 @@ export class AppLogger {
   }
 
   generateCorrelationId(): string {
-    return uuidv4();
+    return randomUUID();
   }
 
   generateRequestId(): string {
-    return uuidv4();
+    return randomUUID();
   }
 
   generateJobId(): string {
-    return uuidv4();
+    return randomUUID();
   }
 }
