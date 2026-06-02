@@ -10,13 +10,24 @@ export class UserRepository extends BaseRepository<
   Prisma.UserCreateInput,
   Prisma.UserUpdateInput
 > {
-  constructor(prisma: PrismaService) {
-    super(prisma, 'user');
+  constructor(
+    prisma: PrismaService,
+    tx?: Prisma.TransactionClient,
+  ) {
+    super(prisma, 'user', { softDelete: true }, tx);
+  }
+
+  withTransaction(tx: Prisma.TransactionClient): this {
+    return new UserRepository(this.prisma, tx) as this;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+    const user = await this.db.user.findUnique({
       where: { email: email.toLowerCase() },
     });
+    if (user && this.options.softDelete && user.deletedAt !== null) {
+      return null;
+    }
+    return user;
   }
 }

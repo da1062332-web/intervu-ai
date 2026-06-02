@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 
 import { AppConfigService } from '../../../config';
@@ -51,7 +51,7 @@ export class AuthService {
 
     const user = await this.userRepository.create({
       email,
-      passwordHash: await bcrypt.hash(dto.password, 10),
+      passwordHash: await argon2.hash(dto.password),
       fullName: dto.fullName ?? null,
     });
 
@@ -63,7 +63,7 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(email);
 
     const isValid =
-      user != null && (await bcrypt.compare(dto.password, user.passwordHash));
+      user != null && (await argon2.verify(user.passwordHash, dto.password));
     if (!isValid || !user) {
       throw new UnauthorizedException('Invalid email or password');
     }

@@ -19,6 +19,7 @@ describe('UsersService', () => {
     role: UserRole.CANDIDATE,
     createdAt: new Date(),
     updatedAt: new Date(),
+    deletedAt: null as Date | null,
   };
 
   const mockSession = {
