@@ -28,7 +28,8 @@
       "@/*": ["src/*"],
 
       "@intervu-ai/shared-types": ["../../packages/shared-types/dist"],
-      "@intervu-ai/shared-logger": ["../../packages/shared-logger/dist"]
+      "@intervu-ai/shared-logger": ["../../packages/shared-logger/dist"],
+      "@intervu-ai/generation": ["../../generation/src"]
     }
   },
 

@@ -4,7 +4,8 @@
   "packageManager": "npm@10.8.2",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "generation"
   ],
   "scripts": {
     "postinstall": "npm run prisma:generate --workspace @intervu-ai/database",
