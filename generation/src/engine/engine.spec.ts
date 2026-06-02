@@ -1,0 +1,267 @@
+import { PRNG } from './prng';
+import { evaluateExpression } from './math-parser';
+import { generateVariables, roundToPrecision } from './variable-generator';
+import { evaluateConstraints } from './constraint-engine';
+import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
+import { validatePipeline, generateQuestionHash } from './validation-pipeline';
+import { executeTemplate } from './template-executor';
+import { QuestionTemplate } from '../types/template.types';
+
+// Load templates directly for testing
+import rawTemplates from '../templates/aptitude.templates.json';
+const templates = rawTemplates as QuestionTemplate[];
+
+describe('Generation Engine Core Subsystem', () => {
+  
+  describe('Seed-based PRNG (prng.ts)', () => {
+    it('should generate identical sequences for the same seed', () => {
+      const prng1 = new PRNG(12345);
+      const prng2 = new PRNG(12345);
+
+      for (let i = 0; i < 20; i++) {
+        expect(prng1.next()).toBe(prng2.next());
+        expect(prng1.nextInt(1, 100)).toBe(prng2.nextInt(1, 100));
+      }
+    });
+
+    it('should generate different sequences for different seeds', () => {
+      const prng1 = new PRNG(12345);
+      const prng2 = new PRNG(67890);
+
+      let matches = 0;
+      for (let i = 0; i < 20; i++) {
+        if (prng1.next() === prng2.next()) {
+          matches++;
+        }
+      }
+      // Out of 20 random floats, they shouldn't all match
+      expect(matches).toBeLessThan(5);
+    });
+
+    it('should shuffle arrays deterministically', () => {
+      const array = ['A', 'B', 'C', 'D', 'E'];
+      const prng1 = new PRNG(42);
+      const prng2 = new PRNG(42);
+
+      const shuffled1 = prng1.shuffle(array);
+      const shuffled2 = prng2.shuffle(array);
+
+      expect(shuffled1).toEqual(shuffled2);
+      // Ensure it's actually shuffled (not identical to original)
+      expect(shuffled1).not.toEqual(array);
+    });
+  });
+
+  describe('Logical & Mathematical Expression Parser (math-parser.ts)', () => {
+    it('should evaluate basic arithmetic operations with correct precedence', () => {
+      expect(evaluateExpression('2 + 3 * 4', {})).toBe(14);
+      expect(evaluateExpression('(2 + 3) * 4', {})).toBe(20);
+      expect(evaluateExpression('10 - 4 / 2', {})).toBe(8);
+      expect(evaluateExpression('13 % 5', {})).toBe(3);
+    });
+
+    it('should resolve variable values from context', () => {
+      const context = { x: 10, y: 5, z: 2 };
+      expect(evaluateExpression('x * y + z', context)).toBe(52);
+      expect(evaluateExpression('x / (y - z)', context)).toBe(10 / 3);
+    });
+
+    it('should evaluate comparison and equality operators', () => {
+      expect(evaluateExpression('10 > 5', {})).toBe(true);
+      expect(evaluateExpression('10 < 5', {})).toBe(false);
+      expect(evaluateExpression('10 >= 10', {})).toBe(true);
+      expect(evaluateExpression('5 <= 4', {})).toBe(false);
+      expect(evaluateExpression('10 === 10', {})).toBe(true);
+      expect(evaluateExpression('10 !== 5', {})).toBe(true);
+    });
+
+    it('should evaluate logical expressions', () => {
+      expect(evaluateExpression('true && false', { true: true, false: false })).toBe(false);
+      expect(evaluateExpression('true || false', { true: true, false: false })).toBe(true);
+      expect(evaluateExpression('5 > 3 && 2 < 4', {})).toBe(true);
+    });
+
+    it('should throw on division by zero', () => {
+      expect(() => evaluateExpression('10 / 0', {})).toThrow("Division by zero");
+    });
+
+    it('should support string operations', () => {
+      expect(evaluateExpression('name === "Alice"', { name: 'Alice' })).toBe(true);
+      expect(evaluateExpression('name !== "Bob"', { name: 'Alice' })).toBe(true);
+    });
+  });
+
+  describe('Variable Generator (variable-generator.ts)', () => {
+    it('should respect step boundaries and range constraints', () => {
+      const prng = new PRNG(100);
+      const variables = [
+        {
+          name: 'val',
+          type: 'number' as const,
+          range: { min: 10, max: 20, step: 2 }
+        }
+      ];
+
+      for (let i = 0; i < 50; i++) {
+        const generated = generateVariables(variables, prng);
+        const val = generated.val;
+        expect(val).toBeGreaterThanOrEqual(10);
+        expect(val).toBeLessThanOrEqual(20);
+        // Should be even since min=10 and step=2
+        expect(val % 2).toBe(0);
+      }
+    });
+
+    it('should correctly round numbers to precision of step', () => {
+      expect(roundToPrecision(0.333333, 0.01)).toBe(0.33);
+      expect(roundToPrecision(5.5, 0.5)).toBe(5.5);
+      expect(roundToPrecision(10.1234, 1)).toBe(10);
+    });
+  });
+
+  describe('Constraint Engine (constraint-engine.ts)', () => {
+    it('should identify warning and critical constraint violations', () => {
+      const constraints = [
+        { rule: 'A !== B', severity: 'critical' as const },
+        { rule: 'A > 10', severity: 'warning' as const }
+      ];
+
+      const res1 = evaluateConstraints(constraints, { A: 15, B: 20 });
+      expect(res1.isValid).toBe(true);
+      expect(res1.violatedConstraints.length).toBe(0);
+
+      // Violate critical constraint
+      const res2 = evaluateConstraints(constraints, { A: 15, B: 15 });
+      expect(res2.isValid).toBe(false);
+      expect(res2.violatedConstraints[0].rule).toBe('A !== B');
+
+      // Violate warning constraint only
+      const res3 = evaluateConstraints(constraints, { A: 5, B: 10 });
+      expect(res3.isValid).toBe(true);
+      expect(res3.violatedConstraints.length).toBe(1);
+      expect(res3.violatedConstraints[0].rule).toBe('A > 10');
+    });
+  });
+
+  describe('Difficulty Rules (difficulty-rules.ts)', () => {
+    it('should map scores correctly to easy, medium, and hard', () => {
+      expect(getDifficultyCategory(2.9)).toBe('easy');
+      expect(getDifficultyCategory(3.0)).toBe('medium');
+      expect(getDifficultyCategory(5.99)).toBe('medium');
+      expect(getDifficultyCategory(6.0)).toBe('hard');
+    });
+
+    it('should calculate difficulty scores accurately based on metadata weights', () => {
+      const metadata = {
+        w1_steps: 3.0,
+        w2_number_complexity: 2.0,
+        w3_concept_overlap: 1.5,
+        w4_trick_factor: 2.0
+      };
+
+      const score = calculateDifficultyScore(metadata, {});
+      // (3.0 * 0.65) + (2.0 * 0.40) + (1.5 * 0.40) + (2.0 * 0.40)
+      // = 1.95 + 0.8 + 0.6 + 0.8 = 4.15
+      expect(score).toBe(4.15);
+      expect(getDifficultyCategory(score)).toBe('medium');
+    });
+  });
+
+  describe('Validation Pipeline (validation-pipeline.ts)', () => {
+    const template = templates[1]; // APT_TIME_WORK_001 (easy)
+
+    it('should pass validation for valid question sets', () => {
+      const parameters = {
+        worker_A: 'Alice',
+        worker_B: 'Bob',
+        days_A: 12,
+        days_B: 24
+      };
+
+      const hash = generateQuestionHash(template.templateId, parameters);
+      const validation = validatePipeline({
+        template,
+        parameters,
+        correctAnswer: '8', // (12 * 24) / (12 + 24) = 8
+        distractors: ['6', '10', '18'],
+        seenHashes: new Set()
+      });
+
+      expect(validation.valid).toBe(true);
+      expect(validation.issues.length).toBe(0);
+    });
+
+    it('should detect duplicate hash collisions', () => {
+      const parameters = {
+        worker_A: 'Alice',
+        worker_B: 'Bob',
+        days_A: 12,
+        days_B: 24
+      };
+
+      const hash = generateQuestionHash(template.templateId, parameters);
+      const validation = validatePipeline({
+        template,
+        parameters,
+        correctAnswer: '8',
+        distractors: ['6', '10', '18'],
+        seenHashes: new Set([hash])
+      });
+
+      expect(validation.valid).toBe(false);
+      expect(validation.issues[0]).toContain('Duplicate question detected');
+    });
+
+    it('should detect options ambiguity', () => {
+      const parameters = {
+        worker_A: 'Alice',
+        worker_B: 'Bob',
+        days_A: 12,
+        days_B: 24
+      };
+
+      const validation = validatePipeline({
+        template,
+        parameters,
+        correctAnswer: '8',
+        distractors: ['8', '10', '18'], // Distractor matches correct answer
+        seenHashes: new Set()
+      });
+
+      expect(validation.valid).toBe(false);
+      expect(validation.issues[0]).toContain('Ambiguity detected');
+    });
+  });
+
+  describe('Orchestrated Template Executor (template-executor.ts)', () => {
+    it('should generate fully hydrated and correct output for all 5 templates', () => {
+      for (const template of templates) {
+        const seed = 1001;
+        const result = executeTemplate(template, seed);
+
+        expect(result.question).toBeDefined();
+        expect(typeof result.question).toBe('string');
+        
+        expect(result.options.length).toBe(4);
+        expect(result.options).toContain(result.correctAnswer);
+
+        expect(result.difficulty).toBe(template.difficulty);
+
+        // Verify determinism: Running again with same seed yields exact same result
+        const result2 = executeTemplate(template, seed);
+        expect(result.question).toBe(result2.question);
+        expect(result.correctAnswer).toBe(result2.correctAnswer);
+        expect(result.options).toEqual(result2.options);
+      }
+    });
+
+    it('should generate unique outputs when running with different seeds', () => {
+      const template = templates[0];
+      const result1 = executeTemplate(template, 1111);
+      const result2 = executeTemplate(template, 2222);
+
+      // Different seeds should produce different question text or values
+      expect(result1.question).not.toBe(result2.question);
+    });
+  });
+});
