@@ -4,11 +4,12 @@ import { ConfigModule } from './config';
 import { HealthModule } from './modules/health';
 import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
+import { TestAssemblyModule } from './modules/test-assembly/test-assembly.module';
 import { RequestLoggingMiddleware } from './common';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, HealthModule, AuthModule, UsersModule],
+  imports: [ConfigModule, PrismaModule, HealthModule, AuthModule, UsersModule, TestAssemblyModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

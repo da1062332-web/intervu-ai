@@ -1,6 +1,7 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { GenerationQueuePayload } from '@intervu-ai/shared-types';
+import { QueueJobRequestSchema, formatZodError } from '@intervu-ai/validation-core';
 
 export class GenerationQueueProcessor {
   private worker: Worker;
@@ -28,9 +29,19 @@ export class GenerationQueueProcessor {
 
     try {
       this.logger.info('Processing generation job', {
-        payload: job.data.payload,
+        payload: job.data,
         attempt: job.attemptsMade,
       });
+
+      // Runtime Validation
+      const validationResult = QueueJobRequestSchema.safeParse(job.data);
+      if (!validationResult.success) {
+        const issues = formatZodError(validationResult.error);
+        this.logger.error('Invalid job payload', new Error('Validation failed'), { issues });
+        throw new Error('Invalid job payload: ' + issues.join(', '));
+      }
+
+      const validPayload = validationResult.data;
 
       // Simulate processing
       await new Promise((resolve) => setTimeout(resolve, 1000));
