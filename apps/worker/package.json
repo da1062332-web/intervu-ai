@@ -21,7 +21,8 @@
     "pino-pretty": "^10.0.0",
 
     "@intervu-ai/shared-types": "*",
-    "@intervu-ai/shared-logger": "*"
+    "@intervu-ai/shared-logger": "*",
+    "@intervu-ai/validation-core": "*"
   },
 
   "devDependencies": {

@@ -10,9 +10,11 @@ import { map } from 'rxjs/operators';
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
-  message?: string;
-  timestamp: string;
-  path: string;
+  error?: any;
+  meta?: {
+    timestamp: string;
+    path: string;
+  };
 }
 
 @Injectable()
@@ -27,8 +29,11 @@ export class ResponseInterceptor<T>
       map((data) => ({
         success: true,
         data,
-        timestamp: new Date().toISOString(),
-        path: `${method} ${url}`,
+        error: null,
+        meta: {
+          timestamp: new Date().toISOString(),
+          path: `${method} ${url}`,
+        },
       })),
     );
   }

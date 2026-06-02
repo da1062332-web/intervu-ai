@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg' | 'icon';
 }
 
@@ -28,11 +28,11 @@ export function Button({
       'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm',
   };
 
-  const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
-    sm: 'h-8 px-3 py-1 text-sm rounded-lg gap-1.5',
-    md: 'h-10 px-4 py-2 text-sm rounded-xl gap-2',
-    lg: 'h-12 px-6 py-3 text-base rounded-xl gap-2',
-    icon: 'h-9 w-9 rounded-xl',
+  const sizes = {
+    sm: 'px-3 py-1 text-sm rounded-md',
+    md: 'px-4 py-2 text-base rounded-md',
+    lg: 'px-6 py-3 text-lg rounded-lg',
+    icon: 'h-10 w-10 flex items-center justify-center p-2 rounded-md',
   };
 
   return (
