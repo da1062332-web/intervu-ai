@@ -11,7 +11,7 @@ describe('Queue Integration Tests', () => {
     // Attempt connecting to local redis if available, otherwise tests might fail/timeout.
     // In CI this should be provided via services. We use maxRetriesPerRequest: null for BullMQ compatibility
     connection = new IORedis({ host: 'localhost', port: 6379, maxRetriesPerRequest: null });
-    testQueue = new Queue('evaluation-test-queue', { connection });
+    testQueue = new Queue('evaluation-test-queue', { connection: connection as any });
   });
 
   afterAll(async () => {
@@ -28,7 +28,7 @@ describe('Queue Integration Tests', () => {
         if (job.name === 'evaluation-job') processed = true;
         return { success: true };
       },
-      { connection }
+      { connection: connection as any }
     );
 
     await testQueue.add('evaluation-job', { data: 'test' });
@@ -39,17 +39,18 @@ describe('Queue Integration Tests', () => {
   });
 
   it('handles retry behavior and failure handling', async () => {
+    const failQueue = new Queue('fail-test-queue', { connection: connection as any });
     let attempts = 0;
     const failWorker = new Worker(
-      'evaluation-test-queue',
+      'fail-test-queue',
       async () => {
         attempts++;
         throw new Error('Forced failure');
       },
-      { connection }
+      { connection: connection as any }
     );
 
-    const job = await testQueue.add('pregeneration-job', { foo: 'bar' }, { attempts: 3, backoff: { type: 'fixed', delay: 100 } });
+    const job = await failQueue.add('pregeneration-job', { foo: 'bar' }, { attempts: 3, backoff: { type: 'fixed', delay: 100 } });
     
     // wait for all retries to exhaust
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -59,5 +60,6 @@ describe('Queue Integration Tests', () => {
     expect(state).toBe('failed'); // Equivalent to dead-letter behavior for BullMQ (failed status)
     
     await failWorker.close();
+    await failQueue.close();
   });
 });
