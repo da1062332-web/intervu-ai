@@ -5,6 +5,8 @@ import { evaluateConstraints } from './constraint-engine';
 import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
 import { validatePipeline, generateQuestionHash } from './validation-pipeline';
 import { executeTemplate } from './template-executor';
+import { TemplateLoader } from './template-loader';
+import { AptitudeGenerationRuntime } from './execution-runtime';
 import { QuestionTemplate } from '../types/template.types';
 
 // Load templates directly for testing
@@ -104,7 +106,7 @@ describe('Generation Engine Core Subsystem', () => {
 
       for (let i = 0; i < 50; i++) {
         const generated = generateVariables(variables, prng);
-        const val = generated.val;
+        const val = generated.val as number;
         expect(val).toBeGreaterThanOrEqual(10);
         expect(val).toBeLessThanOrEqual(20);
         // Should be even since min=10 and step=2
@@ -178,7 +180,6 @@ describe('Generation Engine Core Subsystem', () => {
         days_B: 24
       };
 
-      const hash = generateQuestionHash(template.templateId, parameters);
       const validation = validatePipeline({
         template,
         parameters,
@@ -234,7 +235,7 @@ describe('Generation Engine Core Subsystem', () => {
   });
 
   describe('Orchestrated Template Executor (template-executor.ts)', () => {
-    it('should generate fully hydrated and correct output for all 5 templates', () => {
+    it('should generate fully hydrated and correct output with structured solution for all 5 templates', () => {
       for (const template of templates) {
         const seed = 1001;
         const result = executeTemplate(template, seed);
@@ -247,11 +248,23 @@ describe('Generation Engine Core Subsystem', () => {
 
         expect(result.difficulty).toBe(template.difficulty);
 
+        // Verify solution structure
+        expect(result.solution).toBeDefined();
+        expect(Array.isArray(result.solution.steps)).toBe(true);
+        expect(result.solution.steps.length).toBeGreaterThan(0);
+        expect(result.solution.finalAnswer).toBe(result.correctAnswer);
+
+        // Verify SHA-256 hash output
+        expect(result.hash).toBeDefined();
+        expect(result.hash.length).toBe(64); // SHA-256 is 64 hex chars
+
         // Verify determinism: Running again with same seed yields exact same result
         const result2 = executeTemplate(template, seed);
         expect(result.question).toBe(result2.question);
         expect(result.correctAnswer).toBe(result2.correctAnswer);
         expect(result.options).toEqual(result2.options);
+        expect(result.solution).toEqual(result2.solution);
+        expect(result.hash).toBe(result2.hash);
       }
     });
 
@@ -262,6 +275,47 @@ describe('Generation Engine Core Subsystem', () => {
 
       // Different seeds should produce different question text or values
       expect(result1.question).not.toBe(result2.question);
+    });
+  });
+
+  describe('Template Loader (template-loader.ts)', () => {
+    it('should load all templates and validate them successfully', () => {
+      const loader = new TemplateLoader();
+      const allTemplates = loader.getAllTemplates();
+      expect(allTemplates.length).toBe(5);
+
+      const template = loader.getTemplate('APT_PERCENTAGE_001');
+      expect(template).toBeDefined();
+      expect(template?.topic).toBe('percentages');
+    });
+
+    it('should filter templates by topic', () => {
+      const loader = new TemplateLoader();
+      const timeWorkTemplates = loader.getTemplatesByTopic('time_work');
+      expect(timeWorkTemplates.length).toBe(1);
+      expect(timeWorkTemplates[0].templateId).toBe('APT_TIME_WORK_001');
+    });
+  });
+
+  describe('Execution Runtime (execution-runtime.ts)', () => {
+    it('should generate a batch of unique questions for a topic', () => {
+      const runtime = new AptitudeGenerationRuntime();
+      const count = 3;
+      const seenHashes = new Set<string>();
+
+      // There is only 1 template for percentages in the JSON, but since we vary seeds,
+      // we can generate multiple distinct questions from it.
+      const questions = runtime.generateQuestionsForTopic('percentages', count, 100, seenHashes);
+      
+      expect(questions.length).toBe(count);
+      expect(seenHashes.size).toBe(count);
+
+      // Verify all generated questions have the structured solution and correct topic
+      for (const q of questions) {
+        expect(q.solution).toBeDefined();
+        expect(q.options.length).toBe(4);
+        expect(q.correctAnswer).toBeDefined();
+      }
     });
   });
 });

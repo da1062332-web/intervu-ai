@@ -6,17 +6,24 @@ import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-ru
 import { validatePipeline, generateQuestionHash } from './validation-pipeline';
 import { QuestionTemplate } from '../types/template.types';
 
+export interface HydratedSolution {
+  steps: string[];
+  finalAnswer: string;
+}
+
 export interface GeneratedOutput {
   question: string;
   options: string[];
   correctAnswer: string;
+  solution: HydratedSolution;
   difficulty: 'easy' | 'medium' | 'hard';
+  hash: string;
 }
 
 /**
  * Hydrates placeholders in the template string (e.g., {variable} or {(math expression)}).
  */
-export function hydrateString(template: string, parameters: Record<string, any>): string {
+export function hydrateString(template: string, parameters: Record<string, unknown>): string {
   return template.replace(/\{([^}]+)\}/g, (match, expr) => {
     const trimmed = expr.trim();
     if (trimmed in parameters) {
@@ -38,7 +45,7 @@ export function hydrateString(template: string, parameters: Record<string, any>)
 /**
  * Generates 3 unique distractors based on the correct answer.
  */
-export function generateDistractors(correctVal: number, prng: PRNG): string[] {
+export function generateDistractors(correctVal: number): string[] {
   const distractors = new Set<string>();
   const isInt = Number.isInteger(correctVal);
 
@@ -89,10 +96,11 @@ export function executeTemplate(
   seenHashes: Set<string> | string[] = new Set()
 ): GeneratedOutput {
   const prng = new PRNG(seed);
-  let parameters: Record<string, any> = {};
+  let parameters: Record<string, unknown> = {};
   let correctAnswerVal = 0;
   let attempt = 0;
   const maxAttempts = 100;
+  let finalHash = '';
 
   // 1. Generation & Constraint check retry loop
   while (attempt < maxAttempts) {
@@ -114,23 +122,19 @@ export function executeTemplate(
 
     // Verify Solvability
     try {
-      correctAnswerVal = evaluateExpression(template.solutionTemplate.finalAnswer, parameters);
-      if (
-        correctAnswerVal === undefined ||
-        correctAnswerVal === null ||
-        isNaN(correctAnswerVal) ||
-        !isFinite(correctAnswerVal)
-      ) {
+      const evaluated = evaluateExpression(template.solutionTemplate.finalAnswer, parameters);
+      if (typeof evaluated !== 'number' || isNaN(evaluated) || !isFinite(evaluated)) {
         continue;
       }
+      correctAnswerVal = evaluated;
     } catch {
       continue;
     }
 
     // Check duplicate hash
-    const hash = generateQuestionHash(template.templateId, parameters);
+    finalHash = generateQuestionHash(template.templateId, parameters);
     const hashesSet = seenHashes instanceof Set ? seenHashes : new Set(seenHashes);
-    if (hashesSet.has(hash)) {
+    if (hashesSet.has(finalHash)) {
       continue;
     }
 
@@ -144,13 +148,14 @@ export function executeTemplate(
 
   // 2. Hydrate Question & Solution steps
   const hydratedQuestion = hydrateString(template.questionTemplate, parameters);
+  const hydratedSteps = template.solutionTemplate.steps.map((step) => hydrateString(step, parameters));
   
   // Format correct answer to string
   const isAnswerInt = Number.isInteger(correctAnswerVal);
   const formattedAnswer = String(roundToPrecision(correctAnswerVal, isAnswerInt ? 1 : 0.01));
 
   // 3. Generate distractors
-  const distractors = generateDistractors(correctAnswerVal, prng);
+  const distractors = generateDistractors(correctAnswerVal);
 
   // 4. Validate output using the pipeline
   const validation = validatePipeline({
@@ -173,6 +178,11 @@ export function executeTemplate(
     question: hydratedQuestion,
     options: shuffledOptions,
     correctAnswer: formattedAnswer,
+    solution: {
+      steps: hydratedSteps,
+      finalAnswer: formattedAnswer,
+    },
     difficulty: template.difficulty,
+    hash: finalHash,
   };
 }

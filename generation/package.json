@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint src",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

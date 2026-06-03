@@ -6,7 +6,7 @@ import { DifficultyMetadata } from '../types/template.types';
  */
 export function calculateDynamicComplexity(
   baseComplexity: number,
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
 ): number {
   let dynamicOffset = 0;
   for (const key of Object.keys(parameters)) {
@@ -31,7 +31,7 @@ export function calculateDynamicComplexity(
  */
 export function calculateDifficultyScore(
   metadata: DifficultyMetadata,
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
 ): number {
   const steps = metadata.w1_steps;
   const baseComplexity = metadata.w2_number_complexity;
