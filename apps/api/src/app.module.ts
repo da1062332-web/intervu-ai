@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
 import { TemplateLibraryModule } from './modules/template-library';
 import { TestAssemblyModule } from './modules/test-assembly';
+import { SystemConfigModule } from './modules/config';
 import { RequestLoggingMiddleware } from './common';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -18,6 +19,7 @@ import { PrismaModule } from './prisma/prisma.module';
     UsersModule,
     TemplateLibraryModule,
     TestAssemblyModule,
+    SystemConfigModule,
   ],
 })
 export class AppModule implements NestModule {

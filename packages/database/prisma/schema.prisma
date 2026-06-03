@@ -125,3 +125,11 @@ enum TestStatus {
   EVALUATED
   FAILED
 }
+
+model SystemConfig {
+  id        String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

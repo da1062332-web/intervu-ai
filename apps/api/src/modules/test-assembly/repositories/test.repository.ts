@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { Test, Prisma, TestStatus } from '@prisma/client';
 
 import { BaseRepository } from '../../../common';
@@ -12,7 +12,7 @@ export class TestRepository extends BaseRepository<
 > {
   constructor(
     prisma: PrismaService,
-    tx?: Prisma.TransactionClient,
+    @Optional() tx?: Prisma.TransactionClient,
   ) {
     super(prisma, 'test', { softDelete: true }, tx);
   }
