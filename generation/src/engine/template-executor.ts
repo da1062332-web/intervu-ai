@@ -5,6 +5,7 @@ import { evaluateExpression } from './math-parser';
 import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
 import { validatePipeline, generateQuestionHash } from './validation-pipeline';
 import { QuestionTemplate } from '../types/template.types';
+import { ValidationFailureReason } from './metrics-tracker';
 
 export interface HydratedSolution {
   steps: string[];
@@ -93,7 +94,8 @@ export function generateDistractors(correctVal: number): string[] {
 export function executeTemplate(
   template: QuestionTemplate,
   seed: number,
-  seenHashes: Set<string> | string[] = new Set()
+  seenHashes: Set<string> | string[] = new Set(),
+  tracker?: { recordFailure: (reason: ValidationFailureReason) => void }
 ): GeneratedOutput {
   const prng = new PRNG(seed);
   let parameters: Record<string, unknown> = {};
@@ -110,13 +112,16 @@ export function executeTemplate(
     // Evaluate constraints (Must satisfy all critical rules)
     const constraintCheck = evaluateConstraints(template.constraints, parameters);
     if (!constraintCheck.isValid) {
+      tracker?.recordFailure('constraint_violation');
       continue;
     }
 
     // Evaluate difficulty score & ensure consistency
-    const score = calculateDifficultyScore(template.metadata, parameters);
+    const constraintsCount = template.constraints ? template.constraints.length : 0;
+    const score = calculateDifficultyScore(template.metadata, parameters, constraintsCount);
     const category = getDifficultyCategory(score);
     if (category !== template.difficulty) {
+      tracker?.recordFailure('difficulty_mismatch');
       continue;
     }
 
@@ -124,10 +129,12 @@ export function executeTemplate(
     try {
       const evaluated = evaluateExpression(template.solutionTemplate.finalAnswer, parameters);
       if (typeof evaluated !== 'number' || isNaN(evaluated) || !isFinite(evaluated)) {
+        tracker?.recordFailure('solvability_failure');
         continue;
       }
       correctAnswerVal = evaluated;
     } catch {
+      tracker?.recordFailure('solvability_failure');
       continue;
     }
 
@@ -135,6 +142,7 @@ export function executeTemplate(
     finalHash = generateQuestionHash(template.templateId, parameters);
     const hashesSet = seenHashes instanceof Set ? seenHashes : new Set(seenHashes);
     if (hashesSet.has(finalHash)) {
+      tracker?.recordFailure('duplicate_collision');
       continue;
     }
 

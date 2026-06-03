@@ -1,11 +1,37 @@
 import { TemplateLoader } from './template-loader';
 import { executeTemplate, GeneratedOutput } from './template-executor';
+import { MetricsTracker, ValidationFailureReason, TemplateMetadataContract } from './metrics-tracker';
 
 export class AptitudeGenerationRuntime {
   private loader: TemplateLoader;
+  private metricsTracker: MetricsTracker;
 
   constructor(loader?: TemplateLoader) {
     this.loader = loader || new TemplateLoader();
+    this.metricsTracker = new MetricsTracker();
+  }
+
+  /**
+   * Returns the underlying metrics tracker.
+   */
+  getMetricsTracker(): MetricsTracker {
+    return this.metricsTracker;
+  }
+
+  /**
+   * Returns structured analytics/metadata for a given template.
+   */
+  getTemplateMetadata(templateId: string): TemplateMetadataContract | null {
+    const template = this.loader.getTemplate(templateId);
+    if (!template) {
+      return null;
+    }
+    return this.metricsTracker.getMetricsForTemplate(
+      templateId,
+      template.difficulty,
+      template.topic,
+      template.tags
+    );
   }
 
   /**
@@ -20,7 +46,40 @@ export class AptitudeGenerationRuntime {
     if (!template) {
       throw new Error(`Template not found: ${templateId}`);
     }
-    return executeTemplate(template, seed, seenHashes);
+
+    const startTime = performance.now();
+    const failures: { reason: ValidationFailureReason; count: number }[] = [];
+    const tracker = {
+      recordFailure: (reason: ValidationFailureReason) => {
+        const found = failures.find((f) => f.reason === reason);
+        if (found) {
+          found.count++;
+        } else {
+          failures.push({ reason, count: 1 });
+        }
+      },
+    };
+
+    let success = false;
+    let attemptsUsed = 0;
+    try {
+      const result = executeTemplate(template, seed, seenHashes, tracker);
+      success = true;
+      attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0) + 1;
+      return result;
+    } catch (err) {
+      attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0);
+      throw err;
+    } finally {
+      const runtimeMs = performance.now() - startTime;
+      this.metricsTracker.recordRun({
+        templateId,
+        success,
+        runtimeMs,
+        attemptsUsed,
+        failures,
+      });
+    }
   }
 
   /**
@@ -50,8 +109,8 @@ export class AptitudeGenerationRuntime {
       const template = templates[templateIdx];
 
       try {
-        const question = executeTemplate(template, currentSeed + attempts, seenHashes);
-        
+        const question = this.generateQuestion(template.templateId, currentSeed + attempts, seenHashes);
+
         // Add the newly generated question's hash to the validation register to prevent subsequent duplicates
         seenHashes.add(question.hash);
         results.push(question);

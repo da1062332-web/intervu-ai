@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { AptitudeTopic, DifficultyLevel } from '@intervu/shared';
+import { DifficultyLevel } from '@intervu/shared';
+
+export enum TemplateCategory {
+  APTITUDE = 'aptitude',
+  LOGICAL_REASONING = 'logical_reasoning',
+  QUANTITATIVE_REASONING = 'quantitative_reasoning',
+  CODING = 'coding',
+}
 
 export const VariableNumberRangeSchema = z.object({
   min: z.number(),
@@ -41,14 +48,15 @@ export const DifficultyMetadataSchema = z.object({
 
 export const QuestionTemplateSchema = z.object({
   templateId: z.string(),
-  type: z.literal('aptitude'),
-  topic: z.nativeEnum(AptitudeTopic),
+  type: z.nativeEnum(TemplateCategory),
+  topic: z.string(),
   difficulty: z.nativeEnum(DifficultyLevel),
   variables: z.array(VariableSchema),
   constraints: z.array(ConstraintSchema),
   questionTemplate: z.string(),
   solutionTemplate: SolutionTemplateSchema,
   metadata: DifficultyMetadataSchema,
+  tags: z.array(z.string()).optional(),
 });
 
 // Infer TypeScript types from Zod schemas
