@@ -95,9 +95,9 @@ export function tokenize(input: string): Token[] {
 class Parser {
   private tokens: Token[];
   private current = 0;
-  private context: Record<string, any>;
+  private context: Record<string, unknown>;
 
-  constructor(tokens: Token[], context: Record<string, any>) {
+  constructor(tokens: Token[], context: Record<string, unknown>) {
     this.tokens = tokens;
     this.context = context;
   }
@@ -127,29 +127,29 @@ class Parser {
     throw new Error(message);
   }
 
-  evaluate(): any {
+  evaluate(): unknown {
     return this.logicalOr();
   }
 
-  private logicalOr(): any {
+  private logicalOr(): unknown {
     let expr = this.logicalAnd();
     while (this.match('||')) {
       const right = this.logicalAnd();
-      expr = expr || right;
+      expr = (expr as boolean) || (right as boolean);
     }
     return expr;
   }
 
-  private logicalAnd(): any {
+  private logicalAnd(): unknown {
     let expr = this.equality();
     while (this.match('&&')) {
       const right = this.equality();
-      expr = expr && right;
+      expr = (expr as boolean) && (right as boolean);
     }
     return expr;
   }
 
-  private equality(): any {
+  private equality(): unknown {
     let expr = this.comparison();
     while (this.match('===', '!==', '==', '!=')) {
       const op = this.previous().value;
@@ -163,55 +163,55 @@ class Parser {
     return expr;
   }
 
-  private comparison(): any {
+  private comparison(): unknown {
     let expr = this.term();
     while (this.match('<=', '>=', '<', '>')) {
       const op = this.previous().value;
       const right = this.term();
-      if (op === '<') expr = expr < right;
-      else if (op === '>') expr = expr > right;
-      else if (op === '<=') expr = expr <= right;
-      else if (op === '>=') expr = expr >= right;
+      if (op === '<') expr = (expr as number) < (right as number);
+      else if (op === '>') expr = (expr as number) > (right as number);
+      else if (op === '<=') expr = (expr as number) <= (right as number);
+      else if (op === '>=') expr = (expr as number) >= (right as number);
     }
     return expr;
   }
 
-  private term(): any {
+  private term(): unknown {
     let expr = this.factor();
     while (this.match('+', '-')) {
       const op = this.previous().value;
       const right = this.factor();
-      if (op === '+') expr = expr + right;
-      else expr = expr - right;
+      if (op === '+') expr = (expr as number) + (right as number);
+      else expr = (expr as number) - (right as number);
     }
     return expr;
   }
 
-  private factor(): any {
+  private factor(): unknown {
     let expr = this.unary();
     while (this.match('*', '/', '%')) {
       const op = this.previous().value;
       const right = this.unary();
-      if (op === '*') expr = expr * right;
+      if (op === '*') expr = (expr as number) * (right as number);
       else if (op === '/') {
-        if (right === 0) {
+        if ((right as number) === 0) {
           throw new Error("Division by zero");
         }
-        expr = expr / right;
+        expr = (expr as number) / (right as number);
       }
-      else expr = expr % right;
+      else expr = (expr as number) % (right as number);
     }
     return expr;
   }
 
-  private unary(): any {
+  private unary(): unknown {
     if (this.match('-')) {
-      return -this.unary();
+      return -(this.unary() as number);
     }
     return this.primary();
   }
 
-  private primary(): any {
+  private primary(): unknown {
     const token = this.peek();
 
     if (token.type === 'NUMBER') {
@@ -246,7 +246,7 @@ class Parser {
 /**
  * Safely evaluates a mathematical or logical expression using variables in the context.
  */
-export function evaluateExpression(expr: string, context: Record<string, any>): any {
+export function evaluateExpression(expr: string, context: Record<string, unknown>): unknown {
   const tokens = tokenize(expr);
   const parser = new Parser(tokens, context);
   return parser.evaluate();

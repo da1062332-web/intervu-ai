@@ -12,7 +12,7 @@ export interface ConstraintEvaluationResult {
  */
 export function evaluateConstraints(
   constraints: Constraint[],
-  context: Record<string, any>
+  context: Record<string, unknown>
 ): ConstraintEvaluationResult {
   const violatedConstraints: Constraint[] = [];
 
@@ -22,7 +22,7 @@ export function evaluateConstraints(
       if (isSatisfied !== true) {
         violatedConstraints.push(constraint);
       }
-    } catch (error) {
+    } catch {
       // If evaluation throws (e.g. division by zero), treat as a critical failure
       violatedConstraints.push({
         rule: constraint.rule,
