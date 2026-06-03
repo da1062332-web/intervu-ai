@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   BarChart3,
+  TrendingUp,
   User,
   Settings,
 } from 'lucide-react';
@@ -31,6 +32,11 @@ export const NAV_CONFIG: NavConfig = {
           label: 'Results',
           route: '/results',
           icon: BarChart3,
+        },
+        {
+          label: 'Analytics',
+          route: '/analytics',
+          icon: TrendingUp,
         },
       ],
     },
