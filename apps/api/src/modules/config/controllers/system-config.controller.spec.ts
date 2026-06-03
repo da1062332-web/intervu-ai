@@ -38,7 +38,7 @@ describe('SystemConfigController', () => {
 
   describe('getSystemConfig', () => {
     it('should call service.getSystemConfig and return results', async () => {
-      service.getSystemConfig.mockResolvedValue(mockConfigDto as any);
+      service.getSystemConfig.mockResolvedValue(mockConfigDto as never);
 
       const result = await controller.getSystemConfig();
 
@@ -51,7 +51,7 @@ describe('SystemConfigController', () => {
     it('should call service.updateSystemConfig with payload and return results', async () => {
       const payload = { generationRules: { defaultModel: 'claude-3-opus' } };
       const updatedMock = { ...mockConfigDto, generationRules: { ...mockConfigDto.generationRules, defaultModel: 'claude-3-opus' } };
-      service.updateSystemConfig.mockResolvedValue(updatedMock as any);
+      service.updateSystemConfig.mockResolvedValue(updatedMock as never);
 
       const result = await controller.updateSystemConfig(payload);
 
@@ -62,7 +62,7 @@ describe('SystemConfigController', () => {
 
   describe('getTemplates', () => {
     it('should call service.getTemplates and return list of templates', async () => {
-      const mockTemplates = [{ id: 't1', name: 'Standard Template', isSystem: true, config: {} }] as any;
+      const mockTemplates = [{ id: 't1', name: 'Standard Template', isSystem: true, config: {} }] as never;
       service.getTemplates.mockResolvedValue(mockTemplates);
 
       const result = await controller.getTemplates();

@@ -11,7 +11,7 @@ describe('Queue Integration Tests', () => {
     // Attempt connecting to local redis if available, otherwise tests might fail/timeout.
     // In CI this should be provided via services. We use maxRetriesPerRequest: null for BullMQ compatibility
     connection = new IORedis({ host: 'localhost', port: 6379, maxRetriesPerRequest: null });
-    testQueue = new Queue('evaluation-test-queue', { connection: connection as any });
+    testQueue = new Queue('evaluation-test-queue', { connection: connection as never });
   });
 
   afterAll(async () => {
@@ -28,7 +28,7 @@ describe('Queue Integration Tests', () => {
         if (job.name === 'evaluation-job') processed = true;
         return { success: true };
       },
-      { connection: connection as any }
+      { connection: connection as never }
     );
 
     await testQueue.add('evaluation-job', { data: 'test' });
@@ -39,7 +39,7 @@ describe('Queue Integration Tests', () => {
   });
 
   it('handles retry behavior and failure handling', async () => {
-    const failQueue = new Queue('fail-test-queue', { connection: connection as any });
+    const failQueue = new Queue('fail-test-queue', { connection: connection as never });
     let attempts = 0;
     const failWorker = new Worker(
       'fail-test-queue',
@@ -47,7 +47,7 @@ describe('Queue Integration Tests', () => {
         attempts++;
         throw new Error('Forced failure');
       },
-      { connection: connection as any }
+      { connection: connection as never }
     );
 
     const job = await failQueue.add('pregeneration-job', { foo: 'bar' }, { attempts: 3, backoff: { type: 'fixed', delay: 100 } });

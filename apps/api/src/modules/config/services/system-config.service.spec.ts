@@ -91,11 +91,11 @@ describe('SystemConfigService', () => {
 
     it('should fetch from repository and populate cache on cache miss', async () => {
       cacheService.get.mockResolvedValue(null);
-      configRepository.findById.mockResolvedValueOnce({ id: 'difficulty', value: mockConfigDto.difficultyLevels } as any);
-      configRepository.findById.mockResolvedValueOnce({ id: 'generation', value: mockConfigDto.generationRules } as any);
-      configRepository.findById.mockResolvedValueOnce({ id: 'validation', value: mockConfigDto.validationRules } as any);
-      configRepository.findById.mockResolvedValueOnce({ id: 'queue', value: mockConfigDto.queueSettings } as any);
-      configRepository.findById.mockResolvedValueOnce({ id: 'envFlags', value: mockConfigDto.environmentFlags } as any);
+      configRepository.findById.mockResolvedValueOnce({ id: 'difficulty', value: mockConfigDto.difficultyLevels } as never);
+      configRepository.findById.mockResolvedValueOnce({ id: 'generation', value: mockConfigDto.generationRules } as never);
+      configRepository.findById.mockResolvedValueOnce({ id: 'validation', value: mockConfigDto.validationRules } as never);
+      configRepository.findById.mockResolvedValueOnce({ id: 'queue', value: mockConfigDto.queueSettings } as never);
+      configRepository.findById.mockResolvedValueOnce({ id: 'envFlags', value: mockConfigDto.environmentFlags } as never);
 
       const result = await service.getSystemConfig();
 
@@ -129,7 +129,7 @@ describe('SystemConfigService', () => {
         }
       };
 
-      configRepository.upsertConfig.mockResolvedValue({} as any);
+      configRepository.upsertConfig.mockResolvedValue({} as never);
       cacheService.set.mockResolvedValue(true);
 
       const result = await service.updateSystemConfig(updatePayload);
@@ -149,7 +149,7 @@ describe('SystemConfigService', () => {
   describe('getTemplates', () => {
     it('should return templates from templateRepository', async () => {
       const mockTemplates = [{ id: 't1', name: 'T1', isSystem: true, config: {} }];
-      templateRepository.findSystemTemplates.mockResolvedValue(mockTemplates as any);
+      templateRepository.findSystemTemplates.mockResolvedValue(mockTemplates as never);
 
       const result = await service.getTemplates();
 
