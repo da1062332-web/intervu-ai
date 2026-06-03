@@ -7,6 +7,9 @@
     "packages/*",
     "generation"
   ],
+  "prisma": {
+    "seed": "tsx packages/database/prisma/seed/index.ts"
+  },
   "scripts": {
     "postinstall": "npm run prisma:generate --workspace @intervu-ai/database",
     "dev": "turbo run dev",
