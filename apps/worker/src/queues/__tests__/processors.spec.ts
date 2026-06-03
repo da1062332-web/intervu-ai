@@ -1,6 +1,6 @@
-import { GenerationQueueProcessor } from '../queues/generation.queue';
-import { EvaluationQueueProcessor } from '../queues/evaluation.queue';
-import { AnalyticsQueueProcessor } from '../queues/analytics.queue';
+import { GenerationQueueProcessor } from '../generation.queue';
+import { EvaluationQueueProcessor } from '../evaluation.queue';
+import { AnalyticsQueueProcessor } from '../analytics.queue';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { type ConnectionOptions, Queue } from 'bullmq';
 import Redis from 'ioredis';
@@ -68,7 +68,7 @@ describe('Worker Queue Processors', () => {
         },
       };
 
-      const job = await generationQueue.add('test-gen-001', jobData);
+      const job = await generationQueue.add('test-gen-001', jobData, { jobId: 'test-gen-001' });
       expect(job.id).toBe('test-gen-001');
 
       const state = await job.getState();
@@ -94,7 +94,7 @@ describe('Worker Queue Processors', () => {
         },
       };
 
-      const job = await evaluationQueue.add('test-eval-001', jobData);
+      const job = await evaluationQueue.add('test-eval-001', jobData, { jobId: 'test-eval-001' });
       expect(job.id).toBe('test-eval-001');
 
       const state = await job.getState();
@@ -122,7 +122,7 @@ describe('Worker Queue Processors', () => {
         },
       };
 
-      const job = await analyticsQueue.add('test-analytics-001', jobData);
+      const job = await analyticsQueue.add('test-analytics-001', jobData, { jobId: 'test-analytics-001' });
       expect(job.id).toBe('test-analytics-001');
 
       const state = await job.getState();
@@ -159,9 +159,9 @@ describe('Worker Queue Processors', () => {
       });
 
       // Verify all jobs are queued
-      const genCounts = await generationQueue.getCountsPerState('wait', 'active');
-      const evalCounts = await evaluationQueue.getCountsPerState('wait', 'active');
-      const anaCounts = await analyticsQueue.getCountsPerState('wait', 'active');
+      const genCounts = await generationQueue.getJobCounts('wait', 'active');
+      const evalCounts = await evaluationQueue.getJobCounts('wait', 'active');
+      const anaCounts = await analyticsQueue.getJobCounts('wait', 'active');
 
       expect((genCounts.wait || 0) + (genCounts.active || 0)).toBeGreaterThan(0);
       expect((evalCounts.wait || 0) + (evalCounts.active || 0)).toBeGreaterThan(0);
@@ -192,8 +192,9 @@ describe('Worker Queue Processors', () => {
       });
 
       expect(job.opts.attempts).toBe(3);
-      expect(job.opts.backoff?.type).toBe('exponential');
-      expect(job.opts.backoff?.delay).toBe(1000);
+      const backoff = job.opts.backoff as { type: string; delay: number };
+      expect(backoff?.type).toBe('exponential');
+      expect(backoff?.delay).toBe(1000);
     });
   });
 
