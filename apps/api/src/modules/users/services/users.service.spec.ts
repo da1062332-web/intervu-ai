@@ -116,7 +116,7 @@ describe('UsersService', () => {
 
   describe('getSessions', () => {
     it('should return mapped active sessions', async () => {
-      jest.spyOn(sessionRepository, 'findActiveSessionsByUserId').mockResolvedValue([mockSession] as any);
+      jest.spyOn(sessionRepository, 'findActiveSessionsByUserId').mockResolvedValue([mockSession] as never);
 
       const result = await service.getSessions('user-1', 'session-1');
 
@@ -135,7 +135,7 @@ describe('UsersService', () => {
 
   describe('terminateSession', () => {
     it('should call repository to delete session', async () => {
-      jest.spyOn(sessionRepository, 'deleteSession').mockResolvedValue({} as any);
+      jest.spyOn(sessionRepository, 'deleteSession').mockResolvedValue({} as never);
 
       await service.terminateSession('session-1', 'user-1');
 
@@ -153,8 +153,8 @@ describe('UsersService', () => {
 
   describe('terminateAllOtherSessions', () => {
     it('should terminate other sessions and tokens when currentSessionId is provided', async () => {
-      jest.spyOn(sessionRepository, 'deleteOtherSessions').mockResolvedValue({ count: 1 } as any);
-      jest.spyOn(sessionRepository, 'revokeOtherRefreshTokens').mockResolvedValue({ count: 1 } as any);
+      jest.spyOn(sessionRepository, 'deleteOtherSessions').mockResolvedValue({ count: 1 } as never);
+      jest.spyOn(sessionRepository, 'revokeOtherRefreshTokens').mockResolvedValue({ count: 1 } as never);
 
       await service.terminateAllOtherSessions('user-1', 'session-1');
 
@@ -163,8 +163,8 @@ describe('UsersService', () => {
     });
 
     it('should terminate all sessions and tokens when currentSessionId is not provided', async () => {
-      jest.spyOn(sessionRepository, 'deleteAllSessionsByUserId').mockResolvedValue({ count: 2 } as any);
-      jest.spyOn(sessionRepository, 'revokeAllRefreshTokensByUserId').mockResolvedValue({ count: 2 } as any);
+      jest.spyOn(sessionRepository, 'deleteAllSessionsByUserId').mockResolvedValue({ count: 2 } as never);
+      jest.spyOn(sessionRepository, 'revokeAllRefreshTokensByUserId').mockResolvedValue({ count: 2 } as never);
 
       await service.terminateAllOtherSessions('user-1');
 

@@ -4,7 +4,7 @@ import {
   GenerateQuestionRequestDto,
   EvaluationRequestDto,
   ApiSuccessResponse
-} from '@intervu-ai/validation-core';
+} from '@intervu/shared';
 
 @Controller('tests')
 export class TestAssemblyController {

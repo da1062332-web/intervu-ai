@@ -6,6 +6,10 @@ import { EvaluationQueueProcessor } from './queues/evaluation.queue';
 import { AnalyticsQueueProcessor } from './queues/analytics.queue';
 import { WorkerConfigService } from './config/worker-config.service';
 
+interface IQueueProcessor {
+  close(): Promise<void>;
+}
+
 export class WorkerBootstrap {
   private config: WorkerConfigService;
   private logger: AppLogger;
@@ -13,7 +17,7 @@ export class WorkerBootstrap {
   private bullMqConnection!: ConnectionOptions;
   private processors: Array<{
     name: string;
-    processor: any;
+    processor: IQueueProcessor;
   }> = [];
 
   constructor() {

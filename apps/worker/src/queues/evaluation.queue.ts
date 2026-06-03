@@ -1,6 +1,6 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { EvaluationQueuePayload } from '@intervu-ai/shared-types';
+import { EvaluationQueueRequest } from '@intervu/shared';
 
 export class EvaluationQueueProcessor {
   private worker: Worker;
@@ -17,7 +17,7 @@ export class EvaluationQueueProcessor {
     this.setupEventHandlers();
   }
 
-  private async processJob(job: Job<EvaluationQueuePayload>): Promise<any> {
+  private async processJob(job: Job<EvaluationQueueRequest>): Promise<unknown> {
     const startTime = Date.now();
 
     this.logger.setContext({

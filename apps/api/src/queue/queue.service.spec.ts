@@ -103,7 +103,7 @@ describe('Queue System Integration Tests', () => {
       const jobId = 'test-eval-002';
       const userId = 'user-789';
 
-      const job = await queueService.enqueueEvaluation({
+      await queueService.enqueueEvaluation({
         jobId,
         timestamp: Date.now(),
         userId,

@@ -1,12 +1,12 @@
-import { Queue, Job } from 'bullmq';
+import { Job } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { QueueFactory } from './queue-config';
 import {
-  QueuePayload,
+  QueueMessage,
   QueueType,
-  GenerationQueuePayload,
-  EvaluationQueuePayload,
-  AnalyticsQueuePayload,
+  GenerationQueueMessage,
+  EvaluationQueueMessage,
+  AnalyticsQueueMessage,
 } from './queue-payloads';
 
 export class QueueService {
@@ -16,8 +16,8 @@ export class QueueService {
     this.logger = logger;
   }
 
-  async enqueueGeneration(payload: Omit<GenerationQueuePayload, 'type'>): Promise<Job> {
-    const fullPayload: GenerationQueuePayload = {
+  async enqueueGeneration(payload: Omit<GenerationQueueMessage, 'type'>): Promise<Job> {
+    const fullPayload: GenerationQueueMessage = {
       ...payload,
       type: QueueType.GENERATION,
     };
@@ -25,8 +25,8 @@ export class QueueService {
     return this.enqueue(QueueType.GENERATION, fullPayload);
   }
 
-  async enqueueEvaluation(payload: Omit<EvaluationQueuePayload, 'type'>): Promise<Job> {
-    const fullPayload: EvaluationQueuePayload = {
+  async enqueueEvaluation(payload: Omit<EvaluationQueueMessage, 'type'>): Promise<Job> {
+    const fullPayload: EvaluationQueueMessage = {
       ...payload,
       type: QueueType.EVALUATION,
     };
@@ -34,8 +34,8 @@ export class QueueService {
     return this.enqueue(QueueType.EVALUATION, fullPayload);
   }
 
-  async enqueueAnalytics(payload: Omit<AnalyticsQueuePayload, 'type'>): Promise<Job> {
-    const fullPayload: AnalyticsQueuePayload = {
+  async enqueueAnalytics(payload: Omit<AnalyticsQueueMessage, 'type'>): Promise<Job> {
+    const fullPayload: AnalyticsQueueMessage = {
       ...payload,
       type: QueueType.ANALYTICS,
     };
@@ -43,7 +43,7 @@ export class QueueService {
     return this.enqueue(QueueType.ANALYTICS, fullPayload);
   }
 
-  private async enqueue(queueType: QueueType, payload: QueuePayload): Promise<Job> {
+  private async enqueue(queueType: QueueType, payload: QueueMessage): Promise<Job> {
     try {
       const queue = QueueFactory.getQueue(queueType);
 

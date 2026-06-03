@@ -3,7 +3,7 @@ import { User, Session } from '@prisma/client';
 
 import { UserRepository } from '../repositories/user.repository';
 import { SessionRepository } from '../repositories/session.repository';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
+import { UpdateProfileDto } from '@intervu/shared';
 import { UserEntity } from '../entities/user.entity';
 import { SessionEntity } from '../entities/session.entity';
 
@@ -45,7 +45,7 @@ export class UsersService {
     }
 
     // 3. Core logic
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (dto.name !== undefined) {
       updateData.fullName = dto.name;
     }
@@ -78,7 +78,7 @@ export class UsersService {
     // 2. Fetch dependencies & 3. Core logic
     try {
       await this.sessionRepository.deleteSession(sessionId, userId);
-    } catch (error) {
+    } catch {
       throw new NotFoundException('Session not found or already terminated');
     }
   }

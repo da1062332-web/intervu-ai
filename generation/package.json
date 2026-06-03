@@ -15,7 +15,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@intervu-ai/shared-types": "*",
     "zod": "^3.23.0"
   },
   "devDependencies": {

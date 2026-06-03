@@ -202,7 +202,7 @@ describe('Redis Cache Service', () => {
   describe('Error Handling', () => {
     it('should handle cache errors gracefully', async () => {
       // Try to set invalid data
-      const result = await cacheService.set('key', { circular: null } as any);
+      const result = await cacheService.set('key', { circular: null } as unknown);
       expect([true, false]).toContain(result);
     });
 

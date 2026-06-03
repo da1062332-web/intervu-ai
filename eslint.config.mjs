@@ -26,6 +26,28 @@ export default [
     },
     rules: {
       ...tsEslintPlugin.configs.recommended.rules,
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../../schema*', '../dto*', '../*/schema', '../*/dto', '@intervu-ai/validation-core'],
+              message: 'Allow only: @intervu/shared',
+            },
+          ],
+        },
+      ],
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: ['class', 'interface', 'typeAlias'],
+          format: ['PascalCase'],
+          custom: {
+            regex: '(Payload|Body|DataObject)$',
+            match: false,
+          },
+        },
+      ],
     },
   },
   eslintConfigPrettier,

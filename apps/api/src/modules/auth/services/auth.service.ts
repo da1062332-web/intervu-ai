@@ -10,10 +10,9 @@ import { randomUUID } from 'crypto';
 import { AppConfigService } from '../../../config';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { SessionRepository } from '../../users/repositories/session.repository';
-import { SignupDto } from '../dto/signup.dto';
-import { LoginDto } from '../dto/login.dto';
+import { LoginDto, SignupDto } from '@intervu/shared';
 import { AuthUserRole } from '../interfaces/auth-user.interface';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { JwtTokenData } from '../interfaces/jwt-payload.interface';
 
 interface AuthMeta {
   userAgent?: string;
@@ -200,9 +199,9 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private verifyRefreshToken(token: string): JwtPayload {
+  private verifyRefreshToken(token: string): JwtTokenData {
     try {
-      const payload = this.jwtService.verify<JwtPayload>(token, {
+      const payload = this.jwtService.verify<JwtTokenData>(token, {
         secret: this.configService.jwtRefreshSecret,
       });
 

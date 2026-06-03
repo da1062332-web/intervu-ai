@@ -23,6 +23,14 @@
       "dependsOn": ["^test"]
     },
 
+    "test:integration": {
+      "dependsOn": ["build"]
+    },
+
+    "test:contracts": {
+      "dependsOn": ["build"]
+    },
+
     "dev": {
       "cache": false,
       "persistent": true

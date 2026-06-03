@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AptitudeTopic, DifficultyLevel } from '@intervu-ai/shared-types';
+import { AptitudeTopic, DifficultyLevel } from '@intervu/shared';
 
 export const VariableNumberRangeSchema = z.object({
   min: z.number(),
