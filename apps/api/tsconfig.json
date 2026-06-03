@@ -27,9 +27,9 @@
     "paths": {
       "@/*": ["src/*"],
 
-      "@intervu-ai/shared-types": ["../../packages/shared-types/src"],
       "@intervu-ai/shared-logger": ["../../packages/shared-logger/src"],
-      "@intervu-ai/generation": ["../../generation/src"]
+      "@intervu-ai/generation": ["../../generation/src"],
+      "@intervu-ai/validation-core": ["../../packages/validation-core/src"]
     }
   },
 

@@ -4,7 +4,7 @@ import {
   CreateTestRequest,
   ApiSuccessResponseSchema,
   ApiSuccessResponse 
-} from '@intervu-ai/validation-core';
+} from '@intervu/shared';
 
 export const TestApi = {
   createTest: async (payload: CreateTestRequest): Promise<ApiSuccessResponse> => {

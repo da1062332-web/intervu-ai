@@ -4,16 +4,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 
 import { AppConfigService } from '../../../config';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { SessionRepository } from '../../users/repositories/session.repository';
-import { SignupDto } from '../dto/signup.dto';
-import { LoginDto } from '../dto/login.dto';
+import { LoginDto, SignupDto } from '@intervu/shared';
 import { AuthUserRole } from '../interfaces/auth-user.interface';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { JwtTokenData } from '../interfaces/jwt-payload.interface';
 
 interface AuthMeta {
   userAgent?: string;
@@ -51,7 +50,7 @@ export class AuthService {
 
     const user = await this.userRepository.create({
       email,
-      passwordHash: await bcrypt.hash(dto.password, 10),
+      passwordHash: await argon2.hash(dto.password),
       fullName: dto.fullName ?? null,
     });
 
@@ -63,7 +62,7 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(email);
 
     const isValid =
-      user != null && (await bcrypt.compare(dto.password, user.passwordHash));
+      user != null && (await argon2.verify(user.passwordHash, dto.password));
     if (!isValid || !user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -200,9 +199,9 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private verifyRefreshToken(token: string): JwtPayload {
+  private verifyRefreshToken(token: string): JwtTokenData {
     try {
-      const payload = this.jwtService.verify<JwtPayload>(token, {
+      const payload = this.jwtService.verify<JwtTokenData>(token, {
         secret: this.configService.jwtRefreshSecret,
       });
 

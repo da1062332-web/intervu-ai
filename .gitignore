@@ -30,3 +30,5 @@ Thumbs.db
 # docker
 postgres-data
 redis-data
+
+.agent

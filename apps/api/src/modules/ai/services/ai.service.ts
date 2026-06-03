@@ -3,7 +3,7 @@ import {
   GenerateQuestionRequest, 
   AiQuestionResponseSchema, 
   AiQuestionResponse 
-} from '@intervu-ai/validation-core';
+} from '@intervu/shared';
 
 @Injectable()
 export class AiService {

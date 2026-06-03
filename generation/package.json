@@ -12,10 +12,11 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint src",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@intervu-ai/shared-types": "*",
+    "@intervu/shared": "*",
     "zod": "^3.23.0"
   },
   "devDependencies": {

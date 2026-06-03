@@ -1,55 +1,57 @@
+/**
+ * Queue message type definitions.
+ * Defines the strongly-typed structures for all queue job messages.
+ */
+
 export enum QueueType {
   GENERATION = 'generation',
   EVALUATION = 'evaluation',
   ANALYTICS = 'analytics',
 }
 
-export interface BaseQueuePayload {
+export interface BaseQueueMessage {
   jobId: string;
-  type: QueueType;
   timestamp: number;
-  userId?: string;
   correlationId?: string;
-  metadata?: Record<string, any>;
+  userId?: string;
+  type: QueueType;
 }
 
-export interface GenerationQueuePayload extends BaseQueuePayload {
+export interface GenerationQueueMessage extends BaseQueueMessage {
   type: QueueType.GENERATION;
   payload: {
     assemblyId: string;
-    templateId?: string;
     difficulty?: string;
-    customPrompt?: string;
-    retryCount?: number;
+    count?: number;
+    topicId?: string;
   };
 }
 
-export interface EvaluationQueuePayload extends BaseQueuePayload {
+export interface EvaluationQueueMessage extends BaseQueueMessage {
   type: QueueType.EVALUATION;
   payload: {
     testId: string;
     userId: string;
-    evaluationCriteria?: Record<string, any>;
-    retryCount?: number;
+    answers?: Record<string, string>;
   };
 }
 
-export interface AnalyticsQueuePayload extends BaseQueuePayload {
+export interface AnalyticsQueueMessage extends BaseQueueMessage {
   type: QueueType.ANALYTICS;
   payload: {
     eventType: string;
-    eventData: Record<string, any>;
-    batchId?: string;
+    eventData: Record<string, unknown>;
   };
 }
 
-export type QueuePayload = GenerationQueuePayload | EvaluationQueuePayload | AnalyticsQueuePayload;
+export type QueueMessage =
+  | GenerationQueueMessage
+  | EvaluationQueueMessage
+  | AnalyticsQueueMessage;
 
 export interface QueueJobResult {
   success: boolean;
   jobId: string;
-  result?: any;
+  data?: unknown;
   error?: string;
-  duration: number;
-  completedAt: number;
 }

@@ -1,6 +1,6 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { AnalyticsQueuePayload } from '@intervu-ai/shared-types';
+import { AnalyticsQueueRequest } from '@intervu/shared';
 
 export class AnalyticsQueueProcessor {
   private worker: Worker;
@@ -17,36 +17,23 @@ export class AnalyticsQueueProcessor {
     this.setupEventHandlers();
   }
 
-  private async processJob(job: Job<AnalyticsQueuePayload>): Promise<any> {
+  private async processJob(job: Job<AnalyticsQueueRequest>): Promise<unknown> {
     const startTime = Date.now();
 
     this.logger.setContext({
       jobId: job.id,
-      correlationId: job.data.correlationId,
-      queueName: 'analytics',
+      testId: job.data.jobId,
+      queue: 'analytics',
     });
 
     try {
-      this.logger.info('Processing analytics job', {
-        eventType: job.data.payload.eventType,
-        attempt: job.attemptsMade,
-      });
-
-      // Simulate analytics processing
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const duration = Date.now() - startTime;
-
-      const result = {
-        success: true,
-        jobId: job.id,
-        duration,
-        processed: true,
-        completedAt: new Date().toISOString(),
-      };
-
-      this.logger.info('Analytics job completed', { duration, eventType: job.data.payload.eventType });
-      return result;
+      this.logger.info(`Processing job ${job.id}`);
+      
+      // Simulate analytics processing delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      this.logger.info(`Successfully completed analytics job ${job.id}`, { duration: Date.now() - startTime });
+      return { status: 'completed' };
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('Analytics job failed', error, {
@@ -60,8 +47,8 @@ export class AnalyticsQueueProcessor {
   }
 
   private setupEventHandlers(): void {
-    this.worker.on('completed', (job, result) => {
-      this.logger.debug('Analytics job completed', {
+    this.worker.on('completed', (job) => {
+      this.logger.info('Analytics job completed', {
         jobId: job.id,
       });
     });

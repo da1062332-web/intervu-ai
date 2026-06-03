@@ -159,9 +159,9 @@ describe('Redis Cache Service', () => {
   describe('Pattern Matching', () => {
     it('should clear cache by pattern', async () => {
       // Set multiple keys with prefix
-      await cacheService.set('session:1', { id: 1 }, { prefix: 'session' });
-      await cacheService.set('session:2', { id: 2 }, { prefix: 'session' });
-      await cacheService.set('question:1', { id: 1 }, { prefix: 'question' });
+      await cacheService.set('1', { id: 1 }, { prefix: 'session' });
+      await cacheService.set('2', { id: 2 }, { prefix: 'session' });
+      await cacheService.set('1', { id: 1 }, { prefix: 'question' });
 
       // Clear only session keys
       const deleted = await cacheService.clear('session:*');
@@ -202,7 +202,7 @@ describe('Redis Cache Service', () => {
   describe('Error Handling', () => {
     it('should handle cache errors gracefully', async () => {
       // Try to set invalid data
-      const result = await cacheService.set('key', { circular: null } as any);
+      const result = await cacheService.set('key', { circular: null } as unknown);
       expect([true, false]).toContain(result);
     });
 

@@ -12,15 +12,23 @@
     },
 
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^build"]
     },
 
     "type-check": {
-      "dependsOn": ["^type-check"]
+      "dependsOn": ["^build"]
     },
 
     "test": {
       "dependsOn": ["^test"]
+    },
+
+    "test:integration": {
+      "dependsOn": ["build"]
+    },
+
+    "test:contracts": {
+      "dependsOn": ["build"]
     },
 
     "dev": {
