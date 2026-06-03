@@ -33,19 +33,19 @@ jobs:
         run: npm run check:structure
 
       - name: Run Lint
-        run: turbo run lint
+        run: npm run lint
 
       - name: Run Type Check
-        run: turbo run type-check
+        run: npm run type-check
 
       - name: Run Build
-        run: turbo run build
+        run: npm run build
 
       - name: Run Tests
-        run: turbo run test
+        run: npm run test
 
       - name: Run Integration Tests
-        run: turbo run test:integration
+        run: npm run test:integration
 
       - name: Run Contract Tests
-        run: turbo run test:contracts
+        run: npm run test:contracts
