@@ -28,7 +28,7 @@ export class HealthService {
       redisHealth.status === 'unhealthy' ? 'degraded' : 'ok';
 
     return {
-      status: overallStatus as any,
+      status: overallStatus,
       service: 'intervu-api',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
@@ -59,7 +59,7 @@ export class HealthService {
         status: 'healthy',
         responseTime,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         status: 'unhealthy',
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -1,5 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
+import compression from 'compression';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
@@ -7,7 +9,7 @@ import {
   ZodValidationPipe,
   GlobalExceptionFilter,
   ResponseInterceptor,
-} from '@intervu-ai/validation-core';
+} from '@intervu/shared';
 import { RedisConnectionManager } from './cache';
 import { AppConfigService } from './config';
 
@@ -32,20 +34,8 @@ async function bootstrap() {
   }
 
   // Security middleware
-  app.use(
-    require('helmet')() as (
-      req: any,
-      res: any,
-      next: () => void,
-    ) => void,
-  );
-  app.use(
-    require('compression')() as (
-      req: any,
-      res: any,
-      next: () => void,
-    ) => void,
-  );
+  app.use(helmet());
+  app.use(compression());
 
   // API prefix and versioning
   app.setGlobalPrefix('api/v1');

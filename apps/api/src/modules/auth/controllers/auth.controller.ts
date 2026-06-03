@@ -14,9 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { LoginDto } from '../dto/login.dto';
-import { RefreshTokenDto } from '../dto/refresh-token.dto';
-import { SignupDto } from '../dto/signup.dto';
+import { LoginDto, RefreshTokenDto, SignupDto } from '@intervu/shared';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -36,7 +34,7 @@ export class AuthController {
   @Public()
   @Post('signup')
   @ApiOperation({ summary: 'Register a new candidate account' })
-  @ApiBody({ type: SignupDto })
+  @ApiBody({ description: 'Signup credentials' })
   @ApiOkResponse({ description: 'User registered successfully' })
   async signup(
     @Body() dto: SignupDto,
@@ -49,7 +47,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
-  @ApiBody({ type: LoginDto })
+  @ApiBody({ description: 'Login credentials' })
   @ApiOkResponse({ description: 'User logged in successfully' })
   async login(
     @Body() dto: LoginDto,
@@ -62,7 +60,7 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
-  @ApiBody({ type: RefreshTokenDto })
+  @ApiBody({ description: 'Refresh token' })
   @ApiOkResponse({ description: 'Tokens refreshed successfully' })
   async refresh(
     @Body() dto: RefreshTokenDto,
@@ -75,7 +73,7 @@ export class AuthController {
   @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
-  @ApiBody({ type: RefreshTokenDto })
+  @ApiBody({ description: 'Refresh token to revoke' })
   @ApiOkResponse({ description: 'User logged out successfully' })
   async logout(@Body() dto: RefreshTokenDto): Promise<void> {
     await this.authService.logout(dto.refreshToken);

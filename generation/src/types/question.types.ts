@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DifficultyLevel, QuestionType } from '@intervu-ai/shared-types';
+import { DifficultyLevel, QuestionType } from '@intervu/shared';
 
 export const QuestionMetadataSchema = z.object({
   difficulty: z.nativeEnum(DifficultyLevel),

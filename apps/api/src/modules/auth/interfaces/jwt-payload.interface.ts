@@ -2,7 +2,7 @@ import { AuthUserRole } from './auth-user.interface';
 
 export type TokenType = 'access' | 'refresh';
 
-export interface JwtPayload {
+export interface JwtTokenData {
   sub: string;
   email: string;
   role: AuthUserRole;

@@ -5,7 +5,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AppConfigService } from '../../../config';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { AuthUser } from '../interfaces/auth-user.interface';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { JwtTokenData } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<AuthUser> {
+  async validate(payload: JwtTokenData): Promise<AuthUser> {
     if (payload.type !== 'access') {
       throw new UnauthorizedException('Invalid token type');
     }

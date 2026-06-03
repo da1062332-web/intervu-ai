@@ -7,3 +7,6 @@ export * from './engine/constraint-engine';
 export * from './engine/difficulty-rules';
 export * from './engine/validation-pipeline';
 export * from './engine/template-executor';
+export * from './engine/template-loader';
+export * from './engine/execution-runtime';
+export * from './engine/metrics-tracker';

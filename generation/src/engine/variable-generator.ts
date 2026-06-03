@@ -19,8 +19,8 @@ export function roundToPrecision(val: number, step?: number): number {
 export function generateVariables(
   variables: Variable[],
   prng: PRNG
-): Record<string, any> {
-  const context: Record<string, any> = {};
+): Record<string, unknown> {
+  const context: Record<string, unknown> = {};
 
   for (const variable of variables) {
     if (variable.type === 'number') {

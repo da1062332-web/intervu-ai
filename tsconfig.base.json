@@ -12,9 +12,6 @@
       "baseUrl": ".",
   
       "paths": {
-        "@intervu-ai/shared-types": [
-          "packages/shared-types/src"
-        ],
         "@intervu-ai/shared-logger": [
           "packages/shared-logger/src"
         ],

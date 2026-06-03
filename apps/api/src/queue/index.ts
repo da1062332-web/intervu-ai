@@ -3,11 +3,11 @@ export {
   QueueService,
 } from './queue.service';
 export {
-  QueuePayload,
+  QueueMessage,
   QueueType,
-  GenerationQueuePayload,
-  EvaluationQueuePayload,
-  AnalyticsQueuePayload,
+  GenerationQueueMessage,
+  EvaluationQueueMessage,
+  AnalyticsQueueMessage,
   QueueJobResult,
-  BaseQueuePayload,
+  BaseQueueMessage,
 } from './queue-payloads';

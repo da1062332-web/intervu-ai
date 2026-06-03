@@ -1,7 +1,7 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { GenerationQueuePayload } from '@intervu-ai/shared-types';
-import { QueueJobRequestSchema, formatZodError } from '@intervu-ai/validation-core';
+import { GenerationQueueRequest } from '@intervu/shared';
+import { QueueJobRequestSchema } from '@intervu/shared';
 
 export class GenerationQueueProcessor {
   private worker: Worker;
@@ -18,46 +18,33 @@ export class GenerationQueueProcessor {
     this.setupEventHandlers();
   }
 
-  private async processJob(job: Job<GenerationQueuePayload>): Promise<any> {
+  private async processJob(job: Job<GenerationQueueRequest>): Promise<unknown> {
     const startTime = Date.now();
 
     this.logger.setContext({
       jobId: job.id,
-      correlationId: job.data.correlationId,
-      queueName: 'generation',
+      testId: job.data.payload.assemblyId,
+      queue: 'generation',
     });
 
     try {
-      this.logger.info('Processing generation job', {
-        payload: job.data,
-        attempt: job.attemptsMade,
-      });
-
-      // Runtime Validation
-      const validationResult = QueueJobRequestSchema.safeParse(job.data);
-      if (!validationResult.success) {
-        const issues = formatZodError(validationResult.error);
-        this.logger.error('Invalid job payload', new Error('Validation failed'), { issues });
-        throw new Error('Invalid job payload: ' + issues.join(', '));
+      this.logger.info(`Processing job ${job.id}`);
+      
+      // Input Validation Test via Shared Contract
+      try {
+        const payload = QueueJobRequestSchema.parse(job.data);
+        this.logger.info('Payload validated against schema', { payload });
+      } catch (err) {
+        this.logger.error('Invalid queue payload contract', err as Error);
+        throw err;
       }
 
-      const validPayload = validationResult.data;
-
-      // Simulate processing
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      // Simulate generation delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const duration = Date.now() - startTime;
-
-      const result = {
-        success: true,
-        jobId: job.id,
-        duration,
-        generatedCount: Math.floor(Math.random() * 10) + 1,
-        completedAt: new Date().toISOString(),
-      };
-
-      this.logger.info('Generation job completed', { duration });
-      return result;
+      this.logger.info(`Successfully completed generation job ${job.id}`, { duration });
+      return { status: 'completed', generatedItemCount: 10 };
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('Generation job failed', error, {

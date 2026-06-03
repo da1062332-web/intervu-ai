@@ -2,10 +2,13 @@ import { PRNG } from './prng';
 import { evaluateExpression } from './math-parser';
 import { generateVariables, roundToPrecision } from './variable-generator';
 import { evaluateConstraints } from './constraint-engine';
-import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
+import { calculateDifficultyScore, getDifficultyCategory, isEasy, isMedium, isHard } from './difficulty-rules';
 import { validatePipeline, generateQuestionHash } from './validation-pipeline';
 import { executeTemplate } from './template-executor';
-import { QuestionTemplate } from '../types/template.types';
+import { TemplateLoader } from './template-loader';
+import { AptitudeGenerationRuntime } from './execution-runtime';
+import { QuestionTemplate, TemplateCategory, QuestionTemplateSchema } from '../types/template.types';
+import { MetricsTracker } from './metrics-tracker';
 
 // Load templates directly for testing
 import rawTemplates from '../templates/aptitude.templates.json';
@@ -104,7 +107,7 @@ describe('Generation Engine Core Subsystem', () => {
 
       for (let i = 0; i < 50; i++) {
         const generated = generateVariables(variables, prng);
-        const val = generated.val;
+        const val = generated.val as number;
         expect(val).toBeGreaterThanOrEqual(10);
         expect(val).toBeLessThanOrEqual(20);
         // Should be even since min=10 and step=2
@@ -178,7 +181,6 @@ describe('Generation Engine Core Subsystem', () => {
         days_B: 24
       };
 
-      const hash = generateQuestionHash(template.templateId, parameters);
       const validation = validatePipeline({
         template,
         parameters,
@@ -234,7 +236,7 @@ describe('Generation Engine Core Subsystem', () => {
   });
 
   describe('Orchestrated Template Executor (template-executor.ts)', () => {
-    it('should generate fully hydrated and correct output for all 5 templates', () => {
+    it('should generate fully hydrated and correct output with structured solution for all 5 templates', () => {
       for (const template of templates) {
         const seed = 1001;
         const result = executeTemplate(template, seed);
@@ -247,11 +249,23 @@ describe('Generation Engine Core Subsystem', () => {
 
         expect(result.difficulty).toBe(template.difficulty);
 
+        // Verify solution structure
+        expect(result.solution).toBeDefined();
+        expect(Array.isArray(result.solution.steps)).toBe(true);
+        expect(result.solution.steps.length).toBeGreaterThan(0);
+        expect(result.solution.finalAnswer).toBe(result.correctAnswer);
+
+        // Verify SHA-256 hash output
+        expect(result.hash).toBeDefined();
+        expect(result.hash.length).toBe(64); // SHA-256 is 64 hex chars
+
         // Verify determinism: Running again with same seed yields exact same result
         const result2 = executeTemplate(template, seed);
         expect(result.question).toBe(result2.question);
         expect(result.correctAnswer).toBe(result2.correctAnswer);
         expect(result.options).toEqual(result2.options);
+        expect(result.solution).toEqual(result2.solution);
+        expect(result.hash).toBe(result2.hash);
       }
     });
 
@@ -262,6 +276,208 @@ describe('Generation Engine Core Subsystem', () => {
 
       // Different seeds should produce different question text or values
       expect(result1.question).not.toBe(result2.question);
+    });
+  });
+
+  describe('Template Loader (template-loader.ts)', () => {
+    it('should load all templates and validate them successfully', () => {
+      const loader = new TemplateLoader();
+      const allTemplates = loader.getAllTemplates();
+      expect(allTemplates.length).toBe(5);
+
+      const template = loader.getTemplate('APT_PERCENTAGE_001');
+      expect(template).toBeDefined();
+      expect(template?.topic).toBe('percentages');
+    });
+
+    it('should filter templates by topic', () => {
+      const loader = new TemplateLoader();
+      const timeWorkTemplates = loader.getTemplatesByTopic('time_work');
+      expect(timeWorkTemplates.length).toBe(1);
+      expect(timeWorkTemplates[0].templateId).toBe('APT_TIME_WORK_001');
+    });
+  });
+
+  describe('Execution Runtime (execution-runtime.ts)', () => {
+    it('should generate a batch of unique questions for a topic', () => {
+      const runtime = new AptitudeGenerationRuntime();
+      const count = 3;
+      const seenHashes = new Set<string>();
+
+      // There is only 1 template for percentages in the JSON, but since we vary seeds,
+      // we can generate multiple distinct questions from it.
+      const questions = runtime.generateQuestionsForTopic('percentages', count, 100, seenHashes);
+      
+      expect(questions.length).toBe(count);
+      expect(seenHashes.size).toBe(count);
+
+      // Verify all generated questions have the structured solution and correct topic
+      for (const q of questions) {
+        expect(q.solution).toBeDefined();
+        expect(q.options.length).toBe(4);
+        expect(q.correctAnswer).toBeDefined();
+      }
+    });
+  });
+
+  describe('Day 4 Deliverables: Metadata, Scoring, and Metrics', () => {
+    describe('Template Categorization & Tags Schema Validation', () => {
+      it('should validate and parse custom categories and optional tags', () => {
+        const dummyTemplate = {
+          templateId: 'TEST_CATEGORIES_001',
+          type: TemplateCategory.CODING,
+          topic: 'sorting_algorithms',
+          difficulty: 'hard',
+          variables: [
+            {
+              name: 'arr_size',
+              type: 'number',
+              range: { min: 10, max: 100, step: 10 }
+            }
+          ],
+          constraints: [],
+          questionTemplate: 'Sort an array of size {arr_size}.',
+          solutionTemplate: {
+            steps: ['Create array', 'Sort array'],
+            finalAnswer: 'arr_size * log(arr_size)'
+          },
+          metadata: {
+            w1_steps: 5.0,
+            w2_number_complexity: 3.0,
+            w3_concept_overlap: 2.0,
+            w4_trick_factor: 3.0
+          },
+          tags: ['algorithms', 'sorting', 'arrays']
+        };
+
+        const parsed = QuestionTemplateSchema.safeParse(dummyTemplate);
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+          expect(parsed.data.type).toBe(TemplateCategory.CODING);
+          expect(parsed.data.tags).toEqual(['algorithms', 'sorting', 'arrays']);
+          expect(parsed.data.topic).toBe('sorting_algorithms');
+        }
+      });
+    });
+
+    describe('Constraint-Weighted Scoring Engine', () => {
+      const metadata = {
+        w1_steps: 2.0,
+        w2_number_complexity: 1.5,
+        w3_concept_overlap: 1.0,
+        w4_trick_factor: 1.0
+      };
+
+      it('should calculate difficulty score with zero constraints', () => {
+        const score = calculateDifficultyScore(metadata, {}, 0);
+        // (2.0 * 0.65) + (1.5 * 0.40) + (1.0 * 0.40) + (1.0 * 0.40) + (0 * 0.15)
+        // = 1.30 + 0.60 + 0.40 + 0.40 = 2.70
+        expect(score).toBe(2.70);
+        expect(isEasy(score)).toBe(true);
+        expect(getDifficultyCategory(score)).toBe('easy');
+      });
+
+      it('should calculate difficulty score with constraint weight modifier', () => {
+        const score = calculateDifficultyScore(metadata, {}, 3);
+        // 2.70 + (3 * 0.15) = 2.70 + 0.45 = 3.15
+        expect(score).toBe(3.15);
+        expect(isMedium(score)).toBe(true);
+        expect(getDifficultyCategory(score)).toBe('medium');
+      });
+
+      it('should calculate hard reasoning scoring correctly', () => {
+        const hardMetadata = {
+          w1_steps: 5.0,
+          w2_number_complexity: 3.5,
+          w3_concept_overlap: 3.0,
+          w4_trick_factor: 3.0
+        };
+        const score = calculateDifficultyScore(hardMetadata, {}, 2);
+        // (5.0 * 0.65) + (3.5 * 0.40) + (3.0 * 0.40) + (3.0 * 0.40) + (2 * 0.15)
+        // = 3.25 + 1.40 + 1.20 + 1.20 + 0.30 = 7.35
+        expect(score).toBe(7.35);
+        expect(isHard(score)).toBe(true);
+        expect(getDifficultyCategory(score)).toBe('hard');
+      });
+    });
+
+    describe('Generation Telemetry Metrics & Tracker', () => {
+      it('should correctly capture runs, runtimes, validation failures and duplicates', () => {
+        const tracker = new MetricsTracker();
+
+        // 1. Record a successful run with no failures
+        tracker.recordRun({
+          templateId: 'T1',
+          success: true,
+          runtimeMs: 12.5,
+          attemptsUsed: 1,
+          failures: []
+        });
+
+        // 2. Record a successful run with 2 retries (e.g. constraints violated)
+        tracker.recordRun({
+          templateId: 'T1',
+          success: true,
+          runtimeMs: 25.0,
+          attemptsUsed: 3,
+          failures: [
+            { reason: 'constraint_violation', count: 2 }
+          ]
+        });
+
+        // 3. Record a failed run that hit max attempts
+        tracker.recordRun({
+          templateId: 'T1',
+          success: false,
+          runtimeMs: 150.0,
+          attemptsUsed: 5,
+          failures: [
+            { reason: 'duplicate_collision', count: 3 },
+            { reason: 'difficulty_mismatch', count: 2 }
+          ]
+        });
+
+        const contract = tracker.getMetricsForTemplate('T1', 'medium', 'percentages', ['tags1']);
+
+        expect(contract.templateId).toBe('T1');
+        expect(contract.difficulty).toBe('medium');
+        expect(contract.topic).toBe('percentages');
+        expect(contract.tags).toEqual(['tags1']);
+
+        // success rate: 2 successes / 3 total runs = 0.67
+        expect(contract.metrics.generationSuccessRate).toBe(0.67);
+        // avg runtime: (12.5 + 25 + 150) / 3 = 62.5
+        expect(contract.metrics.averageRuntimeMs).toBe(62.5);
+        // duplicate collision frequency: 3 / 3 = 1.00
+        expect(contract.metrics.duplicateFrequency).toBe(1);
+        // total validation failures: 2 (constraint) + 3 (duplicate) + 2 (difficulty) = 7
+        expect(contract.metrics.validationFailures).toBe(7);
+
+        expect(contract.metrics.failureBreakdown).toEqual({
+          constraint_violation: 2,
+          difficulty_mismatch: 2,
+          solvability_failure: 0,
+          duplicate_collision: 3,
+          other: 0
+        });
+      });
+
+      it('should integrate telemetry tracking inside AptitudeGenerationRuntime', () => {
+        const runtime = new AptitudeGenerationRuntime();
+        const startSeed = 999;
+
+        // Generate a question (which will pass constraints and register a run)
+        const q = runtime.generateQuestion('APT_PERCENTAGE_001', startSeed);
+        expect(q).toBeDefined();
+
+        const metadata = runtime.getTemplateMetadata('APT_PERCENTAGE_001');
+        expect(metadata).not.toBeNull();
+        if (metadata) {
+          expect(metadata.templateId).toBe('APT_PERCENTAGE_001');
+          expect(metadata.metrics.generationSuccessRate).toBe(1.0);
+          expect(metadata.metrics.averageRuntimeMs).toBeGreaterThan(0);
+        }
+      });
     });
   });
 });

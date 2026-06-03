@@ -11,9 +11,9 @@ export interface ValidationResult {
 /**
  * Computes a unique SHA-256 hash for a given template and parameters set.
  */
-export function generateQuestionHash(templateId: string, parameters: Record<string, any>): string {
+export function generateQuestionHash(templateId: string, parameters: Record<string, unknown>): string {
   const sortedKeys = Object.keys(parameters).sort();
-  const sortedParams: Record<string, any> = {};
+  const sortedParams: Record<string, unknown> = {};
   for (const key of sortedKeys) {
     sortedParams[key] = parameters[key];
   }
@@ -24,7 +24,7 @@ export function generateQuestionHash(templateId: string, parameters: Record<stri
 /**
  * Stage 1: Variable Validation
  */
-export function validateVariables(variables: Variable[], parameters: Record<string, any>): string[] {
+export function validateVariables(variables: Variable[], parameters: Record<string, unknown>): string[] {
   const issues: string[] = [];
   for (const variable of variables) {
     const val = parameters[variable.name];
@@ -58,7 +58,7 @@ export function validateVariables(variables: Variable[], parameters: Record<stri
 /**
  * Stage 2: Constraint Validation
  */
-export function validateConstraintsPipeline(constraints: Constraint[], parameters: Record<string, any>): string[] {
+export function validateConstraintsPipeline(constraints: Constraint[], parameters: Record<string, unknown>): string[] {
   const issues: string[] = [];
   const evalResult = evaluateConstraints(constraints, parameters);
   if (!evalResult.isValid) {
@@ -74,15 +74,16 @@ export function validateConstraintsPipeline(constraints: Constraint[], parameter
 /**
  * Stage 3: Solvability Validation
  */
-export function validateSolvability(finalAnswerFormula: string, parameters: Record<string, any>): { isSolvable: boolean; answer: any; error?: string } {
+export function validateSolvability(finalAnswerFormula: string, parameters: Record<string, unknown>): { isSolvable: boolean; answer: unknown; error?: string } {
   try {
     const answer = evaluateExpression(finalAnswerFormula, parameters);
     if (answer === undefined || answer === null || typeof answer !== 'number' || isNaN(answer) || !isFinite(answer)) {
       return { isSolvable: false, answer: null, error: `Evaluated answer is not a finite number: ${answer}` };
     }
     return { isSolvable: true, answer };
-  } catch (error: any) {
-    return { isSolvable: false, answer: null, error: error.message || 'Error evaluating expression' };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { isSolvable: false, answer: null, error: message };
   }
 }
 
@@ -121,7 +122,7 @@ export function validateDuplicate(
  */
 export function validatePipeline(options: {
   template: QuestionTemplate;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   correctAnswer: string;
   distractors: string[];
   seenHashes: Set<string> | string[];
