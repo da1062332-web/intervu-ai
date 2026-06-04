@@ -13,17 +13,19 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
 
-  const variants = {
+  const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
     default:
-      'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600',
+      'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm',
     secondary:
-      'bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600',
+      'bg-secondary text-secondary-foreground hover:bg-secondary/80',
     outline:
-      'border border-gray-300 text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:text-white dark:hover:bg-gray-900',
+      'border border-border bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground',
     ghost:
-      'text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800',
+      'text-foreground hover:bg-accent hover:text-accent-foreground',
+    destructive:
+      'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm',
   };
 
   const sizes = {

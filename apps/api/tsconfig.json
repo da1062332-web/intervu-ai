@@ -19,7 +19,7 @@
     "sourceMap": true,
 
     "outDir": "./dist",
-
+    "rootDir": "../../",
     "baseUrl": "./",
 
     "incremental": true,
