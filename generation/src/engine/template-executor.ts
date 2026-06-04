@@ -3,7 +3,7 @@ import { generateVariables, roundToPrecision } from './variable-generator';
 import { evaluateConstraints } from './constraint-engine';
 import { evaluateExpression } from './math-parser';
 import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
-import { validatePipeline, generateQuestionHash } from './validation-pipeline';
+import { validatePipeline, generateQuestionHash, checkVariableCollision, isSemanticallySimilar } from './validation-pipeline';
 import { QuestionTemplate } from '../types/template.types';
 import { ValidationFailureReason } from './metrics-tracker';
 
@@ -19,6 +19,7 @@ export interface GeneratedOutput {
   solution: HydratedSolution;
   difficulty: 'easy' | 'medium' | 'hard';
   hash: string;
+  parameters: Record<string, unknown>;
 }
 
 /**
@@ -95,7 +96,9 @@ export function executeTemplate(
   template: QuestionTemplate,
   seed: number,
   seenHashes: Set<string> | string[] = new Set(),
-  tracker?: { recordFailure: (reason: ValidationFailureReason) => void }
+  tracker?: { recordFailure: (reason: ValidationFailureReason) => void },
+  pastParameters?: Record<string, unknown>[],
+  pastQuestionTexts?: string[]
 ): GeneratedOutput {
   const prng = new PRNG(seed);
   let parameters: Record<string, unknown> = {};
@@ -146,6 +149,28 @@ export function executeTemplate(
       continue;
     }
 
+    // Check variable collision in loop
+    if (pastParameters && checkVariableCollision(parameters, pastParameters)) {
+      tracker?.recordFailure('duplicate_collision');
+      continue;
+    }
+
+    // Check semantic similarity in loop
+    if (pastQuestionTexts) {
+      const newQuestionText = hydrateString(template.questionTemplate, parameters);
+      let isDuplicate = false;
+      for (const pastText of pastQuestionTexts) {
+        if (isSemanticallySimilar(newQuestionText, pastText)) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      if (isDuplicate) {
+        tracker?.recordFailure('duplicate_collision');
+        continue;
+      }
+    }
+
     // If we passed all checks, we are good to go!
     break;
   }
@@ -172,6 +197,9 @@ export function executeTemplate(
     correctAnswer: formattedAnswer,
     distractors,
     seenHashes,
+    hydratedQuestion,
+    pastQuestionTexts,
+    pastParameters,
   });
 
   if (!validation.valid) {
@@ -192,5 +220,6 @@ export function executeTemplate(
     },
     difficulty: template.difficulty,
     hash: finalHash,
+    parameters,
   };
 }

@@ -2,9 +2,24 @@ import { TemplateLoader } from './template-loader';
 import { executeTemplate, GeneratedOutput } from './template-executor';
 import { MetricsTracker, ValidationFailureReason, TemplateMetadataContract } from './metrics-tracker';
 
+export interface FailureLog {
+  templateId: string;
+  seed: number;
+  reason: string;
+  timestamp: number;
+}
+
+export interface PastQuestion {
+  templateId: string;
+  question: string;
+  parameters: Record<string, unknown>;
+}
+
 export class AptitudeGenerationRuntime {
   private loader: TemplateLoader;
   private metricsTracker: MetricsTracker;
+  private pastQuestions: PastQuestion[] = [];
+  private failureLogs: FailureLog[] = [];
 
   constructor(loader?: TemplateLoader) {
     this.loader = loader || new TemplateLoader();
@@ -16,6 +31,25 @@ export class AptitudeGenerationRuntime {
    */
   getMetricsTracker(): MetricsTracker {
     return this.metricsTracker;
+  }
+
+  /**
+   * Logs a generation failure.
+   */
+  private logFailure(templateId: string, seed: number, reason: string): void {
+    this.failureLogs.push({
+      templateId,
+      seed,
+      reason,
+      timestamp: Date.now(),
+    });
+  }
+
+  /**
+   * Retrieves all failure logs.
+   */
+  getFailureLogs(): FailureLog[] {
+    return this.failureLogs;
   }
 
   /**
@@ -35,7 +69,7 @@ export class AptitudeGenerationRuntime {
   }
 
   /**
-   * Generates a single question for a template ID.
+   * Generates a single question for a template ID, implementing failure recovery and fallback template routing.
    */
   generateQuestion(
     templateId: string,
@@ -62,14 +96,75 @@ export class AptitudeGenerationRuntime {
 
     let success = false;
     let attemptsUsed = 0;
+
+    // Filter past parameters for the same template
+    const templatePastParams = this.pastQuestions
+      .filter((q) => q.templateId === templateId)
+      .map((q) => q.parameters);
+
+    // Filter past question texts from other templates to run semantic similarity checks
+    const otherPastTexts = this.pastQuestions
+      .filter((q) => q.templateId !== templateId)
+      .map((q) => q.question);
+
     try {
-      const result = executeTemplate(template, seed, seenHashes, tracker);
+      const result = executeTemplate(template, seed, seenHashes, tracker, templatePastParams, otherPastTexts);
       success = true;
       attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0) + 1;
+
+      // Track history
+      this.pastQuestions.push({
+        templateId,
+        question: result.question,
+        parameters: result.parameters,
+      });
+
       return result;
     } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      this.logFailure(templateId, seed, reason);
+
+      // Failure Recovery / Fallback Generation
+      const fallbackTemplates = this.loader.getAllTemplates().filter(
+        (t) => t.topic === template.topic && t.difficulty === template.difficulty && t.templateId !== templateId
+      );
+
+      for (const fallbackTemplate of fallbackTemplates) {
+        const fallbackId = fallbackTemplate.templateId;
+        const fallbackPastParams = this.pastQuestions
+          .filter((q) => q.templateId === fallbackId)
+          .map((q) => q.parameters);
+        const fallbackOtherPastTexts = this.pastQuestions
+          .filter((q) => q.templateId !== fallbackId)
+          .map((q) => q.question);
+
+        try {
+          const result = executeTemplate(
+            fallbackTemplate,
+            seed + 100, // adjust seed to prevent collision
+            seenHashes,
+            tracker,
+            fallbackPastParams,
+            fallbackOtherPastTexts
+          );
+          success = true;
+          attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0) + 1;
+
+          // Track fallback history
+          this.pastQuestions.push({
+            templateId: fallbackId,
+            question: result.question,
+            parameters: result.parameters,
+          });
+
+          return result;
+        } catch (fallbackErr) {
+          this.logFailure(fallbackId, seed + 100, fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr));
+        }
+      }
+
       attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0);
-      throw err;
+      throw new Error(`Failure Recovery failed: both template ${templateId} and all of its fallbacks failed validation/generation`);
     } finally {
       const runtimeMs = performance.now() - startTime;
       this.metricsTracker.recordRun({
