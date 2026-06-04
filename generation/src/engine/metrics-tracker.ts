@@ -20,9 +20,11 @@ export interface TemplateMetadataContract {
   tags?: string[];
   metrics: {
     generationSuccessRate: number;
+    validationSuccessRate: number;
     validationFailures: number;
     duplicateFrequency: number;
     averageRuntimeMs: number;
+    retryCounts: number;
     failureBreakdown: Record<ValidationFailureReason, number>;
   };
 }
@@ -51,9 +53,11 @@ export class MetricsTracker {
         tags,
         metrics: {
           generationSuccessRate: 0,
+          validationSuccessRate: 0,
           validationFailures: 0,
           duplicateFrequency: 0,
           averageRuntimeMs: 0,
+          retryCounts: 0,
           failureBreakdown: {
             constraint_violation: 0,
             difficulty_mismatch: 0,
@@ -71,6 +75,7 @@ export class MetricsTracker {
     let totalValidationFailures = 0;
     let totalDuplicateCollisions = 0;
     let totalRuntimeMs = 0;
+    let totalRetries = 0;
 
     const failureBreakdown: Record<ValidationFailureReason, number> = {
       constraint_violation: 0,
@@ -82,6 +87,9 @@ export class MetricsTracker {
 
     for (const r of templateRuns) {
       totalRuntimeMs += r.runtimeMs;
+      // Retries are the failed attempts. If successful, it took attemptsUsed - 1 retries.
+      // If it failed completely, it took attemptsUsed retries (all attempts failed).
+      totalRetries += Math.max(0, r.attemptsUsed - (r.success ? 1 : 0));
       for (const f of r.failures) {
         failureBreakdown[f.reason] = (failureBreakdown[f.reason] || 0) + f.count;
         totalValidationFailures += f.count;
@@ -101,9 +109,11 @@ export class MetricsTracker {
       tags,
       metrics: {
         generationSuccessRate: Math.round(successRate * 100) / 100,
+        validationSuccessRate: Math.round(successRate * 100) / 100,
         validationFailures: totalValidationFailures,
         duplicateFrequency: Math.round(duplicateFrequency * 100) / 100,
         averageRuntimeMs: Math.round(avgRuntime * 100) / 100,
+        retryCounts: totalRetries,
         failureBreakdown,
       },
     };
