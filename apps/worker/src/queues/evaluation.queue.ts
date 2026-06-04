@@ -1,6 +1,6 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { EvaluationQueueRequest } from '@intervu/shared';
+import { QueuePayload } from '@intervu-ai/contracts';
 
 export class EvaluationQueueProcessor {
   private worker: Worker;
@@ -17,20 +17,19 @@ export class EvaluationQueueProcessor {
     this.setupEventHandlers();
   }
 
-  private async processJob(job: Job<EvaluationQueueRequest>): Promise<unknown> {
+  private async processJob(job: Job<QueuePayload>): Promise<unknown> {
     const startTime = Date.now();
 
     this.logger.setContext({
       jobId: job.id,
       correlationId: job.data.correlationId,
       queueName: 'evaluation',
-      userId: job.data.payload.userId,
     });
 
     try {
       this.logger.info('Processing evaluation job', {
-        testId: job.data.payload.testId,
-        userId: job.data.payload.userId,
+        jobId: job.id,
+        correlationId: job.data.correlationId,
         attempt: job.attemptsMade,
       });
 

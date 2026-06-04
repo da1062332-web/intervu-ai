@@ -1,14 +1,19 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { GenerationQueueRequest } from '@intervu/shared';
-import { QueueJobRequestSchema } from '@intervu/shared';
+import { QueuePayloadSchema, QueuePayload, WorkerResponseSchema, WorkerResponse } from '@intervu-ai/contracts';
+import { AiWorkerService } from '../services/ai.service';
+import { PrismaClient } from '@prisma/client';
 
 export class GenerationQueueProcessor {
   private worker: Worker;
   private logger: AppLogger;
+  private aiService: AiWorkerService;
+  private prisma: PrismaClient;
 
   constructor(connection: ConnectionOptions, logger: AppLogger) {
     this.logger = logger;
+    this.aiService = new AiWorkerService(logger);
+    this.prisma = new PrismaClient();
 
     this.worker = new Worker('generation', this.processJob.bind(this), {
       connection,
@@ -18,12 +23,15 @@ export class GenerationQueueProcessor {
     this.setupEventHandlers();
   }
 
-  private async processJob(job: Job<GenerationQueueRequest>): Promise<unknown> {
+  private async processJob(job: Job<QueuePayload>): Promise<WorkerResponse> {
     const startTime = Date.now();
+    
+    // We are trusting the schema here or parsing it securely
+    const payloadData = job.data;
 
     this.logger.setContext({
       jobId: job.id,
-      testId: job.data.payload.assemblyId,
+      correlationId: payloadData.correlationId,
       queue: 'generation',
     });
 
@@ -31,20 +39,49 @@ export class GenerationQueueProcessor {
       this.logger.info(`Processing job ${job.id}`);
       
       // Input Validation Test via Shared Contract
+      let payload;
       try {
-        const payload = QueueJobRequestSchema.parse(job.data);
-        this.logger.info('Payload validated against schema', { payload });
+        payload = QueuePayloadSchema.parse(payloadData);
+        this.logger.info('Payload validated against schema', { correlationId: payload.correlationId });
       } catch (err) {
         this.logger.error('Invalid queue payload contract', err as Error);
         throw err;
       }
 
-      // Simulate generation delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (payload.payload.type !== 'generation') {
+        throw new Error('Invalid payload type for generation queue');
+      }
+
+      const generationRequest = payload.payload.data;
+      
+      // Invoke AI Layer
+      // Pass correlationId to AI Service for tracing
+      const aiResponse = await this.aiService.generateQuestions(generationRequest, payload.correlationId);
       
       const duration = Date.now() - startTime;
+      
+      // Persist to Database
+      this.logger.info(`Persisting generated questions for testId: ${payload.payload.testId}`);
+      await this.prisma.test.update({
+        where: { id: payload.payload.testId },
+        data: {
+          questions: aiResponse as any,
+          status: 'ONGOING' // Update status to reflect generation complete
+        } as any
+      });
+      this.logger.info(`Successfully persisted generated questions for testId: ${payload.payload.testId}`);
+      
       this.logger.info(`Successfully completed generation job ${job.id}`, { duration });
-      return { status: 'completed', generatedItemCount: 10 };
+      
+      const workerResponse: WorkerResponse = {
+        success: true,
+        jobId: job.id!,
+        result: aiResponse,
+        durationMs: duration
+      };
+      
+      // Validate worker response contract
+      return WorkerResponseSchema.parse(workerResponse);
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('Generation job failed', error, {
@@ -79,5 +116,6 @@ export class GenerationQueueProcessor {
 
   async close(): Promise<void> {
     await this.worker.close();
+    await this.prisma.$disconnect();
   }
 }

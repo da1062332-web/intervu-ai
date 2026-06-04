@@ -1,17 +1,32 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';
 import { 
-  CreateTestRequestDto,
-  GenerateQuestionRequestDto,
-  EvaluationRequestDto,
+  CreateTestRequest,
+  GenerationRequest,
+  EvaluationRequest,
   ApiSuccessResponse
-} from '@intervu/shared';
+} from '@intervu-ai/contracts';
+
+import { TestAssemblyService } from '../services/test-assembly.service';
 
 @Controller('tests')
 export class TestAssemblyController {
+  constructor(private readonly testAssemblyService: TestAssemblyService) {}
+
+  @Get(':id')
+  async getTest(@Param('id') id: string): Promise<ApiSuccessResponse> {
+    const test = await this.testAssemblyService.getTest(id);
+    if (!test) {
+      throw new NotFoundException('Test not found');
+    }
+    return {
+      success: true,
+      data: test
+    };
+  }
   
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createTest(@Body() body: CreateTestRequestDto): Promise<ApiSuccessResponse> {
+  async createTest(@Body() body: CreateTestRequest): Promise<ApiSuccessResponse> {
     // The ZodValidationPipe will automatically enforce that body is CreateTestRequestDto
     return {
       success: true,
@@ -25,21 +40,18 @@ export class TestAssemblyController {
 
   @Post('questions/generate')
   @HttpCode(HttpStatus.OK)
-  async generateQuestions(@Body() body: GenerateQuestionRequestDto): Promise<ApiSuccessResponse> {
+  async generateQuestions(@Body() body: GenerationRequest): Promise<ApiSuccessResponse> {
+    const result = await this.testAssemblyService.generateQuestions(body);
+
     return {
       success: true,
-      data: {
-        topic: body.topic,
-        difficulty: body.difficulty,
-        count: body.count,
-        status: 'queued'
-      }
+      data: result
     };
   }
 
   @Post('evaluate')
   @HttpCode(HttpStatus.OK)
-  async evaluateAnswer(@Body() body: EvaluationRequestDto): Promise<ApiSuccessResponse> {
+  async evaluateAnswer(@Body() body: EvaluationRequest): Promise<ApiSuccessResponse> {
     return {
       success: true,
       data: {

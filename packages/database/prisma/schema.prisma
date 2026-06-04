@@ -91,6 +91,7 @@ model Test {
   score       Float?
   feedback    String?
   answers     Json?
+  questions   Json?
   startedAt   DateTime?
   completedAt DateTime?
 

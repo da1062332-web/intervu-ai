@@ -1,13 +1,8 @@
 import { Job } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { QueueFactory } from './queue-config';
-import {
-  QueueMessage,
-  QueueType,
-  GenerationQueueMessage,
-  EvaluationQueueMessage,
-  AnalyticsQueueMessage,
-} from './queue-payloads';
+import { QueuePayload } from '@intervu-ai/contracts';
+import { QueueType } from './queue-payloads';
 
 export class QueueService {
   private logger: AppLogger;
@@ -16,43 +11,64 @@ export class QueueService {
     this.logger = logger;
   }
 
-  async enqueueGeneration(payload: Omit<GenerationQueueMessage, 'type'>): Promise<Job> {
-    const fullPayload: GenerationQueueMessage = {
-      ...payload,
-      type: QueueType.GENERATION,
+  async enqueueGeneration(payload: Extract<QueuePayload['payload'], { type: 'generation' }>['data'] & { jobId: string; correlationId: string; testId: string; timestamp: string; assemblyId?: string }): Promise<Job> {
+    const fullPayload: QueuePayload = {
+      requestId: payload.jobId, // reusing jobId for requestId for now
+      correlationId: payload.correlationId,
+      type: 'generation',
+      timestamp: payload.timestamp,
+      payload: {
+        type: 'generation',
+        testId: payload.testId,
+        data: {
+          topic: payload.topic,
+          difficulty: payload.difficulty,
+          count: payload.count,
+        }
+      }
     };
 
     return this.enqueue(QueueType.GENERATION, fullPayload);
   }
 
-  async enqueueEvaluation(payload: Omit<EvaluationQueueMessage, 'type'>): Promise<Job> {
-    const fullPayload: EvaluationQueueMessage = {
-      ...payload,
-      type: QueueType.EVALUATION,
+  async enqueueEvaluation(payload: Omit<Extract<QueuePayload['payload'], { type: 'evaluation' }>, 'type'> & { requestId: string; correlationId: string; timestamp: string }): Promise<Job> {
+    const fullPayload: QueuePayload = {
+      requestId: payload.requestId,
+      correlationId: payload.correlationId,
+      type: 'evaluation',
+      timestamp: payload.timestamp,
+      payload: {
+        type: 'evaluation',
+        data: payload.data
+      },
     };
-
     return this.enqueue(QueueType.EVALUATION, fullPayload);
   }
 
-  async enqueueAnalytics(payload: Omit<AnalyticsQueueMessage, 'type'>): Promise<Job> {
-    const fullPayload: AnalyticsQueueMessage = {
-      ...payload,
-      type: QueueType.ANALYTICS,
+  async enqueueAnalytics(payload: Omit<Extract<QueuePayload['payload'], { type: 'analytics' }>, 'type'> & { requestId: string; correlationId: string; timestamp: string }): Promise<Job> {
+    const fullPayload: QueuePayload = {
+      requestId: payload.requestId,
+      correlationId: payload.correlationId,
+      type: 'analytics',
+      timestamp: payload.timestamp,
+      payload: {
+        type: 'analytics',
+        data: payload.data
+      },
     };
-
     return this.enqueue(QueueType.ANALYTICS, fullPayload);
   }
 
-  private async enqueue(queueType: QueueType, payload: QueueMessage): Promise<Job> {
+  private async enqueue(queueType: QueueType, payload: QueuePayload | any): Promise<Job> {
     try {
       const queue = QueueFactory.getQueue(queueType);
 
-      const job = await queue.add(payload.jobId, payload, {
-        jobId: payload.jobId,
+      const job = await queue.add(payload.requestId || payload.jobId, payload, {
+        jobId: payload.requestId || payload.jobId,
       });
 
       this.logger.info(`Job enqueued successfully`, {
-        jobId: payload.jobId,
+        jobId: job.id,
         queueName: queueType,
         correlationId: payload.correlationId,
       });

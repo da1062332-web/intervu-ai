@@ -11,3 +11,4 @@ export {
   QueueJobResult,
   BaseQueueMessage,
 } from './queue-payloads';
+export { QueueModule } from './queue.module';

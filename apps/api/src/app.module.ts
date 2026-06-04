@@ -7,7 +7,7 @@ import { UsersModule } from './modules/users';
 import { TemplateLibraryModule } from './modules/template-library';
 import { TestAssemblyModule } from './modules/test-assembly';
 import { SystemConfigModule } from './modules/config';
-import { RequestLoggingMiddleware } from './common';
+import { RequestLoggingMiddleware, CorrelationMiddleware } from './common';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -24,6 +24,10 @@ import { PrismaModule } from './prisma/prisma.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggingMiddleware).forRoutes('*');
+    consumer
+      .apply(CorrelationMiddleware)
+      .forRoutes('*')
+      .apply(RequestLoggingMiddleware)
+      .forRoutes('*');
   }
 }
