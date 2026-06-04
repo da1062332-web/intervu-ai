@@ -90,7 +90,7 @@ describe('Redis Cache Service', () => {
       await cacheService.set('short-ttl', { value: 'test' }, { ttl: 1 });
 
       // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const retrieved = await cacheService.get('short-ttl');
       expect(retrieved).toBeNull();

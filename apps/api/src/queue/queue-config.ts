@@ -48,6 +48,21 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
       },
     },
   },
+  validation: {
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+      removeOnComplete: {
+        age: 1800, // 30 minutes
+      },
+      removeOnFail: {
+        age: 7200, // 2 hours
+      },
+    },
+  },
 };
 
 export class QueueFactory {
