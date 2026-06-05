@@ -2,9 +2,6 @@ import { Injectable, NotImplementedException } from '@nestjs/common';
 
 @Injectable()
 export class ExecutionService {
-  finishTest(testId: string) {
-    throw new Error('Method not implemented.');
-  }
   async startTest(_testId: string) {
     void _testId;
     throw new NotImplementedException('Execution module not implemented yet');
@@ -15,7 +12,7 @@ export class ExecutionService {
     throw new NotImplementedException('Execution module not implemented yet');
   }
 
-  async endTest(_testId: string) {
+  async finishTest(_testId: string) {
     void _testId;
     throw new NotImplementedException('Execution module not implemented yet');
   }
