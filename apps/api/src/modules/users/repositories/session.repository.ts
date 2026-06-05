@@ -1,8 +1,8 @@
-import { Injectable, Optional } from '@nestjs/common';
-import { Session, Prisma, RefreshToken } from '@prisma/client';
+import { Injectable, Optional } from "@nestjs/common";
+import { Session, Prisma, RefreshToken } from "@prisma/client";
 
-import { BaseRepository } from '../../../common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { BaseRepository } from "../../../common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class SessionRepository extends BaseRepository<
@@ -14,7 +14,7 @@ export class SessionRepository extends BaseRepository<
     prisma: PrismaService,
     @Optional() tx?: Prisma.TransactionClient,
   ) {
-    super(prisma, 'session', { softDelete: false }, tx);
+    super(prisma, "session", { softDelete: false }, tx);
   }
 
   withTransaction(tx: Prisma.TransactionClient): this {
@@ -30,12 +30,14 @@ export class SessionRepository extends BaseRepository<
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }
 
-  async createSession(data: Prisma.SessionUncheckedCreateInput): Promise<Session> {
+  async createSession(
+    data: Prisma.SessionUncheckedCreateInput,
+  ): Promise<Session> {
     return this.db.session.create({
       data: data as unknown as Prisma.SessionCreateInput,
     });
@@ -47,13 +49,18 @@ export class SessionRepository extends BaseRepository<
     });
   }
 
-  async deleteAllSessionsByUserId(userId: string): Promise<Prisma.BatchPayload> {
+  async deleteAllSessionsByUserId(
+    userId: string,
+  ): Promise<Prisma.BatchPayload> {
     return this.db.session.deleteMany({
       where: { userId },
     });
   }
 
-  async deleteOtherSessions(userId: string, currentSessionId: string): Promise<Prisma.BatchPayload> {
+  async deleteOtherSessions(
+    userId: string,
+    currentSessionId: string,
+  ): Promise<Prisma.BatchPayload> {
     return this.db.session.deleteMany({
       where: {
         userId,
@@ -64,7 +71,10 @@ export class SessionRepository extends BaseRepository<
     });
   }
 
-  async revokeOtherRefreshTokens(userId: string, currentSessionId: string): Promise<Prisma.BatchPayload> {
+  async revokeOtherRefreshTokens(
+    userId: string,
+    currentSessionId: string,
+  ): Promise<Prisma.BatchPayload> {
     return this.db.refreshToken.updateMany({
       where: {
         userId,
@@ -79,13 +89,17 @@ export class SessionRepository extends BaseRepository<
     });
   }
 
-  async createRefreshToken(data: Prisma.RefreshTokenUncheckedCreateInput): Promise<RefreshToken> {
+  async createRefreshToken(
+    data: Prisma.RefreshTokenUncheckedCreateInput,
+  ): Promise<RefreshToken> {
     return this.db.refreshToken.create({
       data: data as unknown as Prisma.RefreshTokenCreateInput,
     });
   }
 
-  async findRefreshToken(token: string): Promise<(RefreshToken & { session: Session | null }) | null> {
+  async findRefreshToken(
+    token: string,
+  ): Promise<(RefreshToken & { session: Session | null }) | null> {
     return this.db.refreshToken.findUnique({
       where: { token },
       include: { session: true },
@@ -99,14 +113,19 @@ export class SessionRepository extends BaseRepository<
     });
   }
 
-  async revokeAllRefreshTokensByUserId(userId: string): Promise<Prisma.BatchPayload> {
+  async revokeAllRefreshTokensByUserId(
+    userId: string,
+  ): Promise<Prisma.BatchPayload> {
     return this.db.refreshToken.updateMany({
       where: { userId, revoked: false },
       data: { revoked: true },
     });
   }
 
-  async deleteExpiredSessionsAndTokens(): Promise<{ deletedSessions: number; deletedTokens: number }> {
+  async deleteExpiredSessionsAndTokens(): Promise<{
+    deletedSessions: number;
+    deletedTokens: number;
+  }> {
     const now = new Date();
     const sessions = await this.db.session.deleteMany({
       where: { expiresAt: { lt: now } },

@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
 
 export abstract class BaseRepository<
   T extends { id: string; deletedAt?: Date | null },
@@ -10,15 +10,17 @@ export abstract class BaseRepository<
     protected readonly prisma: PrismaService,
     protected readonly modelName: keyof Omit<
       PrismaService,
-      | '$connect'
-      | '$disconnect'
-      | '$on'
-      | '$transaction'
-      | '$use'
-      | '$extends'
-      | 'onModuleDestroy'
+      | "$connect"
+      | "$disconnect"
+      | "$on"
+      | "$transaction"
+      | "$use"
+      | "$extends"
+      | "onModuleDestroy"
     >,
-    protected readonly options: { softDelete?: boolean } = { softDelete: false },
+    protected readonly options: { softDelete?: boolean } = {
+      softDelete: false,
+    },
     protected readonly tx?: Prisma.TransactionClient,
   ) {}
 
@@ -28,7 +30,9 @@ export abstract class BaseRepository<
 
   protected get model() {
     return (this.db as Record<string, unknown>)[this.modelName as string] as {
-      findUnique(args: { where: { id: string; deletedAt?: null } }): Promise<T | null>;
+      findUnique(args: {
+        where: { id: string; deletedAt?: null };
+      }): Promise<T | null>;
       findMany(args?: {
         where?: Record<string, unknown>;
         orderBy?: Record<string, unknown> | Record<string, unknown>[];
@@ -36,7 +40,10 @@ export abstract class BaseRepository<
         skip?: number;
       }): Promise<T[]>;
       create(args: { data: CreateInput }): Promise<T>;
-      update(args: { where: { id: string; deletedAt?: null }; data: UpdateInput }): Promise<T>;
+      update(args: {
+        where: { id: string; deletedAt?: null };
+        data: UpdateInput;
+      }): Promise<T>;
       delete(args: { where: { id: string } }): Promise<T>;
       count(args?: { where?: Record<string, unknown> }): Promise<number>;
     };
@@ -47,7 +54,9 @@ export abstract class BaseRepository<
     if (this.options.softDelete) {
       where.deletedAt = null;
     }
-    return this.model.findUnique({ where: where as { id: string; deletedAt?: null } });
+    return this.model.findUnique({
+      where: where as { id: string; deletedAt?: null },
+    });
   }
 
   async findAll(whereClause?: Record<string, unknown>): Promise<T[]> {
@@ -97,8 +106,14 @@ export abstract class BaseRepository<
     whereClause?: Record<string, unknown>,
     orderByClause?: Record<string, unknown> | Record<string, unknown>[],
   ): Promise<{ items: T[]; total: number; page: number; limit: number }> {
-    const page = paginationOptions.page && paginationOptions.page > 0 ? Math.floor(paginationOptions.page) : 1;
-    const limit = paginationOptions.limit && paginationOptions.limit > 0 ? Math.floor(paginationOptions.limit) : 10;
+    const page =
+      paginationOptions.page && paginationOptions.page > 0
+        ? Math.floor(paginationOptions.page)
+        : 1;
+    const limit =
+      paginationOptions.limit && paginationOptions.limit > 0
+        ? Math.floor(paginationOptions.limit)
+        : 10;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = { ...whereClause };

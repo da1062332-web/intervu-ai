@@ -1,5 +1,9 @@
-export { QueueFactory, QUEUE_CONFIG } from './queue-config';
-export { QueueService, type QueueMetrics, type AllQueueMetrics } from './queue.service';
+export { QueueFactory, QUEUE_CONFIG } from "./queue-config";
+export {
+  QueueService,
+  type QueueMetrics,
+  type AllQueueMetrics,
+} from "./queue.service";
 export {
   QueueMessage,
   QueueType,
@@ -18,5 +22,5 @@ export {
   type EvaluationJobInput,
   type AnalyticsJobInput,
   type ValidationJobInput,
-} from './queue-payloads';
-export { QueueModule } from './queue.module';
+} from "./queue-payloads";
+export { QueueModule } from "./queue.module";

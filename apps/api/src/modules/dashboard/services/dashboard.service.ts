@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from "@nestjs/common";
 import {
   DashboardStats,
   DashboardAnalyticsSummary,
   DashboardActivityItem,
-} from '@intervu/shared';
-import { DashboardRepository } from '../repositories/dashboard.repository';
+} from "@intervu/shared";
+import { DashboardRepository } from "../repositories/dashboard.repository";
 
 @Injectable()
 export class DashboardService {
@@ -12,8 +12,8 @@ export class DashboardService {
 
   async getStats(userId: string): Promise<DashboardStats> {
     // 1. Validate
-    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-      throw new NotFoundException('User ID is required');
+    if (!userId || typeof userId !== "string" || userId.trim() === "") {
+      throw new NotFoundException("User ID is required");
     }
 
     // 2. Fetch dependencies
@@ -36,14 +36,17 @@ export class DashboardService {
     };
   }
 
-  async getAnalyticsSummary(userId: string): Promise<DashboardAnalyticsSummary> {
+  async getAnalyticsSummary(
+    userId: string,
+  ): Promise<DashboardAnalyticsSummary> {
     // 1. Validate
-    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-      throw new NotFoundException('User ID is required');
+    if (!userId || typeof userId !== "string" || userId.trim() === "") {
+      throw new NotFoundException("User ID is required");
     }
 
     // 2. Fetch dependencies
-    const rawSummary = await this.dashboardRepository.getAnalyticsSummaryByUserId(userId);
+    const rawSummary =
+      await this.dashboardRepository.getAnalyticsSummaryByUserId(userId);
 
     // 3. Core logic
     const communicationScore =
@@ -74,12 +77,13 @@ export class DashboardService {
 
   async getRecentActivity(userId: string): Promise<DashboardActivityItem[]> {
     // 1. Validate
-    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-      throw new NotFoundException('User ID is required');
+    if (!userId || typeof userId !== "string" || userId.trim() === "") {
+      throw new NotFoundException("User ID is required");
     }
 
     // 2. Fetch dependencies
-    const rawActivity = await this.dashboardRepository.getRecentActivityByUserId(userId, 10);
+    const rawActivity =
+      await this.dashboardRepository.getRecentActivityByUserId(userId, 10);
 
     // 3. Core logic & 4. Format response
     return rawActivity.map((test) => {
@@ -87,7 +91,7 @@ export class DashboardService {
       const completedAtDate = test.completedAt as Date;
       return {
         id: test.id,
-        type: 'interview_completed' as const,
+        type: "interview_completed" as const,
         title: test.template.name,
         createdAt: completedAtDate.toISOString(),
       };

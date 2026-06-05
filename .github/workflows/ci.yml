@@ -14,6 +14,8 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/intervu"
@@ -40,17 +42,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: package-lock.json
 
       - name: Install Dependencies
         run: npm ci
 
+      - name: Auto-Fix Formatting
+        run: npm run format
+
+      - name: Auto-Fix Lint Issues
+        run: npm run lint:fix
+
+      - name: Check for Changes
+        id: git-check
+        run: |
+          git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Re-Run Lint (Verification)
+        run: npm run lint
+
       - name: Check Structure
         run: npm run check:structure
-
-      - name: Run Lint
-        run: npm run lint
 
       - name: Run Type Check
         run: npm run type-check
@@ -69,3 +82,9 @@ jobs:
 
       - name: Run Regression Tests
         run: npm run test:regression
+
+      - name: Auto-Commit Fixes
+        if: steps.git-check.outputs.changes == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(ci): auto-fix formatting and lint issues"

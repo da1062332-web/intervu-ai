@@ -1,11 +1,11 @@
-import { z } from 'zod';
-import { DifficultyLevel } from '@intervu/shared';
+import { z } from "zod";
+import { DifficultyLevel } from "@intervu/shared";
 
 export enum TemplateCategory {
-  APTITUDE = 'aptitude',
-  LOGICAL_REASONING = 'logical_reasoning',
-  QUANTITATIVE_REASONING = 'quantitative_reasoning',
-  CODING = 'coding',
+  APTITUDE = "aptitude",
+  LOGICAL_REASONING = "logical_reasoning",
+  QUANTITATIVE_REASONING = "quantitative_reasoning",
+  CODING = "coding",
 }
 
 export const VariableNumberRangeSchema = z.object({
@@ -14,20 +14,20 @@ export const VariableNumberRangeSchema = z.object({
   step: z.number().optional(),
 });
 
-export const VariableSchema = z.discriminatedUnion('type', [
+export const VariableSchema = z.discriminatedUnion("type", [
   z.object({
     name: z.string(),
-    type: z.literal('number'),
+    type: z.literal("number"),
     range: VariableNumberRangeSchema,
   }),
   z.object({
     name: z.string(),
-    type: z.literal('string'),
+    type: z.literal("string"),
     options: z.array(z.string()),
   }),
 ]);
 
-export const ConstraintSeveritySchema = z.enum(['warning', 'critical']);
+export const ConstraintSeveritySchema = z.enum(["warning", "critical"]);
 
 export const ConstraintSchema = z.object({
   rule: z.string(), // Evaluated mathematical expressions (e.g. "CP < SP" or "days_A !== days_B")

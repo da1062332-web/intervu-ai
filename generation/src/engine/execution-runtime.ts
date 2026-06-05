@@ -1,6 +1,10 @@
-import { TemplateLoader } from './template-loader';
-import { executeTemplate, GeneratedOutput } from './template-executor';
-import { MetricsTracker, ValidationFailureReason, TemplateMetadataContract } from './metrics-tracker';
+import { TemplateLoader } from "./template-loader";
+import { executeTemplate, GeneratedOutput } from "./template-executor";
+import {
+  MetricsTracker,
+  ValidationFailureReason,
+  TemplateMetadataContract,
+} from "./metrics-tracker";
 
 export interface FailureLog {
   templateId: string;
@@ -64,7 +68,7 @@ export class AptitudeGenerationRuntime {
       templateId,
       template.difficulty,
       template.topic,
-      template.tags
+      template.tags,
     );
   }
 
@@ -74,7 +78,7 @@ export class AptitudeGenerationRuntime {
   generateQuestion(
     templateId: string,
     seed: number,
-    seenHashes: Set<string> | string[] = new Set()
+    seenHashes: Set<string> | string[] = new Set(),
   ): GeneratedOutput {
     const template = this.loader.getTemplate(templateId);
     if (!template) {
@@ -108,7 +112,14 @@ export class AptitudeGenerationRuntime {
       .map((q) => q.question);
 
     try {
-      const result = executeTemplate(template, seed, seenHashes, tracker, templatePastParams, otherPastTexts);
+      const result = executeTemplate(
+        template,
+        seed,
+        seenHashes,
+        tracker,
+        templatePastParams,
+        otherPastTexts,
+      );
       success = true;
       attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0) + 1;
 
@@ -125,9 +136,14 @@ export class AptitudeGenerationRuntime {
       this.logFailure(templateId, seed, reason);
 
       // Failure Recovery / Fallback Generation
-      const fallbackTemplates = this.loader.getAllTemplates().filter(
-        (t) => t.topic === template.topic && t.difficulty === template.difficulty && t.templateId !== templateId
-      );
+      const fallbackTemplates = this.loader
+        .getAllTemplates()
+        .filter(
+          (t) =>
+            t.topic === template.topic &&
+            t.difficulty === template.difficulty &&
+            t.templateId !== templateId,
+        );
 
       for (const fallbackTemplate of fallbackTemplates) {
         const fallbackId = fallbackTemplate.templateId;
@@ -145,7 +161,7 @@ export class AptitudeGenerationRuntime {
             seenHashes,
             tracker,
             fallbackPastParams,
-            fallbackOtherPastTexts
+            fallbackOtherPastTexts,
           );
           success = true;
           attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0) + 1;
@@ -159,12 +175,20 @@ export class AptitudeGenerationRuntime {
 
           return result;
         } catch (fallbackErr) {
-          this.logFailure(fallbackId, seed + 100, fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr));
+          this.logFailure(
+            fallbackId,
+            seed + 100,
+            fallbackErr instanceof Error
+              ? fallbackErr.message
+              : String(fallbackErr),
+          );
         }
       }
 
       attemptsUsed = failures.reduce((sum, f) => sum + f.count, 0);
-      throw new Error(`Failure Recovery failed: both template ${templateId} and all of its fallbacks failed validation/generation`);
+      throw new Error(
+        `Failure Recovery failed: both template ${templateId} and all of its fallbacks failed validation/generation`,
+      );
     } finally {
       const runtimeMs = performance.now() - startTime;
       this.metricsTracker.recordRun({
@@ -185,7 +209,7 @@ export class AptitudeGenerationRuntime {
     topic: string,
     count: number,
     startSeed: number,
-    seenHashes: Set<string> = new Set()
+    seenHashes: Set<string> = new Set(),
   ): GeneratedOutput[] {
     const templates = this.loader.getTemplatesByTopic(topic);
     if (templates.length === 0) {
@@ -204,7 +228,11 @@ export class AptitudeGenerationRuntime {
       const template = templates[templateIdx];
 
       try {
-        const question = this.generateQuestion(template.templateId, currentSeed + attempts, seenHashes);
+        const question = this.generateQuestion(
+          template.templateId,
+          currentSeed + attempts,
+          seenHashes,
+        );
 
         // Add the newly generated question's hash to the validation register to prevent subsequent duplicates
         seenHashes.add(question.hash);
@@ -217,7 +245,7 @@ export class AptitudeGenerationRuntime {
 
     if (results.length < count) {
       throw new Error(
-        `Could only generate ${results.length} unique questions out of requested ${count} for topic: ${topic}`
+        `Could only generate ${results.length} unique questions out of requested ${count} for topic: ${topic}`,
       );
     }
 

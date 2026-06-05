@@ -39,7 +39,7 @@ export function useDashboardStats() {
     queryKey: dashboardQueryKeys.stats(),
     queryFn: fetchDashboardStats,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
   });
 }

@@ -1,4 +1,4 @@
-import { DifficultyMetadata } from '../types/template.types';
+import { DifficultyMetadata } from "../types/template.types";
 
 /**
  * Calculates a dynamic complexity score based on the actual generated parameters.
@@ -6,12 +6,12 @@ import { DifficultyMetadata } from '../types/template.types';
  */
 export function calculateDynamicComplexity(
   baseComplexity: number,
-  parameters: Record<string, unknown>
+  parameters: Record<string, unknown>,
 ): number {
   let dynamicOffset = 0;
   for (const key of Object.keys(parameters)) {
     const val = parameters[key];
-    if (typeof val === 'number') {
+    if (typeof val === "number") {
       // Numbers with decimals increase computation difficulty
       if (!Number.isInteger(val)) {
         dynamicOffset += 0.5;
@@ -32,7 +32,7 @@ export function calculateDynamicComplexity(
 export function calculateDifficultyScore(
   metadata: DifficultyMetadata,
   parameters: Record<string, unknown>,
-  constraintsCount: number = 0
+  constraintsCount: number = 0,
 ): number {
   const steps = metadata.w1_steps;
   const baseComplexity = metadata.w2_number_complexity;
@@ -40,14 +40,17 @@ export function calculateDifficultyScore(
   const trick = metadata.w4_trick_factor;
   const w5_constraints = 0.15;
 
-  const dynamicComplexity = calculateDynamicComplexity(baseComplexity, parameters);
+  const dynamicComplexity = calculateDynamicComplexity(
+    baseComplexity,
+    parameters,
+  );
 
   const score =
-    (steps * 0.65) +
-    (dynamicComplexity * 0.40) +
-    (overlap * 0.40) +
-    (trick * 0.40) +
-    (constraintsCount * w5_constraints);
+    steps * 0.65 +
+    dynamicComplexity * 0.4 +
+    overlap * 0.4 +
+    trick * 0.4 +
+    constraintsCount * w5_constraints;
 
   // Round to 2 decimal places to avoid floating point issues
   return Math.round(score * 100) / 100;
@@ -71,12 +74,14 @@ export function isHard(score: number): boolean {
 /**
  * Categorizes the difficulty score into EASY, MEDIUM, or HARD.
  */
-export function getDifficultyCategory(score: number): 'easy' | 'medium' | 'hard' {
+export function getDifficultyCategory(
+  score: number,
+): "easy" | "medium" | "hard" {
   if (isEasy(score)) {
-    return 'easy';
+    return "easy";
   } else if (isMedium(score)) {
-    return 'medium';
+    return "medium";
   } else {
-    return 'hard';
+    return "hard";
   }
 }

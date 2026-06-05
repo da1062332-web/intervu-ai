@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { GenerationService } from './services/generation.service';
-import { GenerationController } from './controllers/generation.controller';
+import { Module } from "@nestjs/common";
+import { GenerationService } from "./services/generation.service";
+import { GenerationController } from "./controllers/generation.controller";
 
 /**
  * GenerationModule — orchestrates question generation workflows.

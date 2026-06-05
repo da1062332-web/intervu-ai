@@ -1,11 +1,7 @@
 import { create } from 'zustand';
-import {
-  createJSONStorage,
-  persist,
-} from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { TokenSession }
-  from '@/types/auth.types';
+import type { TokenSession } from '@/types/auth.types';
 
 interface SessionState {
   accessToken: string | null;
@@ -13,80 +9,56 @@ interface SessionState {
   expiresAt: number | null;
   hydrated: boolean;
 
-  setSession: (
-    session: TokenSession,
-  ) => void;
-  updateAccessToken: (
-    accessToken: string,
-    expiresAt: number,
-  ) => void;
+  setSession: (session: TokenSession) => void;
+  updateAccessToken: (accessToken: string, expiresAt: number) => void;
   clearSession: () => void;
-  setHydrated: (
-    hydrated: boolean,
-  ) => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
-export const useSessionStore =
-  create<SessionState>()(
-    persist(
-      (set) => ({
-        accessToken: null,
-        refreshToken: null,
-        expiresAt: null,
-        hydrated: false,
+export const useSessionStore = create<SessionState>()(
+  persist(
+    (set) => ({
+      accessToken: null,
+      refreshToken: null,
+      expiresAt: null,
+      hydrated: false,
 
-        setSession: (session) =>
-          set({
-            accessToken:
-              session.accessToken,
-            refreshToken:
-              session.refreshToken,
-            expiresAt:
-              session.expiresAt,
-          }),
+      setSession: (session) =>
+        set({
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken,
+          expiresAt: session.expiresAt,
+        }),
 
-        updateAccessToken: (
+      updateAccessToken: (accessToken, expiresAt) =>
+        set({
           accessToken,
           expiresAt,
-        ) =>
-          set({
-            accessToken,
-            expiresAt,
-          }),
-
-        clearSession: () =>
-          set({
-            accessToken: null,
-            refreshToken: null,
-            expiresAt: null,
-          }),
-
-        setHydrated: (hydrated) =>
-          set({ hydrated }),
-      }),
-      {
-        name:
-          'intervu-session-store',
-        storage: createJSONStorage(
-          () => localStorage,
-        ),
-        partialize: (state) => ({
-          accessToken:
-            state.accessToken,
-          refreshToken:
-            state.refreshToken,
-          expiresAt:
-            state.expiresAt,
         }),
-      },
-    ),
-  );
 
-export const isAccessTokenExpired = (
-  bufferMs = 15_000,
-): boolean => {
-  const { expiresAt } =
-    useSessionStore.getState();
+      clearSession: () =>
+        set({
+          accessToken: null,
+          refreshToken: null,
+          expiresAt: null,
+        }),
+
+      setHydrated: (hydrated) => set({ hydrated }),
+    }),
+    {
+      name: 'intervu-session-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        expiresAt: state.expiresAt,
+      }),
+    },
+  ),
+);
+
+export const isAccessTokenExpired = (bufferMs = 15_000): boolean => {
+  const { expiresAt } = useSessionStore.getState();
 
   if (!expiresAt) {
     return true;

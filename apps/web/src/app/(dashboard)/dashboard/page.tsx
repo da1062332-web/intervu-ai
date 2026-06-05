@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Plus,
-  ClipboardList,
-  BarChart3,
-  Users,
-  TrendingUp,
-  Clock,
-} from 'lucide-react';
+import { Plus, ClipboardList, BarChart3, Users, TrendingUp, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/store/auth.store';
@@ -27,7 +20,7 @@ export default function DashboardPage() {
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';
 
   return (
-    <div className="space-y-8">
+    <div className='space-y-8'>
       {/* ── Page Header ── */}
       <PageHeader
         title={`Welcome back, ${firstName} 👋`}
@@ -35,104 +28,96 @@ export default function DashboardPage() {
         action={
           <Button
             onClick={() => router.push('/tests')}
-            className="gap-2"
-            id="create-assessment-btn"
+            className='gap-2'
+            id='create-assessment-btn'
           >
-            <Plus className="size-4" />
+            <Plus className='size-4' />
             New Assessment
           </Button>
         }
       />
 
       {/* ── Stat Cards ── */}
-      <section aria-labelledby="stats-heading">
-        <h2 id="stats-heading" className="sr-only">
+      <section aria-labelledby='stats-heading'>
+        <h2 id='stats-heading' className='sr-only'>
           Key metrics
         </h2>
         {isLoading ? (
-          <SkeletonCardGrid count={4} variant="stat" />
+          <SkeletonCardGrid count={4} variant='stat' />
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className='grid gap-6 sm:grid-cols-2 xl:grid-cols-4'>
             <StatCard
-              label="Total Assessments"
+              label='Total Assessments'
               value={stats?.totalAssessments ?? 0}
-              trend="neutral"
-              trendLabel="No change"
-              icon={<ClipboardList className="size-5" />}
-              color="primary"
+              trend='neutral'
+              trendLabel='No change'
+              icon={<ClipboardList className='size-5' />}
+              color='primary'
             />
             <StatCard
-              label="Active Tests"
+              label='Active Tests'
               value={stats?.activeTests ?? 0}
-              trend="neutral"
-              trendLabel="No change"
-              icon={<Clock className="size-5" />}
-              color="blue"
+              trend='neutral'
+              trendLabel='No change'
+              icon={<Clock className='size-5' />}
+              color='blue'
             />
             <StatCard
-              label="Completed Results"
+              label='Completed Results'
               value={stats?.completedResults ?? 0}
-              trend="neutral"
-              trendLabel="No change"
-              icon={<BarChart3 className="size-5" />}
-              color="emerald"
+              trend='neutral'
+              trendLabel='No change'
+              icon={<BarChart3 className='size-5' />}
+              color='emerald'
             />
             <StatCard
-              label="Candidates Passed"
+              label='Candidates Passed'
               value={stats?.candidatesPassed ?? 0}
-              trend="neutral"
-              trendLabel="No change"
-              icon={<Users className="size-5" />}
-              color="amber"
+              trend='neutral'
+              trendLabel='No change'
+              icon={<Users className='size-5' />}
+              color='amber'
             />
           </div>
         )}
       </section>
 
       {/* ── Quick Actions ── */}
-      <section aria-labelledby="quick-actions-heading">
+      <section aria-labelledby='quick-actions-heading'>
         <h2
-          id="quick-actions-heading"
-          className="text-lg font-heading font-semibold text-foreground mb-4"
+          id='quick-actions-heading'
+          className='text-lg font-heading font-semibold text-foreground mb-4'
         >
           Quick Actions
         </h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           <DashboardCard
-            title="Create Assessment"
-            description="Build a new AI-powered interview assessment tailored to your specific role and requirements."
-            icon={<Plus className="size-6" />}
-            actionLabel="Get Started"
+            title='Create Assessment'
+            description='Build a new AI-powered interview assessment tailored to your specific role and requirements.'
+            icon={<Plus className='size-6' />}
+            actionLabel='Get Started'
             onAction={() => router.push('/tests')}
-            color="primary"
+            color='primary'
           />
           <DashboardCard
-            title="Browse Tests"
-            description="View and manage all your interview assessments, candidates, and test configurations."
-            icon={<ClipboardList className="size-6" />}
-            actionLabel="View Tests"
+            title='Browse Tests'
+            description='View and manage all your interview assessments, candidates, and test configurations.'
+            icon={<ClipboardList className='size-6' />}
+            actionLabel='View Tests'
             onAction={() => router.push('/tests')}
-            color="blue"
+            color='blue'
           >
-            <EmptyStateCard
-              title="No tests yet"
-              compact
-              cardClassName="min-h-[60px]"
-            />
+            <EmptyStateCard title='No tests yet' compact cardClassName='min-h-[60px]' />
           </DashboardCard>
           <DashboardCard
-            title="Analytics"
-            description="Gain deep insights into candidate performance, pass rates, and hiring metrics."
-            icon={<TrendingUp className="size-6" />}
-            actionLabel="View Analytics"
+            title='Analytics'
+            description='Gain deep insights into candidate performance, pass rates, and hiring metrics.'
+            icon={<TrendingUp className='size-6' />}
+            actionLabel='View Analytics'
             onAction={() => router.push('/results')}
-            color="emerald"
+            color='emerald'
           >
-            <EmptyStateCard
-              title="No data yet"
-              compact
-              cardClassName="min-h-[60px]"
-            />
+            <EmptyStateCard title='No data yet' compact cardClassName='min-h-[60px]' />
           </DashboardCard>
         </div>
       </section>

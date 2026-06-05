@@ -1,8 +1,8 @@
-import { Injectable, Optional } from '@nestjs/common';
-import { Template, Prisma, DifficultyLevel } from '@prisma/client';
+import { Injectable, Optional } from "@nestjs/common";
+import { Template, Prisma, DifficultyLevel } from "@prisma/client";
 
-import { BaseRepository } from '../../../common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { BaseRepository } from "../../../common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class TemplateRepository extends BaseRepository<
@@ -14,7 +14,7 @@ export class TemplateRepository extends BaseRepository<
     prisma: PrismaService,
     @Optional() tx?: Prisma.TransactionClient,
   ) {
-    super(prisma, 'template', { softDelete: true }, tx);
+    super(prisma, "template", { softDelete: true }, tx);
   }
 
   withTransaction(tx: Prisma.TransactionClient): this {
@@ -28,7 +28,7 @@ export class TemplateRepository extends BaseRepository<
     }
     return this.db.template.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -39,7 +39,7 @@ export class TemplateRepository extends BaseRepository<
     }
     return this.db.template.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 }

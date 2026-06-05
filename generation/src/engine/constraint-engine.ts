@@ -1,5 +1,5 @@
-import { evaluateExpression } from './math-parser';
-import { Constraint } from '../types/template.types';
+import { evaluateExpression } from "./math-parser";
+import { Constraint } from "../types/template.types";
 
 export interface ConstraintEvaluationResult {
   isValid: boolean;
@@ -12,7 +12,7 @@ export interface ConstraintEvaluationResult {
  */
 export function evaluateConstraints(
   constraints: Constraint[],
-  context: Record<string, unknown>
+  context: Record<string, unknown>,
 ): ConstraintEvaluationResult {
   const violatedConstraints: Constraint[] = [];
 
@@ -26,13 +26,13 @@ export function evaluateConstraints(
       // If evaluation throws (e.g. division by zero), treat as a critical failure
       violatedConstraints.push({
         rule: constraint.rule,
-        severity: 'critical',
+        severity: "critical",
       });
     }
   }
 
   // Parameter set is invalid if there are any critical violations
-  const isValid = !violatedConstraints.some((c) => c.severity === 'critical');
+  const isValid = !violatedConstraints.some((c) => c.severity === "critical");
 
   return {
     isValid,

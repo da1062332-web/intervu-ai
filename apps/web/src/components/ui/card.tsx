@@ -2,11 +2,7 @@ import { cn } from '@/lib/utils';
 
 type CardProps = React.HTMLAttributes<HTMLDivElement>;
 
-export function Card({
-  children,
-  className,
-  ...props
-}: CardProps) {
+export function Card({ children, className, ...props }: CardProps) {
   return (
     <div
       className={cn(
@@ -22,11 +18,7 @@ export function Card({
   );
 }
 
-export function CardHeader({
-  children,
-  className,
-  ...props
-}: CardProps) {
+export function CardHeader({ children, className, ...props }: CardProps) {
   return (
     <div className={cn('mb-4', className)} {...props}>
       {children}
@@ -34,47 +26,23 @@ export function CardHeader({
   );
 }
 
-export function CardTitle({
-  children,
-  className,
-  ...props
-}: CardProps) {
+export function CardTitle({ children, className, ...props }: CardProps) {
   return (
-    <h3
-      className={cn(
-        'text-lg font-semibold text-gray-900 dark:text-white',
-        className,
-      )}
-      {...props}
-    >
+    <h3 className={cn('text-lg font-semibold text-gray-900 dark:text-white', className)} {...props}>
       {children}
     </h3>
   );
 }
 
-export function CardDescription({
-  children,
-  className,
-  ...props
-}: CardProps) {
+export function CardDescription({ children, className, ...props }: CardProps) {
   return (
-    <p
-      className={cn(
-        'text-sm text-gray-600 dark:text-gray-400',
-        className,
-      )}
-      {...props}
-    >
+    <p className={cn('text-sm text-gray-600 dark:text-gray-400', className)} {...props}>
       {children}
     </p>
   );
 }
 
-export function CardContent({
-  children,
-  className,
-  ...props
-}: CardProps) {
+export function CardContent({ children, className, ...props }: CardProps) {
   return (
     <div className={cn('mb-4', className)} {...props}>
       {children}
@@ -82,16 +50,9 @@ export function CardContent({
   );
 }
 
-export function CardFooter({
-  children,
-  className,
-  ...props
-}: CardProps) {
+export function CardFooter({ children, className, ...props }: CardProps) {
   return (
-    <div
-      className={cn('flex items-center justify-between pt-4', className)}
-      {...props}
-    >
+    <div className={cn('flex items-center justify-between pt-4', className)} {...props}>
       {children}
     </div>
   );

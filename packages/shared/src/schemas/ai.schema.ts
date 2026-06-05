@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { DifficultyLevel } from '../enums/difficulty.enum';
+import { z } from "zod";
+import { DifficultyLevel } from "../enums/difficulty.enum";
 
 export const GenerateQuestionRequestSchema = z.object({
   topic: z.string().min(1),
