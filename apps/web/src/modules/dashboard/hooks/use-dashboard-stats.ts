@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '@/services/api/dashboard.api';
-import type { DashboardStats } from '@/types/dashboard.types';
 
 // ─── Query Keys ───────────────────────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Users, FileText, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 import { AnalyticsSectionHeader } from '@/components/analytics/AnalyticsSectionHeader';
 import { StatCard } from '@/components/analytics/StatCard';
@@ -17,7 +18,6 @@ export default function AnalyticsDashboardPage() {
   const { data: summaryData, isLoading: isLoadingSummary, isError: isSummaryError } = useAnalyticsSummary();
   const { data: activityData, isLoading: isLoadingActivity, isError: isActivityError } = useRecentActivity();
 
-  const isLoading = isLoadingStats || isLoadingSummary || isLoadingActivity;
   const isError = isStatsError || isSummaryError || isActivityError;
 
   const getIconForStat = (title: string) => {
@@ -35,22 +35,22 @@ export default function AnalyticsDashboardPage() {
     }
   };
 
-  const overviewStats = [
+  const overviewStats = React.useMemo(() => [
     { title: 'Tests Taken', value: statsData?.testsTaken?.toString() ?? '0', trend: 'neutral' as const },
     { title: 'Average Score', value: `${statsData?.averageScore ?? 0}%`, trend: 'neutral' as const },
     { title: 'Completion Rate', value: `${statsData?.completionRate ?? 0}%`, trend: 'neutral' as const },
     { title: 'Total Sessions', value: statsData?.totalSessions?.toString() ?? '0', trend: 'neutral' as const },
-  ];
+  ], [statsData]);
 
-  const performanceMetrics = summaryData ? [
+  const performanceMetrics = React.useMemo(() => summaryData ? [
     { category: 'Communication', score: summaryData.communicationScore },
     { category: 'Technical', score: summaryData.technicalScore },
     { category: 'Confidence', score: summaryData.confidenceScore },
     { category: 'Overall Rating', score: summaryData.overallRating },
-  ] : [];
+  ] : [], [summaryData]);
 
-  const hasSkills = performanceMetrics.some(m => m.score > 0);
-  const recentActivities = activityData ?? [];
+  const hasSkills = React.useMemo(() => performanceMetrics.some(m => m.score > 0), [performanceMetrics]);
+  const recentActivities = React.useMemo(() => activityData ?? [], [activityData]);
 
   if (isError) {
     return (

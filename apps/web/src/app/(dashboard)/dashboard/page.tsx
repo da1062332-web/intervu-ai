@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, ClipboardList, BarChart3, Users, TrendingUp, Clock } from 'lucide-react';
+import { Plus, ClipboardList, BarChart3, Users, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/store/auth.store';
@@ -47,32 +47,32 @@ export default function DashboardPage() {
         ) : (
           <div className='grid gap-6 sm:grid-cols-2 xl:grid-cols-4'>
             <StatCard
-              label='Total Assessments'
-              value={stats?.totalAssessments ?? 0}
+              label='Tests Taken'
+              value={stats?.testsTaken ?? 0}
               trend='neutral'
               trendLabel='No change'
               icon={<ClipboardList className='size-5' />}
               color='primary'
             />
             <StatCard
-              label='Active Tests'
-              value={stats?.activeTests ?? 0}
+              label='Average Score'
+              value={`${stats?.averageScore ?? 0}%`}
               trend='neutral'
               trendLabel='No change'
-              icon={<Clock className='size-5' />}
+              icon={<TrendingUp className='size-5' />}
               color='blue'
             />
             <StatCard
-              label='Completed Results'
-              value={stats?.completedResults ?? 0}
+              label='Completion Rate'
+              value={`${stats?.completionRate ?? 0}%`}
               trend='neutral'
               trendLabel='No change'
               icon={<BarChart3 className='size-5' />}
               color='emerald'
             />
             <StatCard
-              label='Candidates Passed'
-              value={stats?.candidatesPassed ?? 0}
+              label='Total Sessions'
+              value={stats?.totalSessions ?? 0}
               trend='neutral'
               trendLabel='No change'
               icon={<Users className='size-5' />}

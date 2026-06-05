@@ -15,4 +15,23 @@ export const userApi = {
       method: 'GET',
     });
   },
+
+  updateProfile(data: Partial<AuthUser>): Promise<AuthUser> {
+    return apiClient.request<AuthUser>(`${USER_BASE_PATH}/profile`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteSession(sessionId: string): Promise<void> {
+    return apiClient.request<void>(`${USER_BASE_PATH}/sessions/${sessionId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  deleteAllSessions(): Promise<void> {
+    return apiClient.request<void>(`${USER_BASE_PATH}/sessions`, {
+      method: 'DELETE',
+    });
+  },
 };

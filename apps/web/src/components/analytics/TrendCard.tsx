@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkeletonChart } from './SkeletonChart';
 import { EmptyAnalyticsState } from './EmptyAnalyticsState';
-import { ChartData } from '@/data/mock-analytics';
+export interface ChartData {
+  name: string;
+  value: number;
+}
 
 export interface TrendCardProps {
   title: string;
