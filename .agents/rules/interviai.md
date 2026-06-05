@@ -27,5 +27,24 @@ No Random Generation: Never use random LLM generation. Always use templates, dif
 Exam Realism: The UI is a strict exam simulation. The Timer is the absolute authority. Auto-save everything. No data loss.
 Component Architecture: One component = one responsibility (e.g., Generic QuestionRenderer). Separate logic (Hooks) from UI (Components).
 API Layer: Centralize APIs in /services and /hooks. Never call APIs directly inside UI components. Implement defensive rendering (loading, empty, error states).
+6. CI/CD WORKFLOW & GIT PULL/PUSH POLICY
+- Always Pull First: Before starting any task or coding, you must pull the latest changes from the main branch to align your local environment.
+- Mandatory Validation Checks: Before pushing ANY code to the beta branch, you must successfully run the complete validation suite:
+  * `npm run check:structure`
+  * `npm run lint`
+  * `npm run type-check`
+  * `npm run test`
+  * `npm run test:integration`
+  * `npm run test:contracts`
+  * `npm run test:regression`
+  * `npm run build`
+- Strict Push Policy:
+  * Do NOT push code if any command fails.
+  * Do NOT ignore warnings or validation errors.
+  * Fix all errors locally first, and re-run all checks.
+- Push to Beta: Only after every single validation check passes, add/commit and push to the beta branch:
+  `git add .`
+  `git commit -m "your commit message"`
+  `git push origin beta`
+
 Please confirm you have internalized this workflow and these rules by replying: "Rules locked. I will not generate code until the planning phase is explicitly approved. Awaiting the first task."
- 
