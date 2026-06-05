@@ -29,22 +29,24 @@ Component Architecture: One component = one responsibility (e.g., Generic Questi
 API Layer: Centralize APIs in /services and /hooks. Never call APIs directly inside UI components. Implement defensive rendering (loading, empty, error states).
 6. CI/CD WORKFLOW & GIT PULL/PUSH POLICY
 - Always Pull First: Before starting any task or coding, you must pull the latest changes from the main branch to align your local environment.
-- Mandatory Validation Checks: Before pushing ANY code to the beta branch, you must successfully run the complete validation suite:
-  * `npm run check:structure`
-  * `npm run lint`
-  * `npm run type-check`
-  * `npm run test`
-  * `npm run test:integration`
-  * `npm run test:contracts`
-  * `npm run test:regression`
-  * `npm run build`
+- Step-by-Step Push Prep Flow:
+  1. Commit your local changes first: `git add .` and `git commit -m "..."`
+  2. Pull remote changes from the beta branch: `git pull origin beta`
+  3. Pull remote changes from the main branch: `git pull origin main`
+  4. Resolve any merge conflicts locally.
+  5. Run the full validation suite:
+     * `npm run check:structure`
+     * `npm run lint`
+     * `npm run type-check`
+     * `npm run test`
+     * `npm run test:integration`
+     * `npm run test:contracts`
+     * `npm run test:regression`
+     * `npm run build`
+  6. Push only after all validation checks pass: `git push origin beta`
 - Strict Push Policy:
   * Do NOT push code if any command fails.
   * Do NOT ignore warnings or validation errors.
   * Fix all errors locally first, and re-run all checks.
-- Push to Beta: Only after every single validation check passes, add/commit and push to the beta branch:
-  `git add .`
-  `git commit -m "your commit message"`
-  `git push origin beta`
 
 Please confirm you have internalized this workflow and these rules by replying: "Rules locked. I will not generate code until the planning phase is explicitly approved. Awaiting the first task."
