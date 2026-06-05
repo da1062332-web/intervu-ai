@@ -14,7 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { LoginDto, RefreshTokenDto, SignupDto } from '@intervu/shared';
+import { LoginDto, RefreshTokenDto, SignupDto } from '../dto/auth.dto';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -28,13 +28,14 @@ interface RequestMeta {
 
 @ApiTags('auth')
 @Controller('auth')
+@ApiBearerAuth('jwt-auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
   @Post('signup')
   @ApiOperation({ summary: 'Register a new candidate account' })
-  @ApiBody({ description: 'Signup credentials' })
+  @ApiBody({ type: SignupDto, description: 'Signup credentials' })
   @ApiOkResponse({ description: 'User registered successfully' })
   async signup(
     @Body() dto: SignupDto,
@@ -47,7 +48,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
-  @ApiBody({ description: 'Login credentials' })
+  @ApiBody({ type: LoginDto, description: 'Login credentials' })
   @ApiOkResponse({ description: 'User logged in successfully' })
   async login(
     @Body() dto: LoginDto,
@@ -60,7 +61,7 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
-  @ApiBody({ description: 'Refresh token' })
+  @ApiBody({ type: RefreshTokenDto, description: 'Refresh token' })
   @ApiOkResponse({ description: 'Tokens refreshed successfully' })
   async refresh(
     @Body() dto: RefreshTokenDto,
@@ -73,7 +74,7 @@ export class AuthController {
   @Public()
   @Post('logout')
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
-  @ApiBody({ description: 'Refresh token to revoke' })
+  @ApiBody({ type: RefreshTokenDto, description: 'Refresh token to revoke' })
   @ApiOkResponse({ description: 'User logged out successfully' })
   async logout(@Body() dto: RefreshTokenDto): Promise<void> {
     await this.authService.logout(dto.refreshToken);
