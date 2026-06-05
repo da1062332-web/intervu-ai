@@ -3,3 +3,4 @@ export * from './error.schema';
 export * from './api.schema';
 export * from './common.schema';
 export * from './auth.schema';
+export * from './ai.schema';

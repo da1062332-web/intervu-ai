@@ -30,12 +30,13 @@ export class TestAssemblyService {
     await this.queueService.enqueueGeneration({
       jobId,
       correlationId,
-      testId: 'test_123', // Mock test ID for now
-      timestamp: new Date().toISOString(),
-      assemblyId: 'test_123', // the older shared queue interface uses assemblyId
-      topic: body.topic,
-      difficulty: body.difficulty,
-      count: body.count,
+      timestamp: Date.now(),
+      payload: {
+        assemblyId: 'test_123', // the older shared queue interface uses assemblyId
+        topicId: body.topic,
+        difficulty: body.difficulty as string,
+        count: body.count,
+      }
     });
 
     return {
