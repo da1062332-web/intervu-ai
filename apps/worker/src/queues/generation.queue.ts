@@ -114,8 +114,8 @@ export class GenerationQueueProcessor {
     });
   }
 
-  async close(): Promise<void> {
-    await this.worker.close();
+  async close(force: boolean = false): Promise<void> {
+    await this.worker.close(force);
     await this.prisma.$disconnect();
   }
 }

@@ -34,7 +34,7 @@ export class EvaluationQueueProcessor {
       });
 
       // Simulate evaluation processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, process.env.NODE_ENV === 'test' ? 10 : 2000));
 
       const duration = Date.now() - startTime;
 
@@ -80,7 +80,7 @@ export class EvaluationQueueProcessor {
     });
   }
 
-  async close(): Promise<void> {
-    await this.worker.close();
+  async close(force: boolean = false): Promise<void> {
+    await this.worker.close(force);
   }
 }

@@ -30,7 +30,7 @@ export class AnalyticsQueueProcessor {
       this.logger.info(`Processing job ${job.id}`);
       
       // Simulate analytics processing delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, process.env.NODE_ENV === 'test' ? 10 : 500));
       
       this.logger.info(`Successfully completed analytics job ${job.id}`, { duration: Date.now() - startTime });
       return { status: 'completed' };
@@ -65,7 +65,7 @@ export class AnalyticsQueueProcessor {
     });
   }
 
-  async close(): Promise<void> {
-    await this.worker.close();
+  async close(force: boolean = false): Promise<void> {
+    await this.worker.close(force);
   }
 }

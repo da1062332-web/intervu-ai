@@ -54,7 +54,7 @@ describe('Worker Queue Processors', () => {
     it('should initialize without errors', async () => {
       const processor = new GenerationQueueProcessor(connection, logger);
       expect(processor).toBeDefined();
-      await processor.close();
+      await processor.close(true);
     });
 
     it('should add jobs to generation queue', async () => {
@@ -80,7 +80,7 @@ describe('Worker Queue Processors', () => {
     it('should initialize without errors', async () => {
       const processor = new EvaluationQueueProcessor(connection, logger);
       expect(processor).toBeDefined();
-      await processor.close();
+      await processor.close(true);
     });
 
     it('should add jobs to evaluation queue', async () => {
@@ -106,7 +106,7 @@ describe('Worker Queue Processors', () => {
     it('should initialize without errors', async () => {
       const processor = new AnalyticsQueueProcessor(connection, logger);
       expect(processor).toBeDefined();
-      await processor.close();
+      await processor.close(true);
     });
 
     it('should add jobs to analytics queue', async () => {
@@ -168,9 +168,9 @@ describe('Worker Queue Processors', () => {
       expect((anaCounts.wait || 0) + (anaCounts.active || 0)).toBeGreaterThan(0);
 
       // Cleanup
-      await genProcessor.close();
-      await evalProcessor.close();
-      await analyticsProcessor.close();
+      await genProcessor.close(true);
+      await evalProcessor.close(true);
+      await analyticsProcessor.close(true);
     });
   });
 
