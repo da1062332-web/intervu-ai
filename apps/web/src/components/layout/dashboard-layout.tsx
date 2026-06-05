@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-
 import { Navbar } from './navbar';
 import { Sidebar } from './sidebar';
 import { MobileNav } from './mobile-nav';
@@ -13,8 +12,6 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-
-
   return (
     <div className='flex min-h-screen bg-background'>
       {/* ── Desktop Sidebar ── */}
