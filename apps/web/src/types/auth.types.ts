@@ -34,3 +34,11 @@ export interface AuthResponseData
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
+
+export interface UserSession {
+  id: string;
+  userId: string;
+  device?: string;
+  ip?: string;
+  lastActiveAt?: string;
+}

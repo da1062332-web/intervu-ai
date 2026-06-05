@@ -40,8 +40,23 @@ export interface PageHeaderProps {
 }
 
 export interface DashboardStats {
-  totalAssessments: number;
-  activeTests: number;
-  completedResults: number;
-  candidatesPassed: number;
+  testsTaken: number;
+  averageScore: number;
+  completionRate: number;
+  totalSessions: number;
+}
+
+export interface AnalyticsSummary {
+  communicationScore: number;
+  technicalScore: number;
+  confidenceScore: number;
+  overallRating: number;
+}
+
+export interface RecentActivity {
+  id: string;
+  type: 'interview' | 'assessment' | 'system' | string;
+  title: string;
+  description: string;
+  timestamp: string;
 }
