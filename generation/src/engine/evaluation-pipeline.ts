@@ -5,7 +5,7 @@ import {
   EvaluationResult,
   EvaluationRun,
   EvaluationAnalyticsReport,
-} from '../types/evaluation.types';
+} from "../types/evaluation.types";
 
 export class EvaluationAnalyticsTracker {
   private evaluations: EvaluationRun[] = [];
@@ -52,18 +52,21 @@ export class EvaluationAnalyticsTracker {
 export const evaluationAnalytics = new EvaluationAnalyticsTracker();
 
 // Memory cache to track duplicate submission anomalies
-const submissionCache = new Map<string, { selectedOption: string; timestamp: number }>();
+const submissionCache = new Map<
+  string,
+  { selectedOption: string; timestamp: number }
+>();
 
 /**
  * Validates a candidate's response against the question metadata and generates a detailed score and metrics report.
- * 
+ *
  * @param rawPayload The raw evaluation payload to be parsed and verified.
  * @param optionsList Optional list of the 4 choice options presented to the user.
  * @returns EvaluationResult
  */
 export function evaluateResponse(
   rawPayload: unknown,
-  optionsList?: string[]
+  optionsList?: string[],
 ): EvaluationResult {
   const issues: string[] = [];
   let isCorrect = false;
@@ -76,15 +79,19 @@ export function evaluateResponse(
   if (!parseResult.success) {
     hasMismatch = true;
     const errorMsg = `Payload schema validation failed: ${parseResult.error.errors
-      .map((e) => `${e.path.join('.')}: ${e.message}`)
-      .join(', ')}`;
-    
+      .map((e) => `${e.path.join(".")}: ${e.message}`)
+      .join(", ")}`;
+
     const fallbackMetadata: EvaluationMetadata = {
-      questionId: typeof rawPayload === 'object' && rawPayload !== null && 'questionId' in rawPayload && typeof (rawPayload as Record<string, unknown>).questionId === 'string'
-        ? (rawPayload as Record<string, unknown>).questionId as string
-        : 'unknown',
+      questionId:
+        typeof rawPayload === "object" &&
+        rawPayload !== null &&
+        "questionId" in rawPayload &&
+        typeof (rawPayload as Record<string, unknown>).questionId === "string"
+          ? ((rawPayload as Record<string, unknown>).questionId as string)
+          : "unknown",
       difficultyWeight: 1,
-      correctAnswer: 'unknown',
+      correctAnswer: "unknown",
     };
 
     const result: EvaluationResult = {
@@ -116,15 +123,21 @@ export function evaluateResponse(
   if (optionsList) {
     if (optionsList.length !== 4) {
       hasMismatch = true;
-      issues.push(`Runtime option consistency error: expected 4 options, got ${optionsList.length}`);
+      issues.push(
+        `Runtime option consistency error: expected 4 options, got ${optionsList.length}`,
+      );
     } else {
       if (!optionsList.includes(selectedOption)) {
         hasMismatch = true;
-        issues.push(`Runtime option consistency error: selected option '${selectedOption}' not present in options list`);
+        issues.push(
+          `Runtime option consistency error: selected option '${selectedOption}' not present in options list`,
+        );
       }
       if (!optionsList.includes(metadata.correctAnswer)) {
         hasMismatch = true;
-        issues.push(`Runtime option consistency error: correct answer '${metadata.correctAnswer}' not present in options list`);
+        issues.push(
+          `Runtime option consistency error: correct answer '${metadata.correctAnswer}' not present in options list`,
+        );
       }
     }
   }
@@ -134,7 +147,7 @@ export function evaluateResponse(
 
   // 4. Scoring Calculations
   const baseScore = isCorrect ? metadata.difficultyWeight * 10 : 0;
-  
+
   // Calculate Time Bonus: only eligible if answer is correct
   let timeBonus = 0;
   if (isCorrect && timeTakenSeconds > 0) {
@@ -153,7 +166,9 @@ export function evaluateResponse(
   let confidenceScore = 1.0;
   if (timeTakenSeconds < 2) {
     confidenceScore = 0.1; // Flagged: highly likely to be a fast guess or cheat
-    issues.push(`Suspiciously low response time (${timeTakenSeconds}s): confidence flagged`);
+    issues.push(
+      `Suspiciously low response time (${timeTakenSeconds}s): confidence flagged`,
+    );
   } else if (timeTakenSeconds < 5) {
     confidenceScore = 0.5; // Marginally fast response time
   } else if (!isCorrect) {
@@ -163,17 +178,29 @@ export function evaluateResponse(
   // 6. Duplicate Score Anomaly Check
   const now = Date.now();
   const cached = submissionCache.get(questionId);
-  if (cached && cached.selectedOption === selectedOption && (now - cached.timestamp) < 5000) {
+  if (
+    cached &&
+    cached.selectedOption === selectedOption &&
+    now - cached.timestamp < 5000
+  ) {
     hasScoreAnomaly = true;
-    issues.push(`Duplicate submission anomaly: identical response received within 5 seconds for question ${questionId}`);
+    issues.push(
+      `Duplicate submission anomaly: identical response received within 5 seconds for question ${questionId}`,
+    );
   }
   submissionCache.set(questionId, { selectedOption, timestamp: now });
 
   // 7. Evaluation Consistency Check
   // The calculated final score must equal baseScore + timeBonus, and difficulty weight must be in range [1, 3]
-  if (finalScore !== baseScore + timeBonus || metadata.difficultyWeight < 1 || metadata.difficultyWeight > 3) {
+  if (
+    finalScore !== baseScore + timeBonus ||
+    metadata.difficultyWeight < 1 ||
+    metadata.difficultyWeight > 3
+  ) {
     isConsistent = false;
-    issues.push(`Evaluation inconsistency: invalid score computation or difficulty weight out of bounds`);
+    issues.push(
+      `Evaluation inconsistency: invalid score computation or difficulty weight out of bounds`,
+    );
   }
 
   // 8. Record in Analytics Tracker

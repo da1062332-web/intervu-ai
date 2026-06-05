@@ -691,24 +691,24 @@ describe("Generation Engine Core Subsystem", () => {
     });
   });
 
-  describe('Day 6 Deliverables: Deterministic Evaluation Pipeline', () => {
+  describe("Day 6 Deliverables: Deterministic Evaluation Pipeline", () => {
     beforeEach(() => {
       evaluationAnalytics.clear();
     });
 
-    it('should evaluate a correct response with correct scoring, time bonus, and high confidence', () => {
+    it("should evaluate a correct response with correct scoring, time bonus, and high confidence", () => {
       const payload = {
-        questionId: 'Q001',
-        selectedOption: '20',
+        questionId: "Q001",
+        selectedOption: "20",
         timeTakenSeconds: 15,
         metadata: {
-          questionId: 'Q001',
+          questionId: "Q001",
           difficultyWeight: 2,
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
-      const result = evaluateResponse(payload, ['10', '15', '20', '25']);
+      const result = evaluateResponse(payload, ["10", "15", "20", "25"]);
       expect(result.isCorrect).toBe(true);
       expect(result.baseScore).toBe(20);
       expect(result.timeBonus).toBe(3); // 15 seconds is < 20, so 3 points
@@ -723,19 +723,19 @@ describe("Generation Engine Core Subsystem", () => {
       expect(report.evaluationConsistencyRate).toBe(1.0);
     });
 
-    it('should evaluate an incorrect response with 0 score, no time bonus, and lower confidence', () => {
+    it("should evaluate an incorrect response with 0 score, no time bonus, and lower confidence", () => {
       const payload = {
-        questionId: 'Q002',
-        selectedOption: '15',
+        questionId: "Q002",
+        selectedOption: "15",
         timeTakenSeconds: 25,
         metadata: {
-          questionId: 'Q002',
+          questionId: "Q002",
           difficultyWeight: 3,
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
-      const result = evaluateResponse(payload, ['10', '15', '20', '25']);
+      const result = evaluateResponse(payload, ["10", "15", "20", "25"]);
       expect(result.isCorrect).toBe(false);
       expect(result.baseScore).toBe(0);
       expect(result.timeBonus).toBe(0);
@@ -748,100 +748,116 @@ describe("Generation Engine Core Subsystem", () => {
       expect(report.correctnessRate).toBe(0.0);
     });
 
-    it('should detect option consistency mismatches and flag them in issues', () => {
+    it("should detect option consistency mismatches and flag them in issues", () => {
       const payload = {
-        questionId: 'Q003',
-        selectedOption: '30', // not in options list
+        questionId: "Q003",
+        selectedOption: "30", // not in options list
         timeTakenSeconds: 12,
         metadata: {
-          questionId: 'Q003',
+          questionId: "Q003",
           difficultyWeight: 1,
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
-      const result = evaluateResponse(payload, ['10', '15', '20', '25']);
+      const result = evaluateResponse(payload, ["10", "15", "20", "25"]);
       expect(result.isCorrect).toBe(false);
-      expect(result.issues.some(issue => issue.includes('option consistency'))).toBe(true);
-      
+      expect(
+        result.issues.some((issue) => issue.includes("option consistency")),
+      ).toBe(true);
+
       const report = evaluationAnalytics.getAnalytics();
       expect(report.runtimeMismatches).toBe(1);
     });
 
-    it('should detect suspicious guess attempts with low response times', () => {
+    it("should detect suspicious guess attempts with low response times", () => {
       const payload = {
-        questionId: 'Q004',
-        selectedOption: '20',
+        questionId: "Q004",
+        selectedOption: "20",
         timeTakenSeconds: 1.5, // abnormally fast
         metadata: {
-          questionId: 'Q004',
+          questionId: "Q004",
           difficultyWeight: 2,
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
-      const result = evaluateResponse(payload, ['10', '15', '20', '25']);
+      const result = evaluateResponse(payload, ["10", "15", "20", "25"]);
       expect(result.isCorrect).toBe(true);
       expect(result.confidenceScore).toBe(0.1);
-      expect(result.issues.some(issue => issue.includes('Suspiciously low response time'))).toBe(true);
+      expect(
+        result.issues.some((issue) =>
+          issue.includes("Suspiciously low response time"),
+        ),
+      ).toBe(true);
     });
 
-    it('should flag duplicate submission anomalies', () => {
+    it("should flag duplicate submission anomalies", () => {
       const payload1 = {
-        questionId: 'Q005',
-        selectedOption: '20',
+        questionId: "Q005",
+        selectedOption: "20",
         timeTakenSeconds: 15,
         metadata: {
-          questionId: 'Q005',
+          questionId: "Q005",
           difficultyWeight: 2,
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
       // First submission
-      evaluateResponse(payload1, ['10', '15', '20', '25']);
+      evaluateResponse(payload1, ["10", "15", "20", "25"]);
 
       // Instant duplicate submission
-      const result2 = evaluateResponse(payload1, ['10', '15', '20', '25']);
-      expect(result2.issues.some(issue => issue.includes('Duplicate submission'))).toBe(true);
+      const result2 = evaluateResponse(payload1, ["10", "15", "20", "25"]);
+      expect(
+        result2.issues.some((issue) => issue.includes("Duplicate submission")),
+      ).toBe(true);
 
       const report = evaluationAnalytics.getAnalytics();
       expect(report.duplicateScoreAnomalies).toBe(1);
     });
 
-    it('should flag evaluation inconsistencies if difficulty weight is out of bounds', () => {
+    it("should flag evaluation inconsistencies if difficulty weight is out of bounds", () => {
       const payload = {
-        questionId: 'Q006',
-        selectedOption: '20',
+        questionId: "Q006",
+        selectedOption: "20",
         timeTakenSeconds: 15,
         metadata: {
-          questionId: 'Q006',
+          questionId: "Q006",
           difficultyWeight: 5, // out of bounds
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
-      const result = evaluateResponse(payload, ['10', '15', '20', '25']);
-      expect(result.issues.some(issue => issue.includes('Evaluation inconsistency'))).toBe(true);
-      
+      const result = evaluateResponse(payload, ["10", "15", "20", "25"]);
+      expect(
+        result.issues.some((issue) =>
+          issue.includes("Evaluation inconsistency"),
+        ),
+      ).toBe(true);
+
       const report = evaluationAnalytics.getAnalytics();
       expect(report.evaluationConsistencyRate).toBe(0.0);
     });
 
-    it('should handle payload schema parsing errors gracefully by returning a fallback failure result', () => {
+    it("should handle payload schema parsing errors gracefully by returning a fallback failure result", () => {
       const badPayload = {
-        questionId: 'Q007',
+        questionId: "Q007",
         // selectedOption and timeTakenSeconds are missing
         metadata: {
-          questionId: 'Q007',
+          questionId: "Q007",
           difficultyWeight: 2,
-          correctAnswer: '20'
-        }
+          correctAnswer: "20",
+        },
       };
 
       const result = evaluateResponse(badPayload);
       expect(result.isCorrect).toBe(false);
-      expect(result.issues.some(issue => issue.includes('Payload schema validation failed'))).toBe(true);
+      expect(
+        result.issues.some((issue) =>
+          issue.includes("Payload schema validation failed"),
+        ),
+      ).toBe(true);
 
       const report = evaluationAnalytics.getAnalytics();
       expect(report.totalEvaluations).toBe(1);
