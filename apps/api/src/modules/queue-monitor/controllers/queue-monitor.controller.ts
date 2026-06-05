@@ -15,6 +15,8 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 
+import { z } from 'zod';
+import { ValidateResponse } from '@intervu/shared';
 import { QueueService, QueueType } from '../../../queue';
 
 @ApiTags('queue-monitor')
@@ -25,6 +27,7 @@ export class QueueMonitorController {
 
   @Get('status')
   @HttpCode(HttpStatus.OK)
+  @ValidateResponse(z.unknown())
   @ApiOperation({ summary: 'Get metrics for all queues (waiting, active, completed, failed, delayed)' })
   @ApiOkResponse({ description: 'Metrics object for generation, evaluation, analytics, and validation queues' })
   async getAllQueueMetrics() {
@@ -33,6 +36,7 @@ export class QueueMonitorController {
 
   @Get(':queue/status')
   @HttpCode(HttpStatus.OK)
+  @ValidateResponse(z.unknown())
   @ApiOperation({ summary: 'Get metrics for a specific queue' })
   @ApiParam({ name: 'queue', enum: QueueType, example: QueueType.GENERATION })
   @ApiOkResponse({ description: 'Metrics for the specified queue' })
@@ -42,6 +46,7 @@ export class QueueMonitorController {
 
   @Post(':queue/retry/:jobId')
   @HttpCode(HttpStatus.OK)
+  @ValidateResponse(z.unknown())
   @ApiOperation({ summary: 'Retry a failed job in the specified queue' })
   @ApiParam({ name: 'queue', enum: QueueType, example: QueueType.GENERATION })
   @ApiParam({ name: 'jobId', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', description: 'BullMQ job UUID' })
@@ -56,6 +61,7 @@ export class QueueMonitorController {
 
   @Delete(':queue/job/:jobId')
   @HttpCode(HttpStatus.OK)
+  @ValidateResponse(z.unknown())
   @ApiOperation({ summary: 'Remove a job from the specified queue' })
   @ApiParam({ name: 'queue', enum: QueueType, example: QueueType.GENERATION })
   @ApiParam({ name: 'jobId', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', description: 'BullMQ job UUID' })

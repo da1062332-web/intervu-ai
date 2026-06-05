@@ -10,6 +10,8 @@ import {
 } from '@nestjs/swagger';
 
 import { GenerateQuestionRequestDto } from '@intervu/shared';
+import { GenerationDataSchema } from '@intervu-ai/contracts';
+import { ValidateResponse } from '@intervu/shared';
 import { GenerationService } from '../services/generation.service';
 
 @ApiTags('generation')
@@ -20,6 +22,7 @@ export class GenerationController {
 
   @Post('enqueue')
   @HttpCode(HttpStatus.CREATED)
+  @ValidateResponse(GenerationDataSchema)
   @ApiOperation({ summary: 'Enqueue a question generation job' })
   @ApiBody({ type: GenerateQuestionRequestDto, description: 'Generation job parameters' })
   @ApiCreatedResponse({ description: 'Job enqueued — returns jobId and status' })
@@ -29,6 +32,7 @@ export class GenerationController {
 
   @Get(':jobId/status')
   @HttpCode(HttpStatus.OK)
+  @ValidateResponse(GenerationDataSchema)
   @ApiOperation({ summary: 'Poll the status of a generation job' })
   @ApiParam({ name: 'jobId', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', description: 'BullMQ job UUID' })
   @ApiOkResponse({ description: 'Job status and result if completed' })

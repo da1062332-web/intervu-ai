@@ -23,6 +23,7 @@ import {
 import { DifficultyLevel } from '@prisma/client';
 
 import { CreateTemplateDto, UpdateTemplateDto } from '@intervu/shared';
+import { ValidateResponse, TemplateSchema, TemplateListSchema, TemplatePaginatedSchema, TemplateVersionSchema, TemplateRemoveSchema } from '@intervu/shared';
 import { TemplateService } from '../services/template.service';
 
 @ApiTags('templates')
@@ -32,6 +33,7 @@ export class TemplateController {
   constructor(private readonly templateService: TemplateService) {}
 
   @Get()
+  @ValidateResponse(TemplatePaginatedSchema)
   @ApiOperation({ summary: 'List all templates (paginated)' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
@@ -50,6 +52,7 @@ export class TemplateController {
   }
 
   @Get('system')
+  @ValidateResponse(TemplateListSchema)
   @ApiOperation({ summary: 'Get all system-managed templates' })
   @ApiOkResponse({ description: 'List of system templates' })
   async findSystemTemplates() {
@@ -57,6 +60,7 @@ export class TemplateController {
   }
 
   @Get('difficulty/:level')
+  @ValidateResponse(TemplateListSchema)
   @ApiOperation({ summary: 'Get templates filtered by difficulty level' })
   @ApiParam({ name: 'level', enum: DifficultyLevel, example: DifficultyLevel.MEDIUM })
   @ApiOkResponse({ description: 'Templates for given difficulty' })
@@ -65,6 +69,7 @@ export class TemplateController {
   }
 
   @Get(':id')
+  @ValidateResponse(TemplateSchema)
   @ApiOperation({ summary: 'Get a single template by ID' })
   @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
   @ApiOkResponse({ description: 'Template record' })
@@ -73,6 +78,7 @@ export class TemplateController {
   }
 
   @Get(':id/version')
+  @ValidateResponse(TemplateVersionSchema)
   @ApiOperation({ summary: 'Get version metadata for a template' })
   @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
   @ApiOkResponse({ description: 'Template version token (id + updatedAt)' })
@@ -82,6 +88,7 @@ export class TemplateController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ValidateResponse(TemplateSchema)
   @ApiOperation({ summary: 'Create a new template' })
   @ApiBody({ type: CreateTemplateDto, description: 'Template creation payload' })
   @ApiCreatedResponse({ description: 'Template created successfully' })
@@ -90,6 +97,7 @@ export class TemplateController {
   }
 
   @Patch(':id')
+  @ValidateResponse(TemplateSchema)
   @ApiOperation({ summary: 'Update an existing template' })
   @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
   @ApiBody({ type: UpdateTemplateDto, description: 'Template update payload' })
@@ -100,6 +108,7 @@ export class TemplateController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ValidateResponse(TemplateRemoveSchema)
   @ApiOperation({ summary: 'Soft-delete a template by ID' })
   @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
   @ApiOkResponse({ description: 'Template soft-deleted successfully' })

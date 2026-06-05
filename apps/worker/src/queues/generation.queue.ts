@@ -2,7 +2,7 @@ import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
 import { QueuePayloadSchema, QueuePayload, WorkerResponseSchema, WorkerResponse } from '@intervu-ai/contracts';
 import { AiWorkerService } from '../services/ai.service';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 export class GenerationQueueProcessor {
   private worker: Worker;
@@ -65,9 +65,9 @@ export class GenerationQueueProcessor {
       await this.prisma.test.update({
         where: { id: payload.payload.testId },
         data: {
-          questions: aiResponse as any,
+          questions: aiResponse as Prisma.InputJsonValue,
           status: 'ONGOING' // Update status to reflect generation complete
-        } as any
+        }
       });
       this.logger.info(`Successfully persisted generated questions for testId: ${payload.payload.testId}`);
       

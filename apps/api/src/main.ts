@@ -1,5 +1,5 @@
-import { Logger } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { Logger, VersioningType } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import helmet from 'helmet';
 import compression from 'compression';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -9,6 +9,7 @@ import {
   ZodValidationPipe,
   GlobalExceptionFilter,
   ResponseInterceptor,
+  ResponseValidationInterceptor,
 } from '@intervu/shared';
 import { RedisConnectionManager } from './cache';
 import { AppConfigService } from './config';
@@ -47,8 +48,12 @@ async function bootstrap() {
   // Global filters
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Global interceptors
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  // Global Interceptors
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(
+    new ResponseInterceptor(),
+    new ResponseValidationInterceptor(reflector)
+  );
 
   // CORS
   app.enableCors({

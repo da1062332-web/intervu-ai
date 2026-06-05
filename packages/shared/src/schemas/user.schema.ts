@@ -20,3 +20,14 @@ export const UpdateProfileSchema = z.object({
 });
 
 export const UserResponseSchema = UserSchema;
+
+export const SessionSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  ipAddress: z.string().nullable().optional(),
+  userAgent: z.string().nullable().optional(),
+  lastActive: z.date(),
+  createdAt: z.date(),
+});
+
+export const SessionListResponseSchema = z.array(SessionSchema);

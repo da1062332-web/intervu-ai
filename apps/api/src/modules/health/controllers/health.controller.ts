@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { ValidateResponse, HealthResponseSchema } from '@intervu/shared';
 
 import { HealthService, HealthResponse } from '../services/health.service';
 
@@ -9,6 +10,7 @@ export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
   @Get()
+  @ValidateResponse(HealthResponseSchema)
   @ApiOperation({
     summary: 'Health check endpoint',
     description: 'Returns the health status of the API service and its dependencies',

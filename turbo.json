@@ -31,6 +31,10 @@
       "dependsOn": ["build"]
     },
 
+    "test:regression": {
+      "dependsOn": ["build"]
+    },
+
     "dev": {
       "cache": false,
       "persistent": true

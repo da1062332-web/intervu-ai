@@ -19,6 +19,7 @@
     "test": "turbo run test",
     "test:integration": "turbo run test:integration",
     "test:contracts": "turbo run test:contracts",
+    "test:regression": "turbo run test:regression",
     "check:structure": "node scripts/check-structure.js"
   },
   "devDependencies": {

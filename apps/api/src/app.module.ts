@@ -11,6 +11,9 @@ import { TestAssemblyModule } from './modules/test-assembly';
 import { SystemConfigModule } from './modules/config';
 import { GenerationModule } from './modules/generation';
 import { QueueMonitorModule } from './modules/queue-monitor';
+import { ExecutionModule } from './modules/execution/execution.module';
+import { EvaluationModule } from './modules/evaluation/evaluation.module';
+import { DecisionModule } from './modules/decision/decision.module';
 import { CorrelationMiddleware, RequestLoggingMiddleware } from './common';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -34,6 +37,9 @@ import { PrismaModule } from './prisma/prisma.module';
     SystemConfigModule,
     GenerationModule,
     QueueMonitorModule,
+    ExecutionModule,
+    EvaluationModule,
+    DecisionModule,
   ],
 })
 export class AppModule implements NestModule {

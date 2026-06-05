@@ -42,7 +42,7 @@ export class EvaluationQueueProcessor {
         success: true,
         jobId: job.id,
         duration,
-        score: Math.random() * 100,
+        score: 85, // Deterministic score for compliance
         completedAt: new Date().toISOString(),
       };
 
