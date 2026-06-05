@@ -6,16 +6,15 @@ import {
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
-import { ValidateResponse } from "@intervu/shared";
-
 import {
-  LoginDto,
-  RefreshTokenDto,
-  SignupDto,
+  ValidateResponse,
   AuthResponseSchema,
   TokensResponseSchema,
   AuthUserSchema,
 } from "@intervu/shared";
+
+// eslint-disable-next-line no-restricted-imports
+import { LoginDto, RefreshTokenDto, SignupDto } from "../dto/auth.dto";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { Public } from "../decorators/public.decorator";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
@@ -29,6 +28,7 @@ interface RequestMeta {
 
 @ApiTags("auth")
 @Controller("auth")
+@ApiBearerAuth("jwt-auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

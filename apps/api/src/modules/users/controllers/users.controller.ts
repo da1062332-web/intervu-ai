@@ -21,8 +21,9 @@ import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { UsersService } from "../services/users.service";
+// eslint-disable-next-line no-restricted-imports
+import { UpdateProfileDto } from "../dto/update-profile.dto";
 import {
-  UpdateProfileDto,
   ValidateResponse,
   UserResponseSchema,
   SessionListResponseSchema,
@@ -51,7 +52,7 @@ export class UsersController {
   @Patch("profile")
   @ValidateResponse(UserResponseSchema)
   @ApiOperation({ summary: "Update candidate profile data" })
-  @ApiBody({ description: "Profile update data" })
+  @ApiBody({ type: UpdateProfileDto, description: "Profile update data" })
   @ApiOkResponse({
     description: "Updated user profile data",
     type: UserEntity,
