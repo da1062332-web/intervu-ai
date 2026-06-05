@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Queue message type definitions.
@@ -10,10 +10,10 @@ import { z } from 'zod';
  */
 
 export enum QueueType {
-  GENERATION = 'generation',
-  EVALUATION = 'evaluation',
-  ANALYTICS = 'analytics',
-  VALIDATION = 'validation',
+  GENERATION = "generation",
+  EVALUATION = "evaluation",
+  ANALYTICS = "analytics",
+  VALIDATION = "validation",
 }
 
 // ─── TypeScript Interfaces ─────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ export interface QueueJobResult {
 // Shape: { jobId: string, type: "generation", payload: {} }
 
 const BaseJobSchema = z.object({
-  jobId: z.string().min(1, { message: 'jobId is required' }),
+  jobId: z.string().min(1, { message: "jobId is required" }),
   timestamp: z.number().int().positive(),
   correlationId: z.string().optional(),
   userId: z.string().optional(),
@@ -87,7 +87,7 @@ const BaseJobSchema = z.object({
 export const GenerationJobSchema = BaseJobSchema.extend({
   type: z.literal(QueueType.GENERATION),
   payload: z.object({
-    assemblyId: z.string().min(1, 'assemblyId is required'),
+    assemblyId: z.string().min(1, "assemblyId is required"),
     difficulty: z.string().optional(),
     count: z.number().int().positive().optional(),
     topicId: z.string().optional(),
@@ -97,8 +97,8 @@ export const GenerationJobSchema = BaseJobSchema.extend({
 export const EvaluationJobSchema = BaseJobSchema.extend({
   type: z.literal(QueueType.EVALUATION),
   payload: z.object({
-    testId: z.string().min(1, 'testId is required'),
-    userId: z.string().min(1, 'userId is required'),
+    testId: z.string().min(1, "testId is required"),
+    userId: z.string().min(1, "userId is required"),
     answers: z.record(z.string()).optional(),
   }),
 });
@@ -106,7 +106,7 @@ export const EvaluationJobSchema = BaseJobSchema.extend({
 export const AnalyticsJobSchema = BaseJobSchema.extend({
   type: z.literal(QueueType.ANALYTICS),
   payload: z.object({
-    eventType: z.string().min(1, 'eventType is required'),
+    eventType: z.string().min(1, "eventType is required"),
     eventData: z.record(z.unknown()),
   }),
 });
@@ -114,13 +114,13 @@ export const AnalyticsJobSchema = BaseJobSchema.extend({
 export const ValidationJobSchema = BaseJobSchema.extend({
   type: z.literal(QueueType.VALIDATION),
   payload: z.object({
-    questionId: z.string().min(1, 'questionId is required'),
+    questionId: z.string().min(1, "questionId is required"),
     content: z.record(z.unknown()),
   }),
 });
 
 // Discriminated union for full payload validation
-export const AnyJobSchema = z.discriminatedUnion('type', [
+export const AnyJobSchema = z.discriminatedUnion("type", [
   GenerationJobSchema,
   EvaluationJobSchema,
   AnalyticsJobSchema,

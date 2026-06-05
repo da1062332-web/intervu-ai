@@ -9,13 +9,9 @@
   ],
 
   "tasks": {
-
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "outputs": ["dist/**", ".next/**"]
     },
 
     "lint": {

@@ -17,9 +17,7 @@ import { getActiveNavItem, getPageTitle } from '@/config/navigation.config';
  */
 export function useActiveRoute() {
   const pathname = usePathname();
-  const setLastVisitedRoute = useLayoutStore(
-    (state) => state.setLastVisitedRoute
-  );
+  const setLastVisitedRoute = useLayoutStore((state) => state.setLastVisitedRoute);
 
   // Sync navigation memory on every route change
   useEffect(() => {

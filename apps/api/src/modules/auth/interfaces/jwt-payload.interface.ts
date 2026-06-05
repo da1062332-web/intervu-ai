@@ -1,6 +1,6 @@
-import { AuthUserRole } from './auth-user.interface';
+import { AuthUserRole } from "./auth-user.interface";
 
-export type TokenType = 'access' | 'refresh';
+export type TokenType = "access" | "refresh";
 
 export interface JwtTokenData {
   sub: string;

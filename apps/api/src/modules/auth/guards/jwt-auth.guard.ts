@@ -1,11 +1,15 @@
-import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AuthGuard } from "@nestjs/passport";
 
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard("jwt") {
   constructor(private reflector: Reflector) {
     super();
   }
@@ -21,12 +25,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest<TUser = unknown>(
-    err: unknown,
-    user: unknown,
-  ): TUser {
+  handleRequest<TUser = unknown>(err: unknown, user: unknown): TUser {
     if (err || !user) {
-      throw new UnauthorizedException('Invalid or missing access token');
+      throw new UnauthorizedException("Invalid or missing access token");
     }
 
     return user as TUser;

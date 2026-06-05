@@ -39,14 +39,11 @@ export const useLayoutStore = create<LayoutState>()(
           sidebarCollapsed: !state.sidebarCollapsed,
         })),
 
-      setSidebarCollapsed: (collapsed) =>
-        set({ sidebarCollapsed: collapsed }),
+      setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
-      setLastVisitedRoute: (route) =>
-        set({ lastVisitedRoute: route }),
+      setLastVisitedRoute: (route) => set({ lastVisitedRoute: route }),
 
-      setMobileNavOpen: (open) =>
-        set({ mobileNavOpen: open }),
+      setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
 
       toggleMobileNav: () =>
         set((state) => ({
@@ -61,6 +58,6 @@ export const useLayoutStore = create<LayoutState>()(
         sidebarCollapsed: state.sidebarCollapsed,
         lastVisitedRoute: state.lastVisitedRoute,
       }),
-    }
-  )
+    },
+  ),
 );

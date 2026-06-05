@@ -5,14 +5,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: [
-      '.next/**',
-      'node_modules/**',
-      'dist/**',
-      'build/**',
-      'coverage/**',
-      '.turbo/**',
-    ],
+    ignores: ['.next/**', 'node_modules/**', 'dist/**', 'build/**', 'coverage/**', '.turbo/**'],
   },
   {
     files: ['**/*.{ts,tsx}'],

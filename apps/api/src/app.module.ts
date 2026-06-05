@@ -1,22 +1,22 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 
-import { ConfigModule } from './config';
-import { CacheModule } from './cache';
-import { QueueModule } from './queue';
-import { HealthModule } from './modules/health';
-import { AuthModule } from './modules/auth';
-import { UsersModule } from './modules/users';
-import { TemplateLibraryModule } from './modules/template-library';
-import { TestAssemblyModule } from './modules/test-assembly';
-import { SystemConfigModule } from './modules/config';
-import { GenerationModule } from './modules/generation';
-import { QueueMonitorModule } from './modules/queue-monitor';
-import { ExecutionModule } from './modules/execution/execution.module';
-import { EvaluationModule } from './modules/evaluation/evaluation.module';
-import { DecisionModule } from './modules/decision/decision.module';
-import { CorrelationMiddleware, RequestLoggingMiddleware } from './common';
-import { PrismaModule } from './prisma/prisma.module';
-import { DashboardModule } from './modules/dashboard';
+import { ConfigModule } from "./config";
+import { CacheModule } from "./cache";
+import { QueueModule } from "./queue";
+import { HealthModule } from "./modules/health";
+import { AuthModule } from "./modules/auth";
+import { UsersModule } from "./modules/users";
+import { TemplateLibraryModule } from "./modules/template-library";
+import { TestAssemblyModule } from "./modules/test-assembly";
+import { SystemConfigModule } from "./modules/config";
+import { GenerationModule } from "./modules/generation";
+import { QueueMonitorModule } from "./modules/queue-monitor";
+import { ExecutionModule } from "./modules/execution/execution.module";
+import { EvaluationModule } from "./modules/evaluation/evaluation.module";
+import { DecisionModule } from "./modules/decision/decision.module";
+import { CorrelationMiddleware, RequestLoggingMiddleware } from "./common";
+import { PrismaModule } from "./prisma/prisma.module";
+import { DashboardModule } from "./modules/dashboard";
 
 @Module({
   imports: [
@@ -48,8 +48,8 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CorrelationMiddleware)
-      .forRoutes('*')
+      .forRoutes("*")
       .apply(RequestLoggingMiddleware)
-      .forRoutes('*');
+      .forRoutes("*");
   }
 }

@@ -1,9 +1,8 @@
-import { Global, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { AppLogger } from '@intervu-ai/shared-logger';
-import { AppConfigService, ConfigModule } from '../config';
-import { QueueFactory } from './queue-config';
-import { QueueService } from './queue.service';
-
+import { Global, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { AppLogger } from "@intervu-ai/shared-logger";
+import { AppConfigService, ConfigModule } from "../config";
+import { QueueFactory } from "./queue-config";
+import { QueueService } from "./queue.service";
 
 /**
  * QueueModule — Global NestJS DI wrapper for QueueService and QueueFactory.
@@ -21,7 +20,7 @@ import { QueueService } from './queue.service';
     {
       provide: QueueService,
       useFactory: (configService: AppConfigService): QueueService => {
-        const logger = new AppLogger({ name: 'QueueService' });
+        const logger = new AppLogger({ name: "QueueService" });
         const redisUrl = new URL(configService.redisUrl);
         const connection = {
           host: redisUrl.hostname,
@@ -30,10 +29,10 @@ import { QueueService } from './queue.service';
         };
 
         // Initialize all queues eagerly on module startup
-        QueueFactory.createQueue('generation', connection);
-        QueueFactory.createQueue('evaluation', connection);
-        QueueFactory.createQueue('analytics', connection);
-        QueueFactory.createQueue('validation', connection);
+        QueueFactory.createQueue("generation", connection);
+        QueueFactory.createQueue("evaluation", connection);
+        QueueFactory.createQueue("analytics", connection);
+        QueueFactory.createQueue("validation", connection);
 
         return new QueueService(logger);
       },
@@ -43,14 +42,14 @@ import { QueueService } from './queue.service';
   exports: [QueueService],
 })
 export class QueueModule implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new AppLogger({ name: 'QueueModule' });
+  private readonly logger = new AppLogger({ name: "QueueModule" });
 
   onModuleInit(): void {
-    this.logger.info('QueueModule initialized — all BullMQ queues created');
+    this.logger.info("QueueModule initialized — all BullMQ queues created");
   }
 
   async onModuleDestroy(): Promise<void> {
-    this.logger.info('QueueModule destroying — closing all BullMQ queues');
+    this.logger.info("QueueModule destroying — closing all BullMQ queues");
     await QueueFactory.closeAll();
   }
 }

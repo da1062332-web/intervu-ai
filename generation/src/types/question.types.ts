@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { DifficultyLevel, QuestionType } from '@intervu/shared';
+import { z } from "zod";
+import { DifficultyLevel, QuestionType } from "@intervu/shared";
 
 export const QuestionMetadataSchema = z.object({
   difficulty: z.nativeEnum(DifficultyLevel),
@@ -11,7 +11,7 @@ export const GeneratedQuestionSchema = z.object({
   type: z.nativeEnum(QuestionType),
   question: z.string(),
   options: z.array(z.string()).length(4),
-  answer_type: z.literal('single'),
+  answer_type: z.literal("single"),
   metadata: QuestionMetadataSchema,
 });
 

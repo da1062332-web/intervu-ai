@@ -9,7 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -19,30 +19,37 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
-} from '@nestjs/swagger';
-import { DifficultyLevel } from '@prisma/client';
+} from "@nestjs/swagger";
+import { DifficultyLevel } from "@prisma/client";
 
-import { CreateTemplateDto, UpdateTemplateDto } from '@intervu/shared';
-import { ValidateResponse, TemplateSchema, TemplateListSchema, TemplatePaginatedSchema, TemplateVersionSchema, TemplateRemoveSchema } from '@intervu/shared';
-import { TemplateService } from '../services/template.service';
+import { CreateTemplateDto, UpdateTemplateDto } from "@intervu/shared";
+import {
+  ValidateResponse,
+  TemplateSchema,
+  TemplateListSchema,
+  TemplatePaginatedSchema,
+  TemplateVersionSchema,
+  TemplateRemoveSchema,
+} from "@intervu/shared";
+import { TemplateService } from "../services/template.service";
 
-@ApiTags('templates')
-@ApiBearerAuth('jwt-auth')
-@Controller('templates')
+@ApiTags("templates")
+@ApiBearerAuth("jwt-auth")
+@Controller("templates")
 export class TemplateController {
   constructor(private readonly templateService: TemplateService) {}
 
   @Get()
   @ValidateResponse(TemplatePaginatedSchema)
-  @ApiOperation({ summary: 'List all templates (paginated)' })
-  @ApiQuery({ name: 'page', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, example: 10 })
-  @ApiQuery({ name: 'difficulty', required: false, enum: DifficultyLevel })
-  @ApiOkResponse({ description: 'Paginated list of templates' })
+  @ApiOperation({ summary: "List all templates (paginated)" })
+  @ApiQuery({ name: "page", required: false, example: 1 })
+  @ApiQuery({ name: "limit", required: false, example: 10 })
+  @ApiQuery({ name: "difficulty", required: false, enum: DifficultyLevel })
+  @ApiOkResponse({ description: "Paginated list of templates" })
   async findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('difficulty') difficulty?: DifficultyLevel,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+    @Query("difficulty") difficulty?: DifficultyLevel,
   ) {
     return this.templateService.findAll(
       page ? parseInt(page, 10) : 1,
@@ -51,68 +58,91 @@ export class TemplateController {
     );
   }
 
-  @Get('system')
+  @Get("system")
   @ValidateResponse(TemplateListSchema)
-  @ApiOperation({ summary: 'Get all system-managed templates' })
-  @ApiOkResponse({ description: 'List of system templates' })
+  @ApiOperation({ summary: "Get all system-managed templates" })
+  @ApiOkResponse({ description: "List of system templates" })
   async findSystemTemplates() {
     return this.templateService.findSystemTemplates();
   }
 
-  @Get('difficulty/:level')
+  @Get("difficulty/:level")
   @ValidateResponse(TemplateListSchema)
-  @ApiOperation({ summary: 'Get templates filtered by difficulty level' })
-  @ApiParam({ name: 'level', enum: DifficultyLevel, example: DifficultyLevel.MEDIUM })
-  @ApiOkResponse({ description: 'Templates for given difficulty' })
-  async findByDifficulty(@Param('level') level: DifficultyLevel) {
+  @ApiOperation({ summary: "Get templates filtered by difficulty level" })
+  @ApiParam({
+    name: "level",
+    enum: DifficultyLevel,
+    example: DifficultyLevel.MEDIUM,
+  })
+  @ApiOkResponse({ description: "Templates for given difficulty" })
+  async findByDifficulty(@Param("level") level: DifficultyLevel) {
     return this.templateService.findByDifficulty(level);
   }
 
-  @Get(':id')
+  @Get(":id")
   @ValidateResponse(TemplateSchema)
-  @ApiOperation({ summary: 'Get a single template by ID' })
-  @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
-  @ApiOkResponse({ description: 'Template record' })
-  async findOne(@Param('id') id: string) {
+  @ApiOperation({ summary: "Get a single template by ID" })
+  @ApiParam({
+    name: "id",
+    example: "cmbk1xyz0000abc123",
+    description: "Template CUID",
+  })
+  @ApiOkResponse({ description: "Template record" })
+  async findOne(@Param("id") id: string) {
     return this.templateService.findById(id);
   }
 
-  @Get(':id/version')
+  @Get(":id/version")
   @ValidateResponse(TemplateVersionSchema)
-  @ApiOperation({ summary: 'Get version metadata for a template' })
-  @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
-  @ApiOkResponse({ description: 'Template version token (id + updatedAt)' })
-  async getVersion(@Param('id') id: string) {
+  @ApiOperation({ summary: "Get version metadata for a template" })
+  @ApiParam({
+    name: "id",
+    example: "cmbk1xyz0000abc123",
+    description: "Template CUID",
+  })
+  @ApiOkResponse({ description: "Template version token (id + updatedAt)" })
+  async getVersion(@Param("id") id: string) {
     return this.templateService.getVersion(id);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ValidateResponse(TemplateSchema)
-  @ApiOperation({ summary: 'Create a new template' })
-  @ApiBody({ type: CreateTemplateDto, description: 'Template creation payload' })
-  @ApiCreatedResponse({ description: 'Template created successfully' })
+  @ApiOperation({ summary: "Create a new template" })
+  @ApiBody({
+    type: CreateTemplateDto,
+    description: "Template creation payload",
+  })
+  @ApiCreatedResponse({ description: "Template created successfully" })
   async create(@Body() dto: CreateTemplateDto) {
     return this.templateService.create(dto);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @ValidateResponse(TemplateSchema)
-  @ApiOperation({ summary: 'Update an existing template' })
-  @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
-  @ApiBody({ type: UpdateTemplateDto, description: 'Template update payload' })
-  @ApiOkResponse({ description: 'Template updated successfully' })
-  async update(@Param('id') id: string, @Body() dto: UpdateTemplateDto) {
+  @ApiOperation({ summary: "Update an existing template" })
+  @ApiParam({
+    name: "id",
+    example: "cmbk1xyz0000abc123",
+    description: "Template CUID",
+  })
+  @ApiBody({ type: UpdateTemplateDto, description: "Template update payload" })
+  @ApiOkResponse({ description: "Template updated successfully" })
+  async update(@Param("id") id: string, @Body() dto: UpdateTemplateDto) {
     return this.templateService.update(id, dto);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @HttpCode(HttpStatus.OK)
   @ValidateResponse(TemplateRemoveSchema)
-  @ApiOperation({ summary: 'Soft-delete a template by ID' })
-  @ApiParam({ name: 'id', example: 'cmbk1xyz0000abc123', description: 'Template CUID' })
-  @ApiOkResponse({ description: 'Template soft-deleted successfully' })
-  async remove(@Param('id') id: string) {
+  @ApiOperation({ summary: "Soft-delete a template by ID" })
+  @ApiParam({
+    name: "id",
+    example: "cmbk1xyz0000abc123",
+    description: "Template CUID",
+  })
+  @ApiOkResponse({ description: "Template soft-deleted successfully" })
+  async remove(@Param("id") id: string) {
     return this.templateService.remove(id);
   }
 }

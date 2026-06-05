@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const RequestLogSchema = z.object({
   method: z.string(),

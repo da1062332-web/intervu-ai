@@ -1,5 +1,8 @@
-import { QuestionTemplate, QuestionTemplateSchema } from '../types/template.types';
-import rawTemplates from '../templates/aptitude.templates.json';
+import {
+  QuestionTemplate,
+  QuestionTemplateSchema,
+} from "../types/template.types";
+import rawTemplates from "../templates/aptitude.templates.json";
 
 export class TemplateLoader {
   private templates: Map<string, QuestionTemplate> = new Map();
@@ -18,8 +21,8 @@ export class TemplateLoader {
       if (!parsed.success) {
         throw new Error(
           `Template configuration validation failed: ${parsed.error.errors
-            .map((e) => `${e.path.join('.')}: ${e.message}`)
-            .join(', ')}`
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")}`,
         );
       }
       const template = parsed.data;

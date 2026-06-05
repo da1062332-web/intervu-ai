@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
-import { DashboardService } from './dashboard.service';
-import { DashboardRepository } from '../repositories/dashboard.repository';
+import { Test, TestingModule } from "@nestjs/testing";
+import { NotFoundException } from "@nestjs/common";
+import { DashboardService } from "./dashboard.service";
+import { DashboardRepository } from "../repositories/dashboard.repository";
 
-describe('DashboardService', () => {
+describe("DashboardService", () => {
   let service: DashboardService;
   let repository: DashboardRepository;
 
@@ -25,25 +25,25 @@ describe('DashboardService', () => {
     repository = module.get<DashboardRepository>(DashboardRepository);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  describe('getStats', () => {
-    it('should validate empty userId', async () => {
-      await expect(service.getStats('')).rejects.toThrow(NotFoundException);
+  describe("getStats", () => {
+    it("should validate empty userId", async () => {
+      await expect(service.getStats("")).rejects.toThrow(NotFoundException);
     });
 
-    it('should calculate statistics correctly', async () => {
-      jest.spyOn(repository, 'getStatsByUserId').mockResolvedValue({
+    it("should calculate statistics correctly", async () => {
+      jest.spyOn(repository, "getStatsByUserId").mockResolvedValue({
         testsTaken: 12,
         totalSessions: 15,
         averageScore: 84.4,
       });
 
-      const result = await service.getStats('user-1');
+      const result = await service.getStats("user-1");
 
-      expect(repository.getStatsByUserId).toHaveBeenCalledWith('user-1');
+      expect(repository.getStatsByUserId).toHaveBeenCalledWith("user-1");
       expect(result).toEqual({
         testsTaken: 12,
         totalSessions: 15,
@@ -52,14 +52,14 @@ describe('DashboardService', () => {
       });
     });
 
-    it('should handle zero sessions/tests safely to prevent NaN', async () => {
-      jest.spyOn(repository, 'getStatsByUserId').mockResolvedValue({
+    it("should handle zero sessions/tests safely to prevent NaN", async () => {
+      jest.spyOn(repository, "getStatsByUserId").mockResolvedValue({
         testsTaken: 0,
         totalSessions: 0,
         averageScore: null,
       });
 
-      const result = await service.getStats('user-1');
+      const result = await service.getStats("user-1");
 
       expect(result).toEqual({
         testsTaken: 0,
@@ -70,22 +70,26 @@ describe('DashboardService', () => {
     });
   });
 
-  describe('getAnalyticsSummary', () => {
-    it('should validate empty userId', async () => {
-      await expect(service.getAnalyticsSummary('')).rejects.toThrow(NotFoundException);
+  describe("getAnalyticsSummary", () => {
+    it("should validate empty userId", async () => {
+      await expect(service.getAnalyticsSummary("")).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
-    it('should map analytics summary correctly', async () => {
-      jest.spyOn(repository, 'getAnalyticsSummaryByUserId').mockResolvedValue({
+    it("should map analytics summary correctly", async () => {
+      jest.spyOn(repository, "getAnalyticsSummaryByUserId").mockResolvedValue({
         communicationScore: 81.6,
         technicalScore: 78.2,
         confidenceScore: 87.5,
         overallRating: 4.26,
       });
 
-      const result = await service.getAnalyticsSummary('user-1');
+      const result = await service.getAnalyticsSummary("user-1");
 
-      expect(repository.getAnalyticsSummaryByUserId).toHaveBeenCalledWith('user-1');
+      expect(repository.getAnalyticsSummaryByUserId).toHaveBeenCalledWith(
+        "user-1",
+      );
       expect(result).toEqual({
         communicationScore: 82, // Math.round(81.6)
         technicalScore: 78, // Math.round(78.2)
@@ -94,15 +98,15 @@ describe('DashboardService', () => {
       });
     });
 
-    it('should handle all-null aggregate values by defaulting to zero', async () => {
-      jest.spyOn(repository, 'getAnalyticsSummaryByUserId').mockResolvedValue({
+    it("should handle all-null aggregate values by defaulting to zero", async () => {
+      jest.spyOn(repository, "getAnalyticsSummaryByUserId").mockResolvedValue({
         communicationScore: null,
         technicalScore: null,
         confidenceScore: null,
         overallRating: null,
       });
 
-      const result = await service.getAnalyticsSummary('user-1');
+      const result = await service.getAnalyticsSummary("user-1");
 
       expect(result).toEqual({
         communicationScore: 0,
@@ -113,40 +117,47 @@ describe('DashboardService', () => {
     });
   });
 
-  describe('getRecentActivity', () => {
-    it('should validate empty userId', async () => {
-      await expect(service.getRecentActivity('')).rejects.toThrow(NotFoundException);
+  describe("getRecentActivity", () => {
+    it("should validate empty userId", async () => {
+      await expect(service.getRecentActivity("")).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
-    it('should return recent activities mapped correctly', async () => {
-      const mockCompletedAt = new Date('2026-06-04T10:30:00Z');
-      jest.spyOn(repository, 'getRecentActivityByUserId').mockResolvedValue([
+    it("should return recent activities mapped correctly", async () => {
+      const mockCompletedAt = new Date("2026-06-04T10:30:00Z");
+      jest.spyOn(repository, "getRecentActivityByUserId").mockResolvedValue([
         {
-          id: 'test-1',
+          id: "test-1",
           completedAt: mockCompletedAt,
           template: {
-            name: 'Frontend Interview',
+            name: "Frontend Interview",
           },
         },
-      ] as unknown as Awaited<ReturnType<typeof repository.getRecentActivityByUserId>>);
+      ] as unknown as Awaited<
+        ReturnType<typeof repository.getRecentActivityByUserId>
+      >);
 
-      const result = await service.getRecentActivity('user-1');
+      const result = await service.getRecentActivity("user-1");
 
-      expect(repository.getRecentActivityByUserId).toHaveBeenCalledWith('user-1', 10);
+      expect(repository.getRecentActivityByUserId).toHaveBeenCalledWith(
+        "user-1",
+        10,
+      );
       expect(result).toEqual([
         {
-          id: 'test-1',
-          type: 'interview_completed',
-          title: 'Frontend Interview',
+          id: "test-1",
+          type: "interview_completed",
+          title: "Frontend Interview",
           createdAt: mockCompletedAt.toISOString(),
         },
       ]);
     });
 
-    it('should return empty list when no activities exist', async () => {
-      jest.spyOn(repository, 'getRecentActivityByUserId').mockResolvedValue([]);
+    it("should return empty list when no activities exist", async () => {
+      jest.spyOn(repository, "getRecentActivityByUserId").mockResolvedValue([]);
 
-      const result = await service.getRecentActivity('user-1');
+      const result = await service.getRecentActivity("user-1");
 
       expect(result).toEqual([]);
     });

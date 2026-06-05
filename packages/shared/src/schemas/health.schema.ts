@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const HealthResponseSchema = z.object({
   status: z.string(),
@@ -6,7 +6,7 @@ export const HealthResponseSchema = z.object({
   timestamp: z.string(),
   version: z.string(),
   uptime: z.number(),
-  dependencies: z.record(z.string(), z.string()).optional()
+  dependencies: z.record(z.string(), z.string()).optional(),
 });
 
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;

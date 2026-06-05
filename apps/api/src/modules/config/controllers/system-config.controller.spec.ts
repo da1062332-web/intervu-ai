@@ -1,17 +1,38 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SystemConfigController } from './system-config.controller';
-import { SystemConfigService } from '../services/system-config.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { SystemConfigController } from "./system-config.controller";
+import { SystemConfigService } from "../services/system-config.service";
 
-describe('SystemConfigController', () => {
+describe("SystemConfigController", () => {
   let controller: SystemConfigController;
   let service: jest.Mocked<SystemConfigService>;
 
   const mockConfigDto = {
     difficultyLevels: [],
-    generationRules: { defaultModel: 'gpt-4', temperature: 0.7, maxTokens: 1000, temperaturePresets: {}, retryCount: 3 },
-    validationRules: { strictMode: true, maxValidationErrors: 5, allowedTypes: [], allowUnknownFields: false },
-    queueSettings: { concurrency: {}, jobTimeoutMs: 30000, maxAttempts: 3, backoffDelayMs: 5000 },
-    environmentFlags: { maintenanceMode: false, enableWorker: true, debugMode: false, enableCaching: true }
+    generationRules: {
+      defaultModel: "gpt-4",
+      temperature: 0.7,
+      maxTokens: 1000,
+      temperaturePresets: {},
+      retryCount: 3,
+    },
+    validationRules: {
+      strictMode: true,
+      maxValidationErrors: 5,
+      allowedTypes: [],
+      allowUnknownFields: false,
+    },
+    queueSettings: {
+      concurrency: {},
+      jobTimeoutMs: 30000,
+      maxAttempts: 3,
+      backoffDelayMs: 5000,
+    },
+    environmentFlags: {
+      maintenanceMode: false,
+      enableWorker: true,
+      debugMode: false,
+      enableCaching: true,
+    },
   };
 
   beforeEach(async () => {
@@ -32,12 +53,12 @@ describe('SystemConfigController', () => {
     service = module.get(SystemConfigService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(controller).toBeDefined();
   });
 
-  describe('getSystemConfig', () => {
-    it('should call service.getSystemConfig and return results', async () => {
+  describe("getSystemConfig", () => {
+    it("should call service.getSystemConfig and return results", async () => {
       service.getSystemConfig.mockResolvedValue(mockConfigDto as never);
 
       const result = await controller.getSystemConfig();
@@ -47,10 +68,16 @@ describe('SystemConfigController', () => {
     });
   });
 
-  describe('updateSystemConfig', () => {
-    it('should call service.updateSystemConfig with payload and return results', async () => {
-      const payload = { generationRules: { defaultModel: 'claude-3-opus' } };
-      const updatedMock = { ...mockConfigDto, generationRules: { ...mockConfigDto.generationRules, defaultModel: 'claude-3-opus' } };
+  describe("updateSystemConfig", () => {
+    it("should call service.updateSystemConfig with payload and return results", async () => {
+      const payload = { generationRules: { defaultModel: "claude-3-opus" } };
+      const updatedMock = {
+        ...mockConfigDto,
+        generationRules: {
+          ...mockConfigDto.generationRules,
+          defaultModel: "claude-3-opus",
+        },
+      };
       service.updateSystemConfig.mockResolvedValue(updatedMock as never);
 
       const result = await controller.updateSystemConfig(payload);
@@ -60,9 +87,11 @@ describe('SystemConfigController', () => {
     });
   });
 
-  describe('getTemplates', () => {
-    it('should call service.getTemplates and return list of templates', async () => {
-      const mockTemplates = [{ id: 't1', name: 'Standard Template', isSystem: true, config: {} }] as never;
+  describe("getTemplates", () => {
+    it("should call service.getTemplates and return list of templates", async () => {
+      const mockTemplates = [
+        { id: "t1", name: "Standard Template", isSystem: true, config: {} },
+      ] as never;
       service.getTemplates.mockResolvedValue(mockTemplates);
 
       const result = await controller.getTemplates();

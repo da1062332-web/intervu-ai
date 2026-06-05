@@ -28,20 +28,12 @@ export const metadata: Metadata = {
   description: 'AI-powered interview platform',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
-      lang="en"
+      lang='en'
       suppressHydrationWarning
-      className={cn(
-        inter.variable,
-        outfit.variable,
-        jetbrainsMono.variable
-      )}
+      className={cn(inter.variable, outfit.variable, jetbrainsMono.variable)}
     >
       <body>
         <AppProviders>

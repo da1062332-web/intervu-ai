@@ -25,18 +25,12 @@ export interface ApiErrorResponse {
   meta: null;
 }
 
-export type ApiResponse<TData> =
-  | ApiSuccessResponse<TData>
-  | ApiErrorResponse;
+export type ApiResponse<TData> = ApiSuccessResponse<TData> | ApiErrorResponse;
 
-export interface NormalizedApiError
-  extends Error {
+export interface NormalizedApiError extends Error {
   code: string;
   status: number;
-  validationErrors: Record<
-    string,
-    string[]
-  >;
+  validationErrors: Record<string, string[]>;
   isApiError: true;
   raw?: unknown;
   notified?: boolean;

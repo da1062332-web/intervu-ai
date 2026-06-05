@@ -1,6 +1,6 @@
-import pino from 'pino';
-import { randomUUID } from 'crypto';
-import { getRequestContext } from './request-context';
+import pino from "pino";
+import { randomUUID } from "crypto";
+import { getRequestContext } from "./request-context";
 
 export interface LogContext {
   correlationId?: string;
@@ -22,18 +22,19 @@ export class AppLogger {
   private context: LogContext = {};
 
   constructor(options: LoggerOptions) {
-    const isDev = options.isDevelopment ?? process.env.NODE_ENV === 'development';
+    const isDev =
+      options.isDevelopment ?? process.env.NODE_ENV === "development";
 
     this.logger = pino({
       name: options.name,
-      level: options.level || 'info',
+      level: options.level || "info",
       transport: isDev
         ? {
-            target: 'pino-pretty',
+            target: "pino-pretty",
             options: {
               colorize: true,
-              translateTime: 'SYS:standard',
-              ignore: 'pid,hostname',
+              translateTime: "SYS:standard",
+              ignore: "pid,hostname",
             },
           }
         : undefined,
@@ -52,10 +53,17 @@ export class AppLogger {
     this.logger.info({ ...this.getContext(), ...data }, message);
   }
 
-  error(message: string, error?: Error | unknown, data?: Record<string, unknown>): void {
-    const errorData = error instanceof Error 
-      ? { error: error.message, stack: error.stack } 
-      : (typeof error === 'object' && error !== null ? error : { error });
+  error(
+    message: string,
+    error?: Error | unknown,
+    data?: Record<string, unknown>,
+  ): void {
+    const errorData =
+      error instanceof Error
+        ? { error: error.message, stack: error.stack }
+        : typeof error === "object" && error !== null
+          ? error
+          : { error };
     this.logger.error({ ...this.getContext(), ...errorData, ...data }, message);
   }
 
@@ -71,10 +79,17 @@ export class AppLogger {
     this.logger.trace({ ...this.getContext(), ...data }, message);
   }
 
-  fatal(message: string, error?: Error | unknown, data?: Record<string, unknown>): void {
-    const errorData = error instanceof Error 
-      ? { error: error.message, stack: error.stack } 
-      : (typeof error === 'object' && error !== null ? error : { error });
+  fatal(
+    message: string,
+    error?: Error | unknown,
+    data?: Record<string, unknown>,
+  ): void {
+    const errorData =
+      error instanceof Error
+        ? { error: error.message, stack: error.stack }
+        : typeof error === "object" && error !== null
+          ? error
+          : { error };
     this.logger.fatal({ ...this.getContext(), ...errorData, ...data }, message);
   }
 
