@@ -1,6 +1,4 @@
-export type UserRole =
-  | 'CANDIDATE'
-  | 'ADMIN';
+export type UserRole = 'CANDIDATE' | 'ADMIN';
 
 export interface AuthUser {
   id: string;
@@ -26,8 +24,7 @@ export interface SignupRequest {
   fullName?: string;
 }
 
-export interface AuthResponseData
-  extends TokenSession {
+export interface AuthResponseData extends TokenSession {
   user: AuthUser;
 }
 

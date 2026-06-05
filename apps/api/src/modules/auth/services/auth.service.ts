@@ -2,17 +2,17 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as argon2 from 'argon2';
-import { randomUUID } from 'crypto';
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import * as argon2 from "argon2";
+import { randomUUID } from "crypto";
 
-import { AppConfigService } from '../../../config';
-import { UserRepository } from '../../users/repositories/user.repository';
-import { SessionRepository } from '../../users/repositories/session.repository';
-import { LoginDto, SignupDto } from '@intervu/shared';
-import { AuthUserRole } from '../interfaces/auth-user.interface';
-import { JwtTokenData } from '../interfaces/jwt-payload.interface';
+import { AppConfigService } from "../../../config";
+import { UserRepository } from "../../users/repositories/user.repository";
+import { SessionRepository } from "../../users/repositories/session.repository";
+import { LoginDto, SignupDto } from "@intervu/shared";
+import { AuthUserRole } from "../interfaces/auth-user.interface";
+import { JwtTokenData } from "../interfaces/jwt-payload.interface";
 
 interface AuthMeta {
   userAgent?: string;
@@ -45,7 +45,7 @@ export class AuthService {
     const existingUser = await this.userRepository.findByEmail(email);
 
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException("User with this email already exists");
     }
 
     const user = await this.userRepository.create({
@@ -64,7 +64,7 @@ export class AuthService {
     const isValid =
       user != null && (await argon2.verify(user.passwordHash, dto.password));
     if (!isValid || !user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     return this.buildAuthResponse(user, meta);
@@ -73,13 +73,13 @@ export class AuthService {
   async refresh(
     refreshToken: string,
     meta?: AuthMeta,
-  ): Promise<Pick<AuthResponse, 'accessToken' | 'refreshToken'>> {
+  ): Promise<Pick<AuthResponse, "accessToken" | "refreshToken">> {
     const payload = this.verifyRefreshToken(refreshToken);
 
     const stored = await this.sessionRepository.findRefreshToken(refreshToken);
 
     if (!stored || stored.revoked || stored.expiresAt <= new Date()) {
-      throw new UnauthorizedException('Refresh token is not active');
+      throw new UnauthorizedException("Refresh token is not active");
     }
 
     // Revoke the old refresh token
@@ -96,7 +96,7 @@ export class AuthService {
 
     const user = await this.userRepository.findById(payload.sub);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException("User not found");
     }
 
     const tokens = await this.issueTokens(user, meta);
@@ -164,12 +164,12 @@ export class AuthService {
         sub: user.id,
         email: user.email,
         role: user.role,
-        type: 'access',
+        type: "access",
         sessionId: session.id,
       },
       {
         jwtid: randomUUID(),
-        expiresIn: '15m',
+        expiresIn: "15m",
       },
     );
 
@@ -178,13 +178,13 @@ export class AuthService {
         sub: user.id,
         email: user.email,
         role: user.role,
-        type: 'refresh',
+        type: "refresh",
         sessionId: session.id,
       },
       {
         secret: this.configService.jwtRefreshSecret,
         jwtid: randomUUID(),
-        expiresIn: '30d',
+        expiresIn: "30d",
       },
     );
 
@@ -205,13 +205,13 @@ export class AuthService {
         secret: this.configService.jwtRefreshSecret,
       });
 
-      if (payload.type !== 'refresh') {
-        throw new UnauthorizedException('Invalid refresh token type');
+      if (payload.type !== "refresh") {
+        throw new UnauthorizedException("Invalid refresh token type");
       }
 
       return payload;
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException("Invalid or expired refresh token");
     }
   }
 }

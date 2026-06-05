@@ -9,18 +9,21 @@ This document outlines the infrastructure systems for async processing, caching,
 **Location**: `infrastructure/docker/redis`
 
 Redis is used for:
+
 - Queue storage (BullMQ)
 - Session caching
 - Rate limiting
 - General data caching
 
 **Configuration**:
+
 - Image: `redis:7`
 - Port: `6379`
 - Persistence: Enabled with volume `/data`
 - Health Check: `redis-cli ping`
 
 **Connection**:
+
 ```env
 REDIS_URL=redis://localhost:6379
 ```
@@ -32,18 +35,21 @@ REDIS_URL=redis://localhost:6379
 Three main queues for async job processing:
 
 #### Generation Queue
+
 - **Purpose**: Generate interview questions and content
 - **Concurrency**: 5 workers
 - **Retry**: 3 attempts with exponential backoff (2s initial delay)
 - **File**: `apps/worker/src/queues/generation.queue.ts`
 
 #### Evaluation Queue
+
 - **Purpose**: Evaluate test submissions and responses
 - **Concurrency**: 3 workers
 - **Retry**: 3 attempts with exponential backoff
 - **File**: `apps/worker/src/queues/evaluation.queue.ts`
 
 #### Analytics Queue
+
 - **Purpose**: Process analytics events
 - **Concurrency**: 10 workers
 - **Retry**: 5 attempts with exponential backoff
@@ -54,6 +60,7 @@ Three main queues for async job processing:
 **Location**: `apps/api/src/queue/queue-config.ts`
 
 #### Retry Strategy
+
 ```typescript
 {
   attempts: 3,         // Maximum retry attempts
@@ -65,6 +72,7 @@ Three main queues for async job processing:
 ```
 
 #### Job Cleanup
+
 ```typescript
 removeOnComplete: {
   age: 3600            // Remove completed jobs after 1 hour
@@ -81,6 +89,7 @@ removeOnFail: {
 High-performance caching with type safety.
 
 #### Cache Key Patterns
+
 ```typescript
 CACHE_KEY_PATTERNS = {
   QUESTION: (id) => `question:{id}`,
@@ -91,10 +100,11 @@ CACHE_KEY_PATTERNS = {
   TEMPLATE: (id) => `template:{id}`,
   JOB_RESULT: (jobId) => `job:result:{jobId}`,
   JOB_METADATA: (jobId) => `job:meta:{jobId}`,
-}
+};
 ```
 
 #### Default TTL Values
+
 - Question: 1 hour (3600s)
 - Session: 24 hours (86400s)
 - Assembly: 2 hours (7200s)
@@ -108,6 +118,7 @@ CACHE_KEY_PATTERNS = {
 #### Dockerfiles
 
 **api.Dockerfile**: Builds and runs the NestJS API server
+
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
@@ -118,6 +129,7 @@ CMD ["npm", "run", "--workspace=@intervu-ai/api", "start"]
 ```
 
 **worker.Dockerfile**: Builds and runs the queue worker
+
 ```dockerfile
 FROM node:20-alpine
 WORKDIR /app
@@ -134,24 +146,28 @@ CMD ["npm", "run", "--workspace=@intervu-ai/worker", "start"]
 #### Services
 
 **PostgreSQL**
+
 - Image: `postgres:16`
 - Port: `5432`
 - Health Check: `pg_isready`
 - Volumes: `postgres_data`
 
 **Redis**
+
 - Image: `redis:7`
 - Port: `6379`
 - Health Check: `redis-cli ping`
 - Volumes: `redis_data`
 
 **API Service**
+
 - Depends on: PostgreSQL, Redis
 - Port: `3000`
 - Health Check: `GET /api/v1/health`
 - Environment: Production
 
 **Worker Service**
+
 - Depends on: Redis
 - Environment:
   - `ENABLE_GENERATION_QUEUE=true`
@@ -166,6 +182,7 @@ CMD ["npm", "run", "--workspace=@intervu-ai/worker", "start"]
 Centralized logging with correlation tracking.
 
 #### Features
+
 - Structured logging with Pino
 - Request/Response logging
 - Error logging with stack traces
@@ -173,22 +190,23 @@ Centralized logging with correlation tracking.
 - Queue and worker logging
 
 #### Logger Usage
+
 ```typescript
-import { AppLogger } from '@intervu-ai/shared-logger';
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 const logger = new AppLogger({
-  name: 'my-service',
-  isDevelopment: process.env.NODE_ENV === 'development',
+  name: "my-service",
+  isDevelopment: process.env.NODE_ENV === "development",
 });
 
 logger.setContext({
-  correlationId: 'uuid-here',
-  jobId: 'job-123',
-  queueName: 'generation',
+  correlationId: "uuid-here",
+  jobId: "job-123",
+  queueName: "generation",
 });
 
-logger.info('Processing job', { data });
-logger.error('Job failed', error, { metadata });
+logger.info("Processing job", { data });
+logger.error("Job failed", error, { metadata });
 ```
 
 ## Environment Variables
@@ -222,12 +240,14 @@ NODE_ENV=development|staging|production
 ### Local Development
 
 1. **Start Docker Compose**
+
 ```bash
 cd infrastructure/docker
 docker-compose up -d
 ```
 
 2. **Verify Services**
+
 ```bash
 # Check API health
 curl http://localhost:3000/api/v1/health
@@ -240,11 +260,13 @@ psql -U postgres -h localhost -d intervu_ai
 ```
 
 3. **Install Dependencies**
+
 ```bash
 npm install
 ```
 
 4. **Run Development Server**
+
 ```bash
 npm run dev
 ```
@@ -252,16 +274,19 @@ npm run dev
 ### Production Deployment
 
 1. **Build Images**
+
 ```bash
 docker-compose build
 ```
 
 2. **Start Services**
+
 ```bash
 docker-compose up -d
 ```
 
 3. **Monitor Health**
+
 ```bash
 docker-compose ps
 docker-compose logs -f api
@@ -271,6 +296,7 @@ docker-compose logs -f worker
 ## Queue Payload Contracts
 
 ### Generation Queue
+
 ```typescript
 {
   jobId: string;
@@ -289,6 +315,7 @@ docker-compose logs -f worker
 ```
 
 ### Evaluation Queue
+
 ```typescript
 {
   jobId: string;
@@ -306,6 +333,7 @@ docker-compose logs -f worker
 ```
 
 ### Analytics Queue
+
 ```typescript
 {
   jobId: string;
@@ -323,17 +351,20 @@ docker-compose logs -f worker
 ## Health Checks
 
 ### Redis Health Check
+
 ```bash
 redis-cli -u redis://localhost:6379 ping
 # Response: PONG
 ```
 
 ### API Health Check
+
 ```bash
 curl http://localhost:3000/api/v1/health
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -354,12 +385,15 @@ Response:
 ```
 
 ### Worker Health Check
+
 Workers connect to Redis and process queue jobs. Health is verified by the Docker health check command.
 
 ## Monitoring
 
 ### Queue Monitoring
+
 Access queue status via API:
+
 ```typescript
 // Get queue counts
 await queueService.getQueueCounts(QueueType.GENERATION);
@@ -373,40 +407,49 @@ await queueService.retryFailedJob(QueueType.GENERATION, jobId);
 ```
 
 ### Logs
+
 Development logs use Pino Pretty for readable output.
 Production logs are JSON formatted for log aggregation systems.
 
 ## Performance Tuning
 
 ### Worker Concurrency
+
 Adjust in `.env`:
+
 ```env
 WORKER_CONCURRENCY=5  # Increase for high throughput
 ```
 
 ### Redis Memory
+
 Monitor Redis memory usage:
+
 ```bash
 redis-cli -u redis://localhost:6379 INFO memory
 ```
 
 ### Connection Pooling
+
 Configure in Redis connection manager (max retries, connection timeout).
 
 ## Troubleshooting
 
 ### Redis Connection Failed
+
 1. Check Redis is running: `docker-compose ps`
 2. Verify REDIS_URL: `echo $REDIS_URL`
 3. Test connection: `redis-cli -u $REDIS_URL ping`
 
 ### Jobs Not Processing
+
 1. Check worker logs: `docker-compose logs worker`
 2. Verify queue configuration
 3. Check Redis connectivity
-4. Ensure ENABLE_*_QUEUE=true
+4. Ensure ENABLE\_\*\_QUEUE=true
 
 ### Memory Leaks
+
 1. Monitor with `docker stats`
 2. Check for unclosed Redis connections
 3. Verify job cleanup configuration (removeOnComplete, removeOnFail)

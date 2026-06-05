@@ -1,10 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Template, Prisma, DifficultyLevel } from '@prisma/client';
-import { createHash } from 'crypto';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { Template, Prisma, DifficultyLevel } from "@prisma/client";
+import { createHash } from "crypto";
 
-import { RedisCacheService } from '../../../cache';
-import { TemplateRepository } from '../repositories/template.repository';
-import { CreateTemplateDto, UpdateTemplateDto, TemplateVersionDto } from '@intervu/shared';
+import { RedisCacheService } from "../../../cache";
+import { TemplateRepository } from "../repositories/template.repository";
+import {
+  CreateTemplateDto,
+  UpdateTemplateDto,
+  TemplateVersionDto,
+} from "@intervu/shared";
 
 export interface PaginatedTemplates {
   items: Template[];
@@ -32,23 +40,29 @@ export class TemplateService {
     if (page < 1 || limit < 1 || limit > 100) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'page must be ≥ 1 and limit must be between 1 and 100' },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "page must be ≥ 1 and limit must be between 1 and 100",
+        },
       });
     }
 
     // 2. fetchDependencies() — check cache first
-    const filterHash = createHash('md5')
-      .update(`p${page}l${limit}d${difficulty ?? 'all'}`)
-      .digest('hex');
-    const cached = await this.cacheService.getTemplateList<PaginatedTemplates>(filterHash);
+    const filterHash = createHash("md5")
+      .update(`p${page}l${limit}d${difficulty ?? "all"}`)
+      .digest("hex");
+    const cached =
+      await this.cacheService.getTemplateList<PaginatedTemplates>(filterHash);
     if (cached) return cached;
 
     // 3. coreLogic() — fetch from DB
-    const whereClause: Record<string, unknown> = difficulty ? { difficulty } : {};
+    const whereClause: Record<string, unknown> = difficulty
+      ? { difficulty }
+      : {};
     const result = await this.templateRepository.findPaginated(
       { page, limit },
       whereClause,
-      { createdAt: 'desc' },
+      { createdAt: "desc" },
     );
 
     // 4. formatResponse() — cache and return
@@ -64,7 +78,7 @@ export class TemplateService {
     if (!id || id.trim().length === 0) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Template ID is required' },
+        error: { code: "VALIDATION_ERROR", message: "Template ID is required" },
       });
     }
 
@@ -77,7 +91,7 @@ export class TemplateService {
     if (!template) {
       throw new NotFoundException({
         success: false,
-        error: { code: 'NOT_FOUND', message: `Template ${id} not found` },
+        error: { code: "NOT_FOUND", message: `Template ${id} not found` },
       });
     }
 
@@ -94,16 +108,21 @@ export class TemplateService {
     if (!Object.values(DifficultyLevel).includes(difficulty)) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: `Invalid difficulty: ${difficulty}` },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: `Invalid difficulty: ${difficulty}`,
+        },
       });
     }
 
     // 2. fetchDependencies() — check cache
-    const cached = await this.cacheService.getTemplatesByDifficulty<Template[]>(difficulty);
+    const cached =
+      await this.cacheService.getTemplatesByDifficulty<Template[]>(difficulty);
     if (cached) return cached;
 
     // 3. coreLogic() — fetch from DB
-    const templates = await this.templateRepository.findByDifficulty(difficulty);
+    const templates =
+      await this.templateRepository.findByDifficulty(difficulty);
 
     // 4. formatResponse() — cache and return
     await this.cacheService.setTemplatesByDifficulty(difficulty, templates);
@@ -137,7 +156,11 @@ export class TemplateService {
     if (!validation.success) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid template data', details: validation.error.format() },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid template data",
+          details: validation.error.format(),
+        },
       });
     }
     const validated = validation.data;
@@ -148,7 +171,8 @@ export class TemplateService {
     const createInput: Prisma.TemplateCreateInput = {
       name: validated.name,
       description: validated.description,
-      difficulty: (validated.difficulty as DifficultyLevel) ?? DifficultyLevel.MEDIUM,
+      difficulty:
+        (validated.difficulty as DifficultyLevel) ?? DifficultyLevel.MEDIUM,
       config: validated.config as Prisma.InputJsonValue,
       isSystem: validated.isSystem ?? false,
     };
@@ -158,7 +182,7 @@ export class TemplateService {
     if (template.isSystem) {
       await this.cacheService.invalidateSystemTemplates();
     } else {
-      await this.cacheService.clear('template:list:*');
+      await this.cacheService.clear("template:list:*");
     }
     return template;
   }
@@ -172,7 +196,11 @@ export class TemplateService {
     if (!validation.success) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid update data', details: validation.error.format() },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid update data",
+          details: validation.error.format(),
+        },
       });
     }
     const validated = validation.data;
@@ -182,16 +210,19 @@ export class TemplateService {
     if (!existing) {
       throw new NotFoundException({
         success: false,
-        error: { code: 'NOT_FOUND', message: `Template ${id} not found` },
+        error: { code: "NOT_FOUND", message: `Template ${id} not found` },
       });
     }
 
     // 3. coreLogic() — build update input and persist
     const updateInput: Prisma.TemplateUpdateInput = {};
     if (validated.name !== undefined) updateInput.name = validated.name;
-    if (validated.description !== undefined) updateInput.description = validated.description;
-    if (validated.difficulty !== undefined) updateInput.difficulty = validated.difficulty as DifficultyLevel;
-    if (validated.config !== undefined) updateInput.config = validated.config as Prisma.InputJsonValue;
+    if (validated.description !== undefined)
+      updateInput.description = validated.description;
+    if (validated.difficulty !== undefined)
+      updateInput.difficulty = validated.difficulty as DifficultyLevel;
+    if (validated.config !== undefined)
+      updateInput.config = validated.config as Prisma.InputJsonValue;
 
     const updated = await this.templateRepository.update(id, updateInput);
 
@@ -211,7 +242,7 @@ export class TemplateService {
     if (!id || id.trim().length === 0) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Template ID is required' },
+        error: { code: "VALIDATION_ERROR", message: "Template ID is required" },
       });
     }
 
@@ -220,7 +251,7 @@ export class TemplateService {
     if (!existing) {
       throw new NotFoundException({
         success: false,
-        error: { code: 'NOT_FOUND', message: `Template ${id} not found` },
+        error: { code: "NOT_FOUND", message: `Template ${id} not found` },
       });
     }
 
@@ -243,7 +274,7 @@ export class TemplateService {
     if (!id || id.trim().length === 0) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Template ID is required' },
+        error: { code: "VALIDATION_ERROR", message: "Template ID is required" },
       });
     }
 

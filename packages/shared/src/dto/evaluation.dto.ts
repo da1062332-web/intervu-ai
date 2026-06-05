@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { ApiProperty } from '@nestjs/swagger';
+import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
 
 export const EvaluationRequestSchema = z.object({
   answerId: z.string().min(1),
@@ -7,13 +7,21 @@ export const EvaluationRequestSchema = z.object({
 });
 
 export class EvaluationRequestDto {
-  @ApiProperty({ example: 'ans_987654', description: 'Identifier of the answer sheet question' })
+  @ApiProperty({
+    example: "ans_987654",
+    description: "Identifier of the answer sheet question",
+  })
   answerId!: string;
 
-  @ApiProperty({ example: 'Closures are functions that reference outer variables...', description: 'The text response submitted by the candidate' })
+  @ApiProperty({
+    example: "Closures are functions that reference outer variables...",
+    description: "The text response submitted by the candidate",
+  })
   candidateResponse!: string;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, EvaluationRequestDto> {
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, EvaluationRequestDto> {
     return EvaluationRequestSchema.safeParse(data);
   }
 }

@@ -74,8 +74,7 @@ export const ALL_NAV_ITEMS = [
 export function getActiveNavItem(pathname: string) {
   return ALL_NAV_ITEMS.find(
     (item) =>
-      pathname === item.route ||
-      (item.route !== '/dashboard' && pathname.startsWith(item.route))
+      pathname === item.route || (item.route !== '/dashboard' && pathname.startsWith(item.route)),
   );
 }
 

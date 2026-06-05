@@ -1,38 +1,41 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, Controller, Get } from '@nestjs/common';
-import request from 'supertest';
-import { z } from 'zod';
-import { ValidateResponse } from '@intervu/shared';
-import { ResponseValidationInterceptor, ResponseInterceptor } from '@intervu/shared';
-import { Reflector } from '@nestjs/core';
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication, Controller, Get } from "@nestjs/common";
+import request from "supertest";
+import { z } from "zod";
+import { ValidateResponse } from "@intervu/shared";
+import {
+  ResponseValidationInterceptor,
+  ResponseInterceptor,
+} from "@intervu/shared";
+import { Reflector } from "@nestjs/core";
 
 const TestSchema = z.object({
   id: z.string(),
   name: z.string(),
 });
 
-@Controller('test')
+@Controller("test")
 class TestController {
-  @Get('valid')
+  @Get("valid")
   @ValidateResponse(TestSchema)
   getValid() {
-    return { id: '123', name: 'John Doe' };
+    return { id: "123", name: "John Doe" };
   }
 
-  @Get('invalid')
+  @Get("invalid")
   @ValidateResponse(TestSchema)
   getInvalid() {
-    return { id: '123' }; // missing name
+    return { id: "123" }; // missing name
   }
 
-  @Get('passthrough')
+  @Get("passthrough")
   getPassthrough() {
-    return { any: 'data' };
+    return { any: "data" };
   }
 }
 
-describe('ResponseValidationInterceptor', () => {
+describe("ResponseValidationInterceptor", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -41,14 +44,14 @@ describe('ResponseValidationInterceptor', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    
+
     const reflector = app.get(Reflector);
     // Simulate main.ts behavior
     app.useGlobalInterceptors(
       new ResponseInterceptor(),
-      new ResponseValidationInterceptor(reflector)
+      new ResponseValidationInterceptor(reflector),
     );
-    
+
     await app.init();
   });
 
@@ -56,31 +59,33 @@ describe('ResponseValidationInterceptor', () => {
     await app.close();
   });
 
-  it('should pass validation and return 200 OK with success envelope', async () => {
-    const response = await request(app.getHttpServer()).get('/test/valid');
-    
+  it("should pass validation and return 200 OK with success envelope", async () => {
+    const response = await request(app.getHttpServer()).get("/test/valid");
+
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: true,
-      data: { id: '123', name: 'John Doe' },
+      data: { id: "123", name: "John Doe" },
       error: null,
       meta: null,
     });
   });
 
-  it('should throw ContractViolationError and return 500 when response is invalid', async () => {
-    const response = await request(app.getHttpServer()).get('/test/invalid');
-    
+  it("should throw ContractViolationError and return 500 when response is invalid", async () => {
+    const response = await request(app.getHttpServer()).get("/test/invalid");
+
     expect(response.status).toBe(500); // Because ContractViolationError is not caught by a specific exception filter in this test, it results in 500.
   });
 
-  it('should passthrough when no schema is provided', async () => {
-    const response = await request(app.getHttpServer()).get('/test/passthrough');
-    
+  it("should passthrough when no schema is provided", async () => {
+    const response = await request(app.getHttpServer()).get(
+      "/test/passthrough",
+    );
+
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: true,
-      data: { any: 'data' },
+      data: { any: "data" },
       error: null,
       meta: null,
     });

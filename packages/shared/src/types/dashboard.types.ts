@@ -14,7 +14,7 @@ export interface DashboardAnalyticsSummary {
 
 export interface DashboardActivityItem {
   id: string;
-  type: 'interview_completed';
+  type: "interview_completed";
   title: string;
   createdAt: string; // ISO 8601
 }

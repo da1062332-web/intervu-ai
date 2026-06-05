@@ -1,9 +1,9 @@
 export type ValidationFailureReason =
-  | 'constraint_violation'
-  | 'difficulty_mismatch'
-  | 'solvability_failure'
-  | 'duplicate_collision'
-  | 'other';
+  | "constraint_violation"
+  | "difficulty_mismatch"
+  | "solvability_failure"
+  | "duplicate_collision"
+  | "other";
 
 export interface GenerationRun {
   templateId: string;
@@ -15,7 +15,7 @@ export interface GenerationRun {
 
 export interface TemplateMetadataContract {
   templateId: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   topic: string;
   tags?: string[];
   metrics: {
@@ -38,9 +38,9 @@ export class MetricsTracker {
 
   getMetricsForTemplate(
     templateId: string,
-    difficulty: 'easy' | 'medium' | 'hard',
+    difficulty: "easy" | "medium" | "hard",
     topic: string,
-    tags?: string[]
+    tags?: string[],
   ): TemplateMetadataContract {
     const templateRuns = this.runs.filter((r) => r.templateId === templateId);
     const totalRuns = templateRuns.length;
@@ -91,16 +91,18 @@ export class MetricsTracker {
       // If it failed completely, it took attemptsUsed retries (all attempts failed).
       totalRetries += Math.max(0, r.attemptsUsed - (r.success ? 1 : 0));
       for (const f of r.failures) {
-        failureBreakdown[f.reason] = (failureBreakdown[f.reason] || 0) + f.count;
+        failureBreakdown[f.reason] =
+          (failureBreakdown[f.reason] || 0) + f.count;
         totalValidationFailures += f.count;
-        if (f.reason === 'duplicate_collision') {
+        if (f.reason === "duplicate_collision") {
           totalDuplicateCollisions += f.count;
         }
       }
     }
 
     const avgRuntime = totalRuntimeMs / totalRuns;
-    const duplicateFrequency = totalRuns > 0 ? totalDuplicateCollisions / totalRuns : 0;
+    const duplicateFrequency =
+      totalRuns > 0 ? totalDuplicateCollisions / totalRuns : 0;
 
     return {
       templateId,

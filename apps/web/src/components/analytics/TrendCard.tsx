@@ -16,7 +16,7 @@ export function TrendCard({ title, data, trendValue, isLoading, isError }: Trend
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+          <CardTitle className='text-lg font-semibold'>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <SkeletonChart />
@@ -28,8 +28,11 @@ export function TrendCard({ title, data, trendValue, isLoading, isError }: Trend
   if (isError) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <EmptyAnalyticsState title="Failed to load analytics" description="We couldn't fetch the trend data." />
+        <CardContent className='pt-6'>
+          <EmptyAnalyticsState
+            title='Failed to load analytics'
+            description="We couldn't fetch the trend data."
+          />
         </CardContent>
       </Card>
     );
@@ -38,34 +41,39 @@ export function TrendCard({ title, data, trendValue, isLoading, isError }: Trend
   if (!data || data.length === 0) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <EmptyAnalyticsState title="No analytics available yet" description="Check back later for trend insights." />
+        <CardContent className='pt-6'>
+          <EmptyAnalyticsState
+            title='No analytics available yet'
+            description='Check back later for trend insights.'
+          />
         </CardContent>
       </Card>
     );
   }
 
   // Find max for simple bar visualization
-  const maxValue = Math.max(...data.map(d => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
 
   return (
-    <Card className="flex flex-col h-full">
+    <Card className='flex flex-col h-full'>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md">{trendValue}</span>
+        <div className='flex items-center justify-between'>
+          <CardTitle className='text-lg font-semibold'>{title}</CardTitle>
+          <span className='text-sm font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md'>
+            {trendValue}
+          </span>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex items-end gap-2 pt-4">
+      <CardContent className='flex-1 flex items-end gap-2 pt-4'>
         {data.map((item, index) => (
-          <div key={index} className="flex flex-col items-center flex-1 gap-2">
-            <div className="w-full bg-primary/10 rounded-t-sm relative flex-1 min-h-[100px]">
-              <div 
-                className="absolute bottom-0 w-full bg-primary rounded-t-sm transition-all duration-500"
+          <div key={index} className='flex flex-col items-center flex-1 gap-2'>
+            <div className='w-full bg-primary/10 rounded-t-sm relative flex-1 min-h-[100px]'>
+              <div
+                className='absolute bottom-0 w-full bg-primary rounded-t-sm transition-all duration-500'
                 style={{ height: `${(item.value / maxValue) * 100}%` }}
               />
             </div>
-            <span className="text-xs text-muted-foreground">{item.name}</span>
+            <span className='text-xs text-muted-foreground'>{item.name}</span>
           </div>
         ))}
       </CardContent>

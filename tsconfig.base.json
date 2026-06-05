@@ -1,29 +1,23 @@
 {
-    "compilerOptions": {
-      "ignoreDeprecations": "5.0",
-      "target": "ES2022",
-      "module": "commonjs",
-      "moduleResolution": "node",
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "resolveJsonModule": true,
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true,
-      "baseUrl": ".",
-  
-      "paths": {
-        "@intervu-ai/shared-logger": [
-          "packages/shared-logger/src"
-        ],
-  
-        "@intervu-ai/shared-config": [
-          "packages/shared-config/src"
-        ],
-  
-        "@intervu-ai/shared-validation": [
-          "packages/shared-validation/src"
-        ]
-      }
+  "compilerOptions": {
+    "ignoreDeprecations": "5.0",
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+
+    "paths": {
+      "@intervu-ai/shared-logger": ["packages/shared-logger/src"],
+
+      "@intervu-ai/shared-config": ["packages/shared-config/src"],
+
+      "@intervu-ai/shared-validation": ["packages/shared-validation/src"]
     }
   }
+}

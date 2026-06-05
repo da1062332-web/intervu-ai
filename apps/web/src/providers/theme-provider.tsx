@@ -2,15 +2,9 @@
 
 import * as React from 'react';
 
-import {
-  ThemeProvider as NextThemesProvider,
-  useTheme,
-} from 'next-themes';
+import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes';
 
-import {
-  useUIStore,
-  type ThemeMode,
-} from '@/store/ui.store';
+import { useUIStore, type ThemeMode } from '@/store/ui.store';
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -29,13 +23,11 @@ function ThemeStateBridge(): null {
   return null;
 }
 
-export function ThemeProvider({
-  children,
-}: ThemeProviderProps) {
+export function ThemeProvider({ children }: ThemeProviderProps) {
   return (
     <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
+      attribute='class'
+      defaultTheme='system'
       enableSystem
       disableTransitionOnChange
     >

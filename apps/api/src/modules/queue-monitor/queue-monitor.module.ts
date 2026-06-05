@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { QueueMonitorController } from './controllers/queue-monitor.controller';
+import { Module } from "@nestjs/common";
+import { QueueMonitorController } from "./controllers/queue-monitor.controller";
 
 /**
  * QueueMonitorModule — exposes monitoring endpoints for all BullMQ queues.

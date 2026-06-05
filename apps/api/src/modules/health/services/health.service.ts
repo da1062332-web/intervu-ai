@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { RedisConnectionManager } from '../../../cache/redis-connection.manager';
+import { Injectable } from "@nestjs/common";
+import { RedisConnectionManager } from "../../../cache/redis-connection.manager";
 
 export interface ServiceHealth {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   responseTime?: number;
   error?: string;
 }
 
 export interface HealthResponse {
-  status: 'ok' | 'degraded' | 'unhealthy';
+  status: "ok" | "degraded" | "unhealthy";
   service: string;
   timestamp: string;
   version: string;
@@ -25,13 +25,13 @@ export class HealthService {
     const redisHealth = await this.checkRedisHealth();
 
     const overallStatus =
-      redisHealth.status === 'unhealthy' ? 'degraded' : 'ok';
+      redisHealth.status === "unhealthy" ? "degraded" : "ok";
 
     return {
       status: overallStatus,
-      service: 'intervu-api',
+      service: "intervu-api",
       timestamp: new Date().toISOString(),
-      version: '1.0.0',
+      version: "1.0.0",
       uptime: process.uptime(),
       dependencies: {
         redis: redisHealth,
@@ -45,8 +45,8 @@ export class HealthService {
 
       if (!RedisConnectionManager.isConnected()) {
         return {
-          status: 'unhealthy',
-          error: 'Redis not connected',
+          status: "unhealthy",
+          error: "Redis not connected",
         };
       }
 
@@ -56,13 +56,13 @@ export class HealthService {
       const responseTime = Date.now() - startTime;
 
       return {
-        status: 'healthy',
+        status: "healthy",
         responseTime,
       };
     } catch (error: unknown) {
       return {
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        status: "unhealthy",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }

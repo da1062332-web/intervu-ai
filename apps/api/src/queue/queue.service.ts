@@ -1,6 +1,6 @@
-import { Job } from 'bullmq';
-import { AppLogger } from '@intervu-ai/shared-logger';
-import { QueueFactory } from './queue-config';
+import { Job } from "bullmq";
+import { AppLogger } from "@intervu-ai/shared-logger";
+import { QueueFactory } from "./queue-config";
 import {
   QueueMessage,
   QueueType,
@@ -16,8 +16,8 @@ import {
   EvaluationJobInput,
   AnalyticsJobInput,
   ValidationJobInput,
-} from './queue-payloads';
-import { BadRequestException } from '@nestjs/common';
+} from "./queue-payloads";
+import { BadRequestException } from "@nestjs/common";
 
 export interface QueueMetrics {
   waiting: number;
@@ -43,7 +43,9 @@ export class QueueService {
 
   // ─── Enqueue Methods ─────────────────────────────────────────────────────────
 
-  async enqueueGeneration(payload: Omit<GenerationJobInput, 'type'>): Promise<Job> {
+  async enqueueGeneration(
+    payload: Omit<GenerationJobInput, "type">,
+  ): Promise<Job> {
     // 1. validate() — Fail Fast via Zod
     const fullPayload: GenerationQueueMessage = {
       ...payload,
@@ -53,13 +55,19 @@ export class QueueService {
     if (!result.success) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid generation job payload', details: result.error.format() },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid generation job payload",
+          details: result.error.format(),
+        },
       });
     }
     return this.enqueue(QueueType.GENERATION, result.data);
   }
 
-  async enqueueEvaluation(payload: Omit<EvaluationJobInput, 'type'>): Promise<Job> {
+  async enqueueEvaluation(
+    payload: Omit<EvaluationJobInput, "type">,
+  ): Promise<Job> {
     // 1. validate() — Fail Fast via Zod
     const fullPayload: EvaluationQueueMessage = {
       ...payload,
@@ -69,13 +77,19 @@ export class QueueService {
     if (!result.success) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid evaluation job payload', details: result.error.format() },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid evaluation job payload",
+          details: result.error.format(),
+        },
       });
     }
     return this.enqueue(QueueType.EVALUATION, result.data);
   }
 
-  async enqueueAnalytics(payload: Omit<AnalyticsJobInput, 'type'>): Promise<Job> {
+  async enqueueAnalytics(
+    payload: Omit<AnalyticsJobInput, "type">,
+  ): Promise<Job> {
     // 1. validate() — Fail Fast via Zod
     const fullPayload: AnalyticsQueueMessage = {
       ...payload,
@@ -85,13 +99,19 @@ export class QueueService {
     if (!result.success) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid analytics job payload', details: result.error.format() },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid analytics job payload",
+          details: result.error.format(),
+        },
       });
     }
     return this.enqueue(QueueType.ANALYTICS, result.data);
   }
 
-  async enqueueValidation(payload: Omit<ValidationJobInput, 'type'>): Promise<Job> {
+  async enqueueValidation(
+    payload: Omit<ValidationJobInput, "type">,
+  ): Promise<Job> {
     // 1. validate() — Fail Fast via Zod
     const fullPayload: ValidationQueueMessage = {
       ...payload,
@@ -101,7 +121,11 @@ export class QueueService {
     if (!result.success) {
       throw new BadRequestException({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid validation job payload', details: result.error.format() },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid validation job payload",
+          details: result.error.format(),
+        },
       });
     }
     return this.enqueue(QueueType.VALIDATION, result.data);
@@ -114,18 +138,27 @@ export class QueueService {
       const queue = QueueFactory.getQueue(queueType);
       return await queue.getJob(jobId);
     } catch (error) {
-      this.logger.error(`Failed to get job`, error, { jobId, queueName: queueType });
+      this.logger.error(`Failed to get job`, error, {
+        jobId,
+        queueName: queueType,
+      });
       return undefined;
     }
   }
 
-  async getJobState(queueType: QueueType, jobId: string): Promise<string | undefined> {
+  async getJobState(
+    queueType: QueueType,
+    jobId: string,
+  ): Promise<string | undefined> {
     try {
       const queue = QueueFactory.getQueue(queueType);
       const job = await queue.getJob(jobId);
       return job?.getState();
     } catch (error) {
-      this.logger.error(`Failed to get job state`, error, { jobId, queueName: queueType });
+      this.logger.error(`Failed to get job state`, error, {
+        jobId,
+        queueName: queueType,
+      });
       return undefined;
     }
   }
@@ -135,7 +168,13 @@ export class QueueService {
   async getQueueCounts(queueType: QueueType): Promise<QueueMetrics> {
     try {
       const queue = QueueFactory.getQueue(queueType);
-      const counts = await queue.getJobCounts('wait', 'active', 'completed', 'failed', 'delayed');
+      const counts = await queue.getJobCounts(
+        "wait",
+        "active",
+        "completed",
+        "failed",
+        "delayed",
+      );
       return {
         waiting: counts.wait ?? 0,
         active: counts.active ?? 0,
@@ -144,7 +183,9 @@ export class QueueService {
         delayed: counts.delayed ?? 0,
       };
     } catch (error) {
-      this.logger.error(`Failed to get queue counts`, error, { queueName: queueType });
+      this.logger.error(`Failed to get queue counts`, error, {
+        queueName: queueType,
+      });
       return { waiting: 0, active: 0, completed: 0, failed: 0, delayed: 0 };
     }
   }
@@ -170,14 +211,23 @@ export class QueueService {
       const queue = QueueFactory.getQueue(queueType);
       const job = await queue.getJob(jobId);
       if (!job) {
-        this.logger.warn(`Job not found for retry`, { jobId, queueName: queueType });
+        this.logger.warn(`Job not found for retry`, {
+          jobId,
+          queueName: queueType,
+        });
         return false;
       }
       await job.retry();
-      this.logger.info(`Job retried successfully`, { jobId, queueName: queueType });
+      this.logger.info(`Job retried successfully`, {
+        jobId,
+        queueName: queueType,
+      });
       return true;
     } catch (error) {
-      this.logger.error(`Failed to retry job`, error, { jobId, queueName: queueType });
+      this.logger.error(`Failed to retry job`, error, {
+        jobId,
+        queueName: queueType,
+      });
       return false;
     }
   }
@@ -187,24 +237,38 @@ export class QueueService {
       const queue = QueueFactory.getQueue(queueType);
       const job = await queue.getJob(jobId);
       if (!job) {
-        this.logger.warn(`Job not found for removal`, { jobId, queueName: queueType });
+        this.logger.warn(`Job not found for removal`, {
+          jobId,
+          queueName: queueType,
+        });
         return false;
       }
       await job.remove();
-      this.logger.info(`Job removed successfully`, { jobId, queueName: queueType });
+      this.logger.info(`Job removed successfully`, {
+        jobId,
+        queueName: queueType,
+      });
       return true;
     } catch (error) {
-      this.logger.error(`Failed to remove job`, error, { jobId, queueName: queueType });
+      this.logger.error(`Failed to remove job`, error, {
+        jobId,
+        queueName: queueType,
+      });
       return false;
     }
   }
 
   // ─── Private ─────────────────────────────────────────────────────────────────
 
-  private async enqueue(queueType: QueueType, payload: QueueMessage): Promise<Job> {
+  private async enqueue(
+    queueType: QueueType,
+    payload: QueueMessage,
+  ): Promise<Job> {
     try {
       const queue = QueueFactory.getQueue(queueType);
-      const job = await queue.add(payload.jobId, payload, { jobId: payload.jobId });
+      const job = await queue.add(payload.jobId, payload, {
+        jobId: payload.jobId,
+      });
       this.logger.info(`Job enqueued successfully`, {
         jobId: payload.jobId,
         queueName: queueType,
@@ -212,7 +276,10 @@ export class QueueService {
       });
       return job;
     } catch (error) {
-      this.logger.error(`Failed to enqueue job`, error, { jobId: payload.jobId, queueName: queueType });
+      this.logger.error(`Failed to enqueue job`, error, {
+        jobId: payload.jobId,
+        queueName: queueType,
+      });
       throw error;
     }
   }

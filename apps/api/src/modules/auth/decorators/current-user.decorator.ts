@@ -2,10 +2,10 @@ import {
   UnauthorizedException,
   createParamDecorator,
   ExecutionContext,
-} from '@nestjs/common';
+} from "@nestjs/common";
 
-import { AuthenticatedRequest } from '../interfaces/authenticated-request.interface';
-import { AuthUser } from '../interfaces/auth-user.interface';
+import { AuthenticatedRequest } from "../interfaces/authenticated-request.interface";
+import { AuthUser } from "../interfaces/auth-user.interface";
 
 export const CurrentUser = createParamDecorator(
   (property: keyof AuthUser | undefined, ctx: ExecutionContext) => {
@@ -13,7 +13,7 @@ export const CurrentUser = createParamDecorator(
     const user = request.user;
 
     if (!user) {
-      throw new UnauthorizedException('User context is missing');
+      throw new UnauthorizedException("User context is missing");
     }
 
     if (!property) {
