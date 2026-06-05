@@ -2,10 +2,83 @@ import * as crypto from 'crypto';
 import { QuestionTemplate, Variable, Constraint } from '../types/template.types';
 import { evaluateConstraints } from './constraint-engine';
 import { evaluateExpression } from './math-parser';
+import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
 
 export interface ValidationResult {
   valid: boolean;
   issues: string[];
+  score: number;
+}
+
+/**
+ * Normalizes text to tokens for semantic similarity checking.
+ */
+export function getTokens(text: string): Set<string> {
+  const normalized = text
+    .toLowerCase()
+    .replace(/[0-9]+/g, '#') // treat all numbers as wildcards to detect structural duplicates
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, ''); // remove punctuation
+  return new Set(normalized.split(/\s+/).filter((word) => word.length > 2));
+}
+
+/**
+ * Computes Jaccard semantic similarity between two question texts.
+ */
+export function calculateSemanticSimilarity(textA: string, textB: string): number {
+  const tokensA = getTokens(textA);
+  const tokensB = getTokens(textB);
+  if (tokensA.size === 0 && tokensB.size === 0) return 1.0;
+
+  const intersection = new Set([...tokensA].filter((x) => tokensB.has(x)));
+  const union = new Set([...tokensA, ...tokensB]);
+
+  return intersection.size / union.size;
+}
+
+/**
+ * Evaluates semantic similarity against a threshold.
+ */
+export function isSemanticallySimilar(textA: string, textB: string, threshold = 0.85): boolean {
+  return calculateSemanticSimilarity(textA, textB) >= threshold;
+}
+
+/**
+ * Checks for variable parameter collisions against a list of past runs.
+ */
+export function checkVariableCollision(
+  newParams: Record<string, unknown>,
+  pastParamsList: Record<string, unknown>[]
+): boolean {
+  for (const past of pastParamsList) {
+    let match = true;
+    for (const key of Object.keys(newParams)) {
+      if (newParams[key] !== past[key]) {
+        match = false;
+        break;
+      }
+    }
+    if (match && Object.keys(newParams).length === Object.keys(past).length) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Validates calculated difficulty rules and mapping.
+ */
+export function validateDifficulty(
+  template: QuestionTemplate,
+  parameters: Record<string, unknown>
+): { isValid: boolean; expectedCategory: string; score: number } {
+  const constraintsCount = template.constraints ? template.constraints.length : 0;
+  const score = calculateDifficultyScore(template.metadata, parameters, constraintsCount);
+  const expectedCategory = getDifficultyCategory(score);
+  return {
+    isValid: expectedCategory === template.difficulty,
+    expectedCategory,
+    score,
+  };
 }
 
 /**
@@ -126,30 +199,95 @@ export function validatePipeline(options: {
   correctAnswer: string;
   distractors: string[];
   seenHashes: Set<string> | string[];
+  hydratedQuestion?: string;
+  pastQuestionTexts?: string[];
+  pastParameters?: Record<string, unknown>[];
 }): ValidationResult {
-  const issues: string[] = [];
+  const criticalIssues: string[] = [];
+  const warningIssues: string[] = [];
 
   // 1. Variable Validation
-  issues.push(...validateVariables(options.template.variables, options.parameters));
+  criticalIssues.push(...validateVariables(options.template.variables, options.parameters));
 
   // 2. Constraint Validation
-  issues.push(...validateConstraintsPipeline(options.template.constraints, options.parameters));
+  const evalResult = evaluateConstraints(options.template.constraints, options.parameters);
+  for (const c of evalResult.violatedConstraints) {
+    if (c.severity === 'critical') {
+      criticalIssues.push(`Critical constraint rule violated: ${c.rule}`);
+    } else {
+      warningIssues.push(`Warning constraint rule violated: ${c.rule}`);
+    }
+  }
 
   // 3. Solvability Validation
   const solvability = validateSolvability(options.template.solutionTemplate.finalAnswer, options.parameters);
   if (!solvability.isSolvable) {
-    issues.push(`Solvability failed: ${solvability.error}`);
+    criticalIssues.push(`Solvability failed: ${solvability.error}`);
+  } else {
+    const ans = String(solvability.answer);
+    if (ans.trim() === '' || (isNaN(Number(ans)) && ans === 'NaN')) {
+      criticalIssues.push(`Answer correctness check failed: evaluated value is invalid: ${ans}`);
+    }
   }
 
   // 4. Ambiguity Detection
-  issues.push(...validateAmbiguity(options.correctAnswer, options.distractors));
+  criticalIssues.push(...validateAmbiguity(options.correctAnswer, options.distractors));
 
-  // 5. Duplicate Detection
+  // 5. Output Schema Validation
+  if (options.distractors.length !== 3) {
+    criticalIssues.push(`Schema validation failed: expected 3 distractors, got ${options.distractors.length}`);
+  }
+  for (const d of options.distractors) {
+    if (!d || d.trim() === '') {
+      criticalIssues.push(`Schema validation failed: empty distractor found`);
+    }
+  }
+  if (!options.correctAnswer || options.correctAnswer.trim() === '') {
+    criticalIssues.push(`Schema validation failed: empty correct answer`);
+  }
+
+  // 6. Duplicate Detection (Hash)
   const hash = generateQuestionHash(options.template.templateId, options.parameters);
-  issues.push(...validateDuplicate(hash, options.seenHashes));
+  criticalIssues.push(...validateDuplicate(hash, options.seenHashes));
+
+  // 7. Duplicate Detection (Variable Collision)
+  if (options.pastParameters && checkVariableCollision(options.parameters, options.pastParameters)) {
+    criticalIssues.push(`Variable collision detected: parameters match a previous generation run`);
+  }
+
+  // 8. Difficulty Rules Validation
+  const difficultyCheck = validateDifficulty(options.template, options.parameters);
+  if (!difficultyCheck.isValid) {
+    criticalIssues.push(
+      `Difficulty validation failed: expected category ${options.template.difficulty}, but calculated score of ${difficultyCheck.score} maps to ${difficultyCheck.expectedCategory}`
+    );
+  }
+
+  // 9. Semantic Similarity Duplication Check
+  if (options.hydratedQuestion && options.pastQuestionTexts) {
+    for (const pastText of options.pastQuestionTexts) {
+      if (isSemanticallySimilar(options.hydratedQuestion, pastText)) {
+        criticalIssues.push(`Semantic duplicate detected: similarity threshold exceeded against past question`);
+        break;
+      }
+    }
+  }
+
+  const allIssues = [...criticalIssues, ...warningIssues];
+
+  // Calculate score according to the contract
+  let score = 1.0;
+  if (criticalIssues.length > 0) {
+    score = 0.0;
+  } else if (warningIssues.length > 0) {
+    // Deduct 0.05 per warning issue (e.g. warning constraint violation), down to minimum of 0.1
+    score = Math.max(0.1, 1.0 - warningIssues.length * 0.05);
+    score = Math.round(score * 100) / 100;
+  }
 
   return {
-    valid: issues.length === 0,
-    issues,
+    valid: criticalIssues.length === 0,
+    issues: allIssues,
+    score,
   };
 }

@@ -11,7 +11,7 @@ import { TestAssemblyModule } from './modules/test-assembly';
 import { SystemConfigModule } from './modules/config';
 import { GenerationModule } from './modules/generation';
 import { QueueMonitorModule } from './modules/queue-monitor';
-import { RequestLoggingMiddleware } from './common';
+import { CorrelationMiddleware, RequestLoggingMiddleware } from './common';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -38,6 +38,10 @@ import { PrismaModule } from './prisma/prisma.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggingMiddleware).forRoutes('*');
+    consumer
+      .apply(CorrelationMiddleware)
+      .forRoutes('*')
+      .apply(RequestLoggingMiddleware)
+      .forRoutes('*');
   }
 }

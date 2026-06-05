@@ -3,12 +3,13 @@ import { evaluateExpression } from './math-parser';
 import { generateVariables, roundToPrecision } from './variable-generator';
 import { evaluateConstraints } from './constraint-engine';
 import { calculateDifficultyScore, getDifficultyCategory, isEasy, isMedium, isHard } from './difficulty-rules';
-import { validatePipeline, generateQuestionHash } from './validation-pipeline';
+import { validatePipeline, generateQuestionHash, checkVariableCollision, isSemanticallySimilar, calculateSemanticSimilarity, validateDifficulty } from './validation-pipeline';
 import { executeTemplate } from './template-executor';
 import { TemplateLoader } from './template-loader';
 import { AptitudeGenerationRuntime } from './execution-runtime';
 import { QuestionTemplate, TemplateCategory, QuestionTemplateSchema } from '../types/template.types';
 import { MetricsTracker } from './metrics-tracker';
+import { DifficultyLevel } from '@intervu/shared';
 
 // Load templates directly for testing
 import rawTemplates from '../templates/aptitude.templates.json';
@@ -476,6 +477,165 @@ describe('Generation Engine Core Subsystem', () => {
           expect(metadata.templateId).toBe('APT_PERCENTAGE_001');
           expect(metadata.metrics.generationSuccessRate).toBe(1.0);
           expect(metadata.metrics.averageRuntimeMs).toBeGreaterThan(0);
+        }
+      });
+    });
+  });
+
+  describe('Day 5 Deliverables: Hardened Validation & Failure Recovery', () => {
+    describe('Output Verification Pipeline & Score', () => {
+      it('should calculate validation scores correctly under warning and critical conditions', () => {
+        const template = templates[0]; // APT_PERCENTAGE_001 (medium)
+        
+        // 1. Fully valid question should have score 1.0 and valid: true
+        const validRes = validatePipeline({
+          template,
+          parameters: { percent_increase: 25 },
+          correctAnswer: '20',
+          distractors: ['15', '22', '30'],
+          seenHashes: new Set()
+        });
+        expect(validRes.valid).toBe(true);
+        expect(validRes.score).toBe(1.0);
+        expect(validRes.issues.length).toBe(0);
+
+        // 2. Warning conditions should reduce score but keep valid: true (unless critical issues exist)
+        const templateWithWarning = {
+          ...template,
+          constraints: [
+            { rule: 'percent_increase !== 25', severity: 'warning' as const }
+          ]
+        };
+        const warningRes = validatePipeline({
+          template: templateWithWarning,
+          parameters: { percent_increase: 25 },
+          correctAnswer: '20',
+          distractors: ['15', '22', '30'],
+          seenHashes: new Set()
+        });
+        expect(warningRes.valid).toBe(true);
+        expect(warningRes.score).toBe(0.95); // 1.0 - 0.05
+        expect(warningRes.issues[0]).toContain('Warning constraint rule violated');
+
+        // 3. Critical issues should set score to 0.0 and valid: false
+        const criticalRes = validatePipeline({
+          template,
+          parameters: { percent_increase: -10 }, // violates critical rule percent_increase > 0
+          correctAnswer: '20',
+          distractors: ['15', '22', '30'],
+          seenHashes: new Set()
+        });
+        expect(criticalRes.valid).toBe(false);
+        expect(criticalRes.score).toBe(0.0);
+        expect(criticalRes.issues.length).toBeGreaterThan(0);
+      });
+
+      it('should validate output choices schema strictly', () => {
+        const template = templates[0];
+        
+        // Incorrect number of choices (distractors length !== 3)
+        const schemaRes = validatePipeline({
+          template,
+          parameters: { percent_increase: 25 },
+          correctAnswer: '20',
+          distractors: ['15', '22'], // only 2 distractors
+          seenHashes: new Set()
+        });
+        expect(schemaRes.valid).toBe(false);
+        expect(schemaRes.score).toBe(0.0);
+        expect(schemaRes.issues[0]).toContain('Schema validation failed');
+      });
+    });
+
+    describe('Duplicate Detection Engine', () => {
+      it('should detect parameter variable collisions', () => {
+        const pastParameters = [
+          { percent_increase: 25 },
+          { percent_increase: 30 }
+        ];
+        
+        expect(checkVariableCollision({ percent_increase: 25 }, pastParameters)).toBe(true);
+        expect(checkVariableCollision({ percent_increase: 30 }, pastParameters)).toBe(true);
+        expect(checkVariableCollision({ percent_increase: 35 }, pastParameters)).toBe(false);
+      });
+
+      it('should detect semantic similarity ignoring minor punctuation or number variations', () => {
+        const textA = 'Amit can complete a project in 12 days and Vijay can complete it in 24 days.';
+        const textB = 'Amit can complete a project in 15 days and Vijay can complete it in 30 days.';
+        const textC = 'If the price of petrol is increased by 25 percent...';
+
+        // Word tokens should match closely when numbers are normalized to '#'
+        expect(calculateSemanticSimilarity(textA, textB)).toBeGreaterThan(0.9);
+        expect(isSemanticallySimilar(textA, textB)).toBe(true);
+
+        expect(calculateSemanticSimilarity(textA, textC)).toBeLessThan(0.3);
+        expect(isSemanticallySimilar(textA, textC)).toBe(false);
+      });
+    });
+
+    describe('Difficulty Weight Mapping Validation', () => {
+      it('should validate template difficulty against mapped parameters and constraints count', () => {
+        const template = templates[0]; // APT_PERCENTAGE_001 (medium, difficulty score maps to medium)
+        const result = validateDifficulty(template, { percent_increase: 25 });
+        expect(result.isValid).toBe(true);
+        expect(result.expectedCategory).toBe('medium');
+      });
+    });
+
+    describe('Failure Recovery Logic & Fallbacks', () => {
+      it('should fallback to other templates in the same topic when generation fails', () => {
+        const loader = new TemplateLoader();
+        
+        // Sabotage the percentage template (APT_PERCENTAGE_001) by making calculated difficulty hard
+        const target = loader.getTemplate('APT_PERCENTAGE_001');
+        if (target) {
+          target.metadata.w1_steps = 10.0; // calculated score will be > 6.0 (hard), causing mismatch
+        }
+
+        // Change profit_loss template to percentages topic so it acts as medium fallback
+        const fallback = loader.getTemplate('APT_PROFIT_LOSS_001');
+        if (fallback) {
+          fallback.topic = 'percentages';
+        }
+        
+        const customRuntime = new AptitudeGenerationRuntime(loader);
+        
+        // Try generating question for the sabotaged template ID.
+        // It should fail on the original template, fall back to profit_loss, and succeed!
+        const result = customRuntime.generateQuestion('APT_PERCENTAGE_001', 123);
+        
+        expect(result).toBeDefined();
+        expect(result.question).toContain('retailer purchases a product');
+        expect(result.difficulty).toBe(DifficultyLevel.MEDIUM);
+
+        const logs = customRuntime.getFailureLogs();
+        expect(logs.length).toBeGreaterThan(0);
+        expect(logs[0].templateId).toBe('APT_PERCENTAGE_001');
+        expect(logs[0].reason).toContain('Failed to generate a valid, unique question');
+
+        // RESTORE target and fallback templates to prevent test pollution
+        if (target) {
+          target.metadata.w1_steps = 3.0;
+        }
+        if (fallback) {
+          fallback.topic = 'profit_loss';
+        }
+      });
+    });
+
+    describe('Validation Metrics Tracking', () => {
+      it('should report retry counts, validation success rates, and failure breakdowns correctly', () => {
+        const runtime = new AptitudeGenerationRuntime();
+        
+        runtime.generateQuestion('APT_PERCENTAGE_001', 100);
+        runtime.generateQuestion('APT_PERCENTAGE_001', 200);
+
+        const metadata = runtime.getTemplateMetadata('APT_PERCENTAGE_001');
+        expect(metadata).not.toBeNull();
+        if (metadata) {
+          expect(metadata.metrics.validationSuccessRate).toBe(1.0);
+          expect(metadata.metrics.retryCounts).toBeDefined();
+          expect(metadata.metrics.failureBreakdown).toBeDefined();
         }
       });
     });

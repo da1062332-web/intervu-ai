@@ -1,6 +1,6 @@
 import { Worker, Job, type ConnectionOptions } from 'bullmq';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { AnalyticsQueueRequest } from '@intervu/shared';
+import { QueuePayload } from '@intervu-ai/contracts';
 
 export class AnalyticsQueueProcessor {
   private worker: Worker;
@@ -17,12 +17,12 @@ export class AnalyticsQueueProcessor {
     this.setupEventHandlers();
   }
 
-  private async processJob(job: Job<AnalyticsQueueRequest>): Promise<unknown> {
+  private async processJob(job: Job<QueuePayload>): Promise<unknown> {
     const startTime = Date.now();
 
     this.logger.setContext({
       jobId: job.id,
-      testId: job.data.jobId,
+      correlationId: job.data.correlationId,
       queue: 'analytics',
     });
 

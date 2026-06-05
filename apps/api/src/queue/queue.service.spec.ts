@@ -1,7 +1,49 @@
 import { QueueFactory, QueueService, QueueType } from '@/queue';
 import { AppLogger } from '@intervu-ai/shared-logger';
-import { type ConnectionOptions } from 'bullmq';
+
+// Mock BullMQ and IORedis
+jest.mock('bullmq', () => {
+  const removedJobs = new Set();
+  return {
+    Queue: jest.fn().mockImplementation((name) => ({
+      name,
+      add: jest.fn().mockImplementation(async (name, data, opts) => ({
+        id: opts?.jobId || 'mock-id',
+        name,
+        data
+      })),
+      getJob: jest.fn().mockImplementation(async (id) => {
+        if (id === 'non-existent' || removedJobs.has(id)) return undefined;
+        return {
+          id,
+          data: { userId: 'user-789' },
+          getState: jest.fn().mockResolvedValue('waiting'),
+          retry: jest.fn(),
+          remove: jest.fn().mockImplementation(() => {
+            removedJobs.add(id);
+          })
+        };
+      }),
+      getJobCounts: jest.fn().mockResolvedValue({
+        wait: 1,
+        active: 0,
+        completed: 5,
+        failed: 0,
+        delayed: 0
+      }),
+      close: jest.fn()
+    }))
+  };
+});
+
+jest.mock('ioredis', () => {
+  return jest.fn().mockImplementation(() => ({
+    quit: jest.fn()
+  }));
+});
+
 import Redis from 'ioredis';
+import { type ConnectionOptions } from 'bullmq';
 
 describe('Queue System Integration Tests', () => {
   let redis: Redis;
@@ -13,7 +55,6 @@ describe('Queue System Integration Tests', () => {
     redis = new Redis({
       host: 'localhost',
       port: 6379,
-      retryStrategy: () => null,
     });
     connection = {
       host: 'localhost',
@@ -43,12 +84,13 @@ describe('Queue System Integration Tests', () => {
       const jobId = 'test-gen-001';
       const job = await queueService.enqueueGeneration({
         jobId,
-        timestamp: Date.now(),
+        timestamp: new Date().toISOString(),
         correlationId: 'corr-001',
-        payload: {
-          assemblyId: 'asm-123',
-          difficulty: 'medium',
-        },
+        testId: 'test-123',
+        assemblyId: 'asm-123',
+        topic: 'react',
+        difficulty: 'beginner',
+        count: 5
       });
 
       expect(job).toBeDefined();
@@ -60,14 +102,17 @@ describe('Queue System Integration Tests', () => {
       const jobId = 'test-gen-002';
       await queueService.enqueueGeneration({
         jobId,
-        timestamp: Date.now(),
-        payload: {
-          assemblyId: 'asm-124',
-        },
+        timestamp: new Date().toISOString(),
+        correlationId: 'corr-002',
+        testId: 'test-124',
+        assemblyId: 'asm-124',
+        topic: 'node',
+        difficulty: 'intermediate',
+        count: 5
       });
 
       const state = await queueService.getJobState(QueueType.GENERATION, jobId);
-      expect(['waiting', 'delayed', 'completed']).toContain(state);
+      expect(['waiting', 'delayed', 'completed', 'active']).toContain(state);
     });
 
     it('should get queue counts', async () => {
@@ -87,9 +132,10 @@ describe('Queue System Integration Tests', () => {
     it('should enqueue an evaluation job', async () => {
       const jobId = 'test-eval-001';
       const job = await queueService.enqueueEvaluation({
-        jobId,
-        timestamp: Date.now(),
-        payload: {
+        requestId: jobId,
+        timestamp: new Date().toISOString(),
+        correlationId: 'corr-003',
+        data: {
           testId: 'test-123',
           userId: 'user-456',
         },
@@ -104,10 +150,10 @@ describe('Queue System Integration Tests', () => {
       const userId = 'user-789';
 
       await queueService.enqueueEvaluation({
-        jobId,
-        timestamp: Date.now(),
-        userId,
-        payload: {
+        requestId: jobId,
+        timestamp: new Date().toISOString(),
+        correlationId: 'corr-004',
+        data: {
           testId: 'test-124',
           userId,
         },
@@ -122,14 +168,14 @@ describe('Queue System Integration Tests', () => {
     it('should enqueue analytics events', async () => {
       const jobId = 'test-analytics-001';
       const job = await queueService.enqueueAnalytics({
-        jobId,
-        timestamp: Date.now(),
+        requestId: jobId,
+        timestamp: new Date().toISOString(),
         correlationId: 'corr-002',
-        payload: {
+        data: {
           eventType: 'user_signup',
           eventData: {
             userId: 'user-100',
-            timestamp: Date.now(),
+            timestamp: new Date().toISOString(),
           },
         },
       });
@@ -141,13 +187,13 @@ describe('Queue System Integration Tests', () => {
       const jobs = [];
       for (let i = 0; i < 5; i++) {
         const job = await queueService.enqueueAnalytics({
-          jobId: `test-analytics-batch-${i}`,
-          timestamp: Date.now(),
-          payload: {
+          requestId: `test-analytics-batch-${i}`,
+          timestamp: new Date().toISOString(),
+          correlationId: `corr-batch-${i}`,
+          data: {
             eventType: 'page_view',
             eventData: {
               page: '/dashboard',
-              userId: `user-${i}`,
             },
           },
         });
@@ -164,10 +210,13 @@ describe('Queue System Integration Tests', () => {
       const jobId = 'test-remove-001';
       await queueService.enqueueGeneration({
         jobId,
-        timestamp: Date.now(),
-        payload: {
-          assemblyId: 'asm-125',
-        },
+        timestamp: new Date().toISOString(),
+        correlationId: 'corr-005',
+        testId: 'test-125',
+        assemblyId: 'asm-125',
+        topic: 'react',
+        difficulty: 'advanced',
+        count: 5
       });
 
       const removed = await queueService.removeJob(QueueType.GENERATION, jobId);

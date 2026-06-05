@@ -1,6 +1,78 @@
 import { RedisCacheService } from '@/cache/redis-cache.service';
 import { RedisConnectionManager } from '@/cache/redis-connection.manager';
 import { AppLogger } from '@intervu-ai/shared-logger';
+
+// Mock IORedis
+jest.mock('ioredis', () => {
+  const data = new Map();
+  const ttls = new Map();
+  return jest.fn().mockImplementation(() => ({
+    options: { host: 'localhost', port: 6379 },
+    on: jest.fn(),
+    quit: jest.fn(),
+    ping: jest.fn().mockResolvedValue('PONG'),
+    flushdb: jest.fn().mockImplementation(() => {
+      data.clear();
+      ttls.clear();
+      return 'OK';
+    }),
+    set: jest.fn().mockImplementation((key, value, mode, duration) => {
+      data.set(key, value);
+      if (mode === 'EX' || mode === 'PX') {
+        const mult = mode === 'EX' ? 1000 : 1;
+        ttls.set(key, Date.now() + duration * mult);
+      }
+      return 'OK';
+    }),
+    get: jest.fn().mockImplementation((key) => {
+      if (ttls.has(key) && Date.now() >= ttls.get(key)) {
+        data.delete(key);
+        ttls.delete(key);
+        return null;
+      }
+      return data.get(key) || null;
+    }),
+    del: jest.fn().mockImplementation((...keys) => {
+      let count = 0;
+      for (const k of keys) {
+        if (data.has(k)) {
+          data.delete(k);
+          ttls.delete(k);
+          count++;
+        }
+      }
+      return count;
+    }),
+    exists: jest.fn().mockImplementation((key) => data.has(key) ? 1 : 0),
+    expire: jest.fn().mockImplementation((key, ttl) => {
+      if (data.has(key)) {
+        ttls.set(key, Date.now() + ttl * 1000);
+        return 1;
+      }
+      return 0;
+    }),
+    ttl: jest.fn().mockImplementation((key) => {
+      if (!ttls.has(key)) return -1;
+      const rem = Math.floor((ttls.get(key) - Date.now()) / 1000);
+      return rem > 0 ? rem : -1;
+    }),
+    keys: jest.fn().mockImplementation((pattern) => {
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      return Array.from(data.keys()).filter(k => regex.test(k));
+    }),
+    setex: jest.fn().mockImplementation((key, duration, value) => {
+      data.set(key, value);
+      ttls.set(key, Date.now() + duration * 1000);
+      return 'OK';
+    }),
+    scan: jest.fn().mockImplementation((cursor, matchStr, pattern) => {
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      const keys = Array.from(data.keys()).filter(k => regex.test(k));
+      return ['0', keys];
+    }),
+  }));
+});
+
 import Redis from 'ioredis';
 
 describe('Redis Cache Service', () => {

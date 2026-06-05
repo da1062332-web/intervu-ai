@@ -97,7 +97,6 @@ export function SkeletonCard({
         <SkeletonLine className="w-1/2" />
         {Array.from({ length: lines }).map((_, i) => (
           <SkeletonLine
-            // eslint-disable-next-line react/no-array-index-key
             key={i}
             className={i === lines - 1 ? 'w-3/4' : 'w-full'}
           />
@@ -132,7 +131,6 @@ export function SkeletonCardGrid({
       className={cn('grid gap-6 sm:grid-cols-2 lg:grid-cols-3', className)}
     >
       {Array.from({ length: count }).map((_, i) => (
-        // eslint-disable-next-line react/no-array-index-key
         <SkeletonCard key={i} variant={variant} />
       ))}
     </div>
