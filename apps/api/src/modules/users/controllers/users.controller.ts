@@ -21,6 +21,7 @@ import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { UsersService } from "../services/users.service";
+// eslint-disable-next-line no-restricted-imports
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import {
   ValidateResponse,

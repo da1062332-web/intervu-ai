@@ -13,6 +13,7 @@ import {
   AuthUserSchema,
 } from "@intervu/shared";
 
+// eslint-disable-next-line no-restricted-imports
 import { LoginDto, RefreshTokenDto, SignupDto } from "../dto/auth.dto";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { Public } from "../decorators/public.decorator";

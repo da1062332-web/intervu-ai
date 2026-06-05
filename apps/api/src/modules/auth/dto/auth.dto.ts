@@ -4,13 +4,13 @@ import { AuthLoginSchema, AuthSignupSchema, RefreshTokenSchema } from '@intervu/
 
 export class SignupDto {
   @ApiProperty({
-    example: 'candidate@example.com',
+    example: 'candidate@intervu.ai',
     description: 'Candidate email address for registration',
   })
   email!: string;
 
   @ApiProperty({
-    example: 'password123',
+    example: 'Intervu123!',
     description: 'Secure account password (minimum 8 characters)',
   })
   password!: string;
@@ -31,13 +31,13 @@ export class SignupDto {
 
 export class LoginDto {
   @ApiProperty({
-    example: 'candidate@example.com',
+    example: 'candidate@intervu.ai',
     description: 'Registered email address',
   })
   email!: string;
 
   @ApiProperty({
-    example: 'password123',
+    example: 'Intervu123!',
     description: 'Account password',
   })
   password!: string;
