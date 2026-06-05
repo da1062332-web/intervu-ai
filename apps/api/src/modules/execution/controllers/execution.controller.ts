@@ -25,7 +25,7 @@ export class ExecutionController {
   async submitAnswer(
     @Param('testId') testId: string,
     @Param('questionId') questionId: string,
-    @Body() body: any
+    @Body() body: unknown
   ) {
     return this.executionService.submitAnswer(testId, questionId, body);
   }

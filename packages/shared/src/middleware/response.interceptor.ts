@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable()
-export class ResponseInterceptor<T> implements NestInterceptor {
+export class ResponseInterceptor implements NestInterceptor {
   /**
    * Wraps every successful response in the rule-book compliant envelope:
    * { success: true, data: T, error: null, meta: null }

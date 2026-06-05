@@ -4,7 +4,7 @@ import { INestApplication, Controller, Get } from '@nestjs/common';
 import request from 'supertest';
 import { z } from 'zod';
 import { ValidateResponse } from '@intervu/shared';
-import { ResponseValidationInterceptor, ResponseInterceptor, ContractViolationError } from '@intervu/shared';
+import { ResponseValidationInterceptor, ResponseInterceptor } from '@intervu/shared';
 import { Reflector } from '@nestjs/core';
 
 const TestSchema = z.object({

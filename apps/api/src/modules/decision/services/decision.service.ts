@@ -2,11 +2,13 @@ import { Injectable, NotImplementedException } from '@nestjs/common';
 
 @Injectable()
 export class DecisionService {
-  async makeDecision(testId: string) {
+  async makeDecision(_testId: string) {
+    void _testId;
     throw new NotImplementedException('Decision module not implemented yet');
   }
 
-  async getDecision(testId: string) {
+  async getDecision(_testId: string) {
+    void _testId;
     throw new NotImplementedException('Decision module not implemented yet');
   }
 }

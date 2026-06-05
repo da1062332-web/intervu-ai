@@ -1,4 +1,4 @@
-import { Logger, VersioningType } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import helmet from 'helmet';
 import compression from 'compression';
