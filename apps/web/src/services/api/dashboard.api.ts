@@ -1,9 +1,5 @@
 import { apiClient } from '@/services/api/client';
-import type { 
-  DashboardStats, 
-  AnalyticsSummary, 
-  RecentActivity 
-} from '@/types/dashboard.types';
+import type { DashboardStats, AnalyticsSummary, RecentActivity } from '@/types/dashboard.types';
 
 const DASHBOARD_BASE_PATH = '/dashboard';
 

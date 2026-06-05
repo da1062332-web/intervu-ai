@@ -28,6 +28,6 @@ export const useDashboardStore = create<DashboardState>()(
     }),
     {
       name: 'intervu-dashboard-store',
-    }
-  )
+    },
+  ),
 );

@@ -18,7 +18,7 @@ export function useDeleteSession() {
       if (previousSessions) {
         queryClient.setQueryData<UserSession[]>(
           userQueryKeys.sessions(),
-          previousSessions.filter((s) => s.id !== sessionId)
+          previousSessions.filter((s) => s.id !== sessionId),
         );
       }
 

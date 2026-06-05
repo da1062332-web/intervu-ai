@@ -15,8 +15,16 @@ import { useRecentActivity } from '@/modules/dashboard/hooks/use-recent-activity
 
 export default function AnalyticsDashboardPage() {
   const { data: statsData, isLoading: isLoadingStats, isError: isStatsError } = useDashboardStats();
-  const { data: summaryData, isLoading: isLoadingSummary, isError: isSummaryError } = useAnalyticsSummary();
-  const { data: activityData, isLoading: isLoadingActivity, isError: isActivityError } = useRecentActivity();
+  const {
+    data: summaryData,
+    isLoading: isLoadingSummary,
+    isError: isSummaryError,
+  } = useAnalyticsSummary();
+  const {
+    data: activityData,
+    isLoading: isLoadingActivity,
+    isError: isActivityError,
+  } = useRecentActivity();
 
   const isError = isStatsError || isSummaryError || isActivityError;
 
@@ -35,29 +43,57 @@ export default function AnalyticsDashboardPage() {
     }
   };
 
-  const overviewStats = React.useMemo(() => [
-    { title: 'Tests Taken', value: statsData?.testsTaken?.toString() ?? '0', trend: 'neutral' as const },
-    { title: 'Average Score', value: `${statsData?.averageScore ?? 0}%`, trend: 'neutral' as const },
-    { title: 'Completion Rate', value: `${statsData?.completionRate ?? 0}%`, trend: 'neutral' as const },
-    { title: 'Total Sessions', value: statsData?.totalSessions?.toString() ?? '0', trend: 'neutral' as const },
-  ], [statsData]);
+  const overviewStats = React.useMemo(
+    () => [
+      {
+        title: 'Tests Taken',
+        value: statsData?.testsTaken?.toString() ?? '0',
+        trend: 'neutral' as const,
+      },
+      {
+        title: 'Average Score',
+        value: `${statsData?.averageScore ?? 0}%`,
+        trend: 'neutral' as const,
+      },
+      {
+        title: 'Completion Rate',
+        value: `${statsData?.completionRate ?? 0}%`,
+        trend: 'neutral' as const,
+      },
+      {
+        title: 'Total Sessions',
+        value: statsData?.totalSessions?.toString() ?? '0',
+        trend: 'neutral' as const,
+      },
+    ],
+    [statsData],
+  );
 
-  const performanceMetrics = React.useMemo(() => summaryData ? [
-    { category: 'Communication', score: summaryData.communicationScore },
-    { category: 'Technical', score: summaryData.technicalScore },
-    { category: 'Confidence', score: summaryData.confidenceScore },
-    { category: 'Overall Rating', score: summaryData.overallRating },
-  ] : [], [summaryData]);
+  const performanceMetrics = React.useMemo(
+    () =>
+      summaryData
+        ? [
+            { category: 'Communication', score: summaryData.communicationScore },
+            { category: 'Technical', score: summaryData.technicalScore },
+            { category: 'Confidence', score: summaryData.confidenceScore },
+            { category: 'Overall Rating', score: summaryData.overallRating },
+          ]
+        : [],
+    [summaryData],
+  );
 
-  const hasSkills = React.useMemo(() => performanceMetrics.some(m => m.score > 0), [performanceMetrics]);
+  const hasSkills = React.useMemo(
+    () => performanceMetrics.some((m) => m.score > 0),
+    [performanceMetrics],
+  );
   const recentActivities = React.useMemo(() => activityData ?? [], [activityData]);
 
   if (isError) {
     return (
-      <div className="p-6">
+      <div className='p-6'>
         <EmptyAnalyticsState
-          title="Failed to load analytics"
-          description="There was an error loading the dashboard data. Please try again later."
+          title='Failed to load analytics'
+          description='There was an error loading the dashboard data. Please try again later.'
         />
       </div>
     );
@@ -94,7 +130,7 @@ export default function AnalyticsDashboardPage() {
         <div className='lg:col-span-2'>
           <TrendCard
             title='Candidate Engagement'
-            data={[]} 
+            data={[]}
             trendValue='0%'
             isLoading={isLoadingStats}
           />
