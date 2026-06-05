@@ -8,6 +8,7 @@ jest.mock('ioredis', () => {
   const ttls = new Map();
   return jest.fn().mockImplementation(() => ({
     options: { host: 'localhost', port: 6379 },
+    status: 'ready',
     on: jest.fn(),
     quit: jest.fn(),
     ping: jest.fn().mockResolvedValue('PONG'),
@@ -162,7 +163,7 @@ describe('Redis Cache Service', () => {
       await cacheService.set('short-ttl', { value: 'test' }, { ttl: 1 });
 
       // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const retrieved = await cacheService.get('short-ttl');
       expect(retrieved).toBeNull();

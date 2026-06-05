@@ -6,6 +6,7 @@ import { SystemConfigDto } from '../dto/system-config.dto';
 // eslint-disable-next-line no-restricted-imports
 import { UpdateSystemConfigDto } from '../dto/update-system-config.dto';
 import { Template } from '@prisma/client';
+import { ValidateResponse, SystemConfigSchema, TemplateListSchema } from '@intervu/shared';
 
 @ApiTags('config')
 @Controller('config')
@@ -13,6 +14,7 @@ export class SystemConfigController {
   constructor(private readonly configService: SystemConfigService) {}
 
   @Get('system')
+  @ValidateResponse(SystemConfigSchema)
   @ApiOperation({
     summary: 'Get Centralized System Configurations',
     description: 'Returns configurations for difficulty, generation, validation, queues, and environment flags.',
@@ -23,6 +25,7 @@ export class SystemConfigController {
   }
 
   @Patch('system')
+  @ValidateResponse(SystemConfigSchema)
   @ApiOperation({
     summary: 'Update Centralized System Configurations',
     description: 'Applies partial runtime configuration overrides and flushes the Redis cache.',
@@ -36,6 +39,7 @@ export class SystemConfigController {
   }
 
   @Get('templates')
+  @ValidateResponse(TemplateListSchema)
   @ApiOperation({
     summary: 'Get System Question Templates',
     description: 'Retrieves all available system templates configured within the platform.',

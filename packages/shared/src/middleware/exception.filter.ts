@@ -63,11 +63,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({
       success: false,
+      data: null,
       error: {
         code,
         message,
         details: status === HttpStatus.INTERNAL_SERVER_ERROR ? undefined : details,
       },
+      meta: null,
     });
   }
 }

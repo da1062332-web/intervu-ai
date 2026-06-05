@@ -1,6 +1,8 @@
 export interface ApiSuccessResponse<TData> {
   success: true;
   data: TData;
+  error: null;
+  meta: unknown;
   message?: string;
   timestamp?: string;
   path?: string;
@@ -18,7 +20,9 @@ export interface ApiErrorPayload {
 
 export interface ApiErrorResponse {
   success: false;
+  data: null;
   error: ApiErrorPayload;
+  meta: null;
 }
 
 export type ApiResponse<TData> =

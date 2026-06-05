@@ -21,7 +21,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { AuthUser } from '../../auth/interfaces/auth-user.interface';
 import { UsersService } from '../services/users.service';
-import { UpdateProfileDto } from '@intervu/shared';
+import { UpdateProfileDto, ValidateResponse, UserResponseSchema, SessionListResponseSchema } from '@intervu/shared';
 import { UserEntity } from '../entities/user.entity';
 import { SessionEntity } from '../entities/session.entity';
 
@@ -33,6 +33,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
+  @ValidateResponse(UserResponseSchema)
   @ApiOperation({ summary: 'Get currently authenticated user profile' })
   @ApiOkResponse({
     description: 'Current authenticated user profile data',
@@ -43,6 +44,7 @@ export class UsersController {
   }
 
   @Patch('profile')
+  @ValidateResponse(UserResponseSchema)
   @ApiOperation({ summary: 'Update candidate profile data' })
   @ApiBody({ description: 'Profile update data' })
   @ApiOkResponse({
@@ -57,6 +59,7 @@ export class UsersController {
   }
 
   @Get('sessions')
+  @ValidateResponse(SessionListResponseSchema)
   @ApiOperation({ summary: 'List all active user sessions' })
   @ApiOkResponse({
     description: 'List of active user sessions',

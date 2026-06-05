@@ -1,6 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
 
+  "globalEnv": [
+    "DATABASE_URL",
+    "REDIS_URL",
+    "JWT_SECRET",
+    "JWT_REFRESH_SECRET"
+  ],
+
   "tasks": {
 
     "build": {
@@ -28,6 +35,10 @@
     },
 
     "test:contracts": {
+      "dependsOn": ["build"]
+    },
+
+    "test:regression": {
       "dependsOn": ["build"]
     },
 

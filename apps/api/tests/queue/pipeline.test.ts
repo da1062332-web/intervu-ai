@@ -48,7 +48,7 @@ describe('Chaos & Pipeline Integration Tests', () => {
     pipelineWorker.on('completed', () => completedCount++);
     pipelineWorker.on('failed', () => failedCount++);
 
-    const jobs: any[] = [];
+    const jobs: Array<{ name: string; data: unknown; opts?: Record<string, unknown> }> = [];
     
     // 100 Valid
     for (let i = 0; i < 100; i++) {

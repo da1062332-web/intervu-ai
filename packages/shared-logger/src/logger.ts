@@ -1,5 +1,6 @@
 import pino from 'pino';
 import { randomUUID } from 'crypto';
+import { getRequestContext } from './request-context';
 
 export interface LogContext {
   correlationId?: string;
@@ -7,7 +8,7 @@ export interface LogContext {
   requestId?: string;
   jobId?: string;
   queueName?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface LoggerOptions {
@@ -44,33 +45,37 @@ export class AppLogger {
   }
 
   getContext(): LogContext {
-    return this.context;
+    return { ...this.context, ...getRequestContext() };
   }
 
-  info(message: string, data?: any): void {
-    this.logger.info({ ...this.context, ...data }, message);
+  info(message: string, data?: Record<string, unknown>): void {
+    this.logger.info({ ...this.getContext(), ...data }, message);
   }
 
-  error(message: string, error?: Error | any, data?: any): void {
-    const errorData = error instanceof Error ? { error: error.message, stack: error.stack } : error;
-    this.logger.error({ ...this.context, ...errorData, ...data }, message);
+  error(message: string, error?: Error | unknown, data?: Record<string, unknown>): void {
+    const errorData = error instanceof Error 
+      ? { error: error.message, stack: error.stack } 
+      : (typeof error === 'object' && error !== null ? error : { error });
+    this.logger.error({ ...this.getContext(), ...errorData, ...data }, message);
   }
 
-  warn(message: string, data?: any): void {
-    this.logger.warn({ ...this.context, ...data }, message);
+  warn(message: string, data?: Record<string, unknown>): void {
+    this.logger.warn({ ...this.getContext(), ...data }, message);
   }
 
-  debug(message: string, data?: any): void {
-    this.logger.debug({ ...this.context, ...data }, message);
+  debug(message: string, data?: Record<string, unknown>): void {
+    this.logger.debug({ ...this.getContext(), ...data }, message);
   }
 
-  trace(message: string, data?: any): void {
-    this.logger.trace({ ...this.context, ...data }, message);
+  trace(message: string, data?: Record<string, unknown>): void {
+    this.logger.trace({ ...this.getContext(), ...data }, message);
   }
 
-  fatal(message: string, error?: Error | any, data?: any): void {
-    const errorData = error instanceof Error ? { error: error.message, stack: error.stack } : error;
-    this.logger.fatal({ ...this.context, ...errorData, ...data }, message);
+  fatal(message: string, error?: Error | unknown, data?: Record<string, unknown>): void {
+    const errorData = error instanceof Error 
+      ? { error: error.message, stack: error.stack } 
+      : (typeof error === 'object' && error !== null ? error : { error });
+    this.logger.fatal({ ...this.getContext(), ...errorData, ...data }, message);
   }
 
   generateCorrelationId(): string {

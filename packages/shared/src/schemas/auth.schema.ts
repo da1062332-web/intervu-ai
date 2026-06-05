@@ -12,3 +12,22 @@ export const AuthSignupSchema = AuthLoginSchema.extend({
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(1)
 });
+
+export const AuthUserSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  name: z.string().nullable().optional(),
+  roles: z.array(z.string()).optional(),
+  sessionId: z.string().optional(),
+});
+
+export const TokensResponseSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+});
+
+export const AuthResponseSchema = z.object({
+  user: AuthUserSchema,
+  accessToken: z.string(),
+  refreshToken: z.string(),
+});

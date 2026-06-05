@@ -8,7 +8,8 @@ export const CreateTestRequestSchema = z.object({
 export const ApiSuccessResponseSchema = z.object({
   success: z.literal(true),
   data: z.unknown().optional(),
-  meta: z.unknown().optional(),
+  error: z.null(),
+  meta: z.unknown().nullable(),
 });
 
 export const QuestionOptionSchema = z.object({
