@@ -1,64 +1,64 @@
-import { Controller, Post, Get, Param, Body, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';
-import { 
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+} from "@nestjs/common";
+import {
   CreateTestRequest,
   GenerationRequest,
   EvaluationRequest,
-  ApiSuccessResponse
-} from '@intervu-ai/contracts';
+} from "@intervu-ai/contracts";
+import { z } from "zod";
+import { ValidateResponse } from "@intervu/shared";
 
-import { TestAssemblyService } from '../services/test-assembly.service';
+import { TestAssemblyService } from "../services/test-assembly.service";
 
-@Controller('tests')
+@Controller("tests")
 export class TestAssemblyController {
   constructor(private readonly testAssemblyService: TestAssemblyService) {}
 
-  @Get(':id')
-  async getTest(@Param('id') id: string): Promise<ApiSuccessResponse> {
+  @Get(":id")
+  @ValidateResponse(z.unknown())
+  async getTest(@Param("id") id: string) {
     const test = await this.testAssemblyService.getTest(id);
     if (!test) {
-      throw new NotFoundException('Test not found');
+      throw new NotFoundException("Test not found");
     }
-    return {
-      success: true,
-      data: test
-    };
+    return test;
   }
-  
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createTest(@Body() body: CreateTestRequest): Promise<ApiSuccessResponse> {
+  @ValidateResponse(z.unknown())
+  async createTest(@Body() body: CreateTestRequest) {
     // The ZodValidationPipe will automatically enforce that body is CreateTestRequestDto
     return {
-      success: true,
-      data: {
-        testId: 'test_123',
-        companyId: body.companyId,
-        testType: body.testType
-      }
+      testId: "test_123",
+      companyId: body.companyId,
+      testType: body.testType,
     };
   }
 
-  @Post('questions/generate')
+  @Post("questions/generate")
   @HttpCode(HttpStatus.OK)
-  async generateQuestions(@Body() body: GenerationRequest): Promise<ApiSuccessResponse> {
-    const result = await this.testAssemblyService.generateQuestions(body);
-
-    return {
-      success: true,
-      data: result
-    };
+  @ValidateResponse(z.unknown())
+  async generateQuestions(@Body() body: GenerationRequest) {
+    return this.testAssemblyService.generateQuestions(body);
   }
 
-  @Post('evaluate')
+  @Post("evaluate")
   @HttpCode(HttpStatus.OK)
-  async evaluateAnswer(@Body() body: EvaluationRequest): Promise<ApiSuccessResponse> {
+  @ValidateResponse(z.unknown())
+  async evaluateAnswer(@Body() body: EvaluationRequest) {
     return {
-      success: true,
-      data: {
-        answerId: body.answerId,
-        score: 85,
-        feedback: 'Good answer.'
-      }
+      answerId: body.answerId,
+      score: 85,
+      feedback: "Good answer.",
     };
   }
 }

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class DashboardRepository {
@@ -10,7 +10,7 @@ export class DashboardRepository {
       this.prisma.test.count({
         where: {
           userId,
-          status: { in: ['COMPLETED', 'EVALUATED'] },
+          status: { in: ["COMPLETED", "EVALUATED"] },
           deletedAt: null,
         },
       }),
@@ -64,12 +64,12 @@ export class DashboardRepository {
     return this.prisma.test.findMany({
       where: {
         userId,
-        status: { in: ['COMPLETED', 'EVALUATED'] },
+        status: { in: ["COMPLETED", "EVALUATED"] },
         completedAt: { not: null },
         deletedAt: null,
       },
       orderBy: {
-        completedAt: 'desc',
+        completedAt: "desc",
       },
       take: limit,
       include: {

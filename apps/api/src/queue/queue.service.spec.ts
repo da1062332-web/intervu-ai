@@ -1,27 +1,27 @@
-import { QueueFactory, QueueService, QueueType } from '@/queue';
-import { AppLogger } from '@intervu-ai/shared-logger';
+import { QueueFactory, QueueService, QueueType } from "@/queue";
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 // Mock BullMQ and IORedis
-jest.mock('bullmq', () => {
+jest.mock("bullmq", () => {
   const removedJobs = new Set();
   return {
     Queue: jest.fn().mockImplementation((name) => ({
       name,
       add: jest.fn().mockImplementation(async (name, data, opts) => ({
-        id: opts?.jobId || 'mock-id',
+        id: opts?.jobId || "mock-id",
         name,
-        data
+        data,
       })),
       getJob: jest.fn().mockImplementation(async (id) => {
-        if (id === 'non-existent' || removedJobs.has(id)) return undefined;
+        if (id === "non-existent" || removedJobs.has(id)) return undefined;
         return {
           id,
-          data: { userId: 'user-789' },
-          getState: jest.fn().mockResolvedValue('waiting'),
+          data: { userId: "user-789" },
+          getState: jest.fn().mockResolvedValue("waiting"),
           retry: jest.fn(),
           remove: jest.fn().mockImplementation(() => {
             removedJobs.add(id);
-          })
+          }),
         };
       }),
       getJobCounts: jest.fn().mockResolvedValue({
@@ -29,23 +29,23 @@ jest.mock('bullmq', () => {
         active: 0,
         completed: 5,
         failed: 0,
-        delayed: 0
+        delayed: 0,
       }),
-      close: jest.fn()
-    }))
+      close: jest.fn(),
+    })),
   };
 });
 
-jest.mock('ioredis', () => {
+jest.mock("ioredis", () => {
   return jest.fn().mockImplementation(() => ({
-    quit: jest.fn()
+    quit: jest.fn(),
   }));
 });
 
-import Redis from 'ioredis';
-import { type ConnectionOptions } from 'bullmq';
+import Redis from "ioredis";
+import { type ConnectionOptions } from "bullmq";
 
-describe('Queue System Integration Tests', () => {
+describe("Queue System Integration Tests", () => {
   let redis: Redis;
   let connection: ConnectionOptions;
   let queueService: QueueService;
@@ -53,16 +53,16 @@ describe('Queue System Integration Tests', () => {
 
   beforeAll(async () => {
     redis = new Redis({
-      host: 'localhost',
+      host: "localhost",
       port: 6379,
     });
     connection = {
-      host: 'localhost',
+      host: "localhost",
       port: 6379,
     };
 
     logger = new AppLogger({
-      name: 'test',
+      name: "test",
       isDevelopment: true,
     });
 
@@ -79,18 +79,19 @@ describe('Queue System Integration Tests', () => {
     await redis.quit();
   });
 
-  describe('Generation Queue', () => {
-    it('should enqueue a generation job', async () => {
-      const jobId = 'test-gen-001';
+  describe("Generation Queue", () => {
+    it("should enqueue a generation job", async () => {
+      const jobId = "test-gen-001";
       const job = await queueService.enqueueGeneration({
         jobId,
-        timestamp: new Date().toISOString(),
-        correlationId: 'corr-001',
-        testId: 'test-123',
-        assemblyId: 'asm-123',
-        topic: 'react',
-        difficulty: 'beginner',
-        count: 5
+        timestamp: Date.now(),
+        correlationId: "corr-001",
+        payload: {
+          assemblyId: "asm-123",
+          topicId: "react",
+          difficulty: "beginner",
+          count: 5,
+        },
       });
 
       expect(job).toBeDefined();
@@ -98,46 +99,47 @@ describe('Queue System Integration Tests', () => {
       expect(job.name).toBe(jobId);
     });
 
-    it('should get job state', async () => {
-      const jobId = 'test-gen-002';
+    it("should get job state", async () => {
+      const jobId = "test-gen-002";
       await queueService.enqueueGeneration({
         jobId,
-        timestamp: new Date().toISOString(),
-        correlationId: 'corr-002',
-        testId: 'test-124',
-        assemblyId: 'asm-124',
-        topic: 'node',
-        difficulty: 'intermediate',
-        count: 5
+        timestamp: Date.now(),
+        correlationId: "corr-002",
+        payload: {
+          assemblyId: "asm-124",
+          topicId: "node",
+          difficulty: "intermediate",
+          count: 5,
+        },
       });
 
       const state = await queueService.getJobState(QueueType.GENERATION, jobId);
-      expect(['waiting', 'delayed', 'completed', 'active']).toContain(state);
+      expect(["waiting", "delayed", "completed", "active"]).toContain(state);
     });
 
-    it('should get queue counts', async () => {
+    it("should get queue counts", async () => {
       const counts = await queueService.getQueueCounts(QueueType.GENERATION);
 
-      expect(counts).toHaveProperty('waiting');
-      expect(counts).toHaveProperty('active');
-      expect(counts).toHaveProperty('completed');
-      expect(counts).toHaveProperty('failed');
-      expect(counts).toHaveProperty('delayed');
+      expect(counts).toHaveProperty("waiting");
+      expect(counts).toHaveProperty("active");
+      expect(counts).toHaveProperty("completed");
+      expect(counts).toHaveProperty("failed");
+      expect(counts).toHaveProperty("delayed");
 
       expect(counts.waiting).toBeGreaterThanOrEqual(0);
     });
   });
 
-  describe('Evaluation Queue', () => {
-    it('should enqueue an evaluation job', async () => {
-      const jobId = 'test-eval-001';
+  describe("Evaluation Queue", () => {
+    it("should enqueue an evaluation job", async () => {
+      const jobId = "test-eval-001";
       const job = await queueService.enqueueEvaluation({
-        requestId: jobId,
-        timestamp: new Date().toISOString(),
-        correlationId: 'corr-003',
-        data: {
-          testId: 'test-123',
-          userId: 'user-456',
+        jobId,
+        timestamp: Date.now(),
+        correlationId: "corr-003",
+        payload: {
+          testId: "test-123",
+          userId: "user-456",
         },
       });
 
@@ -145,16 +147,16 @@ describe('Queue System Integration Tests', () => {
       expect(job.id).toBe(jobId);
     });
 
-    it('should track user context in job', async () => {
-      const jobId = 'test-eval-002';
-      const userId = 'user-789';
+    it("should track user context in job", async () => {
+      const jobId = "test-eval-002";
+      const userId = "user-789";
 
       await queueService.enqueueEvaluation({
-        requestId: jobId,
-        timestamp: new Date().toISOString(),
-        correlationId: 'corr-004',
-        data: {
-          testId: 'test-124',
+        jobId,
+        timestamp: Date.now(),
+        correlationId: "corr-004",
+        payload: {
+          testId: "test-124",
           userId,
         },
       });
@@ -164,18 +166,18 @@ describe('Queue System Integration Tests', () => {
     });
   });
 
-  describe('Analytics Queue', () => {
-    it('should enqueue analytics events', async () => {
-      const jobId = 'test-analytics-001';
+  describe("Analytics Queue", () => {
+    it("should enqueue analytics events", async () => {
+      const jobId = "test-analytics-001";
       const job = await queueService.enqueueAnalytics({
-        requestId: jobId,
-        timestamp: new Date().toISOString(),
-        correlationId: 'corr-002',
-        data: {
-          eventType: 'user_signup',
+        jobId,
+        timestamp: Date.now(),
+        correlationId: "corr-002",
+        payload: {
+          eventType: "user_signup",
           eventData: {
-            userId: 'user-100',
-            timestamp: new Date().toISOString(),
+            userId: "user-100",
+            timestamp: Date.now(),
           },
         },
       });
@@ -183,17 +185,17 @@ describe('Queue System Integration Tests', () => {
       expect(job).toBeDefined();
     });
 
-    it('should batch multiple analytics events', async () => {
+    it("should batch multiple analytics events", async () => {
       const jobs = [];
       for (let i = 0; i < 5; i++) {
         const job = await queueService.enqueueAnalytics({
-          requestId: `test-analytics-batch-${i}`,
-          timestamp: new Date().toISOString(),
+          jobId: `test-analytics-batch-${i}`,
+          timestamp: Date.now(),
           correlationId: `corr-batch-${i}`,
-          data: {
-            eventType: 'page_view',
+          payload: {
+            eventType: "page_view",
             eventData: {
-              page: '/dashboard',
+              page: "/dashboard",
             },
           },
         });
@@ -205,18 +207,19 @@ describe('Queue System Integration Tests', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle job removal', async () => {
-      const jobId = 'test-remove-001';
+  describe("Error Handling", () => {
+    it("should handle job removal", async () => {
+      const jobId = "test-remove-001";
       await queueService.enqueueGeneration({
         jobId,
-        timestamp: new Date().toISOString(),
-        correlationId: 'corr-005',
-        testId: 'test-125',
-        assemblyId: 'asm-125',
-        topic: 'react',
-        difficulty: 'advanced',
-        count: 5
+        timestamp: Date.now(),
+        correlationId: "corr-005",
+        payload: {
+          assemblyId: "asm-125",
+          topicId: "react",
+          difficulty: "advanced",
+          count: 5,
+        },
       });
 
       const removed = await queueService.removeJob(QueueType.GENERATION, jobId);
@@ -226,11 +229,17 @@ describe('Queue System Integration Tests', () => {
       expect(retrieved).toBeUndefined();
     });
 
-    it('should handle non-existent job operations gracefully', async () => {
-      const state = await queueService.getJobState(QueueType.GENERATION, 'non-existent');
+    it("should handle non-existent job operations gracefully", async () => {
+      const state = await queueService.getJobState(
+        QueueType.GENERATION,
+        "non-existent",
+      );
       expect(state).toBeUndefined();
 
-      const removed = await queueService.removeJob(QueueType.GENERATION, 'non-existent');
+      const removed = await queueService.removeJob(
+        QueueType.GENERATION,
+        "non-existent",
+      );
       expect(removed).toBe(false);
     });
   });

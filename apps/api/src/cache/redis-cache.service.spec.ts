@@ -1,28 +1,29 @@
-import { RedisCacheService } from '@/cache/redis-cache.service';
-import { RedisConnectionManager } from '@/cache/redis-connection.manager';
-import { AppLogger } from '@intervu-ai/shared-logger';
+import { RedisCacheService } from "@/cache/redis-cache.service";
+import { RedisConnectionManager } from "@/cache/redis-connection.manager";
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 // Mock IORedis
-jest.mock('ioredis', () => {
+jest.mock("ioredis", () => {
   const data = new Map();
   const ttls = new Map();
   return jest.fn().mockImplementation(() => ({
-    options: { host: 'localhost', port: 6379 },
+    options: { host: "localhost", port: 6379 },
+    status: "ready",
     on: jest.fn(),
     quit: jest.fn(),
-    ping: jest.fn().mockResolvedValue('PONG'),
+    ping: jest.fn().mockResolvedValue("PONG"),
     flushdb: jest.fn().mockImplementation(() => {
       data.clear();
       ttls.clear();
-      return 'OK';
+      return "OK";
     }),
     set: jest.fn().mockImplementation((key, value, mode, duration) => {
       data.set(key, value);
-      if (mode === 'EX' || mode === 'PX') {
-        const mult = mode === 'EX' ? 1000 : 1;
+      if (mode === "EX" || mode === "PX") {
+        const mult = mode === "EX" ? 1000 : 1;
         ttls.set(key, Date.now() + duration * mult);
       }
-      return 'OK';
+      return "OK";
     }),
     get: jest.fn().mockImplementation((key) => {
       if (ttls.has(key) && Date.now() >= ttls.get(key)) {
@@ -43,7 +44,7 @@ jest.mock('ioredis', () => {
       }
       return count;
     }),
-    exists: jest.fn().mockImplementation((key) => data.has(key) ? 1 : 0),
+    exists: jest.fn().mockImplementation((key) => (data.has(key) ? 1 : 0)),
     expire: jest.fn().mockImplementation((key, ttl) => {
       if (data.has(key)) {
         ttls.set(key, Date.now() + ttl * 1000);
@@ -57,44 +58,44 @@ jest.mock('ioredis', () => {
       return rem > 0 ? rem : -1;
     }),
     keys: jest.fn().mockImplementation((pattern) => {
-      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-      return Array.from(data.keys()).filter(k => regex.test(k));
+      const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+      return Array.from(data.keys()).filter((k) => regex.test(k));
     }),
     setex: jest.fn().mockImplementation((key, duration, value) => {
       data.set(key, value);
       ttls.set(key, Date.now() + duration * 1000);
-      return 'OK';
+      return "OK";
     }),
     scan: jest.fn().mockImplementation((cursor, matchStr, pattern) => {
-      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-      const keys = Array.from(data.keys()).filter(k => regex.test(k));
-      return ['0', keys];
+      const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+      const keys = Array.from(data.keys()).filter((k) => regex.test(k));
+      return ["0", keys];
     }),
   }));
 });
 
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
-describe('Redis Cache Service', () => {
+describe("Redis Cache Service", () => {
   let redis: Redis;
   let cacheService: RedisCacheService;
   let logger: AppLogger;
 
   beforeAll(async () => {
     logger = new AppLogger({
-      name: 'cache-test',
+      name: "cache-test",
       isDevelopment: true,
     });
 
     redis = new Redis({
-      host: 'localhost',
+      host: "localhost",
       port: 6379,
       retryStrategy: () => null,
     });
 
     // Initialize connection manager
     await RedisConnectionManager.connect(
-      `redis://${redis.options.host}:${redis.options.port}`
+      `redis://${redis.options.host}:${redis.options.port}`,
     );
     RedisConnectionManager.setLogger(logger);
 
@@ -111,95 +112,100 @@ describe('Redis Cache Service', () => {
     await redis.flushdb();
   });
 
-  describe('Basic Operations', () => {
-    it('should set and get cache values', async () => {
-      const testData = { id: 1, name: 'Test' };
-      await cacheService.set('test-key', testData);
+  describe("Basic Operations", () => {
+    it("should set and get cache values", async () => {
+      const testData = { id: 1, name: "Test" };
+      await cacheService.set("test-key", testData);
 
-      const retrieved = await cacheService.get('test-key');
+      const retrieved = await cacheService.get("test-key");
       expect(retrieved).toEqual(testData);
     });
 
-    it('should return null for non-existent keys', async () => {
-      const value = await cacheService.get('non-existent');
+    it("should return null for non-existent keys", async () => {
+      const value = await cacheService.get("non-existent");
       expect(value).toBeNull();
     });
 
-    it('should delete cache values', async () => {
-      await cacheService.set('delete-key', { value: 'test' });
-      const deleted = await cacheService.delete('delete-key');
+    it("should delete cache values", async () => {
+      await cacheService.set("delete-key", { value: "test" });
+      const deleted = await cacheService.delete("delete-key");
 
       expect(deleted).toBe(true);
 
-      const retrieved = await cacheService.get('delete-key');
+      const retrieved = await cacheService.get("delete-key");
       expect(retrieved).toBeNull();
     });
 
-    it('should check cache existence', async () => {
-      await cacheService.set('exists-key', { value: 'test' });
+    it("should check cache existence", async () => {
+      await cacheService.set("exists-key", { value: "test" });
 
-      const exists = await cacheService.exists('exists-key');
+      const exists = await cacheService.exists("exists-key");
       expect(exists).toBe(true);
 
-      const notExists = await cacheService.exists('non-existent');
+      const notExists = await cacheService.exists("non-existent");
       expect(notExists).toBe(false);
     });
   });
 
-  describe('TTL Management', () => {
-    it('should set TTL on cache values', async () => {
-      await cacheService.set('ttl-key', { value: 'test' });
-      const set = await cacheService.setTTL('ttl-key', 60);
+  describe("TTL Management", () => {
+    it("should set TTL on cache values", async () => {
+      await cacheService.set("ttl-key", { value: "test" });
+      const set = await cacheService.setTTL("ttl-key", 60);
 
       expect(set).toBe(true);
 
-      const ttl = await cacheService.getTTL('ttl-key');
+      const ttl = await cacheService.getTTL("ttl-key");
       expect(ttl).toBeGreaterThan(0);
       expect(ttl).toBeLessThanOrEqual(60);
     });
 
-    it('should respect TTL expiration', async () => {
-      await cacheService.set('short-ttl', { value: 'test' }, { ttl: 1 });
+    it("should respect TTL expiration", async () => {
+      await cacheService.set("short-ttl", { value: "test" }, { ttl: 1 });
 
       // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const retrieved = await cacheService.get('short-ttl');
+      const retrieved = await cacheService.get("short-ttl");
       expect(retrieved).toBeNull();
     });
   });
 
-  describe('Prefix Usage', () => {
-    it('should use prefix for keys', async () => {
-      const questionId = 'q-123';
-      const questionData = { question: 'What is 2+2?', answer: 4 };
+  describe("Prefix Usage", () => {
+    it("should use prefix for keys", async () => {
+      const questionId = "q-123";
+      const questionData = { question: "What is 2+2?", answer: 4 };
 
-      await cacheService.set(questionId, questionData, { prefix: 'question' });
+      await cacheService.set(questionId, questionData, { prefix: "question" });
 
-      const retrieved = await cacheService.get(questionId, { prefix: 'question' });
+      const retrieved = await cacheService.get(questionId, {
+        prefix: "question",
+      });
       expect(retrieved).toEqual(questionData);
     });
 
-    it('should isolate prefixed keys', async () => {
-      const id = 'test-123';
+    it("should isolate prefixed keys", async () => {
+      const id = "test-123";
       const sessionData = { sessionId: id };
       const questionData = { questionId: id };
 
-      await cacheService.set(id, sessionData, { prefix: 'session' });
-      await cacheService.set(id, questionData, { prefix: 'question' });
+      await cacheService.set(id, sessionData, { prefix: "session" });
+      await cacheService.set(id, questionData, { prefix: "question" });
 
-      const session = await cacheService.get(id, { prefix: 'session' });
-      const question = await cacheService.get(id, { prefix: 'question' });
+      const session = await cacheService.get(id, { prefix: "session" });
+      const question = await cacheService.get(id, { prefix: "question" });
 
       expect(session).toEqual(sessionData);
       expect(question).toEqual(questionData);
     });
   });
 
-  describe('Domain-Specific Methods', () => {
-    it('should use getQuestion/setQuestion', async () => {
-      const questionId = 'q-001';
-      const questionData = { text: 'Question text', options: ['A', 'B', 'C', 'D'] };
+  describe("Domain-Specific Methods", () => {
+    it("should use getQuestion/setQuestion", async () => {
+      const questionId = "q-001";
+      const questionData = {
+        text: "Question text",
+        options: ["A", "B", "C", "D"],
+      };
 
       await cacheService.setQuestion(questionId, questionData);
       const retrieved = await cacheService.getQuestion(questionId);
@@ -207,9 +213,12 @@ describe('Redis Cache Service', () => {
       expect(retrieved).toEqual(questionData);
     });
 
-    it('should use getSession/setSession', async () => {
-      const sessionId = 's-001';
-      const sessionData = { userId: 'user-123', expiresAt: Date.now() + 3600000 };
+    it("should use getSession/setSession", async () => {
+      const sessionId = "s-001";
+      const sessionData = {
+        userId: "user-123",
+        expiresAt: Date.now() + 3600000,
+      };
 
       await cacheService.setSession(sessionId, sessionData);
       const retrieved = await cacheService.getSession(sessionId);
@@ -217,9 +226,9 @@ describe('Redis Cache Service', () => {
       expect(retrieved).toEqual(sessionData);
     });
 
-    it('should use getAssembly/setAssembly', async () => {
-      const assemblyId = 'a-001';
-      const assemblyData = { name: 'Test Assembly', questions: 10 };
+    it("should use getAssembly/setAssembly", async () => {
+      const assemblyId = "a-001";
+      const assemblyData = { name: "Test Assembly", questions: 10 };
 
       await cacheService.setAssembly(assemblyId, assemblyData);
       const retrieved = await cacheService.getAssembly(assemblyId);
@@ -228,58 +237,60 @@ describe('Redis Cache Service', () => {
     });
   });
 
-  describe('Pattern Matching', () => {
-    it('should clear cache by pattern', async () => {
+  describe("Pattern Matching", () => {
+    it("should clear cache by pattern", async () => {
       // Set multiple keys with prefix
-      await cacheService.set('1', { id: 1 }, { prefix: 'session' });
-      await cacheService.set('2', { id: 2 }, { prefix: 'session' });
-      await cacheService.set('1', { id: 1 }, { prefix: 'question' });
+      await cacheService.set("1", { id: 1 }, { prefix: "session" });
+      await cacheService.set("2", { id: 2 }, { prefix: "session" });
+      await cacheService.set("1", { id: 1 }, { prefix: "question" });
 
       // Clear only session keys
-      const deleted = await cacheService.clear('session:*');
+      const deleted = await cacheService.clear("session:*");
       expect(deleted).toBeGreaterThanOrEqual(2);
 
       // Verify session keys are deleted
-      const session1 = await cacheService.get('1', { prefix: 'session' });
+      const session1 = await cacheService.get("1", { prefix: "session" });
       expect(session1).toBeNull();
 
       // Verify question keys still exist
-      const question1 = await cacheService.get('1', { prefix: 'question' });
+      const question1 = await cacheService.get("1", { prefix: "question" });
       expect(question1).toEqual({ id: 1 });
     });
   });
 
-  describe('Type Safety', () => {
+  describe("Type Safety", () => {
     interface TestObject {
       id: string;
       name: string;
       count: number;
     }
 
-    it('should preserve types through cache', async () => {
+    it("should preserve types through cache", async () => {
       const original: TestObject = {
-        id: 'obj-1',
-        name: 'Test Object',
+        id: "obj-1",
+        name: "Test Object",
         count: 42,
       };
 
-      await cacheService.set('typed-key', original);
-      const retrieved = await cacheService.get<TestObject>('typed-key');
+      await cacheService.set("typed-key", original);
+      const retrieved = await cacheService.get<TestObject>("typed-key");
 
       expect(retrieved).toEqual(original);
-      expect(typeof retrieved?.count).toBe('number');
+      expect(typeof retrieved?.count).toBe("number");
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle cache errors gracefully', async () => {
+  describe("Error Handling", () => {
+    it("should handle cache errors gracefully", async () => {
       // Try to set invalid data
-      const result = await cacheService.set('key', { circular: null } as unknown);
+      const result = await cacheService.set("key", {
+        circular: null,
+      } as unknown);
       expect([true, false]).toContain(result);
     });
 
-    it('should handle get errors gracefully', async () => {
-      const result = await cacheService.get('non-existent-key');
+    it("should handle get errors gracefully", async () => {
+      const result = await cacheService.get("non-existent-key");
       expect(result).toBeNull();
     });
   });

@@ -1,10 +1,14 @@
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
+import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
 
 @Injectable()
 export class RequestLoggingMiddleware implements NestMiddleware {
   private readonly logger = new Logger(RequestLoggingMiddleware.name);
 
-  use(req: Record<string, unknown>, res: Record<string, unknown>, next: () => void) {
+  use(
+    req: Record<string, unknown>,
+    res: Record<string, unknown>,
+    next: () => void,
+  ) {
     const method = req.method as string;
     const originalUrl = req.originalUrl as string;
     const ip = req.ip as string;

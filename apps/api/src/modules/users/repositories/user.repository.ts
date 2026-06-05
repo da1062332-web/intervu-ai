@@ -1,8 +1,8 @@
-import { Injectable, Optional } from '@nestjs/common';
-import { User, Prisma } from '@prisma/client';
+import { Injectable, Optional } from "@nestjs/common";
+import { User, Prisma } from "@prisma/client";
 
-import { BaseRepository } from '../../../common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { BaseRepository } from "../../../common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class UserRepository extends BaseRepository<
@@ -14,7 +14,7 @@ export class UserRepository extends BaseRepository<
     prisma: PrismaService,
     @Optional() tx?: Prisma.TransactionClient,
   ) {
-    super(prisma, 'user', { softDelete: true }, tx);
+    super(prisma, "user", { softDelete: true }, tx);
   }
 
   withTransaction(tx: Prisma.TransactionClient): this {

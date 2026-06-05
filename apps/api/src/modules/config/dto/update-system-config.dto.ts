@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { z } from 'zod';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { z } from "zod";
 import {
   DifficultyConfig,
   GenerationConfig,
@@ -10,8 +10,8 @@ import {
   GenerationConfigSchema,
   ValidationConfigSchema,
   QueueConfigSchema,
-  EnvironmentFlagsSchema
-} from './system-config.dto';
+  EnvironmentFlagsSchema,
+} from "./system-config.dto";
 
 export const UpdateSystemConfigSchema = z.object({
   difficultyLevels: z.array(DifficultyConfigSchema.partial()).optional(),
@@ -22,22 +22,41 @@ export const UpdateSystemConfigSchema = z.object({
 });
 
 export class UpdateSystemConfigDto {
-  @ApiPropertyOptional({ type: [DifficultyConfig], description: 'Configured difficulty levels' })
+  @ApiPropertyOptional({
+    type: [DifficultyConfig],
+    description: "Configured difficulty levels",
+  })
   difficultyLevels?: Partial<DifficultyConfig>[];
 
-  @ApiPropertyOptional({ type: GenerationConfig, description: 'LLM generation rules' })
+  @ApiPropertyOptional({
+    type: GenerationConfig,
+    description: "LLM generation rules",
+  })
   generationRules?: Partial<GenerationConfig>;
 
-  @ApiPropertyOptional({ type: ValidationConfig, description: 'Input/output validation rules' })
+  @ApiPropertyOptional({
+    type: ValidationConfig,
+    description: "Input/output validation rules",
+  })
   validationRules?: Partial<ValidationConfig>;
 
-  @ApiPropertyOptional({ type: QueueConfig, description: 'Queue background processing parameters' })
+  @ApiPropertyOptional({
+    type: QueueConfig,
+    description: "Queue background processing parameters",
+  })
   queueSettings?: Partial<QueueConfig>;
 
-  @ApiPropertyOptional({ type: EnvironmentFlags, description: 'Global environment configuration toggles' })
+  @ApiPropertyOptional({
+    type: EnvironmentFlags,
+    description: "Global environment configuration toggles",
+  })
   environmentFlags?: Partial<EnvironmentFlags>;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, UpdateSystemConfigDto> {
-    return UpdateSystemConfigSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, UpdateSystemConfigDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, UpdateSystemConfigDto> {
+    return UpdateSystemConfigSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, UpdateSystemConfigDto>;
   }
 }

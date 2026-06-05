@@ -8,45 +8,52 @@ import {
   Param,
   Patch,
   UseGuards,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
-} from '@nestjs/swagger';
+} from "@nestjs/swagger";
 
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { AuthUser } from '../../auth/interfaces/auth-user.interface';
-import { UsersService } from '../services/users.service';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
-import { UserEntity } from '../entities/user.entity';
-import { SessionEntity } from '../entities/session.entity';
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { CurrentUser } from "../../auth/decorators/current-user.decorator";
+import { AuthUser } from "../../auth/interfaces/auth-user.interface";
+import { UsersService } from "../services/users.service";
+import { UpdateProfileDto } from "../dto/update-profile.dto";
+import {
+  ValidateResponse,
+  UserResponseSchema,
+  SessionListResponseSchema,
+} from "@intervu/shared";
+import { UserEntity } from "../entities/user.entity";
+import { SessionEntity } from "../entities/session.entity";
 
-@ApiTags('users')
-@ApiBearerAuth('jwt-auth')
+@ApiTags("users")
+@ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
-@Controller('users')
+@Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('me')
-  @ApiOperation({ summary: 'Get currently authenticated user profile' })
+  @Get("me")
+  @ValidateResponse(UserResponseSchema)
+  @ApiOperation({ summary: "Get currently authenticated user profile" })
   @ApiOkResponse({
-    description: 'Current authenticated user profile data',
+    description: "Current authenticated user profile data",
     type: UserEntity,
   })
   async getMe(@CurrentUser() user: AuthUser): Promise<UserEntity> {
     return this.usersService.getProfile(user.id);
   }
 
-  @Patch('profile')
-  @ApiOperation({ summary: 'Update candidate profile data' })
-  @ApiBody({ type: UpdateProfileDto, description: 'Profile update data' })
+  @Patch("profile")
+  @ValidateResponse(UserResponseSchema)
+  @ApiOperation({ summary: "Update candidate profile data" })
+  @ApiBody({ type: UpdateProfileDto, description: "Profile update data" })
   @ApiOkResponse({
-    description: 'Updated user profile data',
+    description: "Updated user profile data",
     type: UserEntity,
   })
   async updateProfile(
@@ -56,29 +63,32 @@ export class UsersController {
     return this.usersService.updateProfile(user.id, dto);
   }
 
-  @Get('sessions')
-  @ApiOperation({ summary: 'List all active user sessions' })
+  @Get("sessions")
+  @ValidateResponse(SessionListResponseSchema)
+  @ApiOperation({ summary: "List all active user sessions" })
   @ApiOkResponse({
-    description: 'List of active user sessions',
+    description: "List of active user sessions",
     type: [SessionEntity],
   })
   async getSessions(@CurrentUser() user: AuthUser): Promise<SessionEntity[]> {
     return this.usersService.getSessions(user.id, user.sessionId);
   }
 
-  @Delete('sessions/:id')
+  @Delete("sessions/:id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Revoke/terminate a specific session' })
+  @ApiOperation({ summary: "Revoke/terminate a specific session" })
   async terminateSession(
     @CurrentUser() user: AuthUser,
-    @Param('id') sessionId: string,
+    @Param("id") sessionId: string,
   ): Promise<void> {
     await this.usersService.terminateSession(sessionId, user.id);
   }
 
-  @Delete('sessions')
+  @Delete("sessions")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Terminate all other active sessions (logout multi-device)' })
+  @ApiOperation({
+    summary: "Terminate all other active sessions (logout multi-device)",
+  })
   async terminateOtherSessions(@CurrentUser() user: AuthUser): Promise<void> {
     await this.usersService.terminateAllOtherSessions(user.id, user.sessionId);
   }

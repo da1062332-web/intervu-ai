@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 
 export default function TestsPage() {
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       <PageHeader
-        title="Tests"
-        subtitle="Create and manage your AI-powered interview assessments."
+        title='Tests'
+        subtitle='Create and manage your AI-powered interview assessments.'
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Tests' }]}
       />
 

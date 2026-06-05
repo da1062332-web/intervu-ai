@@ -1,13 +1,13 @@
-import { Queue, type ConnectionOptions, type QueueOptions } from 'bullmq';
+import { Queue, type ConnectionOptions, type QueueOptions } from "bullmq";
 
-type QueueConfig = Omit<QueueOptions, 'connection'>;
+type QueueConfig = Omit<QueueOptions, "connection">;
 
 export const QUEUE_CONFIG: Record<string, QueueConfig> = {
   generation: {
     defaultJobOptions: {
       attempts: 3,
       backoff: {
-        type: 'exponential',
+        type: "exponential",
         delay: 2000,
       },
       removeOnComplete: {
@@ -22,7 +22,7 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
     defaultJobOptions: {
       attempts: 3,
       backoff: {
-        type: 'exponential',
+        type: "exponential",
         delay: 2000,
       },
       removeOnComplete: {
@@ -37,7 +37,7 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
     defaultJobOptions: {
       attempts: 5,
       backoff: {
-        type: 'exponential',
+        type: "exponential",
         delay: 1000,
       },
       removeOnComplete: {
@@ -45,6 +45,21 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
       },
       removeOnFail: {
         age: 14400, // 4 hours
+      },
+    },
+  },
+  validation: {
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+      removeOnComplete: {
+        age: 1800, // 30 minutes
+      },
+      removeOnFail: {
+        age: 7200, // 2 hours
       },
     },
   },
@@ -71,7 +86,9 @@ export class QueueFactory {
   static getQueue(name: string): Queue {
     const queue = this.queues.get(name);
     if (!queue) {
-      throw new Error(`Queue "${name}" not found. Create it first using createQueue().`);
+      throw new Error(
+        `Queue "${name}" not found. Create it first using createQueue().`,
+      );
     }
     return queue;
   }
@@ -81,7 +98,9 @@ export class QueueFactory {
   }
 
   static async closeAll(): Promise<void> {
-    const promises = Array.from(this.queues.values()).map((queue) => queue.close());
+    const promises = Array.from(this.queues.values()).map((queue) =>
+      queue.close(),
+    );
     await Promise.all(promises);
     this.queues.clear();
   }

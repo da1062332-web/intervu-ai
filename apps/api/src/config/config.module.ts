@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule as NestConfigModule } from '@nestjs/config';
+import { Module } from "@nestjs/common";
+import { ConfigModule as NestConfigModule } from "@nestjs/config";
 
-import { envSchema } from './env.schema';
-import { AppConfigService } from './config.service';
+import { envSchema } from "./env.schema";
+import { AppConfigService } from "./config.service";
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { AppConfigService } from './config.service';
         return parsed.data;
       },
       isGlobal: true,
-      envFilePath: ['.env', '.env.local'],
+      envFilePath: [".env", ".env.local"],
     }),
   ],
   providers: [AppConfigService],

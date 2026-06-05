@@ -21,14 +21,14 @@ function SettingItem({ label, description, id }: SettingItemProps) {
   return (
     <button
       id={id}
-      className="flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-      type="button"
+      className='flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
+      type='button'
     >
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      <div className='flex-1 min-w-0'>
+        <p className='text-sm font-medium text-foreground'>{label}</p>
+        <p className='mt-0.5 text-xs text-muted-foreground'>{description}</p>
       </div>
-      <ChevronRight className="size-4 text-muted-foreground shrink-0" aria-hidden="true" />
+      <ChevronRight className='size-4 text-muted-foreground shrink-0' aria-hidden='true' />
     </button>
   );
 }
@@ -44,18 +44,18 @@ interface SettingsGroupProps {
 function SettingsGroup({ icon: Icon, title, items }: SettingsGroupProps) {
   return (
     <section aria-labelledby={`settings-group-${title.toLowerCase()}`}>
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-4" aria-hidden="true" />
+      <div className='flex items-center gap-2.5 mb-3'>
+        <div className='flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary'>
+          <Icon className='size-4' aria-hidden='true' />
         </div>
         <h2
           id={`settings-group-${title.toLowerCase()}`}
-          className="text-sm font-semibold text-foreground"
+          className='text-sm font-semibold text-foreground'
         >
           {title}
         </h2>
       </div>
-      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">
+      <div className='rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border'>
         {items.map((item) => (
           <SettingItem key={item.id} {...item} />
         ))}
@@ -68,16 +68,16 @@ function SettingsGroup({ icon: Icon, title, items }: SettingsGroupProps) {
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className='space-y-8 max-w-2xl'>
       <PageHeader
-        title="Settings"
-        subtitle="Configure your account preferences and application settings."
+        title='Settings'
+        subtitle='Configure your account preferences and application settings.'
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }]}
       />
 
       <SettingsGroup
         icon={Bell}
-        title="Notifications"
+        title='Notifications'
         items={[
           {
             id: 'setting-email-notifs',
@@ -94,7 +94,7 @@ export default function SettingsPage() {
 
       <SettingsGroup
         icon={Palette}
-        title="Appearance"
+        title='Appearance'
         items={[
           {
             id: 'setting-theme',
@@ -111,7 +111,7 @@ export default function SettingsPage() {
 
       <SettingsGroup
         icon={Shield}
-        title="Security"
+        title='Security'
         items={[
           {
             id: 'setting-change-password',
@@ -133,7 +133,7 @@ export default function SettingsPage() {
 
       <SettingsGroup
         icon={Globe}
-        title="Preferences"
+        title='Preferences'
         items={[
           {
             id: 'setting-language',
@@ -149,29 +149,21 @@ export default function SettingsPage() {
       />
 
       {/* Danger zone */}
-      <section aria-labelledby="danger-zone-heading">
-        <div className="flex items-center gap-2.5 mb-3">
-          <h2
-            id="danger-zone-heading"
-            className="text-sm font-semibold text-destructive"
-          >
+      <section aria-labelledby='danger-zone-heading'>
+        <div className='flex items-center gap-2.5 mb-3'>
+          <h2 id='danger-zone-heading' className='text-sm font-semibold text-destructive'>
             Danger Zone
           </h2>
         </div>
-        <div className="rounded-2xl border border-destructive/30 bg-card shadow-sm p-6">
-          <div className="flex items-center justify-between gap-4">
+        <div className='rounded-2xl border border-destructive/30 bg-card shadow-sm p-6'>
+          <div className='flex items-center justify-between gap-4'>
             <div>
-              <p className="text-sm font-medium text-foreground">Delete Account</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className='text-sm font-medium text-foreground'>Delete Account</p>
+              <p className='mt-0.5 text-xs text-muted-foreground'>
                 Permanently delete your account and all associated data. This cannot be undone.
               </p>
             </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              id="delete-account-btn"
-              className="shrink-0"
-            >
+            <Button variant='destructive' size='sm' id='delete-account-btn' className='shrink-0'>
               Delete Account
             </Button>
           </div>

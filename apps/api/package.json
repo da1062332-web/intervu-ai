@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:integration": "vitest run tests/integration/",
-    "test:contracts": "vitest run tests/contracts/"
+    "test:contracts": "vitest run tests/contracts/",
+    "test:regression": "vitest run tests/regression/"
   },
   "dependencies": {
     "@intervu-ai/shared-logger": "*",

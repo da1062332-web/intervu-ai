@@ -32,3 +32,4 @@ postgres-data
 redis-data
 
 .agent
+api-endpoints.txt

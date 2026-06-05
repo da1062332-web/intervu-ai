@@ -1,8 +1,8 @@
-import { Injectable, Optional } from '@nestjs/common';
-import { Test, Prisma, TestStatus } from '@prisma/client';
+import { Injectable, Optional } from "@nestjs/common";
+import { Test, Prisma, TestStatus } from "@prisma/client";
 
-import { BaseRepository } from '../../../common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { BaseRepository } from "../../../common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class TestRepository extends BaseRepository<
@@ -14,7 +14,7 @@ export class TestRepository extends BaseRepository<
     prisma: PrismaService,
     @Optional() tx?: Prisma.TransactionClient,
   ) {
-    super(prisma, 'test', { softDelete: true }, tx);
+    super(prisma, "test", { softDelete: true }, tx);
   }
 
   withTransaction(tx: Prisma.TransactionClient): this {
@@ -32,7 +32,7 @@ export class TestRepository extends BaseRepository<
     return this.db.test.findMany({
       where,
       include: { template: true },
-      orderBy: { startedAt: 'desc' },
+      orderBy: { startedAt: "desc" },
     });
   }
 
@@ -44,7 +44,7 @@ export class TestRepository extends BaseRepository<
     return this.db.test.findMany({
       where,
       include: { template: true, user: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -59,7 +59,7 @@ export class TestRepository extends BaseRepository<
     return this.db.test.findMany({
       where,
       include: { template: true },
-      orderBy: { completedAt: 'desc' },
+      orderBy: { completedAt: "desc" },
     });
   }
 }

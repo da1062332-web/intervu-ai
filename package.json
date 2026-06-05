@@ -15,10 +15,13 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "format": "prettier . --write",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "test:integration": "turbo run test:integration",
     "test:contracts": "turbo run test:contracts",
+    "test:regression": "turbo run test:regression",
     "check:structure": "node scripts/check-structure.js"
   },
   "devDependencies": {

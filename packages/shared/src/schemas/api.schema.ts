@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const CreateTestRequestSchema = z.object({
   companyId: z.string().min(1),
@@ -8,7 +8,8 @@ export const CreateTestRequestSchema = z.object({
 export const ApiSuccessResponseSchema = z.object({
   success: z.literal(true),
   data: z.unknown().optional(),
-  meta: z.unknown().optional(),
+  error: z.null(),
+  meta: z.unknown().nullable(),
 });
 
 export const QuestionOptionSchema = z.object({
@@ -29,7 +30,7 @@ export const TestResponseSchema = z.object({
   testType: z.string(),
   questions: z.array(TestQuestionSchema),
   timeLimit: z.number(),
-  status: z.enum(['active', 'completed', 'expired', 'pending']),
+  status: z.enum(["active", "completed", "expired", "pending"]),
 });
 
 export type TestQuestion = z.infer<typeof TestQuestionSchema>;

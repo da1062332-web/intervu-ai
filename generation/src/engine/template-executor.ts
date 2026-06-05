@@ -1,11 +1,19 @@
-import { PRNG } from './prng';
-import { generateVariables, roundToPrecision } from './variable-generator';
-import { evaluateConstraints } from './constraint-engine';
-import { evaluateExpression } from './math-parser';
-import { calculateDifficultyScore, getDifficultyCategory } from './difficulty-rules';
-import { validatePipeline, generateQuestionHash, checkVariableCollision, isSemanticallySimilar } from './validation-pipeline';
-import { QuestionTemplate } from '../types/template.types';
-import { ValidationFailureReason } from './metrics-tracker';
+import { PRNG } from "./prng";
+import { generateVariables, roundToPrecision } from "./variable-generator";
+import { evaluateConstraints } from "./constraint-engine";
+import { evaluateExpression } from "./math-parser";
+import {
+  calculateDifficultyScore,
+  getDifficultyCategory,
+} from "./difficulty-rules";
+import {
+  validatePipeline,
+  generateQuestionHash,
+  checkVariableCollision,
+  isSemanticallySimilar,
+} from "./validation-pipeline";
+import { QuestionTemplate } from "../types/template.types";
+import { ValidationFailureReason } from "./metrics-tracker";
 
 export interface HydratedSolution {
   steps: string[];
@@ -17,7 +25,7 @@ export interface GeneratedOutput {
   options: string[];
   correctAnswer: string;
   solution: HydratedSolution;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   hash: string;
   parameters: Record<string, unknown>;
 }
@@ -25,7 +33,10 @@ export interface GeneratedOutput {
 /**
  * Hydrates placeholders in the template string (e.g., {variable} or {(math expression)}).
  */
-export function hydrateString(template: string, parameters: Record<string, unknown>): string {
+export function hydrateString(
+  template: string,
+  parameters: Record<string, unknown>,
+): string {
   return template.replace(/\{([^}]+)\}/g, (match, expr) => {
     const trimmed = expr.trim();
     if (trimmed in parameters) {
@@ -34,7 +45,7 @@ export function hydrateString(template: string, parameters: Record<string, unkno
     try {
       const result = evaluateExpression(trimmed, parameters);
       // Format number properties
-      if (typeof result === 'number') {
+      if (typeof result === "number") {
         return String(roundToPrecision(result, 0.01));
       }
       return String(result);
@@ -98,14 +109,14 @@ export function executeTemplate(
   seenHashes: Set<string> | string[] = new Set(),
   tracker?: { recordFailure: (reason: ValidationFailureReason) => void },
   pastParameters?: Record<string, unknown>[],
-  pastQuestionTexts?: string[]
+  pastQuestionTexts?: string[],
 ): GeneratedOutput {
   const prng = new PRNG(seed);
   let parameters: Record<string, unknown> = {};
   let correctAnswerVal = 0;
   let attempt = 0;
   const maxAttempts = 100;
-  let finalHash = '';
+  let finalHash = "";
 
   // 1. Generation & Constraint check retry loop
   while (attempt < maxAttempts) {
@@ -113,51 +124,71 @@ export function executeTemplate(
     parameters = generateVariables(template.variables, prng);
 
     // Evaluate constraints (Must satisfy all critical rules)
-    const constraintCheck = evaluateConstraints(template.constraints, parameters);
+    const constraintCheck = evaluateConstraints(
+      template.constraints,
+      parameters,
+    );
     if (!constraintCheck.isValid) {
-      tracker?.recordFailure('constraint_violation');
+      tracker?.recordFailure("constraint_violation");
       continue;
     }
 
     // Evaluate difficulty score & ensure consistency
-    const constraintsCount = template.constraints ? template.constraints.length : 0;
-    const score = calculateDifficultyScore(template.metadata, parameters, constraintsCount);
+    const constraintsCount = template.constraints
+      ? template.constraints.length
+      : 0;
+    const score = calculateDifficultyScore(
+      template.metadata,
+      parameters,
+      constraintsCount,
+    );
     const category = getDifficultyCategory(score);
     if (category !== template.difficulty) {
-      tracker?.recordFailure('difficulty_mismatch');
+      tracker?.recordFailure("difficulty_mismatch");
       continue;
     }
 
     // Verify Solvability
     try {
-      const evaluated = evaluateExpression(template.solutionTemplate.finalAnswer, parameters);
-      if (typeof evaluated !== 'number' || isNaN(evaluated) || !isFinite(evaluated)) {
-        tracker?.recordFailure('solvability_failure');
+      const evaluated = evaluateExpression(
+        template.solutionTemplate.finalAnswer,
+        parameters,
+      );
+      if (
+        typeof evaluated !== "number" ||
+        isNaN(evaluated) ||
+        !isFinite(evaluated)
+      ) {
+        tracker?.recordFailure("solvability_failure");
         continue;
       }
       correctAnswerVal = evaluated;
     } catch {
-      tracker?.recordFailure('solvability_failure');
+      tracker?.recordFailure("solvability_failure");
       continue;
     }
 
     // Check duplicate hash
     finalHash = generateQuestionHash(template.templateId, parameters);
-    const hashesSet = seenHashes instanceof Set ? seenHashes : new Set(seenHashes);
+    const hashesSet =
+      seenHashes instanceof Set ? seenHashes : new Set(seenHashes);
     if (hashesSet.has(finalHash)) {
-      tracker?.recordFailure('duplicate_collision');
+      tracker?.recordFailure("duplicate_collision");
       continue;
     }
 
     // Check variable collision in loop
     if (pastParameters && checkVariableCollision(parameters, pastParameters)) {
-      tracker?.recordFailure('duplicate_collision');
+      tracker?.recordFailure("duplicate_collision");
       continue;
     }
 
     // Check semantic similarity in loop
     if (pastQuestionTexts) {
-      const newQuestionText = hydrateString(template.questionTemplate, parameters);
+      const newQuestionText = hydrateString(
+        template.questionTemplate,
+        parameters,
+      );
       let isDuplicate = false;
       for (const pastText of pastQuestionTexts) {
         if (isSemanticallySimilar(newQuestionText, pastText)) {
@@ -166,7 +197,7 @@ export function executeTemplate(
         }
       }
       if (isDuplicate) {
-        tracker?.recordFailure('duplicate_collision');
+        tracker?.recordFailure("duplicate_collision");
         continue;
       }
     }
@@ -176,16 +207,22 @@ export function executeTemplate(
   }
 
   if (attempt >= maxAttempts) {
-    throw new Error(`Failed to generate a valid, unique question for template ${template.templateId} after ${maxAttempts} attempts`);
+    throw new Error(
+      `Failed to generate a valid, unique question for template ${template.templateId} after ${maxAttempts} attempts`,
+    );
   }
 
   // 2. Hydrate Question & Solution steps
   const hydratedQuestion = hydrateString(template.questionTemplate, parameters);
-  const hydratedSteps = template.solutionTemplate.steps.map((step) => hydrateString(step, parameters));
-  
+  const hydratedSteps = template.solutionTemplate.steps.map((step) =>
+    hydrateString(step, parameters),
+  );
+
   // Format correct answer to string
   const isAnswerInt = Number.isInteger(correctAnswerVal);
-  const formattedAnswer = String(roundToPrecision(correctAnswerVal, isAnswerInt ? 1 : 0.01));
+  const formattedAnswer = String(
+    roundToPrecision(correctAnswerVal, isAnswerInt ? 1 : 0.01),
+  );
 
   // 3. Generate distractors
   const distractors = generateDistractors(correctAnswerVal);
@@ -203,7 +240,9 @@ export function executeTemplate(
   });
 
   if (!validation.valid) {
-    throw new Error(`Generated question failed validation pipeline: ${validation.issues.join(', ')}`);
+    throw new Error(
+      `Generated question failed validation pipeline: ${validation.issues.join(", ")}`,
+    );
   }
 
   // 5. Shuffle options deterministically using PRNG

@@ -1,4 +1,4 @@
-import { workerEnvSchema, WorkerEnvConfig } from './worker-env.schema';
+import { workerEnvSchema, WorkerEnvConfig } from "./worker-env.schema";
 
 export class WorkerConfigService {
   private config: WorkerEnvConfig;
@@ -7,7 +7,7 @@ export class WorkerConfigService {
     try {
       this.config = workerEnvSchema.parse(process.env);
     } catch (error) {
-      console.error('Invalid environment variables:', error);
+      console.error("Invalid environment variables:", error);
       throw error;
     }
   }
@@ -41,10 +41,10 @@ export class WorkerConfigService {
   }
 
   get isDevelopment(): boolean {
-    return this.config.NODE_ENV === 'development';
+    return this.config.NODE_ENV === "development";
   }
 
   get isProduction(): boolean {
-    return this.config.NODE_ENV === 'production';
+    return this.config.NODE_ENV === "production";
   }
 }

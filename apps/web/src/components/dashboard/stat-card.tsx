@@ -63,20 +63,17 @@ export function StatCard({
   if (loading) {
     return (
       <div
-        className={cn(
-          'rounded-2xl bg-card border border-border p-6 shadow-sm',
-          className
-        )}
-        aria-busy="true"
+        className={cn('rounded-2xl bg-card border border-border p-6 shadow-sm', className)}
+        aria-busy='true'
         aria-label={`Loading ${label}`}
       >
-        <div className="flex items-start justify-between">
-          <div className="space-y-3 flex-1">
-            <div className="h-3.5 w-24 rounded-full bg-muted animate-pulse" />
-            <div className="h-8 w-16 rounded-lg bg-muted animate-pulse" />
-            <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />
+        <div className='flex items-start justify-between'>
+          <div className='space-y-3 flex-1'>
+            <div className='h-3.5 w-24 rounded-full bg-muted animate-pulse' />
+            <div className='h-8 w-16 rounded-lg bg-muted animate-pulse' />
+            <div className='h-3 w-20 rounded-full bg-muted animate-pulse' />
           </div>
-          <div className="size-12 rounded-xl bg-muted animate-pulse shrink-0" />
+          <div className='size-12 rounded-xl bg-muted animate-pulse shrink-0' />
         </div>
       </div>
     );
@@ -87,39 +84,32 @@ export function StatCard({
       className={cn(
         'group relative overflow-hidden rounded-2xl bg-card border border-border p-6 shadow-sm',
         'hover:shadow-md transition-all duration-300',
-        className
+        className,
       )}
     >
       {/* Subtle background gradient */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-transparent to-muted/20 pointer-events-none"
-        aria-hidden="true"
+        className='absolute inset-0 bg-gradient-to-br from-transparent to-muted/20 pointer-events-none'
+        aria-hidden='true'
       />
 
-      <div className="relative flex items-start justify-between gap-4">
+      <div className='relative flex items-start justify-between gap-4'>
         {/* Left: Metrics */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-muted-foreground truncate">
-            {label}
-          </p>
-          <p className="mt-2 text-3xl font-heading font-bold tracking-tight text-foreground">
+        <div className='flex-1 min-w-0'>
+          <p className='text-sm font-medium text-muted-foreground truncate'>{label}</p>
+          <p className='mt-2 text-3xl font-heading font-bold tracking-tight text-foreground'>
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
           {trendLabel && (
             <div
-              className="mt-2 flex items-center gap-1"
+              className='mt-2 flex items-center gap-1'
               aria-label={`${trendConfig[trend].label}: ${trendLabel}`}
             >
               <TrendIcon
                 className={cn('size-3.5', trendConfig[trend].className)}
-                aria-hidden="true"
+                aria-hidden='true'
               />
-              <span
-                className={cn(
-                  'text-xs font-medium',
-                  trendConfig[trend].className
-                )}
-              >
+              <span className={cn('text-xs font-medium', trendConfig[trend].className)}>
                 {trendLabel}
               </span>
             </div>
@@ -131,9 +121,9 @@ export function StatCard({
           className={cn(
             'flex size-12 shrink-0 items-center justify-center rounded-xl',
             'transition-transform duration-300 group-hover:scale-110',
-            colorMap[color]
+            colorMap[color],
           )}
-          aria-hidden="true"
+          aria-hidden='true'
         >
           {icon}
         </div>

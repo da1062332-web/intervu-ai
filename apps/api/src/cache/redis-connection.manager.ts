@@ -1,5 +1,5 @@
-import Redis, { Redis as RedisType } from 'ioredis';
-import { AppLogger } from '@intervu-ai/shared-logger';
+import Redis, { Redis as RedisType } from "ioredis";
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 export class RedisConnectionManager {
   private static instance: RedisType | null = null;
@@ -32,21 +32,21 @@ export class RedisConnectionManager {
         connectTimeout: timeoutMs,
       });
 
-      redis.on('connect', () => {
+      redis.on("connect", () => {
         if (RedisConnectionManager.logger) {
-          RedisConnectionManager.logger.info('Connected to Redis');
+          RedisConnectionManager.logger.info("Connected to Redis");
         }
       });
 
-      redis.on('error', (error) => {
+      redis.on("error", (error) => {
         if (RedisConnectionManager.logger) {
-          RedisConnectionManager.logger.error('Redis connection error', error);
+          RedisConnectionManager.logger.error("Redis connection error", error);
         }
       });
 
-      redis.on('close', () => {
+      redis.on("close", () => {
         if (RedisConnectionManager.logger) {
-          RedisConnectionManager.logger.warn('Redis connection closed');
+          RedisConnectionManager.logger.warn("Redis connection closed");
         }
       });
 
@@ -54,11 +54,7 @@ export class RedisConnectionManager {
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutHandle = setTimeout(() => {
           redis.disconnect(false);
-          reject(
-            new Error(
-              `Redis connection timed out after ${timeoutMs}ms`,
-            ),
-          );
+          reject(new Error(`Redis connection timed out after ${timeoutMs}ms`));
         }, timeoutMs);
       });
 
@@ -72,7 +68,10 @@ export class RedisConnectionManager {
       return redis;
     } catch (error) {
       if (RedisConnectionManager.logger) {
-        RedisConnectionManager.logger.error('Failed to connect to Redis', error);
+        RedisConnectionManager.logger.error(
+          "Failed to connect to Redis",
+          error,
+        );
       }
       throw error;
     }
@@ -80,7 +79,7 @@ export class RedisConnectionManager {
 
   static getInstance(): RedisType {
     if (!RedisConnectionManager.instance) {
-      throw new Error('Redis not connected. Call connect() first.');
+      throw new Error("Redis not connected. Call connect() first.");
     }
     return RedisConnectionManager.instance;
   }
@@ -90,12 +89,15 @@ export class RedisConnectionManager {
       await RedisConnectionManager.instance.quit();
       RedisConnectionManager.instance = null;
       if (RedisConnectionManager.logger) {
-        RedisConnectionManager.logger.info('Disconnected from Redis');
+        RedisConnectionManager.logger.info("Disconnected from Redis");
       }
     }
   }
 
   static isConnected(): boolean {
-    return RedisConnectionManager.instance !== null && RedisConnectionManager.instance.status === 'ready';
+    return (
+      RedisConnectionManager.instance !== null &&
+      RedisConnectionManager.instance.status === "ready"
+    );
   }
 }

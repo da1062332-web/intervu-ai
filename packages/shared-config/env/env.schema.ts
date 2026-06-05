@@ -1,11 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const envSchema = z.object({
-  NODE_ENV: z.enum([
-    'development',
-    'production',
-    'test'
-  ]),
+  NODE_ENV: z.enum(["development", "production", "test"]),
 
   DATABASE_URL: z.string(),
 
@@ -13,7 +9,7 @@ export const envSchema = z.object({
 
   JWT_SECRET: z.string(),
 
-  OPENAI_API_KEY: z.string().optional()
+  OPENAI_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

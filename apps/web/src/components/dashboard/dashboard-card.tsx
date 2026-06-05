@@ -68,45 +68,42 @@ export function DashboardCard({
     <div
       className={cn(
         'group relative overflow-hidden rounded-2xl bg-card border border-border p-6 shadow-sm',
-        !isStatic && 'hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-default',
-        className
+        !isStatic &&
+          'hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-default',
+        className,
       )}
     >
       {/* Gradient overlay on hover */}
       <div
         className={cn(
           'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none',
-          colors.gradient
+          colors.gradient,
         )}
-        aria-hidden="true"
+        aria-hidden='true'
       />
 
       {/* Card content */}
-      <div className="relative z-10 flex flex-col h-full">
+      <div className='relative z-10 flex flex-col h-full'>
         {/* Icon */}
         <div
           className={cn(
             'size-12 rounded-xl flex items-center justify-center mb-4',
             'transition-all duration-300 group-hover:scale-110',
-            colors.icon
+            colors.icon,
           )}
-          aria-hidden="true"
+          aria-hidden='true'
         >
           {icon}
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-heading font-semibold text-foreground mb-2">
-          {title}
-        </h3>
+        <h3 className='text-lg font-heading font-semibold text-foreground mb-2'>{title}</h3>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground mb-4 flex-1 leading-relaxed">
-          {description}
-        </p>
+        <p className='text-sm text-muted-foreground mb-4 flex-1 leading-relaxed'>{description}</p>
 
         {/* Children slot (for custom content like empty state, metrics) */}
-        {children && <div className="mt-auto">{children}</div>}
+        {children && <div className='mt-auto'>{children}</div>}
 
         {/* Action */}
         {actionLabel && onAction && (
@@ -115,11 +112,11 @@ export function DashboardCard({
             className={cn(
               'mt-4 inline-flex items-center gap-1.5 text-sm font-semibold transition-all duration-200',
               'hover:gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded',
-              colors.action
+              colors.action,
             )}
           >
             {actionLabel}
-            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
           </button>
         )}
       </div>
