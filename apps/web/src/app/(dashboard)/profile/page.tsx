@@ -2,7 +2,6 @@
 
 import { User, Mail, Shield, Calendar } from 'lucide-react';
 
-
 import { useAuthStore } from '@/store/auth.store';
 import { PageHeader } from '@/components/dashboard/page-header';
 import { Button } from '@/components/ui/button';
