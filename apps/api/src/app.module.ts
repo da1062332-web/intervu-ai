@@ -9,6 +9,7 @@ import { TestAssemblyModule } from './modules/test-assembly';
 import { SystemConfigModule } from './modules/config';
 import { RequestLoggingMiddleware, CorrelationMiddleware } from './common';
 import { PrismaModule } from './prisma/prisma.module';
+import { DashboardModule } from './modules/dashboard';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PrismaModule } from './prisma/prisma.module';
     TemplateLibraryModule,
     TestAssemblyModule,
     SystemConfigModule,
+    DashboardModule,
   ],
 })
 export class AppModule implements NestModule {
