@@ -2,27 +2,32 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Controller, Get, Post, Patch, Delete, Body, INestApplication } from '@nestjs/common';
-import { ZodValidationPipe, GlobalExceptionFilter, ResponseInterceptor, ResponseValidationInterceptor, UserSchema } from '@intervu/shared';
+import { ZodValidationPipe, GlobalExceptionFilter, ResponseInterceptor, ResponseValidationInterceptor, UserSchema, ValidateResponse } from '@intervu/shared';
+import { Reflector } from '@nestjs/core';
 
 // Test Controller to verify routing + middleware + validation
 @Controller('users')
 class TestUsersController {
   @Post()
+  @ValidateResponse(UserSchema)
   createUser(@Body() body: unknown) {
-    return { ...body, id: '123e4567-e89b-12d3-a456-426614174000', createdAt: new Date() };
+    return { ...(body as Record<string, unknown>), id: '123e4567-e89b-12d3-a456-426614174000', createdAt: new Date() };
   }
 
   @Get()
+  @ValidateResponse(UserSchema)
   getUsers() {
     return { id: '123e4567-e89b-12d3-a456-426614174000', email: 'test@example.com', createdAt: new Date() };
   }
 
   @Patch(':id')
+  @ValidateResponse(UserSchema)
   updateUser(@Body() body: unknown) {
-    return { ...body, id: '123e4567-e89b-12d3-a456-426614174000', createdAt: new Date() };
+    return { ...(body as Record<string, unknown>), id: '123e4567-e89b-12d3-a456-426614174000', createdAt: new Date() };
   }
 
   @Delete(':id')
+  @ValidateResponse(UserSchema)
   deleteUser() {
     return { id: '123e4567-e89b-12d3-a456-426614174000', email: 'deleted@example.com', createdAt: new Date() };
   }
@@ -39,7 +44,8 @@ describe('User API Integration Tests', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ZodValidationPipe());
     app.useGlobalFilters(new GlobalExceptionFilter());
-    app.useGlobalInterceptors(new ResponseInterceptor(), new ResponseValidationInterceptor(UserSchema));
+    const reflector = app.get(Reflector);
+    app.useGlobalInterceptors(new ResponseInterceptor(), new ResponseValidationInterceptor(reflector));
     await app.init();
   });
 

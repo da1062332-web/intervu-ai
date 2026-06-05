@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, Controller, Get } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { z } from 'zod';
 import { ValidateResponse } from '@intervu/shared';
 import { ResponseValidationInterceptor, ResponseInterceptor, ContractViolationError } from '@intervu/shared';
