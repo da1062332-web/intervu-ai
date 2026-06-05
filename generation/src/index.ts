@@ -1,5 +1,6 @@
 export * from './types/template.types';
 export * from './types/question.types';
+export * from './types/evaluation.types';
 export * from './engine/prng';
 export * from './engine/math-parser';
 export * from './engine/variable-generator';
@@ -10,3 +11,4 @@ export * from './engine/template-executor';
 export * from './engine/template-loader';
 export * from './engine/execution-runtime';
 export * from './engine/metrics-tracker';
+export * from './engine/evaluation-pipeline';
