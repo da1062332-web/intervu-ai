@@ -60,9 +60,11 @@ describe("Worker Queue Processors", () => {
     it("should add jobs to generation queue", async () => {
       const jobData = {
         jobId: "test-gen-001",
-        type: "generation" as const,
-        timestamp: Date.now(),
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
         payload: {
+          type: "generation" as const,
           assemblyId: "asm-123",
           difficulty: "medium",
         },
@@ -88,9 +90,11 @@ describe("Worker Queue Processors", () => {
     it("should add jobs to evaluation queue", async () => {
       const jobData = {
         jobId: "test-eval-001",
-        type: "evaluation" as const,
-        timestamp: Date.now(),
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
         payload: {
+          type: "evaluation" as const,
           testId: "test-123",
           userId: "user-456",
         },
@@ -116,9 +120,11 @@ describe("Worker Queue Processors", () => {
     it("should add jobs to analytics queue", async () => {
       const jobData = {
         jobId: "test-analytics-001",
-        type: "analytics" as const,
-        timestamp: Date.now(),
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
         payload: {
+          type: "analytics" as const,
           eventType: "user_signup",
           eventData: {
             userId: "user-100",
@@ -148,23 +154,26 @@ describe("Worker Queue Processors", () => {
       // Add jobs to different queues
       await generationQueue.add("gen-1", {
         jobId: "gen-1",
-        type: "generation" as const,
-        timestamp: Date.now(),
-        payload: { assemblyId: "asm-1" },
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
+        payload: { type: "generation" as const, assemblyId: "asm-1" },
       });
 
       await evaluationQueue.add("eval-1", {
         jobId: "eval-1",
-        type: "evaluation" as const,
-        timestamp: Date.now(),
-        payload: { testId: "test-1", userId: "user-1" },
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
+        payload: { type: "evaluation" as const, testId: "test-1", userId: "user-1" },
       });
 
       await analyticsQueue.add("ana-1", {
         jobId: "ana-1",
-        type: "analytics" as const,
-        timestamp: Date.now(),
-        payload: { eventType: "test_event", eventData: {} },
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
+        payload: { type: "analytics" as const, eventType: "test_event", eventData: {} },
       });
 
       // Verify all jobs are queued
@@ -193,9 +202,10 @@ describe("Worker Queue Processors", () => {
     it("should respect retry configuration", async () => {
       const jobData = {
         jobId: "test-retry-001",
-        type: "generation" as const,
-        timestamp: Date.now(),
-        payload: { assemblyId: "asm-123" },
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
+        payload: { type: "generation" as const, assemblyId: "asm-123" },
       };
 
       const job = await generationQueue.add("test-retry-001", jobData, {
@@ -217,9 +227,10 @@ describe("Worker Queue Processors", () => {
     it("should handle job removal", async () => {
       const jobData = {
         jobId: "test-remove-001",
-        type: "generation" as const,
-        timestamp: Date.now(),
-        payload: { assemblyId: "asm-123" },
+        requestId: "req-1",
+        correlationId: "cor-1",
+        timestamp: new Date().toISOString(),
+        payload: { type: "generation" as const, assemblyId: "asm-123" },
       };
 
       const job = await generationQueue.add("test-remove-001", jobData);
