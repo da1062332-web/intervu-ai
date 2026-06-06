@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { Download, BarChart3 } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 import { PageHeader } from '@/components/dashboard/page-header';
-import { EmptyState } from '@/components/dashboard/empty-state';
 import { Button } from '@/components/ui/button';
+import { ResultsView } from '@/components/results/ResultsView';
 
 export const metadata: Metadata = {
   title: 'Results — InterVu AI',
@@ -35,14 +35,8 @@ export default function ResultsPage() {
         ))}
       </div>
 
-      {/* Results list empty state */}
-      <div className='rounded-2xl border border-dashed border-border bg-muted/20 min-h-[380px] flex items-center justify-center'>
-        <EmptyState
-          icon={<BarChart3 className='size-7 text-muted-foreground' />}
-          title='No results yet'
-          description='Once candidates complete your assessments, their results will appear here.'
-        />
-      </div>
+      {/* Interactive Results View */}
+      <ResultsView />
     </div>
   );
 }

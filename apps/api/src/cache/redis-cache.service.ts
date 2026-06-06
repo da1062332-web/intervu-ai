@@ -303,4 +303,33 @@ export class RedisCacheService {
       ttl: TTL.GENERATION_RESULT,
     });
   }
+
+  // ─── Domain: Execution Cache ──────────────────────────────────────────────────
+
+  async getExecution<T>(executionId: string): Promise<T | null> {
+    return this.get<T>(executionId, { prefix: "execution" });
+  }
+
+  async setExecution<T>(
+    executionId: string,
+    data: T,
+    ttl?: number,
+  ): Promise<boolean> {
+    return this.set<T>(executionId, data, { prefix: "execution", ttl });
+  }
+
+  async hasExecutionForTest(testId: string): Promise<boolean> {
+    return this.exists(testId, { prefix: "execution:test" });
+  }
+
+  async setExecutionForTest(
+    testId: string,
+    executionId: string,
+    ttl?: number,
+  ): Promise<boolean> {
+    return this.set<string>(testId, executionId, {
+      prefix: "execution:test",
+      ttl,
+    });
+  }
 }

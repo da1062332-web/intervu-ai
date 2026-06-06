@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { LogOut, Moon, Sun, Bell, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
@@ -173,14 +174,14 @@ export function Navbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <a href='/profile' className='cursor-pointer'>
+              <Link href='/profile' className='cursor-pointer'>
                 Profile
-              </a>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <a href='/settings' className='cursor-pointer'>
+              <Link href='/settings' className='cursor-pointer'>
                 Settings
-              </a>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

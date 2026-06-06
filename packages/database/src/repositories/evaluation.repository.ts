@@ -87,9 +87,7 @@ export class EvaluationRepository {
    * Finds an evaluation result by its ID.
    * Includes related skill scores.
    */
-  async findEvaluation(
-    id: string,
-  ): Promise<EvaluationWithSkillScores | null> {
+  async findEvaluation(id: string): Promise<EvaluationWithSkillScores | null> {
     return this.prisma.evaluationResult.findUnique({
       where: { id },
       include: { skillScores: true },
@@ -101,9 +99,7 @@ export class EvaluationRepository {
    * Leverages the @unique constraint on testId for efficient lookup.
    * Includes related skill scores.
    */
-  async findByTest(
-    testId: string,
-  ): Promise<EvaluationWithSkillScores | null> {
+  async findByTest(testId: string): Promise<EvaluationWithSkillScores | null> {
     return this.prisma.evaluationResult.findUnique({
       where: { testId },
       include: { skillScores: true },

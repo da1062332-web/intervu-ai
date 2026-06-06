@@ -18,9 +18,7 @@ export class SkillScoreRepository {
    * Batch-creates multiple skill scores atomically.
    * Uses Prisma's createMany for performance.
    */
-  async createMany(
-    data: CreateSkillScoreInput[],
-  ): Promise<{ count: number }> {
+  async createMany(data: CreateSkillScoreInput[]): Promise<{ count: number }> {
     return this.prisma.skillScore.createMany({
       data: data.map((s) => ({
         evaluationId: s.evaluationId,

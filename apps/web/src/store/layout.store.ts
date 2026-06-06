@@ -52,7 +52,16 @@ export const useLayoutStore = create<LayoutState>()(
     }),
     {
       name: 'intervu-layout-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage;
+        }
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        };
+      }),
       // Only persist UI preferences — not transient state like mobile nav open
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,

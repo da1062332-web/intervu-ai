@@ -64,7 +64,17 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'intervu-auth-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage;
+        }
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        };
+      }),
+      skipHydration: true,
       partialize: (state) => ({
         user: state.user,
         status: state.status,

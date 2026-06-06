@@ -1,5 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { EvaluationRepository, CreateEvaluationInput, UpdateEvaluationInput } from "./evaluation.repository";
+import {
+  EvaluationRepository,
+  CreateEvaluationInput,
+  UpdateEvaluationInput,
+} from "./evaluation.repository";
 
 // ─── Mock Prisma ────────────────────────────────────────────────────────────────
 
@@ -49,8 +53,20 @@ describe("EvaluationRepository", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         skillScores: [
-          { id: "ss-1", evaluationId: "eval-1", skill: "System Design", score: 90, feedback: "Excellent" },
-          { id: "ss-2", evaluationId: "eval-1", skill: "Algorithms", score: 78, feedback: "Good" },
+          {
+            id: "ss-1",
+            evaluationId: "eval-1",
+            skill: "System Design",
+            score: 90,
+            feedback: "Excellent",
+          },
+          {
+            id: "ss-2",
+            evaluationId: "eval-1",
+            skill: "Algorithms",
+            score: 78,
+            feedback: "Good",
+          },
         ],
       };
 
@@ -240,7 +256,13 @@ describe("EvaluationRepository", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         skillScores: [
-          { id: "ss-1", evaluationId: "eval-1", skill: "System Design", score: 90, feedback: "Excellent" },
+          {
+            id: "ss-1",
+            evaluationId: "eval-1",
+            skill: "System Design",
+            score: 90,
+            feedback: "Excellent",
+          },
         ],
       };
 
