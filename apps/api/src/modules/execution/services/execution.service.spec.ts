@@ -8,7 +8,10 @@ import {
 import { ExecutionService } from "./execution.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 
-import { SubmitExecutionDto, ExecutionResultDto } from "@/modules/execution/dto";
+import {
+  SubmitExecutionDto,
+  ExecutionResultDto,
+} from "@/modules/execution/dto";
 
 describe("ExecutionService", () => {
   let service: ExecutionService;
@@ -56,7 +59,9 @@ describe("ExecutionService", () => {
       expect(result.executionId).toBeDefined();
 
       expect(mockRedisCacheService.setExecution).toHaveBeenCalledTimes(1);
-      expect(mockRedisCacheService.setExecutionForTest).toHaveBeenCalledTimes(1);
+      expect(mockRedisCacheService.setExecutionForTest).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it("should throw BadRequestException if testId is missing", async () => {
@@ -64,7 +69,9 @@ describe("ExecutionService", () => {
         answers: [{ questionId: "q1", answer: "A" }],
       } as SubmitExecutionDto;
 
-      await expect(service.submitAnswers(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.submitAnswers(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it("should throw BadRequestException if answers are empty", async () => {
@@ -73,7 +80,9 @@ describe("ExecutionService", () => {
         answers: [],
       };
 
-      await expect(service.submitAnswers(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.submitAnswers(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it("should throw BadRequestException for duplicate questionIds", async () => {
@@ -85,7 +94,9 @@ describe("ExecutionService", () => {
         ],
       };
 
-      await expect(service.submitAnswers(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.submitAnswers(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it("should throw ConflictException if duplicate submission detected", async () => {
@@ -96,7 +107,9 @@ describe("ExecutionService", () => {
 
       mockRedisCacheService.hasExecutionForTest.mockResolvedValue(true);
 
-      await expect(service.submitAnswers(dto)).rejects.toThrow(ConflictException);
+      await expect(service.submitAnswers(dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it("should throw ServiceUnavailableException if Redis set fails", async () => {
@@ -108,7 +121,9 @@ describe("ExecutionService", () => {
       mockRedisCacheService.hasExecutionForTest.mockResolvedValue(false);
       mockRedisCacheService.setExecution.mockResolvedValue(false);
 
-      await expect(service.submitAnswers(dto)).rejects.toThrow(ServiceUnavailableException);
+      await expect(service.submitAnswers(dto)).rejects.toThrow(
+        ServiceUnavailableException,
+      );
     });
   });
 
@@ -128,7 +143,9 @@ describe("ExecutionService", () => {
       const result = await service.getExecutionResult(executionId);
 
       expect(result).toEqual(expectedResult);
-      expect(mockRedisCacheService.getExecution).toHaveBeenCalledWith(executionId);
+      expect(mockRedisCacheService.getExecution).toHaveBeenCalledWith(
+        executionId,
+      );
     });
 
     it("should throw NotFoundException if execution is not found", async () => {
@@ -136,7 +153,9 @@ describe("ExecutionService", () => {
 
       mockRedisCacheService.getExecution.mockResolvedValue(null);
 
-      await expect(service.getExecutionResult(executionId)).rejects.toThrow(NotFoundException);
+      await expect(service.getExecutionResult(executionId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });
