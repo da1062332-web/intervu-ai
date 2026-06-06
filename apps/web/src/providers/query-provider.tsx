@@ -40,10 +40,13 @@ function createQueryClient(): QueryClient {
       queries: {
         staleTime: 60_000,
         gcTime: 5 * 60_000,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+        networkMode: 'offlineFirst',
         retry: shouldRetry,
       },
       mutations: {
+        networkMode: 'offlineFirst',
         retry: shouldRetry,
       },
     },

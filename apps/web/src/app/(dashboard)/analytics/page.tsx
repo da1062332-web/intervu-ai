@@ -1,30 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { Users, FileText, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 import { AnalyticsSectionHeader } from '@/components/analytics/AnalyticsSectionHeader';
 import { StatCard } from '@/components/analytics/StatCard';
 import { TrendCard } from '@/components/analytics/TrendCard';
 import { ProgressIndicator } from '@/components/analytics/ProgressIndicator';
 import { EmptyAnalyticsState } from '@/components/analytics/EmptyAnalyticsState';
-import {
-  mockOverviewStats,
-  mockPerformanceMetrics,
-  mockTrendData,
-  mockRecentActivity,
-} from '@/data/mock-analytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function AnalyticsDashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
+import { useDashboardStats } from '@/modules/dashboard/hooks/use-dashboard-stats';
+import { useAnalyticsSummary } from '@/modules/dashboard/hooks/use-analytics-summary';
+import { useRecentActivity } from '@/modules/dashboard/hooks/use-recent-activity';
 
-  useEffect(() => {
-    // Simulate loading state
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+export default function AnalyticsDashboardPage() {
+  const { data: statsData, isLoading: isLoadingStats, isError: isStatsError } = useDashboardStats();
+  const {
+    data: summaryData,
+    isLoading: isLoadingSummary,
+    isError: isSummaryError,
+  } = useAnalyticsSummary();
+  const {
+    data: activityData,
+    isLoading: isLoadingActivity,
+    isError: isActivityError,
+  } = useRecentActivity();
+
+  const isError = isStatsError || isSummaryError || isActivityError;
 
   const getIconForStat = (title: string) => {
     switch (title) {
@@ -32,14 +34,70 @@ export default function AnalyticsDashboardPage() {
         return <FileText className='size-5' />;
       case 'Average Score':
         return <TrendingUp className='size-5' />;
-      case 'Pass Rate':
+      case 'Completion Rate':
         return <CheckCircle2 className='size-5' />;
-      case 'Active Candidates':
+      case 'Total Sessions':
         return <Users className='size-5' />;
       default:
         return <FileText className='size-5' />;
     }
   };
+
+  const overviewStats = React.useMemo(
+    () => [
+      {
+        title: 'Tests Taken',
+        value: statsData?.testsTaken?.toString() ?? '0',
+        trend: 'neutral' as const,
+      },
+      {
+        title: 'Average Score',
+        value: `${statsData?.averageScore ?? 0}%`,
+        trend: 'neutral' as const,
+      },
+      {
+        title: 'Completion Rate',
+        value: `${statsData?.completionRate ?? 0}%`,
+        trend: 'neutral' as const,
+      },
+      {
+        title: 'Total Sessions',
+        value: statsData?.totalSessions?.toString() ?? '0',
+        trend: 'neutral' as const,
+      },
+    ],
+    [statsData],
+  );
+
+  const performanceMetrics = React.useMemo(
+    () =>
+      summaryData
+        ? [
+            { category: 'Communication', score: summaryData.communicationScore },
+            { category: 'Technical', score: summaryData.technicalScore },
+            { category: 'Confidence', score: summaryData.confidenceScore },
+            { category: 'Overall Rating', score: summaryData.overallRating },
+          ]
+        : [],
+    [summaryData],
+  );
+
+  const hasSkills = React.useMemo(
+    () => performanceMetrics.some((m) => m.score > 0),
+    [performanceMetrics],
+  );
+  const recentActivities = React.useMemo(() => activityData ?? [], [activityData]);
+
+  if (isError) {
+    return (
+      <div className='p-6'>
+        <EmptyAnalyticsState
+          title='Failed to load analytics'
+          description='There was an error loading the dashboard data. Please try again later.'
+        />
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-8 animate-fade-in-up pb-8'>
@@ -56,11 +114,11 @@ export default function AnalyticsDashboardPage() {
 
       {/* Stats Overview Grid */}
       <div className='grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4'>
-        {mockOverviewStats.map((stat, idx) => (
+        {overviewStats.map((stat, idx) => (
           <StatCard
             key={idx}
             title={stat.title}
-            value={isLoading ? '-' : stat.value}
+            value={isLoadingStats ? '-' : stat.value}
             trend={stat.trend}
             icon={getIconForStat(stat.title)}
           />
@@ -72,9 +130,9 @@ export default function AnalyticsDashboardPage() {
         <div className='lg:col-span-2'>
           <TrendCard
             title='Candidate Engagement'
-            data={mockTrendData}
-            trendValue='+24%'
-            isLoading={isLoading}
+            data={[]}
+            trendValue='0%'
+            isLoading={isLoadingStats}
           />
         </div>
 
@@ -84,7 +142,7 @@ export default function AnalyticsDashboardPage() {
             <CardTitle className='text-lg font-semibold'>Skill Performance</CardTitle>
           </CardHeader>
           <CardContent className='flex-1 flex flex-col justify-center space-y-6 pt-2'>
-            {isLoading ? (
+            {isLoadingSummary ? (
               <div className='space-y-6'>
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className='flex flex-col gap-2'>
@@ -93,8 +151,8 @@ export default function AnalyticsDashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : mockPerformanceMetrics.length > 0 ? (
-              mockPerformanceMetrics.map((metric, idx) => (
+            ) : hasSkills ? (
+              performanceMetrics.map((metric, idx) => (
                 <ProgressIndicator
                   key={idx}
                   label={metric.category}
@@ -111,7 +169,7 @@ export default function AnalyticsDashboardPage() {
             ) : (
               <EmptyAnalyticsState
                 title='No skills tracked'
-                description='Performance metrics will appear here.'
+                description='Performance metrics will appear here once candidates complete tests.'
               />
             )}
           </CardContent>
@@ -126,7 +184,7 @@ export default function AnalyticsDashboardPage() {
 
       <Card>
         <CardContent className='p-0'>
-          {isLoading ? (
+          {isLoadingActivity ? (
             <div className='p-6 space-y-4'>
               {[1, 2, 3].map((i) => (
                 <div key={i} className='flex gap-4'>
@@ -138,9 +196,9 @@ export default function AnalyticsDashboardPage() {
                 </div>
               ))}
             </div>
-          ) : mockRecentActivity.length > 0 ? (
+          ) : recentActivities.length > 0 ? (
             <div className='divide-y divide-border'>
-              {mockRecentActivity.map((activity) => (
+              {recentActivities.map((activity) => (
                 <div
                   key={activity.id}
                   className='p-6 flex items-start gap-4 hover:bg-muted/50 transition-colors'

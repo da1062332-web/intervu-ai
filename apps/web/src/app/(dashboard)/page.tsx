@@ -1,17 +1,23 @@
 'use client';
 
-import { Plus, Clock, TrendingUp, ArrowRight, Inbox } from 'lucide-react';
-import { useAuthStore } from '@/store/auth.store';
+import { Plus, Clock, TrendingUp, ArrowRight, Inbox, Loader2 } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useSessions } from '@/hooks/use-sessions';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const user = useAuthStore((state) => state.user);
+  const { data: user, isLoading: isUserLoading } = useCurrentUser();
+  const { data: sessions, isLoading: isSessionsLoading } = useSessions();
 
   return (
     <div className='space-y-8 animate-fade-in-up'>
       <div>
-        <h1 className='text-4xl font-heading font-bold tracking-tight text-foreground'>
-          Welcome back, {user?.fullName?.split(' ')[0] || 'User'} 👋
+        <h1 className='text-4xl font-heading font-bold tracking-tight text-foreground flex items-center'>
+          {isUserLoading ? (
+            <div className='h-10 w-64 bg-muted animate-pulse rounded'></div>
+          ) : (
+            `Welcome back, ${user?.fullName?.split(' ')[0] || 'User'} 👋`
+          )}
         </h1>
         <p className='mt-2 text-lg text-muted-foreground'>
           Here is what's happening with your interview assessments today.
@@ -44,12 +50,24 @@ export default function DashboardPage() {
             <div className='size-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300'>
               <Clock className='size-6' />
             </div>
-            <h3 className='text-xl font-heading font-semibold mb-2'>Recent Assessments</h3>
+            <h3 className='text-xl font-heading font-semibold mb-2'>Recent Sessions</h3>
             <p className='text-muted-foreground mb-6 flex-1'>
               View and manage your recent interview campaigns and candidates.
             </p>
-            <div className='mt-auto flex items-center justify-center rounded-lg border border-dashed border-border bg-muted/50 py-4'>
-              <p className='text-sm font-medium text-muted-foreground'>No assessments yet</p>
+            <div className='mt-auto flex flex-col justify-center rounded-lg border border-dashed border-border bg-muted/50 py-4 px-4'>
+              {isSessionsLoading ? (
+                <div className='flex items-center justify-center'>
+                  <Loader2 className='size-5 animate-spin text-muted-foreground' />
+                </div>
+              ) : sessions && sessions.length > 0 ? (
+                <div className='text-sm font-medium text-foreground text-center'>
+                  {sessions.length} Active {sessions.length === 1 ? 'Session' : 'Sessions'}
+                </div>
+              ) : (
+                <p className='text-sm font-medium text-muted-foreground text-center'>
+                  No recent sessions
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -73,7 +91,7 @@ export default function DashboardPage() {
               <div className='size-10 rounded-[14px] bg-[#22232a] flex items-center justify-center mb-3'>
                 <Inbox className='size-5 text-[#8f9bb3]' />
               </div>
-              <p className='text-[15px] font-bold text-white'>No data yet</p>
+              <p className='text-[15px] font-bold text-white'>View Data</p>
             </div>
 
             <div className='mt-auto inline-flex items-center text-[15px] font-bold text-[#00e599] transition-colors'>
