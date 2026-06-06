@@ -1,5 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { SkillScoreRepository, CreateSkillScoreInput } from "./skill-score.repository";
+import {
+  SkillScoreRepository,
+  CreateSkillScoreInput,
+} from "./skill-score.repository";
 
 // ─── Mock Prisma ────────────────────────────────────────────────────────────────
 
@@ -25,11 +28,36 @@ describe("SkillScoreRepository", () => {
   describe("createMany", () => {
     it("should batch-create multiple skill scores and return count", async () => {
       const input: CreateSkillScoreInput[] = [
-        { evaluationId: "eval-1", skill: "Algorithms", score: 85, feedback: "Strong problem-solving" },
-        { evaluationId: "eval-1", skill: "System Design", score: 90, feedback: "Excellent architecture" },
-        { evaluationId: "eval-1", skill: "Communication", score: 78, feedback: "Clear explanations" },
-        { evaluationId: "eval-1", skill: "Data Structures", score: 88, feedback: "Solid understanding" },
-        { evaluationId: "eval-1", skill: "Debugging", score: 72, feedback: "Needs more practice" },
+        {
+          evaluationId: "eval-1",
+          skill: "Algorithms",
+          score: 85,
+          feedback: "Strong problem-solving",
+        },
+        {
+          evaluationId: "eval-1",
+          skill: "System Design",
+          score: 90,
+          feedback: "Excellent architecture",
+        },
+        {
+          evaluationId: "eval-1",
+          skill: "Communication",
+          score: 78,
+          feedback: "Clear explanations",
+        },
+        {
+          evaluationId: "eval-1",
+          skill: "Data Structures",
+          score: 88,
+          feedback: "Solid understanding",
+        },
+        {
+          evaluationId: "eval-1",
+          skill: "Debugging",
+          score: 72,
+          feedback: "Needs more practice",
+        },
       ];
 
       mockSkillScore.createMany.mockResolvedValue({ count: 5 });
@@ -49,7 +77,12 @@ describe("SkillScoreRepository", () => {
 
     it("should handle a single skill score", async () => {
       const input: CreateSkillScoreInput[] = [
-        { evaluationId: "eval-1", skill: "Algorithms", score: 85, feedback: "Good" },
+        {
+          evaluationId: "eval-1",
+          skill: "Algorithms",
+          score: 85,
+          feedback: "Good",
+        },
       ];
 
       mockSkillScore.createMany.mockResolvedValue({ count: 1 });
@@ -74,9 +107,27 @@ describe("SkillScoreRepository", () => {
   describe("findByEvaluation", () => {
     it("should return skill scores ordered by skill name", async () => {
       const expectedScores = [
-        { id: "ss-1", evaluationId: "eval-1", skill: "Algorithms", score: 85, feedback: "Good" },
-        { id: "ss-2", evaluationId: "eval-1", skill: "Communication", score: 78, feedback: "Clear" },
-        { id: "ss-3", evaluationId: "eval-1", skill: "System Design", score: 90, feedback: "Excellent" },
+        {
+          id: "ss-1",
+          evaluationId: "eval-1",
+          skill: "Algorithms",
+          score: 85,
+          feedback: "Good",
+        },
+        {
+          id: "ss-2",
+          evaluationId: "eval-1",
+          skill: "Communication",
+          score: 78,
+          feedback: "Clear",
+        },
+        {
+          id: "ss-3",
+          evaluationId: "eval-1",
+          skill: "System Design",
+          score: 90,
+          feedback: "Excellent",
+        },
       ];
 
       mockSkillScore.findMany.mockResolvedValue(expectedScores);
