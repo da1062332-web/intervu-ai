@@ -110,7 +110,7 @@ export function DashboardCard({
 
         {/* Action */}
         {actionLabel && (actionHref || onAction) && (
-          <div className="mt-4">
+          <div className='mt-4'>
             {actionHref ? (
               <Link
                 href={actionHref}

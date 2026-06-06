@@ -7,7 +7,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   asChild?: boolean;
 }
 
-export function Button({ className, variant = 'default', size = 'md', asChild = false, ...props }: ButtonProps) {
+export function Button({
+  className,
+  variant = 'default',
+  size = 'md',
+  asChild = false,
+  ...props
+}: ButtonProps) {
   const baseStyles =
     'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
 
@@ -27,9 +33,7 @@ export function Button({ className, variant = 'default', size = 'md', asChild = 
     icon: 'h-10 w-10 flex items-center justify-center p-2 rounded-md',
   };
 
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? Slot : 'button';
 
-  return (
-    <Comp className={cn(baseStyles, variants[variant], sizes[size], className)} {...props} />
-  );
+  return <Comp className={cn(baseStyles, variants[variant], sizes[size], className)} {...props} />;
 }

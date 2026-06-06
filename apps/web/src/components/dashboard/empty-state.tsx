@@ -59,8 +59,9 @@ export function EmptyState({
       )}
 
       {/* CTA */}
-      {actionLabel && (actionHref || onAction) && (
-        actionHref ? (
+      {actionLabel &&
+        (actionHref || onAction) &&
+        (actionHref ? (
           <Button asChild className='mt-6' size={compact ? 'sm' : 'md'}>
             <Link href={actionHref}>{actionLabel}</Link>
           </Button>
@@ -68,8 +69,7 @@ export function EmptyState({
           <Button onClick={onAction} className='mt-6' size={compact ? 'sm' : 'md'}>
             {actionLabel}
           </Button>
-        )
-      )}
+        ))}
     </div>
   );
 }

@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
  * and export `metadata` for SEO.
  */
 export function TestsPageClient() {
-
   return (
     <div className='space-y-6'>
       {/* Toolbar */}
@@ -21,12 +20,7 @@ export function TestsPageClient() {
           <Filter className='size-4' />
           Filter
         </Button>
-        <Button
-          asChild
-          size='sm'
-          className='gap-2'
-          id='new-test-btn'
-        >
+        <Button asChild size='sm' className='gap-2' id='new-test-btn'>
           <Link href='/tests/new'>
             <Plus className='size-4' />
             New Test

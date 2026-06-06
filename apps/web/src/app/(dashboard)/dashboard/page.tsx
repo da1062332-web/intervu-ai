@@ -25,11 +25,7 @@ export default function DashboardPage() {
         title={`Welcome back, ${firstName} 👋`}
         subtitle="Here's what's happening with your interview assessments today."
         action={
-          <Button
-            asChild
-            className='gap-2'
-            id='create-assessment-btn'
-          >
+          <Button asChild className='gap-2' id='create-assessment-btn'>
             <Link href='/tests'>
               <Plus className='size-4' />
               New Assessment

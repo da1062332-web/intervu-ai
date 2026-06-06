@@ -52,36 +52,36 @@ export const useResultsStore = create<ResultsState>((set) => ({
 
 export const mockResult = {
   currentTest: {
-    id: "test-1",
-    title: "Frontend React Assessment",
-    candidateName: "John Doe",
-    submittedAt: "2026-06-02T10:15:00Z",
+    id: 'test-1',
+    title: 'Frontend React Assessment',
+    candidateName: 'John Doe',
+    submittedAt: '2026-06-02T10:15:00Z',
   },
   evaluationResult: {
     overallScore: 86,
     confidenceScore: 91,
     skills: [
       {
-        skill: "React",
+        skill: 'React',
         score: 92,
-        feedback: "Strong understanding of hooks and state management.",
+        feedback: 'Strong understanding of hooks and state management.',
       },
       {
-        skill: "TypeScript",
+        skill: 'TypeScript',
         score: 84,
-        feedback: "Good typing practices but can improve generics usage.",
+        feedback: 'Good typing practices but can improve generics usage.',
       },
       {
-        skill: "System Design",
+        skill: 'System Design',
         score: 78,
-        feedback: "Understands fundamentals but lacks depth in scalability.",
+        feedback: 'Understands fundamentals but lacks depth in scalability.',
       },
     ],
   },
   recommendations: [
     {
-      title: "Advanced TypeScript",
-      description: "Practice utility types and generic constraints.",
+      title: 'Advanced TypeScript',
+      description: 'Practice utility types and generic constraints.',
     },
   ],
 };

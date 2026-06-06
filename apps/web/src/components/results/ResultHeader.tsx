@@ -12,14 +12,14 @@ export function ResultHeader({ candidateName, testTitle, submittedAt }: ResultHe
   const formattedDate = format(new Date(submittedAt), 'MMMM do, yyyy - h:mm a');
 
   return (
-    <Card className="mb-6">
-      <CardContent className="p-6">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <Card className='mb-6'>
+      <CardContent className='p-6'>
+        <header className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{candidateName}</h1>
-            <h2 className="text-lg text-muted-foreground mt-1">{testTitle}</h2>
+            <h1 className='text-2xl font-bold text-foreground'>{candidateName}</h1>
+            <h2 className='text-lg text-muted-foreground mt-1'>{testTitle}</h2>
           </div>
-          <div className="text-sm text-muted-foreground bg-muted px-3 py-1.5 rounded-md">
+          <div className='text-sm text-muted-foreground bg-muted px-3 py-1.5 rounded-md'>
             Submitted: <time dateTime={submittedAt}>{formattedDate}</time>
           </div>
         </header>

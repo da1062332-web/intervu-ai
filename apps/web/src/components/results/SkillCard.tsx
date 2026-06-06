@@ -16,19 +16,15 @@ export function SkillCard({ skill, score, feedback }: SkillCardProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base font-semibold truncate pr-4" title={skill}>
+    <Card className='h-full flex flex-col'>
+      <CardHeader className='pb-3 flex-row items-center justify-between space-y-0'>
+        <CardTitle className='text-base font-semibold truncate pr-4' title={skill}>
           {skill}
         </CardTitle>
-        <div className={`font-bold text-lg ${getScoreColor(score)}`}>
-          {score}%
-        </div>
+        <div className={`font-bold text-lg ${getScoreColor(score)}`}>{score}%</div>
       </CardHeader>
-      <CardContent className="flex-1">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {feedback}
-        </p>
+      <CardContent className='flex-1'>
+        <p className='text-sm text-muted-foreground leading-relaxed'>{feedback}</p>
       </CardContent>
     </Card>
   );
