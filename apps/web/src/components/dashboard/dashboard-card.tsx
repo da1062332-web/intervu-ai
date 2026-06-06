@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ interface DashboardCardProps {
   icon: ReactNode;
   actionLabel?: string;
   onAction?: () => void;
+  actionHref?: string;
   color?: keyof typeof colorMap;
   children?: ReactNode;
   className?: string;
@@ -57,6 +59,7 @@ export function DashboardCard({
   icon,
   actionLabel,
   onAction,
+  actionHref,
   color = 'primary',
   children,
   className,
@@ -106,18 +109,34 @@ export function DashboardCard({
         {children && <div className='mt-auto'>{children}</div>}
 
         {/* Action */}
-        {actionLabel && onAction && (
-          <button
-            onClick={onAction}
-            className={cn(
-              'mt-4 inline-flex items-center gap-1.5 text-sm font-semibold transition-all duration-200',
-              'hover:gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded',
-              colors.action,
+        {actionLabel && (actionHref || onAction) && (
+          <div className='mt-4'>
+            {actionHref ? (
+              <Link
+                href={actionHref}
+                className={cn(
+                  'inline-flex items-center gap-1.5 text-sm font-semibold transition-all duration-200',
+                  'hover:gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded',
+                  colors.action,
+                )}
+              >
+                {actionLabel}
+                <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
+              </Link>
+            ) : (
+              <button
+                onClick={onAction}
+                className={cn(
+                  'inline-flex items-center gap-1.5 text-sm font-semibold transition-all duration-200',
+                  'hover:gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded',
+                  colors.action,
+                )}
+              >
+                {actionLabel}
+                <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
+              </button>
             )}
-          >
-            {actionLabel}
-            <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-0.5' />
-          </button>
+          </div>
         )}
       </div>
     </div>
