@@ -165,7 +165,11 @@ describe("Worker Queue Processors", () => {
         requestId: "req-1",
         correlationId: "cor-1",
         timestamp: new Date().toISOString(),
-        payload: { type: "evaluation" as const, testId: "test-1", userId: "user-1" },
+        payload: {
+          type: "evaluation" as const,
+          testId: "test-1",
+          userId: "user-1",
+        },
       });
 
       await analyticsQueue.add("ana-1", {
@@ -173,7 +177,11 @@ describe("Worker Queue Processors", () => {
         requestId: "req-1",
         correlationId: "cor-1",
         timestamp: new Date().toISOString(),
-        payload: { type: "analytics" as const, eventType: "test_event", eventData: {} },
+        payload: {
+          type: "analytics" as const,
+          eventType: "test_event",
+          eventData: {},
+        },
       });
 
       // Verify all jobs are queued
