@@ -1,21 +1,27 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   RecommendationDto,
   RecommendationEngine,
   SkillScore,
-} from './recommendation.types';
+} from "./recommendation.types";
 import {
   determinePriority,
   removeDuplicates,
   SkillRecommendationRule,
-} from './recommendation-rules';
-import { RECOMMENDATION_MATRIX, FALLBACK_RULE } from './recommendation.constants';
+} from "./recommendation-rules";
+import {
+  RECOMMENDATION_MATRIX,
+  FALLBACK_RULE,
+} from "./recommendation.constants";
 
 // Zod schema to enforce strict runtime type safety and fail-fast validation
 const SkillScoreSchema = z.object({
-  skill: z.string().min(1, 'Skill name must not be empty'),
-  score: z.number().min(0, 'Score must be at least 0').max(100, 'Score must be at most 100'),
-  topic: z.string().min(1, 'Topic must not be empty'),
+  skill: z.string().min(1, "Skill name must not be empty"),
+  score: z
+    .number()
+    .min(0, "Score must be at least 0")
+    .max(100, "Score must be at most 100"),
+  topic: z.string().min(1, "Topic must not be empty"),
 });
 
 const SkillScoresArraySchema = z.array(SkillScoreSchema);
@@ -23,7 +29,7 @@ const SkillScoresArraySchema = z.array(SkillScoreSchema);
 export class InMemoryRecommendationEngine implements RecommendationEngine {
   /**
    * Generates a prioritized and deduplicated list of learning recommendations from score evaluations.
-   * 
+   *
    * Follows the required function structure:
    * validate(input) -> fetchDependencies(input) -> coreLogic(data) -> formatResponse(result)
    */
@@ -40,7 +46,7 @@ export class InMemoryRecommendationEngine implements RecommendationEngine {
    */
   private validate(skillScores: SkillScore[]): SkillScore[] {
     if (!Array.isArray(skillScores)) {
-      throw new Error('Input must be an array of skill scores');
+      throw new Error("Input must be an array of skill scores");
     }
     // Parse using Zod schema to enforce types at runtime
     const parseResult = SkillScoresArraySchema.safeParse(skillScores);
@@ -103,7 +109,9 @@ export class InMemoryRecommendationEngine implements RecommendationEngine {
   /**
    * Step 4: Format the final response mapping exactly to camelCase rules.
    */
-  private formatResponse(recommendations: RecommendationDto[]): RecommendationDto[] {
+  private formatResponse(
+    recommendations: RecommendationDto[],
+  ): RecommendationDto[] {
     // Return mapped clones ensuring property alignment with the frontend
     return recommendations.map((rec) => ({
       skill: rec.skill,

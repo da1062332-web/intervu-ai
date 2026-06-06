@@ -1,4 +1,7 @@
-import { RecommendationPriority, RecommendationDto } from './recommendation.types';
+import {
+  RecommendationPriority,
+  RecommendationDto,
+} from "./recommendation.types";
 
 export interface SkillRecommendationRule {
   critical: string[];
@@ -10,7 +13,7 @@ export interface SkillRecommendationRule {
 
 /**
  * Determines the priority classification based on the given score.
- * 
+ *
  * Score limits:
  * - Score < 40: 'critical'
  * - 40 <= Score <= 60: 'high'
@@ -19,13 +22,13 @@ export interface SkillRecommendationRule {
  */
 export function determinePriority(score: number): RecommendationPriority {
   if (score < 40) {
-    return 'critical';
+    return "critical";
   } else if (score >= 40 && score <= 60) {
-    return 'high';
+    return "high";
   } else if (score > 60 && score <= 80) {
-    return 'medium';
+    return "medium";
   } else {
-    return 'low';
+    return "low";
   }
 }
 
@@ -33,7 +36,9 @@ export function determinePriority(score: number): RecommendationPriority {
  * Removes duplicate recommendation DTOs from the array.
  * Ensures each unique combination of skill and recommendation text appears exactly once.
  */
-export function removeDuplicates(recommendations: RecommendationDto[]): RecommendationDto[] {
+export function removeDuplicates(
+  recommendations: RecommendationDto[],
+): RecommendationDto[] {
   const seen = new Set<string>();
   const uniqueRecommendations: RecommendationDto[] = [];
 

@@ -1,4 +1,4 @@
-export type RecommendationPriority = 'critical' | 'high' | 'medium' | 'low';
+export type RecommendationPriority = "critical" | "high" | "medium" | "low";
 
 export interface RecommendationDto {
   skill: string;
