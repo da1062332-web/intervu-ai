@@ -11,7 +11,10 @@ export class ExecutionResultDto {
   @ApiProperty({ description: "Status of the execution", example: "submitted" })
   status!: string;
 
-  @ApiProperty({ description: "List of submitted answers", type: [CandidateAnswerDto] })
+  @ApiProperty({
+    description: "List of submitted answers",
+    type: [CandidateAnswerDto],
+  })
   answers!: CandidateAnswerDto[];
 
   @ApiProperty({ description: "Date when the execution was submitted" })

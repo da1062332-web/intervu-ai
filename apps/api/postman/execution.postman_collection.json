@@ -17,15 +17,8 @@
         ],
         "url": {
           "raw": "{{baseUrl}}/api/v1/execution/submit",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "execution",
-            "submit"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "execution", "submit"]
         },
         "body": {
           "mode": "raw",
@@ -41,15 +34,8 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/v1/execution/:id",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "execution",
-            ":id"
-          ],
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "execution", ":id"],
           "variable": [
             {
               "key": "id",
@@ -72,15 +58,8 @@
         ],
         "url": {
           "raw": "{{baseUrl}}/api/v1/auth/login",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "auth",
-            "login"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "login"]
         },
         "body": {
           "mode": "raw",
