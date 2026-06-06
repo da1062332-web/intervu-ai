@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   email: z.string().email(),
   name: z.string().min(1).max(100).optional(),
-  createdAt: z.date(),
+  createdAt: z.union([z.date(), z.string()]),
 });
 
 export const CreateUserSchema = UserSchema.pick({
@@ -22,12 +22,12 @@ export const UpdateProfileSchema = z.object({
 export const UserResponseSchema = UserSchema;
 
 export const SessionSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
-  ipAddress: z.string().nullable().optional(),
+  id: z.string().cuid(),
   userAgent: z.string().nullable().optional(),
-  lastActive: z.date(),
-  createdAt: z.date(),
+  ipAddress: z.string().nullable().optional(),
+  createdAt: z.union([z.date(), z.string()]),
+  expiresAt: z.union([z.date(), z.string()]),
+  isCurrent: z.boolean(),
 });
 
 export const SessionListResponseSchema = z.array(SessionSchema);
