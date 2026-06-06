@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ export function EmptyState({
   icon,
   actionLabel,
   onAction,
+  actionHref,
   compact = false,
   className,
 }: EmptyStateExtended) {
@@ -57,11 +59,17 @@ export function EmptyState({
       )}
 
       {/* CTA */}
-      {actionLabel && onAction && (
-        <Button onClick={onAction} className='mt-6' size={compact ? 'sm' : 'md'}>
-          {actionLabel}
-        </Button>
-      )}
+      {actionLabel &&
+        (actionHref || onAction) &&
+        (actionHref ? (
+          <Button asChild className='mt-6' size={compact ? 'sm' : 'md'}>
+            <Link href={actionHref}>{actionLabel}</Link>
+          </Button>
+        ) : (
+          <Button onClick={onAction} className='mt-6' size={compact ? 'sm' : 'md'}>
+            {actionLabel}
+          </Button>
+        ))}
     </div>
   );
 }

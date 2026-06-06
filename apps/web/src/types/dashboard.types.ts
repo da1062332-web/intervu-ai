@@ -28,6 +28,7 @@ export interface EmptyStateProps {
   icon?: React.ReactNode;
   actionLabel?: string;
   onAction?: () => void;
+  actionHref?: string;
   /** Small variant for inline use */
   compact?: boolean;
 }
