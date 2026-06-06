@@ -1,0 +1,93 @@
+{
+  "info": {
+    "name": "InterVu AI - Execution API",
+    "description": "Postman collection for Execution Engine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Submit Execution",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/execution/submit",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "execution",
+            "submit"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"testId\": \"test-123\",\n  \"answers\": [\n    {\n      \"questionId\": \"q-1\",\n      \"answer\": \"A\"\n    },\n    {\n      \"questionId\": \"q-2\",\n      \"answer\": \"B\"\n    }\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Execution Result",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/execution/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "execution",
+            ":id"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "exec-uuid-here"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}"
+        }
+      },
+      "response": []
+    }
+  ]
+}
