@@ -1,11 +1,13 @@
+import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
   size?: 'sm' | 'md' | 'lg' | 'icon';
+  asChild?: boolean;
 }
 
-export function Button({ className, variant = 'default', size = 'md', ...props }: ButtonProps) {
+export function Button({ className, variant = 'default', size = 'md', asChild = false, ...props }: ButtonProps) {
   const baseStyles =
     'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
 
@@ -25,7 +27,9 @@ export function Button({ className, variant = 'default', size = 'md', ...props }
     icon: 'h-10 w-10 flex items-center justify-center p-2 rounded-md',
   };
 
+  const Comp = asChild ? Slot : "button";
+
   return (
-    <button className={cn(baseStyles, variants[variant], sizes[size], className)} {...props} />
+    <Comp className={cn(baseStyles, variants[variant], sizes[size], className)} {...props} />
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { Plus, Search, Filter } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import { EmptyState } from '@/components/dashboard/empty-state';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
  * and export `metadata` for SEO.
  */
 export function TestsPageClient() {
-  const router = useRouter();
 
   return (
     <div className='space-y-6'>
@@ -23,13 +22,15 @@ export function TestsPageClient() {
           Filter
         </Button>
         <Button
+          asChild
           size='sm'
           className='gap-2'
           id='new-test-btn'
-          onClick={() => router.push('/tests/new')}
         >
-          <Plus className='size-4' />
-          New Test
+          <Link href='/tests/new'>
+            <Plus className='size-4' />
+            New Test
+          </Link>
         </Button>
       </div>
 
@@ -51,7 +52,7 @@ export function TestsPageClient() {
           title='No tests created yet'
           description='Create your first AI-powered interview assessment to start evaluating candidates.'
           actionLabel='Create your first test'
-          onAction={() => router.push('/tests/new')}
+          actionHref='/tests/new'
         />
       </div>
     </div>

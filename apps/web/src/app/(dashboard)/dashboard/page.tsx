@@ -1,7 +1,7 @@
 'use client';
 
 import { Plus, ClipboardList, BarChart3, Users, TrendingUp } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import { useAuthStore } from '@/store/auth.store';
 import { useDashboardStats } from '@/modules/dashboard';
@@ -13,7 +13,6 @@ import { SkeletonCardGrid } from '@/components/dashboard/skeleton-card';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const { data: stats, isLoading } = useDashboardStats();
 
@@ -27,12 +26,14 @@ export default function DashboardPage() {
         subtitle="Here's what's happening with your interview assessments today."
         action={
           <Button
-            onClick={() => router.push('/tests')}
+            asChild
             className='gap-2'
             id='create-assessment-btn'
           >
-            <Plus className='size-4' />
-            New Assessment
+            <Link href='/tests'>
+              <Plus className='size-4' />
+              New Assessment
+            </Link>
           </Button>
         }
       />
@@ -96,7 +97,7 @@ export default function DashboardPage() {
             description='Build a new AI-powered interview assessment tailored to your specific role and requirements.'
             icon={<Plus className='size-6' />}
             actionLabel='Get Started'
-            onAction={() => router.push('/tests')}
+            actionHref='/tests'
             color='primary'
           />
           <DashboardCard
@@ -104,7 +105,7 @@ export default function DashboardPage() {
             description='View and manage all your interview assessments, candidates, and test configurations.'
             icon={<ClipboardList className='size-6' />}
             actionLabel='View Tests'
-            onAction={() => router.push('/tests')}
+            actionHref='/tests'
             color='blue'
           >
             <EmptyStateCard title='No tests yet' compact cardClassName='min-h-[60px]' />
@@ -114,7 +115,7 @@ export default function DashboardPage() {
             description='Gain deep insights into candidate performance, pass rates, and hiring metrics.'
             icon={<TrendingUp className='size-6' />}
             actionLabel='View Analytics'
-            onAction={() => router.push('/results')}
+            actionHref='/results'
             color='emerald'
           >
             <EmptyStateCard title='No data yet' compact cardClassName='min-h-[60px]' />
