@@ -33,3 +33,6 @@ redis-data
 
 .agent
 api-endpoints.txt
+
+# Sprint Plans
+_sprint_plans/
