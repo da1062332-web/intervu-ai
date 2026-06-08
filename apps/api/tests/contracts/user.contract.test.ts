@@ -4,7 +4,7 @@ import { UserResponseSchema } from "@intervu/shared";
 describe("User Contract", () => {
   it("DTO ↔ Schema consistency", () => {
     const payload = {
-      id: "123e4567-e89b-12d3-a456-426614174000",
+      id: "cmqw29wmxp0001q9vxhgs0em6",
       email: "test@example.com",
       createdAt: new Date(),
     };
