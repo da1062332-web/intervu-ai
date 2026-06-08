@@ -103,7 +103,6 @@ export class RedisConnectionManager {
     }
   }
 
-
   static getInstance(): RedisType {
     if (!RedisConnectionManager.instance) {
       throw new Error("Redis not connected. Call connect() first.");

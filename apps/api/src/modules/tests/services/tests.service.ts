@@ -7,7 +7,6 @@ import {
   TestConfigsResponseDto,
 } from "../dto/available-config.dto";
 
-
 @Injectable()
 export class TestsService {
   constructor(private readonly testsRepository: TestsRepository) {}

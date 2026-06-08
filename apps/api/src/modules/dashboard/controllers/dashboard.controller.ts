@@ -17,7 +17,6 @@ import { DashboardActivityItemEntity } from "../entities/dashboard-activity-item
 // eslint-disable-next-line no-restricted-imports
 import { DashboardResponseDto } from "../dto/dashboard-response.dto";
 
-
 @ApiTags("dashboard")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
@@ -102,4 +101,3 @@ export class DashboardController {
     return this.dashboardService.getRecentActivity(user.id);
   }
 }
-

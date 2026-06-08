@@ -12,7 +12,6 @@ import { TestsService } from "../services/tests.service";
 // eslint-disable-next-line no-restricted-imports
 import { TestConfigsResponseDto } from "../dto/available-config.dto";
 
-
 @ApiTags("tests")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
