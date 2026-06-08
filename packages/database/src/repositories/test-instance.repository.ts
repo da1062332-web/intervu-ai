@@ -1,10 +1,14 @@
-import { prisma } from '../client';
-import { RepositoryError } from '../types/database.types';
-import type { Prisma, Test } from '@prisma/client';
+import { prisma } from "../client";
+import { RepositoryError } from "../types/database.types";
+import type { Prisma, Test } from "@prisma/client";
 
 export class TestInstanceRepository {
   private validate(input: any) {
-    if (!input) throw new RepositoryError('INVALID_INPUT', 'Input cannot be null or undefined.');
+    if (!input)
+      throw new RepositoryError(
+        "INVALID_INPUT",
+        "Input cannot be null or undefined.",
+      );
   }
 
   async findById(id: string): Promise<Test | null> {
@@ -14,7 +18,7 @@ export class TestInstanceRepository {
         where: { id },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -27,10 +31,10 @@ export class TestInstanceRepository {
         data,
       });
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new RepositoryError('NOT_FOUND', 'Test instance not found.');
+      if (error.code === "P2025") {
+        throw new RepositoryError("NOT_FOUND", "Test instance not found.");
       }
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 }

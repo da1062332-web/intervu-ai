@@ -11,15 +11,15 @@ import { CandidateDashboardSkeleton } from '@/features/candidate-dashboard/compo
 import { CandidateDashboardError } from '@/features/candidate-dashboard/components/CandidateDashboardError';
 
 export default function CandidateDashboardPage() {
-  const { 
-    availableTests, 
-    activeTests, 
-    completedAttempts, 
-    recommendations, 
-    skillProgress, 
-    loading, 
-    error, 
-    refetch 
+  const {
+    availableTests,
+    activeTests,
+    completedAttempts,
+    recommendations,
+    skillProgress,
+    loading,
+    error,
+    refetch,
   } = useCandidateDashboard();
 
   if (loading) {

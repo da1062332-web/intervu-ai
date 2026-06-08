@@ -76,7 +76,9 @@ describe("Generation Contract Foundation Unit Tests", () => {
       metadata: { estimatedTime: 90 },
     };
 
-    expect(() => validateGeneratedQuestion(invalidQuestion)).toThrow(ValidationError);
+    expect(() => validateGeneratedQuestion(invalidQuestion)).toThrow(
+      ValidationError,
+    );
   });
 
   // GEN-CON-005: MCQ with no options
@@ -94,19 +96,25 @@ describe("Generation Contract Foundation Unit Tests", () => {
       metadata: { estimatedTime: 90 },
     };
 
-    expect(() => validateGeneratedQuestion(invalidQuestion)).toThrow(ValidationError);
+    expect(() => validateGeneratedQuestion(invalidQuestion)).toThrow(
+      ValidationError,
+    );
 
     const invalidQuestionEmptyOptions = {
       ...invalidQuestion,
       options: [], // empty options
     };
-    expect(() => validateGeneratedQuestion(invalidQuestionEmptyOptions)).toThrow(ValidationError);
+    expect(() =>
+      validateGeneratedQuestion(invalidQuestionEmptyOptions),
+    ).toThrow(ValidationError);
 
     const invalidQuestionOneOption = {
       ...invalidQuestion,
       options: ["4"], // only 1 option
     };
-    expect(() => validateGeneratedQuestion(invalidQuestionOneOption)).toThrow(ValidationError);
+    expect(() => validateGeneratedQuestion(invalidQuestionOneOption)).toThrow(
+      ValidationError,
+    );
   });
 
   // GEN-CON-006: Empty question pool
@@ -130,7 +138,9 @@ describe("Generation Contract Foundation Unit Tests", () => {
       validatedAt: "2026/06/08 10:30:34", // Not an ISO timestamp
     };
 
-    expect(() => validateQuestionValidation(invalidValidationReport)).toThrow(ValidationError);
+    expect(() => validateQuestionValidation(invalidValidationReport)).toThrow(
+      ValidationError,
+    );
   });
 
   // GEN-CON-008: GeneratedQuestion validation success

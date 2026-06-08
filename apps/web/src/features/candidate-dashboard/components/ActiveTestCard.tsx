@@ -24,8 +24,8 @@ export function ActiveTestCard({ tests }: ActiveTestCardProps) {
       </CardHeader>
       <CardContent className='flex-1 space-y-4'>
         {tests.map((test) => (
-          <div 
-            key={test.id} 
+          <div
+            key={test.id}
             className='flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-primary/20 bg-background shadow-sm gap-4'
           >
             <div className='space-y-2 flex-1'>

@@ -18,7 +18,9 @@ export function SkillProgressCard({ skills }: SkillProgressCardProps) {
       </CardHeader>
       <CardContent className='flex-1'>
         {skills.length === 0 ? (
-          <p className='text-sm text-muted-foreground text-center py-4'>No skill data available yet.</p>
+          <p className='text-sm text-muted-foreground text-center py-4'>
+            No skill data available yet.
+          </p>
         ) : (
           <div className='space-y-5'>
             {skills.map((skill) => (
@@ -28,10 +30,10 @@ export function SkillProgressCard({ skills }: SkillProgressCardProps) {
                   <span className='text-muted-foreground'>{skill.score}%</span>
                 </div>
                 <div className='h-2 w-full bg-muted rounded-full overflow-hidden'>
-                  <div 
+                  <div
                     className='h-full bg-primary rounded-full transition-all duration-1000 ease-out'
                     style={{ width: `${skill.score}%` }}
-                    role="progressbar"
+                    role='progressbar'
                     aria-valuenow={skill.score}
                     aria-valuemin={0}
                     aria-valuemax={100}

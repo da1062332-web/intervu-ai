@@ -30,7 +30,7 @@ export default function LoginPage() {
     mutationFn: authApi.login,
     onSuccess: () => {
       notifySuccess('Welcome back.');
-      
+
       // TODO: Replace this hardcoded check with actual backend role-based routing
       // once role information becomes available from the auth APIs.
       const email = form.getValues('email');

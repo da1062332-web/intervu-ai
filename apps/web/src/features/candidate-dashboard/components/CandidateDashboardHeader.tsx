@@ -2,7 +2,7 @@ import { useAuthStore } from '@/store/auth.store';
 
 export function CandidateDashboardHeader() {
   const user = useAuthStore((state) => state.user);
-  
+
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     month: 'long',
     day: 'numeric',
