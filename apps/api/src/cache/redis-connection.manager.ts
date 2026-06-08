@@ -20,40 +20,59 @@ export class RedisConnectionManager {
       return RedisConnectionManager.instance;
     }
 
-    try {
-      const redis = new Redis(redisUrl, {
-        retryStrategy: (times) => {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
-        maxRetriesPerRequest: null,
-        enableReadyCheck: true,
-        enableOfflineQueue: true,
-        connectTimeout: timeoutMs,
-      });
-
-      redis.on("connect", () => {
-        if (RedisConnectionManager.logger) {
-          RedisConnectionManager.logger.info("Connected to Redis");
+    const redis = new Redis(redisUrl, {
+      /**
+       * retryStrategy:
+       * - While the instance is null the initial ping hasn't succeeded yet.
+       *   Return null to tell ioredis to stop retrying immediately — the
+       *   timeout branch or the catch block will clean up.
+       * - Once instance is set (connect succeeded) back-off normally up to 2 s.
+       *   This handles transient drops AFTER a successful startup connection.
+       */
+      retryStrategy: (times) => {
+        if (!RedisConnectionManager.instance) {
+          // Initial connection — stop retrying; the startup catch block handles this.
+          return null;
         }
-      });
+        // Post-connect transient failure — exponential back-off capped at 2 s.
+        return Math.min(times * 50, 2000);
+      },
+      maxRetriesPerRequest: null,
+      enableReadyCheck: true,
+      enableOfflineQueue: true,
+      connectTimeout: timeoutMs,
+    });
 
-      redis.on("error", (error) => {
-        if (RedisConnectionManager.logger) {
+    redis.on("connect", () => {
+      if (RedisConnectionManager.logger) {
+        RedisConnectionManager.logger.info("Connected to Redis");
+      }
+    });
+
+    redis.on("error", (error) => {
+      // Only log at warn level when running in degraded mode (instance not set)
+      // to avoid flooding the console with AggregateError spam on every retry.
+      if (RedisConnectionManager.logger) {
+        if (RedisConnectionManager.instance) {
           RedisConnectionManager.logger.error("Redis connection error", error);
+        } else {
+          RedisConnectionManager.logger.warn(
+            "Redis unavailable — running in degraded (cache-less) mode",
+          );
         }
-      });
+      }
+    });
 
-      redis.on("close", () => {
-        if (RedisConnectionManager.logger) {
-          RedisConnectionManager.logger.warn("Redis connection closed");
-        }
-      });
+    redis.on("close", () => {
+      if (RedisConnectionManager.logger) {
+        RedisConnectionManager.logger.warn("Redis connection closed");
+      }
+    });
 
-      let timeoutHandle: NodeJS.Timeout | null = null;
+    let timeoutHandle: NodeJS.Timeout | null = null;
+    try {
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutHandle = setTimeout(() => {
-          redis.disconnect(false);
           reject(new Error(`Redis connection timed out after ${timeoutMs}ms`));
         }, timeoutMs);
       });
@@ -67,6 +86,13 @@ export class RedisConnectionManager {
       RedisConnectionManager.instance = redis;
       return redis;
     } catch (error) {
+      // Tear down the client fully so ioredis stops its internal reconnect loop.
+      // Without this, the failed client keeps emitting ECONNREFUSED every few
+      // seconds even though the app has already moved to degraded mode.
+      redis.disconnect(false);
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
       if (RedisConnectionManager.logger) {
         RedisConnectionManager.logger.error(
           "Failed to connect to Redis",

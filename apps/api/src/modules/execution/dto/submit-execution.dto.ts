@@ -1,5 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsArray, ValidateNested, ArrayMinSize } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  ValidateNested,
+  ArrayMinSize,
+} from "class-validator";
 import { Type } from "class-transformer";
 import { CandidateAnswerDto } from "./candidate-answer.dto";
 
@@ -9,7 +15,10 @@ export class SubmitExecutionDto {
   @IsNotEmpty()
   testId!: string;
 
-  @ApiProperty({ description: "List of answers for the test questions", type: [CandidateAnswerDto] })
+  @ApiProperty({
+    description: "List of answers for the test questions",
+    type: [CandidateAnswerDto],
+  })
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })

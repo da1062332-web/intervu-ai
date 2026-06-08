@@ -22,10 +22,24 @@ import { QueueService } from "./queue.service";
       useFactory: (configService: AppConfigService): QueueService => {
         const logger = new AppLogger({ name: "QueueService" });
         const redisUrl = new URL(configService.redisUrl);
+
+        /**
+         * Connection options passed directly to ioredis by BullMQ.
+         *
+         * retryStrategy: null → ioredis stops reconnecting immediately when Redis
+         * is unavailable.  Without this, BullMQ's default strategy floods the
+         * console with ECONNREFUSED errors every few seconds.
+         *
+         * enableOfflineQueue: false → commands fail fast instead of queuing
+         * up indefinitely when the connection is not ready.
+         */
         const connection = {
           host: redisUrl.hostname,
           port: Number(redisUrl.port) || 6379,
           password: redisUrl.password || undefined,
+          // Stop reconnecting immediately when Redis is unavailable at startup.
+          retryStrategy: () => null as null,
+          enableOfflineQueue: false,
         };
 
         // Initialize all queues eagerly on module startup

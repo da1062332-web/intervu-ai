@@ -9,3 +9,4 @@ export * from "./validators/index";
 export * from "./logging/index";
 export * from "./utils/index";
 export * from "./errors/index";
+export * from "./recommendation/index";
