@@ -21,7 +21,7 @@ const buildTemplate = (overrides: Partial<Template> = {}): Template => ({
   updatedAt: new Date("2026-01-01T00:00:00Z"),
   deletedAt: null,
   ...overrides,
-});
+}) as unknown as Template;
 
 // ─── Mock Repository ──────────────────────────────────────────────────────────
 
