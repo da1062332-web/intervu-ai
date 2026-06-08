@@ -54,7 +54,8 @@ export class AvailableTestDto implements IAvailableTestDto {
 
   @ApiProperty({
     example: ["HTML & CSS", "JavaScript", "React"],
-    description: "Sections from Template.config.sections — empty array when not configured",
+    description:
+      "Sections from Template.config.sections — empty array when not configured",
     type: [String],
   })
   sections!: string[];
@@ -77,13 +78,15 @@ export class ActiveTestDto implements IActiveTestDto {
   @ApiProperty({
     example: "2026-06-08T04:00:00.000Z",
     nullable: true,
-    description: "ISO 8601 timestamp when the candidate started — null if not yet started",
+    description:
+      "ISO 8601 timestamp when the candidate started — null if not yet started",
   })
   startedAt!: string | null;
 
   @ApiProperty({
     example: 3240,
-    description: "Remaining seconds derived from config.durationSeconds minus elapsed time",
+    description:
+      "Remaining seconds derived from config.durationSeconds minus elapsed time",
   })
   timeRemainingSeconds!: number;
 }
@@ -111,7 +114,8 @@ export class CompletedAttemptDto implements ICompletedAttemptDto {
   @ApiProperty({
     example: "2026-06-08T05:30:00.000Z",
     nullable: true,
-    description: "ISO 8601 timestamp of submission — null when completedAt is not set",
+    description:
+      "ISO 8601 timestamp of submission — null when completedAt is not set",
   })
   submittedAt!: string | null;
 }

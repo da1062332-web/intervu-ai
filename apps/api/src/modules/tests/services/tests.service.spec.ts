@@ -96,7 +96,9 @@ describe("TestsService — getAvailableConfigs", () => {
   });
 
   it("defaults company to '' when Template.config.company is absent", async () => {
-    const template = buildTemplate({ config: { durationSeconds: 1800, sections: [] } });
+    const template = buildTemplate({
+      config: { durationSeconds: 1800, sections: [] },
+    });
     repository.findAllActiveTemplates.mockResolvedValue([template]);
 
     const result = await service.getAvailableConfigs();

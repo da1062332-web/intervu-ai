@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { TestsController } from "@/modules/tests/controllers/tests.controller";
 import { TestsService } from "@/modules/tests/services/tests.service";
-import type { TestConfigsResponseDto, AvailableConfigDto } from "@/modules/tests/dto/available-config.dto";
+import type {
+  TestConfigsResponseDto,
+  AvailableConfigDto,
+} from "@/modules/tests/dto/available-config.dto";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -57,7 +60,9 @@ describe("TestsController Integration — getAvailableConfigs", () => {
   // ─── Response shape ────────────────────────────────────────────────────────
 
   it("returns the full configs response from the service", async () => {
-    mockTestsService.getAvailableConfigs.mockResolvedValue(MOCK_CONFIGS_RESPONSE);
+    mockTestsService.getAvailableConfigs.mockResolvedValue(
+      MOCK_CONFIGS_RESPONSE,
+    );
 
     const result = await controller.getAvailableConfigs();
 
@@ -65,7 +70,9 @@ describe("TestsController Integration — getAvailableConfigs", () => {
   });
 
   it("response contains a configs array", async () => {
-    mockTestsService.getAvailableConfigs.mockResolvedValue(MOCK_CONFIGS_RESPONSE);
+    mockTestsService.getAvailableConfigs.mockResolvedValue(
+      MOCK_CONFIGS_RESPONSE,
+    );
 
     const result = await controller.getAvailableConfigs();
 
@@ -75,7 +82,9 @@ describe("TestsController Integration — getAvailableConfigs", () => {
   // ─── Config field validation ───────────────────────────────────────────────
 
   it("each config contains all required contract fields", async () => {
-    mockTestsService.getAvailableConfigs.mockResolvedValue(MOCK_CONFIGS_RESPONSE);
+    mockTestsService.getAvailableConfigs.mockResolvedValue(
+      MOCK_CONFIGS_RESPONSE,
+    );
 
     const result = await controller.getAvailableConfigs();
 
@@ -93,7 +102,9 @@ describe("TestsController Integration — getAvailableConfigs", () => {
   // ─── Service delegation ────────────────────────────────────────────────────
 
   it("calls getAvailableConfigs exactly once", async () => {
-    mockTestsService.getAvailableConfigs.mockResolvedValue(MOCK_CONFIGS_RESPONSE);
+    mockTestsService.getAvailableConfigs.mockResolvedValue(
+      MOCK_CONFIGS_RESPONSE,
+    );
 
     await controller.getAvailableConfigs();
 
@@ -101,7 +112,9 @@ describe("TestsController Integration — getAvailableConfigs", () => {
   });
 
   it("does not pass any arguments to the service — no request input", async () => {
-    mockTestsService.getAvailableConfigs.mockResolvedValue(MOCK_CONFIGS_RESPONSE);
+    mockTestsService.getAvailableConfigs.mockResolvedValue(
+      MOCK_CONFIGS_RESPONSE,
+    );
 
     await controller.getAvailableConfigs();
 

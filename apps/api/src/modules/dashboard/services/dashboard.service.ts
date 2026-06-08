@@ -16,7 +16,6 @@ import {
   TemplateConfig,
 } from "../dto/dashboard-response.dto";
 
-
 @Injectable()
 export class DashboardService {
   constructor(private readonly dashboardRepository: DashboardRepository) {}
@@ -186,4 +185,3 @@ export class DashboardService {
     return { availableTests, activeTests, completedAttempts };
   }
 }
-

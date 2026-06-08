@@ -28,7 +28,7 @@ class TestUsersController {
   createUser(@Body() body: unknown) {
     return {
       ...(body as Record<string, unknown>),
-      id: "123e4567-e89b-12d3-a456-426614174000",
+      id: "cmqw29wmxp0001q9vxhgs0em6",
       createdAt: new Date(),
     };
   }
@@ -37,7 +37,7 @@ class TestUsersController {
   @ValidateResponse(UserSchema)
   getUsers() {
     return {
-      id: "123e4567-e89b-12d3-a456-426614174000",
+      id: "cmqw29wmxp0001q9vxhgs0em6",
       email: "test@example.com",
       createdAt: new Date(),
     };
@@ -48,7 +48,7 @@ class TestUsersController {
   updateUser(@Body() body: unknown) {
     return {
       ...(body as Record<string, unknown>),
-      id: "123e4567-e89b-12d3-a456-426614174000",
+      id: "cmqw29wmxp0001q9vxhgs0em6",
       createdAt: new Date(),
     };
   }
@@ -57,7 +57,7 @@ class TestUsersController {
   @ValidateResponse(UserSchema)
   deleteUser() {
     return {
-      id: "123e4567-e89b-12d3-a456-426614174000",
+      id: "cmqw29wmxp0001q9vxhgs0em6",
       email: "deleted@example.com",
       createdAt: new Date(),
     };

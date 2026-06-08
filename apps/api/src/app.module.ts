@@ -19,7 +19,6 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { DashboardModule } from "./modules/dashboard";
 import { TestsModule } from "./modules/tests/tests.module";
 
-
 @Module({
   imports: [
     // Infrastructure — must be first (ConfigModule provides env vars)

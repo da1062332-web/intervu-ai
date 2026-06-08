@@ -52,7 +52,6 @@ import { QueueService } from "./queue.service";
       },
       inject: [AppConfigService],
     },
-
   ],
   exports: [QueueService],
 })

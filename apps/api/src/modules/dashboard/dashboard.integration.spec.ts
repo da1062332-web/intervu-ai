@@ -79,7 +79,9 @@ describe("DashboardController Integration — getDashboard", () => {
   // ─── Response shape ────────────────────────────────────────────────────────
 
   it("returns the full dashboard response from the service", async () => {
-    mockDashboardService.getDashboard.mockResolvedValue(MOCK_DASHBOARD_RESPONSE);
+    mockDashboardService.getDashboard.mockResolvedValue(
+      MOCK_DASHBOARD_RESPONSE,
+    );
 
     const result = await controller.getDashboard(MOCK_USER);
 
@@ -87,7 +89,9 @@ describe("DashboardController Integration — getDashboard", () => {
   });
 
   it("response contains all three required array keys", async () => {
-    mockDashboardService.getDashboard.mockResolvedValue(MOCK_DASHBOARD_RESPONSE);
+    mockDashboardService.getDashboard.mockResolvedValue(
+      MOCK_DASHBOARD_RESPONSE,
+    );
 
     const result = await controller.getDashboard(MOCK_USER);
 
@@ -99,18 +103,24 @@ describe("DashboardController Integration — getDashboard", () => {
   // ─── Service delegation ────────────────────────────────────────────────────
 
   it("calls getDashboard with the authenticated user id", async () => {
-    mockDashboardService.getDashboard.mockResolvedValue(MOCK_DASHBOARD_RESPONSE);
+    mockDashboardService.getDashboard.mockResolvedValue(
+      MOCK_DASHBOARD_RESPONSE,
+    );
 
     await controller.getDashboard(MOCK_USER);
 
-    expect(mockDashboardService.getDashboard).toHaveBeenCalledWith(MOCK_USER.id);
+    expect(mockDashboardService.getDashboard).toHaveBeenCalledWith(
+      MOCK_USER.id,
+    );
     expect(mockDashboardService.getDashboard).toHaveBeenCalledTimes(1);
   });
 
   // ─── Ownership validation ──────────────────────────────────────────────────
 
   it("passes ONLY the requesting user id to the service — no cross-user leakage", async () => {
-    mockDashboardService.getDashboard.mockResolvedValue(MOCK_DASHBOARD_RESPONSE);
+    mockDashboardService.getDashboard.mockResolvedValue(
+      MOCK_DASHBOARD_RESPONSE,
+    );
 
     const otherUser: AuthUser = {
       id: "other-user-999",
@@ -119,8 +129,12 @@ describe("DashboardController Integration — getDashboard", () => {
     };
     await controller.getDashboard(otherUser);
 
-    expect(mockDashboardService.getDashboard).toHaveBeenCalledWith("other-user-999");
-    expect(mockDashboardService.getDashboard).not.toHaveBeenCalledWith(MOCK_USER.id);
+    expect(mockDashboardService.getDashboard).toHaveBeenCalledWith(
+      "other-user-999",
+    );
+    expect(mockDashboardService.getDashboard).not.toHaveBeenCalledWith(
+      MOCK_USER.id,
+    );
   });
 
   // ─── Empty state ───────────────────────────────────────────────────────────

@@ -177,10 +177,15 @@ describe("DashboardService — getDashboard (Sprint 2 Day 1)", () => {
   });
 
   it("DASH-API-003: submittedAt is null when Test.completedAt is null", async () => {
-    const testWithNullCompletion = { ...MOCK_COMPLETED_TEST, completedAt: null };
+    const testWithNullCompletion = {
+      ...MOCK_COMPLETED_TEST,
+      completedAt: null,
+    };
     repository.findAvailableTests.mockResolvedValue([]);
     repository.findActiveTests.mockResolvedValue([]);
-    repository.findCompletedAttempts.mockResolvedValue([testWithNullCompletion]);
+    repository.findCompletedAttempts.mockResolvedValue([
+      testWithNullCompletion,
+    ]);
 
     const result = await service.getDashboard("user-abc");
 

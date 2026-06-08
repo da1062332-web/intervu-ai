@@ -1,7 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import type {
-  AvailableTestDto as IAvailableTestDto,
-} from "@intervu-ai/contracts";
+import type { AvailableTestDto as IAvailableTestDto } from "@intervu-ai/contracts";
 
 /**
  * Backend-only interface for the opaque Template.config JSON blob.
