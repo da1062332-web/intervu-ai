@@ -1,18 +1,18 @@
-const { execSync } = require('child_process');
+const { execSync } = require("child_process");
 
 const commands = [
-  'npm run check:structure',
-  'npm run lint',
-  'npm run type-check',
-  'npm run test'
+  "npm run check:structure",
+  "npm run lint",
+  "npm run type-check",
+  "npm run test",
 ];
 
-console.log('--- Starting CI Validation ---');
+console.log("--- Starting CI Validation ---");
 
 for (const cmd of commands) {
   console.log(`\n> Running: ${cmd}`);
   try {
-    execSync(cmd, { stdio: 'inherit', cwd: process.cwd() });
+    execSync(cmd, { stdio: "inherit", cwd: process.cwd() });
     console.log(`✅ ${cmd} completed successfully.`);
   } catch (err) {
     console.error(`❌ ${cmd} failed!`);
@@ -20,4 +20,4 @@ for (const cmd of commands) {
   }
 }
 
-console.log('\n✅ All validations passed. Ready to push!');
+console.log("\n✅ All validations passed. Ready to push!");

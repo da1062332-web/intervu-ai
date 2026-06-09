@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 
 export interface HashQuestionParams {
   templateId: string;
@@ -15,27 +15,27 @@ export interface HashQuestionParams {
 export function generateQuestionHash(params: HashQuestionParams): string {
   // Sort keys in parameters to ensure deterministic JSON stringification
   const deterministicParams = sortObjectKeys(params.parameters || {});
-  
+
   let hashInput = `${params.templateId}|${JSON.stringify(deterministicParams)}`;
-  
+
   if (params.options && params.options.length > 0) {
     // Sort options if they are simple strings/numbers to prevent order variations causing different hashes
     const sortedOptions = [...params.options].sort();
     hashInput += `|${JSON.stringify(sortedOptions)}`;
   }
-  
+
   if (params.correctAnswer !== undefined) {
     hashInput += `|${JSON.stringify(params.correctAnswer)}`;
   }
 
-  return crypto.createHash('sha256').update(hashInput).digest('hex');
+  return crypto.createHash("sha256").update(hashInput).digest("hex");
 }
 
 /**
  * Recursively sorts the keys of an object to ensure deterministic JSON.stringify output.
  */
 function sortObjectKeys(obj: unknown): unknown {
-  if (obj === null || typeof obj !== 'object') {
+  if (obj === null || typeof obj !== "object") {
     return obj;
   }
 
@@ -48,6 +48,6 @@ function sortObjectKeys(obj: unknown): unknown {
   for (const key of keys) {
     sortedObj[key] = sortObjectKeys((obj as Record<string, unknown>)[key]);
   }
-  
+
   return sortedObj;
 }

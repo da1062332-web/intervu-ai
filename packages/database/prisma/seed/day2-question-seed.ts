@@ -1,16 +1,16 @@
-import { PrismaClient, DifficultyLevel } from '@prisma/client';
-import { generateQuestionHash } from '../../src/utils/hash-question.util';
+import { PrismaClient, DifficultyLevel } from "@prisma/client";
+import { generateQuestionHash } from "../../src/utils/hash-question.util";
 
 export async function seedDay2Questions(prisma: PrismaClient) {
-  console.log('--- Starting Day 2 Seed: Question Pool ---');
+  console.log("--- Starting Day 2 Seed: Question Pool ---");
 
   const templates = await prisma.template.findMany();
   if (templates.length === 0) {
-    console.warn('⚠️ No templates found! Please run the Day 1 seed first.');
+    console.warn("⚠️ No templates found! Please run the Day 1 seed first.");
     return;
   }
 
-  const difficulties: DifficultyLevel[] = ['EASY', 'MEDIUM', 'HARD'];
+  const difficulties: DifficultyLevel[] = ["EASY", "MEDIUM", "HARD"];
   let totalSeeded = 0;
 
   for (const template of templates) {
@@ -21,14 +21,14 @@ export async function seedDay2Questions(prisma: PrismaClient) {
     for (let i = 1; i <= 10; i++) {
       const diff = difficulties[i % 3];
       const params = { varA: i * 5, varB: i * 2 };
-      const options = ['A', 'B', 'C', `Answer ${i}`];
+      const options = ["A", "B", "C", `Answer ${i}`];
       const correctAnswer = `Answer ${i}`;
 
       const hash = generateQuestionHash({
         templateId: template.id,
         parameters: params,
         options,
-        correctAnswer
+        correctAnswer,
       });
 
       questionsToInsert.push({
@@ -41,17 +41,19 @@ export async function seedDay2Questions(prisma: PrismaClient) {
         options,
         correctAnswer,
         solution: `Mock solution for Q${i}`,
-        metadata: { seedRun: 'DAY2' }
+        metadata: { seedRun: "DAY2" },
       });
     }
 
     const result = await prisma.generatedQuestion.createMany({
       data: questionsToInsert,
-      skipDuplicates: true
+      skipDuplicates: true,
     });
 
     totalSeeded += result.count;
   }
 
-  console.log(`✅ Day 2 Seed Complete: ${totalSeeded} questions injected into the Question Pool.`);
+  console.log(
+    `✅ Day 2 Seed Complete: ${totalSeeded} questions injected into the Question Pool.`,
+  );
 }

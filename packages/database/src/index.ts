@@ -21,14 +21,14 @@ export * from "./repositories/test-instance-question.repository";
 export * from "./repositories/assembly.repository";
 export * from "./utils/hash-question.util";
 export * from "./types/database.types";
-export type { 
-  GeneratedQuestion, 
-  DifficultyLevel, 
+export type {
+  GeneratedQuestion,
+  DifficultyLevel,
   Template,
   Test,
   TestInstance,
   TestInstanceSection,
   TestInstanceQuestion,
   TestInstanceStatus,
-  Prisma 
+  Prisma,
 } from "@prisma/client";
