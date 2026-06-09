@@ -11,24 +11,24 @@ export function NavigationControls() {
   const isLast = currentQuestionIndex === questions.length - 1;
 
   return (
-    <div className="flex items-center justify-between w-full mt-6 gap-4">
+    <div className='flex items-center justify-between w-full mt-6 gap-4'>
       <Button
-        variant="outline"
+        variant='outline'
         onClick={goPrevious}
         disabled={isFirst}
-        className="flex-1 sm:flex-none w-full sm:w-32 h-12"
+        className='flex-1 sm:flex-none w-full sm:w-32 h-12'
       >
-        <ChevronLeft className="w-4 h-4 mr-2" />
+        <ChevronLeft className='w-4 h-4 mr-2' />
         Previous
       </Button>
 
       <Button
         onClick={goNext}
         disabled={isLast}
-        className="flex-1 sm:flex-none w-full sm:w-32 h-12"
+        className='flex-1 sm:flex-none w-full sm:w-32 h-12'
       >
         Next
-        <ChevronRight className="w-4 h-4 ml-2" />
+        <ChevronRight className='w-4 h-4 ml-2' />
       </Button>
     </div>
   );

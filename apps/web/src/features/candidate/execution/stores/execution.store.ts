@@ -5,7 +5,7 @@ interface ExecutionState {
   // Data
   testInstance: TestInstance | null;
   questions: Question[]; // Flattened questions for easier access
-  
+
   // State
   currentQuestionIndex: number;
   currentQuestion: Question | null;
@@ -30,7 +30,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   // Initial Data
   testInstance: null,
   questions: [],
-  
+
   // Initial State
   currentQuestionIndex: 0,
   currentQuestion: null,
@@ -43,12 +43,10 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   initializeTest: (testInstance) => {
     // Flatten all questions across sections for this specific prototype logic
     // (Assuming simple sequential test flow without strict section locking for now)
-    const allQuestions = testInstance.sections.flatMap(s => s.questions);
-    
+    const allQuestions = testInstance.sections.flatMap((s) => s.questions);
+
     // Initialize palette
-    const initialPalette = allQuestions.map((_, i) => 
-      i === 0 ? 'CURRENT' : 'UNANSWERED'
-    );
+    const initialPalette = allQuestions.map((_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED'));
 
     set({
       testInstance,
@@ -59,7 +57,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       remainingTime: testInstance.durationSeconds,
       answers: {},
       loading: false,
-      error: null
+      error: null,
     });
   },
 
@@ -69,7 +67,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
     set((state) => {
       const newPalette = [...state.palette];
-      
+
       // Update previous current question status
       const prevIndex = state.currentQuestionIndex;
       const prevQuestion = state.questions[prevIndex];
@@ -84,7 +82,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       return {
         currentQuestionIndex: index,
         currentQuestion: state.questions[index],
-        palette: newPalette
+        palette: newPalette,
       };
     });
   },
@@ -95,12 +93,12 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       newAnswers[questionId] = {
         questionId,
         selectedOptionId: optionId,
-        status: 'ANSWERED'
+        status: 'ANSWERED',
       };
 
       // Since we don't automatically jump on select, we just keep current as CURRENT in palette.
       // But we have saved the answer. The next time we navigate away, it will become ANSWERED.
-      
+
       return { answers: newAnswers };
     });
   },
