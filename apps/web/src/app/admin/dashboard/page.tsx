@@ -26,7 +26,7 @@ export default function DashboardPage() {
         subtitle="Here's what's happening with your interview assessments today."
         action={
           <Button asChild className='gap-2' id='create-assessment-btn'>
-            <Link href='/tests'>
+            <Link href='/admin/tests'>
               <Plus className='size-4' />
               New Assessment
             </Link>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
             description='Build a new AI-powered interview assessment tailored to your specific role and requirements.'
             icon={<Plus className='size-6' />}
             actionLabel='Get Started'
-            actionHref='/tests'
+            actionHref='/admin/tests'
             color='primary'
           />
           <DashboardCard
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             description='View and manage all your interview assessments, candidates, and test configurations.'
             icon={<ClipboardList className='size-6' />}
             actionLabel='View Tests'
-            actionHref='/tests'
+            actionHref='/admin/tests'
             color='blue'
           >
             <EmptyStateCard title='No tests yet' compact cardClassName='min-h-[60px]' />
@@ -111,7 +111,7 @@ export default function DashboardPage() {
             description='Gain deep insights into candidate performance, pass rates, and hiring metrics.'
             icon={<TrendingUp className='size-6' />}
             actionLabel='View Analytics'
-            actionHref='/results'
+            actionHref='/admin/results'
             color='emerald'
           >
             <EmptyStateCard title='No data yet' compact cardClassName='min-h-[60px]' />

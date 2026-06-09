@@ -111,7 +111,7 @@ export function MobileNav() {
         <SheetHeader className='h-16 flex-row items-center border-b border-border px-5'>
           <SheetTitle asChild>
             <Link
-              href='/dashboard'
+              href='/admin/dashboard'
               className='flex items-center gap-2.5'
               onClick={() => setMobileNavOpen(false)}
             >

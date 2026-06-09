@@ -126,7 +126,7 @@ export function Sidebar() {
         )}
       >
         <Link
-          href='/dashboard'
+          href='/admin/dashboard'
           className='flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-lg'
           aria-label='Go to dashboard'
         >
