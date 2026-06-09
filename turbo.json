@@ -31,9 +31,13 @@
     },
 
     "test:contracts": {
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"],
+      "outputs": []
     },
-
+    "test:day3": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "test:regression": {
       "dependsOn": ["build"]
     },

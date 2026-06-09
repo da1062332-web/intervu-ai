@@ -5,6 +5,36 @@ import { AppLogger } from "@intervu-ai/shared-logger";
 import { type ConnectionOptions, Queue } from "bullmq";
 import Redis from "ioredis";
 
+jest.mock("ioredis", () => {
+  return jest.fn().mockImplementation(() => ({
+    quit: jest.fn(),
+    on: jest.fn(),
+  }));
+});
+
+jest.mock("bullmq", () => {
+  const originalModule = jest.requireActual("bullmq");
+  return {
+    ...originalModule,
+    Queue: jest.fn().mockImplementation((name) => ({
+      name,
+      add: jest.fn().mockImplementation((name, data, opts) => Promise.resolve({ 
+        id: name, 
+        getState: jest.fn().mockResolvedValue("waiting"),
+        opts: opts || {},
+        remove: jest.fn()
+      })),
+      close: jest.fn(),
+      drain: jest.fn(),
+      getJob: jest.fn().mockResolvedValue(undefined),
+    })),
+    Worker: jest.fn().mockImplementation(() => ({
+      close: jest.fn(),
+      on: jest.fn(),
+    })),
+  };
+});
+
 describe("Worker Queue Processors", () => {
   let redis: Redis;
   let connection: ConnectionOptions;

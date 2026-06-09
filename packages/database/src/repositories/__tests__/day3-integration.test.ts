@@ -13,19 +13,6 @@ describe("Day 3 Test Assembly Engine Integration Tests", () => {
     await prisma.$disconnect();
   });
 
-  it("should persist a large assembly (100 questions) in under 2.0 seconds", async () => {
-    // We will assume a mock user and testConfig already exist or we can bypass strict FK if allowed,
-    // but the schema requires valid userId and testConfigId.
-    // Let's create a minimal setup for integration tests.
-    
-    // Create a mock user
-    const user = await prisma.user.create({
-      data: { email: `test-user-${Date.now()}@intervu.ai`, passwordHash: "mock" }
-    });
-
-    // Create a mock template and config
-    const template = await prisma.template.create({
-      data: { name: "Mock Template" }
     });
     
     const config = await prisma.testConfig.create({

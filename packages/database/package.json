@@ -7,7 +7,8 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "test:day3": "vitest run src/repositories/__tests__/day3-integration.test.ts src/repositories/__tests__/day3-unit.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
