@@ -18,7 +18,8 @@ export class TemplateSelectorService {
     seed: number,
   ): Promise<Template> {
     const conceptKey = request.conceptKey;
-    const dbDifficulty = request.difficultyLevel.toUpperCase() as DifficultyLevel;
+    const dbDifficulty =
+      request.difficultyLevel.toUpperCase() as DifficultyLevel;
 
     // Fetch matching templates from the database
     const templates = await this.templateRepository.findByConceptAndDifficulty(
@@ -27,7 +28,9 @@ export class TemplateSelectorService {
     );
 
     // Filter by question type (case-insensitive)
-    const normalizedRequestType = this.normalizeQuestionType(request.questionType);
+    const normalizedRequestType = this.normalizeQuestionType(
+      request.questionType,
+    );
     const filteredTemplates = templates.filter((t) => {
       const normalizedTemplateType = this.normalizeQuestionType(t.questionType);
       return normalizedTemplateType === normalizedRequestType;
@@ -40,7 +43,9 @@ export class TemplateSelectorService {
     }
 
     // Sort alphabetically by templateKey to ensure deterministic selection order
-    filteredTemplates.sort((a, b) => a.templateKey.localeCompare(b.templateKey));
+    filteredTemplates.sort((a, b) =>
+      a.templateKey.localeCompare(b.templateKey),
+    );
 
     // Choose deterministically based on seed
     const index = Math.abs(seed) % filteredTemplates.length;

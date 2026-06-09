@@ -68,7 +68,7 @@ export function AvailableTestsCard({ tests }: AvailableTestsCardProps) {
                 </span>
               </div>
             </div>
-            <Button 
+            <Button
               className='w-full sm:w-auto shrink-0 group'
               onClick={() => router.push(`/candidate/tests/${test.id}`)}
             >

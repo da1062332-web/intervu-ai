@@ -21,7 +21,9 @@ export class TestConfigRepository extends BaseRepository<
     return new TestConfigRepository(this.prisma, tx) as this;
   }
 
-  async findByIdWithSections(id: string): Promise<(TestConfig & { sections: TestSection[] }) | null> {
+  async findByIdWithSections(
+    id: string,
+  ): Promise<(TestConfig & { sections: TestSection[] }) | null> {
     return this.db.testConfig.findUnique({
       where: { id },
       include: { sections: true },

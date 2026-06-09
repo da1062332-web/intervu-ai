@@ -31,7 +31,9 @@ export class GenerationValidationService {
     const schemaCheck = GeneratedQuestionSchema.safeParse(dtoPayload);
     if (!schemaCheck.success) {
       errors.push(
-        ...schemaCheck.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`),
+        ...schemaCheck.error.errors.map(
+          (e) => `${e.path.join(".")}: ${e.message}`,
+        ),
       );
     }
 

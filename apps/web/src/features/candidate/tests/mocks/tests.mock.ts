@@ -4,7 +4,8 @@ export const mockTestConfig: TestConfig = {
   id: 'tcs-nqt-001',
   company: 'Tata Consultancy Services',
   title: 'TCS NQT Cognitive Assessment',
-  description: 'The National Qualifier Test (NQT) assesses cognitive skills, including numerical, verbal, and reasoning abilities. This test is a prerequisite for all TCS hiring processes.',
+  description:
+    'The National Qualifier Test (NQT) assesses cognitive skills, including numerical, verbal, and reasoning abilities. This test is a prerequisite for all TCS hiring processes.',
   totalQuestions: 60,
   durationMinutes: 90,
   difficulty: 'Medium',
@@ -35,22 +36,22 @@ export const mockInstructionConfig: InstructionConfig = {
     'You must have a stable internet connection throughout the test.',
     'Do not refresh the page or use the browser back button.',
     'Calculators and external aids are not permitted.',
-    'You are monitored via webcam and microphone.'
+    'You are monitored via webcam and microphone.',
   ],
   navigationRules: [
     'You can navigate between questions within the same section.',
     'Once a section is submitted, you cannot return to it.',
-    'Unanswered questions will receive zero marks.'
+    'Unanswered questions will receive zero marks.',
   ],
   timerRules: [
     'The overall timer runs continuously once the test starts.',
     'Sectional time limits are strictly enforced.',
-    'The test will automatically submit when the total time expires.'
+    'The test will automatically submit when the total time expires.',
   ],
   submissionRules: [
     'Ensure all mandatory sections are completed before final submission.',
-    'A summary will be shown before the final submission step.'
-  ]
+    'A summary will be shown before the final submission step.',
+  ],
 };
 
 export const mockValidationResponseEligible: ValidationResponse = {

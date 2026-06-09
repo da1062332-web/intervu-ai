@@ -16,7 +16,7 @@ import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDi
 export default function InstructionsPage({ params }: { params: Promise<{ id: string }> }) {
   // @ts-expect-error - React.use is not in current types
   const { id: testId } = React.use(params);
-  
+
   const { data: config, isLoading, error, refetch } = useInstructions(testId);
   const [validation, setValidation] = useState<ValidationResponse | null>(null);
 
@@ -41,7 +41,12 @@ export default function InstructionsPage({ params }: { params: Promise<{ id: str
   }
 
   if (error || !config) {
-    return <TestDiscoveryError error={error || new Error('Failed to load instructions')} reset={refetch} />;
+    return (
+      <TestDiscoveryError
+        error={error || new Error('Failed to load instructions')}
+        reset={refetch}
+      />
+    );
   }
 
   return (
@@ -58,16 +63,16 @@ export default function InstructionsPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
-      
+
       <main className='flex-1 container max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
         <InstructionPanel config={config} />
-        
+
         {validation && (
           <div className='mt-6'>
             <EligibilityBanner validation={validation} />
           </div>
         )}
-        
+
         <div className='flex justify-end pt-6 border-t border-border/40'>
           <StartAssessmentButton testId={testId} onValidationComplete={setValidation} />
         </div>

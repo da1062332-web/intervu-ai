@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { TestInstanceStatus } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { TestInstanceStatus } from "@prisma/client";
 
 export type CreateTestInstanceData = {
   userId: string;
@@ -73,7 +73,7 @@ export class TestInstanceRepository {
       where: {
         userId,
         testConfigId,
-        status: { in: ['CREATED', 'IN_PROGRESS'] },
+        status: { in: ["CREATED", "IN_PROGRESS"] },
       },
     });
   }

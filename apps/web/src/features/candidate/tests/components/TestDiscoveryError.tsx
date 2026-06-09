@@ -11,7 +11,11 @@ interface TestDiscoveryErrorProps {
   message?: string;
 }
 
-export function TestDiscoveryError({ error, reset, message = 'Unable To Load Assessment' }: TestDiscoveryErrorProps) {
+export function TestDiscoveryError({
+  error,
+  reset,
+  message = 'Unable To Load Assessment',
+}: TestDiscoveryErrorProps) {
   const router = useRouter();
 
   const handleRetry = () => {
@@ -31,7 +35,8 @@ export function TestDiscoveryError({ error, reset, message = 'Unable To Load Ass
           </div>
           <CardTitle className='text-2xl'>{message}</CardTitle>
           <CardDescription>
-            {error?.message || 'There was a problem retrieving the assessment details. Please check your connection or try again.'}
+            {error?.message ||
+              'There was a problem retrieving the assessment details. Please check your connection or try again.'}
           </CardDescription>
         </CardHeader>
         <CardContent className='flex justify-center gap-4'>
