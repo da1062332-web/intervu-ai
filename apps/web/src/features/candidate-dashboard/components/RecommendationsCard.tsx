@@ -15,7 +15,9 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
           <CardDescription>Your overall performance analysis</CardDescription>
         </CardHeader>
         <CardContent className='flex-1 flex items-center justify-center'>
-          <p className='text-sm text-muted-foreground'>Complete an assessment to see recommendations.</p>
+          <p className='text-sm text-muted-foreground'>
+            Complete an assessment to see recommendations.
+          </p>
         </CardContent>
       </Card>
     );
@@ -44,10 +46,12 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
               <TrendingUp className='size-3' />
               Confidence
             </div>
-            <div className='text-3xl font-bold text-primary'>{recommendations.confidenceScore}%</div>
+            <div className='text-3xl font-bold text-primary'>
+              {recommendations.confidenceScore}%
+            </div>
           </div>
         </div>
-        
+
         <div className='bg-muted/30 p-4 rounded-lg border border-border/50'>
           <h4 className='text-sm font-semibold mb-2 flex items-center gap-2'>
             <Lightbulb className='size-4 text-yellow-500' />

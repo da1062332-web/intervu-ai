@@ -35,14 +35,17 @@ export function AvailableTestsCard({ tests }: AvailableTestsCardProps) {
       </CardHeader>
       <CardContent className='flex-1 space-y-4'>
         {tests.map((test) => (
-          <div 
-            key={test.id} 
+          <div
+            key={test.id}
             className='flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/30 transition-colors gap-4'
           >
             <div className='space-y-2 flex-1'>
               <div className='flex items-center gap-2'>
                 <h3 className='font-semibold text-foreground'>{test.title}</h3>
-                <Badge variant='outline' className='bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'>
+                <Badge
+                  variant='outline'
+                  className='bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
+                >
                   {test.status}
                 </Badge>
               </div>
