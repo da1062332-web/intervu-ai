@@ -5,23 +5,24 @@ import type { Template } from "@prisma/client";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
-const buildTemplate = (overrides: Partial<Template> = {}): Template => ({
-  id: "template-001",
-  name: "Senior Frontend Engineer Interview",
-  description: "Frontend engineering assessment",
-  difficulty: "MEDIUM",
-  config: {
-    company: "Acme Corp",
-    durationSeconds: 3600,
-    sections: ["HTML & CSS", "JavaScript", "React"],
-  },
-  isSystem: true,
-  creatorId: null,
-  createdAt: new Date("2026-01-01T00:00:00Z"),
-  updatedAt: new Date("2026-01-01T00:00:00Z"),
-  deletedAt: null,
-  ...overrides,
-}) as unknown as Template;
+const buildTemplate = (overrides: Partial<Template> = {}): Template =>
+  ({
+    id: "template-001",
+    name: "Senior Frontend Engineer Interview",
+    description: "Frontend engineering assessment",
+    difficulty: "MEDIUM",
+    config: {
+      company: "Acme Corp",
+      durationSeconds: 3600,
+      sections: ["HTML & CSS", "JavaScript", "React"],
+    },
+    isSystem: true,
+    creatorId: null,
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+    deletedAt: null,
+    ...overrides,
+  }) as unknown as Template;
 
 // ─── Mock Repository ──────────────────────────────────────────────────────────
 

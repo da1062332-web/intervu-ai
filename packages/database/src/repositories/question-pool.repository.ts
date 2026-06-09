@@ -1,6 +1,10 @@
-import { prisma } from '../client';
-import { RepositoryError } from '../types/database.types';
-import type { Prisma, GeneratedQuestion, DifficultyLevel } from '@prisma/client';
+import { prisma } from "../client";
+import { RepositoryError } from "../types/database.types";
+import type {
+  Prisma,
+  GeneratedQuestion,
+  DifficultyLevel,
+} from "@prisma/client";
 
 export interface QuestionPoolFilter {
   conceptKey?: string;
@@ -17,20 +21,29 @@ export interface PaginationParams {
 export class QuestionPoolRepository {
   private validate(input: any) {
     if (input === null || input === undefined) {
-      throw new RepositoryError('INVALID_INPUT', 'Input cannot be null or undefined.');
+      throw new RepositoryError(
+        "INVALID_INPUT",
+        "Input cannot be null or undefined.",
+      );
     }
   }
 
-  private buildWhereClause(filters: QuestionPoolFilter): Prisma.GeneratedQuestionWhereInput {
+  private buildWhereClause(
+    filters: QuestionPoolFilter,
+  ): Prisma.GeneratedQuestionWhereInput {
     const where: Prisma.GeneratedQuestionWhereInput = {};
     if (filters.conceptKey) where.conceptKey = filters.conceptKey;
-    if (filters.difficultyLevel) where.difficultyLevel = filters.difficultyLevel;
+    if (filters.difficultyLevel)
+      where.difficultyLevel = filters.difficultyLevel;
     if (filters.questionType) where.questionType = filters.questionType;
     if (filters.templateId) where.templateId = filters.templateId;
     return where;
   }
 
-  async findQuestions(filters: QuestionPoolFilter, pagination?: PaginationParams): Promise<GeneratedQuestion[]> {
+  async findQuestions(
+    filters: QuestionPoolFilter,
+    pagination?: PaginationParams,
+  ): Promise<GeneratedQuestion[]> {
     try {
       const page = pagination?.page ?? 1;
       const limit = pagination?.limit ?? 50;
@@ -40,10 +53,10 @@ export class QuestionPoolRepository {
         where: this.buildWhereClause(filters),
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -52,12 +65,17 @@ export class QuestionPoolRepository {
     return this.findQuestions({ conceptKey });
   }
 
-  async findByDifficulty(difficultyLevel: DifficultyLevel): Promise<GeneratedQuestion[]> {
+  async findByDifficulty(
+    difficultyLevel: DifficultyLevel,
+  ): Promise<GeneratedQuestion[]> {
     this.validate(difficultyLevel);
     return this.findQuestions({ difficultyLevel });
   }
 
-  async findByConceptAndDifficulty(conceptKey: string, difficultyLevel: DifficultyLevel): Promise<GeneratedQuestion[]> {
+  async findByConceptAndDifficulty(
+    conceptKey: string,
+    difficultyLevel: DifficultyLevel,
+  ): Promise<GeneratedQuestion[]> {
     this.validate(conceptKey);
     this.validate(difficultyLevel);
     return this.findQuestions({ conceptKey, difficultyLevel });
@@ -69,7 +87,7 @@ export class QuestionPoolRepository {
         where: this.buildWhereClause(filters),
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -78,7 +96,10 @@ export class QuestionPoolRepository {
    * Employs the In-Memory ID Shuffle strategy to maintain full Prisma Type Safety
    * while ensuring no duplicate IDs are ever returned in a single request (POOL-009).
    */
-  async findRandomizedSet(filters: QuestionPoolFilter, count: number): Promise<GeneratedQuestion[]> {
+  async findRandomizedSet(
+    filters: QuestionPoolFilter,
+    count: number,
+  ): Promise<GeneratedQuestion[]> {
     this.validate(count);
     if (count <= 0) return [];
 
@@ -92,7 +113,7 @@ export class QuestionPoolRepository {
       if (availableRecords.length === 0) return [];
 
       // 2. Extract IDs
-      const allIds = availableRecords.map(record => record.id);
+      const allIds = availableRecords.map((record) => record.id);
 
       // 3. In-Memory Fisher-Yates Shuffle
       for (let i = allIds.length - 1; i > 0; i--) {
@@ -106,16 +127,18 @@ export class QuestionPoolRepository {
       // 5. Fetch fully typed records using the distinct shuffled IDs
       const randomizedQuestions = await prisma.generatedQuestion.findMany({
         where: {
-          id: { in: selectedIds }
-        }
+          id: { in: selectedIds },
+        },
       });
 
       // 6. Prisma `in` does not guarantee order, so we map them back to the shuffled order
-      const orderedQuestions = selectedIds.map(id => randomizedQuestions.find(q => q.id === id)).filter(Boolean) as GeneratedQuestion[];
+      const orderedQuestions = selectedIds
+        .map((id) => randomizedQuestions.find((q) => q.id === id))
+        .filter(Boolean) as GeneratedQuestion[];
 
       return orderedQuestions;
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 }

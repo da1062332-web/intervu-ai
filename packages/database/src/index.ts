@@ -18,10 +18,10 @@ export * from "./repositories/test-instance.repository";
 export * from "./repositories/question-pool.repository";
 export * from "./utils/hash-question.util";
 export * from "./types/database.types";
-export type { 
-  GeneratedQuestion, 
-  DifficultyLevel, 
+export type {
+  GeneratedQuestion,
+  DifficultyLevel,
   Template,
   Test,
-  Prisma 
+  Prisma,
 } from "@prisma/client";

@@ -15,7 +15,9 @@ export class GeneratedQuestionRepository {
       );
   }
 
-  async create(data: Prisma.GeneratedQuestionUncheckedCreateInput): Promise<GeneratedQuestion> {
+  async create(
+    data: Prisma.GeneratedQuestionUncheckedCreateInput,
+  ): Promise<GeneratedQuestion> {
     this.validate(data);
     try {
       return await prisma.generatedQuestion.create({ data });
@@ -86,7 +88,7 @@ export class GeneratedQuestionRepository {
         where: { id },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -97,7 +99,7 @@ export class GeneratedQuestionRepository {
         where: { templateId },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -108,7 +110,7 @@ export class GeneratedQuestionRepository {
         where: { id },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 }
