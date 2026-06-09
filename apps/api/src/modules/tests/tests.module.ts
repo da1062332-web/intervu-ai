@@ -3,6 +3,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
 import { TestsController } from "./controllers/tests.controller";
 import { TestsService } from "./services/tests.service";
 import { TestsRepository } from "./repositories/tests.repository";
+import { StartTestModule } from "./start-test/start-test.module";
 
 /**
  * TestsModule — candidate-facing test discovery vertical slice.
@@ -13,7 +14,7 @@ import { TestsRepository } from "./repositories/tests.repository";
  * Completely independent of SystemConfigModule (admin config) and DashboardModule.
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, StartTestModule],
   controllers: [TestsController],
   providers: [TestsService, TestsRepository],
   exports: [TestsService],
