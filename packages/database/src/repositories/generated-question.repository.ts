@@ -1,10 +1,18 @@
-import { prisma } from '../client';
-import { RepositoryError } from '../types/database.types';
-import type { Prisma, GeneratedQuestion, DifficultyLevel } from '@prisma/client';
+import { prisma } from "../client";
+import { RepositoryError } from "../types/database.types";
+import type {
+  Prisma,
+  GeneratedQuestion,
+  DifficultyLevel,
+} from "@prisma/client";
 
 export class GeneratedQuestionRepository {
   private validate(input: any) {
-    if (!input) throw new RepositoryError('INVALID_INPUT', 'Input cannot be null or undefined.');
+    if (!input)
+      throw new RepositoryError(
+        "INVALID_INPUT",
+        "Input cannot be null or undefined.",
+      );
   }
 
   async create(data: Prisma.GeneratedQuestionUncheckedCreateInput): Promise<GeneratedQuestion> {
@@ -12,10 +20,13 @@ export class GeneratedQuestionRepository {
     try {
       return await prisma.generatedQuestion.create({ data });
     } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new RepositoryError('DUPLICATE_QUESTION_HASH', 'A question with this exact hash already exists.');
+      if (error.code === "P2002") {
+        throw new RepositoryError(
+          "DUPLICATE_QUESTION_HASH",
+          "A question with this exact hash already exists.",
+        );
       }
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -26,7 +37,7 @@ export class GeneratedQuestionRepository {
         where: { questionHash },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -37,22 +48,26 @@ export class GeneratedQuestionRepository {
         where: { conceptKey },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
-  async findByDifficulty(difficultyLevel: DifficultyLevel): Promise<GeneratedQuestion[]> {
+  async findByDifficulty(
+    difficultyLevel: DifficultyLevel,
+  ): Promise<GeneratedQuestion[]> {
     this.validate(difficultyLevel);
     try {
       return await prisma.generatedQuestion.findMany({
         where: { difficultyLevel },
       });
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
-  async createMany(data: Prisma.GeneratedQuestionCreateManyInput[]): Promise<number> {
+  async createMany(
+    data: Prisma.GeneratedQuestionCreateManyInput[],
+  ): Promise<number> {
     this.validate(data);
     try {
       const result = await prisma.generatedQuestion.createMany({
@@ -61,7 +76,7 @@ export class GeneratedQuestionRepository {
       });
       return result.count;
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
   async findById(id: string): Promise<GeneratedQuestion | null> {

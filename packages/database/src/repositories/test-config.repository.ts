@@ -1,6 +1,6 @@
-import { prisma } from '../client';
-import { RepositoryError } from '../types/database.types';
-import type { Prisma, TestConfig, TestSection, TestRule } from '@prisma/client';
+import { prisma } from "../client";
+import { RepositoryError } from "../types/database.types";
+import type { Prisma, TestConfig, TestSection, TestRule } from "@prisma/client";
 
 type TestConfigWithRelations = TestConfig & {
   sections: TestSection[];
@@ -9,10 +9,16 @@ type TestConfigWithRelations = TestConfig & {
 
 export class TestConfigRepository {
   private validate(input: any) {
-    if (!input) throw new RepositoryError('INVALID_INPUT', 'Input cannot be null or undefined.');
+    if (!input)
+      throw new RepositoryError(
+        "INVALID_INPUT",
+        "Input cannot be null or undefined.",
+      );
   }
 
-  async create(data: Prisma.TestConfigCreateInput): Promise<TestConfigWithRelations> {
+  async create(
+    data: Prisma.TestConfigCreateInput,
+  ): Promise<TestConfigWithRelations> {
     this.validate(data);
     try {
       const result = await prisma.testConfig.create({
@@ -21,10 +27,13 @@ export class TestConfigRepository {
       });
       return result;
     } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new RepositoryError('DUPLICATE_CONFIG_KEY', 'A TestConfig with this key already exists.');
+      if (error.code === "P2002") {
+        throw new RepositoryError(
+          "DUPLICATE_CONFIG_KEY",
+          "A TestConfig with this key already exists.",
+        );
       }
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -35,7 +44,7 @@ export class TestConfigRepository {
       });
       return results;
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
@@ -48,11 +57,13 @@ export class TestConfigRepository {
       });
       return result;
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
-  async findByConfigKey(configKey: string): Promise<TestConfigWithRelations | null> {
+  async findByConfigKey(
+    configKey: string,
+  ): Promise<TestConfigWithRelations | null> {
     this.validate(configKey);
     try {
       const result = await prisma.testConfig.findUnique({
@@ -61,11 +72,14 @@ export class TestConfigRepository {
       });
       return result;
     } catch (error: any) {
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
-  async update(id: string, data: Prisma.TestConfigUpdateInput): Promise<TestConfigWithRelations> {
+  async update(
+    id: string,
+    data: Prisma.TestConfigUpdateInput,
+  ): Promise<TestConfigWithRelations> {
     this.validate(id);
     this.validate(data);
     try {
@@ -76,10 +90,10 @@ export class TestConfigRepository {
       });
       return result;
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new RepositoryError('NOT_FOUND', 'TestConfig not found.');
+      if (error.code === "P2025") {
+        throw new RepositoryError("NOT_FOUND", "TestConfig not found.");
       }
-      throw new RepositoryError('DB_ERROR', error.message);
+      throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 

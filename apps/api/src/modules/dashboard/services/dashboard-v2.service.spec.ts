@@ -6,7 +6,7 @@ import type { Template, Test as PrismaTest } from "@prisma/client";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
-const MOCK_TEMPLATE: Template = {
+const MOCK_TEMPLATE = {
   id: "template-001",
   name: "Senior Frontend Engineer Interview",
   description: "Frontend engineering assessment",
