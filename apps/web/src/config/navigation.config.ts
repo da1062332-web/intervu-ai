@@ -20,22 +20,22 @@ export const NAV_CONFIG: NavConfig = {
       items: [
         {
           label: 'Dashboard',
-          route: '/dashboard',
+          route: '/admin/dashboard',
           icon: LayoutDashboard,
         },
         {
           label: 'Tests',
-          route: '/tests',
+          route: '/admin/tests',
           icon: ClipboardList,
         },
         {
           label: 'Results',
-          route: '/results',
+          route: '/admin/results',
           icon: BarChart3,
         },
         {
           label: 'Analytics',
-          route: '/analytics',
+          route: '/admin/analytics',
           icon: TrendingUp,
         },
       ],
@@ -45,7 +45,7 @@ export const NAV_CONFIG: NavConfig = {
       items: [
         {
           label: 'Profile',
-          route: '/profile',
+          route: '/admin/profile',
           icon: User,
         },
       ],
@@ -54,7 +54,7 @@ export const NAV_CONFIG: NavConfig = {
   secondary: [
     {
       label: 'Settings',
-      route: '/settings',
+      route: '/admin/settings',
       icon: Settings,
     },
   ],
@@ -74,7 +74,7 @@ export const ALL_NAV_ITEMS = [
 export function getActiveNavItem(pathname: string) {
   return ALL_NAV_ITEMS.find(
     (item) =>
-      pathname === item.route || (item.route !== '/dashboard' && pathname.startsWith(item.route)),
+      pathname === item.route || (item.route !== '/admin/dashboard' && pathname.startsWith(item.route)),
   );
 }
 

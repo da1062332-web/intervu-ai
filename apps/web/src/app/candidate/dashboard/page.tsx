@@ -1,14 +1,14 @@
 'use client';
 
-import { useCandidateDashboard } from '@/features/candidate-dashboard/hooks/useCandidateDashboard';
-import { CandidateDashboardHeader } from '@/features/candidate-dashboard/components/CandidateDashboardHeader';
-import { AvailableTestsCard } from '@/features/candidate-dashboard/components/AvailableTestsCard';
-import { ActiveTestCard } from '@/features/candidate-dashboard/components/ActiveTestCard';
-import { AttemptHistoryCard } from '@/features/candidate-dashboard/components/AttemptHistoryCard';
-import { SkillProgressCard } from '@/features/candidate-dashboard/components/SkillProgressCard';
-import { RecommendationsCard } from '@/features/candidate-dashboard/components/RecommendationsCard';
-import { CandidateDashboardSkeleton } from '@/features/candidate-dashboard/components/CandidateDashboardSkeleton';
-import { CandidateDashboardError } from '@/features/candidate-dashboard/components/CandidateDashboardError';
+import { useCandidateDashboard } from '@/features/candidate/dashboard/hooks/useCandidateDashboard';
+import { CandidateDashboardHeader } from '@/components/candidate/dashboard/CandidateDashboardHeader';
+import { AvailableTestsCard } from '@/components/candidate/dashboard/AvailableTestsCard';
+import { ActiveTestCard } from '@/components/candidate/dashboard/ActiveTestCard';
+import { AttemptHistoryCard } from '@/components/candidate/dashboard/AttemptHistoryCard';
+import { SkillProgressCard } from '@/components/candidate/dashboard/SkillProgressCard';
+import { RecommendationsCard } from '@/components/candidate/dashboard/RecommendationsCard';
+import { CandidateDashboardSkeleton } from '@/components/candidate/dashboard/CandidateDashboardSkeleton';
+import { CandidateDashboardError } from '@/components/candidate/dashboard/CandidateDashboardError';
 
 export default function CandidateDashboardPage() {
   const {

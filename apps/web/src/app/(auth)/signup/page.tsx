@@ -28,9 +28,13 @@ export default function SignupPage() {
 
   const signupMutation = useMutation({
     mutationFn: authApi.signup,
-    onSuccess: () => {
+    onSuccess: (data) => {
       notifySuccess('Account created successfully.');
-      router.push('/dashboard');
+      if (data.user.role === 'CANDIDATE') {
+        router.push('/candidate/dashboard');
+      } else {
+        router.push('/admin/dashboard');
+      }
     },
     onError: (error) => {
       const normalized = normalizeApiError(error);

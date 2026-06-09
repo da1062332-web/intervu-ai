@@ -16,7 +16,7 @@ export class GeneratedQuestionRepository {
   }
 
   async create(
-    data: Prisma.GeneratedQuestionCreateInput,
+    data: Prisma.GeneratedQuestionUncheckedCreateInput,
   ): Promise<GeneratedQuestion> {
     this.validate(data);
     try {
@@ -77,6 +77,38 @@ export class GeneratedQuestionRepository {
         skipDuplicates: true, // Gracefully handle duplicate hashes in batch
       });
       return result.count;
+    } catch (error: any) {
+      throw new RepositoryError("DB_ERROR", error.message);
+    }
+  }
+  async findById(id: string): Promise<GeneratedQuestion | null> {
+    this.validate(id);
+    try {
+      return await prisma.generatedQuestion.findUnique({
+        where: { id },
+      });
+    } catch (error: any) {
+      throw new RepositoryError("DB_ERROR", error.message);
+    }
+  }
+
+  async findByTemplate(templateId: string): Promise<GeneratedQuestion[]> {
+    this.validate(templateId);
+    try {
+      return await prisma.generatedQuestion.findMany({
+        where: { templateId },
+      });
+    } catch (error: any) {
+      throw new RepositoryError("DB_ERROR", error.message);
+    }
+  }
+
+  async delete(id: string): Promise<GeneratedQuestion> {
+    this.validate(id);
+    try {
+      return await prisma.generatedQuestion.delete({
+        where: { id },
+      });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);
     }
