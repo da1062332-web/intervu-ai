@@ -2,15 +2,15 @@
 
 This document maps every Next.js 15 screen/page route to the respective NestJS backend API endpoints it consumes. This mapping prevents orphan frontend pages and ensure every screen consumes validated backend endpoints.
 
-| Frontend Page / Screen Route | App Directory Path | Consumed API Endpoints | Purpose / Description |
-| :--- | :--- | :--- | :--- |
-| **Login** | `apps/web/src/app/(auth)/login` | `POST /api/v1/auth/login` | Renders the login form, handles session initiation, stores tokens. |
-| **Signup** | `apps/web/src/app/(auth)/signup` | `POST /api/v1/auth/signup` | Renders signup fields, creates new candidate, initiates session. |
-| **Dashboard (Home)** | `apps/web/src/app/(dashboard)/page.tsx` | `GET /api/v1/dashboard` | Main candidate dashboard view showing assessments, active runs, history. |
-| **Candidate Dashboard** | `apps/web/src/app/candidate/dashboard` | `GET /api/v1/dashboard` | Candidate-specific test and workflow management viewport. |
-| **Assessments Library** | `apps/web/src/app/(dashboard)/tests` | `GET /api/v1/tests/configs` | Renders a catalog of available configurations a user can launch. |
-| **Profile** | `apps/web/src/app/(dashboard)/profile` | `GET /api/v1/auth/me` | Displays candidate profile metrics, basic info, and security stats. |
-| **Results** | `apps/web/src/app/(dashboard)/results` | `GET /api/v1/results/:id` (Future) | Displays evaluation reports and metrics for a completed test attempt. |
+| Frontend Page / Screen Route | App Directory Path                      | Consumed API Endpoints             | Purpose / Description                                                    |
+| :--------------------------- | :-------------------------------------- | :--------------------------------- | :----------------------------------------------------------------------- |
+| **Login**                    | `apps/web/src/app/(auth)/login`         | `POST /api/v1/auth/login`          | Renders the login form, handles session initiation, stores tokens.       |
+| **Signup**                   | `apps/web/src/app/(auth)/signup`        | `POST /api/v1/auth/signup`         | Renders signup fields, creates new candidate, initiates session.         |
+| **Dashboard (Home)**         | `apps/web/src/app/(dashboard)/page.tsx` | `GET /api/v1/dashboard`            | Main candidate dashboard view showing assessments, active runs, history. |
+| **Candidate Dashboard**      | `apps/web/src/app/candidate/dashboard`  | `GET /api/v1/dashboard`            | Candidate-specific test and workflow management viewport.                |
+| **Assessments Library**      | `apps/web/src/app/(dashboard)/tests`    | `GET /api/v1/tests/configs`        | Renders a catalog of available configurations a user can launch.         |
+| **Profile**                  | `apps/web/src/app/(dashboard)/profile`  | `GET /api/v1/auth/me`              | Displays candidate profile metrics, basic info, and security stats.      |
+| **Results**                  | `apps/web/src/app/(dashboard)/results`  | `GET /api/v1/results/:id` (Future) | Displays evaluation reports and metrics for a completed test attempt.    |
 
 ---
 
