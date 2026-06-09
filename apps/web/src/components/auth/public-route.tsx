@@ -12,12 +12,17 @@ export function PublicRoute({ children }: { children: React.ReactNode }) {
   const hydrated = useSessionStore((state) => state.hydrated);
   const accessToken = useSessionStore((state) => state.accessToken);
   const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    if (hydrated && accessToken && status === 'authenticated') {
-      router.replace('/dashboard');
+    if (hydrated && accessToken && status === 'authenticated' && user) {
+      if (user.role === 'CANDIDATE') {
+        router.replace('/candidate/dashboard');
+      } else {
+        router.replace('/admin/dashboard');
+      }
     }
-  }, [accessToken, hydrated, router, status]);
+  }, [accessToken, hydrated, router, status, user]);
 
   if (!hydrated) {
     return <Loading fullScreen message='Restoring your session...' />;

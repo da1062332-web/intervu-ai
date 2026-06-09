@@ -1,6 +1,6 @@
 'use client';
 
-import { useCandidateDashboard } from '@/features/candidate-dashboard/hooks/useCandidateDashboard';
+import { useCandidateDashboard } from '@/features/candidate/dashboard/hooks/useCandidateDashboard';
 import { CandidateDashboardHeader } from '@/components/candidate/dashboard/CandidateDashboardHeader';
 import { AvailableTestsCard } from '@/components/candidate/dashboard/AvailableTestsCard';
 import { ActiveTestCard } from '@/components/candidate/dashboard/ActiveTestCard';

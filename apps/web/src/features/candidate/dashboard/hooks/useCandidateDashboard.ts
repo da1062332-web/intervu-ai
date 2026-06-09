@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { candidateDashboardService } from '../services/candidateDashboard.service';
+import { candidateDashboardService } from '@/services/candidate/candidateDashboard.service';
 import { useCandidateDashboardStore } from '../stores/candidateDashboard.store';
 
 export function useCandidateDashboard() {

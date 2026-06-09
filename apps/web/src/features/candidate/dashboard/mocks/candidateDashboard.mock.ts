@@ -3,10 +3,10 @@ import { CandidateDashboardData } from '../types/candidateDashboard.types';
 export const mockCandidateDashboardData: CandidateDashboardData = {
   availableTests: [
     {
-      id: 'test-1',
-      title: 'Frontend React Assessment',
-      durationMinutes: 60,
-      sections: ['React', 'TypeScript'],
+      id: 'tcs-nqt-001',
+      title: 'TCS NQT Cognitive Assessment',
+      durationMinutes: 90,
+      sections: ['Numerical', 'Verbal', 'Reasoning'],
       status: 'AVAILABLE',
     },
   ],

@@ -1,4 +1,7 @@
-import { AvailableTest } from '@/features/candidate-dashboard/types/candidateDashboard.types';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { AvailableTest } from '@/features/candidate/dashboard/types/candidateDashboard.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +12,8 @@ interface AvailableTestsCardProps {
 }
 
 export function AvailableTestsCard({ tests }: AvailableTestsCardProps) {
+  const router = useRouter();
+
   if (tests.length === 0) {
     return (
       <Card className='h-full flex flex-col'>
@@ -63,7 +68,10 @@ export function AvailableTestsCard({ tests }: AvailableTestsCardProps) {
                 </span>
               </div>
             </div>
-            <Button className='w-full sm:w-auto shrink-0 group'>
+            <Button 
+              className='w-full sm:w-auto shrink-0 group'
+              onClick={() => router.push(`/candidate/tests/${test.id}`)}
+            >
               Start Assessment
               <PlayCircle className='ml-2 size-4 group-hover:scale-110 transition-transform' />
             </Button>

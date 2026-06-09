@@ -31,7 +31,7 @@ export const useLayoutStore = create<LayoutState>()(
   persist(
     (set) => ({
       sidebarCollapsed: false,
-      lastVisitedRoute: '/dashboard',
+      lastVisitedRoute: '/admin/dashboard',
       mobileNavOpen: false,
 
       toggleSidebarCollapsed: () =>

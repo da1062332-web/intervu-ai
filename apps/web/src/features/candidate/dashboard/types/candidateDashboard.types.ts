@@ -3,7 +3,7 @@ export interface AvailableTest {
   title: string;
   durationMinutes: number;
   sections: string[];
-  status: 'AVAILABLE';
+  status: 'AVAILABLE' | 'EXPIRING_SOON';
 }
 
 export interface ActiveTest {

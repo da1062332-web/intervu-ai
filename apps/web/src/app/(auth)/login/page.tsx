@@ -28,16 +28,13 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: authApi.login,
-    onSuccess: () => {
+    onSuccess: (data) => {
       notifySuccess('Welcome back.');
 
-      // TODO: Replace this hardcoded check with actual backend role-based routing
-      // once role information becomes available from the auth APIs.
-      const email = form.getValues('email');
-      if (email === 'candidate@intervu.ai') {
+      if (data.user.role === 'CANDIDATE') {
         router.push('/candidate/dashboard');
       } else {
-        router.push('/dashboard');
+        router.push('/admin/dashboard');
       }
     },
     onError: (error) => {

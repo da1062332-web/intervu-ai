@@ -1,4 +1,4 @@
-import { CandidateRecommendations } from '@/features/candidate-dashboard/types/candidateDashboard.types';
+import { CandidateRecommendations } from '@/features/candidate/dashboard/types/candidateDashboard.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lightbulb, Percent, TrendingUp } from 'lucide-react';
 

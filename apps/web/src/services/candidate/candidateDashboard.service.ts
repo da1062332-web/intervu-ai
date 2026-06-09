@@ -1,5 +1,5 @@
-import { CandidateDashboardData } from '../types/candidateDashboard.types';
-import { mockCandidateDashboardData } from '../mocks/candidateDashboard.mock';
+import { CandidateDashboardData } from '@/features/candidate/dashboard/types/candidateDashboard.types';
+import { mockCandidateDashboardData } from '@/features/candidate/dashboard/mocks/candidateDashboard.mock';
 
 /**
  * Service to fetch candidate dashboard data.
