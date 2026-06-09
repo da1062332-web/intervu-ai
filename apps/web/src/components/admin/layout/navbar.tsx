@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useLayoutStore } from '@/store/layout.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
 import { Button } from '@/components/ui/button';
-import { MobileNavTrigger } from '@/components/layout/mobile-nav';
+import { MobileNavTrigger } from '@/components/admin/layout/mobile-nav';
 import {
   DropdownMenu,
   DropdownMenuContent,

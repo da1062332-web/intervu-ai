@@ -1,4 +1,4 @@
-import { SkillProgress } from '../types/candidateDashboard.types';
+import { SkillProgress } from '@/features/candidate-dashboard/types/candidateDashboard.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target } from 'lucide-react';
 

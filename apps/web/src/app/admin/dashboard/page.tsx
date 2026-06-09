@@ -5,11 +5,11 @@ import Link from 'next/link';
 
 import { useAuthStore } from '@/store/auth.store';
 import { useDashboardStats } from '@/modules/dashboard';
-import { PageHeader } from '@/components/dashboard/page-header';
-import { DashboardCard } from '@/components/dashboard/dashboard-card';
-import { StatCard } from '@/components/dashboard/stat-card';
-import { EmptyStateCard } from '@/components/dashboard/empty-state';
-import { SkeletonCardGrid } from '@/components/dashboard/skeleton-card';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { DashboardCard } from '@/components/admin/dashboard/dashboard-card';
+import { StatCard } from '@/components/admin/dashboard/stat-card';
+import { EmptyStateCard } from '@/components/admin/dashboard/empty-state';
+import { SkeletonCardGrid } from '@/components/admin/dashboard/skeleton-card';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {

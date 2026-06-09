@@ -1,4 +1,4 @@
-import { AttemptHistory } from '../types/candidateDashboard.types';
+import { AttemptHistory } from '@/features/candidate-dashboard/types/candidateDashboard.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Trophy } from 'lucide-react';

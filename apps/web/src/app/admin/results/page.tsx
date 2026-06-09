@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Download } from 'lucide-react';
 
-import { PageHeader } from '@/components/dashboard/page-header';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
-import { ResultsView } from '@/components/results/ResultsView';
+import { ResultsView } from '@/components/admin/results/ResultsView';
 
 export const metadata: Metadata = {
   title: 'Results — InterVu AI',

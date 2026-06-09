@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { PageHeader } from '@/components/dashboard/page-header';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { TestsPageClient } from './_components/tests-page-client';
 
 export const metadata: Metadata = {

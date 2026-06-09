@@ -1,4 +1,4 @@
-import { AvailableTest } from '../types/candidateDashboard.types';
+import { AvailableTest } from '@/features/candidate-dashboard/types/candidateDashboard.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +55,7 @@ export function AvailableTestsCard({ tests }: AvailableTestsCardProps) {
                   {test.durationMinutes} Minutes
                 </span>
                 <span className='flex gap-1 flex-wrap'>
-                  {test.sections.map((sec) => (
+                  {test.sections.map((sec: string) => (
                     <Badge key={sec} variant='secondary' className='text-xs font-normal'>
                       {sec}
                     </Badge>

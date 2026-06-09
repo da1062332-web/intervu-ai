@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Users, FileText, CheckCircle2, TrendingUp, Download } from 'lucide-react';
-import { AnalyticsSectionHeader } from '@/components/analytics/AnalyticsSectionHeader';
-import { StatCard } from '@/components/analytics/StatCard';
-import { TrendCard } from '@/components/analytics/TrendCard';
-import { ProgressIndicator } from '@/components/analytics/ProgressIndicator';
-import { EmptyAnalyticsState } from '@/components/analytics/EmptyAnalyticsState';
+import { AnalyticsSectionHeader } from '@/components/admin/analytics/AnalyticsSectionHeader';
+import { StatCard } from '@/components/admin/analytics/StatCard';
+import { TrendCard } from '@/components/admin/analytics/TrendCard';
+import { ProgressIndicator } from '@/components/admin/analytics/ProgressIndicator';
+import { EmptyAnalyticsState } from '@/components/admin/analytics/EmptyAnalyticsState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { useDashboardStats } from '@/modules/dashboard/hooks/use-dashboard-stats';

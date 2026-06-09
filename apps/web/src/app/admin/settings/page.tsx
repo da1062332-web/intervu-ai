@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Bell, Shield, Palette, Globe, ChevronRight } from 'lucide-react';
 
-import { PageHeader } from '@/components/dashboard/page-header';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {

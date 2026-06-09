@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { DashboardLayout } from '@/components/admin/layout/dashboard-layout';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
