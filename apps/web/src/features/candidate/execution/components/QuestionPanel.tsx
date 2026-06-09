@@ -11,6 +11,8 @@ export function QuestionPanel() {
     currentQuestionIndex, 
     answers, 
     saveAnswer,
+    markForReview,
+    removeReview,
     testInstance
   } = useExecutionStore();
 
@@ -18,6 +20,7 @@ export function QuestionPanel() {
 
   const currentAnswer = answers[currentQuestion.id];
   const selectedOptionId = currentAnswer?.selectedOptionId;
+  const isMarkedForReview = currentAnswer?.status === 'MARKED_FOR_REVIEW';
 
   return (
     <Card className="w-full h-full border-none shadow-none md:border-solid md:shadow-sm">
@@ -78,6 +81,24 @@ export function QuestionPanel() {
               );
             })}
           </RadioGroup>
+        </div>
+
+        <div className="flex justify-between items-center mt-6 pt-6 border-t">
+          <label className="flex items-center space-x-2 cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+            <input
+              type="checkbox"
+              className="w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+              checked={isMarkedForReview}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  markForReview(currentQuestion.id);
+                } else {
+                  removeReview(currentQuestion.id);
+                }
+              }}
+            />
+            <span>Mark for Review</span>
+          </label>
         </div>
       </CardContent>
     </Card>

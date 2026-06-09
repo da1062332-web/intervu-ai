@@ -1,4 +1,8 @@
-export type QuestionStatus = 'ANSWERED' | 'UNANSWERED' | 'CURRENT';
+export type QuestionStatus = 'ANSWERED' | 'UNANSWERED' | 'CURRENT' | 'MARKED_FOR_REVIEW';
+
+export type AutosaveStatus = 'IDLE' | 'SAVING' | 'SAVED' | 'FAILED';
+export type ConnectionStatus = 'ONLINE' | 'OFFLINE' | 'RECONNECTING';
+export type SubmissionStatus = 'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'FAILED';
 
 export interface QuestionOption {
   id: string;

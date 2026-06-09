@@ -2,6 +2,8 @@
 
 import { useExecutionStore } from '../stores/execution.store';
 import { TimerWidget } from './TimerWidget';
+import { AutosaveIndicator } from './AutosaveIndicator';
+import { UnsavedChangesBadge } from './UnsavedChangesBadge';
 import { Badge } from '@/components/ui/badge';
 
 export function ExecutionHeader() {
@@ -35,6 +37,11 @@ export function ExecutionHeader() {
                 </Badge>
               </>
             )}
+            <span className="hidden sm:inline text-muted-foreground/40 px-2">|</span>
+            <div className="flex items-center gap-2">
+              <AutosaveIndicator />
+              <UnsavedChangesBadge />
+            </div>
           </div>
         </div>
 

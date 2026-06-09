@@ -2,9 +2,13 @@
 
 import { useExecutionStore } from '../stores/execution.store';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 
-export function NavigationControls() {
+interface NavigationControlsProps {
+  onSubmitClick?: () => void;
+}
+
+export function NavigationControls({ onSubmitClick }: NavigationControlsProps) {
   const { currentQuestionIndex, questions, goNext, goPrevious } = useExecutionStore();
 
   const isFirst = currentQuestionIndex === 0;
@@ -22,14 +26,24 @@ export function NavigationControls() {
         Previous
       </Button>
 
-      <Button
-        onClick={goNext}
-        disabled={isLast}
-        className="flex-1 sm:flex-none w-full sm:w-32 h-12"
-      >
-        Next
-        <ChevronRight className="w-4 h-4 ml-2" />
-      </Button>
+      {isLast ? (
+        <Button
+          onClick={onSubmitClick}
+          className="flex-1 sm:flex-none w-full sm:w-auto px-6 h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          Submit Assessment
+        </Button>
+      ) : (
+        <Button
+          onClick={goNext}
+          disabled={isLast}
+          className="flex-1 sm:flex-none w-full sm:w-32 h-12"
+        >
+          Next
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+      )}
     </div>
   );
 }

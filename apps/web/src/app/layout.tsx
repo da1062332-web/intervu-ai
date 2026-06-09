@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <AppProviders>
           {children}
-          <Toaster richColors />
+          <Toaster richColors position="top-right" style={{ zIndex: 999999 }} />
         </AppProviders>
       </body>
     </html>

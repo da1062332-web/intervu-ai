@@ -5,10 +5,28 @@ import { QuestionPanel } from './QuestionPanel';
 import { QuestionPalette } from './QuestionPalette';
 import { ProgressTracker } from './ProgressTracker';
 import { NavigationControls } from './NavigationControls';
+import { ResumeBanner } from './ResumeBanner';
+import { ConnectionStatus } from './ConnectionStatus';
+import { SubmissionModal } from './SubmissionModal';
+import { useExecutionStore } from '../stores/execution.store';
+import { useAutosave } from '../hooks/useAutosave';
+import { useConnectionMonitor } from '../hooks/useConnectionMonitor';
+import { useResume } from '../hooks/useResume';
+import { useState } from 'react';
 
 export function ExecutionLayout() {
+  const { testInstance } = useExecutionStore();
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+
+  // Initialize day 4 hooks
+  useConnectionMonitor();
+  useResume(testInstance?.id);
+  useAutosave(testInstance?.id || 'unknown');
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative">
+      <ConnectionStatus />
+      <ResumeBanner />
       <ExecutionHeader />
       
       <main className="flex-1 container max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
@@ -20,7 +38,7 @@ export function ExecutionLayout() {
               <QuestionPanel />
             </div>
             <div className="mt-6 md:mt-8">
-              <NavigationControls />
+              <NavigationControls onSubmitClick={() => setIsSubmitModalOpen(true)} />
             </div>
           </div>
 
@@ -35,6 +53,14 @@ export function ExecutionLayout() {
           
         </div>
       </main>
+
+      {testInstance && (
+        <SubmissionModal 
+          isOpen={isSubmitModalOpen} 
+          onClose={() => setIsSubmitModalOpen(false)} 
+          testId={testInstance.id} 
+        />
+      )}
     </div>
   );
 }
