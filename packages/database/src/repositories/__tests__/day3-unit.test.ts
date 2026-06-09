@@ -112,9 +112,7 @@ describe("Day 3 Test Assembly Engine Unit Tests", () => {
 
   it("ASM-DB-006: Rollback transaction (using AssemblyRepository)", async () => {
     // Mock transaction to simulate failure
-    (prisma.$transaction as vi.Mock).mockImplementation(async (callback) => {
-      throw new Error("Simulated Transaction Failure");
-    });
+    (prisma.$transaction as vi.Mock).mockRejectedValue(new Error("Simulated Transaction Failure"));
 
     await expect(
       assemblyRepo.persistAssembly({ userId: "u1", testConfigId: "cfg-1" }, [], {})
@@ -124,31 +122,21 @@ describe("Day 3 Test Assembly Engine Unit Tests", () => {
   it("ASM-DB-007: Snapshot persistence", async () => {
     const snapshot = { questionText: "What is React?", options: [], correctAnswer: "A", solution: "B" };
     
-    (prisma.$transaction as vi.Mock).mockImplementation(async (callback) => {
-      // Execute the callback synchronously to verify inner calls
-      return callback({
-        testInstance: prisma.testInstance,
-        testInstanceSection: prisma.testInstanceSection,
-        testInstanceQuestion: prisma.testInstanceQuestion,
-      });
-    });
-
-    (prisma.testInstance.create as vi.Mock).mockResolvedValue({ id: "inst-1" });
-    (prisma.testInstanceSection.create as vi.Mock).mockResolvedValue({ id: "sec-1", sectionKey: "s1" });
-    (prisma.testInstanceQuestion.createMany as vi.Mock).mockResolvedValue({ count: 1 });
+    // With array transactions, the results array is returned
+    (prisma.$transaction as vi.Mock).mockResolvedValue([{ id: "inst-1" }]);
 
     await assemblyRepo.persistAssembly(
-      { userId: "u1", testConfigId: "cfg-1" },
-      [{ sectionKey: "s1", sectionName: "S1", durationSeconds: 60, questionCount: 1, orderIndex: 0 }],
+      { id: "inst-1", userId: "u1", testConfigId: "cfg-1" },
+      [{ id: "sec-1", sectionKey: "s1", sectionName: "S1", durationSeconds: 60, questionCount: 1, orderIndex: 0 }],
       {
-        "s1": [{ questionId: "q1", questionOrder: 0, questionSnapshot: snapshot }]
+        "s1": [{ id: "q1", questionId: "q1", questionOrder: 0, questionSnapshot: snapshot }]
       }
     );
 
-    // Verify snapshot was passed exactly as provided
+    // Verify snapshot was passed exactly as provided (in the array pushed to transaction)
     expect(prisma.testInstanceQuestion.createMany).toHaveBeenCalledWith({
       data: [
-        { testInstanceId: "inst-1", sectionId: "sec-1", questionId: "q1", questionOrder: 0, questionSnapshot: snapshot }
+        { id: "q1", testInstanceId: "inst-1", sectionId: "sec-1", questionId: "q1", questionOrder: 0, questionSnapshot: snapshot }
       ]
     });
   });

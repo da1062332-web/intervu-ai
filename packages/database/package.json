@@ -15,6 +15,7 @@
     "argon2": "^0.44.0"
   },
   "devDependencies": {
+    "cuid": "^3.0.0",
     "prisma": "^5.22.0",
     "typescript": "^5.6.0"
   },

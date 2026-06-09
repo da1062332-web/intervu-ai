@@ -2,6 +2,8 @@ import { prisma } from "../client";
 import { RepositoryError } from "../types/database.types";
 import type { Prisma, TestInstance, TestInstanceSection, TestInstanceQuestion } from "@prisma/client";
 
+import { createId } from "@paralleldrive/cuid2";
+
 export type FullAssemblyData = TestInstance & {
   sections: (TestInstanceSection & {
     questions: TestInstanceQuestion[];
@@ -21,6 +23,7 @@ export class AssemblyRepository {
   /**
    * Persists the entire assembled test instance inside a Prisma transaction.
    * If any step fails, the entire transaction is rolled back.
+   * Uses a flat array transaction for maximum remote db performance.
    */
   async persistAssembly(
     instanceData: Prisma.TestInstanceUncheckedCreateInput,
@@ -30,45 +33,58 @@ export class AssemblyRepository {
     this.validate(instanceData);
     this.validate(sectionsData);
 
-    try {
-      return await prisma.$transaction(async (tx) => {
-        // 1. Create the Instance
-        const instance = await tx.testInstance.create({
-          data: instanceData,
-        });
+    const instanceId = instanceData.id || createId();
+    const queries: any[] = [];
+    
+    // 1. Top-level TestInstance query
+    queries.push(
+      prisma.testInstance.create({
+        data: {
+          ...instanceData,
+          id: instanceId,
+        },
+      })
+    );
 
-        // 2. Concurrently create Sections and their Questions
-        await Promise.all(
-          sectionsData.map(async (sectionInput) => {
-            const section = await tx.testInstanceSection.create({
-              data: {
-                ...sectionInput,
-                testInstanceId: instance.id,
-              },
-            });
+    // 2. Sections and their questions
+    for (const sectionInput of sectionsData) {
+      const sectionId = sectionInput.id || createId();
+      
+      queries.push(
+        prisma.testInstanceSection.create({
+          data: {
+            ...sectionInput,
+            id: sectionId,
+            testInstanceId: instanceId,
+          },
+        })
+      );
 
-            const questionsForSection = questionsDataMap[section.sectionKey] || [];
-            if (questionsForSection.length > 0) {
-              const finalQuestions = questionsForSection.map((q) => ({
-                ...q,
-                testInstanceId: instance.id,
-                sectionId: section.id,
-              }));
+      const questionsForSection = questionsDataMap[sectionInput.sectionKey] || [];
+      if (questionsForSection.length > 0) {
+        const finalQuestions = questionsForSection.map((q) => ({
+          ...q,
+          id: q.id || createId(),
+          testInstanceId: instanceId,
+          sectionId: sectionId,
+        }));
 
-              await tx.testInstanceQuestion.createMany({
-                data: finalQuestions,
-              });
-            }
+        queries.push(
+          prisma.testInstanceQuestion.createMany({
+            data: finalQuestions,
           })
         );
+      }
+    }
 
-        return instance;
-      });
+    try {
+      // Execute flat array transaction (one network roundtrip)
+      const results = await prisma.$transaction(queries);
+      return results[0] as TestInstance;
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", `Failed to persist assembly: ${error.message}`);
     }
   }
-
   /**
    * Assembly Read Model
    * Fetches the complete structure in a single highly optimized join query.
