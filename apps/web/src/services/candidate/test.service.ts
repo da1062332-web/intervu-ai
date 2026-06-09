@@ -32,6 +32,7 @@ export const testService = {
     });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateStart: async (_id: string): Promise<ValidationResponse> => {
     return new Promise((resolve) => {
       setTimeout(() => {

@@ -26,7 +26,7 @@ export function StartAssessmentButton({ testId, onValidationComplete }: StartAss
       } else {
         toast.error('You are not eligible to start this assessment.');
       }
-    } catch (_error) {
+    } catch {
       toast.error('Failed to validate assessment start.');
     }
   };
