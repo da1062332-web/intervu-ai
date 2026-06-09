@@ -22,6 +22,7 @@ model User {
   refreshTokens RefreshToken[]
   templates     Template[]
   tests         Test[]
+  testInstances TestInstance[]
   evaluationResults EvaluationResult[]
 
   @@index([deletedAt])
@@ -197,6 +198,7 @@ model TestConfig {
   createdAt            DateTime      @default(now())
   
   sections             TestSection[]
+  testInstances        TestInstance[]
   rule                 TestRule?
 
   @@index([configKey])
@@ -245,4 +247,68 @@ model GeneratedQuestion {
 
   @@index([conceptKey])
   @@index([difficultyLevel])
+}
+
+enum TestInstanceStatus {
+  CREATED
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+}
+
+model TestInstance {
+  id           String             @id @default(cuid())
+  userId       String
+  testConfigId String
+  status       TestInstanceStatus @default(CREATED)
+  startedAt    DateTime?
+  expiresAt    DateTime?
+  submittedAt  DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testConfig   TestConfig            @relation(fields: [testConfigId], references: [id], onDelete: Restrict)
+  sections     TestInstanceSection[]
+  questions    TestInstanceQuestion[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([testConfigId])
+}
+
+model TestInstanceSection {
+  id              String   @id @default(cuid())
+  testInstanceId  String
+  sectionKey      String
+  sectionName     String
+  durationSeconds Int
+  questionCount   Int
+  orderIndex      Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  testInstance    TestInstance           @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  questions       TestInstanceQuestion[]
+
+  @@unique([testInstanceId, orderIndex])
+  @@index([testInstanceId])
+}
+
+model TestInstanceQuestion {
+  id               String   @id @default(cuid())
+  testInstanceId   String
+  sectionId        String
+  questionId       String
+  questionOrder    Int
+  questionSnapshot Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  testInstance     TestInstance        @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  section          TestInstanceSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, questionOrder])
+  @@index([testInstanceId])
+  @@index([sectionId])
 }
