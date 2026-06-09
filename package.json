@@ -22,7 +22,8 @@
     "test:integration": "turbo run test:integration",
     "test:contracts": "turbo run test:contracts",
     "test:regression": "turbo run test:regression",
-    "check:structure": "node scripts/check-structure.js"
+    "check:structure": "node scripts/check-structure.js",
+    "generate:test": "tsx scripts/test-generation.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
