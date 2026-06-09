@@ -7,7 +7,10 @@ import { useTestDetails } from '@/features/candidate/tests/hooks/useTestDetails'
 import { TestDetailsCard } from '@/features/candidate/tests/components/TestDetailsCard';
 import { TestMetadata } from '@/features/candidate/tests/components/TestMetadata';
 import { ArrowRight, ChevronLeft } from 'lucide-react';
-import { TestDetailsSkeleton, MetadataSkeleton } from '@/features/candidate/tests/components/TestDiscoveryLoaders';
+import {
+  TestDetailsSkeleton,
+  MetadataSkeleton,
+} from '@/features/candidate/tests/components/TestDiscoveryLoaders';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 
 export default function TestDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,7 +31,7 @@ export default function TestDetailsPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
         </div>
-        
+
         <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
             <div className='lg:col-span-2'>
@@ -44,7 +47,12 @@ export default function TestDetailsPage({ params }: { params: Promise<{ id: stri
   }
 
   if (error || !config) {
-    return <TestDiscoveryError error={error || new Error('Failed to load test details')} reset={refetch} />;
+    return (
+      <TestDiscoveryError
+        error={error || new Error('Failed to load test details')}
+        reset={refetch}
+      />
+    );
   }
 
   return (
@@ -61,7 +69,7 @@ export default function TestDetailsPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
-      
+
       <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           <div className='lg:col-span-2'>
@@ -71,7 +79,7 @@ export default function TestDetailsPage({ params }: { params: Promise<{ id: stri
             <TestMetadata sections={config.sections} />
           </div>
         </div>
-        
+
         <div className='flex justify-end pt-6 border-t border-border/40'>
           <Button asChild size='lg' className='px-8'>
             <Link href={`/candidate/tests/${testId}/instructions`}>

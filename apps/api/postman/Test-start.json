@@ -27,15 +27,8 @@
         },
         "url": {
           "raw": "{{api_url}}/api/v1/tests/start",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "tests",
-            "start"
-          ]
+          "host": ["{{api_url}}"],
+          "path": ["api", "v1", "tests", "start"]
         }
       },
       "response": []
@@ -57,15 +50,8 @@
         },
         "url": {
           "raw": "{{api_url}}/api/v1/tests/start",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "tests",
-            "start"
-          ]
+          "host": ["{{api_url}}"],
+          "path": ["api", "v1", "tests", "start"]
         }
       },
       "response": []
@@ -92,15 +78,8 @@
         },
         "url": {
           "raw": "{{api_url}}/api/v1/tests/start",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "tests",
-            "start"
-          ]
+          "host": ["{{api_url}}"],
+          "path": ["api", "v1", "tests", "start"]
         }
       },
       "response": []

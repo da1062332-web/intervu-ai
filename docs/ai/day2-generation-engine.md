@@ -35,6 +35,7 @@ The generation engine uses a modular design separating template selection, param
 ## 2. Seed-Based Deterministic Strategy
 
 To ensure reproducible runs across candidates, **no direct randomness (`Math.random()`)** is used in the pipeline:
+
 1. A base string (e.g. `templateKey` + `difficultyLevel`) is converted into a 32-bit integer seed.
 2. The seed initializes a Pseudo-Random Number Generator (PRNG) implementing the SFC32 algorithm.
 3. Every variable index choice, numeric range shift, and MCQ option shuffle utilizes this PRNG.
@@ -45,11 +46,12 @@ To ensure reproducible runs across candidates, **no direct randomness (`Math.ran
 ## 3. Supported Templates & Concepts
 
 We seeded **15 functional templates** in the database across 5 concepts (each having an easy, medium, and hard variant):
-* **`time_work`** (Time and Work calculation)
-* **`probability`** (Balls drawing, defective items selection, class overlaps)
-* **`percentages`** (Simple %, petrol consumption reduction, candidates marks range)
-* **`averages`** (Basic list average, teacher addition weight shift, temperature overlap)
-* **`profit_loss`** (Net profit value, CP/SP percentage, machine loss-to-gain rotation)
+
+- **`time_work`** (Time and Work calculation)
+- **`probability`** (Balls drawing, defective items selection, class overlaps)
+- **`percentages`** (Simple %, petrol consumption reduction, candidates marks range)
+- **`averages`** (Basic list average, teacher addition weight shift, temperature overlap)
+- **`profit_loss`** (Net profit value, CP/SP percentage, machine loss-to-gain rotation)
 
 ---
 
@@ -79,6 +81,7 @@ Running `npm run generate:test` outputs the following `GeneratedQuestionDto` pay
 ## 5. Validation Logic
 
 Before a question is accepted, it passes through the `GenerationValidationService`:
-* **Structure:** Compares schema properties against `GeneratedQuestionSchema` from `@intervu-ai/contracts`.
-* **MCQ Options:** Verifies exactly 4 choices are present, and the correct answer exists within the options list.
-* **Metadata Integrity:** Verifies all variables and parameters utilized in hydration are registered in metadata.
+
+- **Structure:** Compares schema properties against `GeneratedQuestionSchema` from `@intervu-ai/contracts`.
+- **MCQ Options:** Verifies exactly 4 choices are present, and the correct answer exists within the options list.
+- **Metadata Integrity:** Verifies all variables and parameters utilized in hydration are registered in metadata.

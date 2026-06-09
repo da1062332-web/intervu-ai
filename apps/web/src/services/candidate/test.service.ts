@@ -1,5 +1,13 @@
-import { TestConfig, InstructionConfig, ValidationResponse } from '@/features/candidate/tests/types/test.types';
-import { mockTestConfig, mockInstructionConfig, mockValidationResponseEligible } from '@/features/candidate/tests/mocks/tests.mock';
+import {
+  TestConfig,
+  InstructionConfig,
+  ValidationResponse,
+} from '@/features/candidate/tests/types/test.types';
+import {
+  mockTestConfig,
+  mockInstructionConfig,
+  mockValidationResponseEligible,
+} from '@/features/candidate/tests/mocks/tests.mock';
 
 export const testService = {
   getTestConfigs: async (): Promise<TestConfig[]> => {
@@ -9,7 +17,7 @@ export const testService = {
   getTestDetails: async (id: string): Promise<TestConfig> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        // Return mock regardless of ID for demo purposes, 
+        // Return mock regardless of ID for demo purposes,
         // or properly handle if it doesn't match the mock ID.
         if (id === mockTestConfig.id || id) {
           resolve(mockTestConfig);
@@ -39,5 +47,5 @@ export const testService = {
         resolve(mockValidationResponseEligible);
       }, 500);
     });
-  }
+  },
 };

@@ -4,7 +4,10 @@ import { QuestionInstantiatorService } from "./question-instantiator.service";
 import { GenerationValidationService } from "./validation/generation-validation.service";
 import { GenerationRequest, GenerationResult } from "./types/generation.types";
 import { PRNG, generateSeedFromString } from "./utils/random-seed.util";
-import { GeneratedQuestionDto, QuestionValidationDto } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionDto,
+  QuestionValidationDto,
+} from "@intervu-ai/contracts";
 import { randomUUID } from "crypto";
 
 export class GenerationService {
@@ -20,9 +23,12 @@ export class GenerationService {
     validationService?: GenerationValidationService,
   ) {
     this.templateSelector = templateSelector || new TemplateSelectorService();
-    this.parameterGenerator = parameterGenerator || new ParameterGeneratorService();
-    this.questionInstantiator = questionInstantiator || new QuestionInstantiatorService();
-    this.validationService = validationService || new GenerationValidationService();
+    this.parameterGenerator =
+      parameterGenerator || new ParameterGeneratorService();
+    this.questionInstantiator =
+      questionInstantiator || new QuestionInstantiatorService();
+    this.validationService =
+      validationService || new GenerationValidationService();
   }
 
   /**
@@ -45,7 +51,10 @@ export class GenerationService {
     }
 
     // 2. Select matching template from DB
-    const template = await this.templateSelector.selectTemplate(request, baseSeed);
+    const template = await this.templateSelector.selectTemplate(
+      request,
+      baseSeed,
+    );
 
     // 3. Create a unique numeric seed derived from templateKey + difficulty
     const derivedSeedInput = `${template.templateKey}_${template.difficultyLevel}`;
@@ -73,14 +82,20 @@ export class GenerationService {
       options: instantiated.options,
       correctAnswer: instantiated.correctAnswer,
       solution: instantiated.solution,
-      difficultyLevel: template.difficultyLevel.toLowerCase() as "easy" | "medium" | "hard",
+      difficultyLevel: template.difficultyLevel.toLowerCase() as
+        | "easy"
+        | "medium"
+        | "hard",
       conceptKey: template.conceptKey,
       hash: template.templateKey,
       parameters,
     };
 
     // 6. Validate generated question details
-    const validation = this.validationService.validateQuestion(questionId, result);
+    const validation = this.validationService.validateQuestion(
+      questionId,
+      result,
+    );
     if (!validation.isValid) {
       throw new Error(
         `Generated question failed validation: ${validation.errors.join(", ")}`,
@@ -92,7 +107,10 @@ export class GenerationService {
       questionId,
       templateId: template.id,
       conceptKey: template.conceptKey,
-      difficultyLevel: template.difficultyLevel.toLowerCase() as "easy" | "medium" | "hard",
+      difficultyLevel: template.difficultyLevel.toLowerCase() as
+        | "easy"
+        | "medium"
+        | "hard",
       questionType: "mcq", // default type
       questionText: result.questionText,
       options: result.options,

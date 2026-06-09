@@ -23,14 +23,17 @@ export class QuestionInstantiatorService {
     correctAnswer: string;
     solution: HydratedSolution;
   } {
-    const questionTemplateText = (structureSchema.questionTemplate || "") as string;
+    const questionTemplateText = (structureSchema.questionTemplate ||
+      "") as string;
     const solutionStepsTemplate = (solutionSchema.steps || []) as string[];
     const finalAnswerExpression = (solutionSchema.finalAnswer || "") as string;
 
     // 1. Hydrate question text
     const questionText = hydrateString(questionTemplateText, parameters);
     if (questionText.includes("{") && questionText.includes("}")) {
-      throw new Error("Question text contains unresolved placeholder variables.");
+      throw new Error(
+        "Question text contains unresolved placeholder variables.",
+      );
     }
 
     // 2. Solve final answer expression mathematically
@@ -38,7 +41,9 @@ export class QuestionInstantiatorService {
     try {
       const result = evaluateExpression(finalAnswerExpression, parameters);
       if (typeof result !== "number" || isNaN(result) || !isFinite(result)) {
-        throw new Error("Solvability failure: expression did not resolve to a finite number.");
+        throw new Error(
+          "Solvability failure: expression did not resolve to a finite number.",
+        );
       }
       correctAnswerVal = result;
     } catch (error: unknown) {

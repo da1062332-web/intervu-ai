@@ -21,7 +21,6 @@ async function run() {
 
     console.log("\n--- VALIDATION DTO OUTPUT ---");
     console.log(JSON.stringify(result.validation, null, 2));
-    
   } catch (error: any) {
     console.error("Generation failed:", error);
   } finally {

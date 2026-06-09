@@ -24,7 +24,7 @@ export class GeneratedQuestionRepository extends BaseRepository<
   async findForConcept(
     conceptKey: string,
     difficultyLevel: DifficultyLevel,
-    count: number
+    count: number,
   ): Promise<GeneratedQuestion[]> {
     return this.db.generatedQuestion.findMany({
       where: {

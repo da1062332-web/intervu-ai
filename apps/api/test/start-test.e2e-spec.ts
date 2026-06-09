@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
+import * as request from "supertest";
+import { AppModule } from "../src/app.module";
 
-describe('StartTestController (e2e)', () => {
+describe("StartTestController (e2e)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -21,10 +21,10 @@ describe('StartTestController (e2e)', () => {
     await app.close();
   });
 
-  it('/api/v1/tests/start (POST) - Unauthorized without JWT', () => {
+  it("/api/v1/tests/start (POST) - Unauthorized without JWT", () => {
     return request(app.getHttpServer())
-      .post('/tests/v1/start') // Or however versioning is set up in main.ts
-      .send({ testConfigId: 'some-uuid' })
+      .post("/tests/v1/start") // Or however versioning is set up in main.ts
+      .send({ testConfigId: "some-uuid" })
       .expect(401); // Assuming JwtAuthGuard throws 401
   });
 

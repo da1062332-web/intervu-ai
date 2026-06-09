@@ -1,5 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { TestInstanceRepository, CreateTestInstanceData } from './test-instance.repository';
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+  TestInstanceRepository,
+  CreateTestInstanceData,
+} from "./test-instance.repository";
 
 @Injectable()
 export class TestInstanceService {
@@ -9,7 +12,9 @@ export class TestInstanceService {
     try {
       return await this.repository.create(data);
     } catch {
-      throw new InternalServerErrorException('TEST_CREATION_FAILED: Failed to create test instance');
+      throw new InternalServerErrorException(
+        "TEST_CREATION_FAILED: Failed to create test instance",
+      );
     }
   }
 

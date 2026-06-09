@@ -12,7 +12,10 @@ interface StartAssessmentButtonProps {
   onValidationComplete: (response: ValidationResponse) => void;
 }
 
-export function StartAssessmentButton({ testId, onValidationComplete }: StartAssessmentButtonProps) {
+export function StartAssessmentButton({
+  testId,
+  onValidationComplete,
+}: StartAssessmentButtonProps) {
   const router = useRouter();
   const { mutateAsync: validateStart, isPending } = useValidateStart();
 
@@ -32,8 +35,8 @@ export function StartAssessmentButton({ testId, onValidationComplete }: StartAss
   };
 
   return (
-    <Button 
-      onClick={handleStart} 
+    <Button
+      onClick={handleStart}
       disabled={isPending}
       className='w-full sm:w-auto h-12 px-8 text-base group'
     >

@@ -1,17 +1,21 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { GeneratedQuestionRepository } from '../../question-pool/repositories/generated-question.repository';
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
 
 export interface QuestionRequirement {
   conceptKey: string;
-  difficultyLevel: 'EASY' | 'MEDIUM' | 'HARD';
+  difficultyLevel: "EASY" | "MEDIUM" | "HARD";
   count: number;
 }
 
 @Injectable()
 export class QuestionProviderService {
-  constructor(private readonly questionRepository: GeneratedQuestionRepository) {}
+  constructor(
+    private readonly questionRepository: GeneratedQuestionRepository,
+  ) {}
 
-  async fetchOrGenerateQuestions(requirements: QuestionRequirement[]): Promise<{ questionHash: string }[]> {
+  async fetchOrGenerateQuestions(
+    requirements: QuestionRequirement[],
+  ): Promise<{ questionHash: string }[]> {
     const results: { questionHash: string }[] = [];
 
     for (const req of requirements) {
@@ -19,11 +23,13 @@ export class QuestionProviderService {
       const poolQuestions = await this.questionRepository.findForConcept(
         req.conceptKey,
         req.difficultyLevel,
-        req.count
+        req.count,
       );
 
       if (poolQuestions.length >= req.count) {
-        results.push(...poolQuestions.map(q => ({ questionHash: q.questionHash })));
+        results.push(
+          ...poolQuestions.map((q) => ({ questionHash: q.questionHash })),
+        );
         continue;
       }
 
@@ -33,8 +39,8 @@ export class QuestionProviderService {
       // Wait, the instructions say "Never use mocked business logic" and "If an interface is missing, define a clean abstraction instead of mocking."
       // So we will throw QUESTION_POOL_EMPTY if we can't generate it immediately here.
       throw new InternalServerErrorException({
-        code: 'QUESTION_POOL_EMPTY',
-        message: `Not enough questions in pool for concept ${req.conceptKey} and difficulty ${req.difficultyLevel}. Generation Service invocation is required.`
+        code: "QUESTION_POOL_EMPTY",
+        message: `Not enough questions in pool for concept ${req.conceptKey} and difficulty ${req.difficultyLevel}. Generation Service invocation is required.`,
       });
     }
 

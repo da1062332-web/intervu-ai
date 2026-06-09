@@ -20,18 +20,31 @@ describe("Question Generation Engine Unit Tests", () => {
       description: null,
       structure: {
         questionTemplate: "What is {percent}% of {amount}?",
-        metadata: { w1_steps: 1.5, w2_number_complexity: 1.2, w3_concept_overlap: 1.0, w4_trick_factor: 1.0 }
+        metadata: {
+          w1_steps: 1.5,
+          w2_number_complexity: 1.2,
+          w3_concept_overlap: 1.0,
+          w4_trick_factor: 1.0,
+        },
       },
       variableSchema: {
         variables: [
-          { name: "percent", type: "number", range: { min: 10, max: 50, step: 10 } },
-          { name: "amount", type: "number", range: { min: 100, max: 500, step: 100 } }
-        ]
+          {
+            name: "percent",
+            type: "number",
+            range: { min: 10, max: 50, step: 10 },
+          },
+          {
+            name: "amount",
+            type: "number",
+            range: { min: 100, max: 500, step: 100 },
+          },
+        ],
       },
       constraints: { constraints: [] },
       solutionSchema: {
         steps: ["Formula: (percent * amount) / 100"],
-        finalAnswer: "(percent * amount) / 100"
+        finalAnswer: "(percent * amount) / 100",
       },
       version: 1,
       isActive: true,
@@ -41,8 +54,8 @@ describe("Question Generation Engine Unit Tests", () => {
       creatorId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      deletedAt: null
-    }
+      deletedAt: null,
+    },
   ];
 
   const mockTemplateRepo = {
@@ -55,32 +68,45 @@ describe("Question Generation Engine Unit Tests", () => {
 
   describe("TemplateSelectorService (GEN-001, GEN-002)", () => {
     it("GEN-001: should select a template successfully from database", async () => {
-      mockTemplateRepo.findByConceptAndDifficulty.mockResolvedValue(mockTemplates);
+      mockTemplateRepo.findByConceptAndDifficulty.mockResolvedValue(
+        mockTemplates,
+      );
       const selector = new TemplateSelectorService(
-        mockTemplateRepo as unknown as TemplateSelectorService["templateRepository"]
+        mockTemplateRepo as unknown as TemplateSelectorService["templateRepository"],
       );
 
       const template = await selector.selectTemplate(
-        { conceptKey: "percentages", difficultyLevel: "easy", questionType: "mcq" },
-        12345
+        {
+          conceptKey: "percentages",
+          difficultyLevel: "easy",
+          questionType: "mcq",
+        },
+        12345,
       );
 
       expect(template).toBeDefined();
       expect(template.templateKey).toBe("TPL_TEST_PERCENTAGE_EASY");
-      expect(mockTemplateRepo.findByConceptAndDifficulty).toHaveBeenCalledWith("percentages", "EASY");
+      expect(mockTemplateRepo.findByConceptAndDifficulty).toHaveBeenCalledWith(
+        "percentages",
+        "EASY",
+      );
     });
 
     it("GEN-002: should throw an error if template is not found", async () => {
       mockTemplateRepo.findByConceptAndDifficulty.mockResolvedValue([]);
       const selector = new TemplateSelectorService(
-        mockTemplateRepo as unknown as TemplateSelectorService["templateRepository"]
+        mockTemplateRepo as unknown as TemplateSelectorService["templateRepository"],
       );
 
       await expect(
         selector.selectTemplate(
-          { conceptKey: "nonexistent", difficultyLevel: "easy", questionType: "mcq" },
-          12345
-        )
+          {
+            conceptKey: "nonexistent",
+            difficultyLevel: "easy",
+            questionType: "mcq",
+          },
+          12345,
+        ),
       ).rejects.toThrow("Template not found");
     });
   });
@@ -90,7 +116,10 @@ describe("Question Generation Engine Unit Tests", () => {
       const generator = new ParameterGeneratorService();
       const prng = new PRNG(42);
       const schema = mockTemplates[0].variableSchema as Record<string, unknown>;
-      const constraints = mockTemplates[0].constraints as Record<string, unknown>;
+      const constraints = mockTemplates[0].constraints as Record<
+        string,
+        unknown
+      >;
 
       const params = generator.generateParameters(schema, constraints, prng);
 
@@ -107,11 +136,11 @@ describe("Question Generation Engine Unit Tests", () => {
       const schema = mockTemplates[0].variableSchema as Record<string, unknown>;
       // Impossible constraint
       const constraints = {
-        constraints: [{ rule: "percent > 100", severity: "critical" }]
+        constraints: [{ rule: "percent > 100", severity: "critical" }],
       };
 
       expect(() =>
-        generator.generateParameters(schema, constraints, prng, 5)
+        generator.generateParameters(schema, constraints, prng, 5),
       ).toThrow("Failed to generate valid parameters");
     });
   });
@@ -121,10 +150,18 @@ describe("Question Generation Engine Unit Tests", () => {
       const instantiator = new QuestionInstantiatorService();
       const prng = new PRNG(123);
       const structure = mockTemplates[0].structure as Record<string, unknown>;
-      const solution = mockTemplates[0].solutionSchema as Record<string, unknown>;
+      const solution = mockTemplates[0].solutionSchema as Record<
+        string,
+        unknown
+      >;
       const params = { percent: 20, amount: 200 };
 
-      const result = instantiator.instantiateQuestion(structure, solution, params, prng);
+      const result = instantiator.instantiateQuestion(
+        structure,
+        solution,
+        params,
+        prng,
+      );
 
       expect(result.questionText).toBe("What is 20% of 200?");
     });
@@ -133,10 +170,18 @@ describe("Question Generation Engine Unit Tests", () => {
       const instantiator = new QuestionInstantiatorService();
       const prng = new PRNG(123);
       const structure = mockTemplates[0].structure as Record<string, unknown>;
-      const solution = mockTemplates[0].solutionSchema as Record<string, unknown>;
+      const solution = mockTemplates[0].solutionSchema as Record<
+        string,
+        unknown
+      >;
       const params = { percent: 20, amount: 200 };
 
-      const result = instantiator.instantiateQuestion(structure, solution, params, prng);
+      const result = instantiator.instantiateQuestion(
+        structure,
+        solution,
+        params,
+        prng,
+      );
 
       // (20 * 200) / 100 = 40
       expect(result.correctAnswer).toBe("40");
@@ -153,7 +198,7 @@ describe("Question Generation Engine Unit Tests", () => {
       difficultyLevel: "easy",
       conceptKey: "percentages",
       hash: "TPL_TEST_PERCENTAGE_EASY",
-      parameters: { percent: 20, amount: 200 }
+      parameters: { percent: 20, amount: 200 },
     };
 
     it("GEN-007: should validate question successfully with score 1.0", () => {
@@ -177,7 +222,7 @@ describe("Question Generation Engine Unit Tests", () => {
       const validator = new GenerationValidationService();
       const invalidResult = {
         ...validResult,
-        options: ["40", "30"] // Only 2 options
+        options: ["40", "30"], // Only 2 options
       };
 
       const validation = validator.validateQuestion("q_1", invalidResult);
@@ -189,10 +234,12 @@ describe("Question Generation Engine Unit Tests", () => {
 
   describe("GenerationService (GEN-008)", () => {
     it("GEN-008: should produce identical questions deterministically when running twice with same seed", async () => {
-      mockTemplateRepo.findByConceptAndDifficulty.mockResolvedValue(mockTemplates);
-      
+      mockTemplateRepo.findByConceptAndDifficulty.mockResolvedValue(
+        mockTemplates,
+      );
+
       const selector = new TemplateSelectorService(
-        mockTemplateRepo as unknown as TemplateSelectorService["templateRepository"]
+        mockTemplateRepo as unknown as TemplateSelectorService["templateRepository"],
       );
       const generator = new ParameterGeneratorService();
       const instantiator = new QuestionInstantiatorService();
@@ -202,13 +249,13 @@ describe("Question Generation Engine Unit Tests", () => {
         selector,
         generator,
         instantiator,
-        validator
+        validator,
       );
 
       const request: GenerationRequest = {
         conceptKey: "percentages",
         difficultyLevel: "easy",
-        questionType: "mcq"
+        questionType: "mcq",
       };
 
       const seed = "static_seed_val";

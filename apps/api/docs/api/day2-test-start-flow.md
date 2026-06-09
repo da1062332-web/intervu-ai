@@ -1,9 +1,11 @@
 # Day 2 MVP: Start Test Flow
 
 ## Objective
+
 Implement `POST /api/v1/tests/start` to initialize a new test instance for a candidate.
 
 ## Request Flow
+
 1. **Candidate Dashboard** -> Clicks "Start Assessment".
 2. **API Request** -> `POST /api/v1/tests/start` with `testConfigId`.
 3. **Authentication** -> `JwtAuthGuard` extracts `userId`.
@@ -15,6 +17,7 @@ Implement `POST /api/v1/tests/start` to initialize a new test instance for a can
 9. **Response** -> Returns standard response envelope with `testInstanceId` and `instructionsUrl`.
 
 ## Sequence Diagram
+
 ```mermaid
 sequenceDiagram
     participant Candidate
@@ -39,16 +42,19 @@ sequenceDiagram
 ```
 
 ## Database Writes
+
 - `TestInstance`: 1 row inserted.
 - `TestInstanceSection`: N rows inserted (one per config section).
 - `TestInstanceQuestion`: M rows inserted (per section requirement).
 
 ## Dependencies
+
 - `@prisma/client` (TestInstance, TestConfig, User)
 - `class-validator`
 - `JwtAuthGuard`
 
 ## Error Catalog
+
 - `TEST_CONFIG_NOT_FOUND`: Config does not exist.
 - `USER_NOT_ELIGIBLE`: Account inactive or doesn't exist.
 - `ACTIVE_TEST_EXISTS`: Candidate already has an ongoing test.

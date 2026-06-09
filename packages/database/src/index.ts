@@ -24,4 +24,3 @@ export type {
   Test,
   Prisma,
 } from "@prisma/client";
-
