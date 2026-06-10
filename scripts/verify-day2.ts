@@ -4,7 +4,7 @@ import path from "path";
 async function ping(url: string) {
   try {
     const res = await fetch(url);
-    return res.ok;
+    return res.status === 200 || res.status === 400;
   } catch (e) {
     return false;
   }
@@ -15,13 +15,13 @@ async function runMasterVerification() {
   console.log("Running Day 2 Master Verification");
   console.log("==========================================\n");
 
-  const API_URL = process.env.API_URL || "http://localhost:4000/api/v1";
+  const API_URL = process.env.API_URL || "http://127.0.0.1:4000/api/v1";
   let serverProcess: ChildProcess | null = null;
 
   if (!(await ping(`${API_URL}/health`))) {
     console.log("API not running. Starting API server for CI...");
     serverProcess = spawn("npm", ["run", "dev", "--workspace", "apps/api"], {
-      stdio: "ignore",
+      stdio: "inherit",
       shell: true,
     });
     

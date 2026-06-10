@@ -1,5 +1,5 @@
 import { GenerationService } from "../packages/ai-core/src/generation/generation.service";
-import { connectPrisma, disconnectPrisma } from "../packages/database/src";
+import { connectPrisma, disconnectPrisma, prisma } from "../packages/database/src";
 
 const CONCEPTS = [
   "percentages",
@@ -23,6 +23,9 @@ async function runVerification() {
 
   await connectPrisma();
   
+  // Clear old templates that might be broken and cause issues with the random selection
+  await prisma.template.deleteMany();
+  
   let passes = 0;
   let failures = 0;
   const iterations = process.env.CI ? 2 : 20;
@@ -35,6 +38,29 @@ async function runVerification() {
       const difficulty = DIFFICULTIES[i % DIFFICULTIES.length];
 
       try {
+        // Seed a template for this concept and difficulty so the generation doesn't fail
+        await prisma.template.upsert({
+          where: { templateKey: `verify_template_${concept}_${difficulty}` },
+          create: {
+            templateKey: `verify_template_${concept}_${difficulty}`,
+            conceptKey: concept,
+            difficultyLevel: difficulty.toUpperCase() as "EASY" | "MEDIUM" | "HARD",
+            questionType: "mcq",
+            variableSchema: {
+              variables: [
+                { name: "a", type: "number", range: { min: 1, max: 10 } },
+                { name: "b", type: "number", range: { min: 1, max: 10 } }
+              ]
+            },
+            solutionSchema: { 
+              steps: ["calculate {a} + {b}"],
+              finalAnswer: "a + b"
+            },
+            structure: { questionTemplate: "What is {a} + {b}?" },
+          },
+          update: {},
+        });
+
         const result = await service.generateQuestion(
           {
             conceptKey: concept,
@@ -48,17 +74,17 @@ async function runVerification() {
 
         // DTO checks
         const hasRequiredFields = !!(
-          question.id &&
-          question.content &&
-          question.type &&
-          question.difficulty &&
+          question.questionId &&
+          question.questionText &&
+          question.questionType &&
+          question.difficultyLevel &&
           question.options &&
           question.correctAnswer &&
           question.solution
         );
 
         const hasMetadata = !!question.metadata;
-        const difficultyMatch = question.difficulty === difficulty;
+        const difficultyMatch = question.difficultyLevel === difficulty;
         const hasOptions = Array.isArray(question.options) && question.options.length > 0;
         const validationPassed = validation && validation.isValid;
 

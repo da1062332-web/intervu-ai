@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
 
+import { GeneratedQuestion } from "@prisma/client";
+
 export interface QuestionRequirement {
   conceptKey: string;
   difficultyLevel: "EASY" | "MEDIUM" | "HARD";
@@ -15,8 +17,8 @@ export class QuestionProviderService {
 
   async fetchOrGenerateQuestions(
     requirements: QuestionRequirement[],
-  ): Promise<{ questionHash: string }[]> {
-    const results: { questionHash: string }[] = [];
+  ): Promise<GeneratedQuestion[]> {
+    const results: GeneratedQuestion[] = [];
 
     for (const req of requirements) {
       // Try to fetch from pool
@@ -27,9 +29,7 @@ export class QuestionProviderService {
       );
 
       if (poolQuestions.length >= req.count) {
-        results.push(
-          ...poolQuestions.map((q) => ({ questionHash: q.questionHash })),
-        );
+        results.push(...poolQuestions);
         continue;
       }
 

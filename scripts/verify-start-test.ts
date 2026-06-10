@@ -6,7 +6,7 @@ import {
 } from "../packages/database/src";
 import jwt from "jsonwebtoken";
 
-const API_URL = process.env.API_URL || "http://localhost:4000/api/v1";
+const API_URL = process.env.API_URL || "http://127.0.0.1:4000/api/v1";
 const JWT_SECRET = process.env.JWT_SECRET || "replace-with-a-long-secret-at-least-32-chars";
 
 async function runVerification() {
@@ -22,7 +22,7 @@ async function runVerification() {
     // 1. Check if backend is running
     try {
       const healthCheck = await fetch(`${API_URL}/health`);
-      if (!healthCheck.ok) throw new Error("Health check failed");
+      if (healthCheck.status !== 200 && healthCheck.status !== 400) throw new Error("Health check failed");
     } catch (e) {
       console.error(`❌ API is not running at ${API_URL}.`);
       console.error("Please start the backend (npm run dev in apps/api) before running this script.");

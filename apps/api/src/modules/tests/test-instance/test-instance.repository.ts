@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { TestInstanceStatus } from "@prisma/client";
+import { TestInstanceStatus, Prisma } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
 
 export type CreateTestInstanceData = {
   userId: string;
@@ -9,11 +10,14 @@ export type CreateTestInstanceData = {
   expiresAt: Date;
   sections: {
     sectionKey: string;
-    status: TestInstanceStatus;
+    sectionName: string;
+    durationSeconds: number;
+    questionCount: number;
+    orderIndex: number;
     questions: {
-      questionHash: string;
-      orderIndex: number;
-      status: TestInstanceStatus;
+      questionId: string;
+      questionOrder: number;
+      questionSnapshot: Prisma.InputJsonValue;
     }[];
   }[];
 };
@@ -23,38 +27,54 @@ export class TestInstanceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateTestInstanceData) {
-    return this.prisma.$transaction(async (tx) => {
-      const testInstance = await tx.testInstance.create({
+    const instanceId = createId();
+    const queries: Prisma.PrismaPromise<unknown>[] = [];
+
+    queries.push(
+      this.prisma.testInstance.create({
         data: {
+          id: instanceId,
           userId: data.userId,
           testConfigId: data.testConfigId,
           status: data.status,
           expiresAt: data.expiresAt,
-          sections: {
-            create: data.sections.map((section) => ({
-              sectionKey: section.sectionKey,
-              status: section.status,
-              questions: {
-                create: section.questions.map((question) => ({
-                  questionHash: question.questionHash,
-                  orderIndex: question.orderIndex,
-                  status: question.status,
-                })),
-              },
-            })),
-          },
         },
-        include: {
-          sections: {
-            include: {
-              questions: true,
-            },
-          },
-        },
-      });
+      })
+    );
 
-      return testInstance;
-    });
+    for (const section of data.sections) {
+      const sectionId = createId();
+      queries.push(
+        this.prisma.testInstanceSection.create({
+          data: {
+            id: sectionId,
+            testInstanceId: instanceId,
+            sectionKey: section.sectionKey,
+            sectionName: section.sectionName,
+            durationSeconds: section.durationSeconds,
+            questionCount: section.questionCount,
+            orderIndex: section.orderIndex,
+          },
+        })
+      );
+
+      if (section.questions.length > 0) {
+        queries.push(
+          this.prisma.testInstanceQuestion.createMany({
+            data: section.questions.map((q) => ({
+              testInstanceId: instanceId,
+              sectionId: sectionId,
+              questionId: q.questionId,
+              questionOrder: q.questionOrder,
+              questionSnapshot: q.questionSnapshot,
+            })),
+          })
+        );
+      }
+    }
+
+    await this.prisma.$transaction(queries);
+    return this.findById(instanceId);
   }
 
   async findById(id: string) {
