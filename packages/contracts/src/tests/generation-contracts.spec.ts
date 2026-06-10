@@ -133,6 +133,8 @@ describe("Generation Contract Foundation Unit Tests", () => {
     const invalidValidationReport = {
       questionId: "q_123",
       isValid: true,
+      passed: true,
+      score: 100,
       errors: [],
       warnings: [],
       validatedAt: "2026/06/08 10:30:34", // Not an ISO timestamp

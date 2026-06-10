@@ -1,9 +1,16 @@
 import { z } from "zod";
 
+export const ValidationErrorDetailSchema = z.object({
+  code: z.string(),
+  reason: z.string(),
+});
+
 export const QuestionValidationSchema = z.object({
   questionId: z.string().min(1, "questionId is required"),
   isValid: z.boolean(),
-  errors: z.array(z.string()),
+  passed: z.boolean(),
+  score: z.number().int().min(0).max(100),
+  errors: z.array(ValidationErrorDetailSchema),
   warnings: z.array(z.string()),
   validatedAt: z
     .string()
