@@ -53,7 +53,8 @@ async function run() {
         conceptKey: "percentages",
         difficultyLevel: "easy",
         questionType: "mcq",
-        questionText: "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
+        questionText:
+          "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
         options: ["15", "20", "22", "30"],
         correctAnswer: "20",
         solution: "20%",
@@ -65,12 +66,13 @@ async function run() {
         conceptKey: "percentages",
         difficultyLevel: "easy",
         questionType: "mcq",
-        questionText: "A shopkeeper sells a book for $240 gaining 20% on the cost price. Find the cost price of the book.",
+        questionText:
+          "A shopkeeper sells a book for $240 gaining 20% on the cost price. Find the cost price of the book.",
         options: ["180", "200", "220", "230"],
         correctAnswer: "200",
         solution: "200",
         metadata: { steps: 2 },
-      }
+      },
     ];
 
     for (const q of mockQuestions) {
@@ -80,14 +82,17 @@ async function run() {
           templateId: q.templateId,
           questionHash: `verify_exec_hash_${q.questionId}`,
           conceptKey: q.conceptKey,
-          difficultyLevel: q.difficultyLevel.toUpperCase() as "EASY" | "MEDIUM" | "HARD",
+          difficultyLevel: q.difficultyLevel.toUpperCase() as
+            | "EASY"
+            | "MEDIUM"
+            | "HARD",
           questionType: q.questionType,
           questionText: q.questionText,
           options: q.options || [],
           correctAnswer: q.correctAnswer,
           solution: q.solution,
           metadata: q.metadata as any,
-        }
+        },
       });
       generatedQuestionIds.push(createdQ.id);
     }
@@ -151,12 +156,14 @@ async function run() {
     const persistedInstance = await assemblyRepo.persistAssembly(
       instanceData,
       sectionsData,
-      questionsDataMap
+      questionsDataMap,
     );
 
     // 5. Query Assembly and Map to UI Contract Model
     console.log("--> Fetching stored instance for UI mapping assertion...");
-    const assemblyData = await assemblyRepo.getAssemblyData(persistedInstance.id);
+    const assemblyData = await assemblyRepo.getAssemblyData(
+      persistedInstance.id,
+    );
     if (!assemblyData) {
       throw new Error("Failed to retrieve assembly details from database.");
     }
@@ -175,7 +182,8 @@ async function run() {
         sectionKey: s.sectionKey,
         title: s.sectionName,
         questions: s.questions.map((q) => {
-          const snapshot = q.questionSnapshot as unknown as GeneratedQuestionDto;
+          const snapshot =
+            q.questionSnapshot as unknown as GeneratedQuestionDto;
           return {
             id: q.questionId,
             questionHash: snapshot.questionHash || `hash-${q.id}`,
@@ -191,15 +199,24 @@ async function run() {
     };
 
     // Assertions for UI State compatibility
-    console.log("--> Running schema and structural validations for Execution UI...");
+    console.log(
+      "--> Running schema and structural validations for Execution UI...",
+    );
     if (!uiTestInstance.id || typeof uiTestInstance.id !== "string") {
       throw new Error("Validation Failed: Invalid or missing TestInstance ID");
     }
-    if (uiTestInstance.status !== "CREATED" && uiTestInstance.status !== "IN_PROGRESS") {
-      throw new Error(`Validation Failed: Invalid status ${uiTestInstance.status}`);
+    if (
+      uiTestInstance.status !== "CREATED" &&
+      uiTestInstance.status !== "IN_PROGRESS"
+    ) {
+      throw new Error(
+        `Validation Failed: Invalid status ${uiTestInstance.status}`,
+      );
     }
     if (uiTestInstance.durationSeconds !== 1800) {
-      throw new Error(`Validation Failed: Mismatched duration, expected 1800, got ${uiTestInstance.durationSeconds}`);
+      throw new Error(
+        `Validation Failed: Mismatched duration, expected 1800, got ${uiTestInstance.durationSeconds}`,
+      );
     }
     if (uiTestInstance.sections.length === 0) {
       throw new Error("Validation Failed: Sections list is empty");
@@ -207,10 +224,14 @@ async function run() {
 
     const firstSection = uiTestInstance.sections[0];
     if (firstSection.title !== "Math Section") {
-      throw new Error(`Validation Failed: Expected section title 'Math Section', got '${firstSection.title}'`);
+      throw new Error(
+        `Validation Failed: Expected section title 'Math Section', got '${firstSection.title}'`,
+      );
     }
     if (firstSection.questions.length !== 2) {
-      throw new Error(`Validation Failed: Expected section questions count to be 2, got ${firstSection.questions.length}`);
+      throw new Error(
+        `Validation Failed: Expected section questions count to be 2, got ${firstSection.questions.length}`,
+      );
     }
 
     // Check sequentially
@@ -218,15 +239,23 @@ async function run() {
     const allQuestions = uiTestInstance.sections.flatMap((s) => s.questions);
     for (let i = 0; i < allQuestions.length; i++) {
       const q = allQuestions[i];
-      console.log(`   [Nav Index ${i}] Question ID: ${q.id}, Text: "${q.text.substring(0, 30)}..."`);
+      console.log(
+        `   [Nav Index ${i}] Question ID: ${q.id}, Text: "${q.text.substring(0, 30)}..."`,
+      );
       if (q.orderIndex !== i) {
-        throw new Error(`Validation Failed: Expected sequential orderIndex ${i}, got ${q.orderIndex}`);
+        throw new Error(
+          `Validation Failed: Expected sequential orderIndex ${i}, got ${q.orderIndex}`,
+        );
       }
       if (!q.text) {
-        throw new Error(`Validation Failed: Question text missing in snapshot for question ID ${q.id}`);
+        throw new Error(
+          `Validation Failed: Question text missing in snapshot for question ID ${q.id}`,
+        );
       }
       if (q.options.length !== 4) {
-        throw new Error(`Validation Failed: Expected exactly 4 options for MCQ, got ${q.options.length}`);
+        throw new Error(
+          `Validation Failed: Expected exactly 4 options for MCQ, got ${q.options.length}`,
+        );
       }
     }
 
@@ -247,18 +276,26 @@ async function run() {
   } finally {
     console.log("--> Cleaning up dummy data...");
     if (dummyUserId) {
-      await prisma.testInstance.deleteMany({ where: { userId: dummyUserId } }).catch(() => {});
+      await prisma.testInstance
+        .deleteMany({ where: { userId: dummyUserId } })
+        .catch(() => {});
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testSection.deleteMany({ where: { testConfigId } }).catch(() => {});
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testSection
+        .deleteMany({ where: { testConfigId } })
+        .catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     for (const id of generatedQuestionIds) {
       await prisma.generatedQuestion.delete({ where: { id } }).catch(() => {});
     }
     if (templateId) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     await disconnectPrisma();
   }

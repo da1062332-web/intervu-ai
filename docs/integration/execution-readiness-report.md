@@ -18,6 +18,7 @@ This report evaluates if the assessment execution sub-systems (APIs and UI contr
 The Execution UI requires the following properties to be fully aligned to prevent rendering errors or timer drift:
 
 ### A. Question Structure
+
 - **Requirement**: Execution UI consumes `CandidateQuestionDto`. Answers and solutions must be stripped to prevent client-side leaks.
 - **Status**: Aligned. The `CandidateQuestionDto` contains:
   ```typescript
@@ -32,10 +33,12 @@ The Execution UI requires the following properties to be fully aligned to preven
   ```
 
 ### B. Navigation & Palette State
+
 - **Requirement**: Palette navigator needs index mappings, visited statuses, and flagged states for the candidate session.
 - **Status**: Ready. Supported via section questions sequence order indexes returned by `GET /tests/instance/:id` or starting flows.
 
 ### C. Timer State
+
 - **Requirement**: Strict remaining time indicators computed as:
   $$\text{Remaining Time} = \text{expiresAt} - \text{currentTime}$$
 - **Status**: Verified. Expiration timestamp (`expiresAt` ISO 8601 string) is returned upon test start.

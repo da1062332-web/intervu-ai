@@ -95,7 +95,7 @@ async function runMasterVerification() {
   console.log(`Assembly: ${assemblyPass ? "PASS" : "FAIL"}`);
   console.log(`Execution: ${executionPass ? "PASS" : "FAIL"}`);
   console.log(`Assessment: ${assessmentPass ? "PASS" : "FAIL"}`);
-  
+
   const allPass = assemblyPass && executionPass && assessmentPass;
   console.log(`OVERALL: ${allPass ? "PASS" : "FAIL"}`);
   console.log("====================");

@@ -54,7 +54,8 @@ async function run() {
         conceptKey: "percentages",
         difficultyLevel: "easy",
         questionType: "mcq",
-        questionText: "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
+        questionText:
+          "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
         options: ["15", "20", "22", "30"],
         correctAnswer: "20",
         solution: JSON.stringify({
@@ -69,15 +70,19 @@ async function run() {
         conceptKey: "percentages",
         difficultyLevel: "easy",
         questionType: "mcq",
-        questionText: "A shopkeeper sells a book for $240 gaining 20% on the cost price. Find the cost price of the book.",
+        questionText:
+          "A shopkeeper sells a book for $240 gaining 20% on the cost price. Find the cost price of the book.",
         options: ["180", "200", "220", "230"],
         correctAnswer: "200",
         solution: JSON.stringify({
-          steps: ["Selling Price = 120% of Cost Price", "Cost Price = 240 / 1.2 = 200."],
+          steps: [
+            "Selling Price = 120% of Cost Price",
+            "Cost Price = 240 / 1.2 = 200.",
+          ],
           finalAnswer: "200",
         }),
         metadata: { steps: 2 },
-      }
+      },
     ];
 
     // Validate the questions first using Validation Engine (Dev 1)
@@ -85,9 +90,13 @@ async function run() {
     for (const q of mockQuestions) {
       const report = validationOrchestrator.validateQuestion(q);
       if (!report.passed) {
-        throw new Error(`AI Validation failed for question ${q.questionId}: ${JSON.stringify(report.errors)}`);
+        throw new Error(
+          `AI Validation failed for question ${q.questionId}: ${JSON.stringify(report.errors)}`,
+        );
       }
-      console.log(`✅ Question ${q.questionId} validated successfully. Score: ${report.score}`);
+      console.log(
+        `✅ Question ${q.questionId} validated successfully. Score: ${report.score}`,
+      );
     }
 
     // Persist mock questions to the database generatedQuestion pool
@@ -98,14 +107,17 @@ async function run() {
           templateId: q.templateId,
           questionHash: `verify_hash_${q.questionId}`,
           conceptKey: q.conceptKey,
-          difficultyLevel: q.difficultyLevel.toUpperCase() as "EASY" | "MEDIUM" | "HARD",
+          difficultyLevel: q.difficultyLevel.toUpperCase() as
+            | "EASY"
+            | "MEDIUM"
+            | "HARD",
           questionType: q.questionType,
           questionText: q.questionText,
           options: q.options || [],
           correctAnswer: q.correctAnswer,
           solution: q.solution,
           metadata: q.metadata as any,
-        }
+        },
       });
       generatedQuestionIds.push(createdQ.id);
     }
@@ -167,43 +179,55 @@ async function run() {
     };
 
     // 6. Execute Persistence Transaction (Dev 2)
-    console.log("--> Persisting assembled test instance in database transaction...");
+    console.log(
+      "--> Persisting assembled test instance in database transaction...",
+    );
     const persistedInstance = await assemblyRepo.persistAssembly(
       instanceData,
       sectionsData,
-      questionsDataMap
+      questionsDataMap,
     );
 
     // 7. Verify the Assembly Read Model
     console.log("--> Querying and verifying full assembly data...");
-    const assemblyData = await assemblyRepo.getAssemblyData(persistedInstance.id);
+    const assemblyData = await assemblyRepo.getAssemblyData(
+      persistedInstance.id,
+    );
     if (!assemblyData) {
       throw new Error("Persisted assembly not found in DB.");
     }
 
     console.log(`Test Instance ID: ${assemblyData.id}`);
     console.log(`Sections count: ${assemblyData.sections.length}`);
-    
+
     // Asserts
     if (assemblyData.sections.length !== 1) {
-      throw new Error(`Expected exactly 1 section, got ${assemblyData.sections.length}`);
+      throw new Error(
+        `Expected exactly 1 section, got ${assemblyData.sections.length}`,
+      );
     }
 
     const assembledSection = assemblyData.sections[0];
     console.log(`Questions in section: ${assembledSection.questions.length}`);
 
     if (assembledSection.questions.length !== 2) {
-      throw new Error(`Expected exactly 2 questions, got ${assembledSection.questions.length}`);
+      throw new Error(
+        `Expected exactly 2 questions, got ${assembledSection.questions.length}`,
+      );
     }
 
     // Assert no duplicate questions in the assembled instance
     const questionIds = assembledSection.questions.map((q) => q.questionId);
     const uniqueQuestionIds = new Set(questionIds);
     if (questionIds.length !== uniqueQuestionIds.size) {
-      throw new Error("Duplicate questions found in the assembled test section!");
+      throw new Error(
+        "Duplicate questions found in the assembled test section!",
+      );
     }
 
-    console.log("✅ Duplication prevention verified: No duplicate questions persisted.");
+    console.log(
+      "✅ Duplication prevention verified: No duplicate questions persisted.",
+    );
     console.log("✅ Section structure verified successfully.");
 
     console.log("\n==========================================");
@@ -220,18 +244,26 @@ async function run() {
     // Cleanup
     console.log("--> Cleaning up dummy data...");
     if (dummyUserId) {
-      await prisma.testInstance.deleteMany({ where: { userId: dummyUserId } }).catch(() => {});
+      await prisma.testInstance
+        .deleteMany({ where: { userId: dummyUserId } })
+        .catch(() => {});
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testSection.deleteMany({ where: { testConfigId } }).catch(() => {});
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testSection
+        .deleteMany({ where: { testConfigId } })
+        .catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     for (const id of generatedQuestionIds) {
       await prisma.generatedQuestion.delete({ where: { id } }).catch(() => {});
     }
     if (templateId) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     await disconnectPrisma();
   }

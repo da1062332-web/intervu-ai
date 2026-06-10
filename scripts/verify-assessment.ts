@@ -36,7 +36,7 @@ async function run() {
     } catch (e) {
       console.error(`❌ API is not running at ${API_URL}.`);
       console.error(
-        "Please start the backend (npm run dev in apps/api) before running this script."
+        "Please start the backend (npm run dev in apps/api) before running this script.",
       );
       process.exit(1);
     }
@@ -84,7 +84,8 @@ async function run() {
         conceptKey: "percentages",
         difficultyLevel: "medium",
         questionType: "mcq",
-        questionText: "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
+        questionText:
+          "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
         options: ["15", "20", "22", "30"],
         correctAnswer: "20",
         solution: JSON.stringify({
@@ -99,24 +100,30 @@ async function run() {
         conceptKey: "percentages",
         difficultyLevel: "medium",
         questionType: "mcq",
-        questionText: "A shopkeeper sells a book for $240 gaining 20% on the cost price. Find the cost price of the book.",
+        questionText:
+          "A shopkeeper sells a book for $240 gaining 20% on the cost price. Find the cost price of the book.",
         options: ["180", "200", "220", "230"],
         correctAnswer: "200",
         solution: JSON.stringify({
-          steps: ["Selling Price = 120% of Cost Price", "Cost Price = 240 / 1.2 = 200."],
+          steps: [
+            "Selling Price = 120% of Cost Price",
+            "Cost Price = 240 / 1.2 = 200.",
+          ],
           finalAnswer: "200",
         }),
         metadata: { steps: 2 },
-      }
+      },
     ];
 
     console.log("Validating generated questions...");
     for (const q of mockQuestions) {
       const report = validationOrchestrator.validateQuestion(q);
       if (!report.passed) {
-        throw new Error(`AI Validation failed: ${JSON.stringify(report.errors)}`);
+        throw new Error(
+          `AI Validation failed: ${JSON.stringify(report.errors)}`,
+        );
       }
-      
+
       // Store in DB pool
       const createdQ = await prisma.generatedQuestion.create({
         data: {
@@ -124,14 +131,17 @@ async function run() {
           templateId: q.templateId,
           questionHash: `lifecycle_hash_${q.questionId}`,
           conceptKey: q.conceptKey,
-          difficultyLevel: q.difficultyLevel.toUpperCase() as "EASY" | "MEDIUM" | "HARD",
+          difficultyLevel: q.difficultyLevel.toUpperCase() as
+            | "EASY"
+            | "MEDIUM"
+            | "HARD",
           questionType: q.questionType,
           questionText: q.questionText,
           options: q.options || [],
           correctAnswer: q.correctAnswer,
           solution: q.solution,
           metadata: q.metadata as any,
-        }
+        },
       });
       generatedQuestionIds.push(createdQ.id);
     }
@@ -173,7 +183,7 @@ async function run() {
       {
         expiresIn: "1h",
         jwtid: createId(),
-      }
+      },
     );
 
     // 7. Call API POST /tests/start
@@ -191,7 +201,7 @@ async function run() {
 
     const result = await response.json();
     console.log("API Response Status:", response.status);
-    
+
     if (response.status !== 200 || !result.success) {
       throw new Error(`API returned error: ${JSON.stringify(result.error)}`);
     }
@@ -202,27 +212,37 @@ async function run() {
     // 8. Verify DB Persistence & Assembly completeness
     const assemblyRepo = new AssemblyRepository();
     const assemblyData = await assemblyRepo.getAssemblyData(testInstanceId);
-    
+
     if (!assemblyData) {
-      throw new Error("Assembled test instance not found in database via assembly read model.");
+      throw new Error(
+        "Assembled test instance not found in database via assembly read model.",
+      );
     }
 
     if (assemblyData.userId !== dummyUserId) {
-      throw new Error(`User ID mismatch. Expected ${dummyUserId}, got ${assemblyData.userId}`);
+      throw new Error(
+        `User ID mismatch. Expected ${dummyUserId}, got ${assemblyData.userId}`,
+      );
     }
 
     if (assemblyData.sections.length !== 1) {
-      throw new Error(`Expected 1 section, got ${assemblyData.sections.length}`);
+      throw new Error(
+        `Expected 1 section, got ${assemblyData.sections.length}`,
+      );
     }
 
     const assembledSection = assemblyData.sections[0];
     if (assembledSection.questions.length !== 2) {
-      throw new Error(`Expected 2 questions assembled, got ${assembledSection.questions.length}`);
+      throw new Error(
+        `Expected 2 questions assembled, got ${assembledSection.questions.length}`,
+      );
     }
 
     console.log("✅ API start response matches envelope contract.");
     console.log("✅ DB Transaction & Pool Integration validated successfully.");
-    console.log("✅ End-to-end question flow (Gen -> Validate -> Pool -> Start -> Assemble -> Persist) fully verified.");
+    console.log(
+      "✅ End-to-end question flow (Gen -> Validate -> Pool -> Start -> Assemble -> Persist) fully verified.",
+    );
 
     console.log("\n==========================================");
     console.log("ASSESSMENT PASS");
@@ -237,21 +257,31 @@ async function run() {
   } finally {
     console.log("--> Cleaning up dummy data...");
     if (dummyUserId) {
-      await prisma.testInstance.deleteMany({ where: { userId: dummyUserId } }).catch(() => {});
+      await prisma.testInstance
+        .deleteMany({ where: { userId: dummyUserId } })
+        .catch(() => {});
       if (sessionId) {
-        await prisma.session.delete({ where: { id: sessionId } }).catch(() => {});
+        await prisma.session
+          .delete({ where: { id: sessionId } })
+          .catch(() => {});
       }
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testSection.deleteMany({ where: { testConfigId } }).catch(() => {});
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testSection
+        .deleteMany({ where: { testConfigId } })
+        .catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     for (const id of generatedQuestionIds) {
       await prisma.generatedQuestion.delete({ where: { id } }).catch(() => {});
     }
     if (templateId) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     await disconnectPrisma();
   }
