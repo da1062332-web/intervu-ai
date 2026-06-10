@@ -24,14 +24,18 @@ export * from './repositories/submission.repository';
 export * from './repositories/execution-persistence.repository';
 export * from "./utils/hash-question.util";
 export * from "./types/database.types";
-export type {
-  GeneratedQuestion,
-  DifficultyLevel,
-  Template,
-  Test,
-  TestInstance,
-  TestInstanceSection,
-  TestInstanceQuestion,
+export {
+  type GeneratedQuestion,
+  type DifficultyLevel,
+  type Template,
+  type Test,
+  type TestInstance,
+  type TestInstanceSection,
+  type TestInstanceQuestion,
   TestInstanceStatus,
-  Prisma,
+  type CandidateAnswer,
+  type ExecutionState,
+  type Submission,
+  SubmissionStatus,
+  type Prisma,
 } from "@prisma/client";

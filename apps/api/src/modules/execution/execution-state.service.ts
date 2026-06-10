@@ -1,4 +1,4 @@
-import { ExecutionStateRepository, ExecutionState } from "@intervu/database";
+import { ExecutionStateRepository, ExecutionState } from "@intervu-ai/database";
 
 export class ExecutionStateService {
   constructor(private readonly executionStateRepo: ExecutionStateRepository) {}

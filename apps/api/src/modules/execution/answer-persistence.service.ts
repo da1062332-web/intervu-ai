@@ -2,7 +2,7 @@ import {
   ExecutionPersistenceRepository,
   SubmissionRepository,
   SubmissionStatus,
-} from "@intervu/database";
+} from "@intervu-ai/database";
 
 export class AnswerPersistenceService {
   constructor(
@@ -17,7 +17,7 @@ export class AnswerPersistenceService {
   async saveCandidateAnswer(
     testInstanceId: string,
     questionId: string,
-    answer: any,
+    answer: unknown,
     currentQuestionIndex: number,
     remainingTimeSeconds: number,
     timeSpentSeconds?: number,
@@ -59,7 +59,7 @@ export class AnswerPersistenceService {
     testInstanceId: string,
     answers: Array<{
       questionId: string;
-      answer: any;
+      answer: unknown;
       timeSpentSeconds?: number;
       isMarkedForReview?: boolean;
     }>
