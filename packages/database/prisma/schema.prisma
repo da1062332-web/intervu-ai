@@ -24,6 +24,7 @@ model User {
   tests             Test[]
   testInstances     TestInstance[]
   evaluationResults EvaluationResult[]
+  performanceSummary PerformanceSummary?
 
   @@index([deletedAt])
   @@index([role])
@@ -154,34 +155,43 @@ model SystemConfig {
 
 model EvaluationResult {
   id                 String  @id @default(cuid())
-  testId             String  @unique
+  testId             String? @unique
+  testInstanceId     String? @unique
   userId             String
-  communicationScore Float
-  technicalScore     Float
+  communicationScore Float   @default(0.0)
+  technicalScore     Float   @default(0.0)
   confidenceScore    Float
   overallScore       Float
-  overallRating      Float
+  overallRating      Float   @default(0.0)
   notes              String?
+  totalQuestions     Int     @default(0)
+  correctAnswers     Int     @default(0)
+  incorrectAnswers   Int     @default(0)
+  evaluatedAt        DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  test        Test         @relation(fields: [testId], references: [id], onDelete: Cascade)
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skillScores SkillScore[]
+  test            Test?            @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testInstance    TestInstance?    @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillScores     SkillScore[]
+  recommendations Recommendation[]
 
   @@index([userId])
   @@index([testId])
+  @@index([testInstanceId])
+  @@index([overallScore])
 }
 
 model SkillScore {
-  id           String @id @default(cuid())
+  id           String   @id @default(cuid())
   evaluationId String
   skill        String
   score        Float
   feedback     String
+  createdAt    DateTime @default(now())
 
-  evaluation EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  evaluation   EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
 
   @@index([evaluationId])
 }
@@ -274,6 +284,7 @@ model TestInstance {
   candidateAnswers CandidateAnswer[]
   executionState   ExecutionState?
   submission       Submission?
+  evaluationResult EvaluationResult?
 
   @@index([userId])
   @@index([status])
@@ -366,4 +377,37 @@ model Submission {
 
   @@index([testInstanceId])
   @@index([status])
+}
+
+enum RecommendationPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model Recommendation {
+  id           String                 @id @default(cuid())
+  evaluationId String
+  skill        String
+  priority     RecommendationPriority
+  title        String
+  description  String
+  createdAt    DateTime               @default(now())
+
+  evaluation   EvaluationResult       @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationId])
+  @@index([priority])
+}
+
+model PerformanceSummary {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  testsCompleted     Int      @default(0)
+  averageScore       Float    @default(0.0)
+  bestScore          Float    @default(0.0)
+  lastAssessmentDate DateTime?
+  updatedAt          DateTime @updatedAt
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -22,6 +22,9 @@ export * from './repositories/candidate-answer.repository';
 export * from './repositories/execution-state.repository';
 export * from './repositories/submission.repository';
 export * from './repositories/execution-persistence.repository';
+export * from './repositories/evaluation-result.repository';
+export * from './repositories/recommendation.repository';
+export * from './repositories/performance-summary.repository';
 export * from "./utils/hash-question.util";
 export * from "./types/database.types";
 export {
@@ -37,5 +40,8 @@ export {
   type ExecutionState,
   type Submission,
   SubmissionStatus,
+  type Recommendation,
+  type PerformanceSummary,
+  RecommendationPriority,
   type Prisma,
 } from "@prisma/client";
