@@ -1,29 +1,54 @@
-import { assert } from "console";
+import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { prisma } from "../../client";
 import { GeneratedQuestionRepository } from "../generated-question.repository";
 import { TestConfigRepository } from "../test-config.repository";
 
-async function runTests() {
-  console.log("--- Day 1 Integration Tests ---");
-
+describe("Day 1 Integration Tests", () => {
   const generatedQRepo = new GeneratedQuestionRepository();
   const configRepo = new TestConfigRepository();
 
-  try {
-    // TESTCFG-001: Config Retrieval
-    console.log("Running TESTCFG-001...");
-    const config = await configRepo.findByConfigKey("TCS_NQT_APTITUDE");
-    if (!config) throw new Error("TCS NQT Config not found! Seed failed.");
-    assert(config.sections.length === 2, "Should have 2 sections");
-    assert(config.rule !== null, "Should have rules attached");
-    console.log("✅ TESTCFG-001: Config retrieval successful.");
+  beforeAll(async () => {
+    let template = await prisma.template.findUnique({
+      where: { templateKey: "BASE_TIME_WORK" },
+    });
+    if (!template) {
+      try {
+        await prisma.template.create({
+          data: {
+            templateKey: "BASE_TIME_WORK",
+            name: "Time and Work Base Template",
+            difficulty: "MEDIUM",
+            questionType: "multiple_choice",
+          },
+        });
+      } catch (e: any) {
+        if (e.code !== "P2002") {
+          throw e;
+        }
+      }
+    }
+  });
 
-    // GENQ-002: Duplicate Hash Rejection
-    console.log("Running GENQ-002...");
+  afterAll(async () => {
+    // Cleanup the test data
+    await prisma.generatedQuestion.deleteMany({
+      where: { questionHash: "HASH_123" },
+    });
+  });
+
+  it("TESTCFG-001: should retrieve config successfully", async () => {
+    const config = await configRepo.findByConfigKey("TCS_NQT_APTITUDE");
+    expect(config).toBeDefined();
+    expect(config?.sections.length).toBe(2);
+    expect(config?.rule).not.toBeNull();
+  });
+
+  it("GENQ-002: should enforce unique constraint on generated question hash", async () => {
     const template = await prisma.template.findFirst({
       where: { templateKey: "BASE_TIME_WORK" },
     });
-    if (!template) throw new Error("Base template not found! Seed failed.");
+    expect(template).toBeDefined();
+    if (!template) return;
 
     const qData = {
       templateId: template.id,
@@ -39,8 +64,8 @@ async function runTests() {
     };
 
     // First insert should succeed
-    await generatedQRepo.create(qData);
-    console.log("   First insertion successful.");
+    const firstQ = await generatedQRepo.create(qData);
+    expect(firstQ.id).toBeDefined();
 
     // Second insert should fail with DUPLICATE_QUESTION_HASH
     let errorThrown = false;
@@ -51,22 +76,6 @@ async function runTests() {
         errorThrown = true;
       }
     }
-    assert(
-      errorThrown,
-      "Duplicate hash should have thrown DUPLICATE_QUESTION_HASH error",
-    );
-    console.log("✅ GENQ-002: Duplicate hash rejection successful.");
-  } catch (error) {
-    console.error("❌ Tests failed:", error);
-    process.exit(1);
-  } finally {
-    // Cleanup the test data
-    await prisma.generatedQuestion.deleteMany({
-      where: { questionHash: "HASH_123" },
-    });
-    await prisma.$disconnect();
-    console.log("--- All tests passed! ---");
-  }
-}
-
-runTests();
+    expect(errorThrown).toBe(true);
+  });
+});

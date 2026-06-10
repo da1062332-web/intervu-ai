@@ -25,7 +25,9 @@
     "test:regression": "turbo run test:regression",
     "check:structure": "node scripts/check-structure.js",
     "generate:test": "tsx scripts/test-generation.ts",
-    "verify:day2": "tsx scripts/verify-day2.ts"
+    "verify:day2": "tsx scripts/verify-day2.ts",
+    "verify-backend": "tsx scripts/verify-backend.ts",
+    "test:repositories": "vitest run packages/database/src/repositories/__tests__/"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
