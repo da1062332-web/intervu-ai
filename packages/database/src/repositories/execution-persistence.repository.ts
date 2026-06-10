@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
 
 export class ExecutionPersistenceRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -63,6 +64,7 @@ export class ExecutionPersistenceRepository {
 
   /**
    * Batch upserts multiple answers (e.g. offline sync)
+   * Optimized with Raw SQL for <1.0s latency over WAN.
    */
   async saveManyAnswers(
     testInstanceId: string,
@@ -73,30 +75,36 @@ export class ExecutionPersistenceRepository {
       isMarkedForReview?: boolean;
     }>
   ): Promise<void> {
-    const queries = answers.map((ans) =>
-      this.prisma.candidateAnswer.upsert({
-        where: {
-          testInstanceId_questionId: {
-            testInstanceId,
-            questionId: ans.questionId,
-          },
-        },
-        update: {
-          answer: ans.answer,
-          timeSpentSeconds: ans.timeSpentSeconds,
-          isMarkedForReview: ans.isMarkedForReview,
-          savedAt: new Date(),
-        },
-        create: {
-          testInstanceId,
-          questionId: ans.questionId,
-          answer: ans.answer,
-          timeSpentSeconds: ans.timeSpentSeconds ?? 0,
-          isMarkedForReview: ans.isMarkedForReview ?? false,
-        },
-      })
-    );
+    if (answers.length === 0) return;
 
-    await this.prisma.$transaction(queries);
+    // Build the parameterized value strings and flat values array
+    const values: any[] = [];
+    const placeholders = answers.map((ans, index) => {
+      const offset = index * 8;
+      const now = new Date();
+      values.push(
+        createId(), // Generate standard cuid for the id field
+        ans.questionId,
+        testInstanceId,
+        ans.answer, // Prisma automatically serializes objects for parameterized jsonb queries in raw sql
+        ans.timeSpentSeconds ?? 0,
+        ans.isMarkedForReview ?? false,
+        now, // savedAt timestamp
+        now  // updatedAt timestamp
+      );
+      return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}::jsonb, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8})`;
+    }).join(', ');
+
+    // Use $executeRawUnsafe to pass dynamic parameterized array to prevent SQL injection while maintaining raw speed
+    await this.prisma.$executeRawUnsafe(`
+      INSERT INTO "CandidateAnswer" ("id", "questionId", "testInstanceId", "answer", "timeSpentSeconds", "isMarkedForReview", "savedAt", "updatedAt")
+      VALUES ${placeholders}
+      ON CONFLICT ("testInstanceId", "questionId") DO UPDATE SET
+        "answer" = EXCLUDED."answer",
+        "timeSpentSeconds" = EXCLUDED."timeSpentSeconds",
+        "isMarkedForReview" = EXCLUDED."isMarkedForReview",
+        "savedAt" = EXCLUDED."savedAt",
+        "updatedAt" = EXCLUDED."updatedAt";
+    `, ...values);
   }
 }
