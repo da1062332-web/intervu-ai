@@ -267,10 +267,13 @@ model TestInstance {
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  testConfig   TestConfig            @relation(fields: [testConfigId], references: [id], onDelete: Restrict)
-  sections     TestInstanceSection[]
-  questions    TestInstanceQuestion[]
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testConfig       TestConfig            @relation(fields: [testConfigId], references: [id], onDelete: Restrict)
+  sections         TestInstanceSection[]
+  questions        TestInstanceQuestion[]
+  candidateAnswers CandidateAnswer[]
+  executionState   ExecutionState?
+  submission       Submission?
 
   @@index([userId])
   @@index([status])
@@ -311,4 +314,56 @@ model TestInstanceQuestion {
   @@unique([sectionId, questionOrder])
   @@index([testInstanceId])
   @@index([sectionId])
+}
+
+enum SubmissionStatus {
+  PENDING
+  SUBMITTED
+  EVALUATED
+}
+
+model CandidateAnswer {
+  id                String   @id @default(cuid())
+  testInstanceId    String
+  questionId        String
+  answer            Json
+  timeSpentSeconds  Int      @default(0)
+  isMarkedForReview Boolean  @default(false)
+  savedAt           DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  testInstance      TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@unique([testInstanceId, questionId])
+  @@index([testInstanceId])
+  @@index([questionId])
+}
+
+model ExecutionState {
+  id                   String   @id @default(cuid())
+  testInstanceId       String   @unique
+  currentQuestionIndex Int      @default(0)
+  remainingTimeSeconds Int
+  lastActivityAt       DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  testInstance         TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([testInstanceId])
+}
+
+model Submission {
+  id             String           @id @default(cuid())
+  testInstanceId String           @unique
+  submittedAt    DateTime?
+  submissionHash String?          @unique
+  status         SubmissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  testInstance   TestInstance     @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([testInstanceId])
+  @@index([status])
 }
