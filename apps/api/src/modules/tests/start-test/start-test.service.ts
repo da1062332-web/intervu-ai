@@ -8,7 +8,7 @@ import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { TestConfigRepository } from "../repositories/test-config.repository";
 import { QuestionProviderService } from "./question-provider.service";
 import { TestInstanceService } from "../test-instance/test-instance.service";
-import { TestInstanceStatus } from "@prisma/client";
+import { TestInstanceStatus, Prisma } from "@prisma/client";
 
 @Injectable()
 export class StartTestService {
@@ -59,11 +59,14 @@ export class StartTestService {
 
         sectionsData.push({
           sectionKey: section.sectionKey,
-          status: TestInstanceStatus.CREATED,
+          sectionName: section.displayName,
+          durationSeconds: section.durationSeconds,
+          questionCount: section.questionCount,
+          orderIndex: section.orderIndex,
           questions: questions.map((q, index) => ({
-            questionHash: q.questionHash,
-            orderIndex: index,
-            status: TestInstanceStatus.CREATED,
+            questionId: q.id,
+            questionOrder: index,
+            questionSnapshot: q as unknown as Prisma.InputJsonValue,
           })),
         });
       }
@@ -99,6 +102,13 @@ export class StartTestService {
       expiresAt,
       sections: sectionsData,
     });
+
+    if (!testInstance) {
+      throw new InternalServerErrorException({
+        code: "TEST_INSTANCE_CREATION_FAILED",
+        message: "Failed to fetch created test instance",
+      });
+    }
 
     // 4. formatResponse(result)
     return {

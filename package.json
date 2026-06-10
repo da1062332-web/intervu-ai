@@ -19,11 +19,13 @@
     "format": "prettier . --write",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
+    "test:day3": "turbo run test:day3",
     "test:integration": "turbo run test:integration",
     "test:contracts": "turbo run test:contracts",
     "test:regression": "turbo run test:regression",
     "check:structure": "node scripts/check-structure.js",
-    "generate:test": "tsx scripts/test-generation.ts"
+    "generate:test": "tsx scripts/test-generation.ts",
+    "verify:day2": "tsx scripts/verify-day2.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
