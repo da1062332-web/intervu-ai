@@ -18,12 +18,14 @@ jest.mock("bullmq", () => {
     ...originalModule,
     Queue: jest.fn().mockImplementation((name) => ({
       name,
-      add: jest.fn().mockImplementation((name, data, opts) => Promise.resolve({ 
-        id: name, 
-        getState: jest.fn().mockResolvedValue("waiting"),
-        opts: opts || {},
-        remove: jest.fn()
-      })),
+      add: jest.fn().mockImplementation((name, data, opts) =>
+        Promise.resolve({
+          id: name,
+          getState: jest.fn().mockResolvedValue("waiting"),
+          opts: opts || {},
+          remove: jest.fn(),
+        }),
+      ),
       close: jest.fn(),
       drain: jest.fn(),
       getJob: jest.fn().mockResolvedValue(undefined),

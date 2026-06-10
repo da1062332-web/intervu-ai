@@ -15,7 +15,7 @@ sequenceDiagram
     Candidate->>API: POST /tests/start (testConfigId) + JWT
     API->>StartTestService: startTest(userId, configId)
     StartTestService->>EligibilityService: validateEligibility()
-    
+
     alt Ineligible
         EligibilityService-->>StartTestService: False
         StartTestService-->>API: 400 Bad Request
@@ -23,9 +23,9 @@ sequenceDiagram
     else Eligible
         StartTestService->>TestConfigRepo: findByIdWithSections(configId)
         TestConfigRepo-->>StartTestService: configData
-        
+
         StartTestService->>QuestionPoolRepo: fetchRandomizedSet(sections)
-        
+
         alt Pool Empty
             QuestionPoolRepo-->>StartTestService: QUESTION_POOL_EMPTY Error
             StartTestService-->>API: 500 Internal Server Error

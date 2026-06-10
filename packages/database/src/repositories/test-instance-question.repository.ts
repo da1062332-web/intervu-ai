@@ -12,7 +12,9 @@ export class TestInstanceQuestionRepository {
     }
   }
 
-  async createMany(data: Prisma.TestInstanceQuestionCreateManyInput[]): Promise<number> {
+  async createMany(
+    data: Prisma.TestInstanceQuestionCreateManyInput[],
+  ): Promise<number> {
     this.validate(data);
     try {
       const result = await prisma.testInstanceQuestion.createMany({
@@ -24,7 +26,9 @@ export class TestInstanceQuestionRepository {
     }
   }
 
-  async findByInstance(testInstanceId: string): Promise<TestInstanceQuestion[]> {
+  async findByInstance(
+    testInstanceId: string,
+  ): Promise<TestInstanceQuestion[]> {
     this.validate(testInstanceId);
     try {
       return await prisma.testInstanceQuestion.findMany({

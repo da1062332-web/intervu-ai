@@ -62,11 +62,27 @@ describe("Day 3 Test Assembly Engine Unit Tests", () => {
   });
 
   it("ASM-DB-002: Create sections", async () => {
-    (prisma.testInstanceSection.createMany as vi.Mock).mockResolvedValue({ count: 2 });
+    (prisma.testInstanceSection.createMany as vi.Mock).mockResolvedValue({
+      count: 2,
+    });
 
     const result = await sectionRepo.createMany([
-      { testInstanceId: "inst-1", sectionKey: "s1", sectionName: "S1", durationSeconds: 60, questionCount: 1, orderIndex: 0 },
-      { testInstanceId: "inst-1", sectionKey: "s2", sectionName: "S2", durationSeconds: 60, questionCount: 1, orderIndex: 1 },
+      {
+        testInstanceId: "inst-1",
+        sectionKey: "s1",
+        sectionName: "S1",
+        durationSeconds: 60,
+        questionCount: 1,
+        orderIndex: 0,
+      },
+      {
+        testInstanceId: "inst-1",
+        sectionKey: "s2",
+        sectionName: "S2",
+        durationSeconds: 60,
+        questionCount: 1,
+        orderIndex: 1,
+      },
     ]);
 
     expect(prisma.testInstanceSection.createMany).toHaveBeenCalled();
@@ -74,10 +90,18 @@ describe("Day 3 Test Assembly Engine Unit Tests", () => {
   });
 
   it("ASM-DB-003: Create questions", async () => {
-    (prisma.testInstanceQuestion.createMany as vi.Mock).mockResolvedValue({ count: 3 });
+    (prisma.testInstanceQuestion.createMany as vi.Mock).mockResolvedValue({
+      count: 3,
+    });
 
     const result = await questionRepo.createMany([
-      { testInstanceId: "inst-1", sectionId: "sec-1", questionId: "q1", questionOrder: 0, questionSnapshot: {} },
+      {
+        testInstanceId: "inst-1",
+        sectionId: "sec-1",
+        questionId: "q1",
+        questionOrder: 0,
+        questionSnapshot: {},
+      },
     ]);
 
     expect(prisma.testInstanceQuestion.createMany).toHaveBeenCalled();
@@ -112,32 +136,68 @@ describe("Day 3 Test Assembly Engine Unit Tests", () => {
 
   it("ASM-DB-006: Rollback transaction (using AssemblyRepository)", async () => {
     // Mock transaction to simulate failure
-    (prisma.$transaction as vi.Mock).mockRejectedValue(new Error("Simulated Transaction Failure"));
+    (prisma.$transaction as vi.Mock).mockRejectedValue(
+      new Error("Simulated Transaction Failure"),
+    );
 
     await expect(
-      assemblyRepo.persistAssembly({ userId: "u1", testConfigId: "cfg-1" }, [], {})
-    ).rejects.toThrow("Failed to persist assembly: Simulated Transaction Failure");
+      assemblyRepo.persistAssembly(
+        { userId: "u1", testConfigId: "cfg-1" },
+        [],
+        {},
+      ),
+    ).rejects.toThrow(
+      "Failed to persist assembly: Simulated Transaction Failure",
+    );
   });
 
   it("ASM-DB-007: Snapshot persistence", async () => {
-    const snapshot = { questionText: "What is React?", options: [], correctAnswer: "A", solution: "B" };
-    
+    const snapshot = {
+      questionText: "What is React?",
+      options: [],
+      correctAnswer: "A",
+      solution: "B",
+    };
+
     // With array transactions, the results array is returned
     (prisma.$transaction as vi.Mock).mockResolvedValue([{ id: "inst-1" }]);
 
     await assemblyRepo.persistAssembly(
       { id: "inst-1", userId: "u1", testConfigId: "cfg-1" },
-      [{ id: "sec-1", sectionKey: "s1", sectionName: "S1", durationSeconds: 60, questionCount: 1, orderIndex: 0 }],
+      [
+        {
+          id: "sec-1",
+          sectionKey: "s1",
+          sectionName: "S1",
+          durationSeconds: 60,
+          questionCount: 1,
+          orderIndex: 0,
+        },
+      ],
       {
-        "s1": [{ id: "q1", questionId: "q1", questionOrder: 0, questionSnapshot: snapshot }]
-      }
+        s1: [
+          {
+            id: "q1",
+            questionId: "q1",
+            questionOrder: 0,
+            questionSnapshot: snapshot,
+          },
+        ],
+      },
     );
 
     // Verify snapshot was passed exactly as provided (in the array pushed to transaction)
     expect(prisma.testInstanceQuestion.createMany).toHaveBeenCalledWith({
       data: [
-        { id: "q1", testInstanceId: "inst-1", sectionId: "sec-1", questionId: "q1", questionOrder: 0, questionSnapshot: snapshot }
-      ]
+        {
+          id: "q1",
+          testInstanceId: "inst-1",
+          sectionId: "sec-1",
+          questionId: "q1",
+          questionOrder: 0,
+          questionSnapshot: snapshot,
+        },
+      ],
     });
   });
 });

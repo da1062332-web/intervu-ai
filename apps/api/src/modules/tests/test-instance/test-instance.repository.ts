@@ -39,7 +39,7 @@ export class TestInstanceRepository {
           status: data.status,
           expiresAt: data.expiresAt,
         },
-      })
+      }),
     );
 
     for (const section of data.sections) {
@@ -55,7 +55,7 @@ export class TestInstanceRepository {
             questionCount: section.questionCount,
             orderIndex: section.orderIndex,
           },
-        })
+        }),
       );
 
       if (section.questions.length > 0) {
@@ -68,7 +68,7 @@ export class TestInstanceRepository {
               questionOrder: q.questionOrder,
               questionSnapshot: q.questionSnapshot,
             })),
-          })
+          }),
         );
       }
     }

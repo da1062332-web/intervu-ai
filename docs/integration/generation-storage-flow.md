@@ -13,14 +13,14 @@ sequenceDiagram
     Template->>GenerationService: Pass conceptKey, difficulty, structure
     GenerationService->>GenerationService: Call LLM API (Prompt + Context)
     GenerationService->>Zod: Validate DTO (Required Fields, Format)
-    
+
     alt Validation Failed
         Zod-->>GenerationService: Validation Error
         GenerationService-->>Template: Return Failure / Retry
     else Validation Passed
         Zod-->>GenerationService: Valid Question DTO
         GenerationService->>GeneratedQuestionRepo: create(questionHash, data)
-        
+
         alt Duplicate Hash
             GeneratedQuestionRepo-->>GenerationService: Throw DUPLICATE_QUESTION_HASH
         else New Question

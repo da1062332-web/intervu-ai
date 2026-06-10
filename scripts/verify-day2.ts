@@ -24,7 +24,7 @@ async function runMasterVerification() {
       stdio: "inherit",
       shell: true,
     });
-    
+
     // Wait up to 30 seconds
     const start = Date.now();
     let up = false;
@@ -33,9 +33,9 @@ async function runMasterVerification() {
         up = true;
         break;
       }
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
     }
-    
+
     if (!up) {
       console.error("Failed to start API server. Exiting.");
       if (serverProcess) serverProcess.kill();
@@ -54,7 +54,9 @@ async function runMasterVerification() {
   // 1. Generation
   try {
     console.log("--> Running verify-generation.ts");
-    execSync(`${runner} ${path.join(scriptsDir, "verify-generation.ts")}`, { stdio: "inherit" });
+    execSync(`${runner} ${path.join(scriptsDir, "verify-generation.ts")}`, {
+      stdio: "inherit",
+    });
     generationPass = true;
   } catch (err) {
     console.error("verify-generation.ts failed.");
@@ -63,7 +65,9 @@ async function runMasterVerification() {
   // 2. Storage
   try {
     console.log("\n--> Running verify-pool.ts");
-    execSync(`${runner} ${path.join(scriptsDir, "verify-pool.ts")}`, { stdio: "inherit" });
+    execSync(`${runner} ${path.join(scriptsDir, "verify-pool.ts")}`, {
+      stdio: "inherit",
+    });
     storagePass = true;
   } catch (err) {
     console.error("verify-pool.ts failed.");
@@ -72,7 +76,9 @@ async function runMasterVerification() {
   // 3. Test Start API
   try {
     console.log("\n--> Running verify-start-test.ts");
-    execSync(`${runner} ${path.join(scriptsDir, "verify-start-test.ts")}`, { stdio: "inherit" });
+    execSync(`${runner} ${path.join(scriptsDir, "verify-start-test.ts")}`, {
+      stdio: "inherit",
+    });
     testStartPass = true;
   } catch (err) {
     console.error("verify-start-test.ts failed.");
