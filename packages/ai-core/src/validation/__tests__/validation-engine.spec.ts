@@ -14,7 +14,8 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
     conceptKey: "percentages",
     difficultyLevel: "easy",
     questionType: "mcq",
-    questionText: "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
+    questionText:
+      "If the price of petrol is increased by 25%, by how much percent must a motorist reduce the consumption of petrol?",
     options: ["15", "20", "22", "30"],
     correctAnswer: "20",
     solution: JSON.stringify({
@@ -37,10 +38,14 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
       ...baseValidMCQ,
       questionText: "",
     };
-    const report = orchestrator.validateQuestion(invalidQuestion as unknown as GeneratedQuestionDto);
+    const report = orchestrator.validateQuestion(
+      invalidQuestion as unknown as GeneratedQuestionDto,
+    );
     expect(report.passed).toBe(false);
     expect(report.score).toBe(0); // Structure validation fails -> 0
-    expect(report.errors.some((e) => e.code === "MISSING_QUESTION_TEXT")).toBe(true);
+    expect(report.errors.some((e) => e.code === "MISSING_QUESTION_TEXT")).toBe(
+      true,
+    );
   });
 
   test("VAL-003: should reject when correct answer is missing", () => {
@@ -48,7 +53,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
       ...baseValidMCQ,
       correctAnswer: "",
     };
-    const report = orchestrator.validateQuestion(invalidQuestion as unknown as GeneratedQuestionDto);
+    const report = orchestrator.validateQuestion(
+      invalidQuestion as unknown as GeneratedQuestionDto,
+    );
     expect(report.passed).toBe(false);
     expect(report.errors.some((e) => e.code === "MISSING_ANSWER")).toBe(true);
   });
@@ -58,7 +65,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
       ...baseValidMCQ,
       solution: "",
     };
-    const report = orchestrator.validateQuestion(invalidQuestion as unknown as GeneratedQuestionDto);
+    const report = orchestrator.validateQuestion(
+      invalidQuestion as unknown as GeneratedQuestionDto,
+    );
     expect(report.passed).toBe(false);
     expect(report.errors.some((e) => e.code === "MISSING_SOLUTION")).toBe(true);
   });
@@ -76,7 +85,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
     };
     const report = orchestrator.validateQuestion(invalidQuestion);
     expect(report.passed).toBe(false);
-    expect(report.errors.some((e) => e.code === "INVALID_DIFFICULTY")).toBe(true);
+    expect(report.errors.some((e) => e.code === "INVALID_DIFFICULTY")).toBe(
+      true,
+    );
   });
 
   test("VAL-006: should reject when question is ambiguous (unresolved placeholders)", () => {
@@ -86,7 +97,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
     };
     const report = orchestrator.validateQuestion(invalidQuestion);
     expect(report.passed).toBe(false);
-    expect(report.errors.some((e) => e.code === "AMBIGUOUS_QUESTION")).toBe(true);
+    expect(report.errors.some((e) => e.code === "AMBIGUOUS_QUESTION")).toBe(
+      true,
+    );
   });
 
   test("VAL-007: should reject when MCQ options are invalid", () => {
@@ -96,7 +109,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
     };
     const report = orchestrator.validateQuestion(invalidQuestion);
     expect(report.passed).toBe(false);
-    expect(report.errors.some((e) => e.code === "INVALID_MCQ_OPTIONS")).toBe(true);
+    expect(report.errors.some((e) => e.code === "INVALID_MCQ_OPTIONS")).toBe(
+      true,
+    );
   });
 
   test("VAL-008: should reject due to quality failure (too short)", () => {
@@ -121,7 +136,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
       questionText: "Short?",
       options: ["10", "15"], // invalid length
     };
-    const report = orchestrator.validateQuestion(invalidQuestion as unknown as GeneratedQuestionDto);
+    const report = orchestrator.validateQuestion(
+      invalidQuestion as unknown as GeneratedQuestionDto,
+    );
     expect(report.passed).toBe(false);
     expect(report.score).toBeLessThan(80);
   });
@@ -138,7 +155,8 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
     const questions: GeneratedQuestionDto[] = [];
     for (let i = 0; i < 100; i++) {
       const steps = i % 3 === 0 ? 1 : i % 3 === 1 ? 2 : 4;
-      const difficultyLevel = i % 3 === 0 ? "easy" : i % 3 === 1 ? "medium" : "hard";
+      const difficultyLevel =
+        i % 3 === 0 ? "easy" : i % 3 === 1 ? "medium" : "hard";
 
       questions.push({
         questionId: `q_perf_${i}`,
@@ -150,7 +168,9 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
         options: ["10", "20", "30", "40"],
         correctAnswer: "20",
         solution: JSON.stringify({
-          steps: Array(steps).fill("").map((_, idx) => `Step ${idx + 1}`),
+          steps: Array(steps)
+            .fill("")
+            .map((_, idx) => `Step ${idx + 1}`),
           finalAnswer: "20",
         }),
         metadata: { percent_increase: 25, steps },
@@ -163,6 +183,8 @@ describe("Question Validation & Quality Assurance Engine Unit Tests", () => {
 
     expect(reports.length).toBe(100);
     expect(duration).toBeLessThan(3000); // 3 seconds = 3000ms
-    console.log(`[Performance Report] Validated 100 questions in ${duration}ms`);
+    console.log(
+      `[Performance Report] Validated 100 questions in ${duration}ms`,
+    );
   });
 });

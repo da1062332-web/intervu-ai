@@ -1,4 +1,7 @@
-import { GeneratedQuestionDto, ValidationErrorDetail } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionDto,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 import { VALIDATION_RULES } from "./rules/validation-rules";
 
 export class AnswerValidatorService {
@@ -70,11 +73,13 @@ export class AnswerValidatorService {
 
     // 4. Solution contains answer logic
     if (solution && correctAnswer) {
-      const solStr = typeof solution === "string" ? solution : JSON.stringify(solution);
+      const solStr =
+        typeof solution === "string" ? solution : JSON.stringify(solution);
       if (!solStr.includes(String(correctAnswer))) {
         errors.push({
           code: "MISSING_ANSWER_LOGIC",
-          reason: "Solution text does not contain the correct answer value/logic.",
+          reason:
+            "Solution text does not contain the correct answer value/logic.",
         });
       }
     }

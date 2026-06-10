@@ -1,4 +1,7 @@
-import { GeneratedQuestionDto, ValidationErrorDetail } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionDto,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 
 export class DifficultyValidatorService {
   /**
@@ -14,7 +17,9 @@ export class DifficultyValidatorService {
     const errors: ValidationErrorDetail[] = [];
     const warnings: string[] = [];
 
-    const difficultyLevel = question.difficultyLevel ? String(question.difficultyLevel).toLowerCase() : "";
+    const difficultyLevel = question.difficultyLevel
+      ? String(question.difficultyLevel).toLowerCase()
+      : "";
     const solution = question.solution;
     const metadata = question.metadata || {};
 
@@ -23,14 +28,17 @@ export class DifficultyValidatorService {
     // 1. Attempt to extract steps from solution
     if (solution) {
       try {
-        const parsed = typeof solution === "string" ? JSON.parse(solution) : solution;
+        const parsed =
+          typeof solution === "string" ? JSON.parse(solution) : solution;
         if (parsed && Array.isArray(parsed.steps)) {
           stepsCount = parsed.steps.length;
         }
       } catch {
         // Fallback for non-JSON string
         if (typeof solution === "string") {
-          stepsCount = solution.split(/[.!?\n]+/).filter(line => line.trim().length > 0).length;
+          stepsCount = solution
+            .split(/[.!?\n]+/)
+            .filter((line) => line.trim().length > 0).length;
         }
       }
     }

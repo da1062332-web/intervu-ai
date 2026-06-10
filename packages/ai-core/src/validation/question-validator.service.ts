@@ -1,4 +1,7 @@
-import { GeneratedQuestionSchema, ValidationErrorDetail } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionSchema,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 
 export class QuestionValidatorService {
   /**

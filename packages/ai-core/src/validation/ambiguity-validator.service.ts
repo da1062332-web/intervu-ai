@@ -1,4 +1,7 @@
-import { GeneratedQuestionDto, ValidationErrorDetail } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionDto,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 
 export class AmbiguityValidatorService {
   /**
@@ -28,7 +31,8 @@ export class AmbiguityValidatorService {
     ) {
       errors.push({
         code: "AMBIGUOUS_QUESTION",
-        reason: "Question contains empty or unresolved placeholder markers (e.g. {}, [], __, undefined, null, NaN).",
+        reason:
+          "Question contains empty or unresolved placeholder markers (e.g. {}, [], __, undefined, null, NaN).",
       });
     }
 
@@ -54,8 +58,10 @@ export class AmbiguityValidatorService {
     // 3. Contradictory statements / duplicate parameters
     const keys = Object.keys(metadata);
     if (keys.length > 1) {
-      const lowerKeys = keys.map(k => k.toLowerCase());
-      const duplicates = lowerKeys.filter((item, index) => lowerKeys.indexOf(item) !== index);
+      const lowerKeys = keys.map((k) => k.toLowerCase());
+      const duplicates = lowerKeys.filter(
+        (item, index) => lowerKeys.indexOf(item) !== index,
+      );
       if (duplicates.length > 0) {
         errors.push({
           code: "AMBIGUOUS_QUESTION",
