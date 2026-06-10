@@ -5,6 +5,7 @@ const commands = [
   "npm run lint",
   "npm run type-check",
   "npm run test",
+  "npm run verify:day2",
 ];
 
 console.log("--- Starting CI Validation ---");
