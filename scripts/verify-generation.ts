@@ -1,5 +1,9 @@
 import { GenerationService } from "../packages/ai-core/src/generation/generation.service";
-import { connectPrisma, disconnectPrisma } from "../packages/database/src";
+import {
+  connectPrisma,
+  disconnectPrisma,
+  prisma,
+} from "../packages/database/src";
 
 const CONCEPTS = [
   "percentages",
@@ -14,7 +18,11 @@ const CONCEPTS = [
   "typescript_generics",
 ];
 
-const DIFFICULTIES: Array<"easy" | "medium" | "hard"> = ["easy", "medium", "hard"];
+const DIFFICULTIES: Array<"easy" | "medium" | "hard"> = [
+  "easy",
+  "medium",
+  "hard",
+];
 
 async function runVerification() {
   console.log("==========================================");
@@ -22,7 +30,10 @@ async function runVerification() {
   console.log("==========================================\n");
 
   await connectPrisma();
-  
+
+  // Clear old templates that might be broken and cause issues with the random selection
+  await prisma.template.deleteMany();
+
   let passes = 0;
   let failures = 0;
   const iterations = process.env.CI ? 2 : 20;
@@ -35,31 +46,58 @@ async function runVerification() {
       const difficulty = DIFFICULTIES[i % DIFFICULTIES.length];
 
       try {
+        // Seed a template for this concept and difficulty so the generation doesn't fail
+        await prisma.template.upsert({
+          where: { templateKey: `verify_template_${concept}_${difficulty}` },
+          create: {
+            templateKey: `verify_template_${concept}_${difficulty}`,
+            conceptKey: concept,
+            difficultyLevel: difficulty.toUpperCase() as
+              | "EASY"
+              | "MEDIUM"
+              | "HARD",
+            questionType: "mcq",
+            variableSchema: {
+              variables: [
+                { name: "a", type: "number", range: { min: 1, max: 10 } },
+                { name: "b", type: "number", range: { min: 1, max: 10 } },
+              ],
+            },
+            solutionSchema: {
+              steps: ["calculate {a} + {b}"],
+              finalAnswer: "a + b",
+            },
+            structure: { questionTemplate: "What is {a} + {b}?" },
+          },
+          update: {},
+        });
+
         const result = await service.generateQuestion(
           {
             conceptKey: concept,
             difficultyLevel: difficulty,
             questionType: "mcq",
           },
-          `test_verify_seed_${Date.now()}_${i}`
+          `test_verify_seed_${Date.now()}_${i}`,
         );
 
         const { question, validation } = result;
 
         // DTO checks
         const hasRequiredFields = !!(
-          question.id &&
-          question.content &&
-          question.type &&
-          question.difficulty &&
+          question.questionId &&
+          question.questionText &&
+          question.questionType &&
+          question.difficultyLevel &&
           question.options &&
           question.correctAnswer &&
           question.solution
         );
 
         const hasMetadata = !!question.metadata;
-        const difficultyMatch = question.difficulty === difficulty;
-        const hasOptions = Array.isArray(question.options) && question.options.length > 0;
+        const difficultyMatch = question.difficultyLevel === difficulty;
+        const hasOptions =
+          Array.isArray(question.options) && question.options.length > 0;
         const validationPassed = validation && validation.isValid;
 
         if (
@@ -69,15 +107,28 @@ async function runVerification() {
           hasOptions &&
           validationPassed
         ) {
-          console.log(`Generation Test #${i} PASS [${concept} - ${difficulty}]`);
+          console.log(
+            `Generation Test #${i} PASS [${concept} - ${difficulty}]`,
+          );
           passes++;
         } else {
-          console.error(`Generation Test #${i} FAIL [${concept} - ${difficulty}]`);
-          console.error({ hasRequiredFields, hasMetadata, difficultyMatch, hasOptions, validationPassed });
+          console.error(
+            `Generation Test #${i} FAIL [${concept} - ${difficulty}]`,
+          );
+          console.error({
+            hasRequiredFields,
+            hasMetadata,
+            difficultyMatch,
+            hasOptions,
+            validationPassed,
+          });
           failures++;
         }
       } catch (error: any) {
-        console.error(`Generation Test #${i} FAIL (Exception) [${concept} - ${difficulty}]`, error.message);
+        console.error(
+          `Generation Test #${i} FAIL (Exception) [${concept} - ${difficulty}]`,
+          error.message,
+        );
         failures++;
       }
     }

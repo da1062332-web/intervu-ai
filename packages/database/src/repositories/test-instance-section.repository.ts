@@ -12,7 +12,9 @@ export class TestInstanceSectionRepository {
     }
   }
 
-  async createMany(data: Prisma.TestInstanceSectionCreateManyInput[]): Promise<number> {
+  async createMany(
+    data: Prisma.TestInstanceSectionCreateManyInput[],
+  ): Promise<number> {
     this.validate(data);
     try {
       const result = await prisma.testInstanceSection.createMany({

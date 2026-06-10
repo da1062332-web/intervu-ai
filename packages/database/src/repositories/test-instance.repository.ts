@@ -12,7 +12,9 @@ export class TestInstanceRepository {
     }
   }
 
-  async create(data: Prisma.TestInstanceUncheckedCreateInput): Promise<TestInstance> {
+  async create(
+    data: Prisma.TestInstanceUncheckedCreateInput,
+  ): Promise<TestInstance> {
     this.validate(data);
     try {
       return await prisma.testInstance.create({ data });
@@ -46,7 +48,10 @@ export class TestInstanceRepository {
     }
   }
 
-  async updateStatus(id: string, status: TestInstanceStatus): Promise<TestInstance> {
+  async updateStatus(
+    id: string,
+    status: TestInstanceStatus,
+  ): Promise<TestInstance> {
     this.validate(id);
     this.validate(status);
     try {

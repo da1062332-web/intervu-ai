@@ -16,34 +16,37 @@ describe("Day 3 Test Assembly Engine Integration Tests", () => {
   it("should persist a large assembly (100 questions) in under 2.0 seconds", async () => {
     // Create a mock user
     const user = await prisma.user.create({
-      data: { email: `test-user-${Date.now()}@intervu.ai`, passwordHash: "mock" }
+      data: {
+        email: `test-user-${Date.now()}@intervu.ai`,
+        passwordHash: "mock",
+      },
     });
 
     // Create a mock template and config
     const template = await prisma.template.create({
-      data: { name: "Mock Template" }
+      data: { name: "Mock Template" },
     });
-    
+
     const config = await prisma.testConfig.create({
       data: {
         configKey: `cfg-${Date.now()}`,
         companyName: "Acme",
         displayName: "Mock Config",
         totalDurationSeconds: 3600,
-        totalQuestions: 100
-      }
+        totalQuestions: 100,
+      },
     });
 
     // Generate 100 mock questions for 2 sections
     const section1Questions = Array.from({ length: 50 }).map((_, i) => ({
       questionId: `q-s1-${i}`,
       questionOrder: i,
-      questionSnapshot: { text: `Question ${i} for section 1` }
+      questionSnapshot: { text: `Question ${i} for section 1` },
     }));
     const section2Questions = Array.from({ length: 50 }).map((_, i) => ({
       questionId: `q-s2-${i}`,
       questionOrder: i,
-      questionSnapshot: { text: `Question ${i} for section 2` }
+      questionSnapshot: { text: `Question ${i} for section 2` },
     }));
 
     const startTime = Date.now();
@@ -54,13 +57,25 @@ describe("Day 3 Test Assembly Engine Integration Tests", () => {
         testConfigId: config.id,
       },
       [
-        { sectionKey: "s1", sectionName: "Section 1", durationSeconds: 1800, questionCount: 50, orderIndex: 0 },
-        { sectionKey: "s2", sectionName: "Section 2", durationSeconds: 1800, questionCount: 50, orderIndex: 1 },
+        {
+          sectionKey: "s1",
+          sectionName: "Section 1",
+          durationSeconds: 1800,
+          questionCount: 50,
+          orderIndex: 0,
+        },
+        {
+          sectionKey: "s2",
+          sectionName: "Section 2",
+          durationSeconds: 1800,
+          questionCount: 50,
+          orderIndex: 1,
+        },
       ],
       {
-        "s1": section1Questions,
-        "s2": section2Questions,
-      }
+        s1: section1Questions,
+        s2: section2Questions,
+      },
     );
 
     const endTime = Date.now();
@@ -78,8 +93,12 @@ describe("Day 3 Test Assembly Engine Integration Tests", () => {
     expect(assembly?.sections[1].questions).toHaveLength(50);
 
     // Clean up
-    await prisma.testInstanceQuestion.deleteMany({ where: { testInstanceId: instance.id } });
-    await prisma.testInstanceSection.deleteMany({ where: { testInstanceId: instance.id } });
+    await prisma.testInstanceQuestion.deleteMany({
+      where: { testInstanceId: instance.id },
+    });
+    await prisma.testInstanceSection.deleteMany({
+      where: { testInstanceId: instance.id },
+    });
     await prisma.testInstance.delete({ where: { id: instance.id } });
     await prisma.testConfig.delete({ where: { id: config.id } });
     await prisma.template.delete({ where: { id: template.id } });

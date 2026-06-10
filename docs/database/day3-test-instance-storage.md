@@ -1,6 +1,7 @@
 # Day 3: Test Instance Persistence & Assembly Foundation
 
 ## Overview
+
 This document outlines the architecture for the Module 3 Test Assembly Engine persistence layer. The database must persistently represent an entire assembled test, enabling workflows like execution, resuming, auto-saving, and final submission.
 
 ## Architecture & Relationships
@@ -45,7 +46,8 @@ erDiagram
 
 ## Immutable Snapshot Strategy
 
-The `TestInstanceQuestion.questionSnapshot` field guarantees that the exact state of the question at the time of assembly is frozen. 
+The `TestInstanceQuestion.questionSnapshot` field guarantees that the exact state of the question at the time of assembly is frozen.
+
 - Execution **must never** query the Question Pool table (`GeneratedQuestion`).
 - If a source question is edited in the future, the in-flight candidate tests remain 100% unaffected.
 
@@ -61,7 +63,7 @@ sequenceDiagram
 
     AssemblyEngine->>AssemblyRepository: persistAssembly(instance, sections, questions)
     AssemblyRepository->>Database: BEGIN TRANSACTION
-    
+
     AssemblyRepository->>Database: CREATE TestInstance
     loop For Each Section
         AssemblyRepository->>Database: CREATE TestInstanceSection

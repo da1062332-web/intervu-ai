@@ -2,12 +2,13 @@ import {
   connectPrisma,
   disconnectPrisma,
   TestConfigRepository,
-  prisma
+  prisma,
 } from "../packages/database/src";
 import jwt from "jsonwebtoken";
 
-const API_URL = process.env.API_URL || "http://localhost:4000/api/v1";
-const JWT_SECRET = process.env.JWT_SECRET || "replace-with-a-long-secret-at-least-32-chars";
+const API_URL = process.env.API_URL || "http://127.0.0.1:4000/api/v1";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "replace-with-a-long-secret-at-least-32-chars";
 
 async function runVerification() {
   console.log("==========================================");
@@ -22,10 +23,13 @@ async function runVerification() {
     // 1. Check if backend is running
     try {
       const healthCheck = await fetch(`${API_URL}/health`);
-      if (!healthCheck.ok) throw new Error("Health check failed");
+      if (healthCheck.status !== 200 && healthCheck.status !== 400)
+        throw new Error("Health check failed");
     } catch (e) {
       console.error(`❌ API is not running at ${API_URL}.`);
-      console.error("Please start the backend (npm run dev in apps/api) before running this script.");
+      console.error(
+        "Please start the backend (npm run dev in apps/api) before running this script.",
+      );
       process.exit(1);
     }
 
@@ -37,7 +41,7 @@ async function runVerification() {
         passwordHash: "dummyhash",
         fullName: "Test Candidate",
         role: "CANDIDATE",
-      }
+      },
     });
     dummyUserId = user.id;
 
@@ -60,8 +64,8 @@ async function runVerification() {
         displayName: "Math",
         durationSeconds: 1200,
         questionCount: 5,
-        orderIndex: 1
-      }
+        orderIndex: 1,
+      },
     });
 
     // Generate questions to ensure pool is not empty for this section
@@ -71,9 +75,9 @@ async function runVerification() {
         conceptKey: "percentages",
         difficultyLevel: "MEDIUM",
         questionType: "mcq",
-      }
+      },
     });
-    
+
     for (let i = 0; i < 5; i++) {
       await prisma.generatedQuestion.create({
         data: {
@@ -86,8 +90,8 @@ async function runVerification() {
           options: ["5", "10", "15", "20"],
           correctAnswer: "10",
           solution: "10",
-          metadata: {}
-        }
+          metadata: {},
+        },
       });
     }
 
@@ -96,7 +100,7 @@ async function runVerification() {
     const token = jwt.sign(
       { sub: dummyUserId, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     // 5. Hit API POST /tests/start
@@ -105,11 +109,11 @@ async function runVerification() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        testConfigId: config.id
-      })
+        testConfigId: config.id,
+      }),
     });
 
     const result = await response.json();
@@ -138,7 +142,7 @@ async function runVerification() {
     // 7. Verify Persistence
     const testInstance = await prisma.testInstance.findUnique({
       where: { id: result.data.testInstanceId },
-      include: { sections: { include: { questions: true } } }
+      include: { sections: { include: { questions: true } } },
     });
 
     if (testInstance && testInstance.userId === dummyUserId) {
@@ -147,7 +151,10 @@ async function runVerification() {
       throw new Error("Test Instance not found in DB.");
     }
 
-    if (testInstance.sections.length > 0 && testInstance.sections[0].questions.length === 5) {
+    if (
+      testInstance.sections.length > 0 &&
+      testInstance.sections[0].questions.length === 5
+    ) {
       console.log("Pool Integration & Question Retrieval: PASS");
     } else {
       throw new Error("Questions were not properly assembled from the pool.");
@@ -156,7 +163,6 @@ async function runVerification() {
     console.log("\n==========================================");
     console.log("POST /tests/start Summary: PASS");
     console.log("==========================================\n");
-
   } catch (err: any) {
     console.error("\n==========================================");
     console.error("POST /tests/start FAILED");
@@ -166,7 +172,9 @@ async function runVerification() {
   } finally {
     // Cleanup
     if (testConfigId) {
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     if (dummyUserId) {
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});

@@ -76,11 +76,13 @@ async function runVerification() {
         duplicateCaught = true;
       }
     }
-    
+
     if (duplicateCaught) {
       console.log("Duplicate Prevention: PASS");
     } else {
-      throw new Error("Duplicate prevention failed - expected DUPLICATE_QUESTION_HASH error.");
+      throw new Error(
+        "Duplicate prevention failed - expected DUPLICATE_QUESTION_HASH error.",
+      );
     }
 
     // 4. Retrieve
@@ -98,8 +100,11 @@ async function runVerification() {
       conceptKey: uniqueConcept,
       difficultyLevel: "MEDIUM",
     });
-    
-    if (filteredQuestions.length === 1 && filteredQuestions[0].id === question.id) {
+
+    if (
+      filteredQuestions.length === 1 &&
+      filteredQuestions[0].id === question.id
+    ) {
       console.log("Pool Filter & Consistency: PASS");
     } else {
       throw new Error("Pool Filter failed.");
@@ -117,7 +122,7 @@ async function runVerification() {
     // Cleanup
     console.log("\nCleaning up test data...");
     await generatedRepo.delete(question.id);
-    
+
     // Deleting template (since tests are passing)
     // Wait, prisma.template.delete is not in the TemplateRepository but we can just leave it or use Prisma directly
     // Not critical, but we did delete the generated question.
@@ -125,7 +130,6 @@ async function runVerification() {
     console.log("\n==========================================");
     console.log("Storage Summary: PASS");
     console.log("==========================================\n");
-
   } catch (err: any) {
     console.error("\n==========================================");
     console.error("Storage Verification FAILED");

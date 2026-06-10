@@ -1,6 +1,11 @@
 import { prisma } from "../client";
 import { RepositoryError } from "../types/database.types";
-import type { Prisma, TestInstance, TestInstanceSection, TestInstanceQuestion } from "@prisma/client";
+import type {
+  Prisma,
+  TestInstance,
+  TestInstanceSection,
+  TestInstanceQuestion,
+} from "@prisma/client";
 
 import { createId } from "@paralleldrive/cuid2";
 
@@ -27,15 +32,24 @@ export class AssemblyRepository {
    */
   async persistAssembly(
     instanceData: Prisma.TestInstanceUncheckedCreateInput,
-    sectionsData: Omit<Prisma.TestInstanceSectionUncheckedCreateInput, "testInstanceId">[],
-    questionsDataMap: Record<string, Omit<Prisma.TestInstanceQuestionUncheckedCreateInput, "testInstanceId" | "sectionId">[]> // key is sectionKey
+    sectionsData: Omit<
+      Prisma.TestInstanceSectionUncheckedCreateInput,
+      "testInstanceId"
+    >[],
+    questionsDataMap: Record<
+      string,
+      Omit<
+        Prisma.TestInstanceQuestionUncheckedCreateInput,
+        "testInstanceId" | "sectionId"
+      >[]
+    >, // key is sectionKey
   ): Promise<TestInstance> {
     this.validate(instanceData);
     this.validate(sectionsData);
 
     const instanceId = instanceData.id || createId();
     const queries: any[] = [];
-    
+
     // 1. Top-level TestInstance query
     queries.push(
       prisma.testInstance.create({
@@ -43,13 +57,13 @@ export class AssemblyRepository {
           ...instanceData,
           id: instanceId,
         },
-      })
+      }),
     );
 
     // 2. Sections and their questions
     for (const sectionInput of sectionsData) {
       const sectionId = sectionInput.id || createId();
-      
+
       queries.push(
         prisma.testInstanceSection.create({
           data: {
@@ -57,10 +71,11 @@ export class AssemblyRepository {
             id: sectionId,
             testInstanceId: instanceId,
           },
-        })
+        }),
       );
 
-      const questionsForSection = questionsDataMap[sectionInput.sectionKey] || [];
+      const questionsForSection =
+        questionsDataMap[sectionInput.sectionKey] || [];
       if (questionsForSection.length > 0) {
         const finalQuestions = questionsForSection.map((q) => ({
           ...q,
@@ -72,7 +87,7 @@ export class AssemblyRepository {
         queries.push(
           prisma.testInstanceQuestion.createMany({
             data: finalQuestions,
-          })
+          }),
         );
       }
     }
@@ -82,14 +97,19 @@ export class AssemblyRepository {
       const results = await prisma.$transaction(queries);
       return results[0] as TestInstance;
     } catch (error: any) {
-      throw new RepositoryError("DB_ERROR", `Failed to persist assembly: ${error.message}`);
+      throw new RepositoryError(
+        "DB_ERROR",
+        `Failed to persist assembly: ${error.message}`,
+      );
     }
   }
   /**
    * Assembly Read Model
    * Fetches the complete structure in a single highly optimized join query.
    */
-  async getAssemblyData(testInstanceId: string): Promise<FullAssemblyData | null> {
+  async getAssemblyData(
+    testInstanceId: string,
+  ): Promise<FullAssemblyData | null> {
     this.validate(testInstanceId);
     try {
       return await prisma.testInstance.findUnique({
