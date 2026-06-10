@@ -18,11 +18,11 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  sessions      Session[]
-  refreshTokens RefreshToken[]
-  templates     Template[]
-  tests         Test[]
-  testInstances TestInstance[]
+  sessions          Session[]
+  refreshTokens     RefreshToken[]
+  templates         Template[]
+  tests             Test[]
+  testInstances     TestInstance[]
   evaluationResults EvaluationResult[]
 
   @@index([deletedAt])
@@ -75,17 +75,17 @@ model Template {
   solutionSchema  Json            @default("{}")
   version         Int             @default(1)
   isActive        Boolean         @default(true)
-  
-  name            String          @default("Legacy Template")
-  description     String?
-  difficulty      DifficultyLevel @default(MEDIUM)
-  config          Json            @default("{}")
-  isSystem        Boolean         @default(false)
-  creatorId       String?
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  deletedAt       DateTime?
+  name        String          @default("Legacy Template")
+  description String?
+  difficulty  DifficultyLevel @default(MEDIUM)
+  config      Json            @default("{}")
+  isSystem    Boolean         @default(false)
+  creatorId   String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   creator            User?               @relation(fields: [creatorId], references: [id], onDelete: SetNull)
   tests              Test[]
@@ -116,8 +116,8 @@ model Test {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  template Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template         Template          @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   evaluationResult EvaluationResult?
 
   @@index([userId])
@@ -153,8 +153,8 @@ model SystemConfig {
 }
 
 model EvaluationResult {
-  id                 String   @id @default(cuid())
-  testId             String   @unique
+  id                 String  @id @default(cuid())
+  testId             String  @unique
   userId             String
   communicationScore Float
   technicalScore     Float
@@ -187,46 +187,46 @@ model SkillScore {
 }
 
 model TestConfig {
-  id                   String        @id @default(cuid())
-  configKey            String        @unique
+  id                   String   @id @default(cuid())
+  configKey            String   @unique
   companyName          String
   displayName          String
   totalDurationSeconds Int
   totalQuestions       Int
-  isActive             Boolean       @default(true)
-  version              Int           @default(1)
-  createdAt            DateTime      @default(now())
-  
-  sections             TestSection[]
-  testInstances        TestInstance[]
-  rule                 TestRule?
+  isActive             Boolean  @default(true)
+  version              Int      @default(1)
+  createdAt            DateTime @default(now())
+
+  sections      TestSection[]
+  rule          TestRule?
+  testInstances TestInstance[]
 
   @@index([configKey])
 }
 
 model TestSection {
-  id              String     @id @default(cuid())
+  id              String @id @default(cuid())
   testConfigId    String
   sectionKey      String
   displayName     String
   durationSeconds Int
   questionCount   Int
   orderIndex      Int
-  
-  testConfig      TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
-  
+
+  testConfig TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
+
   @@index([testConfigId])
 }
 
 model TestRule {
-  id               String     @id @default(cuid())
-  testConfigId     String     @unique
-  negativeMarking  Boolean    @default(false)
-  sectionLocking   Boolean    @default(true)
-  shuffleQuestions Boolean    @default(false)
-  allowNavigation  Boolean    @default(false)
-  
-  testConfig       TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
+  id               String  @id @default(cuid())
+  testConfigId     String  @unique
+  negativeMarking  Boolean @default(false)
+  sectionLocking   Boolean @default(true)
+  shuffleQuestions Boolean @default(false)
+  allowNavigation  Boolean @default(false)
+
+  testConfig TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
 }
 
 model GeneratedQuestion {
@@ -243,7 +243,7 @@ model GeneratedQuestion {
   metadata        Json
   createdAt       DateTime        @default(now())
 
-  template        Template        @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  template Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
 
   @@index([conceptKey])
   @@index([difficultyLevel])

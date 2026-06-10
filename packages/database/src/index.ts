@@ -9,7 +9,6 @@ export {
   SkillScoreRepository,
   type CreateSkillScoreInput,
 } from "./repositories/skill-score.repository";
-
 // Day 1 & 2 Persistence
 export * from "./repositories/test-config.repository";
 export * from "./repositories/template.repository";
