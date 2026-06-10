@@ -1,4 +1,7 @@
-import { GeneratedQuestionSchema, ValidationErrorDetail } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionSchema,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 import { QuestionValidationDto } from "@intervu-ai/contracts";
 import { GenerationResult } from "../types/generation.types";
 

@@ -43,6 +43,7 @@ The validation engine acts as a **Quality Gate** sitting between question genera
 ## 2. Validation Pipeline Flow
 
 Every validation stage returns a localized score and pass status. The orchestrator sums the scores and collects all failure reasons and warning messages:
+
 - **All stages must pass**: If any individual stage fails (`passed === false`), the question is rejected.
 - **Structure Pre-emption**: If the question fails structure validation, it is deemed completely unusable, and the overall score is set to `0`.
 - **Passing Threshold**: A question must score $\ge 80$ and pass all stages to be accepted.
@@ -51,14 +52,14 @@ Every validation stage returns a localized score and pass status. The orchestrat
 
 ## 3. Scoring Rules
 
-| Validation Stage | Max Score | Key Assertions |
-| :--- | :---: | :--- |
-| **Structure** | 25 | Checks presence of `questionText`, `correctAnswer`, `solution`, `metadata`, `questionType`, and `difficultyLevel`. Checks conformity to the Zod contract schema. |
-| **Answer** | 25 | Verifies answer is non-empty, MCQ options contain the correct answer (capping at 4-6 options), numeric answers represent a valid number, and the solution steps contain the correct answer logic. |
-| **Difficulty** | 20 | Estimates calculation step count from solution steps or metadata, ensuring it matches the assigned difficulty (Easy: 1-2, Medium: 2-4, Hard: 4+). |
-| **Ambiguity** | 10 | Checks for unresolved brackets (e.g. `{variable}`), empty placeholders (`__`, `[]`), or parameters in text that are missing from metadata. |
-| **Quality** | 20 | Checks question length ($\ge 15$), solution length ($\ge 15$), capitalized starting characters, trailing whitespaces, and punctuation. |
-| **Total** | **100** | **Passing Score: 80+** |
+| Validation Stage | Max Score | Key Assertions                                                                                                                                                                                    |
+| :--------------- | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Structure**    |    25     | Checks presence of `questionText`, `correctAnswer`, `solution`, `metadata`, `questionType`, and `difficultyLevel`. Checks conformity to the Zod contract schema.                                  |
+| **Answer**       |    25     | Verifies answer is non-empty, MCQ options contain the correct answer (capping at 4-6 options), numeric answers represent a valid number, and the solution steps contain the correct answer logic. |
+| **Difficulty**   |    20     | Estimates calculation step count from solution steps or metadata, ensuring it matches the assigned difficulty (Easy: 1-2, Medium: 2-4, Hard: 4+).                                                 |
+| **Ambiguity**    |    10     | Checks for unresolved brackets (e.g. `{variable}`), empty placeholders (`__`, `[]`), or parameters in text that are missing from metadata.                                                        |
+| **Quality**      |    20     | Checks question length ($\ge 15$), solution length ($\ge 15$), capitalized starting characters, trailing whitespaces, and punctuation.                                                            |
+| **Total**        |  **100**  | **Passing Score: 80+**                                                                                                                                                                            |
 
 ---
 
@@ -66,27 +67,28 @@ Every validation stage returns a localized score and pass status. The orchestrat
 
 Every failure provides a unique error code and reason.
 
-| Code | Triggering Stage | Description |
-| :--- | :--- | :--- |
-| `MISSING_QUESTION_TEXT` | Structure | The question text is empty or missing. |
-| `MISSING_ANSWER` | Structure / Answer | The correct answer is empty or missing. |
-| `MISSING_SOLUTION` | Structure | The explanation solution is empty or missing. |
-| `INVALID_QUESTION_TYPE` | Structure | The question type is not mcq, numeric, or coding. |
-| `INVALID_DIFFICULTY` | Structure / Difficulty | Difficulty level is unknown, or step count mismatches difficulty. |
-| `MISSING_METADATA` | Structure / Quality | Metadata is empty or missing. |
-| `INVALID_OPTION_SET` | Answer | Options array is missing, or length does not match MCQ requirements (4 to 6). |
-| `INVALID_MCQ_OPTIONS` | Answer | The correct answer does not exist in the MCQ options list. |
-| `INVALID_NUMERIC_ANSWER` | Answer | Correct answer is not a valid numeric value for a numeric question. |
-| `MISSING_ANSWER_LOGIC` | Answer | The solution steps do not contain the correct answer logic. |
-| `AMBIGUOUS_QUESTION` | Ambiguity | Unresolved placeholder brackets, double underscores, or duplicate variables. |
-| `QUALITY_FAILURE` | Quality | Question/solution is too short, or has poor formatting/punctuation. |
-| `VALIDATION_SCORE_FAIL` | Orchestrator | Validation score is below the passing threshold of 80. |
+| Code                     | Triggering Stage       | Description                                                                   |
+| :----------------------- | :--------------------- | :---------------------------------------------------------------------------- |
+| `MISSING_QUESTION_TEXT`  | Structure              | The question text is empty or missing.                                        |
+| `MISSING_ANSWER`         | Structure / Answer     | The correct answer is empty or missing.                                       |
+| `MISSING_SOLUTION`       | Structure              | The explanation solution is empty or missing.                                 |
+| `INVALID_QUESTION_TYPE`  | Structure              | The question type is not mcq, numeric, or coding.                             |
+| `INVALID_DIFFICULTY`     | Structure / Difficulty | Difficulty level is unknown, or step count mismatches difficulty.             |
+| `MISSING_METADATA`       | Structure / Quality    | Metadata is empty or missing.                                                 |
+| `INVALID_OPTION_SET`     | Answer                 | Options array is missing, or length does not match MCQ requirements (4 to 6). |
+| `INVALID_MCQ_OPTIONS`    | Answer                 | The correct answer does not exist in the MCQ options list.                    |
+| `INVALID_NUMERIC_ANSWER` | Answer                 | Correct answer is not a valid numeric value for a numeric question.           |
+| `MISSING_ANSWER_LOGIC`   | Answer                 | The solution steps do not contain the correct answer logic.                   |
+| `AMBIGUOUS_QUESTION`     | Ambiguity              | Unresolved placeholder brackets, double underscores, or duplicate variables.  |
+| `QUALITY_FAILURE`        | Quality                | Question/solution is too short, or has poor formatting/punctuation.           |
+| `VALIDATION_SCORE_FAIL`  | Orchestrator           | Validation score is below the passing threshold of 80.                        |
 
 ---
 
 ## 5. Examples
 
 ### A. Valid MCQ Question (PASS)
+
 ```json
 {
   "questionId": "q_val_001",
@@ -101,7 +103,9 @@ Every failure provides a unique error code and reason.
   "metadata": { "percent_increase": 25, "steps": 2 }
 }
 ```
+
 **Validation Output**:
+
 ```json
 {
   "questionId": "q_val_001",
@@ -115,6 +119,7 @@ Every failure provides a unique error code and reason.
 ```
 
 ### B. Mismatched Difficulty Question (FAIL)
+
 ```json
 {
   "questionId": "q_val_002",
@@ -129,7 +134,9 @@ Every failure provides a unique error code and reason.
   "metadata": { "percent_increase": 25, "steps": 5 }
 }
 ```
+
 **Validation Output**:
+
 ```json
 {
   "questionId": "q_val_002",
@@ -152,6 +159,7 @@ Every failure provides a unique error code and reason.
 ## 6. Performance Metrics
 
 A bulk performance test dataset of **100 sample questions** containing valid, invalid, easy, medium, and hard difficulty distributions was validated to verify SLA throughput:
+
 - **SLA Target**: Validate 100 questions under **3 seconds** (3000ms).
 - **Actual Result**: Validated 100 questions in **8ms**.
 - **Efficiency**: Fully optimized for real-time validation inside background workers and assembly workloads without blocking event loops.

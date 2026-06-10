@@ -1,4 +1,7 @@
-import { GeneratedQuestionDto, ValidationErrorDetail } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionDto,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 import { VALIDATION_RULES } from "./rules/validation-rules";
 
 export class QualityValidatorService {
@@ -31,7 +34,8 @@ export class QualityValidatorService {
     }
 
     // 2. Minimum Solution/Explanation Length
-    const solStr = typeof solution === "string" ? solution : JSON.stringify(solution);
+    const solStr =
+      typeof solution === "string" ? solution : JSON.stringify(solution);
     if (solStr.length < minS) {
       errors.push({
         code: "QUALITY_FAILURE",
@@ -62,7 +66,8 @@ export class QualityValidatorService {
       if (!/[A-Z0-9]/.test(startChar)) {
         errors.push({
           code: "QUALITY_FAILURE",
-          reason: "Question text must start with an uppercase letter or a digit.",
+          reason:
+            "Question text must start with an uppercase letter or a digit.",
         });
       }
 
@@ -71,7 +76,8 @@ export class QualityValidatorService {
       if (!/[?.!:]/.test(endChar)) {
         errors.push({
           code: "QUALITY_FAILURE",
-          reason: "Question text must end with proper punctuation (e.g. ?, ., !, :).",
+          reason:
+            "Question text must end with proper punctuation (e.g. ?, ., !, :).",
         });
       }
     }

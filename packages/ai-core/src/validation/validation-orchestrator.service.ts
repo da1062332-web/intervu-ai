@@ -24,10 +24,13 @@ export class ValidationOrchestratorService {
     ambiguityValidator?: AmbiguityValidatorService,
     qualityValidator?: QualityValidatorService,
   ) {
-    this.structureValidator = structureValidator || new QuestionValidatorService();
+    this.structureValidator =
+      structureValidator || new QuestionValidatorService();
     this.answerValidator = answerValidator || new AnswerValidatorService();
-    this.difficultyValidator = difficultyValidator || new DifficultyValidatorService();
-    this.ambiguityValidator = ambiguityValidator || new AmbiguityValidatorService();
+    this.difficultyValidator =
+      difficultyValidator || new DifficultyValidatorService();
+    this.ambiguityValidator =
+      ambiguityValidator || new AmbiguityValidatorService();
     this.qualityValidator = qualityValidator || new QualityValidatorService();
   }
 
@@ -100,7 +103,9 @@ export class ValidationOrchestratorService {
   /**
    * Bulk validation support for multiple questions.
    */
-  validateQuestions(questions: GeneratedQuestionDto[]): QuestionValidationDto[] {
+  validateQuestions(
+    questions: GeneratedQuestionDto[],
+  ): QuestionValidationDto[] {
     if (!questions || !Array.isArray(questions)) {
       return [];
     }
