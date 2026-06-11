@@ -1,4 +1,3 @@
-import { DifficultyLevel } from '@prisma/client';
 
 export interface BlueprintSectionDto {
   sectionKey: string;

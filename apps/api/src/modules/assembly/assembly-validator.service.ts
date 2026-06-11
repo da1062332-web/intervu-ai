@@ -56,7 +56,7 @@ export class AssemblyValidatorService {
         allQuestionIds.add(q.questionId);
 
         // AVL-007 Question Metadata
-        if (!q.questionSnapshot || !q.questionSnapshot.id) {
+        if (!q.questionSnapshot || typeof q.questionSnapshot !== 'object' || !('id' in q.questionSnapshot)) {
           errors.push(`AVL-007: Question metadata missing for questionId: ${q.questionId}`);
         }
 

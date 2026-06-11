@@ -2,11 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AssemblyModule } from './assembly.module';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { PrismaService } from '../../prisma/prisma.service';
 
 describe('AssemblyIntegration', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
 
   beforeAll(async () => {
     // Basic setup for integration tests
@@ -16,8 +14,6 @@ describe('AssemblyIntegration', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-    
-    prisma = moduleFixture.get<PrismaService>(PrismaService);
   });
 
   afterAll(async () => {

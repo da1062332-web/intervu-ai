@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TestInstance, TestInstanceSection, TestInstanceQuestion, TestInstanceStatus, Prisma } from '@prisma/client';
+import { TestInstanceStatus, Prisma } from '@prisma/client';
 import { SectionDto } from './dto/section.dto';
 import { AllocatedQuestionDto } from './dto/allocated-question.dto';
 

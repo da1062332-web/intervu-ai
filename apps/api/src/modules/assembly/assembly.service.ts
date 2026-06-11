@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { CreateAssemblyDto } from './dto/create-assembly.dto';
+
 import { AssemblyRepository } from './assembly.repository';
 import { BlueprintBuilderService } from './blueprint-builder.service';
 import { QuestionAllocatorService, AllocationConfig } from './question-allocator.service';

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { BlueprintSectionDto } from './dto/blueprint.dto';
 import { AllocatedQuestionDto } from './dto/allocated-question.dto';
 import { QuestionPoolService } from '../question-pool/services/question-pool.service';

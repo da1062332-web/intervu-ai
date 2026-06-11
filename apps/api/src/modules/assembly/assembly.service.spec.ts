@@ -5,7 +5,8 @@ import { BlueprintBuilderService } from './blueprint-builder.service';
 import { QuestionAllocatorService } from './question-allocator.service';
 import { SectionBuilderService } from './section-builder.service';
 import { AssemblyValidatorService } from './assembly-validator.service';
-
+import { SectionDto } from './dto/section.dto';
+import { BlueprintDto } from './dto/blueprint.dto';
 describe('AssemblyService', () => {
   let service: AssemblyService;
   let repository: jest.Mocked<AssemblyRepository>;
@@ -19,23 +20,23 @@ describe('AssemblyService', () => {
       createTestInstanceWithTransaction: jest.fn(),
       findById: jest.fn(),
       findByCandidate: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<AssemblyRepository>;
 
     blueprintBuilder = {
       generateBlueprint: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<BlueprintBuilderService>;
 
     allocator = {
       allocateQuestions: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<QuestionAllocatorService>;
 
     sectionBuilder = {
       buildSection: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<SectionBuilderService>;
 
     validator = {
       validate: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<AssemblyValidatorService>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -63,7 +64,7 @@ describe('AssemblyService', () => {
       sections: [{ sectionKey: 's1', displayName: 'Section 1', durationSeconds: 1800, questionCount: 10, orderIndex: 1 }]
     });
     allocator.allocateQuestions.mockResolvedValueOnce([]);
-    sectionBuilder.buildSection.mockReturnValueOnce({} as any);
+    sectionBuilder.buildSection.mockReturnValueOnce({} as unknown as SectionDto);
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
     repository.createTestInstanceWithTransaction.mockResolvedValueOnce('instance-uuid');
 
@@ -73,7 +74,7 @@ describe('AssemblyService', () => {
   });
 
   it('ASM-008 Persistence Success', async () => {
-    blueprintBuilder.generateBlueprint.mockResolvedValueOnce({ sections: [] } as any);
+    blueprintBuilder.generateBlueprint.mockResolvedValueOnce({ sections: [] } as unknown as BlueprintDto);
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
     repository.createTestInstanceWithTransaction.mockResolvedValueOnce('success-uuid');
 

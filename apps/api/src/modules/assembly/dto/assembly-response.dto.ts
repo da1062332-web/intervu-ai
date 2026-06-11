@@ -19,7 +19,7 @@ export class StandardResponseDto<T> {
   error!: ErrorDetails | null;
 
   @ApiProperty({ nullable: true })
-  meta!: any;
+  meta!: unknown;
 }
 
 export class AssemblyBuildDataDto {
@@ -38,7 +38,7 @@ export class TestInstanceQuestionSnapshotDto {
   @ApiProperty()
   questionOrder!: number;
   @ApiProperty()
-  questionSnapshot!: any;
+  questionSnapshot!: unknown;
 }
 
 export class TestInstanceSectionSnapshotDto {

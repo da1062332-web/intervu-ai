@@ -1,4 +1,4 @@
-import { DifficultyLevel } from '@prisma/client';
+import { DifficultyLevel, Prisma } from '@prisma/client';
 
 export interface AllocatedQuestionDto {
   questionId: string; // Refers to GeneratedQuestion id
@@ -7,5 +7,6 @@ export interface AllocatedQuestionDto {
   difficultyLevel: DifficultyLevel;
   questionType: string;
   questionOrder: number;
-  questionSnapshot: any;
+  questionSnapshot: Prisma.InputJsonValue;
 }
+
