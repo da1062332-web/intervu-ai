@@ -21,3 +21,10 @@ export * from "./evaluation/score-calculator.service";
 export * from "./evaluation/skill-evaluator.service";
 export * from "./evaluation/feedback-generator.service";
 export * from "./evaluation/evaluation-validator.service";
+
+// Recommendation Engine Services
+export * from "./recommendation/recommendation-engine.service";
+export * from "./recommendation/skill-gap-analyzer.service";
+export * from "./recommendation/recommendation-generator.service";
+export * from "./recommendation/improvement-path.service";
+export * from "./recommendation/recommendation-validator.service";
