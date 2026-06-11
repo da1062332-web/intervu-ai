@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import { AssemblyModule } from './assembly.module';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
+import { AssemblyModule } from "./assembly.module";
+import { PrismaModule } from "../../prisma/prisma.module";
 
-describe('AssemblyIntegration', () => {
+describe("AssemblyIntegration", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -20,7 +20,7 @@ describe('AssemblyIntegration', () => {
     await app.close();
   });
 
-  it('should initialize module', () => {
+  it("should initialize module", () => {
     expect(app).toBeDefined();
   });
 });

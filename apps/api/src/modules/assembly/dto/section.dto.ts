@@ -1,4 +1,4 @@
-import { AllocatedQuestionDto } from './allocated-question.dto';
+import { AllocatedQuestionDto } from "./allocated-question.dto";
 
 export interface SectionDto {
   sectionKey: string;

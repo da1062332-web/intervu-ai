@@ -1,13 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AssemblyService } from './assembly.service';
-import { AssemblyRepository } from './assembly.repository';
-import { BlueprintBuilderService } from './blueprint-builder.service';
-import { QuestionAllocatorService } from './question-allocator.service';
-import { SectionBuilderService } from './section-builder.service';
-import { AssemblyValidatorService } from './assembly-validator.service';
-import { SectionDto } from './dto/section.dto';
-import { BlueprintDto } from './dto/blueprint.dto';
-describe('AssemblyService', () => {
+import { Test, TestingModule } from "@nestjs/testing";
+import { AssemblyService } from "./assembly.service";
+import { AssemblyRepository } from "./assembly.repository";
+import { BlueprintBuilderService } from "./blueprint-builder.service";
+import { QuestionAllocatorService } from "./question-allocator.service";
+import { SectionBuilderService } from "./section-builder.service";
+import { AssemblyValidatorService } from "./assembly-validator.service";
+import { SectionDto } from "./dto/section.dto";
+import { BlueprintDto } from "./dto/blueprint.dto";
+describe("AssemblyService", () => {
   let service: AssemblyService;
   let repository: jest.Mocked<AssemblyRepository>;
   let blueprintBuilder: jest.Mocked<BlueprintBuilderService>;
@@ -52,34 +52,50 @@ describe('AssemblyService', () => {
     service = module.get<AssemblyService>(AssemblyService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  it('ASM-001 Blueprint Creation - generates blueprint correctly', async () => {
+  it("ASM-001 Blueprint Creation - generates blueprint correctly", async () => {
     blueprintBuilder.generateBlueprint.mockResolvedValueOnce({
-      testConfigId: 'config-1',
+      testConfigId: "config-1",
       totalQuestions: 10,
       totalDurationSeconds: 1800,
-      sections: [{ sectionKey: 's1', displayName: 'Section 1', durationSeconds: 1800, questionCount: 10, orderIndex: 1 }]
+      sections: [
+        {
+          sectionKey: "s1",
+          displayName: "Section 1",
+          durationSeconds: 1800,
+          questionCount: 10,
+          orderIndex: 1,
+        },
+      ],
     });
     allocator.allocateQuestions.mockResolvedValueOnce([]);
-    sectionBuilder.buildSection.mockReturnValueOnce({} as unknown as SectionDto);
+    sectionBuilder.buildSection.mockReturnValueOnce(
+      {} as unknown as SectionDto,
+    );
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
-    repository.createTestInstanceWithTransaction.mockResolvedValueOnce('instance-uuid');
+    repository.createTestInstanceWithTransaction.mockResolvedValueOnce(
+      "instance-uuid",
+    );
 
-    const result = await service.assembleTest('config-1');
-    expect(blueprintBuilder.generateBlueprint).toHaveBeenCalledWith('config-1');
-    expect(result).toBe('instance-uuid');
+    const result = await service.assembleTest("config-1");
+    expect(blueprintBuilder.generateBlueprint).toHaveBeenCalledWith("config-1");
+    expect(result).toBe("instance-uuid");
   });
 
-  it('ASM-008 Persistence Success', async () => {
-    blueprintBuilder.generateBlueprint.mockResolvedValueOnce({ sections: [] } as unknown as BlueprintDto);
+  it("ASM-008 Persistence Success", async () => {
+    blueprintBuilder.generateBlueprint.mockResolvedValueOnce({
+      sections: [],
+    } as unknown as BlueprintDto);
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
-    repository.createTestInstanceWithTransaction.mockResolvedValueOnce('success-uuid');
+    repository.createTestInstanceWithTransaction.mockResolvedValueOnce(
+      "success-uuid",
+    );
 
-    const result = await service.assembleTest('config-1');
+    const result = await service.assembleTest("config-1");
     expect(repository.createTestInstanceWithTransaction).toHaveBeenCalled();
-    expect(result).toBe('success-uuid');
+    expect(result).toBe("success-uuid");
   });
 });

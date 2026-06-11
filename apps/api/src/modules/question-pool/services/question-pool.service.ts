@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { DifficultyLevel, GeneratedQuestion } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { DifficultyLevel, GeneratedQuestion } from "@prisma/client";
 
 @Injectable()
 export class QuestionPoolService {
@@ -9,15 +9,15 @@ export class QuestionPoolService {
   async findAvailableQuestions(
     difficulty: DifficultyLevel,
     excludeIds: string[],
-    limit: number
+    limit: number,
   ): Promise<GeneratedQuestion[]> {
     return this.prisma.generatedQuestion.findMany({
       where: {
         difficultyLevel: difficulty,
-        id: { notIn: excludeIds }
+        id: { notIn: excludeIds },
       },
       take: limit,
-      orderBy: { createdAt: 'asc' } // deterministic ordering
+      orderBy: { createdAt: "asc" }, // deterministic ordering
     });
   }
 }

@@ -1,4 +1,3 @@
-
 export interface BlueprintSectionDto {
   sectionKey: string;
   displayName: string;
