@@ -9,7 +9,7 @@ export class ExecutionStateService {
   async saveProgress(
     testInstanceId: string,
     currentQuestionIndex: number,
-    remainingTimeSeconds: number
+    remainingTimeSeconds: number,
   ): Promise<ExecutionState> {
     return await this.executionStateRepo.saveState({
       testInstanceId,
@@ -21,7 +21,9 @@ export class ExecutionStateService {
   /**
    * Retrieves the latest state for resume functionality
    */
-  async restoreProgress(testInstanceId: string): Promise<ExecutionState | null> {
+  async restoreProgress(
+    testInstanceId: string,
+  ): Promise<ExecutionState | null> {
     return await this.executionStateRepo.findByInstance(testInstanceId);
   }
 }

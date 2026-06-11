@@ -22,15 +22,17 @@ export class SubmissionRepository {
   }
 
   async updateStatus(
-    testInstanceId: string, 
-    status: SubmissionStatus, 
-    submissionHash?: string
+    testInstanceId: string,
+    status: SubmissionStatus,
+    submissionHash?: string,
   ): Promise<Submission> {
     return await this.prisma.submission.update({
       where: { testInstanceId },
       data: {
         status,
-        ...(status === SubmissionStatus.SUBMITTED ? { submittedAt: new Date() } : {}),
+        ...(status === SubmissionStatus.SUBMITTED
+          ? { submittedAt: new Date() }
+          : {}),
         ...(submissionHash ? { submissionHash } : {}),
       },
     });
