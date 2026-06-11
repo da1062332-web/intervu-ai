@@ -9,6 +9,8 @@ import { UsersModule } from "./modules/users";
 import { TemplateLibraryModule } from "./modules/template-library";
 import { TestAssemblyModule } from "./modules/test-assembly";
 import { SystemConfigModule } from "./modules/config";
+import { AssemblyModule } from "./modules/assembly/assembly.module";
+import { QuestionPoolModule } from "./modules/question-pool/question-pool.module";
 import { GenerationModule } from "./modules/generation";
 import { QueueMonitorModule } from "./modules/queue-monitor";
 import { ExecutionModule } from "./modules/execution/execution.module";
@@ -36,6 +38,8 @@ import { TestsModule } from "./modules/tests/tests.module";
     UsersModule,
     TemplateLibraryModule,
     TestAssemblyModule,
+    AssemblyModule,
+    QuestionPoolModule,
     SystemConfigModule,
     GenerationModule,
     QueueMonitorModule,
