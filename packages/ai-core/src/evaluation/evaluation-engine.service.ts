@@ -1,7 +1,4 @@
-import {
-  ExecutionResult,
-  EvaluationResultDto,
-} from "@intervu-ai/contracts";
+import { ExecutionResult, EvaluationResultDto } from "@intervu-ai/contracts";
 import { randomUUID } from "crypto";
 import {
   QuestionSnapshot,
@@ -21,11 +18,12 @@ export class EvaluationEngineService {
     scoreCalculator?: ScoreCalculatorService,
     skillEvaluator?: SkillEvaluatorService,
     feedbackGenerator?: FeedbackGeneratorService,
-    validator?: EvaluationValidatorService
+    validator?: EvaluationValidatorService,
   ) {
     this.scoreCalculator = scoreCalculator || new ScoreCalculatorService();
     this.skillEvaluator = skillEvaluator || new SkillEvaluatorService();
-    this.feedbackGenerator = feedbackGenerator || new FeedbackGeneratorService();
+    this.feedbackGenerator =
+      feedbackGenerator || new FeedbackGeneratorService();
     this.validator = validator || new EvaluationValidatorService();
   }
 
@@ -34,16 +32,16 @@ export class EvaluationEngineService {
    */
   async evaluate(
     executionResult: ExecutionResult,
-    questions: QuestionSnapshot[]
+    questions: QuestionSnapshot[],
   ): Promise<EvaluationResultDto> {
     // 1. Validate Input
     const inputValidation = this.validator.validateInput(
       executionResult,
-      questions.length
+      questions.length,
     );
     if (!inputValidation.isValid) {
       throw new Error(
-        `Evaluation input validation failed: ${inputValidation.errors.join(", ")}`
+        `Evaluation input validation failed: ${inputValidation.errors.join(", ")}`,
       );
     }
 
@@ -56,28 +54,30 @@ export class EvaluationEngineService {
     // 3. Compute Score and correctness breakdown
     const scoreResult = this.scoreCalculator.calculateScore(
       executionResult.answers,
-      questionsMap
+      questionsMap,
     );
 
     // 4. Evaluate Skill Scores
     const skillScores = this.skillEvaluator.evaluateSkills(
       questionsMap,
-      scoreResult.breakdown
+      scoreResult.breakdown,
     );
 
     // 5. Generate Feedback
     const feedback = this.feedbackGenerator.generateFeedback(
       questionsMap,
-      scoreResult.breakdown
+      scoreResult.breakdown,
     );
 
     // 6. Calculate Confidence Score
     const totalQuestions = questions.length;
     const answeredCount = executionResult.answers.filter(
-      (a) => a.answer && a.answer.trim() !== ""
+      (a) => a.answer && a.answer.trim() !== "",
     ).length;
     const confidenceScore =
-      totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+      totalQuestions > 0
+        ? Math.round((answeredCount / totalQuestions) * 100)
+        : 0;
 
     // 7. Construct Evaluation Result DTO
     const evaluationResult: EvaluationResultDto = {
@@ -93,7 +93,7 @@ export class EvaluationEngineService {
     const outputValidation = this.validator.validateResult(evaluationResult);
     if (!outputValidation.isValid) {
       throw new Error(
-        `Evaluation output validation failed: ${outputValidation.errors.join(", ")}`
+        `Evaluation output validation failed: ${outputValidation.errors.join(", ")}`,
       );
     }
 
@@ -106,7 +106,7 @@ export class EvaluationEngineService {
    */
   async evaluateBatch(
     executionResults: ExecutionResult[],
-    questionsMap: Record<string, QuestionSnapshot[]>
+    questionsMap: Record<string, QuestionSnapshot[]>,
   ): Promise<EvaluationResultDto[]> {
     if (!executionResults || !Array.isArray(executionResults)) {
       return [];

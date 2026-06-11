@@ -28,7 +28,7 @@ export class FeedbackGeneratorService {
    */
   generateFeedback(
     questionsMap: Record<string, QuestionSnapshot>,
-    breakdown: Record<string, { isCorrect: boolean; points: number }>
+    breakdown: Record<string, { isCorrect: boolean; points: number }>,
   ): string[] {
     const conceptStats: Record<string, { correct: number; total: number }> = {};
 

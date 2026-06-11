@@ -41,7 +41,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
   ];
 
   const createExecutionResult = (
-    answers: { questionId: string; answer: string }[]
+    answers: { questionId: string; answer: string }[],
   ): ExecutionResult => {
     return {
       executionId: "exec_123",
@@ -61,7 +61,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     ];
     const result = await evaluationEngine.evaluate(
       createExecutionResult(perfectAnswers),
-      mockQuestions
+      mockQuestions,
     );
 
     expect(result.overallScore).toBe(100);
@@ -83,7 +83,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     ];
     const result = await evaluationEngine.evaluate(
       createExecutionResult(partialAnswers),
-      mockQuestions
+      mockQuestions,
     );
 
     // overallScore: 2 / 4 = 50%
@@ -110,7 +110,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     ];
     const result = await evaluationEngine.evaluate(
       createExecutionResult(zeroAnswers),
-      mockQuestions
+      mockQuestions,
     );
 
     expect(result.overallScore).toBe(0);
@@ -133,7 +133,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     ];
     const result = await evaluationEngine.evaluate(
       createExecutionResult(answers),
-      mockQuestions
+      mockQuestions,
     );
 
     expect(result.skillScores.aptitude).toBe(100);
@@ -151,7 +151,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     ];
     const result = await evaluationEngine.evaluate(
       createExecutionResult(answers),
-      mockQuestions
+      mockQuestions,
     );
 
     expect(result.feedback).toContain("Strong in Probability.");
@@ -167,7 +167,7 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     ];
     const result = await evaluationEngine.evaluate(
       createExecutionResult(sparseAnswers),
-      mockQuestions
+      mockQuestions,
     );
 
     // Answered = q1 and q3 -> 2 out of 4 -> 50%
@@ -183,8 +183,8 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     await expect(
       evaluationEngine.evaluate(
         createExecutionResult(invalidAnswers),
-        mockQuestions
-      )
+        mockQuestions,
+      ),
     ).rejects.toThrow(/Question count mismatch/);
   });
 
@@ -232,12 +232,14 @@ describe("Evaluation Engine Unit & Performance Tests", () => {
     const start = Date.now();
     const results = await evaluationEngine.evaluateBatch(
       executionResults,
-      questionsMap
+      questionsMap,
     );
     const duration = Date.now() - start;
 
     expect(results.length).toBe(100);
     expect(duration).toBeLessThan(5000); // 5 seconds SLA target
-    console.log(`[Performance Report] Evaluated 100 assessments in ${duration}ms`);
+    console.log(
+      `[Performance Report] Evaluated 100 assessments in ${duration}ms`,
+    );
   });
 });

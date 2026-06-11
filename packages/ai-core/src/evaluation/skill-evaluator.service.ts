@@ -16,7 +16,7 @@ export class SkillEvaluatorService {
    */
   evaluateSkills(
     questionsMap: Record<string, QuestionSnapshot>,
-    breakdown: Record<string, { isCorrect: boolean; points: number }>
+    breakdown: Record<string, { isCorrect: boolean; points: number }>,
   ): Record<string, number> {
     const skillStats: Record<string, { correct: number; total: number }> = {};
 

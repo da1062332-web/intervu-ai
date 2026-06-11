@@ -12,11 +12,7 @@ export class ScoreCalculatorService {
   /**
    * Compares a candidate's answer with the expected correct answer.
    */
-  compareAnswers(
-    candidate: string,
-    expected: string,
-    type: string
-  ): boolean {
+  compareAnswers(candidate: string, expected: string, type: string): boolean {
     const cleanCandidate = (candidate ?? "").trim();
     const cleanExpected = (expected ?? "").trim();
 
@@ -40,7 +36,7 @@ export class ScoreCalculatorService {
    */
   calculateScore(
     answers: CandidateAnswer[],
-    questionsMap: Record<string, QuestionSnapshot>
+    questionsMap: Record<string, QuestionSnapshot>,
   ): {
     overallScore: number;
     rawScore: number;
@@ -48,7 +44,8 @@ export class ScoreCalculatorService {
     breakdown: Record<string, { isCorrect: boolean; points: number }>;
   } {
     let rawScore = 0;
-    const breakdown: Record<string, { isCorrect: boolean; points: number }> = {};
+    const breakdown: Record<string, { isCorrect: boolean; points: number }> =
+      {};
 
     const totalQuestions = Object.keys(questionsMap).length;
     if (totalQuestions === 0) {
@@ -58,11 +55,11 @@ export class ScoreCalculatorService {
     for (const [questionId, question] of Object.entries(questionsMap)) {
       const candAnswerObj = answers.find((a) => a.questionId === questionId);
       const candAnswer = candAnswerObj ? candAnswerObj.answer : "";
-      
+
       const isCorrect = this.compareAnswers(
         candAnswer,
         question.correctAnswer,
-        question.questionType
+        question.questionType,
       );
 
       const points = isCorrect ? 1 : 0;
