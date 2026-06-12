@@ -4,6 +4,7 @@ import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { TestConfigRepository } from "../repositories/test-config.repository";
 import { QuestionProviderService } from "./question-provider.service";
 import { TestInstanceService } from "../test-instance/test-instance.service";
+import { GeneratedQuestion } from "@prisma/client";
 import {
   BadRequestException,
   InternalServerErrorException,
@@ -61,11 +62,11 @@ describe("StartTestService", () => {
       sections: [{ sectionKey: "js-basics", questionCount: 5 }],
     });
     questionProvider.fetchOrGenerateQuestions.mockResolvedValue([
-      { questionHash: "hash-1" },
-      { questionHash: "hash-2" },
-      { questionHash: "hash-3" },
-      { questionHash: "hash-4" },
-      { questionHash: "hash-5" },
+      { id: "q1", questionHash: "hash-1" } as unknown as GeneratedQuestion,
+      { id: "q2", questionHash: "hash-2" } as unknown as GeneratedQuestion,
+      { id: "q3", questionHash: "hash-3" } as unknown as GeneratedQuestion,
+      { id: "q4", questionHash: "hash-4" } as unknown as GeneratedQuestion,
+      { id: "q5", questionHash: "hash-5" } as unknown as GeneratedQuestion,
     ]);
     testInstanceService.createTestInstance.mockResolvedValue({
       id: "test-inst-1",

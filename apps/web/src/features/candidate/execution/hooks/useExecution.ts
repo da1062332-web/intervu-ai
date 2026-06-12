@@ -3,14 +3,8 @@ import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
 
 export function useExecution(testId: string) {
-  const { 
-    initializeTest, 
-    setLoading, 
-    setError, 
-    loading, 
-    error,
-    testInstance 
-  } = useExecutionStore();
+  const { initializeTest, setLoading, setError, loading, error, testInstance } =
+    useExecutionStore();
 
   useEffect(() => {
     let mounted = true;
@@ -20,7 +14,7 @@ export function useExecution(testId: string) {
         setLoading(true);
         setError(null);
         const data = await executionService.getTestInstance(testId);
-        
+
         if (mounted) {
           initializeTest(data);
         }

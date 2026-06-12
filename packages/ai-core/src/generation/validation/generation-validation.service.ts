@@ -1,4 +1,7 @@
-import { GeneratedQuestionSchema } from "@intervu-ai/contracts";
+import {
+  GeneratedQuestionSchema,
+  ValidationErrorDetail,
+} from "@intervu-ai/contracts";
 import { QuestionValidationDto } from "@intervu-ai/contracts";
 import { GenerationResult } from "../types/generation.types";
 
@@ -11,7 +14,7 @@ export class GenerationValidationService {
     questionId: string,
     result: GenerationResult,
   ): QuestionValidationDto {
-    const errors: string[] = [];
+    const errors: ValidationErrorDetail[] = [];
     const warnings: string[] = [];
 
     // 1. Validate against the GeneratedQuestion DTO Zod schema (from @intervu-ai/contracts)
@@ -31,24 +34,34 @@ export class GenerationValidationService {
     const schemaCheck = GeneratedQuestionSchema.safeParse(dtoPayload);
     if (!schemaCheck.success) {
       errors.push(
-        ...schemaCheck.error.errors.map(
-          (e) => `${e.path.join(".")}: ${e.message}`,
-        ),
+        ...schemaCheck.error.errors.map((e) => ({
+          code: "SCHEMA_VALIDATION_ERROR",
+          reason: `${e.path.join(".")}: ${e.message}`,
+        })),
       );
     }
 
     // 2. Options validation (minimum 4 options required, correct answer must be present)
     if (!result.options || result.options.length < 4) {
-      errors.push("Options array must contain at least 4 items for MCQ type.");
+      errors.push({
+        code: "INVALID_MCQ_OPTIONS",
+        reason: "Options array must contain at least 4 items for MCQ type.",
+      });
     }
     if (result.options && !result.options.includes(result.correctAnswer)) {
-      errors.push("Correct answer must exist in options list.");
+      errors.push({
+        code: "INVALID_MCQ_OPTIONS",
+        reason: "Correct answer must exist in options list.",
+      });
     }
 
     // 3. Metadata validation
     const metadata = result.parameters;
     if (!metadata) {
-      errors.push("Metadata parameters are missing.");
+      errors.push({
+        code: "MISSING_METADATA",
+        reason: "Metadata parameters are missing.",
+      });
     }
 
     const isValid = errors.length === 0;
@@ -56,6 +69,8 @@ export class GenerationValidationService {
     return {
       questionId,
       isValid,
+      passed: isValid,
+      score: isValid ? 100 : 0,
       errors,
       warnings,
       validatedAt: new Date().toISOString(),

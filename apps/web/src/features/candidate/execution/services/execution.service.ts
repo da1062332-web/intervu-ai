@@ -19,9 +19,9 @@ export const executionService = {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         const question = mockTestInstance.sections
-          .flatMap(s => s.questions)
-          .find(q => q.id === questionId);
-          
+          .flatMap((s) => s.questions)
+          .find((q) => q.id === questionId);
+
         if (question) {
           resolve(question);
         } else {
@@ -39,5 +39,5 @@ export const executionService = {
         resolve();
       }, 300);
     });
-  }
+  },
 };
