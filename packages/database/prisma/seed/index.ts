@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { seedUsers } from "./users.seed";
 import { seedTemplates } from "./templates.seed";
+import { seedEvaluations } from "./evaluations.seed";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,7 @@ async function main() {
 
   await seedUsers(prisma);
   await seedTemplates(prisma);
+  await seedEvaluations(prisma);
 
   console.log("--- Database Seeding Completed ---");
 }
