@@ -24,7 +24,7 @@ export function ExecutionLayout() {
   useAutosave(testInstance?.id || 'unknown');
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
+    <div className='min-h-screen bg-background flex flex-col relative'>
       <ConnectionStatus />
       <ResumeBanner />
       <ExecutionHeader />
@@ -36,7 +36,7 @@ export function ExecutionLayout() {
             <div className='flex-1'>
               <QuestionPanel />
             </div>
-            <div className="mt-6 md:mt-8">
+            <div className='mt-6 md:mt-8'>
               <NavigationControls onSubmitClick={() => setIsSubmitModalOpen(true)} />
             </div>
           </div>
@@ -53,10 +53,10 @@ export function ExecutionLayout() {
       </main>
 
       {testInstance && (
-        <SubmissionModal 
-          isOpen={isSubmitModalOpen} 
-          onClose={() => setIsSubmitModalOpen(false)} 
-          testId={testInstance.id} 
+        <SubmissionModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          testId={testInstance.id}
         />
       )}
     </div>

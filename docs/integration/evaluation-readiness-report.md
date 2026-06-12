@@ -9,6 +9,7 @@ This report certifies that the AI Evaluation Engine (Dev 1 deliverables) satisfi
 The core evaluation logic was audited against three test scenarios to verify output accuracy:
 
 ### A. Perfect Score Case (100%)
+
 - **Input**: Candidate answers match the template's correct answers exactly.
 - **Calculations**:
   - `overallScore`: **100**
@@ -17,6 +18,7 @@ The core evaluation logic was audited against three test scenarios to verify out
   - `feedback`: Contains detailed positive summaries of mathematical correctness.
 
 ### B. Partial Score Case
+
 - **Input**: Mix of correct answers, wrong answers, and unanswered (empty) questions.
 - **Calculations**:
   - `overallScore`: Correctly calculated proportional fraction of correct answers.
@@ -26,6 +28,7 @@ The core evaluation logic was audited against three test scenarios to verify out
   - `feedback`: Highlights specific problem-solving errors and suggests improvement.
 
 ### C. Zero Score Case (0%)
+
 - **Input**: All questions left blank or answered incorrectly.
 - **Calculations**:
   - `overallScore`: **0**
@@ -38,6 +41,7 @@ The core evaluation logic was audited against three test scenarios to verify out
 ## 2. Evaluation DTO & Schema Verification
 
 Both input and output schemas undergo strict validation:
+
 - **Input Validation**: `validateInput` verifies:
   - Answers list length is valid.
   - Match count aligns with questions count.

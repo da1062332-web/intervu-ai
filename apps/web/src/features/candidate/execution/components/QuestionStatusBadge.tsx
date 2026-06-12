@@ -10,9 +10,10 @@ interface QuestionStatusBadgeProps {
 export function QuestionStatusBadge({ index, status, onClick }: QuestionStatusBadgeProps) {
   const styles: Record<QuestionStatus, string> = {
     ANSWERED: 'bg-primary text-primary-foreground border-transparent',
-    UNANSWERED: 'bg-background text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground',
+    UNANSWERED:
+      'bg-background text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground',
     CURRENT: 'bg-primary/20 text-primary border-primary font-bold',
-    MARKED_FOR_REVIEW: 'bg-orange-500 text-white border-transparent'
+    MARKED_FOR_REVIEW: 'bg-orange-500 text-white border-transparent',
   };
 
   return (

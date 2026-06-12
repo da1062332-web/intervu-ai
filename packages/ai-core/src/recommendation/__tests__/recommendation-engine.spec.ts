@@ -12,7 +12,7 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
   const createMockEvaluation = (
     skillScores: Record<string, number>,
     feedback: string[],
-    evaluationId?: string
+    evaluationId?: string,
   ): EvaluationResultDto => {
     return {
       evaluationId: evaluationId || "eval_mock_123",
@@ -27,24 +27,29 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
   test("REC-001: Single Weak Skill and Concept", async () => {
     const evaluation = createMockEvaluation(
       { aptitude: 40, reasoning: 85 }, // aptitude is weak (< 50)
-      ["Needs improvement in Percentages.", "Strong in Probability."] // Percentages is weak
+      ["Needs improvement in Percentages.", "Strong in Probability."], // Percentages is weak
     );
 
     const result = await engine.generateRecommendations(evaluation);
 
     expect(result.recommendations.length).toBeGreaterThan(0);
-    
+
     // Check that we got a HIGH priority recommendation for Percentages or Aptitude
-    const highRecs = result.recommendations.filter(r => r.priority === "HIGH");
+    const highRecs = result.recommendations.filter(
+      (r) => r.priority === "HIGH",
+    );
     expect(highRecs.length).toBe(2); // both percentages (score 40) and aptitude (score 40)
-    expect(highRecs.map(r => r.skill)).toContain("percentages");
-    expect(highRecs.map(r => r.skill)).toContain("aptitude");
+    expect(highRecs.map((r) => r.skill)).toContain("percentages");
+    expect(highRecs.map((r) => r.skill)).toContain("aptitude");
   });
 
   test("REC-002: Multiple Weak Skills / Concepts sorting", async () => {
     const evaluation = createMockEvaluation(
       { aptitude: 40, reasoning: 55 }, // aptitude: HIGH (< 50), reasoning: MEDIUM (50-70)
-      ["Needs improvement in Percentages.", "Needs improvement in Probability."] // Percentages: HIGH, Probability: HIGH
+      [
+        "Needs improvement in Percentages.",
+        "Needs improvement in Probability.",
+      ], // Percentages: HIGH, Probability: HIGH
     );
 
     const result = await engine.generateRecommendations(evaluation);
@@ -60,7 +65,7 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
   test("REC-003: No Weak Skills / Concepts", async () => {
     const evaluation = createMockEvaluation(
       { aptitude: 85, reasoning: 90 }, // all strong (> 70)
-      ["Strong in Percentages.", "Strong in Probability."]
+      ["Strong in Percentages.", "Strong in Probability."],
     );
 
     const result = await engine.generateRecommendations(evaluation);
@@ -74,7 +79,10 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
   test("REC-004: Priority Ranking Order (HIGH -> MEDIUM -> LOW)", async () => {
     const evaluation = createMockEvaluation(
       { aptitude: 35, reasoning: 85 }, // aptitude: HIGH, reasoning: LOW
-      ["Needs improvement in Percentages.", "Needs improvement in Probability."] // Percentages: HIGH, Probability: HIGH
+      [
+        "Needs improvement in Percentages.",
+        "Needs improvement in Probability.",
+      ], // Percentages: HIGH, Probability: HIGH
     );
     // Let's manually inject a MEDIUM concept by tweaking feedback parsing mapping logic if we want,
     // or just checking that HIGH is before LOW.
@@ -89,7 +97,9 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
 
   test("REC-005: Validation and duplicate checks", async () => {
     // Make sure we reject invalid evaluation inputs or duplicates
-    await expect(engine.generateRecommendations(null as unknown as EvaluationResultDto)).rejects.toThrow();
+    await expect(
+      engine.generateRecommendations(null as unknown as EvaluationResultDto),
+    ).rejects.toThrow();
 
     // Trigger duplicate check: if validator receives duplicate recommendation for a skill/concept, it fails.
     // Let's test validator directly.
@@ -114,7 +124,9 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
     };
     const check = validator.validate(mockOutput);
     expect(check.isValid).toBe(false);
-    expect(check.errors.some((e: string) => e.includes("Duplicate recommendation"))).toBe(true);
+    expect(
+      check.errors.some((e: string) => e.includes("Duplicate recommendation")),
+    ).toBe(true);
   });
 
   test("Performance Testing: Generate recommendations for 100 evaluations under 5 seconds", async () => {
@@ -126,8 +138,8 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
           i % 2 === 0
             ? ["Needs improvement in Percentages.", "Strong in Probability."]
             : ["Strong in Percentages.", "Needs improvement in Probability."],
-          `eval_perf_${i}`
-        )
+          `eval_perf_${i}`,
+        ),
       );
     }
 
@@ -137,6 +149,8 @@ describe("Recommendation Engine Unit & Performance Tests", () => {
 
     expect(Object.keys(batchResult).length).toBe(100);
     expect(duration).toBeLessThan(5000); // 5 seconds SLA target
-    console.log(`[Performance Report] Generated recommendations for 100 evaluations in ${duration}ms`);
+    console.log(
+      `[Performance Report] Generated recommendations for 100 evaluations in ${duration}ms`,
+    );
   });
 });

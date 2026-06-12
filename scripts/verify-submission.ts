@@ -22,7 +22,10 @@ async function run() {
   try {
     const executionPersistenceRepo = new ExecutionPersistenceRepository(prisma);
     const submissionRepo = new SubmissionRepository(prisma);
-    const service = new AnswerPersistenceService(executionPersistenceRepo, submissionRepo);
+    const service = new AnswerPersistenceService(
+      executionPersistenceRepo,
+      submissionRepo,
+    );
 
     // 1. Setup User
     const user = await prisma.user.create({
@@ -77,7 +80,7 @@ async function run() {
         "q_sub_01",
         "attempted_change_value",
         0,
-        1200
+        1200,
       );
     } catch (err: any) {
       if (err.message === "ANSWER_MODIFICATION_NOT_ALLOWED") {
@@ -90,7 +93,9 @@ async function run() {
     if (caughtLockException) {
       console.log("✅ Submission lock verified: DB write was blocked.");
     } else {
-      throw new Error("Validation Failed: Answer update was allowed on a submitted assessment");
+      throw new Error(
+        "Validation Failed: Answer update was allowed on a submitted assessment",
+      );
     }
 
     console.log("\n==========================================");
@@ -106,12 +111,20 @@ async function run() {
   } finally {
     // Cleanup
     if (testInstanceId) {
-      await prisma.candidateAnswer.deleteMany({ where: { testInstanceId } }).catch(() => {});
-      await prisma.submission.deleteMany({ where: { testInstanceId } }).catch(() => {});
-      await prisma.testInstance.delete({ where: { id: testInstanceId } }).catch(() => {});
+      await prisma.candidateAnswer
+        .deleteMany({ where: { testInstanceId } })
+        .catch(() => {});
+      await prisma.submission
+        .deleteMany({ where: { testInstanceId } })
+        .catch(() => {});
+      await prisma.testInstance
+        .delete({ where: { id: testInstanceId } })
+        .catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     if (dummyUserId) {
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});

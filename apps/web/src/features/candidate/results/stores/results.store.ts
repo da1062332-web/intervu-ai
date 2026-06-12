@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { EvaluationResult, SkillScore, Recommendation, PerformanceSummary } from '../types/results.types';
+import {
+  EvaluationResult,
+  SkillScore,
+  Recommendation,
+  PerformanceSummary,
+} from '../types/results.types';
 
 interface ResultsState {
   evaluation: EvaluationResult | null;

@@ -39,8 +39,8 @@ export function ExecutionHeader() {
                 </Badge>
               </>
             )}
-            <span className="hidden sm:inline text-muted-foreground/40 px-2">|</span>
-            <div className="flex items-center gap-2">
+            <span className='hidden sm:inline text-muted-foreground/40 px-2'>|</span>
+            <div className='flex items-center gap-2'>
               <AutosaveIndicator />
               <UnsavedChangesBadge />
             </div>

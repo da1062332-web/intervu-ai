@@ -29,19 +29,19 @@ export function NavigationControls({ onSubmitClick }: NavigationControlsProps) {
       {isLast ? (
         <Button
           onClick={onSubmitClick}
-          className="flex-1 sm:flex-none w-full sm:w-auto px-6 h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
+          className='flex-1 sm:flex-none w-full sm:w-auto px-6 h-12 bg-primary hover:bg-primary/90 text-primary-foreground'
         >
-          <CheckCircle2 className="w-4 h-4 mr-2" />
+          <CheckCircle2 className='w-4 h-4 mr-2' />
           Submit Assessment
         </Button>
       ) : (
         <Button
           onClick={goNext}
           disabled={isLast}
-          className="flex-1 sm:flex-none w-full sm:w-32 h-12"
+          className='flex-1 sm:flex-none w-full sm:w-32 h-12'
         >
           Next
-          <ChevronRight className="w-4 h-4 ml-2" />
+          <ChevronRight className='w-4 h-4 ml-2' />
         </Button>
       )}
     </div>

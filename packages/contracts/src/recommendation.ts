@@ -14,4 +14,6 @@ export const RecommendationResultDtoSchema = z.object({
   recommendations: z.array(RecommendationDtoSchema),
 });
 
-export type RecommendationResultDto = z.infer<typeof RecommendationResultDtoSchema>;
+export type RecommendationResultDto = z.infer<
+  typeof RecommendationResultDtoSchema
+>;

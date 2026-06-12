@@ -21,7 +21,7 @@ const results = [
   runAudit('Type Checking', 'npm run type-check'),
   runAudit('Linting', 'npm run lint'),
   runAudit('Production Build', 'npm run build'),
-  
+
   // Dynamic Audits via Playwright
   // Assuming npx playwright test runs all .spec.ts files we just created
   // Note: These will only pass if dev server is running and Playwright is configured.
@@ -32,7 +32,7 @@ console.log(`\n============================`);
 console.log('📊 Final Certification Matrix');
 console.log(`============================\n`);
 
-const allPassed = results.every(r => r === true);
+const allPassed = results.every((r) => r === true);
 
 console.log(`Accessibility PASS/FAIL:  ${allPassed ? 'PASS' : 'FAIL'}`);
 console.log(`Responsive PASS/FAIL:     ${allPassed ? 'PASS' : 'FAIL'}`);

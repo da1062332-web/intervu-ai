@@ -18,7 +18,7 @@ export class RecommendationEngineService {
     gapAnalyzer?: SkillGapAnalyzerService,
     generator?: RecommendationGeneratorService,
     improvementPath?: ImprovementPathService,
-    validator?: RecommendationValidatorService
+    validator?: RecommendationValidatorService,
   ) {
     this.gapAnalyzer = gapAnalyzer || new SkillGapAnalyzerService();
     this.generator = generator || new RecommendationGeneratorService();
@@ -30,7 +30,7 @@ export class RecommendationEngineService {
    * Generates prioritized study recommendations for a candidate based on their evaluation results.
    */
   async generateRecommendations(
-    evaluation: EvaluationResultDto
+    evaluation: EvaluationResultDto,
   ): Promise<RecommendationResultDto> {
     if (!evaluation) {
       throw new Error("Evaluation result is required.");
@@ -70,7 +70,8 @@ export class RecommendationEngineService {
     }
 
     // 6. Apply priority sorting (HIGH -> MEDIUM -> LOW)
-    const sortedRecommendations = this.improvementPath.createPath(recommendations);
+    const sortedRecommendations =
+      this.improvementPath.createPath(recommendations);
 
     const result: RecommendationResultDto = {
       recommendations: sortedRecommendations,
@@ -80,7 +81,7 @@ export class RecommendationEngineService {
     const validation = this.validator.validate(result);
     if (!validation.isValid) {
       throw new Error(
-        `Recommendation validation failed: ${validation.errors.join(", ")}`
+        `Recommendation validation failed: ${validation.errors.join(", ")}`,
       );
     }
 
@@ -92,7 +93,7 @@ export class RecommendationEngineService {
    * Keyed by the evaluationId.
    */
   async generateBatchRecommendations(
-    evaluations: EvaluationResultDto[]
+    evaluations: EvaluationResultDto[],
   ): Promise<Record<string, RecommendationResultDto>> {
     if (!evaluations || !Array.isArray(evaluations)) {
       return {};

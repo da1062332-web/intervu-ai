@@ -1,18 +1,26 @@
 import { create } from 'zustand';
-import { AnswerState, Question, QuestionStatus, TestInstance, AutosaveStatus, ConnectionStatus, SubmissionStatus } from '../types/execution.types';
+import {
+  AnswerState,
+  Question,
+  QuestionStatus,
+  TestInstance,
+  AutosaveStatus,
+  ConnectionStatus,
+  SubmissionStatus,
+} from '../types/execution.types';
 
 interface ExecutionState {
   // Data
   testInstance: TestInstance | null;
   questions: Question[];
-  
+
   // Execution State
   currentQuestionIndex: number;
   currentQuestion: Question | null;
   answers: Record<string, AnswerState>;
   palette: QuestionStatus[];
   remainingTime: number;
-  
+
   // Application State
   loading: boolean;
   error: string | null;
@@ -43,7 +51,11 @@ interface ExecutionState {
   setSubmissionStatus: (status: SubmissionStatus) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
   setUnsavedChanges: (unsaved: boolean) => void;
-  restoreStateFromStorage: (savedState: { answers: Record<string, AnswerState>; currentQuestionIndex: number; remainingTime: number }) => void;
+  restoreStateFromStorage: (savedState: {
+    answers: Record<string, AnswerState>;
+    currentQuestionIndex: number;
+    remainingTime: number;
+  }) => void;
 }
 
 export const useExecutionStore = create<ExecutionState>((set, get) => ({
@@ -69,8 +81,8 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   hasUnsavedChanges: false,
 
   initializeTest: (testInstance) => {
-    const allQuestions = testInstance.sections.flatMap(s => s.questions);
-    const initialPalette = allQuestions.map((_, i) => i === 0 ? 'CURRENT' : 'UNANSWERED');
+    const allQuestions = testInstance.sections.flatMap((s) => s.questions);
+    const initialPalette = allQuestions.map((_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED'));
 
     set({
       testInstance,
@@ -82,7 +94,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       answers: {},
       loading: false,
       error: null,
-      isRecovered: false
+      isRecovered: false,
     });
   },
 
@@ -107,7 +119,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         currentQuestion: questions[savedState.currentQuestionIndex],
         remainingTime: savedState.remainingTime,
         palette: initialPalette,
-        isRecovered: true
+        isRecovered: true,
       };
     });
   },
@@ -118,7 +130,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
     set((state) => {
       const newPalette = [...state.palette];
-      
+
       const prevIndex = state.currentQuestionIndex;
       const prevQuestion = state.questions[prevIndex];
       if (prevQuestion) {
@@ -137,7 +149,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         currentQuestionIndex: index,
         currentQuestion: state.questions[index],
         palette: newPalette,
-        hasUnsavedChanges: true
+        hasUnsavedChanges: true,
       };
     });
   },
@@ -148,12 +160,13 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       newAnswers[questionId] = {
         questionId,
         selectedOptionId: optionId,
-        status: newAnswers[questionId]?.status === 'MARKED_FOR_REVIEW' ? 'MARKED_FOR_REVIEW' : 'ANSWERED'
+        status:
+          newAnswers[questionId]?.status === 'MARKED_FOR_REVIEW' ? 'MARKED_FOR_REVIEW' : 'ANSWERED',
       };
-      
-      return { 
+
+      return {
         answers: newAnswers,
-        hasUnsavedChanges: true
+        hasUnsavedChanges: true,
       };
     });
   },
@@ -165,7 +178,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       newAnswers[questionId] = {
         questionId,
         selectedOptionId: current?.selectedOptionId,
-        status: 'MARKED_FOR_REVIEW'
+        status: 'MARKED_FOR_REVIEW',
       };
       return { answers: newAnswers, hasUnsavedChanges: true };
     });
@@ -178,7 +191,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       if (current) {
         newAnswers[questionId] = {
           ...current,
-          status: current.selectedOptionId ? 'ANSWERED' : 'UNANSWERED'
+          status: current.selectedOptionId ? 'ANSWERED' : 'UNANSWERED',
         };
       }
       return { answers: newAnswers, hasUnsavedChanges: true };
@@ -204,7 +217,8 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   setLoading: (loading) => set({ loading }),
 
   // Day 4 implementations
-  setAutosaveStatus: (status) => set({ autosaveStatus: status, ...(status === 'SAVED' ? { lastSavedAt: new Date() } : {}) }),
+  setAutosaveStatus: (status) =>
+    set({ autosaveStatus: status, ...(status === 'SAVED' ? { lastSavedAt: new Date() } : {}) }),
   setRecovered: (recovered) => set({ isRecovered: recovered }),
   setSubmissionStatus: (status) => set({ submissionStatus: status }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),

@@ -70,7 +70,7 @@ async function run() {
         testInstanceId,
         currentQuestionIndex: 1,
         remainingTimeSeconds: 1185,
-      }
+      },
     );
 
     // 5. Verify persistence
@@ -96,7 +96,9 @@ async function run() {
       savedState.currentQuestionIndex !== 1 ||
       savedState.remainingTimeSeconds !== 1185
     ) {
-      throw new Error("Validation Failed: Execution progress state was not saved correctly");
+      throw new Error(
+        "Validation Failed: Execution progress state was not saved correctly",
+      );
     }
 
     console.log("✅ Autosave state persisted successfully.");
@@ -115,12 +117,20 @@ async function run() {
   } finally {
     // Cleanup
     if (testInstanceId) {
-      await prisma.candidateAnswer.deleteMany({ where: { testInstanceId } }).catch(() => {});
-      await prisma.executionState.deleteMany({ where: { testInstanceId } }).catch(() => {});
-      await prisma.testInstance.delete({ where: { id: testInstanceId } }).catch(() => {});
+      await prisma.candidateAnswer
+        .deleteMany({ where: { testInstanceId } })
+        .catch(() => {});
+      await prisma.executionState
+        .deleteMany({ where: { testInstanceId } })
+        .catch(() => {});
+      await prisma.testInstance
+        .delete({ where: { id: testInstanceId } })
+        .catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     if (dummyUserId) {
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});

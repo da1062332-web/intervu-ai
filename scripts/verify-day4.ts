@@ -109,8 +109,9 @@ async function runMasterVerification() {
   console.log(`Resume: ${resumePass ? "PASS" : "FAIL"}`);
   console.log(`Submission: ${submissionPass ? "PASS" : "FAIL"}`);
   console.log(`Evaluation: ${evaluationPass ? "PASS" : "FAIL"}`);
-  
-  const allPass = autosavePass && resumePass && submissionPass && evaluationPass;
+
+  const allPass =
+    autosavePass && resumePass && submissionPass && evaluationPass;
   console.log(`OVERALL: ${allPass ? "PASS" : "FAIL"}`);
   console.log("====================");
 

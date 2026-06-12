@@ -14,7 +14,7 @@ export function useResults(id: string | undefined) {
     setRecommendations,
     setPerformanceSummary,
     setLoading,
-    setError
+    setError,
   } = useResultsStore();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function useResults(id: string | undefined) {
         const [resultsData, recommendationsData, summaryData] = await Promise.all([
           resultsService.getResults(id),
           resultsService.getRecommendations(id),
-          resultsService.getPerformanceSummary()
+          resultsService.getPerformanceSummary(),
         ]);
 
         const { skills: extractedSkills, ...evalData } = resultsData;
@@ -49,7 +49,7 @@ export function useResults(id: string | undefined) {
   const strengths = useMemo(() => {
     if (!skills.length) return [];
     return [...skills]
-      .filter(s => s.score >= 70) // threshold for strength
+      .filter((s) => s.score >= 70) // threshold for strength
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
   }, [skills]);
@@ -58,7 +58,7 @@ export function useResults(id: string | undefined) {
   const weaknesses = useMemo(() => {
     if (!skills.length) return [];
     return [...skills]
-      .filter(s => s.score < 60) // threshold for weakness
+      .filter((s) => s.score < 60) // threshold for weakness
       .sort((a, b) => a.score - b.score)
       .slice(0, 3);
   }, [skills]);
@@ -71,6 +71,6 @@ export function useResults(id: string | undefined) {
     strengths,
     weaknesses,
     loading,
-    error
+    error,
   };
 }

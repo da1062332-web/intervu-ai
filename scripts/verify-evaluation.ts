@@ -113,17 +113,24 @@ async function run() {
     console.log("Running EvaluationEngineService engine...");
     const evaluationResult = await evaluationEngine.evaluate(
       mockExecutionResult,
-      mockQuestions
+      mockQuestions,
     );
 
-    console.log("Evaluation Results calculated:", JSON.stringify(evaluationResult, null, 2));
+    console.log(
+      "Evaluation Results calculated:",
+      JSON.stringify(evaluationResult, null, 2),
+    );
 
     // Assert calculations
     if (evaluationResult.overallScore !== 50) {
-      throw new Error(`Validation Failed: Expected overall score 50, got ${evaluationResult.overallScore}`);
+      throw new Error(
+        `Validation Failed: Expected overall score 50, got ${evaluationResult.overallScore}`,
+      );
     }
     if (evaluationResult.confidenceScore !== 100) {
-      throw new Error(`Validation Failed: Expected confidence score 100, got ${evaluationResult.confidenceScore}`);
+      throw new Error(
+        `Validation Failed: Expected confidence score 100, got ${evaluationResult.confidenceScore}`,
+      );
     }
 
     // 8. Persist through database repository
@@ -134,11 +141,13 @@ async function run() {
       overallScore: evaluationResult.overallScore,
       confidenceScore: evaluationResult.confidenceScore,
       notes: evaluationResult.feedback.join("\n"),
-      skillScores: Object.entries(evaluationResult.skillScores).map(([skill, score]) => ({
-        skill,
-        score,
-        feedback: `Calculated skill score for ${skill} is ${score}%`,
-      })),
+      skillScores: Object.entries(evaluationResult.skillScores).map(
+        ([skill, score]) => ({
+          skill,
+          score,
+          feedback: `Calculated skill score for ${skill} is ${score}%`,
+        }),
+      ),
     });
 
     // Verify stored evaluation
@@ -151,8 +160,13 @@ async function run() {
       throw new Error("Validation Failed: Stored score fields did not match");
     }
 
-    if (stored.skillScores.length === 0 || stored.skillScores[0].skill !== "aptitude") {
-      throw new Error("Validation Failed: Skill scores were not nested and saved properly");
+    if (
+      stored.skillScores.length === 0 ||
+      stored.skillScores[0].skill !== "aptitude"
+    ) {
+      throw new Error(
+        "Validation Failed: Skill scores were not nested and saved properly",
+      );
     }
 
     console.log("✅ Score calculations verified.");
@@ -173,22 +187,32 @@ async function run() {
   } finally {
     // Cleanup
     if (testId) {
-      await prisma.skillScore.deleteMany({
-        where: {
-          evaluation: { testId: testId }
-        }
-      }).catch(() => {});
-      await prisma.evaluationResult.deleteMany({ where: { testId: testId } }).catch(() => {});
+      await prisma.skillScore
+        .deleteMany({
+          where: {
+            evaluation: { testId: testId },
+          },
+        })
+        .catch(() => {});
+      await prisma.evaluationResult
+        .deleteMany({ where: { testId: testId } })
+        .catch(() => {});
       await prisma.test.delete({ where: { id: testId } }).catch(() => {});
     }
     if (templateId) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     if (testInstanceId) {
-      await prisma.testInstance.delete({ where: { id: testInstanceId } }).catch(() => {});
+      await prisma.testInstance
+        .delete({ where: { id: testInstanceId } })
+        .catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     if (dummyUserId) {
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});

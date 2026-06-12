@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const ROUTES = [
   '/candidate/dashboard',
   '/candidate/test/tcs-nqt-001/execution',
-  '/candidate/results/tcs-nqt-001'
+  '/candidate/results/tcs-nqt-001',
 ];
 
 test.describe('Performance Audit', () => {
@@ -11,15 +11,15 @@ test.describe('Performance Audit', () => {
     test(`Should meet LCP & CLS targets for ${route}`, async ({ page }) => {
       // Navigate and collect performance metrics
       await page.goto(`http://localhost:3001${route}`);
-      
+
       const metrics = await page.evaluate(() => JSON.stringify(window.performance.timing));
       const parsedMetrics = JSON.parse(metrics);
-      
+
       const loadTime = parsedMetrics.loadEventEnd - parsedMetrics.navigationStart;
-      
+
       // Target LCP equivalent proxy (Load Time < 2.5s)
       expect(loadTime).toBeLessThan(2500);
-      
+
       // Target CLS
       let cumulativeLayoutShiftScore = 0;
       await page.evaluate(() => {
@@ -31,13 +31,13 @@ test.describe('Performance Audit', () => {
               }
             }
             resolve();
-          }).observe({type: 'layout-shift', buffered: true});
-          
+          }).observe({ type: 'layout-shift', buffered: true });
+
           // Fallback resolve if no shift
           setTimeout(resolve, 500);
         });
       });
-      
+
       expect(cumulativeLayoutShiftScore).toBeLessThan(0.1);
     });
   }

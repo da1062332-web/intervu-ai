@@ -32,42 +32,34 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
   const hasFailed = submissionStatus === 'FAILED' || localError;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={isSubmitting ? () => {} : onClose}
-    >
-      <div className="space-y-2 mb-4">
-        <h2 className="text-xl font-bold tracking-tight">Submit Assessment</h2>
-        <p className="text-sm text-muted-foreground">
-          Please review your progress before final submission. Once submitted, you cannot edit your answers.
+    <Modal isOpen={isOpen} onClose={isSubmitting ? () => {} : onClose}>
+      <div className='space-y-2 mb-4'>
+        <h2 className='text-xl font-bold tracking-tight'>Submit Assessment</h2>
+        <p className='text-sm text-muted-foreground'>
+          Please review your progress before final submission. Once submitted, you cannot edit your
+          answers.
         </p>
       </div>
-      <div className="mt-4">
+      <div className='mt-4'>
         <SubmissionSummary />
 
         {hasFailed && (
-          <div className="mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded-md flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <p>Submission failed due to a network error. Please check your connection and try again.</p>
+          <div className='mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded-md flex items-start gap-2'>
+            <AlertCircle className='w-5 h-5 shrink-0' />
+            <p>
+              Submission failed due to a network error. Please check your connection and try again.
+            </p>
           </div>
         )}
 
-        <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+        <div className='flex justify-end gap-3 mt-6 pt-6 border-t'>
+          <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="min-w-[140px]"
-          >
+          <Button onClick={handleSubmit} disabled={isSubmitting} className='min-w-[140px]'>
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className='w-4 h-4 mr-2 animate-spin' />
                 Submitting...
               </>
             ) : (

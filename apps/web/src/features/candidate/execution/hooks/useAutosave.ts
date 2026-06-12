@@ -12,7 +12,7 @@ export function useAutosave(testId: string) {
     hasUnsavedChanges,
     connectionStatus,
     setAutosaveStatus,
-    setUnsavedChanges
+    setUnsavedChanges,
   } = useExecutionStore();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,12 +31,12 @@ export function useAutosave(testId: string) {
         answers,
         currentQuestionIndex,
         remainingTime,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
       localStorage.setItem(`${STORAGE_KEY}_${testId}`, JSON.stringify(stateToSave));
 
       // 2. Mock API call (In a real app, call execution.service.ts here)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setAutosaveStatus('SAVED');
       setUnsavedChanges(false);

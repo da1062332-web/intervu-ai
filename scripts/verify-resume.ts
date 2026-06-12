@@ -82,12 +82,20 @@ async function run() {
     });
 
     // 5. Assertions
-    if (!state || state.currentQuestionIndex !== 14 || state.remainingTimeSeconds !== 600) {
-      throw new Error("Validation Failed: State restoration did not match original index or duration");
+    if (
+      !state ||
+      state.currentQuestionIndex !== 14 ||
+      state.remainingTimeSeconds !== 600
+    ) {
+      throw new Error(
+        "Validation Failed: State restoration did not match original index or duration",
+      );
     }
 
     if (answers.length !== 1 || answers[0].answer !== "candidate_code_answer") {
-      throw new Error("Validation Failed: Stored answer value was not retrieved successfully");
+      throw new Error(
+        "Validation Failed: Stored answer value was not retrieved successfully",
+      );
     }
 
     console.log("✅ Current navigation index restored: 14 (Question 15)");
@@ -107,12 +115,20 @@ async function run() {
   } finally {
     // Cleanup
     if (testInstanceId) {
-      await prisma.candidateAnswer.deleteMany({ where: { testInstanceId } }).catch(() => {});
-      await prisma.executionState.deleteMany({ where: { testInstanceId } }).catch(() => {});
-      await prisma.testInstance.delete({ where: { id: testInstanceId } }).catch(() => {});
+      await prisma.candidateAnswer
+        .deleteMany({ where: { testInstanceId } })
+        .catch(() => {});
+      await prisma.executionState
+        .deleteMany({ where: { testInstanceId } })
+        .catch(() => {});
+      await prisma.testInstance
+        .delete({ where: { id: testInstanceId } })
+        .catch(() => {});
     }
     if (testConfigId) {
-      await prisma.testConfig.delete({ where: { id: testConfigId } }).catch(() => {});
+      await prisma.testConfig
+        .delete({ where: { id: testConfigId } })
+        .catch(() => {});
     }
     if (dummyUserId) {
       await prisma.user.delete({ where: { id: dummyUserId } }).catch(() => {});

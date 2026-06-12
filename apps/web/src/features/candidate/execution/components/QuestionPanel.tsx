@@ -6,14 +6,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
 export function QuestionPanel() {
-  const { 
-    currentQuestion, 
-    currentQuestionIndex, 
-    answers, 
+  const {
+    currentQuestion,
+    currentQuestionIndex,
+    answers,
     saveAnswer,
     markForReview,
     removeReview,
-    testInstance
+    testInstance,
   } = useExecutionStore();
 
   if (!currentQuestion || !testInstance) return null;
@@ -79,11 +79,11 @@ export function QuestionPanel() {
           </RadioGroup>
         </div>
 
-        <div className="flex justify-between items-center mt-6 pt-6 border-t">
-          <label className="flex items-center space-x-2 cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+        <div className='flex justify-between items-center mt-6 pt-6 border-t'>
+          <label className='flex items-center space-x-2 cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors'>
             <input
-              type="checkbox"
-              className="w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+              type='checkbox'
+              className='w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500 cursor-pointer'
               checked={isMarkedForReview}
               onChange={(e) => {
                 if (e.target.checked) {

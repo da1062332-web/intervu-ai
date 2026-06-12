@@ -36,15 +36,17 @@ export function ConnectionStatus() {
   if (connectionStatus === 'ONLINE' && !showRestored) return null;
 
   return (
-    <div className={`fixed top-0 left-0 w-full z-[100] flex justify-center p-2 transition-transform duration-300 transform translate-y-0`}>
+    <div
+      className={`fixed top-0 left-0 w-full z-[100] flex justify-center p-2 transition-transform duration-300 transform translate-y-0`}
+    >
       {connectionStatus === 'OFFLINE' ? (
-        <div className="bg-destructive text-destructive-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium">
-          <WifiOff className="w-4 h-4" />
+        <div className='bg-destructive text-destructive-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium'>
+          <WifiOff className='w-4 h-4' />
           You are offline. Changes will be saved locally.
         </div>
       ) : showRestored ? (
-        <div className="bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium animate-in fade-in slide-in-from-top-4">
-          <Wifi className="w-4 h-4" />
+        <div className='bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium animate-in fade-in slide-in-from-top-4'>
+          <Wifi className='w-4 h-4' />
           Connection Restored
         </div>
       ) : null}

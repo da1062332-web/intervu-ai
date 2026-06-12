@@ -41,7 +41,7 @@ The Recommendation Engine translates raw performance metrics (scores and textual
 To find weaknesses and strengths, the `SkillGapAnalyzerService` performs a two-tier scan of the evaluation result:
 
 1. **Skill-Level Gaps**: Analyzes `EvaluationResultDto.skillScores`. Any skill with a score $< 70$ is categorized as a weak skill, and any skill with a score $\ge 70$ is categorized as a strong skill.
-2. **Concept-Level Gaps**: Scans `EvaluationResultDto.feedback` comments. 
+2. **Concept-Level Gaps**: Scans `EvaluationResultDto.feedback` comments.
    - A comment matching `"Needs improvement in <ConceptName>."` identifies a weak concept (defaulting to a gap score of `40` for priority determination).
    - A comment matching `"Strong in <ConceptName>."` identifies a strong concept (defaulting to a score of `85`).
 
@@ -51,17 +51,18 @@ To find weaknesses and strengths, the `SkillGapAnalyzerService` performs a two-t
 
 We built a static catalog of **21 distinct recommendations** covering the 5 quantitative concepts and 2 skills. The recommendations are mapped to priorities based on score brackets:
 
-| Score Bracket | Priority | Action Level | Example Strategy |
-| :---: | :---: | :---: | :--- |
-| **Score $< 50$** | **`HIGH`** | Rebuild foundations | Study core formulas, read beginner notes, and complete 15-20 simple exercises. |
-| **Score $50 - 70$** | **`MEDIUM`** | Optimize efficiency | Practice variable constraints, intermediate word problems, and speed exercises. |
-| **Score $> 70$** | **`LOW`** | Master complex topics | Solve advanced matrices, overlapping parameters, and full timed mock tests. |
+|    Score Bracket    |   Priority   |     Action Level      | Example Strategy                                                                |
+| :-----------------: | :----------: | :-------------------: | :------------------------------------------------------------------------------ |
+|  **Score $< 50$**   |  **`HIGH`**  |  Rebuild foundations  | Study core formulas, read beginner notes, and complete 15-20 simple exercises.  |
+| **Score $50 - 70$** | **`MEDIUM`** |  Optimize efficiency  | Practice variable constraints, intermediate word problems, and speed exercises. |
+|  **Score $> 70$**   |  **`LOW`**   | Master complex topics | Solve advanced matrices, overlapping parameters, and full timed mock tests.     |
 
 ---
 
 ## 4. Prioritization & Improvement Path
 
 The `ImprovementPathService` sorts recommendations to present the most critical actions to the candidate first:
+
 1. **HIGH Priority** items are placed at the top of the list.
 2. **MEDIUM Priority** items follow.
 3. **LOW Priority** items (representing strengths and advanced suggestions) are placed at the bottom.
