@@ -1,6 +1,4 @@
-import { PrismaClient, SkillScore } from "@prisma/client";
-
-// ─── Input Types ────────────────────────────────────────────────────────────────
+import { PrismaClient, SkillScore, Prisma } from "@prisma/client";
 
 export interface CreateSkillScoreInput {
   evaluationId: string;
@@ -9,17 +7,18 @@ export interface CreateSkillScoreInput {
   feedback: string;
 }
 
-// ─── Repository ─────────────────────────────────────────────────────────────────
-
 export class SkillScoreRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   /**
    * Batch-creates multiple skill scores atomically.
-   * Uses Prisma's createMany for performance.
    */
-  async createMany(data: CreateSkillScoreInput[]): Promise<{ count: number }> {
-    return this.prisma.skillScore.createMany({
+  async createMany(
+    data: CreateSkillScoreInput[],
+    tx?: Prisma.TransactionClient,
+  ): Promise<{ count: number }> {
+    const client = tx || this.prisma;
+    return client.skillScore.createMany({
       data: data.map((s) => ({
         evaluationId: s.evaluationId,
         skill: s.skill,
@@ -31,12 +30,29 @@ export class SkillScoreRepository {
 
   /**
    * Retrieves all skill scores for a given evaluation.
-   * Results are ordered by skill name for consistent display.
    */
-  async findByEvaluation(evaluationId: string): Promise<SkillScore[]> {
-    return this.prisma.skillScore.findMany({
+  async findByEvaluation(
+    evaluationId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<SkillScore[]> {
+    const client = tx || this.prisma;
+    return client.skillScore.findMany({
       where: { evaluationId },
       orderBy: { skill: "asc" },
+    });
+  }
+
+  /**
+   * Retrieves all skill scores for a specific skill.
+   */
+  async findBySkill(
+    skill: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<SkillScore[]> {
+    const client = tx || this.prisma;
+    return client.skillScore.findMany({
+      where: { skill },
+      orderBy: { score: "desc" },
     });
   }
 }
