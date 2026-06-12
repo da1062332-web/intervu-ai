@@ -5,6 +5,7 @@ export * from "./ai";
 export * from "./errors";
 export * from "./dashboard.dto";
 export * from "./evaluation";
+export * from "./recommendation";
 
 // Question Generation Contracts
 export * from "./template.dto";
