@@ -1,6 +1,6 @@
 import {
   Controller,
-  Get,
+  Post,
   Param,
   HttpCode,
   HttpStatus,
@@ -16,29 +16,26 @@ import {
 import { JwtAuthGuard } from "@/modules/auth/guards/jwt-auth.guard";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
-import { ExecutionService } from "../services/execution.service";
+import { SubmissionService } from "../services/submission.service";
 
 @ApiTags("execution")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("jwt-auth")
 @Controller("tests")
-export class ExecutionController {
-  constructor(private readonly executionService: ExecutionService) {}
+export class SubmissionController {
+  constructor(private readonly submissionService: SubmissionService) {}
 
-  @Get(":id")
+  @Post(":id/submit")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Load an assessment snapshot" })
+  @ApiOperation({ summary: "Submit an assessment" })
   @ApiParam({ name: "id", type: "string", description: "The test instance ID" })
-  @ApiResponse({
-    status: 200,
-    description: "Assessment loaded successfully",
-  })
-  @ApiResponse({ status: 404, description: "Assessment not found" })
-  async loadAssessment(
+  @ApiResponse({ status: 200, description: "Assessment submitted successfully" })
+  @ApiResponse({ status: 409, description: "Assessment already submitted" })
+  async submitAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
-    return this.executionService.loadAssessment(id, user.id);
+    return this.submissionService.submitAssessment(id, user.id, false);
   }
 }
