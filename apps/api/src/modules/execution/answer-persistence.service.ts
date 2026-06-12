@@ -7,7 +7,7 @@ import {
 export class AnswerPersistenceService {
   constructor(
     private readonly executionPersistenceRepo: ExecutionPersistenceRepository,
-    private readonly submissionRepo: SubmissionRepository
+    private readonly submissionRepo: SubmissionRepository,
   ) {}
 
   /**
@@ -21,7 +21,7 @@ export class AnswerPersistenceService {
     currentQuestionIndex: number,
     remainingTimeSeconds: number,
     timeSpentSeconds?: number,
-    isMarkedForReview?: boolean
+    isMarkedForReview?: boolean,
   ): Promise<void> {
     // 1. Validate Dependencies (Submission Lock)
     const submission = await this.submissionRepo.findByInstance(testInstanceId);
@@ -48,7 +48,7 @@ export class AnswerPersistenceService {
         testInstanceId,
         currentQuestionIndex,
         remainingTimeSeconds,
-      }
+      },
     );
   }
 
@@ -62,7 +62,7 @@ export class AnswerPersistenceService {
       answer: unknown;
       timeSpentSeconds?: number;
       isMarkedForReview?: boolean;
-    }>
+    }>,
   ): Promise<void> {
     const submission = await this.submissionRepo.findByInstance(testInstanceId);
     const currentStatus = submission?.status ?? SubmissionStatus.PENDING;
@@ -74,6 +74,9 @@ export class AnswerPersistenceService {
       throw new Error("ANSWER_MODIFICATION_NOT_ALLOWED");
     }
 
-    await this.executionPersistenceRepo.saveManyAnswers(testInstanceId, answers);
+    await this.executionPersistenceRepo.saveManyAnswers(
+      testInstanceId,
+      answers,
+    );
   }
 }

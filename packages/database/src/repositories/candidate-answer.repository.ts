@@ -33,7 +33,10 @@ export class CandidateAnswerRepository {
     });
   }
 
-  async findAnswer(testInstanceId: string, questionId: string): Promise<CandidateAnswer | null> {
+  async findAnswer(
+    testInstanceId: string,
+    questionId: string,
+  ): Promise<CandidateAnswer | null> {
     return await this.prisma.candidateAnswer.findUnique({
       where: {
         testInstanceId_questionId: {

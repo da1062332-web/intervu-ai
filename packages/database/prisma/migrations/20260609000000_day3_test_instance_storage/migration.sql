@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- CreateEnum
 CREATE TYPE "TestInstanceStatus" AS ENUM ('CREATED', 'IN_PROGRESS', 'SUBMITTED', 'COMPLETED');
 
@@ -83,4 +84,7 @@ ALTER TABLE "TestInstanceQuestion" ADD CONSTRAINT "TestInstanceQuestion_testInst
 
 -- AddForeignKey
 ALTER TABLE "TestInstanceQuestion" ADD CONSTRAINT "TestInstanceQuestion_sectionId_fkey" FOREIGN KEY ("sectionId") REFERENCES "TestInstanceSection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+=======
+-- This is an empty migration.
+>>>>>>> bc5c5069df05633df560cfe85997a42fee20f1e2
 

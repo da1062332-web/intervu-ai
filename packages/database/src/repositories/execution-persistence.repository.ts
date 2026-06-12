@@ -20,7 +20,7 @@ export class ExecutionPersistenceRepository {
       testInstanceId: string;
       currentQuestionIndex: number;
       remainingTimeSeconds: number;
-    }
+    },
   ): Promise<void> {
     const queries = [
       this.prisma.candidateAnswer.upsert({
@@ -73,30 +73,33 @@ export class ExecutionPersistenceRepository {
       answer: any;
       timeSpentSeconds?: number;
       isMarkedForReview?: boolean;
-    }>
+    }>,
   ): Promise<void> {
     if (answers.length === 0) return;
 
     // Build the parameterized value strings and flat values array
     const values: any[] = [];
-    const placeholders = answers.map((ans, index) => {
-      const offset = index * 8;
-      const now = new Date();
-      values.push(
-        createId(), // Generate standard cuid for the id field
-        ans.questionId,
-        testInstanceId,
-        ans.answer, // Prisma automatically serializes objects for parameterized jsonb queries in raw sql
-        ans.timeSpentSeconds ?? 0,
-        ans.isMarkedForReview ?? false,
-        now, // savedAt timestamp
-        now  // updatedAt timestamp
-      );
-      return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}::jsonb, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8})`;
-    }).join(', ');
+    const placeholders = answers
+      .map((ans, index) => {
+        const offset = index * 8;
+        const now = new Date();
+        values.push(
+          createId(), // Generate standard cuid for the id field
+          ans.questionId,
+          testInstanceId,
+          ans.answer, // Prisma automatically serializes objects for parameterized jsonb queries in raw sql
+          ans.timeSpentSeconds ?? 0,
+          ans.isMarkedForReview ?? false,
+          now, // savedAt timestamp
+          now, // updatedAt timestamp
+        );
+        return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}::jsonb, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8})`;
+      })
+      .join(", ");
 
     // Use $executeRawUnsafe to pass dynamic parameterized array to prevent SQL injection while maintaining raw speed
-    await this.prisma.$executeRawUnsafe(`
+    await this.prisma.$executeRawUnsafe(
+      `
       INSERT INTO "CandidateAnswer" ("id", "questionId", "testInstanceId", "answer", "timeSpentSeconds", "isMarkedForReview", "savedAt", "updatedAt")
       VALUES ${placeholders}
       ON CONFLICT ("testInstanceId", "questionId") DO UPDATE SET
@@ -105,6 +108,8 @@ export class ExecutionPersistenceRepository {
         "isMarkedForReview" = EXCLUDED."isMarkedForReview",
         "savedAt" = EXCLUDED."savedAt",
         "updatedAt" = EXCLUDED."updatedAt";
-    `, ...values);
+    `,
+      ...values,
+    );
   }
 }

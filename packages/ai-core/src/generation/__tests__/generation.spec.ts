@@ -228,7 +228,7 @@ describe("Question Generation Engine Unit Tests", () => {
       const validation = validator.validateQuestion("q_1", invalidResult);
 
       expect(validation.isValid).toBe(false);
-      expect(validation.errors[0]).toContain("at least 4 items");
+      expect(validation.errors[0].reason).toContain("at least 4 items");
     });
   });
 

@@ -27,7 +27,8 @@
     "generate:test": "tsx scripts/test-generation.ts",
     "verify:day2": "tsx scripts/verify-day2.ts",
     "verify-backend": "tsx scripts/verify-backend.ts",
-    "test:repositories": "vitest run packages/database/src/repositories/__tests__/"
+    "test:repositories": "vitest run packages/database/src/repositories/__tests__/",
+    "verify:day3": "tsx scripts/verify-day3.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

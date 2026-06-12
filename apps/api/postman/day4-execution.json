@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "Day 4 - Execution",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Happy Path",
+      "item": [
+        {
+          "name": "Load Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/{{testId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "{{testId}}"]
+            }
+          }
+        },
+        {
+          "name": "Resume Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/{{testId}}/resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "{{testId}}", "resume"]
+            }
+          }
+        },
+        {
+          "name": "Autosave Answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": \"q_123\",\n  \"answer\": \"A\",\n  \"timeSpentSeconds\": 15,\n  \"isMarkedForReview\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/{{testId}}/answer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "{{testId}}", "answer"]
+            }
+          }
+        },
+        {
+          "name": "Submit Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/{{testId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "{{testId}}", "submit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Failure Cases",
+      "item": [
+        {
+          "name": "Submit Already Submitted (409 Conflict)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/{{submittedTestId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "{{submittedTestId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Save Without Ownership (403 Forbidden)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{wrong_jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": \"q_123\",\n  \"answer\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/{{testId}}/answer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "{{testId}}", "answer"]
+            }
+          }
+        },
+        {
+          "name": "Save Non-Existent Assessment (404 Not Found)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": \"q_123\",\n  \"answer\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tests/invalid-id/answer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "tests", "invalid-id", "answer"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
