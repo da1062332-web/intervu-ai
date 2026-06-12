@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionValidatorService } from './execution-validator.service';
 import { TestInstanceRepository } from '../repositories';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ForbiddenException, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
+import { TestInstance } from '@prisma/client';
 
 describe('ExecutionValidatorService', () => {
   let service: ExecutionValidatorService;
@@ -39,8 +39,7 @@ describe('ExecutionValidatorService', () => {
     });
 
     it('should return assessment if exists', async () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      repo.findById.mockResolvedValueOnce({ id: 'test_1' } as any);
+      repo.findById.mockResolvedValueOnce({ id: 'test_1' } as unknown as TestInstance);
       const res = await service.validateAssessment('test_1');
       expect(res.id).toBe('test_1');
     });
@@ -48,25 +47,21 @@ describe('ExecutionValidatorService', () => {
 
   describe('validateOwnership', () => {
     it('should throw Forbidden if user is different', () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => service.validateOwnership({ userId: 'user_1' } as any, 'user_2')).toThrow(ForbiddenException);
+      expect(() => service.validateOwnership({ userId: 'user_1' } as unknown as TestInstance, 'user_2')).toThrow(ForbiddenException);
     });
 
     it('should not throw if user matches', () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => service.validateOwnership({ userId: 'user_1' } as any, 'user_1')).not.toThrow();
+      expect(() => service.validateOwnership({ userId: 'user_1' } as unknown as TestInstance, 'user_1')).not.toThrow();
     });
   });
 
   describe('validateSubmissionState', () => {
     it('should throw Conflict if already submitted', () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => service.validateSubmissionState({ status: 'SUBMITTED' } as any)).toThrow(ConflictException);
+      expect(() => service.validateSubmissionState({ status: 'SUBMITTED' } as unknown as TestInstance)).toThrow(ConflictException);
     });
 
     it('should not throw if active', () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => service.validateSubmissionState({ status: 'ACTIVE' } as any)).not.toThrow();
+      expect(() => service.validateSubmissionState({ status: 'ACTIVE' } as unknown as TestInstance)).not.toThrow();
     });
   });
 });

@@ -4,6 +4,24 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { TestInstanceRepository } from "../repositories";
 import { ExecutionValidatorService } from "./execution-validator.service";
 
+export interface AssessmentSnapshotResponse {
+  testInstanceId: string;
+  testConfigId: string;
+  status: string;
+  expiresAt: Date | null;
+  sections: Array<{
+    sectionId: string;
+    sectionKey: string;
+    sectionName: string;
+    durationSeconds: number;
+    questions: Array<{
+      questionId: string;
+      questionOrder: number;
+      snapshot: unknown;
+    }>;
+  }>;
+}
+
 @Injectable()
 export class ExecutionService {
   private readonly logger = new AppLogger({ name: "ExecutionService" });
@@ -14,8 +32,7 @@ export class ExecutionService {
     private readonly validator: ExecutionValidatorService,
   ) {}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async loadAssessment(testInstanceId: string, userId: string): Promise<any> {
+  async loadAssessment(testInstanceId: string, userId: string): Promise<AssessmentSnapshotResponse> {
     this.logger.debug("Loading assessment snapshot", { testInstanceId, userId });
     // 1. Validate assessment exists
     const testInstance = await this.validator.validateAssessment(testInstanceId);
@@ -36,8 +53,7 @@ export class ExecutionService {
       testConfigId: snapshot.testConfigId,
       status: snapshot.status,
       expiresAt: snapshot.expiresAt,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sections: snapshot.sections.map((section: { id: any; sectionKey: any; sectionName: any; durationSeconds: any; questions: any[]; }) => ({
+      sections: snapshot.sections.map((section: { id: string; sectionKey: string; sectionName: string; durationSeconds: number; questions: Array<{ questionId: string; questionOrder: number; questionSnapshot: unknown }> }) => ({
         sectionId: section.id,
         sectionKey: section.sectionKey,
         sectionName: section.sectionName,

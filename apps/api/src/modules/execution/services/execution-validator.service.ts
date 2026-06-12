@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
-import { TestInstance, ExecutionState } from "@prisma/client";
+import { TestInstance, ExecutionState, Prisma } from "@prisma/client";
 import { TestInstanceRepository } from "../repositories";
 
 @Injectable()
@@ -15,8 +15,7 @@ export class ExecutionValidatorService {
 
   constructor(private readonly testInstanceRepo: TestInstanceRepository) {}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async validateAssessment(testInstanceId: string, tx?: any): Promise<TestInstance> {
+  async validateAssessment(testInstanceId: string, tx?: Prisma.TransactionClient): Promise<TestInstance> {
     const repo = tx ? this.testInstanceRepo.withTransaction(tx) : this.testInstanceRepo;
     const testInstance = await repo.findById(testInstanceId);
 

@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionStateService } from './execution-state.service';
 import { ExecutionStateRepository } from '../repositories';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Prisma } from '@prisma/client';
+import { ExecutionState } from '@prisma/client';
 
 describe('ExecutionStateService', () => {
   let service: ExecutionStateService;
@@ -36,10 +35,8 @@ describe('ExecutionStateService', () => {
 
   describe('saveProgress', () => {
     it('should update existing state if found', async () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      repo.findAll.mockResolvedValueOnce([{ id: 'state_1' } as any]);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      repo.update.mockResolvedValueOnce({ id: 'state_1', currentQuestionIndex: 1, remainingTimeSeconds: 500 } as any);
+      repo.findAll.mockResolvedValueOnce([{ id: 'state_1' } as unknown as ExecutionState]);
+      repo.update.mockResolvedValueOnce({ id: 'state_1', currentQuestionIndex: 1, remainingTimeSeconds: 500 } as unknown as ExecutionState);
 
       const result = await service.saveProgress('test_1', 1, 500);
 
@@ -53,8 +50,7 @@ describe('ExecutionStateService', () => {
 
     it('should create new state if none exists', async () => {
       repo.findAll.mockResolvedValueOnce([]);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      repo.create.mockResolvedValueOnce({ id: 'state_new', currentQuestionIndex: 2, remainingTimeSeconds: 300 } as any);
+      repo.create.mockResolvedValueOnce({ id: 'state_new', currentQuestionIndex: 2, remainingTimeSeconds: 300 } as unknown as ExecutionState);
 
       const result = await service.saveProgress('test_2', 2, 300);
 
@@ -75,8 +71,7 @@ describe('ExecutionStateService', () => {
     });
 
     it('should return first state if exists', async () => {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-      repo.findAll.mockResolvedValueOnce([{ id: 'state_1', currentQuestionIndex: 5 } as any]);
+      repo.findAll.mockResolvedValueOnce([{ id: 'state_1', currentQuestionIndex: 5 } as unknown as ExecutionState]);
       const result = await service.restoreProgress('test_1');
       expect(result?.currentQuestionIndex).toBe(5);
     });
