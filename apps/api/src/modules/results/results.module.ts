@@ -3,13 +3,7 @@ import { EvaluationPersistenceService } from "./services/evaluation-persistence.
 import { DashboardMetricsAggregator } from "./services/dashboard-metrics-aggregator";
 
 @Module({
-  providers: [
-    EvaluationPersistenceService,
-    DashboardMetricsAggregator,
-  ],
-  exports: [
-    EvaluationPersistenceService,
-    DashboardMetricsAggregator,
-  ],
+  providers: [EvaluationPersistenceService, DashboardMetricsAggregator],
+  exports: [EvaluationPersistenceService, DashboardMetricsAggregator],
 })
 export class ResultsModule {}

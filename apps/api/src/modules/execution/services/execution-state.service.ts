@@ -14,8 +14,10 @@ export class ExecutionStateService {
     remainingTimeSeconds: number,
     tx?: Prisma.TransactionClient,
   ): Promise<ExecutionState> {
-    const repo = tx ? this.executionStateRepo.withTransaction(tx) : this.executionStateRepo;
-    
+    const repo = tx
+      ? this.executionStateRepo.withTransaction(tx)
+      : this.executionStateRepo;
+
     const existingStates = await repo.findAll({ testInstanceId });
     const existing = existingStates[0];
 
@@ -39,7 +41,9 @@ export class ExecutionStateService {
     testInstanceId: string,
     tx?: Prisma.TransactionClient,
   ): Promise<ExecutionState | null> {
-    const repo = tx ? this.executionStateRepo.withTransaction(tx) : this.executionStateRepo;
+    const repo = tx
+      ? this.executionStateRepo.withTransaction(tx)
+      : this.executionStateRepo;
     const existingStates = await repo.findAll({ testInstanceId });
     return existingStates[0] || null;
   }

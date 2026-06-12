@@ -51,7 +51,7 @@ describe("Day 5 Repository Unit Tests", () => {
       evaluationRepo,
       skillScoreRepo,
       recommendationRepo,
-      aggregator
+      aggregator,
     );
   });
 
@@ -66,7 +66,9 @@ describe("Day 5 Repository Unit Tests", () => {
       incorrectAnswers: 2,
     };
     const mockOutput = { id: "eval-123", ...input };
-    vi.mocked(mockPrisma.evaluationResult.create).mockResolvedValue(mockOutput as any);
+    vi.mocked(mockPrisma.evaluationResult.create).mockResolvedValue(
+      mockOutput as any,
+    );
 
     const result = await evaluationRepo.createEvaluation(input);
     expect(result.id).toBe("eval-123");
@@ -81,8 +83,18 @@ describe("Day 5 Repository Unit Tests", () => {
 
   it("EVAL-DB-002: should batch create skill scores successfully", async () => {
     const input = [
-      { evaluationId: "eval-123", skill: "Typescript", score: 90, feedback: "Great type safety knowledge" },
-      { evaluationId: "eval-123", skill: "SQL", score: 80, feedback: "Understands check constraints" }
+      {
+        evaluationId: "eval-123",
+        skill: "Typescript",
+        score: 90,
+        feedback: "Great type safety knowledge",
+      },
+      {
+        evaluationId: "eval-123",
+        skill: "SQL",
+        score: 80,
+        feedback: "Understands check constraints",
+      },
     ];
     vi.mocked(mockPrisma.skillScore.createMany).mockResolvedValue({ count: 2 });
 
@@ -100,10 +112,12 @@ describe("Day 5 Repository Unit Tests", () => {
         skill: "SQL",
         priority: RecommendationPriority.HIGH,
         title: "Study check constraints",
-        description: "Focus on XOR constraints"
-      }
+        description: "Focus on XOR constraints",
+      },
     ];
-    vi.mocked(mockPrisma.recommendation.createMany).mockResolvedValue({ count: 1 });
+    vi.mocked(mockPrisma.recommendation.createMany).mockResolvedValue({
+      count: 1,
+    });
 
     const result = await recommendationRepo.createMany(input);
     expect(result.count).toBe(1);
@@ -120,11 +134,11 @@ describe("Day 5 Repository Unit Tests", () => {
     await aggregator.aggregateAndUpsert(userId, 80.0, date, mockPrisma);
 
     expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalledWith(
-      expect.stringContaining("INSERT INTO \"PerformanceSummary\""),
+      expect.stringContaining('INSERT INTO "PerformanceSummary"'),
       expect.any(String), // generated id
       userId,
       80.0,
-      date
+      date,
     );
   });
 
@@ -139,22 +153,24 @@ describe("Day 5 Repository Unit Tests", () => {
         correctAnswers: 8,
         incorrectAnswers: 2,
       },
-      skills: [
-        { skill: "Typescript", score: 90, feedback: "Feedback" }
-      ],
+      skills: [{ skill: "Typescript", score: 90, feedback: "Feedback" }],
       recommendations: [
         {
           skill: "SQL",
           priority: RecommendationPriority.HIGH,
           title: "Title",
-          description: "Desc"
-        }
+          description: "Desc",
+        },
       ],
     };
 
     // Make the underlying create call fail
-    vi.mocked(mockPrisma.evaluationResult.create).mockRejectedValue(new Error("DB_SAVE_FAILED"));
+    vi.mocked(mockPrisma.evaluationResult.create).mockRejectedValue(
+      new Error("DB_SAVE_FAILED"),
+    );
 
-    await expect(persistenceService.storeEvaluationOutcome(payload)).rejects.toThrow("DB_SAVE_FAILED");
+    await expect(
+      persistenceService.storeEvaluationOutcome(payload),
+    ).rejects.toThrow("DB_SAVE_FAILED");
   });
 });

@@ -1,4 +1,9 @@
-import { PrismaClient, Recommendation, RecommendationPriority, Prisma } from "@prisma/client";
+import {
+  PrismaClient,
+  Recommendation,
+  RecommendationPriority,
+  Prisma,
+} from "@prisma/client";
 
 export interface CreateRecommendationInput {
   evaluationId: string;
@@ -13,7 +18,7 @@ export class RecommendationRepository {
 
   async createMany(
     data: CreateRecommendationInput[],
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<{ count: number }> {
     const client = tx || this.prisma;
     return await client.recommendation.createMany({
@@ -29,7 +34,7 @@ export class RecommendationRepository {
 
   async findByEvaluation(
     evaluationId: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<Recommendation[]> {
     const client = tx || this.prisma;
     return await client.recommendation.findMany({
@@ -40,7 +45,7 @@ export class RecommendationRepository {
 
   async findHighPriority(
     limit: number = 5,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<Recommendation[]> {
     const client = tx || this.prisma;
     return await client.recommendation.findMany({

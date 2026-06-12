@@ -6,7 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ForbiddenException,
 } from "@nestjs/common";
 import {
@@ -46,7 +46,7 @@ export class AnswerController {
     @Param("id") id: string,
     @Body() dto: CandidateAnswerDto,
     @CurrentUser() user: AuthUser,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
     const result = await this.answerService.saveAnswer(id, user.id, dto);
 
@@ -54,9 +54,10 @@ export class AnswerController {
       // Authoritative timer expired -> Automatically submit
       await this.submissionService.submitAssessment(id, user.id, true);
       // Return frontend friendly state instead of throwing exception
-      return { 
-        status: "EXPIRED_AND_SUBMITTED", 
-        message: "Assessment timer expired. Assessment has been automatically submitted."
+      return {
+        status: "EXPIRED_AND_SUBMITTED",
+        message:
+          "Assessment timer expired. Assessment has been automatically submitted.",
       };
     }
 

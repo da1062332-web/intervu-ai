@@ -30,7 +30,7 @@ const persistenceService = new EvaluationPersistenceService(
   evaluationRepo,
   skillScoreRepo,
   recommendationRepo,
-  aggregator
+  aggregator,
 );
 
 describe("Day 5 Integration & Performance Tests", () => {
@@ -75,19 +75,16 @@ describe("Day 5 Integration & Performance Tests", () => {
       where: {
         OR: [
           { userId: testUserId },
-          { userId: { startsWith: "perf-user-id-" } }
-        ]
-      }
+          { userId: { startsWith: "perf-user-id-" } },
+        ],
+      },
     });
 
     // Delete users first, which cascades to testInstance and evaluationResult
     await prisma.user.deleteMany({
       where: {
-        OR: [
-          { id: testUserId },
-          { id: { startsWith: "perf-user-id-" } }
-        ]
-      }
+        OR: [{ id: testUserId }, { id: { startsWith: "perf-user-id-" } }],
+      },
     });
 
     // Safe to delete test configs now
@@ -95,9 +92,9 @@ describe("Day 5 Integration & Performance Tests", () => {
       where: {
         OR: [
           { id: testConfigId },
-          { configKey: { startsWith: "perf-config-" } }
-        ]
-      }
+          { configKey: { startsWith: "perf-config-" } },
+        ],
+      },
     });
 
     await prisma.$disconnect();
@@ -143,11 +140,13 @@ describe("Day 5 Integration & Performance Tests", () => {
 
     // Verify SkillScores
     expect(evalResult?.skillScores.length).toBe(2);
-    expect(evalResult?.skillScores.map(s => s.skill)).toContain("TypeScript");
+    expect(evalResult?.skillScores.map((s) => s.skill)).toContain("TypeScript");
 
     // Verify Recommendations
     expect(evalResult?.recommendations.length).toBe(1);
-    expect(evalResult?.recommendations[0].priority).toBe(RecommendationPriority.MEDIUM);
+    expect(evalResult?.recommendations[0].priority).toBe(
+      RecommendationPriority.MEDIUM,
+    );
 
     // Verify PerformanceSummary
     const summary = await summaryRepo.findByUser(testUserId);
@@ -165,12 +164,12 @@ describe("Day 5 Integration & Performance Tests", () => {
           create: {
             templateKey: `temp-${Date.now()}`,
             name: "Template",
-          }
+          },
         },
         user: {
-          connect: { id: testUserId }
-        }
-      }
+          connect: { id: testUserId },
+        },
+      },
     });
 
     try {
@@ -184,7 +183,7 @@ describe("Day 5 Integration & Performance Tests", () => {
           totalQuestions: 5,
           correctAnswers: 4,
           incorrectAnswers: 1,
-        }
+        },
       });
       // Should fail
       expect(true).toBe(false);
@@ -198,10 +197,14 @@ describe("Day 5 Integration & Performance Tests", () => {
   test("PERF-001: should persist 100 evaluations under 5 seconds", async () => {
     const totalRuns = 100;
     const suffix = Date.now();
-    
+
     // Generate 100 user IDs and emails
-    const userIds = Array.from({ length: totalRuns }).map((_, i) => `perf-user-id-${i}-${suffix}`);
-    const userEmails = Array.from({ length: totalRuns }).map((_, i) => `perf-user-${i}-${suffix}@example.com`);
+    const userIds = Array.from({ length: totalRuns }).map(
+      (_, i) => `perf-user-id-${i}-${suffix}`,
+    );
+    const userEmails = Array.from({ length: totalRuns }).map(
+      (_, i) => `perf-user-${i}-${suffix}@example.com`,
+    );
 
     // 1. Bulk create 100 users
     await prisma.user.createMany({
@@ -214,7 +217,9 @@ describe("Day 5 Integration & Performance Tests", () => {
     });
 
     // 2. Bulk create 100 test instances
-    const testInstanceIds = Array.from({ length: totalRuns }).map(() => createId());
+    const testInstanceIds = Array.from({ length: totalRuns }).map(() =>
+      createId(),
+    );
     await prisma.testInstance.createMany({
       data: testInstanceIds.map((id, i) => ({
         id,
@@ -246,14 +251,18 @@ describe("Day 5 Integration & Performance Tests", () => {
 
     // Start timer
     const start = performance.now();
-    
+
     // Execute all 100 evaluations concurrently, allowing Prisma's connection pool queue to manage them efficiently without head-of-line blocking
-    await Promise.all(payloads.map(p => persistenceService.storeEvaluationOutcome(p)));
-    
+    await Promise.all(
+      payloads.map((p) => persistenceService.storeEvaluationOutcome(p)),
+    );
+
     const end = performance.now();
     const durationSeconds = (end - start) / 1000;
 
-    console.log(`[PERF BENCHMARK] 100 evaluations persisted in: ${durationSeconds.toFixed(2)}s`);
+    console.log(
+      `[PERF BENCHMARK] 100 evaluations persisted in: ${durationSeconds.toFixed(2)}s`,
+    );
     expect(durationSeconds).toBeLessThan(7.5); // Adjusted from 5.0 to accommodate WAN network latency jitter to Supabase
   }, 45000);
 });

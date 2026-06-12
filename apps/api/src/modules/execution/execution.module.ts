@@ -44,12 +44,12 @@ import { EVALUATION_ADAPTER } from "./interfaces/evaluation-adapter.interface";
     {
       provide: EVALUATION_ADAPTER,
       useValue: {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         triggerEvaluation: async (result: any) => {
           console.log("Mock Evaluation Triggered for:", result.executionId);
-        }
-      }
-    }
+        },
+      },
+    },
   ],
   exports: [ExecutionService, AnswerService, ResumeService, SubmissionService],
 })

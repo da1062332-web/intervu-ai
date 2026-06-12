@@ -25,10 +25,16 @@ export class AnswerService {
     userId: string,
     dto: CandidateAnswerDto,
   ): Promise<{ status: string }> {
-    this.logger.debug("Saving candidate answer", { testInstanceId, questionId: dto.questionId });
+    this.logger.debug("Saving candidate answer", {
+      testInstanceId,
+      questionId: dto.questionId,
+    });
     return this.prisma.$transaction(async (tx) => {
       // 1. Fetch test instance
-      const testInstance = await this.validator.validateAssessment(testInstanceId, tx);
+      const testInstance = await this.validator.validateAssessment(
+        testInstanceId,
+        tx,
+      );
 
       // 2. Validate ownership
       this.validator.validateOwnership(testInstance, userId);
@@ -37,17 +43,25 @@ export class AnswerService {
       this.validator.validateSubmissionState(testInstance);
 
       // 4. Load execution state
-      const executionState = await this.stateService.restoreProgress(testInstanceId, tx);
+      const executionState = await this.stateService.restoreProgress(
+        testInstanceId,
+        tx,
+      );
 
       // 5. Validate timer
       const { isExpired, actualRemainingTime } = this.validator.validateTimer(
         testInstance,
         executionState,
-        dto.timeSpentSeconds ? (executionState?.remainingTimeSeconds || 0) - dto.timeSpentSeconds : undefined
+        dto.timeSpentSeconds
+          ? (executionState?.remainingTimeSeconds || 0) - dto.timeSpentSeconds
+          : undefined,
       );
 
       if (isExpired) {
-        this.logger.warn("Timer expired during autosave", { testInstanceId, userId });
+        this.logger.warn("Timer expired during autosave", {
+          testInstanceId,
+          userId,
+        });
         return { status: "expired" };
       }
 
@@ -56,14 +70,21 @@ export class AnswerService {
 
       // 7. Persist Answer
       const repo = this.answerRepo.withTransaction(tx);
-      const existingAnswers = await repo.findAll({ testInstanceId, questionId: dto.questionId });
+      const existingAnswers = await repo.findAll({
+        testInstanceId,
+        questionId: dto.questionId,
+      });
       const existing = existingAnswers[0];
 
       if (existing) {
         await repo.update(existing.id, {
           answer: dto.answer as unknown as Prisma.InputJsonValue,
-          timeSpentSeconds: existing.timeSpentSeconds + (dto.timeSpentSeconds || 0),
-          isMarkedForReview: dto.isMarkedForReview !== undefined ? dto.isMarkedForReview : existing.isMarkedForReview,
+          timeSpentSeconds:
+            existing.timeSpentSeconds + (dto.timeSpentSeconds || 0),
+          isMarkedForReview:
+            dto.isMarkedForReview !== undefined
+              ? dto.isMarkedForReview
+              : existing.isMarkedForReview,
           savedAt: new Date(),
         });
       } else {
@@ -83,12 +104,14 @@ export class AnswerService {
         testInstanceId,
         executionState?.currentQuestionIndex || 0,
         newRemainingTime,
-        tx
+        tx,
       );
 
-      this.logger.debug("Answer saved successfully", { testInstanceId, questionId: dto.questionId });
+      this.logger.debug("Answer saved successfully", {
+        testInstanceId,
+        questionId: dto.questionId,
+      });
       return { status: "saved" };
     });
   }
 }
-

@@ -15,7 +15,7 @@ export class SkillScoreRepository {
    */
   async createMany(
     data: CreateSkillScoreInput[],
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<{ count: number }> {
     const client = tx || this.prisma;
     return client.skillScore.createMany({
@@ -33,7 +33,7 @@ export class SkillScoreRepository {
    */
   async findByEvaluation(
     evaluationId: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<SkillScore[]> {
     const client = tx || this.prisma;
     return client.skillScore.findMany({
@@ -47,7 +47,7 @@ export class SkillScoreRepository {
    */
   async findBySkill(
     skill: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<SkillScore[]> {
     const client = tx || this.prisma;
     return client.skillScore.findMany({

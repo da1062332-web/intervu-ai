@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 
 export class DashboardMetricsAggregator {
   constructor(
-    private readonly performanceSummaryRepo: PerformanceSummaryRepository
+    private readonly performanceSummaryRepo: PerformanceSummaryRepository,
   ) {}
 
   /**
@@ -15,13 +15,13 @@ export class DashboardMetricsAggregator {
     userId: string,
     newScore: number,
     date: Date,
-    tx: Prisma.TransactionClient
+    tx: Prisma.TransactionClient,
   ): Promise<void> {
     await this.performanceSummaryRepo.upsertSummaryWithCalculation(
       userId,
       newScore,
       date,
-      tx
+      tx,
     );
   }
 }

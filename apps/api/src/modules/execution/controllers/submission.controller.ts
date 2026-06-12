@@ -29,12 +29,15 @@ export class SubmissionController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Submit an assessment" })
   @ApiParam({ name: "id", type: "string", description: "The test instance ID" })
-  @ApiResponse({ status: 200, description: "Assessment submitted successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Assessment submitted successfully",
+  })
   @ApiResponse({ status: 409, description: "Assessment already submitted" })
   async submitAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
     return this.submissionService.submitAssessment(id, user.id, false);
   }

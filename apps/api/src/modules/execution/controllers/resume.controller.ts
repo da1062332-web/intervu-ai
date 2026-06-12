@@ -33,7 +33,7 @@ export class ResumeController {
   async resumeAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
     return this.resumeService.resumeAssessment(id, user.id);
   }

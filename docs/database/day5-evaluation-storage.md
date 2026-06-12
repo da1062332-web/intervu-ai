@@ -86,11 +86,11 @@ All evaluation insertions occur within an atomic database transaction:
 1. **NestJS Service**: Enforces Zod validation schemas early.
 2. **Transaction Start**: Calls `prisma.$transaction`.
 3. **Repository Nesting (1 DB Roundtrip)**:
-   * Inserts `EvaluationResult`.
-   * Inserts multiple child `SkillScore` records using a nested Prisma `create` write.
-   * Inserts multiple child `Recommendation` records using a nested Prisma `create` write.
+   - Inserts `EvaluationResult`.
+   - Inserts multiple child `SkillScore` records using a nested Prisma `create` write.
+   - Inserts multiple child `Recommendation` records using a nested Prisma `create` write.
 4. **Metrics Recalculation (1 DB Roundtrip)**:
-   * Recalculates metrics (`testsCompleted`, `averageScore`, `bestScore`, `lastAssessmentDate`) atomically in a single RAW SQL query to avoid locking and connection acquisition overhead.
+   - Recalculates metrics (`testsCompleted`, `averageScore`, `bestScore`, `lastAssessmentDate`) atomically in a single RAW SQL query to avoid locking and connection acquisition overhead.
 5. **Commit**: Commits all operations atomically.
 
 ---
@@ -99,7 +99,7 @@ All evaluation insertions occur within an atomic database transaction:
 
 The persistence layer is highly optimized for remote database WAN connections (e.g., Supabase):
 
-* **Transaction Database Roundtrips**: Reduced from 5 separate network queries to **exactly 2 queries** per transaction.
-* **Connection Pooling**: Uses client-level `connection_limit=45` overrides for tests to maximize throughput on free-tier limits.
-* **Bulk Executions**: Runs concurrent operations in parallel without head-of-line blocking by queuing them in Prisma Client memory.
-* **WAN Throughput**: Successfully persists **100 complete evaluation flows (nested structures + metric aggregates)** in **under 3.5 seconds** (average ~2.89s).
+- **Transaction Database Roundtrips**: Reduced from 5 separate network queries to **exactly 2 queries** per transaction.
+- **Connection Pooling**: Uses client-level `connection_limit=45` overrides for tests to maximize throughput on free-tier limits.
+- **Bulk Executions**: Runs concurrent operations in parallel without head-of-line blocking by queuing them in Prisma Client memory.
+- **WAN Throughput**: Successfully persists **100 complete evaluation flows (nested structures + metric aggregates)** in **under 3.5 seconds** (average ~2.89s).

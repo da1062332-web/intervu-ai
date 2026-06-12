@@ -1,4 +1,9 @@
-import { PrismaClient, EvaluationResult, RecommendationPriority, Prisma } from "@prisma/client";
+import {
+  PrismaClient,
+  EvaluationResult,
+  RecommendationPriority,
+  Prisma,
+} from "@prisma/client";
 
 export interface CreateEvaluationResultInput {
   testId?: string;
@@ -38,7 +43,7 @@ export class EvaluationResultRepository {
 
   async createEvaluation(
     data: CreateEvaluationResultInput,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<EvaluationResult> {
     const client = tx || this.prisma;
     return await client.evaluationResult.create({
@@ -65,8 +70,13 @@ export class EvaluationResultRepository {
   async createEvaluationWithNested(
     evaluationData: CreateEvaluationResultInput,
     skills: { skill: string; score: number; feedback: string }[],
-    recommendations: { skill: string; priority: RecommendationPriority; title: string; description: string }[],
-    tx?: Prisma.TransactionClient
+    recommendations: {
+      skill: string;
+      priority: RecommendationPriority;
+      title: string;
+      description: string;
+    }[],
+    tx?: Prisma.TransactionClient,
   ): Promise<EvaluationResult> {
     const client = tx || this.prisma;
     return await client.evaluationResult.create({
@@ -104,7 +114,7 @@ export class EvaluationResultRepository {
 
   async findById(
     id: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<EvaluationWithDetails | null> {
     const client = tx || this.prisma;
     return await client.evaluationResult.findUnique({
@@ -118,7 +128,7 @@ export class EvaluationResultRepository {
 
   async findByUser(
     userId: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<EvaluationWithDetails[]> {
     const client = tx || this.prisma;
     return await client.evaluationResult.findMany({
@@ -133,7 +143,7 @@ export class EvaluationResultRepository {
 
   async findByTestInstance(
     testInstanceId: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<EvaluationWithDetails | null> {
     const client = tx || this.prisma;
     return await client.evaluationResult.findUnique({
@@ -148,7 +158,7 @@ export class EvaluationResultRepository {
   async updateEvaluation(
     id: string,
     data: UpdateEvaluationResultInput,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<EvaluationResult> {
     const client = tx || this.prisma;
     return await client.evaluationResult.update({

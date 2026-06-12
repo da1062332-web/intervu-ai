@@ -21,7 +21,7 @@ export class PerformanceSummaryRepository {
 
   async upsertSummary(
     data: UpsertPerformanceSummaryInput,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<PerformanceSummary> {
     const client = tx || this.prisma;
     return await client.performanceSummary.upsert({
@@ -44,7 +44,7 @@ export class PerformanceSummaryRepository {
 
   async findByUser(
     userId: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<PerformanceSummary | null> {
     const client = tx || this.prisma;
     return await client.performanceSummary.findUnique({
@@ -55,7 +55,7 @@ export class PerformanceSummaryRepository {
   async updateMetrics(
     userId: string,
     data: UpdatePerformanceSummaryMetricsInput,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<PerformanceSummary> {
     const client = tx || this.prisma;
     return await client.performanceSummary.update({
@@ -77,11 +77,12 @@ export class PerformanceSummaryRepository {
     userId: string,
     score: number,
     date: Date,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
     const client = tx || this.prisma;
     const id = createId();
-    await client.$executeRawUnsafe(`
+    await client.$executeRawUnsafe(
+      `
       INSERT INTO "PerformanceSummary" ("id", "userId", "testsCompleted", "averageScore", "bestScore", "lastAssessmentDate", "updatedAt")
       VALUES ($1, $2, 1, $3, $3, $4, NOW())
       ON CONFLICT ("userId") DO UPDATE SET
@@ -90,6 +91,11 @@ export class PerformanceSummaryRepository {
         "bestScore" = GREATEST("PerformanceSummary"."bestScore", EXCLUDED."bestScore"),
         "lastAssessmentDate" = EXCLUDED."lastAssessmentDate",
         "updatedAt" = NOW();
-    `, id, userId, score, date);
+    `,
+      id,
+      userId,
+      score,
+      date,
+    );
   }
 }

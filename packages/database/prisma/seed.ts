@@ -749,13 +749,16 @@ async function main() {
 }
 
 async function seedEvaluations(prisma: PrismaClient) {
-  console.log("Seeding mock evaluations, skill scores, recommendations, and performance summaries...");
+  console.log(
+    "Seeding mock evaluations, skill scores, recommendations, and performance summaries...",
+  );
 
   // 1. Create mock users
   const usersData = Array.from({ length: 5 }).map((_, i) => ({
     email: `candidate_eval_${i + 1}@example.com`,
     fullName: `Candidate Evaluated ${i + 1}`,
-    passwordHash: "$argon2id$v=19$m=65536,t=3,p=4$lSjZq1w1zU8wX2$H5/U4hT4lV7vD9j9K8Fq4g", // mock hash
+    passwordHash:
+      "$argon2id$v=19$m=65536,t=3,p=4$lSjZq1w1zU8wX2$H5/U4hT4lV7vD9j9K8Fq4g", // mock hash
   }));
 
   const users = [];
@@ -772,12 +775,30 @@ async function seedEvaluations(prisma: PrismaClient) {
   const config = await prisma.testConfig.findFirst();
   if (!config) return;
 
-  const skillsList = ["Aptitude", "Reasoning", "TypeScript", "SQL", "Problem Solving"];
+  const skillsList = [
+    "Aptitude",
+    "Reasoning",
+    "TypeScript",
+    "SQL",
+    "Problem Solving",
+  ];
   const recommendationsList = [
-    { title: "Review time complexity", desc: "Study Big-O notation and recursion." },
-    { title: "Practice SQL joins", desc: "Review inner, left, and outer joins with query plans." },
-    { title: "Improve verbal logic", desc: "Practice syllogisms and sentence correction." },
-    { title: "Refactor nested loops", desc: "Avoid quadratic time complexity in array searches." },
+    {
+      title: "Review time complexity",
+      desc: "Study Big-O notation and recursion.",
+    },
+    {
+      title: "Practice SQL joins",
+      desc: "Review inner, left, and outer joins with query plans.",
+    },
+    {
+      title: "Improve verbal logic",
+      desc: "Practice syllogisms and sentence correction.",
+    },
+    {
+      title: "Refactor nested loops",
+      desc: "Avoid quadratic time complexity in array searches.",
+    },
   ];
 
   // 2. Create 20 test instances and evaluations (4 per user)
@@ -793,7 +814,9 @@ async function seedEvaluations(prisma: PrismaClient) {
           testConfigId: config.id,
           status: "COMPLETED",
           startedAt: new Date(Date.now() - (5 - i) * 24 * 60 * 60 * 1000),
-          submittedAt: new Date(Date.now() - (5 - i) * 24 * 60 * 60 * 1000 + 45 * 60 * 1000),
+          submittedAt: new Date(
+            Date.now() - (5 - i) * 24 * 60 * 60 * 1000 + 45 * 60 * 1000,
+          ),
         },
       });
 
@@ -815,7 +838,9 @@ async function seedEvaluations(prisma: PrismaClient) {
           totalQuestions: 40,
           correctAnswers: Math.floor(score * 0.4),
           incorrectAnswers: 40 - Math.floor(score * 0.4),
-          evaluatedAt: new Date(Date.now() - (5 - i) * 24 * 60 * 60 * 1000 + 50 * 60 * 1000),
+          evaluatedAt: new Date(
+            Date.now() - (5 - i) * 24 * 60 * 60 * 1000 + 50 * 60 * 1000,
+          ),
           skillScores: {
             create: Array.from({ length: 3 }).map((_, j) => ({
               skill: skillsList[(i + j) % skillsList.length],
@@ -825,7 +850,8 @@ async function seedEvaluations(prisma: PrismaClient) {
           },
           recommendations: {
             create: Array.from({ length: 2 }).map((_, j) => {
-              const rec = recommendationsList[(i + j) % recommendationsList.length];
+              const rec =
+                recommendationsList[(i + j) % recommendationsList.length];
               return {
                 skill: skillsList[(i + j) % skillsList.length],
                 priority: j === 0 ? "HIGH" : "MEDIUM",
