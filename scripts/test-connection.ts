@@ -8,7 +8,7 @@ const URLS = [
   "postgresql://postgres:postgres@127.0.0.1:5432/intervu_ai",
   "postgresql://postgres:MARVEL7ace@127.0.0.1:5432/intervu_ai",
   "postgresql://postgres:MARVEL7ace@77090@127.0.0.1:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace%4077090@127.0.0.1:5432/intervu_ai"
+  "postgresql://postgres:MARVEL7ace%4077090@127.0.0.1:5432/intervu_ai",
 ];
 
 async function testConnections() {
@@ -16,7 +16,7 @@ async function testConnections() {
   for (const url of URLS) {
     console.log(`URL: ${url.replace(/:[^:@]+@/, ":****@")}`);
     const client = new PrismaClient({
-      datasources: { db: { url } }
+      datasources: { db: { url } },
     });
 
     try {

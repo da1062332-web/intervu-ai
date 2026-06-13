@@ -71,9 +71,9 @@ async function runAudit() {
         answers,
         expectedOverallScore: expectedScore,
         expectedConfidenceScore: expectedConfidence,
-        expectedSkillScores: expectedConfidence > 0 ? { [skill]: expectedScore } : {},
+        expectedSkillScores:
+          expectedConfidence > 0 ? { [skill]: expectedScore } : {},
       });
-
     } else if (i <= 20) {
       // 2-question cases (Scenarios 11 to 20)
       const q1Id = `q1_${i}`;
@@ -93,7 +93,7 @@ async function runAudit() {
           questionType: "mcq",
           conceptKey: "probability", // -> reasoning
           difficultyLevel: "medium",
-        }
+        },
       );
 
       // We vary candidate answers:
@@ -161,7 +161,10 @@ async function runAudit() {
         expSkills = { aptitude: 100, reasoning: 100 };
       }
 
-      answers.push({ questionId: q1Id, answer: ans1 }, { questionId: q2Id, answer: ans2 });
+      answers.push(
+        { questionId: q1Id, answer: ans1 },
+        { questionId: q2Id, answer: ans2 },
+      );
 
       scenarios.push({
         name: `Scenario ${i} (2-question test, ans1: "${ans1.trim()}", ans2: "${ans2.trim()}")`,
@@ -171,12 +174,11 @@ async function runAudit() {
         expectedConfidenceScore: expConfidence,
         expectedSkillScores: expSkills,
       });
-
     } else if (i <= 40) {
       // Multi-question cases (Scenarios 21 to 40)
       // We generate a test with i - 15 questions (6 to 25 questions)
       const qCount = i - 15;
-      
+
       // Let's create qCount questions, all in concept "percentages" (aptitude)
       for (let k = 1; k <= qCount; k++) {
         questions.push({
@@ -207,17 +209,40 @@ async function runAudit() {
         expectedConfidenceScore: 100,
         expectedSkillScores: { aptitude: expectedScore },
       });
-
     } else {
       // Mixed skill and custom cases (Scenarios 41 to 50)
       // Let's create a 4-question test:
       // Q1, Q2: concept "time_work" -> aptitude
       // Q3, Q4: concept "probability" -> reasoning
       questions.push(
-        { questionId: "qa1", correctAnswer: "A", questionType: "mcq", conceptKey: "time_work", difficultyLevel: "easy" },
-        { questionId: "qa2", correctAnswer: "B", questionType: "mcq", conceptKey: "time_work", difficultyLevel: "easy" },
-        { questionId: "qr1", correctAnswer: "C", questionType: "mcq", conceptKey: "probability", difficultyLevel: "easy" },
-        { questionId: "qr2", correctAnswer: "D", questionType: "mcq", conceptKey: "probability", difficultyLevel: "easy" }
+        {
+          questionId: "qa1",
+          correctAnswer: "A",
+          questionType: "mcq",
+          conceptKey: "time_work",
+          difficultyLevel: "easy",
+        },
+        {
+          questionId: "qa2",
+          correctAnswer: "B",
+          questionType: "mcq",
+          conceptKey: "time_work",
+          difficultyLevel: "easy",
+        },
+        {
+          questionId: "qr1",
+          correctAnswer: "C",
+          questionType: "mcq",
+          conceptKey: "probability",
+          difficultyLevel: "easy",
+        },
+        {
+          questionId: "qr2",
+          correctAnswer: "D",
+          questionType: "mcq",
+          conceptKey: "probability",
+          difficultyLevel: "easy",
+        },
       );
 
       // Vary the answers:
@@ -278,7 +303,7 @@ async function runAudit() {
         { questionId: "qa1", answer: ansVal[0] },
         { questionId: "qa2", answer: ansVal[1] },
         { questionId: "qr1", answer: ansVal[2] },
-        { questionId: "qr2", answer: ansVal[3] }
+        { questionId: "qr2", answer: ansVal[3] },
       );
 
       scenarios.push({
@@ -304,13 +329,20 @@ async function runAudit() {
     };
 
     try {
-      const actualResult = await evaluationEngine.evaluate(execResult, scenario.questions);
+      const actualResult = await evaluationEngine.evaluate(
+        execResult,
+        scenario.questions,
+      );
 
-      const scoreMatch = actualResult.overallScore === scenario.expectedOverallScore;
-      const confMatch = actualResult.confidenceScore === scenario.expectedConfidenceScore;
-      
+      const scoreMatch =
+        actualResult.overallScore === scenario.expectedOverallScore;
+      const confMatch =
+        actualResult.confidenceScore === scenario.expectedConfidenceScore;
+
       let skillsMatch = true;
-      for (const [skill, expectedVal] of Object.entries(scenario.expectedSkillScores)) {
+      for (const [skill, expectedVal] of Object.entries(
+        scenario.expectedSkillScores,
+      )) {
         if (actualResult.skillScores[skill] !== expectedVal) {
           skillsMatch = false;
           break;
@@ -322,12 +354,19 @@ async function runAudit() {
       } else {
         failures++;
         console.error(`❌ Scenario #${idx + 1} "${scenario.name}" FAILED:`);
-        console.error(`   Expected: Score=${scenario.expectedOverallScore}%, Conf=${scenario.expectedConfidenceScore}%, Skills=${JSON.stringify(scenario.expectedSkillScores)}`);
-        console.error(`   Actual:   Score=${actualResult.overallScore}%, Conf=${actualResult.confidenceScore}%, Skills=${JSON.stringify(actualResult.skillScores)}`);
+        console.error(
+          `   Expected: Score=${scenario.expectedOverallScore}%, Conf=${scenario.expectedConfidenceScore}%, Skills=${JSON.stringify(scenario.expectedSkillScores)}`,
+        );
+        console.error(
+          `   Actual:   Score=${actualResult.overallScore}%, Conf=${actualResult.confidenceScore}%, Skills=${JSON.stringify(actualResult.skillScores)}`,
+        );
       }
     } catch (err: any) {
       failures++;
-      console.error(`❌ Scenario #${idx + 1} "${scenario.name}" FAILED with Exception:`, err.message);
+      console.error(
+        `❌ Scenario #${idx + 1} "${scenario.name}" FAILED with Exception:`,
+        err.message,
+      );
     }
   }
 

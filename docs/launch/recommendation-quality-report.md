@@ -1,9 +1,11 @@
 # Recommendation Quality Report
 
 ## Objective
+
 Verify the correctness, priorities, skill mapping logic, deduplication rules, and sorted path construction of the Study Recommendation Engine.
 
 ## Audit Criteria & Assertions
+
 1. **Priority Score Mapping**:
    - Asserts that scores < 50 map to `HIGH` priority.
    - Asserts that scores between 50 and 70 (inclusive) map to `MEDIUM` priority.
@@ -18,6 +20,7 @@ Verify the correctness, priorities, skill mapping logic, deduplication rules, an
    - Verifies that if multiple recommendations share the same priority, they are sorted alphabetically by their skill name.
 
 ## Summary of Results
+
 - **Scenarios Checked**: 4 complex skill/comment permutations
 - **Priority Failures**: 0
 - **Skill Mapping Failures**: 0
