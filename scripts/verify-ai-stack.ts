@@ -1,6 +1,11 @@
 import { spawnSync } from "child_process";
 import { performance } from "perf_hooks";
-import { connectPrisma, disconnectPrisma, prisma, TemplateRepository } from "../packages/database/src";
+import {
+  connectPrisma,
+  disconnectPrisma,
+  prisma,
+  TemplateRepository,
+} from "../packages/database/src";
 import { GenerationService } from "../packages/ai-core/src/generation/generation.service";
 import { TemplateSelectorService } from "../packages/ai-core/src/generation/template-selector.service";
 import { ValidationOrchestratorService } from "../packages/ai-core/src/validation/validation-orchestrator.service";
@@ -21,7 +26,16 @@ async function main() {
 
   // 1. Run Sub-Audits as Isolated Processes
   console.log("--> Stage 1: Running Question Generation Audit...");
-  const genResult = spawnSync("node", ["--import", "tsx", "--env-file=apps/api/.env", "scripts/verify-generation-quality.ts"], { stdio: "inherit", env: process.env });
+  const genResult = spawnSync(
+    "node",
+    [
+      "--import",
+      "tsx",
+      "--env-file=apps/api/.env",
+      "scripts/verify-generation-quality.ts",
+    ],
+    { stdio: "inherit", env: process.env },
+  );
   if (genResult.status !== 0) {
     console.error("❌ Stage 1: Question Generation Audit FAILED.");
     process.exit(1);
@@ -29,7 +43,16 @@ async function main() {
   console.log("✅ Stage 1: Question Generation Audit PASSED.\n");
 
   console.log("--> Stage 2: Running Evaluation Engine Audit...");
-  const evalResult = spawnSync("node", ["--import", "tsx", "--env-file=apps/api/.env", "scripts/verify-evaluation-quality.ts"], { stdio: "inherit", env: process.env });
+  const evalResult = spawnSync(
+    "node",
+    [
+      "--import",
+      "tsx",
+      "--env-file=apps/api/.env",
+      "scripts/verify-evaluation-quality.ts",
+    ],
+    { stdio: "inherit", env: process.env },
+  );
   if (evalResult.status !== 0) {
     console.error("❌ Stage 2: Evaluation Engine Audit FAILED.");
     process.exit(1);
@@ -37,7 +60,16 @@ async function main() {
   console.log("✅ Stage 2: Evaluation Engine Audit PASSED.\n");
 
   console.log("--> Stage 3: Running Recommendation Engine Audit...");
-  const recResult = spawnSync("node", ["--import", "tsx", "--env-file=apps/api/.env", "scripts/verify-recommendation-quality.ts"], { stdio: "inherit", env: process.env });
+  const recResult = spawnSync(
+    "node",
+    [
+      "--import",
+      "tsx",
+      "--env-file=apps/api/.env",
+      "scripts/verify-recommendation-quality.ts",
+    ],
+    { stdio: "inherit", env: process.env },
+  );
   if (recResult.status !== 0) {
     console.error("❌ Stage 3: Recommendation Engine Audit FAILED.");
     process.exit(1);
@@ -49,17 +81,23 @@ async function main() {
 
   class CachedTemplateRepository extends TemplateRepository {
     private cache = new Map<string, any[]>();
-    async findByConceptAndDifficulty(conceptKey: string, difficultyLevel: any): Promise<any[]> {
+    async findByConceptAndDifficulty(
+      conceptKey: string,
+      difficultyLevel: any,
+    ): Promise<any[]> {
       const cacheKey = `${conceptKey}_${difficultyLevel}`;
       if (this.cache.has(cacheKey)) {
         return this.cache.get(cacheKey)!;
       }
-      const result = await super.findByConceptAndDifficulty(conceptKey, difficultyLevel);
+      const result = await super.findByConceptAndDifficulty(
+        conceptKey,
+        difficultyLevel,
+      );
       this.cache.set(cacheKey, result);
       return result;
     }
   }
-  
+
   const cachedRepo = new CachedTemplateRepository();
   const selector = new TemplateSelectorService(cachedRepo);
   const generationService = new GenerationService(selector);
@@ -67,7 +105,9 @@ async function main() {
   const evaluationEngine = new EvaluationEngineService();
   const recommendationEngine = new RecommendationEngineService();
 
-  console.log("--> Stage 4: Running E2E Integration Benchmark (100 E2E loops)...");
+  console.log(
+    "--> Stage 4: Running E2E Integration Benchmark (100 E2E loops)...",
+  );
   const startTime = performance.now();
 
   const totalRuns = 100;
@@ -76,14 +116,14 @@ async function main() {
       // 2a. Generate Question
       const concept = "time_work";
       const seed = `bench_run_${i}`;
-      
+
       const { question } = await generationService.generateQuestion(
         {
           conceptKey: concept,
           difficultyLevel: "easy",
           questionType: "mcq",
         },
-        seed
+        seed,
       );
 
       // 2b. Contract Verification: GeneratedQuestion
@@ -92,7 +132,9 @@ async function main() {
       // 2c. Validate Question
       const validation = validationOrchestrator.validateQuestion(question);
       if (!validation.passed) {
-        throw new Error(`Question validation failed during benchmark run ${i}: ${JSON.stringify(validation.errors)}`);
+        throw new Error(
+          `Question validation failed during benchmark run ${i}: ${JSON.stringify(validation.errors)}`,
+        );
       }
 
       // 2d. Run Evaluation
@@ -114,19 +156,25 @@ async function main() {
         difficultyLevel: question.difficultyLevel,
       };
 
-      const evaluation = await evaluationEngine.evaluate(mockExecutionResult, [questionSnapshot]);
+      const evaluation = await evaluationEngine.evaluate(mockExecutionResult, [
+        questionSnapshot,
+      ]);
 
       // 2e. Contract Verification: EvaluationResultDto
       EvaluationResultDtoSchema.parse(evaluation);
 
       // 2f. Run Recommendation
-      const recommendations = await recommendationEngine.generateRecommendations(evaluation);
+      const recommendations =
+        await recommendationEngine.generateRecommendations(evaluation);
 
       // 2g. Contract Verification: RecommendationResultDto
       RecommendationResultDtoSchema.parse(recommendations);
     }
   } catch (error: any) {
-    console.error("❌ E2E Integration Benchmark encountered an error:", error.message || error);
+    console.error(
+      "❌ E2E Integration Benchmark encountered an error:",
+      error.message || error,
+    );
     await disconnectPrisma();
     process.exit(1);
   }
@@ -135,10 +183,14 @@ async function main() {
   const durationMs = endTime - startTime;
   const durationSec = durationMs / 1000;
 
-  console.log(`\nBenchmark Result: Generated, validated, evaluated, and recommended 100 assessments in ${durationSec.toFixed(2)}s.`);
-  
+  console.log(
+    `\nBenchmark Result: Generated, validated, evaluated, and recommended 100 assessments in ${durationSec.toFixed(2)}s.`,
+  );
+
   if (durationSec > 10.0) {
-    console.error(`❌ PERFORMANCE SLA VIOLATION: Execution took ${durationSec.toFixed(2)} seconds (limit: 10s).`);
+    console.error(
+      `❌ PERFORMANCE SLA VIOLATION: Execution took ${durationSec.toFixed(2)} seconds (limit: 10s).`,
+    );
     await disconnectPrisma();
     process.exit(1);
   } else {
@@ -154,10 +206,14 @@ async function main() {
       conceptKey: "percentages",
       difficultyLevel: "easy" as const,
       questionType: "mcq" as const,
-      questionText: "What is 10% of 100? This must be at least 15 characters long.",
+      questionText:
+        "What is 10% of 100? This must be at least 15 characters long.",
       options: ["10", "20", "30", "40"],
       correctAnswer: "10",
-      solution: JSON.stringify({ steps: ["Step 1: calculate percentage"], finalAnswer: "10" }),
+      solution: JSON.stringify({
+        steps: ["Step 1: calculate percentage"],
+        finalAnswer: "10",
+      }),
       metadata: { val: 10 },
     };
 
@@ -169,11 +225,16 @@ async function main() {
     const { validatedAt: t2, ...cleanVal2 } = val2;
 
     if (JSON.stringify(cleanVal1) !== JSON.stringify(cleanVal2)) {
-      throw new Error("Validation outputs differ between identical consecutive runs.");
+      throw new Error(
+        "Validation outputs differ between identical consecutive runs.",
+      );
     }
     console.log("✅ Validation Engine is 100% deterministic.");
   } catch (error: any) {
-    console.error("❌ Stage 5: Validation Determinism check FAILED:", error.message || error);
+    console.error(
+      "❌ Stage 5: Validation Determinism check FAILED:",
+      error.message || error,
+    );
     await disconnectPrisma();
     process.exit(1);
   }
@@ -182,7 +243,7 @@ async function main() {
   console.log("\n--> Stage 6: Verifying Error Catalog & Boundaries...");
   try {
     let errorCaught = false;
-    
+
     // Evaluation boundary test: passing invalid/empty answers
     try {
       const invalidExec = {
@@ -197,14 +258,23 @@ async function main() {
       errorCaught = true;
       // Assert that it does NOT contain internal database stack trace words like "PrismaClient", "pg-protocol", etc.
       const traceString = error.stack || "";
-      if (traceString.includes("postgres") || traceString.includes("prisma-client")) {
-        throw new Error("Internal database trace leaked in exception stack trace.");
+      if (
+        traceString.includes("postgres") ||
+        traceString.includes("prisma-client")
+      ) {
+        throw new Error(
+          "Internal database trace leaked in exception stack trace.",
+        );
       }
-      console.log(`✅ Evaluation Input Error caught successfully: "${error.message}"`);
+      console.log(
+        `✅ Evaluation Input Error caught successfully: "${error.message}"`,
+      );
     }
 
     if (!errorCaught) {
-      throw new Error("Evaluation boundary test did not raise an expected validation error.");
+      throw new Error(
+        "Evaluation boundary test did not raise an expected validation error.",
+      );
     }
 
     errorCaught = false;
@@ -215,19 +285,33 @@ async function main() {
     } catch (error: any) {
       errorCaught = true;
       const traceString = error.stack || "";
-      if (traceString.includes("postgres") || traceString.includes("prisma-client")) {
-        throw new Error("Internal stack details leaked in recommendation exception.");
+      if (
+        traceString.includes("postgres") ||
+        traceString.includes("prisma-client")
+      ) {
+        throw new Error(
+          "Internal stack details leaked in recommendation exception.",
+        );
       }
-      console.log(`✅ Recommendation Input Error caught successfully: "${error.message}"`);
+      console.log(
+        `✅ Recommendation Input Error caught successfully: "${error.message}"`,
+      );
     }
 
     if (!errorCaught) {
-      throw new Error("Recommendation boundary test did not raise an expected error.");
+      throw new Error(
+        "Recommendation boundary test did not raise an expected error.",
+      );
     }
 
-    console.log("✅ Error boundary catalogs verified. No internal traces exposed.");
+    console.log(
+      "✅ Error boundary catalogs verified. No internal traces exposed.",
+    );
   } catch (error: any) {
-    console.error("❌ Stage 6: Error Catalog verification FAILED:", error.message || error);
+    console.error(
+      "❌ Stage 6: Error Catalog verification FAILED:",
+      error.message || error,
+    );
     await disconnectPrisma();
     process.exit(1);
   }
@@ -241,7 +325,7 @@ async function main() {
   console.log("Recommendation PASS\n");
   console.log("OVERALL PASS");
   console.log("==========================================");
-  
+
   process.exit(0);
 }
 

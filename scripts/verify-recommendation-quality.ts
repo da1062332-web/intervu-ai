@@ -80,10 +80,7 @@ async function runAudit() {
           aptitude: 95,
           reasoning: 100,
         },
-        feedback: [
-          "Strong in Profit and Loss.",
-          "Strong in Probability.",
-        ],
+        feedback: ["Strong in Profit and Loss.", "Strong in Probability."],
         evaluatedAt: new Date(),
       },
       expectedSkillsWithPriorities: {
@@ -123,7 +120,9 @@ async function runAudit() {
     console.log(`Checking Scenario #${idx + 1}: ${testCase.name}`);
 
     try {
-      const result = await recommendationEngine.generateRecommendations(testCase.evaluation);
+      const result = await recommendationEngine.generateRecommendations(
+        testCase.evaluation,
+      );
       const recs = result.recommendations;
 
       // 1. Confirm basic shape
@@ -134,39 +133,50 @@ async function runAudit() {
       // 2. Confirm Priorities, Skill mappings, and duplicates
       const seenIds = new Set<string>();
       const seenSkills = new Set<string>();
-      
+
       let caseFailed = false;
 
       for (const rec of recs) {
         // Check duplicate recommendationId
         if (seenIds.has(rec.recommendationId)) {
-          console.error(`   ❌ Duplicate recommendationId: ${rec.recommendationId}`);
+          console.error(
+            `   ❌ Duplicate recommendationId: ${rec.recommendationId}`,
+          );
           caseFailed = true;
         }
         seenIds.add(rec.recommendationId);
 
         // Check duplicate skill recommendation
         if (seenSkills.has(rec.skill)) {
-          console.error(`   ❌ Duplicate recommendation for skill: ${rec.skill}`);
+          console.error(
+            `   ❌ Duplicate recommendation for skill: ${rec.skill}`,
+          );
           caseFailed = true;
         }
         seenSkills.add(rec.skill);
 
         // Check expected priority
-        const expectedPriority = testCase.expectedSkillsWithPriorities[rec.skill];
+        const expectedPriority =
+          testCase.expectedSkillsWithPriorities[rec.skill];
         if (!expectedPriority) {
           console.error(`   ❌ Unexpected skill recommendation: ${rec.skill}`);
           caseFailed = true;
         } else if (rec.priority !== expectedPriority) {
-          console.error(`   ❌ Priority mismatch for skill ${rec.skill}: Expected ${expectedPriority}, got ${rec.priority}`);
+          console.error(
+            `   ❌ Priority mismatch for skill ${rec.skill}: Expected ${expectedPriority}, got ${rec.priority}`,
+          );
           caseFailed = true;
         }
       }
 
       // Ensure all expected skills are actually present
-      for (const expectedSkill of Object.keys(testCase.expectedSkillsWithPriorities)) {
+      for (const expectedSkill of Object.keys(
+        testCase.expectedSkillsWithPriorities,
+      )) {
         if (!seenSkills.has(expectedSkill)) {
-          console.error(`   ❌ Missing expected recommendation for skill/concept: ${expectedSkill}`);
+          console.error(
+            `   ❌ Missing expected recommendation for skill/concept: ${expectedSkill}`,
+          );
           caseFailed = true;
         }
       }
@@ -181,11 +191,15 @@ async function runAudit() {
         const weightNext = priorityWeights[next.priority];
 
         if (weightCurrent < weightNext) {
-          console.error(`   ❌ Sorting Order Violation: Priority ${current.priority} appears before ${next.priority}`);
+          console.error(
+            `   ❌ Sorting Order Violation: Priority ${current.priority} appears before ${next.priority}`,
+          );
           caseFailed = true;
         } else if (weightCurrent === weightNext) {
           if (current.skill.localeCompare(next.skill) > 0) {
-            console.error(`   ❌ Alphabetical Sorting Violation within priority ${current.priority}: Skill "${current.skill}" appears before "${next.skill}"`);
+            console.error(
+              `   ❌ Alphabetical Sorting Violation within priority ${current.priority}: Skill "${current.skill}" appears before "${next.skill}"`,
+            );
             caseFailed = true;
           }
         }
@@ -196,10 +210,12 @@ async function runAudit() {
       } else {
         passes++;
       }
-
     } catch (err: any) {
       failures++;
-      console.error(`   ❌ Scenario #${idx + 1} failed with exception:`, err.message || err);
+      console.error(
+        `   ❌ Scenario #${idx + 1} failed with exception:`,
+        err.message || err,
+      );
     }
   }
 
