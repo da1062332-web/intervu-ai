@@ -1,8 +1,9 @@
-import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 @Injectable()
 export class RequestLoggingMiddleware implements NestMiddleware {
-  private readonly logger = new Logger(RequestLoggingMiddleware.name);
+  private readonly logger = new AppLogger({ name: "RequestLogging" });
 
   use(
     req: Record<string, unknown>,
@@ -20,8 +21,15 @@ export class RequestLoggingMiddleware implements NestMiddleware {
       const duration = Date.now() - startTime;
       const statusCode = (res as { statusCode?: number }).statusCode;
 
-      logger.log(
-        `[${method}] ${originalUrl} - Status: ${statusCode} - ${duration}ms - IP: ${ip}`,
+      logger.info(
+        `[${method}] ${originalUrl} - Status: ${statusCode} - ${duration}ms`,
+        {
+          method,
+          url: originalUrl,
+          statusCode,
+          durationMs: duration,
+          ip,
+        },
       );
 
       return originalSend.call(this, data);

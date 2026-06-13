@@ -1,4 +1,10 @@
-import { Controller, Get, Param, UseGuards, UseInterceptors } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiBearerAuth,
@@ -28,8 +34,15 @@ export class ResultsController {
 
   @Get(":evaluationId")
   @ApiOperation({ summary: "Get evaluation result details" })
-  @ApiParam({ name: "evaluationId", required: true, description: "Evaluation ID" })
-  @ApiResponse({ status: 200, description: "Result details retrieved successfully" })
+  @ApiParam({
+    name: "evaluationId",
+    required: true,
+    description: "Evaluation ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Result details retrieved successfully",
+  })
   @ApiUnauthorizedResponse({ description: "Unauthorized" })
   @ApiForbiddenResponse({ description: "Forbidden" })
   @ApiNotFoundResponse({ description: "Result not found" })
@@ -42,8 +55,15 @@ export class ResultsController {
 
   @Get(":evaluationId/recommendations")
   @ApiOperation({ summary: "Get evaluation recommendations" })
-  @ApiParam({ name: "evaluationId", required: true, description: "Evaluation ID" })
-  @ApiResponse({ status: 200, description: "Recommendations retrieved successfully" })
+  @ApiParam({
+    name: "evaluationId",
+    required: true,
+    description: "Evaluation ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Recommendations retrieved successfully",
+  })
   @ApiUnauthorizedResponse({ description: "Unauthorized" })
   @ApiForbiddenResponse({ description: "Forbidden" })
   @ApiNotFoundResponse({ description: "Result not found" })
@@ -51,6 +71,9 @@ export class ResultsController {
     @CurrentUser() user: { id: string },
     @Param("evaluationId") evaluationId: string,
   ) {
-    return this.recommendationsService.getRecommendations(user.id, evaluationId);
+    return this.recommendationsService.getRecommendations(
+      user.id,
+      evaluationId,
+    );
   }
 }

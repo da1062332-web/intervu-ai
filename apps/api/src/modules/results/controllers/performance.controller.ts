@@ -1,4 +1,10 @@
-import { Controller, Get, Query, UseGuards, UseInterceptors } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiBearerAuth,
@@ -23,7 +29,10 @@ export class PerformanceController {
 
   @Get("performance-summary")
   @ApiOperation({ summary: "Get candidate performance summary" })
-  @ApiResponse({ status: 200, description: "Performance summary retrieved successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Performance summary retrieved successfully",
+  })
   @ApiUnauthorizedResponse({ description: "Unauthorized" })
   async getPerformanceSummary(@CurrentUser() user: { id: string }) {
     return this.performanceService.getPerformanceSummary(user.id);
@@ -33,7 +42,10 @@ export class PerformanceController {
   @ApiOperation({ summary: "Get candidate assessment history" })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
-  @ApiResponse({ status: 200, description: "Assessment history retrieved successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Assessment history retrieved successfully",
+  })
   @ApiUnauthorizedResponse({ description: "Unauthorized" })
   async getHistory(
     @CurrentUser() user: { id: string },

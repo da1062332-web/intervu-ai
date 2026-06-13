@@ -19,14 +19,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/results/{{evaluationId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "results",
-                "{{evaluationId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "results", "{{evaluationId}}"]
             }
           }
         },
@@ -42,15 +36,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/results/{{evaluationId}}/recommendations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "results",
-                "{{evaluationId}}",
-                "recommendations"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "results", "{{evaluationId}}", "recommendations"]
             }
           }
         }
@@ -71,15 +58,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/users/me/performance-summary",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "users",
-                "me",
-                "performance-summary"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "users", "me", "performance-summary"]
             }
           }
         },
@@ -95,15 +75,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/users/me/history?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "users",
-                "me",
-                "history"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "users", "me", "history"],
               "query": [
                 {
                   "key": "page",

@@ -1,6 +1,9 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerModule } from "@nestjs/throttler";
+import { CustomThrottlerGuard } from "./common";
 
-import { ConfigModule } from "./config";
+import { ConfigModule, rateLimitConfig } from "./config";
 import { CacheModule } from "./cache";
 import { QueueModule } from "./queue";
 import { HealthModule } from "./modules/health";
@@ -27,6 +30,7 @@ import { ResultsModule } from "./modules/results/results.module";
     // Infrastructure — must be first (ConfigModule provides env vars)
     ConfigModule,
     PrismaModule,
+    ThrottlerModule.forRootAsync(rateLimitConfig),
 
     // Global services — CacheModule and QueueModule are @Global(),
     // so all subsequent modules can inject RedisCacheService and QueueService
@@ -50,6 +54,12 @@ import { ResultsModule } from "./modules/results/results.module";
     DashboardModule,
     TestsModule,
     ResultsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {

@@ -11,6 +11,7 @@ import {
   ResponseInterceptor,
   ResponseValidationInterceptor,
 } from "@intervu/shared";
+import { ObservabilityInterceptor } from "./common/monitoring/observability.interceptor";
 import { RedisConnectionManager } from "./cache";
 import { AppConfigService } from "./config";
 
@@ -53,6 +54,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(
     new ResponseInterceptor(),
     new ResponseValidationInterceptor(reflector),
+    new ObservabilityInterceptor(),
   );
 
   // CORS

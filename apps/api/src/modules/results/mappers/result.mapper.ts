@@ -18,12 +18,14 @@ export class ResultMapper {
       correctAnswers: entity.correctAnswers,
       incorrectAnswers: entity.incorrectAnswers,
       evaluatedAt: entity.evaluatedAt,
-      skillScores: (entity.skillScores || []).map((skill: any): SkillScoreDto => ({
-        id: skill.id,
-        skill: skill.skill,
-        score: skill.score,
-        feedback: skill.feedback,
-      })),
+      skillScores: (entity.skillScores || []).map(
+        (skill: any): SkillScoreDto => ({
+          id: skill.id,
+          skill: skill.skill,
+          score: skill.score,
+          feedback: skill.feedback,
+        }),
+      ),
     };
   }
 }
