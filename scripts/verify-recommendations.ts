@@ -14,7 +14,10 @@ async function run() {
   const evaluationRepository = new EvaluationRepository(prisma);
   const recommendationRepository = new RecommendationRepository(prisma);
   const resultsService = new ResultsService(evaluationRepository);
-  const recommendationsService = new RecommendationsService(recommendationRepository, resultsService);
+  const recommendationsService = new RecommendationsService(
+    recommendationRepository,
+    resultsService,
+  );
 
   let userId: string | null = null;
   let templateId: string | null = null;
@@ -79,7 +82,8 @@ async function run() {
               skill: "TypeScript",
               priority: "HIGH",
               title: "Understand advanced type systems",
-              description: "Learn about union/intersection types and mapped types",
+              description:
+                "Learn about union/intersection types and mapped types",
             },
             {
               skill: "Databases",
@@ -97,7 +101,10 @@ async function run() {
 
     // 5. Invoke getRecommendations
     console.log("Invoking recommendationsService.getRecommendations...");
-    const recs = await recommendationsService.getRecommendations(userId, evaluationId);
+    const recs = await recommendationsService.getRecommendations(
+      userId,
+      evaluationId,
+    );
 
     // Assertions
     if (!recs || recs.length !== 3) {
@@ -106,19 +113,41 @@ async function run() {
 
     // Verify priority sorting (HIGH -> MEDIUM -> LOW)
     console.log("Verifying priority sorting (HIGH -> MEDIUM -> LOW)...");
-    if (recs[0].priority !== "HIGH") throw new Error(`Expected first recommendation priority to be HIGH, got ${recs[0].priority}`);
-    if (recs[1].priority !== "MEDIUM") throw new Error(`Expected second recommendation priority to be MEDIUM, got ${recs[1].priority}`);
-    if (recs[2].priority !== "LOW") throw new Error(`Expected third recommendation priority to be LOW, got ${recs[2].priority}`);
+    if (recs[0].priority !== "HIGH")
+      throw new Error(
+        `Expected first recommendation priority to be HIGH, got ${recs[0].priority}`,
+      );
+    if (recs[1].priority !== "MEDIUM")
+      throw new Error(
+        `Expected second recommendation priority to be MEDIUM, got ${recs[1].priority}`,
+      );
+    if (recs[2].priority !== "LOW")
+      throw new Error(
+        `Expected third recommendation priority to be LOW, got ${recs[2].priority}`,
+      );
 
     // Verify skill mapping
     console.log("Verifying skill gaps mapping...");
-    if (recs[0].skill !== "TypeScript") throw new Error(`Expected HIGH priority skill to be TypeScript, got ${recs[0].skill}`);
-    if (recs[1].skill !== "Node.js") throw new Error(`Expected MEDIUM priority skill to be Node.js, got ${recs[1].skill}`);
-    if (recs[2].skill !== "Databases") throw new Error(`Expected LOW priority skill to be Databases, got ${recs[2].skill}`);
+    if (recs[0].skill !== "TypeScript")
+      throw new Error(
+        `Expected HIGH priority skill to be TypeScript, got ${recs[0].skill}`,
+      );
+    if (recs[1].skill !== "Node.js")
+      throw new Error(
+        `Expected MEDIUM priority skill to be Node.js, got ${recs[1].skill}`,
+      );
+    if (recs[2].skill !== "Databases")
+      throw new Error(
+        `Expected LOW priority skill to be Databases, got ${recs[2].skill}`,
+      );
 
     // Verify description and title
     console.log("Verifying description and title values...");
-    if (recs[0].title !== "Understand advanced type systems" || recs[0].description !== "Learn about union/intersection types and mapped types") {
+    if (
+      recs[0].title !== "Understand advanced type systems" ||
+      recs[0].description !==
+        "Learn about union/intersection types and mapped types"
+    ) {
       throw new Error("HIGH priority title or description mismatch");
     }
 
@@ -137,10 +166,22 @@ async function run() {
     }
 
     // 6. Invoke getHighPriorityRecommendations
-    console.log("Invoking recommendationsService.getHighPriorityRecommendations...");
-    const highRecs = await recommendationsService.getHighPriorityRecommendations(userId, evaluationId);
-    if (highRecs.length !== 1 || highRecs[0].priority !== "HIGH" || highRecs[0].skill !== "TypeScript") {
-      throw new Error(`High priority recommendations filter failed. Expected 1 TypeScript HIGH recommendation, got ${JSON.stringify(highRecs)}`);
+    console.log(
+      "Invoking recommendationsService.getHighPriorityRecommendations...",
+    );
+    const highRecs =
+      await recommendationsService.getHighPriorityRecommendations(
+        userId,
+        evaluationId,
+      );
+    if (
+      highRecs.length !== 1 ||
+      highRecs[0].priority !== "HIGH" ||
+      highRecs[0].skill !== "TypeScript"
+    ) {
+      throw new Error(
+        `High priority recommendations filter failed. Expected 1 TypeScript HIGH recommendation, got ${JSON.stringify(highRecs)}`,
+      );
     }
 
     console.log("Recommendations verification: PASS");
@@ -159,14 +200,20 @@ async function run() {
     // Teardown
     console.log("Starting teardown...");
     if (evaluationId) {
-      await prisma.recommendation.deleteMany({ where: { evaluationId } }).catch(() => {});
-      await prisma.evaluationResult.delete({ where: { id: evaluationId } }).catch(() => {});
+      await prisma.recommendation
+        .deleteMany({ where: { evaluationId } })
+        .catch(() => {});
+      await prisma.evaluationResult
+        .delete({ where: { id: evaluationId } })
+        .catch(() => {});
     }
     if (testId) {
       await prisma.test.delete({ where: { id: testId } }).catch(() => {});
     }
     if (templateId) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     if (userId) {
       await prisma.user.delete({ where: { id: userId } }).catch(() => {});

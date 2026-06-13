@@ -6,17 +6,17 @@ This report assesses the readiness of the results, recommendations, history, and
 
 To proceed to production launch on Day 6, the following criteria must be satisfied:
 
-* **Zero-Regression Execution**: All component verification scripts (`results`, `recommendations`, `history`, `insights`) must exit with code `0`.
-* **Clean Database Migration State**: The local/remote Prisma schema must be in sync with no drifted columns or pending migrations.
-* **Security Validation Audit**: All service calls must enforce tenancy/candidate checks, preventing data leaks.
+- **Zero-Regression Execution**: All component verification scripts (`results`, `recommendations`, `history`, `insights`) must exit with code `0`.
+- **Clean Database Migration State**: The local/remote Prisma schema must be in sync with no drifted columns or pending migrations.
+- **Security Validation Audit**: All service calls must enforce tenancy/candidate checks, preventing data leaks.
 
 ## 2. Dependency Risk Assessment
 
-| Risk Category | description | Severity | Mitigation Strategy |
-| :--- | :--- | :--- | :--- |
-| **Database Latency** | Supabase database connection delays under concurrent lookups. | Medium | Implement caching at the API controller layer (Redis-based cache for results and recommendations). |
-| **Orphaned Entities** | Deleting evaluations or users leaving dangling skill scores or recommendations in the DB. | Low | Strict schema-level `onDelete: Cascade` rules are configured and validated. |
-| **Unauthorized Access**| Potential ID-guessing (cuid) attempts to view other candidates' results. | High | Direct ownership checks implemented inside service methods (`ResultsService` and `RecommendationsService`). |
+| Risk Category           | description                                                                               | Severity | Mitigation Strategy                                                                                         |
+| :---------------------- | :---------------------------------------------------------------------------------------- | :------- | :---------------------------------------------------------------------------------------------------------- |
+| **Database Latency**    | Supabase database connection delays under concurrent lookups.                             | Medium   | Implement caching at the API controller layer (Redis-based cache for results and recommendations).          |
+| **Orphaned Entities**   | Deleting evaluations or users leaving dangling skill scores or recommendations in the DB. | Low      | Strict schema-level `onDelete: Cascade` rules are configured and validated.                                 |
+| **Unauthorized Access** | Potential ID-guessing (cuid) attempts to view other candidates' results.                  | High     | Direct ownership checks implemented inside service methods (`ResultsService` and `RecommendationsService`). |
 
 ## 3. Production Deployment Gates
 

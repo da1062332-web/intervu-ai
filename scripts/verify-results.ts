@@ -102,21 +102,37 @@ async function run() {
     }
     console.log("Verifying confidence score...");
     if (result.confidenceScore !== 90.0) {
-      throw new Error(`Expected confidenceScore 90.0, got ${result.confidenceScore}`);
+      throw new Error(
+        `Expected confidenceScore 90.0, got ${result.confidenceScore}`,
+      );
     }
     console.log("Verifying skill scores length...");
     if (result.skillScores.length !== 2) {
-      throw new Error(`Expected 2 skill scores, got ${result.skillScores.length}`);
+      throw new Error(
+        `Expected 2 skill scores, got ${result.skillScores.length}`,
+      );
     }
 
     // Verify nested skill scores content
-    const problemSolving = result.skillScores.find((s) => s.skill === "Problem Solving");
-    if (!problemSolving || problemSolving.score !== 85.0 || problemSolving.feedback !== "Great analytical skills") {
+    const problemSolving = result.skillScores.find(
+      (s) => s.skill === "Problem Solving",
+    );
+    if (
+      !problemSolving ||
+      problemSolving.score !== 85.0 ||
+      problemSolving.feedback !== "Great analytical skills"
+    ) {
       throw new Error("Problem Solving skill score mismatch");
     }
 
-    const communication = result.skillScores.find((s) => s.skill === "Communication");
-    if (!communication || communication.score !== 90.0 || communication.feedback !== "Very articulate") {
+    const communication = result.skillScores.find(
+      (s) => s.skill === "Communication",
+    );
+    if (
+      !communication ||
+      communication.score !== 90.0 ||
+      communication.feedback !== "Very articulate"
+    ) {
       throw new Error("Communication skill score mismatch");
     }
 
@@ -127,12 +143,20 @@ async function run() {
     const unauthorizedUserId = `unauth_${createId()}`;
     try {
       await resultsService.getResultDetails(unauthorizedUserId, evaluationId);
-      throw new Error("Expected UnauthorizedResultAccessError but none was thrown");
+      throw new Error(
+        "Expected UnauthorizedResultAccessError but none was thrown",
+      );
     } catch (e: any) {
-      if (e instanceof UnauthorizedResultAccessError || e.name === "UnauthorizedResultAccessError" || e.message?.includes("Unauthorized")) {
+      if (
+        e instanceof UnauthorizedResultAccessError ||
+        e.name === "UnauthorizedResultAccessError" ||
+        e.message?.includes("Unauthorized")
+      ) {
         console.log("Unauthorized access attempt correctly rejected.");
       } else {
-        throw new Error(`Expected UnauthorizedResultAccessError, got: ${e.name || e.message || e}`);
+        throw new Error(
+          `Expected UnauthorizedResultAccessError, got: ${e.name || e.message || e}`,
+        );
       }
     }
 
@@ -152,14 +176,20 @@ async function run() {
     // Teardown
     console.log("Starting teardown...");
     if (evaluationId) {
-      await prisma.skillScore.deleteMany({ where: { evaluationId } }).catch(() => {});
-      await prisma.evaluationResult.delete({ where: { id: evaluationId } }).catch(() => {});
+      await prisma.skillScore
+        .deleteMany({ where: { evaluationId } })
+        .catch(() => {});
+      await prisma.evaluationResult
+        .delete({ where: { id: evaluationId } })
+        .catch(() => {});
     }
     if (testId) {
       await prisma.test.delete({ where: { id: testId } }).catch(() => {});
     }
     if (templateId) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     if (userId) {
       await prisma.user.delete({ where: { id: userId } }).catch(() => {});

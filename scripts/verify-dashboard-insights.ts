@@ -12,7 +12,10 @@ async function run() {
   const prisma = new PrismaService();
   const evaluationRepository = new EvaluationRepository(prisma);
   const performanceRepository = new PerformanceRepository(prisma);
-  const performanceService = new PerformanceService(performanceRepository, evaluationRepository);
+  const performanceService = new PerformanceService(
+    performanceRepository,
+    evaluationRepository,
+  );
 
   let userId: string | null = null;
   const templateIds: string[] = [];
@@ -89,12 +92,16 @@ async function run() {
 
     console.log("Verifying tests completed count...");
     if (summary.testsCompleted !== 3) {
-      throw new Error(`Expected testsCompleted 3, got ${summary.testsCompleted}`);
+      throw new Error(
+        `Expected testsCompleted 3, got ${summary.testsCompleted}`,
+      );
     }
 
     console.log("Verifying average score calculation...");
     if (summary.averageScore !== 80.0) {
-      throw new Error(`Expected averageScore 80.0, got ${summary.averageScore}`);
+      throw new Error(
+        `Expected averageScore 80.0, got ${summary.averageScore}`,
+      );
     }
 
     console.log("Verifying best score calculation...");
@@ -109,7 +116,9 @@ async function run() {
     }
     const actualLastDate = new Date(summary.lastAssessmentDate).getTime();
     if (Math.abs(actualLastDate - expectedLastDate) > 1000) {
-      throw new Error(`Expected lastAssessmentDate ${dates[1].toISOString()}, got ${new Date(summary.lastAssessmentDate).toISOString()}`);
+      throw new Error(
+        `Expected lastAssessmentDate ${dates[1].toISOString()}, got ${new Date(summary.lastAssessmentDate).toISOString()}`,
+      );
     }
 
     console.log("Dashboard insights verification: PASS");
@@ -128,13 +137,17 @@ async function run() {
     // Teardown
     console.log("Starting teardown...");
     for (const evaluationId of evaluationIds) {
-      await prisma.evaluationResult.delete({ where: { id: evaluationId } }).catch(() => {});
+      await prisma.evaluationResult
+        .delete({ where: { id: evaluationId } })
+        .catch(() => {});
     }
     for (const testId of testIds) {
       await prisma.test.delete({ where: { id: testId } }).catch(() => {});
     }
     for (const templateId of templateIds) {
-      await prisma.template.delete({ where: { id: templateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: templateId } })
+        .catch(() => {});
     }
     if (userId) {
       await prisma.user.delete({ where: { id: userId } }).catch(() => {});

@@ -28,9 +28,12 @@ async function runMasterVerification() {
   // 2. Recommendations Verification
   try {
     console.log("\n--> Running verify-recommendations.ts");
-    execSync(`${runner} ${path.join(scriptsDir, "verify-recommendations.ts")}`, {
-      stdio: "inherit",
-    });
+    execSync(
+      `${runner} ${path.join(scriptsDir, "verify-recommendations.ts")}`,
+      {
+        stdio: "inherit",
+      },
+    );
     recommendationsPass = true;
   } catch (err) {
     console.error("verify-recommendations.ts failed.");
@@ -50,9 +53,12 @@ async function runMasterVerification() {
   // 4. Dashboard Insights Verification
   try {
     console.log("\n--> Running verify-dashboard-insights.ts");
-    execSync(`${runner} ${path.join(scriptsDir, "verify-dashboard-insights.ts")}`, {
-      stdio: "inherit",
-    });
+    execSync(
+      `${runner} ${path.join(scriptsDir, "verify-dashboard-insights.ts")}`,
+      {
+        stdio: "inherit",
+      },
+    );
     insightsPass = true;
   } catch (err) {
     console.error("verify-dashboard-insights.ts failed.");
@@ -65,7 +71,8 @@ async function runMasterVerification() {
   console.log(`History: ${historyPass ? "PASS" : "FAIL"}`);
   console.log(`Insights: ${insightsPass ? "PASS" : "FAIL"}`);
 
-  const allPass = resultsPass && recommendationsPass && historyPass && insightsPass;
+  const allPass =
+    resultsPass && recommendationsPass && historyPass && insightsPass;
   console.log(`OVERALL: ${allPass ? "PASS" : "FAIL"}`);
   console.log("==========================================\n");
 

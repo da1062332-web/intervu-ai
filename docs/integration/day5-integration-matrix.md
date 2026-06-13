@@ -4,24 +4,25 @@ This document defines the interface specifications, data structures, and module 
 
 ## Module Ownership & Responsibility
 
-| Feature / Phase | Source Module | target Module / Consumer | Primary Owner | Security Gate / Authorization |
-| :--- | :--- | :--- | :--- | :--- |
-| **Assessment Completion** | `ExecutionModule` | Database / `EvaluationModule` | AI+Full-Stack Integrator | Verifies submission status is `COMPLETED` |
-| **Evaluation Calculations** | `EvaluationModule` | `ResultsModule` | AI+Full-Stack Integrator | Computes overall/technical/communication scores |
-| **Recommendations Engine** | `EvaluationModule` | `ResultsModule` | AI Stack Engineer | Priority mapping (HIGH -> LOW) and skill gap tags |
-| **Results Presentation** | `ResultsModule` | Frontend (Dashboard) | Frontend/Full-Stack | Session verification + user ownership checks |
-| **Dashboard Insights** | `ResultsModule` | Frontend (Metrics UI) | Full-Stack | Aggregated counts, averages, and latest timestamps |
-| **Assessment History** | `ResultsModule` | Frontend (History List) | Full-Stack | Paginated query mapping templates & test history |
+| Feature / Phase             | Source Module      | target Module / Consumer      | Primary Owner            | Security Gate / Authorization                      |
+| :-------------------------- | :----------------- | :---------------------------- | :----------------------- | :------------------------------------------------- |
+| **Assessment Completion**   | `ExecutionModule`  | Database / `EvaluationModule` | AI+Full-Stack Integrator | Verifies submission status is `COMPLETED`          |
+| **Evaluation Calculations** | `EvaluationModule` | `ResultsModule`               | AI+Full-Stack Integrator | Computes overall/technical/communication scores    |
+| **Recommendations Engine**  | `EvaluationModule` | `ResultsModule`               | AI Stack Engineer        | Priority mapping (HIGH -> LOW) and skill gap tags  |
+| **Results Presentation**    | `ResultsModule`    | Frontend (Dashboard)          | Frontend/Full-Stack      | Session verification + user ownership checks       |
+| **Dashboard Insights**      | `ResultsModule`    | Frontend (Metrics UI)         | Full-Stack               | Aggregated counts, averages, and latest timestamps |
+| **Assessment History**      | `ResultsModule`    | Frontend (History List)       | Full-Stack               | Paginated query mapping templates & test history   |
 
 ---
 
 ## Interface Specifications & Contracts
 
 ### 1. Results Retrieval Interface (`ResultsService.getResultDetails`)
-* **Inputs**:
+
+- **Inputs**:
   - `userId` (String) - ID of the candidate requestor.
   - `evaluationId` (String) - ID of the evaluation result to retrieve.
-* **Outputs** (`ResultResponseDto`):
+- **Outputs** (`ResultResponseDto`):
   - `id`: String (cuid)
   - `userId`: String
   - `testId`: String (cuid)
@@ -42,10 +43,11 @@ This document defines the interface specifications, data structures, and module 
     - `feedback`: String
 
 ### 2. Recommendations Interface (`RecommendationsService.getRecommendations`)
-* **Inputs**:
+
+- **Inputs**:
   - `userId` (String)
   - `evaluationId` (String)
-* **Outputs** (`RecommendationResponseDto[]`):
+- **Outputs** (`RecommendationResponseDto[]`):
   - `id`: String (cuid)
   - `evaluationId`: String
   - `skill`: String
@@ -55,12 +57,13 @@ This document defines the interface specifications, data structures, and module 
   - `createdAt`: Date/ISOString
 
 ### 3. Assessment History Interface (`PerformanceService.getHistory`)
-* **Inputs**:
+
+- **Inputs**:
   - `userId` (String)
   - `paginationDto` (`PaginationDto`):
     - `page`: Integer (default 1)
     - `limit`: Integer (default 10)
-* **Outputs** (`HistoryResponseDto`):
+- **Outputs** (`HistoryResponseDto`):
   - `items`: Array of `HistoryItemResponseDto`
     - `evaluationId`: String
     - `testId`: String
@@ -75,9 +78,10 @@ This document defines the interface specifications, data structures, and module 
   - `hasPrevious`: Boolean
 
 ### 4. Dashboard Insights Interface (`PerformanceService.getPerformanceSummary`)
-* **Inputs**:
+
+- **Inputs**:
   - `userId` (String)
-* **Outputs** (`PerformanceSummaryResponseDto`):
+- **Outputs** (`PerformanceSummaryResponseDto`):
   - `testsCompleted`: Int
   - `averageScore`: Float
   - `bestScore`: Float
