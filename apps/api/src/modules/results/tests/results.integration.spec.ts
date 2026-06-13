@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
 import { GlobalExceptionFilter } from "@intervu/shared";
 import request from "supertest";
 import { AppModule } from "../../../app.module";
