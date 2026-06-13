@@ -34,4 +34,19 @@ export class GeneratedQuestionRepository extends BaseRepository<
       take: count,
     });
   }
+
+  async findAvailableQuestions(
+    difficulty: DifficultyLevel,
+    excludeIds: string[],
+    limit: number,
+  ): Promise<GeneratedQuestion[]> {
+    return this.db.generatedQuestion.findMany({
+      where: {
+        difficultyLevel: difficulty,
+        id: { notIn: excludeIds },
+      },
+      take: limit,
+      orderBy: { createdAt: "asc" },
+    });
+  }
 }

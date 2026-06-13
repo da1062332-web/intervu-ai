@@ -1,17 +1,15 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
 import { BlueprintDto, BlueprintSectionDto } from "./dto/blueprint.dto";
 import { TestSection } from "@prisma/client";
+import { TestConfigRepository } from "../tests/repositories/test-config.repository";
 
 @Injectable()
 export class BlueprintBuilderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly testConfigRepository: TestConfigRepository) {}
 
   async generateBlueprint(configId: string): Promise<BlueprintDto> {
-    const config = await this.prisma.testConfig.findUnique({
-      where: { id: configId },
-      include: { sections: { orderBy: { orderIndex: "asc" } } },
-    });
+    const config =
+      await this.testConfigRepository.findByIdWithSections(configId);
 
     if (!config) {
       throw new BadRequestException(
@@ -25,7 +23,12 @@ export class BlueprintBuilderService {
       );
     }
 
-    const sections: BlueprintSectionDto[] = config.sections.map(
+    // Sort sections by orderIndex (previously done in Prisma query)
+    const sortedSections = [...config.sections].sort(
+      (a, b) => a.orderIndex - b.orderIndex,
+    );
+
+    const sections: BlueprintSectionDto[] = sortedSections.map(
       (section: TestSection) => ({
         sectionKey: section.sectionKey,
         displayName: section.displayName,
