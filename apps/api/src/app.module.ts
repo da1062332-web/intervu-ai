@@ -20,6 +20,7 @@ import { CorrelationMiddleware, RequestLoggingMiddleware } from "./common";
 import { PrismaModule } from "./prisma/prisma.module";
 import { DashboardModule } from "./modules/dashboard";
 import { TestsModule } from "./modules/tests/tests.module";
+import { ResultsModule } from "./modules/results/results.module";
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { TestsModule } from "./modules/tests/tests.module";
     DecisionModule,
     DashboardModule,
     TestsModule,
+    ResultsModule,
   ],
 })
 export class AppModule implements NestModule {

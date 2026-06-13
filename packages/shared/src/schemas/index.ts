@@ -6,3 +6,4 @@ export * from "./common.schema";
 export * from "./auth.schema";
 export * from "./ai.schema";
 export * from "./config.schema";
+export * from "./results.schema";

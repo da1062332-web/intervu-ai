@@ -40,3 +40,39 @@ export class InternalDomainError extends BaseError {
     super(ErrorCode.INTERNAL_ERROR, message);
   }
 }
+
+/**
+ * Thrown when a requested evaluation result cannot be located.
+ */
+export class ResultNotFoundError extends BaseError {
+  constructor(message = "Evaluation result not found") {
+    super(ErrorCode.NOT_FOUND, message);
+  }
+}
+
+/**
+ * Thrown when a requested recommendation cannot be located.
+ */
+export class RecommendationNotFoundError extends BaseError {
+  constructor(message = "Recommendation not found") {
+    super(ErrorCode.NOT_FOUND, message);
+  }
+}
+
+/**
+ * Thrown when a user's performance summary cannot be located.
+ */
+export class PerformanceSummaryNotFoundError extends BaseError {
+  constructor(message = "Performance summary not found") {
+    super(ErrorCode.NOT_FOUND, message);
+  }
+}
+
+/**
+ * Thrown when a user attempts to access an evaluation result they do not own.
+ */
+export class UnauthorizedResultAccessError extends BaseError {
+  constructor(message = "Unauthorized access to evaluation result") {
+    super(ErrorCode.FORBIDDEN, message);
+  }
+}
