@@ -15,6 +15,7 @@ import {
 
 // eslint-disable-next-line no-restricted-imports
 import { LoginDto, RefreshTokenDto, SignupDto } from "../dto/auth.dto";
+import { RateLimitCategory } from "../../../common";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { Public } from "../decorators/public.decorator";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
@@ -27,6 +28,7 @@ interface RequestMeta {
 }
 
 @ApiTags("auth")
+@RateLimitCategory("auth")
 @Controller("auth")
 @ApiBearerAuth("jwt-auth")
 export class AuthController {

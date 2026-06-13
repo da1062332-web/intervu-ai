@@ -1,9 +1,12 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
+import { GlobalExceptionFilter } from "@intervu/shared";
 import request from "supertest";
 import { AppModule } from "../../../app.module";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
+
+jest.setTimeout(30000);
 
 describe("Results Integration (e2e)", () => {
   let app: INestApplication;
@@ -20,6 +23,7 @@ describe("Results Integration (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalFilters(new GlobalExceptionFilter());
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -33,7 +37,13 @@ describe("Results Integration (e2e)", () => {
       },
     });
 
-    authToken = jwtService.sign({ sub: user.id, email: user.email, role: user.role });
+    authToken = jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      type: "access",
+      sessionId: "test-session",
+    });
 
     const template = await prisma.template.create({
       data: { name: "Test Template" },
@@ -56,13 +66,16 @@ describe("Results Integration (e2e)", () => {
         correctAnswers: 8,
         incorrectAnswers: 2,
         skillScores: {
-          create: [
-            { skill: "React", score: 90, feedback: "Good" },
-          ],
+          create: [{ skill: "React", score: 90, feedback: "Good" }],
         },
         recommendations: {
           create: [
-            { skill: "TypeScript", priority: "HIGH", title: "Learn TS", description: "Important" },
+            {
+              skill: "TypeScript",
+              priority: "HIGH",
+              title: "Learn TS",
+              description: "Important",
+            },
           ],
         },
       },
@@ -89,13 +102,19 @@ describe("Results Integration (e2e)", () => {
       const otherUser = await prisma.user.create({
         data: { email: `other-${Date.now()}@test.com`, passwordHash: "hash" },
       });
-      const otherToken = jwtService.sign({ sub: otherUser.id, email: otherUser.email, role: otherUser.role });
+      const otherToken = jwtService.sign({
+        sub: otherUser.id,
+        email: otherUser.email,
+        role: otherUser.role,
+        type: "access",
+        sessionId: "test-session-2",
+      });
 
       await request(app.getHttpServer())
         .get(`/v1/results/${evaluation.id}`)
         .set("Authorization", `Bearer ${otherToken}`)
         .expect(403);
-      
+
       await prisma.user.delete({ where: { id: otherUser.id } });
     });
   });

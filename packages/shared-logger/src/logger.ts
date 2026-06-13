@@ -28,6 +28,21 @@ export class AppLogger {
     this.logger = pino({
       name: options.name,
       level: options.level || "info",
+      redact: {
+        paths: [
+          "password",
+          "passwordHash",
+          "token",
+          "refreshToken",
+          "authorization",
+          "answers",
+          "prompt",
+          "OPENAI_API_KEY",
+          "JWT_SECRET",
+          "JWT_REFRESH_SECRET",
+        ],
+        censor: "[MASKED]",
+      },
       transport: isDev
         ? {
             target: "pino-pretty",

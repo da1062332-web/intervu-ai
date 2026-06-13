@@ -12,16 +12,20 @@ export class ResultsService {
   constructor(private readonly evaluationRepository: EvaluationRepository) {}
 
   async getEvaluation(evaluationId: string) {
-    const evaluation = await this.evaluationRepository.findEvaluationWithDetails(evaluationId);
+    const evaluation =
+      await this.evaluationRepository.findEvaluationWithDetails(evaluationId);
     if (!evaluation) {
       throw new ResultNotFoundError();
     }
     return evaluation;
   }
 
-  async getResultDetails(userId: string, evaluationId: string): Promise<ResultResponseDto> {
+  async getResultDetails(
+    userId: string,
+    evaluationId: string,
+  ): Promise<ResultResponseDto> {
     const evaluation = await this.getEvaluation(evaluationId);
-    
+
     if (evaluation.userId !== userId) {
       throw new UnauthorizedResultAccessError();
     }

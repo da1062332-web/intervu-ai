@@ -3,9 +3,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class PerformanceRepository {
-  constructor(
-    protected readonly prisma: PrismaService,
-  ) {}
+  constructor(protected readonly prisma: PrismaService) {}
 
   async getAggregatedPerformance(userId: string) {
     const aggregate = await this.prisma.evaluationResult.aggregate({

@@ -44,7 +44,7 @@ describe("Contract Enforcement Regression Tests", () => {
       controllers: [RegressionController],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication({ logger: false });
 
     const reflector = app.get(Reflector);
     app.useGlobalInterceptors(

@@ -23,22 +23,27 @@ export class EvaluationRepository extends BaseRepository<
   }
 
   async findEvaluationWithDetails(evaluationId: string) {
-    return this.model.findUnique({
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      where: { id: evaluationId } as any,
-    }).then(async (result) => {
-      if (!result) return null;
-      // Since BaseRepository's findUnique doesn't support includes, we use db directly
-      return this.db.evaluationResult.findUnique({
-        where: { id: evaluationId },
-        include: {
-          skillScores: true,
-        },
+    return this.model
+      .findUnique({
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        where: { id: evaluationId } as any,
+      })
+      .then(async (result) => {
+        if (!result) return null;
+        // Since BaseRepository's findUnique doesn't support includes, we use db directly
+        return this.db.evaluationResult.findUnique({
+          where: { id: evaluationId },
+          include: {
+            skillScores: true,
+          },
+        });
       });
-    });
   }
 
-  async findByUserIdPaginated(userId: string, paginationOptions: PaginationDto) {
+  async findByUserIdPaginated(
+    userId: string,
+    paginationOptions: PaginationDto,
+  ) {
     const page =
       paginationOptions.page && paginationOptions.page > 0
         ? Math.floor(paginationOptions.page)
