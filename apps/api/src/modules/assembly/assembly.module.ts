@@ -8,6 +8,7 @@ import { AssemblyValidatorService } from "./assembly-validator.service";
 import { AssemblyRepository } from "./assembly.repository";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { QuestionPoolModule } from "../question-pool/question-pool.module";
+import { TestConfigRepository } from "../tests/repositories/test-config.repository";
 
 @Module({
   imports: [PrismaModule, QuestionPoolModule],
@@ -19,6 +20,7 @@ import { QuestionPoolModule } from "../question-pool/question-pool.module";
     SectionBuilderService,
     AssemblyValidatorService,
     AssemblyRepository,
+    TestConfigRepository,
   ],
   exports: [AssemblyService],
 })

@@ -181,6 +181,7 @@ model EvaluationResult {
   @@index([testId])
   @@index([testInstanceId])
   @@index([overallScore])
+  @@index([createdAt])
 }
 
 model SkillScore {
@@ -289,6 +290,7 @@ model TestInstance {
   @@index([userId])
   @@index([status])
   @@index([testConfigId])
+  @@index([createdAt])
 }
 
 model TestInstanceSection {
@@ -325,6 +327,7 @@ model TestInstanceQuestion {
   @@unique([sectionId, questionOrder])
   @@index([testInstanceId])
   @@index([sectionId])
+  @@index([questionId])
 }
 
 enum SubmissionStatus {
