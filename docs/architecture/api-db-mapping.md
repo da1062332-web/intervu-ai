@@ -14,6 +14,10 @@ This document maps each MVP backend endpoint to its underlying database tables t
 | `/api/v1/dashboard/analytics-summary` | GET         | `EvaluationResult`, `SkillScore`                        | Retrieves aggregated scores per skill category.                         |
 | `/api/v1/dashboard/recent-activity`   | GET         | `Test`, `EvaluationResult`                              | Retrieves list of chronological candidate events.                       |
 | `/api/v1/tests/configs`               | GET         | `TestConfig`, `TestSection`, `TestRule`                 | Returns active test configuration blueprints.                           |
+| `/api/v1/admin/configs`               | POST        | `ExamConfig`                                            | Creates a new Exam Configuration.                                       |
+| `/api/v1/admin/configs`               | GET         | `ExamConfig`                                            | Lists active Exam Configurations.                                       |
+| `/api/v1/admin/configs/:id`           | GET         | `ExamConfig`                                            | Retrieves a single Exam Configuration details.                          |
+
 
 ---
 

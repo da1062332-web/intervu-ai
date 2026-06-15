@@ -7,3 +7,5 @@ export * from "./auth.schema";
 export * from "./ai.schema";
 export * from "./config.schema";
 export * from "./results.schema";
+export * from "./exam-config.schema";
+

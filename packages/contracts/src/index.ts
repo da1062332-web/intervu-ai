@@ -21,5 +21,9 @@ export * from "./schemas/candidate-question.schema";
 export * from "./schemas/question-validation.schema";
 export * from "./schemas/question-pool.schema";
 
-// Validation Helpers
 export * from "./question-validation-helpers";
+
+// Exam Config Contracts
+export * from "./exam-config.dto";
+export * from "./schemas/exam-config.schema";
+
