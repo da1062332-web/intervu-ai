@@ -5,11 +5,12 @@ import { CreateExamConfigDto } from "@intervu/shared";
 
 @Injectable()
 export class ExamConfigService {
-  constructor(
-    private readonly examConfigRepository: ExamConfigRepository,
-  ) {}
+  constructor(private readonly examConfigRepository: ExamConfigRepository) {}
 
-  async create(dto: CreateExamConfigDto, createdBy?: string): Promise<ExamConfig> {
+  async create(
+    dto: CreateExamConfigDto,
+    createdBy?: string,
+  ): Promise<ExamConfig> {
     return this.examConfigRepository.create({
       ...dto,
       createdBy,

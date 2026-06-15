@@ -18,7 +18,6 @@ This document maps each MVP backend endpoint to its underlying database tables t
 | `/api/v1/admin/configs`               | GET         | `ExamConfig`                                            | Lists active Exam Configurations.                                       |
 | `/api/v1/admin/configs/:id`           | GET         | `ExamConfig`                                            | Retrieves a single Exam Configuration details.                          |
 
-
 ---
 
 ## Mapping Compliance Rules

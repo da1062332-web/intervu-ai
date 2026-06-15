@@ -26,7 +26,6 @@ import { TestsModule } from "./modules/tests/tests.module";
 import { ResultsModule } from "./modules/results/results.module";
 import { AdminConfigModule } from "./modules/admin-config/admin-config.module";
 
-
 @Module({
   imports: [
     // Infrastructure — must be first (ConfigModule provides env vars)

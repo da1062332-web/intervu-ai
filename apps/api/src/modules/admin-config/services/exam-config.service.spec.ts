@@ -109,7 +109,9 @@ describe("ExamConfigService", () => {
     it("should throw NotFoundException if config does not exist", async () => {
       repository.findById.mockResolvedValueOnce(null);
 
-      await expect(service.findOne("config-not-exist")).rejects.toThrow(NotFoundException);
+      await expect(service.findOne("config-not-exist")).rejects.toThrow(
+        NotFoundException,
+      );
       expect(repository.findById).toHaveBeenCalledWith("config-not-exist");
     });
 
@@ -128,7 +130,9 @@ describe("ExamConfigService", () => {
 
       repository.findById.mockResolvedValueOnce(inactiveConfig);
 
-      await expect(service.findOne("config-inactive")).rejects.toThrow(NotFoundException);
+      await expect(service.findOne("config-inactive")).rejects.toThrow(
+        NotFoundException,
+      );
       expect(repository.findById).toHaveBeenCalledWith("config-inactive");
     });
   });

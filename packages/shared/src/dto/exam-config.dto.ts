@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { CreateExamConfig, UpdateExamConfig } from "@intervu-ai/contracts";
-import { CreateExamConfigSchema, UpdateExamConfigSchema } from "@intervu-ai/contracts";
+import {
+  CreateExamConfigSchema,
+  UpdateExamConfigSchema,
+} from "@intervu-ai/contracts";
 import { z } from "zod";
 
 export class CreateExamConfigDto implements CreateExamConfig {
@@ -16,8 +19,12 @@ export class CreateExamConfigDto implements CreateExamConfig {
   @ApiProperty({ example: 30, minimum: 1 })
   totalQuestions!: number;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, CreateExamConfigDto> {
-    return CreateExamConfigSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, CreateExamConfigDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, CreateExamConfigDto> {
+    return CreateExamConfigSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, CreateExamConfigDto>;
   }
 }
 
@@ -34,7 +41,11 @@ export class UpdateExamConfigDto implements UpdateExamConfig {
   @ApiPropertyOptional({ example: 45 })
   totalQuestions?: number;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, UpdateExamConfigDto> {
-    return UpdateExamConfigSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, UpdateExamConfigDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, UpdateExamConfigDto> {
+    return UpdateExamConfigSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, UpdateExamConfigDto>;
   }
 }

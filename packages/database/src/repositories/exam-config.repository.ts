@@ -42,7 +42,10 @@ export class ExamConfigRepository {
     }
   }
 
-  async update(id: string, data: Prisma.ExamConfigUpdateInput): Promise<ExamConfig> {
+  async update(
+    id: string,
+    data: Prisma.ExamConfigUpdateInput,
+  ): Promise<ExamConfig> {
     this.validate(id);
     this.validate(data);
     try {
