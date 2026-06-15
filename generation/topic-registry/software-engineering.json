@@ -1,0 +1,113 @@
+[
+  {
+    "id": "se-ds-001",
+    "domain": "Software Engineering",
+    "topic": "Data Structures",
+    "subtopic": "Arrays & Hashing",
+    "concepts": ["Traversal", "Prefix Sum", "Sliding Window", "Two Pointers"],
+    "tags": ["data-structures", "core", "arrays", "hashing"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": false
+    }
+  },
+  {
+    "id": "se-algo-001",
+    "domain": "Software Engineering",
+    "topic": "Algorithms",
+    "subtopic": "Sorting & Searching",
+    "concepts": ["Binary Search", "Quick Sort", "Merge Sort", "Two-Way Search"],
+    "tags": ["algorithms", "core", "sorting", "searching"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "se-oop-001",
+    "domain": "Software Engineering",
+    "topic": "OOP",
+    "subtopic": "Object-Oriented Design",
+    "concepts": [
+      "Inheritance",
+      "Polymorphism",
+      "SOLID Principles",
+      "Encapsulation"
+    ],
+    "tags": ["oop", "design", "clean-code", "principles"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "se-dbms-001",
+    "domain": "Software Engineering",
+    "topic": "DBMS",
+    "subtopic": "Relational Databases",
+    "concepts": ["Indexing", "Transactions & ACID", "Joins", "Normalization"],
+    "tags": ["dbms", "sql", "databases", "storage"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "se-os-001",
+    "domain": "Software Engineering",
+    "topic": "Operating Systems",
+    "subtopic": "Concurrency & Processes",
+    "concepts": [
+      "Deadlocks",
+      "Multithreading",
+      "CPU Scheduling",
+      "Virtual Memory"
+    ],
+    "tags": ["os", "systems", "concurrency", "memory"],
+    "difficultySupport": {
+      "easy": false,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "se-net-001",
+    "domain": "Software Engineering",
+    "topic": "Computer Networks",
+    "subtopic": "Protocols & Architecture",
+    "concepts": [
+      "TCP/IP Handshake",
+      "DNS Resolution",
+      "HTTP/HTTPS Protocol",
+      "Websockets"
+    ],
+    "tags": ["networks", "protocols", "internet", "security"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": false
+    }
+  },
+  {
+    "id": "se-sd-001",
+    "domain": "Software Engineering",
+    "topic": "System Design",
+    "subtopic": "Distributed Systems",
+    "concepts": [
+      "Load Balancing",
+      "Caching Strategies",
+      "Distributed Consensus",
+      "Sharding"
+    ],
+    "tags": ["system-design", "distributed-systems", "architecture", "scaling"],
+    "difficultySupport": {
+      "easy": false,
+      "medium": false,
+      "hard": true
+    }
+  }
+]
