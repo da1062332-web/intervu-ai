@@ -414,3 +414,33 @@ model PerformanceSummary {
 
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model ExamConfig {
+  id                String   @id @default(uuid())
+  name              String
+  role              String
+  durationMinutes   Int
+  totalQuestions    Int
+  isActive          Boolean  @default(true)
+  createdBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  versions          ExamConfigVersion[]
+
+  @@index([createdAt])
+  @@index([role])
+}
+
+model ExamConfigVersion {
+  id             String   @id @default(uuid())
+  examConfigId   String
+  versionNumber  Int
+  snapshot       Json
+  createdAt      DateTime @default(now())
+
+  examConfig     ExamConfig @relation(fields: [examConfigId], references: [id])
+
+  @@unique([examConfigId, versionNumber])
+  @@index([examConfigId])
+}
