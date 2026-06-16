@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useDifficultyDistribution, useUpdateDifficultyDistribution } from '../hooks/use-difficulty-distribution';
+import {
+  useDifficultyDistribution,
+  useUpdateDifficultyDistribution,
+} from '../hooks/use-difficulty-distribution';
 import { UpdateDifficultyDistributionSchema } from '@intervu/shared';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -38,7 +41,7 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
 
     const payload = { easyCount, mediumCount, hardCount };
     const validation = UpdateDifficultyDistributionSchema.safeParse(payload);
-    
+
     if (!validation.success) {
       toast.error('Validation Error', { description: 'Counts cannot be negative.' });
       return;
@@ -48,61 +51,61 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
       onSuccess: () => {
         toast.success('Success', { description: 'Difficulty distribution updated successfully.' });
       },
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast.error('Error', { description: err.message || 'Failed to update distribution.' });
-      }
+      },
     });
   };
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className='space-y-6 max-w-xl'>
       <div>
-        <h3 className="text-lg font-medium">Difficulty Distribution</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className='text-lg font-medium'>Difficulty Distribution</h3>
+        <p className='text-sm text-muted-foreground'>
           Configure the number of Easy, Medium, and Hard questions for this exam configuration.
         </p>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="easy-count">Easy Questions</Label>
-          <Input 
-            id="easy-count"
-            type="number"
+      <div className='space-y-4'>
+        <div className='space-y-2'>
+          <Label htmlFor='easy-count'>Easy Questions</Label>
+          <Input
+            id='easy-count'
+            type='number'
             min={0}
-            value={easyCount} 
-            onChange={(e) => setEasyCount(Math.max(0, parseInt(e.target.value) || 0))} 
+            value={easyCount}
+            onChange={(e) => setEasyCount(Math.max(0, parseInt(e.target.value) || 0))}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="medium-count">Medium Questions</Label>
-          <Input 
-            id="medium-count"
-            type="number" 
+        <div className='space-y-2'>
+          <Label htmlFor='medium-count'>Medium Questions</Label>
+          <Input
+            id='medium-count'
+            type='number'
             min={0}
-            value={mediumCount} 
-            onChange={(e) => setMediumCount(Math.max(0, parseInt(e.target.value) || 0))} 
+            value={mediumCount}
+            onChange={(e) => setMediumCount(Math.max(0, parseInt(e.target.value) || 0))}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="hard-count">Hard Questions</Label>
-          <Input 
-            id="hard-count"
-            type="number" 
+        <div className='space-y-2'>
+          <Label htmlFor='hard-count'>Hard Questions</Label>
+          <Input
+            id='hard-count'
+            type='number'
             min={0}
-            value={hardCount} 
-            onChange={(e) => setHardCount(Math.max(0, parseInt(e.target.value) || 0))} 
+            value={hardCount}
+            onChange={(e) => setHardCount(Math.max(0, parseInt(e.target.value) || 0))}
           />
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t">
-        <div className="font-medium text-lg">
-          Total Questions: <span className="text-primary">{totalQuestions}</span>
+      <div className='flex items-center justify-between pt-4 border-t'>
+        <div className='font-medium text-lg'>
+          Total Questions: <span className='text-primary'>{totalQuestions}</span>
         </div>
         <Button onClick={handleSave} disabled={isPending}>
           {isPending ? 'Saving...' : 'Save Distribution'}

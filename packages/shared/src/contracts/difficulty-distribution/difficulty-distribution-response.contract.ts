@@ -11,4 +11,6 @@ export const DifficultyDistributionResponseSchema = z.object({
   updatedAt: z.union([z.date(), z.string()]),
 });
 
-export type DifficultyDistributionResponse = z.infer<typeof DifficultyDistributionResponseSchema>;
+export type DifficultyDistributionResponse = z.infer<
+  typeof DifficultyDistributionResponseSchema
+>;

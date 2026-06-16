@@ -12,8 +12,9 @@ export const examSectionsApi = {
       });
       console.log(`[DEBUG] Section API - Response Status: SUCCESS`);
       return response;
-    } catch (error: any) {
-      console.log(`[DEBUG] Section API - Response Status: ERROR ${error?.status || 'Unknown'}`);
+    } catch (error: unknown) {
+      const err = error as { status?: number };
+      console.log(`[DEBUG] Section API - Response Status: ERROR ${err?.status || 'Unknown'}`);
       throw error;
     }
   },

@@ -31,7 +31,8 @@ export const resultsService = {
     };
   },
 
-  async getRecommendations(_id: string): Promise<Recommendation[]> {
+  async getRecommendations(id: string): Promise<Recommendation[]> {
+    if (!id) throw new Error('Result ID is required');
     await new Promise((resolve) => setTimeout(resolve, 400));
     return mockRecommendations;
   },

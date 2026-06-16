@@ -14,7 +14,7 @@ export const useUpdateDifficultyDistribution = (configId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: UpdateDifficultyDistributionDto) => 
+    mutationFn: (payload: UpdateDifficultyDistributionDto) =>
       difficultyDistributionService.updateDifficultyDistribution(configId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['difficulty-distribution', configId] });

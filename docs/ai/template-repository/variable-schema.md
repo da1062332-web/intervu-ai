@@ -21,7 +21,7 @@ export interface VariableSchema {
   /**
    * Allowed data types for the variable.
    */
-  variableType: 'number' | 'string' | 'boolean' | 'code' | 'array';
+  variableType: "number" | "string" | "boolean" | "code" | "array";
 
   /**
    * Indicates whether the variable must be populated during hydration.
@@ -59,7 +59,7 @@ export interface VariableConstraints {
   /**
    * Type of elements contained in the array (if variableType is "array").
    */
-  arrayElementType?: 'number' | 'string' | 'boolean';
+  arrayElementType?: "number" | "string" | "boolean";
 }
 ```
 
@@ -68,6 +68,7 @@ export interface VariableConstraints {
 ## 2. Examples of Variable Schemas
 
 ### 1. Numeric Range (`AGE`)
+
 ```json
 {
   "variableName": "AGE",
@@ -81,6 +82,7 @@ export interface VariableConstraints {
 ```
 
 ### 2. Choice Array (`ARRAY_SIZE`)
+
 ```json
 {
   "variableName": "ARRAY_SIZE",
@@ -93,6 +95,7 @@ export interface VariableConstraints {
 ```
 
 ### 3. Code Block (`CODE_SNIPPET`)
+
 ```json
 {
   "variableName": "CODE_SNIPPET",

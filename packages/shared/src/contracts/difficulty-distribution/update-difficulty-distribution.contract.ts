@@ -6,4 +6,6 @@ export const UpdateDifficultyDistributionSchema = z.object({
   hardCount: z.number().int().min(0),
 });
 
-export type UpdateDifficultyDistributionDto = z.infer<typeof UpdateDifficultyDistributionSchema>;
+export type UpdateDifficultyDistributionDto = z.infer<
+  typeof UpdateDifficultyDistributionSchema
+>;

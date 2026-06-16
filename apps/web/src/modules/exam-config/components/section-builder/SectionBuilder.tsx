@@ -77,7 +77,7 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
     let errorDesc = 'There was an error while fetching the sections.';
 
     // The error object thrown by react-query comes from apiClient, which normalizes it to NormalizedApiError
-    const queryError = error as any; // Cast to access custom status property
+    const queryError = error as { status?: number }; // Cast to access custom status property
     const status = queryError?.status;
 
     if (status === 400) {

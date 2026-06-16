@@ -51,7 +51,7 @@ export interface QuestionTemplate {
   /**
    * Targeted cognitive difficulty.
    */
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 
   /**
    * Template body text containing placeholder variables wrapped in brackets.
@@ -76,25 +76,31 @@ export interface QuestionTemplate {
 ## 2. Field Details and Constraints
 
 ### `id`
-* **Type:** `string` (UUID).
-* **Constraints:** Must be unique globally.
+
+- **Type:** `string` (UUID).
+- **Constraints:** Must be unique globally.
 
 ### `code`
-* **Type:** `string`.
-* **Constraints:** Must be unique globally. Used for human troubleshooting, auditing, and seeding. Suggested pattern: `{domain}-{subtopic}-{concept}-{type}-{index}`.
+
+- **Type:** `string`.
+- **Constraints:** Must be unique globally. Used for human troubleshooting, auditing, and seeding. Suggested pattern: `{domain}-{subtopic}-{concept}-{type}-{index}`.
 
 ### `templateType`
-* **Type:** `string`.
-* **Constraints:** Must match a valid template type from the `template-types.md` catalog.
+
+- **Type:** `string`.
+- **Constraints:** Must match a valid template type from the `template-types.md` catalog.
 
 ### `topicId` / `conceptId`
-* **Type:** `string`.
-* **Constraints:** Must reference active values registered in the upstream **Topic Registry**.
+
+- **Type:** `string`.
+- **Constraints:** Must reference active values registered in the upstream **Topic Registry**.
 
 ### `difficulty`
-* **Type:** `'easy' | 'medium' | 'hard'`.
-* **Constraints:** Constrained by the Topic Registry's `difficultySupport` matrix for the matched concept.
+
+- **Type:** `'easy' | 'medium' | 'hard'`.
+- **Constraints:** Constrained by the Topic Registry's `difficultySupport` matrix for the matched concept.
 
 ### `templateText`
-* **Type:** `string`.
-* **Constraints:** Non-empty string. Every placeholder string wrapped in curly braces (e.g. `{VAR}`) must have a matching variable definition inside the `variableSchema` array.
+
+- **Type:** `string`.
+- **Constraints:** Non-empty string. Every placeholder string wrapped in curly braces (e.g. `{VAR}`) must have a matching variable definition inside the `variableSchema` array.

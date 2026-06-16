@@ -37,12 +37,17 @@ export class DifficultyDistributionController {
 
   @Put()
   @ValidateResponse(DifficultyDistributionResponseSchema)
-  @ApiOperation({ summary: "Update or create difficulty distribution for an exam config" })
+  @ApiOperation({
+    summary: "Update or create difficulty distribution for an exam config",
+  })
   @ApiParam({ name: "configId", description: "Exam configuration ID (UUID)" })
-  @ApiOkResponse({ description: "Difficulty distribution updated successfully" })
+  @ApiOkResponse({
+    description: "Difficulty distribution updated successfully",
+  })
   async update(
     @Param("configId", ParseUUIDPipe) configId: string,
-    @Body(new ZodValidationPipe(UpdateDifficultyDistributionSchema)) dto: UpdateDifficultyDistributionDto,
+    @Body(new ZodValidationPipe(UpdateDifficultyDistributionSchema))
+    dto: UpdateDifficultyDistributionDto,
   ) {
     return this.service.updateDifficultyDistribution(configId, dto);
   }

@@ -1,13 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DifficultyDistributionService } from '../services/difficulty-distribution.service';
-import { DifficultyDistributionRepository } from '../repositories/difficulty-distribution.repository';
-import { BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { DifficultyDistributionService } from "../services/difficulty-distribution.service";
+import { DifficultyDistributionRepository } from "../repositories/difficulty-distribution.repository";
+import { BadRequestException } from "@nestjs/common";
 
-describe('DifficultyDistributionService', () => {
+describe("DifficultyDistributionService", () => {
   let service: DifficultyDistributionService;
   let repository: jest.Mocked<DifficultyDistributionRepository>;
 
-  const mockConfigId = 'd8f8d6d4-8d9e-4f1a-b6e9-9c5d8a8b1c1d';
+  const mockConfigId = "d8f8d6d4-8d9e-4f1a-b6e9-9c5d8a8b1c1d";
 
   beforeEach(async () => {
     const repositoryMock = {
@@ -25,13 +25,15 @@ describe('DifficultyDistributionService', () => {
       ],
     }).compile();
 
-    service = module.get<DifficultyDistributionService>(DifficultyDistributionService);
+    service = module.get<DifficultyDistributionService>(
+      DifficultyDistributionService,
+    );
     repository = module.get(DifficultyDistributionRepository);
   });
 
-  it('should get difficulty distribution', async () => {
+  it("should get difficulty distribution", async () => {
     repository.findByConfigId.mockResolvedValue({
-      id: 'dist-1',
+      id: "dist-1",
       examConfigId: mockConfigId,
       easyCount: 1,
       mediumCount: 2,
@@ -47,9 +49,9 @@ describe('DifficultyDistributionService', () => {
     expect(repository.findByConfigId).toHaveBeenCalledWith(mockConfigId);
   });
 
-  it('should calculate total and upsert', async () => {
+  it("should calculate total and upsert", async () => {
     repository.upsert.mockResolvedValue({
-      id: 'dist-1',
+      id: "dist-1",
       examConfigId: mockConfigId,
       easyCount: 1,
       mediumCount: 2,
@@ -74,19 +76,33 @@ describe('DifficultyDistributionService', () => {
     });
   });
 
-  it('should throw INVALID_DISTRIBUTION if total is 0', async () => {
-    await expect(service.updateDifficultyDistribution(mockConfigId, {
-      easyCount: 0,
-      mediumCount: 0,
-      hardCount: 0,
-    })).rejects.toThrow(new BadRequestException({ code: 'INVALID_DISTRIBUTION', message: 'At least one question must exist.' }));
+  it("should throw INVALID_DISTRIBUTION if total is 0", async () => {
+    await expect(
+      service.updateDifficultyDistribution(mockConfigId, {
+        easyCount: 0,
+        mediumCount: 0,
+        hardCount: 0,
+      }),
+    ).rejects.toThrow(
+      new BadRequestException({
+        code: "INVALID_DISTRIBUTION",
+        message: "At least one question must exist.",
+      }),
+    );
   });
 
-  it('should throw INVALID_DISTRIBUTION if any count is negative', async () => {
-    await expect(service.updateDifficultyDistribution(mockConfigId, {
-      easyCount: -1,
-      mediumCount: 2,
-      hardCount: 0,
-    })).rejects.toThrow(new BadRequestException({ code: 'INVALID_DISTRIBUTION', message: 'Question counts cannot be negative' }));
+  it("should throw INVALID_DISTRIBUTION if any count is negative", async () => {
+    await expect(
+      service.updateDifficultyDistribution(mockConfigId, {
+        easyCount: -1,
+        mediumCount: 2,
+        hardCount: 0,
+      }),
+    ).rejects.toThrow(
+      new BadRequestException({
+        code: "INVALID_DISTRIBUTION",
+        message: "Question counts cannot be negative",
+      }),
+    );
   });
 });

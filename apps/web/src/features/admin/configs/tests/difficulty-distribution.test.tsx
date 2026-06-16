@@ -1,8 +1,11 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DifficultyDistributionTab } from '../components/difficulty-distribution-tab';
-import { useDifficultyDistribution, useUpdateDifficultyDistribution } from '../hooks/use-difficulty-distribution';
+import {
+  useDifficultyDistribution,
+  useUpdateDifficultyDistribution,
+} from '../hooks/use-difficulty-distribution';
 import { toast } from 'sonner';
 
 // Mock dependencies
@@ -32,31 +35,31 @@ describe('DifficultyDistributionTab', () => {
 
   it('renders correctly with initial data', () => {
     render(<DifficultyDistributionTab configId={mockConfigId} />);
-    expect(screen.getByLabelText(/Easy Questions/i)).toHaveValue(1);
-    expect(screen.getByLabelText(/Medium Questions/i)).toHaveValue(2);
-    expect(screen.getByLabelText(/Hard Questions/i)).toHaveValue(3);
+    (expect(screen.getByLabelText(/Easy Questions/i)) as any).toHaveValue(1);
+    (expect(screen.getByLabelText(/Medium Questions/i)) as any).toHaveValue(2);
+    (expect(screen.getByLabelText(/Hard Questions/i)) as any).toHaveValue(3);
     // Live total calculation: 1+2+3 = 6
-    expect(screen.getByText('6')).toBeInTheDocument();
+    (expect(screen.getByText('6')) as any).toBeInTheDocument();
   });
 
   it('updates live total calculation without API call', () => {
     render(<DifficultyDistributionTab configId={mockConfigId} />);
-    
+
     const easyInput = screen.getByLabelText(/Easy Questions/i);
     fireEvent.change(easyInput, { target: { value: '5' } });
-    
+
     // Live total calculation: 5+2+3 = 10
-    expect(screen.getByText('10')).toBeInTheDocument();
+    (expect(screen.getByText('10')) as any).toBeInTheDocument();
   });
 
   it('validates negative values on input', () => {
     render(<DifficultyDistributionTab configId={mockConfigId} />);
-    
+
     const easyInput = screen.getByLabelText(/Easy Questions/i);
     fireEvent.change(easyInput, { target: { value: '-5' } });
-    
+
     // Math.max(0, -5) -> 0
-    expect(easyInput).toHaveValue(0);
+    (expect(easyInput) as any).toHaveValue(0);
   });
 
   it('shows error if total is zero on save', () => {
@@ -66,7 +69,7 @@ describe('DifficultyDistributionTab', () => {
     });
 
     render(<DifficultyDistributionTab configId={mockConfigId} />);
-    
+
     const saveButton = screen.getByText(/Save Distribution/i);
     fireEvent.click(saveButton);
 
@@ -76,13 +79,13 @@ describe('DifficultyDistributionTab', () => {
 
   it('calls mutation and shows success toast on successful save', async () => {
     render(<DifficultyDistributionTab configId={mockConfigId} />);
-    
+
     const saveButton = screen.getByText(/Save Distribution/i);
     fireEvent.click(saveButton);
 
     expect(mockUpdateDistribution).toHaveBeenCalledWith(
       { easyCount: 1, mediumCount: 2, hardCount: 3 },
-      expect.any(Object)
+      expect.any(Object),
     );
 
     // Simulate success callback
