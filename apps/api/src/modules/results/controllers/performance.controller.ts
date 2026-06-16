@@ -19,10 +19,14 @@ import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { PerformanceService } from "../services/performance.service";
 import { HistoryPaginationDto } from "@intervu/shared";
 
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
+
 @ApiTags("Performance")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ResponseInterceptor)
+@Roles(UserRole.ADMIN, UserRole.CANDIDATE)
 @Controller("v1/users/me")
 export class PerformanceController {
   constructor(private readonly performanceService: PerformanceService) {}

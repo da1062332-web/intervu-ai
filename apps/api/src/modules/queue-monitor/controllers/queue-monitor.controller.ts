@@ -6,6 +6,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -16,11 +17,16 @@ import {
 } from "@nestjs/swagger";
 
 import { z } from "zod";
+import { UserRole } from "@prisma/client";
 import { ValidateResponse } from "@intervu/shared";
 import { QueueService, QueueType } from "../../../queue";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
 
 @ApiTags("queue-monitor")
 @ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("queue")
 export class QueueMonitorController {
   constructor(private readonly queueService: QueueService) {}

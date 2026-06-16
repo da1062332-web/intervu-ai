@@ -5,14 +5,20 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ValidateResponse } from "@intervu/shared";
 import { z } from "zod";
 import { EvaluationService } from "../services/evaluation.service";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("evaluation")
 @ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN, UserRole.CANDIDATE)
 @Controller("evaluation")
 export class EvaluationController {
   constructor(private readonly evaluationService: EvaluationService) {}

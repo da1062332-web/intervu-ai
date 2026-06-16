@@ -17,16 +17,19 @@ import {
 import { StartTestService } from "./start-test.service";
 import { StartTestDto } from "./dto/start-test.dto";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("tests")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.CANDIDATE)
 @Controller({ path: "tests", version: "1" })
 export class StartTestController {
   constructor(private readonly startTestService: StartTestService) {}
 
   @Post("start")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Start a new test assessment" })
   @ApiResponse({
     status: HttpStatus.OK,

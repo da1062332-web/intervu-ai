@@ -21,10 +21,14 @@ import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { ResultsService } from "../services/results.service";
 import { RecommendationsService } from "../services/recommendations.service";
 
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
+
 @ApiTags("Results")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ResponseInterceptor)
+@Roles(UserRole.ADMIN, UserRole.CANDIDATE)
 @Controller("v1/results")
 export class ResultsController {
   constructor(
