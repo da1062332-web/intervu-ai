@@ -8,7 +8,7 @@ export function useAuth() {
   const status = useAuthStore((state) => state.status);
   const hydrated = useSessionStore((state) => state.hydrated);
   const accessToken = useSessionStore((state) => state.accessToken);
-  
+
   const isAuthenticated = useMemo(() => {
     return hydrated && !!accessToken && status === 'authenticated' && !isAccessTokenExpired();
   }, [hydrated, accessToken, status]);
@@ -18,6 +18,6 @@ export function useAuth() {
     role: user?.role,
     isAuthenticated,
     isHydrated: hydrated,
-    isLoading: useAuthStore((state) => state.isLoading) || !hydrated
+    isLoading: useAuthStore((state) => state.isLoading) || !hydrated,
   };
 }

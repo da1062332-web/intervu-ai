@@ -7,7 +7,7 @@ import {
   Settings,
   FileCog,
   Briefcase,
-  PlayCircle
+  PlayCircle,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -26,14 +26,10 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     },
     {
       heading: 'Account',
-      items: [
-        { label: 'Profile', route: '/admin/profile', icon: User },
-      ],
+      items: [{ label: 'Profile', route: '/admin/profile', icon: User }],
     },
   ],
-  secondary: [
-    { label: 'Settings', route: '/admin/settings', icon: Settings },
-  ],
+  secondary: [{ label: 'Settings', route: '/admin/settings', icon: Settings }],
 };
 
 export const CANDIDATE_NAV_CONFIG: NavConfig = {
@@ -49,14 +45,10 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
     },
     {
       heading: 'Account',
-      items: [
-        { label: 'Profile', route: '/candidate/profile', icon: User },
-      ],
+      items: [{ label: 'Profile', route: '/candidate/profile', icon: User }],
     },
   ],
-  secondary: [
-    { label: 'Settings', route: '/candidate/settings', icon: Settings },
-  ],
+  secondary: [{ label: 'Settings', route: '/candidate/settings', icon: Settings }],
 };
 
 export const NAV_CONFIG = ADMIN_NAV_CONFIG; // For backwards compatibility if any other place imports it
@@ -72,7 +64,9 @@ export function getActiveNavItem(pathname: string) {
   return ALL_NAV_ITEMS.find(
     (item) =>
       pathname === item.route ||
-      (item.route !== '/admin/dashboard' && item.route !== '/candidate/dashboard' && pathname.startsWith(item.route)),
+      (item.route !== '/admin/dashboard' &&
+        item.route !== '/candidate/dashboard' &&
+        pathname.startsWith(item.route)),
   );
 }
 

@@ -5,7 +5,7 @@ export const examConfigsApi = {
   getConfigs: () => {
     return apiClient.request<ExamConfig[]>('/admin/configs');
   },
-  
+
   getConfig: (configId: string) => {
     return apiClient.request<ExamConfig>(`/admin/configs/${configId}`);
   },

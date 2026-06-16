@@ -64,16 +64,16 @@ export function ConfigTable({ configs }: ConfigTableProps) {
               <td className='px-4 py-3 hidden lg:table-cell'>
                 {config.createdAt ? new Date(config.createdAt).toLocaleDateString() : 'N/A'}
               </td>
-              <td className="px-4 py-3 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Button variant="ghost" size="icon" aria-label="View" asChild>
+              <td className='px-4 py-3 text-right'>
+                <div className='flex items-center justify-end gap-2'>
+                  <Button variant='ghost' size='icon' aria-label='View' asChild>
                     <Link href={`/admin/configs/${config.id}`}>
-                      <Eye className="w-4 h-4" />
+                      <Eye className='w-4 h-4' />
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="icon" aria-label="Edit" asChild>
+                  <Button variant='ghost' size='icon' aria-label='Edit' asChild>
                     <Link href={`/admin/configs/${config.id}`}>
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className='w-4 h-4' />
                     </Link>
                   </Button>
                 </div>

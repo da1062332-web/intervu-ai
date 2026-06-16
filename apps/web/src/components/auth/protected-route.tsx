@@ -7,10 +7,10 @@ import { Loading } from '@/components/ui/loading';
 import { useAuthStore } from '@/store/auth.store';
 import { useSessionStore } from '@/store/session.store';
 
-export function ProtectedRoute({ 
+export function ProtectedRoute({
   children,
-  allowedRoles 
-}: { 
+  allowedRoles,
+}: {
   children: React.ReactNode;
   allowedRoles?: string[];
 }) {

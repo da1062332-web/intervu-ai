@@ -10,20 +10,20 @@ interface SectionCardProps {
 
 export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
   return (
-    <Card className="flex flex-col h-full">
+    <Card className='flex flex-col h-full'>
       <CardHeader>
         <CardTitle>{section.name}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+      <CardContent className='flex-1 space-y-2 text-sm text-gray-600 dark:text-gray-400'>
         <p>Questions: {section.questionCount}</p>
         <p>Duration: {section.durationMinutes} mins</p>
         <p>Order: {section.displayOrder}</p>
       </CardContent>
-      <CardFooter className="gap-2">
-        <Button variant="outline" size="sm" onClick={() => onEdit(section)}>
+      <CardFooter className='gap-2'>
+        <Button variant='outline' size='sm' onClick={() => onEdit(section)}>
           Edit
         </Button>
-        <Button variant="destructive" size="sm" onClick={() => onDelete(section)}>
+        <Button variant='destructive' size='sm' onClick={() => onDelete(section)}>
           Delete
         </Button>
       </CardFooter>

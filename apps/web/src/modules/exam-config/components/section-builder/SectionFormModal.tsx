@@ -71,56 +71,62 @@ export function SectionFormModal({
 
   return (
     <Modal isOpen={isOpen} onClose={isLoading ? () => {} : onClose}>
-      <div className="flex flex-col space-y-4">
+      <div className='flex flex-col space-y-4'>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
             {initialData ? 'Edit Section' : 'Add Section'}
           </h2>
         </div>
-        
-        <form id="section-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Section Name</Label>
-            <Input id="name" {...register('name')} placeholder="e.g. Quantitative Aptitude" />
-            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="questionCount">Question Count</Label>
-            <Input 
-              id="questionCount" 
-              type="number" 
-              {...register('questionCount', { valueAsNumber: true })} 
-            />
-            {errors.questionCount && <p className="text-xs text-red-500">{errors.questionCount.message}</p>}
+
+        <form id='section-form' onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='name'>Section Name</Label>
+            <Input id='name' {...register('name')} placeholder='e.g. Quantitative Aptitude' />
+            {errors.name && <p className='text-xs text-red-500'>{errors.name.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="durationMinutes">Duration (Minutes)</Label>
-            <Input 
-              id="durationMinutes" 
-              type="number" 
-              {...register('durationMinutes', { valueAsNumber: true })} 
+          <div className='space-y-2'>
+            <Label htmlFor='questionCount'>Question Count</Label>
+            <Input
+              id='questionCount'
+              type='number'
+              {...register('questionCount', { valueAsNumber: true })}
             />
-            {errors.durationMinutes && <p className="text-xs text-red-500">{errors.durationMinutes.message}</p>}
+            {errors.questionCount && (
+              <p className='text-xs text-red-500'>{errors.questionCount.message}</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="displayOrder">Display Order</Label>
-            <Input 
-              id="displayOrder" 
-              type="number" 
-              {...register('displayOrder', { valueAsNumber: true })} 
+          <div className='space-y-2'>
+            <Label htmlFor='durationMinutes'>Duration (Minutes)</Label>
+            <Input
+              id='durationMinutes'
+              type='number'
+              {...register('durationMinutes', { valueAsNumber: true })}
             />
-            {errors.displayOrder && <p className="text-xs text-red-500">{errors.displayOrder.message}</p>}
+            {errors.durationMinutes && (
+              <p className='text-xs text-red-500'>{errors.durationMinutes.message}</p>
+            )}
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='displayOrder'>Display Order</Label>
+            <Input
+              id='displayOrder'
+              type='number'
+              {...register('displayOrder', { valueAsNumber: true })}
+            />
+            {errors.displayOrder && (
+              <p className='text-xs text-red-500'>{errors.displayOrder.message}</p>
+            )}
           </div>
         </form>
 
-        <div className="flex items-center justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+        <div className='flex items-center justify-end space-x-2 pt-4'>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button type="submit" form="section-form" disabled={isLoading}>
+          <Button type='submit' form='section-form' disabled={isLoading}>
             {isLoading ? 'Saving...' : 'Save'}
           </Button>
         </div>
