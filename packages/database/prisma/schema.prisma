@@ -18,12 +18,12 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  sessions          Session[]
-  refreshTokens     RefreshToken[]
-  templates         Template[]
-  tests             Test[]
-  testInstances     TestInstance[]
-  evaluationResults EvaluationResult[]
+  sessions           Session[]
+  refreshTokens      RefreshToken[]
+  templates          Template[]
+  tests              Test[]
+  testInstances      TestInstance[]
+  evaluationResults  EvaluationResult[]
   performanceSummary PerformanceSummary?
 
   @@index([deletedAt])
@@ -154,19 +154,19 @@ model SystemConfig {
 }
 
 model EvaluationResult {
-  id                 String  @id @default(cuid())
-  testId             String? @unique
-  testInstanceId     String? @unique
+  id                 String   @id @default(cuid())
+  testId             String?  @unique
+  testInstanceId     String?  @unique
   userId             String
-  communicationScore Float   @default(0.0)
-  technicalScore     Float   @default(0.0)
+  communicationScore Float    @default(0.0)
+  technicalScore     Float    @default(0.0)
   confidenceScore    Float
   overallScore       Float
-  overallRating      Float   @default(0.0)
+  overallRating      Float    @default(0.0)
   notes              String?
-  totalQuestions     Int     @default(0)
-  correctAnswers     Int     @default(0)
-  incorrectAnswers   Int     @default(0)
+  totalQuestions     Int      @default(0)
+  correctAnswers     Int      @default(0)
+  incorrectAnswers   Int      @default(0)
   evaluatedAt        DateTime @default(now())
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -192,7 +192,7 @@ model SkillScore {
   feedback     String
   createdAt    DateTime @default(now())
 
-  evaluation   EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  evaluation EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
 
   @@index([evaluationId])
 }
@@ -278,8 +278,8 @@ model TestInstance {
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
-  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  testConfig       TestConfig            @relation(fields: [testConfigId], references: [id], onDelete: Restrict)
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testConfig       TestConfig             @relation(fields: [testConfigId], references: [id], onDelete: Restrict)
   sections         TestInstanceSection[]
   questions        TestInstanceQuestion[]
   candidateAnswers CandidateAnswer[]
@@ -304,8 +304,8 @@ model TestInstanceSection {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  testInstance    TestInstance           @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-  questions       TestInstanceQuestion[]
+  testInstance TestInstance           @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  questions    TestInstanceQuestion[]
 
   @@unique([testInstanceId, orderIndex])
   @@index([testInstanceId])
@@ -321,8 +321,8 @@ model TestInstanceQuestion {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  testInstance     TestInstance        @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-  section          TestInstanceSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  testInstance TestInstance        @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  section      TestInstanceSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId, questionOrder])
   @@index([testInstanceId])
@@ -347,7 +347,7 @@ model CandidateAnswer {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  testInstance      TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  testInstance TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
 
   @@unique([testInstanceId, questionId])
   @@index([testInstanceId])
@@ -362,7 +362,7 @@ model ExecutionState {
   lastActivityAt       DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  testInstance         TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  testInstance TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
 
   @@index([testInstanceId])
 }
@@ -376,7 +376,7 @@ model Submission {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  testInstance   TestInstance     @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  testInstance TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
 
   @@index([testInstanceId])
   @@index([status])
@@ -397,49 +397,65 @@ model Recommendation {
   description  String
   createdAt    DateTime               @default(now())
 
-  evaluation   EvaluationResult       @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  evaluation EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
 
   @@index([evaluationId])
   @@index([priority])
 }
 
 model PerformanceSummary {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  testsCompleted     Int      @default(0)
-  averageScore       Float    @default(0.0)
-  bestScore          Float    @default(0.0)
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  testsCompleted     Int       @default(0)
+  averageScore       Float     @default(0.0)
+  bestScore          Float     @default(0.0)
   lastAssessmentDate DateTime?
-  updatedAt          DateTime @updatedAt
+  updatedAt          DateTime  @updatedAt
 
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ExamConfig {
-  id                String   @id @default(uuid())
-  name              String
-  role              String
-  durationMinutes   Int
-  totalQuestions    Int
-  isActive          Boolean  @default(true)
-  createdBy         String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(uuid())
+  name            String
+  role            String
+  durationMinutes Int
+  totalQuestions  Int
+  isActive        Boolean  @default(true)
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  versions          ExamConfigVersion[]
+  versions               ExamConfigVersion[]
+  difficultyDistribution DifficultyDistribution?
 
   @@index([createdAt])
   @@index([role])
 }
 
-model ExamConfigVersion {
+model DifficultyDistribution {
   id             String   @id @default(uuid())
-  examConfigId   String
-  versionNumber  Int
-  snapshot       Json
+  examConfigId   String   @unique
+  easyCount      Int
+  mediumCount    Int
+  hardCount      Int
+  totalQuestions Int
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  examConfig     ExamConfig @relation(fields: [examConfigId], references: [id])
+  examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+
+  @@index([examConfigId])
+}
+
+model ExamConfigVersion {
+  id            String   @id @default(uuid())
+  examConfigId  String
+  versionNumber Int
+  snapshot      Json
+  createdAt     DateTime @default(now())
+
+  examConfig ExamConfig @relation(fields: [examConfigId], references: [id])
 
   @@unique([examConfigId, versionNumber])
   @@index([examConfigId])

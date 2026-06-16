@@ -28,6 +28,7 @@ import { DashboardModule } from "./modules/dashboard";
 import { TestsModule } from "./modules/tests/tests.module";
 import { ResultsModule } from "./modules/results/results.module";
 import { AdminConfigModule } from "./modules/admin-config/admin-config.module";
+import { DifficultyDistributionModule } from "./modules/difficulty-distribution/difficulty-distribution.module";
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { AdminConfigModule } from "./modules/admin-config/admin-config.module";
     TestsModule,
     ResultsModule,
     AdminConfigModule,
+    DifficultyDistributionModule,
   ],
   providers: [
     {

@@ -3,12 +3,12 @@ import { PrismaClient } from "@prisma/client";
 export async function seedExamConfig(prisma: PrismaClient) {
   console.log("Seeding Exam Config...");
 
-  const existingExamConfig = await prisma.examConfig.findFirst({
+  let existingExamConfig = await prisma.examConfig.findFirst({
     where: { name: "Software Engineer Screening", role: "Software Engineer" },
   });
 
   if (!existingExamConfig) {
-    await prisma.examConfig.create({
+    existingExamConfig = await prisma.examConfig.create({
       data: {
         name: "Software Engineer Screening",
         role: "Software Engineer",
@@ -19,5 +19,24 @@ export async function seedExamConfig(prisma: PrismaClient) {
     console.log("Seeded ExamConfig: Software Engineer Screening");
   } else {
     console.log("ExamConfig already seeded");
+  }
+
+  const existingDistribution = await prisma.difficultyDistribution.findUnique({
+    where: { examConfigId: existingExamConfig.id },
+  });
+
+  if (!existingDistribution) {
+    await prisma.difficultyDistribution.create({
+      data: {
+        examConfigId: existingExamConfig.id,
+        easyCount: 10,
+        mediumCount: 15,
+        hardCount: 5,
+        totalQuestions: 30,
+      },
+    });
+    console.log("Seeded DifficultyDistribution for ExamConfig");
+  } else {
+    console.log("DifficultyDistribution already seeded");
   }
 }
