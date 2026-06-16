@@ -30,10 +30,13 @@ import {
 } from "@intervu/shared";
 import { UserEntity } from "../entities/user.entity";
 import { SessionEntity } from "../entities/session.entity";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("users")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
+@Roles(UserRole.CANDIDATE)
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

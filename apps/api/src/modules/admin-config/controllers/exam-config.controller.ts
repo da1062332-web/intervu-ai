@@ -27,10 +27,13 @@ import {
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("admin-configs")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("admin/configs")
 export class ExamConfigController {
   constructor(private readonly examConfigService: ExamConfigService) {}

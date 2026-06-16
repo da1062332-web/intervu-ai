@@ -9,12 +9,15 @@ import {
 
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { TestsService } from "../services/tests.service";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { TestConfigsResponseDto } from "../dto/available-config.dto";
 
 @ApiTags("tests")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
+@Roles(UserRole.CANDIDATE)
 @Controller("tests")
 export class TestsController {
   constructor(private readonly testsService: TestsService) {}

@@ -2,6 +2,9 @@ import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { CustomThrottlerGuard } from "./common";
+import { RolesGuard } from "./modules/auth/guards/roles.guard";
+import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
+
 
 import { ConfigModule, rateLimitConfig } from "./config";
 import { CacheModule } from "./cache";
@@ -61,6 +64,14 @@ import { AdminConfigModule } from "./modules/admin-config/admin-config.module";
     {
       provide: APP_GUARD,
       useClass: CustomThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

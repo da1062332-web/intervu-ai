@@ -1,11 +1,13 @@
-import { Controller, Get, Patch, Body } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiOkResponse, ApiBody } from "@nestjs/swagger";
+import { Controller, Get, Patch, Body, UseGuards } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiOkResponse, ApiBody, ApiBearerAuth } from "@nestjs/swagger";
 import { SystemConfigService } from "../services/system-config.service";
 // eslint-disable-next-line no-restricted-imports
 import { SystemConfigDto } from "../dto/system-config.dto";
 // eslint-disable-next-line no-restricted-imports
 import { UpdateSystemConfigDto } from "../dto/update-system-config.dto";
-import { Template } from "@prisma/client";
+import { Template, UserRole } from "@prisma/client";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
 import {
   ValidateResponse,
   SystemConfigSchema,
@@ -13,6 +15,9 @@ import {
 } from "@intervu/shared";
 
 @ApiTags("config")
+@ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("config")
 export class SystemConfigController {
   constructor(private readonly configService: SystemConfigService) {}

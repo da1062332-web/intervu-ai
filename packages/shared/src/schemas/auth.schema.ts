@@ -17,7 +17,7 @@ export const AuthUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   name: z.string().nullable().optional(),
-  roles: z.array(z.string()).optional(),
+  role: z.enum(["ADMIN", "CANDIDATE"]),
   sessionId: z.string().optional(),
 });
 

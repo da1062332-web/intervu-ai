@@ -4,6 +4,7 @@ export const UserSchema = z.object({
   id: z.string().cuid(),
   email: z.string().email(),
   name: z.string().min(1).max(100).optional(),
+  role: z.enum(["ADMIN", "CANDIDATE"]),
   createdAt: z.union([z.date(), z.string()]),
 });
 

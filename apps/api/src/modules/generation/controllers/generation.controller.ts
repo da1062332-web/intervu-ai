@@ -6,6 +6,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -21,9 +22,14 @@ import { GenerateQuestionRequestDto } from "@intervu/shared";
 import { GenerationDataSchema } from "@intervu-ai/contracts";
 import { ValidateResponse } from "@intervu/shared";
 import { GenerationService } from "../services/generation.service";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("generation")
 @ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("generation")
 export class GenerationController {
   constructor(private readonly generationService: GenerationService) {}
