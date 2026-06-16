@@ -450,22 +450,6 @@ model ExamSection {
   @@index([displayOrder])
 }
 
-model ExamSection {
-  id              String      @id @default(cuid())
-  examConfigId    String
-  name            String
-  questionCount   Int
-  durationMinutes Int?
-  displayOrder    Int
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  examConfig      ExamConfig  @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
-
-  @@unique([examConfigId, displayOrder])
-  @@index([examConfigId])
-  @@index([displayOrder])
-}
-
 model DifficultyDistribution {
   id             String   @id @default(uuid())
   examConfigId   String   @unique
