@@ -1,0 +1,45 @@
+{
+  "id": "tpl_7e2d1c1a-d4c2-411a-8291-ea1c3b1e8d91",
+  "code": "se-lang-py-offbyone-debugging",
+  "name": "Python Array Loop Off-By-One Debugging",
+  "templateType": "debugging",
+  "topicId": "se-lang-003",
+  "conceptId": "Array Indexing",
+  "difficulty": "medium",
+  "templateText": "The following Python function is intended to return the last N elements of a list, but it contains a bug. If the input list is [1, 2, 3, 4, 5] and N is {TARGET_N}, the function slice return contains an off-by-one offset of {OFFSET}. Identify the bug and select the correct fix.\n\n```python\ndef get_last_elements(lst, n):\n    # Intent: lst[len(lst) - n : ]\n    return lst[len(lst) - n + {OFFSET} : ]\n```",
+  "variableSchema": [
+    {
+      "variableName": "TARGET_N",
+      "variableType": "number",
+      "required": true,
+      "constraints": {
+        "min": 1,
+        "max": 4
+      }
+    },
+    {
+      "variableName": "OFFSET",
+      "variableType": "number",
+      "required": true,
+      "constraints": {
+        "choices": [1, -1]
+      }
+    }
+  ],
+  "active": true,
+  "exampleHydratedQuestion": {
+    "questionText": "The following Python function is intended to return the last N elements of a list, but it contains a bug. If the input list is [1, 2, 3, 4, 5] and N is 2, the function slice return contains an off-by-one offset of 1. Identify the bug and select the correct fix.\n\n```python\ndef get_last_elements(lst, n):\n    # Intent: lst[len(lst) - n : ]\n    return lst[len(lst) - n + 1 : ]\n```",
+    "options": [
+      "Change line 3 to: return lst[len(lst) - n : ]",
+      "Change line 3 to: return lst[len(lst) - n - 1 : ]",
+      "Change line 3 to: return lst[len(lst) - n + 2 : ]",
+      "Change line 3 to: return lst[ : len(lst) - n ]"
+    ],
+    "correctAnswer": "Change line 3 to: return lst[len(lst) - n : ]",
+    "explanation": "To get the last N elements of a list of length L, the slice should start at index `L - n`. Adding `1` to the starting index shifts the start index to the right, causing it to return only N-1 elements instead of N.",
+    "difficulty": "medium",
+    "topicId": "se-lang-003",
+    "conceptId": "Array Indexing",
+    "templateId": "tpl_7e2d1c1a-d4c2-411a-8291-ea1c3b1e8d91"
+  }
+}

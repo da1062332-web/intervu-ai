@@ -1,0 +1,32 @@
+{
+  "id": "tpl_f39a9b21-42db-4299-a9a3-5c2bf96e2b10",
+  "code": "se-ds-array-basic-mcq",
+  "name": "Basic Array Manipulation MCQ",
+  "templateType": "mcq",
+  "topicId": "se-ds-001",
+  "conceptId": "Array Traversal",
+  "difficulty": "easy",
+  "templateText": "In a programming language, we traverse a simple 1D array of size {ARRAY_SIZE} elements. If we perform a basic lookup for a value that does not exist in the array, how many element comparisons will be made in the worst-case scenario using linear search?",
+  "variableSchema": [
+    {
+      "variableName": "ARRAY_SIZE",
+      "variableType": "number",
+      "required": true,
+      "constraints": {
+        "min": 10,
+        "max": 1000
+      }
+    }
+  ],
+  "active": true,
+  "exampleHydratedQuestion": {
+    "questionText": "In a programming language, we traverse a simple 1D array of size 50 elements. If we perform a basic lookup for a value that does not exist in the array, how many element comparisons will be made in the worst-case scenario using linear search?",
+    "options": ["25", "49", "50", "100"],
+    "correctAnswer": "50",
+    "explanation": "Linear search traverses all elements sequentially. In the worst-case scenario (element not found), it compares the target with every element in the array, making exactly N comparisons where N = 50.",
+    "difficulty": "easy",
+    "topicId": "se-ds-001",
+    "conceptId": "Array Traversal",
+    "templateId": "tpl_f39a9b21-42db-4299-a9a3-5c2bf96e2b10"
+  }
+}

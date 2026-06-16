@@ -1,0 +1,41 @@
+{
+  "id": "tpl_2b8d4e92-d6c1-4f1b-aa31-ea0d1f92ba52",
+  "code": "se-lang-js-closures-output",
+  "name": "JavaScript Closure Execution Output",
+  "templateType": "code-output",
+  "topicId": "se-lang-003",
+  "conceptId": "Closures & Scope",
+  "difficulty": "medium",
+  "templateText": "What is the console output of the following JavaScript code execution?\n\n```javascript\nfunction createCounter() {\n  let count = {INITIAL_VALUE};\n  return function() {\n    count += {STEP};\n    return count;\n  };\n}\nconst counter = createCounter();\ncounter();\nconsole.log(counter());\n```",
+  "variableSchema": [
+    {
+      "variableName": "INITIAL_VALUE",
+      "variableType": "number",
+      "required": true,
+      "constraints": {
+        "min": 0,
+        "max": 10
+      }
+    },
+    {
+      "variableName": "STEP",
+      "variableType": "number",
+      "required": true,
+      "constraints": {
+        "min": 1,
+        "max": 5
+      }
+    }
+  ],
+  "active": true,
+  "exampleHydratedQuestion": {
+    "questionText": "What is the console output of the following JavaScript code execution?\n\n```javascript\nfunction createCounter() {\n  let count = 5;\n  return function() {\n    count += 2;\n    return count;\n  };\n}\nconst counter = createCounter();\ncounter();\nconsole.log(counter());\n```",
+    "options": ["5", "7", "9", "11"],
+    "correctAnswer": "9",
+    "explanation": "Calling createCounter() initializes `count` to 5. The first call to counter() increments count by 2 (making it 7) and returns 7. The second call counter() inside console.log() increments count by another 2 (making it 9) and logs 9.",
+    "difficulty": "medium",
+    "topicId": "se-lang-003",
+    "conceptId": "Closures & Scope",
+    "templateId": "tpl_2b8d4e92-d6c1-4f1b-aa31-ea0d1f92ba52"
+  }
+}
