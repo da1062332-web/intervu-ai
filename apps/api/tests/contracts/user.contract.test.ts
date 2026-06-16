@@ -6,6 +6,7 @@ describe("User Contract", () => {
     const payload = {
       id: "cmqw29wmxp0001q9vxhgs0em6",
       email: "test@example.com",
+      role: "CANDIDATE",
       createdAt: new Date(),
     };
 

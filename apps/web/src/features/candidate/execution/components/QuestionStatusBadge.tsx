@@ -4,10 +4,16 @@ import { cn } from '@/lib/utils';
 interface QuestionStatusBadgeProps {
   index: number;
   status: QuestionStatus;
+  isAnswered?: boolean;
   onClick: () => void;
 }
 
-export function QuestionStatusBadge({ index, status, onClick }: QuestionStatusBadgeProps) {
+export function QuestionStatusBadge({
+  index,
+  status,
+  isAnswered,
+  onClick,
+}: QuestionStatusBadgeProps) {
   const styles: Record<QuestionStatus, string> = {
     ANSWERED: 'bg-primary text-primary-foreground border-transparent',
     UNANSWERED:
@@ -20,19 +26,18 @@ export function QuestionStatusBadge({ index, status, onClick }: QuestionStatusBa
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center justify-center w-10 h-10 rounded-md text-sm font-medium transition-colors border',
-        {
-          'bg-primary text-primary-foreground border-primary hover:bg-primary/90':
-            status === 'ANSWERED',
-          'bg-secondary text-secondary-foreground border-secondary hover:bg-secondary/80':
-            status === 'CURRENT',
-          'bg-background text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground':
-            status === 'UNANSWERED',
-        },
+        'relative flex items-center justify-center w-10 h-10 rounded-md text-sm font-medium transition-colors border',
+        styles[status],
       )}
       aria-label={`Question ${index + 1}, Status: ${status.toLowerCase()}`}
     >
       {index + 1}
+      {isAnswered && status !== 'ANSWERED' && (
+        <span className='absolute -top-1 -right-1 flex h-3 w-3' aria-hidden='true'>
+          <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75'></span>
+          <span className='relative inline-flex rounded-full h-3 w-3 bg-green-500 border border-white dark:border-gray-900'></span>
+        </span>
+      )}
     </button>
   );
 }

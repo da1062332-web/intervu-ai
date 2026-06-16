@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['ADMIN']}>
       <DashboardLayout>{children}</DashboardLayout>
     </ProtectedRoute>
   );

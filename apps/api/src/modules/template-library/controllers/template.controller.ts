@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -20,7 +21,7 @@ import {
   ApiParam,
   ApiQuery,
 } from "@nestjs/swagger";
-import { DifficultyLevel } from "@prisma/client";
+import { DifficultyLevel, UserRole } from "@prisma/client";
 
 import { CreateTemplateDto, UpdateTemplateDto } from "@intervu/shared";
 import {
@@ -32,9 +33,13 @@ import {
   TemplateRemoveSchema,
 } from "@intervu/shared";
 import { TemplateService } from "../services/template.service";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
 
 @ApiTags("templates")
 @ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("templates")
 export class TemplateController {
   constructor(private readonly templateService: TemplateService) {}

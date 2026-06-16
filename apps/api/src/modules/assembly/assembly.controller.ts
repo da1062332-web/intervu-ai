@@ -6,21 +6,36 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { AssemblyService } from "./assembly.service";
 import { CreateAssemblyDto } from "./dto/create-assembly.dto";
 import {
   AssemblyBuildResponseDto,
   AssemblyGetResponseDto,
 } from "./dto/assembly-response.dto";
-import { TestInstanceSection, TestInstanceQuestion } from "@prisma/client";
+import {
+  TestInstanceSection,
+  TestInstanceQuestion,
+  UserRole,
+} from "@prisma/client";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { Roles } from "../auth/decorators/roles.decorator";
 
 type PopulatedSection = TestInstanceSection & {
   questions: TestInstanceQuestion[];
 };
 
 @ApiTags("Assembly Engine")
+@ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("api/v1/assembly")
 export class AssemblyController {
   constructor(private readonly assemblyService: AssemblyService) {}
@@ -45,6 +60,7 @@ export class AssemblyController {
   }
 
   @Get(":id")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ApiOperation({ summary: "Get an assembled Test Instance" })
   @ApiResponse({ status: 200, type: AssemblyGetResponseDto })
   async getAssembly(@Param("id") id: string): Promise<AssemblyGetResponseDto> {

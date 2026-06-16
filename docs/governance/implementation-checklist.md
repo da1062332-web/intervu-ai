@@ -32,12 +32,18 @@ Developers must copy, complete, and include this checklist in their PR descripti
 
 ### 5. Testing & Validation Check
 
-- [ ] The local codebase passes the validation suite with zero errors or warnings:
-  - `npm run check:structure`
+- [ ] Local API `.env` file includes `OPENAI_API_KEY=sk-dummy-key-for-local-development` for environment validation.
+- [ ] The local codebase passes the complete validation suite with zero errors:
+  - `npm run format`
+  - `npm run lint:fix`
   - `npm run lint`
+  - `npm run check:structure`
   - `npm run type-check`
+  - `npm run build`
   - `npm run test`
-- [ ] The codebase builds successfully: `npm run build`.
+  - `npm run test:integration`
+  - `npm run test:contracts`
+  - `npm run test:regression`
 
 ### 6. Documentation Check
 

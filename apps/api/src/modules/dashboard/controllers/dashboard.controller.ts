@@ -17,9 +17,13 @@ import { DashboardActivityItemEntity } from "../entities/dashboard-activity-item
 // eslint-disable-next-line no-restricted-imports
 import { DashboardResponseDto } from "../dto/dashboard-response.dto";
 
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
+
 @ApiTags("dashboard")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
+@Roles(UserRole.CANDIDATE)
 @Controller("dashboard")
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}

@@ -25,9 +25,13 @@ import { SubmissionService } from "../services/submission.service";
 // eslint-disable-next-line no-restricted-imports
 import { CandidateAnswerDto } from "../dto";
 
+import { Roles } from "@/modules/auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
+
 @ApiTags("execution")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("jwt-auth")
+@Roles(UserRole.CANDIDATE)
 @Controller("tests")
 export class AnswerController {
   constructor(

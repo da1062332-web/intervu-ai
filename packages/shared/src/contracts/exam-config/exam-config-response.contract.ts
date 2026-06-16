@@ -13,3 +13,5 @@ export const ExamConfigResponseSchema = z.object({
 });
 
 export const ExamConfigListResponseSchema = z.array(ExamConfigResponseSchema);
+
+export type ExamConfigResponse = z.infer<typeof ExamConfigResponseSchema>;

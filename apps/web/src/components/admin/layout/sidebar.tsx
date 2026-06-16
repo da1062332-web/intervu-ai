@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-import { NAV_CONFIG } from '@/config/navigation.config';
+import { ADMIN_NAV_CONFIG, CANDIDATE_NAV_CONFIG } from '@/config/navigation.config';
 import { useLayoutStore } from '@/store/layout.store';
 import { useAuthStore } from '@/store/auth.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
@@ -104,6 +104,9 @@ export function Sidebar() {
   const user = useAuthStore((state) => state.user);
   const { isActive } = useActiveRoute();
 
+  const navConfig = user?.role === 'CANDIDATE' ? CANDIDATE_NAV_CONFIG : ADMIN_NAV_CONFIG;
+  const dashboardHref = user?.role === 'CANDIDATE' ? '/candidate/dashboard' : '/admin/dashboard';
+
   const userInitial = (user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
   const userName = user?.fullName ?? user?.email ?? 'User';
   const userEmail = user?.email ?? '';
@@ -126,7 +129,7 @@ export function Sidebar() {
         )}
       >
         <Link
-          href='/admin/dashboard'
+          href={dashboardHref}
           className='flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-lg'
           aria-label='Go to dashboard'
         >
@@ -142,7 +145,7 @@ export function Sidebar() {
       {/* ── Nav Body ── */}
       <div className='flex-1 overflow-y-auto overflow-x-hidden py-4'>
         <nav className='space-y-6 px-3' aria-label='Sidebar navigation'>
-          {NAV_CONFIG.primary.map((group) => (
+          {navConfig.primary.map((group) => (
             <div key={group.heading} className='space-y-1'>
               {!collapsed && (
                 <p className='mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70'>
@@ -173,7 +176,7 @@ export function Sidebar() {
 
       {/* ── Bottom Section ── */}
       <div className='shrink-0 border-t border-border p-3 space-y-1'>
-        {NAV_CONFIG.secondary.map((item) => (
+        {navConfig.secondary.map((item) => (
           <SidebarNavItem
             key={item.route}
             label={item.label}

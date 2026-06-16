@@ -32,9 +32,9 @@ export default function LoginPage() {
       notifySuccess('Welcome back.');
 
       if (data.user.role === 'CANDIDATE') {
-        router.push('/candidate/dashboard');
+        router.replace('/candidate/dashboard');
       } else {
-        router.push('/admin/dashboard');
+        router.replace('/admin/dashboard');
       }
     },
     onError: (error) => {
