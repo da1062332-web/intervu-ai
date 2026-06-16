@@ -17,7 +17,7 @@ export function QuestionPalette() {
           {palette.map((status, index) => {
             const questionId = questions[index]?.id;
             const isAnswered = questionId ? !!answers[questionId]?.selectedOptionId : false;
-            
+
             return (
               <QuestionStatusBadge
                 key={`palette-${index}`}

@@ -79,7 +79,10 @@ describe("ExamSectionService", () => {
       const result = await service.createSection(configId, dto);
 
       expect(configRepo.findById).toHaveBeenCalledWith(configId);
-      expect(sectionRepo.findByConfigAndOrder).toHaveBeenCalledWith(configId, dto.displayOrder);
+      expect(sectionRepo.findByConfigAndOrder).toHaveBeenCalledWith(
+        configId,
+        dto.displayOrder,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -193,7 +196,10 @@ describe("ExamSectionService", () => {
       const expectedResult = {
         ...existingSection,
         ...dto,
-        durationMinutes: dto.durationMinutes !== undefined ? dto.durationMinutes : existingSection.durationMinutes,
+        durationMinutes:
+          dto.durationMinutes !== undefined
+            ? dto.durationMinutes
+            : existingSection.durationMinutes,
       };
       sectionRepo.update.mockResolvedValueOnce(expectedResult);
 
@@ -234,7 +240,9 @@ describe("ExamSectionService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      sectionRepo.findByConfigAndOrder.mockResolvedValueOnce(conflictingSection);
+      sectionRepo.findByConfigAndOrder.mockResolvedValueOnce(
+        conflictingSection,
+      );
 
       await expect(service.updateSection(sectionId, dto)).rejects.toThrow(
         ConflictException,

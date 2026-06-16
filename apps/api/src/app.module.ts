@@ -5,7 +5,6 @@ import { CustomThrottlerGuard } from "./common";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
 
-
 import { ConfigModule, rateLimitConfig } from "./config";
 import { CacheModule } from "./cache";
 import { QueueModule } from "./queue";

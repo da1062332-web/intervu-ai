@@ -22,14 +22,14 @@ const mockConfigs: ExamConfig[] = [
 
 export default function ConfigsPage() {
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
       <ConfigHeader
-        title="Exam Configurations"
-        description="Manage and create exam configurations for assessments."
-        actionHref="/admin/configs/new"
-        actionLabel="Create Config"
+        title='Exam Configurations'
+        description='Manage and create exam configurations for assessments.'
+        actionHref='/admin/configs/new'
+        actionLabel='Create Config'
       />
-      <div className="mt-8">
+      <div className='mt-8'>
         <ConfigTable configs={mockConfigs} />
       </div>
     </div>
