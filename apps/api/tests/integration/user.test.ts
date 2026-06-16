@@ -29,6 +29,7 @@ class TestUsersController {
     return {
       ...(body as Record<string, unknown>),
       id: "cmqw29wmxp0001q9vxhgs0em6",
+      role: "CANDIDATE",
       createdAt: new Date(),
     };
   }
@@ -39,6 +40,7 @@ class TestUsersController {
     return {
       id: "cmqw29wmxp0001q9vxhgs0em6",
       email: "test@example.com",
+      role: "CANDIDATE",
       createdAt: new Date(),
     };
   }
@@ -49,6 +51,7 @@ class TestUsersController {
     return {
       ...(body as Record<string, unknown>),
       id: "cmqw29wmxp0001q9vxhgs0em6",
+      role: "CANDIDATE",
       createdAt: new Date(),
     };
   }
@@ -59,6 +62,7 @@ class TestUsersController {
     return {
       id: "cmqw29wmxp0001q9vxhgs0em6",
       email: "deleted@example.com",
+      role: "CANDIDATE",
       createdAt: new Date(),
     };
   }

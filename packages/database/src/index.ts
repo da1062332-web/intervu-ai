@@ -25,7 +25,10 @@ export * from "./repositories/execution-persistence.repository";
 export * from "./repositories/evaluation-result.repository";
 export * from "./repositories/recommendation.repository";
 export * from "./repositories/performance-summary.repository";
+export * from "./repositories/exam-config.repository";
+export * from "./repositories/exam-section.repository";
 export * from "./utils/hash-question.util";
+
 export * from "./types/database.types";
 export {
   type GeneratedQuestion,

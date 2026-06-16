@@ -5,6 +5,7 @@ import {
   TrendingUp,
   User,
   Settings,
+  FileCog,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -22,6 +23,11 @@ export const NAV_CONFIG: NavConfig = {
           label: 'Dashboard',
           route: '/admin/dashboard',
           icon: LayoutDashboard,
+        },
+        {
+          label: 'Configs',
+          route: '/admin/configs',
+          icon: FileCog,
         },
         {
           label: 'Tests',

@@ -2,6 +2,9 @@ import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { CustomThrottlerGuard } from "./common";
+import { RolesGuard } from "./modules/auth/guards/roles.guard";
+import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
+
 
 import { ConfigModule, rateLimitConfig } from "./config";
 import { CacheModule } from "./cache";
@@ -24,6 +27,7 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { DashboardModule } from "./modules/dashboard";
 import { TestsModule } from "./modules/tests/tests.module";
 import { ResultsModule } from "./modules/results/results.module";
+import { AdminConfigModule } from "./modules/admin-config/admin-config.module";
 
 @Module({
   imports: [
@@ -54,11 +58,20 @@ import { ResultsModule } from "./modules/results/results.module";
     DashboardModule,
     TestsModule,
     ResultsModule,
+    AdminConfigModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: CustomThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

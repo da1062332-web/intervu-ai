@@ -18,9 +18,13 @@ import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
 import { ResumeService } from "../services/resume.service";
 
+import { Roles } from "@/modules/auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
+
 @ApiTags("execution")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("jwt-auth")
+@Roles(UserRole.CANDIDATE)
 @Controller("tests")
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
