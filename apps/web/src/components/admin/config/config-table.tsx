@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Eye, Edit2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 export interface ExamConfig {
   id: string;
@@ -48,11 +49,15 @@ export function ConfigTable({ configs }: ConfigTableProps) {
               </td>
               <td className="px-4 py-3 text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <Button variant="ghost" size="icon" aria-label="View">
-                    <Eye className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" aria-label="View" asChild>
+                    <Link href={`/admin/configs/${config.id}`}>
+                      <Eye className="w-4 h-4" />
+                    </Link>
                   </Button>
-                  <Button variant="ghost" size="icon" aria-label="Edit">
-                    <Edit2 className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" aria-label="Edit" asChild>
+                    <Link href={`/admin/configs/${config.id}`}>
+                      <Edit2 className="w-4 h-4" />
+                    </Link>
                   </Button>
                 </div>
               </td>

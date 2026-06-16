@@ -1,24 +1,11 @@
 import { Metadata } from 'next';
 import { ConfigHeader } from '@/components/admin/config/config-header';
-import { ConfigTable, ExamConfig } from '@/components/admin/config/config-table';
+import { ConfigsPageClient } from './ConfigsPageClient';
 
 export const metadata: Metadata = {
   title: 'Exam Configurations | Admin',
   description: 'Manage exam configurations for different roles',
 };
-
-// Mock data
-const mockConfigs: ExamConfig[] = [
-  {
-    id: '1',
-    name: 'Software Engineer Screening',
-    role: 'Software Engineer',
-    durationMinutes: 60,
-    totalQuestions: 30,
-    status: 'Draft',
-    createdAt: '2023-10-27T10:00:00Z',
-  },
-];
 
 export default function ConfigsPage() {
   return (
@@ -29,9 +16,7 @@ export default function ConfigsPage() {
         actionHref="/admin/configs/new"
         actionLabel="Create Config"
       />
-      <div className="mt-8">
-        <ConfigTable configs={mockConfigs} />
-      </div>
+      <ConfigsPageClient />
     </div>
   );
 }
