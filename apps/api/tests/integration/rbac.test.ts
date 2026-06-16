@@ -1,4 +1,11 @@
-import { Controller, Get, INestApplication, Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  INestApplication,
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+} from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import request from "supertest";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -14,7 +21,7 @@ class DynamicAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
     const roleHeader = req.headers["x-test-role"];
-    
+
     if (roleHeader) {
       req.user = {
         id: "user-1",
@@ -59,7 +66,11 @@ describe("RBAC Authorization Integration Tests", () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [TestAdminController, TestCandidateController, TestSharedController],
+      controllers: [
+        TestAdminController,
+        TestCandidateController,
+        TestSharedController,
+      ],
       providers: [
         {
           provide: APP_GUARD,

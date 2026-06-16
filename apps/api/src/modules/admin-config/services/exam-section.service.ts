@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from "@nestjs/common";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
@@ -13,12 +17,19 @@ export class ExamSectionService {
   async createSection(configId: string, dto: CreateExamSectionDto) {
     const config = await this.configRepo.findById(configId);
     if (!config) {
-      throw new NotFoundException(`Exam configuration with ID ${configId} not found`);
+      throw new NotFoundException(
+        `Exam configuration with ID ${configId} not found`,
+      );
     }
 
-    const existingOrder = await this.sectionRepo.findByConfigAndOrder(configId, dto.displayOrder);
+    const existingOrder = await this.sectionRepo.findByConfigAndOrder(
+      configId,
+      dto.displayOrder,
+    );
     if (existingOrder) {
-      throw new ConflictException(`Display order ${dto.displayOrder} is already in use for this configuration`);
+      throw new ConflictException(
+        `Display order ${dto.displayOrder} is already in use for this configuration`,
+      );
     }
 
     // Build Prisma create data input
@@ -38,7 +49,9 @@ export class ExamSectionService {
   async getSections(configId: string) {
     const config = await this.configRepo.findById(configId);
     if (!config) {
-      throw new NotFoundException(`Exam configuration with ID ${configId} not found`);
+      throw new NotFoundException(
+        `Exam configuration with ID ${configId} not found`,
+      );
     }
     return this.sectionRepo.findManyByConfigId(configId);
   }
@@ -49,10 +62,18 @@ export class ExamSectionService {
       throw new NotFoundException(`Section with ID ${sectionId} not found`);
     }
 
-    if (dto.displayOrder !== undefined && dto.displayOrder !== section.displayOrder) {
-      const existingOrder = await this.sectionRepo.findByConfigAndOrder(section.examConfigId, dto.displayOrder);
+    if (
+      dto.displayOrder !== undefined &&
+      dto.displayOrder !== section.displayOrder
+    ) {
+      const existingOrder = await this.sectionRepo.findByConfigAndOrder(
+        section.examConfigId,
+        dto.displayOrder,
+      );
       if (existingOrder && existingOrder.id !== sectionId) {
-        throw new ConflictException(`Display order ${dto.displayOrder} is already in use for this configuration`);
+        throw new ConflictException(
+          `Display order ${dto.displayOrder} is already in use for this configuration`,
+        );
       }
     }
 
