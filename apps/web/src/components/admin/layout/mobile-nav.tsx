@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
-import { NAV_CONFIG } from '@/config/navigation.config';
+import { ADMIN_NAV_CONFIG, CANDIDATE_NAV_CONFIG } from '@/config/navigation.config';
 import { useLayoutStore } from '@/store/layout.store';
 import { useAuthStore } from '@/store/auth.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
@@ -96,6 +96,9 @@ export function MobileNav() {
     setMobileNavOpen(false);
   }, [pathname, setMobileNavOpen]);
 
+  const navConfig = user?.role === 'CANDIDATE' ? CANDIDATE_NAV_CONFIG : ADMIN_NAV_CONFIG;
+  const dashboardHref = user?.role === 'CANDIDATE' ? '/candidate/dashboard' : '/admin/dashboard';
+
   const userInitial = (user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
   const userName = user?.fullName ?? user?.email ?? 'User';
   const userEmail = user?.email ?? '';
@@ -111,7 +114,7 @@ export function MobileNav() {
         <SheetHeader className='h-16 flex-row items-center border-b border-border px-5'>
           <SheetTitle asChild>
             <Link
-              href='/admin/dashboard'
+              href={dashboardHref}
               className='flex items-center gap-2.5'
               onClick={() => setMobileNavOpen(false)}
             >
@@ -124,7 +127,7 @@ export function MobileNav() {
         {/* ── Nav Body ── */}
         <div className='flex-1 overflow-y-auto py-4 px-3'>
           <nav className='space-y-6' aria-label='Mobile navigation'>
-            {NAV_CONFIG.primary.map((group) => (
+            {navConfig.primary.map((group) => (
               <div key={group.heading} className='space-y-1'>
                 <p className='mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70'>
                   {group.heading}
@@ -148,7 +151,7 @@ export function MobileNav() {
 
         {/* ── Bottom Section ── */}
         <div className='shrink-0 border-t border-border px-3 py-3 space-y-1'>
-          {NAV_CONFIG.secondary.map((item) => (
+          {navConfig.secondary.map((item) => (
             <MobileNavItem
               key={item.route}
               label={item.label}

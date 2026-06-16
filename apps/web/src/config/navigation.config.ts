@@ -5,83 +5,71 @@ import {
   TrendingUp,
   User,
   Settings,
+  FileCog,
+  Briefcase,
+  PlayCircle,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
 
-/**
- * Central navigation configuration for the InterVu AI dashboard.
- * Single source of truth for routes, labels, and icons.
- */
-export const NAV_CONFIG: NavConfig = {
+export const ADMIN_NAV_CONFIG: NavConfig = {
   primary: [
     {
       heading: 'Overview',
       items: [
-        {
-          label: 'Dashboard',
-          route: '/admin/dashboard',
-          icon: LayoutDashboard,
-        },
-        {
-          label: 'Tests',
-          route: '/admin/tests',
-          icon: ClipboardList,
-        },
-        {
-          label: 'Results',
-          route: '/admin/results',
-          icon: BarChart3,
-        },
-        {
-          label: 'Analytics',
-          route: '/admin/analytics',
-          icon: TrendingUp,
-        },
+        { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Configs', route: '/admin/configs', icon: FileCog },
+        { label: 'Tests', route: '/admin/tests', icon: ClipboardList },
+        { label: 'Results', route: '/admin/results', icon: BarChart3 },
+        { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },
       ],
     },
     {
       heading: 'Account',
-      items: [
-        {
-          label: 'Profile',
-          route: '/admin/profile',
-          icon: User,
-        },
-      ],
+      items: [{ label: 'Profile', route: '/admin/profile', icon: User }],
     },
   ],
-  secondary: [
-    {
-      label: 'Settings',
-      route: '/admin/settings',
-      icon: Settings,
-    },
-  ],
+  secondary: [{ label: 'Settings', route: '/admin/settings', icon: Settings }],
 };
 
-/**
- * Flat list of all routes for easy route-matching lookups.
- */
+export const CANDIDATE_NAV_CONFIG: NavConfig = {
+  primary: [
+    {
+      heading: 'Candidate',
+      items: [
+        { label: 'Dashboard', route: '/candidate/dashboard', icon: LayoutDashboard },
+        { label: 'Assessments', route: '/candidate/tests', icon: Briefcase },
+        { label: 'Interviews', route: '/candidate/interviews', icon: PlayCircle },
+        { label: 'Results', route: '/candidate/results', icon: BarChart3 },
+      ],
+    },
+    {
+      heading: 'Account',
+      items: [{ label: 'Profile', route: '/candidate/profile', icon: User }],
+    },
+  ],
+  secondary: [{ label: 'Settings', route: '/candidate/settings', icon: Settings }],
+};
+
+export const NAV_CONFIG = ADMIN_NAV_CONFIG; // For backwards compatibility if any other place imports it
+
 export const ALL_NAV_ITEMS = [
-  ...NAV_CONFIG.primary.flatMap((g) => g.items),
-  ...NAV_CONFIG.secondary,
+  ...ADMIN_NAV_CONFIG.primary.flatMap((g) => g.items),
+  ...ADMIN_NAV_CONFIG.secondary,
+  ...CANDIDATE_NAV_CONFIG.primary.flatMap((g) => g.items),
+  ...CANDIDATE_NAV_CONFIG.secondary,
 ];
 
-/**
- * Find the nav item that matches a given pathname.
- */
 export function getActiveNavItem(pathname: string) {
   return ALL_NAV_ITEMS.find(
     (item) =>
       pathname === item.route ||
-      (item.route !== '/admin/dashboard' && pathname.startsWith(item.route)),
+      (item.route !== '/admin/dashboard' &&
+        item.route !== '/candidate/dashboard' &&
+        pathname.startsWith(item.route)),
   );
 }
 
-/**
- * Get the page title for a given pathname.
- */
 export function getPageTitle(pathname: string): string {
   const item = getActiveNavItem(pathname);
   return item?.label ?? 'Dashboard';

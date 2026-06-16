@@ -37,3 +37,7 @@ No local definition of schemas or interfaces is allowed. Common interfaces, DTOs
 ### **Rule 8: Breaking changes require approval**
 
 Any change to endpoints, database tables, or contract schemas requires a formal request and sign-off by the Integration Owner (Developer 5) before development begins.
+
+### **Rule 9: Mandatory local validation before pushing**
+
+Before pushing any code to the `beta` branch, developers must ensure their local environment is fully up to date and passes the complete validation pipeline (linting, type-checking, formatting, unit/integration/contract/regression tests, and structure checks) with zero errors. Additionally, `OPENAI_API_KEY=sk-dummy-key-for-local-development` must be configured in the local API `.env` file to satisfy environment validation guards.
