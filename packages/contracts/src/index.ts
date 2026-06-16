@@ -26,3 +26,5 @@ export * from "./question-validation-helpers";
 // Exam Config Contracts
 export * from "./exam-config.dto";
 export * from "./schemas/exam-config.schema";
+export * from "./exam-section.dto";
+export * from "./schemas/exam-section.schema";

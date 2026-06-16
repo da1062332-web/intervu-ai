@@ -5,3 +5,4 @@ export * from "./results.dto";
 export * from "./template.dto";
 export * from "./generate-question.dto";
 export * from "./exam-config.dto";
+export * from "./exam-section.dto";
