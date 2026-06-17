@@ -7,3 +7,4 @@ export * from "./generate-question.dto";
 export * from "./exam-config.dto";
 export * from "./exam-section.dto";
 export * from "./rule-flags.dto";
+export * from "./concept-mapping.dto";

@@ -495,3 +495,18 @@ model ExamRuleFlags {
 
   @@index([examConfigId])
 }
+
+model ConceptMapping {
+  id          String    @id @default(cuid())
+  topicId     String
+  conceptName String
+  conceptCode String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([topicId, conceptCode])
+  @@index([topicId])
+}

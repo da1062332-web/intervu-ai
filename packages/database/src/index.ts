@@ -27,6 +27,7 @@ export * from "./repositories/recommendation.repository";
 export * from "./repositories/performance-summary.repository";
 export * from "./repositories/exam-config.repository";
 export * from "./repositories/exam-section.repository";
+export * from "./repositories/concept-mapping.repository";
 export * from "./utils/hash-question.util";
 
 export * from "./types/database.types";
@@ -47,4 +48,5 @@ export {
   type PerformanceSummary,
   RecommendationPriority,
   type Prisma,
+  type ConceptMapping,
 } from "@prisma/client";
