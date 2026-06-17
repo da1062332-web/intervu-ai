@@ -24,7 +24,7 @@ This document maps each MVP backend endpoint to its underlying database tables t
 | `/api/v1/admin/topics/:topicId/concepts`   | POST        | `ConceptMapping`                                        | Creates a new concept mapping under a topic.                            |
 | `/api/v1/admin/topics/:topicId/concepts`   | GET         | `ConceptMapping`                                        | Lists active concepts registered under a topic.                         |
 | `/api/v1/admin/concepts/:conceptId`        | PATCH       | `ConceptMapping`                                        | Updates an existing concept mapping.                                    |
-| `/api/v1/admin/concepts/:conceptId`        | DELETE      | `ConceptMapping`                                        | Soft deletes (deactivates) an existing concept mapping.                  |
+| `/api/v1/admin/concepts/:conceptId`        | DELETE      | `ConceptMapping`                                        | Soft deletes (deactivates) an existing concept mapping.                 |
 
 ---
 

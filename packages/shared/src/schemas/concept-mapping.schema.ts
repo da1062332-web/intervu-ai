@@ -11,4 +11,6 @@ export const ConceptMappingResponseSchema = z.object({
   updatedAt: z.union([z.date(), z.string()]),
 });
 
-export const ConceptMappingListResponseSchema = z.array(ConceptMappingResponseSchema);
+export const ConceptMappingListResponseSchema = z.array(
+  ConceptMappingResponseSchema,
+);

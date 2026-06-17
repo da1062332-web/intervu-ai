@@ -2,7 +2,11 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ConceptMappingService } from "../services/concept-mapping.service";
 import { ConceptMappingRepository } from "../repositories/concept-mapping.repository";
 import { TopicRegistryLoader } from "../services/topic-registry-loader.service";
-import { ConflictException, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { ConceptMapping } from "@prisma/client";
 
 describe("ConceptMappingService", () => {
@@ -75,7 +79,10 @@ describe("ConceptMappingService", () => {
       const result = await service.createConcept("se-ds-001", dto);
 
       expect(registryLoader.getTopicById).toHaveBeenCalledWith("se-ds-001");
-      expect(repository.findByTopicAndCode).toHaveBeenCalledWith("se-ds-001", "PREFIX_SUM");
+      expect(repository.findByTopicAndCode).toHaveBeenCalledWith(
+        "se-ds-001",
+        "PREFIX_SUM",
+      );
       expect(repository.create).toHaveBeenCalledWith({
         conceptName: "Prefix Sum",
         conceptCode: "PREFIX_SUM",
@@ -107,7 +114,9 @@ describe("ConceptMappingService", () => {
         conceptCode: "PREFIX_SUM",
       };
 
-      await expect(service.createConcept("se-ds-001", dto)).rejects.toThrow(ConflictException);
+      await expect(service.createConcept("se-ds-001", dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -119,7 +128,10 @@ describe("ConceptMappingService", () => {
       const result = await service.getConcepts("se-ds-001", true);
 
       expect(registryLoader.getTopicById).toHaveBeenCalledWith("se-ds-001");
-      expect(repository.findManyByTopicId).toHaveBeenCalledWith("se-ds-001", true);
+      expect(repository.findManyByTopicId).toHaveBeenCalledWith(
+        "se-ds-001",
+        true,
+      );
       expect(result).toEqual([mockConcept]);
     });
 
@@ -135,7 +147,10 @@ describe("ConceptMappingService", () => {
   describe("updateConcept", () => {
     it("should update concept mapping details successfully", async () => {
       repository.findById.mockResolvedValue(mockConcept);
-      repository.update.mockResolvedValue({ ...mockConcept, conceptName: "New Name" });
+      repository.update.mockResolvedValue({
+        ...mockConcept,
+        conceptName: "New Name",
+      });
 
       const dto = { conceptName: "New Name" };
       const result = await service.updateConcept("concept-123", dto);
@@ -148,18 +163,23 @@ describe("ConceptMappingService", () => {
     it("should throw NotFoundException if concept mapping is not found", async () => {
       repository.findById.mockResolvedValue(null);
 
-      await expect(service.updateConcept("invalid-id", { conceptName: "Test" })).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.updateConcept("invalid-id", { conceptName: "Test" }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it("should validate and throw ConflictException if conceptCode is updated to a duplicate", async () => {
       repository.findById.mockResolvedValue(mockConcept);
-      repository.findByTopicAndCode.mockResolvedValue({ ...mockConcept, id: "other-id" });
+      repository.findByTopicAndCode.mockResolvedValue({
+        ...mockConcept,
+        id: "other-id",
+      });
 
       const dto = { conceptCode: "DUPLICATE_CODE" };
 
-      await expect(service.updateConcept("concept-123", dto)).rejects.toThrow(ConflictException);
+      await expect(service.updateConcept("concept-123", dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -178,7 +198,9 @@ describe("ConceptMappingService", () => {
     it("should throw NotFoundException if concept to delete is not found", async () => {
       repository.findById.mockResolvedValue(null);
 
-      await expect(service.deleteConcept("invalid-id")).rejects.toThrow(NotFoundException);
+      await expect(service.deleteConcept("invalid-id")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

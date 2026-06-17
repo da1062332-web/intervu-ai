@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { CreateConceptMapping, UpdateConceptMapping } from "@intervu-ai/contracts";
-import { CreateConceptMappingSchema, UpdateConceptMappingSchema } from "@intervu-ai/contracts";
+import {
+  CreateConceptMapping,
+  UpdateConceptMapping,
+} from "@intervu-ai/contracts";
+import {
+  CreateConceptMappingSchema,
+  UpdateConceptMappingSchema,
+} from "@intervu-ai/contracts";
 import { z } from "zod";
 
 export class CreateConceptMappingDto implements CreateConceptMapping {
@@ -10,11 +16,18 @@ export class CreateConceptMappingDto implements CreateConceptMapping {
   @ApiProperty({ example: "DIST_CONSENSUS", maxLength: 50 })
   conceptCode!: string;
 
-  @ApiPropertyOptional({ example: "Raft and Paxos algorithms overview", maxLength: 500 })
+  @ApiPropertyOptional({
+    example: "Raft and Paxos algorithms overview",
+    maxLength: 500,
+  })
   description?: string | null;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, CreateConceptMappingDto> {
-    return CreateConceptMappingSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, CreateConceptMappingDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, CreateConceptMappingDto> {
+    return CreateConceptMappingSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, CreateConceptMappingDto>;
   }
 }
 
@@ -31,7 +44,11 @@ export class UpdateConceptMappingDto implements UpdateConceptMapping {
   @ApiPropertyOptional({ example: true })
   isActive?: boolean;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, UpdateConceptMappingDto> {
-    return UpdateConceptMappingSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, UpdateConceptMappingDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, UpdateConceptMappingDto> {
+    return UpdateConceptMappingSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, UpdateConceptMappingDto>;
   }
 }
