@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ExamConfigResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   name: z.string(),
   role: z.string(),
   durationMinutes: z.number().int().positive(),

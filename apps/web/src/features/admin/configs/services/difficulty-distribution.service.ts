@@ -1,5 +1,8 @@
 import { apiClient } from '@/services/api/client';
-import { DifficultyDistributionResponse, UpdateDifficultyDistributionDto } from '@intervu/shared';
+import type {
+  DifficultyDistributionResponse,
+  UpdateDifficultyDistributionDto,
+} from '@intervu/shared';
 
 const BASE_PATH = '/admin/configs';
 

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { difficultyDistributionService } from '../services/difficulty-distribution.service';
-import { UpdateDifficultyDistributionDto } from '@intervu/shared';
+import type { UpdateDifficultyDistributionDto } from '@intervu/shared';
 
 export const useDifficultyDistribution = (configId: string) => {
   return useQuery({

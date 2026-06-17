@@ -4,9 +4,9 @@ export interface ExamConfig {
   role: string;
   durationMinutes: number;
   totalQuestions: number;
-  status: string;
+  isActive: boolean;
   createdAt: string;
 }
 
-export type CreateConfigPayload = Omit<ExamConfig, 'id' | 'status' | 'createdAt'>;
-export type UpdateConfigPayload = Partial<CreateConfigPayload>;
+export type CreateConfigPayload = Omit<ExamConfig, 'id' | 'isActive' | 'createdAt'>;
+export type UpdateConfigPayload = Partial<CreateConfigPayload> & { isActive?: boolean };

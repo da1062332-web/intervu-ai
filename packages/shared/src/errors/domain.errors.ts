@@ -76,3 +76,12 @@ export class UnauthorizedResultAccessError extends BaseError {
     super(ErrorCode.FORBIDDEN, message);
   }
 }
+
+/**
+ * Thrown when an invalid combination of rule flags is provided.
+ */
+export class RuleCombinationError extends BaseError {
+  constructor(message = "Invalid rule combination") {
+    super(ErrorCode.INVALID_RULE_COMBINATION, message);
+  }
+}

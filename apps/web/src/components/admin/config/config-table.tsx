@@ -9,7 +9,7 @@ export interface ExamConfig {
   role: string;
   durationMinutes: number;
   totalQuestions: number;
-  status: string;
+  isActive: boolean;
   createdAt?: string;
 }
 
@@ -57,8 +57,8 @@ export function ConfigTable({ configs }: ConfigTableProps) {
               <td className='px-4 py-3 hidden sm:table-cell'>{config.durationMinutes}m</td>
               <td className='px-4 py-3 hidden md:table-cell'>{config.totalQuestions}</td>
               <td className='px-4 py-3'>
-                <Badge variant={config.status === 'Draft' ? 'secondary' : 'default'}>
-                  {config.status}
+                <Badge variant={!config.isActive ? 'secondary' : 'default'}>
+                  {config.isActive ? 'Active' : 'Draft'}
                 </Badge>
               </td>
               <td className='px-4 py-3 hidden lg:table-cell'>

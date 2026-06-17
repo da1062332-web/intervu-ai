@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const DifficultyDistributionResponseSchema = z.object({
-  id: z.string().uuid(),
-  examConfigId: z.string().uuid(),
+  id: z.string().cuid(),
+  examConfigId: z.string().cuid(),
   easyCount: z.number().int().min(0),
   mediumCount: z.number().int().min(0),
   hardCount: z.number().int().min(0),

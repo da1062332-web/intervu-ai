@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ExamSectionResponseSchema = z.object({
   id: z.string().cuid(),
-  examConfigId: z.string().uuid(),
+  examConfigId: z.string().cuid(),
   name: z.string(),
   questionCount: z.number().int().positive(),
   durationMinutes: z.number().int().positive().nullable(),

@@ -5,7 +5,14 @@ import {
   useDifficultyDistribution,
   useUpdateDifficultyDistribution,
 } from '../hooks/use-difficulty-distribution';
-import { UpdateDifficultyDistributionSchema } from '@intervu/shared';
+import { z } from 'zod';
+import type { UpdateDifficultyDistributionDto } from '@intervu/shared';
+
+const UpdateDifficultyDistributionSchema = z.object({
+  easyCount: z.number().int().min(0),
+  mediumCount: z.number().int().min(0),
+  hardCount: z.number().int().min(0),
+});
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

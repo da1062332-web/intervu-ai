@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { SectionBuilder } from '@/modules/exam-config/components/section-builder';
+import { RuleFlagsTab } from '@/features/admin/configs/components/rule-flags-tab';
+import { ConfigPreviewTab } from '@/features/admin/configs/components/config-preview-tab';
+import { GeneralSettingsTab } from '@/features/admin/configs/components/general-settings-tab';
 import { cn } from '@/lib/utils';
 import { useConfig } from '@/services/exam-configs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -75,22 +78,22 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
       <div className='mt-8'>
         {activeTab === 'general' && (
-          <div className='p-4 border rounded-lg bg-gray-50 dark:bg-gray-900/50'>
-            <p className='text-gray-500 dark:text-gray-400'>General settings placeholder</p>
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <GeneralSettingsTab configId={configId} onNext={() => setActiveTab('sections')} />
           </div>
         )}
 
         {activeTab === 'sections' && <SectionBuilder configId={configId} />}
 
         {activeTab === 'rules' && (
-          <div className='p-4 border rounded-lg bg-gray-50 dark:bg-gray-900/50'>
-            <p className='text-gray-500 dark:text-gray-400'>Rules configuration placeholder</p>
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <RuleFlagsTab configId={configId} onNext={() => setActiveTab('preview')} />
           </div>
         )}
 
         {activeTab === 'preview' && (
-          <div className='p-4 border rounded-lg bg-gray-50 dark:bg-gray-900/50'>
-            <p className='text-gray-500 dark:text-gray-400'>Preview placeholder</p>
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <ConfigPreviewTab configId={configId} />
           </div>
         )}
       </div>
