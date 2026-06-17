@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { useCreateConfig } from '@/services/exam-configs';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function ConfigForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { mutateAsync: createConfig, isPending: isSubmitting } = useCreateConfig();
 
   const {
     register,
@@ -40,16 +41,16 @@ export function ConfigForm() {
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Form Data:', data);
-      toast.success('Configuration created successfully');
+      const response = await createConfig(data);
+      // useCreateConfig hook already handles success toast
+      if (response && response.id) {
+        router.push(`/admin/configs/${response.id}`);
+      } else {
+        router.push('/admin/configs');
+      }
     } catch {
-      toast.error('Failed to create configuration');
-    } finally {
-      setIsSubmitting(false);
+      // toast is already handled by useCreateConfig onError
     }
   };
 

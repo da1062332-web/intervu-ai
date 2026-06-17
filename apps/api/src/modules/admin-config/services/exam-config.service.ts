@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ExamConfig } from "@prisma/client";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
-import { CreateExamConfigDto } from "@intervu/shared";
+import { CreateExamConfigDto, UpdateExamConfigDto } from "@intervu/shared";
 
 @Injectable()
 export class ExamConfigService {
@@ -27,5 +27,13 @@ export class ExamConfigService {
       throw new NotFoundException(`Exam config with ID "${id}" not found`);
     }
     return config;
+  }
+
+  async update(id: string, dto: UpdateExamConfigDto): Promise<ExamConfig> {
+    const config = await this.examConfigRepository.findById(id);
+    if (!config) {
+      throw new NotFoundException(`Exam config with ID "${id}" not found`);
+    }
+    return this.examConfigRepository.update(id, dto);
   }
 }

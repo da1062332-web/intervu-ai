@@ -23,7 +23,6 @@ import { UserRole } from "@prisma/client";
 @ApiTags("dashboard")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
-@Roles(UserRole.CANDIDATE)
 @Controller("dashboard")
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
@@ -41,6 +40,7 @@ export class DashboardController {
    * The response is wrapped in the standard envelope by ResponseInterceptor.
    */
   @Get()
+  @Roles(UserRole.CANDIDATE)
   @ApiOperation({
     summary: "Get candidate dashboard",
     description:
@@ -63,6 +63,7 @@ export class DashboardController {
   // ─── Existing analytics routes (untouched) ─────────────────────────────────
 
   @Get("stats")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ApiOperation({
     summary: "Get dashboard statistics summary for the authenticated user",
   })
@@ -76,6 +77,7 @@ export class DashboardController {
   }
 
   @Get("analytics-summary")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ApiOperation({
     summary:
       "Get aggregated skill analytics summary for the authenticated user",
@@ -92,6 +94,7 @@ export class DashboardController {
   }
 
   @Get("recent-activity")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ApiOperation({
     summary: "Get a feed of recent activity items for the authenticated user",
   })

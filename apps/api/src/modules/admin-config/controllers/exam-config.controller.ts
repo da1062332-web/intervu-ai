@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Param,
+  Patch,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -23,6 +24,7 @@ import {
   ValidateResponse,
   ExamConfigResponseSchema,
   ExamConfigListResponseSchema,
+  UpdateExamConfigDto,
 } from "@intervu/shared";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -57,6 +59,16 @@ export class ExamConfigController {
   @ApiOkResponse({ description: "List of configurations" })
   async findAll() {
     return this.examConfigService.findAll();
+  }
+
+  @Patch(":id")
+  @ValidateResponse(ExamConfigResponseSchema)
+  @ApiOperation({ summary: "Update an exam configuration" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiBody({ type: UpdateExamConfigDto })
+  @ApiOkResponse({ description: "Configuration updated successfully" })
+  async update(@Param("id") id: string, @Body() dto: UpdateExamConfigDto) {
+    return this.examConfigService.update(id, dto);
   }
 
   @Get(":id")

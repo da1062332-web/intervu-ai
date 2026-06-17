@@ -416,7 +416,7 @@ model PerformanceSummary {
 }
 
 model ExamConfig {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   name            String
   role            String
   durationMinutes Int
@@ -428,22 +428,23 @@ model ExamConfig {
 
   versions               ExamConfigVersion[]
   difficultyDistribution DifficultyDistribution?
-  sections          ExamSection[]
+  ruleFlags              ExamRuleFlags?
+  sections               ExamSection[]
 
   @@index([createdAt])
   @@index([role])
 }
 
 model ExamSection {
-  id              String      @id @default(cuid())
+  id              String     @id @default(cuid())
   examConfigId    String
   name            String
   questionCount   Int
   durationMinutes Int?
   displayOrder    Int
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  examConfig      ExamConfig  @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  examConfig      ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
   @@unique([examConfigId, displayOrder])
   @@index([examConfigId])
@@ -451,7 +452,7 @@ model ExamSection {
 }
 
 model DifficultyDistribution {
-  id             String   @id @default(uuid())
+  id             String   @id @default(cuid())
   examConfigId   String   @unique
   easyCount      Int
   mediumCount    Int
@@ -466,7 +467,7 @@ model DifficultyDistribution {
 }
 
 model ExamConfigVersion {
-  id            String   @id @default(uuid())
+  id            String   @id @default(cuid())
   examConfigId  String
   versionNumber Int
   snapshot      Json
@@ -476,4 +477,36 @@ model ExamConfigVersion {
 
   @@unique([examConfigId, versionNumber])
   @@index([examConfigId])
+}
+
+model ExamRuleFlags {
+  id                     String   @id @default(cuid())
+  examConfigId           String   @unique
+  negativeMarkingEnabled Boolean  @default(false)
+  randomizeQuestions     Boolean  @default(false)
+  randomizeOptions       Boolean  @default(false)
+  calculatorAllowed      Boolean  @default(false)
+  sectionLockingEnabled  Boolean  @default(false)
+  freeNavigationEnabled  Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+
+  @@index([examConfigId])
+}
+
+model ConceptMapping {
+  id          String    @id @default(cuid())
+  topicId     String
+  conceptName String
+  conceptCode String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([topicId, conceptCode])
+  @@index([topicId])
 }
