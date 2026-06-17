@@ -1,21 +1,21 @@
 # Template Contract Specification
 
 **Module:** 1.3.1 Template Repository  
-**Objective:** Define the interface for the Question Template item.  
+**Objective:** Define the system contract for a Question Template.  
 **Version:** 1.0.0
 
 ---
 
-## 1. Interface Definition
+## 1. TypeScript Model Interface
 
-All question templates within the system must comply with the following TypeScript model contract:
+All question templates within the system must comply with the following TypeScript contract:
 
 ```typescript
-import { VariableSchema } from "./variable-schema";
+import { VariableSchema } from "./variable-schema-standard";
 
 export interface QuestionTemplate {
   /**
-   * Unique system identifier (UUID or similar format).
+   * Unique system identifier (UUID or CUID).
    */
   id: string;
 
@@ -31,76 +31,58 @@ export interface QuestionTemplate {
   name: string;
 
   /**
-   * Classification type mapping to template-types.
-   * Must match one of: "mcq", "multiple-select", "true-false", "fill-blank", "code-output", "debugging", "scenario-based", "case-study"
-   */
-  templateType: string;
-
-  /**
    * Target Topic Registry ID.
    * Example: "se-ds-001"
    */
   topicId: string;
 
   /**
-   * Specific concept ID.
+   * Specific Concept Registry ID.
    * Example: "sliding-window"
    */
   conceptId: string;
 
   /**
-   * Targeted cognitive difficulty.
+   * Classification type mapping.
+   * Must match a valid entry from the template types list.
+   */
+  templateType: string;
+
+  /**
+   * Target difficulty level of the question.
    */
   difficulty: "easy" | "medium" | "hard";
 
   /**
    * Template body text containing placeholder variables wrapped in brackets.
-   * Example: "What is the output of the following loop: \n {CODE_SNIPPET}"
+   * Example: "What is the console output of the loop if initialized with {INITIAL_VALUE}?"
    */
   templateText: string;
 
   /**
-   * The collection of variable schemas required for hydration.
+   * Collection of variable schemas required for hydration.
    */
-  variableSchema: VariableSchema[];
+  variables: VariableSchema[];
 
   /**
-   * Status flag. If false, the template is deprecated and should not be selected for new assessments.
+   * Status flag. If false, the template is archived/deprecated.
    */
   active: boolean;
+
+  /**
+   * Incrementing version identifier for updates.
+   */
+  version: number;
 }
 ```
 
 ---
 
-## 2. Field Details and Constraints
+## 2. Constraints and Rules
 
-### `id`
-
-- **Type:** `string` (UUID).
-- **Constraints:** Must be unique globally.
-
-### `code`
-
-- **Type:** `string`.
-- **Constraints:** Must be unique globally. Used for human troubleshooting, auditing, and seeding. Suggested pattern: `{domain}-{subtopic}-{concept}-{type}-{index}`.
-
-### `templateType`
-
-- **Type:** `string`.
-- **Constraints:** Must match a valid template type from the `template-types.md` catalog.
-
-### `topicId` / `conceptId`
-
-- **Type:** `string`.
-- **Constraints:** Must reference active values registered in the upstream **Topic Registry**.
-
-### `difficulty`
-
-- **Type:** `'easy' | 'medium' | 'hard'`.
-- **Constraints:** Constrained by the Topic Registry's `difficultySupport` matrix for the matched concept.
-
-### `templateText`
-
-- **Type:** `string`.
-- **Constraints:** Non-empty string. Every placeholder string wrapped in curly braces (e.g. `{VAR}`) must have a matching variable definition inside the `variableSchema` array.
+*   **`id` Validation:** Must be globally unique.
+*   **`code` Uniqueness:** Must be globally unique and alphanumeric/hyphenated. Suggested naming convention: `{domain}-{topic}-{concept}-{type}-{index}`.
+*   **`difficulty` Compatibility:** Must match one of `'easy'`, `'medium'`, or `'hard'`. The concept associated with `conceptId` must support this difficulty level.
+*   **`templateText` Placeholders:** Must contain at least one placeholder. Every placeholder string wrapped in curly braces (e.g. `{VAR}`) must have a matching variable definition inside the `variables` array.
+*   **`active` Selector:** When active is `false`, the template must be filtered out of the active selection pool.
+*   **`version` Immutability:** When state is `Published`, any updates must increase this value by 1.

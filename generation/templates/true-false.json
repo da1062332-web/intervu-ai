@@ -1,0 +1,36 @@
+{
+  "id": "tpl_3a1c2d3e-4b5c-6d7e-8f9a-0b1c2d3e4f5a",
+  "code": "se-net-rest-stateful-tf",
+  "name": "REST Statelessness Factual TF",
+  "templateType": "true-false",
+  "topicId": "se-net-004",
+  "conceptId": "REST Architecture",
+  "difficulty": "easy",
+  "templateText": "State whether the following claim is True or False: \"REST APIs are fundamentally stateful because they rely on the server keeping track of all client request history.\"",
+  "variables": [],
+  "active": true,
+  "version": 1,
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "questionText",
+      "options",
+      "correctAnswer",
+      "explanation",
+      "difficulty",
+      "topicId",
+      "conceptId",
+      "templateId"
+    ],
+    "properties": {
+      "questionText": { "type": "string", "minLength": 15 },
+      "options": { "type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true },
+      "correctAnswer": { "type": "string", "enum": ["True", "False"] },
+      "explanation": { "type": "string", "minLength": 20 },
+      "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+      "topicId": { "type": "string" },
+      "conceptId": { "type": "string" },
+      "templateId": { "type": "string" }
+    }
+  }
+}

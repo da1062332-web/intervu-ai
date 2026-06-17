@@ -7,7 +7,7 @@
   "conceptId": "Caching Strategies",
   "difficulty": "medium",
   "templateText": "Your backend service processes {REQUESTS_PER_SECOND} requests/second. The database access time is {DB_LATENCY_MS}ms. You introduce a Redis cache with a read latency of {CACHE_LATENCY_MS}ms. If your cache hit rate is {HIT_RATE_PERCENT}%, what is the average database latency per request (excluding cache lookup time on miss)?",
-  "variableSchema": [
+  "variables": [
     {
       "variableName": "REQUESTS_PER_SECOND",
       "variableType": "number",
@@ -44,14 +44,28 @@
     }
   ],
   "active": true,
-  "exampleHydratedQuestion": {
-    "questionText": "Your backend service processes 5000 requests/second. The database access time is 100ms. You introduce a Redis cache with a read latency of 2ms. If your cache hit rate is 80%, what is the average database latency per request (excluding cache lookup time on miss)?",
-    "options": ["20ms", "21.6ms", "22ms", "50ms"],
-    "correctAnswer": "21.6ms",
-    "explanation": "Average Latency = (Hit Rate * Cache Latency) + ((1 - Hit Rate) * DB Latency) = (0.80 * 2) + (0.20 * 100) = 1.6 + 20 = 21.6ms.",
-    "difficulty": "medium",
-    "topicId": "se-arch-002",
-    "conceptId": "Caching Strategies",
-    "templateId": "tpl_9f8d1c3a-821b-4171-be99-2e1cb10e7b41"
+  "version": 1,
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "questionText",
+      "options",
+      "correctAnswer",
+      "explanation",
+      "difficulty",
+      "topicId",
+      "conceptId",
+      "templateId"
+    ],
+    "properties": {
+      "questionText": { "type": "string", "minLength": 15 },
+      "options": { "type": "array", "minItems": 4, "maxItems": 4, "uniqueItems": true },
+      "correctAnswer": { "type": "string" },
+      "explanation": { "type": "string", "minLength": 20 },
+      "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+      "topicId": { "type": "string" },
+      "conceptId": { "type": "string" },
+      "templateId": { "type": "string" }
+    }
   }
 }
