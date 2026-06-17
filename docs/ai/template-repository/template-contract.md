@@ -80,9 +80,9 @@ export interface QuestionTemplate {
 
 ## 2. Constraints and Rules
 
-*   **`id` Validation:** Must be globally unique.
-*   **`code` Uniqueness:** Must be globally unique and alphanumeric/hyphenated. Suggested naming convention: `{domain}-{topic}-{concept}-{type}-{index}`.
-*   **`difficulty` Compatibility:** Must match one of `'easy'`, `'medium'`, or `'hard'`. The concept associated with `conceptId` must support this difficulty level.
-*   **`templateText` Placeholders:** Must contain at least one placeholder. Every placeholder string wrapped in curly braces (e.g. `{VAR}`) must have a matching variable definition inside the `variables` array.
-*   **`active` Selector:** When active is `false`, the template must be filtered out of the active selection pool.
-*   **`version` Immutability:** When state is `Published`, any updates must increase this value by 1.
+- **`id` Validation:** Must be globally unique.
+- **`code` Uniqueness:** Must be globally unique and alphanumeric/hyphenated. Suggested naming convention: `{domain}-{topic}-{concept}-{type}-{index}`.
+- **`difficulty` Compatibility:** Must match one of `'easy'`, `'medium'`, or `'hard'`. The concept associated with `conceptId` must support this difficulty level.
+- **`templateText` Placeholders:** Must contain at least one placeholder. Every placeholder string wrapped in curly braces (e.g. `{VAR}`) must have a matching variable definition inside the `variables` array.
+- **`active` Selector:** When active is `false`, the template must be filtered out of the active selection pool.
+- **`version` Immutability:** When state is `Published`, any updates must increase this value by 1.

@@ -30,6 +30,7 @@ The template engine relies on a strict parent-child relational hierarchy. Downst
 ```
 
 ### Definitions:
+
 1.  **Topic:** The broad subject of assessment (e.g., `"Software Engineering Basics"`, `"JavaScript Basics"`).
 2.  **Concept:** The sub-skill or specific mechanism tested under the Topic (e.g., `"Closures & Scope"`, `"Array Indexing"`).
 3.  **Question Template:** The structured, parameterized design pattern mapping to a Concept. It contains static text, placeholder variables, and expected difficulty ratings.
@@ -52,22 +53,25 @@ stateDiagram-v2
 ```
 
 ### 1. Draft
-*   **Definition:** An in-development, unverified template.
-*   **Rules:**
-    *   **Mutable:** Fields can be edited freely.
-    *   **Not Selectable:** Cannot be chosen by the exam selection engine for active assessments.
-    *   **Version:** Stays at `version: 1` during development.
+
+- **Definition:** An in-development, unverified template.
+- **Rules:**
+  - **Mutable:** Fields can be edited freely.
+  - **Not Selectable:** Cannot be chosen by the exam selection engine for active assessments.
+  - **Version:** Stays at `version: 1` during development.
 
 ### 2. Published
-*   **Definition:** An active, verified template available for assessment generation.
-*   **Rules:**
-    *   **Immutable:** To guarantee assessment consistency, a Published template **cannot** be modified in place.
-    *   **Versioning Trigger:** Any attempt to edit a Published template creates a new version record. The old record is archived or kept as a historical snapshot.
-    *   **Selectable:** Available for inclusion in blueprints.
+
+- **Definition:** An active, verified template available for assessment generation.
+- **Rules:**
+  - **Immutable:** To guarantee assessment consistency, a Published template **cannot** be modified in place.
+  - **Versioning Trigger:** Any attempt to edit a Published template creates a new version record. The old record is archived or kept as a historical snapshot.
+  - **Selectable:** Available for inclusion in blueprints.
 
 ### 3. Archived
-*   **Definition:** A deprecated or retired template.
-*   **Rules:**
-    *   **Immutable:** Cannot be modified.
-    *   **Not Selectable:** Removed from the pool of templates selectable for new assessments.
-    *   **Audit-Ready:** Retained in the database to allow historical grades and past assessments to remain auditable.
+
+- **Definition:** A deprecated or retired template.
+- **Rules:**
+  - **Immutable:** Cannot be modified.
+  - **Not Selectable:** Removed from the pool of templates selectable for new assessments.
+  - **Audit-Ready:** Retained in the database to allow historical grades and past assessments to remain auditable.

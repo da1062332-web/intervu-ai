@@ -31,23 +31,30 @@ When generating an assessment, the generation engine resolves template matching 
 ## 2. Selection Steps
 
 ### Step 1: Blueprint Resolution
+
 The selector reads the assessment blueprint configuration to identify requirements for each question slot, extracting:
-*   `topicId` (Topic ID)
-*   `conceptId` (Concept ID)
-*   `difficulty` (`easy`, `medium`, `hard`)
+
+- `topicId` (Topic ID)
+- `conceptId` (Concept ID)
+- `difficulty` (`easy`, `medium`, `hard`)
 
 ### Step 2: Primary Filtering
+
 The registry query returns candidate templates matching:
-*   `active === true`
-*   `topicId === blueprint.topicId`
-*   `conceptId === blueprint.conceptId`
+
+- `active === true`
+- `topicId === blueprint.topicId`
+- `conceptId === blueprint.conceptId`
 
 ### Step 3: Difficulty and Type Mapping
+
 Enforce the **Difficulty Compatibility Matrix**:
-*   Discard templates where `template.difficulty !== blueprint.difficulty`.
-*   Discard templates whose `templateType` is incompatible with the target difficulty (e.g., `True/False` for `hard` difficulty).
+
+- Discard templates where `template.difficulty !== blueprint.difficulty`.
+- Discard templates whose `templateType` is incompatible with the target difficulty (e.g., `True/False` for `hard` difficulty).
 
 ### Step 4: De-duplication
+
 To avoid candidate fatigue, filter out templates that have already been selected for another slot in the same exam instance.
 
 ---
@@ -56,11 +63,11 @@ To avoid candidate fatigue, filter out templates that have already been selected
 
 To ensure that candidate questions are random yet reproducible, selection uses a **SFC32 Pseudo-Random Number Generator (PRNG)**.
 
-*   **Seed Generation:**
-    $$\text{Seed} = \text{SHA-256}(\text{examConfigId} + \text{candidateId} + \text{questionSlotIndex})$$
-*   **Result:**
-    *   Two different candidates will receive different selected templates (ensuring fairness).
-    *   A single candidate's session will always select the identical templates on page refreshes or connection retries, preventing cheating.
+- **Seed Generation:**
+  $$\text{Seed} = \text{SHA-256}(\text{examConfigId} + \text{candidateId} + \text{questionSlotIndex})$$
+- **Result:**
+  - Two different candidates will receive different selected templates (ensuring fairness).
+  - A single candidate's session will always select the identical templates on page refreshes or connection retries, preventing cheating.
 
 ---
 

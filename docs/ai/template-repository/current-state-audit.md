@@ -11,6 +11,7 @@
 The current schema defined in [schema.prisma](file:///c:/code/intervu-ai/packages/database/prisma/schema.prisma) represents a hybrid structure containing both legacy and newer, unintegrated columns in the `Template` model:
 
 ### `Template` Model
+
 ```prisma
 model Template {
   id              String          @id @default(cuid())
@@ -48,14 +49,14 @@ model Template {
 
 The template controller [template.controller.ts](file:///c:/code/intervu-ai/apps/api/src/modules/template-library/controllers/template.controller.ts) exposes the following REST endpoints:
 
-*   `GET /templates` - Paginated lists of templates, with support for filtering by `difficulty`.
-*   `GET /templates/system` - Lists system-managed templates.
-*   `GET /templates/difficulty/:level` - Filters templates by difficulty level.
-*   `GET /templates/:id` - Retrieves a single template by ID.
-*   `GET /templates/:id/version` - Retrieves the template version token (currently mocked using the `updatedAt` ISO timestamp).
-*   `POST /templates` - Creates a new template.
-*   `PATCH /templates/:id` - Updates an existing template.
-*   `DELETE /templates/:id` - Soft-deletes a template by ID.
+- `GET /templates` - Paginated lists of templates, with support for filtering by `difficulty`.
+- `GET /templates/system` - Lists system-managed templates.
+- `GET /templates/difficulty/:level` - Filters templates by difficulty level.
+- `GET /templates/:id` - Retrieves a single template by ID.
+- `GET /templates/:id/version` - Retrieves the template version token (currently mocked using the `updatedAt` ISO timestamp).
+- `POST /templates` - Creates a new template.
+- `PATCH /templates/:id` - Updates an existing template.
+- `DELETE /templates/:id` - Soft-deletes a template by ID.
 
 ---
 
@@ -72,13 +73,13 @@ The template controller [template.controller.ts](file:///c:/code/intervu-ai/apps
 
 The following core MVP requirements are completely missing or unimplemented in the current codebase:
 
-| Feature / Contract | Status in Codebase | Action Required |
-| :--- | :--- | :--- |
-| **Topic registry matching** | Missing | Need to link templates to the Topic Registry `topicId`. |
-| **Strict Variable Schemas** | Partial | Existing `variableSchema` accepts any JSON. Needs strict TypeScript contracts. |
-| **Template Validation** | Missing | Need Zod checks matching placeholders in `templateText` to `variableSchema`. |
-| **Version Snapshots** | Missing | A `TemplateVersion` table is needed to store immutable snapshots. |
-| **Rollback Design** | Missing | No rollback endpoints or state restoration logic exists. |
-| **Seed Templates** | Partial | Exist in `/generation/templates` but are missing the `true-false.json` category. |
-| **Selection Rules** | Missing | No deterministic selection using PRNG seeds in the generation engine. |
-| **Quality Framework** | Missing | No automated rejection checks for generated outputs. |
+| Feature / Contract          | Status in Codebase | Action Required                                                                  |
+| :-------------------------- | :----------------- | :------------------------------------------------------------------------------- |
+| **Topic registry matching** | Missing            | Need to link templates to the Topic Registry `topicId`.                          |
+| **Strict Variable Schemas** | Partial            | Existing `variableSchema` accepts any JSON. Needs strict TypeScript contracts.   |
+| **Template Validation**     | Missing            | Need Zod checks matching placeholders in `templateText` to `variableSchema`.     |
+| **Version Snapshots**       | Missing            | A `TemplateVersion` table is needed to store immutable snapshots.                |
+| **Rollback Design**         | Missing            | No rollback endpoints or state restoration logic exists.                         |
+| **Seed Templates**          | Partial            | Exist in `/generation/templates` but are missing the `true-false.json` category. |
+| **Selection Rules**         | Missing            | No deterministic selection using PRNG seeds in the generation engine.            |
+| **Quality Framework**       | Missing            | No automated rejection checks for generated outputs.                             |

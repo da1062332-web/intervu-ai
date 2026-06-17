@@ -45,6 +45,6 @@ export interface TemplateVersion {
 
 ## 2. Field Specifications
 
-*   **`templateId` Linkage:** Establishes a foreign key connection to the active `Template` record. Deleting a template cascades delete operations to its versions.
-*   **`snapshot` Object:** Must capture all operational properties of the `QuestionTemplate` contract. Since the database schema might evolve, saving the state as a self-contained JSON object prevents migration breakages on historical records.
-*   **Composite Key:** A database unique constraint is enforced on `[templateId, version]` to prevent duplicate version records for the same template.
+- **`templateId` Linkage:** Establishes a foreign key connection to the active `Template` record. Deleting a template cascades delete operations to its versions.
+- **`snapshot` Object:** Must capture all operational properties of the `QuestionTemplate` contract. Since the database schema might evolve, saving the state as a self-contained JSON object prevents migration breakages on historical records.
+- **Composite Key:** A database unique constraint is enforced on `[templateId, version]` to prevent duplicate version records for the same template.

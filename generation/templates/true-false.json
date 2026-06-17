@@ -24,7 +24,12 @@
     ],
     "properties": {
       "questionText": { "type": "string", "minLength": 15 },
-      "options": { "type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true },
+      "options": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "uniqueItems": true
+      },
       "correctAnswer": { "type": "string", "enum": ["True", "False"] },
       "explanation": { "type": "string", "minLength": 20 },
       "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },

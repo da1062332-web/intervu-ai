@@ -30,11 +30,11 @@ This ensures that the database version history remains strictly linear and monot
 During a rollback, parent dependencies might have changed. The rollback engine must resolve the following conflicts before proceeding:
 
 1.  **Orphaned Topic/Concept:**
-    *   *Conflict:* The target snapshot references a `topicId` or `conceptId` that has since been deleted or deactivated in the Topic Registry.
-    *   *Resolution:* The rollback must fail validation, throwing a `ConflictException`: `"Cannot rollback template: referenced concept {conceptId} is inactive."`
+    - _Conflict:_ The target snapshot references a `topicId` or `conceptId` that has since been deleted or deactivated in the Topic Registry.
+    - _Resolution:_ The rollback must fail validation, throwing a `ConflictException`: `"Cannot rollback template: referenced concept {conceptId} is inactive."`
 2.  **Duplicate Active Code:**
-    *   *Conflict:* The target snapshot has a `code` that was changed in the newer versions, and another active template has since registered that same `code`.
-    *   *Resolution:* Block rollback and alert the administrator to change the conflicting code or archive the competing template first.
+    - _Conflict:_ The target snapshot has a `code` that was changed in the newer versions, and another active template has since registered that same `code`.
+    - _Resolution:_ Block rollback and alert the administrator to change the conflicting code or archive the competing template first.
 
 ---
 
@@ -42,10 +42,10 @@ During a rollback, parent dependencies might have changed. The rollback engine m
 
 To track administrative actions, every rollback must write an entry to the system audit logs containing:
 
-*   **`actorId`**: The User ID of the administrator who triggered the rollback.
-*   **`templateId`**: The target template.
-*   **`sourceVersion`**: The version number we rolled back from.
-*   **`targetVersion`**: The snapshot version number we restored.
-*   **`newVersion`**: The resulting new version number.
-*   **`timestamp`**: The exact datetime of the operation.
-*   **`reason`**: An optional text explaining the rollback reason.
+- **`actorId`**: The User ID of the administrator who triggered the rollback.
+- **`templateId`**: The target template.
+- **`sourceVersion`**: The version number we rolled back from.
+- **`targetVersion`**: The snapshot version number we restored.
+- **`newVersion`**: The resulting new version number.
+- **`timestamp`**: The exact datetime of the operation.
+- **`reason`**: An optional text explaining the rollback reason.
