@@ -26,10 +26,18 @@ export class TopicRegistryLoader implements OnModuleInit {
 
   async loadTopics(): Promise<TopicRegistryItem[]> {
     try {
-      const filePath = path.join(
+      let filePath = path.join(
         process.cwd(),
         "generation/topic-registry/software-engineering.json",
       );
+      try {
+        await fs.access(filePath);
+      } catch {
+        filePath = path.join(
+          process.cwd(),
+          "../../generation/topic-registry/software-engineering.json",
+        );
+      }
       const content = await fs.readFile(filePath, "utf-8");
       const items = JSON.parse(content) as TopicRegistryItem[];
 
