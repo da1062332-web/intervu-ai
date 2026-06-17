@@ -20,7 +20,7 @@ import { QuestionTemplate } from "./template-contract";
 export interface TemplateLoader {
   /**
    * Initializes the repository by loading all active templates from storage into memory.
-   * Rejects if any templates fail verification rules in template-validation.md.
+   * Rejects if any templates fail verification rules.
    */
   loadTemplates(): Promise<QuestionTemplate[]>;
 
@@ -31,7 +31,12 @@ export interface TemplateLoader {
   getTemplateById(id: string): Promise<QuestionTemplate | null>;
 
   /**
-   * Retrieves all templates associated with a specific concept.
+   * Retrieves all templates associated with a specific topic ID.
+   */
+  getTemplatesByTopic(topicId: string): Promise<QuestionTemplate[]>;
+
+  /**
+   * Retrieves all templates associated with a specific concept ID.
    */
   getTemplatesByConcept(conceptId: string): Promise<QuestionTemplate[]>;
 

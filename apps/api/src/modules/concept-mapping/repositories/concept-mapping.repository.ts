@@ -9,7 +9,10 @@ export class ConceptMappingRepository extends BaseRepository<
   Prisma.ConceptMappingCreateInput,
   Prisma.ConceptMappingUpdateInput
 > {
-  constructor(prisma: PrismaService, @Optional() tx?: Prisma.TransactionClient) {
+  constructor(
+    prisma: PrismaService,
+    @Optional() tx?: Prisma.TransactionClient,
+  ) {
     super(prisma, "conceptMapping", { softDelete: true }, tx);
   }
 

@@ -8,76 +8,73 @@
 
 ## 1. Selection Pipeline Flow
 
-When the assessment engine generates an exam, it performs a cascading match starting from the exam blueprint down to the selected question templates:
+When generating an assessment, the generation engine resolves template matching through a multi-step selection pipeline:
 
 ```
-+──────────────────────────────────────────────────+
-| 1. Blueprint Configuration                       | (Reads target topic, concept, and difficulty mix)
-+──────────────────────────────────────────────────+
-                         │
-                         ▼
-+──────────────────────────────────────────────────+
-| 2. Concept Match                                 | (Filters templates by topicId and conceptId)
-+──────────────────────────────────────────────────+
-                         │
-                         ▼
-+──────────────────────────────────────────────────+
-| 3. Difficulty Compatibility Match                | (Filters by difficulty level and allowed types)
-+──────────────────────────────────────────────────+
-                         │
-                         ▼
-+──────────────────────────────────────────────────+
-| 4. Selection & De-duplication                    | (Selects templates randomly/seeded without duplicates)
-+──────────────────────────────────────────────────+
+[ 1. Blueprint Configuration ] ──> Reads target topic, concept, and difficulty mix.
+             │
+             ▼
+[ 2. Concept Match ] ───────────> Filters templates where topicId and conceptId match.
+             │
+             ▼
+[ 3. Difficulty Match ] ────────> Filters by difficulty and checks compatibility mapping.
+             │
+             ▼
+[ 4. De-duplication check ] ───> Filters out templates already selected in same exam.
+             │
+             ▼
+[ 5. Deterministic Seed Selection ] ──> Selects template using a SFC32 PRNG.
 ```
 
 ---
 
 ## 2. Selection Steps
 
-### Step 1: Query Blueprint Specifications
+### Step 1: Blueprint Resolution
 
-- For each question slot in the blueprint, extract the required:
-  - `topicId`
-  - `conceptId`
-  - `difficulty` (easy, medium, hard)
+The selector reads the assessment blueprint configuration to identify requirements for each question slot, extracting:
 
-### Step 2: Apply Primary Filter
+- `topicId` (Topic ID)
+- `conceptId` (Concept ID)
+- `difficulty` (`easy`, `medium`, `hard`)
 
-- Query the template repository to fetch templates matching:
-  - `active === true`
-  - `topicId === blueprint.topicId`
-  - `conceptId === blueprint.conceptId`
+### Step 2: Primary Filtering
 
-### Step 3: Apply Difficulty and Type Compatibility
+The registry query returns candidate templates matching:
 
-- Filter out any templates where:
-  - `template.difficulty !== blueprint.difficulty`
-  - The `template.templateType` is incompatible with the target difficulty according to `difficulty-mapping.md`.
+- `active === true`
+- `topicId === blueprint.topicId`
+- `conceptId === blueprint.conceptId`
 
-### Step 4: De-duplication Check
+### Step 3: Difficulty and Type Mapping
 
-- Filter out templates that have already been selected for another question slot in the same exam instance.
+Enforce the **Difficulty Compatibility Matrix**:
 
----
+- Discard templates where `template.difficulty !== blueprint.difficulty`.
+- Discard templates whose `templateType` is incompatible with the target difficulty (e.g., `True/False` for `hard` difficulty).
 
-## 3. Fallback Strategies
+### Step 4: De-duplication
 
-If the selection candidate pool is empty after applying all filters, the engine enforces the following fallback priority queue:
-
-1. **Fallback 1: Concept Relaxation (Same Topic, Alternative Concept)**
-   - Search for templates within the _same_ `topicId` and `difficulty` that are associated with a closely related `conceptId` (defined in the Topic Registry's concept list).
-2. **Fallback 2: Difficulty Level Shifting**
-   - If no templates exist for the target difficulty, look for templates targeting an adjacent difficulty tier (e.g., if `hard` is empty, check `medium`).
-3. **Fallback 3: System Error Flag**
-   - If no templates match the topic at any difficulty, halt generation and throw a configuration mismatch error: `"No templates found matching Topic {topicId}."`
+To avoid candidate fatigue, filter out templates that have already been selected for another slot in the same exam instance.
 
 ---
 
-## 4. Randomization Seeding
+## 3. Deterministic Selection Seeding
 
-To ensure reproducible testing:
+To ensure that candidate questions are random yet reproducible, selection uses a **SFC32 Pseudo-Random Number Generator (PRNG)**.
 
-- The selector uses a SFC32 Pseudo-Random Number Generator.
-- The seed is composed of: `examConfigId` + `candidateId` + `questionSlotIndex`.
-- This ensures that while two candidates get different sets of questions, a single candidate's session retains the exact same selected templates on page reloads/retries.
+- **Seed Generation:**
+  $$\text{Seed} = \text{SHA-256}(\text{examConfigId} + \text{candidateId} + \text{questionSlotIndex})$$
+- **Result:**
+  - Two different candidates will receive different selected templates (ensuring fairness).
+  - A single candidate's session will always select the identical templates on page refreshes or connection retries, preventing cheating.
+
+---
+
+## 4. Fallback Strategies
+
+If the candidate pool is empty after all filters are applied:
+
+1.  **Concept Relaxation:** Query templates under the same `topicId` and `difficulty` mapping to related/adjacent concepts.
+2.  **Difficulty Tier Shifting:** Look for adjacent difficulty templates (e.g., fallback from `hard` to `medium` for same concept).
+3.  **Fatal Configuration Error:** If no templates match the topic, halt generation and return: `"No templates found matching Topic {topicId}."`

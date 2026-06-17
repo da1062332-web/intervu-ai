@@ -26,48 +26,21 @@ export class TopicRegistryLoader implements OnModuleInit {
 
   async loadTopics(): Promise<TopicRegistryItem[]> {
     try {
-      let filePath: string | null = null;
-
-      // 1. Try finding relative to process.cwd() by walking up
-      let currentDir = process.cwd();
-      for (let i = 0; i < 5; i++) {
-        const candidate = path.join(currentDir, "generation/topic-registry/software-engineering.json");
-        try {
-          await fs.access(candidate);
-          filePath = candidate;
-          break;
-        } catch {
-          const parent = path.dirname(currentDir);
-          if (parent === currentDir) break;
-          currentDir = parent;
-        }
+      let filePath = path.join(
+        process.cwd(),
+        "generation/topic-registry/software-engineering.json",
+      );
+      try {
+        await fs.access(filePath);
+      } catch {
+        filePath = path.join(
+          process.cwd(),
+          "../../generation/topic-registry/software-engineering.json",
+        );
       }
-
-      // 2. Try finding relative to __dirname by walking up if not found
-      if (!filePath) {
-        currentDir = __dirname;
-        for (let i = 0; i < 7; i++) {
-          const candidate = path.join(currentDir, "generation/topic-registry/software-engineering.json");
-          try {
-            await fs.access(candidate);
-            filePath = candidate;
-            break;
-          } catch {
-            const parent = path.dirname(currentDir);
-            if (parent === currentDir) break;
-            currentDir = parent;
-          }
-        }
-      }
-
-      // 3. Fallback to process.cwd() if still not found
-      if (!filePath) {
-        filePath = path.join(process.cwd(), "generation/topic-registry/software-engineering.json");
-      }
-
       const content = await fs.readFile(filePath, "utf-8");
       const items = JSON.parse(content) as TopicRegistryItem[];
-      
+
       this.registryCache.clear();
       for (const item of items) {
         this.registryCache.set(item.id, item);

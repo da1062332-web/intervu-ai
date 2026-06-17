@@ -5,11 +5,17 @@ import type { Prisma, ConceptMapping } from "@prisma/client";
 export class ConceptMappingRepository {
   private validate(input: any) {
     if (!input) {
-      throw new RepositoryError("INVALID_INPUT", "Input cannot be null or undefined.");
+      throw new RepositoryError(
+        "INVALID_INPUT",
+        "Input cannot be null or undefined.",
+      );
     }
   }
 
-  async create(topicId: string, data: Omit<Prisma.ConceptMappingCreateInput, "topicId">): Promise<ConceptMapping> {
+  async create(
+    topicId: string,
+    data: Omit<Prisma.ConceptMappingCreateInput, "topicId">,
+  ): Promise<ConceptMapping> {
     this.validate(topicId);
     this.validate(data);
     try {
@@ -35,7 +41,10 @@ export class ConceptMappingRepository {
     }
   }
 
-  async findManyByTopicId(topicId: string, activeOnly = true): Promise<ConceptMapping[]> {
+  async findManyByTopicId(
+    topicId: string,
+    activeOnly = true,
+  ): Promise<ConceptMapping[]> {
     this.validate(topicId);
     try {
       return await prisma.conceptMapping.findMany({
@@ -51,7 +60,10 @@ export class ConceptMappingRepository {
     }
   }
 
-  async findByTopicAndCode(topicId: string, conceptCode: string): Promise<ConceptMapping | null> {
+  async findByTopicAndCode(
+    topicId: string,
+    conceptCode: string,
+  ): Promise<ConceptMapping | null> {
     this.validate(topicId);
     this.validate(conceptCode);
     try {
@@ -63,7 +75,10 @@ export class ConceptMappingRepository {
     }
   }
 
-  async update(id: string, data: Prisma.ConceptMappingUpdateInput): Promise<ConceptMapping> {
+  async update(
+    id: string,
+    data: Prisma.ConceptMappingUpdateInput,
+  ): Promise<ConceptMapping> {
     this.validate(id);
     this.validate(data);
     try {
