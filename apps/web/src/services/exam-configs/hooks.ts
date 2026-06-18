@@ -48,3 +48,19 @@ export const useUpdateConfig = (configId: string) => {
     },
   });
 };
+
+export const useArchiveConfig = (configId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => examConfigsApi.archiveConfig(configId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configs'] });
+      queryClient.invalidateQueries({ queryKey: ['configs', configId] });
+      toast.success('Exam configuration archived successfully');
+    },
+    onError: () => {
+      toast.error('Failed to archive exam configuration');
+    },
+  });
+};
