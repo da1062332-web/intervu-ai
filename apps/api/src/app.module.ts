@@ -30,6 +30,7 @@ import { AdminConfigModule } from "./modules/admin-config/admin-config.module";
 import { DifficultyDistributionModule } from "./modules/difficulty-distribution/difficulty-distribution.module";
 import { RuleFlagsModule } from "./modules/rule-flags/rule-flags.module";
 import { ConceptMappingModule } from "./modules/concept-mapping/concept-mapping.module";
+import { TopicSectionMappingModule } from "./modules/topic-section-mapping/topic-section-mapping.module";
 import { BlueprintModule } from "./modules/blueprint/blueprint.module";
 
 @Module({
@@ -65,6 +66,7 @@ import { BlueprintModule } from "./modules/blueprint/blueprint.module";
     DifficultyDistributionModule,
     RuleFlagsModule,
     ConceptMappingModule,
+    TopicSectionMappingModule,
     BlueprintModule,
   ],
   providers: [

@@ -50,6 +50,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "lucide-react": "^1.21.0",
     "shared-logger": "^1.0.12"
   }
 }

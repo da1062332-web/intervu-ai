@@ -5,6 +5,7 @@ import { SectionBuilder } from '@/modules/exam-config/components/section-builder
 import { RuleFlagsTab } from '@/features/admin/configs/components/rule-flags-tab';
 import { ConfigPreviewTab } from '@/features/admin/configs/components/config-preview-tab';
 import { GeneralSettingsTab } from '@/features/admin/configs/components/general-settings-tab';
+import { ConceptManagementPanel } from '@/features/admin/configs/components/concept-mapping';
 import { cn } from '@/lib/utils';
 import { useConfig } from '@/services/exam-configs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,12 +15,13 @@ interface ConfigPageClientProps {
 }
 
 export function ConfigPageClient({ configId }: ConfigPageClientProps) {
-  const [activeTab, setActiveTab] = useState('sections');
+  const [activeTab, setActiveTab] = useState('general');
   const { data: config, isLoading, isError } = useConfig(configId);
 
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'sections', label: 'Sections' },
+    { id: 'concepts', label: 'Concept Mapping' },
     { id: 'rules', label: 'Rules' },
     { id: 'preview', label: 'Preview' },
   ];
@@ -50,11 +52,35 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
-      <div>
-        <h1 className='text-3xl font-bold tracking-tight'>{config.name}</h1>
-        <p className='text-muted-foreground mt-2'>
-          Manage the settings, sections, and rules for this exam.
-        </p>
+      <div className='flex flex-col md:flex-row md:items-start justify-between gap-4'>
+        <div>
+          <h1 className='text-3xl font-bold tracking-tight'>{config.name}</h1>
+          <p className='text-muted-foreground mt-2'>
+            Manage the settings, sections, and rules for this exam.
+          </p>
+        </div>
+        <div className='flex flex-wrap gap-2 text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg border'>
+          <div className='flex flex-col mr-4'>
+            <span className='font-medium text-foreground'>Code</span>
+            <span>{config.code || 'N/A'}</span>
+          </div>
+          <div className='flex flex-col mr-4'>
+            <span className='font-medium text-foreground'>Role</span>
+            <span>{config.role}</span>
+          </div>
+          <div className='flex flex-col mr-4'>
+            <span className='font-medium text-foreground'>Duration</span>
+            <span>{config.durationMinutes}m</span>
+          </div>
+          <div className='flex flex-col mr-4'>
+            <span className='font-medium text-foreground'>Questions</span>
+            <span>{config.totalQuestions}</span>
+          </div>
+          <div className='flex flex-col'>
+            <span className='font-medium text-foreground'>Status</span>
+            <span>{config.status === 'ARCHIVED' ? 'Archived' : (config.isActive ? 'Active' : 'Draft')}</span>
+          </div>
+        </div>
       </div>
 
       <div className='border-b border-gray-200 dark:border-gray-800'>
@@ -84,6 +110,12 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         )}
 
         {activeTab === 'sections' && <SectionBuilder configId={configId} />}
+
+        {activeTab === 'concepts' && (
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <ConceptManagementPanel />
+          </div>
+        )}
 
         {activeTab === 'rules' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>

@@ -422,19 +422,19 @@ enum ConfigStatus {
 }
 
 model ExamConfig {
-  id              String        @id @default(cuid())
+  id              String       @id @default(cuid())
   name            String
-  code            String        @unique
+  code            String       @unique
   role            String
   description     String?
   totalQuestions  Int
   durationMinutes Int
-  status          ConfigStatus  @default(DRAFT)
-  isArchived      Boolean       @default(false)
-  isActive        Boolean       @default(true)
+  status          ConfigStatus @default(DRAFT)
+  isArchived      Boolean      @default(false)
+  isActive        Boolean      @default(true)
   createdBy       String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   versions               ExamConfigVersion[]
   difficultyDistribution DifficultyDistribution?
@@ -509,6 +509,23 @@ model ExamRuleFlags {
   @@index([examConfigId])
 }
 
+model Topic {
+  id            String           @id @default(cuid())
+  domain        String
+  topicName     String
+  subtopic      String
+  tags          String[]
+  easySupport   Boolean          @default(true)
+  mediumSupport Boolean          @default(true)
+  hardSupport   Boolean          @default(true)
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
+  
+  conceptMappings ConceptMapping[]
+}
+
 model ConceptMapping {
   id          String    @id @default(cuid())
   topicId     String
@@ -519,6 +536,8 @@ model ConceptMapping {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+
+  topic       Topic     @relation(fields: [topicId], references: [id])
 
   @@unique([topicId, conceptCode])
   @@index([topicId])
@@ -570,4 +589,17 @@ model Blueprint {
   @@map("blueprints")
   @@index([configId])
   @@index([styleProfileId])
+}
+
+model SectionTopic {
+  id String @id @default(uuid())
+
+  sectionId String
+  topicId   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([sectionId, topicId])
+  @@index([sectionId])
+  @@index([topicId])
 }

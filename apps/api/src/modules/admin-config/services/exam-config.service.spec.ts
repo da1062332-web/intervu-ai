@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { NotFoundException, ConflictException, BadRequestException } from "@nestjs/common";
+import {
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from "@nestjs/common";
 import { ExamConfigService } from "./exam-config.service";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamConfigDto, UpdateExamConfigDto } from "@intervu/shared";
@@ -123,7 +127,10 @@ describe("ExamConfigService", () => {
 
       const result = await service.findAll();
 
-      expect(repository.findAll).toHaveBeenCalledWith({ isActive: true, isArchived: false });
+      expect(repository.findAll).toHaveBeenCalledWith({
+        isActive: true,
+        isArchived: false,
+      });
       expect(result).toEqual(activeConfigs);
     });
   });
@@ -256,7 +263,9 @@ describe("ExamConfigService", () => {
 
       repository.findById.mockResolvedValueOnce(archivedConfig);
 
-      await expect(service.update(id, dto)).rejects.toThrow(BadRequestException);
+      await expect(service.update(id, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it("should throw ConflictException if updated code already exists on another config", async () => {

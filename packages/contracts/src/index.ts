@@ -38,3 +38,10 @@ export * from "./style-profile.dto";
 export * from "./schemas/style-profile.schema";
 export * from "./blueprint.dto";
 export * from "./schemas/blueprint.schema";
+
+// Topic Contracts
+export * from "./topic.dto";
+export * from "./schemas/topic.schema";
+
+// Topic Section Mapping Contracts
+export * from "./schemas/topic-section.schema";
