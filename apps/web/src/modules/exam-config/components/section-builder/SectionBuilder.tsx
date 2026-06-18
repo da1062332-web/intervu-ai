@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/admin/dashboard/empty-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { SectionCard } from './SectionCard';
 import { SectionFormModal } from './SectionFormModal';
 import { DeleteSectionDialog } from './DeleteSectionDialog';

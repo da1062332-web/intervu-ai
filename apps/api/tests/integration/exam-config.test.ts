@@ -20,10 +20,8 @@ import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
 
 describe("Exam Config & Section Integration Tests", () => {
   let app: INestApplication;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let configRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let sectionRepoMock: any;
+  let configRepoMock: Record<string, ReturnType<typeof vi.fn>>;
+  let sectionRepoMock: Record<string, ReturnType<typeof vi.fn>>;
 
   beforeAll(async () => {
     configRepoMock = {
@@ -162,7 +160,9 @@ describe("Exam Config & Section Integration Tests", () => {
     it("3. Fetch Exam Configuration Details", async () => {
       configRepoMock.findById.mockResolvedValueOnce(mockConfig);
 
-      const res = await request(app.getHttpServer()).get(`/admin/configs/${configId}`);
+      const res = await request(app.getHttpServer()).get(
+        `/admin/configs/${configId}`,
+      );
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -170,7 +170,11 @@ describe("Exam Config & Section Integration Tests", () => {
     });
 
     it("4. Update Section details", async () => {
-      const updatedSection = { ...mockSection, name: "Data Structures", code: "DS" };
+      const updatedSection = {
+        ...mockSection,
+        name: "Data Structures",
+        code: "DS",
+      };
       sectionRepoMock.findById.mockResolvedValueOnce(mockSection);
       configRepoMock.findById.mockResolvedValueOnce(mockConfig);
       sectionRepoMock.findByConfigAndCode.mockResolvedValueOnce(null);
@@ -191,11 +195,17 @@ describe("Exam Config & Section Integration Tests", () => {
     });
 
     it("5. Archive Exam Configuration", async () => {
-      const archivedConfig = { ...mockConfig, isArchived: true, status: ConfigStatus.ARCHIVED };
+      const archivedConfig = {
+        ...mockConfig,
+        isArchived: true,
+        status: ConfigStatus.ARCHIVED,
+      };
       configRepoMock.findById.mockResolvedValueOnce(mockConfig);
       configRepoMock.update.mockResolvedValueOnce(archivedConfig);
 
-      const res = await request(app.getHttpServer()).delete(`/admin/configs/${configId}`);
+      const res = await request(app.getHttpServer()).delete(
+        `/admin/configs/${configId}`,
+      );
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -204,7 +214,11 @@ describe("Exam Config & Section Integration Tests", () => {
     });
 
     it("6. Block modifications on section when parent config is archived", async () => {
-      const archivedConfig = { ...mockConfig, isArchived: true, status: ConfigStatus.ARCHIVED };
+      const archivedConfig = {
+        ...mockConfig,
+        isArchived: true,
+        status: ConfigStatus.ARCHIVED,
+      };
       sectionRepoMock.findById.mockResolvedValueOnce(mockSection);
       configRepoMock.findById.mockResolvedValueOnce(archivedConfig);
 

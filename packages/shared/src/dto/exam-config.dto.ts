@@ -16,7 +16,10 @@ export class CreateExamConfigDto implements CreateExamConfig {
   @ApiProperty({ example: "Software Engineer", maxLength: 100 })
   role!: string;
 
-  @ApiPropertyOptional({ example: "Standard configuration for screening software engineering candidates" })
+  @ApiPropertyOptional({
+    example:
+      "Standard configuration for screening software engineering candidates",
+  })
   description?: string | null;
 
   @ApiProperty({ example: 60, minimum: 1 })
@@ -53,7 +56,10 @@ export class UpdateExamConfigDto implements UpdateExamConfig {
   @ApiPropertyOptional({ example: 45 })
   totalQuestions?: number;
 
-  @ApiPropertyOptional({ enum: ["DRAFT", "ACTIVE", "ARCHIVED"], example: "ACTIVE" })
+  @ApiPropertyOptional({
+    enum: ["DRAFT", "ACTIVE", "ARCHIVED"],
+    example: "ACTIVE",
+  })
   status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
 
   @ApiPropertyOptional({ example: false })

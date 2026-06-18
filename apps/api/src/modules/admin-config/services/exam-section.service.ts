@@ -107,10 +107,7 @@ export class ExamSectionService {
       }
     }
 
-    if (
-      dto.code !== undefined &&
-      dto.code !== section.code
-    ) {
+    if (dto.code !== undefined && dto.code !== section.code) {
       const existingCode = await this.sectionRepo.findByConfigAndCode(
         section.examConfigId,
         dto.code,

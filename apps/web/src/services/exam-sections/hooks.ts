@@ -20,9 +20,6 @@ export const useCreateSection = (configId: string) => {
       queryClient.invalidateQueries({ queryKey: ['sections', configId] });
       toast.success('Section created successfully');
     },
-    onError: () => {
-      toast.error('Failed to create section');
-    },
   });
 };
 
@@ -36,9 +33,6 @@ export const useUpdateSection = (configId: string) => {
       queryClient.invalidateQueries({ queryKey: ['sections', configId] });
       toast.success('Section updated successfully');
     },
-    onError: () => {
-      toast.error('Failed to update section');
-    },
   });
 };
 
@@ -50,9 +44,6 @@ export const useDeleteSection = (configId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sections', configId] });
       toast.success('Section deleted successfully');
-    },
-    onError: () => {
-      toast.error('Failed to delete section');
     },
   });
 };

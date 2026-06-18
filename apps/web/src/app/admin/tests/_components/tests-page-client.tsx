@@ -3,7 +3,7 @@
 import { Plus, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
 
-import { EmptyState } from '@/components/admin/dashboard/empty-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 
 /**
