@@ -19,7 +19,10 @@ const formSchema = z.object({
     .string()
     .min(1, 'Config Code is required')
     .max(100, 'Config Code must be less than 100 characters')
-    .regex(/^[A-Z0-9_]+$/, 'Code must be uppercase and only contain letters, numbers, and underscores'),
+    .regex(
+      /^[A-Z0-9_]+$/,
+      'Code must be uppercase and only contain letters, numbers, and underscores',
+    ),
   role: z.string().min(1, 'Role is required').max(100, 'Role must be less than 100 characters'),
   durationMinutes: z.coerce.number().positive('Duration must be a positive number'),
   totalQuestions: z.coerce.number().positive('Total Questions must be a positive number'),
@@ -87,7 +90,10 @@ export function ConfigForm() {
           placeholder='e.g. SWE_SCREENING'
           {...register('code', {
             onChange: (e) => {
-              setValue('code', e.target.value.toUpperCase(), { shouldValidate: true, shouldDirty: true });
+              setValue('code', e.target.value.toUpperCase(), {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
             },
           })}
           aria-invalid={!!errors.code}

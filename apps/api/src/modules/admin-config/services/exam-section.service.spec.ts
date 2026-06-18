@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { NotFoundException, ConflictException, BadRequestException } from "@nestjs/common";
+import {
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from "@nestjs/common";
 import { ExamSectionService } from "./exam-section.service";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
@@ -90,8 +94,14 @@ describe("ExamSectionService", () => {
       const result = await service.createSection(configId, dto);
 
       expect(configRepo.findById).toHaveBeenCalledWith(configId);
-      expect(sectionRepo.findByConfigAndCode).toHaveBeenCalledWith(configId, dto.code);
-      expect(sectionRepo.findByConfigAndOrder).toHaveBeenCalledWith(configId, dto.sectionOrder);
+      expect(sectionRepo.findByConfigAndCode).toHaveBeenCalledWith(
+        configId,
+        dto.code,
+      );
+      expect(sectionRepo.findByConfigAndOrder).toHaveBeenCalledWith(
+        configId,
+        dto.sectionOrder,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -372,9 +382,7 @@ describe("ExamSectionService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(
-        conflictingSection,
-      );
+      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(conflictingSection);
 
       await expect(service.updateSection(sectionId, dto)).rejects.toThrow(
         ConflictException,

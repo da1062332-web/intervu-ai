@@ -15,7 +15,8 @@ export const useCreateConcept = (topicId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateConceptPayload) => conceptMappingApi.createConcept(topicId, payload),
+    mutationFn: (payload: CreateConceptPayload) =>
+      conceptMappingApi.createConcept(topicId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['concepts', topicId] });
       toast.success('Concept created successfully');
