@@ -35,6 +35,7 @@ describe("ExamConfigRepository", () => {
     it("should call prisma.examConfig.create", async () => {
       const data = {
         name: "Test Config",
+        code: "TEST_CONFIG",
         role: "Software Engineer",
         durationMinutes: 60,
         totalQuestions: 30,

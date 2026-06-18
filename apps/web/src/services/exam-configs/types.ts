@@ -1,6 +1,7 @@
 export interface ExamConfig {
   id: string;
   name: string;
+  code: string;
   role: string;
   durationMinutes: number;
   totalQuestions: number;

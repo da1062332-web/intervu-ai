@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Patch,
+  Delete,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -78,5 +79,15 @@ export class ExamConfigController {
   @ApiOkResponse({ description: "Configuration details" })
   async findOne(@Param("id") id: string) {
     return this.examConfigService.findOne(id);
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.OK)
+  @ValidateResponse(ExamConfigResponseSchema)
+  @ApiOperation({ summary: "Archive an exam configuration" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiOkResponse({ description: "Configuration archived successfully" })
+  async archive(@Param("id") id: string) {
+    return this.examConfigService.archive(id);
   }
 }

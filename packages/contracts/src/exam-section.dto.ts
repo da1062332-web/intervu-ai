@@ -1,15 +1,19 @@
 export interface CreateExamSection {
   name: string;
+  code: string;
   questionCount: number;
-  durationMinutes?: number | null;
-  displayOrder: number;
+  sectionDurationMinutes: number;
+  sectionOrder: number;
+  isRequired: boolean;
 }
 
 export interface UpdateExamSection {
   name?: string;
+  code?: string;
   questionCount?: number;
-  durationMinutes?: number | null;
-  displayOrder?: number;
+  sectionDurationMinutes?: number;
+  sectionOrder?: number;
+  isRequired?: boolean;
 }
 
 export interface ExamSectionDto extends CreateExamSection {

@@ -35,7 +35,18 @@ export class ExamConfigRepository {
   async findAllActive(): Promise<ExamConfig[]> {
     try {
       return await prisma.examConfig.findMany({
-        where: { isActive: true },
+        where: { isActive: true, isArchived: false },
+      });
+    } catch (error: any) {
+      throw new RepositoryError("DB_ERROR", error.message);
+    }
+  }
+
+  async findByCode(code: string): Promise<ExamConfig | null> {
+    this.validate(code);
+    try {
+      return await prisma.examConfig.findUnique({
+        where: { code },
       });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);

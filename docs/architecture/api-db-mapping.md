@@ -17,6 +17,8 @@ This document maps each MVP backend endpoint to its underlying database tables t
 | `/api/v1/admin/configs`                    | POST        | `ExamConfig`                                            | Creates a new Exam Configuration.                                       |
 | `/api/v1/admin/configs`                    | GET         | `ExamConfig`                                            | Lists active Exam Configurations.                                       |
 | `/api/v1/admin/configs/:id`                | GET         | `ExamConfig`                                            | Retrieves a single Exam Configuration details.                          |
+| `/api/v1/admin/configs/:id`                | PATCH       | `ExamConfig`                                            | Updates an existing Exam Configuration.                                 |
+| `/api/v1/admin/configs/:id`                | DELETE      | `ExamConfig`                                            | Archives (soft deletes) an Exam Configuration.                          |
 | `/api/v1/admin/configs/:configId/sections` | POST        | `ExamSection`                                           | Creates a new section configuration under an exam.                      |
 | `/api/v1/admin/configs/:configId/sections` | GET         | `ExamSection`                                           | Lists sections under an exam configuration.                             |
 | `/api/v1/admin/sections/:sectionId`        | PATCH       | `ExamSection`                                           | Updates an existing section configuration.                              |

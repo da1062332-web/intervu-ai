@@ -20,16 +20,22 @@ export class ExamSectionRepository extends BaseRepository<
     return new ExamSectionRepository(this.prisma, tx) as this;
   }
 
-  async findByConfigAndOrder(examConfigId: string, displayOrder: number) {
+  async findByConfigAndOrder(examConfigId: string, sectionOrder: number) {
     return this.prisma.examSection.findFirst({
-      where: { examConfigId, displayOrder },
+      where: { examConfigId, sectionOrder },
+    });
+  }
+
+  async findByConfigAndCode(examConfigId: string, code: string) {
+    return this.prisma.examSection.findFirst({
+      where: { examConfigId, code },
     });
   }
 
   async findManyByConfigId(examConfigId: string) {
     return this.prisma.examSection.findMany({
       where: { examConfigId },
-      orderBy: { displayOrder: "asc" },
+      orderBy: { sectionOrder: "asc" },
     });
   }
 }

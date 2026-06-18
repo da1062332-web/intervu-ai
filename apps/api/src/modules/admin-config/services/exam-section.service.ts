@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
@@ -22,22 +23,42 @@ export class ExamSectionService {
       );
     }
 
+    if (config.isArchived || config.status === "ARCHIVED") {
+      throw new BadRequestException({
+        code: "CONFIG_ARCHIVED",
+        error: "CONFIG_ARCHIVED",
+        message: "Archived configurations cannot be modified",
+      });
+    }
+
+    const existingCode = await this.sectionRepo.findByConfigAndCode(
+      configId,
+      dto.code,
+    );
+    if (existingCode) {
+      throw new ConflictException(
+        `Section code ${dto.code} is already in use for this configuration`,
+      );
+    }
+
     const existingOrder = await this.sectionRepo.findByConfigAndOrder(
       configId,
-      dto.displayOrder,
+      dto.sectionOrder,
     );
     if (existingOrder) {
       throw new ConflictException(
-        `Display order ${dto.displayOrder} is already in use for this configuration`,
+        `Section order ${dto.sectionOrder} is already in use for this configuration`,
       );
     }
 
     // Build Prisma create data input
     const createData = {
       name: dto.name,
+      code: dto.code,
       questionCount: dto.questionCount,
-      durationMinutes: dto.durationMinutes,
-      displayOrder: dto.displayOrder,
+      sectionDurationMinutes: dto.sectionDurationMinutes,
+      sectionOrder: dto.sectionOrder,
+      isRequired: dto.isRequired ?? true,
       examConfig: {
         connect: { id: configId },
       },
@@ -62,17 +83,38 @@ export class ExamSectionService {
       throw new NotFoundException(`Section with ID ${sectionId} not found`);
     }
 
+    const config = await this.configRepo.findById(section.examConfigId);
+    if (config && (config.isArchived || config.status === "ARCHIVED")) {
+      throw new BadRequestException({
+        code: "CONFIG_ARCHIVED",
+        error: "CONFIG_ARCHIVED",
+        message: "Archived configurations cannot be modified",
+      });
+    }
+
     if (
-      dto.displayOrder !== undefined &&
-      dto.displayOrder !== section.displayOrder
+      dto.sectionOrder !== undefined &&
+      dto.sectionOrder !== section.sectionOrder
     ) {
       const existingOrder = await this.sectionRepo.findByConfigAndOrder(
         section.examConfigId,
-        dto.displayOrder,
+        dto.sectionOrder,
       );
       if (existingOrder && existingOrder.id !== sectionId) {
         throw new ConflictException(
-          `Display order ${dto.displayOrder} is already in use for this configuration`,
+          `Section order ${dto.sectionOrder} is already in use for this configuration`,
+        );
+      }
+    }
+
+    if (dto.code !== undefined && dto.code !== section.code) {
+      const existingCode = await this.sectionRepo.findByConfigAndCode(
+        section.examConfigId,
+        dto.code,
+      );
+      if (existingCode && existingCode.id !== sectionId) {
+        throw new ConflictException(
+          `Section code ${dto.code} is already in use for this configuration`,
         );
       }
     }
@@ -85,6 +127,16 @@ export class ExamSectionService {
     if (!section) {
       throw new NotFoundException(`Section with ID ${sectionId} not found`);
     }
+
+    const config = await this.configRepo.findById(section.examConfigId);
+    if (config && (config.isArchived || config.status === "ARCHIVED")) {
+      throw new BadRequestException({
+        code: "CONFIG_ARCHIVED",
+        error: "CONFIG_ARCHIVED",
+        message: "Archived configurations cannot be modified",
+      });
+    }
+
     return this.sectionRepo.delete(sectionId);
   }
 }
