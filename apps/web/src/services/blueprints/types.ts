@@ -1,4 +1,4 @@
-import type { ExamBlueprint, StyleProfile } from "@intervu-ai/contracts";
+import type { ExamBlueprint, StyleProfile } from '@intervu-ai/contracts';
 
 export type { ExamBlueprint, StyleProfile };
 

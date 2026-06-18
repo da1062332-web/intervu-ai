@@ -24,7 +24,7 @@ export const CreateTopicSchema = TopicBaseSchema.refine(
   {
     message: "At least one difficulty level must be supported",
     path: ["easySupport"],
-  }
+  },
 );
 
 export const UpdateTopicSchema = TopicBaseSchema.partial().extend({

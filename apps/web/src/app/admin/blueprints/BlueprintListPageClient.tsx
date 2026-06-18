@@ -21,7 +21,9 @@ export function BlueprintListPageClient() {
     return (
       <div className='mt-8 text-center py-12 border rounded-md'>
         <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading blueprints</h3>
-        <p className='text-muted-foreground mb-4'>We could not load the blueprints from the server.</p>
+        <p className='text-muted-foreground mb-4'>
+          We could not load the blueprints from the server.
+        </p>
         <button
           onClick={() => refetch()}
           className='text-sm font-medium text-indigo-600 hover:text-indigo-500'
@@ -36,7 +38,9 @@ export function BlueprintListPageClient() {
     return (
       <div className='mt-8 text-center py-12 border border-dashed rounded-md'>
         <h3 className='text-lg font-medium text-gray-900 mb-1'>No blueprints found</h3>
-        <p className='text-muted-foreground mb-6'>Get started by designing a new blueprint for an exam configuration.</p>
+        <p className='text-muted-foreground mb-6'>
+          Get started by designing a new blueprint for an exam configuration.
+        </p>
         <Link
           href='/admin/blueprints/builder'
           className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
@@ -55,16 +59,28 @@ export function BlueprintListPageClient() {
             <table className='min-w-full divide-y divide-gray-300'>
               <thead className='bg-gray-50'>
                 <tr>
-                  <th scope='col' className='py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6'>
+                  <th
+                    scope='col'
+                    className='py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6'
+                  >
                     Exam Configuration
                   </th>
-                  <th scope='col' className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'>
+                  <th
+                    scope='col'
+                    className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                  >
                     Style Profile
                   </th>
-                  <th scope='col' className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'>
+                  <th
+                    scope='col'
+                    className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                  >
                     Type
                   </th>
-                  <th scope='col' className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'>
+                  <th
+                    scope='col'
+                    className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                  >
                     Sections Count
                   </th>
                   <th scope='col' className='relative py-3.5 pl-3 pr-4 sm:pr-6'>

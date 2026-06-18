@@ -63,7 +63,9 @@ export class TopicRegistryLoader implements OnModuleInit {
       return items;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to load topic registry from database: ${message}`);
+      throw new Error(
+        `Failed to load topic registry from database: ${message}`,
+      );
     }
   }
 

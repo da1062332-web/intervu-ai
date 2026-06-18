@@ -10,9 +10,15 @@ interface BlueprintHealthWidgetProps {
   difficultySum: number;
 }
 
-export function BlueprintHealthWidget({ blueprintId, topicSum, difficultySum }: BlueprintHealthWidgetProps) {
+export function BlueprintHealthWidget({
+  blueprintId,
+  topicSum,
+  difficultySum,
+}: BlueprintHealthWidgetProps) {
   const { mutateAsync: validate, isPending } = useValidateBlueprint();
-  const [dbValidation, setDbValidation] = useState<{ valid: boolean; errors: string[] } | null>(null);
+  const [dbValidation, setDbValidation] = useState<{ valid: boolean; errors: string[] } | null>(
+    null,
+  );
 
   const runDbValidation = async () => {
     if (!blueprintId) return;
@@ -47,7 +53,9 @@ export function BlueprintHealthWidget({ blueprintId, topicSum, difficultySum }: 
       <div className='flex justify-between items-center border-b pb-4'>
         <div>
           <h3 className='text-sm font-semibold text-gray-900'>Blueprint Health Analyzer</h3>
-          <p className='text-xs text-muted-foreground mt-0.5'>Real-time schema and contract verification</p>
+          <p className='text-xs text-muted-foreground mt-0.5'>
+            Real-time schema and contract verification
+          </p>
         </div>
         {blueprintId && (
           <button

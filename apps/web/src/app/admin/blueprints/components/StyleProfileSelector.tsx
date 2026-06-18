@@ -23,11 +23,7 @@ export function StyleProfileSelector({ value, onChange, disabled }: StyleProfile
   }
 
   if (isError) {
-    return (
-      <div className='text-sm text-destructive'>
-        Failed to load candidate style profiles.
-      </div>
-    );
+    return <div className='text-sm text-destructive'>Failed to load candidate style profiles.</div>;
   }
 
   const selectedProfile = profiles?.find((p) => p.id === value);
@@ -37,7 +33,9 @@ export function StyleProfileSelector({ value, onChange, disabled }: StyleProfile
 
   const theoryVal = Number(getCharacteristic('theoryWeight') ?? 50);
   const practicalVal = Number(getCharacteristic('practicalWeight') ?? 50);
-  const bias = getCharacteristic('difficultyBias') as { easy?: number; medium?: number; hard?: number } | undefined;
+  const bias = getCharacteristic('difficultyBias') as
+    | { easy?: number; medium?: number; hard?: number }
+    | undefined;
 
   const questionLength = getCharacteristic('questionLength') as string | undefined;
   const complexity = getCharacteristic('complexity') as string | undefined;
@@ -74,7 +72,9 @@ export function StyleProfileSelector({ value, onChange, disabled }: StyleProfile
           <div className='grid grid-cols-2 gap-4 text-xs'>
             <div className='space-y-1'>
               <span className='font-medium text-gray-500 block'>Question Length:</span>
-              <span className='capitalize text-gray-900 font-semibold'>{questionLength ?? 'N/A'}</span>
+              <span className='capitalize text-gray-900 font-semibold'>
+                {questionLength ?? 'N/A'}
+              </span>
             </div>
             <div className='space-y-1'>
               <span className='font-medium text-gray-500 block'>Complexity:</span>
@@ -82,11 +82,15 @@ export function StyleProfileSelector({ value, onChange, disabled }: StyleProfile
             </div>
             <div className='space-y-1'>
               <span className='font-medium text-gray-500 block'>Scenario Weight:</span>
-              <span className='text-gray-900 font-semibold'>{Math.round((scenarioUsage ?? 0) * 100)}%</span>
+              <span className='text-gray-900 font-semibold'>
+                {Math.round((scenarioUsage ?? 0) * 100)}%
+              </span>
             </div>
             <div className='space-y-1'>
               <span className='font-medium text-gray-500 block'>Code Intensity:</span>
-              <span className='text-gray-900 font-semibold'>{Math.round((codeIntensity ?? 0) * 100)}%</span>
+              <span className='text-gray-900 font-semibold'>
+                {Math.round((codeIntensity ?? 0) * 100)}%
+              </span>
             </div>
           </div>
 

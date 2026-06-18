@@ -11,10 +11,15 @@ export class CreateStyleProfileDto implements CreateStyleProfile {
   @ApiProperty({ example: "Campus Placement Profile", maxLength: 150 })
   name!: string;
 
-  @ApiPropertyOptional({ example: "Standard assessment style for entry-level developers" })
+  @ApiPropertyOptional({
+    example: "Standard assessment style for entry-level developers",
+  })
   description?: string | null;
 
-  @ApiProperty({ example: "campus", enum: ["campus", "lateral", "executive", "certification"] })
+  @ApiProperty({
+    example: "campus",
+    enum: ["campus", "lateral", "executive", "certification"],
+  })
   profileType!: "campus" | "lateral" | "executive" | "certification";
 
   @ApiProperty({
@@ -52,7 +57,10 @@ export class UpdateStyleProfileDto implements UpdateStyleProfile {
   @ApiPropertyOptional({ example: "Updated description for lateral hiring" })
   description?: string | null;
 
-  @ApiPropertyOptional({ example: "lateral", enum: ["campus", "lateral", "executive", "certification"] })
+  @ApiPropertyOptional({
+    example: "lateral",
+    enum: ["campus", "lateral", "executive", "certification"],
+  })
   profileType?: "campus" | "lateral" | "executive" | "certification";
 
   @ApiPropertyOptional({

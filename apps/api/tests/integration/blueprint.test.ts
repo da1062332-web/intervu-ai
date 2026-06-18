@@ -2,7 +2,12 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import {
+  INestApplication,
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+} from "@nestjs/common";
 import { Reflector, APP_GUARD } from "@nestjs/core";
 import {
   ZodValidationPipe,
@@ -86,12 +91,42 @@ describe("Style Profile & Blueprint Integration Tests", () => {
 
     templateRepoMock = {
       findAll: vi.fn().mockResolvedValue([
-        { id: "t1", isActive: true, difficultyLevel: "EASY", conceptKey: "Traversal" },
-        { id: "t2", isActive: true, difficultyLevel: "MEDIUM", conceptKey: "Traversal" },
-        { id: "t3", isActive: true, difficultyLevel: "HARD", conceptKey: "Traversal" },
-        { id: "t4", isActive: true, difficultyLevel: "MEDIUM", conceptKey: "Binary Search" },
-        { id: "t5", isActive: true, difficultyLevel: "EASY", conceptKey: "Binary Search" },
-        { id: "t6", isActive: true, difficultyLevel: "HARD", conceptKey: "Binary Search" },
+        {
+          id: "t1",
+          isActive: true,
+          difficultyLevel: "EASY",
+          conceptKey: "Traversal",
+        },
+        {
+          id: "t2",
+          isActive: true,
+          difficultyLevel: "MEDIUM",
+          conceptKey: "Traversal",
+        },
+        {
+          id: "t3",
+          isActive: true,
+          difficultyLevel: "HARD",
+          conceptKey: "Traversal",
+        },
+        {
+          id: "t4",
+          isActive: true,
+          difficultyLevel: "MEDIUM",
+          conceptKey: "Binary Search",
+        },
+        {
+          id: "t5",
+          isActive: true,
+          difficultyLevel: "EASY",
+          conceptKey: "Binary Search",
+        },
+        {
+          id: "t6",
+          isActive: true,
+          difficultyLevel: "HARD",
+          conceptKey: "Binary Search",
+        },
       ]),
     };
 
@@ -169,9 +204,16 @@ describe("Style Profile & Blueprint Integration Tests", () => {
         name: "Campus Profile",
         profileType: "campus",
         active: true,
-        characteristics: [{ characteristicName: "questionLength", characteristicValue: "short" }],
+        characteristics: [
+          {
+            characteristicName: "questionLength",
+            characteristicValue: "short",
+          },
+        ],
       };
-      styleProfileRepoMock.createWithCharacteristics.mockResolvedValueOnce(mockProfile);
+      styleProfileRepoMock.createWithCharacteristics.mockResolvedValueOnce(
+        mockProfile,
+      );
 
       const res = await request(app.getHttpServer())
         .post("/style-profiles")
@@ -209,7 +251,9 @@ describe("Style Profile & Blueprint Integration Tests", () => {
     };
 
     it("should validate a correct blueprint successfully", async () => {
-      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(mockBlueprint);
+      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(
+        mockBlueprint,
+      );
 
       const res = await request(app.getHttpServer())
         .post(`/blueprints/${blueprintId}/validate`)
@@ -234,7 +278,9 @@ describe("Style Profile & Blueprint Integration Tests", () => {
           },
         ],
       };
-      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(invalidBlueprint);
+      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(
+        invalidBlueprint,
+      );
 
       const res = await request(app.getHttpServer())
         .post(`/blueprints/${blueprintId}/validate`)
@@ -243,7 +289,9 @@ describe("Style Profile & Blueprint Integration Tests", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.valid).toBe(false);
-      expect(res.body.data.errors[0]).toContain("Topic allocation total must be exactly 100%");
+      expect(res.body.data.errors[0]).toContain(
+        "Topic allocation total must be exactly 100%",
+      );
     });
 
     it("should reject a blueprint targeting non-existent topics", async () => {
@@ -258,7 +306,9 @@ describe("Style Profile & Blueprint Integration Tests", () => {
           },
         ],
       };
-      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(invalidBlueprint);
+      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(
+        invalidBlueprint,
+      );
 
       const res = await request(app.getHttpServer())
         .post(`/blueprints/${blueprintId}/validate`)
@@ -267,11 +317,15 @@ describe("Style Profile & Blueprint Integration Tests", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.valid).toBe(false);
-      expect(res.body.data.errors[0]).toContain("does not exist in Topic Registry");
+      expect(res.body.data.errors[0]).toContain(
+        "does not exist in Topic Registry",
+      );
     });
 
     it("should generate a blueprint preview structurally", async () => {
-      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(mockBlueprint);
+      blueprintRepoMock.findByIdWithRelations.mockResolvedValueOnce(
+        mockBlueprint,
+      );
 
       const res = await request(app.getHttpServer())
         .get(`/blueprints/${blueprintId}/preview`)

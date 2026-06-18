@@ -81,29 +81,48 @@ export class BlueprintService {
 
       // 1. Topic Allocation Total Check
       const topicAllocations = section.topicAllocations || [];
-      const topicSum = topicAllocations.reduce((sum: number, t: TopicAllocation) => sum + (t.percentage || 0), 0);
+      const topicSum = topicAllocations.reduce(
+        (sum: number, t: TopicAllocation) => sum + (t.percentage || 0),
+        0,
+      );
       if (topicSum !== 100) {
-        errors.push(`Section "${sectionName}": Topic allocation total must be exactly 100%, currently ${topicSum}%`);
+        errors.push(
+          `Section "${sectionName}": Topic allocation total must be exactly 100%, currently ${topicSum}%`,
+        );
       }
 
       // 2. Difficulty Allocation Total Check
-      const diffAlloc = section.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
-      const diffSum = (diffAlloc.easy || 0) + (diffAlloc.medium || 0) + (diffAlloc.hard || 0);
+      const diffAlloc = section.difficultyAllocation || {
+        easy: 0,
+        medium: 0,
+        hard: 0,
+      };
+      const diffSum =
+        (diffAlloc.easy || 0) + (diffAlloc.medium || 0) + (diffAlloc.hard || 0);
       if (diffSum !== 100) {
-        errors.push(`Section "${sectionName}": Difficulty allocation total must be exactly 100%, currently ${diffSum}%`);
+        errors.push(
+          `Section "${sectionName}": Difficulty allocation total must be exactly 100%, currently ${diffSum}%`,
+        );
       }
 
       // 3. Topic Existence Check
       for (const alloc of topicAllocations) {
-        const topic = await this.topicRegistryLoader.getTopicById(alloc.topicId);
+        const topic = await this.topicRegistryLoader.getTopicById(
+          alloc.topicId,
+        );
         if (!topic) {
-          errors.push(`Section "${sectionName}": Topic "${alloc.topicId}" does not exist in Topic Registry`);
+          errors.push(
+            `Section "${sectionName}": Topic "${alloc.topicId}" does not exist in Topic Registry`,
+          );
           continue;
         }
 
         // 4. Template Availability Check
         // If a topic is allocated and a difficulty is allocated, verify there is at least one active template in the DB
-        const checkDifficulty = async (diffKey: "easy" | "medium" | "hard", level: DifficultyLevel) => {
+        const checkDifficulty = async (
+          diffKey: "easy" | "medium" | "hard",
+          level: DifficultyLevel,
+        ) => {
           const allocPct = diffAlloc[diffKey] || 0;
           if (allocPct > 0) {
             // Find templates that match the topic's concepts and the required difficulty level
@@ -141,7 +160,11 @@ export class BlueprintService {
     const previewSections = sections.map((section: BlueprintSection) => {
       const qCount = section.questionCount || 0;
       const topicAllocations = section.topicAllocations || [];
-      const diffAlloc = section.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
+      const diffAlloc = section.difficultyAllocation || {
+        easy: 0,
+        medium: 0,
+        hard: 0,
+      };
 
       const topics = topicAllocations.map((t: TopicAllocation) => {
         const count = Math.round((t.percentage / 100) * qCount);

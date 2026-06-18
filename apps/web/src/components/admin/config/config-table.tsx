@@ -81,8 +81,16 @@ export function ConfigTable({ configs }: ConfigTableProps) {
               <td className='px-4 py-3 hidden sm:table-cell'>{config.durationMinutes}m</td>
               <td className='px-4 py-3 hidden md:table-cell'>{config.totalQuestions}</td>
               <td className='px-4 py-3'>
-                <Badge variant={config.status === 'ARCHIVED' ? 'destructive' : (!config.isActive ? 'secondary' : 'default')}>
-                  {config.status === 'ARCHIVED' ? 'Archived' : (config.isActive ? 'Active' : 'Draft')}
+                <Badge
+                  variant={
+                    config.status === 'ARCHIVED'
+                      ? 'destructive'
+                      : !config.isActive
+                        ? 'secondary'
+                        : 'default'
+                  }
+                >
+                  {config.status === 'ARCHIVED' ? 'Archived' : config.isActive ? 'Active' : 'Draft'}
                 </Badge>
               </td>
               <td className='px-4 py-3 hidden lg:table-cell'>
@@ -95,7 +103,13 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                       <Eye className='w-4 h-4' />
                     </Link>
                   </Button>
-                  <Button variant='ghost' size='icon' aria-label='Edit' disabled={config.status === 'ARCHIVED'} asChild>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    aria-label='Edit'
+                    disabled={config.status === 'ARCHIVED'}
+                    asChild
+                  >
                     <Link href={`/admin/configs/${config.id}/edit`}>
                       <Edit2 className='w-4 h-4' />
                     </Link>
@@ -121,7 +135,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                   <p className='text-lg font-medium'>No Configurations Found</p>
                   <p className='text-sm'>Create your first exam configuration.</p>
                   <Button asChild className='mt-4'>
-                    <Link href="/admin/configs/new">Create Configuration</Link>
+                    <Link href='/admin/configs/new'>Create Configuration</Link>
                   </Button>
                 </div>
               </td>
@@ -134,13 +148,22 @@ export function ConfigTable({ configs }: ConfigTableProps) {
         <div className='space-y-4'>
           <h3 className='text-lg font-semibold'>Archive Configuration?</h3>
           <p className='text-sm text-gray-500 dark:text-gray-400'>
-            Are you sure you want to archive <strong>{configToArchive?.name}</strong>? Archived configurations can no longer be edited.
+            Are you sure you want to archive <strong>{configToArchive?.name}</strong>? Archived
+            configurations can no longer be edited.
           </p>
           <div className='flex justify-end gap-3 pt-4'>
-            <Button variant='outline' onClick={() => setConfigToArchive(null)} disabled={archiveMutation.isPending}>
+            <Button
+              variant='outline'
+              onClick={() => setConfigToArchive(null)}
+              disabled={archiveMutation.isPending}
+            >
               Cancel
             </Button>
-            <Button variant='destructive' onClick={handleArchive} disabled={archiveMutation.isPending}>
+            <Button
+              variant='destructive'
+              onClick={handleArchive}
+              disabled={archiveMutation.isPending}
+            >
               {archiveMutation.isPending ? 'Archiving...' : 'Archive'}
             </Button>
           </div>

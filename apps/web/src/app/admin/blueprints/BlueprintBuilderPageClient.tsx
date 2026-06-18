@@ -3,11 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useConfigs } from '@/services/exam-configs';
-import {
-  useStyleProfiles,
-  useCreateBlueprint,
-  useBlueprint,
-} from '@/services/blueprints';
+import { useStyleProfiles, useCreateBlueprint, useBlueprint } from '@/services/blueprints';
 import { StyleProfileSelector } from './components/StyleProfileSelector';
 import { BlueprintHealthWidget } from './components/BlueprintHealthWidget';
 import { Label } from '@/components/ui/label';
@@ -121,8 +117,10 @@ export function BlueprintBuilderPageClient() {
       {/* Left Columns - Form controls */}
       <div className='lg:col-span-2 space-y-8'>
         <div className='border rounded-lg p-6 bg-white shadow-sm space-y-6'>
-          <h3 className='text-base font-semibold text-gray-900 border-b pb-3'>1. Mapping & Constraints</h3>
-          
+          <h3 className='text-base font-semibold text-gray-900 border-b pb-3'>
+            1. Mapping & Constraints
+          </h3>
+
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <div className='space-y-2'>
               <Label htmlFor='config-select'>Exam Configuration</Label>
@@ -147,14 +145,18 @@ export function BlueprintBuilderPageClient() {
         </div>
 
         <div className='border rounded-lg p-6 bg-white shadow-sm space-y-6'>
-          <h3 className='text-base font-semibold text-gray-900 border-b pb-3'>2. Section Distribution (Technical)</h3>
+          <h3 className='text-base font-semibold text-gray-900 border-b pb-3'>
+            2. Section Distribution (Technical)
+          </h3>
 
           <div className='space-y-6'>
             {/* Topic Allocation sliders */}
             <div className='space-y-4'>
               <div className='flex justify-between items-center'>
                 <Label className='font-semibold text-gray-800'>Topic Allocation (%)</Label>
-                <span className={`text-xs font-bold ${topicSum === 100 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                <span
+                  className={`text-xs font-bold ${topicSum === 100 ? 'text-emerald-600' : 'text-amber-500'}`}
+                >
                   Sum: {topicSum}% / 100%
                 </span>
               </div>
@@ -206,7 +208,9 @@ export function BlueprintBuilderPageClient() {
             <div className='space-y-4'>
               <div className='flex justify-between items-center'>
                 <Label className='font-semibold text-gray-800'>Difficulty Mix (%)</Label>
-                <span className={`text-xs font-bold ${difficultySum === 100 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                <span
+                  className={`text-xs font-bold ${difficultySum === 100 ? 'text-emerald-600' : 'text-amber-500'}`}
+                >
                   Sum: {difficultySum}% / 100%
                 </span>
               </div>
@@ -273,7 +277,9 @@ export function BlueprintBuilderPageClient() {
         <div className='flex flex-col space-y-3'>
           <Button
             type='submit'
-            disabled={!configId || !styleProfileId || topicSum !== 100 || difficultySum !== 100 || isSaving}
+            disabled={
+              !configId || !styleProfileId || topicSum !== 100 || difficultySum !== 100 || isSaving
+            }
             className='w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md shadow focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
           >
             {isSaving && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}

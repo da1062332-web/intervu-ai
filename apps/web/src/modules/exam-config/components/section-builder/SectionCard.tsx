@@ -27,7 +27,7 @@ export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className='pb-4 flex-grow'>
         <div className='grid grid-cols-2 gap-4 text-sm'>
           <div>

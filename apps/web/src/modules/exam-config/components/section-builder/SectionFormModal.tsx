@@ -134,7 +134,7 @@ export function SectionFormModal({
               <p className='text-xs text-red-500'>{errors.sectionOrder.message}</p>
             )}
           </div>
-          
+
           <div className='flex items-center space-x-2'>
             <input
               type='checkbox'

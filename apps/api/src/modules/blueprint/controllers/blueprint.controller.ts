@@ -34,7 +34,9 @@ export class BlueprintController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create or update blueprint for exam configuration" })
+  @ApiOperation({
+    summary: "Create or update blueprint for exam configuration",
+  })
   @ApiBody({ type: CreateBlueprintDto })
   @ApiCreatedResponse({ description: "Blueprint created/updated successfully" })
   async create(@Body() dto: CreateBlueprintDto) {

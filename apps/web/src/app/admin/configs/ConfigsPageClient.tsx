@@ -28,25 +28,23 @@ export function ConfigsPageClient() {
       <div className='mt-8 text-center py-12 border rounded-md'>
         <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading configurations</h3>
         <p className='text-muted-foreground mb-4'>We could not load the exam configurations.</p>
-        <Button
-          onClick={() => refetch()}
-          variant='outline'
-        >
-          <RefreshCcw className="w-4 h-4 mr-2" />
+        <Button onClick={() => refetch()} variant='outline'>
+          <RefreshCcw className='w-4 h-4 mr-2' />
           Try again
         </Button>
       </div>
     );
   }
 
-  const filteredConfigs = configs?.filter((config) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      config.name.toLowerCase().includes(query) ||
-      (config.code || '').toLowerCase().includes(query) ||
-      config.role.toLowerCase().includes(query)
-    );
-  }) || [];
+  const filteredConfigs =
+    configs?.filter((config) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        config.name.toLowerCase().includes(query) ||
+        (config.code || '').toLowerCase().includes(query) ||
+        config.role.toLowerCase().includes(query)
+      );
+    }) || [];
 
   return (
     <div className='mt-8 space-y-6'>

@@ -2,7 +2,10 @@ import { z } from "zod";
 
 export const TopicAllocationSchema = z.object({
   topicId: z.string().min(1, "topicId is required"),
-  percentage: z.number().min(0).max(100, "percentage must be between 0 and 100"),
+  percentage: z
+    .number()
+    .min(0)
+    .max(100, "percentage must be between 0 and 100"),
 });
 
 export const DifficultyAllocationSchema = z.object({

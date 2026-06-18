@@ -51,11 +51,11 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
           <p className='text-sm font-medium text-muted-foreground'>Role</p>
           <p className='text-base font-semibold'>{config.role}</p>
         </div>
-        
+
         <div className='space-y-1'>
           <p className='text-sm font-medium text-muted-foreground'>Status</p>
           <p className='text-base font-semibold'>
-            {config.status === 'ARCHIVED' ? 'Archived' : (config.isActive ? 'Active' : 'Draft')}
+            {config.status === 'ARCHIVED' ? 'Archived' : config.isActive ? 'Active' : 'Draft'}
           </p>
         </div>
 
@@ -73,15 +73,11 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
       <div className='pt-6 flex justify-end gap-3'>
         <Button variant='outline' asChild disabled={config.status === 'ARCHIVED'}>
           <Link href={`/admin/configs/${configId}/edit`}>
-            <Edit2 className="w-4 h-4 mr-2" />
+            <Edit2 className='w-4 h-4 mr-2' />
             Edit Configuration
           </Link>
         </Button>
-        {onNext && (
-          <Button onClick={onNext}>
-            Continue to Sections
-          </Button>
-        )}
+        {onNext && <Button onClick={onNext}>Continue to Sections</Button>}
       </div>
     </div>
   );

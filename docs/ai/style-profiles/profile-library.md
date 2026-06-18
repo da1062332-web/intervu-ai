@@ -9,6 +9,7 @@
 ## Pre-seeded Profiles
 
 ### 1. Campus Placement
+
 - **Target:** Entry-level developers and fresh college graduates.
 - **Expected Level:** Knowledge of basic concepts, syntax, and data structures.
 - **Characteristics:**
@@ -21,6 +22,7 @@
   - `difficultyBias`: `easy: 60%, medium: 30%, hard: 10%`
 
 ### 2. Experienced Hiring
+
 - **Target:** Senior developers and lateral hires.
 - **Expected Level:** Advanced system design, algorithms, optimization, and real-world debugging.
 - **Characteristics:**
@@ -33,6 +35,7 @@
   - `difficultyBias`: `easy: 20%, medium: 50%, hard: 30%`
 
 ### 3. Leadership Hiring
+
 - **Target:** Technical managers, directors, or principal architects.
 - **Expected Level:** Technical trade-offs, architecture decisions, trade-off analysis.
 - **Characteristics:**
@@ -45,6 +48,7 @@
   - `difficultyBias`: `easy: 10%, medium: 40%, hard: 50%`
 
 ### 4. Certification Exam
+
 - **Target:** Standardized certifications.
 - **Expected Level:** Complete coverage of core and elective modules under balanced constraints.
 - **Characteristics:**
