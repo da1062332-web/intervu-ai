@@ -5,12 +5,11 @@ import {
   Delete,
   Param,
   Body,
-  UseFilters,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
 import { TopicSectionMappingService } from "../services/topic-section-mapping.service";
-import { CreateSectionTopicDto } from "../dto/create-section-topic.dto";
+import { CreateSectionTopicDto } from "@intervu/shared";
 import { SectionTopicListResponse } from "@intervu-ai/contracts";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 

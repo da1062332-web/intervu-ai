@@ -51,7 +51,12 @@ describe("TopicSectionMappingService", () => {
         difficultySupport: { easy: true, medium: true, hard: true },
       });
       repository.exists.mockResolvedValue(false);
-      repository.createMapping.mockResolvedValue({} as any);
+      repository.createMapping.mockResolvedValue({
+        id: "mapping-1",
+        sectionId: "section1",
+        topicId: "topic1",
+        createdAt: new Date(),
+      });
 
       await service.assignTopic("section1", "topic1");
 
@@ -71,7 +76,15 @@ describe("TopicSectionMappingService", () => {
     });
 
     it("should throw TopicAlreadyMappedError if topic is already assigned", async () => {
-      registry.getTopicById.mockResolvedValue({ id: "topic1" } as any);
+      registry.getTopicById.mockResolvedValue({
+        id: "topic1",
+        topic: "React",
+        subtopic: "Hooks",
+        domain: "FE",
+        concepts: [],
+        tags: [],
+        difficultySupport: { easy: true, medium: true, hard: true },
+      });
       repository.exists.mockResolvedValue(true);
 
       await expect(service.assignTopic("section1", "topic1")).rejects.toThrow(
@@ -83,7 +96,12 @@ describe("TopicSectionMappingService", () => {
   describe("removeTopic", () => {
     it("should successfully remove a topic", async () => {
       repository.exists.mockResolvedValue(true);
-      repository.removeMapping.mockResolvedValue({} as any);
+      repository.removeMapping.mockResolvedValue({
+        id: "mapping-1",
+        sectionId: "section1",
+        topicId: "topic1",
+        createdAt: new Date(),
+      });
 
       await service.removeTopic("section1", "topic1");
 

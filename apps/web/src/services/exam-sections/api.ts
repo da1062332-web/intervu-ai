@@ -9,10 +9,10 @@ export const examSectionsApi = {
       const response = await apiClient.request<any[]>(url, { method: 'GET' });
       console.log(`[DEBUG] Section API - Response Status: SUCCESS`);
       // Map backend fields to frontend expectations
-      return response.map(s => ({
+      return response.map((s) => ({
         ...s,
         durationMinutes: s.sectionDurationMinutes || s.durationMinutes,
-        displayOrder: s.sectionOrder || s.displayOrder
+        displayOrder: s.sectionOrder || s.displayOrder,
       })) as unknown as ExamSection[];
     } catch (error: unknown) {
       console.log(`[DEBUG] Section API - Response Status: ERROR`);
@@ -28,7 +28,7 @@ export const examSectionsApi = {
         code: payload.name.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
         sectionDurationMinutes: payload.durationMinutes,
         sectionOrder: payload.displayOrder,
-        isRequired: true
+        isRequired: true,
       },
     });
   },

@@ -1,8 +1,8 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
   BadRequestException,
+  ConflictException,
 } from "@nestjs/common";
 import { ExamConfig } from "@prisma/client";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
@@ -18,9 +18,7 @@ export class ExamConfigService {
   ): Promise<ExamConfig> {
     const existing = await this.examConfigRepository.findByCode(dto.code);
     if (existing) {
-      throw new ConflictException(
-        `Exam configuration with code "${dto.code}" already exists`,
-      );
+      throw new ConflictException(`Exam config with code ${dto.code} already exists`);
     }
 
     return this.examConfigRepository.create({
@@ -61,9 +59,7 @@ export class ExamConfigService {
     if (dto.code && dto.code !== config.code) {
       const existing = await this.examConfigRepository.findByCode(dto.code);
       if (existing && existing.id !== id) {
-        throw new ConflictException(
-          `Exam configuration with code "${dto.code}" already exists`,
-        );
+        throw new ConflictException(`Exam config with code ${dto.code} already exists`);
       }
     }
 

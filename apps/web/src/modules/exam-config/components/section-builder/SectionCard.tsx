@@ -28,8 +28,8 @@ export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
         <Button variant='destructive' size='sm' onClick={() => onDelete(section)}>
           Delete
         </Button>
-        <Link href={`/admin/sections/${section.id}/topics`} className="w-full mt-2">
-          <Button variant='default' size='sm' className="w-full">
+        <Link href={`/admin/sections/${section.id}/topics`} className='w-full mt-2'>
+          <Button variant='default' size='sm' className='w-full'>
             Manage Topics
           </Button>
         </Link>

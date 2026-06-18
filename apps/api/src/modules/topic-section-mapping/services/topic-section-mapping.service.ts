@@ -1,13 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TopicSectionMappingRepository } from "../repositories/topic-section-mapping.repository";
 import { TopicRegistryLoader } from "../../concept-mapping/services/topic-registry-loader.service";
+import { SectionTopicResponse } from "@intervu-ai/contracts";
 import {
-  TopicAlreadyMappedError,
   TopicNotFoundError,
-  SectionNotFoundError,
+  TopicAlreadyMappedError,
   SectionTopicMappingNotFoundError,
 } from "@intervu/shared";
-import { SectionTopicResponse } from "@intervu-ai/contracts";
 
 @Injectable()
 export class TopicSectionMappingService {
@@ -19,6 +18,7 @@ export class TopicSectionMappingService {
   ) {}
 
   async validateSectionExists(sectionId: string): Promise<void> {
+    void sectionId;
     // TODO: Implement Section Registry integration when available.
     // If section does not exist, throw new SectionNotFoundError(`Section ${sectionId} not found`);
     // Example: const section = await this.sectionRegistry.getSectionById(sectionId);
@@ -37,7 +37,7 @@ export class TopicSectionMappingService {
 
     // Batch lookup using existing TopicRegistryLoader
     const topics = await Promise.all(
-      mappings.map((m: any) => this.topicRegistry.getTopicById(m.topicId)),
+      mappings.map((m: { topicId: string }) => this.topicRegistry.getTopicById(m.topicId)),
     );
 
     for (let i = 0; i < mappings.length; i++) {
