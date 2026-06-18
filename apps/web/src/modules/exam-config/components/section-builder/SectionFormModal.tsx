@@ -10,9 +10,11 @@ import type { ExamSection, CreateSectionPayload } from '@/services/exam-sections
 
 const sectionSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  code: z.string().min(1, 'Code is required'),
   questionCount: z.number().min(1, 'Must be greater than 0'),
-  durationMinutes: z.number().min(1, 'Must be greater than 0'),
-  displayOrder: z.number().min(1, 'Must be at least 1'),
+  sectionDurationMinutes: z.number().min(1, 'Must be greater than 0'),
+  sectionOrder: z.number().min(1, 'Must be at least 1'),
+  isRequired: z.boolean(),
 });
 
 type SectionFormValues = z.infer<typeof sectionSchema>;
@@ -41,9 +43,11 @@ export function SectionFormModal({
     resolver: zodResolver(sectionSchema),
     defaultValues: {
       name: '',
+      code: '',
       questionCount: 10,
-      durationMinutes: 20,
-      displayOrder: 1,
+      sectionDurationMinutes: 20,
+      sectionOrder: 1,
+      isRequired: true,
     },
   });
 
@@ -51,16 +55,20 @@ export function SectionFormModal({
     if (initialData) {
       reset({
         name: initialData.name,
+        code: initialData.code,
         questionCount: initialData.questionCount,
-        durationMinutes: initialData.durationMinutes,
-        displayOrder: initialData.displayOrder,
+        sectionDurationMinutes: initialData.sectionDurationMinutes,
+        sectionOrder: initialData.sectionOrder,
+        isRequired: initialData.isRequired,
       });
     } else {
       reset({
         name: '',
+        code: '',
         questionCount: 10,
-        durationMinutes: 20,
-        displayOrder: 1,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
       });
     }
   }, [initialData, isOpen, reset]);
@@ -86,6 +94,12 @@ export function SectionFormModal({
           </div>
 
           <div className='space-y-2'>
+            <Label htmlFor='code'>Section Code</Label>
+            <Input id='code' {...register('code')} placeholder='e.g. QUANT_APTITUDE' />
+            {errors.code && <p className='text-xs text-red-500'>{errors.code.message}</p>}
+          </div>
+
+          <div className='space-y-2'>
             <Label htmlFor='questionCount'>Question Count</Label>
             <Input
               id='questionCount'
@@ -98,26 +112,39 @@ export function SectionFormModal({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='durationMinutes'>Duration (Minutes)</Label>
+            <Label htmlFor='sectionDurationMinutes'>Duration (Minutes)</Label>
             <Input
-              id='durationMinutes'
+              id='sectionDurationMinutes'
               type='number'
-              {...register('durationMinutes', { valueAsNumber: true })}
+              {...register('sectionDurationMinutes', { valueAsNumber: true })}
             />
-            {errors.durationMinutes && (
-              <p className='text-xs text-red-500'>{errors.durationMinutes.message}</p>
+            {errors.sectionDurationMinutes && (
+              <p className='text-xs text-red-500'>{errors.sectionDurationMinutes.message}</p>
             )}
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='displayOrder'>Display Order</Label>
+            <Label htmlFor='sectionOrder'>Display Order</Label>
             <Input
-              id='displayOrder'
+              id='sectionOrder'
               type='number'
-              {...register('displayOrder', { valueAsNumber: true })}
+              {...register('sectionOrder', { valueAsNumber: true })}
             />
-            {errors.displayOrder && (
-              <p className='text-xs text-red-500'>{errors.displayOrder.message}</p>
+            {errors.sectionOrder && (
+              <p className='text-xs text-red-500'>{errors.sectionOrder.message}</p>
+            )}
+          </div>
+          
+          <div className='flex items-center space-x-2'>
+            <input
+              type='checkbox'
+              id='isRequired'
+              {...register('isRequired')}
+              className='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+            />
+            <Label htmlFor='isRequired'>Is Required Section</Label>
+            {errors.isRequired && (
+              <p className='text-xs text-red-500'>{errors.isRequired.message}</p>
             )}
           </div>
         </form>

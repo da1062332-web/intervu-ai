@@ -23,4 +23,10 @@ export const examConfigsApi = {
       body: payload,
     });
   },
+
+  archiveConfig: (configId: string) => {
+    return apiClient.request<ExamConfig>(`/admin/configs/${configId}`, {
+      method: 'DELETE',
+    });
+  },
 };

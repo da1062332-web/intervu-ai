@@ -8,7 +8,7 @@ import { useDashboardStats } from '@/modules/dashboard';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { DashboardCard } from '@/components/admin/dashboard/dashboard-card';
 import { StatCard } from '@/components/admin/dashboard/stat-card';
-import { EmptyStateCard } from '@/components/admin/dashboard/empty-state';
+import { EmptyStateCard } from '@/components/ui/empty-state';
 import { SkeletonCardGrid } from '@/components/admin/dashboard/skeleton-card';
 import { Button } from '@/components/ui/button';
 
