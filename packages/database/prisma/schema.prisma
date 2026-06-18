@@ -522,3 +522,16 @@ model ConceptMapping {
   @@unique([topicId, conceptCode])
   @@index([topicId])
 }
+
+model SectionTopic {
+  id String @id @default(uuid())
+
+  sectionId String
+  topicId   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([sectionId, topicId])
+  @@index([sectionId])
+  @@index([topicId])
+}
