@@ -440,6 +440,7 @@ model ExamConfig {
   difficultyDistribution DifficultyDistribution?
   ruleFlags              ExamRuleFlags?
   sections               ExamSection[]
+  blueprint              Blueprint?
 
   @@index([createdAt])
   @@index([role])
@@ -521,4 +522,52 @@ model ConceptMapping {
 
   @@unique([topicId, conceptCode])
   @@index([topicId])
+}
+
+model StyleProfile {
+  id          String   @id @default(uuid())
+  name        String
+  profileType String   @map("profile_type")
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  characteristics StyleProfileCharacteristic[]
+  blueprints      Blueprint[]
+
+  @@map("style_profiles")
+  @@index([profileType])
+  @@index([active])
+}
+
+model StyleProfileCharacteristic {
+  id                 String   @id @default(uuid())
+  profileId          String   @map("profile_id")
+  characteristicName String   @map("characteristic_name")
+  characteristicValue Json     @map("characteristic_value")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  profile StyleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, characteristicName])
+  @@map("style_profile_characteristics")
+  @@index([profileId])
+}
+
+model Blueprint {
+  id             String   @id @default(uuid())
+  configId       String   @unique @map("config_id")
+  styleProfileId String   @map("style_profile_id")
+  sections       Json     // Stored as BlueprintSection[] JSON
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  examConfig   ExamConfig   @relation(fields: [configId], references: [id], onDelete: Cascade)
+  styleProfile StyleProfile @relation(fields: [styleProfileId], references: [id], onDelete: Restrict)
+
+  @@map("blueprints")
+  @@index([configId])
+  @@index([styleProfileId])
 }

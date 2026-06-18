@@ -1,0 +1,26 @@
+{
+  "configId": "certification_exam_config",
+  "styleProfileId": "certification_exam_profile_id",
+  "sections": [
+    {
+      "sectionId": "sec-standardized-eval",
+      "questionCount": 30,
+      "topicAllocations": [
+        {
+          "topicId": "se-ds-001",
+          "percentage": 50
+        },
+        {
+          "topicId": "se-algo-001",
+          "percentage": 50
+        }
+      ],
+      "difficultyAllocation": {
+        "easy": 30,
+        "medium": 50,
+        "hard": 20
+      },
+      "templateTypes": ["mcq"]
+    }
+  ]
+}

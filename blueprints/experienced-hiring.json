@@ -1,0 +1,26 @@
+{
+  "configId": "lateral_screening_config",
+  "styleProfileId": "experienced_hiring_profile_id",
+  "sections": [
+    {
+      "sectionId": "sec-core-engineering",
+      "questionCount": 15,
+      "topicAllocations": [
+        {
+          "topicId": "se-ds-001",
+          "percentage": 50
+        },
+        {
+          "topicId": "se-algo-001",
+          "percentage": 50
+        }
+      ],
+      "difficultyAllocation": {
+        "easy": 20,
+        "medium": 50,
+        "hard": 30
+      },
+      "templateTypes": ["mcq", "coding"]
+    }
+  ]
+}
