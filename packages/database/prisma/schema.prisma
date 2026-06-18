@@ -415,16 +415,26 @@ model PerformanceSummary {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum ConfigStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
 model ExamConfig {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   name            String
+  code            String        @unique
   role            String
-  durationMinutes Int
+  description     String?
   totalQuestions  Int
-  isActive        Boolean  @default(true)
+  durationMinutes Int
+  status          ConfigStatus  @default(DRAFT)
+  isArchived      Boolean       @default(false)
+  isActive        Boolean       @default(true)
   createdBy       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   versions               ExamConfigVersion[]
   difficultyDistribution DifficultyDistribution?
@@ -436,19 +446,21 @@ model ExamConfig {
 }
 
 model ExamSection {
-  id              String     @id @default(cuid())
-  examConfigId    String
-  name            String
-  questionCount   Int
-  durationMinutes Int?
-  displayOrder    Int
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  examConfig      ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  id                     String     @id @default(cuid())
+  examConfigId           String
+  name                   String
+  code                   String
+  questionCount          Int
+  sectionDurationMinutes Int
+  sectionOrder           Int
+  isRequired             Boolean    @default(true)
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  examConfig             ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
-  @@unique([examConfigId, displayOrder])
+  @@unique([examConfigId, code])
   @@index([examConfigId])
-  @@index([displayOrder])
+  @@index([sectionOrder])
 }
 
 model DifficultyDistribution {

@@ -46,7 +46,7 @@ export class ExamSectionRepository {
     try {
       return await prisma.examSection.findMany({
         where: { examConfigId },
-        orderBy: { displayOrder: "asc" },
+        orderBy: { sectionOrder: "asc" },
       });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);
@@ -55,13 +55,28 @@ export class ExamSectionRepository {
 
   async findByConfigAndOrder(
     examConfigId: string,
-    displayOrder: number,
+    sectionOrder: number,
   ): Promise<ExamSection | null> {
     this.validate(examConfigId);
-    this.validate(displayOrder);
+    this.validate(sectionOrder);
     try {
       return await prisma.examSection.findFirst({
-        where: { examConfigId, displayOrder },
+        where: { examConfigId, sectionOrder },
+      });
+    } catch (error: any) {
+      throw new RepositoryError("DB_ERROR", error.message);
+    }
+  }
+
+  async findByConfigAndCode(
+    examConfigId: string,
+    code: string,
+  ): Promise<ExamSection | null> {
+    this.validate(examConfigId);
+    this.validate(code);
+    try {
+      return await prisma.examSection.findFirst({
+        where: { examConfigId, code },
       });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);

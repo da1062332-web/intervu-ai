@@ -10,14 +10,20 @@ export class CreateExamSectionDto implements CreateExamSection {
   @ApiProperty({ example: "Quantitative Aptitude", maxLength: 100 })
   name!: string;
 
+  @ApiProperty({ example: "APTITUDE", maxLength: 100 })
+  code!: string;
+
   @ApiProperty({ example: 10, minimum: 1 })
   questionCount!: number;
 
-  @ApiPropertyOptional({ example: 20, minimum: 1, nullable: true })
-  durationMinutes?: number | null;
+  @ApiProperty({ example: 20, minimum: 1 })
+  sectionDurationMinutes!: number;
 
   @ApiProperty({ example: 1, minimum: 1 })
-  displayOrder!: number;
+  sectionOrder!: number;
+
+  @ApiProperty({ example: true, default: true })
+  isRequired!: boolean;
 
   static validate(
     data: unknown,
@@ -32,14 +38,20 @@ export class UpdateExamSectionDto implements UpdateExamSection {
   @ApiPropertyOptional({ example: "Logical Reasoning" })
   name?: string;
 
+  @ApiPropertyOptional({ example: "LOGICAL_REASONING" })
+  code?: string;
+
   @ApiPropertyOptional({ example: 15 })
   questionCount?: number;
 
-  @ApiPropertyOptional({ example: 25, nullable: true })
-  durationMinutes?: number | null;
+  @ApiPropertyOptional({ example: 25 })
+  sectionDurationMinutes?: number;
 
   @ApiPropertyOptional({ example: 2 })
-  displayOrder?: number;
+  sectionOrder?: number;
+
+  @ApiPropertyOptional({ example: true })
+  isRequired?: boolean;
 
   static validate(
     data: unknown,

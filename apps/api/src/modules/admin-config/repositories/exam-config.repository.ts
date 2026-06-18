@@ -19,4 +19,10 @@ export class ExamConfigRepository extends BaseRepository<
   withTransaction(tx: Prisma.TransactionClient): this {
     return new ExamConfigRepository(this.prisma, tx) as this;
   }
+
+  async findByCode(code: string) {
+    return this.prisma.examConfig.findUnique({
+      where: { code },
+    });
+  }
 }

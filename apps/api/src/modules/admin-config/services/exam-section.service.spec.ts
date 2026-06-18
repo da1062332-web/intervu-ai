@@ -1,9 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { NotFoundException, ConflictException } from "@nestjs/common";
+import { NotFoundException, ConflictException, BadRequestException } from "@nestjs/common";
 import { ExamSectionService } from "./exam-section.service";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
+import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
 
 describe("ExamSectionService", () => {
   let service: ExamSectionService;
@@ -16,6 +17,7 @@ describe("ExamSectionService", () => {
       findById: jest.fn(),
       findManyByConfigId: jest.fn(),
       findByConfigAndOrder: jest.fn(),
+      findByConfigAndCode: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<ExamSectionRepository>;
@@ -43,34 +45,43 @@ describe("ExamSectionService", () => {
     const configId = "config-uuid";
     const dto: CreateExamSectionDto = {
       name: "Quant Section",
+      code: "QUANT",
       questionCount: 10,
-      durationMinutes: 20,
-      displayOrder: 1,
+      sectionDurationMinutes: 20,
+      sectionOrder: 1,
+      isRequired: true,
+    };
+
+    const parentConfig: ExamConfig = {
+      id: configId,
+      name: "Test Exam",
+      code: "TEST_EXAM",
+      role: "Dev",
+      description: null,
+      durationMinutes: 60,
+      totalQuestions: 30,
+      status: ConfigStatus.DRAFT,
+      isArchived: false,
+      isActive: true,
+      createdBy: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     it("should successfully create a new section", async () => {
-      const parentConfig = {
-        id: configId,
-        name: "Test Exam",
-        role: "Dev",
-        durationMinutes: 60,
-        totalQuestions: 30,
-        isActive: true,
-        createdBy: "admin",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       configRepo.findById.mockResolvedValueOnce(parentConfig);
+      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(null);
       sectionRepo.findByConfigAndOrder.mockResolvedValueOnce(null);
 
-      const expectedResult = {
+      const expectedResult: ExamSection = {
         id: "section-cuid",
         examConfigId: configId,
         name: dto.name,
+        code: dto.code,
         questionCount: dto.questionCount,
-        durationMinutes: dto.durationMinutes ?? null,
-        displayOrder: dto.displayOrder,
+        sectionDurationMinutes: dto.sectionDurationMinutes,
+        sectionOrder: dto.sectionOrder,
+        isRequired: dto.isRequired,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -79,10 +90,8 @@ describe("ExamSectionService", () => {
       const result = await service.createSection(configId, dto);
 
       expect(configRepo.findById).toHaveBeenCalledWith(configId);
-      expect(sectionRepo.findByConfigAndOrder).toHaveBeenCalledWith(
-        configId,
-        dto.displayOrder,
-      );
+      expect(sectionRepo.findByConfigAndCode).toHaveBeenCalledWith(configId, dto.code);
+      expect(sectionRepo.findByConfigAndOrder).toHaveBeenCalledWith(configId, dto.sectionOrder);
       expect(result).toEqual(expectedResult);
     });
 
@@ -94,27 +103,54 @@ describe("ExamSectionService", () => {
       );
     });
 
-    it("should throw ConflictException if displayOrder is already in use", async () => {
-      const parentConfig = {
-        id: configId,
-        name: "Test Exam",
-        role: "Dev",
-        durationMinutes: 60,
-        totalQuestions: 30,
-        isActive: true,
-        createdBy: "admin",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+    it("should throw BadRequestException if parent ExamConfig is archived", async () => {
+      const archivedConfig: ExamConfig = {
+        ...parentConfig,
+        status: ConfigStatus.ARCHIVED,
+        isArchived: true,
       };
+      configRepo.findById.mockResolvedValueOnce(archivedConfig);
+
+      await expect(service.createSection(configId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should throw ConflictException if code is already in use", async () => {
       configRepo.findById.mockResolvedValueOnce(parentConfig);
 
-      const existingSection = {
+      const existingSection: ExamSection = {
         id: "existing-section-id",
         examConfigId: configId,
         name: "Old Section",
+        code: dto.code,
         questionCount: 10,
-        durationMinutes: 20,
-        displayOrder: 1,
+        sectionDurationMinutes: 20,
+        sectionOrder: 2,
+        isRequired: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(existingSection);
+
+      await expect(service.createSection(configId, dto)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it("should throw ConflictException if sectionOrder is already in use", async () => {
+      configRepo.findById.mockResolvedValueOnce(parentConfig);
+      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(null);
+
+      const existingSection: ExamSection = {
+        id: "existing-section-id",
+        examConfigId: configId,
+        name: "Old Section",
+        code: "OTHER_CODE",
+        questionCount: 10,
+        sectionDurationMinutes: 20,
+        sectionOrder: dto.sectionOrder,
+        isRequired: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -129,28 +165,35 @@ describe("ExamSectionService", () => {
   describe("getSections", () => {
     const configId = "config-uuid";
 
+    const parentConfig: ExamConfig = {
+      id: configId,
+      name: "Test Exam",
+      code: "TEST_EXAM",
+      role: "Dev",
+      description: null,
+      durationMinutes: 60,
+      totalQuestions: 30,
+      status: ConfigStatus.DRAFT,
+      isArchived: false,
+      isActive: true,
+      createdBy: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
     it("should return sections list for a valid config id", async () => {
-      const parentConfig = {
-        id: configId,
-        name: "Test Exam",
-        role: "Dev",
-        durationMinutes: 60,
-        totalQuestions: 30,
-        isActive: true,
-        createdBy: "admin",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
       configRepo.findById.mockResolvedValueOnce(parentConfig);
 
-      const sections = [
+      const sections: ExamSection[] = [
         {
           id: "section-1",
           examConfigId: configId,
           name: "Section 1",
+          code: "SEC1",
           questionCount: 15,
-          durationMinutes: 30,
-          displayOrder: 1,
+          sectionDurationMinutes: 30,
+          sectionOrder: 1,
+          isRequired: true,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -176,30 +219,49 @@ describe("ExamSectionService", () => {
     const sectionId = "section-cuid";
     const dto: UpdateExamSectionDto = {
       name: "Updated Quant",
-      displayOrder: 2,
+      code: "UPDATED_QUANT",
+      sectionOrder: 2,
+    };
+
+    const parentConfig: ExamConfig = {
+      id: "config-uuid",
+      name: "Test Exam",
+      code: "TEST_EXAM",
+      role: "Dev",
+      description: null,
+      durationMinutes: 60,
+      totalQuestions: 30,
+      status: ConfigStatus.DRAFT,
+      isArchived: false,
+      isActive: true,
+      createdBy: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     it("should update section successfully", async () => {
-      const existingSection = {
+      const existingSection: ExamSection = {
         id: sectionId,
         examConfigId: "config-uuid",
         name: "Quant Section",
+        code: "QUANT",
         questionCount: 10,
-        durationMinutes: 20,
-        displayOrder: 1,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       sectionRepo.findById.mockResolvedValueOnce(existingSection);
+      configRepo.findById.mockResolvedValueOnce(parentConfig);
       sectionRepo.findByConfigAndOrder.mockResolvedValueOnce(null);
+      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(null);
 
-      const expectedResult = {
+      const expectedResult: ExamSection = {
         ...existingSection,
-        ...dto,
-        durationMinutes:
-          dto.durationMinutes !== undefined
-            ? dto.durationMinutes
-            : existingSection.durationMinutes,
+        name: dto.name!,
+        code: dto.code!,
+        sectionOrder: dto.sectionOrder!,
       };
       sectionRepo.update.mockResolvedValueOnce(expectedResult);
 
@@ -217,30 +279,100 @@ describe("ExamSectionService", () => {
       );
     });
 
-    it("should throw ConflictException if updated displayOrder is already in use", async () => {
-      const existingSection = {
+    it("should throw BadRequestException if parent ExamConfig is archived", async () => {
+      const existingSection: ExamSection = {
         id: sectionId,
         examConfigId: "config-uuid",
         name: "Quant Section",
+        code: "QUANT",
         questionCount: 10,
-        durationMinutes: 20,
-        displayOrder: 1,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const archivedConfig: ExamConfig = {
+        ...parentConfig,
+        status: ConfigStatus.ARCHIVED,
+        isArchived: true,
+      };
+
+      sectionRepo.findById.mockResolvedValueOnce(existingSection);
+      configRepo.findById.mockResolvedValueOnce(archivedConfig);
+
+      await expect(service.updateSection(sectionId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should throw ConflictException if updated sectionOrder is already in use", async () => {
+      const existingSection: ExamSection = {
+        id: sectionId,
+        examConfigId: "config-uuid",
+        name: "Quant Section",
+        code: "QUANT",
+        questionCount: 10,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       sectionRepo.findById.mockResolvedValueOnce(existingSection);
+      configRepo.findById.mockResolvedValueOnce(parentConfig);
 
-      const conflictingSection = {
+      const conflictingSection: ExamSection = {
         id: "conflict-id",
         examConfigId: "config-uuid",
         name: "Conflict Section",
+        code: "OTHER_CODE",
         questionCount: 10,
-        durationMinutes: 20,
-        displayOrder: 2,
+        sectionDurationMinutes: 20,
+        sectionOrder: dto.sectionOrder!,
+        isRequired: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       sectionRepo.findByConfigAndOrder.mockResolvedValueOnce(
+        conflictingSection,
+      );
+
+      await expect(service.updateSection(sectionId, dto)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it("should throw ConflictException if updated code is already in use", async () => {
+      const existingSection: ExamSection = {
+        id: sectionId,
+        examConfigId: "config-uuid",
+        name: "Quant Section",
+        code: "QUANT",
+        questionCount: 10,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      sectionRepo.findById.mockResolvedValueOnce(existingSection);
+      configRepo.findById.mockResolvedValueOnce(parentConfig);
+      sectionRepo.findByConfigAndOrder.mockResolvedValueOnce(null);
+
+      const conflictingSection: ExamSection = {
+        id: "conflict-id",
+        examConfigId: "config-uuid",
+        name: "Conflict Section",
+        code: dto.code!,
+        questionCount: 10,
+        sectionDurationMinutes: 20,
+        sectionOrder: 3,
+        isRequired: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      sectionRepo.findByConfigAndCode.mockResolvedValueOnce(
         conflictingSection,
       );
 
@@ -253,18 +385,37 @@ describe("ExamSectionService", () => {
   describe("deleteSection", () => {
     const sectionId = "section-cuid";
 
+    const parentConfig: ExamConfig = {
+      id: "config-uuid",
+      name: "Test Exam",
+      code: "TEST_EXAM",
+      role: "Dev",
+      description: null,
+      durationMinutes: 60,
+      totalQuestions: 30,
+      status: ConfigStatus.DRAFT,
+      isArchived: false,
+      isActive: true,
+      createdBy: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
     it("should delete section successfully", async () => {
-      const existingSection = {
+      const existingSection: ExamSection = {
         id: sectionId,
         examConfigId: "config-uuid",
         name: "Quant Section",
+        code: "QUANT",
         questionCount: 10,
-        durationMinutes: 20,
-        displayOrder: 1,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       sectionRepo.findById.mockResolvedValueOnce(existingSection);
+      configRepo.findById.mockResolvedValueOnce(parentConfig);
       sectionRepo.delete.mockResolvedValueOnce(existingSection);
 
       const result = await service.deleteSection(sectionId);
@@ -279,6 +430,33 @@ describe("ExamSectionService", () => {
 
       await expect(service.deleteSection(sectionId)).rejects.toThrow(
         NotFoundException,
+      );
+    });
+
+    it("should throw BadRequestException if parent ExamConfig is archived", async () => {
+      const existingSection: ExamSection = {
+        id: sectionId,
+        examConfigId: "config-uuid",
+        name: "Quant Section",
+        code: "QUANT",
+        questionCount: 10,
+        sectionDurationMinutes: 20,
+        sectionOrder: 1,
+        isRequired: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const archivedConfig: ExamConfig = {
+        ...parentConfig,
+        status: ConfigStatus.ARCHIVED,
+        isArchived: true,
+      };
+
+      sectionRepo.findById.mockResolvedValueOnce(existingSection);
+      configRepo.findById.mockResolvedValueOnce(archivedConfig);
+
+      await expect(service.deleteSection(sectionId)).rejects.toThrow(
+        BadRequestException,
       );
     });
   });

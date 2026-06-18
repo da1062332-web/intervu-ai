@@ -11,6 +11,7 @@ export async function seedExamConfig(prisma: PrismaClient) {
     existingExamConfig = await prisma.examConfig.create({
       data: {
         name: "Software Engineer Screening",
+        code: "SWE_SCREENING",
         role: "Software Engineer",
         durationMinutes: 60,
         totalQuestions: 30,
