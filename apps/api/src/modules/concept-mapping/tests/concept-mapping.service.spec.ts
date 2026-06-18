@@ -49,6 +49,7 @@ describe("ConceptMappingService", () => {
     const mockLoader = {
       getTopicById: jest.fn(),
       loadTopics: jest.fn(),
+      getAllTopics: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -201,6 +202,17 @@ describe("ConceptMappingService", () => {
       await expect(service.deleteConcept("invalid-id")).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe("getAllTopics", () => {
+    it("should return list of topics from registry loader", async () => {
+      registryLoader.getAllTopics.mockResolvedValue([mockTopicItem]);
+
+      const result = await service.getAllTopics();
+
+      expect(registryLoader.getAllTopics).toHaveBeenCalled();
+      expect(result).toEqual([mockTopicItem]);
     });
   });
 });

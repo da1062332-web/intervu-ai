@@ -6,8 +6,8 @@ import { PrismaService } from "../../../prisma/prisma.service";
 @Injectable()
 export class ConceptMappingRepository extends BaseRepository<
   ConceptMapping,
-  Prisma.ConceptMappingCreateInput,
-  Prisma.ConceptMappingUpdateInput
+  Prisma.ConceptMappingUncheckedCreateInput,
+  Prisma.ConceptMappingUncheckedUpdateInput
 > {
   constructor(
     prisma: PrismaService,

@@ -508,6 +508,23 @@ model ExamRuleFlags {
   @@index([examConfigId])
 }
 
+model Topic {
+  id            String           @id @default(cuid())
+  domain        String
+  topicName     String
+  subtopic      String
+  tags          String[]
+  easySupport   Boolean          @default(true)
+  mediumSupport Boolean          @default(true)
+  hardSupport   Boolean          @default(true)
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
+  
+  conceptMappings ConceptMapping[]
+}
+
 model ConceptMapping {
   id          String    @id @default(cuid())
   topicId     String
@@ -518,6 +535,8 @@ model ConceptMapping {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+
+  topic       Topic     @relation(fields: [topicId], references: [id])
 
   @@unique([topicId, conceptCode])
   @@index([topicId])

@@ -20,7 +20,9 @@ import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
 
 describe("Exam Config & Section Integration Tests", () => {
   let app: INestApplication;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let configRepoMock: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let sectionRepoMock: any;
 
   beforeAll(async () => {

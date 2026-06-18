@@ -32,3 +32,7 @@ export * from "./schemas/exam-section.schema";
 // Concept Mapping Contracts
 export * from "./concept-mapping.dto";
 export * from "./schemas/concept-mapping.schema";
+
+// Topic Contracts
+export * from "./topic.dto";
+export * from "./schemas/topic.schema";
