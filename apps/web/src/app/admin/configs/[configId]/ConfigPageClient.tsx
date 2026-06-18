@@ -5,6 +5,7 @@ import { SectionBuilder } from '@/modules/exam-config/components/section-builder
 import { RuleFlagsTab } from '@/features/admin/configs/components/rule-flags-tab';
 import { ConfigPreviewTab } from '@/features/admin/configs/components/config-preview-tab';
 import { GeneralSettingsTab } from '@/features/admin/configs/components/general-settings-tab';
+import { ConceptManagementPanel } from '@/features/admin/configs/components/concept-mapping';
 import { cn } from '@/lib/utils';
 import { useConfig } from '@/services/exam-configs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,6 +21,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'sections', label: 'Sections' },
+    { id: 'concepts', label: 'Concept Mapping' },
     { id: 'rules', label: 'Rules' },
     { id: 'preview', label: 'Preview' },
   ];
@@ -84,6 +86,12 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         )}
 
         {activeTab === 'sections' && <SectionBuilder configId={configId} />}
+
+        {activeTab === 'concepts' && (
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <ConceptManagementPanel />
+          </div>
+        )}
 
         {activeTab === 'rules' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>

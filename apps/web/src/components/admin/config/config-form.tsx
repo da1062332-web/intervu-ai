@@ -15,6 +15,11 @@ const formSchema = z.object({
     .string()
     .min(1, 'Config Name is required')
     .max(150, 'Config Name must be less than 150 characters'),
+  code: z
+    .string()
+    .min(1, 'Config Code is required')
+    .max(100, 'Config Code must be less than 100 characters')
+    .regex(/^[A-Z0-9_]+$/, 'Code must be uppercase and only contain letters, numbers, and underscores'),
   role: z.string().min(1, 'Role is required').max(100, 'Role must be less than 100 characters'),
   durationMinutes: z.coerce.number().positive('Duration must be a positive number'),
   totalQuestions: z.coerce.number().positive('Total Questions must be a positive number'),
@@ -29,11 +34,13 @@ export function ConfigForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      code: '',
       role: '',
       durationMinutes: undefined,
       totalQuestions: undefined,
@@ -69,6 +76,27 @@ export function ConfigForm() {
         {errors.name && (
           <p id='name-error' className='text-sm text-destructive' role='alert'>
             {errors.name.message}
+          </p>
+        )}
+      </div>
+
+      <div className='space-y-2'>
+        <Label htmlFor='code'>Config Code</Label>
+        <Input
+          id='code'
+          placeholder='e.g. SWE_SCREENING'
+          {...register('code', {
+            onChange: (e) => {
+              setValue('code', e.target.value.toUpperCase(), { shouldValidate: true, shouldDirty: true });
+            },
+          })}
+          aria-invalid={!!errors.code}
+          aria-describedby={errors.code ? 'code-error' : undefined}
+          disabled={isSubmitting}
+        />
+        {errors.code && (
+          <p id='code-error' className='text-sm text-destructive' role='alert'>
+            {errors.code.message}
           </p>
         )}
       </div>
