@@ -16,7 +16,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 
 @ApiTags("Section Topics")
 @ApiBearerAuth()
-@Controller("api/v1/admin/sections/:sectionId/topics")
+@Controller("admin/sections/:sectionId/topics")
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class TopicSectionMappingController {
   constructor(private readonly service: TopicSectionMappingService) {}
@@ -26,11 +26,16 @@ export class TopicSectionMappingController {
   async getMappings(
     @Param("sectionId") sectionId: string,
   ): Promise<SectionTopicListResponse> {
-    const data = await this.service.getMappings(sectionId);
-    return {
-      success: true,
-      data,
-    };
+    try {
+      const data = await this.service.getMappings(sectionId);
+      return {
+        success: true,
+        data,
+      };
+    } catch (e) {
+      console.error("GET MAPPINGS ERROR:", e);
+      throw e;
+    }
   }
 
   @Post()

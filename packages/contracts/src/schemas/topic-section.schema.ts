@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const CreateSectionTopicSchema = z.object({
-  topicId: z.string().uuid("topicId must be a valid UUID"),
+  topicId: z.string(),
 });
 
 export type CreateSectionTopicRequest = z.infer<
@@ -9,7 +9,7 @@ export type CreateSectionTopicRequest = z.infer<
 >;
 
 export const SectionTopicResponseSchema = z.object({
-  topicId: z.string().uuid(),
+  topicId: z.string(),
   topicName: z.string(),
   topicCode: z.string(),
   createdAt: z.union([z.string(), z.date()]).optional(),

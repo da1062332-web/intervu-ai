@@ -22,7 +22,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception &&
       typeof exception === "object" &&
       "code" in exception &&
-      typeof (exception as Record<string, unknown>).code === "string"
+      typeof (exception as Record<string, unknown>).code === "string" &&
+      !exception.constructor?.name?.startsWith("Prisma") // Fix: Don't catch Prisma errors here
     ) {
       const baseErr = exception as Record<string, unknown>;
       code = String(baseErr.code);
