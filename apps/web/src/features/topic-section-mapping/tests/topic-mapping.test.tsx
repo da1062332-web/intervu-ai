@@ -1,28 +1,51 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TopicMappingTable } from '../components/TopicMappingTable';
-import { AddTopicModal } from '../components/AddTopicModal';
-import { useRemoveTopic, useAdminTopics, useAssignTopic } from '../api/queries';
+import { WeightageEditor } from '../components/WeightageEditor';
+import { TopicMappingHealthWidget } from '../components/TopicMappingHealthWidget';
+import { AvailableTopicsPanel } from '../components/AvailableTopicsPanel';
+import { useRemoveTopic, useAdminTopics, useAssignTopic, useSectionTopics } from '../api/queries';
+import {
+  useWeightages,
+  useUpdateWeightage,
+  useCreateWeightage,
+} from '@/services/topic-weightages/hooks';
+import { useTopicMappingStore } from '../store/topic-mapping.store';
 
 jest.mock('../api/queries', () => ({
   useRemoveTopic: jest.fn(),
   useAdminTopics: jest.fn(),
   useAssignTopic: jest.fn(),
+  useSectionTopics: jest.fn(),
+}));
+
+jest.mock('@/services/topic-weightages/hooks', () => ({
+  useWeightages: jest.fn(),
+  useUpdateWeightage: jest.fn(),
+  useCreateWeightage: jest.fn(),
 }));
 
 describe('Topic Mapping', () => {
   const mockRemoveTopic = jest.fn();
   const mockAssignTopic = jest.fn();
+  const mockUpdateWeightage = jest.fn();
+  const mockCreateWeightage = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    (useRemoveTopic as jest.Mock).mockReturnValue({
-      mutate: mockRemoveTopic,
-      isPending: false,
+    useTopicMappingStore.setState({
+      weightages: { '1': 100 },
+      assignedTopics: [],
+      selectedSectionId: 'sec1',
     });
 
-    (useAssignTopic as jest.Mock).mockReturnValue({
-      mutate: mockAssignTopic,
+    (useRemoveTopic as jest.Mock).mockReturnValue({ mutate: mockRemoveTopic, isPending: false });
+    (useAssignTopic as jest.Mock).mockReturnValue({ mutate: mockAssignTopic, isPending: false });
+    (useUpdateWeightage as jest.Mock).mockReturnValue({
+      mutate: mockUpdateWeightage,
+      isPending: false,
+    });
+    (useCreateWeightage as jest.Mock).mockReturnValue({
+      mutate: mockCreateWeightage,
       isPending: false,
     });
 
@@ -33,57 +56,68 @@ describe('Topic Mapping', () => {
       ],
       isLoading: false,
     });
+
+    (useSectionTopics as jest.Mock).mockReturnValue({
+      data: [{ topicId: '1', topicName: 'React', topicCode: 'R1' }],
+      isLoading: false,
+    });
+
+    (useWeightages as jest.Mock).mockReturnValue({
+      data: [{ id: 'w1', topicId: '1', weightagePercentage: 100 }],
+      isLoading: false,
+    });
   });
 
   describe('Topic List Rendering', () => {
-    it('renders the list of mapped topics', () => {
+    it('renders the list of mapped topics with weightages', () => {
       const topics = [
         { topicId: '1', topicName: 'React', topicCode: 'R1', createdAt: '2023-01-01' },
       ];
       render(<TopicMappingTable sectionId='sec1' topics={topics} />);
-
       expect(screen.getByText('React')).toBeInTheDocument();
-      expect(screen.getByText('R1')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
     });
   });
 
-  describe('Remove Topic', () => {
-    it('opens confirmation modal and removes topic', async () => {
-      const topics = [
-        { topicId: '1', topicName: 'React', topicCode: 'R1', createdAt: '2023-01-01' },
-      ];
-      render(<TopicMappingTable sectionId='sec1' topics={topics} />);
+  describe('Weightage Editor', () => {
+    it('renders inline weightage inputs and handles updates', () => {
+      const topics = [{ topicId: '1', topicName: 'React', topicCode: 'R1' }];
+      render(<WeightageEditor sectionId='sec1' topics={topics} />);
 
-      const removeBtn = screen.getByText('Remove');
-      fireEvent.click(removeBtn);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toHaveValue(100);
 
-      await waitFor(() => {
-        expect(screen.getByText('Remove Topic Mapping?')).toBeInTheDocument();
-      });
+      fireEvent.change(input, { target: { value: '80' } });
+      fireEvent.blur(input);
 
-      const confirmBtn = screen.getAllByText('Remove')[1]; // second one is inside modal
-      fireEvent.click(confirmBtn);
-
-      expect(mockRemoveTopic).toHaveBeenCalledWith('1', expect.any(Object));
+      expect(mockUpdateWeightage).toHaveBeenCalledWith({ id: 'w1', weightagePercentage: 80 });
     });
   });
 
-  describe('Add Topic', () => {
-    it('selects and assigns a topic', async () => {
-      const onClose = jest.fn();
-      render(
-        <AddTopicModal sectionId='sec1' isOpen={true} onClose={onClose} existingTopicIds={[]} />,
-      );
+  describe('Topic Mapping Health Widget', () => {
+    it('shows ready for blueprint when topics exist and weightage is 100', () => {
+      const topics = [{ topicId: '1', topicName: 'React', topicCode: 'R1' }];
+      render(<TopicMappingHealthWidget topics={topics} />);
+      expect(screen.getByText('Ready For Blueprint')).toBeInTheDocument();
+    });
 
-      expect(screen.getByText('Add Topic')).toBeInTheDocument();
+    it('shows invalid configuration when weightage is not 100', () => {
+      useTopicMappingStore.setState({ weightages: { '1': 80 } });
+      const topics = [{ topicId: '1', topicName: 'React', topicCode: 'R1' }];
+      render(<TopicMappingHealthWidget topics={topics} />);
+      expect(screen.getByText('Invalid Configuration')).toBeInTheDocument();
+    });
+  });
 
-      const select = screen.getByRole('combobox');
-      fireEvent.change(select, { target: { value: '1' } });
+  describe('Available Topics Panel', () => {
+    it('renders available topics and allows assignment', () => {
+      render(<AvailableTopicsPanel sectionId='sec1' existingTopicIds={[]} />);
+      expect(screen.getByText('React')).toBeInTheDocument();
 
-      const assignBtn = screen.getByText('Assign');
-      fireEvent.click(assignBtn);
+      const assignBtns = screen.getAllByText('Assign Topic');
+      fireEvent.click(assignBtns[0]);
 
-      expect(mockAssignTopic).toHaveBeenCalledWith('1', expect.any(Object));
+      expect(mockAssignTopic).toHaveBeenCalledWith('1');
     });
   });
 });

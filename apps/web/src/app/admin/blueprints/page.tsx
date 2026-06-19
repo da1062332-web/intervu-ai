@@ -13,8 +13,6 @@ export default function BlueprintsPage() {
       <ConfigHeader
         title='Exam Blueprints'
         description='Design blueprints, allocate topic percentages, and select style profiles.'
-        actionHref='/admin/blueprints/builder'
-        actionLabel='Open Blueprint Builder'
       />
       <BlueprintListPageClient />
     </div>

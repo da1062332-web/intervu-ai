@@ -1,99 +1,90 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { blueprintsApi } from './api';
-import type { CreateBlueprintPayload, UpdateBlueprintPayload } from './types';
-import { toast } from 'sonner';
+import type {
+  CreateBlueprintPayload,
+  UpdateBlueprintPayload,
+  AddTopicConfigPayload,
+} from './types';
 
-export const useStyleProfiles = () => {
+// Query Keys
+export const blueprintKeys = {
+  lists: () => ['blueprints'] as const,
+  detail: (id: string) => ['blueprint', id] as const,
+};
+
+// Legacy Style Profiles (keeping if needed elsewhere)
+export function useStyleProfiles() {
   return useQuery({
     queryKey: ['style-profiles'],
     queryFn: () => blueprintsApi.getStyleProfiles(),
   });
-};
+}
 
-export const useCreateStyleProfile = () => {
+export function useCreateStyleProfile() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (payload: any) => blueprintsApi.createStyleProfile(payload),
+    mutationFn: (data: any) => blueprintsApi.createStyleProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['style-profiles'] });
-      toast.success('Style profile created successfully');
-    },
-    onError: () => {
-      toast.error('Failed to create style profile');
     },
   });
-};
+}
 
-export const useBlueprints = () => {
+// Blueprints
+export function useBlueprints() {
   return useQuery({
-    queryKey: ['blueprints'],
+    queryKey: blueprintKeys.lists(),
     queryFn: () => blueprintsApi.getBlueprints(),
   });
-};
+}
 
-export const useBlueprint = (id: string) => {
+export function useBlueprint(id: string) {
   return useQuery({
-    queryKey: ['blueprints', id],
+    queryKey: blueprintKeys.detail(id),
     queryFn: () => blueprintsApi.getBlueprint(id),
     enabled: !!id,
   });
-};
+}
 
-export const useCreateBlueprint = () => {
+export function useCreateBlueprint() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (payload: CreateBlueprintPayload) => blueprintsApi.createBlueprint(payload),
-    onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ['blueprints'] });
-      if (data?.id) {
-        queryClient.invalidateQueries({ queryKey: ['blueprints', data.id] });
-      }
-      toast.success('Blueprint saved successfully');
-    },
-    onError: () => {
-      toast.error('Failed to save blueprint');
-    },
-  });
-};
-
-export const useUpdateBlueprint = (id: string) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (payload: UpdateBlueprintPayload) => blueprintsApi.updateBlueprint(id, payload),
+    mutationFn: (data: CreateBlueprintPayload) => blueprintsApi.createBlueprint(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blueprints'] });
-      queryClient.invalidateQueries({ queryKey: ['blueprints', id] });
-      toast.success('Blueprint updated successfully');
-    },
-    onError: () => {
-      toast.error('Failed to update blueprint');
+      queryClient.invalidateQueries({ queryKey: blueprintKeys.lists() });
     },
   });
-};
+}
 
-export const useValidateBlueprint = () => {
+export function useUpdateBlueprint() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => blueprintsApi.validateBlueprint(id),
-    onSuccess: (data) => {
-      if (data.valid) {
-        toast.success('Blueprint configuration is valid!');
-      } else {
-        toast.error(`Blueprint has ${data.errors.length} validation errors.`);
-      }
-    },
-    onError: () => {
-      toast.error('Validation engine failed to run');
+    mutationFn: ({ id, data }: { id: string; data: UpdateBlueprintPayload }) =>
+      blueprintsApi.updateBlueprint(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: blueprintKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: blueprintKeys.detail(variables.id) });
     },
   });
-};
+}
 
-export const usePreviewBlueprint = (id: string) => {
-  return useQuery({
-    queryKey: ['blueprints', id, 'preview'],
-    queryFn: () => blueprintsApi.previewBlueprint(id),
-    enabled: !!id,
+export function useDeleteBlueprint() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => blueprintsApi.deleteBlueprint(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: blueprintKeys.lists() });
+    },
   });
-};
+}
+
+export function useAddBlueprintTopic() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: AddTopicConfigPayload }) =>
+      blueprintsApi.addTopicConfig(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: blueprintKeys.detail(variables.id) });
+    },
+  });
+}

@@ -45,3 +45,6 @@ export * from "./schemas/topic.schema";
 
 // Topic Section Mapping Contracts
 export * from "./schemas/topic-section.schema";
+
+// Blueprint Config Contracts
+export * from "./blueprint-config.dto";

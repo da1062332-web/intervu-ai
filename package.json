@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "lucide-react": "^1.21.0",
+    "react-hot-toast": "^2.6.0",
     "shared-logger": "^1.0.12"
   }
 }
