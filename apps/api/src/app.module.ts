@@ -31,6 +31,7 @@ import { DifficultyDistributionModule } from "./modules/difficulty-distribution/
 import { RuleFlagsModule } from "./modules/rule-flags/rule-flags.module";
 import { ConceptMappingModule } from "./modules/concept-mapping/concept-mapping.module";
 import { TopicSectionMappingModule } from "./modules/topic-section-mapping/topic-section-mapping.module";
+import { BlueprintModule } from "./modules/blueprint/blueprint.module";
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { TopicSectionMappingModule } from "./modules/topic-section-mapping/topic
     RuleFlagsModule,
     ConceptMappingModule,
     TopicSectionMappingModule,
+    BlueprintModule,
   ],
   providers: [
     {

@@ -25,9 +25,9 @@ export const examSectionsApi = {
       method: 'POST',
       body: {
         ...payload,
-        code: payload.name.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
-        sectionDurationMinutes: payload.durationMinutes,
-        sectionOrder: payload.displayOrder,
+        code: payload.code || payload.name.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
+        sectionDurationMinutes: payload.sectionDurationMinutes,
+        sectionOrder: payload.sectionOrder,
         isRequired: true,
       },
     });

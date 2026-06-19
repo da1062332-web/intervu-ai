@@ -369,26 +369,25 @@ model ExamConfig {
   versions               ExamConfigVersion[]
   ruleFlags              ExamRuleFlags?
   sections               ExamSection[]
-  blueprints             blueprints?
+  blueprint              Blueprint?
 
   @@index([createdAt])
   @@index([role])
 }
 
 model ExamSection {
-  id                      String                    @id @default(cuid())
-  examConfigId            String
-  name                    String
-  questionCount           Int
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
-  code                    String
-  isRequired              Boolean                   @default(true)
-  sectionDurationMinutes  Int
-  sectionOrder            Int
-  examConfig              ExamConfig                @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
-  blueprint_topic_configs blueprint_topic_configs[]
-  sectionTopics           SectionTopic[]
+  id                     String         @id @default(cuid())
+  examConfigId           String
+  name                   String
+  questionCount          Int
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  code                   String
+  isRequired             Boolean        @default(true)
+  sectionDurationMinutes Int
+  sectionOrder           Int
+  examConfig             ExamConfig     @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  sectionTopics          SectionTopic[]
 
   @@unique([examConfigId, code])
   @@index([examConfigId])
@@ -438,21 +437,20 @@ model ExamRuleFlags {
 }
 
 model Topic {
-  id                      String                    @id @default(cuid())
-  domain                  String
-  topicName               String
-  subtopic                String
-  tags                    String[]
-  easySupport             Boolean                   @default(true)
-  mediumSupport           Boolean                   @default(true)
-  hardSupport             Boolean                   @default(true)
-  isActive                Boolean                   @default(true)
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
-  deletedAt               DateTime?
-  conceptMappings         ConceptMapping[]
-  blueprint_topic_configs blueprint_topic_configs[]
-  sectionTopics           SectionTopic[]
+  id              String           @id @default(cuid())
+  domain          String
+  topicName       String
+  subtopic        String
+  tags            String[]
+  easySupport     Boolean          @default(true)
+  mediumSupport   Boolean          @default(true)
+  hardSupport     Boolean          @default(true)
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  conceptMappings ConceptMapping[]
+  sectionTopics   SectionTopic[]
 }
 
 model ConceptMapping {
@@ -469,6 +467,54 @@ model ConceptMapping {
 
   @@unique([topicId, conceptCode])
   @@index([topicId])
+}
+
+model StyleProfile {
+  id          String   @id @default(uuid())
+  name        String
+  profileType String   @map("profile_type")
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  characteristics StyleProfileCharacteristic[]
+  blueprints      Blueprint[]
+
+  @@map("style_profiles")
+  @@index([profileType])
+  @@index([active])
+}
+
+model StyleProfileCharacteristic {
+  id                 String   @id @default(uuid())
+  profileId          String   @map("profile_id")
+  characteristicName String   @map("characteristic_name")
+  characteristicValue Json     @map("characteristic_value")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  profile StyleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, characteristicName])
+  @@map("style_profile_characteristics")
+  @@index([profileId])
+}
+
+model Blueprint {
+  id             String   @id @default(uuid())
+  configId       String   @unique @map("config_id")
+  styleProfileId String   @map("style_profile_id")
+  sections       Json     // Stored as BlueprintSection[] JSON
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  examConfig   ExamConfig   @relation(fields: [configId], references: [id], onDelete: Cascade)
+  styleProfile StyleProfile @relation(fields: [styleProfileId], references: [id], onDelete: Restrict)
+
+  @@map("blueprints")
+  @@index([configId])
+  @@index([styleProfileId])
 }
 
 model SectionTopic {
@@ -500,85 +546,6 @@ model TopicWeightage {
   @@unique([sectionId, topicId])
   @@index([sectionId])
   @@index([topicId])
-}
-
-model blueprint_configs {
-  id                      String                    @id
-  name                    String
-  code                    String                    @unique
-  description             String?
-  totalQuestions          Int
-  totalDurationMinutes    Int
-  isActive                Boolean                   @default(true)
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime
-  deletedAt               DateTime?
-  blueprint_topic_configs blueprint_topic_configs[]
-
-  @@index([deletedAt])
-}
-
-model blueprint_topic_configs {
-  id                String            @id
-  blueprintId       String
-  sectionId         String
-  topicId           String
-  questionCount     Int
-  weightage         Decimal
-  easyCount         Int
-  mediumCount       Int
-  hardCount         Int
-  createdAt         DateTime          @default(now())
-  blueprint_configs blueprint_configs @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
-  ExamSection       ExamSection       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
-  Topic             Topic             @relation(fields: [topicId], references: [id])
-
-  @@unique([blueprintId, topicId])
-  @@index([blueprintId])
-  @@index([sectionId])
-  @@index([topicId])
-}
-
-model blueprints {
-  id               String         @id
-  config_id        String         @unique
-  style_profile_id String
-  sections         Json
-  created_at       DateTime       @default(now())
-  updated_at       DateTime
-  ExamConfig       ExamConfig     @relation(fields: [config_id], references: [id], onDelete: Cascade)
-  style_profiles   style_profiles @relation(fields: [style_profile_id], references: [id])
-
-  @@index([config_id])
-  @@index([style_profile_id])
-}
-
-model style_profile_characteristics {
-  id                   String         @id
-  profile_id           String
-  characteristic_name  String
-  characteristic_value Json
-  created_at           DateTime       @default(now())
-  updated_at           DateTime
-  style_profiles       style_profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade)
-
-  @@unique([profile_id, characteristic_name])
-  @@index([profile_id])
-}
-
-model style_profiles {
-  id                            String                          @id
-  name                          String
-  profile_type                  String
-  description                   String?
-  active                        Boolean                         @default(true)
-  created_at                    DateTime                        @default(now())
-  updated_at                    DateTime
-  blueprints                    blueprints[]
-  style_profile_characteristics style_profile_characteristics[]
-
-  @@index([active])
-  @@index([profile_type])
 }
 
 enum UserRole {

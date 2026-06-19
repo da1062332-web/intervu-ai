@@ -25,8 +25,12 @@ export class CreateTopicDto implements CreateTopic {
   @ApiPropertyOptional({ example: true, default: true })
   hardSupport!: boolean;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, CreateTopicDto> {
-    return CreateTopicSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, CreateTopicDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, CreateTopicDto> {
+    return CreateTopicSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, CreateTopicDto>;
   }
 }
 
@@ -55,7 +59,11 @@ export class UpdateTopicDto implements UpdateTopic {
   @ApiPropertyOptional({ example: true })
   isActive?: boolean;
 
-  static validate(data: unknown): z.SafeParseReturnType<unknown, UpdateTopicDto> {
-    return UpdateTopicSchema.safeParse(data) as unknown as z.SafeParseReturnType<unknown, UpdateTopicDto>;
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, UpdateTopicDto> {
+    return UpdateTopicSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, UpdateTopicDto>;
   }
 }

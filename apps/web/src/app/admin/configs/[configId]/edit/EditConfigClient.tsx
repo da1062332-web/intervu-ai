@@ -33,17 +33,16 @@ export function EditConfigClient({ configId }: EditConfigClientProps) {
     return (
       <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-4xl text-center'>
         <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading configuration</h3>
-        <p className='text-muted-foreground'>We could not load the configuration details for editing.</p>
+        <p className='text-muted-foreground'>
+          We could not load the configuration details for editing.
+        </p>
       </div>
     );
   }
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-4xl'>
-      <ConfigHeader
-        title='Edit Configuration'
-        description={`Update details for ${config.name}.`}
-      />
+      <ConfigHeader title='Edit Configuration' description={`Update details for ${config.name}.`} />
       <div className='mt-8 bg-card p-6 rounded-lg border shadow-sm'>
         <ConfigForm initialData={config} />
       </div>

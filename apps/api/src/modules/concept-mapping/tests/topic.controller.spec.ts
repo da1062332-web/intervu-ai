@@ -90,7 +90,10 @@ describe("TopicController", () => {
   describe("updateTopic", () => {
     it("should call service updateTopic", async () => {
       const dto: UpdateTopicDto = { topicName: "New Name" };
-      service.updateTopic.mockResolvedValue({ ...mockTopic, topicName: "New Name" });
+      service.updateTopic.mockResolvedValue({
+        ...mockTopic,
+        topicName: "New Name",
+      });
 
       const result = await controller.updateTopic("topic-123", dto);
 

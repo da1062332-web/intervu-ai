@@ -56,7 +56,9 @@ export class TopicSectionMappingService {
 
     const responses: SectionTopicResponse[] = [];
     const topics = await Promise.all(
-      mappings.map((m: { topicId: string }) => this.topicRegistry.getTopicById(m.topicId)),
+      mappings.map((m: { topicId: string }) =>
+        this.topicRegistry.getTopicById(m.topicId),
+      ),
     );
 
     for (let i = 0; i < mappings.length; i++) {

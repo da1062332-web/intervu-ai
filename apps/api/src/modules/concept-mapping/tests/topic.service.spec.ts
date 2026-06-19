@@ -111,7 +111,10 @@ describe("TopicService", () => {
   describe("updateTopic", () => {
     it("should update and refresh cache", async () => {
       repository.findById.mockResolvedValue(mockTopic);
-      repository.update.mockResolvedValue({ ...mockTopic, topicName: "New Name" });
+      repository.update.mockResolvedValue({
+        ...mockTopic,
+        topicName: "New Name",
+      });
       registryLoader.loadTopics.mockResolvedValue([]);
 
       const dto = { topicName: "New Name" };

@@ -33,10 +33,15 @@ export * from "./schemas/exam-section.schema";
 export * from "./concept-mapping.dto";
 export * from "./schemas/concept-mapping.schema";
 
+// Style Profile & Blueprint Contracts
+export * from "./style-profile.dto";
+export * from "./schemas/style-profile.schema";
+export * from "./blueprint.dto";
+export * from "./schemas/blueprint.schema";
+
 // Topic Contracts
 export * from "./topic.dto";
 export * from "./schemas/topic.schema";
 
 // Topic Section Mapping Contracts
 export * from "./schemas/topic-section.schema";
-
