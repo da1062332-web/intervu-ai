@@ -32,6 +32,7 @@ import { RuleFlagsModule } from "./modules/rule-flags/rule-flags.module";
 import { ConceptMappingModule } from "./modules/concept-mapping/concept-mapping.module";
 import { TopicSectionMappingModule } from "./modules/topic-section-mapping/topic-section-mapping.module";
 import { BlueprintModule } from "./modules/blueprint/blueprint.module";
+import { BlueprintConfigModule } from "./modules/blueprint-config/blueprint-config.module";
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { BlueprintModule } from "./modules/blueprint/blueprint.module";
     ConceptMappingModule,
     TopicSectionMappingModule,
     BlueprintModule,
+    BlueprintConfigModule,
   ],
   providers: [
     {
