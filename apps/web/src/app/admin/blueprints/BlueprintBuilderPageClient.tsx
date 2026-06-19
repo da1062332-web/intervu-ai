@@ -1,301 +1,302 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useConfigs } from '@/services/exam-configs';
-import { useStyleProfiles, useCreateBlueprint, useBlueprint } from '@/services/blueprints';
-import { StyleProfileSelector } from './components/StyleProfileSelector';
-import { BlueprintHealthWidget } from './components/BlueprintHealthWidget';
-import { Label } from '@/components/ui/label';
+import { useSearchParams } from 'next/navigation';
+import { useBlueprint } from '@/services/blueprints';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { EditBlueprintModal } from './components/EditBlueprintModal';
+import { AddTopicModal } from './components/AddTopicModal';
+import { Edit, Plus, ArrowLeft, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { useBlueprintEditorStore } from '@/store/blueprint-editor.store';
 
 export function BlueprintBuilderPageClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const editId = searchParams.get('id');
+  const id = searchParams.get('id') || '';
 
-  const { data: configs, isLoading: isConfigsLoading } = useConfigs();
-  const { data: profiles, isLoading: isProfilesLoading } = useStyleProfiles();
-  const { data: existingBlueprint, isLoading: isBlueprintLoading } = useBlueprint(editId || '');
-  const { mutateAsync: saveBlueprint, isPending: isSaving } = useCreateBlueprint();
+  const { data: blueprint, isLoading, isError, refetch } = useBlueprint(id);
 
-  // Selected config & profile
-  const [configId, setConfigId] = useState('');
-  const [styleProfileId, setStyleProfileId] = useState('');
+  const setValidationState = useBlueprintEditorStore((state) => state.setValidationState);
+  const setSelectedBlueprint = useBlueprintEditorStore((state) => state.setSelectedBlueprint);
 
-  // Section details
-  const [qCount, setQCount] = useState(20);
-  const [dsPercent, setDsPercent] = useState(60);
-  const [algoPercent, setAlgoPercent] = useState(40);
-  const [easyPercent, setEasyPercent] = useState(50);
-  const [mediumPercent, setMediumPercent] = useState(40);
-  const [hardPercent, setHardPercent] = useState(10);
-
-  // Initialize form if editing
   useEffect(() => {
-    if (existingBlueprint) {
-      setConfigId(existingBlueprint.configId);
-      setStyleProfileId(existingBlueprint.styleProfileId);
-      const section = existingBlueprint.sections?.[0];
-      if (section) {
-        setQCount(section.questionCount || 20);
-        const ds = section.topicAllocations?.find((t: any) => t.topicId === 'se-ds-001');
-        const algo = section.topicAllocations?.find((t: any) => t.topicId === 'se-algo-001');
-        if (ds) setDsPercent(ds.percentage);
-        if (algo) setAlgoPercent(algo.percentage);
-
-        const diff = section.difficultyAllocation || {};
-        setEasyPercent(diff.easy ?? 50);
-        setMediumPercent(diff.medium ?? 40);
-        setHardPercent(diff.hard ?? 10);
-      }
+    if (id) {
+      setSelectedBlueprint(id);
     }
-  }, [existingBlueprint]);
+  }, [id, setSelectedBlueprint]);
 
-  // If config is selected, pre-fill total questions if available
   useEffect(() => {
-    if (configId && configs) {
-      const selected = configs.find((c) => c.id === configId);
-      if (selected) {
-        setQCount(selected.totalQuestions);
-      }
+    if (blueprint) {
+      setValidationState({
+        isValid: blueprint.valid,
+        errors: blueprint.validationSummary?.errors || [],
+      });
     }
-  }, [configId, configs]);
+  }, [blueprint, setValidationState]);
 
-  const topicSum = dsPercent + algoPercent;
-  const difficultySum = easyPercent + mediumPercent + hardPercent;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddTopicModalOpen, setIsAddTopicModalOpen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!configId || !styleProfileId) {
-      return;
-    }
-
-    const payload = {
-      configId,
-      styleProfileId,
-      sections: [
-        {
-          sectionId: 'sec-technical',
-          questionCount: qCount,
-          topicAllocations: [
-            { topicId: 'se-ds-001', percentage: dsPercent },
-            { topicId: 'se-algo-001', percentage: algoPercent },
-          ],
-          difficultyAllocation: {
-            easy: easyPercent,
-            medium: mediumPercent,
-            hard: hardPercent,
-          },
-          templateTypes: ['mcq'],
-        },
-      ],
-    };
-
-    try {
-      await saveBlueprint(payload);
-      router.push('/admin/blueprints');
-    } catch {
-      // toast is already handled in mutation
-    }
-  };
-
-  const isLoading = isConfigsLoading || isProfilesLoading || (!!editId && isBlueprintLoading);
+  if (!id) {
+    return <div className='mt-8 text-center text-red-500'>No blueprint ID provided</div>;
+  }
 
   if (isLoading) {
     return (
-      <div className='flex flex-col items-center justify-center py-20 space-y-4'>
-        <Loader2 className='w-8 h-8 animate-spin text-indigo-600' />
-        <span className='text-sm text-muted-foreground'>Loading builder context...</span>
+      <div className='space-y-6 mt-8'>
+        <Skeleton className='h-32 w-full rounded-md' />
+        <Skeleton className='h-64 w-full rounded-md' />
       </div>
     );
   }
 
+  if (isError || !blueprint) {
+    return (
+      <div className='mt-8 text-center py-12 border rounded-md'>
+        <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading blueprint</h3>
+        <Button onClick={() => refetch()} variant='outline'>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  const validationSummary = blueprint.validationSummary || {
+    totalConfiguredQuestions: 0,
+    totalExpectedQuestions: blueprint.totalQuestions,
+    totalMissingQuestions: blueprint.totalQuestions,
+    totalWeightage: 0,
+    errors: [],
+  };
+
   return (
-    <form onSubmit={handleSubmit} className='grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8'>
-      {/* Left Columns - Form controls */}
-      <div className='lg:col-span-2 space-y-8'>
-        <div className='border rounded-lg p-6 bg-white shadow-sm space-y-6'>
-          <h3 className='text-base font-semibold text-gray-900 border-b pb-3'>
-            1. Mapping & Constraints
-          </h3>
+    <div className='mt-8 space-y-6'>
+      <div className='flex items-center space-x-4 mb-4'>
+        <Link
+          href='/admin/blueprints'
+          className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+        >
+          <ArrowLeft className='h-5 w-5' />
+        </Link>
+        <h1 className='text-2xl font-bold tracking-tight text-gray-900 dark:text-white'>
+          Manage Blueprint
+        </h1>
+      </div>
 
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-            <div className='space-y-2'>
-              <Label htmlFor='config-select'>Exam Configuration</Label>
-              <select
-                id='config-select'
-                value={configId}
-                onChange={(e) => setConfigId(e.target.value)}
-                disabled={!!editId}
-                className='w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white border-gray-300'
-              >
-                <option value=''>-- Select configuration --</option>
-                {configs?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        {/* Section 1: General Info */}
+        <Card className='md:col-span-2'>
+          <CardHeader className='flex flex-row items-center justify-between'>
+            <div>
+              <CardTitle>Blueprint Information</CardTitle>
+              <CardDescription>General metadata for the blueprint</CardDescription>
+            </div>
+            <Button variant='outline' size='sm' onClick={() => setIsEditModalOpen(true)}>
+              <Edit className='h-4 w-4 mr-2' />
+              Edit
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <dl className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6'>
+              <div>
+                <dt className='text-sm font-medium text-gray-500'>Name</dt>
+                <dd className='mt-1 text-sm text-gray-900 dark:text-white font-semibold'>
+                  {blueprint.name}
+                </dd>
+              </div>
+              <div>
+                <dt className='text-sm font-medium text-gray-500'>Code</dt>
+                <dd className='mt-1 text-sm text-gray-900 dark:text-white'>
+                  <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'>
+                    {blueprint.code}
+                  </span>
+                </dd>
+              </div>
+              <div className='sm:col-span-2'>
+                <dt className='text-sm font-medium text-gray-500'>Description</dt>
+                <dd className='mt-1 text-sm text-gray-900 dark:text-white'>
+                  {blueprint.description || 'No description provided.'}
+                </dd>
+              </div>
+              <div>
+                <dt className='text-sm font-medium text-gray-500'>Total Questions</dt>
+                <dd className='mt-1 text-sm text-gray-900 dark:text-white'>
+                  {blueprint.totalQuestions}
+                </dd>
+              </div>
+              <div>
+                <dt className='text-sm font-medium text-gray-500'>Total Duration</dt>
+                <dd className='mt-1 text-sm text-gray-900 dark:text-white'>
+                  {blueprint.totalDurationMinutes} minutes
+                </dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Validation Summary Widget */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Validation Summary</CardTitle>
+            <CardDescription>Status and health of blueprint</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex flex-col space-y-4'>
+              <div className='flex items-center justify-between'>
+                <span className='text-sm font-medium text-gray-500'>Status</span>
+                {blueprint.valid ? (
+                  <span className='inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-green-100 text-green-800'>
+                    <CheckCircle2 className='w-4 h-4 mr-1' /> VALID
+                  </span>
+                ) : (
+                  <span className='inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-red-100 text-red-800'>
+                    <XCircle className='w-4 h-4 mr-1' /> INVALID
+                  </span>
+                )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-gray-800'>
+                <div>
+                  <dt className='text-xs font-medium text-gray-500 uppercase'>Configured Q's</dt>
+                  <dd className='mt-1 text-xl font-semibold text-gray-900 dark:text-white'>
+                    {validationSummary.totalConfiguredQuestions}
+                  </dd>
+                </div>
+                <div>
+                  <dt className='text-xs font-medium text-gray-500 uppercase'>Expected Q's</dt>
+                  <dd className='mt-1 text-xl font-semibold text-gray-900 dark:text-white'>
+                    {validationSummary.totalExpectedQuestions}
+                  </dd>
+                </div>
+                <div>
+                  <dt className='text-xs font-medium text-gray-500 uppercase'>Missing Q's</dt>
+                  <dd
+                    className={`mt-1 text-xl font-semibold ${validationSummary.totalMissingQuestions > 0 ? 'text-red-500' : 'text-green-500'}`}
+                  >
+                    {validationSummary.totalMissingQuestions}
+                  </dd>
+                </div>
+                <div>
+                  <dt className='text-xs font-medium text-gray-500 uppercase'>Total Weightage</dt>
+                  <dd
+                    className={`mt-1 text-xl font-semibold ${validationSummary.totalWeightage !== 100 ? 'text-red-500' : 'text-green-500'}`}
+                  >
+                    {validationSummary.totalWeightage}%
+                  </dd>
+                </div>
+              </div>
+
+              {!blueprint.valid && (validationSummary.errors || []).length > 0 && (
+                <div className='mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-100 dark:border-red-900/50'>
+                  <h4 className='text-sm font-semibold text-red-800 dark:text-red-400 flex items-center mb-2'>
+                    <AlertTriangle className='h-4 w-4 mr-1' /> Issues
+                  </h4>
+                  <ul className='list-disc pl-5 space-y-1'>
+                    {(validationSummary.errors || []).map((err, idx) => (
+                      <li key={idx} className='text-xs text-red-700 dark:text-red-300'>
+                        {err}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Section 3: Topic Configuration */}
+      <Card>
+        <CardHeader className='flex flex-row items-center justify-between'>
+          <div>
+            <CardTitle>Topic Configuration</CardTitle>
+            <CardDescription>Mapped topics and difficulty allocations</CardDescription>
+          </div>
+          <Button size='sm' onClick={() => setIsAddTopicModalOpen(true)}>
+            <Plus className='h-4 w-4 mr-2' />
+            Add Topic
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className='-mx-6 overflow-x-auto'>
+            <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
+              <thead className='bg-gray-50 dark:bg-gray-800'>
+                <tr>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Section
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Topic
+                  </th>
+                  <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Count
+                  </th>
+                  <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Weightage
+                  </th>
+                  <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Easy
+                  </th>
+                  <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Medium
+                  </th>
+                  <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    Hard
+                  </th>
+                </tr>
+              </thead>
+              <tbody className='bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700'>
+                {(blueprint.topics || []).map((t, idx) => (
+                  <tr key={idx}>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
+                      {t.sectionName}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100'>
+                      {t.topicName}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center'>
+                      {t.questionCount}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center'>
+                      {t.weightage}%
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center'>
+                      {t.difficultyDistribution.easyCount}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center'>
+                      {t.difficultyDistribution.mediumCount}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center'>
+                      {t.difficultyDistribution.hardCount}
+                    </td>
+                  </tr>
                 ))}
-              </select>
-            </div>
-
-            <StyleProfileSelector value={styleProfileId} onChange={setStyleProfileId} />
+                {(blueprint.topics || []).length === 0 && (
+                  <tr>
+                    <td colSpan={7} className='px-6 py-8 text-center text-sm text-gray-500'>
+                      No topics configured yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className='border rounded-lg p-6 bg-white shadow-sm space-y-6'>
-          <h3 className='text-base font-semibold text-gray-900 border-b pb-3'>
-            2. Section Distribution (Technical)
-          </h3>
+      <EditBlueprintModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        blueprint={blueprint}
+      />
 
-          <div className='space-y-6'>
-            {/* Topic Allocation sliders */}
-            <div className='space-y-4'>
-              <div className='flex justify-between items-center'>
-                <Label className='font-semibold text-gray-800'>Topic Allocation (%)</Label>
-                <span
-                  className={`text-xs font-bold ${topicSum === 100 ? 'text-emerald-600' : 'text-amber-500'}`}
-                >
-                  Sum: {topicSum}% / 100%
-                </span>
-              </div>
-
-              <div className='space-y-4 border p-4 rounded bg-gray-50'>
-                <div className='space-y-2'>
-                  <div className='flex justify-between text-xs'>
-                    <span className='font-medium text-gray-700'>Data Structures</span>
-                    <span className='font-bold text-indigo-600'>{dsPercent}%</span>
-                  </div>
-                  <input
-                    type='range'
-                    min='0'
-                    max='100'
-                    step='5'
-                    value={dsPercent}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setDsPercent(val);
-                      setAlgoPercent(100 - val);
-                    }}
-                    className='w-full accent-indigo-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <div className='flex justify-between text-xs'>
-                    <span className='font-medium text-gray-700'>Algorithms</span>
-                    <span className='font-bold text-indigo-600'>{algoPercent}%</span>
-                  </div>
-                  <input
-                    type='range'
-                    min='0'
-                    max='100'
-                    step='5'
-                    value={algoPercent}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAlgoPercent(val);
-                      setDsPercent(100 - val);
-                    }}
-                    className='w-full accent-indigo-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer'
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Difficulty Allocation sliders */}
-            <div className='space-y-4'>
-              <div className='flex justify-between items-center'>
-                <Label className='font-semibold text-gray-800'>Difficulty Mix (%)</Label>
-                <span
-                  className={`text-xs font-bold ${difficultySum === 100 ? 'text-emerald-600' : 'text-amber-500'}`}
-                >
-                  Sum: {difficultySum}% / 100%
-                </span>
-              </div>
-
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-6 border p-4 rounded bg-gray-50'>
-                <div className='space-y-2'>
-                  <div className='flex justify-between text-xs'>
-                    <span className='font-medium text-gray-700'>Easy</span>
-                    <span className='font-bold text-blue-600'>{easyPercent}%</span>
-                  </div>
-                  <input
-                    type='number'
-                    min='0'
-                    max='100'
-                    value={easyPercent}
-                    onChange={(e) => setEasyPercent(Math.min(100, Number(e.target.value)))}
-                    className='w-full px-2.5 py-1 border rounded text-sm bg-white font-semibold'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <div className='flex justify-between text-xs'>
-                    <span className='font-medium text-gray-700'>Medium</span>
-                    <span className='font-bold text-yellow-600'>{mediumPercent}%</span>
-                  </div>
-                  <input
-                    type='number'
-                    min='0'
-                    max='100'
-                    value={mediumPercent}
-                    onChange={(e) => setMediumPercent(Math.min(100, Number(e.target.value)))}
-                    className='w-full px-2.5 py-1 border rounded text-sm bg-white font-semibold'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <div className='flex justify-between text-xs'>
-                    <span className='font-medium text-gray-700'>Hard</span>
-                    <span className='font-bold text-red-600'>{hardPercent}%</span>
-                  </div>
-                  <input
-                    type='number'
-                    min='0'
-                    max='100'
-                    value={hardPercent}
-                    onChange={(e) => setHardPercent(Math.min(100, Number(e.target.value)))}
-                    className='w-full px-2.5 py-1 border rounded text-sm bg-white font-semibold'
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column - Health widget & Save controls */}
-      <div className='space-y-6'>
-        <BlueprintHealthWidget
-          blueprintId={editId || undefined}
-          topicSum={topicSum}
-          difficultySum={difficultySum}
-        />
-
-        <div className='flex flex-col space-y-3'>
-          <Button
-            type='submit'
-            disabled={
-              !configId || !styleProfileId || topicSum !== 100 || difficultySum !== 100 || isSaving
-            }
-            className='w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md shadow focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
-          >
-            {isSaving && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
-            Save Exam Blueprint
-          </Button>
-
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => router.push('/admin/blueprints')}
-            className='w-full'
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
-    </form>
+      <AddTopicModal
+        isOpen={isAddTopicModalOpen}
+        onClose={() => setIsAddTopicModalOpen(false)}
+        blueprintId={blueprint.id}
+      />
+    </div>
   );
 }

@@ -1,15 +1,15 @@
 import { apiClient } from '@/services/api/client';
 import type {
-  ExamBlueprint,
-  StyleProfile,
+  BlueprintConfig,
+  BlueprintDetail,
   CreateBlueprintPayload,
   UpdateBlueprintPayload,
-  ValidationResult,
-  BlueprintPreviewData,
+  AddTopicConfigPayload,
+  StyleProfile,
 } from './types';
 
 export const blueprintsApi = {
-  // Style Profiles
+  // Legacy Style Profiles (keeping if needed elsewhere)
   getStyleProfiles: () => {
     return apiClient.request<StyleProfile[]>('/style-profiles');
   },
@@ -28,36 +28,39 @@ export const blueprintsApi = {
     });
   },
 
-  // Blueprints
+  // Blueprint Configs
   getBlueprints: () => {
-    return apiClient.request<ExamBlueprint[]>('/blueprints');
+    return apiClient.request<BlueprintConfig[]>('/admin/blueprints');
   },
 
   getBlueprint: (id: string) => {
-    return apiClient.request<ExamBlueprint>(`/blueprints/${id}`);
+    return apiClient.request<BlueprintDetail>(`/admin/blueprints/${id}`);
   },
 
   createBlueprint: (payload: CreateBlueprintPayload) => {
-    return apiClient.request<ExamBlueprint>('/blueprints', {
+    return apiClient.request<BlueprintConfig>('/admin/blueprints', {
       method: 'POST',
       body: payload,
     });
   },
 
   updateBlueprint: (id: string, payload: UpdateBlueprintPayload) => {
-    return apiClient.request<ExamBlueprint>(`/blueprints/${id}`, {
+    return apiClient.request<BlueprintConfig>(`/admin/blueprints/${id}`, {
       method: 'PATCH',
       body: payload,
     });
   },
 
-  validateBlueprint: (id: string) => {
-    return apiClient.request<ValidationResult>(`/blueprints/${id}/validate`, {
-      method: 'POST',
+  deleteBlueprint: (id: string) => {
+    return apiClient.request<{ id: string }>(`/admin/blueprints/${id}`, {
+      method: 'DELETE',
     });
   },
 
-  previewBlueprint: (id: string) => {
-    return apiClient.request<BlueprintPreviewData>(`/blueprints/${id}/preview`);
+  addTopicConfig: (id: string, payload: AddTopicConfigPayload) => {
+    return apiClient.request<unknown>(`/admin/blueprints/${id}/topics`, {
+      method: 'POST',
+      body: payload,
+    });
   },
 };

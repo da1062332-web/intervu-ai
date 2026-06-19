@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { RuleFlagsTab } from '../components/rule-flags-tab';
 import { useRuleFlags, useUpdateRuleFlags } from '../hooks/use-rule-flags';
-import { toast } from 'sonner';
 
 jest.mock('../hooks/use-rule-flags');
 jest.mock('sonner', () => ({
