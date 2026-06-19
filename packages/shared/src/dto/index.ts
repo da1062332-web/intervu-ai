@@ -11,3 +11,4 @@ export * from "./concept-mapping.dto";
 export * from "./style-profile.dto";
 export * from "./blueprint.dto";
 export * from "./topic.dto";
+export * from "./blueprint-config.dto";

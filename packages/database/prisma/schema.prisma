@@ -459,6 +459,8 @@ model ExamSection {
   updatedAt              DateTime   @updatedAt
   examConfig             ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
+  blueprintTopicConfigs  BlueprintTopicConfig[]
+
   @@unique([examConfigId, code])
   @@index([examConfigId])
   @@index([sectionOrder])
@@ -524,6 +526,7 @@ model Topic {
   deletedAt     DateTime?
   
   conceptMappings ConceptMapping[]
+  blueprintTopicConfigs BlueprintTopicConfig[]
 }
 
 model ConceptMapping {
@@ -600,6 +603,54 @@ model SectionTopic {
   createdAt DateTime @default(now())
 
   @@unique([sectionId, topicId])
+  @@index([sectionId])
+  @@index([topicId])
+}
+
+model BlueprintConfig {
+  id                   String @id @default(uuid())
+  name                 String
+  code                 String @unique
+  description          String?
+
+  totalQuestions       Int
+  totalDurationMinutes Int
+
+  isActive             Boolean @default(true)
+
+  topicConfigs         BlueprintTopicConfig[]
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  deletedAt            DateTime?
+
+  @@map("blueprint_configs")
+  @@index([deletedAt])
+}
+
+model BlueprintTopicConfig {
+  id            String @id @default(uuid())
+
+  blueprintId   String
+  sectionId     String
+  topicId       String
+
+  questionCount Int
+  weightage     Decimal
+
+  easyCount     Int
+  mediumCount   Int
+  hardCount     Int
+
+  createdAt     DateTime @default(now())
+
+  blueprint     BlueprintConfig @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  topic         Topic           @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  examSection   ExamSection?    @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  @@unique([blueprintId, topicId])
+  @@map("blueprint_topic_configs")
+  @@index([blueprintId])
   @@index([sectionId])
   @@index([topicId])
 }
