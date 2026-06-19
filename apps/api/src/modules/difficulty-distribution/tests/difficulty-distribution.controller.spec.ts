@@ -31,21 +31,40 @@ describe("DifficultyDistributionController", () => {
     service = module.get(DifficultyDistributionService);
   });
 
-  it("should call updateDifficultyDistribution on PUT", async () => {
+  it("should call updateDifficultyDistribution on POST", async () => {
     service.updateDifficultyDistribution.mockResolvedValue({
       id: "dist-1",
       examConfigId: mockConfigId,
-      easyCount: 1,
-      mediumCount: 2,
-      hardCount: 3,
-      totalQuestions: 6,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    const dto = { easyCount: 1, mediumCount: 2, hardCount: 3 };
+    const dto = { easyPercentage: 20, mediumPercentage: 50, hardPercentage: 30 };
+    const result = await controller.create(mockConfigId, dto);
+    expect(result.easyPercentage).toBe(20);
+    expect(service.updateDifficultyDistribution).toHaveBeenCalledWith(
+      mockConfigId,
+      dto,
+    );
+  });
+
+  it("should call updateDifficultyDistribution on PATCH", async () => {
+    service.updateDifficultyDistribution.mockResolvedValue({
+      id: "dist-1",
+      examConfigId: mockConfigId,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const dto = { easyPercentage: 20, mediumPercentage: 50, hardPercentage: 30 };
     const result = await controller.update(mockConfigId, dto);
-    expect(result.totalQuestions).toBe(6);
+    expect(result.easyPercentage).toBe(20);
     expect(service.updateDifficultyDistribution).toHaveBeenCalledWith(
       mockConfigId,
       dto,
@@ -56,16 +75,15 @@ describe("DifficultyDistributionController", () => {
     service.getDifficultyDistribution.mockResolvedValue({
       id: "dist-1",
       examConfigId: mockConfigId,
-      easyCount: 1,
-      mediumCount: 2,
-      hardCount: 3,
-      totalQuestions: 6,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     const result = await controller.findOne(mockConfigId);
-    expect(result.totalQuestions).toBe(6);
+    expect(result.easyPercentage).toBe(20);
   });
 
   it("should throw NotFoundException if GET returns null", async () => {

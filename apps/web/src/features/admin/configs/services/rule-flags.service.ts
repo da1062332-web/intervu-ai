@@ -3,7 +3,7 @@ import type { UpdateRuleFlags, RuleFlagsResponseDto } from '@intervu/shared';
 
 export const ruleFlagsService = {
   getRuleFlags: async (configId: string): Promise<RuleFlagsResponseDto> => {
-    return apiClient.request<RuleFlagsResponseDto>(`/admin/configs/${configId}/rule-flags`, {
+    return apiClient.request<RuleFlagsResponseDto>(`/admin/configs/${configId}/rules`, {
       method: 'GET',
     });
   },
@@ -12,7 +12,7 @@ export const ruleFlagsService = {
     configId: string,
     payload: UpdateRuleFlags,
   ): Promise<RuleFlagsResponseDto> => {
-    return apiClient.request<RuleFlagsResponseDto>(`/admin/configs/${configId}/rule-flags`, {
+    return apiClient.request<RuleFlagsResponseDto>(`/admin/configs/${configId}/rules`, {
       method: 'PUT',
       body: payload,
     });

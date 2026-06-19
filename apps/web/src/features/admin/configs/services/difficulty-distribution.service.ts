@@ -9,7 +9,7 @@ const BASE_PATH = '/admin/configs';
 export const difficultyDistributionService = {
   getDifficultyDistribution: async (configId: string): Promise<DifficultyDistributionResponse> => {
     return apiClient.request<DifficultyDistributionResponse>(
-      `${BASE_PATH}/${configId}/difficulty-distribution`,
+      `${BASE_PATH}/${configId}/difficulty`,
       {
         method: 'GET',
       },
@@ -21,7 +21,7 @@ export const difficultyDistributionService = {
     payload: UpdateDifficultyDistributionDto,
   ): Promise<DifficultyDistributionResponse> => {
     return apiClient.request<DifficultyDistributionResponse>(
-      `${BASE_PATH}/${configId}/difficulty-distribution`,
+      `${BASE_PATH}/${configId}/difficulty`,
       {
         method: 'PUT',
         body: JSON.stringify(payload),

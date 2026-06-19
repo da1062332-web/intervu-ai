@@ -438,7 +438,7 @@ model ExamConfig {
 
   versions               ExamConfigVersion[]
   difficultyDistribution DifficultyDistribution?
-  ruleFlags              ExamRuleFlags?
+  ruleFlags              RuleFlags?
   sections               ExamSection[]
   blueprint              Blueprint?
 
@@ -465,14 +465,13 @@ model ExamSection {
 }
 
 model DifficultyDistribution {
-  id             String   @id @default(cuid())
-  examConfigId   String   @unique
-  easyCount      Int
-  mediumCount    Int
-  hardCount      Int
-  totalQuestions Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(uuid())
+  examConfigId     String   @unique
+  easyPercentage   Int
+  mediumPercentage Int
+  hardPercentage   Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
@@ -492,17 +491,17 @@ model ExamConfigVersion {
   @@index([examConfigId])
 }
 
-model ExamRuleFlags {
-  id                     String   @id @default(cuid())
-  examConfigId           String   @unique
-  negativeMarkingEnabled Boolean  @default(false)
-  randomizeQuestions     Boolean  @default(false)
-  randomizeOptions       Boolean  @default(false)
-  calculatorAllowed      Boolean  @default(false)
-  sectionLockingEnabled  Boolean  @default(false)
-  freeNavigationEnabled  Boolean  @default(true)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+model RuleFlags {
+  id                         String   @id @default(uuid())
+  examConfigId               String   @unique
+  negativeMarkingEnabled     Boolean  @default(false)
+  sectionalCutoffEnabled     Boolean  @default(false)
+  adaptiveDifficultyEnabled  Boolean  @default(false)
+  shuffleQuestionsEnabled    Boolean  @default(false)
+  shuffleOptionsEnabled      Boolean  @default(false)
+  allowSectionNavigation     Boolean  @default(false)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
   examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 

@@ -17,19 +17,17 @@ export class DifficultyDistributionRepository {
   async create(
     examConfigId: string,
     data: {
-      easyCount: number;
-      mediumCount: number;
-      hardCount: number;
-      totalQuestions: number;
+      easyPercentage: number;
+      mediumPercentage: number;
+      hardPercentage: number;
     },
   ): Promise<DifficultyDistribution> {
     return this.prisma.difficultyDistribution.create({
       data: {
         examConfigId,
-        easyCount: data.easyCount,
-        mediumCount: data.mediumCount,
-        hardCount: data.hardCount,
-        totalQuestions: data.totalQuestions,
+        easyPercentage: data.easyPercentage,
+        mediumPercentage: data.mediumPercentage,
+        hardPercentage: data.hardPercentage,
       },
     });
   }
@@ -37,19 +35,17 @@ export class DifficultyDistributionRepository {
   async update(
     examConfigId: string,
     data: {
-      easyCount: number;
-      mediumCount: number;
-      hardCount: number;
-      totalQuestions: number;
+      easyPercentage: number;
+      mediumPercentage: number;
+      hardPercentage: number;
     },
   ): Promise<DifficultyDistribution> {
     return this.prisma.difficultyDistribution.update({
       where: { examConfigId },
       data: {
-        easyCount: data.easyCount,
-        mediumCount: data.mediumCount,
-        hardCount: data.hardCount,
-        totalQuestions: data.totalQuestions,
+        easyPercentage: data.easyPercentage,
+        mediumPercentage: data.mediumPercentage,
+        hardPercentage: data.hardPercentage,
       },
     });
   }
@@ -57,10 +53,9 @@ export class DifficultyDistributionRepository {
   async upsert(
     examConfigId: string,
     data: {
-      easyCount: number;
-      mediumCount: number;
-      hardCount: number;
-      totalQuestions: number;
+      easyPercentage: number;
+      mediumPercentage: number;
+      hardPercentage: number;
     },
   ): Promise<DifficultyDistribution> {
     const existing = await this.findByConfigId(examConfigId);
@@ -68,5 +63,12 @@ export class DifficultyDistributionRepository {
       return this.update(examConfigId, data);
     }
     return this.create(examConfigId, data);
+  }
+
+  async checkConfigExists(examConfigId: string): Promise<boolean> {
+    const count = await this.prisma.examConfig.count({
+      where: { id: examConfigId },
+    });
+    return count > 0;
   }
 }

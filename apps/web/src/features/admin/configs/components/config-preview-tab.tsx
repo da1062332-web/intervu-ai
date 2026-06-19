@@ -125,33 +125,33 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
             </div>
             <div className='flex items-center space-x-2'>
               <span
-                className={`w-2 h-2 rounded-full ${rules?.randomizeQuestions ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-2 h-2 rounded-full ${rules?.sectionalCutoffEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
               />
-              <span className='text-sm'>Randomize Questions</span>
+              <span className='text-sm'>Sectional Cutoff</span>
             </div>
             <div className='flex items-center space-x-2'>
               <span
-                className={`w-2 h-2 rounded-full ${rules?.randomizeOptions ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-2 h-2 rounded-full ${rules?.adaptiveDifficultyEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
               />
-              <span className='text-sm'>Randomize Options</span>
+              <span className='text-sm'>Adaptive Difficulty</span>
             </div>
             <div className='flex items-center space-x-2'>
               <span
-                className={`w-2 h-2 rounded-full ${rules?.calculatorAllowed ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-2 h-2 rounded-full ${rules?.shuffleQuestionsEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
               />
-              <span className='text-sm'>Calculator Allowed</span>
+              <span className='text-sm'>Shuffle Questions</span>
             </div>
             <div className='flex items-center space-x-2'>
               <span
-                className={`w-2 h-2 rounded-full ${rules?.sectionLockingEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-2 h-2 rounded-full ${rules?.shuffleOptionsEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
               />
-              <span className='text-sm'>Section Locking</span>
+              <span className='text-sm'>Shuffle Options</span>
             </div>
             <div className='flex items-center space-x-2'>
               <span
-                className={`w-2 h-2 rounded-full ${rules?.freeNavigationEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-2 h-2 rounded-full ${rules?.allowSectionNavigation ? 'bg-green-500' : 'bg-gray-300'}`}
               />
-              <span className='text-sm'>Free Navigation</span>
+              <span className='text-sm'>Allow Section Navigation</span>
             </div>
           </div>
         </div>

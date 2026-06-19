@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { RuleFlagsTab } from '../components/rule-flags-tab';
-import { useRuleFlags, useUpdateRuleFlags } from '../hooks/use-rule-flags';
+import { useRuleFlags, useSaveRules } from '../hooks/use-rule-flags';
 import { toast } from 'sonner';
 
 jest.mock('../hooks/use-rule-flags');
@@ -14,12 +14,12 @@ jest.mock('sonner', () => ({
 
 describe('RuleFlagsTab', () => {
   const mockConfigId = 'config-1';
-  const mockUpdateRuleFlags = jest.fn();
+  const mockSaveRules = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useUpdateRuleFlags as jest.Mock).mockReturnValue({
-      mutate: mockUpdateRuleFlags,
+    (useSaveRules as jest.Mock).mockReturnValue({
+      mutate: mockSaveRules,
       isPending: false,
     });
   });
@@ -33,56 +33,48 @@ describe('RuleFlagsTab', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it('renders default switches and allows toggling', () => {
-    (useRuleFlags as jest.Mock).mockReturnValue({
-      data: null,
-      isLoading: false,
-    });
-    render(<RuleFlagsTab configId={mockConfigId} />);
-    expect(screen.getByText('Negative Marking')).toBeInTheDocument();
-
-    // Test initial free navigation switch
-    const freeNavSwitch = screen.getByRole('switch', { name: /free navigation/i });
-    expect(freeNavSwitch).toBeChecked();
-  });
-
-  it('disables free navigation when section locking is enabled', async () => {
+  it('renders switches and allows toggling', async () => {
     (useRuleFlags as jest.Mock).mockReturnValue({
       data: {
-        sectionLockingEnabled: false,
-        freeNavigationEnabled: true,
+        negativeMarkingEnabled: true,
+        sectionalCutoffEnabled: false,
+        adaptiveDifficultyEnabled: true,
+        shuffleQuestionsEnabled: false,
+        shuffleOptionsEnabled: true,
+        allowSectionNavigation: false,
       },
       isLoading: false,
     });
 
     render(<RuleFlagsTab configId={mockConfigId} />);
 
-    const sectionLockSwitch = screen.getByRole('switch', { name: /section locking/i });
-    const freeNavSwitch = screen.getByRole('switch', { name: /free navigation/i });
+    expect(screen.getByText('Negative Marking')).toBeInTheDocument();
+    expect(screen.getByText('Sectional Cutoff')).toBeInTheDocument();
+    expect(screen.getByText('Adaptive Difficulty')).toBeInTheDocument();
+    expect(screen.getByText('Shuffle Questions')).toBeInTheDocument();
+    expect(screen.getByText('Shuffle Options')).toBeInTheDocument();
+    expect(screen.getByText('Allow Section Navigation')).toBeInTheDocument();
 
-    expect(freeNavSwitch).not.toBeDisabled();
+    const negativeMarkingSwitch = screen.getByRole('switch', { name: /Negative Marking/i });
+    const sectionalCutoffSwitch = screen.getByRole('switch', { name: /Sectional Cutoff/i });
 
-    // Enable section locking
-    fireEvent.click(sectionLockSwitch);
+    expect(negativeMarkingSwitch).toBeChecked();
+    expect(sectionalCutoffSwitch).not.toBeChecked();
 
-    await waitFor(() => {
-      expect(freeNavSwitch).toBeDisabled();
-      expect(freeNavSwitch).not.toBeChecked();
-      expect(
-        screen.getByText(/Free Navigation is disabled because Section Locking is enabled/i),
-      ).toBeInTheDocument();
-    });
+    // Toggle sectional cutoff
+    fireEvent.click(sectionalCutoffSwitch);
+    expect(sectionalCutoffSwitch).toBeChecked();
   });
 
   it('calls update mutation on save', async () => {
     (useRuleFlags as jest.Mock).mockReturnValue({
       data: {
         negativeMarkingEnabled: false,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        calculatorAllowed: false,
-        sectionLockingEnabled: false,
-        freeNavigationEnabled: true,
+        sectionalCutoffEnabled: false,
+        adaptiveDifficultyEnabled: false,
+        shuffleQuestionsEnabled: false,
+        shuffleOptionsEnabled: false,
+        allowSectionNavigation: true,
       },
       isLoading: false,
     });
@@ -92,10 +84,10 @@ describe('RuleFlagsTab', () => {
     fireEvent.click(screen.getByRole('button', { name: /save rules/i }));
 
     await waitFor(() => {
-      expect(mockUpdateRuleFlags).toHaveBeenCalledWith(
+      expect(mockSaveRules).toHaveBeenCalledWith(
         expect.objectContaining({
           negativeMarkingEnabled: false,
-          freeNavigationEnabled: true,
+          allowSectionNavigation: true,
         }),
         expect.any(Object),
       );

@@ -1,7 +1,8 @@
 import {
   Controller,
   Get,
-  Put,
+  Post,
+  Patch,
   Body,
   Param,
   UseGuards,
@@ -30,30 +31,44 @@ import { UserRole } from "@prisma/client";
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @Roles(UserRole.ADMIN)
-@Controller("admin/configs/:configId/rule-flags")
+@Controller("admin/configs/:id/rules")
 export class RuleFlagsController {
   constructor(private readonly ruleFlagsService: RuleFlagsService) {}
 
   @Get()
   @ValidateResponse(RuleFlagsResponseSchema)
   @ApiOperation({ summary: "Get rule flags for an exam config" })
-  @ApiParam({ name: "configId", description: "Exam configuration ID" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiOkResponse({ description: "Rule flags retrieved successfully" })
-  async getRuleFlags(@Param("configId") configId: string) {
-    return this.ruleFlagsService.getRuleFlags(configId);
+  async getRuleFlags(@Param("id") id: string) {
+    return this.ruleFlagsService.getRuleFlags(id);
   }
 
-  @Put()
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @ValidateResponse(RuleFlagsResponseSchema)
+  @ApiOperation({ summary: "Create rule flags for an exam config" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiBody({ type: UpdateRuleFlagsDto })
+  @ApiOkResponse({ description: "Rule flags created successfully" })
+  async createRuleFlags(
+    @Param("id") id: string,
+    @Body() body: UpdateRuleFlagsDto,
+  ) {
+    return this.ruleFlagsService.updateRuleFlags(id, body);
+  }
+
+  @Patch()
   @HttpCode(HttpStatus.OK)
   @ValidateResponse(RuleFlagsResponseSchema)
   @ApiOperation({ summary: "Update rule flags for an exam config" })
-  @ApiParam({ name: "configId", description: "Exam configuration ID" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiBody({ type: UpdateRuleFlagsDto })
   @ApiOkResponse({ description: "Rule flags updated successfully" })
   async updateRuleFlags(
-    @Param("configId") configId: string,
+    @Param("id") id: string,
     @Body() body: UpdateRuleFlagsDto,
   ) {
-    return this.ruleFlagsService.updateRuleFlags(configId, body);
+    return this.ruleFlagsService.updateRuleFlags(id, body);
   }
 }

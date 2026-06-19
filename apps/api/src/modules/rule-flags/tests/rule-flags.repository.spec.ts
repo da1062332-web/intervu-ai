@@ -7,7 +7,7 @@ describe("RuleFlagsRepository", () => {
   let prisma: PrismaService;
 
   const mockPrisma = {
-    examRuleFlags: {
+    ruleFlags: {
       findUnique: jest.fn(),
       upsert: jest.fn(),
       update: jest.fn(),
@@ -35,11 +35,11 @@ describe("RuleFlagsRepository", () => {
 
   it("should find by config ID", async () => {
     const mockData = { id: "1" };
-    mockPrisma.examRuleFlags.findUnique.mockResolvedValue(mockData);
+    mockPrisma.ruleFlags.findUnique.mockResolvedValue(mockData);
 
     const result = await repository.findByConfigId("config-id");
 
-    expect(prisma.examRuleFlags.findUnique).toHaveBeenCalledWith({
+    expect(prisma.ruleFlags.findUnique).toHaveBeenCalledWith({
       where: { examConfigId: "config-id" },
     });
     expect(result).toEqual(mockData);
@@ -50,11 +50,11 @@ describe("RuleFlagsRepository", () => {
       negativeMarkingEnabled: true,
     } as unknown as import("@intervu/shared").UpdateRuleFlags;
     const mockResult = { id: "1", ...mockData };
-    mockPrisma.examRuleFlags.upsert.mockResolvedValue(mockResult);
+    mockPrisma.ruleFlags.upsert.mockResolvedValue(mockResult);
 
     const result = await repository.upsert("config-id", mockData);
 
-    expect(prisma.examRuleFlags.upsert).toHaveBeenCalledWith({
+    expect(prisma.ruleFlags.upsert).toHaveBeenCalledWith({
       where: { examConfigId: "config-id" },
       update: mockData,
       create: { examConfigId: "config-id", ...mockData },

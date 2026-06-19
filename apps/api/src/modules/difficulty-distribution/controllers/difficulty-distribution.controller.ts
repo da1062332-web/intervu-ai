@@ -1,10 +1,10 @@
 import {
   Controller,
   Get,
-  Put,
+  Post,
+  Patch,
   Body,
   Param,
-  ParseUUIDPipe,
   UseGuards,
   NotFoundException,
 } from "@nestjs/common";
@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiParam,
+  ApiBody,
 } from "@nestjs/swagger";
 import { DifficultyDistributionService } from "../services/difficulty-distribution.service";
 import {
@@ -31,34 +32,53 @@ import { UserRole } from "@prisma/client";
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @Roles(UserRole.ADMIN)
-@Controller("admin/configs/:configId/difficulty-distribution")
+@Controller("admin/configs/:id/difficulty")
 export class DifficultyDistributionController {
   constructor(private readonly service: DifficultyDistributionService) {}
 
-  @Put()
+  @Post()
   @ValidateResponse(DifficultyDistributionResponseSchema)
   @ApiOperation({
-    summary: "Update or create difficulty distribution for an exam config",
+    summary: "Create difficulty distribution for an exam config",
   })
-  @ApiParam({ name: "configId", description: "Exam configuration ID (UUID)" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiBody({ type: UpdateDifficultyDistributionDto })
+  @ApiOkResponse({
+    description: "Difficulty distribution created successfully",
+  })
+  async create(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(UpdateDifficultyDistributionSchema))
+    dto: UpdateDifficultyDistributionDto,
+  ) {
+    return this.service.updateDifficultyDistribution(id, dto);
+  }
+
+  @Patch()
+  @ValidateResponse(DifficultyDistributionResponseSchema)
+  @ApiOperation({
+    summary: "Update difficulty distribution for an exam config",
+  })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiBody({ type: UpdateDifficultyDistributionDto })
   @ApiOkResponse({
     description: "Difficulty distribution updated successfully",
   })
   async update(
-    @Param("configId", ParseUUIDPipe) configId: string,
+    @Param("id") id: string,
     @Body(new ZodValidationPipe(UpdateDifficultyDistributionSchema))
     dto: UpdateDifficultyDistributionDto,
   ) {
-    return this.service.updateDifficultyDistribution(configId, dto);
+    return this.service.updateDifficultyDistribution(id, dto);
   }
 
   @Get()
   @ValidateResponse(DifficultyDistributionResponseSchema)
   @ApiOperation({ summary: "Get difficulty distribution for an exam config" })
-  @ApiParam({ name: "configId", description: "Exam configuration ID (UUID)" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiOkResponse({ description: "Difficulty distribution details" })
-  async findOne(@Param("configId", ParseUUIDPipe) configId: string) {
-    const distribution = await this.service.getDifficultyDistribution(configId);
+  async findOne(@Param("id") id: string) {
+    const distribution = await this.service.getDifficultyDistribution(id);
     if (!distribution) {
       throw new NotFoundException({
         code: "DISTRIBUTION_NOT_FOUND",

@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const UpdateDifficultyDistributionSchema = z.object({
-  easyCount: z.number().int().min(0),
-  mediumCount: z.number().int().min(0),
-  hardCount: z.number().int().min(0),
+  easyPercentage: z.number().int().min(0).max(100),
+  mediumPercentage: z.number().int().min(0).max(100),
+  hardPercentage: z.number().int().min(0).max(100),
 });
 
-export type UpdateDifficultyDistributionDto = z.infer<
+export type UpdateDifficultyDistribution = z.infer<
   typeof UpdateDifficultyDistributionSchema
 >;

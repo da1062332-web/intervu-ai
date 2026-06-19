@@ -10,19 +10,19 @@ export class UpdateRuleFlagsDto implements UpdateRuleFlags {
   negativeMarkingEnabled!: boolean;
 
   @ApiProperty({ example: false })
-  randomizeQuestions!: boolean;
+  sectionalCutoffEnabled!: boolean;
 
   @ApiProperty({ example: false })
-  randomizeOptions!: boolean;
+  adaptiveDifficultyEnabled!: boolean;
 
   @ApiProperty({ example: false })
-  calculatorAllowed!: boolean;
+  shuffleQuestionsEnabled!: boolean;
 
   @ApiProperty({ example: false })
-  sectionLockingEnabled!: boolean;
+  shuffleOptionsEnabled!: boolean;
 
-  @ApiProperty({ example: true })
-  freeNavigationEnabled!: boolean;
+  @ApiProperty({ example: false })
+  allowSectionNavigation!: boolean;
 
   static validate(
     data: unknown,

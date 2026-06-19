@@ -39,10 +39,31 @@ describe("RuleFlagsController", () => {
     });
   });
 
+  describe("createRuleFlags", () => {
+    it("should create rule flags", async () => {
+      const mockPayload = {
+        sectionalCutoffEnabled: true,
+      } as import("@intervu/shared").UpdateRuleFlagsDto;
+      const mockResult = {
+        id: "1",
+        ...mockPayload,
+      } as unknown as import("@intervu/shared").RuleFlagsResponseDto;
+      service.updateRuleFlags.mockResolvedValue(mockResult);
+
+      const result = await controller.createRuleFlags("config-1", mockPayload);
+
+      expect(service.updateRuleFlags).toHaveBeenCalledWith(
+        "config-1",
+        mockPayload,
+      );
+      expect(result).toEqual(mockResult);
+    });
+  });
+
   describe("updateRuleFlags", () => {
     it("should update rule flags", async () => {
       const mockPayload = {
-        sectionLockingEnabled: true,
+        sectionalCutoffEnabled: true,
       } as import("@intervu/shared").UpdateRuleFlagsDto;
       const mockResult = {
         id: "1",

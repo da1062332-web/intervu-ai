@@ -7,6 +7,7 @@ export * from "./generate-question.dto";
 export * from "./exam-config.dto";
 export * from "./exam-section.dto";
 export * from "./rule-flags.dto";
+export * from "./difficulty-distribution.dto";
 export * from "./concept-mapping.dto";
 export * from "./style-profile.dto";
 export * from "./blueprint.dto";

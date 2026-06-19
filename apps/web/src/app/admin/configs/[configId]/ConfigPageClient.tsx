@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { SectionBuilder } from '@/modules/exam-config/components/section-builder';
 import { RuleFlagsTab } from '@/features/admin/configs/components/rule-flags-tab';
+import { DifficultyDistributionTab } from '@/features/admin/configs/components/difficulty-distribution-tab';
+import { ValidationWidget } from '@/features/admin/configs/components/validation-widget';
 import { ConfigPreviewTab } from '@/features/admin/configs/components/config-preview-tab';
 import { GeneralSettingsTab } from '@/features/admin/configs/components/general-settings-tab';
 import { ConceptManagementPanel } from '@/features/admin/configs/components/concept-mapping';
@@ -22,6 +24,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     { id: 'general', label: 'General' },
     { id: 'sections', label: 'Sections' },
     { id: 'concepts', label: 'Concept Mapping' },
+    { id: 'difficulty', label: 'Difficulty Distribution' },
     { id: 'rules', label: 'Rules' },
     { id: 'preview', label: 'Preview' },
   ];
@@ -59,28 +62,33 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
             Manage the settings, sections, and rules for this exam.
           </p>
         </div>
-        <div className='flex flex-wrap gap-2 text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg border'>
-          <div className='flex flex-col mr-4'>
-            <span className='font-medium text-foreground'>Code</span>
-            <span>{config.code || 'N/A'}</span>
+        <div className='flex flex-col md:items-end gap-3'>
+          <div className='flex flex-wrap gap-2 text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg border'>
+            <div className='flex flex-col mr-4'>
+              <span className='font-medium text-foreground'>Code</span>
+              <span>{config.code || 'N/A'}</span>
+            </div>
+            <div className='flex flex-col mr-4'>
+              <span className='font-medium text-foreground'>Role</span>
+              <span>{config.role}</span>
+            </div>
+            <div className='flex flex-col mr-4'>
+              <span className='font-medium text-foreground'>Duration</span>
+              <span>{config.durationMinutes}m</span>
+            </div>
+            <div className='flex flex-col mr-4'>
+              <span className='font-medium text-foreground'>Questions</span>
+              <span>{config.totalQuestions}</span>
+            </div>
+            <div className='flex flex-col'>
+              <span className='font-medium text-foreground'>Status</span>
+              <span>
+                {config.status === 'ARCHIVED' ? 'Archived' : (config.isActive ? 'Active' : 'Draft')}
+              </span>
+            </div>
           </div>
-          <div className='flex flex-col mr-4'>
-            <span className='font-medium text-foreground'>Role</span>
-            <span>{config.role}</span>
-          </div>
-          <div className='flex flex-col mr-4'>
-            <span className='font-medium text-foreground'>Duration</span>
-            <span>{config.durationMinutes}m</span>
-          </div>
-          <div className='flex flex-col mr-4'>
-            <span className='font-medium text-foreground'>Questions</span>
-            <span>{config.totalQuestions}</span>
-          </div>
-          <div className='flex flex-col'>
-            <span className='font-medium text-foreground'>Status</span>
-            <span>
-              {config.status === 'ARCHIVED' ? 'Archived' : config.isActive ? 'Active' : 'Draft'}
-            </span>
+          <div className='w-full max-w-xs'>
+            <ValidationWidget configId={configId} />
           </div>
         </div>
       </div>
@@ -116,6 +124,12 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         {activeTab === 'concepts' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
             <ConceptManagementPanel />
+          </div>
+        )}
+
+        {activeTab === 'difficulty' && (
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <DifficultyDistributionTab configId={configId} />
           </div>
         )}
 

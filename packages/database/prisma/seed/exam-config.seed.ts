@@ -30,10 +30,9 @@ export async function seedExamConfig(prisma: PrismaClient) {
     await prisma.difficultyDistribution.create({
       data: {
         examConfigId: existingExamConfig.id,
-        easyCount: 10,
-        mediumCount: 15,
-        hardCount: 5,
-        totalQuestions: 30,
+        easyPercentage: 30,
+        mediumPercentage: 50,
+        hardPercentage: 20,
       },
     });
     console.log("Seeded DifficultyDistribution for ExamConfig");

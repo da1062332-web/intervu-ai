@@ -5,19 +5,19 @@ import { toast } from 'sonner';
 
 export const useRuleFlags = (configId: string) => {
   return useQuery({
-    queryKey: ['rule-flags', configId],
+    queryKey: ['rules', configId],
     queryFn: () => ruleFlagsService.getRuleFlags(configId),
     enabled: !!configId,
   });
 };
 
-export const useUpdateRuleFlags = (configId: string) => {
+export const useSaveRules = (configId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: UpdateRuleFlags) => ruleFlagsService.updateRuleFlags(configId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rule-flags', configId] });
+      queryClient.invalidateQueries({ queryKey: ['rules'] });
       toast.success('Success', {
         description: 'Rule flags updated successfully',
       });

@@ -1,12 +1,11 @@
 import { z } from "zod";
 
 export const DifficultyDistributionResponseSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string(),
   examConfigId: z.string().cuid(),
-  easyCount: z.number().int().min(0),
-  mediumCount: z.number().int().min(0),
-  hardCount: z.number().int().min(0),
-  totalQuestions: z.number().int().min(0),
+  easyPercentage: z.number().int().min(0).max(100),
+  mediumPercentage: z.number().int().min(0).max(100),
+  hardPercentage: z.number().int().min(0).max(100),
   createdAt: z.union([z.date(), z.string()]),
   updatedAt: z.union([z.date(), z.string()]),
 });

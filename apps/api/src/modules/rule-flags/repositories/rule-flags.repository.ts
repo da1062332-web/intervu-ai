@@ -7,13 +7,13 @@ export class RuleFlagsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByConfigId(examConfigId: string) {
-    return this.prisma.examRuleFlags.findUnique({
+    return this.prisma.ruleFlags.findUnique({
       where: { examConfigId },
     });
   }
 
   async upsert(examConfigId: string, data: UpdateRuleFlags) {
-    return this.prisma.examRuleFlags.upsert({
+    return this.prisma.ruleFlags.upsert({
       where: { examConfigId },
       update: data,
       create: {
@@ -24,7 +24,7 @@ export class RuleFlagsRepository {
   }
 
   async update(examConfigId: string, data: UpdateRuleFlags) {
-    return this.prisma.examRuleFlags.update({
+    return this.prisma.ruleFlags.update({
       where: { examConfigId },
       data,
     });

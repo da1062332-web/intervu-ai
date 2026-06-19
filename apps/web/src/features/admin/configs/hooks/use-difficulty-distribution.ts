@@ -4,20 +4,20 @@ import type { UpdateDifficultyDistributionDto } from '@intervu/shared';
 
 export const useDifficultyDistribution = (configId: string) => {
   return useQuery({
-    queryKey: ['difficulty-distribution', configId],
+    queryKey: ['difficulty', configId],
     queryFn: () => difficultyDistributionService.getDifficultyDistribution(configId),
     enabled: !!configId,
   });
 };
 
-export const useUpdateDifficultyDistribution = (configId: string) => {
+export const useSaveDistribution = (configId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: UpdateDifficultyDistributionDto) =>
       difficultyDistributionService.updateDifficultyDistribution(configId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['difficulty-distribution', configId] });
+      queryClient.invalidateQueries({ queryKey: ['difficulty'] });
     },
   });
 };

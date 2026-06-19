@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DifficultyDistributionService } from "../services/difficulty-distribution.service";
 import { DifficultyDistributionRepository } from "../repositories/difficulty-distribution.repository";
-import { BadRequestException } from "@nestjs/common";
+import { ConfigNotFoundError, BaseError } from "@intervu/shared";
 
 describe("DifficultyDistributionService", () => {
   let service: DifficultyDistributionService;
@@ -13,6 +13,7 @@ describe("DifficultyDistributionService", () => {
     const repositoryMock = {
       findByConfigId: jest.fn(),
       upsert: jest.fn(),
+      checkConfigExists: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,77 +33,85 @@ describe("DifficultyDistributionService", () => {
   });
 
   it("should get difficulty distribution", async () => {
+    repository.checkConfigExists.mockResolvedValue(true);
     repository.findByConfigId.mockResolvedValue({
       id: "dist-1",
       examConfigId: mockConfigId,
-      easyCount: 1,
-      mediumCount: 2,
-      hardCount: 3,
-      totalQuestions: 6,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     const result = await service.getDifficultyDistribution(mockConfigId);
     expect(result).toBeDefined();
-    expect(result?.totalQuestions).toBe(6);
+    expect(result?.easyPercentage).toBe(20);
     expect(repository.findByConfigId).toHaveBeenCalledWith(mockConfigId);
   });
 
+  it("should check config exists and throw ConfigNotFoundError on get if config doesn't exist", async () => {
+    repository.checkConfigExists.mockResolvedValue(false);
+    await expect(service.getDifficultyDistribution(mockConfigId)).rejects.toThrow(
+      ConfigNotFoundError,
+    );
+  });
+
   it("should calculate total and upsert", async () => {
+    repository.checkConfigExists.mockResolvedValue(true);
     repository.upsert.mockResolvedValue({
       id: "dist-1",
       examConfigId: mockConfigId,
-      easyCount: 1,
-      mediumCount: 2,
-      hardCount: 3,
-      totalQuestions: 6,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     const result = await service.updateDifficultyDistribution(mockConfigId, {
-      easyCount: 1,
-      mediumCount: 2,
-      hardCount: 3,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
     });
 
-    expect(result.totalQuestions).toBe(6);
+    expect(result.easyPercentage).toBe(20);
     expect(repository.upsert).toHaveBeenCalledWith(mockConfigId, {
-      easyCount: 1,
-      mediumCount: 2,
-      hardCount: 3,
-      totalQuestions: 6,
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
     });
   });
 
-  it("should throw INVALID_DISTRIBUTION if total is 0", async () => {
+  it("should throw INVALID_DISTRIBUTION_TOTAL if total is not 100", async () => {
+    repository.checkConfigExists.mockResolvedValue(true);
     await expect(
       service.updateDifficultyDistribution(mockConfigId, {
-        easyCount: 0,
-        mediumCount: 0,
-        hardCount: 0,
+        easyPercentage: 10,
+        mediumPercentage: 20,
+        hardPercentage: 30,
       }),
     ).rejects.toThrow(
-      new BadRequestException({
-        code: "INVALID_DISTRIBUTION",
-        message: "At least one question must exist.",
-      }),
+      new BaseError(
+        "INVALID_DISTRIBUTION_TOTAL",
+        "Difficulty distribution total must be exactly 100%",
+      ),
     );
   });
 
   it("should throw INVALID_DISTRIBUTION if any count is negative", async () => {
+    repository.checkConfigExists.mockResolvedValue(true);
     await expect(
       service.updateDifficultyDistribution(mockConfigId, {
-        easyCount: -1,
-        mediumCount: 2,
-        hardCount: 0,
+        easyPercentage: -10,
+        mediumPercentage: 80,
+        hardPercentage: 30,
       }),
     ).rejects.toThrow(
-      new BadRequestException({
-        code: "INVALID_DISTRIBUTION",
-        message: "Question counts cannot be negative",
-      }),
+      new BaseError(
+        "INVALID_DISTRIBUTION",
+        "Percentages cannot be negative",
+      ),
     );
   });
 });

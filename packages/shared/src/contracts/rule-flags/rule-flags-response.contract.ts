@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 export const RuleFlagsResponseSchema = z.object({
-  id: z.string().cuid().or(z.literal("")),
+  id: z.string().or(z.literal("")),
   examConfigId: z.string().cuid(),
   negativeMarkingEnabled: z.boolean(),
-  randomizeQuestions: z.boolean(),
-  randomizeOptions: z.boolean(),
-  calculatorAllowed: z.boolean(),
-  sectionLockingEnabled: z.boolean(),
-  freeNavigationEnabled: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  sectionalCutoffEnabled: z.boolean(),
+  adaptiveDifficultyEnabled: z.boolean(),
+  shuffleQuestionsEnabled: z.boolean(),
+  shuffleOptionsEnabled: z.boolean(),
+  allowSectionNavigation: z.boolean(),
+  createdAt: z.union([z.date(), z.string()]),
+  updatedAt: z.union([z.date(), z.string()]),
 });
 
 export type RuleFlagsResponseDto = z.infer<typeof RuleFlagsResponseSchema>;
