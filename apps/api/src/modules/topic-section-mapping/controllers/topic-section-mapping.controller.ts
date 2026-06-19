@@ -14,7 +14,7 @@ import { SectionTopicListResponse } from "@intervu-ai/contracts";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 
 @ApiTags("Section Topics")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @Controller("admin/sections/:sectionId/topics")
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class TopicSectionMappingController {
