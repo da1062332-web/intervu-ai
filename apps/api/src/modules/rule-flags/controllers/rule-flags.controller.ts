@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Body,
   Param,
@@ -66,6 +67,20 @@ export class RuleFlagsController {
   @ApiBody({ type: UpdateRuleFlagsDto })
   @ApiOkResponse({ description: "Rule flags updated successfully" })
   async updateRuleFlags(
+    @Param("id") id: string,
+    @Body() body: UpdateRuleFlagsDto,
+  ) {
+    return this.ruleFlagsService.updateRuleFlags(id, body);
+  }
+
+  @Put()
+  @HttpCode(HttpStatus.OK)
+  @ValidateResponse(RuleFlagsResponseSchema)
+  @ApiOperation({ summary: "Update rule flags for an exam config using PUT" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiBody({ type: UpdateRuleFlagsDto })
+  @ApiOkResponse({ description: "Rule flags updated successfully" })
+  async updateRuleFlagsPut(
     @Param("id") id: string,
     @Body() body: UpdateRuleFlagsDto,
   ) {

@@ -24,7 +24,7 @@ export const difficultyDistributionService = {
       `${BASE_PATH}/${configId}/difficulty`,
       {
         method: 'PUT',
-        body: JSON.stringify(payload),
+        body: payload,
       },
     );
   },

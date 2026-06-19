@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Body,
   Param,
@@ -65,6 +66,24 @@ export class DifficultyDistributionController {
     description: "Difficulty distribution updated successfully",
   })
   async update(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(UpdateDifficultyDistributionSchema))
+    dto: UpdateDifficultyDistributionDto,
+  ) {
+    return this.service.updateDifficultyDistribution(id, dto);
+  }
+
+  @Put()
+  @ValidateResponse(DifficultyDistributionResponseSchema)
+  @ApiOperation({
+    summary: "Update difficulty distribution for an exam config using PUT",
+  })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiBody({ type: UpdateDifficultyDistributionDto })
+  @ApiOkResponse({
+    description: "Difficulty distribution updated successfully",
+  })
+  async updatePut(
     @Param("id") id: string,
     @Body(new ZodValidationPipe(UpdateDifficultyDistributionSchema))
     dto: UpdateDifficultyDistributionDto,
