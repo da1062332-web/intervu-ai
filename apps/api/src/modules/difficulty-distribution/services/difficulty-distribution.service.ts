@@ -56,7 +56,8 @@ export class DifficultyDistributionService {
       );
     }
 
-    const total = dto.easyPercentage + dto.mediumPercentage + dto.hardPercentage;
+    const total =
+      dto.easyPercentage + dto.mediumPercentage + dto.hardPercentage;
     if (total !== 100) {
       throw new BaseError(
         "INVALID_DISTRIBUTION_TOTAL",
