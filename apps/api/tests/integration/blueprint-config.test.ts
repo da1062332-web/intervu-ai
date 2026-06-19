@@ -10,8 +10,8 @@ describe("Blueprint Config Integration (e2e)", () => {
   let app: INestApplication;
   let service: BlueprintConfigService;
   let controller: BlueprintConfigController;
-  
-  let configRepoMock: any;
+
+  let configRepoMock: Record<string, ReturnType<typeof vi.fn>>;
 
   beforeAll(async () => {
     configRepoMock = {
@@ -36,7 +36,7 @@ describe("Blueprint Config Integration (e2e)", () => {
     app = moduleFixture.createNestApplication();
     service = app.get<BlueprintConfigService>(BlueprintConfigService);
     controller = app.get<BlueprintConfigController>(BlueprintConfigController);
-    
+
     await app.init();
   });
 
@@ -65,13 +65,19 @@ describe("Blueprint Config Integration (e2e)", () => {
     expect(createdBp.code).toBe("INT_BP_001");
 
     // Duplicate Blueprint Code Test
-    configRepoMock.findByCode.mockResolvedValueOnce({ id: "bp-1", ...blueprintData });
+    configRepoMock.findByCode.mockResolvedValueOnce({
+      id: "bp-1",
+      ...blueprintData,
+    });
     await expect(service.create(blueprintData)).rejects.toThrow(
       "BLUEPRINT_CODE_EXISTS",
     );
 
     // 2. Add Topics
-    configRepoMock.findById.mockResolvedValue({ id: "bp-1", totalQuestions: 40 });
+    configRepoMock.findById.mockResolvedValue({
+      id: "bp-1",
+      totalQuestions: 40,
+    });
     configRepoMock.findTopicConfigs.mockResolvedValue([]);
     configRepoMock.addTopicConfig.mockResolvedValueOnce({ id: "tc-1" });
 
@@ -118,8 +124,13 @@ describe("Blueprint Config Integration (e2e)", () => {
       id: "bp-1",
       totalQuestions: 40,
       topicConfigs: [
-        { questionCount: 10, weightage: 25, topic: { topicName: "T1" }, examSection: { name: "S1" } }
-      ]
+        {
+          questionCount: 10,
+          weightage: 25,
+          topic: { topicName: "T1" },
+          examSection: { name: "S1" },
+        },
+      ],
     });
 
     let detail = await controller.findOne("bp-1");
@@ -132,11 +143,31 @@ describe("Blueprint Config Integration (e2e)", () => {
       id: "bp-1",
       totalQuestions: 40,
       topicConfigs: [
-        { questionCount: 10, weightage: 25, topic: { topicName: "T1" }, examSection: { name: "S1" } },
-        { questionCount: 10, weightage: 25, topic: { topicName: "T2" }, examSection: { name: "S1" } },
-        { questionCount: 10, weightage: 25, topic: { topicName: "T3" }, examSection: { name: "S1" } },
-        { questionCount: 10, weightage: 25, topic: { topicName: "T4" }, examSection: { name: "S1" } }
-      ]
+        {
+          questionCount: 10,
+          weightage: 25,
+          topic: { topicName: "T1" },
+          examSection: { name: "S1" },
+        },
+        {
+          questionCount: 10,
+          weightage: 25,
+          topic: { topicName: "T2" },
+          examSection: { name: "S1" },
+        },
+        {
+          questionCount: 10,
+          weightage: 25,
+          topic: { topicName: "T3" },
+          examSection: { name: "S1" },
+        },
+        {
+          questionCount: 10,
+          weightage: 25,
+          topic: { topicName: "T4" },
+          examSection: { name: "S1" },
+        },
+      ],
     });
     detail = await controller.findOne("bp-1");
     expect(detail.data.valid).toBe(true);
@@ -144,7 +175,10 @@ describe("Blueprint Config Integration (e2e)", () => {
     expect(detail.data.validationSummary.totalWeightage).toBe(100);
 
     // 5. Soft Delete Implementation and Tests
-    configRepoMock.softDelete.mockResolvedValueOnce({ id: "bp-1", deletedAt: new Date() });
+    configRepoMock.softDelete.mockResolvedValueOnce({
+      id: "bp-1",
+      deletedAt: new Date(),
+    });
     await service.softDelete("bp-1");
     expect(configRepoMock.softDelete).toHaveBeenCalledWith("bp-1");
   });
