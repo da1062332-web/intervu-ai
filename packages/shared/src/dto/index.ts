@@ -8,3 +8,7 @@ export * from "./exam-config.dto";
 export * from "./exam-section.dto";
 export * from "./rule-flags.dto";
 export * from "./concept-mapping.dto";
+export * from "./style-profile.dto";
+export * from "./blueprint.dto";
+export * from "./topic.dto";
+export * from "./topic-weightage.dto";

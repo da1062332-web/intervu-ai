@@ -5,16 +5,17 @@ export const examSectionsApi = {
   getSections: async (configId: string) => {
     const url = `/admin/configs/${configId}/sections`;
     console.log(`[DEBUG] Section API - Fetching configId: ${configId}`);
-    console.log(`[DEBUG] Section API - Request URL: ${url}`);
     try {
-      const response = await apiClient.request<ExamSection[]>(url, {
-        method: 'GET',
-      });
+      const response = await apiClient.request<any[]>(url, { method: 'GET' });
       console.log(`[DEBUG] Section API - Response Status: SUCCESS`);
-      return response;
+      // Map backend fields to frontend expectations
+      return response.map((s) => ({
+        ...s,
+        durationMinutes: s.sectionDurationMinutes || s.durationMinutes,
+        displayOrder: s.sectionOrder || s.displayOrder,
+      })) as unknown as ExamSection[];
     } catch (error: unknown) {
-      const err = error as { status?: number };
-      console.log(`[DEBUG] Section API - Response Status: ERROR ${err?.status || 'Unknown'}`);
+      console.log(`[DEBUG] Section API - Response Status: ERROR`);
       throw error;
     }
   },
@@ -22,7 +23,13 @@ export const examSectionsApi = {
   createSection: (configId: string, payload: CreateSectionPayload) => {
     return apiClient.request<ExamSection>(`/admin/configs/${configId}/sections`, {
       method: 'POST',
-      body: payload,
+      body: {
+        ...payload,
+        code: payload.code || payload.name.toUpperCase().replace(/[^A-Z0-9]/g, '_'),
+        sectionDurationMinutes: payload.sectionDurationMinutes,
+        sectionOrder: payload.sectionOrder,
+        isRequired: true,
+      },
     });
   },
 

@@ -4,7 +4,7 @@ interface ConfigEditorState {
   selectedConfigId: string | null;
   selectedSectionId: string | null;
   isDirty: boolean;
-  
+
   setSelectedConfigId: (id: string | null) => void;
   setSelectedSectionId: (id: string | null) => void;
   setDirty: (isDirty: boolean) => void;
@@ -19,7 +19,7 @@ const initialState = {
 
 export const useConfigEditorStore = create<ConfigEditorState>((set) => ({
   ...initialState,
-  
+
   setSelectedConfigId: (id) => set({ selectedConfigId: id }),
   setSelectedSectionId: (id) => set({ selectedSectionId: id }),
   setDirty: (isDirty) => set({ isDirty }),

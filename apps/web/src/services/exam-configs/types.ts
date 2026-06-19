@@ -11,4 +11,7 @@ export interface ExamConfig {
 }
 
 export type CreateConfigPayload = Omit<ExamConfig, 'id' | 'isActive' | 'createdAt' | 'status'>;
-export type UpdateConfigPayload = Partial<CreateConfigPayload> & { isActive?: boolean; status?: string };
+export type UpdateConfigPayload = Partial<CreateConfigPayload> & {
+  isActive?: boolean;
+  status?: string;
+};

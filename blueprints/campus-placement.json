@@ -1,0 +1,26 @@
+{
+  "configId": "campus_screening_config",
+  "styleProfileId": "campus_placement_profile_id",
+  "sections": [
+    {
+      "sectionId": "sec-technical",
+      "questionCount": 20,
+      "topicAllocations": [
+        {
+          "topicId": "se-ds-001",
+          "percentage": 60
+        },
+        {
+          "topicId": "se-algo-001",
+          "percentage": 40
+        }
+      ],
+      "difficultyAllocation": {
+        "easy": 50,
+        "medium": 40,
+        "hard": 10
+      },
+      "templateTypes": ["mcq"]
+    }
+  ]
+}

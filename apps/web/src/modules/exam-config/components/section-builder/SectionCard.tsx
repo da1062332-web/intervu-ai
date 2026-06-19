@@ -9,6 +9,8 @@ interface SectionCardProps {
   onDelete: (section: ExamSection) => void;
 }
 
+import Link from 'next/link';
+
 export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
   return (
     <Card className='flex flex-col h-full bg-card'>
@@ -25,7 +27,7 @@ export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className='pb-4 flex-grow'>
         <div className='grid grid-cols-2 gap-4 text-sm'>
           <div>
@@ -53,6 +55,11 @@ export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
           <Trash2 className='w-4 h-4 mr-1' />
           Delete
         </Button>
+        <Link href={`/admin/sections/${section.id}/topics`} className='w-full mt-2'>
+          <Button variant='default' size='sm' className='w-full'>
+            Manage Topics
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

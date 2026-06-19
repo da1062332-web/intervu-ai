@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
-import * as fs from "fs/promises";
-import * as path from "path";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 export interface TopicRegistryItem {
   id: string;
@@ -20,26 +19,42 @@ export interface TopicRegistryItem {
 export class TopicRegistryLoader implements OnModuleInit {
   private registryCache = new Map<string, TopicRegistryItem>();
 
+  constructor(private readonly prisma: PrismaService) {}
+
   async onModuleInit() {
     await this.loadTopics();
   }
 
   async loadTopics(): Promise<TopicRegistryItem[]> {
     try {
-      let filePath = path.join(
-        process.cwd(),
-        "generation/topic-registry/software-engineering.json",
-      );
-      try {
-        await fs.access(filePath);
-      } catch {
-        filePath = path.join(
-          process.cwd(),
-          "../../generation/topic-registry/software-engineering.json",
-        );
-      }
-      const content = await fs.readFile(filePath, "utf-8");
-      const items = JSON.parse(content) as TopicRegistryItem[];
+      const dbTopics = await this.prisma.topic.findMany({
+        where: {
+          deletedAt: null,
+          isActive: true,
+        },
+        include: {
+          conceptMappings: {
+            where: {
+              deletedAt: null,
+              isActive: true,
+            },
+          },
+        },
+      });
+
+      const items: TopicRegistryItem[] = dbTopics.map((t) => ({
+        id: t.id,
+        domain: t.domain,
+        topic: t.topicName,
+        subtopic: t.subtopic,
+        concepts: t.conceptMappings.map((cm) => cm.conceptName),
+        tags: t.tags,
+        difficultySupport: {
+          easy: t.easySupport,
+          medium: t.mediumSupport,
+          hard: t.hardSupport,
+        },
+      }));
 
       this.registryCache.clear();
       for (const item of items) {
@@ -48,11 +63,17 @@ export class TopicRegistryLoader implements OnModuleInit {
       return items;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to load topic registry: ${message}`);
+      throw new Error(
+        `Failed to load topic registry from database: ${message}`,
+      );
     }
   }
 
   async getTopicById(id: string): Promise<TopicRegistryItem | null> {
     return this.registryCache.get(id) ?? null;
+  }
+
+  async getAllTopics(): Promise<TopicRegistryItem[]> {
+    return Array.from(this.registryCache.values());
   }
 }

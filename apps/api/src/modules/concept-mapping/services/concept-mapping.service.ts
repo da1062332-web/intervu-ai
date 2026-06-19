@@ -89,4 +89,8 @@ export class ConceptMappingService {
 
     return this.repository.delete(conceptId);
   }
+
+  async getAllTopics() {
+    return this.topicRegistryLoader.getAllTopics();
+  }
 }

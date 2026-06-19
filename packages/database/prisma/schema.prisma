@@ -8,89 +8,79 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String?
-  role         UserRole @default(CANDIDATE)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  sessions           Session[]
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  passwordHash       String
+  fullName           String?
+  role               UserRole            @default(CANDIDATE)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
+  evaluationResults  EvaluationResult[]
+  performanceSummary PerformanceSummary?
   refreshTokens      RefreshToken[]
+  sessions           Session[]
   templates          Template[]
   tests              Test[]
   testInstances      TestInstance[]
-  evaluationResults  EvaluationResult[]
-  performanceSummary PerformanceSummary?
 
   @@index([deletedAt])
   @@index([role])
 }
 
 model Session {
-  id        String  @id @default(cuid())
-  userId    String
-  userAgent String?
-  ipAddress String?
-
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String         @id @default(cuid())
+  userId        String
+  userAgent     String?
+  ipAddress     String?
+  createdAt     DateTime       @default(now())
+  expiresAt     DateTime
   refreshTokens RefreshToken[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
 }
 
 model RefreshToken {
-  id     String @id @default(cuid())
-  token  String @unique
-  userId String
-
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
   createdAt DateTime @default(now())
   expiresAt DateTime
   revoked   Boolean  @default(false)
-
   sessionId String?
   session   Session? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([sessionId])
 }
 
 model Template {
-  id              String          @id @default(cuid())
-  templateKey     String          @unique @default(cuid())
-  conceptKey      String          @default("default_concept")
-  difficultyLevel DifficultyLevel @default(MEDIUM)
-  questionType    String          @default("multiple_choice")
-  structure       Json            @default("{}")
-  variableSchema  Json            @default("{}")
-  constraints     Json            @default("{}")
-  solutionSchema  Json            @default("{}")
-  version         Int             @default(1)
-  isActive        Boolean         @default(true)
-
-  name        String          @default("Legacy Template")
-  description String?
-  difficulty  DifficultyLevel @default(MEDIUM)
-  config      Json            @default("{}")
-  isSystem    Boolean         @default(false)
-  creatorId   String?
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  creator            User?               @relation(fields: [creatorId], references: [id], onDelete: SetNull)
-  tests              Test[]
+  id                 String              @id @default(cuid())
+  templateKey        String              @unique @default(cuid())
+  conceptKey         String              @default("default_concept")
+  difficultyLevel    DifficultyLevel     @default(MEDIUM)
+  questionType       String              @default("multiple_choice")
+  structure          Json                @default("{}")
+  variableSchema     Json                @default("{}")
+  constraints        Json                @default("{}")
+  solutionSchema     Json                @default("{}")
+  version            Int                 @default(1)
+  isActive           Boolean             @default(true)
+  name               String              @default("Legacy Template")
+  description        String?
+  difficulty         DifficultyLevel     @default(MEDIUM)
+  config             Json                @default("{}")
+  isSystem           Boolean             @default(false)
+  creatorId          String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
   generatedQuestions GeneratedQuestion[]
+  creator            User?               @relation(fields: [creatorId], references: [id])
+  tests              Test[]
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -102,29 +92,460 @@ model Template {
 }
 
 model Test {
-  id          String     @id @default(cuid())
-  templateId  String
-  userId      String
-  status      TestStatus @default(DRAFT)
-  score       Float?
-  feedback    String?
-  answers     Json?
-  questions   Json?
-  startedAt   DateTime?
-  completedAt DateTime?
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  template         Template          @relation(fields: [templateId], references: [id], onDelete: Restrict)
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String            @id @default(cuid())
+  templateId       String
+  userId           String
+  status           TestStatus        @default(DRAFT)
+  score            Float?
+  feedback         String?
+  answers          Json?
+  questions        Json?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
   evaluationResult EvaluationResult?
+  template         Template          @relation(fields: [templateId], references: [id])
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([templateId])
   @@index([status])
   @@index([deletedAt])
+}
+
+model SystemConfig {
+  id        String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EvaluationResult {
+  id                 String           @id @default(cuid())
+  testId             String?          @unique
+  userId             String
+  communicationScore Float            @default(0.0)
+  technicalScore     Float            @default(0.0)
+  confidenceScore    Float
+  overallScore       Float
+  overallRating      Float            @default(0.0)
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  correctAnswers     Int              @default(0)
+  evaluatedAt        DateTime         @default(now())
+  incorrectAnswers   Int              @default(0)
+  testInstanceId     String?          @unique
+  totalQuestions     Int              @default(0)
+  test               Test?            @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testInstance       TestInstance?    @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recommendations    Recommendation[]
+  skillScores        SkillScore[]
+
+  @@index([userId])
+  @@index([testId])
+  @@index([testInstanceId])
+  @@index([overallScore])
+  @@index([createdAt])
+}
+
+model SkillScore {
+  id           String           @id @default(cuid())
+  evaluationId String
+  skill        String
+  score        Float
+  feedback     String
+  createdAt    DateTime         @default(now())
+  evaluation   EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationId])
+}
+
+model TestConfig {
+  id                   String         @id @default(cuid())
+  configKey            String         @unique
+  companyName          String
+  displayName          String
+  totalDurationSeconds Int
+  totalQuestions       Int
+  isActive             Boolean        @default(true)
+  version              Int            @default(1)
+  createdAt            DateTime       @default(now())
+  testInstances        TestInstance[]
+  rule                 TestRule?
+  sections             TestSection[]
+
+  @@index([configKey])
+}
+
+model TestSection {
+  id              String     @id @default(cuid())
+  testConfigId    String
+  sectionKey      String
+  displayName     String
+  durationSeconds Int
+  questionCount   Int
+  orderIndex      Int
+  testConfig      TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
+
+  @@index([testConfigId])
+}
+
+model TestRule {
+  id               String     @id @default(cuid())
+  testConfigId     String     @unique
+  negativeMarking  Boolean    @default(false)
+  sectionLocking   Boolean    @default(true)
+  shuffleQuestions Boolean    @default(false)
+  allowNavigation  Boolean    @default(false)
+  testConfig       TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedQuestion {
+  id              String          @id @default(cuid())
+  templateId      String
+  questionHash    String          @unique
+  conceptKey      String
+  difficultyLevel DifficultyLevel
+  questionType    String
+  questionText    String
+  options         Json
+  correctAnswer   Json
+  solution        Json
+  metadata        Json
+  createdAt       DateTime        @default(now())
+  template        Template        @relation(fields: [templateId], references: [id])
+
+  @@index([conceptKey])
+  @@index([difficultyLevel])
+}
+
+model TestInstance {
+  id               String                 @id @default(cuid())
+  userId           String
+  testConfigId     String
+  status           TestInstanceStatus     @default(CREATED)
+  startedAt        DateTime?
+  expiresAt        DateTime?
+  submittedAt      DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  candidateAnswers CandidateAnswer[]
+  evaluationResult EvaluationResult?
+  executionState   ExecutionState?
+  submission       Submission?
+  testConfig       TestConfig             @relation(fields: [testConfigId], references: [id])
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions        TestInstanceQuestion[]
+  sections         TestInstanceSection[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([testConfigId])
+  @@index([createdAt])
+}
+
+model TestInstanceSection {
+  id              String                 @id @default(cuid())
+  testInstanceId  String
+  sectionKey      String
+  sectionName     String
+  durationSeconds Int
+  questionCount   Int
+  orderIndex      Int
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  questions       TestInstanceQuestion[]
+  testInstance    TestInstance           @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@unique([testInstanceId, orderIndex])
+  @@index([testInstanceId])
+}
+
+model TestInstanceQuestion {
+  id               String              @id @default(cuid())
+  testInstanceId   String
+  sectionId        String
+  questionId       String
+  questionOrder    Int
+  questionSnapshot Json
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  section          TestInstanceSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  testInstance     TestInstance        @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, questionOrder])
+  @@index([testInstanceId])
+  @@index([sectionId])
+  @@index([questionId])
+}
+
+model CandidateAnswer {
+  id                String       @id @default(cuid())
+  testInstanceId    String
+  questionId        String
+  answer            Json
+  timeSpentSeconds  Int          @default(0)
+  isMarkedForReview Boolean      @default(false)
+  savedAt           DateTime     @default(now())
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  testInstance      TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@unique([testInstanceId, questionId])
+  @@index([testInstanceId])
+  @@index([questionId])
+}
+
+model ExecutionState {
+  id                   String       @id @default(cuid())
+  testInstanceId       String       @unique
+  currentQuestionIndex Int          @default(0)
+  remainingTimeSeconds Int
+  lastActivityAt       DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  testInstance         TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([testInstanceId])
+}
+
+model Submission {
+  id             String           @id @default(cuid())
+  testInstanceId String           @unique
+  submittedAt    DateTime?
+  submissionHash String?          @unique
+  status         SubmissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  testInstance   TestInstance     @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([testInstanceId])
+  @@index([status])
+}
+
+model Recommendation {
+  id           String                 @id @default(cuid())
+  evaluationId String
+  skill        String
+  priority     RecommendationPriority
+  title        String
+  description  String
+  createdAt    DateTime               @default(now())
+  evaluation   EvaluationResult       @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationId])
+  @@index([priority])
+}
+
+model PerformanceSummary {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  testsCompleted     Int       @default(0)
+  averageScore       Float     @default(0.0)
+  bestScore          Float     @default(0.0)
+  lastAssessmentDate DateTime?
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ExamConfig {
+  id                     String                  @id @default(cuid())
+  name                   String
+  role                   String
+  durationMinutes        Int
+  totalQuestions         Int
+  isActive               Boolean                 @default(true)
+  createdBy              String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  code                   String                  @unique
+  description            String?
+  isArchived             Boolean                 @default(false)
+  status                 ConfigStatus            @default(DRAFT)
+  difficultyDistribution DifficultyDistribution?
+  versions               ExamConfigVersion[]
+  ruleFlags              ExamRuleFlags?
+  sections               ExamSection[]
+  blueprint              Blueprint?
+
+  @@index([createdAt])
+  @@index([role])
+}
+
+model ExamSection {
+  id                     String         @id @default(cuid())
+  examConfigId           String
+  name                   String
+  questionCount          Int
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  code                   String
+  isRequired             Boolean        @default(true)
+  sectionDurationMinutes Int
+  sectionOrder           Int
+  examConfig             ExamConfig     @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  sectionTopics          SectionTopic[]
+
+  @@unique([examConfigId, code])
+  @@index([examConfigId])
+  @@index([sectionOrder])
+}
+
+model DifficultyDistribution {
+  id             String     @id @default(cuid())
+  examConfigId   String     @unique
+  easyCount      Int
+  mediumCount    Int
+  hardCount      Int
+  totalQuestions Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  examConfig     ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+
+  @@index([examConfigId])
+}
+
+model ExamConfigVersion {
+  id            String     @id @default(cuid())
+  examConfigId  String
+  versionNumber Int
+  snapshot      Json
+  createdAt     DateTime   @default(now())
+  examConfig    ExamConfig @relation(fields: [examConfigId], references: [id])
+
+  @@unique([examConfigId, versionNumber])
+  @@index([examConfigId])
+}
+
+model ExamRuleFlags {
+  id                     String     @id @default(cuid())
+  examConfigId           String     @unique
+  negativeMarkingEnabled Boolean    @default(false)
+  randomizeQuestions     Boolean    @default(false)
+  randomizeOptions       Boolean    @default(false)
+  calculatorAllowed      Boolean    @default(false)
+  sectionLockingEnabled  Boolean    @default(false)
+  freeNavigationEnabled  Boolean    @default(true)
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  examConfig             ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+
+  @@index([examConfigId])
+}
+
+model Topic {
+  id              String           @id @default(cuid())
+  domain          String
+  topicName       String
+  subtopic        String
+  tags            String[]
+  easySupport     Boolean          @default(true)
+  mediumSupport   Boolean          @default(true)
+  hardSupport     Boolean          @default(true)
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  conceptMappings ConceptMapping[]
+  sectionTopics   SectionTopic[]
+}
+
+model ConceptMapping {
+  id          String    @id @default(cuid())
+  topicId     String
+  conceptName String
+  conceptCode String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  topic       Topic     @relation(fields: [topicId], references: [id])
+
+  @@unique([topicId, conceptCode])
+  @@index([topicId])
+}
+
+model StyleProfile {
+  id          String   @id @default(uuid())
+  name        String
+  profileType String   @map("profile_type")
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  characteristics StyleProfileCharacteristic[]
+  blueprints      Blueprint[]
+
+  @@map("style_profiles")
+  @@index([profileType])
+  @@index([active])
+}
+
+model StyleProfileCharacteristic {
+  id                 String   @id @default(uuid())
+  profileId          String   @map("profile_id")
+  characteristicName String   @map("characteristic_name")
+  characteristicValue Json     @map("characteristic_value")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  profile StyleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, characteristicName])
+  @@map("style_profile_characteristics")
+  @@index([profileId])
+}
+
+model Blueprint {
+  id             String   @id @default(uuid())
+  configId       String   @unique @map("config_id")
+  styleProfileId String   @map("style_profile_id")
+  sections       Json     // Stored as BlueprintSection[] JSON
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  examConfig   ExamConfig   @relation(fields: [configId], references: [id], onDelete: Cascade)
+  styleProfile StyleProfile @relation(fields: [styleProfileId], references: [id], onDelete: Restrict)
+
+  @@map("blueprints")
+  @@index([configId])
+  @@index([styleProfileId])
+}
+
+model SectionTopic {
+  id        String   @id @default(cuid())
+  sectionId String
+  topicId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  section        ExamSection     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  topic          Topic           @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicWeightage TopicWeightage?
+
+  @@unique([sectionId, topicId])
+  @@index([sectionId])
+  @@index([topicId])
+}
+
+model TopicWeightage {
+  id                  String   @id @default(cuid())
+  sectionId           String
+  topicId             String
+  weightagePercentage Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  sectionTopic        SectionTopic @relation(fields: [sectionId, topicId], references: [sectionId, topicId], onDelete: Cascade)
+
+  @@unique([sectionId, topicId])
+  @@index([sectionId])
+  @@index([topicId])
 }
 
 enum UserRole {
@@ -146,188 +567,11 @@ enum TestStatus {
   FAILED
 }
 
-model SystemConfig {
-  id        String   @id
-  value     Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model EvaluationResult {
-  id                 String   @id @default(cuid())
-  testId             String?  @unique
-  testInstanceId     String?  @unique
-  userId             String
-  communicationScore Float    @default(0.0)
-  technicalScore     Float    @default(0.0)
-  confidenceScore    Float
-  overallScore       Float
-  overallRating      Float    @default(0.0)
-  notes              String?
-  totalQuestions     Int      @default(0)
-  correctAnswers     Int      @default(0)
-  incorrectAnswers   Int      @default(0)
-  evaluatedAt        DateTime @default(now())
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  test            Test?            @relation(fields: [testId], references: [id], onDelete: Cascade)
-  testInstance    TestInstance?    @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skillScores     SkillScore[]
-  recommendations Recommendation[]
-
-  @@index([userId])
-  @@index([testId])
-  @@index([testInstanceId])
-  @@index([overallScore])
-  @@index([createdAt])
-}
-
-model SkillScore {
-  id           String   @id @default(cuid())
-  evaluationId String
-  skill        String
-  score        Float
-  feedback     String
-  createdAt    DateTime @default(now())
-
-  evaluation EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
-
-  @@index([evaluationId])
-}
-
-model TestConfig {
-  id                   String   @id @default(cuid())
-  configKey            String   @unique
-  companyName          String
-  displayName          String
-  totalDurationSeconds Int
-  totalQuestions       Int
-  isActive             Boolean  @default(true)
-  version              Int      @default(1)
-  createdAt            DateTime @default(now())
-
-  sections      TestSection[]
-  rule          TestRule?
-  testInstances TestInstance[]
-
-  @@index([configKey])
-}
-
-model TestSection {
-  id              String @id @default(cuid())
-  testConfigId    String
-  sectionKey      String
-  displayName     String
-  durationSeconds Int
-  questionCount   Int
-  orderIndex      Int
-
-  testConfig TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
-
-  @@index([testConfigId])
-}
-
-model TestRule {
-  id               String  @id @default(cuid())
-  testConfigId     String  @unique
-  negativeMarking  Boolean @default(false)
-  sectionLocking   Boolean @default(true)
-  shuffleQuestions Boolean @default(false)
-  allowNavigation  Boolean @default(false)
-
-  testConfig TestConfig @relation(fields: [testConfigId], references: [id], onDelete: Cascade)
-}
-
-model GeneratedQuestion {
-  id              String          @id @default(cuid())
-  templateId      String
-  questionHash    String          @unique
-  conceptKey      String
-  difficultyLevel DifficultyLevel
-  questionType    String
-  questionText    String
-  options         Json
-  correctAnswer   Json
-  solution        Json
-  metadata        Json
-  createdAt       DateTime        @default(now())
-
-  template Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
-
-  @@index([conceptKey])
-  @@index([difficultyLevel])
-}
-
 enum TestInstanceStatus {
   CREATED
   IN_PROGRESS
   SUBMITTED
   COMPLETED
-}
-
-model TestInstance {
-  id           String             @id @default(cuid())
-  userId       String
-  testConfigId String
-  status       TestInstanceStatus @default(CREATED)
-  startedAt    DateTime?
-  expiresAt    DateTime?
-  submittedAt  DateTime?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-
-  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  testConfig       TestConfig             @relation(fields: [testConfigId], references: [id], onDelete: Restrict)
-  sections         TestInstanceSection[]
-  questions        TestInstanceQuestion[]
-  candidateAnswers CandidateAnswer[]
-  executionState   ExecutionState?
-  submission       Submission?
-  evaluationResult EvaluationResult?
-
-  @@index([userId])
-  @@index([status])
-  @@index([testConfigId])
-  @@index([createdAt])
-}
-
-model TestInstanceSection {
-  id              String   @id @default(cuid())
-  testInstanceId  String
-  sectionKey      String
-  sectionName     String
-  durationSeconds Int
-  questionCount   Int
-  orderIndex      Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  testInstance TestInstance           @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-  questions    TestInstanceQuestion[]
-
-  @@unique([testInstanceId, orderIndex])
-  @@index([testInstanceId])
-}
-
-model TestInstanceQuestion {
-  id               String   @id @default(cuid())
-  testInstanceId   String
-  sectionId        String
-  questionId       String
-  questionOrder    Int
-  questionSnapshot Json
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  testInstance TestInstance        @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-  section      TestInstanceSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-
-  @@unique([sectionId, questionOrder])
-  @@index([testInstanceId])
-  @@index([sectionId])
-  @@index([questionId])
 }
 
 enum SubmissionStatus {
@@ -336,202 +580,14 @@ enum SubmissionStatus {
   EVALUATED
 }
 
-model CandidateAnswer {
-  id                String   @id @default(cuid())
-  testInstanceId    String
-  questionId        String
-  answer            Json
-  timeSpentSeconds  Int      @default(0)
-  isMarkedForReview Boolean  @default(false)
-  savedAt           DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  testInstance TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-
-  @@unique([testInstanceId, questionId])
-  @@index([testInstanceId])
-  @@index([questionId])
-}
-
-model ExecutionState {
-  id                   String   @id @default(cuid())
-  testInstanceId       String   @unique
-  currentQuestionIndex Int      @default(0)
-  remainingTimeSeconds Int
-  lastActivityAt       DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  testInstance TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-
-  @@index([testInstanceId])
-}
-
-model Submission {
-  id             String           @id @default(cuid())
-  testInstanceId String           @unique
-  submittedAt    DateTime?
-  submissionHash String?          @unique
-  status         SubmissionStatus @default(PENDING)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-
-  testInstance TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-
-  @@index([testInstanceId])
-  @@index([status])
-}
-
 enum RecommendationPriority {
   HIGH
   MEDIUM
   LOW
 }
 
-model Recommendation {
-  id           String                 @id @default(cuid())
-  evaluationId String
-  skill        String
-  priority     RecommendationPriority
-  title        String
-  description  String
-  createdAt    DateTime               @default(now())
-
-  evaluation EvaluationResult @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
-
-  @@index([evaluationId])
-  @@index([priority])
-}
-
-model PerformanceSummary {
-  id                 String    @id @default(cuid())
-  userId             String    @unique
-  testsCompleted     Int       @default(0)
-  averageScore       Float     @default(0.0)
-  bestScore          Float     @default(0.0)
-  lastAssessmentDate DateTime?
-  updatedAt          DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 enum ConfigStatus {
   DRAFT
   ACTIVE
   ARCHIVED
-}
-
-model ExamConfig {
-  id              String        @id @default(cuid())
-  name            String
-  code            String        @unique
-  role            String
-  description     String?
-  totalQuestions  Int
-  durationMinutes Int
-  status          ConfigStatus  @default(DRAFT)
-  isArchived      Boolean       @default(false)
-  isActive        Boolean       @default(true)
-  createdBy       String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  versions               ExamConfigVersion[]
-  difficultyDistribution DifficultyDistribution?
-  ruleFlags              ExamRuleFlags?
-  sections               ExamSection[]
-
-  @@index([createdAt])
-  @@index([role])
-}
-
-model ExamSection {
-  id                     String     @id @default(cuid())
-  examConfigId           String
-  name                   String
-  code                   String
-  questionCount          Int
-  sectionDurationMinutes Int
-  sectionOrder           Int
-  isRequired             Boolean    @default(true)
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
-  examConfig             ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
-
-  @@unique([examConfigId, code])
-  @@index([examConfigId])
-  @@index([sectionOrder])
-}
-
-model DifficultyDistribution {
-  id             String   @id @default(cuid())
-  examConfigId   String   @unique
-  easyCount      Int
-  mediumCount    Int
-  hardCount      Int
-  totalQuestions Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
-
-  @@index([examConfigId])
-}
-
-model ExamConfigVersion {
-  id            String   @id @default(cuid())
-  examConfigId  String
-  versionNumber Int
-  snapshot      Json
-  createdAt     DateTime @default(now())
-
-  examConfig ExamConfig @relation(fields: [examConfigId], references: [id])
-
-  @@unique([examConfigId, versionNumber])
-  @@index([examConfigId])
-}
-
-model ExamRuleFlags {
-  id                     String   @id @default(cuid())
-  examConfigId           String   @unique
-  negativeMarkingEnabled Boolean  @default(false)
-  randomizeQuestions     Boolean  @default(false)
-  randomizeOptions       Boolean  @default(false)
-  calculatorAllowed      Boolean  @default(false)
-  sectionLockingEnabled  Boolean  @default(false)
-  freeNavigationEnabled  Boolean  @default(true)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-
-  examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
-
-  @@index([examConfigId])
-}
-
-model ConceptMapping {
-  id          String    @id @default(cuid())
-  topicId     String
-  conceptName String
-  conceptCode String
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-
-  @@unique([topicId, conceptCode])
-  @@index([topicId])
-}
-
-model SectionTopic {
-  id String @id @default(uuid())
-
-  sectionId String
-  topicId   String
-
-  createdAt DateTime @default(now())
-
-  @@unique([sectionId, topicId])
-  @@index([sectionId])
-  @@index([topicId])
 }

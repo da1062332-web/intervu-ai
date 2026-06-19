@@ -14,7 +14,7 @@ export class ConceptMappingRepository {
 
   async create(
     topicId: string,
-    data: Omit<Prisma.ConceptMappingCreateInput, "topicId">,
+    data: Omit<Prisma.ConceptMappingUncheckedCreateInput, "topicId">,
   ): Promise<ConceptMapping> {
     this.validate(topicId);
     this.validate(data);
