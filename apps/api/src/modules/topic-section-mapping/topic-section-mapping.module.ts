@@ -1,15 +1,33 @@
 import { Module } from "@nestjs/common";
 import { TopicSectionMappingController } from "./controllers/topic-section-mapping.controller";
 import { TopicController } from "./controllers/topic.controller";
+import { TopicWeightageController } from "./controllers/topic-weightage.controller";
 import { TopicSectionMappingService } from "./services/topic-section-mapping.service";
+import { TopicWeightageService } from "./services/topic-weightage.service";
 import { TopicSectionMappingRepository } from "./repositories/topic-section-mapping.repository";
+import { TopicWeightageRepository } from "./repositories/topic-weightage.repository";
 import { ConceptMappingModule } from "../concept-mapping/concept-mapping.module";
+import { AdminConfigModule } from "../admin-config/admin-config.module";
 import { PrismaModule } from "../../prisma/prisma.module";
 
 @Module({
-  imports: [PrismaModule, ConceptMappingModule],
-  controllers: [TopicSectionMappingController, TopicController],
-  providers: [TopicSectionMappingService, TopicSectionMappingRepository],
-  exports: [TopicSectionMappingService, TopicSectionMappingRepository],
+  imports: [PrismaModule, ConceptMappingModule, AdminConfigModule],
+  controllers: [
+    TopicSectionMappingController,
+    TopicController,
+    TopicWeightageController,
+  ],
+  providers: [
+    TopicSectionMappingService,
+    TopicSectionMappingRepository,
+    TopicWeightageService,
+    TopicWeightageRepository,
+  ],
+  exports: [
+    TopicSectionMappingService,
+    TopicSectionMappingRepository,
+    TopicWeightageService,
+    TopicWeightageRepository,
+  ],
 })
 export class TopicSectionMappingModule {}

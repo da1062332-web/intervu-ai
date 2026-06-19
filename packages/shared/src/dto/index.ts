@@ -12,3 +12,4 @@ export * from "./style-profile.dto";
 export * from "./blueprint.dto";
 export * from "./topic.dto";
 export * from "./blueprint-config.dto";
+export * from "./topic-weightage.dto";
