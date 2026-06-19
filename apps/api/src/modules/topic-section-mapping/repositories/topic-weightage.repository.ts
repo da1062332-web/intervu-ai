@@ -5,7 +5,11 @@ import { PrismaService } from "../../../prisma/prisma.service";
 export class TopicWeightageRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createWeightage(sectionId: string, topicId: string, weightagePercentage: number) {
+  async createWeightage(
+    sectionId: string,
+    topicId: string,
+    weightagePercentage: number,
+  ) {
     return this.prisma.topicWeightage.create({
       data: {
         sectionId,

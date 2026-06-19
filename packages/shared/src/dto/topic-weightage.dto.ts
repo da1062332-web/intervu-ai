@@ -1,6 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsInt, Min, Max } from "class-validator";
-import { CreateTopicWeightageRequest, UpdateTopicWeightageRequest } from "@intervu-ai/contracts";
+import {
+  CreateTopicWeightageRequest,
+  UpdateTopicWeightageRequest,
+} from "@intervu-ai/contracts";
 
 export class CreateTopicWeightageDto implements CreateTopicWeightageRequest {
   @ApiProperty({

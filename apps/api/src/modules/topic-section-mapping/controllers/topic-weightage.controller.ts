@@ -10,7 +10,10 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { TopicWeightageService } from "../services/topic-weightage.service";
-import { CreateTopicWeightageDto, UpdateTopicWeightageDto } from "@intervu/shared";
+import {
+  CreateTopicWeightageDto,
+  UpdateTopicWeightageDto,
+} from "@intervu/shared";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 
 @ApiTags("Topic Weightages")
@@ -26,7 +29,11 @@ export class TopicWeightageController {
     @Param("sectionId") sectionId: string,
     @Body() dto: CreateTopicWeightageDto,
   ) {
-    const data = await this.service.addWeightage(sectionId, dto.topicId, dto.weightagePercentage);
+    const data = await this.service.addWeightage(
+      sectionId,
+      dto.topicId,
+      dto.weightagePercentage,
+    );
     return {
       success: true,
       data,
@@ -49,7 +56,10 @@ export class TopicWeightageController {
     @Param("id") id: string,
     @Body() dto: UpdateTopicWeightageDto,
   ) {
-    const data = await this.service.updateWeightage(id, dto.weightagePercentage);
+    const data = await this.service.updateWeightage(
+      id,
+      dto.weightagePercentage,
+    );
     return {
       success: true,
       data,

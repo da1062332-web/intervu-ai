@@ -31,7 +31,9 @@ export class WeightageTotalExceededError extends BaseError {
 }
 
 export class WeightageTotalInvalidError extends BaseError {
-  constructor(message = "Total weightage for this section must be exactly 100%") {
+  constructor(
+    message = "Total weightage for this section must be exactly 100%",
+  ) {
     super("WEIGHTAGE_TOTAL_INVALID", message);
   }
 }

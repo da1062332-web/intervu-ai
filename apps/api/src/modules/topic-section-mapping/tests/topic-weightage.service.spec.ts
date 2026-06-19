@@ -58,8 +58,15 @@ describe("TopicWeightageService", () => {
 
   describe("addWeightage", () => {
     it("should successfully assign weightage if constraints pass", async () => {
-      sectionRepo.findById.mockResolvedValue({ id: "section1", examConfigId: "config1" } as any);
-      configRepo.findById.mockResolvedValue({ id: "config1", isArchived: false, status: "DRAFT" } as any);
+      sectionRepo.findById.mockResolvedValue({
+        id: "section1",
+        examConfigId: "config1",
+      } as any);
+      configRepo.findById.mockResolvedValue({
+        id: "config1",
+        isArchived: false,
+        status: "DRAFT",
+      } as any);
       mappingRepository.exists.mockResolvedValue(true);
       repository.findWeightageBySectionAndTopic.mockResolvedValue(null);
       repository.sumWeightagesBySection.mockResolvedValue(40);
@@ -73,40 +80,67 @@ describe("TopicWeightageService", () => {
       const result = await service.addWeightage("section1", "topic1", 30);
 
       expect(result).toBeDefined();
-      expect(repository.createWeightage).toHaveBeenCalledWith("section1", "topic1", 30);
+      expect(repository.createWeightage).toHaveBeenCalledWith(
+        "section1",
+        "topic1",
+        30,
+      );
     });
 
     it("should throw TopicNotMappedToSectionError if topic is not mapped to section", async () => {
-      sectionRepo.findById.mockResolvedValue({ id: "section1", examConfigId: "config1" } as any);
-      configRepo.findById.mockResolvedValue({ id: "config1", isArchived: false, status: "DRAFT" } as any);
+      sectionRepo.findById.mockResolvedValue({
+        id: "section1",
+        examConfigId: "config1",
+      } as any);
+      configRepo.findById.mockResolvedValue({
+        id: "config1",
+        isArchived: false,
+        status: "DRAFT",
+      } as any);
       mappingRepository.exists.mockResolvedValue(false);
 
-      await expect(service.addWeightage("section1", "topic1", 30)).rejects.toThrow(
-        TopicNotMappedToSectionError,
-      );
+      await expect(
+        service.addWeightage("section1", "topic1", 30),
+      ).rejects.toThrow(TopicNotMappedToSectionError);
     });
 
     it("should throw ConflictException if weightage already exists", async () => {
-      sectionRepo.findById.mockResolvedValue({ id: "section1", examConfigId: "config1" } as any);
-      configRepo.findById.mockResolvedValue({ id: "config1", isArchived: false, status: "DRAFT" } as any);
+      sectionRepo.findById.mockResolvedValue({
+        id: "section1",
+        examConfigId: "config1",
+      } as any);
+      configRepo.findById.mockResolvedValue({
+        id: "config1",
+        isArchived: false,
+        status: "DRAFT",
+      } as any);
       mappingRepository.exists.mockResolvedValue(true);
-      repository.findWeightageBySectionAndTopic.mockResolvedValue({ id: "w1" } as any);
+      repository.findWeightageBySectionAndTopic.mockResolvedValue({
+        id: "w1",
+      } as any);
 
-      await expect(service.addWeightage("section1", "topic1", 30)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(
+        service.addWeightage("section1", "topic1", 30),
+      ).rejects.toThrow(ConflictException);
     });
 
     it("should throw WeightageTotalExceededError if sum exceeds 100%", async () => {
-      sectionRepo.findById.mockResolvedValue({ id: "section1", examConfigId: "config1" } as any);
-      configRepo.findById.mockResolvedValue({ id: "config1", isArchived: false, status: "DRAFT" } as any);
+      sectionRepo.findById.mockResolvedValue({
+        id: "section1",
+        examConfigId: "config1",
+      } as any);
+      configRepo.findById.mockResolvedValue({
+        id: "config1",
+        isArchived: false,
+        status: "DRAFT",
+      } as any);
       mappingRepository.exists.mockResolvedValue(true);
       repository.findWeightageBySectionAndTopic.mockResolvedValue(null);
       repository.sumWeightagesBySection.mockResolvedValue(80);
 
-      await expect(service.addWeightage("section1", "topic1", 30)).rejects.toThrow(
-        WeightageTotalExceededError,
-      );
+      await expect(
+        service.addWeightage("section1", "topic1", 30),
+      ).rejects.toThrow(WeightageTotalExceededError);
     });
   });
 
@@ -118,8 +152,15 @@ describe("TopicWeightageService", () => {
         topicId: "topic1",
         weightagePercentage: 30,
       } as any);
-      sectionRepo.findById.mockResolvedValue({ id: "section1", examConfigId: "config1" } as any);
-      configRepo.findById.mockResolvedValue({ id: "config1", isArchived: false, status: "DRAFT" } as any);
+      sectionRepo.findById.mockResolvedValue({
+        id: "section1",
+        examConfigId: "config1",
+      } as any);
+      configRepo.findById.mockResolvedValue({
+        id: "config1",
+        isArchived: false,
+        status: "DRAFT",
+      } as any);
       repository.sumWeightagesBySection.mockResolvedValue(30);
       repository.updateWeightage.mockResolvedValue({
         id: "weightage1",
@@ -145,15 +186,17 @@ describe("TopicWeightageService", () => {
     it("should throw WeightageTotalInvalidError if total is not 100", async () => {
       repository.sumWeightagesBySection.mockResolvedValue(80);
 
-      await expect(service.validateSectionTotalWeightage("section1")).rejects.toThrow(
-        WeightageTotalInvalidError,
-      );
+      await expect(
+        service.validateSectionTotalWeightage("section1"),
+      ).rejects.toThrow(WeightageTotalInvalidError);
     });
 
     it("should pass silently if total is exactly 100", async () => {
       repository.sumWeightagesBySection.mockResolvedValue(100);
 
-      await expect(service.validateSectionTotalWeightage("section1")).resolves.not.toThrow();
+      await expect(
+        service.validateSectionTotalWeightage("section1"),
+      ).resolves.not.toThrow();
     });
   });
 });

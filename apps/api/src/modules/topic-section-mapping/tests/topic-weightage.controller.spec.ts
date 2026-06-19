@@ -2,7 +2,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { TopicWeightageController } from "../controllers/topic-weightage.controller";
 import { TopicWeightageService } from "../services/topic-weightage.service";
-import { CreateTopicWeightageDto, UpdateTopicWeightageDto } from "@intervu/shared";
+import {
+  CreateTopicWeightageDto,
+  UpdateTopicWeightageDto,
+} from "@intervu/shared";
 
 describe("TopicWeightageController", () => {
   let controller: TopicWeightageController;
@@ -37,7 +40,11 @@ describe("TopicWeightageController", () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(service.addWeightage).toHaveBeenCalledWith("section1", "topic1", 40);
+      expect(service.addWeightage).toHaveBeenCalledWith(
+        "section1",
+        "topic1",
+        40,
+      );
     });
   });
 
@@ -58,7 +65,10 @@ describe("TopicWeightageController", () => {
       const dto: UpdateTopicWeightageDto = {
         weightagePercentage: 60,
       };
-      service.updateWeightage.mockResolvedValue({ id: "w1", weightagePercentage: 60 } as any);
+      service.updateWeightage.mockResolvedValue({
+        id: "w1",
+        weightagePercentage: 60,
+      } as any);
 
       const result = await controller.updateWeightage("w1", dto);
 
