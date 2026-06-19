@@ -9,3 +9,5 @@ export * from "./exam-section.dto";
 export * from "./rule-flags.dto";
 export * from "./concept-mapping.dto";
 export * from "./topic.dto";
+export * from "./topic-weightage.dto";
+

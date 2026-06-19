@@ -23,3 +23,27 @@ export class SectionTopicMappingNotFoundError extends BaseError {
     super(ErrorCode.NOT_FOUND, message);
   }
 }
+
+export class WeightageTotalExceededError extends BaseError {
+  constructor(message = "Total weightage for this section cannot exceed 100%") {
+    super("WEIGHTAGE_TOTAL_EXCEEDED", message);
+  }
+}
+
+export class WeightageTotalInvalidError extends BaseError {
+  constructor(message = "Total weightage for this section must be exactly 100%") {
+    super("WEIGHTAGE_TOTAL_INVALID", message);
+  }
+}
+
+export class WeightageNotFoundError extends BaseError {
+  constructor(message = "Topic weightage configuration not found") {
+    super(ErrorCode.NOT_FOUND, message);
+  }
+}
+
+export class TopicNotMappedToSectionError extends BaseError {
+  constructor(message = "Topic is not mapped to this section") {
+    super("TOPIC_NOT_MAPPED_TO_SECTION", message);
+  }
+}

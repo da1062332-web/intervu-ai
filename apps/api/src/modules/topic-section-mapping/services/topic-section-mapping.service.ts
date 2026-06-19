@@ -1,11 +1,16 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { TopicSectionMappingRepository } from "../repositories/topic-section-mapping.repository";
 import { TopicRegistryLoader } from "../../concept-mapping/services/topic-registry-loader.service";
+import { TopicRepository } from "../../concept-mapping/repositories/topic.repository";
+import { ExamSectionRepository } from "../../admin-config/repositories/exam-section.repository";
+import { ExamConfigRepository } from "../../admin-config/repositories/exam-config.repository";
 import { SectionTopicResponse } from "@intervu-ai/contracts";
+import { ExamSection } from "@prisma/client";
 import {
   TopicNotFoundError,
   TopicAlreadyMappedError,
   SectionTopicMappingNotFoundError,
+  SectionNotFoundError,
 } from "@intervu/shared";
 
 @Injectable()
@@ -15,27 +20,41 @@ export class TopicSectionMappingService {
   constructor(
     private readonly repository: TopicSectionMappingRepository,
     private readonly topicRegistry: TopicRegistryLoader,
+    private readonly topicRepo: TopicRepository,
+    private readonly sectionRepo: ExamSectionRepository,
+    private readonly configRepo: ExamConfigRepository,
   ) {}
 
-  async validateSectionExists(sectionId: string): Promise<void> {
-    void sectionId;
-    // TODO: Implement Section Registry integration when available.
-    // If section does not exist, throw new SectionNotFoundError(`Section ${sectionId} not found`);
-    // Example: const section = await this.sectionRegistry.getSectionById(sectionId);
-    // if (!section) throw new SectionNotFoundError();
+  async validateSectionExists(sectionId: string): Promise<ExamSection> {
+    const section = await this.sectionRepo.findById(sectionId);
+    if (!section) {
+      throw new SectionNotFoundError(`Section ${sectionId} not found`);
+    }
+
+    const config = await this.configRepo.findById(section.examConfigId);
+    if (config && (config.isArchived || config.status === "ARCHIVED")) {
+      throw new BadRequestException({
+        code: "CONFIG_ARCHIVED",
+        error: "CONFIG_ARCHIVED",
+        message: "Archived configurations cannot be modified",
+      });
+    }
+
+    return section;
   }
 
   async getMappings(sectionId: string): Promise<SectionTopicResponse[]> {
-    await this.validateSectionExists(sectionId);
-    const mappings = await this.repository.findMappingsBySection(sectionId);
+    const section = await this.sectionRepo.findById(sectionId);
+    if (!section) {
+      throw new SectionNotFoundError(`Section ${sectionId} not found`);
+    }
 
+    const mappings = await this.repository.findMappingsBySection(sectionId);
     if (mappings.length === 0) {
       return [];
     }
 
     const responses: SectionTopicResponse[] = [];
-
-    // Batch lookup using existing TopicRegistryLoader
     const topics = await Promise.all(
       mappings.map((m: { topicId: string }) => this.topicRegistry.getTopicById(m.topicId)),
     );
@@ -65,9 +84,9 @@ export class TopicSectionMappingService {
   async assignTopic(sectionId: string, topicId: string): Promise<void> {
     await this.validateSectionExists(sectionId);
 
-    const topic = await this.topicRegistry.getTopicById(topicId);
-    if (!topic) {
-      throw new TopicNotFoundError(`Topic ${topicId} not found in registry`);
+    const topic = await this.topicRepo.findById(topicId);
+    if (!topic || !topic.isActive || topic.deletedAt !== null) {
+      throw new TopicNotFoundError(`Topic ${topicId} not found or is inactive`);
     }
 
     const exists = await this.repository.exists(sectionId, topicId);
@@ -77,9 +96,14 @@ export class TopicSectionMappingService {
 
     await this.repository.createMapping(sectionId, topicId);
     this.logger.log(`Topic assigned: ${topicId} to section: ${sectionId}`);
+
+    // Invalidate/reload cache
+    await this.topicRegistry.loadTopics();
   }
 
   async removeTopic(sectionId: string, topicId: string): Promise<void> {
+    await this.validateSectionExists(sectionId);
+
     const exists = await this.repository.exists(sectionId, topicId);
     if (!exists) {
       throw new SectionTopicMappingNotFoundError();
@@ -87,5 +111,8 @@ export class TopicSectionMappingService {
 
     await this.repository.removeMapping(sectionId, topicId);
     this.logger.log(`Topic removed: ${topicId} from section: ${sectionId}`);
+
+    // Invalidate/reload cache
+    await this.topicRegistry.loadTopics();
   }
 }
