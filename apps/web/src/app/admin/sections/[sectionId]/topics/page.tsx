@@ -14,7 +14,7 @@ import { ArrowLeft } from 'lucide-react';
 export default function SectionTopicsPage() {
   const params = useParams();
   const sectionId = params.sectionId as string;
-  
+
   const setSelectedSection = useTopicMappingStore((state) => state.setSelectedSection);
   const setAssignedTopics = useTopicMappingStore((state) => state.setAssignedTopics);
 
@@ -22,7 +22,12 @@ export default function SectionTopicsPage() {
     setSelectedSection(sectionId);
   }, [sectionId, setSelectedSection]);
 
-  const { data: assignedTopics = [], isLoading: isLoadingTopics, isError, refetch } = useSectionTopics(sectionId);
+  const {
+    data: assignedTopics = [],
+    isLoading: isLoadingTopics,
+    isError,
+    refetch,
+  } = useSectionTopics(sectionId);
 
   useEffect(() => {
     if (assignedTopics) {
@@ -35,7 +40,14 @@ export default function SectionTopicsPage() {
   return (
     <div className='container mx-auto py-6 space-y-8 max-w-7xl'>
       <div className='flex items-center gap-4'>
-        <Link href='#' onClick={(e: React.MouseEvent) => { e.preventDefault(); window.history.back(); }} className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors'>
+        <Link
+          href='#'
+          onClick={(e: React.MouseEvent) => {
+            e.preventDefault();
+            window.history.back();
+          }}
+          className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors'
+        >
           <ArrowLeft className='w-5 h-5' />
         </Link>
         <div>
@@ -54,12 +66,12 @@ export default function SectionTopicsPage() {
         <div className='lg:col-span-2 space-y-8'>
           <div className='border rounded-lg bg-background shadow-sm p-6'>
             <h3 className='text-lg font-medium mb-4'>Assigned Topics</h3>
-            <TopicMappingTable 
-              sectionId={sectionId} 
-              topics={assignedTopics} 
-              isLoading={isLoadingTopics} 
-              isError={isError} 
-              onRetry={() => refetch()} 
+            <TopicMappingTable
+              sectionId={sectionId}
+              topics={assignedTopics}
+              isLoading={isLoadingTopics}
+              isError={isError}
+              onRetry={() => refetch()}
             />
           </div>
 

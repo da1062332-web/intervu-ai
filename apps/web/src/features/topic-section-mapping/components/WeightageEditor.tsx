@@ -1,7 +1,11 @@
 'use client';
 
 import { useTopicMappingStore } from '../store/topic-mapping.store';
-import { useWeightages, useUpdateWeightage, useCreateWeightage } from '@/services/topic-weightages/hooks';
+import {
+  useWeightages,
+  useUpdateWeightage,
+  useCreateWeightage,
+} from '@/services/topic-weightages/hooks';
 import { Input } from '@/components/ui/input';
 import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,7 +43,7 @@ export function WeightageEditor({ sectionId, topics }: WeightageEditorProps) {
     const numValue = parseInt(value, 10);
     if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
 
-    const existing = weightagesData.find(w => w.topicId === topicId);
+    const existing = weightagesData.find((w) => w.topicId === topicId);
     if (existing) {
       if (existing.weightagePercentage !== numValue) {
         updateWeightage.mutate({ id: existing.id, weightagePercentage: numValue });
@@ -68,16 +72,19 @@ export function WeightageEditor({ sectionId, topics }: WeightageEditorProps) {
         </div>
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        {topics.map(topic => {
+        {topics.map((topic) => {
           const topicId = topic.topicId;
           const currentVal = weightages[topicId] !== undefined ? weightages[topicId] : '';
           return (
-            <div key={topicId} className='flex items-center justify-between p-3 border rounded-md bg-background'>
+            <div
+              key={topicId}
+              className='flex items-center justify-between p-3 border rounded-md bg-background'
+            >
               <span className='font-medium'>{topic.topicName}</span>
               <div className='flex items-center gap-2 w-24'>
-                <Input 
-                  type='number' 
-                  min={0} 
+                <Input
+                  type='number'
+                  min={0}
                   max={100}
                   value={currentVal}
                   onChange={(e) => handleChange(topicId, e.target.value)}

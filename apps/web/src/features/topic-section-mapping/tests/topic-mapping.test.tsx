@@ -4,7 +4,11 @@ import { WeightageEditor } from '../components/WeightageEditor';
 import { TopicMappingHealthWidget } from '../components/TopicMappingHealthWidget';
 import { AvailableTopicsPanel } from '../components/AvailableTopicsPanel';
 import { useRemoveTopic, useAdminTopics, useAssignTopic, useSectionTopics } from '../api/queries';
-import { useWeightages, useUpdateWeightage, useCreateWeightage } from '@/services/topic-weightages/hooks';
+import {
+  useWeightages,
+  useUpdateWeightage,
+  useCreateWeightage,
+} from '@/services/topic-weightages/hooks';
 import { useTopicMappingStore } from '../store/topic-mapping.store';
 
 jest.mock('../api/queries', () => ({
@@ -28,15 +32,28 @@ describe('Topic Mapping', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useTopicMappingStore.setState({ weightages: { '1': 100 }, assignedTopics: [], selectedSectionId: 'sec1' });
+    useTopicMappingStore.setState({
+      weightages: { '1': 100 },
+      assignedTopics: [],
+      selectedSectionId: 'sec1',
+    });
 
     (useRemoveTopic as jest.Mock).mockReturnValue({ mutate: mockRemoveTopic, isPending: false });
     (useAssignTopic as jest.Mock).mockReturnValue({ mutate: mockAssignTopic, isPending: false });
-    (useUpdateWeightage as jest.Mock).mockReturnValue({ mutate: mockUpdateWeightage, isPending: false });
-    (useCreateWeightage as jest.Mock).mockReturnValue({ mutate: mockCreateWeightage, isPending: false });
+    (useUpdateWeightage as jest.Mock).mockReturnValue({
+      mutate: mockUpdateWeightage,
+      isPending: false,
+    });
+    (useCreateWeightage as jest.Mock).mockReturnValue({
+      mutate: mockCreateWeightage,
+      isPending: false,
+    });
 
     (useAdminTopics as jest.Mock).mockReturnValue({
-      data: [{ id: '1', topic: 'React', topicCode: 'R1' }, { id: '2', topic: 'Angular', topicCode: 'A1' }],
+      data: [
+        { id: '1', topic: 'React', topicCode: 'R1' },
+        { id: '2', topic: 'Angular', topicCode: 'A1' },
+      ],
       isLoading: false,
     });
 
@@ -53,7 +70,9 @@ describe('Topic Mapping', () => {
 
   describe('Topic List Rendering', () => {
     it('renders the list of mapped topics with weightages', () => {
-      const topics = [{ topicId: '1', topicName: 'React', topicCode: 'R1', createdAt: '2023-01-01' }];
+      const topics = [
+        { topicId: '1', topicName: 'React', topicCode: 'R1', createdAt: '2023-01-01' },
+      ];
       render(<TopicMappingTable sectionId='sec1' topics={topics} />);
       expect(screen.getByText('React')).toBeInTheDocument();
       expect(screen.getByText('100%')).toBeInTheDocument();
@@ -64,7 +83,7 @@ describe('Topic Mapping', () => {
     it('renders inline weightage inputs and handles updates', () => {
       const topics = [{ topicId: '1', topicName: 'React', topicCode: 'R1' }];
       render(<WeightageEditor sectionId='sec1' topics={topics} />);
-      
+
       const input = screen.getByRole('spinbutton');
       expect(input).toHaveValue(100);
 
@@ -94,7 +113,7 @@ describe('Topic Mapping', () => {
     it('renders available topics and allows assignment', () => {
       render(<AvailableTopicsPanel sectionId='sec1' existingTopicIds={[]} />);
       expect(screen.getByText('React')).toBeInTheDocument();
-      
+
       const assignBtns = screen.getAllByText('Assign Topic');
       fireEvent.click(assignBtns[0]);
 

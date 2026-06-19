@@ -17,7 +17,13 @@ interface TopicMappingTableProps {
   onRetry?: () => void;
 }
 
-export function TopicMappingTable({ sectionId, topics, isLoading, isError, onRetry }: TopicMappingTableProps) {
+export function TopicMappingTable({
+  sectionId,
+  topics,
+  isLoading,
+  isError,
+  onRetry,
+}: TopicMappingTableProps) {
   const [topicToRemove, setTopicToRemove] = useState<string | null>(null);
   const removeTopic = useRemoveTopic(sectionId);
   const weightages = useTopicMappingStore((state) => state.weightages);

@@ -16,7 +16,7 @@ export const useWeightages = (sectionId: string | null) => {
     queryFn: async () => {
       if (!sectionId) return [];
       const data = await topicWeightagesApi.getWeightages(sectionId);
-      
+
       const weightageMap: Record<string, number> = {};
       data.forEach((w) => {
         weightageMap[w.topicId] = w.weightagePercentage;
@@ -33,8 +33,13 @@ export const useCreateWeightage = (sectionId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ topicId, weightagePercentage }: { topicId: string; weightagePercentage: number }) =>
-      topicWeightagesApi.createWeightage(sectionId, topicId, weightagePercentage),
+    mutationFn: ({
+      topicId,
+      weightagePercentage,
+    }: {
+      topicId: string;
+      weightagePercentage: number;
+    }) => topicWeightagesApi.createWeightage(sectionId, topicId, weightagePercentage),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: topicWeightageKeys.section(sectionId) });
       toast.success('Weightage saved.');

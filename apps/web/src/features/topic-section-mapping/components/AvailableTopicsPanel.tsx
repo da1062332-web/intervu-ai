@@ -77,13 +77,16 @@ export function AvailableTopicsPanel({ sectionId, existingTopicIds }: AvailableT
               const id = topic.id || topic.topicId;
               const isAssigning = assignTopic.isPending && assignTopic.variables === id;
               return (
-                <li key={id} className='flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50'>
+                <li
+                  key={id}
+                  className='flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                >
                   <div>
                     <p className='font-medium'>{topic.topic || topic.name}</p>
                     <p className='text-sm text-muted-foreground'>{topic.topicCode || topic.code}</p>
                   </div>
-                  <Button 
-                    size='sm' 
+                  <Button
+                    size='sm'
                     onClick={() => handleAssign(id)}
                     disabled={assignTopic.isPending}
                   >
