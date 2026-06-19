@@ -20,6 +20,9 @@ export class UpdateDifficultyDistributionDto implements UpdateDifficultyDistribu
   ): z.SafeParseReturnType<unknown, UpdateDifficultyDistributionDto> {
     return UpdateDifficultyDistributionSchema.safeParse(
       data,
-    ) as unknown as z.SafeParseReturnType<unknown, UpdateDifficultyDistributionDto>;
+    ) as unknown as z.SafeParseReturnType<
+      unknown,
+      UpdateDifficultyDistributionDto
+    >;
   }
 }

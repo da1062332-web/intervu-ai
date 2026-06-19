@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -42,7 +43,10 @@ describe("Difficulty Distribution and Rule Flags Integration Tests", () => {
       controllers: [DifficultyDistributionController, RuleFlagsController],
       providers: [
         DifficultyDistributionService,
-        { provide: DifficultyDistributionRepository, useValue: difficultyRepoMock },
+        {
+          provide: DifficultyDistributionRepository,
+          useValue: difficultyRepoMock,
+        },
         RuleFlagsService,
         { provide: RuleFlagsRepository, useValue: ruleFlagsRepoMock },
       ],
@@ -82,8 +86,9 @@ describe("Difficulty Distribution and Rule Flags Integration Tests", () => {
     it("GET /admin/configs/:id/difficulty - should throw 404 if config does not exist", async () => {
       difficultyRepoMock.checkConfigExists.mockResolvedValueOnce(false);
 
-      const res = await request(app.getHttpServer())
-        .get(`/admin/configs/${configId}/difficulty`);
+      const res = await request(app.getHttpServer()).get(
+        `/admin/configs/${configId}/difficulty`,
+      );
 
       if (res.status !== 404) {
         console.log("Failed GET config exists body:", res.body);
@@ -156,8 +161,9 @@ describe("Difficulty Distribution and Rule Flags Integration Tests", () => {
       };
       difficultyRepoMock.findByConfigId.mockResolvedValue(mockResult);
 
-      const res = await request(app.getHttpServer())
-        .get(`/admin/configs/${configId}/difficulty`);
+      const res = await request(app.getHttpServer()).get(
+        `/admin/configs/${configId}/difficulty`,
+      );
 
       if (res.status !== 200) {
         console.log("Failed GET detail body:", res.body);
@@ -177,8 +183,9 @@ describe("Difficulty Distribution and Rule Flags Integration Tests", () => {
       ruleFlagsRepoMock.checkConfigExists.mockResolvedValue(true);
       ruleFlagsRepoMock.findByConfigId.mockResolvedValue(null);
 
-      const res = await request(app.getHttpServer())
-        .get(`/admin/configs/${configId}/rules`);
+      const res = await request(app.getHttpServer()).get(
+        `/admin/configs/${configId}/rules`,
+      );
 
       if (res.status !== 200) {
         console.log("Failed GET default rules body:", res.body);

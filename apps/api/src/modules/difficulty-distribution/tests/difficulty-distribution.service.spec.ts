@@ -52,9 +52,9 @@ describe("DifficultyDistributionService", () => {
 
   it("should check config exists and throw ConfigNotFoundError on get if config doesn't exist", async () => {
     repository.checkConfigExists.mockResolvedValue(false);
-    await expect(service.getDifficultyDistribution(mockConfigId)).rejects.toThrow(
-      ConfigNotFoundError,
-    );
+    await expect(
+      service.getDifficultyDistribution(mockConfigId),
+    ).rejects.toThrow(ConfigNotFoundError);
   });
 
   it("should calculate total and upsert", async () => {
@@ -108,10 +108,7 @@ describe("DifficultyDistributionService", () => {
         hardPercentage: 30,
       }),
     ).rejects.toThrow(
-      new BaseError(
-        "INVALID_DISTRIBUTION",
-        "Percentages cannot be negative",
-      ),
+      new BaseError("INVALID_DISTRIBUTION", "Percentages cannot be negative"),
     );
   });
 });

@@ -95,7 +95,8 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
       <div>
         <h3 className='text-lg font-medium'>Difficulty Distribution</h3>
         <p className='text-sm text-muted-foreground'>
-          Configure the percentage distribution of Easy, Medium, and Hard questions. The total must equal 100%.
+          Configure the percentage distribution of Easy, Medium, and Hard questions. The total must
+          equal 100%.
         </p>
       </div>
 
@@ -140,14 +141,20 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
       <div className='flex items-center justify-between pt-4 border-t'>
         <div className='font-medium text-lg flex items-center space-x-2'>
           <span>Total:</span>
-          <span className={isValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+          <span
+            className={
+              isValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            }
+          >
             {totalPercentage}%
           </span>
-          <span className={`text-sm px-2.5 py-0.5 rounded-full font-medium ${
-            isValid 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-          }`}>
+          <span
+            className={`text-sm px-2.5 py-0.5 rounded-full font-medium ${
+              isValid
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            }`}
+          >
             {isValid ? '✓ VALID' : '✗ INVALID'}
           </span>
         </div>

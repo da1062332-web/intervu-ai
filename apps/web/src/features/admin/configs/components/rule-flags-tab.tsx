@@ -123,7 +123,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
         <div className='flex items-center justify-between'>
           <div className='space-y-0.5'>
             <Label htmlFor='sectional-cutoff'>Sectional Cutoff</Label>
-            <p className='text-sm text-muted-foreground'>Enable minimum qualification score per section.</p>
+            <p className='text-sm text-muted-foreground'>
+              Enable minimum qualification score per section.
+            </p>
           </div>
           <Switch
             id='sectional-cutoff'
@@ -135,7 +137,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
         <div className='flex items-center justify-between'>
           <div className='space-y-0.5'>
             <Label htmlFor='adaptive-difficulty'>Adaptive Difficulty</Label>
-            <p className='text-sm text-muted-foreground'>Vary question difficulty based on candidate performance.</p>
+            <p className='text-sm text-muted-foreground'>
+              Vary question difficulty based on candidate performance.
+            </p>
           </div>
           <Switch
             id='adaptive-difficulty'

@@ -42,7 +42,11 @@ describe("DifficultyDistributionController", () => {
       updatedAt: new Date(),
     });
 
-    const dto = { easyPercentage: 20, mediumPercentage: 50, hardPercentage: 30 };
+    const dto = {
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
+    };
     const result = await controller.create(mockConfigId, dto);
     expect(result.easyPercentage).toBe(20);
     expect(service.updateDifficultyDistribution).toHaveBeenCalledWith(
@@ -62,7 +66,11 @@ describe("DifficultyDistributionController", () => {
       updatedAt: new Date(),
     });
 
-    const dto = { easyPercentage: 20, mediumPercentage: 50, hardPercentage: 30 };
+    const dto = {
+      easyPercentage: 20,
+      mediumPercentage: 50,
+      hardPercentage: 30,
+    };
     const result = await controller.update(mockConfigId, dto);
     expect(result.easyPercentage).toBe(20);
     expect(service.updateDifficultyDistribution).toHaveBeenCalledWith(
