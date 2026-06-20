@@ -3,10 +3,10 @@ import { conceptMappingApi } from './api';
 import type { CreateConceptPayload, UpdateConceptPayload } from './types';
 import { toast } from 'sonner';
 
-export const useConcepts = (topicId: string) => {
+export const useConcepts = (topicId: string, activeOnly = true) => {
   return useQuery({
-    queryKey: ['concepts', topicId],
-    queryFn: () => conceptMappingApi.getConcepts(topicId),
+    queryKey: ['concepts', topicId, activeOnly],
+    queryFn: () => conceptMappingApi.getConcepts(topicId, activeOnly),
     enabled: !!topicId,
   });
 };

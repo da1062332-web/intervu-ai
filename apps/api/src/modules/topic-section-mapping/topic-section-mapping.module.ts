@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { TopicSectionMappingController } from "./controllers/topic-section-mapping.controller";
-import { TopicController } from "./controllers/topic.controller";
 import { TopicWeightageController } from "./controllers/topic-weightage.controller";
 import { TopicSectionMappingService } from "./services/topic-section-mapping.service";
 import { TopicWeightageService } from "./services/topic-weightage.service";
@@ -14,7 +13,6 @@ import { PrismaModule } from "../../prisma/prisma.module";
   imports: [PrismaModule, ConceptMappingModule, AdminConfigModule],
   controllers: [
     TopicSectionMappingController,
-    TopicController,
     TopicWeightageController,
   ],
   providers: [

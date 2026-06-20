@@ -2,8 +2,8 @@ import { apiClient } from '@/services/api/client';
 import type { ConceptMapping, CreateConceptPayload, UpdateConceptPayload } from './types';
 
 export const conceptMappingApi = {
-  getConcepts: async (topicId: string) => {
-    return apiClient.request<ConceptMapping[]>(`/admin/topics/${topicId}/concepts`, {
+  getConcepts: async (topicId: string, activeOnly = true) => {
+    return apiClient.request<ConceptMapping[]>(`/admin/topics/${topicId}/concepts?activeOnly=${activeOnly}`, {
       method: 'GET',
     });
   },

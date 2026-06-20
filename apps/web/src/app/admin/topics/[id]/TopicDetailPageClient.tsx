@@ -34,7 +34,7 @@ interface ClientProps {
 
 export function TopicDetailPageClient({ topicId }: ClientProps) {
   const { data: topic, isLoading: topicLoading, isError: topicError, refetch: refetchTopic } = useTopic(topicId);
-  const { data: concepts, isLoading: conceptsLoading, isError: conceptsError, refetch: refetchConcepts } = useConcepts(topicId);
+  const { data: concepts, isLoading: conceptsLoading, isError: conceptsError, refetch: refetchConcepts } = useConcepts(topicId, false);
 
   const createMutation = useCreateConcept(topicId);
   const updateMutation = useUpdateConcept(topicId);
@@ -191,6 +191,9 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
   const handleToggleDeactivate = (concept: ConceptMapping) => {
     const isAct = concept.status === 'ACTIVE';
     if (isAct) {
+      if (!window.confirm(`Are you sure you want to deactivate the concept "${concept.name || concept.conceptName}"?`)) {
+        return;
+      }
       deactivateMutation.mutate(concept.id, {
         onSuccess: () => refetchConcepts(),
       });

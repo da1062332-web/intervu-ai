@@ -159,6 +159,9 @@ export function TopicsPageClient() {
 
   const handleToggleDeactivate = (topic: Topic) => {
     if (topic.status === 'ACTIVE') {
+      if (!window.confirm(`Are you sure you want to deactivate the topic "${topic.name}"?`)) {
+        return;
+      }
       deactivateMutation.mutate(topic.id, {
         onSuccess: () => refetch(),
       });

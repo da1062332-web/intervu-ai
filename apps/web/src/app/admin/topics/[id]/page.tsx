@@ -7,15 +7,16 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function TopicDetailPage({ params }: PageProps) {
+export default async function TopicDetailPage({ params }: PageProps) {
+  const resolvedParams = await params;
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
-      <TopicDetailPageClient topicId={params.id} />
+      <TopicDetailPageClient topicId={resolvedParams.id} />
     </div>
   );
 }
