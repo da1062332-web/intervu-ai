@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-import type {
-  BlueprintSectionPayload,
-  ValidationResult,
-  BlueprintPreviewData,
-} from '@/services/blueprints/types';
+import type { BlueprintSectionPayload, ValidationResult, BlueprintPreviewData } from '@/services/blueprints/types';
 
 interface BlueprintBuilderState {
   selectedConfigId: string;
@@ -19,11 +15,7 @@ interface BlueprintBuilderState {
   setValidation: (validation: ValidationResult | null) => void;
   setPreview: (preview: BlueprintPreviewData | null) => void;
   reset: () => void;
-  initFromExisting: (
-    configId: string,
-    styleProfileId: string,
-    sections: BlueprintSectionPayload[],
-  ) => void;
+  initFromExisting: (configId: string, styleProfileId: string, sections: BlueprintSectionPayload[]) => void;
 }
 
 const initialState = {
@@ -39,15 +31,15 @@ export const useBlueprintBuilderStore = create<BlueprintBuilderState>((set) => (
   ...initialState,
 
   setConfig: (configId) => set({ selectedConfigId: configId, isDirty: true }),
-
+  
   setProfile: (profileId) => set({ selectedStyleProfileId: profileId, isDirty: true }),
-
+  
   updateSection: (sectionId, sectionPayload) =>
     set((state) => {
       const existingSectionIndex = state.sections.findIndex((s) => s.sectionId === sectionId);
-
+      
       let newSections = [...state.sections];
-
+      
       if (existingSectionIndex >= 0) {
         newSections[existingSectionIndex] = {
           ...newSections[existingSectionIndex],
@@ -68,18 +60,17 @@ export const useBlueprintBuilderStore = create<BlueprintBuilderState>((set) => (
     }),
 
   setValidation: (validation) => set({ validation }),
-
+  
   setPreview: (preview) => set({ preview }),
-
+  
   reset: () => set(initialState),
 
-  initFromExisting: (configId, styleProfileId, sections) =>
-    set({
-      selectedConfigId: configId,
-      selectedStyleProfileId: styleProfileId,
-      sections,
-      isDirty: false,
-      validation: null,
-      preview: null,
-    }),
+  initFromExisting: (configId, styleProfileId, sections) => set({
+    selectedConfigId: configId,
+    selectedStyleProfileId: styleProfileId,
+    sections,
+    isDirty: false,
+    validation: null,
+    preview: null,
+  }),
 }));

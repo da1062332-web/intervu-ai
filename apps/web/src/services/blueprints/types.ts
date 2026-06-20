@@ -42,7 +42,6 @@ export interface BlueprintDetail extends BlueprintConfig {
   valid: boolean;
   validationSummary: ValidationSummary;
   topics: BlueprintTopicDetail[];
-  styleProfileId?: string;
 }
 
 export interface TopicAllocationPayload {
@@ -65,18 +64,12 @@ export interface BlueprintSectionPayload {
 }
 
 export interface CreateBlueprintPayload {
-  name?: string;
-  code?: string;
-  description?: string;
-  totalQuestions?: number;
-  totalDurationMinutes?: number;
-  configId?: string;
-  styleProfileId?: string;
-  sections?: BlueprintSectionPayload[];
-  isActive?: boolean;
+  configId: string;
+  styleProfileId: string;
+  sections: BlueprintSectionPayload[];
 }
 
-export type UpdateBlueprintPayload = Partial<CreateBlueprintPayload>;
+export interface UpdateBlueprintPayload extends Partial<CreateBlueprintPayload> {}
 
 export interface AddTopicConfigPayload {
   sectionId: string;

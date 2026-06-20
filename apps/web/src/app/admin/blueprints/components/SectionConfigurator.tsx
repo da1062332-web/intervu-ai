@@ -27,8 +27,8 @@ export function SectionConfigurator({ configId }: SectionConfiguratorProps) {
   useEffect(() => {
     // Initialize sections if they don't exist in store yet
     if (sections && sections.length > 0) {
-      sections.forEach((section) => {
-        const existing = sectionsState.find((s) => s.sectionId === section.id);
+      sections.forEach(section => {
+        const existing = sectionsState.find(s => s.sectionId === section.id);
         if (!existing) {
           updateSection(section.id, {
             questionCount: section.questionCount || 20,
@@ -55,25 +55,22 @@ export function SectionConfigurator({ configId }: SectionConfiguratorProps) {
   return (
     <div className='space-y-6'>
       {sections.map((section) => {
-        const sectionState = sectionsState.find((s) => s.sectionId === section.id) || {
+        const sectionState = sectionsState.find(s => s.sectionId === section.id) || {
           questionCount: 0,
-          templateTypes: [] as string[],
+          templateTypes: [],
         };
 
         const toggleTemplateType = (typeId: string, checked: boolean) => {
           const currentTypes = sectionState.templateTypes || [];
           const nextTypes = checked
             ? [...currentTypes, typeId]
-            : currentTypes.filter((t) => t !== typeId);
-
+            : currentTypes.filter(t => t !== typeId);
+            
           updateSection(section.id, { templateTypes: nextTypes });
         };
 
         return (
-          <div
-            key={section.id}
-            className='p-4 border rounded-md bg-gray-50 dark:bg-gray-800/50 space-y-4'
-          >
+          <div key={section.id} className='p-4 border rounded-md bg-gray-50 dark:bg-gray-800/50 space-y-4'>
             <div className='flex justify-between items-center'>
               <h4 className='font-medium text-lg'>{section.name}</h4>
             </div>
@@ -85,25 +82,21 @@ export function SectionConfigurator({ configId }: SectionConfiguratorProps) {
                   type='number'
                   min='1'
                   value={sectionState.questionCount}
-                  onChange={(e) =>
-                    updateSection(section.id, { questionCount: parseInt(e.target.value) || 0 })
-                  }
+                  onChange={(e) => updateSection(section.id, { questionCount: parseInt(e.target.value) || 0 })}
                 />
               </div>
 
               <div className='space-y-2'>
                 <Label>Template Types</Label>
                 <div className='grid grid-cols-2 gap-2 mt-2'>
-                  {TEMPLATE_OPTIONS.map((opt) => (
+                  {TEMPLATE_OPTIONS.map(opt => (
                     <div key={opt.id} className='flex items-center space-x-2'>
-                      <Checkbox
-                        id={`${section.id}-${opt.id}`}
+                      <Checkbox 
+                        id={`${section.id}-${opt.id}`} 
                         checked={(sectionState.templateTypes || []).includes(opt.id)}
-                        onCheckedChange={(checked: boolean | 'indeterminate') =>
-                          toggleTemplateType(opt.id, checked === true)
-                        }
+                        onCheckedChange={(checked) => toggleTemplateType(opt.id, checked === true)}
                       />
-                      <label
+                      <label 
                         htmlFor={`${section.id}-${opt.id}`}
                         className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
                       >

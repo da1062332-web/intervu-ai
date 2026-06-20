@@ -29,9 +29,7 @@ export default function BlueprintViewPage() {
     return (
       <div className='container mx-auto py-12 text-center max-w-5xl'>
         <h2 className='text-lg font-medium text-red-600 mb-2'>Unable to load blueprint.</h2>
-        <Button onClick={() => refetch()} variant='outline'>
-          Retry
-        </Button>
+        <Button onClick={() => refetch()} variant='outline'>Retry</Button>
       </div>
     );
   }
@@ -40,10 +38,7 @@ export default function BlueprintViewPage() {
     <div className='container mx-auto py-6 space-y-8 max-w-5xl'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-4'>
-          <Link
-            href='/admin/blueprints'
-            className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors'
-          >
+          <Link href='/admin/blueprints' className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors'>
             <ArrowLeft className='w-5 h-5' />
           </Link>
           <div>
@@ -61,9 +56,7 @@ export default function BlueprintViewPage() {
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         <div className='border rounded-md p-6 bg-white dark:bg-gray-900 shadow-sm'>
-          <h3 className='text-sm font-medium text-gray-500 uppercase tracking-wider mb-4'>
-            General Info
-          </h3>
+          <h3 className='text-sm font-medium text-gray-500 uppercase tracking-wider mb-4'>General Info</h3>
           <dl className='space-y-4'>
             <div>
               <dt className='text-sm text-muted-foreground'>Name</dt>
@@ -81,9 +74,7 @@ export default function BlueprintViewPage() {
         </div>
 
         <div className='border rounded-md p-6 bg-white dark:bg-gray-900 shadow-sm'>
-          <h3 className='text-sm font-medium text-gray-500 uppercase tracking-wider mb-4'>
-            Metrics
-          </h3>
+          <h3 className='text-sm font-medium text-gray-500 uppercase tracking-wider mb-4'>Metrics</h3>
           <dl className='space-y-4'>
             <div>
               <dt className='text-sm text-muted-foreground'>Total Questions</dt>
@@ -96,9 +87,7 @@ export default function BlueprintViewPage() {
             <div>
               <dt className='text-sm text-muted-foreground'>Status</dt>
               <dd>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${blueprint.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
-                >
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${blueprint.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                   {blueprint.isActive ? 'Active' : 'Draft'}
                 </span>
               </dd>
@@ -108,8 +97,9 @@ export default function BlueprintViewPage() {
       </div>
 
       <ValidationDashboard blueprintId={id} />
-
+      
       <PreviewScreen blueprintId={id} />
+
     </div>
   );
 }

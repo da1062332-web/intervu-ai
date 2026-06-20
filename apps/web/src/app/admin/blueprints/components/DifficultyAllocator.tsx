@@ -13,12 +13,10 @@ export function DifficultyAllocator({ sectionId }: DifficultyAllocatorProps) {
   const sectionsState = useBlueprintBuilderStore((state) => state.sections);
   const updateSection = useBlueprintBuilderStore((state) => state.updateSection);
 
-  const sectionState = sectionsState.find((s) => s.sectionId === sectionId) as
-    | BlueprintSectionPayload
-    | undefined;
-
+  const sectionState = sectionsState.find(s => s.sectionId === sectionId) as BlueprintSectionPayload | undefined;
+  
   const difficulty = sectionState?.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
-
+  
   const totalAllocated = (difficulty.easy || 0) + (difficulty.medium || 0) + (difficulty.hard || 0);
   const isValid = totalAllocated === 100;
 
@@ -27,7 +25,7 @@ export function DifficultyAllocator({ sectionId }: DifficultyAllocatorProps) {
       difficultyAllocation: {
         ...difficulty,
         [level]: value,
-      },
+      }
     });
   };
 

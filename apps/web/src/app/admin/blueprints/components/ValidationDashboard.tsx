@@ -12,9 +12,7 @@ interface ValidationDashboardProps {
 }
 
 export function ValidationDashboard({ blueprintId, initialValidation }: ValidationDashboardProps) {
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(
-    initialValidation || null,
-  );
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(initialValidation || null);
   const validateMutation = useValidateBlueprint();
 
   const handleValidate = async () => {
@@ -30,7 +28,11 @@ export function ValidationDashboard({ blueprintId, initialValidation }: Validati
     <div className='space-y-4 border rounded-md p-6 bg-white dark:bg-gray-900 shadow-sm'>
       <div className='flex items-center justify-between border-b pb-4'>
         <h3 className='text-lg font-semibold'>Validation Dashboard</h3>
-        <Button onClick={handleValidate} disabled={validateMutation.isPending} variant='outline'>
+        <Button 
+          onClick={handleValidate} 
+          disabled={validateMutation.isPending}
+          variant='outline'
+        >
           {validateMutation.isPending && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
           Run Validation
         </Button>
@@ -39,9 +41,7 @@ export function ValidationDashboard({ blueprintId, initialValidation }: Validati
       {!validationResult && !validateMutation.isPending && (
         <div className='text-center py-8 text-muted-foreground'>
           <p>Blueprint Not Yet Validated</p>
-          <p className='text-sm mt-1'>
-            Click &apos;Run Validation&apos; to verify blueprint integrity.
-          </p>
+          <p className='text-sm mt-1'>Click &apos;Run Validation&apos; to verify blueprint integrity.</p>
         </div>
       )}
 
@@ -58,9 +58,7 @@ export function ValidationDashboard({ blueprintId, initialValidation }: Validati
               <CheckCircle2 className='w-6 h-6' />
               <div>
                 <p className='font-semibold'>Validation Passed</p>
-                <p className='text-sm mt-1'>
-                  All structural, topical, and difficulty constraints are satisfied.
-                </p>
+                <p className='text-sm mt-1'>All structural, topical, and difficulty constraints are satisfied.</p>
               </div>
             </div>
           ) : (
@@ -68,19 +66,14 @@ export function ValidationDashboard({ blueprintId, initialValidation }: Validati
               <AlertCircle className='w-6 h-6 mt-0.5 flex-shrink-0' />
               <div className='w-full'>
                 <p className='font-semibold'>Validation Failed</p>
-                <p className='text-sm mt-1 mb-4'>
-                  The blueprint contains structural errors that must be resolved before use.
-                </p>
-
+                <p className='text-sm mt-1 mb-4'>The blueprint contains structural errors that must be resolved before use.</p>
+                
                 <div className='space-y-3'>
-                  <h4 className='font-medium text-sm text-gray-900 dark:text-gray-100'>
-                    Error Breakdown
-                  </h4>
+                  <h4 className='font-medium text-sm text-gray-900 dark:text-gray-100'>Error Breakdown</h4>
                   <ul className='space-y-2'>
                     {validationResult.errors?.map((error, idx) => (
                       <li key={idx} className='text-sm flex gap-2'>
-                        <span className='text-red-500'>✗</span>{' '}
-                        {error.replace(/Section "[^"]+":\s*/g, '')}
+                        <span className='text-red-500'>✗</span> {error.replace(/Section "[^"]+":\s*/g, '')}
                       </li>
                     ))}
                   </ul>
@@ -100,17 +93,13 @@ export function ValidationDashboard({ blueprintId, initialValidation }: Validati
             </div>
             <div>
               <p className='text-xs text-muted-foreground'>Missing Questions</p>
-              <p
-                className={`font-semibold ${validationResult.totalMissingQuestions > 0 ? 'text-red-500' : ''}`}
-              >
+              <p className={`font-semibold ${validationResult.totalMissingQuestions > 0 ? 'text-red-500' : ''}`}>
                 {validationResult.totalMissingQuestions}
               </p>
             </div>
             <div>
               <p className='text-xs text-muted-foreground'>Total Weightage</p>
-              <p
-                className={`font-semibold ${validationResult.totalWeightage !== 100 ? 'text-red-500' : 'text-green-600'}`}
-              >
+              <p className={`font-semibold ${validationResult.totalWeightage !== 100 ? 'text-red-500' : 'text-green-600'}`}>
                 {validationResult.totalWeightage}%
               </p>
             </div>

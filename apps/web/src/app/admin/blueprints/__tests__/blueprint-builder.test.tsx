@@ -7,10 +7,7 @@ import { BlueprintHealthWidget } from '../components/BlueprintHealthWidget';
 // Mock the queries
 jest.mock('@/features/topic-section-mapping/api/queries', () => ({
   useSectionTopics: () => ({
-    data: [
-      { topicId: 't1', topicName: 'Arrays' },
-      { topicId: 't2', topicName: 'Strings' },
-    ],
+    data: [{ topicId: 't1', topicName: 'Arrays' }, { topicId: 't2', topicName: 'Strings' }],
     isLoading: false,
     isError: false,
   }),
@@ -35,7 +32,7 @@ describe('Blueprint Builder Components', () => {
 
   it('TopicAllocator should validate to 100%', () => {
     render(<TopicAllocator sectionId='sec1' />);
-
+    
     const inputs = screen.getAllByRole('spinbutton');
     expect(inputs).toHaveLength(2); // 2 topics from mock
 
@@ -47,7 +44,7 @@ describe('Blueprint Builder Components', () => {
 
   it('DifficultyAllocator should update store', () => {
     render(<DifficultyAllocator sectionId='sec1' />);
-
+    
     const inputs = screen.getAllByRole('spinbutton');
     expect(inputs).toHaveLength(3); // Easy, Medium, Hard
 
@@ -56,9 +53,9 @@ describe('Blueprint Builder Components', () => {
     fireEvent.change(inputs[2], { target: { value: '20' } });
 
     expect(screen.getByText(/100% \/ 100%/)).toBeInTheDocument();
-
+    
     const state = useBlueprintBuilderStore.getState();
-    const section = state.sections.find((s) => s.sectionId === 'sec1');
+    const section = state.sections.find(s => s.sectionId === 'sec1');
     expect(section?.difficultyAllocation).toEqual({ easy: 30, medium: 50, hard: 20 });
   });
 
@@ -73,7 +70,7 @@ describe('Blueprint Builder Components', () => {
     });
 
     render(<BlueprintHealthWidget />);
-
+    
     expect(screen.getByText(/Generation Ready/)).toBeInTheDocument();
   });
 
@@ -88,7 +85,7 @@ describe('Blueprint Builder Components', () => {
     });
 
     render(<BlueprintHealthWidget />);
-
+    
     expect(screen.getByText(/Invalid Blueprint/)).toBeInTheDocument();
   });
 });

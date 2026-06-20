@@ -17,17 +17,15 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
   const sectionsState = useBlueprintBuilderStore((state) => state.sections);
   const updateSection = useBlueprintBuilderStore((state) => state.updateSection);
 
-  const sectionState = sectionsState.find((s) => s.sectionId === sectionId) as
-    | BlueprintSectionPayload
-    | undefined;
+  const sectionState = sectionsState.find(s => s.sectionId === sectionId) as BlueprintSectionPayload | undefined;
   const allocations = sectionState?.topicAllocations || [];
 
   useEffect(() => {
     // If topics are loaded but allocations aren't initialized yet, set them to 0 or an even split
     if (topics && topics.length > 0 && allocations.length === 0) {
-      const initialAllocations = topics.map((t) => ({
+      const initialAllocations = topics.map(t => ({
         topicId: t.topicId,
-        percentage: 0,
+        percentage: 0
       }));
       updateSection(sectionId, { topicAllocations: initialAllocations });
     }
@@ -42,7 +40,7 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
   }
 
   const handleUpdate = (topicId: string, percentage: number) => {
-    const newAllocations = allocations.map((a) => {
+    const newAllocations = allocations.map(a => {
       if (a.topicId === topicId) {
         return { ...a, percentage };
       }
@@ -50,7 +48,7 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
     });
 
     // If it's a new topic being interacted with and not in the array
-    if (!newAllocations.find((a) => a.topicId === topicId)) {
+    if (!newAllocations.find(a => a.topicId === topicId)) {
       newAllocations.push({ topicId, percentage });
     }
 
@@ -63,9 +61,7 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
   return (
     <div className='space-y-4 border p-4 rounded-md bg-white dark:bg-gray-900'>
       <div className='flex justify-between items-center'>
-        <Label className='font-semibold text-gray-800 dark:text-gray-200'>
-          Topic Allocation (%)
-        </Label>
+        <Label className='font-semibold text-gray-800 dark:text-gray-200'>Topic Allocation (%)</Label>
         <span className={`text-xs font-bold ${isValid ? 'text-emerald-600' : 'text-red-500'}`}>
           Sum: {totalAllocated}% / 100%
         </span>
@@ -73,15 +69,13 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         {topics.map((topic) => {
-          const alloc = allocations.find((a) => a.topicId === topic.topicId);
+          const alloc = allocations.find(a => a.topicId === topic.topicId);
           const currentVal = alloc?.percentage || 0;
 
           return (
             <div key={topic.topicId} className='space-y-2'>
               <div className='flex justify-between text-xs'>
-                <span className='font-medium text-gray-700 dark:text-gray-300'>
-                  {topic.topicName}
-                </span>
+                <span className='font-medium text-gray-700 dark:text-gray-300'>{topic.topicName}</span>
                 <span className='font-bold text-indigo-600'>{currentVal}%</span>
               </div>
               <Input
