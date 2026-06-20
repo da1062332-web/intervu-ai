@@ -99,7 +99,9 @@ export function SectionConfigurator({ configId }: SectionConfiguratorProps) {
                       <Checkbox
                         id={`${section.id}-${opt.id}`}
                         checked={((sectionState.templateTypes as string[]) || []).includes(opt.id)}
-                        onCheckedChange={(checked: any) => toggleTemplateType(opt.id, checked === true)}
+                        onCheckedChange={(checked: any) =>
+                          toggleTemplateType(opt.id, checked === true)
+                        }
                       />
                       <label
                         htmlFor={`${section.id}-${opt.id}`}
