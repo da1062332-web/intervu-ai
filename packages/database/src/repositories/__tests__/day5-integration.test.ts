@@ -197,8 +197,12 @@ describe("Day 5 Integration & Performance Tests", () => {
     } catch (err: any) {
       expect(err.message).toContain("chk_evaluation_source");
     } finally {
-      await prisma.testInstance.delete({ where: { id: testInstanceForXor.id } }).catch(() => {});
-      await prisma.test.delete({ where: { id: testRecord.id } }).catch(() => {});
+      await prisma.testInstance
+        .delete({ where: { id: testInstanceForXor.id } })
+        .catch(() => {});
+      await prisma.test
+        .delete({ where: { id: testRecord.id } })
+        .catch(() => {});
     }
   }, 30000);
 
