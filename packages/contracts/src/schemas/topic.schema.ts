@@ -1,32 +1,43 @@
 import { z } from "zod";
 
+export enum TopicStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+
 export const TopicBaseSchema = z.object({
-  domain: z
+  name: z
     .string()
-    .min(1, "Domain is required")
-    .max(150, "Domain cannot exceed 150 characters"),
-  topicName: z
+    .min(1, "Topic name is required")
+    .max(255, "Topic name cannot exceed 255 characters"),
+  code: z
     .string()
-    .min(1, "Topic Name is required")
-    .max(150, "Topic Name cannot exceed 150 characters"),
-  subtopic: z
+    .min(1, "Topic code is required")
+    .max(100, "Topic code cannot exceed 100 characters")
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      "Topic code must contain only alphanumeric characters, underscores, or hyphens",
+    ),
+  description: z
     .string()
-    .min(1, "Subtopic is required")
-    .max(150, "Subtopic cannot exceed 150 characters"),
-  tags: z.array(z.string()),
-  easySupport: z.boolean().default(true),
-  mediumSupport: z.boolean().default(true),
-  hardSupport: z.boolean().default(true),
+    .max(1000, "Description cannot exceed 1000 characters")
+    .nullable()
+    .optional(),
+  status: z.nativeEnum(TopicStatus).default(TopicStatus.ACTIVE),
 });
 
-export const CreateTopicSchema = TopicBaseSchema.refine(
-  (data) => data.easySupport || data.mediumSupport || data.hardSupport,
-  {
-    message: "At least one difficulty level must be supported",
-    path: ["easySupport"],
-  },
-);
+export const CreateTopicSchema = TopicBaseSchema;
 
-export const UpdateTopicSchema = TopicBaseSchema.partial().extend({
-  isActive: z.boolean().optional(),
+export const UpdateTopicSchema = TopicBaseSchema.partial();
+
+export const TopicResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  code: z.string(),
+  description: z.string().nullable().optional(),
+  status: z.nativeEnum(TopicStatus),
+  createdAt: z.union([z.date(), z.string()]),
+  updatedAt: z.union([z.date(), z.string()]),
 });
+
+export const TopicListResponseSchema = z.array(TopicResponseSchema);

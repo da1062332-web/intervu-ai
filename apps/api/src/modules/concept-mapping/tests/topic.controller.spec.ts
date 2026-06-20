@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { TopicController } from "../controllers/topic.controller";
 import { TopicService } from "../services/topic.service";
 import { CreateTopicDto, UpdateTopicDto } from "@intervu/shared";
-import { Topic } from "@prisma/client";
+import { Topic, TopicStatus } from "@prisma/client";
 
 describe("TopicController", () => {
   let controller: TopicController;
@@ -10,17 +10,12 @@ describe("TopicController", () => {
 
   const mockTopic: Topic = {
     id: "topic-123",
-    domain: "Software Engineering",
-    topicName: "Data Structures",
-    subtopic: "Arrays & Hashing",
-    tags: ["arrays"],
-    easySupport: true,
-    mediumSupport: true,
-    hardSupport: false,
-    isActive: true,
+    name: "Data Structures",
+    code: "DATA_STRUCTURES",
+    description: "Topic covering data structures and algorithms",
+    status: TopicStatus.ACTIVE,
     createdAt: new Date(),
     updatedAt: new Date(),
-    deletedAt: null,
   };
 
   const mockService = {
@@ -48,13 +43,10 @@ describe("TopicController", () => {
   describe("createTopic", () => {
     it("should call service createTopic", async () => {
       const dto: CreateTopicDto = {
-        domain: "Software Engineering",
-        topicName: "Data Structures",
-        subtopic: "Arrays & Hashing",
-        tags: ["arrays"],
-        easySupport: true,
-        mediumSupport: true,
-        hardSupport: false,
+        name: "Data Structures",
+        code: "DATA_STRUCTURES",
+        description: "Topic covering data structures and algorithms",
+        status: "ACTIVE",
       };
       service.createTopic.mockResolvedValue(mockTopic);
 
@@ -89,16 +81,16 @@ describe("TopicController", () => {
 
   describe("updateTopic", () => {
     it("should call service updateTopic", async () => {
-      const dto: UpdateTopicDto = { topicName: "New Name" };
+      const dto: UpdateTopicDto = { name: "New Name" };
       service.updateTopic.mockResolvedValue({
         ...mockTopic,
-        topicName: "New Name",
+        name: "New Name",
       });
 
       const result = await controller.updateTopic("topic-123", dto);
 
       expect(service.updateTopic).toHaveBeenCalledWith("topic-123", dto);
-      expect(result.topicName).toBe("New Name");
+      expect(result.name).toBe("New Name");
     });
   });
 

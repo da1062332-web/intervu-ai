@@ -118,8 +118,7 @@ describe("TopicSectionMappingService", () => {
       } as any);
       topicRepo.findById.mockResolvedValue({
         id: "topic1",
-        isActive: true,
-        deletedAt: null,
+        status: "ACTIVE",
       } as any);
       repository.exists.mockResolvedValue(false);
       repository.createMapping.mockResolvedValue({
@@ -169,8 +168,7 @@ describe("TopicSectionMappingService", () => {
       } as any);
       topicRepo.findById.mockResolvedValue({
         id: "topic1",
-        isActive: true,
-        deletedAt: null,
+        status: "ACTIVE",
       } as any);
       repository.exists.mockResolvedValue(true);
 

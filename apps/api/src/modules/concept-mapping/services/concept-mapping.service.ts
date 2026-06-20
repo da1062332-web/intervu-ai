@@ -10,6 +10,7 @@ import {
   CreateConceptMappingDto,
   UpdateConceptMappingDto,
 } from "@intervu/shared";
+import { ConceptStatus } from "@prisma/client";
 
 @Injectable()
 export class ConceptMappingService {
@@ -27,20 +28,24 @@ export class ConceptMappingService {
       );
     }
 
+    const codeUpper = (dto.code || dto.conceptCode).toUpperCase();
     const existing = await this.repository.findByTopicAndCode(
       topicId,
-      dto.conceptCode,
+      codeUpper,
     );
     if (existing) {
       throw new ConflictException(
-        `Concept code ${dto.conceptCode} already exists for topic ${topicId}`,
+        `Concept code ${codeUpper} already exists for topic ${topicId}`,
       );
     }
 
+    const name = dto.name || dto.conceptName;
+
     const createData = {
-      conceptName: dto.conceptName,
-      conceptCode: dto.conceptCode,
+      name,
+      code: codeUpper,
       description: dto.description,
+      status: (dto.status as ConceptStatus) || ConceptStatus.ACTIVE,
       topicId,
     };
 
@@ -63,22 +68,30 @@ export class ConceptMappingService {
       throw new NotFoundException(`Concept with ID ${conceptId} not found`);
     }
 
-    if (
-      dto.conceptCode !== undefined &&
-      dto.conceptCode !== concept.conceptCode
-    ) {
-      const existing = await this.repository.findByTopicAndCode(
-        concept.topicId,
-        dto.conceptCode,
-      );
-      if (existing && existing.id !== conceptId) {
-        throw new ConflictException(
-          `Concept code ${dto.conceptCode} already exists for topic ${concept.topicId}`,
+    const code = dto.code || dto.conceptCode;
+    if (code !== undefined) {
+      const codeUpper = code.toUpperCase();
+      if (codeUpper !== concept.code) {
+        const existing = await this.repository.findByTopicAndCode(
+          concept.topicId,
+          codeUpper,
         );
+        if (existing && existing.id !== conceptId) {
+          throw new ConflictException(
+            `Concept code ${codeUpper} already exists for topic ${concept.topicId}`,
+          );
+        }
       }
     }
 
-    return this.repository.update(conceptId, dto);
+    const name = dto.name || dto.conceptName;
+
+    return this.repository.update(conceptId, {
+      name,
+      code: code ? code.toUpperCase() : undefined,
+      description: dto.description,
+      status: dto.status as ConceptStatus,
+    });
   }
 
   async deleteConcept(conceptId: string) {

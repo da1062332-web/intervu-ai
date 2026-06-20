@@ -1,70 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useBlueprints, useDeleteBlueprint } from '@/services/blueprints';
+import { useBlueprints } from '@/services/blueprints/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CreateBlueprintModal } from './components/CreateBlueprintModal';
+import { Plus, Eye, Edit2, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
-import { Search, Plus, RefreshCw, Trash2, Edit } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export function BlueprintListPageClient() {
-  const { data: blueprints, isLoading, isError, refetch, isFetching } = useBlueprints();
-  const { mutateAsync: deleteBlueprint, isPending: isDeleting } = useDeleteBlueprint();
+  const { data: blueprints, isLoading, isError, refetch } = useBlueprints();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  function setIsCreateModalOpen(arg0: boolean): void {
+    throw new Error('Function not implemented.');
+  }
 
-  const filteredBlueprints = blueprints?.filter(
-    (bp) =>
-      bp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bp.code.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete blueprint "${name}"?`)) {
-      try {
-        await deleteBlueprint(id);
-        toast.success('Blueprint deleted successfully');
-      } catch {
-        toast.error('Failed to delete blueprint');
-      }
-    }
-  };
-
-  if (isError) {
-    return (
-      <div className='mt-8 text-center py-12 border rounded-md'>
-        <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading blueprints</h3>
-        <p className='text-muted-foreground mb-4'>
-          We could not load the blueprints from the server.
-        </p>
-        <Button onClick={() => refetch()} variant='outline'>
-          Try again
-        </Button>
-      </div>
-    );
+  function handleDelete(id: any, name: any): void {
+    throw new Error('Function not implemented.');
   }
 
   return (
-    <div className='mt-8 flex flex-col space-y-4'>
+    <div className='container mx-auto py-6 space-y-6 max-w-7xl'>
       <div className='flex justify-between items-center'>
-        <div className='flex gap-2'>
-          <div className='relative w-64'>
-            <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
-            <Input
-              type='text'
-              placeholder='Search blueprints...'
-              className='pl-9'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Button variant='outline' size='icon' onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+        <div>
+          <h1 className='text-2xl font-bold tracking-tight'>Exam Blueprints</h1>
+          <p className='text-muted-foreground'>Manage your generated exam blueprints.</p>
         </div>
         <div className='flex items-center gap-4'>
           <Link href='/admin/templates'>
@@ -184,27 +142,15 @@ export function BlueprintListPageClient() {
                         >
                           <Trash2 className='h-4 w-4' />
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredBlueprints?.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className='py-8 text-center text-sm text-gray-500'>
-                        No blueprints found matching your search.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
-
-      <CreateBlueprintModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
+        )}
+      </div>
     </div>
   );
 }

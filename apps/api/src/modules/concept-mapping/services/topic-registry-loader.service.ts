@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { TopicStatus, ConceptStatus } from "@prisma/client";
 
 export interface TopicRegistryItem {
   id: string;
@@ -29,32 +30,36 @@ export class TopicRegistryLoader implements OnModuleInit {
     try {
       const dbTopics = await this.prisma.topic.findMany({
         where: {
-          deletedAt: null,
-          isActive: true,
+          status: TopicStatus.ACTIVE,
         },
         include: {
-          conceptMappings: {
+          concepts: {
             where: {
-              deletedAt: null,
-              isActive: true,
+              status: ConceptStatus.ACTIVE,
             },
           },
         },
       });
 
-      const items: TopicRegistryItem[] = dbTopics.map((t) => ({
-        id: t.id,
-        domain: t.domain,
-        topic: t.topicName,
-        subtopic: t.subtopic,
-        concepts: t.conceptMappings.map((cm) => cm.conceptName),
-        tags: t.tags,
-        difficultySupport: {
-          easy: t.easySupport,
-          medium: t.mediumSupport,
-          hard: t.hardSupport,
-        },
-      }));
+      const items: TopicRegistryItem[] = dbTopics.map((t) => {
+        const parts = (t.description || "").split(" - ");
+        const domain = parts[0] || "Software Engineering";
+        const subtopic = parts[1] || "";
+
+        return {
+          id: t.id,
+          domain,
+          topic: t.name,
+          subtopic,
+          concepts: t.concepts.map((c) => c.code),
+          tags: [],
+          difficultySupport: {
+            easy: true,
+            medium: true,
+            hard: true,
+          },
+        };
+      });
 
       this.registryCache.clear();
       for (const item of items) {

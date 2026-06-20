@@ -74,7 +74,7 @@ export class BlueprintConfigController {
 
     // Map to Detail Response API
     const topics = blueprint.topicConfigs.map((tc) => ({
-      topicName: tc.topic.topicName,
+      topicName: tc.topic.name,
       sectionName: tc.examSection?.name || "Uncategorized",
       questionCount: tc.questionCount,
       weightage: tc.weightage,
