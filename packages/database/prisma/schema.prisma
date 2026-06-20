@@ -81,6 +81,8 @@ model Template {
   generatedQuestions GeneratedQuestion[]
   creator            User?               @relation(fields: [creatorId], references: [id])
   tests              Test[]
+  variables          TemplateVariable[]
+  rules              TemplateRule[]
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -643,3 +645,48 @@ model BlueprintTopicConfig {
   @@index([sectionId])
   @@index([topicId])
 }
+
+enum VariableType {
+  STRING
+  NUMBER
+  BOOLEAN
+  ARRAY
+  CODE
+}
+
+enum RuleType {
+  DIFFICULTY
+  RANGE
+  LENGTH
+  REGEX
+}
+
+model TemplateVariable {
+  id           String       @id @default(uuid())
+  templateId   String       @map("template_id")
+  variableName String       @map("variable_name")
+  variableType VariableType @map("variable_type")
+  required     Boolean      @default(false)
+  defaultValue String?      @map("default_value")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  template     Template     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, variableName])
+  @@map("template_variables")
+  @@index([templateId])
+}
+
+model TemplateRule {
+  id         String   @id @default(uuid())
+  templateId String   @map("template_id")
+  ruleType   RuleType @map("rule_type")
+  ruleConfig Json     @map("rule_config")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("template_rules")
+  @@index([templateId])
+}
+

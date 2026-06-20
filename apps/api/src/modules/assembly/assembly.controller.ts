@@ -36,7 +36,7 @@ type PopulatedSection = TestInstanceSection & {
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @Roles(UserRole.ADMIN)
-@Controller("api/v1/assembly")
+@Controller("assembly")
 export class AssemblyController {
   constructor(private readonly assemblyService: AssemblyService) {}
 

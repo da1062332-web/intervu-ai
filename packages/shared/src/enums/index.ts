@@ -3,3 +3,4 @@ export * from "./event.enum";
 export * from "./difficulty.enum";
 export * from "./ai-model.enum";
 export * from "./global.enum";
+export * from "./template-schema.enum";

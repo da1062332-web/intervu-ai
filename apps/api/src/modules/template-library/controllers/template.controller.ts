@@ -23,7 +23,11 @@ import {
 } from "@nestjs/swagger";
 import { DifficultyLevel, UserRole } from "@prisma/client";
 
-import { CreateTemplateDto, UpdateTemplateDto } from "@intervu/shared";
+import {
+  CreateTemplateDto,
+  UpdateTemplateDto,
+  TemplateValidationRequestDto,
+} from "@intervu/shared";
 import {
   ValidateResponse,
   TemplateSchema,
@@ -31,6 +35,7 @@ import {
   TemplatePaginatedSchema,
   TemplateVersionSchema,
   TemplateRemoveSchema,
+  TemplateValidationResponseSchema,
 } from "@intervu/shared";
 import { TemplateService } from "../services/template.service";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -149,5 +154,19 @@ export class TemplateController {
   @ApiOkResponse({ description: "Template soft-deleted successfully" })
   async remove(@Param("id") id: string) {
     return this.templateService.remove(id);
+  }
+
+  @Post(":id/validate")
+  @HttpCode(HttpStatus.OK)
+  @ValidateResponse(TemplateValidationResponseSchema)
+  @ApiOperation({ summary: "Validate template variables & constraints" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  @ApiBody({ type: TemplateValidationRequestDto })
+  @ApiOkResponse({ description: "Validation results" })
+  async validateTemplate(
+    @Param("id") id: string,
+    @Body() dto: TemplateValidationRequestDto,
+  ) {
+    return this.templateService.validateTemplate(id, dto.values);
   }
 }

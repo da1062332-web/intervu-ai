@@ -27,7 +27,7 @@ import { UserRole } from "@prisma/client";
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ResponseInterceptor)
 @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
-@Controller("v1/users/me")
+@Controller("users/me")
 export class PerformanceController {
   constructor(private readonly performanceService: PerformanceService) {}
 

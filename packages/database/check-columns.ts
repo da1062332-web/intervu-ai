@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const result = await prisma.$queryRawUnsafe(
-    `SELECT column_name FROM information_schema.columns WHERE table_name = 'ExamSection'`,
+    `SELECT column_name FROM information_schema.columns WHERE table_name = 'template_variables'`,
   );
   console.log(result);
 }

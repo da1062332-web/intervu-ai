@@ -1,45 +1,30 @@
 'use client';
 
 import { useState } from 'react';
-import { useBlueprints, useDeleteBlueprint } from '@/services/blueprints';
+import { useTemplates } from '@/services/templates/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CreateBlueprintModal } from './components/CreateBlueprintModal';
 import Link from 'next/link';
-import { Search, Plus, RefreshCw, Trash2, Edit } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Search, RefreshCw, Settings } from 'lucide-react';
 
-export function BlueprintListPageClient() {
-  const { data: blueprints, isLoading, isError, refetch, isFetching } = useBlueprints();
-  const { mutateAsync: deleteBlueprint, isPending: isDeleting } = useDeleteBlueprint();
+export function TemplateListPageClient() {
+  const { data: templatesData, isLoading, isError, refetch, isFetching } = useTemplates();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const filteredBlueprints = blueprints?.filter(
-    (bp) =>
-      bp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bp.code.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredTemplates = templatesData?.items?.filter(
+    (tpl) =>
+      tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (tpl.description && tpl.description.toLowerCase().includes(searchQuery.toLowerCase())),
   );
-
-  const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete blueprint "${name}"?`)) {
-      try {
-        await deleteBlueprint(id);
-        toast.success('Blueprint deleted successfully');
-      } catch {
-        toast.error('Failed to delete blueprint');
-      }
-    }
-  };
 
   if (isError) {
     return (
       <div className='mt-8 text-center py-12 border rounded-md'>
-        <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading blueprints</h3>
+        <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading templates</h3>
         <p className='text-muted-foreground mb-4'>
-          We could not load the blueprints from the server.
+          We could not load the templates from the server.
         </p>
         <Button onClick={() => refetch()} variant='outline'>
           Try again
@@ -56,7 +41,7 @@ export function BlueprintListPageClient() {
             <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500' />
             <Input
               type='text'
-              placeholder='Search blueprints...'
+              placeholder='Search templates...'
               className='pl-9'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -64,15 +49,6 @@ export function BlueprintListPageClient() {
           </div>
           <Button variant='outline' size='icon' onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
-        <div className='flex items-center gap-4'>
-          <Link href='/admin/templates'>
-            <Button variant='outline'>Template Library</Button>
-          </Link>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className='h-4 w-4 mr-2' />
-            Create Blueprint
           </Button>
         </div>
       </div>
@@ -83,18 +59,12 @@ export function BlueprintListPageClient() {
             <Skeleton key={i} className='h-16 w-full rounded-md' />
           ))}
         </div>
-      ) : !blueprints || blueprints.length === 0 ? (
+      ) : !templatesData?.items || templatesData.items.length === 0 ? (
         <div className='mt-8 text-center py-12 border border-dashed rounded-md bg-white dark:bg-gray-900'>
           <h3 className='text-lg font-medium text-gray-900 dark:text-gray-100 mb-1'>
-            No blueprints found
+            No templates found
           </h3>
-          <p className='text-muted-foreground mb-6'>
-            Get started by designing a new blueprint for an exam configuration.
-          </p>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className='h-4 w-4 mr-2' />
-            Create Blueprint
-          </Button>
+          <p className='text-muted-foreground mb-6'>There are no templates available yet.</p>
         </div>
       ) : (
         <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
@@ -113,19 +83,7 @@ export function BlueprintListPageClient() {
                       scope='col'
                       className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200'
                     >
-                      Code
-                    </th>
-                    <th
-                      scope='col'
-                      className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200'
-                    >
-                      Questions
-                    </th>
-                    <th
-                      scope='col'
-                      className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-200'
-                    >
-                      Duration
+                      Description
                     </th>
                     <th
                       scope='col'
@@ -142,24 +100,14 @@ export function BlueprintListPageClient() {
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900'>
-                  {filteredBlueprints?.map((bp) => (
-                    <tr key={bp.id}>
+                  {filteredTemplates?.map((tpl) => (
+                    <tr key={tpl.id}>
                       <td className='whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6'>
-                        {bp.name}
+                        {tpl.name}
                       </td>
-                      <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
-                        <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'>
-                          {bp.code}
-                        </span>
-                      </td>
-                      <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
-                        {bp.totalQuestions}
-                      </td>
-                      <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
-                        {bp.totalDurationMinutes} min
-                      </td>
+                      <td className='px-3 py-4 text-sm text-gray-500'>{tpl.description || '-'}</td>
                       <td className='whitespace-nowrap px-3 py-4 text-sm'>
-                        {bp.isActive ? (
+                        {tpl.active ? (
                           <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800'>
                             Active
                           </span>
@@ -170,27 +118,19 @@ export function BlueprintListPageClient() {
                         )}
                       </td>
                       <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex justify-end gap-2'>
-                        <Link href={`/admin/blueprints/builder?id=${bp.id}`}>
+                        <Link href={`/admin/templates/${tpl.id}`}>
                           <Button variant='outline' size='sm'>
-                            <Edit className='h-4 w-4 mr-1' />
-                            Manage
+                            <Settings className='h-4 w-4 mr-1' />
+                            Manage Schema
                           </Button>
                         </Link>
-                        <Button
-                          variant='destructive'
-                          size='icon'
-                          onClick={() => handleDelete(bp.id, bp.name)}
-                          disabled={isDeleting}
-                        >
-                          <Trash2 className='h-4 w-4' />
-                        </Button>
                       </td>
                     </tr>
                   ))}
-                  {filteredBlueprints?.length === 0 && (
+                  {filteredTemplates?.length === 0 && (
                     <tr>
-                      <td colSpan={6} className='py-8 text-center text-sm text-gray-500'>
-                        No blueprints found matching your search.
+                      <td colSpan={4} className='py-8 text-center text-sm text-gray-500'>
+                        No templates found matching your search.
                       </td>
                     </tr>
                   )}
@@ -200,11 +140,6 @@ export function BlueprintListPageClient() {
           </div>
         </div>
       )}
-
-      <CreateBlueprintModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
     </div>
   );
 }
