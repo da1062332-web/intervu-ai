@@ -10,7 +10,7 @@ This report certifies that the InterVu AI backend, database schema, repositories
 
 The backend has passed all launch readiness automation checks:
 
-- **Migration Integrity (PASS)**: All 5 database migrations (Days 1–6) run in correct forward execution order. The Postgres schema is 100% synchronized with the `schema.prisma` configuration without drift.
+- **Migration Integrity (PASS)**: All 15 database migrations run in correct forward execution order. The Postgres schema matches the migrations (with the known RuleFlags / DifficultyDistribution drift handled separately by another developer).
 - **Repository encapsulation (PASS)**: Database queries are completely encapsulated inside repositories. No direct/leaky `prisma` calls bypass the boundary layer.
 - **Transaction Rollback (PASS)**: Atomicity and rollback guarantees were verified for Assembly Creation, Answer Autosaving, Submissions, and Evaluation writes. Any intermediate step failure successfully triggers a complete database rollback.
 

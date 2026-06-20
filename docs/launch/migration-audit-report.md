@@ -26,13 +26,23 @@ All expected relational models are fully implemented:
 **Objective**: Verify existing migrations.
 **Result**: **PASS**
 
-The active migrations folder contains 5 migrations corresponding to the development days:
+The active migrations folder contains 15 migrations corresponding to the development days:
 
 1. `20260608071350_day1_persistence_foundation`: Initial user accounts, templates, legacy tests, and configs.
 2. `20260609000000_day3_test_instance_storage`: Relational schema for test instances, sections, and questions.
 3. `20260610000000_day4_execution_persistence`: Answer caching, current execution status, and submission states.
 4. `20260610000001_day5_evaluation_results`: Granular scoring, skill score breakdowns, recommendation priorities, and metrics dashboard.
 5. `20260610084446_day6_index_optimization`: Performance indexes on query search attributes.
+6. `20260615052038_add_exam_config_foundation`: Scaffold for core ExamConfig model and related entities.
+7. `20260616055421_add_exam_section`: Add exam sections configuration schema.
+8. `20260617053201_use_cuid_for_config_models`: Update schemas to use CUID references, add DifficultyDistribution and ExamRuleFlags.
+9. `20260617060000_add_concept_mapping`: Add concept mappings model under topic registry.
+10. `20260618050000_refine_exam_config_and_sections`: Refine columns, statuses, indexes, and ordering constraints on configs/sections.
+11. `20260618082618_add_style_profile_and_blueprint`: Add style profile characteristics and blueprint templates tables.
+12. `20260618100847_add_section_topic_mapping`: Add many-to-many topic mapping model for section configurations.
+13. `20260618120000_add_topic_crud`: Add registry-backed topic model schema.
+14. `20260619000000_init_blueprint_config`: Scaffold blueprint config templates and section-topic configurations.
+15. `20260619061700_add_section_topic_weightage`: Add weightage distribution schema for section topic configurations.
 
 All migrations run in forward execution order cleanly.
 

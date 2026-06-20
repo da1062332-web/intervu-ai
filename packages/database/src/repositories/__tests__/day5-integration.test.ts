@@ -172,11 +172,18 @@ describe("Day 5 Integration & Performance Tests", () => {
       },
     });
 
+    const testInstanceForXor = await prisma.testInstance.create({
+      data: {
+        userId: testUserId,
+        testConfigId: testConfigId,
+      },
+    });
+
     try {
       await prisma.evaluationResult.create({
         data: {
           testId: testRecord.id,
-          testInstanceId: testInstanceId,
+          testInstanceId: testInstanceForXor.id,
           userId: testUserId,
           overallScore: 90,
           confidenceScore: 0.8,
@@ -190,7 +197,8 @@ describe("Day 5 Integration & Performance Tests", () => {
     } catch (err: any) {
       expect(err.message).toContain("chk_evaluation_source");
     } finally {
-      await prisma.test.delete({ where: { id: testRecord.id } });
+      await prisma.testInstance.delete({ where: { id: testInstanceForXor.id } }).catch(() => {});
+      await prisma.test.delete({ where: { id: testRecord.id } }).catch(() => {});
     }
   }, 30000);
 
