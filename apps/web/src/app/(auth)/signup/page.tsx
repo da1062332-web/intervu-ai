@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Sparkles, Github as GithubIcon } from 'lucide-react';
+import { ArrowRight, Sparkles, Github } from 'lucide-react';
 
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -100,7 +100,7 @@ export default function SignupPage() {
               variant='outline'
               className='h-11 bg-card hover:bg-muted font-medium border-border/50 shadow-sm transition-all hover:shadow-md'
             >
-              <GithubIcon className='w-5 h-5 mr-2' />
+              <Github className='w-5 h-5 mr-2' />
               GitHub
             </Button>
           </div>

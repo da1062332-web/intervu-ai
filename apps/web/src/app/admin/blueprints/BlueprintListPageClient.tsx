@@ -67,10 +67,8 @@ export function BlueprintListPageClient() {
           </Button>
         </div>
         <div className='flex items-center gap-4'>
-          <Link href="/admin/templates">
-            <Button variant="outline">
-              Template Library
-            </Button>
+          <Link href='/admin/templates'>
+            <Button variant='outline'>Template Library</Button>
           </Link>
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className='h-4 w-4 mr-2' />
