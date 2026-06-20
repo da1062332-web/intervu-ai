@@ -3,9 +3,12 @@ import type { ConceptMapping, CreateConceptPayload, UpdateConceptPayload } from 
 
 export const conceptMappingApi = {
   getConcepts: async (topicId: string, activeOnly = true) => {
-    return apiClient.request<ConceptMapping[]>(`/admin/topics/${topicId}/concepts?activeOnly=${activeOnly}`, {
-      method: 'GET',
-    });
+    return apiClient.request<ConceptMapping[]>(
+      `/admin/topics/${topicId}/concepts?activeOnly=${activeOnly}`,
+      {
+        method: 'GET',
+      },
+    );
   },
 
   createConcept: async (topicId: string, payload: CreateConceptPayload) => {

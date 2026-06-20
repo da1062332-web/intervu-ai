@@ -23,7 +23,7 @@ export async function seedTopics(prisma: PrismaClient) {
 
   for (const t of topics) {
     const topicCode = t.topic.toUpperCase().replace(/[^A-Z0-9]/g, "_");
-    
+
     // Seed Topic
     const topic = await prisma.topic.upsert({
       where: { code: topicCode },
@@ -44,7 +44,9 @@ export async function seedTopics(prisma: PrismaClient) {
     // Seed child Concepts
     if (t.concepts && Array.isArray(t.concepts)) {
       for (const conceptName of t.concepts) {
-        const conceptCode = conceptName.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+        const conceptCode = conceptName
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "_");
         await prisma.concept.upsert({
           where: {
             topicId_code: {
@@ -66,5 +68,7 @@ export async function seedTopics(prisma: PrismaClient) {
       }
     }
   }
-  console.log(`Seeded ${topics.length} topics and their concepts successfully.`);
+  console.log(
+    `Seeded ${topics.length} topics and their concepts successfully.`,
+  );
 }

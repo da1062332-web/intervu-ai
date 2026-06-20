@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
 import { TopicRepository } from "../repositories/topic.repository";
 import { CreateTopicDto, UpdateTopicDto } from "@intervu/shared";
 import { TopicRegistryLoader } from "./topic-registry-loader.service";
@@ -52,7 +56,9 @@ export class TopicService {
       if (codeUpper !== existingTopic.code) {
         const existing = await this.repository.findByCode(codeUpper);
         if (existing && existing.id !== id) {
-          throw new ConflictException(`Topic with code ${dto.code} already exists`);
+          throw new ConflictException(
+            `Topic with code ${dto.code} already exists`,
+          );
         }
       }
     }

@@ -11,10 +11,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
 
 @Module({
   imports: [PrismaModule, ConceptMappingModule, AdminConfigModule],
-  controllers: [
-    TopicSectionMappingController,
-    TopicWeightageController,
-  ],
+  controllers: [TopicSectionMappingController, TopicWeightageController],
   providers: [
     TopicSectionMappingService,
     TopicSectionMappingRepository,

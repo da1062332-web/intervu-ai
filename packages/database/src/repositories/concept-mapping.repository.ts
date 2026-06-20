@@ -75,10 +75,7 @@ export class ConceptMappingRepository {
     }
   }
 
-  async update(
-    id: string,
-    data: Prisma.ConceptUpdateInput,
-  ): Promise<Concept> {
+  async update(id: string, data: Prisma.ConceptUpdateInput): Promise<Concept> {
     this.validate(id);
     this.validate(data);
     try {

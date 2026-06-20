@@ -3,28 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  useTopics,
-  useCreateTopic,
-  useUpdateTopic,
-  useDeactivateTopic,
-} from '@/services/topics';
+import { useTopics, useCreateTopic, useUpdateTopic, useDeactivateTopic } from '@/services/topics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { EmptyStateCard } from '@/components/ui/empty-state';
-import {
-  Search,
-  Plus,
-  Eye,
-  Trash2,
-  RefreshCcw,
-  Edit2,
-  X,
-  CheckCircle,
-} from 'lucide-react';
+import { Search, Plus, Eye, Trash2, RefreshCcw, Edit2, X, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Topic } from '@/services/topics/types';
 
@@ -117,7 +103,7 @@ export function TopicsPageClient() {
           setIsCreateOpen(false);
           refetch();
         },
-      }
+      },
     );
   };
 
@@ -153,7 +139,7 @@ export function TopicsPageClient() {
           setIsEditOpen(false);
           refetch();
         },
-      }
+      },
     );
   };
 
@@ -173,7 +159,7 @@ export function TopicsPageClient() {
         },
         {
           onSuccess: () => refetch(),
-        }
+        },
       );
     }
   };
@@ -190,7 +176,10 @@ export function TopicsPageClient() {
             Configure globally unique topics and manage nested modular concept nodes.
           </p>
         </div>
-        <Button onClick={handleOpenCreate} className='self-start md:self-auto shadow-md hover:shadow-lg transition-all duration-200'>
+        <Button
+          onClick={handleOpenCreate}
+          className='self-start md:self-auto shadow-md hover:shadow-lg transition-all duration-200'
+        >
           <Plus className='w-4 h-4 mr-2' />
           Add Topic
         </Button>
@@ -251,7 +240,9 @@ export function TopicsPageClient() {
                       </Badge>
                     </td>
                     <td className='p-4 text-muted-foreground max-w-xs truncate'>
-                      {topic.description || <span className='text-muted-foreground/40 italic'>No description</span>}
+                      {topic.description || (
+                        <span className='text-muted-foreground/40 italic'>No description</span>
+                      )}
                     </td>
                     <td className='p-4'>
                       <Badge
@@ -318,13 +309,20 @@ export function TopicsPageClient() {
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} className='max-w-md'>
         <div className='flex items-center justify-between border-b pb-4 mb-4'>
           <h2 className='text-lg font-bold text-foreground'>Create New Topic</h2>
-          <Button variant='ghost' size='icon' onClick={() => setIsCreateOpen(false)} className='h-6 w-6'>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => setIsCreateOpen(false)}
+            className='h-6 w-6'
+          >
             <X className='w-4 h-4' />
           </Button>
         </div>
         <form onSubmit={handleCreateSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='create-name'>Name</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='create-name'>
+              Name
+            </label>
             <Input
               id='create-name'
               placeholder='e.g., Data Structures'
@@ -334,7 +332,9 @@ export function TopicsPageClient() {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='create-code'>Code</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='create-code'>
+              Code
+            </label>
             <Input
               id='create-code'
               placeholder='e.g., DATA_STRUCTURES'
@@ -345,7 +345,9 @@ export function TopicsPageClient() {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='create-desc'>Description</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='create-desc'>
+              Description
+            </label>
             <Input
               id='create-desc'
               placeholder='Optional short summary of this topic...'
@@ -393,13 +395,20 @@ export function TopicsPageClient() {
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} className='max-w-md'>
         <div className='flex items-center justify-between border-b pb-4 mb-4'>
           <h2 className='text-lg font-bold text-foreground'>Edit Topic</h2>
-          <Button variant='ghost' size='icon' onClick={() => setIsEditOpen(false)} className='h-6 w-6'>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => setIsEditOpen(false)}
+            className='h-6 w-6'
+          >
             <X className='w-4 h-4' />
           </Button>
         </div>
         <form onSubmit={handleEditSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='edit-name'>Name</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='edit-name'>
+              Name
+            </label>
             <Input
               id='edit-name'
               placeholder='e.g., Data Structures'
@@ -409,7 +418,9 @@ export function TopicsPageClient() {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='edit-code'>Code</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='edit-code'>
+              Code
+            </label>
             <Input
               id='edit-code'
               placeholder='e.g., DATA_STRUCTURES'
@@ -420,7 +431,9 @@ export function TopicsPageClient() {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='edit-desc'>Description</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='edit-desc'>
+              Description
+            </label>
             <Input
               id='edit-desc'
               placeholder='Optional short summary...'

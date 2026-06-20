@@ -45,7 +45,7 @@ export class TopicRegistryLoader implements OnModuleInit {
         const parts = (t.description || "").split(" - ");
         const domain = parts[0] || "Software Engineering";
         const subtopic = parts[1] || "";
-        
+
         return {
           id: t.id,
           domain,

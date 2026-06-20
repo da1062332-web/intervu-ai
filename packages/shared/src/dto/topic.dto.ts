@@ -10,7 +10,9 @@ export class CreateTopicDto implements CreateTopic {
   @ApiProperty({ example: "DATA_STRUCTURES" })
   code!: string;
 
-  @ApiPropertyOptional({ example: "Topic covering data structures and algorithms" })
+  @ApiPropertyOptional({
+    example: "Topic covering data structures and algorithms",
+  })
   description?: string | null;
 
   @ApiPropertyOptional({ example: "ACTIVE" })

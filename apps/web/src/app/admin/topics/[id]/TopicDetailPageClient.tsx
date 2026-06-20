@@ -15,16 +15,7 @@ import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { EmptyStateCard } from '@/components/ui/empty-state';
-import {
-  ArrowLeft,
-  Search,
-  Plus,
-  Trash2,
-  Edit2,
-  X,
-  RefreshCcw,
-  CheckCircle,
-} from 'lucide-react';
+import { ArrowLeft, Search, Plus, Trash2, Edit2, X, RefreshCcw, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ConceptMapping } from '@/services/concept-mapping/types';
 
@@ -33,8 +24,18 @@ interface ClientProps {
 }
 
 export function TopicDetailPageClient({ topicId }: ClientProps) {
-  const { data: topic, isLoading: topicLoading, isError: topicError, refetch: refetchTopic } = useTopic(topicId);
-  const { data: concepts, isLoading: conceptsLoading, isError: conceptsError, refetch: refetchConcepts } = useConcepts(topicId, false);
+  const {
+    data: topic,
+    isLoading: topicLoading,
+    isError: topicError,
+    refetch: refetchTopic,
+  } = useTopic(topicId);
+  const {
+    data: concepts,
+    isLoading: conceptsLoading,
+    isError: conceptsError,
+    refetch: refetchConcepts,
+  } = useConcepts(topicId, false);
 
   const createMutation = useCreateConcept(topicId);
   const updateMutation = useUpdateConcept(topicId);
@@ -146,7 +147,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           setIsCreateOpen(false);
           refetchConcepts();
         },
-      }
+      },
     );
   };
 
@@ -184,14 +185,18 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           setIsEditOpen(false);
           refetchConcepts();
         },
-      }
+      },
     );
   };
 
   const handleToggleDeactivate = (concept: ConceptMapping) => {
     const isAct = concept.status === 'ACTIVE';
     if (isAct) {
-      if (!window.confirm(`Are you sure you want to deactivate the concept "${concept.name || concept.conceptName}"?`)) {
+      if (
+        !window.confirm(
+          `Are you sure you want to deactivate the concept "${concept.name || concept.conceptName}"?`,
+        )
+      ) {
         return;
       }
       deactivateMutation.mutate(concept.id, {
@@ -208,7 +213,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         },
         {
           onSuccess: () => refetchConcepts(),
-        }
+        },
       );
     }
   };
@@ -217,7 +222,11 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     <div className='space-y-8 animate-fade-in'>
       {/* Navigation Breadcrumb */}
       <div>
-        <Button asChild variant='ghost' className='pl-0 text-muted-foreground hover:text-foreground'>
+        <Button
+          asChild
+          variant='ghost'
+          className='pl-0 text-muted-foreground hover:text-foreground'
+        >
           <Link href='/admin/topics'>
             <ArrowLeft className='w-4 h-4 mr-2' />
             Back to Topics
@@ -249,7 +258,11 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           </div>
         </div>
         <p className='text-muted-foreground text-base max-w-3xl leading-relaxed'>
-          {topic.description || <span className='italic text-muted-foreground/50'>No description provided for this topic.</span>}
+          {topic.description || (
+            <span className='italic text-muted-foreground/50'>
+              No description provided for this topic.
+            </span>
+          )}
         </p>
       </div>
 
@@ -259,7 +272,8 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           <div>
             <h3 className='text-2xl font-bold tracking-tight text-foreground'>Concept Registry</h3>
             <p className='text-muted-foreground mt-1 text-sm'>
-              Create and manage nested concepts used for question generation mapping under this topic.
+              Create and manage nested concepts used for question generation mapping under this
+              topic.
             </p>
           </div>
           <Button onClick={handleOpenCreate} className='self-start sm:self-auto shadow-sm'>
@@ -312,20 +326,29 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                   {filteredConcepts.map((concept) => {
                     const cName = concept.name || concept.conceptName;
                     const cCode = concept.code || concept.conceptCode;
-                    const isAct = (concept.status || (concept.isActive ? 'ACTIVE' : 'INACTIVE')) === 'ACTIVE';
+                    const isAct =
+                      (concept.status || (concept.isActive ? 'ACTIVE' : 'INACTIVE')) === 'ACTIVE';
 
                     return (
-                      <tr key={concept.id} className='group hover:bg-muted/20 transition-all duration-200'>
+                      <tr
+                        key={concept.id}
+                        className='group hover:bg-muted/20 transition-all duration-200'
+                      >
                         <td className='p-4 font-medium text-foreground group-hover:text-primary transition-colors'>
                           {cName}
                         </td>
                         <td className='p-4'>
-                          <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
+                          <Badge
+                            variant='outline'
+                            className='font-mono text-xs uppercase bg-muted/40'
+                          >
                             {cCode}
                           </Badge>
                         </td>
                         <td className='p-4 text-muted-foreground max-w-xs truncate'>
-                          {concept.description || <span className='text-muted-foreground/30 italic'>No description</span>}
+                          {concept.description || (
+                            <span className='text-muted-foreground/30 italic'>No description</span>
+                          )}
                         </td>
                         <td className='p-4'>
                           <Badge
@@ -383,13 +406,20 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} className='max-w-md'>
         <div className='flex items-center justify-between border-b pb-4 mb-4'>
           <h2 className='text-lg font-bold text-foreground'>Create New Concept</h2>
-          <Button variant='ghost' size='icon' onClick={() => setIsCreateOpen(false)} className='h-6 w-6'>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => setIsCreateOpen(false)}
+            className='h-6 w-6'
+          >
             <X className='w-4 h-4' />
           </Button>
         </div>
         <form onSubmit={handleCreateSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='concept-create-name'>Name</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='concept-create-name'>
+              Name
+            </label>
             <Input
               id='concept-create-name'
               placeholder='e.g., Traversal'
@@ -399,7 +429,9 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='concept-create-code'>Code</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='concept-create-code'>
+              Code
+            </label>
             <Input
               id='concept-create-code'
               placeholder='e.g., TRAVERSAL'
@@ -410,7 +442,9 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='concept-create-desc'>Description</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='concept-create-desc'>
+              Description
+            </label>
             <Input
               id='concept-create-desc'
               placeholder='Optional short summary of this concept...'
@@ -458,13 +492,20 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} className='max-w-md'>
         <div className='flex items-center justify-between border-b pb-4 mb-4'>
           <h2 className='text-lg font-bold text-foreground'>Edit Concept</h2>
-          <Button variant='ghost' size='icon' onClick={() => setIsEditOpen(false)} className='h-6 w-6'>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => setIsEditOpen(false)}
+            className='h-6 w-6'
+          >
             <X className='w-4 h-4' />
           </Button>
         </div>
         <form onSubmit={handleEditSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='concept-edit-name'>Name</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='concept-edit-name'>
+              Name
+            </label>
             <Input
               id='concept-edit-name'
               placeholder='e.g., Traversal'
@@ -474,7 +515,9 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='concept-edit-code'>Code</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='concept-edit-code'>
+              Code
+            </label>
             <Input
               id='concept-edit-code'
               placeholder='e.g., TRAVERSAL'
@@ -485,7 +528,9 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             />
           </div>
           <div className='space-y-2'>
-            <label className='text-sm font-medium text-foreground' htmlFor='concept-edit-desc'>Description</label>
+            <label className='text-sm font-medium text-foreground' htmlFor='concept-edit-desc'>
+              Description
+            </label>
             <Input
               id='concept-edit-desc'
               placeholder='Optional short summary...'

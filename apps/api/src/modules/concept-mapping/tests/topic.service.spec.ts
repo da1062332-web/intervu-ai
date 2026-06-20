@@ -133,7 +133,10 @@ describe("TopicService", () => {
   describe("deleteTopic", () => {
     it("should delete (deactivate) topic and refresh cache", async () => {
       repository.findById.mockResolvedValue(mockTopic);
-      repository.delete.mockResolvedValue({ ...mockTopic, status: TopicStatus.INACTIVE });
+      repository.delete.mockResolvedValue({
+        ...mockTopic,
+        status: TopicStatus.INACTIVE,
+      });
       registryLoader.loadTopics.mockResolvedValue([]);
 
       const result = await service.deleteTopic("topic-123");

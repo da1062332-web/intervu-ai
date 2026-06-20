@@ -54,4 +54,6 @@ export const ConceptMappingResponseSchema = ConceptResponseSchema.extend({
   conceptName: z.string().optional(),
   conceptCode: z.string().optional(),
 });
-export const ConceptMappingListResponseSchema = z.array(ConceptMappingResponseSchema);
+export const ConceptMappingListResponseSchema = z.array(
+  ConceptMappingResponseSchema,
+);

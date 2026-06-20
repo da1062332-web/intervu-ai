@@ -198,7 +198,10 @@ describe("ConceptMappingService", () => {
   describe("deleteConcept", () => {
     it("should call delete in repository", async () => {
       repository.findById.mockResolvedValue(mockConcept);
-      repository.delete.mockResolvedValue({ ...mockConcept, status: ConceptStatus.INACTIVE });
+      repository.delete.mockResolvedValue({
+        ...mockConcept,
+        status: ConceptStatus.INACTIVE,
+      });
 
       const result = await service.deleteConcept("concept-123");
 
