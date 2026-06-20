@@ -45,7 +45,9 @@ export function BlueprintListPageClient() {
         {!isLoading && !isError && (!blueprints || blueprints.length === 0) && (
           <div className='p-12 text-center border-dashed border-2 m-6 rounded-lg border-gray-200 dark:border-gray-800'>
             <h3 className='text-lg font-medium mb-2'>No Blueprints Found</h3>
-            <p className='text-muted-foreground mb-6'>Create your first blueprint to get started.</p>
+            <p className='text-muted-foreground mb-6'>
+              Create your first blueprint to get started.
+            </p>
             <Link href='/admin/blueprints/new'>
               <Button>Create Blueprint</Button>
             </Link>
@@ -67,7 +69,10 @@ export function BlueprintListPageClient() {
               </thead>
               <tbody className='divide-y divide-gray-200 dark:divide-gray-800'>
                 {blueprints.map((bp) => (
-                  <tr key={bp.id} className='hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'>
+                  <tr
+                    key={bp.id}
+                    className='hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'
+                  >
                     <td className='px-6 py-4 font-medium text-gray-900 dark:text-gray-100'>
                       {bp.name}
                     </td>
@@ -89,17 +94,29 @@ export function BlueprintListPageClient() {
                     </td>
                     <td className='px-6 py-4 text-right space-x-2'>
                       <Link href={`/admin/blueprints/${bp.id}`}>
-                        <Button variant='ghost' size='sm' className='text-gray-500 hover:text-gray-900 dark:hover:text-gray-100'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-gray-500 hover:text-gray-900 dark:hover:text-gray-100'
+                        >
                           <Eye className='w-4 h-4 mr-1' /> View
                         </Button>
                       </Link>
                       <Link href={`/admin/blueprints/${bp.id}/edit`}>
-                        <Button variant='ghost' size='sm' className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'
+                        >
                           <Edit2 className='w-4 h-4 mr-1' /> Edit
                         </Button>
                       </Link>
                       <Link href={`/admin/blueprints/${bp.id}`}>
-                        <Button variant='ghost' size='sm' className='text-amber-600 hover:text-amber-900 dark:hover:text-amber-400'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-amber-600 hover:text-amber-900 dark:hover:text-amber-400'
+                        >
                           <ShieldAlert className='w-4 h-4 mr-1' /> Validate
                         </Button>
                       </Link>

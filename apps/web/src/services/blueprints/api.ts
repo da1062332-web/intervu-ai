@@ -5,9 +5,8 @@ import type {
   CreateBlueprintPayload,
   UpdateBlueprintPayload,
   AddTopicConfigPayload,
-  AddTopicConfigPayload,
   StyleProfile,
-  ValidationSummary
+  ValidationSummary,
 } from './types';
 
 export const blueprintsApi = {

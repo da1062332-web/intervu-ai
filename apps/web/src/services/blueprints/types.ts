@@ -10,6 +10,7 @@ export interface BlueprintConfig {
   totalQuestions: number;
   totalDurationMinutes: number;
   isActive: boolean;
+  styleProfileId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -69,7 +70,7 @@ export interface CreateBlueprintPayload {
   sections: BlueprintSectionPayload[];
 }
 
-export interface UpdateBlueprintPayload extends Partial<CreateBlueprintPayload> {}
+export type UpdateBlueprintPayload = Partial<CreateBlueprintPayload>;
 
 export interface AddTopicConfigPayload {
   sectionId: string;

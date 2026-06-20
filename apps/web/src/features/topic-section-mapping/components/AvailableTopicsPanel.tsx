@@ -82,7 +82,9 @@ export function AvailableTopicsPanel({ sectionId, existingTopicIds }: AvailableT
                   className='flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 >
                   <div>
-                    <p className='font-medium'>{topic.topicName || topic.topic || topic.name || 'Unnamed Topic'}</p>
+                    <p className='font-medium'>
+                      {topic.topicName || topic.topic || topic.name || 'Unnamed Topic'}
+                    </p>
                     <p className='text-sm text-muted-foreground'>{topic.topicCode || topic.code}</p>
                   </div>
                   <Button

@@ -84,7 +84,12 @@ export function TopicMappingTable({
                 key={topic.topicId}
                 className='border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50'
               >
-                <td className='p-4 font-medium'>{(topic as any).topicName || (topic as any).topic || (topic as any).name || 'Unnamed Topic'}</td>
+                <td className='p-4 font-medium'>
+                  {(topic as any).topicName ||
+                    (topic as any).topic ||
+                    (topic as any).name ||
+                    'Unnamed Topic'}
+                </td>
                 <td className='p-4'>{(topic as any).topicCode || (topic as any).code || '-'}</td>
                 <td className='p-4'>
                   {weightages[topic.topicId] !== undefined ? `${weightages[topic.topicId]}%` : '-'}
