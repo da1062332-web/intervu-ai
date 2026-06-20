@@ -7,7 +7,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { ConceptMapping } from "@prisma/client";
+import { Concept, ConceptStatus } from "@prisma/client";
 
 describe("ConceptMappingService", () => {
   let service: ConceptMappingService;
@@ -24,16 +24,15 @@ describe("ConceptMappingService", () => {
     difficultySupport: { easy: true, medium: true, hard: false },
   };
 
-  const mockConcept: ConceptMapping = {
+  const mockConcept: Concept = {
     id: "concept-123",
     topicId: "se-ds-001",
-    conceptName: "Prefix Sum",
-    conceptCode: "PREFIX_SUM",
+    name: "Prefix Sum",
+    code: "PREFIX_SUM",
     description: "Prefix Sum array operations",
-    isActive: true,
+    status: ConceptStatus.ACTIVE,
     createdAt: new Date(),
     updatedAt: new Date(),
-    deletedAt: null,
   };
 
   beforeEach(async () => {
@@ -72,9 +71,11 @@ describe("ConceptMappingService", () => {
       repository.create.mockResolvedValue(mockConcept);
 
       const dto = {
+        name: "Prefix Sum",
+        code: "PREFIX_SUM",
+        description: "Prefix Sum array operations",
         conceptName: "Prefix Sum",
         conceptCode: "PREFIX_SUM",
-        description: "Prefix Sum array operations",
       };
 
       const result = await service.createConcept("se-ds-001", dto);
@@ -85,9 +86,10 @@ describe("ConceptMappingService", () => {
         "PREFIX_SUM",
       );
       expect(repository.create).toHaveBeenCalledWith({
-        conceptName: "Prefix Sum",
-        conceptCode: "PREFIX_SUM",
+        name: "Prefix Sum",
+        code: "PREFIX_SUM",
         description: "Prefix Sum array operations",
+        status: ConceptStatus.ACTIVE,
         topicId: "se-ds-001",
       });
       expect(result).toEqual(mockConcept);
@@ -97,6 +99,8 @@ describe("ConceptMappingService", () => {
       registryLoader.getTopicById.mockResolvedValue(null);
 
       const dto = {
+        name: "Prefix Sum",
+        code: "PREFIX_SUM",
         conceptName: "Prefix Sum",
         conceptCode: "PREFIX_SUM",
       };
@@ -111,6 +115,8 @@ describe("ConceptMappingService", () => {
       repository.findByTopicAndCode.mockResolvedValue(mockConcept);
 
       const dto = {
+        name: "Prefix Sum",
+        code: "PREFIX_SUM",
         conceptName: "Prefix Sum",
         conceptCode: "PREFIX_SUM",
       };
@@ -150,22 +156,27 @@ describe("ConceptMappingService", () => {
       repository.findById.mockResolvedValue(mockConcept);
       repository.update.mockResolvedValue({
         ...mockConcept,
-        conceptName: "New Name",
+        name: "New Name",
       });
 
-      const dto = { conceptName: "New Name" };
+      const dto = { name: "New Name" };
       const result = await service.updateConcept("concept-123", dto);
 
       expect(repository.findById).toHaveBeenCalledWith("concept-123");
-      expect(repository.update).toHaveBeenCalledWith("concept-123", dto);
-      expect(result.conceptName).toBe("New Name");
+      expect(repository.update).toHaveBeenCalledWith("concept-123", {
+        name: "New Name",
+        code: undefined,
+        description: undefined,
+        status: undefined,
+      });
+      expect(result.name).toBe("New Name");
     });
 
     it("should throw NotFoundException if concept mapping is not found", async () => {
       repository.findById.mockResolvedValue(null);
 
       await expect(
-        service.updateConcept("invalid-id", { conceptName: "Test" }),
+        service.updateConcept("invalid-id", { name: "Test" }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -176,7 +187,7 @@ describe("ConceptMappingService", () => {
         id: "other-id",
       });
 
-      const dto = { conceptCode: "DUPLICATE_CODE" };
+      const dto = { code: "DUPLICATE_CODE" };
 
       await expect(service.updateConcept("concept-123", dto)).rejects.toThrow(
         ConflictException,
@@ -187,13 +198,13 @@ describe("ConceptMappingService", () => {
   describe("deleteConcept", () => {
     it("should call delete in repository", async () => {
       repository.findById.mockResolvedValue(mockConcept);
-      repository.delete.mockResolvedValue({ ...mockConcept, isActive: false });
+      repository.delete.mockResolvedValue({ ...mockConcept, status: ConceptStatus.INACTIVE });
 
       const result = await service.deleteConcept("concept-123");
 
       expect(repository.findById).toHaveBeenCalledWith("concept-123");
       expect(repository.delete).toHaveBeenCalledWith("concept-123");
-      expect(result.isActive).toBe(false);
+      expect(result.status).toBe(ConceptStatus.INACTIVE);
     });
 
     it("should throw NotFoundException if concept to delete is not found", async () => {

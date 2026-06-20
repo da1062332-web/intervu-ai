@@ -1,6 +1,7 @@
 import { prisma } from "../client";
 import { RepositoryError } from "../types/database.types";
-import type { Prisma, ConceptMapping } from "@prisma/client";
+import type { Prisma, Concept } from "@prisma/client";
+import { ConceptStatus } from "@prisma/client";
 
 export class ConceptMappingRepository {
   private validate(input: any) {
@@ -14,12 +15,12 @@ export class ConceptMappingRepository {
 
   async create(
     topicId: string,
-    data: Omit<Prisma.ConceptMappingUncheckedCreateInput, "topicId">,
-  ): Promise<ConceptMapping> {
+    data: Omit<Prisma.ConceptUncheckedCreateInput, "topicId">,
+  ): Promise<Concept> {
     this.validate(topicId);
     this.validate(data);
     try {
-      return await prisma.conceptMapping.create({
+      return await prisma.concept.create({
         data: {
           topicId,
           ...data,
@@ -30,11 +31,11 @@ export class ConceptMappingRepository {
     }
   }
 
-  async findById(id: string): Promise<ConceptMapping | null> {
+  async findById(id: string): Promise<Concept | null> {
     this.validate(id);
     try {
-      return await prisma.conceptMapping.findFirst({
-        where: { id, deletedAt: null },
+      return await prisma.concept.findFirst({
+        where: { id },
       });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);
@@ -44,16 +45,15 @@ export class ConceptMappingRepository {
   async findManyByTopicId(
     topicId: string,
     activeOnly = true,
-  ): Promise<ConceptMapping[]> {
+  ): Promise<Concept[]> {
     this.validate(topicId);
     try {
-      return await prisma.conceptMapping.findMany({
+      return await prisma.concept.findMany({
         where: {
           topicId,
-          deletedAt: null,
-          ...(activeOnly ? { isActive: true } : {}),
+          ...(activeOnly ? { status: ConceptStatus.ACTIVE } : {}),
         },
-        orderBy: { conceptCode: "asc" },
+        orderBy: { code: "asc" },
       });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);
@@ -62,13 +62,13 @@ export class ConceptMappingRepository {
 
   async findByTopicAndCode(
     topicId: string,
-    conceptCode: string,
-  ): Promise<ConceptMapping | null> {
+    code: string,
+  ): Promise<Concept | null> {
     this.validate(topicId);
-    this.validate(conceptCode);
+    this.validate(code);
     try {
-      return await prisma.conceptMapping.findFirst({
-        where: { topicId, conceptCode, deletedAt: null },
+      return await prisma.concept.findFirst({
+        where: { topicId, code },
       });
     } catch (error: any) {
       throw new RepositoryError("DB_ERROR", error.message);
@@ -77,33 +77,33 @@ export class ConceptMappingRepository {
 
   async update(
     id: string,
-    data: Prisma.ConceptMappingUpdateInput,
-  ): Promise<ConceptMapping> {
+    data: Prisma.ConceptUpdateInput,
+  ): Promise<Concept> {
     this.validate(id);
     this.validate(data);
     try {
-      return await prisma.conceptMapping.update({
+      return await prisma.concept.update({
         where: { id },
         data,
       });
     } catch (error: any) {
       if (error.code === "P2025") {
-        throw new RepositoryError("NOT_FOUND", "Concept mapping not found.");
+        throw new RepositoryError("NOT_FOUND", "Concept not found.");
       }
       throw new RepositoryError("DB_ERROR", error.message);
     }
   }
 
-  async delete(id: string): Promise<ConceptMapping> {
+  async delete(id: string): Promise<Concept> {
     this.validate(id);
     try {
-      return await prisma.conceptMapping.update({
+      return await prisma.concept.update({
         where: { id },
-        data: { isActive: false, deletedAt: new Date() },
+        data: { status: ConceptStatus.INACTIVE },
       });
     } catch (error: any) {
       if (error.code === "P2025") {
-        throw new RepositoryError("NOT_FOUND", "Concept mapping not found.");
+        throw new RepositoryError("NOT_FOUND", "Concept not found.");
       }
       throw new RepositoryError("DB_ERROR", error.message);
     }

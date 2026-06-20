@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { TopicRepository } from "../repositories/topic.repository";
 import { CreateTopicDto, UpdateTopicDto } from "@intervu/shared";
 import { TopicRegistryLoader } from "./topic-registry-loader.service";
+import { TopicStatus } from "@prisma/client";
 
 @Injectable()
 export class TopicService {
@@ -11,14 +12,17 @@ export class TopicService {
   ) {}
 
   async createTopic(dto: CreateTopicDto) {
+    const codeUpper = dto.code.toUpperCase();
+    const existing = await this.repository.findByCode(codeUpper);
+    if (existing) {
+      throw new ConflictException(`Topic with code ${dto.code} already exists`);
+    }
+
     const topic = await this.repository.create({
-      domain: dto.domain,
-      topicName: dto.topicName,
-      subtopic: dto.subtopic,
-      tags: dto.tags,
-      easySupport: dto.easySupport,
-      mediumSupport: dto.mediumSupport,
-      hardSupport: dto.hardSupport,
+      name: dto.name,
+      code: codeUpper,
+      description: dto.description,
+      status: (dto.status as TopicStatus) || TopicStatus.ACTIVE,
     });
 
     // Refresh the in-memory loader cache
@@ -33,7 +37,7 @@ export class TopicService {
 
   async getTopic(id: string) {
     const topic = await this.repository.findById(id);
-    if (!topic || topic.deletedAt) {
+    if (!topic) {
       throw new NotFoundException(`Topic with ID ${id} not found`);
     }
     return topic;
@@ -41,17 +45,23 @@ export class TopicService {
 
   async updateTopic(id: string, dto: UpdateTopicDto) {
     // Verify topic exists
-    await this.getTopic(id);
+    const existingTopic = await this.getTopic(id);
+
+    if (dto.code !== undefined) {
+      const codeUpper = dto.code.toUpperCase();
+      if (codeUpper !== existingTopic.code) {
+        const existing = await this.repository.findByCode(codeUpper);
+        if (existing && existing.id !== id) {
+          throw new ConflictException(`Topic with code ${dto.code} already exists`);
+        }
+      }
+    }
 
     const updated = await this.repository.update(id, {
-      domain: dto.domain,
-      topicName: dto.topicName,
-      subtopic: dto.subtopic,
-      tags: dto.tags,
-      easySupport: dto.easySupport,
-      mediumSupport: dto.mediumSupport,
-      hardSupport: dto.hardSupport,
-      isActive: dto.isActive,
+      name: dto.name,
+      code: dto.code ? dto.code.toUpperCase() : undefined,
+      description: dto.description,
+      status: dto.status as TopicStatus,
     });
 
     await this.registryLoader.loadTopics();

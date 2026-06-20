@@ -440,37 +440,41 @@ model RuleFlags {
 }
 
 model Topic {
-  id              String           @id @default(cuid())
-  domain          String
-  topicName       String
-  subtopic        String
-  tags            String[]
-  easySupport     Boolean          @default(true)
-  mediumSupport   Boolean          @default(true)
-  hardSupport     Boolean          @default(true)
-  isActive        Boolean          @default(true)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?
-  conceptMappings ConceptMapping[]
+  id              String                 @id @default(uuid())
+  name            String
+  code            String                 @unique
+  description     String?
+  status          TopicStatus            @default(ACTIVE)
+  concepts        Concept[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
   sectionTopics   SectionTopic[]
   blueprintTopicConfigs BlueprintTopicConfig[]
 }
 
-model ConceptMapping {
-  id          String    @id @default(cuid())
+model Concept {
+  id          String        @id @default(uuid())
   topicId     String
-  conceptName String
-  conceptCode String
+  name        String
+  code        String
   description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-  topic       Topic     @relation(fields: [topicId], references: [id])
+  status      ConceptStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  topic       Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
-  @@unique([topicId, conceptCode])
+  @@unique([topicId, code])
   @@index([topicId])
+}
+
+enum TopicStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ConceptStatus {
+  ACTIVE
+  INACTIVE
 }
 
 model StyleProfile {

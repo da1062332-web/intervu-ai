@@ -1,18 +1,14 @@
 import { z } from "zod";
+import { TopicStatus } from "@intervu-ai/contracts";
 
 export const TopicResponseSchema = z.object({
   id: z.string(),
-  domain: z.string(),
-  topicName: z.string(),
-  subtopic: z.string(),
-  tags: z.array(z.string()),
-  easySupport: z.boolean(),
-  mediumSupport: z.boolean(),
-  hardSupport: z.boolean(),
-  isActive: z.boolean(),
+  name: z.string(),
+  code: z.string(),
+  description: z.string().nullable().optional(),
+  status: z.nativeEnum(TopicStatus),
   createdAt: z.union([z.date(), z.string()]),
   updatedAt: z.union([z.date(), z.string()]),
-  deletedAt: z.union([z.date(), z.string()]).nullable().optional(),
 });
 
 export const TopicListResponseSchema = z.array(TopicResponseSchema);

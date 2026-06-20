@@ -1,12 +1,13 @@
 import { z } from "zod";
+import { ConceptStatus } from "@intervu-ai/contracts";
 
 export const ConceptMappingResponseSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string(),
   topicId: z.string(),
-  conceptName: z.string(),
-  conceptCode: z.string(),
-  description: z.string().nullable(),
-  isActive: z.boolean(),
+  name: z.string(),
+  code: z.string(),
+  description: z.string().nullable().optional(),
+  status: z.nativeEnum(ConceptStatus),
   createdAt: z.union([z.date(), z.string()]),
   updatedAt: z.union([z.date(), z.string()]),
 });

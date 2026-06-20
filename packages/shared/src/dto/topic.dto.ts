@@ -4,26 +4,17 @@ import { CreateTopicSchema, UpdateTopicSchema } from "@intervu-ai/contracts";
 import { z } from "zod";
 
 export class CreateTopicDto implements CreateTopic {
-  @ApiProperty({ example: "Software Engineering" })
-  domain!: string;
-
   @ApiProperty({ example: "Data Structures" })
-  topicName!: string;
+  name!: string;
 
-  @ApiProperty({ example: "Arrays & Hashing" })
-  subtopic!: string;
+  @ApiProperty({ example: "DATA_STRUCTURES" })
+  code!: string;
 
-  @ApiProperty({ example: ["arrays", "hashing"] })
-  tags!: string[];
+  @ApiPropertyOptional({ example: "Topic covering data structures and algorithms" })
+  description?: string | null;
 
-  @ApiPropertyOptional({ example: true, default: true })
-  easySupport!: boolean;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  mediumSupport!: boolean;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  hardSupport!: boolean;
+  @ApiPropertyOptional({ example: "ACTIVE" })
+  status?: string;
 
   static validate(
     data: unknown,
@@ -35,29 +26,17 @@ export class CreateTopicDto implements CreateTopic {
 }
 
 export class UpdateTopicDto implements UpdateTopic {
-  @ApiPropertyOptional({ example: "Software Engineering" })
-  domain?: string;
+  @ApiPropertyOptional({ example: "Advanced Data Structures" })
+  name?: string;
 
-  @ApiPropertyOptional({ example: "Algorithms" })
-  topicName?: string;
+  @ApiPropertyOptional({ example: "DATA_STRUCTURES_ADV" })
+  code?: string;
 
-  @ApiPropertyOptional({ example: "Sorting" })
-  subtopic?: string;
+  @ApiPropertyOptional({ example: "Updated description text" })
+  description?: string | null;
 
-  @ApiPropertyOptional({ example: ["sorting"] })
-  tags?: string[];
-
-  @ApiPropertyOptional({ example: true })
-  easySupport?: boolean;
-
-  @ApiPropertyOptional({ example: true })
-  mediumSupport?: boolean;
-
-  @ApiPropertyOptional({ example: true })
-  hardSupport?: boolean;
-
-  @ApiPropertyOptional({ example: true })
-  isActive?: boolean;
+  @ApiPropertyOptional({ example: "ACTIVE" })
+  status?: string;
 
   static validate(
     data: unknown,
