@@ -24,7 +24,7 @@ export function AvailableTopicsPanel({ sectionId, existingTopicIds }: AvailableT
   const filteredTopics = availableTopics.filter((topic) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
-    const name = (topic.topic || topic.name || '').toLowerCase();
+    const name = (topic.topicName || topic.topic || topic.name || '').toLowerCase();
     const code = (topic.topicCode || topic.code || '').toLowerCase();
     return name.includes(query) || code.includes(query);
   });
@@ -82,7 +82,7 @@ export function AvailableTopicsPanel({ sectionId, existingTopicIds }: AvailableT
                   className='flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 >
                   <div>
-                    <p className='font-medium'>{topic.topic || topic.name}</p>
+                    <p className='font-medium'>{topic.topicName || topic.topic || topic.name || 'Unnamed Topic'}</p>
                     <p className='text-sm text-muted-foreground'>{topic.topicCode || topic.code}</p>
                   </div>
                   <Button

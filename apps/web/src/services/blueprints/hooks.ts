@@ -88,3 +88,17 @@ export function useAddBlueprintTopic() {
     },
   });
 }
+
+export function useValidateBlueprint() {
+  return useMutation({
+    mutationFn: (id: string) => blueprintsApi.validateBlueprint(id),
+  });
+}
+
+export function usePreviewBlueprint(id: string) {
+  return useQuery({
+    queryKey: ['blueprint', id, 'preview'] as const,
+    queryFn: () => blueprintsApi.previewBlueprint(id),
+    enabled: !!id,
+  });
+}
