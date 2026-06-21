@@ -83,6 +83,8 @@ model Template {
   tests              Test[]
   variables          TemplateVariable[]
   rules              TemplateRule[]
+  solutionTemplate   SolutionTemplate?
+  previews           TemplatePreview[]
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -691,6 +693,34 @@ model TemplateRule {
   template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   @@map("template_rules")
+  @@index([templateId])
+}
+
+model SolutionTemplate {
+  id                  String   @id @default(uuid())
+  templateId          String   @unique @map("template_id")
+  solutionTemplate    String   @map("solution_template")
+  explanationTemplate String?  @map("explanation_template")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("solution_templates")
+  @@index([templateId])
+}
+
+model TemplatePreview {
+  id             String   @id @default(uuid())
+  templateId     String   @map("template_id")
+  previewPayload Json     @map("preview_payload")
+  previewResult  Json     @map("preview_result")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("template_previews")
   @@index([templateId])
 }
 

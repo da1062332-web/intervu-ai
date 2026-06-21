@@ -17,3 +17,5 @@ export * from "./topic-weightage.dto";
 export * from "./template-variable.dto";
 export * from "./template-rule.dto";
 export * from "./template-validation.dto";
+export * from "./solution-template.dto";
+

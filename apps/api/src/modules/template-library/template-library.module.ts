@@ -6,6 +6,11 @@ import { TemplateService } from "./services/template.service";
 import { TemplateController } from "./controllers/template.controller";
 import { TemplateVariableController } from "./controllers/template-variable.controller";
 import { TemplateRuleController } from "./controllers/template-rule.controller";
+import { SolutionTemplateRepository } from "./repositories/solution-template.repository";
+import { TemplatePreviewRepository } from "./repositories/template-preview.repository";
+import { TemplateRendererService } from "./services/template-renderer.service";
+import { PlaceholderValidatorService } from "./services/placeholder-validator.service";
+import { SolutionTemplateService } from "./services/solution-template.service";
 
 @Module({
   controllers: [
@@ -17,12 +22,22 @@ import { TemplateRuleController } from "./controllers/template-rule.controller";
     TemplateRepository,
     TemplateVariableRepository,
     TemplateRuleRepository,
+    SolutionTemplateRepository,
+    TemplatePreviewRepository,
+    TemplateRendererService,
+    PlaceholderValidatorService,
+    SolutionTemplateService,
     TemplateService,
   ],
   exports: [
     TemplateRepository,
     TemplateVariableRepository,
     TemplateRuleRepository,
+    SolutionTemplateRepository,
+    TemplatePreviewRepository,
+    TemplateRendererService,
+    PlaceholderValidatorService,
+    SolutionTemplateService,
     TemplateService,
   ],
 })
