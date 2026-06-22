@@ -6,7 +6,7 @@ interface TemplatePreviewState {
   previewInput: string;
   previewResult: any;
   isDirty: boolean;
-  
+
   setSolutionTemplate: (val: string) => void;
   setExplanationTemplate: (val: string) => void;
   setPreviewInput: (val: string) => void;
@@ -27,11 +27,12 @@ export const useTemplatePreviewStore = create<TemplatePreviewState>((set) => ({
   setPreviewInput: (previewInput) => set({ previewInput }),
   setPreviewResult: (previewResult) => set({ previewResult }),
   setDirty: (isDirty) => set({ isDirty }),
-  reset: () => set({
-    solutionTemplate: '',
-    explanationTemplate: '',
-    previewInput: '{\n  "answer": "42"\n}',
-    previewResult: null,
-    isDirty: false,
-  }),
+  reset: () =>
+    set({
+      solutionTemplate: '',
+      explanationTemplate: '',
+      previewInput: '{\n  "answer": "42"\n}',
+      previewResult: null,
+      isDirty: false,
+    }),
 }));

@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as templateApi from './api';
-import type { 
-  CreateSolutionTemplateRequest, 
-  UpdateSolutionTemplateRequest, 
-  GenerateTemplatePreviewRequest 
+import type {
+  CreateSolutionTemplateRequest,
+  UpdateSolutionTemplateRequest,
+  GenerateTemplatePreviewRequest,
 } from '@intervu/shared';
 
 export const useSolutionTemplate = (templateId: string) => {
@@ -18,8 +18,16 @@ export const useSolutionTemplate = (templateId: string) => {
 export const useSaveSolutionTemplate = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ templateId, payload, isUpdate }: { templateId: string, payload: CreateSolutionTemplateRequest | UpdateSolutionTemplateRequest, isUpdate: boolean }) => 
-      isUpdate 
+    mutationFn: ({
+      templateId,
+      payload,
+      isUpdate,
+    }: {
+      templateId: string;
+      payload: CreateSolutionTemplateRequest | UpdateSolutionTemplateRequest;
+      isUpdate: boolean;
+    }) =>
+      isUpdate
         ? templateApi.updateSolutionTemplate(templateId, payload)
         : templateApi.createSolutionTemplate(templateId, payload as CreateSolutionTemplateRequest),
     onSuccess: (_, variables) => {
@@ -40,8 +48,13 @@ export const useTemplatePreview = (templateId: string) => {
 export const useGeneratePreview = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ templateId, payload }: { templateId: string, payload: GenerateTemplatePreviewRequest }) => 
-      templateApi.generatePreview(templateId, payload),
+    mutationFn: ({
+      templateId,
+      payload,
+    }: {
+      templateId: string;
+      payload: GenerateTemplatePreviewRequest;
+    }) => templateApi.generatePreview(templateId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['templatePreview', variables.templateId] });
     },

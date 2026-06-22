@@ -7,7 +7,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/store/template-preview.store');
 vi.mock('@/services/templates/hooks');
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: '123' })
+  useParams: () => ({ id: '123' }),
 }));
 
 describe('PreviewBuilder', () => {
@@ -17,14 +17,14 @@ describe('PreviewBuilder', () => {
       setPreviewInput: vi.fn(),
       setPreviewResult: vi.fn(),
     });
-    
+
     (useGeneratePreview as any).mockReturnValue({
       mutateAsync: vi.fn(),
       isPending: false,
     });
-    
+
     render(<PreviewBuilder />);
-    
+
     expect(screen.getByRole('button', { name: /Generate Preview/i })).toBeInTheDocument();
   });
 });

@@ -1,29 +1,49 @@
 import { apiClient } from '@/services/api/client';
-import type { 
-  CreateSolutionTemplateRequest, 
-  UpdateSolutionTemplateRequest, 
-  GenerateTemplatePreviewRequest, 
-  SolutionTemplateResponse, 
-  TemplatePreviewResponse 
+import type {
+  CreateSolutionTemplateRequest,
+  UpdateSolutionTemplateRequest,
+  GenerateTemplatePreviewRequest,
+  SolutionTemplateResponse,
+  TemplatePreviewResponse,
 } from '@intervu/shared';
 
-export const getSolutionTemplate = async (templateId: string): Promise<SolutionTemplateResponse> => {
+export const getSolutionTemplate = async (
+  templateId: string,
+): Promise<SolutionTemplateResponse> => {
   const data = await apiClient.request<any>(`/templates/${templateId}/solution`, { method: 'GET' });
   return data;
 };
 
-export const createSolutionTemplate = async (templateId: string, payload: CreateSolutionTemplateRequest): Promise<SolutionTemplateResponse> => {
-  const data = await apiClient.request<any>(`/templates/${templateId}/solution`, { method: 'POST', body: payload });
+export const createSolutionTemplate = async (
+  templateId: string,
+  payload: CreateSolutionTemplateRequest,
+): Promise<SolutionTemplateResponse> => {
+  const data = await apiClient.request<any>(`/templates/${templateId}/solution`, {
+    method: 'POST',
+    body: payload,
+  });
   return data;
 };
 
-export const updateSolutionTemplate = async (templateId: string, payload: UpdateSolutionTemplateRequest): Promise<SolutionTemplateResponse> => {
-  const data = await apiClient.request<any>(`/templates/${templateId}/solution`, { method: 'PATCH', body: payload });
+export const updateSolutionTemplate = async (
+  templateId: string,
+  payload: UpdateSolutionTemplateRequest,
+): Promise<SolutionTemplateResponse> => {
+  const data = await apiClient.request<any>(`/templates/${templateId}/solution`, {
+    method: 'PATCH',
+    body: payload,
+  });
   return data;
 };
 
-export const generatePreview = async (templateId: string, payload: GenerateTemplatePreviewRequest): Promise<TemplatePreviewResponse> => {
-  const data = await apiClient.request<any>(`/templates/${templateId}/preview`, { method: 'POST', body: payload });
+export const generatePreview = async (
+  templateId: string,
+  payload: GenerateTemplatePreviewRequest,
+): Promise<TemplatePreviewResponse> => {
+  const data = await apiClient.request<any>(`/templates/${templateId}/preview`, {
+    method: 'POST',
+    body: payload,
+  });
   return data;
 };
 
