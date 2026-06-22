@@ -170,10 +170,26 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
       {/* Layer Status Grid */}
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
         {[
-          { key: 'configuration' as const, label: 'Configuration', desc: 'Sections & basic config structure' },
-          { key: 'knowledge' as const, label: 'Knowledge Layer', desc: 'Topic mappings and weightages' },
-          { key: 'templates' as const, label: 'Template Library', desc: 'Concept templates & validation' },
-          { key: 'blueprint' as const, label: 'Blueprint Layout', desc: 'Difficulty allocations & rules' },
+          {
+            key: 'configuration' as const,
+            label: 'Configuration',
+            desc: 'Sections & basic config structure',
+          },
+          {
+            key: 'knowledge' as const,
+            label: 'Knowledge Layer',
+            desc: 'Topic mappings and weightages',
+          },
+          {
+            key: 'templates' as const,
+            label: 'Template Library',
+            desc: 'Concept templates & validation',
+          },
+          {
+            key: 'blueprint' as const,
+            label: 'Blueprint Layout',
+            desc: 'Difficulty allocations & rules',
+          },
         ].map((layer) => {
           const state = layerBreakdown[layer.key] || 'FAIL';
           return (
@@ -236,7 +252,11 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
                       : 'bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400'
                   }`}
                 >
-                  {check.status === 'PASS' ? <ShieldCheck className='w-3.5 h-3.5' /> : <ShieldAlert className='w-3.5 h-3.5' />}
+                  {check.status === 'PASS' ? (
+                    <ShieldCheck className='w-3.5 h-3.5' />
+                  ) : (
+                    <ShieldAlert className='w-3.5 h-3.5' />
+                  )}
                   {check.status}
                 </span>
               </div>
@@ -258,9 +278,7 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
               <div className='flex flex-col items-center justify-center py-12 text-center space-y-3'>
                 <CheckCircle2 className='w-12 h-12 text-green-500' />
                 <p className='text-sm font-semibold'>Configuration Complete!</p>
-                <p className='text-xs text-muted-foreground'>
-                  No outstanding fixes are required.
-                </p>
+                <p className='text-xs text-muted-foreground'>No outstanding fixes are required.</p>
               </div>
             ) : (
               <div className='space-y-3'>
@@ -278,7 +296,8 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
                             {fix.message}
                           </p>
                           <span className='inline-flex items-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:underline'>
-                            Fix in Tab <ArrowRight className='w-3 h-3 ml-1 transition-transform group-hover:translate-x-0.5' />
+                            Fix in Tab{' '}
+                            <ArrowRight className='w-3 h-3 ml-1 transition-transform group-hover:translate-x-0.5' />
                           </span>
                         </div>
                       </button>
@@ -295,7 +314,8 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
                               {fix.message}
                             </p>
                             <span className='inline-flex items-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:underline'>
-                              Go to Settings <ArrowRight className='w-3 h-3 ml-1 transition-transform group-hover:translate-x-0.5' />
+                              Go to Settings{' '}
+                              <ArrowRight className='w-3 h-3 ml-1 transition-transform group-hover:translate-x-0.5' />
                             </span>
                           </div>
                         </div>

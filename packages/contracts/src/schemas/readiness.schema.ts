@@ -17,4 +17,6 @@ export const ReadinessReportResponseSchema = z.object({
 
 export type ReadinessCheckStatus = z.infer<typeof ReadinessCheckStatusSchema>;
 export type ReadinessCheck = z.infer<typeof ReadinessCheckSchema>;
-export type ReadinessReportResponse = z.infer<typeof ReadinessReportResponseSchema>;
+export type ReadinessReportResponse = z.infer<
+  typeof ReadinessReportResponseSchema
+>;

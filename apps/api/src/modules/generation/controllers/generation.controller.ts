@@ -38,7 +38,9 @@ export class GenerationController {
 
   @Get("context/:examId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Resolve and build the complete generation context for an exam" })
+  @ApiOperation({
+    summary: "Resolve and build the complete generation context for an exam",
+  })
   @ApiParam({
     name: "examId",
     example: "cuid12345",
@@ -59,13 +61,19 @@ export class GenerationController {
 
   @Post("questions")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Generate questions through the complete core orchestration flow" })
+  @ApiOperation({
+    summary: "Generate questions through the complete core orchestration flow",
+  })
   @ApiBody({
     type: GenerationRequestDto,
     description: "Generation parameters",
   })
-  @ApiCreatedResponse({ description: "Questions generated and validated successfully" })
-  async generateQuestions(@Body() dto: GenerationRequestDto): Promise<ApiResponseDto> {
+  @ApiCreatedResponse({
+    description: "Questions generated and validated successfully",
+  })
+  async generateQuestions(
+    @Body() dto: GenerationRequestDto,
+  ): Promise<ApiResponseDto> {
     const result = await this.orchestratorService.generateBatch(dto);
     return {
       success: true,
@@ -79,7 +87,9 @@ export class GenerationController {
 
   @Post("questions/:id/regenerate")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Regenerate a specific question using similar properties" })
+  @ApiOperation({
+    summary: "Regenerate a specific question using similar properties",
+  })
   @ApiParam({
     name: "id",
     description: "Question ID to regenerate",

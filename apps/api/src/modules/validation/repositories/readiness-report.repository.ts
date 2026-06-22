@@ -20,7 +20,9 @@ export class ReadinessReportRepository extends BaseRepository<
     return new ReadinessReportRepository(this.prisma, tx) as this;
   }
 
-  async findLatestByConfigId(configId: string): Promise<ReadinessReport | null> {
+  async findLatestByConfigId(
+    configId: string,
+  ): Promise<ReadinessReport | null> {
     return this.prisma.readinessReport.findFirst({
       where: { configId },
       orderBy: { createdAt: "desc" },

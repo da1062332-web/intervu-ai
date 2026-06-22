@@ -60,9 +60,7 @@ describe('ReadinessTab UI Components', () => {
           templates: 'PASS',
           blueprint: 'FAIL',
         },
-        fixes: [
-          { type: 'blueprint', message: 'Mismatched topic totals', tab: 'sections' },
-        ],
+        fixes: [{ type: 'blueprint', message: 'Mismatched topic totals', tab: 'sections' }],
       },
     });
 

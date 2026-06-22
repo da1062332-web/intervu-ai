@@ -131,7 +131,11 @@ export class ReadinessEngineService {
   }
 
   async evaluateConfig(configId: string) {
-    const checks: Array<{ name: string; status: "PASS" | "FAIL" | "WARNING"; message?: string }> = [];
+    const checks: Array<{
+      name: string;
+      status: "PASS" | "FAIL" | "WARNING";
+      message?: string;
+    }> = [];
     const reportData = {
       layerBreakdown: {
         configuration: "FAIL",
@@ -150,7 +154,11 @@ export class ReadinessEngineService {
     // --- LAYER 1: CONFIG LAYER ---
     // 1. Config Exists
     const config = await this.examConfigRepository.findById(configId);
-    if (!config || config.isArchived || config.status === ConfigStatus.ARCHIVED) {
+    if (
+      !config ||
+      config.isArchived ||
+      config.status === ConfigStatus.ARCHIVED
+    ) {
       checks.push({
         name: "Exam Config Exists",
         status: "FAIL",
@@ -172,7 +180,8 @@ export class ReadinessEngineService {
     });
 
     // 2. Sections Configured
-    const sections = await this.examSectionRepository.findManyByConfigId(configId);
+    const sections =
+      await this.examSectionRepository.findManyByConfigId(configId);
     if (sections.length === 0) {
       checks.push({
         name: "Sections Configured",
@@ -189,7 +198,10 @@ export class ReadinessEngineService {
         name: "Sections Configured",
         status: "PASS",
       });
-      const totalSectionQuestions = sections.reduce((sum, s) => sum + s.questionCount, 0);
+      const totalSectionQuestions = sections.reduce(
+        (sum, s) => sum + s.questionCount,
+        0,
+      );
       if (totalSectionQuestions !== config.totalQuestions) {
         reportData.fixes.push({
           type: "sections_mismatch",
@@ -200,7 +212,9 @@ export class ReadinessEngineService {
     }
 
     const configLayerPassed = checks.every((c) => c.status === "PASS");
-    reportData.layerBreakdown.configuration = configLayerPassed ? "PASS" : "FAIL";
+    reportData.layerBreakdown.configuration = configLayerPassed
+      ? "PASS"
+      : "FAIL";
 
     // --- LAYER 2: KNOWLEDGE LAYER ---
     // 3. Topics Assigned
@@ -208,7 +222,10 @@ export class ReadinessEngineService {
     const sectionTopicMappings = [];
     if (sections.length > 0) {
       for (const section of sections) {
-        const mappings = await this.topicSectionMappingRepository.findMappingsBySection(section.id);
+        const mappings =
+          await this.topicSectionMappingRepository.findMappingsBySection(
+            section.id,
+          );
         if (mappings.length === 0) {
           topicsAssignedPass = false;
           checks.push({
@@ -245,13 +262,18 @@ export class ReadinessEngineService {
 
     // 4. Concepts Present
     let conceptsPresentPass = true;
-    const uniqueTopicIds = Array.from(new Set(sectionTopicMappings.map((m) => m.topicId)));
+    const uniqueTopicIds = Array.from(
+      new Set(sectionTopicMappings.map((m) => m.topicId)),
+    );
     const allAssignedConcepts = [];
 
     if (uniqueTopicIds.length > 0) {
       for (const topicId of uniqueTopicIds) {
         const topic = await this.topicRepository.findById(topicId);
-        const concepts = await this.conceptMappingRepository.findManyByTopicId(topicId, true);
+        const concepts = await this.conceptMappingRepository.findManyByTopicId(
+          topicId,
+          true,
+        );
         if (concepts.length === 0) {
           conceptsPresentPass = false;
           checks.push({
@@ -290,7 +312,9 @@ export class ReadinessEngineService {
     let weightagesValidPass = true;
     if (sections.length > 0 && topicsAssignedPass) {
       for (const section of sections) {
-        const sum = await this.topicWeightageRepository.sumWeightagesBySection(section.id);
+        const sum = await this.topicWeightageRepository.sumWeightagesBySection(
+          section.id,
+        );
         if (sum !== 100) {
           weightagesValidPass = false;
           checks.push({
@@ -314,7 +338,11 @@ export class ReadinessEngineService {
         name: "Weightages Valid",
         status: "PASS",
       });
-    } else if (sections.length > 0 && topicsAssignedPass && weightagesValidPass === false) {
+    } else if (
+      sections.length > 0 &&
+      topicsAssignedPass &&
+      weightagesValidPass === false
+    ) {
       // Handled
     } else {
       checks.push({
@@ -324,8 +352,11 @@ export class ReadinessEngineService {
       });
     }
 
-    const knowledgeLayerPassed = topicsAssignedPass && conceptsPresentPass && weightagesValidPass;
-    reportData.layerBreakdown.knowledge = knowledgeLayerPassed ? "PASS" : "FAIL";
+    const knowledgeLayerPassed =
+      topicsAssignedPass && conceptsPresentPass && weightagesValidPass;
+    reportData.layerBreakdown.knowledge = knowledgeLayerPassed
+      ? "PASS"
+      : "FAIL";
 
     // --- LAYER 3: TEMPLATE LAYER ---
     // 6. Templates Present
@@ -364,7 +395,10 @@ export class ReadinessEngineService {
         name: "Templates Present",
         status: "PASS",
       });
-    } else if (allAssignedConcepts.length > 0 && templatesPresentPass === false) {
+    } else if (
+      allAssignedConcepts.length > 0 &&
+      templatesPresentPass === false
+    ) {
       // Handled
     } else {
       checks.push({
@@ -380,7 +414,9 @@ export class ReadinessEngineService {
 
     if (templateIdsArray.length > 0) {
       for (const templateId of templateIdsArray) {
-        const variables = await this.templateVariableRepository.findAll({ templateId });
+        const variables = await this.templateVariableRepository.findAll({
+          templateId,
+        });
         const template = await this.templateRepository.findById(templateId);
 
         const varNames = variables.map((v) => v.variableName);
@@ -400,8 +436,16 @@ export class ReadinessEngineService {
         }
 
         for (const variable of variables) {
-          if (variable.defaultValue !== null && variable.defaultValue !== undefined) {
-            if (!this.checkDefaultValueType(variable.defaultValue, variable.variableType)) {
+          if (
+            variable.defaultValue !== null &&
+            variable.defaultValue !== undefined
+          ) {
+            if (
+              !this.checkDefaultValueType(
+                variable.defaultValue,
+                variable.variableType,
+              )
+            ) {
               variablesValidPass = false;
               checks.push({
                 name: "Variables Valid",
@@ -441,7 +485,9 @@ export class ReadinessEngineService {
     if (templateIdsArray.length > 0) {
       for (const templateId of templateIdsArray) {
         const rules = await this.templateRuleRepository.findAll({ templateId });
-        const variables = await this.templateVariableRepository.findAll({ templateId });
+        const variables = await this.templateVariableRepository.findAll({
+          templateId,
+        });
         const template = await this.templateRepository.findById(templateId);
 
         for (const rule of rules) {
@@ -484,7 +530,8 @@ export class ReadinessEngineService {
       });
     }
 
-    const templateLayerPassed = templatesPresentPass && variablesValidPass && rulesValidPass;
+    const templateLayerPassed =
+      templatesPresentPass && variablesValidPass && rulesValidPass;
     reportData.layerBreakdown.templates = templateLayerPassed ? "PASS" : "FAIL";
 
     // --- LAYER 4: BLUEPRINT LAYER ---
@@ -558,7 +605,9 @@ export class ReadinessEngineService {
     return { score, status, checks, report: reportData };
   }
 
-  calculateScore(checks: Array<{ status: "PASS" | "FAIL" | "WARNING" }>): number {
+  calculateScore(
+    checks: Array<{ status: "PASS" | "FAIL" | "WARNING" }>,
+  ): number {
     const passingChecksCount = checks.filter((c) => c.status === "PASS").length;
     return passingChecksCount * 10;
   }
@@ -571,7 +620,8 @@ export class ReadinessEngineService {
 
   async generateReport(configId: string) {
     const evaluation = await this.evaluateConfig(configId);
-    const existing = await this.readinessReportRepository.findLatestByConfigId(configId);
+    const existing =
+      await this.readinessReportRepository.findLatestByConfigId(configId);
 
     if (existing) {
       return this.readinessReportRepository.update(existing.id, {
@@ -596,7 +646,8 @@ export class ReadinessEngineService {
   }
 
   async getLatestReport(configId: string) {
-    const report = await this.readinessReportRepository.findLatestByConfigId(configId);
+    const report =
+      await this.readinessReportRepository.findLatestByConfigId(configId);
     if (!report) {
       return this.generateReport(configId);
     }

@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { TemplateSelectionRequest, SelectedTemplate } from "../dto/generation.dto";
+import {
+  TemplateSelectionRequest,
+  SelectedTemplate,
+} from "../dto/generation.dto";
 import { DifficultyLevel } from "@prisma/client";
 
 @Injectable()
@@ -12,7 +15,9 @@ export class TemplateSelectorService {
   /**
    * Selects a template based on topic, difficulty, version, status, and usage balancing.
    */
-  async selectTemplate(request: TemplateSelectionRequest): Promise<SelectedTemplate> {
+  async selectTemplate(
+    request: TemplateSelectionRequest,
+  ): Promise<SelectedTemplate> {
     const { topicId, difficulty, questionType } = request;
     const targetDifficulty = difficulty.toUpperCase() as DifficultyLevel;
 
@@ -57,7 +62,9 @@ export class TemplateSelectorService {
     }
 
     // 3. Populate usage cache for candidate templates to avoid N+1 count queries at scale
-    const uncachedTemplateIds = templates.filter((t) => !this.templateUsageCache.has(t.id)).map((t) => t.id);
+    const uncachedTemplateIds = templates
+      .filter((t) => !this.templateUsageCache.has(t.id))
+      .map((t) => t.id);
 
     if (uncachedTemplateIds.length > 0) {
       const counts = await this.prismaService.question.groupBy({

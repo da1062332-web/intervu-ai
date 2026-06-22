@@ -37,7 +37,10 @@ export class CreateSolutionTemplateRequest {
   ): z.SafeParseReturnType<unknown, CreateSolutionTemplateRequest> {
     return CreateSolutionTemplateSchema.safeParse(
       data,
-    ) as unknown as z.SafeParseReturnType<unknown, CreateSolutionTemplateRequest>;
+    ) as unknown as z.SafeParseReturnType<
+      unknown,
+      CreateSolutionTemplateRequest
+    >;
   }
 }
 
@@ -59,7 +62,10 @@ export class UpdateSolutionTemplateRequest {
   ): z.SafeParseReturnType<unknown, UpdateSolutionTemplateRequest> {
     return UpdateSolutionTemplateSchema.safeParse(
       data,
-    ) as unknown as z.SafeParseReturnType<unknown, UpdateSolutionTemplateRequest>;
+    ) as unknown as z.SafeParseReturnType<
+      unknown,
+      UpdateSolutionTemplateRequest
+    >;
   }
 }
 
@@ -75,41 +81,72 @@ export class GenerateTemplatePreviewRequest {
   ): z.SafeParseReturnType<unknown, GenerateTemplatePreviewRequest> {
     return GenerateTemplatePreviewSchema.safeParse(
       data,
-    ) as unknown as z.SafeParseReturnType<unknown, GenerateTemplatePreviewRequest>;
+    ) as unknown as z.SafeParseReturnType<
+      unknown,
+      GenerateTemplatePreviewRequest
+    >;
   }
 }
 
 export class SolutionTemplateResponse {
-  @ApiProperty({ example: "uuid-id", description: "ID of the solution template" })
+  @ApiProperty({
+    example: "uuid-id",
+    description: "ID of the solution template",
+  })
   id!: string;
 
   @ApiProperty({ example: "template-uuid-id", description: "Template ID" })
   templateId!: string;
 
-  @ApiProperty({ example: "Answer: {{answer}}", description: "Solution template string" })
+  @ApiProperty({
+    example: "Answer: {{answer}}",
+    description: "Solution template string",
+  })
   solutionTemplate!: string;
 
-  @ApiPropertyOptional({ example: "Explanation: {{explanation}}", description: "Explanation template string" })
+  @ApiPropertyOptional({
+    example: "Explanation: {{explanation}}",
+    description: "Explanation template string",
+  })
   explanationTemplate?: string | null;
 
-  @ApiProperty({ example: "2026-06-21T10:00:00.000Z", description: "Created at" })
+  @ApiProperty({
+    example: "2026-06-21T10:00:00.000Z",
+    description: "Created at",
+  })
   createdAt!: Date;
 
-  @ApiProperty({ example: "2026-06-21T10:00:00.000Z", description: "Updated at" })
+  @ApiProperty({
+    example: "2026-06-21T10:00:00.000Z",
+    description: "Updated at",
+  })
   updatedAt!: Date;
 }
 
 export class TemplatePreviewResponse {
-  @ApiProperty({ example: "uuid-id", description: "ID of the template preview" })
+  @ApiProperty({
+    example: "uuid-id",
+    description: "ID of the template preview",
+  })
   id!: string;
 
   @ApiProperty({ example: "template-uuid-id", description: "Template ID" })
   templateId!: string;
 
-  @ApiProperty({ example: { answer: "42" }, description: "Preview payload used" })
+  @ApiProperty({
+    example: { answer: "42" },
+    description: "Preview payload used",
+  })
   previewPayload!: Record<string, unknown>;
 
-  @ApiProperty({ example: { solution: "Answer: 42", resolvedVariables: { answer: "42" }, validation: { valid: true } }, description: "Rendered output" })
+  @ApiProperty({
+    example: {
+      solution: "Answer: 42",
+      resolvedVariables: { answer: "42" },
+      validation: { valid: true },
+    },
+    description: "Rendered output",
+  })
   previewResult!: {
     solution: string;
     explanation: string | null;
@@ -120,9 +157,15 @@ export class TemplatePreviewResponse {
     };
   };
 
-  @ApiProperty({ example: "2026-06-21T10:00:00.000Z", description: "Created at" })
+  @ApiProperty({
+    example: "2026-06-21T10:00:00.000Z",
+    description: "Created at",
+  })
   createdAt!: Date;
 
-  @ApiProperty({ example: "2026-06-21T10:00:00.000Z", description: "Updated at" })
+  @ApiProperty({
+    example: "2026-06-21T10:00:00.000Z",
+    description: "Updated at",
+  })
   updatedAt!: Date;
 }

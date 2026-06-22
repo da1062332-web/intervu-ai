@@ -142,7 +142,11 @@ describe("Readiness Engine Integration Tests", () => {
 
       // 5. Mock concepts present
       mockConceptRepo.findManyByTopicId.mockResolvedValue([
-        { id: "concept-e2e-1", code: "EVENT_LOOP_BASICS", name: "Event Loop Basics" },
+        {
+          id: "concept-e2e-1",
+          code: "EVENT_LOOP_BASICS",
+          name: "Event Loop Basics",
+        },
       ]);
 
       // 6. Mock weightages sum to 100
@@ -150,7 +154,11 @@ describe("Readiness Engine Integration Tests", () => {
 
       // 7. Mock active templates present
       mockTemplateRepo.findAll.mockResolvedValue([
-        { id: "template-e2e-1", conceptKey: "EVENT_LOOP_BASICS", isActive: true },
+        {
+          id: "template-e2e-1",
+          conceptKey: "EVENT_LOOP_BASICS",
+          isActive: true,
+        },
       ]);
       mockTemplateRepo.findById.mockResolvedValue({
         id: "template-e2e-1",
@@ -198,7 +206,9 @@ describe("Readiness Engine Integration Tests", () => {
       expect(res.body.data.score).toBe(100);
       expect(res.body.data.status).toBe("READY");
       expect(res.body.data.checks.length).toBe(10);
-      expect(res.body.data.checks.every((c: any) => c.status === "PASS")).toBe(true);
+      expect(res.body.data.checks.every((c: any) => c.status === "PASS")).toBe(
+        true,
+      );
     });
   });
 });

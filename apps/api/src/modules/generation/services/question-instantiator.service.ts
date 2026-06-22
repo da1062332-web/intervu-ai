@@ -42,13 +42,18 @@ export class QuestionInstantiatorService {
     // 2. Perform text interpolation
     const questionText = this.interpolate(questionTemplate, parameters);
     const explanation = this.interpolate(explanationTemplate, parameters);
-    const options = optionsTemplate.map((opt: string) => this.interpolate(opt, parameters));
+    const options = optionsTemplate.map((opt: string) =>
+      this.interpolate(opt, parameters),
+    );
 
     // 3. Resolve/Calculate the correct answer
     const answer = this.resolveAnswer(solutionSchema, parameters, options);
 
     // 4. Calculate fine-grained difficulty score (lookahead requirement)
-    const difficultyScore = this.calculateDifficultyScore(template.difficultyLevel, parameters);
+    const difficultyScore = this.calculateDifficultyScore(
+      template.difficultyLevel,
+      parameters,
+    );
 
     // 5. Validation checks: placeholders resolved, answer and metadata exist
     if (this.hasUnresolvedPlaceholders(questionText)) {
@@ -66,7 +71,8 @@ export class QuestionInstantiatorService {
         success: false,
         error: {
           code: "MISSING_ANSWER",
-          message: "Failed to resolve or compute the correct answer for the template",
+          message:
+            "Failed to resolve or compute the correct answer for the template",
         },
       });
     }
@@ -108,9 +114,16 @@ export class QuestionInstantiatorService {
   /**
    * Resolves the correct answer based on formula or value definitions in solutionSchema.
    */
-  private resolveAnswer(solutionSchema: any, params: Record<string, any>, options: string[]): string {
+  private resolveAnswer(
+    solutionSchema: any,
+    params: Record<string, any>,
+    options: string[],
+  ): string {
     // If solutionSchema has a direct variable reference (e.g. { "correctVariable": "C" })
-    if (solutionSchema.correctVariable && params.hasOwnProperty(solutionSchema.correctVariable)) {
+    if (
+      solutionSchema.correctVariable &&
+      params.hasOwnProperty(solutionSchema.correctVariable)
+    ) {
       return String(params[solutionSchema.correctVariable]);
     }
 
@@ -143,12 +156,18 @@ export class QuestionInstantiatorService {
   /**
    * Securely evaluates simple arithmetic formulas using parameter values.
    */
-  private evaluateFormula(formula: string, params: Record<string, any>): number {
+  private evaluateFormula(
+    formula: string,
+    params: Record<string, any>,
+  ): number {
     // Standard formulas: "A + B", "A * B", "A - B", "A / B"
     let expression = formula;
     for (const [varName, varVal] of Object.entries(params)) {
       if (typeof varVal === "number") {
-        expression = expression.replace(new RegExp(`\\b${varName}\\b`, "g"), String(varVal));
+        expression = expression.replace(
+          new RegExp(`\\b${varName}\\b`, "g"),
+          String(varVal),
+        );
       }
     }
 
@@ -165,7 +184,10 @@ export class QuestionInstantiatorService {
   /**
    * Calculates fine-grained difficulty score between 0.0 and 1.0 (lookahead requirement).
    */
-  private calculateDifficultyScore(difficultyLevel: string, params: Record<string, any>): number {
+  private calculateDifficultyScore(
+    difficultyLevel: string,
+    params: Record<string, any>,
+  ): number {
     let baseScore = 0.5;
     if (difficultyLevel === "EASY") baseScore = 0.2;
     if (difficultyLevel === "HARD") baseScore = 0.8;

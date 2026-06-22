@@ -22,7 +22,10 @@ export class ReadinessReportResponseDto implements ReadinessReportResponse {
   @ApiProperty({ example: 85 })
   score!: number;
 
-  @ApiProperty({ example: "PARTIALLY_READY", enum: ["NOT_READY", "PARTIALLY_READY", "READY"] })
+  @ApiProperty({
+    example: "PARTIALLY_READY",
+    enum: ["NOT_READY", "PARTIALLY_READY", "READY"],
+  })
   status!: "NOT_READY" | "PARTIALLY_READY" | "READY";
 
   @ApiProperty({ type: [ReadinessCheckDto] })

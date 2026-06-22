@@ -35,13 +35,16 @@ export class ReadinessController {
   @ValidateResponse(ReadinessReportResponseSchema)
   @ApiOperation({ summary: "Generate a readiness report for an exam config" })
   @ApiParam({ name: "id", description: "Exam configuration ID" })
-  @ApiCreatedResponse({ description: "Readiness report generated successfully" })
+  @ApiCreatedResponse({
+    description: "Readiness report generated successfully",
+  })
   async generateReport(@Param("id") id: string) {
     const result = await this.readinessService.generateReport(id);
     return {
       score: result.score,
       status: result.status,
-      checks: ((result.report as Record<string, unknown>)?.checks as unknown[]) || [],
+      checks:
+        ((result.report as Record<string, unknown>)?.checks as unknown[]) || [],
       report: (result.report as Record<string, unknown>)?.report || {},
     };
   }
@@ -57,7 +60,8 @@ export class ReadinessController {
     return {
       score: result.score,
       status: result.status,
-      checks: ((result.report as Record<string, unknown>)?.checks as unknown[]) || [],
+      checks:
+        ((result.report as Record<string, unknown>)?.checks as unknown[]) || [],
       report: (result.report as Record<string, unknown>)?.report || {},
     };
   }

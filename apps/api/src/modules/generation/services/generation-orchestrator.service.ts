@@ -1,11 +1,19 @@
-import { Injectable, BadRequestException, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { GenerationContextService } from "./generation-context.service";
 import { TemplateSelectorService } from "./template-selector.service";
 import { ParameterGeneratorService } from "./parameter-generator.service";
 import { QuestionInstantiatorService } from "./question-instantiator.service";
 import { QuestionValidationService } from "./question-validation.service";
-import { GenerationRequestDto, GenerationResponseDto } from "../dto/generation.dto";
+import {
+  GenerationRequestDto,
+  GenerationResponseDto,
+} from "../dto/generation.dto";
 
 @Injectable()
 export class GenerationOrchestratorService {
@@ -21,7 +29,11 @@ export class GenerationOrchestratorService {
   /**
    * Orchestrates the complete question generation flow.
    */
-  async generateQuestions(examId: string, sectionId?: string, count: number = 1): Promise<GenerationResponseDto> {
+  async generateQuestions(
+    examId: string,
+    sectionId?: string,
+    count: number = 1,
+  ): Promise<GenerationResponseDto> {
     const startTime = Date.now();
 
     // 1. Resolve complete generation context
@@ -30,7 +42,9 @@ export class GenerationOrchestratorService {
     // 2. Select section(s) to target
     let targetSections = context.sections;
     if (sectionId) {
-      targetSections = context.sections.filter((s) => s.id === sectionId || s.code === sectionId);
+      targetSections = context.sections.filter(
+        (s) => s.id === sectionId || s.code === sectionId,
+      );
       if (targetSections.length === 0) {
         throw new BadRequestException({
           success: false,
@@ -43,7 +57,11 @@ export class GenerationOrchestratorService {
     }
 
     // 3. Distribute question count across sections and difficulties
-    const distributions = this.distributeQuestions(targetSections, context.difficultyDistribution, count);
+    const distributions = this.distributeQuestions(
+      targetSections,
+      context.difficultyDistribution,
+      count,
+    );
 
     let generatedCount = 0;
     let failedCount = 0;
@@ -53,8 +71,10 @@ export class GenerationOrchestratorService {
       const { sectionId: targetSecId, difficulty, count: targetCount } = dist;
 
       // Resolve topic list for this section
-      const sectionTopics = context.topics.filter((t) =>
-        context.sections.find((s) => s.id === targetSecId)?.code === t.code || true
+      const sectionTopics = context.topics.filter(
+        (t) =>
+          context.sections.find((s) => s.id === targetSecId)?.code === t.code ||
+          true,
       ); // fallback or direct link
 
       if (sectionTopics.length === 0) continue;
@@ -109,7 +129,9 @@ export class GenerationOrchestratorService {
   /**
    * Generates a batch using DTO wrapper.
    */
-  async generateBatch(dto: GenerationRequestDto): Promise<GenerationResponseDto> {
+  async generateBatch(
+    dto: GenerationRequestDto,
+  ): Promise<GenerationResponseDto> {
     return this.generateQuestions(dto.examId, dto.sectionId, dto.count);
   }
 
@@ -189,7 +211,10 @@ export class GenerationOrchestratorService {
         });
 
         // 2. Parameter Generation
-        const generatedParams = this.parameterGeneratorService.generateParameters(selectedTemplate.metadata);
+        const generatedParams =
+          this.parameterGeneratorService.generateParameters(
+            selectedTemplate.metadata,
+          );
 
         // 3. Question Instantiation
         const instantiated = this.questionInstantiatorService.instantiate({
@@ -224,8 +249,11 @@ export class GenerationOrchestratorService {
             questionId: null,
             validationStage: "ALL_STAGES",
             isValid: validationResult.isValid,
-            failureReason: validationResult.isValid ? null : validationResult.errors.join("; "),
-            retryTriggered: !validationResult.isValid && retryCount < MAX_RETRIES - 1,
+            failureReason: validationResult.isValid
+              ? null
+              : validationResult.errors.join("; "),
+            retryTriggered:
+              !validationResult.isValid && retryCount < MAX_RETRIES - 1,
             errors: validationResult.errors,
             metadata: {
               templateId: selectedTemplate.templateId,
@@ -239,45 +267,49 @@ export class GenerationOrchestratorService {
           const durationMs = Date.now() - qStartTime;
 
           // 5. Transaction Boundary: Save Question atomic with log updates
-          const savedQuestion = await this.prismaService.$transaction(async (tx) => {
-            // Save Question in the pool
-            const q = await tx.question.create({
-              data: {
-                questionText: instantiated.questionText,
-                answer: instantiated.answer,
-                explanation: instantiated.explanation,
-                topicId,
-                sectionId,
-                difficulty: instantiated.difficulty,
-                difficultyScore: instantiated.difficultyScore,
-                source: "GENERATED",
-                templateId: selectedTemplate.templateId,
-                version: 1,
-                status: "DRAFT",
-              },
-            });
+          const savedQuestion = await this.prismaService.$transaction(
+            async (tx) => {
+              // Save Question in the pool
+              const q = await tx.question.create({
+                data: {
+                  questionText: instantiated.questionText,
+                  answer: instantiated.answer,
+                  explanation: instantiated.explanation,
+                  topicId,
+                  sectionId,
+                  difficulty: instantiated.difficulty,
+                  difficultyScore: instantiated.difficultyScore,
+                  source: "GENERATED",
+                  templateId: selectedTemplate.templateId,
+                  version: 1,
+                  status: "DRAFT",
+                },
+              });
 
-            // Replicate to GeneratedQuestion for legacy compatibility if required
-            await tx.generatedQuestion.create({
-              data: {
-                templateId: selectedTemplate.templateId,
-                questionHash: Math.random().toString(36).substring(7), // dummy random hash for schema constraint
-                conceptKey: selectedTemplate.metadata.conceptKey,
-                difficultyLevel: selectedTemplate.metadata.difficultyLevel,
-                questionType: selectedTemplate.metadata.questionType,
-                questionText: instantiated.questionText,
-                options: instantiated.options,
-                correctAnswer: instantiated.answer,
-                solution: instantiated.explanation,
-                metadata: instantiated.metadata,
-              },
-            });
+              // Replicate to GeneratedQuestion for legacy compatibility if required
+              await tx.generatedQuestion.create({
+                data: {
+                  templateId: selectedTemplate.templateId,
+                  questionHash: Math.random().toString(36).substring(7), // dummy random hash for schema constraint
+                  conceptKey: selectedTemplate.metadata.conceptKey,
+                  difficultyLevel: selectedTemplate.metadata.difficultyLevel,
+                  questionType: selectedTemplate.metadata.questionType,
+                  questionText: instantiated.questionText,
+                  options: instantiated.options,
+                  correctAnswer: instantiated.answer,
+                  solution: instantiated.explanation,
+                  metadata: instantiated.metadata,
+                },
+              });
 
-            return q;
-          });
+              return q;
+            },
+          );
 
           // Increment template usage cache
-          this.templateSelectorService.incrementUsage(selectedTemplate.templateId);
+          this.templateSelectorService.incrementUsage(
+            selectedTemplate.templateId,
+          );
 
           // Log successful generation
           await this.logGenerationStep({
@@ -354,7 +386,11 @@ export class GenerationOrchestratorService {
     difficultyDistribution: { easy: number; medium: number; hard: number },
     totalCount: number,
   ): Array<{ sectionId: string; difficulty: string; count: number }> {
-    const list: Array<{ sectionId: string; difficulty: string; count: number }> = [];
+    const list: Array<{
+      sectionId: string;
+      difficulty: string;
+      count: number;
+    }> = [];
 
     // Distribute among difficulties first based on percentages
     const difficulties = ["EASY", "MEDIUM", "HARD"];
@@ -379,10 +415,15 @@ export class GenerationOrchestratorService {
     // Now distribute across sections
     for (const section of sections) {
       // Proportional section counts
-      const secWeight = section.questionCount / sections.reduce((acc, s) => acc + s.questionCount, 0);
+      const secWeight =
+        section.questionCount /
+        sections.reduce((acc, s) => acc + s.questionCount, 0);
 
       difficulties.forEach((diffName, idx) => {
-        const targetCount = Math.round(difficultyCounts[idx] * (isNaN(secWeight) ? 1 / sections.length : secWeight));
+        const targetCount = Math.round(
+          difficultyCounts[idx] *
+            (isNaN(secWeight) ? 1 / sections.length : secWeight),
+        );
         if (targetCount > 0) {
           list.push({
             sectionId: section.id,
