@@ -18,10 +18,9 @@ import {
   ApiParam,
 } from "@nestjs/swagger";
 
-import { GenerateQuestionRequestDto } from "@intervu/shared";
-import { GenerationDataSchema } from "@intervu-ai/contracts";
-import { ValidateResponse } from "@intervu/shared";
-import { GenerationService } from "../services/generation.service";
+import { GenerationContextService } from "../services/generation-context.service";
+import { GenerationOrchestratorService } from "../services/generation-orchestrator.service";
+import { GenerationRequestDto, ApiResponseDto } from "../dto/generation.dto";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
@@ -32,34 +31,69 @@ import { UserRole } from "@prisma/client";
 @Roles(UserRole.ADMIN)
 @Controller("generation")
 export class GenerationController {
-  constructor(private readonly generationService: GenerationService) {}
+  constructor(
+    private readonly contextService: GenerationContextService,
+    private readonly orchestratorService: GenerationOrchestratorService,
+  ) {}
 
-  @Post("enqueue")
-  @HttpCode(HttpStatus.CREATED)
-  @ValidateResponse(GenerationDataSchema)
-  @ApiOperation({ summary: "Enqueue a question generation job" })
-  @ApiBody({
-    type: GenerateQuestionRequestDto,
-    description: "Generation job parameters",
+  @Get("context/:examId")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Resolve and build the complete generation context for an exam" })
+  @ApiParam({
+    name: "examId",
+    example: "cuid12345",
+    description: "Exam configuration ID",
   })
-  @ApiCreatedResponse({
-    description: "Job enqueued — returns jobId and status",
-  })
-  async enqueue(@Body() dto: GenerateQuestionRequestDto) {
-    return this.generationService.enqueueGeneration(dto);
+  @ApiOkResponse({ description: "Generation context resolved successfully" })
+  async getContext(@Param("examId") examId: string): Promise<ApiResponseDto> {
+    const result = await this.contextService.loadContext(examId);
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
   }
 
-  @Get(":jobId/status")
-  @HttpCode(HttpStatus.OK)
-  @ValidateResponse(GenerationDataSchema)
-  @ApiOperation({ summary: "Poll the status of a generation job" })
-  @ApiParam({
-    name: "jobId",
-    example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    description: "BullMQ job UUID",
+  @Post("questions")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Generate questions through the complete core orchestration flow" })
+  @ApiBody({
+    type: GenerationRequestDto,
+    description: "Generation parameters",
   })
-  @ApiOkResponse({ description: "Job status and result if completed" })
-  async getStatus(@Param("jobId") jobId: string) {
-    return this.generationService.getGenerationStatus(jobId);
+  @ApiCreatedResponse({ description: "Questions generated and validated successfully" })
+  async generateQuestions(@Body() dto: GenerationRequestDto): Promise<ApiResponseDto> {
+    const result = await this.orchestratorService.generateBatch(dto);
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Post("questions/:id/regenerate")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Regenerate a specific question using similar properties" })
+  @ApiParam({
+    name: "id",
+    description: "Question ID to regenerate",
+  })
+  @ApiOkResponse({ description: "Question regenerated successfully" })
+  async regenerateQuestion(@Param("id") id: string): Promise<ApiResponseDto> {
+    const result = await this.orchestratorService.regenerateQuestion(id);
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
   }
 }

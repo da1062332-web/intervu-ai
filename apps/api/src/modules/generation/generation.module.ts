@@ -1,20 +1,32 @@
 import { Module } from "@nestjs/common";
 import { GenerationService } from "./services/generation.service";
 import { GenerationController } from "./controllers/generation.controller";
+import { GenerationContextService } from "./services/generation-context.service";
+import { TemplateSelectorService } from "./services/template-selector.service";
+import { ParameterGeneratorService } from "./services/parameter-generator.service";
+import { QuestionInstantiatorService } from "./services/question-instantiator.service";
+import { QuestionValidationService } from "./services/question-validation.service";
+import { GenerationOrchestratorService } from "./services/generation-orchestrator.service";
 
-/**
- * GenerationModule — orchestrates question generation workflows.
- *
- * Depends on:
- *  - QueueModule (global) — for enqueuing BullMQ jobs
- *  - CacheModule (global) — for polling generation results
- *
- * Both are global modules registered in AppModule, so no explicit
- * import is required here.
- */
 @Module({
   controllers: [GenerationController],
-  providers: [GenerationService],
-  exports: [GenerationService],
+  providers: [
+    GenerationService,
+    GenerationContextService,
+    TemplateSelectorService,
+    ParameterGeneratorService,
+    QuestionInstantiatorService,
+    QuestionValidationService,
+    GenerationOrchestratorService,
+  ],
+  exports: [
+    GenerationService,
+    GenerationContextService,
+    TemplateSelectorService,
+    ParameterGeneratorService,
+    QuestionInstantiatorService,
+    QuestionValidationService,
+    GenerationOrchestratorService,
+  ],
 })
 export class GenerationModule {}
