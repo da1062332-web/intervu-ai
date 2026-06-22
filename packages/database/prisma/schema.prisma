@@ -374,6 +374,7 @@ model ExamConfig {
   ruleFlags              RuleFlags?
   sections               ExamSection[]
   blueprint              Blueprint?
+  readinessReports       ReadinessReport[]
 
   @@index([createdAt])
   @@index([role])
@@ -722,5 +723,20 @@ model TemplatePreview {
 
   @@map("template_previews")
   @@index([templateId])
+}
+
+model ReadinessReport {
+  id        String   @id @default(uuid())
+  configId  String   @map("config_id")
+  score     Int
+  status    String   @db.VarChar(20)
+  report    Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  examConfig ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@map("readiness_reports")
+  @@index([configId])
 }
 
