@@ -5,7 +5,7 @@ import { TopicRepository } from "../../concept-mapping/repositories/topic.reposi
 import { ExamSectionRepository } from "../../admin-config/repositories/exam-section.repository";
 import { ExamConfigRepository } from "../../admin-config/repositories/exam-config.repository";
 import { SectionTopicResponse } from "@intervu-ai/contracts";
-import { ExamSection } from "@prisma/client";
+import { ExamSection, TopicStatus } from "@prisma/client";
 import {
   TopicNotFoundError,
   TopicAlreadyMappedError,
@@ -44,10 +44,7 @@ export class TopicSectionMappingService {
   }
 
   async getMappings(sectionId: string): Promise<SectionTopicResponse[]> {
-    const section = await this.sectionRepo.findById(sectionId);
-    if (!section) {
-      throw new SectionNotFoundError(`Section ${sectionId} not found`);
-    }
+    await this.validateSectionExists(sectionId);
 
     const mappings = await this.repository.findMappingsBySection(sectionId);
     if (mappings.length === 0) {
@@ -87,7 +84,7 @@ export class TopicSectionMappingService {
     await this.validateSectionExists(sectionId);
 
     const topic = await this.topicRepo.findById(topicId);
-    if (!topic || !topic.isActive || topic.deletedAt !== null) {
+    if (!topic || topic.status !== TopicStatus.ACTIVE) {
       throw new TopicNotFoundError(`Topic ${topicId} not found or is inactive`);
     }
 

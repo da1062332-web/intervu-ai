@@ -12,9 +12,10 @@ export const SystemConfigSchema = z.object({
 export const TemplateSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.string(),
-  content: z.string(),
-  schema: z.unknown().optional(),
+  description: z.string().nullable().optional(),
+  difficulty: z.string().optional(),
+  config: z.unknown().optional(),
+  isSystem: z.boolean().optional(),
   version: z.number().optional(),
   isActive: z.boolean().optional(),
   createdAt: z.date().optional(),
@@ -39,3 +40,27 @@ export const TemplateVersionSchema = z.object({
 export const TemplateRemoveSchema = z.object({
   id: z.string(),
 });
+
+export const TemplateVariableSchema = z.object({
+  id: z.string(),
+  templateId: z.string(),
+  variableName: z.string(),
+  variableType: z.string(),
+  required: z.boolean(),
+  defaultValue: z.string().nullable().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export const TemplateVariableListSchema = z.array(TemplateVariableSchema);
+
+export const TemplateRuleSchema = z.object({
+  id: z.string(),
+  templateId: z.string(),
+  ruleType: z.string(),
+  ruleConfig: z.unknown(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export const TemplateRuleListSchema = z.array(TemplateRuleSchema);

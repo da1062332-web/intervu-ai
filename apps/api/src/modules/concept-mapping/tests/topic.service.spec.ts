@@ -3,7 +3,7 @@ import { TopicService } from "../services/topic.service";
 import { TopicRepository } from "../repositories/topic.repository";
 import { TopicRegistryLoader } from "../services/topic-registry-loader.service";
 import { NotFoundException } from "@nestjs/common";
-import { Topic } from "@prisma/client";
+import { Topic, TopicStatus } from "@prisma/client";
 
 describe("TopicService", () => {
   let service: TopicService;
@@ -12,22 +12,18 @@ describe("TopicService", () => {
 
   const mockTopic: Topic = {
     id: "topic-123",
-    domain: "Software Engineering",
-    topicName: "Data Structures",
-    subtopic: "Arrays & Hashing",
-    tags: ["arrays"],
-    easySupport: true,
-    mediumSupport: true,
-    hardSupport: false,
-    isActive: true,
+    name: "Data Structures",
+    code: "DATA_STRUCTURES",
+    description: "Software Engineering - Arrays & Hashing",
+    status: TopicStatus.ACTIVE,
     createdAt: new Date(),
     updatedAt: new Date(),
-    deletedAt: null,
   };
 
   const mockRepository = {
     create: jest.fn(),
     findById: jest.fn(),
+    findByCode: jest.fn(),
     findManyActive: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -57,22 +53,24 @@ describe("TopicService", () => {
 
   describe("createTopic", () => {
     it("should create a topic and refresh cache", async () => {
+      repository.findByCode.mockResolvedValue(null);
       repository.create.mockResolvedValue(mockTopic);
       registryLoader.loadTopics.mockResolvedValue([]);
 
       const dto = {
-        domain: "Software Engineering",
-        topicName: "Data Structures",
-        subtopic: "Arrays & Hashing",
-        tags: ["arrays"],
-        easySupport: true,
-        mediumSupport: true,
-        hardSupport: false,
+        name: "Data Structures",
+        code: "DATA_STRUCTURES",
+        description: "Software Engineering - Arrays & Hashing",
       };
 
       const result = await service.createTopic(dto);
 
-      expect(repository.create).toHaveBeenCalledWith(dto);
+      expect(repository.create).toHaveBeenCalledWith({
+        name: dto.name,
+        code: dto.code.toUpperCase(),
+        description: dto.description,
+        status: TopicStatus.ACTIVE,
+      });
       expect(registryLoader.loadTopics).toHaveBeenCalled();
       expect(result).toEqual(mockTopic);
     });
@@ -113,26 +111,32 @@ describe("TopicService", () => {
       repository.findById.mockResolvedValue(mockTopic);
       repository.update.mockResolvedValue({
         ...mockTopic,
-        topicName: "New Name",
+        name: "New Name",
       });
       registryLoader.loadTopics.mockResolvedValue([]);
 
-      const dto = { topicName: "New Name" };
+      const dto = { name: "New Name" };
       const result = await service.updateTopic("topic-123", dto);
 
       expect(repository.findById).toHaveBeenCalledWith("topic-123");
       expect(repository.update).toHaveBeenCalledWith("topic-123", {
-        topicName: "New Name",
+        name: "New Name",
+        code: undefined,
+        description: undefined,
+        status: undefined,
       });
       expect(registryLoader.loadTopics).toHaveBeenCalled();
-      expect(result.topicName).toBe("New Name");
+      expect(result.name).toBe("New Name");
     });
   });
 
   describe("deleteTopic", () => {
     it("should delete (deactivate) topic and refresh cache", async () => {
       repository.findById.mockResolvedValue(mockTopic);
-      repository.delete.mockResolvedValue({ ...mockTopic, isActive: false });
+      repository.delete.mockResolvedValue({
+        ...mockTopic,
+        status: TopicStatus.INACTIVE,
+      });
       registryLoader.loadTopics.mockResolvedValue([]);
 
       const result = await service.deleteTopic("topic-123");

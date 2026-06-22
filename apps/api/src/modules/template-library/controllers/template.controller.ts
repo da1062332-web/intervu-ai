@@ -23,7 +23,11 @@ import {
 } from "@nestjs/swagger";
 import { DifficultyLevel, UserRole } from "@prisma/client";
 
-import { CreateTemplateDto, UpdateTemplateDto } from "@intervu/shared";
+import {
+  CreateTemplateDto,
+  UpdateTemplateDto,
+  TemplateValidationRequestDto,
+} from "@intervu/shared";
 import {
   ValidateResponse,
   TemplateSchema,
@@ -31,8 +35,15 @@ import {
   TemplatePaginatedSchema,
   TemplateVersionSchema,
   TemplateRemoveSchema,
+  TemplateValidationResponseSchema,
+  CreateSolutionTemplateRequest,
+  UpdateSolutionTemplateRequest,
+  GenerateTemplatePreviewRequest,
+  SolutionTemplateSchema,
+  TemplatePreviewSchema,
 } from "@intervu/shared";
 import { TemplateService } from "../services/template.service";
+import { SolutionTemplateService } from "../services/solution-template.service";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 
@@ -42,7 +53,10 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 @Roles(UserRole.ADMIN)
 @Controller("templates")
 export class TemplateController {
-  constructor(private readonly templateService: TemplateService) {}
+  constructor(
+    private readonly templateService: TemplateService,
+    private readonly solutionTemplateService: SolutionTemplateService,
+  ) {}
 
   @Get()
   @ValidateResponse(TemplatePaginatedSchema)
@@ -149,5 +163,73 @@ export class TemplateController {
   @ApiOkResponse({ description: "Template soft-deleted successfully" })
   async remove(@Param("id") id: string) {
     return this.templateService.remove(id);
+  }
+
+  @Post(":id/validate")
+  @HttpCode(HttpStatus.OK)
+  @ValidateResponse(TemplateValidationResponseSchema)
+  @ApiOperation({ summary: "Validate template variables & constraints" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  @ApiBody({ type: TemplateValidationRequestDto })
+  @ApiOkResponse({ description: "Validation results" })
+  async validateTemplate(
+    @Param("id") id: string,
+    @Body() dto: TemplateValidationRequestDto,
+  ) {
+    return this.templateService.validateTemplate(id, dto.values);
+  }
+
+  @Post(":id/solution")
+  @HttpCode(HttpStatus.CREATED)
+  @ValidateResponse(SolutionTemplateSchema)
+  @ApiOperation({ summary: "Create a solution template" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  @ApiBody({ type: CreateSolutionTemplateRequest })
+  async createSolutionTemplate(
+    @Param("id") id: string,
+    @Body() dto: CreateSolutionTemplateRequest,
+  ) {
+    return this.solutionTemplateService.createSolutionTemplate(id, dto);
+  }
+
+  @Get(":id/solution")
+  @ValidateResponse(SolutionTemplateSchema)
+  @ApiOperation({ summary: "Get solution template" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async getSolutionTemplate(@Param("id") id: string) {
+    return this.solutionTemplateService.getSolutionTemplate(id);
+  }
+
+  @Patch(":id/solution")
+  @ValidateResponse(SolutionTemplateSchema)
+  @ApiOperation({ summary: "Update solution template" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  @ApiBody({ type: UpdateSolutionTemplateRequest })
+  async updateSolutionTemplate(
+    @Param("id") id: string,
+    @Body() dto: UpdateSolutionTemplateRequest,
+  ) {
+    return this.solutionTemplateService.updateSolutionTemplate(id, dto);
+  }
+
+  @Post(":id/preview")
+  @HttpCode(HttpStatus.CREATED)
+  @ValidateResponse(TemplatePreviewSchema)
+  @ApiOperation({ summary: "Generate template preview" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  @ApiBody({ type: GenerateTemplatePreviewRequest })
+  async generatePreview(
+    @Param("id") id: string,
+    @Body() dto: GenerateTemplatePreviewRequest,
+  ) {
+    return this.solutionTemplateService.generatePreview(id, dto);
+  }
+
+  @Get(":id/preview")
+  @ValidateResponse(TemplatePreviewSchema)
+  @ApiOperation({ summary: "Get latest template preview" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async getLatestPreview(@Param("id") id: string) {
+    return this.solutionTemplateService.getLatestPreview(id);
   }
 }

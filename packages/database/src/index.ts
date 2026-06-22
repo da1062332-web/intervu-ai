@@ -48,5 +48,5 @@ export {
   type PerformanceSummary,
   RecommendationPriority,
   type Prisma,
-  type ConceptMapping,
+  type Concept,
 } from "@prisma/client";

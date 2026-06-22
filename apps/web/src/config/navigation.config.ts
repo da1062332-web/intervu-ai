@@ -9,6 +9,7 @@ import {
   Briefcase,
   PlayCircle,
   Layers,
+  BookOpen,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -20,6 +21,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
         { label: 'Configs', route: '/admin/configs', icon: FileCog },
+        { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Tests', route: '/admin/tests', icon: ClipboardList },
         { label: 'Results', route: '/admin/results', icon: BarChart3 },

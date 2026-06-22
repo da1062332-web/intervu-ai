@@ -38,7 +38,7 @@ export function CreateBlueprintModal({ isOpen, onClose }: CreateBlueprintModalPr
         totalQuestions,
         totalDurationMinutes,
         isActive: true,
-      });
+      } as any);
       toast.success('Blueprint created successfully');
       setName('');
       setCode('');

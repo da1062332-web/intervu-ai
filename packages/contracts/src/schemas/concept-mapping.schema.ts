@@ -1,27 +1,59 @@
 import { z } from "zod";
 
-export const ConceptMappingBaseSchema = z.object({
-  conceptName: z
+export enum ConceptStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+
+export const ConceptBaseSchema = z.object({
+  name: z
     .string()
-    .min(1, "Concept Name is required")
-    .max(150, "Concept Name cannot exceed 150 characters"),
-  conceptCode: z
+    .min(1, "Concept name is required")
+    .max(255, "Concept name cannot exceed 255 characters"),
+  code: z
     .string()
-    .min(1, "Concept Code is required")
-    .max(50, "Concept Code cannot exceed 50 characters")
+    .min(1, "Concept code is required")
+    .max(100, "Concept code cannot exceed 100 characters")
     .regex(
       /^[A-Za-z0-9_-]+$/,
-      "Concept Code must contain only alphanumeric characters, underscores, or hyphens",
+      "Concept code must contain only alphanumeric characters, underscores, or hyphens",
     ),
   description: z
     .string()
-    .max(500, "Description cannot exceed 500 characters")
+    .max(1000, "Description cannot exceed 1000 characters")
     .nullable()
     .optional(),
+  status: z.nativeEnum(ConceptStatus).default(ConceptStatus.ACTIVE),
 });
 
-export const CreateConceptMappingSchema = ConceptMappingBaseSchema;
-export const UpdateConceptMappingSchema =
-  ConceptMappingBaseSchema.partial().extend({
-    isActive: z.boolean().optional(),
-  });
+export const CreateConceptSchema = ConceptBaseSchema;
+
+export const UpdateConceptSchema = ConceptBaseSchema.partial();
+
+export const ConceptResponseSchema = z.object({
+  id: z.string(),
+  topicId: z.string(),
+  name: z.string(),
+  code: z.string(),
+  description: z.string().nullable().optional(),
+  status: z.nativeEnum(ConceptStatus),
+  createdAt: z.union([z.date(), z.string()]),
+  updatedAt: z.union([z.date(), z.string()]),
+});
+
+export const ConceptListResponseSchema = z.array(ConceptResponseSchema);
+
+// Backwards compatibility aliases
+export const ConceptMappingBaseSchema = ConceptBaseSchema.extend({
+  conceptName: z.string(),
+  conceptCode: z.string(),
+});
+export const CreateConceptMappingSchema = CreateConceptSchema;
+export const UpdateConceptMappingSchema = UpdateConceptSchema;
+export const ConceptMappingResponseSchema = ConceptResponseSchema.extend({
+  conceptName: z.string().optional(),
+  conceptCode: z.string().optional(),
+});
+export const ConceptMappingListResponseSchema = z.array(
+  ConceptMappingResponseSchema,
+);

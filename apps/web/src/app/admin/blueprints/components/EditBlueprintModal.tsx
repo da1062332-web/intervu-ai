@@ -53,7 +53,7 @@ export function EditBlueprintModal({ isOpen, onClose, blueprint }: EditBlueprint
           description,
           totalQuestions,
           totalDurationMinutes,
-        },
+        } as any,
       });
       toast.success('Blueprint updated successfully');
       onClose();

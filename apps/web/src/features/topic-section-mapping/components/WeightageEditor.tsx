@@ -80,7 +80,12 @@ export function WeightageEditor({ sectionId, topics }: WeightageEditorProps) {
               key={topicId}
               className='flex items-center justify-between p-3 border rounded-md bg-background'
             >
-              <span className='font-medium'>{topic.topicName}</span>
+              <span className='font-medium'>
+                {(topic as any).topicName ||
+                  (topic as any).topic ||
+                  (topic as any).name ||
+                  'Unnamed Topic'}
+              </span>
               <div className='flex items-center gap-2 w-24'>
                 <Input
                   type='number'

@@ -9,9 +9,11 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles } from "../../auth/decorators/roles.decorator";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { UserRole } from "@prisma/client";
 import { ConceptMappingService } from "../services/concept-mapping.service";
 import {
@@ -24,6 +26,7 @@ import { ValidateResponse } from "@intervu/shared";
 
 @ApiTags("admin/concepts")
 @ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
 @Roles(UserRole.ADMIN)
 @Controller("admin")
 export class ConceptMappingController {

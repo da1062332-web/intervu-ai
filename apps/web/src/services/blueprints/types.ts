@@ -10,6 +10,7 @@ export interface BlueprintConfig {
   totalQuestions: number;
   totalDurationMinutes: number;
   isActive: boolean;
+  styleProfileId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -22,6 +23,9 @@ export interface ValidationSummary {
   totalWeightage: number;
   errors: string[];
 }
+
+export type ValidationResult = ValidationSummary;
+export type BlueprintPreviewData = any;
 
 export interface BlueprintTopicDetail {
   topicName: string;
@@ -41,23 +45,32 @@ export interface BlueprintDetail extends BlueprintConfig {
   topics: BlueprintTopicDetail[];
 }
 
-export interface CreateBlueprintPayload {
-  name: string;
-  code: string;
-  description?: string;
-  totalQuestions: number;
-  totalDurationMinutes: number;
-  isActive?: boolean;
+export interface TopicAllocationPayload {
+  topicId: string;
+  percentage: number;
 }
 
-export interface UpdateBlueprintPayload {
-  name?: string;
-  code?: string;
-  description?: string;
-  totalQuestions?: number;
-  totalDurationMinutes?: number;
-  isActive?: boolean;
+export interface DifficultyAllocationPayload {
+  easy: number;
+  medium: number;
+  hard: number;
 }
+
+export interface BlueprintSectionPayload {
+  sectionId: string;
+  questionCount: number;
+  topicAllocations: TopicAllocationPayload[];
+  difficultyAllocation: DifficultyAllocationPayload;
+  templateTypes: string[];
+}
+
+export interface CreateBlueprintPayload {
+  configId: string;
+  styleProfileId: string;
+  sections: BlueprintSectionPayload[];
+}
+
+export type UpdateBlueprintPayload = Partial<CreateBlueprintPayload>;
 
 export interface AddTopicConfigPayload {
   sectionId: string;

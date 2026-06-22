@@ -1,51 +1,49 @@
 import { Injectable, Optional } from "@nestjs/common";
-import { ConceptMapping, Prisma } from "@prisma/client";
+import { Concept, Prisma, ConceptStatus } from "@prisma/client";
 import { BaseRepository } from "../../../common";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class ConceptMappingRepository extends BaseRepository<
-  ConceptMapping,
-  Prisma.ConceptMappingUncheckedCreateInput,
-  Prisma.ConceptMappingUncheckedUpdateInput
+  Concept & { deletedAt?: Date | null },
+  Prisma.ConceptUncheckedCreateInput,
+  Prisma.ConceptUncheckedUpdateInput
 > {
   constructor(
     prisma: PrismaService,
     @Optional() tx?: Prisma.TransactionClient,
   ) {
-    super(prisma, "conceptMapping", { softDelete: true }, tx);
+    super(prisma, "concept", { softDelete: false }, tx);
   }
 
   withTransaction(tx: Prisma.TransactionClient): this {
     return new ConceptMappingRepository(this.prisma, tx) as this;
   }
 
-  async findByTopicAndCode(topicId: string, conceptCode: string) {
-    return this.prisma.conceptMapping.findFirst({
+  async findByTopicAndCode(topicId: string, code: string) {
+    return this.prisma.concept.findFirst({
       where: {
         topicId,
-        conceptCode,
-        deletedAt: null,
+        code,
       },
     });
   }
 
   async findManyByTopicId(topicId: string, activeOnly = true) {
-    return this.prisma.conceptMapping.findMany({
+    return this.prisma.concept.findMany({
       where: {
         topicId,
-        deletedAt: null,
-        ...(activeOnly ? { isActive: true } : {}),
+        ...(activeOnly ? { status: ConceptStatus.ACTIVE } : {}),
       },
-      orderBy: { conceptCode: "asc" },
+      orderBy: { code: "asc" },
     });
   }
 
-  // Override delete to set both isActive: false and deletedAt: Date
-  override async delete(id: string): Promise<ConceptMapping> {
-    return this.prisma.conceptMapping.update({
+  // Override delete to set status: INACTIVE
+  override async delete(id: string): Promise<Concept> {
+    return this.prisma.concept.update({
       where: { id },
-      data: { isActive: false, deletedAt: new Date() },
+      data: { status: ConceptStatus.INACTIVE },
     });
   }
 }

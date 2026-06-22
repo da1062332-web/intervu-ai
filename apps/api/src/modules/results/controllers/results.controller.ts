@@ -29,7 +29,7 @@ import { UserRole } from "@prisma/client";
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ResponseInterceptor)
 @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
-@Controller("v1/results")
+@Controller("results")
 export class ResultsController {
   constructor(
     private readonly resultsService: ResultsService,

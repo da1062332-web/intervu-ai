@@ -1,11 +1,11 @@
 import { Injectable, Optional } from "@nestjs/common";
-import { Topic, Prisma } from "@prisma/client";
+import { Topic, Prisma, TopicStatus } from "@prisma/client";
 import { BaseRepository } from "../../../common";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class TopicRepository extends BaseRepository<
-  Topic,
+  Topic & { deletedAt?: Date | null }, // satisfy BaseRepository type constraint
   Prisma.TopicCreateInput,
   Prisma.TopicUpdateInput
 > {
@@ -13,7 +13,7 @@ export class TopicRepository extends BaseRepository<
     prisma: PrismaService,
     @Optional() tx?: Prisma.TransactionClient,
   ) {
-    super(prisma, "topic", { softDelete: true }, tx);
+    super(prisma, "topic", { softDelete: false }, tx);
   }
 
   withTransaction(tx: Prisma.TransactionClient): this {
@@ -23,18 +23,23 @@ export class TopicRepository extends BaseRepository<
   async findManyActive(activeOnly = true) {
     return this.prisma.topic.findMany({
       where: {
-        deletedAt: null,
-        ...(activeOnly ? { isActive: true } : {}),
+        ...(activeOnly ? { status: TopicStatus.ACTIVE } : {}),
       },
-      orderBy: { topicName: "asc" },
+      orderBy: { name: "asc" },
     });
   }
 
-  // Override delete to set both isActive: false and deletedAt: Date
+  async findByCode(code: string) {
+    return this.prisma.topic.findUnique({
+      where: { code },
+    });
+  }
+
+  // Override delete to set status: INACTIVE
   override async delete(id: string): Promise<Topic> {
     return this.prisma.topic.update({
       where: { id },
-      data: { isActive: false, deletedAt: new Date() },
+      data: { status: TopicStatus.INACTIVE },
     });
   }
 }
