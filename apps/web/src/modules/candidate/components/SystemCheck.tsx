@@ -19,10 +19,30 @@ interface CheckItem {
 
 export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   const [checks, setChecks] = useState<CheckItem[]>([
-    { id: 'internet', name: 'Internet Connectivity', description: 'Checking for active network connectivity', status: 'pending' },
-    { id: 'browser', name: 'Browser Compatibility', description: 'Verifying compliant browser engines', status: 'pending' },
-    { id: 'screen', name: 'Screen Resolution', description: 'Validating viewport width (min 1024px)', status: 'pending' },
-    { id: 'media', name: 'Camera & Microphone', description: 'Testing media hardware capabilities', status: 'pending' },
+    {
+      id: 'internet',
+      name: 'Internet Connectivity',
+      description: 'Checking for active network connectivity',
+      status: 'pending',
+    },
+    {
+      id: 'browser',
+      name: 'Browser Compatibility',
+      description: 'Verifying compliant browser engines',
+      status: 'pending',
+    },
+    {
+      id: 'screen',
+      name: 'Screen Resolution',
+      description: 'Validating viewport width (min 1024px)',
+      status: 'pending',
+    },
+    {
+      id: 'media',
+      name: 'Camera & Microphone',
+      description: 'Testing media hardware capabilities',
+      status: 'pending',
+    },
   ]);
 
   const [triggerCount, setTriggerCount] = useState(0);
@@ -36,7 +56,11 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
       await sleep(400);
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
       if (active) {
-        updateCheckStatus('internet', isOnline ? 'success' : 'failed', isOnline ? undefined : 'No internet connection detected.');
+        updateCheckStatus(
+          'internet',
+          isOnline ? 'success' : 'failed',
+          isOnline ? undefined : 'No internet connection detected.',
+        );
       }
 
       // 2. Browser Check
@@ -53,7 +77,9 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
         updateCheckStatus(
           'browser',
           isCompatible ? 'success' : 'failed',
-          isCompatible ? undefined : 'Unsupported browser engine. Please use Chrome, Firefox, or Safari.'
+          isCompatible
+            ? undefined
+            : 'Unsupported browser engine. Please use Chrome, Firefox, or Safari.',
         );
       }
 
@@ -67,14 +93,20 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
         updateCheckStatus(
           'screen',
           isWidthValid ? 'success' : 'failed',
-          isWidthValid ? undefined : `Viewport width (${width}px) is below minimum required 1024px.`
+          isWidthValid
+            ? undefined
+            : `Viewport width (${width}px) is below minimum required 1024px.`,
         );
       }
 
       // 4. Media Hardware Permissions Check
       updateCheckStatus('media', 'checking');
       try {
-        if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        if (
+          typeof navigator !== 'undefined' &&
+          navigator.mediaDevices &&
+          navigator.mediaDevices.getUserMedia
+        ) {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           // Immediately release media stream tracks
           stream.getTracks().forEach((track) => track.stop());
@@ -90,7 +122,7 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
           updateCheckStatus(
             'media',
             'failed',
-            `Permissions denied or hardware missing: ${errorMsg}`
+            `Permissions denied or hardware missing: ${errorMsg}`,
           );
         }
       }
@@ -111,7 +143,7 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
 
   function updateCheckStatus(id: string, status: CheckItem['status'], errorDetails?: string) {
     setChecks((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status, errorDetails } : item))
+      prev.map((item) => (item.id === id ? { ...item, status, errorDetails } : item)),
     );
   }
 
@@ -120,7 +152,9 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   }
 
   function handleRetry() {
-    setChecks((prev) => prev.map((item) => ({ ...item, status: 'pending', errorDetails: undefined })));
+    setChecks((prev) =>
+      prev.map((item) => ({ ...item, status: 'pending', errorDetails: undefined })),
+    );
     setTriggerCount((c) => c + 1);
   }
 
@@ -134,7 +168,13 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
           </CardTitle>
           <CardDescription>Verify your setup complies with testing regulations</CardDescription>
         </div>
-        <Button variant='outline' size='icon' className='size-8 rounded-xl shrink-0' onClick={handleRetry} aria-label="Retry system check">
+        <Button
+          variant='outline'
+          size='icon'
+          className='size-8 rounded-xl shrink-0'
+          onClick={handleRetry}
+          aria-label='Retry system check'
+        >
           <RefreshCw className='size-4 text-muted-foreground' />
         </Button>
       </CardHeader>

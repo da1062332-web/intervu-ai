@@ -58,6 +58,6 @@ export const useTestCatalogStore = create<TestCatalogState>()(
         bookmarkedIds: state.bookmarkedIds,
         selectedTestId: state.selectedTestId,
       }),
-    }
-  )
+    },
+  ),
 );

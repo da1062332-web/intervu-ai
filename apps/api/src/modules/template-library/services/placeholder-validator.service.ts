@@ -18,16 +18,18 @@ export class PlaceholderValidatorService {
 
     const defaultAllowed = ["answer", "explanation"];
     const allAllowed = new Set([...defaultAllowed, ...allowedVariables]);
-    
+
     // Find all placeholders like {{variable_name}}
     const regex = /\{\{\s*([\w]+)\s*\}\}/g;
     const matches = Array.from(template.matchAll(regex));
-    
-    const extractedVariables = matches.map(match => match[1]);
-    
+
+    const extractedVariables = matches.map((match) => match[1]);
+
     // Find unique unknown variables
-    const unknownVariables = [...new Set(extractedVariables.filter(v => !allAllowed.has(v)))];
-    
+    const unknownVariables = [
+      ...new Set(extractedVariables.filter((v) => !allAllowed.has(v))),
+    ];
+
     return {
       valid: unknownVariables.length === 0,
       unknownVariables,

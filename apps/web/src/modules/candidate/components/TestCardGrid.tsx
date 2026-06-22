@@ -70,11 +70,7 @@ export function TestCardGrid({
             {Array.from({ length: totalPages }).map((_, idx) => {
               const pageNum = idx + 1;
               // Show pages close to the current page to avoid clutter
-              if (
-                pageNum === 1 ||
-                pageNum === totalPages ||
-                Math.abs(pageNum - currentPage) <= 1
-              ) {
+              if (pageNum === 1 || pageNum === totalPages || Math.abs(pageNum - currentPage) <= 1) {
                 return (
                   <Button
                     key={pageNum}
@@ -92,7 +88,10 @@ export function TestCardGrid({
                 (pageNum === totalPages - 1 && currentPage < totalPages - 2)
               ) {
                 return (
-                  <span key={pageNum} className='px-1.5 text-muted-foreground/60 text-sm font-semibold select-none'>
+                  <span
+                    key={pageNum}
+                    className='px-1.5 text-muted-foreground/60 text-sm font-semibold select-none'
+                  >
                     ...
                   </span>
                 );

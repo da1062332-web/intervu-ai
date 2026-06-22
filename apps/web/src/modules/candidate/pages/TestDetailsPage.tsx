@@ -7,7 +7,10 @@ import { SyllabusBreakdown } from '../components/SyllabusBreakdown';
 import { SectionBreakdown } from '../components/SectionBreakdown';
 import { EligibilityInfo } from '../components/EligibilityInfo';
 import { Button } from '@/components/ui/button';
-import { TestDetailsSkeleton, MetadataSkeleton } from '@/features/candidate/tests/components/TestDiscoveryLoaders';
+import {
+  TestDetailsSkeleton,
+  MetadataSkeleton,
+} from '@/features/candidate/tests/components/TestDiscoveryLoaders';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 
@@ -60,12 +63,19 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
       <div className='border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10'>
         <div className='container max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center gap-4'>
-            <Button variant='ghost' size='icon' asChild className='shrink-0 hover:bg-muted/50 rounded-xl transition-colors'>
+            <Button
+              variant='ghost'
+              size='icon'
+              asChild
+              className='shrink-0 hover:bg-muted/50 rounded-xl transition-colors'
+            >
               <Link href='/candidate/tests'>
                 <ChevronLeft className='size-5' />
               </Link>
             </Button>
-            <h1 className='text-xl font-heading font-semibold tracking-tight text-foreground'>Test Overview</h1>
+            <h1 className='text-xl font-heading font-semibold tracking-tight text-foreground'>
+              Test Overview
+            </h1>
           </div>
         </div>
       </div>

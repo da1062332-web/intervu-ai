@@ -8,7 +8,10 @@ import { CandidateInfo } from '../components/CandidateInfo';
 import { TestSummary } from '../components/TestSummary';
 import { SystemCheck } from '../components/SystemCheck';
 import { Button } from '@/components/ui/button';
-import { TestDetailsSkeleton, MetadataSkeleton } from '@/features/candidate/tests/components/TestDiscoveryLoaders';
+import {
+  TestDetailsSkeleton,
+  MetadataSkeleton,
+} from '@/features/candidate/tests/components/TestDiscoveryLoaders';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { ChevronLeft, Play, AlertCircle } from 'lucide-react';
 
@@ -67,12 +70,19 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
       <div className='border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10'>
         <div className='container max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center gap-4'>
-            <Button variant='ghost' size='icon' asChild className='shrink-0 hover:bg-muted/50 rounded-xl transition-colors'>
+            <Button
+              variant='ghost'
+              size='icon'
+              asChild
+              className='shrink-0 hover:bg-muted/50 rounded-xl transition-colors'
+            >
               <Link href={`/candidate/tests/${testId}/instructions`}>
                 <ChevronLeft className='size-5' />
               </Link>
             </Button>
-            <h1 className='text-xl font-heading font-semibold tracking-tight text-foreground'>Launch Assessment</h1>
+            <h1 className='text-xl font-heading font-semibold tracking-tight text-foreground'>
+              Launch Assessment
+            </h1>
           </div>
         </div>
       </div>
@@ -96,7 +106,8 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
           <div className='p-4 border border-amber-500/20 bg-amber-500/5 rounded-2xl flex items-center gap-3.5'>
             <AlertCircle className='size-5 text-amber-500 shrink-0' />
             <p className='text-sm font-medium text-amber-800 dark:text-amber-300'>
-              Please wait until all system readiness checks complete successfully before launching the assessment. Enable camera and microphone permission if prompted.
+              Please wait until all system readiness checks complete successfully before launching
+              the assessment. Enable camera and microphone permission if prompted.
             </p>
           </div>
         )}

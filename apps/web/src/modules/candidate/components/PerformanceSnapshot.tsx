@@ -13,7 +13,7 @@ export function PerformanceSnapshot({ skills }: PerformanceSnapshotProps) {
   return (
     <Card className='h-full glass-card'>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+        <CardTitle className='text-lg font-semibold flex items-center gap-2'>
           <BarChart3 className='size-5 text-indigo-500' />
           Performance Snapshot
         </CardTitle>
@@ -21,7 +21,9 @@ export function PerformanceSnapshot({ skills }: PerformanceSnapshotProps) {
       </CardHeader>
       <CardContent className='space-y-5'>
         {skills.length === 0 ? (
-          <p className='text-sm text-muted-foreground text-center py-4'>No skill metrics recorded yet.</p>
+          <p className='text-sm text-muted-foreground text-center py-4'>
+            No skill metrics recorded yet.
+          </p>
         ) : (
           skills.map((skill) => (
             <div key={skill.skill} className='space-y-2'>

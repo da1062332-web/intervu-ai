@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { Test } from '../types/Test';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, HelpCircle, Star, Building2, ChevronRight, Layers } from 'lucide-react';
@@ -29,7 +36,10 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
             <span className='truncate max-w-[150px]'>{test.company}</span>
           </div>
           <div className='flex items-center gap-1.5'>
-            <Badge variant='outline' className={`text-[10px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty]}`}>
+            <Badge
+              variant='outline'
+              className={`text-[10px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty]}`}
+            >
               {test.difficulty}
             </Badge>
             <Button
@@ -42,7 +52,9 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
               }}
               aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark test'}
             >
-              <Star className={`size-4.5 transition-transform group-hover:scale-105 ${isBookmarked ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+              <Star
+                className={`size-4.5 transition-transform group-hover:scale-105 ${isBookmarked ? 'fill-yellow-500 text-yellow-500' : ''}`}
+              />
             </Button>
           </div>
         </div>
@@ -58,22 +70,33 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <Clock className='size-4 text-primary/70 mb-1' />
           <span className='text-[11px] font-bold text-foreground'>{test.durationMinutes} min</span>
-          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>Duration</span>
+          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
+            Duration
+          </span>
         </div>
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <HelpCircle className='size-4 text-violet-500 mb-1' />
           <span className='text-[11px] font-bold text-foreground'>{test.totalQuestions} Qs</span>
-          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>Questions</span>
+          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
+            Questions
+          </span>
         </div>
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <Layers className='size-4 text-emerald-500 mb-1' />
           <span className='text-[11px] font-bold text-foreground'>{test.sections.length}</span>
-          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>Sections</span>
+          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
+            Sections
+          </span>
         </div>
       </CardContent>
 
       <CardFooter className='pt-3 pb-3 justify-end bg-card'>
-        <Button asChild size='sm' variant='ghost' className='text-xs font-semibold group-hover:text-primary transition-colors pl-2 pr-2.5'>
+        <Button
+          asChild
+          size='sm'
+          variant='ghost'
+          className='text-xs font-semibold group-hover:text-primary transition-colors pl-2 pr-2.5'
+        >
           <Link href={`/candidate/tests/${test.id}`}>
             View Details
             <ChevronRight className='ml-1 size-3.5 group-hover:translate-x-0.5 transition-transform' />

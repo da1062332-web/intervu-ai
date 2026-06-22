@@ -32,7 +32,10 @@ export function TestSummary({ test }: TestSummaryProps) {
             <h4 className='text-sm font-bold text-foreground leading-snug'>{test.title}</h4>
             <p className='text-xs text-muted-foreground mt-1'>{test.company}</p>
           </div>
-          <Badge variant='outline' className={`text-[9px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty]}`}>
+          <Badge
+            variant='outline'
+            className={`text-[9px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty]}`}
+          >
             {test.difficulty}
           </Badge>
         </div>
@@ -41,16 +44,24 @@ export function TestSummary({ test }: TestSummaryProps) {
           <div className='p-3 border border-border/30 bg-card rounded-lg flex items-center gap-2.5'>
             <Clock className='size-5 text-indigo-500' />
             <div>
-              <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>Duration</p>
-              <p className='text-sm font-bold text-foreground mt-0.5'>{test.durationMinutes} Minutes</p>
+              <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>
+                Duration
+              </p>
+              <p className='text-sm font-bold text-foreground mt-0.5'>
+                {test.durationMinutes} Minutes
+              </p>
             </div>
           </div>
 
           <div className='p-3 border border-border/30 bg-card rounded-lg flex items-center gap-2.5'>
             <HelpCircle className='size-5 text-indigo-500' />
             <div>
-              <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>Questions</p>
-              <p className='text-sm font-bold text-foreground mt-0.5'>{test.totalQuestions} Questions</p>
+              <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>
+                Questions
+              </p>
+              <p className='text-sm font-bold text-foreground mt-0.5'>
+                {test.totalQuestions} Questions
+              </p>
             </div>
           </div>
         </div>
@@ -58,7 +69,9 @@ export function TestSummary({ test }: TestSummaryProps) {
         <div className='p-3 border border-border/30 bg-card rounded-lg flex items-center gap-2.5'>
           <Sparkles className='size-5 text-violet-500' />
           <div>
-            <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>Sections</p>
+            <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>
+              Sections
+            </p>
             <p className='text-sm font-bold text-foreground mt-0.5'>
               {test.sections.length} Parts ({test.sections.map((s) => s.name).join(', ')})
             </p>

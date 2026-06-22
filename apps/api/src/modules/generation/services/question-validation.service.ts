@@ -63,7 +63,9 @@ export class QuestionValidationService {
     }
 
     if (!metadata || !metadata.templateId || !metadata.parameters) {
-      errors.push("Metadata is malformed or missing required templateId and parameters");
+      errors.push(
+        "Metadata is malformed or missing required templateId and parameters",
+      );
     }
 
     // MCQ Specific Checks
@@ -80,7 +82,9 @@ export class QuestionValidationService {
 
       // Check answer is in options
       if (!options.includes(answer)) {
-        errors.push("The correct answer does not match any of the provided options");
+        errors.push(
+          "The correct answer does not match any of the provided options",
+        );
       }
     }
   }
@@ -88,7 +92,10 @@ export class QuestionValidationService {
   /**
    * Topic verification (checks concept Key belongs to topicId concept mappings)
    */
-  private async checkTopic(input: ValidationInput, errors: string[]): Promise<void> {
+  private async checkTopic(
+    input: ValidationInput,
+    errors: string[],
+  ): Promise<void> {
     const { topicId, metadata } = input;
     if (!topicId || !metadata?.conceptKey) return;
 
@@ -101,7 +108,9 @@ export class QuestionValidationService {
     });
 
     if (!mapping) {
-      errors.push(`Concept key '${metadata.conceptKey}' does not belong to topic ID ${topicId}`);
+      errors.push(
+        `Concept key '${metadata.conceptKey}' does not belong to topic ID ${topicId}`,
+      );
     }
   }
 
@@ -113,14 +122,19 @@ export class QuestionValidationService {
     if (!difficulty || !requestedDifficulty) return;
 
     if (difficulty.toUpperCase() !== requestedDifficulty.toUpperCase()) {
-      errors.push(`Generated difficulty '${difficulty}' does not match requested difficulty '${requestedDifficulty}'`);
+      errors.push(
+        `Generated difficulty '${difficulty}' does not match requested difficulty '${requestedDifficulty}'`,
+      );
     }
   }
 
   /**
    * Template schema contract validation
    */
-  private async checkTemplateContract(input: ValidationInput, errors: string[]): Promise<void> {
+  private async checkTemplateContract(
+    input: ValidationInput,
+    errors: string[],
+  ): Promise<void> {
     const { metadata } = input;
     if (!metadata?.templateId || !metadata?.parameters) return;
 
@@ -142,7 +156,9 @@ export class QuestionValidationService {
 
     for (const variable of variables) {
       if (variable.required && !params.hasOwnProperty(variable.variableName)) {
-        errors.push(`Required variable '${variable.variableName}' is missing from generated parameters`);
+        errors.push(
+          `Required variable '${variable.variableName}' is missing from generated parameters`,
+        );
       }
     }
   }

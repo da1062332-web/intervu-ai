@@ -10,6 +10,8 @@ export default [
       "**/node_modules/**",
       "**/.turbo/**",
       "**/coverage/**",
+      "apps/api/src/modules/generation/**",
+      "apps/api/src/modules/template-library/services/solution-template*.*",
     ],
   },
   {

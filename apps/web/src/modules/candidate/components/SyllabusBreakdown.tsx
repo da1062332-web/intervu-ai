@@ -19,11 +19,16 @@ export function SyllabusBreakdown({ syllabus }: SyllabusBreakdownProps) {
           <BookOpen className='size-5 text-indigo-500' />
           Syllabus Breakdown
         </CardTitle>
-        <CardDescription>Topics and cognitive concepts evaluated in this assessment</CardDescription>
+        <CardDescription>
+          Topics and cognitive concepts evaluated in this assessment
+        </CardDescription>
       </CardHeader>
       <CardContent className='space-y-3.5'>
         {syllabus.map((item, idx) => (
-          <div key={idx} className='flex items-start gap-3 p-3 rounded-lg border border-border/30 bg-muted/20'>
+          <div
+            key={idx}
+            className='flex items-start gap-3 p-3 rounded-lg border border-border/30 bg-muted/20'
+          >
             <CheckCircle2 className='size-5 text-indigo-500 shrink-0 mt-0.5' />
             <span className='text-sm text-foreground leading-relaxed font-medium'>{item}</span>
           </div>

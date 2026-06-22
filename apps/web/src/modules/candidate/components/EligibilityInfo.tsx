@@ -23,7 +23,10 @@ export function EligibilityInfo({ eligibility }: EligibilityInfoProps) {
       </CardHeader>
       <CardContent className='space-y-3.5'>
         {eligibility.map((item, idx) => (
-          <div key={idx} className='flex items-start gap-3 p-3 rounded-lg border border-border/30 bg-muted/20'>
+          <div
+            key={idx}
+            className='flex items-start gap-3 p-3 rounded-lg border border-border/30 bg-muted/20'
+          >
             <ShieldAlert className='size-5 text-amber-500 shrink-0 mt-0.5' />
             <span className='text-sm text-foreground leading-relaxed font-medium'>{item}</span>
           </div>

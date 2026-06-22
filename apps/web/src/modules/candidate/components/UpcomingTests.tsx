@@ -18,7 +18,7 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
     return (
       <Card className='h-full flex flex-col glass-card'>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Available Assessments</CardTitle>
+          <CardTitle className='text-xl font-semibold'>Available Assessments</CardTitle>
           <CardDescription>Assessments assigned to you</CardDescription>
         </CardHeader>
         <CardContent className='flex-1 flex flex-col items-center justify-center text-muted-foreground p-6 text-center'>
@@ -35,7 +35,7 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
   return (
     <Card className='h-full flex flex-col glass-card'>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">Available Assessments</CardTitle>
+        <CardTitle className='text-xl font-semibold'>Available Assessments</CardTitle>
         <CardDescription>Assessments ready to be taken</CardDescription>
       </CardHeader>
       <CardContent className='flex-1 space-y-4'>

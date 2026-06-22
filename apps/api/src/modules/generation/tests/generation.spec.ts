@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
+import {
+  BadRequestException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { GenerationContextService } from "../services/generation-context.service";
 import { TemplateSelectorService } from "../services/template-selector.service";
@@ -65,12 +69,24 @@ describe("Test Generation Core (Module 2)", () => {
       ],
     }).compile();
 
-    contextService = module.get<GenerationContextService>(GenerationContextService);
-    selectorService = module.get<TemplateSelectorService>(TemplateSelectorService);
-    parameterGenerator = module.get<ParameterGeneratorService>(ParameterGeneratorService);
-    instantiator = module.get<QuestionInstantiatorService>(QuestionInstantiatorService);
-    validationService = module.get<QuestionValidationService>(QuestionValidationService);
-    orchestrator = module.get<GenerationOrchestratorService>(GenerationOrchestratorService);
+    contextService = module.get<GenerationContextService>(
+      GenerationContextService,
+    );
+    selectorService = module.get<TemplateSelectorService>(
+      TemplateSelectorService,
+    );
+    parameterGenerator = module.get<ParameterGeneratorService>(
+      ParameterGeneratorService,
+    );
+    instantiator = module.get<QuestionInstantiatorService>(
+      QuestionInstantiatorService,
+    );
+    validationService = module.get<QuestionValidationService>(
+      QuestionValidationService,
+    );
+    orchestrator = module.get<GenerationOrchestratorService>(
+      GenerationOrchestratorService,
+    );
   });
 
   describe("1. GenerationContextService", () => {
@@ -140,7 +156,9 @@ describe("Test Generation Core (Module 2)", () => {
         },
       });
 
-      await expect(contextService.loadContext("exam-123")).rejects.toThrow(BadRequestException);
+      await expect(contextService.loadContext("exam-123")).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it("should throw NotFoundException when no active templates are mapped", async () => {
@@ -168,7 +186,9 @@ describe("Test Generation Core (Module 2)", () => {
       });
       prismaMock.template.findMany.mockResolvedValue([]);
 
-      await expect(contextService.loadContext("exam-123")).rejects.toThrow(NotFoundException);
+      await expect(contextService.loadContext("exam-123")).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -299,10 +319,36 @@ describe("Test Generation Core (Module 2)", () => {
       // Mock Context
       const mockContext = {
         examId: "exam-123",
-        sections: [{ id: "sec-1", questionCount: 1, sectionDurationMinutes: 10, sectionOrder: 1, code: "sec-1" }],
-        topics: [{ id: "topic-1", name: "Arrays", code: "arrays", conceptCodes: ["c1"] }],
-        templates: [{ id: "temp-1", templateKey: "k1", conceptKey: "c1", difficultyLevel: "MEDIUM" }],
-        difficultyDistribution: { easyPercentage: 0, mediumPercentage: 100, hardPercentage: 0 },
+        sections: [
+          {
+            id: "sec-1",
+            questionCount: 1,
+            sectionDurationMinutes: 10,
+            sectionOrder: 1,
+            code: "sec-1",
+          },
+        ],
+        topics: [
+          {
+            id: "topic-1",
+            name: "Arrays",
+            code: "arrays",
+            conceptCodes: ["c1"],
+          },
+        ],
+        templates: [
+          {
+            id: "temp-1",
+            templateKey: "k1",
+            conceptKey: "c1",
+            difficultyLevel: "MEDIUM",
+          },
+        ],
+        difficultyDistribution: {
+          easyPercentage: 0,
+          mediumPercentage: 100,
+          hardPercentage: 0,
+        },
       };
 
       prismaMock.examConfig.findUnique.mockResolvedValue({
@@ -323,7 +369,11 @@ describe("Test Generation Core (Module 2)", () => {
             ],
           },
         ],
-        difficultyDistribution: { easyPercentage: 0, mediumPercentage: 100, hardPercentage: 0 },
+        difficultyDistribution: {
+          easyPercentage: 0,
+          mediumPercentage: 100,
+          hardPercentage: 0,
+        },
       });
 
       prismaMock.concept.findMany.mockResolvedValue([{ code: "c1" }]);
@@ -347,7 +397,11 @@ describe("Test Generation Core (Module 2)", () => {
       prismaMock.question.count.mockResolvedValue(0);
       prismaMock.concept.findFirst.mockResolvedValue({ id: "c1" });
 
-      const response = await orchestrator.generateQuestions("exam-123", "sec-1", 1);
+      const response = await orchestrator.generateQuestions(
+        "exam-123",
+        "sec-1",
+        1,
+      );
       expect(response.success).toBe(true);
       expect(response.generated).toBe(1);
     });

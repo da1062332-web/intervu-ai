@@ -29,7 +29,10 @@ export function TestOverview({ test }: TestOverviewProps) {
               {test.title}
             </CardTitle>
           </div>
-          <Badge variant='outline' className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 ${difficultyColors[test.difficulty]}`}>
+          <Badge
+            variant='outline'
+            className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 ${difficultyColors[test.difficulty]}`}
+          >
             {test.difficulty}
           </Badge>
         </div>
@@ -40,11 +43,15 @@ export function TestOverview({ test }: TestOverviewProps) {
       <CardContent className='flex gap-6 mt-4 pb-6 pt-0 border-t border-border/20 py-4 bg-muted/10'>
         <div className='flex items-center gap-2 text-muted-foreground font-medium text-sm'>
           <HelpCircle className='size-5 text-primary/70' />
-          <span><strong className='text-foreground'>{test.totalQuestions}</strong> Questions</span>
+          <span>
+            <strong className='text-foreground'>{test.totalQuestions}</strong> Questions
+          </span>
         </div>
         <div className='flex items-center gap-2 text-muted-foreground font-medium text-sm'>
           <Clock className='size-5 text-primary/70' />
-          <span><strong className='text-foreground'>{test.durationMinutes}</strong> Minutes</span>
+          <span>
+            <strong className='text-foreground'>{test.durationMinutes}</strong> Minutes
+          </span>
         </div>
       </CardContent>
     </Card>

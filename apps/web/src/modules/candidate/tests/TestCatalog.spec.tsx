@@ -78,7 +78,7 @@ describe('TestCatalogPage component', () => {
 
   it('filters tests by difficulty buttons', () => {
     render(<TestCatalogPage />);
-    
+
     // Click 'Hard' filter
     const hardBtn = screen.getByRole('button', { name: /^Hard$/i });
     fireEvent.click(hardBtn);

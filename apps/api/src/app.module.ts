@@ -33,6 +33,7 @@ import { ConceptMappingModule } from "./modules/concept-mapping/concept-mapping.
 import { TopicSectionMappingModule } from "./modules/topic-section-mapping/topic-section-mapping.module";
 import { BlueprintModule } from "./modules/blueprint/blueprint.module";
 import { BlueprintConfigModule } from "./modules/blueprint-config/blueprint-config.module";
+import { ValidationModule } from "./modules/validation/validation.module";
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { BlueprintConfigModule } from "./modules/blueprint-config/blueprint-conf
     TopicSectionMappingModule,
     BlueprintModule,
     BlueprintConfigModule,
+    ValidationModule,
   ],
   providers: [
     {

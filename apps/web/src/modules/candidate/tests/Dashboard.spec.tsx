@@ -26,7 +26,10 @@ describe('CandidateDashboard component', () => {
 
     render(<CandidateDashboard />);
     // Check if loaders/skeletons are displayed
-    expect(screen.getByTestId('dashboard-skeleton') || screen.queryByRole('heading', { name: /Welcome/i })).toBeDefined();
+    expect(
+      screen.getByTestId('dashboard-skeleton') ||
+        screen.queryByRole('heading', { name: /Welcome/i }),
+    ).toBeDefined();
   });
 
   it('renders error state with retry option', () => {
@@ -72,9 +75,7 @@ describe('CandidateDashboard component', () => {
           confidenceScore: 92,
           recommendationSummary: 'Review React lifecycle methods.',
         },
-        skillProgress: [
-          { skill: 'React', score: 88 },
-        ],
+        skillProgress: [{ skill: 'React', score: 88 }],
       },
       error: null,
       refetch: vi.fn(),

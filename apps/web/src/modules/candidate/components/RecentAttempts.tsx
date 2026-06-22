@@ -13,7 +13,7 @@ export function RecentAttempts({ history }: RecentAttemptsProps) {
   return (
     <Card className='h-full flex flex-col glass-card'>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">Previous Attempts</CardTitle>
+        <CardTitle className='text-xl font-semibold'>Previous Attempts</CardTitle>
         <CardDescription>Your latest assessment results</CardDescription>
       </CardHeader>
       <CardContent className='flex-1'>
@@ -46,7 +46,10 @@ export function RecentAttempts({ history }: RecentAttemptsProps) {
                     </span>
                   </div>
                 </div>
-                <Badge variant='secondary' className='text-sm font-bold ml-4 bg-primary/10 text-primary border border-primary/20'>
+                <Badge
+                  variant='secondary'
+                  className='text-sm font-bold ml-4 bg-primary/10 text-primary border border-primary/20'
+                >
                   {attempt.score}%
                 </Badge>
               </div>

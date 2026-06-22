@@ -41,6 +41,6 @@ export const useDashboardStore = create<DashboardState>()(
         };
       }),
       skipHydration: true,
-    }
-  )
+    },
+  ),
 );

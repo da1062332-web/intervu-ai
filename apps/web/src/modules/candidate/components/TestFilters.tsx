@@ -32,7 +32,9 @@ export function TestFilters({
       <div className='flex items-center justify-between pb-3 border-b border-border/20'>
         <div className='flex items-center gap-2'>
           <SlidersHorizontal className='size-4 text-primary' />
-          <h2 className='font-heading font-semibold text-sm text-foreground uppercase tracking-wider'>Filter Assessments</h2>
+          <h2 className='font-heading font-semibold text-sm text-foreground uppercase tracking-wider'>
+            Filter Assessments
+          </h2>
         </div>
         <span className='text-xs text-muted-foreground font-medium bg-muted px-2.5 py-1 rounded-full'>
           {totalResults} matches
@@ -84,7 +86,9 @@ export function TestFilters({
           </div>
           <div>
             <p className='text-xs font-semibold text-foreground'>Bookmarked Assessments</p>
-            <p className='text-[10px] text-muted-foreground'>Show only assessments you've starred</p>
+            <p className='text-[10px] text-muted-foreground'>
+              Show only assessments you've starred
+            </p>
           </div>
         </div>
         <div className='flex items-center space-x-2'>

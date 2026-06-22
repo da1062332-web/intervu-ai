@@ -1,6 +1,15 @@
-import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { GenerationContextDto, SectionDto, TopicDto, TemplateDto } from "../dto/generation.dto";
+import {
+  GenerationContextDto,
+  SectionDto,
+  TopicDto,
+  TemplateDto,
+} from "../dto/generation.dto";
 
 @Injectable()
 export class GenerationContextService {
@@ -61,12 +70,14 @@ export class GenerationContextService {
         success: false,
         error: {
           code: "INVALID_CONFIG",
-          message: "Difficulty distribution configuration is missing for this exam",
+          message:
+            "Difficulty distribution configuration is missing for this exam",
         },
       });
     }
 
-    const totalDifficulty = dist.easyPercentage + dist.mediumPercentage + dist.hardPercentage;
+    const totalDifficulty =
+      dist.easyPercentage + dist.mediumPercentage + dist.hardPercentage;
     if (totalDifficulty !== 100) {
       throw new BadRequestException({
         success: false,
@@ -107,7 +118,8 @@ export class GenerationContextService {
             name: t.name,
             code: t.code,
             conceptCodes,
-            weightagePercentage: sectionTopic.topicWeightage?.weightagePercentage,
+            weightagePercentage:
+              sectionTopic.topicWeightage?.weightagePercentage,
           });
         }
       }
@@ -119,7 +131,8 @@ export class GenerationContextService {
         success: false,
         error: {
           code: "INVALID_CONFIG",
-          message: "No active topics configured for the sections of this exam configuration",
+          message:
+            "No active topics configured for the sections of this exam configuration",
         },
       });
     }
@@ -148,7 +161,8 @@ export class GenerationContextService {
         success: false,
         error: {
           code: "TEMPLATE_MISSING",
-          message: "No active templates found for the configured topics and difficulty levels",
+          message:
+            "No active templates found for the configured topics and difficulty levels",
         },
       });
     }

@@ -75,7 +75,8 @@ export class ParameterGeneratorService {
       success: false,
       error: {
         code: "CONSTRAINT_VIOLATION",
-        message: "Failed to generate variables satisfying all template constraints after 50 attempts",
+        message:
+          "Failed to generate variables satisfying all template constraints after 50 attempts",
       },
     });
   }
@@ -83,7 +84,10 @@ export class ParameterGeneratorService {
   /**
    * Validates generated parameters against rules and checks.
    */
-  private validateConstraints(params: Record<string, any>, constraints: any): boolean {
+  private validateConstraints(
+    params: Record<string, any>,
+    constraints: any,
+  ): boolean {
     const rules = constraints.rules || [];
 
     // Exclude duplicates check
@@ -124,8 +128,12 @@ export class ParameterGeneratorService {
     const operator = tokens[1];
     const rightName = tokens[2];
 
-    const leftVal = params.hasOwnProperty(leftName) ? params[leftName] : parseFloat(leftName);
-    const rightVal = params.hasOwnProperty(rightName) ? params[rightName] : parseFloat(rightName);
+    const leftVal = params.hasOwnProperty(leftName)
+      ? params[leftName]
+      : parseFloat(leftName);
+    const rightVal = params.hasOwnProperty(rightName)
+      ? params[rightName]
+      : parseFloat(rightName);
 
     if (isNaN(leftVal) && typeof leftVal === "number") return false;
     if (isNaN(rightVal) && typeof rightVal === "number") return false;
@@ -150,7 +158,7 @@ export class ParameterGeneratorService {
         if (tokens[3] === "==" || tokens[3] === "===") {
           const modVal = parseFloat(tokens[2]);
           const targetVal = parseFloat(tokens[4]);
-          return (leftVal % modVal) === targetVal;
+          return leftVal % modVal === targetVal;
         }
         return false;
       default:

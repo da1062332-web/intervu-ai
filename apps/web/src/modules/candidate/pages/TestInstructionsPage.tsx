@@ -69,12 +69,19 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
       <div className='border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10'>
         <div className='container max-w-4xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center gap-4'>
-            <Button variant='ghost' size='icon' asChild className='shrink-0 hover:bg-muted/50 rounded-xl transition-colors'>
+            <Button
+              variant='ghost'
+              size='icon'
+              asChild
+              className='shrink-0 hover:bg-muted/50 rounded-xl transition-colors'
+            >
               <Link href={`/candidate/tests/${testId}`}>
                 <ChevronLeft className='size-5' />
               </Link>
             </Button>
-            <h1 className='text-xl font-heading font-semibold tracking-tight text-foreground'>Test Instructions</h1>
+            <h1 className='text-xl font-heading font-semibold tracking-tight text-foreground'>
+              Test Instructions
+            </h1>
           </div>
         </div>
       </div>
@@ -97,7 +104,10 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             <CardContent>
               <ul className='space-y-2.5'>
                 {config.generalRules.map((rule, idx) => (
-                  <li key={idx} className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'>
+                  <li
+                    key={idx}
+                    className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                  >
                     <span className='size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2' />
                     <span>{rule}</span>
                   </li>
@@ -118,7 +128,10 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             <CardContent>
               <ul className='space-y-2.5'>
                 {config.navigationRules.map((rule, idx) => (
-                  <li key={idx} className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'>
+                  <li
+                    key={idx}
+                    className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                  >
                     <span className='size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2' />
                     <span>{rule}</span>
                   </li>
@@ -139,7 +152,10 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             <CardContent>
               <ul className='space-y-2.5'>
                 {config.technicalRequirements.map((rule, idx) => (
-                  <li key={idx} className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'>
+                  <li
+                    key={idx}
+                    className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                  >
                     <span className='size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2' />
                     <span>{rule}</span>
                   </li>
@@ -154,14 +170,18 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
           <Checkbox
             id='terms-accept'
             checked={isAccepted}
-            onCheckedChange={(checked: boolean | 'indeterminate') => handleCheckboxChange(checked === true)}
+            onCheckedChange={(checked: boolean | 'indeterminate') =>
+              handleCheckboxChange(checked === true)
+            }
             className='mt-1 text-primary border-muted-foreground size-5 rounded'
           />
           <label
             htmlFor='terms-accept'
             className='text-sm font-medium leading-relaxed text-muted-foreground cursor-pointer select-none'
           >
-            I have read and understood all the instructions listed above. I agree that I will abide by the rules during the assessment, and I consent to screen sharing, camera recording, and focus tracking monitoring.
+            I have read and understood all the instructions listed above. I agree that I will abide
+            by the rules during the assessment, and I consent to screen sharing, camera recording,
+            and focus tracking monitoring.
           </label>
         </div>
 

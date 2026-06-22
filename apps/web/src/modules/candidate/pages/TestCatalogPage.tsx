@@ -52,7 +52,12 @@ export function TestCatalogPage() {
   }
 
   if (error || !tests) {
-    return <TestDiscoveryError error={new Error(error || 'Failed to load assessments')} reset={refetch} />;
+    return (
+      <TestDiscoveryError
+        error={new Error(error || 'Failed to load assessments')}
+        reset={refetch}
+      />
+    );
   }
 
   // Filter Logic
@@ -61,8 +66,7 @@ export function TestCatalogPage() {
       test.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       test.company.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesDifficulty =
-      difficultyFilter === 'All' || test.difficulty === difficultyFilter;
+    const matchesDifficulty = difficultyFilter === 'All' || test.difficulty === difficultyFilter;
 
     const matchesBookmark = !showOnlyBookmarked || bookmarkedIds.includes(test.id);
 
