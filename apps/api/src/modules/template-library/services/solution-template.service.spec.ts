@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SolutionTemplateService } from './solution-template.service';
-import { TemplateRendererService } from './template-renderer.service';
-import { PlaceholderValidatorService } from './placeholder-validator.service';
-import { SolutionTemplateRepository } from '../repositories/solution-template.repository';
-import { TemplatePreviewRepository } from '../repositories/template-preview.repository';
-import { TemplateRepository } from '../repositories/template.repository';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { SolutionTemplateService } from "./solution-template.service";
+import { TemplateRendererService } from "./template-renderer.service";
+import { PlaceholderValidatorService } from "./placeholder-validator.service";
+import { SolutionTemplateRepository } from "../repositories/solution-template.repository";
+import { TemplatePreviewRepository } from "../repositories/template-preview.repository";
+import { TemplateRepository } from "../repositories/template.repository";
+import { PrismaService } from "../../../prisma/prisma.service";
 
-describe('SolutionTemplateService', () => {
+describe("SolutionTemplateService", () => {
   let service: SolutionTemplateService;
 
   const mockPrisma = {
     templateVariable: {
-      findMany: jest.fn().mockResolvedValue([{ variableName: 'var1' }]),
+      findMany: jest.fn().mockResolvedValue([{ variableName: "var1" }]),
     },
   };
 
@@ -46,7 +46,7 @@ describe('SolutionTemplateService', () => {
     service = module.get<SolutionTemplateService>(SolutionTemplateService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 });

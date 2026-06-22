@@ -20,8 +20,8 @@ export const TemplatePreviewBaseSchema = z.object({
     resolvedVariables: z.record(z.unknown()),
     validation: z.object({
       valid: z.boolean(),
-      unknownVariables: z.array(z.string()).optional()
-    })
+      unknownVariables: z.array(z.string()).optional(),
+    }),
   }),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),

@@ -11,6 +11,7 @@ import { ConceptManagementPanel } from '@/features/admin/configs/components/conc
 import { cn } from '@/lib/utils';
 import { useConfig } from '@/services/exam-configs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ReadinessTab } from '@/features/admin/configs/components/readiness-tab';
 
 interface ConfigPageClientProps {
   configId: string;
@@ -26,6 +27,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     { id: 'concepts', label: 'Concept Mapping' },
     { id: 'difficulty', label: 'Difficulty Distribution' },
     { id: 'rules', label: 'Rules' },
+    { id: 'readiness', label: 'Readiness' },
     { id: 'preview', label: 'Preview' },
   ];
 
@@ -135,7 +137,13 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
         {activeTab === 'rules' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <RuleFlagsTab configId={configId} onNext={() => setActiveTab('preview')} />
+            <RuleFlagsTab configId={configId} onNext={() => setActiveTab('readiness')} />
+          </div>
+        )}
+
+        {activeTab === 'readiness' && (
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <ReadinessTab configId={configId} onTabChange={setActiveTab} />
           </div>
         )}
 
