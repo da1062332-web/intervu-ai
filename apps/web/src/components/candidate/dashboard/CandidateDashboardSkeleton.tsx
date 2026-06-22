@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function CandidateDashboardSkeleton() {
   return (
-    <div className='space-y-8'>
+    <div className='space-y-8' data-testid='dashboard-skeleton'>
       {/* Header Skeleton */}
       <div className='flex flex-col md:flex-row md:items-end justify-between gap-4'>
         <div className='space-y-2'>
