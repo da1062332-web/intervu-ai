@@ -51,3 +51,7 @@ export * from "./blueprint-config.dto";
 
 // Readiness Contracts
 export * from "./schemas/readiness.schema";
+
+// System Validation Contracts
+export * from "./schemas/system-validation.schema";
+

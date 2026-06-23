@@ -10,6 +10,7 @@ import {
   PlayCircle,
   Layers,
   BookOpen,
+  ShieldCheck,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -23,11 +24,13 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Configs', route: '/admin/configs', icon: FileCog },
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
+        { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
         { label: 'Tests', route: '/admin/tests', icon: ClipboardList },
         { label: 'Results', route: '/admin/results', icon: BarChart3 },
         { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },
       ],
     },
+
     {
       heading: 'Account',
       items: [{ label: 'Profile', route: '/admin/profile', icon: User }],

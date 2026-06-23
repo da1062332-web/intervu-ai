@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { ReadinessController } from "./controllers/readiness.controller";
+import { SystemValidationController } from "./controllers/system-validation.controller";
 import { ReadinessEngineService } from "./services/readiness-engine.service";
+import { CrossModuleValidatorService } from "./services/cross-module-validator.service";
 import { ReadinessReportRepository } from "./repositories/readiness-report.repository";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { AdminConfigModule } from "../admin-config/admin-config.module";
@@ -18,8 +20,9 @@ import { BlueprintModule } from "../blueprint/blueprint.module";
     TemplateLibraryModule,
     BlueprintModule,
   ],
-  controllers: [ReadinessController],
-  providers: [ReadinessEngineService, ReadinessReportRepository],
-  exports: [ReadinessEngineService, ReadinessReportRepository],
+  controllers: [ReadinessController, SystemValidationController],
+  providers: [ReadinessEngineService, CrossModuleValidatorService, ReadinessReportRepository],
+  exports: [ReadinessEngineService, CrossModuleValidatorService, ReadinessReportRepository],
 })
 export class ValidationModule {}
+
