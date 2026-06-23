@@ -1,4 +1,5 @@
 export type QuestionStatus = 'ANSWERED' | 'UNANSWERED' | 'CURRENT' | 'MARKED_FOR_REVIEW';
+export type QuestionType = 'MCQ' | 'MSQ' | 'NUMERIC' | 'CODING';
 
 export type AutosaveStatus = 'IDLE' | 'SAVING' | 'SAVED' | 'FAILED';
 export type ConnectionStatus = 'ONLINE' | 'OFFLINE' | 'RECONNECTING';
@@ -12,6 +13,7 @@ export interface QuestionOption {
 export interface Question {
   id: string;
   questionHash: string;
+  type: QuestionType;
   text: string;
   options: QuestionOption[];
   orderIndex: number;
@@ -26,7 +28,9 @@ export interface Section {
 
 export interface AnswerState {
   questionId: string;
-  selectedOptionId?: string;
+  selectedOptionId?: string; // For MCQ
+  selectedOptionIds?: string[]; // For MSQ
+  textResponse?: string; // For NUMERIC / CODING
   status: QuestionStatus;
 }
 

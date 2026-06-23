@@ -25,7 +25,10 @@ export class CreateQuestionDto {
   @IsNotEmpty()
   answer!: string;
 
-  @ApiProperty({ example: "Paris has been the capital of France since the French Revolution." })
+  @ApiProperty({
+    example:
+      "Paris has been the capital of France since the French Revolution.",
+  })
   @IsString()
   @IsOptional()
   explanation?: string;
@@ -56,7 +59,10 @@ export class CreateQuestionDto {
   @IsOptional()
   templateId?: string;
 
-  @ApiProperty({ example: ["London", "Paris", "Berlin", "Madrid"], required: false })
+  @ApiProperty({
+    example: ["London", "Paris", "Berlin", "Madrid"],
+    required: false,
+  })
   @IsArray()
   @IsOptional()
   options?: string[];
@@ -190,7 +196,10 @@ export class CheckDuplicateDto {
 }
 
 export class ApproveRejectDto {
-  @ApiProperty({ example: "This question option has minor typos", required: false })
+  @ApiProperty({
+    example: "This question option has minor typos",
+    required: false,
+  })
   @IsString()
   @IsOptional()
   notes?: string;

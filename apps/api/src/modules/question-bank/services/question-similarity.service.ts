@@ -49,10 +49,15 @@ export class QuestionSimilarityService {
     const normalizedText = questionText.trim().toLowerCase();
 
     // Narrow search space to same topicId and sectionId
-    const candidates = await this.questionRepo.findQuestionsForSimilarity(topicId, sectionId);
+    const candidates = await this.questionRepo.findQuestionsForSimilarity(
+      topicId,
+      sectionId,
+    );
 
     // Look for exact matches
-    const exactMatch = candidates.find((c) => c.questionText.trim().toLowerCase() === normalizedText);
+    const exactMatch = candidates.find(
+      (c) => c.questionText.trim().toLowerCase() === normalizedText,
+    );
     if (exactMatch) {
       return {
         duplicate: true,
@@ -66,7 +71,10 @@ export class QuestionSimilarityService {
     let matchedQuestionId: string | null = null;
 
     for (const candidate of candidates) {
-      const similarity = this.calculateSemanticSimilarity(questionText, candidate.questionText);
+      const similarity = this.calculateSemanticSimilarity(
+        questionText,
+        candidate.questionText,
+      );
       if (similarity > highestSimilarity) {
         highestSimilarity = similarity;
         matchedQuestionId = candidate.id;
@@ -78,7 +86,8 @@ export class QuestionSimilarityService {
     return {
       duplicate: highestSimilarity >= threshold,
       similarity: similarityPercentage,
-      matchedQuestionId: highestSimilarity >= threshold ? matchedQuestionId : null,
+      matchedQuestionId:
+        highestSimilarity >= threshold ? matchedQuestionId : null,
     };
   }
 }

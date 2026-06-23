@@ -6,12 +6,18 @@ import { Prisma, Question, QuestionStatus } from "@prisma/client";
 export class QuestionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.QuestionUncheckedCreateInput, tx?: Prisma.TransactionClient): Promise<Question> {
+  async create(
+    data: Prisma.QuestionUncheckedCreateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Question> {
     const client = tx || this.prisma;
     return client.question.create({ data });
   }
 
-  async createMany(data: Prisma.QuestionCreateManyInput[], tx?: Prisma.TransactionClient): Promise<number> {
+  async createMany(
+    data: Prisma.QuestionCreateManyInput[],
+    tx?: Prisma.TransactionClient,
+  ): Promise<number> {
     const client = tx || this.prisma;
     const result = await client.question.createMany({ data });
     return result.count;
@@ -97,7 +103,10 @@ export class QuestionRepository {
     };
   }
 
-  async findQuestionsForSimilarity(topicId: string, sectionId: string): Promise<Pick<Question, "id" | "questionText">[]> {
+  async findQuestionsForSimilarity(
+    topicId: string,
+    sectionId: string,
+  ): Promise<Pick<Question, "id" | "questionText">[]> {
     return this.prisma.question.findMany({
       where: {
         topicId,
@@ -125,7 +134,9 @@ export class QuestionRepository {
     await client.questionVersion.createMany({ data: params.versions });
     await client.questionUsage.createMany({ data: params.usages });
     if (params.legacyQuestions.length > 0) {
-      await client.generatedQuestion.createMany({ data: params.legacyQuestions });
+      await client.generatedQuestion.createMany({
+        data: params.legacyQuestions,
+      });
     }
     return params.questions.length;
   }

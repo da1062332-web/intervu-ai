@@ -1,17 +1,19 @@
 'use client';
 
 import { ExecutionHeader } from './ExecutionHeader';
-import { QuestionPanel } from './QuestionPanel';
+import { QuestionRenderer } from './QuestionRenderer';
 import { QuestionPalette } from './QuestionPalette';
 import { ProgressTracker } from './ProgressTracker';
 import { NavigationControls } from './NavigationControls';
 import { ResumeBanner } from './ResumeBanner';
 import { ConnectionStatus } from './ConnectionStatus';
 import { SubmissionModal } from './SubmissionModal';
+import { SectionTabs } from './SectionTabs';
 import { useExecutionStore } from '../stores/execution.store';
 import { useAutosave } from '../hooks/useAutosave';
 import { useConnectionMonitor } from '../hooks/useConnectionMonitor';
 import { useResume } from '../hooks/useResume';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useState } from 'react';
 
 export function ExecutionLayout() {
@@ -23,6 +25,11 @@ export function ExecutionLayout() {
   useResume(testInstance?.id);
   useAutosave(testInstance?.id || 'unknown');
 
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts({
+    onSubmit: () => setIsSubmitModalOpen(true),
+  });
+
   return (
     <div className='min-h-screen bg-background flex flex-col relative'>
       <ConnectionStatus />
@@ -33,8 +40,9 @@ export function ExecutionLayout() {
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 h-full items-start'>
           {/* Left Column - Question & Navigation */}
           <div className='lg:col-span-8 flex flex-col min-h-[500px]'>
+            <SectionTabs />
             <div className='flex-1'>
-              <QuestionPanel />
+              <QuestionRenderer />
             </div>
             <div className='mt-6 md:mt-8'>
               <NavigationControls onSubmitClick={() => setIsSubmitModalOpen(true)} />

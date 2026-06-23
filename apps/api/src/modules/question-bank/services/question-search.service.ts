@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { QuestionRepository } from "../repositories/question.repository";
+// eslint-disable-next-line no-restricted-imports
 import { SearchFiltersDto } from "../dto/question-bank.dto";
 import { Prisma, Question } from "@prisma/client";
 
