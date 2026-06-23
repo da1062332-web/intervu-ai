@@ -98,7 +98,7 @@ async function runVerification() {
     // 4. Generate JWT
     console.log("Generating valid JWT token...");
     const token = jwt.sign(
-      { sub: dummyUserId, email: user.email, role: user.role },
+      { sub: dummyUserId, email: user.email, role: user.role, type: "access", sessionId: "dummy-session" },
       JWT_SECRET,
       { expiresIn: "1h" },
     );

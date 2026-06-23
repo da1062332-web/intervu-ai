@@ -31,7 +31,9 @@ async function runVerification() {
 
   await connectPrisma();
 
-  // Clear old templates that might be broken and cause issues with the random selection
+  // Clear old templates and questions that might be broken and cause issues with the random selection
+  await prisma.generatedQuestion.deleteMany();
+  await prisma.question.deleteMany();
   await prisma.template.deleteMany();
 
   let passes = 0;

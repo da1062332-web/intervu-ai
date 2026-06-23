@@ -16,6 +16,7 @@ import { TestAssemblyModule } from "./modules/test-assembly";
 import { SystemConfigModule } from "./modules/config";
 import { AssemblyModule } from "./modules/assembly/assembly.module";
 import { QuestionPoolModule } from "./modules/question-pool/question-pool.module";
+import { QuestionBankModule } from "./modules/question-bank/question-bank.module";
 import { GenerationModule } from "./modules/generation";
 import { QueueMonitorModule } from "./modules/queue-monitor";
 import { ExecutionModule } from "./modules/execution/execution.module";
@@ -55,6 +56,7 @@ import { ValidationModule } from "./modules/validation/validation.module";
     TestAssemblyModule,
     AssemblyModule,
     QuestionPoolModule,
+    QuestionBankModule,
     SystemConfigModule,
     GenerationModule,
     QueueMonitorModule,
