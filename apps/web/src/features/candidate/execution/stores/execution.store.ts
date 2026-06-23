@@ -36,7 +36,11 @@ interface ExecutionState {
   // Actions
   initializeTest: (testInstance: TestInstance) => void;
   jumpToQuestion: (index: number) => void;
-  saveAnswer: (questionId: string, optionId: string) => void;
+  saveAnswer: (
+    questionId: string,
+    answerData: { selectedOptionId?: string; selectedOptionIds?: string[]; textResponse?: string }
+  ) => void;
+  toggleReview: (questionId: string) => void;
   markForReview: (questionId: string) => void;
   removeReview: (questionId: string) => void;
   goNext: () => void;
@@ -108,7 +112,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         const answer = savedState.answers[q.id];
         if (answer) {
           if (answer.status === 'MARKED_FOR_REVIEW') return 'MARKED_FOR_REVIEW';
-          if (answer.selectedOptionId) return 'ANSWERED';
+          if (answer.selectedOptionId || (answer.selectedOptionIds && answer.selectedOptionIds.length > 0) || answer.textResponse) return 'ANSWERED';
         }
         return 'UNANSWERED';
       });
@@ -138,7 +142,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         if (answer?.status === 'MARKED_FOR_REVIEW') {
           newPalette[prevIndex] = 'MARKED_FOR_REVIEW';
         } else {
-          const hasAnswer = !!answer?.selectedOptionId;
+          const hasAnswer = !!(answer?.selectedOptionId || (answer?.selectedOptionIds && answer.selectedOptionIds.length > 0) || answer?.textResponse);
           newPalette[prevIndex] = hasAnswer ? 'ANSWERED' : 'UNANSWERED';
         }
       }
@@ -154,12 +158,13 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     });
   },
 
-  saveAnswer: (questionId, optionId) => {
+  saveAnswer: (questionId, answerData) => {
     set((state) => {
       const newAnswers = { ...state.answers };
       newAnswers[questionId] = {
+        ...newAnswers[questionId],
         questionId,
-        selectedOptionId: optionId,
+        ...answerData,
         status:
           newAnswers[questionId]?.status === 'MARKED_FOR_REVIEW' ? 'MARKED_FOR_REVIEW' : 'ANSWERED',
       };
@@ -171,13 +176,33 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     });
   },
 
+  toggleReview: (questionId) => {
+    set((state) => {
+      const newAnswers = { ...state.answers };
+      const current = newAnswers[questionId];
+      if (current?.status === 'MARKED_FOR_REVIEW') {
+        newAnswers[questionId] = {
+          ...current,
+          status: (current.selectedOptionId || (current.selectedOptionIds && current.selectedOptionIds.length > 0) || current.textResponse) ? 'ANSWERED' : 'UNANSWERED',
+        };
+      } else {
+        newAnswers[questionId] = {
+          ...current,
+          questionId,
+          status: 'MARKED_FOR_REVIEW',
+        };
+      }
+      return { answers: newAnswers, hasUnsavedChanges: true };
+    });
+  },
+
   markForReview: (questionId) => {
     set((state) => {
       const newAnswers = { ...state.answers };
       const current = newAnswers[questionId];
       newAnswers[questionId] = {
+        ...current,
         questionId,
-        selectedOptionId: current?.selectedOptionId,
         status: 'MARKED_FOR_REVIEW',
       };
       return { answers: newAnswers, hasUnsavedChanges: true };
@@ -191,7 +216,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       if (current) {
         newAnswers[questionId] = {
           ...current,
-          status: current.selectedOptionId ? 'ANSWERED' : 'UNANSWERED',
+          status: (current.selectedOptionId || (current.selectedOptionIds && current.selectedOptionIds.length > 0) || current.textResponse) ? 'ANSWERED' : 'UNANSWERED',
         };
       }
       return { answers: newAnswers, hasUnsavedChanges: true };
