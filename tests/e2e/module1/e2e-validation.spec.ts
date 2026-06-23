@@ -3,7 +3,7 @@ import { PrismaClient, DifficultyLevel, ConfigStatus, TopicStatus, ConceptStatus
 
 const prisma = new PrismaClient();
 
-test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
+test.describe.serial('Module 1 Cross-Module Validation E2E Scenarios', () => {
   const testConfigCode = 'E2E_QA_SCENARIOS_CONFIG';
   let configId = '';
   let topicId = '';
@@ -24,6 +24,15 @@ test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
     if (oldTopic) {
       await prisma.topic.delete({ where: { id: oldTopic.id } });
     }
+
+    // Clean up E2E templates
+    await prisma.template.deleteMany({
+      where: {
+        templateKey: {
+          startsWith: 'E2E_TEMPLATE_',
+        },
+      },
+    });
   });
 
   test.afterAll(async () => {
@@ -32,6 +41,10 @@ test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    // Listen for browser logs & errors
+    page.on('console', msg => console.log(`[BROWSER CONSOLE] [${msg.type()}] ${msg.text()}`));
+    page.on('pageerror', err => console.log(`[BROWSER EXCEPTION] ${err.stack || err.message}`));
+
     // 1. Log in as ADMIN
     await page.goto('/login');
     await page.fill('input[type="email"]', 'admin@intervu.ai');
@@ -131,7 +144,7 @@ test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
     await page.click('button:has-text("Run Full Validation")');
     
     // Verify results show up
-    await page.waitForSelector('text=Validation Layers Breakdown');
+    await page.waitForSelector('span[data-slot="badge"]');
 
     // Configuration and Knowledge layers should PASS
     const configBadge = page.locator('span[data-slot="badge"]').nth(0);
@@ -192,7 +205,7 @@ test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
     await page.selectOption('select#config-select', configId);
     await page.click('button:has-text("Run Full Validation")');
     
-    await page.waitForSelector('text=Validation Layers Breakdown');
+    await page.waitForSelector('span[data-slot="badge"]');
 
     // Config, Knowledge, and Templates should now PASS
     const configBadge = page.locator('span[data-slot="badge"]').nth(0);
@@ -250,7 +263,7 @@ test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
     await page.selectOption('select#config-select', configId);
     await page.click('button:has-text("Run Full Validation")');
 
-    await page.waitForSelector('text=Validation Layers Breakdown');
+    await page.waitForSelector('span[data-slot="badge"]');
 
     // All layers should PASS!
     const configBadge = page.locator('span[data-slot="badge"]').nth(0);
@@ -264,7 +277,7 @@ test.describe('Module 1 Cross-Module Validation E2E Scenarios', () => {
     await expect(blueprintBadge).toContainText('PASS');
 
     // Score gauge central text should be 100
-    const scoreText = page.locator('text=100');
+    const scoreText = page.getByText('100', { exact: true });
     await expect(scoreText).toBeVisible();
 
     // Verify readiness state description

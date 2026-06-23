@@ -40,3 +40,6 @@ _sprint_plans/
 # Yash Tasks
 yash-tasks/
 yash spring/
+# Playwright
+playwright-report/
+test-results/
