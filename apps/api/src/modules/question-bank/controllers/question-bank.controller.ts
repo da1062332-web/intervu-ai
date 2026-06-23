@@ -11,7 +11,13 @@ import {
   Delete,
   Patch,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiParam } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiParam,
+} from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
@@ -21,6 +27,7 @@ import { QuestionSearchService } from "../services/question-search.service";
 import { QuestionVersionService } from "../services/question-version.service";
 import { QuestionReviewService } from "../services/question-review.service";
 import { QuestionSimilarityService } from "../services/question-similarity.service";
+// eslint-disable-next-line no-restricted-imports
 import {
   CreateQuestionDto,
   UpdateQuestionDto,
@@ -61,7 +68,9 @@ export class QuestionBankController {
 
   @Get("search")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Filtered and paginated search of the question pool" })
+  @ApiOperation({
+    summary: "Filtered and paginated search of the question pool",
+  })
   @ApiOkResponse({ description: "Search results returned successfully" })
   async search(@Query() filters: SearchFiltersDto) {
     const result = await this.searchService.search(filters);
@@ -77,9 +86,14 @@ export class QuestionBankController {
 
   @Get("stats")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Retrieve statistics and metrics of the question pool" })
+  @ApiOperation({
+    summary: "Retrieve statistics and metrics of the question pool",
+  })
   @ApiOkResponse({ description: "Stats retrieved successfully" })
-  async stats(@Query("topicId") topicId?: string, @Query("sectionId") sectionId?: string) {
+  async stats(
+    @Query("topicId") topicId?: string,
+    @Query("sectionId") sectionId?: string,
+  ) {
     const result = await this.bankService.getStats({ topicId, sectionId });
     return {
       success: true,
@@ -113,7 +127,9 @@ export class QuestionBankController {
 
   @Get(":id/versions")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Retrieve version and snapshot history for a question" })
+  @ApiOperation({
+    summary: "Retrieve version and snapshot history for a question",
+  })
   @ApiParam({ name: "id", description: "Question ID" })
   @ApiOkResponse({ description: "Versions retrieved successfully" })
   async getVersions(@Param("id") id: string) {
@@ -181,9 +197,11 @@ export class QuestionBankController {
 
   @Post(":id/restore")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Restore an ARCHIVED question back to DRAFT status" })
+  @ApiOperation({
+    summary: "Restore an ARCHIVED question back to DRAFT status",
+  })
   @ApiParam({ name: "id", description: "Question ID" })
-  async restore(@Param("id") id: string, @Body() dto: ApproveRejectDto) {
+  async restore(@Param("id") id: string) {
     const result = await this.bankService.restoreQuestion(id);
     return {
       success: true,

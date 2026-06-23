@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { QuestionRepository } from "../repositories/question.repository";
 import { QuestionReviewRepository } from "../repositories/question-review.repository";
 import { QuestionVersionService } from "./question-version.service";
@@ -17,6 +21,7 @@ export class QuestionReviewService {
   /**
    * Approves a question to ACTIVE status.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async approveQuestion(id: string, notes?: string): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       const question = await this.questionRepo.findById(id);
@@ -60,6 +65,7 @@ export class QuestionReviewService {
   /**
    * Rejects a question and marks it back to DRAFT status.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async rejectQuestion(id: string, notes?: string): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       const question = await this.questionRepo.findById(id);
@@ -106,6 +112,7 @@ export class QuestionReviewService {
   /**
    * Restores an ARCHIVED question back to DRAFT status.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async restoreQuestion(id: string, notes?: string): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       const question = await this.questionRepo.findById(id);

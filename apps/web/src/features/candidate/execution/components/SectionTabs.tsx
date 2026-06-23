@@ -11,12 +11,15 @@ export function SectionTabs() {
   // Determine active section based on current question
   let activeSectionId = testInstance.sections[0].id;
   let runningCount = 0;
-  
+
   const sectionStartIndices: Record<string, number> = {};
 
   for (const section of testInstance.sections) {
     sectionStartIndices[section.id] = runningCount;
-    if (currentQuestionIndex >= runningCount && currentQuestionIndex < runningCount + section.questions.length) {
+    if (
+      currentQuestionIndex >= runningCount &&
+      currentQuestionIndex < runningCount + section.questions.length
+    ) {
       activeSectionId = section.id;
     }
     runningCount += section.questions.length;
@@ -34,7 +37,7 @@ export function SectionTabs() {
               'px-4 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap',
               isActive
                 ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
             {section.title}

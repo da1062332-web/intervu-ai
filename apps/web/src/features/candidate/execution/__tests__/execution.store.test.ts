@@ -17,10 +17,10 @@ const mockTest: TestInstance = {
       title: 'Section 1',
       questions: [
         { id: 'q1', type: 'MCQ', text: 'Q1', options: [], orderIndex: 0, questionHash: 'h1' },
-        { id: 'q2', type: 'MSQ', text: 'Q2', options: [], orderIndex: 1, questionHash: 'h2' }
-      ]
-    }
-  ]
+        { id: 'q2', type: 'MSQ', text: 'Q2', options: [], orderIndex: 1, questionHash: 'h2' },
+      ],
+    },
+  ],
 };
 
 describe('execution.store', () => {
@@ -38,7 +38,7 @@ describe('execution.store', () => {
 
   it('initializes test correctly', () => {
     useExecutionStore.getState().initializeTest(mockTest);
-    
+
     const state = useExecutionStore.getState();
     expect(state.testInstance).toEqual(mockTest);
     expect(state.questions.length).toBe(2);
@@ -50,7 +50,7 @@ describe('execution.store', () => {
   it('saves answer and updates palette', () => {
     useExecutionStore.getState().initializeTest(mockTest);
     useExecutionStore.getState().saveAnswer('q1', { selectedOptionId: 'opt1' });
-    
+
     const state = useExecutionStore.getState();
     expect(state.answers['q1'].selectedOptionId).toBe('opt1');
     expect(state.hasUnsavedChanges).toBe(true);
@@ -59,7 +59,7 @@ describe('execution.store', () => {
   it('navigates to next question', () => {
     useExecutionStore.getState().initializeTest(mockTest);
     useExecutionStore.getState().goNext();
-    
+
     const state = useExecutionStore.getState();
     expect(state.currentQuestionIndex).toBe(1);
     expect(state.palette[0]).toBe('UNANSWERED'); // Because we didn't save an answer
@@ -69,10 +69,10 @@ describe('execution.store', () => {
   it('toggles review state', () => {
     useExecutionStore.getState().initializeTest(mockTest);
     useExecutionStore.getState().toggleReview('q1');
-    
+
     let state = useExecutionStore.getState();
     expect(state.answers['q1'].status).toBe('MARKED_FOR_REVIEW');
-    
+
     useExecutionStore.getState().toggleReview('q1');
     state = useExecutionStore.getState();
     expect(state.answers['q1'].status).toBe('UNANSWERED');

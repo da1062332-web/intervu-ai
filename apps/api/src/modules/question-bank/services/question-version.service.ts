@@ -13,6 +13,7 @@ export class QuestionVersionService {
     question: Question & { options?: string[] },
     tx?: Prisma.TransactionClient,
   ): Promise<QuestionVersion> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const snapshot: Record<string, any> = {
       id: question.id,
       questionText: question.questionText,

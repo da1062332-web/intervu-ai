@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionRepository } from "../repositories/question.repository";
 import { QuestionVersionRepository } from "../repositories/question-version.repository";
@@ -14,9 +14,10 @@ import { QuestionStatus } from "@prisma/client";
 describe("Question Bank Module (Day 2)", () => {
   let bankService: QuestionBankService;
   let searchService: QuestionSearchService;
-  let versionService: QuestionVersionService;
+
   let reviewService: QuestionReviewService;
   let similarityService: QuestionSimilarityService;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let prismaMock: any;
 
   beforeEach(async () => {
@@ -69,9 +70,11 @@ describe("Question Bank Module (Day 2)", () => {
 
     bankService = module.get<QuestionBankService>(QuestionBankService);
     searchService = module.get<QuestionSearchService>(QuestionSearchService);
-    versionService = module.get<QuestionVersionService>(QuestionVersionService);
+
     reviewService = module.get<QuestionReviewService>(QuestionReviewService);
-    similarityService = module.get<QuestionSimilarityService>(QuestionSimilarityService);
+    similarityService = module.get<QuestionSimilarityService>(
+      QuestionSimilarityService,
+    );
   });
 
   describe("1. QuestionSimilarityService", () => {
@@ -286,7 +289,9 @@ describe("Question Bank Module (Day 2)", () => {
     });
 
     it("should rollback transaction and throw on bulk persist failure", async () => {
-      prismaMock.question.createMany.mockRejectedValue(new Error("Database write failure"));
+      prismaMock.question.createMany.mockRejectedValue(
+        new Error("Database write failure"),
+      );
 
       const dto = {
         questions: [
@@ -332,10 +337,10 @@ describe("Question Bank Module (Day 2)", () => {
   describe("6. Statistics aggregation", () => {
     it("should aggregate stats counts globally or filtered", async () => {
       prismaMock.question.count
-        .mockResolvedValueOnce(10)  // total
-        .mockResolvedValueOnce(5)   // active
-        .mockResolvedValueOnce(4)   // draft
-        .mockResolvedValueOnce(1);  // archived
+        .mockResolvedValueOnce(10) // total
+        .mockResolvedValueOnce(5) // active
+        .mockResolvedValueOnce(4) // draft
+        .mockResolvedValueOnce(1); // archived
 
       const result = await bankService.getStats({ topicId: "topic-1" });
 

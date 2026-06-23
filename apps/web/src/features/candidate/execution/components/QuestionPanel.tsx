@@ -39,7 +39,7 @@ export function QuestionPanel() {
         <div className='mt-8'>
           <RadioGroup
             value={selectedOptionId || ''}
-            onValueChange={(val: string) => saveAnswer(currentQuestion.id, val)}
+            onValueChange={(val: string) => saveAnswer(currentQuestion.id, { selectedOptionId: val })}
             className='space-y-4'
           >
             {currentQuestion.options.map((option, index) => {

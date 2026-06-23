@@ -7,14 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
 export function QuestionRenderer() {
-  const {
-    currentQuestion,
-    currentQuestionIndex,
-    answers,
-    saveAnswer,
-    toggleReview,
-    testInstance,
-  } = useExecutionStore();
+  const { currentQuestion, currentQuestionIndex, answers, saveAnswer, toggleReview, testInstance } =
+    useExecutionStore();
 
   if (!currentQuestion || !testInstance) return null;
 
