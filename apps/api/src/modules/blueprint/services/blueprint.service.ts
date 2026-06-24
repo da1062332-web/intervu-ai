@@ -39,7 +39,8 @@ export class BlueprintService {
   }
 
   async findAll() {
-    return this.repository.findAllWithRelations();
+    const blueprints = await this.repository.findAllWithRelations();
+    return blueprints.map((bp) => this.mapBlueprintToDto(bp));
   }
 
   async findOne(id: string) {
@@ -47,7 +48,13 @@ export class BlueprintService {
     if (!blueprint) {
       throw new NotFoundException(`Blueprint with ID ${id} not found`);
     }
-    return blueprint;
+    const validationSummary = await this.validateBlueprintObject(blueprint);
+    const dto = this.mapBlueprintToDto(blueprint);
+    return {
+      ...dto,
+      valid: validationSummary.valid,
+      validationSummary,
+    };
   }
 
   async update(id: string, dto: UpdateBlueprintDto) {
@@ -60,13 +67,66 @@ export class BlueprintService {
       updateData.sections = dto.sections as unknown as Prisma.InputJsonValue;
     }
 
-    return this.repository.update(id, updateData);
+    const updated = await this.repository.update(id, updateData);
+    return this.findOne(updated.id);
   }
 
   async validate(id: string): Promise<BlueprintValidationResult> {
-    const blueprint = await this.findOne(id);
-    const errors: string[] = [];
+    const blueprint = await this.repository.findByIdWithRelations(id);
+    if (!blueprint) {
+      throw new NotFoundException(`Blueprint with ID ${id} not found`);
+    }
+    return this.validateBlueprintObject(blueprint);
+  }
 
+  mapBlueprintToDto(blueprint: any) {
+    if (!blueprint) return null;
+    const sections = (blueprint.sections as unknown as BlueprintSection[]) || [];
+    const topics: any[] = [];
+
+    for (const sec of sections) {
+      const sectionName = sec.sectionId || "Section";
+      const qCount = sec.questionCount || 0;
+      const topicAllocations = sec.topicAllocations || [];
+      const diffAlloc = sec.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
+
+      for (const t of topicAllocations) {
+        const topicQuestionCount = Math.round(qCount * ((t.percentage || 0) / 100));
+        topics.push({
+          topicName: t.topicId,
+          sectionName: sectionName,
+          questionCount: topicQuestionCount,
+          weightage: t.percentage || 0,
+          difficultyDistribution: {
+            easyCount: Math.round(topicQuestionCount * ((diffAlloc.easy || 0) / 100)),
+            mediumCount: Math.round(topicQuestionCount * ((diffAlloc.medium || 0) / 100)),
+            hardCount: Math.round(topicQuestionCount * ((diffAlloc.hard || 0) / 100)),
+          },
+        });
+      }
+    }
+
+    return {
+      id: blueprint.id,
+      configId: blueprint.configId,
+      styleProfileId: blueprint.styleProfileId,
+      styleProfileName: blueprint.styleProfile?.name || "",
+      sections: blueprint.sections,
+      createdAt: blueprint.createdAt,
+      updatedAt: blueprint.updatedAt,
+      name: blueprint.examConfig?.name || "",
+      code: blueprint.examConfig?.code || "",
+      totalQuestions: blueprint.examConfig?.totalQuestions || 0,
+      totalDurationMinutes: blueprint.examConfig?.durationMinutes || 0,
+      isActive: blueprint.examConfig?.isActive ?? false,
+      examConfig: blueprint.examConfig,
+      styleProfile: blueprint.styleProfile,
+      topics,
+    };
+  }
+
+  async validateBlueprintObject(blueprint: any): Promise<BlueprintValidationResult> {
+    const errors: string[] = [];
     const sections = blueprint.sections as unknown as BlueprintSection[];
     if (!sections || sections.length === 0) {
       errors.push("Blueprint must contain at least one section");

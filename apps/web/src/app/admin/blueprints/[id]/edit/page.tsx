@@ -26,7 +26,7 @@ export default function EditBlueprintPage() {
 
   const { data: blueprint, isLoading: isBlueprintLoading, isError } = useBlueprint(id);
   const updateBlueprint = useUpdateBlueprint();
-  const { data: configSections, isLoading: isSectionsLoading } = useSections(blueprint?.code || '');
+  const { data: configSections, isLoading: isSectionsLoading } = useSections(blueprint?.configId || '');
 
   useEffect(() => {
     if (blueprint && configSections) {
@@ -68,7 +68,7 @@ export default function EditBlueprintPage() {
         : [];
 
       initFromExisting(
-        blueprint.code, // or configId if available
+        blueprint.configId,
         blueprint.styleProfileId || '',
         reconstructedSections,
       );

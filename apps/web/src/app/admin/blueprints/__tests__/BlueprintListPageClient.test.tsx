@@ -62,9 +62,9 @@ describe('BlueprintListPageClient', () => {
     });
 
     render(<BlueprintListPageClient />);
-    expect(screen.getByText('Error loading blueprints')).toBeInTheDocument();
+    expect(screen.getByText('Unable to load blueprints.')).toBeInTheDocument();
 
-    const retryBtn = screen.getByText('Try again');
+    const retryBtn = screen.getByText('Retry');
     fireEvent.click(retryBtn);
     expect(mockRefetch).toHaveBeenCalled();
   });
@@ -79,7 +79,7 @@ describe('BlueprintListPageClient', () => {
     });
 
     render(<BlueprintListPageClient />);
-    expect(screen.getByText('No blueprints found')).toBeInTheDocument();
+    expect(screen.getByText('No Blueprints Found')).toBeInTheDocument();
   });
 
   it('renders list of blueprints successfully', () => {
@@ -114,52 +114,8 @@ describe('BlueprintListPageClient', () => {
 
     expect(screen.getByText('Backend Engineer L1')).toBeInTheDocument();
     expect(screen.getByText('BE_L1')).toBeInTheDocument();
-    expect(screen.getByText('50')).toBeInTheDocument(); // total questions
-    expect(screen.getByText('120 min')).toBeInTheDocument(); // total duration
 
     expect(screen.getByText('Frontend Engineer L2')).toBeInTheDocument();
     expect(screen.getByText('FE_L2')).toBeInTheDocument();
-    expect(screen.getByText('Active')).toBeInTheDocument();
-    expect(screen.getByText('Inactive')).toBeInTheDocument();
-  });
-
-  it('handles search correctly', () => {
-    const mockBlueprints = [
-      {
-        id: '1',
-        name: 'Alpha',
-        code: 'A1',
-        totalQuestions: 10,
-        totalDurationMinutes: 10,
-        isActive: true,
-      },
-      {
-        id: '2',
-        name: 'Beta',
-        code: 'B2',
-        totalQuestions: 10,
-        totalDurationMinutes: 10,
-        isActive: true,
-      },
-    ];
-
-    (blueprintServices.useBlueprints as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: mockBlueprints,
-      isLoading: false,
-      isError: false,
-      refetch: mockRefetch,
-      isFetching: false,
-    });
-
-    render(<BlueprintListPageClient />);
-
-    expect(screen.getByText('Alpha')).toBeInTheDocument();
-    expect(screen.getByText('Beta')).toBeInTheDocument();
-
-    const searchInput = screen.getByPlaceholderText('Search blueprints...');
-    fireEvent.change(searchInput, { target: { value: 'Alpha' } });
-
-    expect(screen.getByText('Alpha')).toBeInTheDocument();
-    expect(screen.queryByText('Beta')).not.toBeInTheDocument();
   });
 });

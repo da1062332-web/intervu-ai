@@ -19,6 +19,7 @@ import {
   ApiParam,
 } from "@nestjs/swagger";
 import { BlueprintService } from "../services/blueprint.service";
+import { BlueprintCompilerService } from "../services/blueprint-compiler.service";
 import { CreateBlueprintDto, UpdateBlueprintDto } from "@intervu/shared";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
@@ -30,7 +31,10 @@ import { UserRole } from "@prisma/client";
 @Roles(UserRole.ADMIN)
 @Controller("blueprints")
 export class BlueprintController {
-  constructor(private readonly service: BlueprintService) {}
+  constructor(
+    private readonly service: BlueprintService,
+    private readonly compilerService: BlueprintCompilerService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -115,6 +119,78 @@ export class BlueprintController {
     return {
       success: true,
       data: result,
+      error: null,
+      meta: {},
+    };
+  }
+
+  @Post(":id/compile")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Compile blueprint into generation requests" })
+  @ApiParam({ name: "id", description: "Blueprint ID" })
+  @ApiOkResponse({ description: "Compilation result batch details" })
+  async compile(@Param("id") id: string) {
+    const result = await this.compilerService.compileBlueprint(id);
+    return {
+      success: true,
+      data: {
+        batchId: result.batchId,
+        requestCount: result.requests.reduce((sum, r) => sum + r.quantity, 0),
+      },
+      error: null,
+      meta: {},
+    };
+  }
+
+  @Get(":id/compilation-preview")
+  @ApiOperation({ summary: "Preview compilation sections breakdown and requests" })
+  @ApiParam({ name: "id", description: "Blueprint ID" })
+  @ApiOkResponse({ description: "Compilation preview data" })
+  async compilationPreview(@Param("id") id: string) {
+    const result = await this.compilerService.previewCompilation(id);
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {},
+    };
+  }
+
+  @Get(":id/compilation-health")
+  @ApiOperation({ summary: "Fetch compilation health status" })
+  @ApiParam({ name: "id", description: "Blueprint ID" })
+  @ApiOkResponse({ description: "Compilation health data" })
+  async compilationHealth(@Param("id") id: string) {
+    const result = await this.compilerService.validateCompilation(id);
+    const hasTemplatesError = result.errors.some(e => e.includes("No Templates Found"));
+    const hasConceptsError = result.errors.some(e => e.includes("No Concepts Found"));
+    const hasReadinessError = result.errors.some(e => e.includes("Readiness Not READY"));
+    const hasBlueprintError = result.errors.some(e => e.includes("Blueprint Invalid"));
+
+    return {
+      success: true,
+      data: {
+        valid: result.valid,
+        checks: {
+          templatesAvailable: {
+            status: hasTemplatesError ? "FAIL" : "PASS",
+            message: hasTemplatesError ? "Some allocated topic-difficulties lack templates" : "All topic-difficulties have active templates",
+          },
+          conceptsAvailable: {
+            status: hasConceptsError ? "FAIL" : "PASS",
+            message: hasConceptsError ? "Some allocated topics lack active concepts" : "All topics have active concepts",
+          },
+          difficultyCoverage: {
+            status: hasBlueprintError ? "FAIL" : "PASS",
+            message: hasBlueprintError ? "Blueprint configuration is invalid" : "Difficulty distribution matches configurations",
+          },
+          generationReady: {
+            status: hasReadinessError ? "FAIL" : "PASS",
+            message: hasReadinessError ? "Exam configuration is not ready for generation" : "Exam configuration readiness audit passed",
+          }
+        },
+        errors: result.errors,
+      },
       error: null,
       meta: {},
     };
