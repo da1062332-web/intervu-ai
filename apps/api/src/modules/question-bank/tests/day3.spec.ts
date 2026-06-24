@@ -263,9 +263,15 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
 
       expect(result.totalActiveQuestions).toBe(100);
       expect(result.reservedQuestions).toBe(10);
-      expect((result.coverageByDifficulty as Record<string, number>).EASY).toBeDefined();
-      expect((result.coverageByTopic as Record<string, number>)["topic-1"]).toBe(15);
-      expect((result.coverageByTopic as Record<string, number>)["topic-2"]).toBe(25);
+      expect(
+        (result.coverageByDifficulty as Record<string, number>).EASY,
+      ).toBeDefined();
+      expect(
+        (result.coverageByTopic as Record<string, number>)["topic-1"],
+      ).toBe(15);
+      expect(
+        (result.coverageByTopic as Record<string, number>)["topic-2"],
+      ).toBe(25);
     });
   });
 });
