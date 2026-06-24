@@ -27,6 +27,8 @@ import { QuestionSearchService } from "../services/question-search.service";
 import { QuestionVersionService } from "../services/question-version.service";
 import { QuestionReviewService } from "../services/question-review.service";
 import { QuestionSimilarityService } from "../services/question-similarity.service";
+import { QuestionReservationService } from "../services/question-reservation.service";
+import { QuestionRotationService } from "../services/question-rotation.service";
 // eslint-disable-next-line no-restricted-imports
 import {
   CreateQuestionDto,
@@ -36,6 +38,10 @@ import {
   CheckDuplicateDto,
   ApproveRejectDto,
 } from "../dto/question-bank.dto";
+import {
+  AssemblyProviderRequestDto,
+  ReleaseReservationsDto,
+} from "../dto/assembly-provider.dto";
 
 @ApiTags("Question Bank")
 @UseGuards(JwtAuthGuard)
@@ -48,6 +54,8 @@ export class QuestionBankController {
     private readonly versionService: QuestionVersionService,
     private readonly reviewService: QuestionReviewService,
     private readonly similarityService: QuestionSimilarityService,
+    private readonly reservationService: QuestionReservationService,
+    private readonly rotationService: QuestionRotationService,
   ) {}
 
   @Post("bulk")
@@ -251,6 +259,81 @@ export class QuestionBankController {
     return {
       success: true,
       data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Post("provider")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Retrieve and reserve questions for test assembly" })
+  async provider(@Body() dto: AssemblyProviderRequestDto) {
+    const result = await this.rotationService.retrieveAndReserve(dto);
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Post("availability")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Check question pool availability for a blueprint" })
+  async availability(@Body() dto: AssemblyProviderRequestDto) {
+    const result = await this.rotationService.checkAvailability(dto);
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Get("health")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Retrieve rotation and pool health metrics" })
+  async health() {
+    const result = await this.rotationService.getPoolHealth();
+    return {
+      success: true,
+      data: result,
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Post("reservations/release")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Explicitly release reservations for an assembly ID" })
+  async releaseReservations(@Body() dto: ReleaseReservationsDto) {
+    const count = await this.reservationService.releaseReservations(dto.assemblyId);
+    return {
+      success: true,
+      data: { releasedCount: count },
+      error: null,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Post("reservations/cleanup")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Clean up all expired reservations from the database" })
+  async cleanupReservations() {
+    const count = await this.reservationService.cleanupExpiredReservations();
+    return {
+      success: true,
+      data: { cleanedCount: count },
       error: null,
       meta: {
         timestamp: new Date().toISOString(),

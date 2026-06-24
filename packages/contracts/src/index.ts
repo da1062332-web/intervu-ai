@@ -70,3 +70,9 @@ export * from "./compilation";
 
 // System Validation Contracts
 export * from "./schemas/system-validation.schema";
+
+// Assembly Provider Contracts
+export * from "./assembly-provider.dto";
+export * from "./schemas/assembly-provider.schema";
+
+
