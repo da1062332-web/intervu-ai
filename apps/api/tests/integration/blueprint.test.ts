@@ -19,6 +19,7 @@ import { StyleProfileController } from "../../src/modules/blueprint/controllers/
 import { BlueprintController } from "../../src/modules/blueprint/controllers/blueprint.controller";
 import { StyleProfileService } from "../../src/modules/blueprint/services/style-profile.service";
 import { BlueprintService } from "../../src/modules/blueprint/services/blueprint.service";
+import { BlueprintCompilerService } from "../../src/modules/blueprint/services/blueprint-compiler.service";
 import { StyleProfileRepository } from "../../src/modules/blueprint/repositories/style-profile.repository";
 import { BlueprintRepository } from "../../src/modules/blueprint/repositories/blueprint.repository";
 import { TopicRegistryLoader } from "../../src/modules/concept-mapping/services/topic-registry-loader.service";
@@ -135,6 +136,7 @@ describe("Style Profile & Blueprint Integration Tests", () => {
       providers: [
         StyleProfileService,
         BlueprintService,
+        { provide: BlueprintCompilerService, useValue: {} },
         { provide: StyleProfileRepository, useValue: styleProfileRepoMock },
         { provide: BlueprintRepository, useValue: blueprintRepoMock },
         { provide: TopicRegistryLoader, useValue: topicRegistryLoaderMock },

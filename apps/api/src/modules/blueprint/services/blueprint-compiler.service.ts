@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { BlueprintService } from "./blueprint.service";
@@ -6,9 +10,8 @@ import {
   GenerationRequest,
   GenerationBatch,
   BlueprintSection,
-  TopicAllocation,
 } from "@intervu-ai/contracts";
-import { DifficultyLevel } from "@prisma/client";
+import { DifficultyLevel, Blueprint } from "@prisma/client";
 
 export interface CompilationValidationResult {
   valid: boolean;
@@ -119,7 +122,9 @@ export class BlueprintCompilerService {
   /**
    * Audits the blueprint and its readiness constraints.
    */
-  async validateCompilation(blueprintId: string): Promise<CompilationValidationResult> {
+  async validateCompilation(
+    blueprintId: string,
+  ): Promise<CompilationValidationResult> {
     const errors: string[] = [];
 
     const blueprint = await this.prisma.blueprint.findUnique({
@@ -215,7 +220,10 @@ export class BlueprintCompilerService {
             };
 
             await checkDifficultyTemplateCoverage("EASY", DifficultyLevel.EASY);
-            await checkDifficultyTemplateCoverage("MEDIUM", DifficultyLevel.MEDIUM);
+            await checkDifficultyTemplateCoverage(
+              "MEDIUM",
+              DifficultyLevel.MEDIUM,
+            );
             await checkDifficultyTemplateCoverage("HARD", DifficultyLevel.HARD);
           }
         }
@@ -231,7 +239,7 @@ export class BlueprintCompilerService {
   /**
    * Generates requests for a validated blueprint.
    */
-  async generateRequests(blueprint: any): Promise<GenerationRequest[]> {
+  async generateRequests(blueprint: Blueprint): Promise<GenerationRequest[]> {
     const requests: GenerationRequest[] = [];
     const sections = blueprint.sections as unknown as BlueprintSection[];
 
@@ -294,7 +302,9 @@ export class BlueprintCompilerService {
           }
 
           // Deterministic template sort to ensure repeatable selection
-          matchingTemplates.sort((a, b) => a.templateKey.localeCompare(b.templateKey));
+          matchingTemplates.sort((a, b) =>
+            a.templateKey.localeCompare(b.templateKey),
+          );
 
           // 4. Distribute quantity among templates as evenly as possible using Largest Remainder Method
           const templateQuantities = this.allocateQuestions(
@@ -309,7 +319,9 @@ export class BlueprintCompilerService {
             const templateQty = templateQuantities[template.id] || 0;
             if (templateQty === 0) continue;
 
-            const targetConcept = concepts.find((c) => c.code === template.conceptKey);
+            const targetConcept = concepts.find(
+              (c) => c.code === template.conceptKey,
+            );
 
             requests.push({
               requestId: randomUUID(),
@@ -408,7 +420,11 @@ export class BlueprintCompilerService {
     const remainder = total - sum;
 
     // Sort descending fraction. Break ties in order: HARD -> MEDIUM -> EASY.
-    const difficultyOrder: Record<string, number> = { HARD: 3, MEDIUM: 2, EASY: 1 };
+    const difficultyOrder: Record<string, number> = {
+      HARD: 3,
+      MEDIUM: 2,
+      EASY: 1,
+    };
     fractions.sort((a, b) => {
       if (Math.abs(a.fraction - b.fraction) > 1e-9) {
         return b.fraction - a.fraction;

@@ -3,12 +3,17 @@ import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { TopicRegistryLoader } from "../../concept-mapping/services/topic-registry-loader.service";
 import { TemplateRepository } from "../../template-library/repositories/template.repository";
 import { CreateBlueprintDto, UpdateBlueprintDto } from "@intervu/shared";
-import { DifficultyLevel, Prisma } from "@prisma/client";
+import { DifficultyLevel, Prisma, Blueprint, ExamConfig, StyleProfile } from "@prisma/client";
 import { BlueprintSection, TopicAllocation } from "@intervu-ai/contracts";
 
 export interface BlueprintValidationResult {
   valid: boolean;
   errors: string[];
+}
+
+export interface BlueprintWithRelations extends Blueprint {
+  examConfig?: ExamConfig | null;
+  styleProfile?: StyleProfile | null;
 }
 
 @Injectable()
@@ -79,28 +84,51 @@ export class BlueprintService {
     return this.validateBlueprintObject(blueprint);
   }
 
-  mapBlueprintToDto(blueprint: any) {
+  mapBlueprintToDto(blueprint: BlueprintWithRelations) {
     if (!blueprint) return null;
-    const sections = (blueprint.sections as unknown as BlueprintSection[]) || [];
-    const topics: any[] = [];
+    const sections =
+      (blueprint.sections as unknown as BlueprintSection[]) || [];
+    const topics: Array<{
+      topicName: string;
+      sectionName: string;
+      questionCount: number;
+      weightage: number;
+      difficultyDistribution: {
+        easyCount: number;
+        mediumCount: number;
+        hardCount: number;
+      };
+    }> = [];
 
     for (const sec of sections) {
       const sectionName = sec.sectionId || "Section";
       const qCount = sec.questionCount || 0;
       const topicAllocations = sec.topicAllocations || [];
-      const diffAlloc = sec.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
+      const diffAlloc = sec.difficultyAllocation || {
+        easy: 0,
+        medium: 0,
+        hard: 0,
+      };
 
       for (const t of topicAllocations) {
-        const topicQuestionCount = Math.round(qCount * ((t.percentage || 0) / 100));
+        const topicQuestionCount = Math.round(
+          qCount * ((t.percentage || 0) / 100),
+        );
         topics.push({
           topicName: t.topicId,
           sectionName: sectionName,
           questionCount: topicQuestionCount,
           weightage: t.percentage || 0,
           difficultyDistribution: {
-            easyCount: Math.round(topicQuestionCount * ((diffAlloc.easy || 0) / 100)),
-            mediumCount: Math.round(topicQuestionCount * ((diffAlloc.medium || 0) / 100)),
-            hardCount: Math.round(topicQuestionCount * ((diffAlloc.hard || 0) / 100)),
+            easyCount: Math.round(
+              topicQuestionCount * ((diffAlloc.easy || 0) / 100),
+            ),
+            mediumCount: Math.round(
+              topicQuestionCount * ((diffAlloc.medium || 0) / 100),
+            ),
+            hardCount: Math.round(
+              topicQuestionCount * ((diffAlloc.hard || 0) / 100),
+            ),
           },
         });
       }
@@ -125,7 +153,9 @@ export class BlueprintService {
     };
   }
 
-  async validateBlueprintObject(blueprint: any): Promise<BlueprintValidationResult> {
+  async validateBlueprintObject(
+    blueprint: Blueprint,
+  ): Promise<BlueprintValidationResult> {
     const errors: string[] = [];
     const sections = blueprint.sections as unknown as BlueprintSection[];
     if (!sections || sections.length === 0) {

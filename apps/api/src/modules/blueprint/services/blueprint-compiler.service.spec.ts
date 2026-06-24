@@ -2,13 +2,20 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { BlueprintCompilerService } from "./blueprint-compiler.service";
 import { BlueprintService } from "./blueprint.service";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { DifficultyLevel } from "@prisma/client";
 import { BadRequestException } from "@nestjs/common";
 
 describe("BlueprintCompilerService", () => {
   let service: BlueprintCompilerService;
-  let blueprintServiceMock: any;
-  let prismaServiceMock: any;
+  let blueprintServiceMock: {
+    validate: jest.Mock;
+  };
+  let prismaServiceMock: {
+    blueprint: { findUnique: jest.Mock };
+    readinessReport: { findFirst: jest.Mock };
+    concept: { findMany: jest.Mock };
+    template: { findMany: jest.Mock };
+    topic: { findUnique: jest.Mock };
+  };
 
   beforeEach(async () => {
     blueprintServiceMock = {
@@ -148,7 +155,10 @@ describe("BlueprintCompilerService", () => {
     const mockBlueprintId = "bp-123";
 
     it("should fail validation if readiness report status is not READY", async () => {
-      blueprintServiceMock.validate.mockResolvedValue({ valid: true, errors: [] });
+      blueprintServiceMock.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       prismaServiceMock.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: "config-123",
@@ -164,7 +174,10 @@ describe("BlueprintCompilerService", () => {
     });
 
     it("should fail validation if blueprint has no active concepts for an allocated topic", async () => {
-      blueprintServiceMock.validate.mockResolvedValue({ valid: true, errors: [] });
+      blueprintServiceMock.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       prismaServiceMock.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: "config-123",
@@ -189,7 +202,10 @@ describe("BlueprintCompilerService", () => {
     });
 
     it("should fail validation if no templates are found for an allocated topic-difficulty", async () => {
-      blueprintServiceMock.validate.mockResolvedValue({ valid: true, errors: [] });
+      blueprintServiceMock.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       prismaServiceMock.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: "config-123",
@@ -219,7 +235,10 @@ describe("BlueprintCompilerService", () => {
     });
 
     it("should pass validation if everything is correctly configured and ready", async () => {
-      blueprintServiceMock.validate.mockResolvedValue({ valid: true, errors: [] });
+      blueprintServiceMock.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       prismaServiceMock.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: "config-123",
@@ -239,7 +258,12 @@ describe("BlueprintCompilerService", () => {
         { id: "c1", code: "arrays_basic" },
       ]);
       prismaServiceMock.template.findMany.mockResolvedValue([
-        { id: "tpl-1", templateKey: "TPL_ARRAYS_1", conceptKey: "arrays_basic", questionType: "multiple_choice" },
+        {
+          id: "tpl-1",
+          templateKey: "TPL_ARRAYS_1",
+          conceptKey: "arrays_basic",
+          questionType: "multiple_choice",
+        },
       ]);
 
       const result = await service.validateCompilation(mockBlueprintId);
@@ -252,7 +276,10 @@ describe("BlueprintCompilerService", () => {
     const mockBlueprintId = "bp-123";
 
     it("should compile successfully and return a batch with requests", async () => {
-      blueprintServiceMock.validate.mockResolvedValue({ valid: true, errors: [] });
+      blueprintServiceMock.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       prismaServiceMock.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: "config-123",
@@ -272,7 +299,12 @@ describe("BlueprintCompilerService", () => {
         { id: "c1", code: "arrays_basic" },
       ]);
       prismaServiceMock.template.findMany.mockResolvedValue([
-        { id: "tpl-1", templateKey: "TPL_ARRAYS_1", conceptKey: "arrays_basic", questionType: "multiple_choice" },
+        {
+          id: "tpl-1",
+          templateKey: "TPL_ARRAYS_1",
+          conceptKey: "arrays_basic",
+          questionType: "multiple_choice",
+        },
       ]);
 
       const result = await service.compileBlueprint(mockBlueprintId);
@@ -285,7 +317,10 @@ describe("BlueprintCompilerService", () => {
     });
 
     it("should throw BadRequestException if validation fails", async () => {
-      blueprintServiceMock.validate.mockResolvedValue({ valid: true, errors: [] });
+      blueprintServiceMock.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       prismaServiceMock.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: "config-123",
