@@ -21,8 +21,15 @@ import { BlueprintModule } from "../blueprint/blueprint.module";
     BlueprintModule,
   ],
   controllers: [ReadinessController, SystemValidationController],
-  providers: [ReadinessEngineService, CrossModuleValidatorService, ReadinessReportRepository],
-  exports: [ReadinessEngineService, CrossModuleValidatorService, ReadinessReportRepository],
+  providers: [
+    ReadinessEngineService,
+    CrossModuleValidatorService,
+    ReadinessReportRepository,
+  ],
+  exports: [
+    ReadinessEngineService,
+    CrossModuleValidatorService,
+    ReadinessReportRepository,
+  ],
 })
 export class ValidationModule {}
-

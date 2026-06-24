@@ -8,9 +8,12 @@ import { useCallback } from 'react';
 export function QuestionPalette() {
   const { palette, jumpToQuestion, answers, questions } = useExecutionStore();
 
-  const handleJump = useCallback((index: number) => {
-    jumpToQuestion(index);
-  }, [jumpToQuestion]);
+  const handleJump = useCallback(
+    (index: number) => {
+      jumpToQuestion(index);
+    },
+    [jumpToQuestion],
+  );
 
   return (
     <Card className='border-none shadow-none md:border-solid md:shadow-sm'>

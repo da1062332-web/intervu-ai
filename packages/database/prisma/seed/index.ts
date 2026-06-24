@@ -24,7 +24,6 @@ async function main() {
   console.log("--- Database Seeding Completed ---");
 }
 
-
 main()
   .catch((e) => {
     console.error("Error during seeding:", e);

@@ -100,7 +100,10 @@ describe("Blueprint Compilation Integration Tests", () => {
   describe("GET /api/v1/blueprints/:id/compilation-health", () => {
     it("should return correct compilation health when prerequisites are ready", async () => {
       // Setup mock returns
-      mockBlueprintService.validate.mockResolvedValue({ valid: true, errors: [] });
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       mockPrismaService.blueprint.findUnique.mockResolvedValue({
         id: mockBlueprintId,
         configId: mockConfigId,
@@ -120,7 +123,12 @@ describe("Blueprint Compilation Integration Tests", () => {
         { id: "c1", code: "arrays_basic" },
       ]);
       mockPrismaService.template.findMany.mockResolvedValue([
-        { id: "tpl-1", templateKey: "TPL_ARRAYS_1", conceptKey: "arrays_basic", questionType: "multiple_choice" },
+        {
+          id: "tpl-1",
+          templateKey: "TPL_ARRAYS_1",
+          conceptKey: "arrays_basic",
+          questionType: "multiple_choice",
+        },
       ]);
 
       const res = await request(app.getHttpServer())
@@ -135,7 +143,10 @@ describe("Blueprint Compilation Integration Tests", () => {
     });
 
     it("should flag failures when readiness report status is NOT_READY", async () => {
-      mockBlueprintService.validate.mockResolvedValue({ valid: true, errors: [] });
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       mockPrismaService.readinessReport.findFirst.mockResolvedValue({
         status: "NOT_READY",
       });
@@ -152,7 +163,10 @@ describe("Blueprint Compilation Integration Tests", () => {
 
   describe("GET /api/v1/blueprints/:id/compilation-preview", () => {
     it("should return the allocations breakdown and requests preview", async () => {
-      mockBlueprintService.validate.mockResolvedValue({ valid: true, errors: [] });
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       mockPrismaService.readinessReport.findFirst.mockResolvedValue({
         status: "READY",
       });
@@ -160,7 +174,12 @@ describe("Blueprint Compilation Integration Tests", () => {
         { id: "c1", code: "arrays_basic" },
       ]);
       mockPrismaService.template.findMany.mockResolvedValue([
-        { id: "tpl-1", templateKey: "TPL_ARRAYS_1", conceptKey: "arrays_basic", questionType: "multiple_choice" },
+        {
+          id: "tpl-1",
+          templateKey: "TPL_ARRAYS_1",
+          conceptKey: "arrays_basic",
+          questionType: "multiple_choice",
+        },
       ]);
       mockPrismaService.topic.findUnique.mockResolvedValue({
         name: "Arrays and Lists",
@@ -172,7 +191,9 @@ describe("Blueprint Compilation Integration Tests", () => {
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.sections.length).toBe(1);
-      expect(res.body.data.sections[0].allocations[0].topicName).toBe("Arrays and Lists");
+      expect(res.body.data.sections[0].allocations[0].topicName).toBe(
+        "Arrays and Lists",
+      );
       expect(res.body.data.requests.length).toBe(1);
       expect(res.body.data.requests[0].quantity).toBe(10);
     });
@@ -180,7 +201,10 @@ describe("Blueprint Compilation Integration Tests", () => {
 
   describe("POST /api/v1/blueprints/:id/compile", () => {
     it("should successfully compile and return batch metadata when valid", async () => {
-      mockBlueprintService.validate.mockResolvedValue({ valid: true, errors: [] });
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       mockPrismaService.readinessReport.findFirst.mockResolvedValue({
         status: "READY",
       });
@@ -188,7 +212,12 @@ describe("Blueprint Compilation Integration Tests", () => {
         { id: "c1", code: "arrays_basic" },
       ]);
       mockPrismaService.template.findMany.mockResolvedValue([
-        { id: "tpl-1", templateKey: "TPL_ARRAYS_1", conceptKey: "arrays_basic", questionType: "multiple_choice" },
+        {
+          id: "tpl-1",
+          templateKey: "TPL_ARRAYS_1",
+          conceptKey: "arrays_basic",
+          questionType: "multiple_choice",
+        },
       ]);
 
       const res = await request(app.getHttpServer())
@@ -201,7 +230,10 @@ describe("Blueprint Compilation Integration Tests", () => {
     });
 
     it("should reject compile and return bad request error when readiness is not READY", async () => {
-      mockBlueprintService.validate.mockResolvedValue({ valid: true, errors: [] });
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
       mockPrismaService.readinessReport.findFirst.mockResolvedValue({
         status: "NOT_READY",
       });
@@ -211,7 +243,9 @@ describe("Blueprint Compilation Integration Tests", () => {
         .expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.error.message).toContain("Blueprint compilation failed validation");
+      expect(res.body.error.message).toContain(
+        "Blueprint compilation failed validation",
+      );
     });
   });
 });

@@ -10,13 +10,7 @@ import {
   useBlueprint,
 } from '@/services/blueprints/hooks';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -142,7 +136,9 @@ export default function BlueprintCompilePage() {
                 Generation Disabled: Exam Configuration Not Ready
               </h3>
               <p className='text-sm text-red-700 dark:text-red-300'>
-                The Readiness Engine marks this configuration as <strong>NOT READY</strong>. You must resolve all checks in the readiness tab of the Exam Configuration before this blueprint can be compiled.
+                The Readiness Engine marks this configuration as <strong>NOT READY</strong>. You
+                must resolve all checks in the readiness tab of the Exam Configuration before this
+                blueprint can be compiled.
               </p>
               <Link
                 href={`/admin/configs/${blueprint?.configId}`}
@@ -176,7 +172,10 @@ export default function BlueprintCompilePage() {
                   {preview.sections.map((section: any) => (
                     <div key={section.sectionId} className='p-6 space-y-4'>
                       <div className='flex justify-between items-center'>
-                        <Badge variant='outline' className='text-sm font-medium border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 text-indigo-600 dark:text-indigo-400 px-3 py-0.5 rounded-full'>
+                        <Badge
+                          variant='outline'
+                          className='text-sm font-medium border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 text-indigo-600 dark:text-indigo-400 px-3 py-0.5 rounded-full'
+                        >
                           Section: {section.sectionId}
                         </Badge>
                         <span className='text-sm font-semibold text-muted-foreground'>
@@ -195,9 +194,7 @@ export default function BlueprintCompilePage() {
                                 <h4 className='font-semibold text-foreground text-sm'>
                                   {alloc.topicName}
                                 </h4>
-                                <p className='text-xs text-muted-foreground'>
-                                  ID: {alloc.topicId}
-                                </p>
+                                <p className='text-xs text-muted-foreground'>ID: {alloc.topicId}</p>
                               </div>
                               <Badge className='bg-indigo-600 text-white rounded-md font-bold px-2 py-0.5 text-xs'>
                                 {alloc.total} Qs
@@ -269,10 +266,11 @@ export default function BlueprintCompilePage() {
                     1
                   </div>
                   <h4 className='font-semibold text-sm'>Blueprint</h4>
-                  <p className='text-xs text-muted-foreground mt-1'>
-                    {blueprint?.name}
-                  </p>
-                  <Badge variant='outline' className='mt-3 text-[10px] uppercase font-bold text-indigo-500 border-indigo-200'>
+                  <p className='text-xs text-muted-foreground mt-1'>{blueprint?.name}</p>
+                  <Badge
+                    variant='outline'
+                    className='mt-3 text-[10px] uppercase font-bold text-indigo-500 border-indigo-200'
+                  >
                     Config ID: {blueprint?.configId.substring(0, 8)}...
                   </Badge>
                 </div>
@@ -288,8 +286,12 @@ export default function BlueprintCompilePage() {
                   <p className='text-xs text-muted-foreground mt-1'>
                     {preview?.requests?.length || 0} Request Nodes Mapped
                   </p>
-                  <Badge variant='outline' className='mt-3 text-[10px] uppercase font-bold text-purple-500 border-purple-200'>
-                    Total Qs: {preview?.requests?.reduce((sum: number, r: any) => sum + r.quantity, 0) || 0}
+                  <Badge
+                    variant='outline'
+                    className='mt-3 text-[10px] uppercase font-bold text-purple-500 border-purple-200'
+                  >
+                    Total Qs:{' '}
+                    {preview?.requests?.reduce((sum: number, r: any) => sum + r.quantity, 0) || 0}
                   </Badge>
                 </div>
 
@@ -304,8 +306,13 @@ export default function BlueprintCompilePage() {
                   <p className='text-xs text-muted-foreground mt-1'>
                     {compiledBatch ? 'Compiled & Locked' : 'Pending Compile'}
                   </p>
-                  <Badge variant='outline' className={`mt-3 text-[10px] uppercase font-bold ${compiledBatch ? 'text-emerald-500 border-emerald-200' : 'text-amber-500 border-amber-200'}`}>
-                    {compiledBatch ? `Batch ID: ${compiledBatch.batchId.substring(0, 8)}...` : 'Not Compiled'}
+                  <Badge
+                    variant='outline'
+                    className={`mt-3 text-[10px] uppercase font-bold ${compiledBatch ? 'text-emerald-500 border-emerald-200' : 'text-amber-500 border-amber-200'}`}
+                  >
+                    {compiledBatch
+                      ? `Batch ID: ${compiledBatch.batchId.substring(0, 8)}...`
+                      : 'Not Compiled'}
                   </Badge>
                 </div>
               </div>
@@ -343,9 +350,7 @@ export default function BlueprintCompilePage() {
                 <Activity className='w-5 h-5 text-indigo-500' />
                 Compilation Health Audit
               </CardTitle>
-              <CardDescription>
-                Audits blueprint parameters and DB configurations.
-              </CardDescription>
+              <CardDescription>Audits blueprint parameters and DB configurations.</CardDescription>
             </CardHeader>
             <CardContent className='p-6 space-y-6'>
               {health ? (
@@ -358,11 +363,10 @@ export default function BlueprintCompilePage() {
                       <XCircle className='w-5 h-5 text-red-500 shrink-0 mt-0.5' />
                     )}
                     <div>
-                      <p className='text-sm font-semibold text-foreground'>
-                        Templates Available
-                      </p>
+                      <p className='text-sm font-semibold text-foreground'>Templates Available</p>
                       <p className='text-xs text-muted-foreground mt-0.5'>
-                        {health.checks.templatesAvailable.message || 'Verifying templates availability...'}
+                        {health.checks.templatesAvailable.message ||
+                          'Verifying templates availability...'}
                       </p>
                     </div>
                   </li>
@@ -375,9 +379,7 @@ export default function BlueprintCompilePage() {
                       <XCircle className='w-5 h-5 text-red-500 shrink-0 mt-0.5' />
                     )}
                     <div>
-                      <p className='text-sm font-semibold text-foreground'>
-                        Concepts Available
-                      </p>
+                      <p className='text-sm font-semibold text-foreground'>Concepts Available</p>
                       <p className='text-xs text-muted-foreground mt-0.5'>
                         {health.checks.conceptsAvailable.message || 'Verifying concept mappings...'}
                       </p>
@@ -396,7 +398,8 @@ export default function BlueprintCompilePage() {
                         Blueprint & Difficulty Specs
                       </p>
                       <p className='text-xs text-muted-foreground mt-0.5'>
-                        {health.checks.difficultyCoverage.message || 'Verifying difficulty ratio coverages...'}
+                        {health.checks.difficultyCoverage.message ||
+                          'Verifying difficulty ratio coverages...'}
                       </p>
                     </div>
                   </li>
@@ -413,7 +416,8 @@ export default function BlueprintCompilePage() {
                         Exam Configuration Ready
                       </p>
                       <p className='text-xs text-muted-foreground mt-0.5'>
-                        {health.checks.generationReady.message || 'Auditing configuration readiness...'}
+                        {health.checks.generationReady.message ||
+                          'Auditing configuration readiness...'}
                       </p>
                     </div>
                   </li>
@@ -446,9 +450,7 @@ export default function BlueprintCompilePage() {
             <div className='absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500' />
             <CardHeader className='pt-6'>
               <CardTitle className='text-base font-semibold'>Compile Trigger</CardTitle>
-              <CardDescription>
-                Builds and locks the Generation Batch payload.
-              </CardDescription>
+              <CardDescription>Builds and locks the Generation Batch payload.</CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <Button
@@ -471,7 +473,9 @@ export default function BlueprintCompilePage() {
 
               <div className='flex items-center justify-between text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-900/30 p-3 rounded-lg border'>
                 <span>Prerequisites Status:</span>
-                <span className={health?.valid ? 'text-green-600 dark:text-green-400' : 'text-red-500'}>
+                <span
+                  className={health?.valid ? 'text-green-600 dark:text-green-400' : 'text-red-500'}
+                >
                   {health?.valid ? 'VALID & READY' : 'INVALID'}
                 </span>
               </div>

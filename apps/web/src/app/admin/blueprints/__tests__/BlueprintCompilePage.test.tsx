@@ -52,16 +52,20 @@ describe('BlueprintCompilePage', () => {
   });
 
   it('renders loading skeleton when queries are active', () => {
-    (blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    (
+      blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>
+    ).mockReturnValue({
       data: undefined,
       isLoading: true,
       refetch: mockRefetchPreview,
     });
-    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      refetch: mockRefetchHealth,
-    });
+    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        data: undefined,
+        isLoading: true,
+        refetch: mockRefetchHealth,
+      },
+    );
 
     const { container } = render(<BlueprintCompilePage />);
     // Verify animate-pulse container is rendered
@@ -69,26 +73,30 @@ describe('BlueprintCompilePage', () => {
   });
 
   it('renders compilation health checks correctly', () => {
-    (blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    (
+      blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>
+    ).mockReturnValue({
       data: { sections: [], requests: [] },
       isLoading: false,
       refetch: mockRefetchPreview,
     });
 
-    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: {
-        valid: true,
-        checks: {
-          templatesAvailable: { status: 'PASS', message: 'All active templates found' },
-          conceptsAvailable: { status: 'PASS', message: 'Concepts mapped' },
-          difficultyCoverage: { status: 'PASS', message: 'Ratios correct' },
-          generationReady: { status: 'PASS', message: 'Readiness report valid' },
+    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        data: {
+          valid: true,
+          checks: {
+            templatesAvailable: { status: 'PASS', message: 'All active templates found' },
+            conceptsAvailable: { status: 'PASS', message: 'Concepts mapped' },
+            difficultyCoverage: { status: 'PASS', message: 'Ratios correct' },
+            generationReady: { status: 'PASS', message: 'Readiness report valid' },
+          },
+          errors: [],
         },
-        errors: [],
+        isLoading: false,
+        refetch: mockRefetchHealth,
       },
-      isLoading: false,
-      refetch: mockRefetchHealth,
-    });
+    );
 
     render(<BlueprintCompilePage />);
 
@@ -101,31 +109,37 @@ describe('BlueprintCompilePage', () => {
   });
 
   it('renders warnings and disables compile button if readiness report is not READY', () => {
-    (blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    (
+      blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>
+    ).mockReturnValue({
       data: { sections: [], requests: [] },
       isLoading: false,
       refetch: mockRefetchPreview,
     });
 
-    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: {
-        valid: false,
-        checks: {
-          templatesAvailable: { status: 'PASS', message: 'All active templates found' },
-          conceptsAvailable: { status: 'PASS', message: 'Concepts mapped' },
-          difficultyCoverage: { status: 'PASS', message: 'Ratios correct' },
-          generationReady: { status: 'FAIL', message: 'Readiness report invalid' },
+    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        data: {
+          valid: false,
+          checks: {
+            templatesAvailable: { status: 'PASS', message: 'All active templates found' },
+            conceptsAvailable: { status: 'PASS', message: 'Concepts mapped' },
+            difficultyCoverage: { status: 'PASS', message: 'Ratios correct' },
+            generationReady: { status: 'FAIL', message: 'Readiness report invalid' },
+          },
+          errors: ['Readiness Not READY'],
         },
-        errors: ['Readiness Not READY'],
+        isLoading: false,
+        refetch: mockRefetchHealth,
       },
-      isLoading: false,
-      refetch: mockRefetchHealth,
-    });
+    );
 
     render(<BlueprintCompilePage />);
 
     // Warning banner should be present
-    expect(screen.getByText('Generation Disabled: Exam Configuration Not Ready')).toBeInTheDocument();
+    expect(
+      screen.getByText('Generation Disabled: Exam Configuration Not Ready'),
+    ).toBeInTheDocument();
     expect(screen.getByText('INVALID')).toBeInTheDocument();
 
     // Compile button should be disabled
@@ -134,26 +148,30 @@ describe('BlueprintCompilePage', () => {
   });
 
   it('triggers compilation mutation on click when ready', async () => {
-    (blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    (
+      blueprintServices.useCompilationPreview as unknown as ReturnType<typeof vi.fn>
+    ).mockReturnValue({
       data: { sections: [], requests: [] },
       isLoading: false,
       refetch: mockRefetchPreview,
     });
 
-    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: {
-        valid: true,
-        checks: {
-          templatesAvailable: { status: 'PASS', message: 'All active templates found' },
-          conceptsAvailable: { status: 'PASS', message: 'Concepts mapped' },
-          difficultyCoverage: { status: 'PASS', message: 'Ratios correct' },
-          generationReady: { status: 'PASS', message: 'Readiness report valid' },
+    (blueprintServices.useCompilationHealth as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        data: {
+          valid: true,
+          checks: {
+            templatesAvailable: { status: 'PASS', message: 'All active templates found' },
+            conceptsAvailable: { status: 'PASS', message: 'Concepts mapped' },
+            difficultyCoverage: { status: 'PASS', message: 'Ratios correct' },
+            generationReady: { status: 'PASS', message: 'Readiness report valid' },
+          },
+          errors: [],
         },
-        errors: [],
+        isLoading: false,
+        refetch: mockRefetchHealth,
       },
-      isLoading: false,
-      refetch: mockRefetchHealth,
-    });
+    );
 
     mockMutateAsync.mockResolvedValue({ batchId: 'batch-abc-123', requestCount: 10 });
 

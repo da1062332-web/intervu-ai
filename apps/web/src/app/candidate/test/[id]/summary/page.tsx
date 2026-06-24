@@ -24,15 +24,20 @@ export default function TestSummaryPage() {
 
   const total = questions.length;
   let answered = 0;
-  
+
   Object.values(answers).forEach((ans) => {
-    if (ans.status !== 'MARKED_FOR_REVIEW' && (ans.selectedOptionId || (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans.textResponse)) {
+    if (
+      ans.status !== 'MARKED_FOR_REVIEW' &&
+      (ans.selectedOptionId ||
+        (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+        ans.textResponse)
+    ) {
       answered++;
     }
   });
 
   const completionPercentage = total > 0 ? Math.round((answered / total) * 100) : 0;
-  
+
   const timeSpentSeconds = testInstance.durationSeconds - remainingTime;
   const timeSpentMins = Math.floor(timeSpentSeconds / 60);
   const timeSpentSecs = timeSpentSeconds % 60;
@@ -66,7 +71,13 @@ export default function TestSummaryPage() {
                 let secAnswered = 0;
                 section.questions.forEach((q) => {
                   const ans = answers[q.id];
-                  if (ans && ans.status !== 'MARKED_FOR_REVIEW' && (ans.selectedOptionId || (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans.textResponse)) {
+                  if (
+                    ans &&
+                    ans.status !== 'MARKED_FOR_REVIEW' &&
+                    (ans.selectedOptionId ||
+                      (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+                      ans.textResponse)
+                  ) {
                     secAnswered++;
                   }
                 });
@@ -74,12 +85,20 @@ export default function TestSummaryPage() {
                 const secPct = secTotal > 0 ? Math.round((secAnswered / secTotal) * 100) : 0;
 
                 return (
-                  <div key={section.id} className='flex items-center justify-between border-b pb-4 last:border-0 last:pb-0'>
+                  <div
+                    key={section.id}
+                    className='flex items-center justify-between border-b pb-4 last:border-0 last:pb-0'
+                  >
                     <div className='font-medium'>{section.title}</div>
                     <div className='flex items-center gap-4 text-sm'>
-                      <span className='text-muted-foreground'>{secAnswered} / {secTotal} answered</span>
+                      <span className='text-muted-foreground'>
+                        {secAnswered} / {secTotal} answered
+                      </span>
                       <div className='w-32 h-2 bg-muted rounded-full overflow-hidden hidden sm:block'>
-                        <div className='h-full bg-primary transition-all duration-300' style={{ width: `${secPct}%` }} />
+                        <div
+                          className='h-full bg-primary transition-all duration-300'
+                          style={{ width: `${secPct}%` }}
+                        />
                       </div>
                     </div>
                   </div>

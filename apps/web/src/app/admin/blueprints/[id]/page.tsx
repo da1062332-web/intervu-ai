@@ -53,7 +53,10 @@ export default function BlueprintViewPage() {
         </div>
         <div className='flex items-center gap-3'>
           <Link href={`/admin/blueprints/${id}/compile`}>
-            <Button variant='outline' className='border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/20'>
+            <Button
+              variant='outline'
+              className='border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/20'
+            >
               <Workflow className='w-4 h-4 mr-2' />
               Compile Blueprint
             </Button>
@@ -83,7 +86,9 @@ export default function BlueprintViewPage() {
             </div>
             <div>
               <dt className='text-sm text-muted-foreground'>Style Profile</dt>
-              <dd className='font-medium'>{blueprint.styleProfileName || blueprint.styleProfileId}</dd>
+              <dd className='font-medium'>
+                {blueprint.styleProfileName || blueprint.styleProfileId}
+              </dd>
             </div>
           </dl>
         </div>

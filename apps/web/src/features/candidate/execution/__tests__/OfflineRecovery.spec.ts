@@ -16,7 +16,7 @@ describe('useOfflineRecovery', () => {
       connectionStatus: 'ONLINE',
       setConnectionStatus: mockSetConnectionStatus,
     });
-    
+
     // Mock indexedDB for basic test execution
     const mockIDBRequest = {
       result: {
@@ -31,8 +31,12 @@ describe('useOfflineRecovery', () => {
             delete: vi.fn(),
           }),
           // Automatically trigger oncomplete synchronously in the mock
-          get oncomplete() { return undefined; },
-          set oncomplete(cb: any) { if (cb) setTimeout(cb, 0); },
+          get oncomplete() {
+            return undefined;
+          },
+          set oncomplete(cb: any) {
+            if (cb) setTimeout(cb, 0);
+          },
           onerror: null,
         }),
       },

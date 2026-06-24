@@ -8,25 +8,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  ShieldCheck, 
-  ChevronDown, 
-  ChevronRight, 
-  AlertTriangle, 
-  XCircle, 
-  CheckCircle, 
-  Play, 
-  Loader2, 
-  Info 
+import {
+  ShieldCheck,
+  ChevronDown,
+  ChevronRight,
+  AlertTriangle,
+  XCircle,
+  CheckCircle,
+  Play,
+  Loader2,
+  Info,
 } from 'lucide-react';
 
 export default function SystemValidationPage() {
   const { data: configs, isLoading: isConfigsLoading, isError: isConfigsError } = useConfigs();
   const [selectedConfigId, setSelectedConfigId] = useState<string>('');
-  
+
   // React Query validation hooks
   const { refetch, isFetching: isQueryFetching } = useSystemValidation(selectedConfigId);
-  const { mutate: runValidation, isPending: isMutatePending } = runSystemValidation(selectedConfigId);
+  const { mutate: runValidation, isPending: isMutatePending } =
+    runSystemValidation(selectedConfigId);
 
   // Zustand Store state
   const { validationResult, score, errors, loading } = useSystemValidationStore();
@@ -66,11 +67,11 @@ export default function SystemValidationPage() {
   const getStatusIcon = (status: 'PASS' | 'FAIL' | 'WARNING') => {
     switch (status) {
       case 'PASS':
-        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+        return <CheckCircle className='w-5 h-5 text-emerald-500' />;
       case 'FAIL':
-        return <XCircle className="w-5 h-5 text-rose-500" />;
+        return <XCircle className='w-5 h-5 text-rose-500' />;
       case 'WARNING':
-        return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+        return <AlertTriangle className='w-5 h-5 text-amber-500' />;
     }
   };
 
@@ -81,41 +82,45 @@ export default function SystemValidationPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8">
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
       {/* Page Header */}
-      <div className="flex flex-col gap-2 border-b border-border pb-5">
-        <h1 className="font-heading font-bold text-3xl tracking-tight text-foreground flex items-center gap-3">
-          <ShieldCheck className="w-8 h-8 text-primary" />
+      <div className='flex flex-col gap-2 border-b border-border pb-5'>
+        <h1 className='font-heading font-bold text-3xl tracking-tight text-foreground flex items-center gap-3'>
+          <ShieldCheck className='w-8 h-8 text-primary' />
           Cross-Module System Validation
         </h1>
-        <p className="text-muted-foreground text-sm max-w-2xl">
-          Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules.
+        <p className='text-muted-foreground text-sm max-w-2xl'>
+          Verify configuration chain integrity from Exam Config and Sections to Topics, Templates,
+          Blueprints, and Readiness status before dispatching to generation modules.
         </p>
       </div>
 
       {/* Configuration Selection Control */}
-      <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl">
-        <CardContent className="p-6 flex flex-col sm:flex-row items-end gap-4">
-          <div className="flex-1 space-y-2">
-            <label htmlFor="config-select" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              <Info className="w-4 h-4 text-muted-foreground" />
+      <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl'>
+        <CardContent className='p-6 flex flex-col sm:flex-row items-end gap-4'>
+          <div className='flex-1 space-y-2'>
+            <label
+              htmlFor='config-select'
+              className='text-sm font-semibold text-foreground flex items-center gap-1.5'
+            >
+              <Info className='w-4 h-4 text-muted-foreground' />
               Select Exam Configuration
             </label>
             {isConfigsLoading ? (
-              <Skeleton className="h-10 w-full rounded-md" />
+              <Skeleton className='h-10 w-full rounded-md' />
             ) : isConfigsError ? (
-              <div className="text-rose-500 text-sm">Failed to load exam configurations.</div>
+              <div className='text-rose-500 text-sm'>Failed to load exam configurations.</div>
             ) : (
               <select
-                id="config-select"
+                id='config-select'
                 value={selectedConfigId}
                 onChange={(e) => {
                   setSelectedConfigId(e.target.value);
                   useSystemValidationStore.getState().reset();
                 }}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                className='w-full h-10 px-3 rounded-md border border-input bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
               >
-                <option value="">-- Choose a configuration --</option>
+                <option value=''>-- Choose a configuration --</option>
                 {configs?.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})
@@ -127,12 +132,12 @@ export default function SystemValidationPage() {
           <Button
             onClick={handleRunValidation}
             disabled={!selectedConfigId || isLoading}
-            className="w-full sm:w-auto h-10 px-5 text-sm font-semibold flex items-center justify-center gap-2"
+            className='w-full sm:w-auto h-10 px-5 text-sm font-semibold flex items-center justify-center gap-2'
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className='w-4 h-4 animate-spin' />
             ) : (
-              <Play className="w-4 h-4 fill-current" />
+              <Play className='w-4 h-4 fill-current' />
             )}
             Run Full Validation
           </Button>
@@ -141,65 +146,79 @@ export default function SystemValidationPage() {
 
       {/* Main Validation Dashboard */}
       {selectedConfigId && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
           {/* Left Column: Visual Score Gauge */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl flex flex-col items-center justify-center p-8 text-center min-h-[350px]">
-              <CardHeader className="w-full text-center pb-2">
-                <CardTitle className="text-lg font-semibold text-muted-foreground">Validation Score</CardTitle>
+          <div className='lg:col-span-1 space-y-6'>
+            <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl flex flex-col items-center justify-center p-8 text-center min-h-[350px]'>
+              <CardHeader className='w-full text-center pb-2'>
+                <CardTitle className='text-lg font-semibold text-muted-foreground'>
+                  Validation Score
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center space-y-4">
+              <CardContent className='flex flex-col items-center justify-center space-y-4'>
                 {isLoading ? (
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                    <p className="text-sm font-medium text-muted-foreground">Auditing system integrity...</p>
+                  <div className='flex flex-col items-center justify-center space-y-4'>
+                    <Loader2 className='w-16 h-16 text-primary animate-spin' />
+                    <p className='text-sm font-medium text-muted-foreground'>
+                      Auditing system integrity...
+                    </p>
                   </div>
                 ) : !validationResult ? (
-                  <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                    <div className="w-24 h-24 rounded-full border-4 border-dashed border-muted flex items-center justify-center">
-                      <ShieldCheck className="w-10 h-10 text-muted-foreground" />
+                  <div className='flex flex-col items-center justify-center space-y-4 py-8'>
+                    <div className='w-24 h-24 rounded-full border-4 border-dashed border-muted flex items-center justify-center'>
+                      <ShieldCheck className='w-10 h-10 text-muted-foreground' />
                     </div>
-                    <p className="text-sm text-muted-foreground max-w-[200px]">Click validation button to start check</p>
+                    <p className='text-sm text-muted-foreground max-w-[200px]'>
+                      Click validation button to start check
+                    </p>
                   </div>
                 ) : (
                   <>
                     {/* SVG Circular Gauge */}
-                    <div className="relative w-40 h-40">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <div className='relative w-40 h-40'>
+                      <svg className='w-full h-full transform -rotate-90' viewBox='0 0 100 100'>
                         {/* Background track */}
                         <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          className="stroke-muted fill-none"
-                          strokeWidth="8"
+                          cx='50'
+                          cy='50'
+                          r='40'
+                          className='stroke-muted fill-none'
+                          strokeWidth='8'
                         />
                         {/* Fill indicator */}
                         <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
+                          cx='50'
+                          cy='50'
+                          r='40'
                           className={`fill-none transition-all duration-1000 ease-in-out ${getScoreColor(score)}`}
-                          strokeWidth="8"
-                          strokeDasharray="251.2"
+                          strokeWidth='8'
+                          strokeDasharray='251.2'
                           strokeDashoffset={251.2 - (251.2 * score) / 100}
-                          strokeLinecap="round"
+                          strokeLinecap='round'
                         />
                       </svg>
                       {/* Central label */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-4xl font-extrabold tracking-tight text-foreground">{score}</span>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground">out of 100</span>
+                      <div className='absolute inset-0 flex flex-col items-center justify-center'>
+                        <span className='text-4xl font-extrabold tracking-tight text-foreground'>
+                          {score}
+                        </span>
+                        <span className='text-[10px] uppercase font-bold text-muted-foreground'>
+                          out of 100
+                        </span>
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="font-semibold text-lg text-foreground">
-                        {score === 100 ? 'System Fully Ready' : score >= 50 ? 'Partially Configured' : 'Configuration Broken'}
+                    <div className='space-y-1'>
+                      <p className='font-semibold text-lg text-foreground'>
+                        {score === 100
+                          ? 'System Fully Ready'
+                          : score >= 50
+                            ? 'Partially Configured'
+                            : 'Configuration Broken'}
                       </p>
-                      <p className="text-xs text-muted-foreground px-4">
-                        {score === 100 
-                          ? 'This configuration matches all required constraints and is 100% ready for question generation.' 
+                      <p className='text-xs text-muted-foreground px-4'>
+                        {score === 100
+                          ? 'This configuration matches all required constraints and is 100% ready for question generation.'
                           : 'Please review the error breakdown below to resolve outstanding config issues.'}
                       </p>
                     </div>
@@ -210,35 +229,43 @@ export default function SystemValidationPage() {
           </div>
 
           {/* Right Column: Layer Status Breakdown */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="font-heading font-semibold text-lg text-foreground">Validation Layers Breakdown</h3>
-            
+          <div className='lg:col-span-2 space-y-6'>
+            <h3 className='font-heading font-semibold text-lg text-foreground'>
+              Validation Layers Breakdown
+            </h3>
+
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-28 w-full rounded-xl" />
+                  <Skeleton key={i} className='h-28 w-full rounded-xl' />
                 ))}
               </div>
             ) : !validationResult ? (
-              <div className="border border-dashed rounded-xl py-16 text-center text-muted-foreground text-sm backdrop-blur-md bg-white/40 dark:bg-gray-950/40">
+              <div className='border border-dashed rounded-xl py-16 text-center text-muted-foreground text-sm backdrop-blur-md bg-white/40 dark:bg-gray-950/40'>
                 No active validation results. Select a config above and click validate.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 {/* 1. Configuration Layer */}
-                <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl">
-                  <CardContent className="p-5 flex items-start gap-4">
-                    <div className="p-2.5 rounded-lg border bg-background shrink-0">
+                <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl'>
+                  <CardContent className='p-5 flex items-start gap-4'>
+                    <div className='p-2.5 rounded-lg border bg-background shrink-0'>
                       {getStatusIcon(validationResult.breakdown?.configuration.status || 'FAIL')}
                     </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-bold text-foreground truncate">Configuration Layer</span>
-                        <Badge className={getStatusColor(validationResult.breakdown?.configuration.status || 'FAIL')}>
+                    <div className='space-y-1 min-w-0 flex-1'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <span className='text-sm font-bold text-foreground truncate'>
+                          Configuration Layer
+                        </span>
+                        <Badge
+                          className={getStatusColor(
+                            validationResult.breakdown?.configuration.status || 'FAIL',
+                          )}
+                        >
                           {validationResult.breakdown?.configuration.status}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className='text-xs text-muted-foreground'>
                         Checks exam parameters, active sections, rule flags, and difficulty splits.
                       </p>
                     </div>
@@ -246,19 +273,25 @@ export default function SystemValidationPage() {
                 </Card>
 
                 {/* 2. Knowledge Layer */}
-                <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl">
-                  <CardContent className="p-5 flex items-start gap-4">
-                    <div className="p-2.5 rounded-lg border bg-background shrink-0">
+                <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl'>
+                  <CardContent className='p-5 flex items-start gap-4'>
+                    <div className='p-2.5 rounded-lg border bg-background shrink-0'>
                       {getStatusIcon(validationResult.breakdown?.knowledge.status || 'FAIL')}
                     </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-bold text-foreground truncate">Knowledge Layer</span>
-                        <Badge className={getStatusColor(validationResult.breakdown?.knowledge.status || 'FAIL')}>
+                    <div className='space-y-1 min-w-0 flex-1'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <span className='text-sm font-bold text-foreground truncate'>
+                          Knowledge Layer
+                        </span>
+                        <Badge
+                          className={getStatusColor(
+                            validationResult.breakdown?.knowledge.status || 'FAIL',
+                          )}
+                        >
                           {validationResult.breakdown?.knowledge.status}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className='text-xs text-muted-foreground'>
                         Verifies topic mappings, concept dependencies, and section weightages.
                       </p>
                     </div>
@@ -266,39 +299,52 @@ export default function SystemValidationPage() {
                 </Card>
 
                 {/* 3. Template Layer */}
-                <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl">
-                  <CardContent className="p-5 flex items-start gap-4">
-                    <div className="p-2.5 rounded-lg border bg-background shrink-0">
+                <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl'>
+                  <CardContent className='p-5 flex items-start gap-4'>
+                    <div className='p-2.5 rounded-lg border bg-background shrink-0'>
                       {getStatusIcon(validationResult.breakdown?.templates.status || 'FAIL')}
                     </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-bold text-foreground truncate">Template Layer</span>
-                        <Badge className={getStatusColor(validationResult.breakdown?.templates.status || 'FAIL')}>
+                    <div className='space-y-1 min-w-0 flex-1'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <span className='text-sm font-bold text-foreground truncate'>
+                          Template Layer
+                        </span>
+                        <Badge
+                          className={getStatusColor(
+                            validationResult.breakdown?.templates.status || 'FAIL',
+                          )}
+                        >
                           {validationResult.breakdown?.templates.status}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Audits dynamic template schema counts, variables, range rules, and solutions.
+                      <p className='text-xs text-muted-foreground'>
+                        Audits dynamic template schema counts, variables, range rules, and
+                        solutions.
                       </p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* 4. Blueprint Layer */}
-                <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl">
-                  <CardContent className="p-5 flex items-start gap-4">
-                    <div className="p-2.5 rounded-lg border bg-background shrink-0">
+                <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl'>
+                  <CardContent className='p-5 flex items-start gap-4'>
+                    <div className='p-2.5 rounded-lg border bg-background shrink-0'>
                       {getStatusIcon(validationResult.breakdown?.blueprint.status || 'FAIL')}
                     </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-bold text-foreground truncate">Blueprint Layer</span>
-                        <Badge className={getStatusColor(validationResult.breakdown?.blueprint.status || 'FAIL')}>
+                    <div className='space-y-1 min-w-0 flex-1'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <span className='text-sm font-bold text-foreground truncate'>
+                          Blueprint Layer
+                        </span>
+                        <Badge
+                          className={getStatusColor(
+                            validationResult.breakdown?.blueprint.status || 'FAIL',
+                          )}
+                        >
                           {validationResult.breakdown?.blueprint.status}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className='text-xs text-muted-foreground'>
                         Validates matching blueprint matrix weights and style profile associations.
                       </p>
                     </div>
@@ -312,36 +358,47 @@ export default function SystemValidationPage() {
 
       {/* Error Explorer Section */}
       {selectedConfigId && validationResult && !isLoading && (
-        <Card className="backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl overflow-hidden">
-          <CardHeader className="border-b bg-muted/40 p-5">
-            <CardTitle className="text-lg font-bold text-foreground">Error Explorer</CardTitle>
+        <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl overflow-hidden'>
+          <CardHeader className='border-b bg-muted/40 p-5'>
+            <CardTitle className='text-lg font-bold text-foreground'>Error Explorer</CardTitle>
           </CardHeader>
-          <CardContent className="p-0 divide-y divide-border">
+          <CardContent className='p-0 divide-y divide-border'>
             {/* Configuration Layer Accordion */}
-            <div className="flex flex-col">
+            <div className='flex flex-col'>
               <button
                 onClick={() => toggleLayer('configuration')}
-                className="w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left"
+                className='w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left'
               >
-                <div className="flex items-center gap-2">
-                  {expandedLayers.configuration ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                  <span className="font-semibold text-sm text-foreground">Configuration Layer Checks</span>
+                <div className='flex items-center gap-2'>
+                  {expandedLayers.configuration ? (
+                    <ChevronDown className='w-5 h-5' />
+                  ) : (
+                    <ChevronRight className='w-5 h-5' />
+                  )}
+                  <span className='font-semibold text-sm text-foreground'>
+                    Configuration Layer Checks
+                  </span>
                 </div>
-                <Badge className={getStatusColor(validationResult.breakdown?.configuration.status || 'FAIL')}>
+                <Badge
+                  className={getStatusColor(
+                    validationResult.breakdown?.configuration.status || 'FAIL',
+                  )}
+                >
                   {validationResult.breakdown?.configuration.status}
                 </Badge>
               </button>
               {expandedLayers.configuration && (
-                <div className="px-10 pb-5 text-sm space-y-2">
+                <div className='px-10 pb-5 text-sm space-y-2'>
                   {validationResult.breakdown?.configuration.errors.length === 0 ? (
-                    <div className="text-emerald-500 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> All configuration layer parameters verified.
+                    <div className='text-emerald-500 flex items-center gap-2'>
+                      <CheckCircle className='w-4 h-4' /> All configuration layer parameters
+                      verified.
                     </div>
                   ) : (
-                    <ul className="space-y-1.5 list-none">
+                    <ul className='space-y-1.5 list-none'>
                       {validationResult.breakdown?.configuration.errors.map((err, idx) => (
-                        <li key={idx} className="text-rose-500 flex items-start gap-2">
-                          <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <li key={idx} className='text-rose-500 flex items-start gap-2'>
+                          <XCircle className='w-4 h-4 shrink-0 mt-0.5' />
                           <span>{err}</span>
                         </li>
                       ))}
@@ -352,30 +409,39 @@ export default function SystemValidationPage() {
             </div>
 
             {/* Knowledge Layer Accordion */}
-            <div className="flex flex-col">
+            <div className='flex flex-col'>
               <button
                 onClick={() => toggleLayer('knowledge')}
-                className="w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left"
+                className='w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left'
               >
-                <div className="flex items-center gap-2">
-                  {expandedLayers.knowledge ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                  <span className="font-semibold text-sm text-foreground">Knowledge Layer Checks</span>
+                <div className='flex items-center gap-2'>
+                  {expandedLayers.knowledge ? (
+                    <ChevronDown className='w-5 h-5' />
+                  ) : (
+                    <ChevronRight className='w-5 h-5' />
+                  )}
+                  <span className='font-semibold text-sm text-foreground'>
+                    Knowledge Layer Checks
+                  </span>
                 </div>
-                <Badge className={getStatusColor(validationResult.breakdown?.knowledge.status || 'FAIL')}>
+                <Badge
+                  className={getStatusColor(validationResult.breakdown?.knowledge.status || 'FAIL')}
+                >
                   {validationResult.breakdown?.knowledge.status}
                 </Badge>
               </button>
               {expandedLayers.knowledge && (
-                <div className="px-10 pb-5 text-sm space-y-2">
+                <div className='px-10 pb-5 text-sm space-y-2'>
                   {validationResult.breakdown?.knowledge.errors.length === 0 ? (
-                    <div className="text-emerald-500 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> All syllabus and section topic mappings verified.
+                    <div className='text-emerald-500 flex items-center gap-2'>
+                      <CheckCircle className='w-4 h-4' /> All syllabus and section topic mappings
+                      verified.
                     </div>
                   ) : (
-                    <ul className="space-y-1.5 list-none">
+                    <ul className='space-y-1.5 list-none'>
                       {validationResult.breakdown?.knowledge.errors.map((err, idx) => (
-                        <li key={idx} className="text-rose-500 flex items-start gap-2">
-                          <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <li key={idx} className='text-rose-500 flex items-start gap-2'>
+                          <XCircle className='w-4 h-4 shrink-0 mt-0.5' />
                           <span>{err}</span>
                         </li>
                       ))}
@@ -386,30 +452,39 @@ export default function SystemValidationPage() {
             </div>
 
             {/* Template Layer Accordion */}
-            <div className="flex flex-col">
+            <div className='flex flex-col'>
               <button
                 onClick={() => toggleLayer('templates')}
-                className="w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left"
+                className='w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left'
               >
-                <div className="flex items-center gap-2">
-                  {expandedLayers.templates ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                  <span className="font-semibold text-sm text-foreground">Template Layer Checks</span>
+                <div className='flex items-center gap-2'>
+                  {expandedLayers.templates ? (
+                    <ChevronDown className='w-5 h-5' />
+                  ) : (
+                    <ChevronRight className='w-5 h-5' />
+                  )}
+                  <span className='font-semibold text-sm text-foreground'>
+                    Template Layer Checks
+                  </span>
                 </div>
-                <Badge className={getStatusColor(validationResult.breakdown?.templates.status || 'FAIL')}>
+                <Badge
+                  className={getStatusColor(validationResult.breakdown?.templates.status || 'FAIL')}
+                >
                   {validationResult.breakdown?.templates.status}
                 </Badge>
               </button>
               {expandedLayers.templates && (
-                <div className="px-10 pb-5 text-sm space-y-2">
+                <div className='px-10 pb-5 text-sm space-y-2'>
                   {validationResult.breakdown?.templates.errors.length === 0 ? (
-                    <div className="text-emerald-500 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> All templates, variables, rules, and solutions verified.
+                    <div className='text-emerald-500 flex items-center gap-2'>
+                      <CheckCircle className='w-4 h-4' /> All templates, variables, rules, and
+                      solutions verified.
                     </div>
                   ) : (
-                    <ul className="space-y-1.5 list-none">
+                    <ul className='space-y-1.5 list-none'>
                       {validationResult.breakdown?.templates.errors.map((err, idx) => (
-                        <li key={idx} className="text-rose-500 flex items-start gap-2">
-                          <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <li key={idx} className='text-rose-500 flex items-start gap-2'>
+                          <XCircle className='w-4 h-4 shrink-0 mt-0.5' />
                           <span>{err}</span>
                         </li>
                       ))}
@@ -420,30 +495,39 @@ export default function SystemValidationPage() {
             </div>
 
             {/* Blueprint Layer Accordion */}
-            <div className="flex flex-col">
+            <div className='flex flex-col'>
               <button
                 onClick={() => toggleLayer('blueprint')}
-                className="w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left"
+                className='w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left'
               >
-                <div className="flex items-center gap-2">
-                  {expandedLayers.blueprint ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                  <span className="font-semibold text-sm text-foreground">Blueprint Layer Checks</span>
+                <div className='flex items-center gap-2'>
+                  {expandedLayers.blueprint ? (
+                    <ChevronDown className='w-5 h-5' />
+                  ) : (
+                    <ChevronRight className='w-5 h-5' />
+                  )}
+                  <span className='font-semibold text-sm text-foreground'>
+                    Blueprint Layer Checks
+                  </span>
                 </div>
-                <Badge className={getStatusColor(validationResult.breakdown?.blueprint.status || 'FAIL')}>
+                <Badge
+                  className={getStatusColor(validationResult.breakdown?.blueprint.status || 'FAIL')}
+                >
                   {validationResult.breakdown?.blueprint.status}
                 </Badge>
               </button>
               {expandedLayers.blueprint && (
-                <div className="px-10 pb-5 text-sm space-y-2">
+                <div className='px-10 pb-5 text-sm space-y-2'>
                   {validationResult.breakdown?.blueprint.errors.length === 0 ? (
-                    <div className="text-emerald-500 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> All blueprints, style profiles, and allocations verified.
+                    <div className='text-emerald-500 flex items-center gap-2'>
+                      <CheckCircle className='w-4 h-4' /> All blueprints, style profiles, and
+                      allocations verified.
                     </div>
                   ) : (
-                    <ul className="space-y-1.5 list-none">
+                    <ul className='space-y-1.5 list-none'>
                       {validationResult.breakdown?.blueprint.errors.map((err, idx) => (
-                        <li key={idx} className="text-rose-500 flex items-start gap-2">
-                          <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <li key={idx} className='text-rose-500 flex items-start gap-2'>
+                          <XCircle className='w-4 h-4 shrink-0 mt-0.5' />
                           <span>{err}</span>
                         </li>
                       ))}

@@ -64,6 +64,6 @@ export const useTestSessionStore = create<TestSessionState>()(
     {
       name: 'test-session-storage',
       storage: createJSONStorage(() => sessionStorage),
-    }
-  )
+    },
+  ),
 );

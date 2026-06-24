@@ -53,7 +53,7 @@ class TestEventTracker {
       timestamp: new Date().toISOString(),
       payload,
     };
-    
+
     this.events.push(event);
     this.saveEvents();
   }

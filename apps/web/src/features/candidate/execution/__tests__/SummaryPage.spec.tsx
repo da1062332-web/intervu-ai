@@ -50,13 +50,13 @@ describe('TestSummaryPage', () => {
     });
 
     render(<TestSummaryPage />);
-    
+
     // 1 answered out of 2 = 50%
     expect(screen.getByText('Overall Progress - 50% Completed')).toBeInTheDocument();
-    
+
     // 3600 - 3000 = 600s = 10m 0s
     expect(screen.getByText('10m 0s')).toBeInTheDocument();
-    
+
     // Section Breakdown
     expect(screen.getByText('Logical')).toBeInTheDocument();
     expect(screen.getByText('1 / 2 answered')).toBeInTheDocument();

@@ -1,4 +1,12 @@
-import { PrismaClient, DifficultyLevel, ConfigStatus, TopicStatus, ConceptStatus, VariableType, RuleType } from "@prisma/client";
+import {
+  PrismaClient,
+  DifficultyLevel,
+  ConfigStatus,
+  TopicStatus,
+  ConceptStatus,
+  VariableType,
+  RuleType,
+} from "@prisma/client";
 
 export async function seedModule1QA(prisma: PrismaClient) {
   console.log("Seeding Module 1 QA Data...");
@@ -34,7 +42,11 @@ export async function seedModule1QA(prisma: PrismaClient) {
   });
 
   // 2. Templates (EASY, MEDIUM, HARD) to satisfy blueprint allocations
-  const difficulties = [DifficultyLevel.EASY, DifficultyLevel.MEDIUM, DifficultyLevel.HARD];
+  const difficulties = [
+    DifficultyLevel.EASY,
+    DifficultyLevel.MEDIUM,
+    DifficultyLevel.HARD,
+  ];
   const templates = [];
 
   for (const diff of difficulties) {
@@ -72,7 +84,11 @@ export async function seedModule1QA(prisma: PrismaClient) {
           variableName: "qa_var",
         },
       },
-      update: { variableType: VariableType.NUMBER, required: true, defaultValue: "42" },
+      update: {
+        variableType: VariableType.NUMBER,
+        required: true,
+        defaultValue: "42",
+      },
       create: {
         templateId: t.id,
         variableName: "qa_var",
@@ -278,10 +294,8 @@ export async function seedModule1QA(prisma: PrismaClient) {
       sectionId: section.code,
       questionCount: 10,
       difficultyAllocation: { easy: 30, medium: 50, hard: 20 },
-      topicAllocations: [
-        { topicId: topic.id, percentage: 100 }
-      ]
-    }
+      topicAllocations: [{ topicId: topic.id, percentage: 100 }],
+    },
   ];
 
   await prisma.blueprint.upsert({

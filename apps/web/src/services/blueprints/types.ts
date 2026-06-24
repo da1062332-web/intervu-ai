@@ -41,7 +41,6 @@ export interface CompileResponse {
   requestCount: number;
 }
 
-
 export interface BlueprintConfig {
   id: string;
   configId: string;

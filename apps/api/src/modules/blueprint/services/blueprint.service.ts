@@ -3,7 +3,13 @@ import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { TopicRegistryLoader } from "../../concept-mapping/services/topic-registry-loader.service";
 import { TemplateRepository } from "../../template-library/repositories/template.repository";
 import { CreateBlueprintDto, UpdateBlueprintDto } from "@intervu/shared";
-import { DifficultyLevel, Prisma, Blueprint, ExamConfig, StyleProfile } from "@prisma/client";
+import {
+  DifficultyLevel,
+  Prisma,
+  Blueprint,
+  ExamConfig,
+  StyleProfile,
+} from "@prisma/client";
 import { BlueprintSection, TopicAllocation } from "@intervu-ai/contracts";
 
 export interface BlueprintValidationResult {

@@ -31,13 +31,13 @@ The compilation output resolves to a single `GenerationBatch` payload.
 
 ## 2. Field Definitions
 
-* **batchId**: Unique identifier generated dynamically per compile run to track the transaction.
-* **blueprintId**: The source blueprint configuration identifier.
-* **requests**: List of resolved generation tasks:
-  * **requestId**: Unique transaction reference identifier per task.
-  * **sectionId**: The target exam section.
-  * **topicId**: The target topic.
-  * **conceptId**: The specific concept mapped.
-  * **difficulty**: Difficulty level constraint matching the template.
-  * **templateId**: The database identifier of the selected question template.
-  * **quantity**: The exact count of parameter-set instantiations required for this template.
+- **batchId**: Unique identifier generated dynamically per compile run to track the transaction.
+- **blueprintId**: The source blueprint configuration identifier.
+- **requests**: List of resolved generation tasks:
+  - **requestId**: Unique transaction reference identifier per task.
+  - **sectionId**: The target exam section.
+  - **topicId**: The target topic.
+  - **conceptId**: The specific concept mapped.
+  - **difficulty**: Difficulty level constraint matching the template.
+  - **templateId**: The database identifier of the selected question template.
+  - **quantity**: The exact count of parameter-set instantiations required for this template.

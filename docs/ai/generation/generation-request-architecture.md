@@ -52,6 +52,6 @@ This document maps the structural flow of compiling an exam configuration and bl
 
 ## 2. Compilation Rules
 
-* **Stateless**: The compiler operates completely in-memory, resolving templates dynamically.
-* **Deterministic**: All sorting, rounding, and tie-breaking algorithms are mathematical and stable.
-* **Gate Check**: Compilation is blocked if the exam configuration readiness report is not `READY`.
+- **Stateless**: The compiler operates completely in-memory, resolving templates dynamically.
+- **Deterministic**: All sorting, rounding, and tie-breaking algorithms are mathematical and stable.
+- **Gate Check**: Compilation is blocked if the exam configuration readiness report is not `READY`.

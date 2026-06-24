@@ -33,16 +33,16 @@ export function useOfflineRecovery() {
       const db = await openDB();
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      
+
       const op: QueuedOperation = {
         id: crypto.randomUUID(),
         type,
         payload,
         timestamp: Date.now(),
       };
-      
+
       store.add(op);
-      
+
       return new Promise<void>((resolve, reject) => {
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
@@ -68,7 +68,7 @@ export function useOfflineRecovery() {
             try {
               // In a real app, call the actual API
               // await api.saveAnswer(op.payload);
-              
+
               // Remove from queue after success
               const deleteTx = db.transaction(STORE_NAME, 'readwrite');
               deleteTx.objectStore(STORE_NAME).delete(op.id);

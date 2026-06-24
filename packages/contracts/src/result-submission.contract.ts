@@ -5,7 +5,7 @@ export interface SessionDto {
   expiresAt: string;
   currentSection: string;
   currentQuestion: number;
-  status: 'CREATED' | 'ACTIVE' | 'PAUSED' | 'SUBMITTED' | 'EXPIRED';
+  status: "CREATED" | "ACTIVE" | "PAUSED" | "SUBMITTED" | "EXPIRED";
 }
 
 export interface AnswerDto {
@@ -13,7 +13,7 @@ export interface AnswerDto {
   selectedOptionId?: string;
   selectedOptionIds?: string[];
   textResponse?: string;
-  status: 'ANSWERED' | 'UNANSWERED' | 'CURRENT' | 'MARKED_FOR_REVIEW';
+  status: "ANSWERED" | "UNANSWERED" | "CURRENT" | "MARKED_FOR_REVIEW";
   timeSpentSeconds: number;
 }
 

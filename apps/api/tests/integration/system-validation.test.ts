@@ -152,7 +152,11 @@ describe("System Validation Integration Tests", () => {
         },
       ]);
       mockTemplateVarRepo.findAll.mockResolvedValue([
-        { variableName: "test_var", variableType: "NUMBER", defaultValue: "10" },
+        {
+          variableName: "test_var",
+          variableType: "NUMBER",
+          defaultValue: "10",
+        },
       ]);
       mockTemplateRuleRepo.findAll.mockResolvedValue([]);
       mockPrismaService.solutionTemplate.findUnique.mockResolvedValue({

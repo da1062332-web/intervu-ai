@@ -78,7 +78,9 @@ export function ProgressTracker() {
               <div key={section.id} className='flex flex-col gap-1'>
                 <div className='flex justify-between text-xs'>
                   <span>{section.title}</span>
-                  <span>{secAnswered}/{secTotal}</span>
+                  <span>
+                    {secAnswered}/{secTotal}
+                  </span>
                 </div>
                 <div className='h-1.5 w-full bg-muted rounded-full overflow-hidden'>
                   <div

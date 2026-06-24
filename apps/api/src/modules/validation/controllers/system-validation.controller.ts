@@ -26,20 +26,21 @@ import { SystemValidationResponseSchema } from "@intervu-ai/contracts";
 @Roles(UserRole.ADMIN)
 @Controller("system")
 export class SystemValidationController {
-  constructor(
-    private readonly validatorService: CrossModuleValidatorService,
-  ) {}
+  constructor(private readonly validatorService: CrossModuleValidatorService) {}
 
   @Post("validate-config/:configId")
   @HttpCode(HttpStatus.OK)
   @ValidateResponse(SystemValidationResponseSchema)
-  @ApiOperation({ summary: "Run cross-module validation for an exam configuration" })
+  @ApiOperation({
+    summary: "Run cross-module validation for an exam configuration",
+  })
   @ApiParam({ name: "configId", description: "Exam configuration ID" })
   @ApiOkResponse({
     description: "Cross-module validation ran successfully",
   })
   async validateConfig(@Param("configId") configId: string) {
-    const result = await this.validatorService.validateGenerationPrerequisites(configId);
+    const result =
+      await this.validatorService.validateGenerationPrerequisites(configId);
     return {
       valid: result.valid,
       score: result.score,

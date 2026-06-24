@@ -143,7 +143,9 @@ export class BlueprintController {
   }
 
   @Get(":id/compilation-preview")
-  @ApiOperation({ summary: "Preview compilation sections breakdown and requests" })
+  @ApiOperation({
+    summary: "Preview compilation sections breakdown and requests",
+  })
   @ApiParam({ name: "id", description: "Blueprint ID" })
   @ApiOkResponse({ description: "Compilation preview data" })
   async compilationPreview(@Param("id") id: string) {
@@ -162,10 +164,18 @@ export class BlueprintController {
   @ApiOkResponse({ description: "Compilation health data" })
   async compilationHealth(@Param("id") id: string) {
     const result = await this.compilerService.validateCompilation(id);
-    const hasTemplatesError = result.errors.some(e => e.includes("No Templates Found"));
-    const hasConceptsError = result.errors.some(e => e.includes("No Concepts Found"));
-    const hasReadinessError = result.errors.some(e => e.includes("Readiness Not READY"));
-    const hasBlueprintError = result.errors.some(e => e.includes("Blueprint Invalid"));
+    const hasTemplatesError = result.errors.some((e) =>
+      e.includes("No Templates Found"),
+    );
+    const hasConceptsError = result.errors.some((e) =>
+      e.includes("No Concepts Found"),
+    );
+    const hasReadinessError = result.errors.some((e) =>
+      e.includes("Readiness Not READY"),
+    );
+    const hasBlueprintError = result.errors.some((e) =>
+      e.includes("Blueprint Invalid"),
+    );
 
     return {
       success: true,
@@ -174,20 +184,28 @@ export class BlueprintController {
         checks: {
           templatesAvailable: {
             status: hasTemplatesError ? "FAIL" : "PASS",
-            message: hasTemplatesError ? "Some allocated topic-difficulties lack templates" : "All topic-difficulties have active templates",
+            message: hasTemplatesError
+              ? "Some allocated topic-difficulties lack templates"
+              : "All topic-difficulties have active templates",
           },
           conceptsAvailable: {
             status: hasConceptsError ? "FAIL" : "PASS",
-            message: hasConceptsError ? "Some allocated topics lack active concepts" : "All topics have active concepts",
+            message: hasConceptsError
+              ? "Some allocated topics lack active concepts"
+              : "All topics have active concepts",
           },
           difficultyCoverage: {
             status: hasBlueprintError ? "FAIL" : "PASS",
-            message: hasBlueprintError ? "Blueprint configuration is invalid" : "Difficulty distribution matches configurations",
+            message: hasBlueprintError
+              ? "Blueprint configuration is invalid"
+              : "Difficulty distribution matches configurations",
           },
           generationReady: {
             status: hasReadinessError ? "FAIL" : "PASS",
-            message: hasReadinessError ? "Exam configuration is not ready for generation" : "Exam configuration readiness audit passed",
-          }
+            message: hasReadinessError
+              ? "Exam configuration is not ready for generation"
+              : "Exam configuration readiness audit passed",
+          },
         },
         errors: result.errors,
       },
