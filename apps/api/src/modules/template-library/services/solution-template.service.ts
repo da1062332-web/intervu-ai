@@ -86,7 +86,8 @@ export class SolutionTemplateService {
         throw new NotFoundException("Solution template not found");
       }
       solutionTemplateString = solutionTemplate.solutionTemplate;
-      explanationTemplateString = solutionTemplate.explanationTemplate ?? undefined;
+      explanationTemplateString =
+        solutionTemplate.explanationTemplate ?? undefined;
     }
 
     // Fetch allowed variables (template variables)

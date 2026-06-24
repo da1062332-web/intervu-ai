@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { QueueService } from "../../../queue/queue.service";
 import { TestRepository } from "../repositories/test.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
-import { LegacyGenerationRequest } from "@intervu-ai/contracts";
+import { GenerationRequest } from "@intervu-ai/contracts";
 import { randomUUID } from "crypto";
 
 @Injectable()
@@ -18,12 +18,12 @@ export class TestAssemblyService {
     return this.testRepository.findById(id);
   }
 
-  async generateQuestions(body: LegacyGenerationRequest) {
+  async generateQuestions(body: GenerationRequest) {
     const jobId = randomUUID();
     const correlationId = randomUUID(); // Ideally comes from Request Scope Context
 
     this.logger.info(
-      `Orchestrating question generation for topic: ${body.topic}`,
+      `Orchestrating question generation for topic: ${body.topicId}`,
       {
         jobId,
         correlationId,
@@ -36,17 +36,17 @@ export class TestAssemblyService {
       timestamp: Date.now(),
       payload: {
         assemblyId: "test_123", // the older shared queue interface uses assemblyId
-        topicId: body.topic,
+        topicId: body.topicId,
         difficulty: body.difficulty as string,
-        count: body.count,
+        count: body.quantity,
       },
     });
 
     return {
       jobId,
-      topic: body.topic,
+      topic: body.topicId,
       difficulty: body.difficulty,
-      count: body.count,
+      count: body.quantity,
       status: "queued",
     };
   }

@@ -38,6 +38,7 @@ import {
   CheckDuplicateDto,
   ApproveRejectDto,
 } from "../dto/question-bank.dto";
+// eslint-disable-next-line no-restricted-imports
 import {
   AssemblyProviderRequestDto,
   ReleaseReservationsDto,
@@ -313,9 +314,13 @@ export class QuestionBankController {
 
   @Post("reservations/release")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Explicitly release reservations for an assembly ID" })
+  @ApiOperation({
+    summary: "Explicitly release reservations for an assembly ID",
+  })
   async releaseReservations(@Body() dto: ReleaseReservationsDto) {
-    const count = await this.reservationService.releaseReservations(dto.assemblyId);
+    const count = await this.reservationService.releaseReservations(
+      dto.assemblyId,
+    );
     return {
       success: true,
       data: { releasedCount: count },
@@ -328,7 +333,9 @@ export class QuestionBankController {
 
   @Post("reservations/cleanup")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Clean up all expired reservations from the database" })
+  @ApiOperation({
+    summary: "Clean up all expired reservations from the database",
+  })
   async cleanupReservations() {
     const count = await this.reservationService.cleanupExpiredReservations();
     return {

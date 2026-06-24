@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionReservationService } from "./question-reservation.service";
-import { QuestionStatus, Question, Prisma } from "@prisma/client";
+import { QuestionStatus, Prisma } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
 import {
   AssemblyProviderRequest,
@@ -16,7 +16,7 @@ export class QuestionRotationService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly reservationService: QuestionReservationService
+    private readonly reservationService: QuestionReservationService,
   ) {}
 
   /**
@@ -30,7 +30,7 @@ export class QuestionRotationService {
 
     if (easy + medium + hard !== count) {
       throw new BadRequestException(
-        `The sum of difficulty distribution counts (${easy + medium + hard}) does not match the requested total question count (${count}).`
+        `The sum of difficulty distribution counts (${easy + medium + hard}) does not match the requested total question count (${count}).`,
       );
     }
   }
@@ -38,7 +38,9 @@ export class QuestionRotationService {
   /**
    * Checks the pool availability for a blueprint.
    */
-  async checkAvailability(request: AssemblyProviderRequest): Promise<QuestionAvailabilityResponse> {
+  async checkAvailability(
+    request: AssemblyProviderRequest,
+  ): Promise<QuestionAvailabilityResponse> {
     this.validateRequest(request);
 
     // Run throttled lazy cleanup of expired reservations first
@@ -49,12 +51,21 @@ export class QuestionRotationService {
     let totalAvailable = 0;
     let totalMissing = 0;
 
-    const difficulties: ("EASY" | "MEDIUM" | "HARD")[] = ["EASY", "MEDIUM", "HARD"];
+    const difficulties: ("EASY" | "MEDIUM" | "HARD")[] = [
+      "EASY",
+      "MEDIUM",
+      "HARD",
+    ];
 
     for (const diff of difficulties) {
       const required = difficultyDistribution[diff] ?? 0;
       if (required === 0) {
-        details.push({ difficulty: diff, required: 0, available: 0, missing: 0 });
+        details.push({
+          difficulty: diff,
+          required: 0,
+          available: 0,
+          missing: 0,
+        });
         continue;
       }
 
@@ -64,7 +75,8 @@ export class QuestionRotationService {
           status: QuestionStatus.ACTIVE,
           sectionId,
           difficulty: diff,
-          topicId: topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
+          topicId:
+            topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
           reservations: {
             none: {
               expiresAt: {
@@ -101,7 +113,9 @@ export class QuestionRotationService {
   /**
    * Retrieves questions according to blueprint, locks them concurrently, and writes reservations.
    */
-  async retrieveAndReserve(request: AssemblyProviderRequest): Promise<AssemblyProviderResponse> {
+  async retrieveAndReserve(
+    request: AssemblyProviderRequest,
+  ): Promise<AssemblyProviderResponse> {
     this.validateRequest(request);
 
     // Check availability first. If pool is insufficient, throw exception.
@@ -124,9 +138,10 @@ export class QuestionRotationService {
 
       const selectedQuestionIds: string[] = [];
 
-      const topicFilter = topicIds && topicIds.length > 0
-        ? Prisma.sql`AND q.topic_id IN (${Prisma.join(topicIds)})`
-        : Prisma.empty;
+      const topicFilter =
+        topicIds && topicIds.length > 0
+          ? Prisma.sql`AND q.topic_id IN (${Prisma.join(topicIds)})`
+          : Prisma.empty;
 
       // 2. Select and lock questions for each difficulty tier using FOR UPDATE SKIP LOCKED
       for (const [diff, required] of Object.entries(difficultyDistribution)) {
@@ -172,7 +187,7 @@ export class QuestionRotationService {
         tx,
         selectedQuestionIds,
         assemblyId,
-        expiresAt
+        expiresAt,
       );
 
       // Map back to response interface
@@ -198,7 +213,7 @@ export class QuestionRotationService {
   /**
    * Aggregates pool health metrics.
    */
-  async getPoolHealth(): Promise<any> {
+  async getPoolHealth(): Promise<Record<string, unknown>> {
     // Run lazy cleanup first
     await this.reservationService.throttledCleanup();
 
@@ -220,10 +235,7 @@ export class QuestionRotationService {
     const neverUsedQuestions = await this.prisma.question.count({
       where: {
         status: QuestionStatus.ACTIVE,
-        OR: [
-          { timesUsed: 0 },
-          { usage: null },
-        ],
+        OR: [{ timesUsed: 0 }, { usage: null }],
       },
     });
 

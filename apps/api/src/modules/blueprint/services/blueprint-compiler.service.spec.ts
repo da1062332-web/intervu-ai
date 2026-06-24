@@ -312,7 +312,7 @@ describe("BlueprintCompilerService", () => {
       expect(result.blueprintId).toBe(mockBlueprintId);
       expect(result.requests.length).toBe(1);
       expect(result.requests[0].quantity).toBe(10);
-      expect(result.requests[0].difficulty).toBe("EASY");
+      expect(result.requests[0].difficulty).toBe("beginner");
       expect(result.requests[0].templateId).toBe("tpl-1");
     });
 

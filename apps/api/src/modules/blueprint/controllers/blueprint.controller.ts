@@ -135,7 +135,10 @@ export class BlueprintController {
       success: true,
       data: {
         batchId: result.batchId,
-        requestCount: result.requests.reduce((sum, r) => sum + r.quantity, 0),
+        requestCount: result.requests.reduce(
+          (sum: number, r: { quantity: number }) => sum + r.quantity,
+          0,
+        ),
       },
       error: null,
       meta: {},

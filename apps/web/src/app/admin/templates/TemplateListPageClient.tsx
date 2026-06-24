@@ -15,7 +15,7 @@ export function TemplateListPageClient() {
   const router = useRouter();
   const { data: response, isLoading, isError, refetch } = useTemplates(1, 100);
   const templates = response?.items || [];
-  
+
   const createMutation = useCreateTemplate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,7 +45,7 @@ export function TemplateListPageClient() {
             router.push(`/admin/templates/${data.id}`);
           }
         },
-      }
+      },
     );
   };
 
@@ -83,9 +83,7 @@ export function TemplateListPageClient() {
         {!isLoading && !isError && (!templates || templates.length === 0) && (
           <div className='p-12 text-center border-dashed border-2 m-6 rounded-lg border-gray-200 dark:border-gray-800'>
             <h3 className='text-lg font-medium mb-2'>No Templates Found</h3>
-            <p className='text-muted-foreground mb-6'>
-              Create your first template to get started.
-            </p>
+            <p className='text-muted-foreground mb-6'>Create your first template to get started.</p>
             <Button onClick={handleCreateTemplate} disabled={createMutation.isPending}>
               <Plus className='w-4 h-4 mr-2' />
               {createMutation.isPending ? 'Creating...' : 'Create Template'}
@@ -113,7 +111,9 @@ export function TemplateListPageClient() {
                   >
                     <td className='px-6 py-4 font-medium text-gray-900 dark:text-gray-100'>
                       <div>{tpl.name}</div>
-                      {tpl.templateKey && <div className='text-xs text-gray-400 font-mono'>{tpl.templateKey}</div>}
+                      {tpl.templateKey && (
+                        <div className='text-xs text-gray-400 font-mono'>{tpl.templateKey}</div>
+                      )}
                     </td>
                     <td className='px-6 py-4 text-gray-500 dark:text-gray-400'>
                       {tpl.conceptKey ?? '-'}
@@ -124,7 +124,9 @@ export function TemplateListPageClient() {
                       </span>
                     </td>
                     <td className='px-6 py-4'>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tpl.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tpl.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}
+                      >
                         {tpl.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -148,54 +150,56 @@ export function TemplateListPageClient() {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <h2 className="text-xl font-semibold mb-4">Create New Template</h2>
-        <div className="space-y-4">
+        <h2 className='text-xl font-semibold mb-4'>Create New Template</h2>
+        <div className='space-y-4'>
           <div>
             <Label>Name</Label>
-            <Input 
-              value={formData.name} 
-              onChange={e => setFormData({ ...formData, name: e.target.value })} 
-              placeholder="e.g. React Custom Hook"
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder='e.g. React Custom Hook'
             />
           </div>
           <div>
             <Label>Template Key (optional)</Label>
-            <Input 
-              value={formData.templateKey} 
-              onChange={e => setFormData({ ...formData, templateKey: e.target.value })} 
-              placeholder="e.g. react-custom-hook"
+            <Input
+              value={formData.templateKey}
+              onChange={(e) => setFormData({ ...formData, templateKey: e.target.value })}
+              placeholder='e.g. react-custom-hook'
             />
           </div>
           <div>
             <Label>Concept Key (optional)</Label>
-            <Input 
-              value={formData.conceptKey} 
-              onChange={e => setFormData({ ...formData, conceptKey: e.target.value })} 
-              placeholder="e.g. react_hooks"
+            <Input
+              value={formData.conceptKey}
+              onChange={(e) => setFormData({ ...formData, conceptKey: e.target.value })}
+              placeholder='e.g. react_hooks'
             />
           </div>
           <div>
             <Label>Question Type</Label>
-            <Input 
-              value={formData.questionType} 
-              onChange={e => setFormData({ ...formData, questionType: e.target.value })} 
-              placeholder="e.g. coding"
+            <Input
+              value={formData.questionType}
+              onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
+              placeholder='e.g. coding'
             />
           </div>
           <div>
             <Label>Difficulty</Label>
-            <select 
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
               value={formData.difficulty}
-              onChange={e => setFormData({ ...formData, difficulty: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
             >
-              <option value="EASY">EASY</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HARD">HARD</option>
+              <option value='EASY'>EASY</option>
+              <option value='MEDIUM'>MEDIUM</option>
+              <option value='HARD'>HARD</option>
             </select>
           </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+          <div className='flex justify-end space-x-2 mt-6'>
+            <Button variant='outline' onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleCreateTemplate} disabled={createMutation.isPending}>
               {createMutation.isPending ? 'Creating...' : 'Create'}
             </Button>

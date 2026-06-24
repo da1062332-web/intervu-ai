@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { SectionBuilder } from '@/modules/exam-config/components/section-builder';
 import { RuleFlagsTab } from '@/features/admin/configs/components/rule-flags-tab';
 import { DifficultyDistributionTab } from '@/features/admin/configs/components/difficulty-distribution-tab';
@@ -12,14 +14,43 @@ import { cn } from '@/lib/utils';
 import { useConfig } from '@/services/exam-configs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReadinessTab } from '@/features/admin/configs/components/readiness-tab';
+import { Button } from '@/components/ui/button';
+import { Loader2, Play } from 'lucide-react';
+import { apiClient } from '@/services/api/client';
 
 interface ConfigPageClientProps {
   configId: string;
 }
 
 export function ConfigPageClient({ configId }: ConfigPageClientProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('general');
+  const [generating, setGenerating] = useState(false);
   const { data: config, isLoading, isError } = useConfig(configId);
+
+  const generateAssembly = async () => {
+    setGenerating(true);
+    try {
+      const response = await apiClient.request<{ testInstanceId: string }>(
+        '/assembly/tests/generate',
+        {
+          method: 'POST',
+          body: { configId },
+        },
+      );
+
+      if (response && response.testInstanceId) {
+        toast.success('Successfully assembled test instance.');
+        router.push(`/admin/assembly/${response.testInstanceId}`);
+      } else {
+        throw new Error('Failed to generate assembly');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to generate assembly');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const tabs = [
     { id: 'general', label: 'General' },
@@ -89,8 +120,20 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
               </span>
             </div>
           </div>
-          <div className='w-full max-w-xs'>
+          <div className='w-full max-w-xs space-y-3'>
             <ValidationWidget configId={configId} />
+            <Button
+              className='w-full gap-2'
+              onClick={generateAssembly}
+              disabled={generating || config.status === 'ARCHIVED'}
+            >
+              {generating ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                <Play className='h-4 w-4' />
+              )}
+              {generating ? 'Assembling...' : 'Generate Test Assembly'}
+            </Button>
           </div>
         </div>
       </div>

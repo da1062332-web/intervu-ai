@@ -4,10 +4,8 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionReservationService } from "../services/question-reservation.service";
 import { QuestionRotationService } from "../services/question-rotation.service";
 import { QuestionUsageService } from "../services/question-usage.service";
-import { QuestionStatus } from "@prisma/client";
 
 describe("Question Bank Module - Day 3 Assembly Integration", () => {
-  let reservationService: QuestionReservationService;
   let rotationService: QuestionRotationService;
   let usageService: QuestionUsageService;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,8 +46,9 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
       ],
     }).compile();
 
-    reservationService = module.get<QuestionReservationService>(QuestionReservationService);
-    rotationService = module.get<QuestionRotationService>(QuestionRotationService);
+    rotationService = module.get<QuestionRotationService>(
+      QuestionRotationService,
+    );
     usageService = module.get<QuestionUsageService>(QuestionUsageService);
   });
 
@@ -79,7 +78,9 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
           HARD: 2, // Sum is 12
         },
       };
-      expect(() => rotationService.validateRequest(request)).toThrow(BadRequestException);
+      expect(() => rotationService.validateRequest(request)).toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -154,9 +155,33 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
         .mockResolvedValueOnce([{ id: "q-med-1" }]);
 
       prismaMock.question.findMany.mockResolvedValue([
-        { id: "q-easy-1", questionText: "E1", answer: "A1", explanation: "", difficulty: "EASY", topicId: "t1", sectionId: "sec-1" },
-        { id: "q-easy-2", questionText: "E2", answer: "A2", explanation: "", difficulty: "EASY", topicId: "t1", sectionId: "sec-1" },
-        { id: "q-med-1", questionText: "M1", answer: "A3", explanation: "", difficulty: "MEDIUM", topicId: "t2", sectionId: "sec-1" },
+        {
+          id: "q-easy-1",
+          questionText: "E1",
+          answer: "A1",
+          explanation: "",
+          difficulty: "EASY",
+          topicId: "t1",
+          sectionId: "sec-1",
+        },
+        {
+          id: "q-easy-2",
+          questionText: "E2",
+          answer: "A2",
+          explanation: "",
+          difficulty: "EASY",
+          topicId: "t1",
+          sectionId: "sec-1",
+        },
+        {
+          id: "q-med-1",
+          questionText: "M1",
+          answer: "A3",
+          explanation: "",
+          difficulty: "MEDIUM",
+          topicId: "t2",
+          sectionId: "sec-1",
+        },
       ]);
 
       const request = {
@@ -194,7 +219,9 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
         },
       };
 
-      await expect(rotationService.retrieveAndReserve(request)).rejects.toThrow(BadRequestException);
+      await expect(rotationService.retrieveAndReserve(request)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -208,7 +235,11 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
       prismaMock.questionUsage.findUnique.mockResolvedValue(null);
       prismaMock.questionReservation.deleteMany.mockResolvedValue({ count: 2 });
 
-      const count = await usageService.trackUsage("assembly-1", "exam-1", "sec-1");
+      const count = await usageService.trackUsage(
+        "assembly-1",
+        "exam-1",
+        "sec-1",
+      );
 
       expect(count).toBe(2);
       expect(prismaMock.question.update).toHaveBeenCalledTimes(2);
@@ -232,9 +263,9 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
 
       expect(result.totalActiveQuestions).toBe(100);
       expect(result.reservedQuestions).toBe(10);
-      expect(result.coverageByDifficulty.EASY).toBeDefined();
-      expect(result.coverageByTopic["topic-1"]).toBe(15);
-      expect(result.coverageByTopic["topic-2"]).toBe(25);
+      expect((result.coverageByDifficulty as Record<string, number>).EASY).toBeDefined();
+      expect((result.coverageByTopic as Record<string, number>)["topic-1"]).toBe(15);
+      expect((result.coverageByTopic as Record<string, number>)["topic-2"]).toBe(25);
     });
   });
 });

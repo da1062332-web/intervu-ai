@@ -129,3 +129,32 @@ export class UpdateBlueprintDto implements UpdateBlueprint {
     ) as unknown as z.SafeParseReturnType<unknown, UpdateBlueprintDto>;
   }
 }
+
+export interface TopicAllocationDto {
+  topicId: string;
+  percentage: number;
+}
+
+export interface DifficultyDistributionDto {
+  EASY: number;
+  MEDIUM: number;
+  HARD: number;
+}
+
+export interface BlueprintSectionDto {
+  sectionKey: string;
+  displayName: string;
+  durationSeconds: number;
+  questionCount: number;
+  orderIndex: number;
+  topicAllocations: TopicAllocationDto[];
+  difficultyDistribution?: DifficultyDistributionDto;
+}
+
+export interface BlueprintDto {
+  testConfigId: string;
+  totalQuestions: number;
+  totalDurationSeconds: number;
+  difficultyDistribution?: DifficultyDistributionDto;
+  sections: BlueprintSectionDto[];
+}

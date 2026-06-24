@@ -26,7 +26,9 @@ export class QuestionReservationService {
   /**
    * Explicitly clean up all expired reservations from the database.
    */
-  async cleanupExpiredReservations(tx?: Prisma.TransactionClient): Promise<number> {
+  async cleanupExpiredReservations(
+    tx?: Prisma.TransactionClient,
+  ): Promise<number> {
     const client = tx || this.prisma;
     const now = new Date();
     const result = await client.questionReservation.deleteMany({
@@ -37,7 +39,9 @@ export class QuestionReservationService {
       },
     });
     if (result.count > 0) {
-      this.logger.log(`Cleaned up ${result.count} expired question reservations.`);
+      this.logger.log(
+        `Cleaned up ${result.count} expired question reservations.`,
+      );
     }
     return result.count;
   }
@@ -45,14 +49,19 @@ export class QuestionReservationService {
   /**
    * Explicitly release reservations for a given assemblyId.
    */
-  async releaseReservations(assemblyId: string, tx?: Prisma.TransactionClient): Promise<number> {
+  async releaseReservations(
+    assemblyId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<number> {
     const client = tx || this.prisma;
     const result = await client.questionReservation.deleteMany({
       where: {
         assemblyId,
       },
     });
-    this.logger.log(`Released ${result.count} reservations for assembly ID: ${assemblyId}`);
+    this.logger.log(
+      `Released ${result.count} reservations for assembly ID: ${assemblyId}`,
+    );
     return result.count;
   }
 
@@ -64,7 +73,7 @@ export class QuestionReservationService {
     tx: Prisma.TransactionClient,
     questionIds: string[],
     assemblyId: string,
-    expiresAt: Date
+    expiresAt: Date,
   ): Promise<string[]> {
     if (questionIds.length === 0) {
       return [];

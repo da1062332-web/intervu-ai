@@ -35,5 +35,7 @@ export const TemplatePreviewSchema = ApiSuccessResponseSchema.extend({
   data: TemplatePreviewBaseSchema.nullable(),
 });
 
-export const NullableSolutionTemplateBaseSchema = SolutionTemplateBaseSchema.nullable();
-export const NullableTemplatePreviewBaseSchema = TemplatePreviewBaseSchema.nullable();
+export const NullableSolutionTemplateBaseSchema =
+  SolutionTemplateBaseSchema.nullable();
+export const NullableTemplatePreviewBaseSchema =
+  TemplatePreviewBaseSchema.nullable();

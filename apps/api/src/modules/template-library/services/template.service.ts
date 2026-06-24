@@ -209,7 +209,9 @@ export class TemplateService {
       ...(validated.templateKey && { templateKey: validated.templateKey }),
       ...(validated.conceptKey && { conceptKey: validated.conceptKey }),
       ...(validated.questionType && { questionType: validated.questionType }),
-      ...(validated.structure && { structure: validated.structure as Prisma.InputJsonValue }),
+      ...(validated.structure && {
+        structure: validated.structure as Prisma.InputJsonValue,
+      }),
     };
     const template = await this.templateRepository.create(createInput);
 

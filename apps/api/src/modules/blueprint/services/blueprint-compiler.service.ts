@@ -329,7 +329,12 @@ export class BlueprintCompilerService {
               sectionId: section.sectionId,
               topicId: alloc.topicId,
               conceptId: targetConcept?.id || template.conceptKey,
-              difficulty: diffKey,
+              difficulty:
+                diffKey === "EASY"
+                  ? "beginner"
+                  : diffKey === "MEDIUM"
+                    ? "intermediate"
+                    : "advanced",
               templateId: template.id,
               quantity: templateQty,
             });

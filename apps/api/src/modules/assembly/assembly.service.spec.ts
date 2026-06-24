@@ -1,12 +1,13 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { AssemblyService } from "./assembly.service";
-import { AssemblyRepository } from "./assembly.repository";
-import { BlueprintBuilderService } from "./blueprint-builder.service";
-import { QuestionAllocatorService } from "./question-allocator.service";
-import { SectionBuilderService } from "./section-builder.service";
-import { AssemblyValidatorService } from "./assembly-validator.service";
-import { SectionDto } from "./dto/section.dto";
-import { BlueprintDto } from "./dto/blueprint.dto";
+import { AssemblyService } from "./services/test-assembly.service";
+import { AssemblyRepository } from "./repositories/assembly.repository";
+import { BlueprintBuilderService } from "./services/blueprint-builder.service";
+import { QuestionAllocatorService } from "./services/question-allocator.service";
+import { SectionBuilderService } from "./services/section-builder.service";
+import { AssemblyValidatorService } from "./validators/assembly-validator.service";
+import { QuestionPoolRepository } from "./repositories/question-pool.repository";
+import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
+import { BlueprintDto } from "@intervu/shared";
 describe("AssemblyService", () => {
   let service: AssemblyService;
   let repository: jest.Mocked<AssemblyRepository>;
@@ -14,6 +15,7 @@ describe("AssemblyService", () => {
   let allocator: jest.Mocked<QuestionAllocatorService>;
   let sectionBuilder: jest.Mocked<SectionBuilderService>;
   let validator: jest.Mocked<AssemblyValidatorService>;
+  let poolRepository: jest.Mocked<QuestionPoolRepository>;
 
   beforeEach(async () => {
     repository = {
@@ -38,6 +40,10 @@ describe("AssemblyService", () => {
       validate: jest.fn(),
     } as unknown as jest.Mocked<AssemblyValidatorService>;
 
+    poolRepository = {
+      findRecentUsedQuestions: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<QuestionPoolRepository>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AssemblyService,
@@ -46,6 +52,7 @@ describe("AssemblyService", () => {
         { provide: QuestionAllocatorService, useValue: allocator },
         { provide: SectionBuilderService, useValue: sectionBuilder },
         { provide: AssemblyValidatorService, useValue: validator },
+        { provide: QuestionPoolRepository, useValue: poolRepository },
       ],
     }).compile();
 
@@ -65,9 +72,10 @@ describe("AssemblyService", () => {
         {
           sectionKey: "s1",
           displayName: "Section 1",
-          durationSeconds: 1800,
+          durationSeconds: 1200,
           questionCount: 10,
-          orderIndex: 1,
+          orderIndex: 0,
+          topicAllocations: [{ topicId: "mockTopic", percentage: 100 }],
         },
       ],
     });

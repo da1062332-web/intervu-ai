@@ -76,6 +76,9 @@ jobs:
       - name: Run Tests
         run: npm run test
 
+      - name: Run API Test Coverage
+        run: npm run test --workspace=@intervu-ai/api -- --coverage
+
       - name: Run Integration Tests
         run: npm run test:integration
 

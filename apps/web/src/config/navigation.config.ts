@@ -27,7 +27,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
-        { label: 'Tests', route: '/admin/tests', icon: ClipboardList },
+        { label: 'Assembly', route: '/admin/assembly', icon: ClipboardList },
         { label: 'Results', route: '/admin/results', icon: BarChart3 },
         { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },
       ],

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 
@@ -16,10 +16,8 @@ export class QuestionUsageService {
     assemblyId: string,
     examId: string,
     sectionId: string,
-    tx?: Prisma.TransactionClient
+    tx?: Prisma.TransactionClient,
   ): Promise<number> {
-    const client = tx || this.prisma;
-
     // Use transaction if tx client is not provided to ensure atomicity
     const execute = async (transaction: Prisma.TransactionClient) => {
       // 1. Fetch active reservations for this assemblyId
@@ -28,7 +26,9 @@ export class QuestionUsageService {
       });
 
       if (reservations.length === 0) {
-        this.logger.warn(`No reservations found for assembly ID: ${assemblyId}`);
+        this.logger.warn(
+          `No reservations found for assembly ID: ${assemblyId}`,
+        );
         return 0;
       }
 
@@ -51,8 +51,12 @@ export class QuestionUsageService {
           where: { questionId },
         });
 
-        const examUsage = existingUsage ? (existingUsage.examUsage as Record<string, number>) : {};
-        const sectionUsage = existingUsage ? (existingUsage.sectionUsage as Record<string, number>) : {};
+        const examUsage = existingUsage
+          ? (existingUsage.examUsage as Record<string, number>)
+          : {};
+        const sectionUsage = existingUsage
+          ? (existingUsage.sectionUsage as Record<string, number>)
+          : {};
 
         examUsage[examId] = (examUsage[examId] || 0) + 1;
         sectionUsage[sectionId] = (sectionUsage[sectionId] || 0) + 1;
@@ -81,7 +85,7 @@ export class QuestionUsageService {
       });
 
       this.logger.log(
-        `Tracked usage for ${reservations.length} questions and cleared reservations for assembly ID: ${assemblyId}`
+        `Tracked usage for ${reservations.length} questions and cleared reservations for assembly ID: ${assemblyId}`,
       );
       return deleteResult.count;
     };

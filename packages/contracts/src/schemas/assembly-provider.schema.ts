@@ -20,9 +20,10 @@ export const AssemblyProviderRequestSchema = z
       return easy + medium + hard === data.count;
     },
     {
-      message: "The sum of difficulty distribution counts does not match the requested total question count.",
+      message:
+        "The sum of difficulty distribution counts does not match the requested total question count.",
       path: ["difficultyDistribution"],
-    }
+    },
   );
 
 export const AssemblyProviderQuestionSchema = z.object({

@@ -19,3 +19,7 @@ export * from "./template-rule.dto";
 export * from "./template-validation.dto";
 export * from "./solution-template.dto";
 export * from "./readiness.dto";
+export * from "./assembled-test.dto";
+export * from "./assembly-validation-result.dto";
+export * from "./generate-test-request.dto";
+export * from "./preview-test-response.dto";

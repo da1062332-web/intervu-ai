@@ -1,26 +1,27 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
   const t = await prisma.template.create({
     data: {
-      name: 'Demo React Hook Question',
-      templateKey: 'demo-react-hook',
-      conceptKey: 'react_hooks',
-      difficultyLevel: 'MEDIUM',
-      questionType: 'coding',
+      name: "Demo React Hook Question",
+      templateKey: "demo-react-hook",
+      conceptKey: "react_hooks",
+      difficultyLevel: "MEDIUM",
+      questionType: "coding",
       structure: {
-        prompt: 'Write a custom React hook named {{hookName}} that tracks the window dimensions. It should return an object with width and height.'
+        prompt:
+          "Write a custom React hook named {{hookName}} that tracks the window dimensions. It should return an object with width and height.",
       },
       variables: {
         create: [
           {
-            variableName: 'hookName',
-            variableType: 'STRING',
+            variableName: "hookName",
+            variableType: "STRING",
             required: true,
-            defaultValue: 'useWindowSize'
-          }
-        ]
+            defaultValue: "useWindowSize",
+          },
+        ],
       },
       solutionTemplate: {
         create: {
@@ -37,12 +38,15 @@ export function {{hookName}}() {
 
   return size;
 }`,
-          explanationTemplate: 'This hook uses useState to store the dimensions and useEffect to attach a resize event listener to the window object.'
-        }
-      }
-    }
+          explanationTemplate:
+            "This hook uses useState to store the dimensions and useEffect to attach a resize event listener to the window object.",
+        },
+      },
+    },
   });
-  console.log('Created Template ID:', t.id);
+  console.log("Created Template ID:", t.id);
 }
 
-main().catch(console.error).finally(() => prisma.$disconnect());
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
