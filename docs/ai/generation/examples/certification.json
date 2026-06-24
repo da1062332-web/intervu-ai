@@ -1,0 +1,46 @@
+{
+  "batchId": "d5e6f7a8-b9c0-1d2e-3f4a-5b6c7d8e9f0a",
+  "blueprintId": "bp-cloud-cert-architect",
+  "requests": [
+    {
+      "requestId": "r1-cert",
+      "blueprintId": "bp-cloud-cert-architect",
+      "sectionId": "sec-cloud-compute",
+      "topicId": "topic-virtualization",
+      "conceptId": "concept-vms",
+      "difficulty": "EASY",
+      "templateId": "tpl-vms-easy-1",
+      "quantity": 10
+    },
+    {
+      "requestId": "r2-cert",
+      "blueprintId": "bp-cloud-cert-architect",
+      "sectionId": "sec-cloud-compute",
+      "topicId": "topic-containers",
+      "conceptId": "concept-kubernetes",
+      "difficulty": "MEDIUM",
+      "templateId": "tpl-k8s-med-1",
+      "quantity": 15
+    },
+    {
+      "requestId": "r3-cert",
+      "blueprintId": "bp-cloud-cert-architect",
+      "sectionId": "sec-cloud-security",
+      "topicId": "topic-iam",
+      "conceptId": "concept-roles-policies",
+      "difficulty": "MEDIUM",
+      "templateId": "tpl-iam-med-2",
+      "quantity": 12
+    },
+    {
+      "requestId": "r4-cert",
+      "blueprintId": "bp-cloud-cert-architect",
+      "sectionId": "sec-cloud-security",
+      "topicId": "topic-encryption",
+      "conceptId": "concept-kms",
+      "difficulty": "HARD",
+      "templateId": "tpl-kms-hard-1",
+      "quantity": 8
+    }
+  ]
+}

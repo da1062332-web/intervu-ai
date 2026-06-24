@@ -8,6 +8,7 @@ import { BlueprintController } from "./controllers/blueprint.controller";
 
 import { StyleProfileService } from "./services/style-profile.service";
 import { BlueprintService } from "./services/blueprint.service";
+import { BlueprintCompilerService } from "./services/blueprint-compiler.service";
 
 import { StyleProfileRepository } from "./repositories/style-profile.repository";
 import { BlueprintRepository } from "./repositories/blueprint.repository";
@@ -18,12 +19,14 @@ import { BlueprintRepository } from "./repositories/blueprint.repository";
   providers: [
     StyleProfileService,
     BlueprintService,
+    BlueprintCompilerService,
     StyleProfileRepository,
     BlueprintRepository,
   ],
   exports: [
     StyleProfileService,
     BlueprintService,
+    BlueprintCompilerService,
     StyleProfileRepository,
     BlueprintRepository,
   ],

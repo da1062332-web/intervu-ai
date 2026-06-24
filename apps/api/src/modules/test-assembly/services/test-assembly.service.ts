@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { QueueService } from "../../../queue/queue.service";
 import { TestRepository } from "../repositories/test.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
-import { GenerationRequest } from "@intervu-ai/contracts";
+import { LegacyGenerationRequest } from "@intervu-ai/contracts";
 import { randomUUID } from "crypto";
 
 @Injectable()
@@ -18,7 +18,7 @@ export class TestAssemblyService {
     return this.testRepository.findById(id);
   }
 
-  async generateQuestions(body: GenerationRequest) {
+  async generateQuestions(body: LegacyGenerationRequest) {
     const jobId = randomUUID();
     const correlationId = randomUUID(); // Ideally comes from Request Scope Context
 

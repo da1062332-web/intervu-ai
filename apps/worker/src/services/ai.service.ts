@@ -1,7 +1,7 @@
 import {
   AIResponseSchema,
   AIResponse,
-  GenerationRequest,
+  LegacyGenerationRequest,
 } from "@intervu-ai/contracts";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
@@ -9,7 +9,7 @@ export class AiWorkerService {
   constructor(private readonly logger: AppLogger) {}
 
   async generateQuestions(
-    request: GenerationRequest,
+    request: LegacyGenerationRequest,
     correlationId: string,
   ): Promise<AIResponse> {
     this.logger.info(`Starting AI generation for topic: ${request.topic}`, {
@@ -35,7 +35,7 @@ export class AiWorkerService {
     return validationResult.data;
   }
 
-  private async mockAiCall(request: GenerationRequest): Promise<unknown> {
+  private async mockAiCall(request: LegacyGenerationRequest): Promise<unknown> {
     // Simulating raw unstructured JSON from AI Provider
     return {
       questions: [

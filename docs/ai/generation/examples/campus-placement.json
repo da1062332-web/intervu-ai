@@ -1,0 +1,46 @@
+{
+  "batchId": "c9a0b1c2-d3e4-4f5a-6b7c-8d9e0f1a2b3c",
+  "blueprintId": "bp-campus-placement-2026",
+  "requests": [
+    {
+      "requestId": "r1-campus-placement",
+      "blueprintId": "bp-campus-placement-2026",
+      "sectionId": "sec-aptitude",
+      "topicId": "topic-quantitative",
+      "conceptId": "concept-time-work",
+      "difficulty": "EASY",
+      "templateId": "tpl-time-work-easy-1",
+      "quantity": 5
+    },
+    {
+      "requestId": "r2-campus-placement",
+      "blueprintId": "bp-campus-placement-2026",
+      "sectionId": "sec-aptitude",
+      "topicId": "topic-quantitative",
+      "conceptId": "concept-time-work",
+      "difficulty": "MEDIUM",
+      "templateId": "tpl-time-work-med-1",
+      "quantity": 3
+    },
+    {
+      "requestId": "r3-campus-placement",
+      "blueprintId": "bp-campus-placement-2026",
+      "sectionId": "sec-technical",
+      "topicId": "topic-data-structures",
+      "conceptId": "concept-arrays",
+      "difficulty": "MEDIUM",
+      "templateId": "tpl-arrays-med-1",
+      "quantity": 8
+    },
+    {
+      "requestId": "r4-campus-placement",
+      "blueprintId": "bp-campus-placement-2026",
+      "sectionId": "sec-technical",
+      "topicId": "topic-data-structures",
+      "conceptId": "concept-strings",
+      "difficulty": "HARD",
+      "templateId": "tpl-strings-hard-1",
+      "quantity": 4
+    }
+  ]
+}

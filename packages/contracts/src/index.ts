@@ -1,4 +1,17 @@
-export * from "./generation";
+export {
+  GenerationRequestSchema,
+  GenerationDataSchema,
+  GenerationResponseSchema,
+  GenerationResponse,
+  CreateTestRequestSchema,
+  CreateTestRequest,
+  ApiSuccessResponseSchema,
+  ApiSuccessResponse,
+  EvaluationRequestSchema,
+  EvaluationRequest,
+  GenerationRequest as LegacyGenerationRequest,
+} from "./generation";
+
 export * from "./queue";
 export * from "./worker";
 export * from "./ai";
@@ -51,6 +64,10 @@ export * from "./blueprint-config.dto";
 
 // Readiness Contracts
 export * from "./schemas/readiness.schema";
+
+// Compilation Contracts
+export * from "./compilation";
+
 
 // System Validation Contracts
 export * from "./schemas/system-validation.schema";
