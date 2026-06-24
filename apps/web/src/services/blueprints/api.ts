@@ -7,6 +7,9 @@ import type {
   AddTopicConfigPayload,
   StyleProfile,
   ValidationSummary,
+  CompileResponse,
+  CompilationPreviewResponse,
+  CompilationHealthResponse,
 } from './types';
 
 export const blueprintsApi = {
@@ -73,5 +76,19 @@ export const blueprintsApi = {
 
   previewBlueprint: (id: string) => {
     return apiClient.request<any>(`/blueprints/${id}/preview`);
+  },
+
+  compileBlueprint: (id: string) => {
+    return apiClient.request<CompileResponse>(`/blueprints/${id}/compile`, {
+      method: 'POST',
+    });
+  },
+
+  getCompilationPreview: (id: string) => {
+    return apiClient.request<CompilationPreviewResponse>(`/blueprints/${id}/compilation-preview`);
+  },
+
+  getCompilationHealth: (id: string) => {
+    return apiClient.request<CompilationHealthResponse>(`/blueprints/${id}/compilation-health`);
   },
 };

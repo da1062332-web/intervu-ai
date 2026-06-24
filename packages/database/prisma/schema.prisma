@@ -815,7 +815,7 @@ model QuestionReview {
 
 model QuestionReservation {
   id         String   @id @default(cuid())
-  questionId String   @map("question_id")
+  questionId String   @unique @map("question_id")
   assemblyId String   @map("assembly_id")
   reservedAt DateTime @default(now()) @map("reserved_at")
   expiresAt  DateTime @map("expires_at")
@@ -824,7 +824,6 @@ model QuestionReservation {
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("question_reservations")
-  @@index([questionId])
   @@index([assemblyId])
 }
 

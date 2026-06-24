@@ -1,14 +1,15 @@
 import { QuestionStatus } from '../types/execution.types';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface QuestionStatusBadgeProps {
   index: number;
   status: QuestionStatus;
   isAnswered?: boolean;
-  onClick: () => void;
+  onClick: (index: number) => void;
 }
 
-export function QuestionStatusBadge({
+export const QuestionStatusBadge = React.memo(function QuestionStatusBadge({
   index,
   status,
   isAnswered,
@@ -24,7 +25,7 @@ export function QuestionStatusBadge({
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(index)}
       className={cn(
         'relative flex items-center justify-center w-10 h-10 rounded-md text-sm font-medium transition-colors border',
         styles[status],
@@ -35,9 +36,9 @@ export function QuestionStatusBadge({
       {isAnswered && status !== 'ANSWERED' && (
         <span className='absolute -top-1 -right-1 flex h-3 w-3' aria-hidden='true'>
           <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75'></span>
-          <span className='relative inline-flex rounded-full h-3 w-3 bg-green-500 border border-white dark:border-gray-900'></span>
+          <span className='relative inline-flex rounded-full h-3 w-3 bg-green-50 border border-white dark:border-gray-900'></span>
         </span>
       )}
     </button>
   );
-}
+});

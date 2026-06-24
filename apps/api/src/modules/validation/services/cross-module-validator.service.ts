@@ -128,22 +128,34 @@ export class CrossModuleValidatorService {
     return null;
   }
 
-  async validateConfig(configId: string): Promise<{ valid: boolean; errors: string[] }> {
+  async validateConfig(
+    configId: string,
+  ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
     // 1. Exam Config Exists
     const config = await this.examConfigRepository.findById(configId);
-    if (!config || config.isArchived || config.status === ConfigStatus.ARCHIVED) {
-      errors.push(`Exam configuration with ID ${configId} not found or is archived`);
+    if (
+      !config ||
+      config.isArchived ||
+      config.status === ConfigStatus.ARCHIVED
+    ) {
+      errors.push(
+        `Exam configuration with ID ${configId} not found or is archived`,
+      );
       return { valid: false, errors };
     }
 
     // 2. Sections Exist
-    const sections = await this.examSectionRepository.findManyByConfigId(configId);
+    const sections =
+      await this.examSectionRepository.findManyByConfigId(configId);
     if (sections.length === 0) {
       errors.push("No sections have been configured for this exam config");
     } else {
-      const totalSectionQuestions = sections.reduce((sum, s) => sum + s.questionCount, 0);
+      const totalSectionQuestions = sections.reduce(
+        (sum, s) => sum + s.questionCount,
+        0,
+      );
       if (totalSectionQuestions !== config.totalQuestions) {
         errors.push(
           `Total section questions (${totalSectionQuestions}) does not match exam configuration questions (${config.totalQuestions})`,
@@ -166,9 +178,14 @@ export class CrossModuleValidatorService {
     if (!diffDist) {
       errors.push("Difficulty distribution configuration is missing");
     } else {
-      const sum = diffDist.easyPercentage + diffDist.mediumPercentage + diffDist.hardPercentage;
+      const sum =
+        diffDist.easyPercentage +
+        diffDist.mediumPercentage +
+        diffDist.hardPercentage;
       if (sum !== 100) {
-        errors.push(`Difficulty distribution total is ${sum}%, must be exactly 100%`);
+        errors.push(
+          `Difficulty distribution total is ${sum}%, must be exactly 100%`,
+        );
       }
     }
 
@@ -178,10 +195,13 @@ export class CrossModuleValidatorService {
     };
   }
 
-  async validateKnowledgeLayer(configId: string): Promise<{ valid: boolean; errors: string[] }> {
+  async validateKnowledgeLayer(
+    configId: string,
+  ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
-    const sections = await this.examSectionRepository.findManyByConfigId(configId);
+    const sections =
+      await this.examSectionRepository.findManyByConfigId(configId);
     if (sections.length === 0) {
       errors.push("Cannot validate knowledge layer without sections");
       return { valid: false, errors };
@@ -189,7 +209,10 @@ export class CrossModuleValidatorService {
 
     for (const section of sections) {
       // 1. Topics Assigned
-      const mappings = await this.topicSectionMappingRepository.findMappingsBySection(section.id);
+      const mappings =
+        await this.topicSectionMappingRepository.findMappingsBySection(
+          section.id,
+        );
       if (mappings.length === 0) {
         errors.push(`Section '${section.name}' has no topics assigned`);
         continue;
@@ -198,14 +221,20 @@ export class CrossModuleValidatorService {
       // 2. Concepts Exist
       for (const mapping of mappings) {
         const topic = await this.topicRepository.findById(mapping.topicId);
-        const concepts = await this.conceptMappingRepository.findManyByTopicId(mapping.topicId, true);
+        const concepts = await this.conceptMappingRepository.findManyByTopicId(
+          mapping.topicId,
+          true,
+        );
         if (concepts.length === 0) {
-          errors.push(`Topic '${topic?.name || mapping.topicId}' has no active concepts`);
+          errors.push(
+            `Topic '${topic?.name || mapping.topicId}' has no active concepts`,
+          );
         }
       }
 
       // 3. Weightages Valid
-      const weightageSum = await this.topicWeightageRepository.sumWeightagesBySection(section.id);
+      const weightageSum =
+        await this.topicWeightageRepository.sumWeightagesBySection(section.id);
       if (weightageSum !== 100) {
         errors.push(
           `Section '${section.name}' topic weightages total is ${weightageSum}%, must be exactly 100%`,
@@ -219,10 +248,13 @@ export class CrossModuleValidatorService {
     };
   }
 
-  async validateTemplateLayer(configId: string): Promise<{ valid: boolean; errors: string[] }> {
+  async validateTemplateLayer(
+    configId: string,
+  ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
-    const sections = await this.examSectionRepository.findManyByConfigId(configId);
+    const sections =
+      await this.examSectionRepository.findManyByConfigId(configId);
     if (sections.length === 0) {
       errors.push("Cannot validate template layer without sections");
       return { valid: false, errors };
@@ -230,7 +262,10 @@ export class CrossModuleValidatorService {
 
     const uniqueTopicIds = new Set<string>();
     for (const section of sections) {
-      const mappings = await this.topicSectionMappingRepository.findMappingsBySection(section.id);
+      const mappings =
+        await this.topicSectionMappingRepository.findMappingsBySection(
+          section.id,
+        );
       mappings.forEach((m) => uniqueTopicIds.add(m.topicId));
     }
 
@@ -241,7 +276,10 @@ export class CrossModuleValidatorService {
 
     const allConcepts = [];
     for (const topicId of uniqueTopicIds) {
-      const concepts = await this.conceptMappingRepository.findManyByTopicId(topicId, true);
+      const concepts = await this.conceptMappingRepository.findManyByTopicId(
+        topicId,
+        true,
+      );
       allConcepts.push(...concepts);
     }
 
@@ -259,7 +297,9 @@ export class CrossModuleValidatorService {
 
       // 1. Templates Exist
       if (matchingTemplates.length === 0) {
-        errors.push(`No active templates found for Concept '${concept.name}' (${concept.code})`);
+        errors.push(
+          `No active templates found for Concept '${concept.name}' (${concept.code})`,
+        );
         continue;
       }
 
@@ -273,12 +313,22 @@ export class CrossModuleValidatorService {
         const varNames = variables.map((v) => v.variableName);
         const uniqueNames = new Set(varNames);
         if (uniqueNames.size !== varNames.length) {
-          errors.push(`Template '${template.name}' has duplicate variable definitions`);
+          errors.push(
+            `Template '${template.name}' has duplicate variable definitions`,
+          );
         }
 
         for (const variable of variables) {
-          if (variable.defaultValue !== null && variable.defaultValue !== undefined) {
-            if (!this.checkDefaultValueType(variable.defaultValue, variable.variableType)) {
+          if (
+            variable.defaultValue !== null &&
+            variable.defaultValue !== undefined
+          ) {
+            if (
+              !this.checkDefaultValueType(
+                variable.defaultValue,
+                variable.variableType,
+              )
+            ) {
               errors.push(
                 `Default value '${variable.defaultValue}' for variable '${variable.variableName}' in template '${template.name}' is incompatible with type ${variable.variableType}`,
               );
@@ -298,7 +348,9 @@ export class CrossModuleValidatorService {
             variables,
           );
           if (ruleErrMsg) {
-            errors.push(`Template '${template.name}' has invalid rule config: ${ruleErrMsg}`);
+            errors.push(
+              `Template '${template.name}' has invalid rule config: ${ruleErrMsg}`,
+            );
           }
         }
 
@@ -307,7 +359,9 @@ export class CrossModuleValidatorService {
           where: { templateId: template.id },
         });
         if (!solTemplate) {
-          errors.push(`Template '${template.name}' has no solution template configured`);
+          errors.push(
+            `Template '${template.name}' has no solution template configured`,
+          );
         }
       }
     }
@@ -318,7 +372,9 @@ export class CrossModuleValidatorService {
     };
   }
 
-  async validateBlueprintLayer(configId: string): Promise<{ valid: boolean; errors: string[] }> {
+  async validateBlueprintLayer(
+    configId: string,
+  ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
     // 1. Blueprint Exists
@@ -342,9 +398,13 @@ export class CrossModuleValidatorService {
         where: { id: blueprint.styleProfileId },
       });
       if (!styleProfile) {
-        errors.push(`Style profile with ID '${blueprint.styleProfileId}' assigned to the blueprint does not exist`);
+        errors.push(
+          `Style profile with ID '${blueprint.styleProfileId}' assigned to the blueprint does not exist`,
+        );
       } else if (!styleProfile.active) {
-        errors.push(`Style profile '${styleProfile.name}' assigned to the blueprint is inactive`);
+        errors.push(
+          `Style profile '${styleProfile.name}' assigned to the blueprint is inactive`,
+        );
       }
     }
 
@@ -355,12 +415,13 @@ export class CrossModuleValidatorService {
   }
 
   async validateGenerationPrerequisites(configId: string) {
-    const [configRes, knowledgeRes, templateRes, blueprintRes] = await Promise.all([
-      this.validateConfig(configId),
-      this.validateKnowledgeLayer(configId),
-      this.validateTemplateLayer(configId),
-      this.validateBlueprintLayer(configId),
-    ]);
+    const [configRes, knowledgeRes, templateRes, blueprintRes] =
+      await Promise.all([
+        this.validateConfig(configId),
+        this.validateKnowledgeLayer(configId),
+        this.validateTemplateLayer(configId),
+        this.validateBlueprintLayer(configId),
+      ]);
 
     const errors: string[] = [];
     errors.push(...configRes.errors);

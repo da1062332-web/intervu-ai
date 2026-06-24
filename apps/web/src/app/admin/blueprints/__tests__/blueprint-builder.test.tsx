@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useBlueprintBuilderStore } from '@/store/blueprint-builder.store';
 import { TopicAllocator } from '../components/TopicAllocator';
@@ -5,7 +6,7 @@ import { DifficultyAllocator } from '../components/DifficultyAllocator';
 import { BlueprintHealthWidget } from '../components/BlueprintHealthWidget';
 
 // Mock the queries
-jest.mock('@/features/topic-section-mapping/api/queries', () => ({
+vi.mock('@/features/topic-section-mapping/api/queries', () => ({
   useSectionTopics: () => ({
     data: [
       { topicId: 't1', topicName: 'Arrays' },
@@ -16,11 +17,11 @@ jest.mock('@/features/topic-section-mapping/api/queries', () => ({
   }),
 }));
 
-jest.mock('@/services/exam-configs', () => ({
+vi.mock('@/services/exam-configs', () => ({
   useConfigs: () => ({ data: [{ id: 'c1', name: 'TCS NQT' }] }),
 }));
 
-jest.mock('@/services/blueprints/hooks', () => ({
+vi.mock('@/services/blueprints/hooks', () => ({
   useStyleProfiles: () => ({ data: [{ id: 'p1', name: 'Strict Profile' }] }),
 }));
 

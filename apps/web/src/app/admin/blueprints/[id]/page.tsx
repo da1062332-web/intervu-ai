@@ -6,7 +6,7 @@ import { ValidationDashboard } from '@/app/admin/blueprints/components/Validatio
 import { PreviewScreen } from '@/app/admin/blueprints/components/PreviewScreen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Workflow } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BlueprintViewPage() {
@@ -51,12 +51,23 @@ export default function BlueprintViewPage() {
             <p className='text-muted-foreground'>View validation and preview status.</p>
           </div>
         </div>
-        <Link href={`/admin/blueprints/${id}/edit`}>
-          <Button>
-            <Edit2 className='w-4 h-4 mr-2' />
-            Edit Blueprint
-          </Button>
-        </Link>
+        <div className='flex items-center gap-3'>
+          <Link href={`/admin/blueprints/${id}/compile`}>
+            <Button
+              variant='outline'
+              className='border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/20'
+            >
+              <Workflow className='w-4 h-4 mr-2' />
+              Compile Blueprint
+            </Button>
+          </Link>
+          <Link href={`/admin/blueprints/${id}/edit`}>
+            <Button>
+              <Edit2 className='w-4 h-4 mr-2' />
+              Edit Blueprint
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -75,7 +86,9 @@ export default function BlueprintViewPage() {
             </div>
             <div>
               <dt className='text-sm text-muted-foreground'>Style Profile</dt>
-              <dd className='font-medium'>{blueprint.styleProfileId}</dd>
+              <dd className='font-medium'>
+                {blueprint.styleProfileName || blueprint.styleProfileId}
+              </dd>
             </div>
           </dl>
         </div>

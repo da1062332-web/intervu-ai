@@ -102,3 +102,30 @@ export function usePreviewBlueprint(id: string) {
     enabled: !!id,
   });
 }
+
+export function useCompilationPreview(id: string) {
+  return useQuery({
+    queryKey: ['blueprint', id, 'compilation-preview'] as const,
+    queryFn: () => blueprintsApi.getCompilationPreview(id),
+    enabled: !!id,
+  });
+}
+
+export function useCompilationHealth(id: string) {
+  return useQuery({
+    queryKey: ['blueprint', id, 'compilation-health'] as const,
+    queryFn: () => blueprintsApi.getCompilationHealth(id),
+    enabled: !!id,
+  });
+}
+
+export function useCompileBlueprint() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => blueprintsApi.compileBlueprint(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['blueprint', id, 'compilation-preview'] });
+      queryClient.invalidateQueries({ queryKey: ['blueprint', id, 'compilation-health'] });
+    },
+  });
+}
