@@ -6,6 +6,23 @@ import type {
   GenerateTemplatePreviewRequest,
 } from '@intervu/shared';
 
+export const useTemplates = (page = 1, limit = 10) => {
+  return useQuery({
+    queryKey: ['templates', page, limit],
+    queryFn: () => templateApi.getTemplates(page, limit),
+  });
+};
+
+export const useCreateTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => templateApi.createTemplate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+    },
+  });
+};
+
 export const useSolutionTemplate = (templateId: string) => {
   return useQuery({
     queryKey: ['solutionTemplate', templateId],

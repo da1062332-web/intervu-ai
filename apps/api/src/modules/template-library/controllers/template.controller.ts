@@ -39,8 +39,10 @@ import {
   CreateSolutionTemplateRequest,
   UpdateSolutionTemplateRequest,
   GenerateTemplatePreviewRequest,
-  SolutionTemplateSchema,
-  TemplatePreviewSchema,
+  SolutionTemplateBaseSchema,
+  TemplatePreviewBaseSchema,
+  NullableSolutionTemplateBaseSchema,
+  NullableTemplatePreviewBaseSchema,
 } from "@intervu/shared";
 import { TemplateService } from "../services/template.service";
 import { SolutionTemplateService } from "../services/solution-template.service";
@@ -181,7 +183,7 @@ export class TemplateController {
 
   @Post(":id/solution")
   @HttpCode(HttpStatus.CREATED)
-  @ValidateResponse(SolutionTemplateSchema)
+  @ValidateResponse(SolutionTemplateBaseSchema)
   @ApiOperation({ summary: "Create a solution template" })
   @ApiParam({ name: "id", description: "Template ID" })
   @ApiBody({ type: CreateSolutionTemplateRequest })
@@ -193,7 +195,7 @@ export class TemplateController {
   }
 
   @Get(":id/solution")
-  @ValidateResponse(SolutionTemplateSchema)
+  @ValidateResponse(NullableSolutionTemplateBaseSchema)
   @ApiOperation({ summary: "Get solution template" })
   @ApiParam({ name: "id", description: "Template ID" })
   async getSolutionTemplate(@Param("id") id: string) {
@@ -201,7 +203,7 @@ export class TemplateController {
   }
 
   @Patch(":id/solution")
-  @ValidateResponse(SolutionTemplateSchema)
+  @ValidateResponse(SolutionTemplateBaseSchema)
   @ApiOperation({ summary: "Update solution template" })
   @ApiParam({ name: "id", description: "Template ID" })
   @ApiBody({ type: UpdateSolutionTemplateRequest })
@@ -214,7 +216,7 @@ export class TemplateController {
 
   @Post(":id/preview")
   @HttpCode(HttpStatus.CREATED)
-  @ValidateResponse(TemplatePreviewSchema)
+  @ValidateResponse(TemplatePreviewBaseSchema)
   @ApiOperation({ summary: "Generate template preview" })
   @ApiParam({ name: "id", description: "Template ID" })
   @ApiBody({ type: GenerateTemplatePreviewRequest })
@@ -226,7 +228,7 @@ export class TemplateController {
   }
 
   @Get(":id/preview")
-  @ValidateResponse(TemplatePreviewSchema)
+  @ValidateResponse(NullableTemplatePreviewBaseSchema)
   @ApiOperation({ summary: "Get latest template preview" })
   @ApiParam({ name: "id", description: "Template ID" })
   async getLatestPreview(@Param("id") id: string) {

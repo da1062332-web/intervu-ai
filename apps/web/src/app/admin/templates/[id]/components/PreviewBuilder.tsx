@@ -15,7 +15,7 @@ const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
 export function PreviewBuilder() {
   const params = useParams();
   const templateId = params.id as string;
-  const { previewInput, setPreviewInput, setPreviewResult } = useTemplatePreviewStore();
+  const { previewInput, setPreviewInput, setPreviewResult, solutionTemplate, explanationTemplate } = useTemplatePreviewStore();
   const generatePreview = useGeneratePreview();
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +25,11 @@ export function PreviewBuilder() {
       const payload = JSON.parse(previewInput);
       const res = await generatePreview.mutateAsync({
         templateId,
-        payload: { previewPayload: payload },
+        payload: { 
+          previewPayload: payload,
+          solutionTemplate,
+          explanationTemplate 
+        },
       });
       setPreviewResult(res.previewResult);
     } catch (e: any) {

@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 export function BlueprintListPageClient() {
   const { data: blueprints, isLoading, isError, refetch } = useBlueprints();
+  const bpList: any[] = Array.isArray(blueprints) ? blueprints : [];
 
   return (
     <div className='container mx-auto py-6 space-y-6 max-w-7xl'>
@@ -42,7 +43,7 @@ export function BlueprintListPageClient() {
           </div>
         )}
 
-        {!isLoading && !isError && (!blueprints || blueprints.length === 0) && (
+        {!isLoading && !isError && bpList && bpList.length === 0 && (
           <div className='p-12 text-center border-dashed border-2 m-6 rounded-lg border-gray-200 dark:border-gray-800'>
             <h3 className='text-lg font-medium mb-2'>No Blueprints Found</h3>
             <p className='text-muted-foreground mb-6'>
@@ -54,7 +55,7 @@ export function BlueprintListPageClient() {
           </div>
         )}
 
-        {!isLoading && !isError && blueprints && blueprints.length > 0 && (
+        {!isLoading && !isError && bpList && bpList.length > 0 && (
           <div className='overflow-x-auto'>
             <table className='w-full text-sm text-left'>
               <thead className='text-xs text-gray-500 uppercase bg-gray-50 dark:bg-gray-800'>
@@ -68,21 +69,21 @@ export function BlueprintListPageClient() {
                 </tr>
               </thead>
               <tbody className='divide-y divide-gray-200 dark:divide-gray-800'>
-                {blueprints.map((bp) => (
+                {bpList.map((bp: any) => (
                   <tr
                     key={bp.id}
                     className='hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'
                   >
                     <td className='px-6 py-4 font-medium text-gray-900 dark:text-gray-100'>
-                      {bp.name}
+                      {bp.name ?? bp.examConfig?.name ?? bp.configId ?? '-'}
                     </td>
                     <td className='px-6 py-4'>
                       <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'>
-                        {bp.code}
+                        {bp.examConfig?.code ?? bp.code ?? bp.configId ?? '-'}
                       </span>
                     </td>
                     <td className='px-6 py-4 text-gray-500 dark:text-gray-400'>
-                      {bp.styleProfileId}
+                      {bp.styleProfile?.name ?? bp.styleProfileId ?? '-'}
                     </td>
                     <td className='px-6 py-4'>
                       <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'>

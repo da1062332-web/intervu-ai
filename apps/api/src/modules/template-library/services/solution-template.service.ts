@@ -53,9 +53,6 @@ export class SolutionTemplateService {
   async getSolutionTemplate(templateId: string) {
     const solution =
       await this.solutionTemplateRepo.findByTemplateId(templateId);
-    if (!solution) {
-      throw new NotFoundException("Solution template not found");
-    }
     return solution;
   }
 
@@ -79,10 +76,17 @@ export class SolutionTemplateService {
     templateId: string,
     dto: GenerateTemplatePreviewRequest,
   ) {
-    const solutionTemplate =
-      await this.solutionTemplateRepo.findByTemplateId(templateId);
-    if (!solutionTemplate) {
-      throw new NotFoundException("Solution template not found");
+    let solutionTemplateString = dto.solutionTemplate;
+    let explanationTemplateString = dto.explanationTemplate;
+
+    if (!solutionTemplateString) {
+      const solutionTemplate =
+        await this.solutionTemplateRepo.findByTemplateId(templateId);
+      if (!solutionTemplate) {
+        throw new NotFoundException("Solution template not found");
+      }
+      solutionTemplateString = solutionTemplate.solutionTemplate;
+      explanationTemplateString = solutionTemplate.explanationTemplate ?? undefined;
     }
 
     // Fetch allowed variables (template variables)
@@ -94,14 +98,14 @@ export class SolutionTemplateService {
 
     // Validate placeholders in solution
     const validation = this.validator.validate(
-      solutionTemplate.solutionTemplate,
+      solutionTemplateString,
       allowedVariables,
     );
 
     // Also validate explanation if present
-    if (solutionTemplate.explanationTemplate) {
+    if (explanationTemplateString) {
       const explanationValidation = this.validator.validate(
-        solutionTemplate.explanationTemplate,
+        explanationTemplateString,
         allowedVariables,
       );
       if (!explanationValidation.valid) {
@@ -124,16 +128,16 @@ export class SolutionTemplateService {
 
     // Render outputs
     const solutionResult = this.renderer.render(
-      solutionTemplate.solutionTemplate,
+      solutionTemplateString,
       dto.previewPayload,
     );
     let explanationResult: {
       renderedOutput: string | null;
       resolvedVariables: Record<string, unknown>;
     } = { renderedOutput: null, resolvedVariables: {} };
-    if (solutionTemplate.explanationTemplate) {
+    if (explanationTemplateString) {
       explanationResult = this.renderer.render(
-        solutionTemplate.explanationTemplate,
+        explanationTemplateString,
         dto.previewPayload,
       );
     }
@@ -161,9 +165,6 @@ export class SolutionTemplateService {
   async getLatestPreview(templateId: string) {
     const preview =
       await this.templatePreviewRepo.findLatestPreview(templateId);
-    if (!preview) {
-      throw new NotFoundException("No preview found for this template");
-    }
     return preview;
   }
 }

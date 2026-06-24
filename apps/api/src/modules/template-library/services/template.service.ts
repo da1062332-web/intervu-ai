@@ -204,8 +204,12 @@ export class TemplateService {
       description: validated.description,
       difficulty:
         (validated.difficulty as DifficultyLevel) ?? DifficultyLevel.MEDIUM,
-      config: validated.config as Prisma.InputJsonValue,
+      config: (validated.config as Prisma.InputJsonValue) ?? {},
       isSystem: validated.isSystem ?? false,
+      ...(validated.templateKey && { templateKey: validated.templateKey }),
+      ...(validated.conceptKey && { conceptKey: validated.conceptKey }),
+      ...(validated.questionType && { questionType: validated.questionType }),
+      ...(validated.structure && { structure: validated.structure as Prisma.InputJsonValue }),
     };
     const template = await this.templateRepository.create(createInput);
 
@@ -254,6 +258,14 @@ export class TemplateService {
       updateInput.difficulty = validated.difficulty as DifficultyLevel;
     if (validated.config !== undefined)
       updateInput.config = validated.config as Prisma.InputJsonValue;
+    if (validated.templateKey !== undefined)
+      updateInput.templateKey = validated.templateKey;
+    if (validated.conceptKey !== undefined)
+      updateInput.conceptKey = validated.conceptKey;
+    if (validated.questionType !== undefined)
+      updateInput.questionType = validated.questionType;
+    if (validated.structure !== undefined)
+      updateInput.structure = validated.structure as Prisma.InputJsonValue;
 
     const updated = await this.templateRepository.update(id, updateInput);
 

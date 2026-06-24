@@ -11,6 +11,7 @@ import {
   Layers,
   BookOpen,
   ShieldCheck,
+  FileText,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -23,6 +24,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
         { label: 'Configs', route: '/admin/configs', icon: FileCog },
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
+        { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
         { label: 'Tests', route: '/admin/tests', icon: ClipboardList },

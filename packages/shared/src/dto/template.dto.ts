@@ -14,16 +14,24 @@ export enum TemplateDifficulty {
 export const CreateTemplateSchema = z.object({
   name: z.string().min(1).max(120),
   description: z.string().max(500).optional(),
+  templateKey: z.string().min(1).optional(),
+  conceptKey: z.string().min(1).optional(),
+  questionType: z.string().min(1).optional(),
+  structure: z.record(z.unknown()).optional(),
   difficulty: z
     .nativeEnum(TemplateDifficulty)
     .default(TemplateDifficulty.MEDIUM),
-  config: z.record(z.unknown()),
+  config: z.record(z.unknown()).optional(),
   isSystem: z.boolean().default(false),
 });
 
 export const UpdateTemplateSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   description: z.string().max(500).optional(),
+  templateKey: z.string().min(1).optional(),
+  conceptKey: z.string().min(1).optional(),
+  questionType: z.string().min(1).optional(),
+  structure: z.record(z.unknown()).optional(),
   difficulty: z.nativeEnum(TemplateDifficulty).optional(),
   config: z.record(z.unknown()).optional(),
 });
@@ -54,7 +62,31 @@ export class CreateTemplateDto {
     example: { topics: ["data-structures", "system-design"], timeLimit: 3600 },
     description: "Template configuration object (JSON)",
   })
-  config!: Record<string, unknown>;
+  config?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: "react_hooks",
+    description: "Concept Key",
+  })
+  conceptKey?: string;
+
+  @ApiPropertyOptional({
+    example: "demo-template-key",
+    description: "Template Key",
+  })
+  templateKey?: string;
+
+  @ApiPropertyOptional({
+    example: "coding",
+    description: "Question Type",
+  })
+  questionType?: string;
+
+  @ApiPropertyOptional({
+    example: { prompt: "..." },
+    description: "Structure",
+  })
+  structure?: Record<string, unknown>;
 
   @ApiPropertyOptional({
     example: false,
@@ -96,6 +128,30 @@ export class UpdateTemplateDto {
     description: "Updated configuration object (JSON)",
   })
   config?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: "react_hooks",
+    description: "Concept Key",
+  })
+  conceptKey?: string;
+
+  @ApiPropertyOptional({
+    example: "demo-template-key",
+    description: "Template Key",
+  })
+  templateKey?: string;
+
+  @ApiPropertyOptional({
+    example: "coding",
+    description: "Question Type",
+  })
+  questionType?: string;
+
+  @ApiPropertyOptional({
+    example: { prompt: "..." },
+    description: "Structure",
+  })
+  structure?: Record<string, unknown>;
 
   static validate(
     data: unknown,

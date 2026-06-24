@@ -28,9 +28,12 @@ export const TemplatePreviewBaseSchema = z.object({
 });
 
 export const SolutionTemplateSchema = ApiSuccessResponseSchema.extend({
-  data: SolutionTemplateBaseSchema,
+  data: SolutionTemplateBaseSchema.nullable(),
 });
 
 export const TemplatePreviewSchema = ApiSuccessResponseSchema.extend({
-  data: TemplatePreviewBaseSchema,
+  data: TemplatePreviewBaseSchema.nullable(),
 });
+
+export const NullableSolutionTemplateBaseSchema = SolutionTemplateBaseSchema.nullable();
+export const NullableTemplatePreviewBaseSchema = TemplatePreviewBaseSchema.nullable();

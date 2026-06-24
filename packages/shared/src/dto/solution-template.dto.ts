@@ -15,6 +15,8 @@ export const UpdateSolutionTemplateSchema = z.object({
 
 export const GenerateTemplatePreviewSchema = z.object({
   previewPayload: z.record(z.unknown()),
+  solutionTemplate: z.string().optional(),
+  explanationTemplate: z.string().optional(),
 });
 
 // ─── DTO Classes ───────────────────────────────────────────────────────────────
@@ -75,6 +77,18 @@ export class GenerateTemplatePreviewRequest {
     description: "Payload to fill the template variables",
   })
   previewPayload!: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: "Optional solution template override to preview without saving",
+    description: "Solution template override",
+  })
+  solutionTemplate?: string;
+
+  @ApiPropertyOptional({
+    example: "Optional explanation template override",
+    description: "Explanation template override",
+  })
+  explanationTemplate?: string;
 
   static validate(
     data: unknown,

@@ -7,6 +7,17 @@ import type {
   TemplatePreviewResponse,
 } from '@intervu/shared';
 
+export const getTemplates = async (page = 1, limit = 10): Promise<any> => {
+  return await apiClient.request<any>(`/templates?page=${page}&limit=${limit}`, { method: 'GET' });
+};
+
+export const createTemplate = async (payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates`, {
+    method: 'POST',
+    body: payload,
+  });
+};
+
 export const getSolutionTemplate = async (
   templateId: string,
 ): Promise<SolutionTemplateResponse> => {
