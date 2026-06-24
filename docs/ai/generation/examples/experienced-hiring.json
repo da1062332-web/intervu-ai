@@ -1,0 +1,36 @@
+{
+  "batchId": "a1b2c3d4-e5f6-7a8b-9c0d-e1f2a3b4c5d6",
+  "blueprintId": "bp-experienced-hiring-senior",
+  "requests": [
+    {
+      "requestId": "r1-exp-hiring",
+      "blueprintId": "bp-experienced-hiring-senior",
+      "sectionId": "sec-system-design",
+      "topicId": "topic-architecture",
+      "conceptId": "concept-microservices",
+      "difficulty": "HARD",
+      "templateId": "tpl-microservices-hard-2",
+      "quantity": 3
+    },
+    {
+      "requestId": "r2-exp-hiring",
+      "blueprintId": "bp-experienced-hiring-senior",
+      "sectionId": "sec-coding",
+      "topicId": "topic-algorithms",
+      "conceptId": "concept-graphs",
+      "difficulty": "HARD",
+      "templateId": "tpl-graphs-hard-1",
+      "quantity": 5
+    },
+    {
+      "requestId": "r3-exp-hiring",
+      "blueprintId": "bp-experienced-hiring-senior",
+      "sectionId": "sec-coding",
+      "topicId": "topic-algorithms",
+      "conceptId": "concept-dynamic-prog",
+      "difficulty": "MEDIUM",
+      "templateId": "tpl-dp-med-3",
+      "quantity": 4
+    }
+  ]
+}

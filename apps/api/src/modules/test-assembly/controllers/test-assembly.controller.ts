@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import {
   CreateTestRequest,
-  GenerationRequest,
+  LegacyGenerationRequest,
   EvaluationRequest,
 } from "@intervu-ai/contracts";
 import { z } from "zod";
@@ -47,7 +47,7 @@ export class TestAssemblyController {
   @Post("questions/generate")
   @HttpCode(HttpStatus.OK)
   @ValidateResponse(z.unknown())
-  async generateQuestions(@Body() body: GenerationRequest) {
+  async generateQuestions(@Body() body: LegacyGenerationRequest) {
     return this.testAssemblyService.generateQuestions(body);
   }
 

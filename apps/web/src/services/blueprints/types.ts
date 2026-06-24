@@ -1,9 +1,50 @@
-import type { ExamBlueprint, StyleProfile } from '@intervu-ai/contracts';
+import type { ExamBlueprint, StyleProfile, GenerationRequest } from '@intervu-ai/contracts';
 
-export type { ExamBlueprint, StyleProfile };
+export type { ExamBlueprint, StyleProfile, GenerationRequest };
+
+export interface CompilationPreviewResponse {
+  sections: Array<{
+    sectionId: string;
+    questionCount: number;
+    allocations: Array<{
+      topicId: string;
+      topicName: string;
+      total: number;
+      byDifficulty: {
+        EASY: number;
+        MEDIUM: number;
+        HARD: number;
+      };
+    }>;
+  }>;
+  requests: GenerationRequest[];
+}
+
+export interface CompilationHealthCheck {
+  status: 'PASS' | 'FAIL';
+  message?: string;
+}
+
+export interface CompilationHealthResponse {
+  valid: boolean;
+  checks: {
+    templatesAvailable: CompilationHealthCheck;
+    conceptsAvailable: CompilationHealthCheck;
+    difficultyCoverage: CompilationHealthCheck;
+    generationReady: CompilationHealthCheck;
+  };
+  errors: string[];
+}
+
+export interface CompileResponse {
+  batchId: string;
+  requestCount: number;
+}
+
 
 export interface BlueprintConfig {
   id: string;
+  configId: string;
   name: string;
   code: string;
   description?: string;
@@ -11,6 +52,7 @@ export interface BlueprintConfig {
   totalDurationMinutes: number;
   isActive: boolean;
   styleProfileId?: string;
+  styleProfileName?: string;
   createdAt?: string;
   updatedAt?: string;
 }

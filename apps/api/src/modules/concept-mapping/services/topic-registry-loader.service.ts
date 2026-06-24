@@ -75,7 +75,12 @@ export class TopicRegistryLoader implements OnModuleInit {
   }
 
   async getTopicById(id: string): Promise<TopicRegistryItem | null> {
-    return this.registryCache.get(id) ?? null;
+    let item = this.registryCache.get(id);
+    if (!item) {
+      await this.loadTopics();
+      item = this.registryCache.get(id);
+    }
+    return item ?? null;
   }
 
   async getAllTopics(): Promise<TopicRegistryItem[]> {

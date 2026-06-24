@@ -192,7 +192,7 @@ export class QuestionBankService {
 
         return { saved: count, failed: 0 };
       });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // Transaction automatically rolls back on error
       throw new BadRequestException({
@@ -285,7 +285,7 @@ export class QuestionBankService {
   async getStats(filters: {
     topicId?: string;
     sectionId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }): Promise<any> {
     const where: Prisma.QuestionWhereInput = {};
     if (filters.topicId) {
