@@ -3,9 +3,14 @@
 import { useExecutionStore } from '../stores/execution.store';
 import { QuestionStatusBadge } from './QuestionStatusBadge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useCallback } from 'react';
 
 export function QuestionPalette() {
   const { palette, jumpToQuestion, answers, questions } = useExecutionStore();
+
+  const handleJump = useCallback((index: number) => {
+    jumpToQuestion(index);
+  }, [jumpToQuestion]);
 
   return (
     <Card className='border-none shadow-none md:border-solid md:shadow-sm'>
@@ -24,7 +29,7 @@ export function QuestionPalette() {
                 index={index}
                 status={status}
                 isAnswered={isAnswered}
-                onClick={() => jumpToQuestion(index)}
+                onClick={handleJump}
               />
             );
           })}
