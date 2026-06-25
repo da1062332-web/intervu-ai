@@ -64,7 +64,7 @@ export function TestCatalogPage() {
   const filteredTests = tests.filter((test) => {
     const matchesSearch =
       test.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      test.company.toLowerCase().includes(searchQuery.toLowerCase());
+      (test.company?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
 
     const matchesDifficulty = difficultyFilter === 'All' || test.difficulty === difficultyFilter;
 

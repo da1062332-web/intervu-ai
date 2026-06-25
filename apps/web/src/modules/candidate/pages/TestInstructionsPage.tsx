@@ -88,22 +88,22 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
 
       <main className='flex-1 container max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
         <div className='mb-6' data-testid='test-instructions-header'>
-          <h2 className='text-2xl font-bold tracking-tight text-foreground'>{config.testTitle}</h2>
-          <p className='text-sm text-muted-foreground mt-1'>Managed by {config.company}</p>
+          <h2 className='text-2xl font-bold tracking-tight text-foreground'>Assessment Instructions</h2>
+          <p className='text-sm text-muted-foreground mt-1'>Please read the following instructions carefully.</p>
         </div>
         <div className='space-y-6'>
-          {/* General Rules */}
+          {/* Assessment Rules */}
           <Card className='glass-card border border-border/60 shadow-sm'>
             <CardHeader className='pb-3'>
               <CardTitle className='text-lg font-bold flex items-center gap-2 text-foreground'>
                 <BookOpen className='size-5 text-indigo-500' />
-                General Rules
+                Assessment Rules
               </CardTitle>
               <CardDescription>Ground rules for taking the online proctored exam</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className='space-y-2.5'>
-                {config.generalRules.map((rule, idx) => (
+                {config.assessmentRules.map((rule: string, idx: number) => (
                   <li
                     key={idx}
                     className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
@@ -127,7 +127,7 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             </CardHeader>
             <CardContent>
               <ul className='space-y-2.5'>
-                {config.navigationRules.map((rule, idx) => (
+                {config.navigationRules.map((rule: string, idx: number) => (
                   <li
                     key={idx}
                     className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
@@ -140,18 +140,18 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             </CardContent>
           </Card>
 
-          {/* Technical Requirements */}
+          {/* Timer and Submission Rules */}
           <Card className='glass-card border border-border/60 shadow-sm'>
             <CardHeader className='pb-3'>
               <CardTitle className='text-lg font-bold flex items-center gap-2 text-foreground'>
                 <Laptop className='size-5 text-indigo-500' />
-                Technical Requirements
+                Timer & Submission Rules
               </CardTitle>
-              <CardDescription>Hardware and browser compliance requirements</CardDescription>
+              <CardDescription>Details about time limits and submission procedures</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className='space-y-2.5'>
-                {config.technicalRequirements.map((rule, idx) => (
+                {[...config.timerRules, ...config.submissionRules].map((rule: string, idx: number) => (
                   <li
                     key={idx}
                     className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'

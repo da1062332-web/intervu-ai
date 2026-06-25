@@ -62,7 +62,7 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   }
 
   const handleStartAssessment = () => {
-    router.push(`/candidate/test/${testId}/execution`);
+    router.push(`/candidate/tests/${testId}/execution`);
   };
 
   return (

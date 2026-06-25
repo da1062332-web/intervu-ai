@@ -1,9 +1,18 @@
 'use client';
 
 import { useExecutionStore } from '../stores/execution.store';
+import { Question, AnswerState } from '../types/execution.types';
 
-export function SubmissionSummary() {
-  const { questions, answers } = useExecutionStore();
+interface SubmissionSummaryProps {
+  questions?: Question[];
+  answers?: Record<string, AnswerState>;
+}
+
+export function SubmissionSummary({ questions: propQuestions, answers: propAnswers }: SubmissionSummaryProps) {
+  const store = useExecutionStore();
+  
+  const questions = propQuestions || store.questions;
+  const answers = propAnswers || store.answers;
 
   const total = questions.length;
   let answered = 0;
@@ -12,7 +21,11 @@ export function SubmissionSummary() {
   Object.values(answers).forEach((ans) => {
     if (ans.status === 'MARKED_FOR_REVIEW') {
       markedForReview++;
-    } else if (ans.selectedOptionId) {
+    } else if (
+      ans.selectedOptionId ||
+      (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+      ans.textResponse
+    ) {
       answered++;
     }
   });

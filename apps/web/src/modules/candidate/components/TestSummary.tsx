@@ -1,16 +1,16 @@
 'use client';
 
-import { Test } from '../types/Test';
+import { TestConfig } from '@/features/candidate/tests/types/test.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, HelpCircle, FileText, Sparkles } from 'lucide-react';
 
 interface TestSummaryProps {
-  test: Test;
+  test: TestConfig;
 }
 
 export function TestSummary({ test }: TestSummaryProps) {
-  const difficultyColors = {
+  const difficultyColors: Record<string, string> = {
     Easy: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
     Medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
     Hard: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
@@ -30,11 +30,11 @@ export function TestSummary({ test }: TestSummaryProps) {
         <div className='flex items-start justify-between p-3 rounded-lg border border-border/30 bg-muted/20'>
           <div>
             <h4 className='text-sm font-bold text-foreground leading-snug'>{test.title}</h4>
-            <p className='text-xs text-muted-foreground mt-1'>{test.company}</p>
+            <p className='text-xs text-muted-foreground mt-1'>{test.company || 'Unknown'}</p>
           </div>
           <Badge
             variant='outline'
-            className={`text-[9px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty]}`}
+            className={`text-[9px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty] || ''}`}
           >
             {test.difficulty}
           </Badge>
@@ -48,7 +48,7 @@ export function TestSummary({ test }: TestSummaryProps) {
                 Duration
               </p>
               <p className='text-sm font-bold text-foreground mt-0.5'>
-                {test.durationMinutes} Minutes
+                {test.durationMinutes || 'N/A'} Minutes
               </p>
             </div>
           </div>
@@ -60,7 +60,7 @@ export function TestSummary({ test }: TestSummaryProps) {
                 Questions
               </p>
               <p className='text-sm font-bold text-foreground mt-0.5'>
-                {test.totalQuestions} Questions
+                N/A
               </p>
             </div>
           </div>
@@ -73,7 +73,7 @@ export function TestSummary({ test }: TestSummaryProps) {
               Sections
             </p>
             <p className='text-sm font-bold text-foreground mt-0.5'>
-              {test.sections.length} Parts ({test.sections.map((s) => s.name).join(', ')})
+              {test.sections?.length || 0} Parts ({test.sections?.join(', ') || ''})
             </p>
           </div>
         </div>

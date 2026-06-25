@@ -1,12 +1,12 @@
 'use client';
 
-import { Test } from '../types/Test';
+import { TestConfig } from '@/features/candidate/tests/types/test.types';
 import { TestCard } from './TestCard';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TestCardGridProps {
-  tests: Test[];
+  tests: TestConfig[];
   bookmarkedIds: string[];
   onToggleBookmark: (id: string) => void;
   currentPage: number;

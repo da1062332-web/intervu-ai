@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Test } from '../types/Test';
+import { TestConfig } from '@/features/candidate/tests/types/test.types';
 import {
   Card,
   CardContent,
@@ -15,13 +15,13 @@ import { Button } from '@/components/ui/button';
 import { Clock, HelpCircle, Star, Building2, ChevronRight, Layers } from 'lucide-react';
 
 interface TestCardProps {
-  test: Test;
+  test: TestConfig;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
 }
 
 export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps) {
-  const difficultyColors = {
+  const difficultyColors: Record<string, string> = {
     Easy: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
     Medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
     Hard: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
@@ -33,12 +33,12 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
         <div className='flex justify-between items-start gap-2'>
           <div className='flex items-center gap-1.5 text-muted-foreground text-xs font-semibold'>
             <Building2 className='size-3.5' />
-            <span className='truncate max-w-[150px]'>{test.company}</span>
+            <span className='truncate max-w-[150px]'>{test.company || 'Unknown'}</span>
           </div>
           <div className='flex items-center gap-1.5'>
             <Badge
               variant='outline'
-              className={`text-[10px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty]}`}
+              className={`text-[10px] uppercase font-bold tracking-wider ${difficultyColors[test.difficulty] || ''}`}
             >
               {test.difficulty}
             </Badge>
@@ -62,21 +62,21 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
           {test.title}
         </CardTitle>
         <CardDescription className='text-xs text-muted-foreground mt-2 line-clamp-2 min-h-[32px]'>
-          {test.description}
+          No description available
         </CardDescription>
       </CardHeader>
 
       <CardContent className='pb-4 pt-0 flex-1 grid grid-cols-3 gap-2 border-y border-border/20 py-3 bg-muted/20'>
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <Clock className='size-4 text-primary/70 mb-1' />
-          <span className='text-[11px] font-bold text-foreground'>{test.durationMinutes} min</span>
+          <span className='text-[11px] font-bold text-foreground'>{test.durationMinutes || 'N/A'} min</span>
           <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
             Duration
           </span>
         </div>
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <HelpCircle className='size-4 text-violet-500 mb-1' />
-          <span className='text-[11px] font-bold text-foreground'>{test.totalQuestions} Qs</span>
+          <span className='text-[11px] font-bold text-foreground'>N/A</span>
           <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
             Questions
           </span>

@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
 
 export function useExecution(testId: string) {
+  const router = useRouter();
   const { initializeTest, setLoading, setError, loading, error, testInstance } =
     useExecutionStore();
 
@@ -15,8 +17,18 @@ export function useExecution(testId: string) {
         setError(null);
         const data = await executionService.getTestInstance(testId);
 
-        if (mounted) {
+        if (!mounted) return;
+
+        if (data.status === 'SUBMITTED' || data.status === 'COMPLETED') {
+          router.replace(`/candidate/tests/${testId}/summary`);
+          return;
+        }
+        
+        if (data.status === 'CREATED' || data.status === 'IN_PROGRESS') {
           initializeTest(data);
+        } else {
+          // E.g., EXPIRED or CANCELLED, though EXPIRED could route to summary as well if it's considered completed
+          router.replace('/candidate/dashboard');
         }
       } catch (err) {
         if (mounted) {
@@ -36,7 +48,7 @@ export function useExecution(testId: string) {
     return () => {
       mounted = false;
     };
-  }, [testId, initializeTest, setLoading, setError, testInstance]);
+  }, [testId, initializeTest, setLoading, setError, testInstance, router]);
 
   return { loading, error };
 }
