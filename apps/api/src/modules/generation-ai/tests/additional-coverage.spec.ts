@@ -28,7 +28,8 @@ describe("Additional Coverage Tests", () => {
 
     it("should match topic based on keywords in question text (probability)", async () => {
       const q: GeneratedQuestionDto = {
-        question: "What is the chance of getting a dice roll of 6 on a coin flip with card decks?",
+        question:
+          "What is the chance of getting a dice roll of 6 on a coin flip with card decks?",
         answer: "A",
         explanation: "Exp",
         difficulty: "Easy",
@@ -56,7 +57,8 @@ describe("Additional Coverage Tests", () => {
 
     it("should match topic based on keywords in question text (verbal)", async () => {
       const q: GeneratedQuestionDto = {
-        question: "Find the synonym and antonym of the word in this sentence with grammar rules.",
+        question:
+          "Find the synonym and antonym of the word in this sentence with grammar rules.",
         answer: "A",
         explanation: "Exp",
         difficulty: "Easy",

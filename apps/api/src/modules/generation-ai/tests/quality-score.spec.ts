@@ -84,7 +84,9 @@ describe("QuestionQualityService", () => {
 
     const result = await service.score(q, "Percentages", "Medium");
     expect(result.status).toBe("FAIL");
-    expect(result.reasons).toContain("Question structure is too short or empty.");
+    expect(result.reasons).toContain(
+      "Question structure is too short or empty.",
+    );
     expect(result.reasons).toContain("Answer contains placeholder/TODO text.");
   });
 });

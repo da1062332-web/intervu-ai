@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1782385779212" clover="3.2.0">
-  <project timestamp="1782385779212" name="All files">
-    <metrics statements="5936" coveredstatements="2265" conditionals="1737" coveredconditionals="516" methods="1119" coveredmethods="359" elements="8792" coveredelements="3140" complexity="0" loc="5936" ncloc="5936" packages="130" files="266" classes="266"/>
+<coverage generated="1782391281450" clover="3.2.0">
+  <project timestamp="1782391281450" name="All files">
+    <metrics statements="6190" coveredstatements="2460" conditionals="1852" coveredconditionals="586" methods="1143" coveredmethods="377" elements="9185" coveredelements="3423" complexity="0" loc="6190" ncloc="6190" packages="138" files="281" classes="281"/>
     <package name="src">
-      <metrics statements="86" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="4" coveredmethods="0"/>
+      <metrics statements="87" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="4" coveredmethods="0"/>
       <file name="app.module.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/app.module.ts">
-        <metrics statements="38" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <metrics statements="39" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="stmt"/>
         <line num="2" count="0" type="stmt"/>
         <line num="3" count="0" type="stmt"/>
@@ -42,8 +42,9 @@
         <line num="35" count="0" type="stmt"/>
         <line num="36" count="0" type="stmt"/>
         <line num="37" count="0" type="stmt"/>
-        <line num="93" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
         <line num="95" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
       </file>
       <file name="main.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/main.ts">
         <metrics statements="37" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="2" coveredmethods="0"/>
@@ -3544,6 +3545,328 @@
         <line num="3" count="0" type="stmt"/>
       </file>
     </package>
+    <package name="src.modules.generation-ai">
+      <metrics statements="15" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="1" coveredmethods="0"/>
+      <file name="generation-ai.module.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/generation-ai.module.ts">
+        <metrics statements="15" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.adapters">
+      <metrics statements="41" coveredstatements="21" conditionals="19" coveredconditionals="11" methods="5" coveredmethods="3"/>
+      <file name="mock.adapter.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/adapters/mock.adapter.ts">
+        <metrics statements="22" coveredstatements="21" conditionals="12" coveredconditionals="11" methods="3" coveredmethods="3"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="4" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="13" count="105" type="stmt"/>
+        <line num="16" count="105" type="stmt"/>
+        <line num="17" count="105" type="cond" truecount="2" falsecount="0"/>
+        <line num="18" count="101" type="stmt"/>
+        <line num="19" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="23" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="25" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="29" count="105" type="stmt"/>
+        <line num="30" count="105" type="cond" truecount="1" falsecount="1"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="105" type="cond" truecount="1" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="36" count="105" type="stmt"/>
+      </file>
+      <file name="openai.adapter.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/adapters/openai.adapter.ts">
+        <metrics statements="19" coveredstatements="0" conditionals="7" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="13" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.dto">
+      <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="generated-question.dto.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/dto/generated-question.dto.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.prompts">
+      <metrics statements="12" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="1"/>
+      <file name="coding.prompt.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/prompts/coding.prompt.ts">
+        <metrics statements="3" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+      </file>
+      <file name="logical.prompt.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/prompts/logical.prompt.ts">
+        <metrics statements="3" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+      </file>
+      <file name="quantitative.prompt.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/prompts/quantitative.prompt.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="102" type="stmt"/>
+      </file>
+      <file name="verbal.prompt.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/prompts/verbal.prompt.ts">
+        <metrics statements="3" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.retry">
+      <metrics statements="62" coveredstatements="50" conditionals="24" coveredconditionals="11" methods="2" coveredmethods="2"/>
+      <file name="generation-retry.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/retry/generation-retry.service.ts">
+        <metrics statements="62" coveredstatements="50" conditionals="24" coveredconditionals="11" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="25" count="3" type="stmt"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="27" count="3" type="stmt"/>
+        <line num="28" count="3" type="stmt"/>
+        <line num="29" count="3" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+        <line num="31" count="3" type="stmt"/>
+        <line num="40" count="102" type="stmt"/>
+        <line num="41" count="102" type="stmt"/>
+        <line num="44" count="102" type="stmt"/>
+        <line num="45" count="102" type="cond" truecount="1" falsecount="1"/>
+        <line num="46" count="102" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="57" count="102" type="stmt"/>
+        <line num="58" count="104" type="stmt"/>
+        <line num="59" count="104" type="stmt"/>
+        <line num="61" count="104" type="stmt"/>
+        <line num="62" count="104" type="stmt"/>
+        <line num="63" count="104" type="stmt"/>
+        <line num="65" count="104" type="stmt"/>
+        <line num="67" count="104" type="stmt"/>
+        <line num="70" count="104" type="stmt"/>
+        <line num="73" count="101" type="stmt"/>
+        <line num="77" count="101" type="cond" truecount="0" falsecount="1"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="83" count="101" type="stmt"/>
+        <line num="87" count="101" type="cond" truecount="0" falsecount="1"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="94" count="101" type="stmt"/>
+        <line num="95" count="101" type="cond" truecount="0" falsecount="1"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="102" count="101" type="stmt"/>
+        <line num="108" count="101" type="stmt"/>
+        <line num="114" count="101" type="cond" truecount="0" falsecount="1"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="118" count="3" type="stmt"/>
+        <line num="119" count="3" type="stmt"/>
+        <line num="123" count="104" type="stmt"/>
+        <line num="124" count="104" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="139" count="104" type="cond" truecount="3" falsecount="0"/>
+        <line num="140" count="101" type="stmt"/>
+        <line num="147" count="3" type="stmt"/>
+        <line num="150" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.scorers">
+      <metrics statements="36" coveredstatements="32" conditionals="25" coveredconditionals="23" methods="2" coveredmethods="2"/>
+      <file name="question-quality.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/scorers/question-quality.service.ts">
+        <metrics statements="36" coveredstatements="32" conditionals="25" coveredconditionals="23" methods="2" coveredmethods="2"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="15" count="6" type="stmt"/>
+        <line num="16" count="6" type="stmt"/>
+        <line num="24" count="104" type="stmt"/>
+        <line num="27" count="104" type="stmt"/>
+        <line num="28" count="104" type="cond" truecount="3" falsecount="0"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="32" count="104" type="cond" truecount="3" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="38" count="104" type="stmt"/>
+        <line num="42" count="104" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="104" type="cond" truecount="1" falsecount="0"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="50" count="104" type="stmt"/>
+        <line num="54" count="104" type="cond" truecount="2" falsecount="0"/>
+        <line num="55" count="104" type="cond" truecount="1" falsecount="0"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="62" count="104" type="stmt"/>
+        <line num="63" count="104" type="cond" truecount="3" falsecount="1"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="66" count="104" type="cond" truecount="1" falsecount="0"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="71" count="1" type="stmt"/>
+        <line num="75" count="104" type="stmt"/>
+        <line num="76" count="104" type="cond" truecount="0" falsecount="1"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="89" count="104" type="stmt"/>
+        <line num="95" count="104" type="cond" truecount="2" falsecount="0"/>
+        <line num="97" count="104" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.services">
+      <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="generation-audit.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/services/generation-audit.service.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.modules.generation-ai.validators">
+      <metrics statements="75" coveredstatements="71" conditionals="41" coveredconditionals="25" methods="8" coveredmethods="8"/>
+      <file name="difficulty-validator.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/validators/difficulty-validator.service.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="4" coveredconditionals="2" methods="1" coveredmethods="1"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="10" count="205" type="cond" truecount="1" falsecount="1"/>
+        <line num="11" count="205" type="cond" truecount="1" falsecount="1"/>
+        <line num="13" count="205" type="stmt"/>
+      </file>
+      <file name="duplicate-detector.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/validators/duplicate-detector.service.ts">
+        <metrics statements="34" coveredstatements="30" conditionals="15" coveredconditionals="7" methods="4" coveredmethods="4"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="3" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="20" count="1" type="cond" truecount="1" falsecount="2"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="26" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="38" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="39" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="54" count="3" type="stmt"/>
+        <line num="59" count="3" type="stmt"/>
+        <line num="61" count="3" type="stmt"/>
+        <line num="62" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="63" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="68" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="69" count="2" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="74" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="78" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="83" count="1" type="stmt"/>
+      </file>
+      <file name="response-parser.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/validators/response-parser.service.ts">
+        <metrics statements="20" coveredstatements="20" conditionals="7" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="9" count="109" type="cond" truecount="3" falsecount="0"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="13" count="108" type="stmt"/>
+        <line num="15" count="108" type="cond" truecount="1" falsecount="0"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="23" count="108" type="stmt"/>
+        <line num="24" count="108" type="stmt"/>
+        <line num="26" count="4" type="stmt"/>
+        <line num="29" count="104" type="stmt"/>
+        <line num="30" count="104" type="stmt"/>
+        <line num="32" count="104" type="cond" truecount="1" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="34" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="39" count="103" type="stmt"/>
+      </file>
+      <file name="topic-alignment.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation-ai/validators/topic-alignment.service.ts">
+        <metrics statements="16" coveredstatements="16" conditionals="15" coveredconditionals="10" methods="1" coveredmethods="1"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="15" count="206" type="cond" truecount="1" falsecount="1"/>
+        <line num="16" count="206" type="cond" truecount="1" falsecount="1"/>
+        <line num="18" count="206" type="cond" truecount="1" falsecount="0"/>
+        <line num="23" count="202" type="stmt"/>
+        <line num="27" count="4" type="stmt"/>
+        <line num="34" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="35" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="39" count="19" type="cond" truecount="1" falsecount="0"/>
+        <line num="40" count="14" type="stmt"/>
+        <line num="45" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="46" count="4" type="stmt"/>
+        <line num="48" count="4" type="stmt"/>
+      </file>
+    </package>
     <package name="src.modules.generation.controllers">
       <metrics statements="20" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="0"/>
       <file name="generation.controller.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/modules/generation/controllers/generation.controller.ts">
@@ -6968,9 +7291,9 @@
       </file>
       <file name="prisma.service.ts" path="/home/runner/work/intervu-ai/intervu-ai/apps/api/src/prisma/prisma.service.ts">
         <metrics statements="4" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="1" count="45" type="stmt"/>
-        <line num="2" count="45" type="stmt"/>
-        <line num="5" count="45" type="stmt"/>
+        <line num="1" count="48" type="stmt"/>
+        <line num="2" count="48" type="stmt"/>
+        <line num="5" count="48" type="stmt"/>
         <line num="7" count="0" type="stmt"/>
       </file>
     </package>
