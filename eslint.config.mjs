@@ -11,6 +11,7 @@ export default [
       "**/.turbo/**",
       "**/coverage/**",
       "apps/api/src/modules/generation/**",
+      "apps/api/src/modules/generation-ai/**",
       "apps/api/src/modules/template-library/services/solution-template*.*",
     ],
   },
