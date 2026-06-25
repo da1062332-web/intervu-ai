@@ -35,8 +35,8 @@ export function ConceptManagementPanel() {
     const query = searchQuery.toLowerCase();
     return concepts.filter(
       (c) =>
-        c.conceptName.toLowerCase().includes(query) ||
-        c.conceptCode.toLowerCase().includes(query) ||
+        (c.name || c.conceptName || '').toLowerCase().includes(query) ||
+        (c.code || c.conceptCode || '').toLowerCase().includes(query) ||
         (c.description && c.description.toLowerCase().includes(query)),
     );
   }, [concepts, searchQuery]);

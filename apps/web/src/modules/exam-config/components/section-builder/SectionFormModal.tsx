@@ -78,14 +78,20 @@ export function SectionFormModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={isLoading ? () => {} : onClose}>
-      <div className='flex flex-col space-y-4'>
-        <div>
-          <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
-            {initialData ? 'Edit Section' : 'Add Section'}
-          </h2>
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={isLoading ? () => {} : onClose}
+      className='p-0 overflow-hidden flex flex-col max-h-[90vh]'
+    >
+      {/* Header (Fixed) */}
+      <div className='px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 sticky top-0 z-10 shrink-0'>
+        <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
+          {initialData ? 'Edit Section' : 'Add Section'}
+        </h2>
+      </div>
 
+      {/* Scrollable Body */}
+      <div className='p-6 overflow-y-auto grow'>
         <form id='section-form' onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
           <div className='space-y-2'>
             <Label htmlFor='name'>Section Name</Label>
@@ -148,15 +154,16 @@ export function SectionFormModal({
             )}
           </div>
         </form>
+      </div>
 
-        <div className='flex items-center justify-end space-x-2 pt-4'>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button type='submit' form='section-form' disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
+      {/* Footer (Fixed) */}
+      <div className='px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-end space-x-2 sticky bottom-0 z-10 shrink-0'>
+        <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button type='submit' form='section-form' disabled={isLoading}>
+          {isLoading ? 'Saving...' : 'Save'}
+        </Button>
       </div>
     </Modal>
   );

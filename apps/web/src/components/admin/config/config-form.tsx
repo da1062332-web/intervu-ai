@@ -78,13 +78,13 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
     try {
       if (isEditMode) {
         await updateMutation.mutateAsync(data);
-        router.push(`/admin/configs/${initialData.id}`);
+        router.push(`/admin/configurations/${initialData.id}`);
       } else {
         const response = await createMutation.mutateAsync(data);
         if (response && response.id) {
-          router.push(`/admin/configs/${response.id}`);
+          router.push(`/admin/configurations/${response.id}`);
         } else {
-          router.push('/admin/configs');
+          router.push('/admin/configurations');
         }
       }
     } catch {

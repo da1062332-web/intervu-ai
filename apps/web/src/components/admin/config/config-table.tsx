@@ -99,7 +99,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
               <td className='px-4 py-3 text-right'>
                 <div className='flex items-center justify-end gap-2'>
                   <Button variant='ghost' size='icon' aria-label='View' asChild>
-                    <Link href={`/admin/configs/${config.id}`}>
+                    <Link href={`/admin/configurations/${config.id}`}>
                       <Eye className='w-4 h-4' />
                     </Link>
                   </Button>
@@ -110,7 +110,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                     disabled={config.status === 'ARCHIVED'}
                     asChild
                   >
-                    <Link href={`/admin/configs/${config.id}/edit`}>
+                    <Link href={`/admin/configurations/${config.id}/edit`}>
                       <Edit2 className='w-4 h-4' />
                     </Link>
                   </Button>
@@ -135,7 +135,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                   <p className='text-lg font-medium'>No Configurations Found</p>
                   <p className='text-sm'>Create your first exam configuration.</p>
                   <Button asChild className='mt-4'>
-                    <Link href='/admin/configs/new'>Create Configuration</Link>
+                    <Link href='/admin/configurations/new'>Create Configuration</Link>
                   </Button>
                 </div>
               </td>

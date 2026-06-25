@@ -22,7 +22,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       heading: 'Overview',
       items: [
         { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
-        { label: 'Configs', route: '/admin/configs', icon: FileCog },
+        { label: 'Configs', route: '/admin/configurations', icon: FileCog },
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },

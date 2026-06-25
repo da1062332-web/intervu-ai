@@ -63,8 +63,8 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
     if (isOpen) {
       if (concept) {
         reset({
-          conceptName: concept.conceptName,
-          conceptCode: concept.conceptCode,
+          conceptName: concept.name || concept.conceptName || '',
+          conceptCode: concept.code || concept.conceptCode || '',
           description: concept.description || '',
         });
       } else {
@@ -79,10 +79,16 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
 
   const onSubmit = async (data: FormValues) => {
     try {
+      const payload = {
+        ...data,
+        name: data.conceptName,
+        code: data.conceptCode,
+      };
+
       if (isEditing && concept) {
-        await updateConcept({ conceptId: concept.id, payload: data });
+        await updateConcept({ conceptId: concept.id, payload });
       } else {
-        await createConcept(data);
+        await createConcept(payload);
       }
       onClose();
     } catch {

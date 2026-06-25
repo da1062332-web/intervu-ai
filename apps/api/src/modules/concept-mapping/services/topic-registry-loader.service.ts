@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, OnModuleInit, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { TopicStatus, ConceptStatus } from "@prisma/client";
 
@@ -19,11 +19,34 @@ export interface TopicRegistryItem {
 @Injectable()
 export class TopicRegistryLoader implements OnModuleInit {
   private registryCache = new Map<string, TopicRegistryItem>();
+  private readonly logger = new Logger(TopicRegistryLoader.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit() {
-    await this.loadTopics();
+    await this.loadWithRetries(5, 1000);
+  }
+
+  private async loadWithRetries(maxRetries: number, delayMs: number) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await this.loadTopics();
+        this.logger.log("Topic registry loaded successfully from database.");
+        return;
+      } catch (error) {
+        this.logger.warn(
+          `Failed to load topic registry (attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : String(error)}`,
+        );
+        if (attempt < maxRetries) {
+          const backoffDelay = delayMs * Math.pow(2, attempt - 1);
+          await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+        } else {
+          this.logger.error(
+            "Database unreachable. Failed to load topic registry after maximum retries. Application will continue, but registry will be loaded on demand.",
+          );
+        }
+      }
+    }
   }
 
   async loadTopics(): Promise<TopicRegistryItem[]> {

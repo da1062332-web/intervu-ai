@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { SectionBuilder } from '@/modules/exam-config/components/section-builder';
@@ -26,7 +26,23 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('general');
   const [generating, setGenerating] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const { data: config, isLoading, isError } = useConfig(configId);
+
+  // Warn admin before closing/refreshing with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  const markDirty = useCallback(() => setIsDirty(true), []);
+  const markClean = useCallback(() => setIsDirty(false), []);
 
   const generateAssembly = async () => {
     setGenerating(true);
@@ -143,7 +159,14 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (isDirty && tab.id !== activeTab) {
+                  if (!window.confirm('You have unsaved changes. Leave this tab without saving?'))
+                    return;
+                  markClean();
+                }
+                setActiveTab(tab.id);
+              }}
               className={cn(
                 activeTab === tab.id
                   ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'

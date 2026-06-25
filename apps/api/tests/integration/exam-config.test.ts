@@ -15,6 +15,9 @@ import { ExamConfigService } from "../../src/modules/admin-config/services/exam-
 import { ExamSectionService } from "../../src/modules/admin-config/services/exam-section.service";
 import { ExamConfigRepository } from "../../src/modules/admin-config/repositories/exam-config.repository";
 import { ExamSectionRepository } from "../../src/modules/admin-config/repositories/exam-section.repository";
+import { ConfigPublisherService } from "../../src/modules/admin-config/publishing/config-publisher.service";
+import { ConfigVersionService } from "../../src/modules/admin-config/versioning/config-version.service";
+import { ConfigPreviewService } from "../../src/modules/admin-config/services/config-preview.service";
 import { JwtAuthGuard } from "../../src/modules/auth/guards/jwt-auth.guard";
 import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
 
@@ -47,6 +50,9 @@ describe("Exam Config & Section Integration Tests", () => {
       providers: [
         ExamConfigService,
         ExamSectionService,
+        { provide: ConfigPublisherService, useValue: { publish: vi.fn(), validateOnly: vi.fn() } },
+        { provide: ConfigVersionService, useValue: { createVersionFromId: vi.fn(), getVersions: vi.fn(), restoreVersion: vi.fn() } },
+        { provide: ConfigPreviewService, useValue: { getPreview: vi.fn() } },
         { provide: ExamConfigRepository, useValue: configRepoMock },
         { provide: ExamSectionRepository, useValue: sectionRepoMock },
       ],
