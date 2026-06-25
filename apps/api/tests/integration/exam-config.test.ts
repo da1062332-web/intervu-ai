@@ -50,8 +50,18 @@ describe("Exam Config & Section Integration Tests", () => {
       providers: [
         ExamConfigService,
         ExamSectionService,
-        { provide: ConfigPublisherService, useValue: { publish: vi.fn(), validateOnly: vi.fn() } },
-        { provide: ConfigVersionService, useValue: { createVersionFromId: vi.fn(), getVersions: vi.fn(), restoreVersion: vi.fn() } },
+        {
+          provide: ConfigPublisherService,
+          useValue: { publish: vi.fn(), validateOnly: vi.fn() },
+        },
+        {
+          provide: ConfigVersionService,
+          useValue: {
+            createVersionFromId: vi.fn(),
+            getVersions: vi.fn(),
+            restoreVersion: vi.fn(),
+          },
+        },
         { provide: ConfigPreviewService, useValue: { getPreview: vi.fn() } },
         { provide: ExamConfigRepository, useValue: configRepoMock },
         { provide: ExamSectionRepository, useValue: sectionRepoMock },
