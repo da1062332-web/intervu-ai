@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { AppConfigService } from "../../config/config.service";
+import { AppConfigService } from "../../../config/config.service";
 import { LLMAdapter } from "./llm-adapter.interface";
 
 @Injectable()

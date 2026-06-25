@@ -1,19 +1,27 @@
+import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
-import { AppModule } from "../apps/api/src/app.module";
+import { Module } from "@nestjs/common";
+import { PrismaModule } from "../apps/api/src/prisma/prisma.module";
+import { GenerationAiModule } from "../apps/api/src/modules/generation-ai/generation-ai.module";
 import { GenerationRetryService } from "../apps/api/src/modules/generation-ai/retry/generation-retry.service";
 import { RedisConnectionManager } from "../apps/api/src/cache";
 import { AppConfigService } from "../apps/api/src/config";
 
+@Module({
+  imports: [PrismaModule, GenerationAiModule],
+})
+class TestModule {}
+
 async function run() {
   console.log(
-    "Initializing NestJS Application Context for Generation-AI Verification...",
+    "Initializing Standalone NestJS Module for Generation-AI Verification...",
   );
 
   // Set NODE_ENV to test to force MockAdapter usage
   process.env.NODE_ENV = "test";
 
-  const app = await NestFactory.createApplicationContext(AppModule, {
-    logger: false,
+  const app = await NestFactory.createApplicationContext(TestModule, {
+    logger: ["error", "warn"],
   });
 
   const configService = app.get(AppConfigService);
