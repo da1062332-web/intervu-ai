@@ -55,7 +55,15 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
         <div className='space-y-1'>
           <p className='text-sm font-medium text-muted-foreground'>Status</p>
           <p className='text-base font-semibold'>
-            {config.status === 'ARCHIVED' ? 'Archived' : config.isActive ? 'Active' : 'Draft'}
+            {config.status === 'ARCHIVED'
+              ? 'Archived'
+              : config.status === 'VALIDATED'
+                ? 'Validated'
+                : config.status === 'PUBLISHED'
+                  ? 'Published'
+                  : config.isActive
+                    ? 'Active'
+                    : 'Draft'}
           </p>
         </div>
 

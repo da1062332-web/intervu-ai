@@ -8,7 +8,7 @@ export const ExamConfigResponseSchema = z.object({
   description: z.string().nullable().optional(),
   durationMinutes: z.number().int().positive(),
   totalQuestions: z.number().int().positive(),
-  status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
+  status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED", "VALIDATED", "PUBLISHED"]),
   isArchived: z.boolean(),
   createdBy: z.string().nullable().optional(),
   isActive: z.boolean(),

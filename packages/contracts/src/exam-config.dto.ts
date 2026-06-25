@@ -14,13 +14,13 @@ export interface UpdateExamConfig {
   description?: string | null;
   durationMinutes?: number;
   totalQuestions?: number;
-  status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
+  status?: "DRAFT" | "ACTIVE" | "ARCHIVED" | "VALIDATED" | "PUBLISHED";
   isArchived?: boolean;
 }
 
 export interface ExamConfigDto extends CreateExamConfig {
   id: string;
-  status: "DRAFT" | "ACTIVE" | "ARCHIVED";
+  status: "DRAFT" | "ACTIVE" | "ARCHIVED" | "VALIDATED" | "PUBLISHED";
   isArchived: boolean;
   createdBy: string | null;
   isActive: boolean;

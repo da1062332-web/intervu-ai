@@ -85,12 +85,24 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                   variant={
                     config.status === 'ARCHIVED'
                       ? 'destructive'
-                      : !config.isActive
-                        ? 'secondary'
-                        : 'default'
+                      : config.status === 'VALIDATED'
+                        ? 'outline'
+                        : config.status === 'PUBLISHED'
+                          ? 'default'
+                          : !config.isActive
+                            ? 'secondary'
+                            : 'default'
                   }
                 >
-                  {config.status === 'ARCHIVED' ? 'Archived' : config.isActive ? 'Active' : 'Draft'}
+                  {config.status === 'ARCHIVED'
+                    ? 'Archived'
+                    : config.status === 'VALIDATED'
+                      ? 'Validated'
+                      : config.status === 'PUBLISHED'
+                        ? 'Published'
+                        : config.isActive
+                          ? 'Active'
+                          : 'Draft'}
                 </Badge>
               </td>
               <td className='px-4 py-3 hidden lg:table-cell'>

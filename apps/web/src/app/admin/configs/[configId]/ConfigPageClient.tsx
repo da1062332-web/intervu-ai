@@ -116,7 +116,15 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
             <div className='flex flex-col'>
               <span className='font-medium text-foreground'>Status</span>
               <span>
-                {config.status === 'ARCHIVED' ? 'Archived' : config.isActive ? 'Active' : 'Draft'}
+                {config.status === 'ARCHIVED'
+                  ? 'Archived'
+                  : config.status === 'VALIDATED'
+                    ? 'Validated'
+                    : config.status === 'PUBLISHED'
+                      ? 'Published'
+                      : config.isActive
+                        ? 'Active'
+                        : 'Draft'}
               </span>
             </div>
           </div>
