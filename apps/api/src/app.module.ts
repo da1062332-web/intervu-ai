@@ -35,6 +35,7 @@ import { TopicSectionMappingModule } from "./modules/topic-section-mapping/topic
 import { BlueprintModule } from "./modules/blueprint/blueprint.module";
 import { BlueprintConfigModule } from "./modules/blueprint-config/blueprint-config.module";
 import { ValidationModule } from "./modules/validation/validation.module";
+import { GenerationAiModule } from "./modules/generation-ai/generation-ai.module";
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { ValidationModule } from "./modules/validation/validation.module";
     BlueprintModule,
     BlueprintConfigModule,
     ValidationModule,
+    GenerationAiModule,
   ],
   providers: [
     {
