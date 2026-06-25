@@ -1,13 +1,42 @@
-import { Injectable, OnModuleInit, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  OnModuleInit,
+  NotFoundException,
+  Logger,
+} from "@nestjs/common";
 import { StyleProfileRepository } from "../repositories/style-profile.repository";
 import { CreateStyleProfileDto, UpdateStyleProfileDto } from "@intervu/shared";
 
 @Injectable()
 export class StyleProfileService implements OnModuleInit {
+  private readonly logger = new Logger(StyleProfileService.name);
+
   constructor(private readonly repository: StyleProfileRepository) {}
 
   async onModuleInit() {
-    await this.seedDefaultProfiles();
+    await this.seedWithRetries(5, 1000);
+  }
+
+  private async seedWithRetries(maxRetries: number, delayMs: number) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await this.seedDefaultProfiles();
+        this.logger.log("Style profiles seeded successfully from database.");
+        return;
+      } catch (error) {
+        this.logger.warn(
+          `Failed to seed style profiles (attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : String(error)}`,
+        );
+        if (attempt < maxRetries) {
+          const backoffDelay = delayMs * Math.pow(2, attempt - 1);
+          await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+        } else {
+          this.logger.error(
+            "Database unreachable. Failed to seed style profiles after maximum retries. Application will continue without seeding.",
+          );
+        }
+      }
+    }
   }
 
   async seedDefaultProfiles() {

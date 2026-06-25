@@ -42,8 +42,8 @@ export function DeactivateConceptDialog({
           <h3 className='text-lg font-medium'>Deactivate Concept?</h3>
           <p className='text-sm text-muted-foreground'>
             Are you sure you want to deactivate{' '}
-            <span className='font-semibold'>{concept.conceptName}</span>? Inactive concepts will not
-            be used for generation.
+            <span className='font-semibold'>{concept.name || concept.conceptName}</span>? Inactive
+            concepts will not be used for generation.
           </p>
         </div>
 

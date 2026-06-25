@@ -7,10 +7,10 @@ export const metadata: Metadata = {
 };
 
 interface EditConfigPageProps {
-  params: Promise<{ configId: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditConfigPage({ params }: EditConfigPageProps) {
   const resolvedParams = await params;
-  return <EditConfigClient configId={resolvedParams.configId} />;
+  return <EditConfigClient configId={resolvedParams.id} />;
 }
