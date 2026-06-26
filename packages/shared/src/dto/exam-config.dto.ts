@@ -57,10 +57,10 @@ export class UpdateExamConfigDto implements UpdateExamConfig {
   totalQuestions?: number;
 
   @ApiPropertyOptional({
-    enum: ["DRAFT", "ACTIVE", "ARCHIVED"],
+    enum: ["DRAFT", "ACTIVE", "ARCHIVED", "VALIDATED", "PUBLISHED"],
     example: "ACTIVE",
   })
-  status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
+  status?: "DRAFT" | "ACTIVE" | "ARCHIVED" | "VALIDATED" | "PUBLISHED";
 
   @ApiPropertyOptional({ example: false })
   isArchived?: boolean;

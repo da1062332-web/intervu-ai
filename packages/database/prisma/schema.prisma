@@ -372,6 +372,7 @@ model ExamConfig {
   status                 ConfigStatus            @default(DRAFT)
   difficultyDistribution DifficultyDistribution?
   versions               ExamConfigVersion[]
+  publishLogs            ConfigPublishLog[]
   ruleFlags              RuleFlags?
   sections               ExamSection[]
   blueprint              Blueprint?
@@ -379,6 +380,7 @@ model ExamConfig {
 
   @@index([createdAt])
   @@index([role])
+  @@index([status])
 }
 
 model ExamSection {
@@ -604,8 +606,21 @@ enum RecommendationPriority {
 
 enum ConfigStatus {
   DRAFT
+  VALIDATED
   ACTIVE
+  PUBLISHED
   ARCHIVED
+}
+
+model ConfigPublishLog {
+  id          String     @id @default(cuid())
+  configId    String
+  publishedBy String?
+  version     String
+  publishedAt DateTime   @default(now())
+  examConfig  ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
 }
 
 model BlueprintConfig {
@@ -877,4 +892,17 @@ model ValidationLog {
   @@index([isValid])
   @@index([createdAt])
 }
+
+model GenerationAuditLog {
+  id               String   @id @default(cuid())
+  prompt           String
+  response         String
+  qualityScore     Float    @map("quality_score")
+  validationResult Json     @map("validation_result")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("generation_audit_logs")
+  @@index([createdAt])
+}
+
 

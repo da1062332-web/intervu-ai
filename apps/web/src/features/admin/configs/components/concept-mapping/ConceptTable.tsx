@@ -62,17 +62,23 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
             {concepts.map((concept) => (
               <tr key={concept.id} className='bg-background hover:bg-muted/50 transition-colors'>
                 <td className='px-6 py-4 font-medium'>
-                  {concept.conceptName}
+                  {concept.name || concept.conceptName}
                   {concept.description && (
                     <p className='text-xs text-muted-foreground mt-1 font-normal line-clamp-1'>
                       {concept.description}
                     </p>
                   )}
                 </td>
-                <td className='px-6 py-4 font-mono text-xs'>{concept.conceptCode}</td>
+                <td className='px-6 py-4 font-mono text-xs'>
+                  {concept.code || concept.conceptCode}
+                </td>
                 <td className='px-6 py-4'>
-                  <Badge variant={concept.isActive ? 'default' : 'secondary'}>
-                    {concept.isActive ? 'ACTIVE' : 'INACTIVE'}
+                  <Badge
+                    variant={
+                      concept.status === 'ACTIVE' || concept.isActive ? 'default' : 'secondary'
+                    }
+                  >
+                    {concept.status === 'ACTIVE' || concept.isActive ? 'ACTIVE' : 'INACTIVE'}
                   </Badge>
                 </td>
                 <td className='px-6 py-4 text-muted-foreground'>
@@ -93,7 +99,7 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
                       size='sm'
                       onClick={() => onDeactivate(concept)}
                       title='Deactivate Concept'
-                      disabled={!concept.isActive}
+                      disabled={!(concept.status === 'ACTIVE' || concept.isActive)}
                     >
                       <Trash2 className='h-4 w-4 text-muted-foreground hover:text-destructive' />
                     </Button>

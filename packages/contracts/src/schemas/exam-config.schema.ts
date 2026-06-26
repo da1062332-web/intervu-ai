@@ -28,6 +28,8 @@ export const ExamConfigBaseSchema = z.object({
 export const CreateExamConfigSchema = ExamConfigBaseSchema;
 
 export const UpdateExamConfigSchema = ExamConfigBaseSchema.extend({
-  status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
+  status: z
+    .enum(["DRAFT", "ACTIVE", "ARCHIVED", "VALIDATED", "PUBLISHED"])
+    .optional(),
   isArchived: z.boolean().optional(),
 }).partial();

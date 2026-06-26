@@ -13,7 +13,7 @@ export default function ConfigsPage() {
       <ConfigHeader
         title='Exam Configurations'
         description='Manage and create exam configurations for assessments.'
-        actionHref='/admin/configs/new'
+        actionHref='/admin/configurations/new'
         actionLabel='Create Config'
       />
       <ConfigsPageClient />

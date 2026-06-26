@@ -141,7 +141,7 @@ export default function BlueprintCompilePage() {
                 blueprint can be compiled.
               </p>
               <Link
-                href={`/admin/configs/${blueprint?.configId}`}
+                href={`/admin/configurations/${blueprint?.configId}`}
                 className='inline-block text-red-600 dark:text-red-400 hover:underline text-sm font-semibold mt-2'
               >
                 Go to Exam Configuration Readiness Tab &rarr;

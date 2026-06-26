@@ -109,7 +109,11 @@ export default function AssemblyDashboardPage() {
                       ? 'Active'
                       : config.status === 'DRAFT'
                         ? 'Draft'
-                        : 'Archived'}
+                        : config.status === 'VALIDATED'
+                          ? 'Validated'
+                          : config.status === 'PUBLISHED'
+                            ? 'Published'
+                            : 'Archived'}
                   </p>
                 </div>
               </CardContent>
