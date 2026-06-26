@@ -36,6 +36,7 @@ import { BlueprintModule } from "./modules/blueprint/blueprint.module";
 import { BlueprintConfigModule } from "./modules/blueprint-config/blueprint-config.module";
 import { ValidationModule } from "./modules/validation/validation.module";
 import { GenerationAiModule } from "./modules/generation-ai/generation-ai.module";
+import { QuestionReviewModule } from "./modules/question-review/question-review.module";
 import { PlatformModule } from "./modules/platform/platform.module";
 import { SanitizeRequestMiddleware } from "./modules/platform/middleware/sanitize-request.middleware";
 
@@ -78,6 +79,7 @@ import { SanitizeRequestMiddleware } from "./modules/platform/middleware/sanitiz
     BlueprintConfigModule,
     ValidationModule,
     GenerationAiModule,
+    QuestionReviewModule,
     PlatformModule,
   ],
   providers: [

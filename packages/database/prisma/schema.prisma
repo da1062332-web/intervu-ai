@@ -778,6 +778,7 @@ model Question {
   templateId      String?        @map("template_id")
   version         Int            @default(1)
   status          QuestionStatus @default(DRAFT)
+  metadata        Json?          @default("{}")
   timesUsed       Int            @default(0) @map("times_used")
   lastUsed        DateTime?      @map("last_used")
   createdAt       DateTime       @default(now()) @map("created_at")
@@ -791,6 +792,7 @@ model Question {
   reviews         QuestionReview[]
   reservations    QuestionReservation[]
   usage           QuestionUsage?
+  reviewAuditLogs ReviewAuditLog[]
 
   @@map("questions")
   @@index([topicId])
@@ -903,6 +905,33 @@ model GenerationAuditLog {
 
   @@map("generation_audit_logs")
   @@index([createdAt])
+}
+
+model ReviewAuditLog {
+  id             String   @id @default(cuid())
+  questionId     String   @map("question_id")
+  score          Float
+  issues         Json     // Stored as string[]
+  recommendation String   // "APPROVE" | "REVIEW" | "REJECT"
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("review_audit_logs")
+  @@index([questionId])
+}
+
+model GenerationMetrics {
+  id                        String   @id @default(cuid())
+  questionsGenerated        Int      @default(0)
+  questionsApproved         Int      @default(0)
+  questionsRejected         Int      @default(0)
+  averageQualityScore       Float    @default(0.0)
+  averageDifficultyAccuracy Float    @default(0.0)
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  @@map("generation_metrics")
 }
 
 
