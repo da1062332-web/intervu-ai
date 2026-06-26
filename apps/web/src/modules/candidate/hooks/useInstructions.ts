@@ -1,36 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import { testCatalogService } from '../services/testCatalog.service';
+import { testService } from '@/services/candidate/test.service';
 
-export function useInstructions(id: string) {
+export function useInstructions(testId: string) {
   const query = useQuery({
-    queryKey: ['candidate-instructions-modular', id],
+    queryKey: ['candidate-instructions', testId],
     queryFn: async () => {
-      // For instruction configuration, we can fetch the test overview or static/dynamic instructions list
-      const test = await testCatalogService.getTestById(id);
-      if (!test) throw new Error('Test not found');
+      // First get test details to ensure test exists
+      const test = await testService.getTestDetails(testId);
 
-      return {
-        testTitle: test.title,
-        company: test.company,
-        generalRules: [
-          'You must have a stable internet connection throughout the test.',
-          'Do not refresh the page or use the browser back button.',
-          'Calculators and external aids are not permitted unless specified.',
-          'You are monitored via webcam, microphone, and browser window focus tracking.',
-        ],
-        navigationRules: [
-          'You can navigate between questions within the active section.',
-          'Once a section is submitted, you cannot return to it.',
-          'Unanswered questions will receive zero marks (no negative marking).',
-        ],
-        technicalRequirements: [
-          'Webcam and microphone must be enabled and functional.',
-          'Latest version of Chrome, Firefox, or Edge is required.',
-          'Dual-screen setups or external projection is strictly forbidden.',
-        ],
-      };
+      if (!test) {
+        throw new Error('Test not found');
+      }
+
+      // Then get instructions from API using the new service
+      return testService.getInstructions(testId);
     },
-    enabled: !!id,
+    enabled: !!testId,
   });
 
   return {

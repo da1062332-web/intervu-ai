@@ -14,6 +14,7 @@ import { useAutosave } from '../hooks/useAutosave';
 import { useConnectionMonitor } from '../hooks/useConnectionMonitor';
 import { useResume } from '../hooks/useResume';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useState } from 'react';
 
 export function ExecutionLayout() {
@@ -24,6 +25,7 @@ export function ExecutionLayout() {
   useConnectionMonitor();
   useResume(testInstance?.id);
   useAutosave(testInstance?.id || 'unknown');
+  useAnswerPersistence(testInstance?.id || 'unknown');
 
   // Initialize keyboard shortcuts
   useKeyboardShortcuts({

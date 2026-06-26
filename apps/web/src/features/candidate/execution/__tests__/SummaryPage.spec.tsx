@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import TestSummaryPage from '../../../../app/candidate/test/[id]/summary/page';
+import TestSummaryPage from '../../../../app/candidate/tests/[id]/summary/page';
 import { useExecutionStore } from '../stores/execution.store';
 
 vi.mock('../stores/execution.store', () => ({
@@ -10,6 +10,9 @@ vi.mock('../stores/execution.store', () => ({
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
+  }),
+  useParams: () => ({
+    id: 'test-123',
   }),
 }));
 

@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { testCatalogService } from '../services/testCatalog.service';
+import { testService } from '@/services/candidate/test.service';
 
 export function useTestCatalog() {
   const query = useQuery({
     queryKey: ['candidate-catalog-modular'],
-    queryFn: testCatalogService.getTests,
+    queryFn: testService.getTestConfigs,
   });
 
   return {

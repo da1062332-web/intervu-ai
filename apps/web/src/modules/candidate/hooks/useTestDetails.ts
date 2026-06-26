@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { testCatalogService } from '../services/testCatalog.service';
+import { testService } from '@/services/candidate/test.service';
 
 export function useTestDetails(id: string) {
   const query = useQuery({
     queryKey: ['candidate-test-details-modular', id],
-    queryFn: () => testCatalogService.getTestById(id),
+    queryFn: () => testService.getTestDetails(id),
     enabled: !!id,
   });
 

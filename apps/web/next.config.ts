@@ -14,7 +14,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['@intervu/shared'],
   },
-  optimizeFonts: false,
 };
 
 export default nextConfig;
