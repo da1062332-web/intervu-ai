@@ -165,6 +165,8 @@ describe("Question Review Integration Tests", () => {
 
     const res = await controller.bulkReview({ questionIds: ["q-1"] });
     expect(res.results["q-1"]).toBeDefined();
-    expect((res.results["q-1"] as { recommendation: string }).recommendation).toBe("APPROVE");
+    expect(
+      (res.results["q-1"] as { recommendation: string }).recommendation,
+    ).toBe("APPROVE");
   });
 });

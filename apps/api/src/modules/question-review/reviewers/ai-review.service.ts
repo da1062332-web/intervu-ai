@@ -147,7 +147,8 @@ export class AIReviewService {
     // 9. Update Database Entity States & Enrichment
     await this.prisma.$transaction(async (tx) => {
       let finalStatus: QuestionStatus = QuestionStatus.DRAFT;
-      let finalMetadata: Record<string, unknown> = (question.metadata as Record<string, unknown>) || {};
+      let finalMetadata: Record<string, unknown> =
+        (question.metadata as Record<string, unknown>) || {};
 
       if (approval.recommendation === "APPROVE") {
         finalStatus = QuestionStatus.ACTIVE;
