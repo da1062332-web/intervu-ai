@@ -1,10 +1,21 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { DifficultyLevel } from "@prisma/client";
+import { DifficultyLevel, GeneratedQuestion } from "@prisma/client";
+
+import { QuestionFilters, IQuestionSource } from "../services/question-source.interface";
 
 @Injectable()
-export class QuestionPoolRepository {
+export class QuestionPoolRepository implements IQuestionSource {
   constructor(private readonly prisma: PrismaService) {}
+
+  async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
+    return this.findAvailableQuestions(
+      filters.conceptKey || "",
+      filters.difficultyLevel as DifficultyLevel || "MEDIUM",
+      filters.limit || 10,
+      filters.excludeIds || [],
+    );
+  }
 
   async findAvailableQuestions(
     conceptKey: string,
@@ -41,8 +52,7 @@ export class QuestionPoolRepository {
           metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
+        } as unknown as GeneratedQuestion);
       }
     }
 

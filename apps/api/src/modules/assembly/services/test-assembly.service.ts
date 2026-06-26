@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 
-import { AssemblyRepository } from "../repositories/assembly.repository";
+import { AssemblyPersistenceService } from "./assembly-persistence.service";
 import { BlueprintBuilderService } from "./blueprint-builder.service";
 import {
   QuestionAllocatorService,
@@ -24,9 +24,8 @@ export class AssemblyService {
       HARD: 20,
     },
   };
-
   constructor(
-    private readonly repository: AssemblyRepository,
+    private readonly persistenceService: AssemblyPersistenceService,
     private readonly blueprintBuilder: BlueprintBuilderService,
     private readonly allocator: QuestionAllocatorService,
     private readonly sectionBuilder: SectionBuilderService,
@@ -70,12 +69,11 @@ export class AssemblyService {
       );
     }
 
-    const testInstanceId =
-      await this.repository.createTestInstanceWithTransaction(
-        userId,
-        configId,
-        sections,
-      );
+    const testInstanceId = await this.persistenceService.saveAssembly(
+      configId,
+      sections,
+      userId,
+    );
 
     return testInstanceId;
   }
@@ -148,7 +146,7 @@ export class AssemblyService {
   }
 
   async getAssembly(testInstanceId: string) {
-    const instance = await this.repository.findById(testInstanceId);
+    const instance = await this.persistenceService.getAssembly(testInstanceId);
     if (!instance) {
       throw new BadRequestException(
         `Test Instance ${testInstanceId} not found`,
