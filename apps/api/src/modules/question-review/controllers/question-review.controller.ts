@@ -27,7 +27,7 @@ import { QuestionVersionRepository } from "../../question-bank/repositories/ques
 import { BulkReviewDto, ReviewQueryDto, QuestionReviewResultDto } from "../dto/question-review.dto";
 
 @ApiTags("Question Review")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @Roles(UserRole.ADMIN)
 @Controller("review")
