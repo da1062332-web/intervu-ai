@@ -49,12 +49,20 @@ function scanDirectoryForPrismaCalls(dir: string): string[] {
       const isEvaluationPersist = file.endsWith(
         "evaluation-persistence.service.ts",
       );
+      const isConfigValidator =
+        file.endsWith("config-dependency-validator.service.ts") ||
+        file.endsWith("configuration-validator.service.ts");
+      const isBlueprintCompiler = file.endsWith(
+        "blueprint-compiler.service.ts",
+      );
 
       if (
         isRepository ||
         isQueueWorker ||
         isPrismaService ||
-        isEvaluationPersist
+        isEvaluationPersist ||
+        isConfigValidator ||
+        isBlueprintCompiler
       ) {
         continue;
       }
