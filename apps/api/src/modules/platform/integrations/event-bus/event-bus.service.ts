@@ -16,11 +16,15 @@ export class EventBusService implements IEventBus {
     this.emitter.emit(event, payload);
   }
 
-  subscribe(event: string, handler: (payload: unknown) => void | Promise<void>): void {
+  subscribe(
+    event: string,
+    handler: (payload: unknown) => void | Promise<void>,
+  ): void {
     this.logger.log(`Subscribing to event: ${event}`);
-    
+
     this.emitter.on(event, async (payload: unknown) => {
-      const isCritical = event === "ASSESSMENT_SUBMITTED" || event === "EVALUATION_COMPLETED";
+      const isCritical =
+        event === "ASSESSMENT_SUBMITTED" || event === "EVALUATION_COMPLETED";
       const maxAttempts = isCritical ? 3 : 1;
       let attempt = 0;
       let delay = 100; // ms
@@ -33,12 +37,12 @@ export class EventBusService implements IEventBus {
         } catch (error: unknown) {
           const errMsg = error instanceof Error ? error.message : String(error);
           this.logger.error(
-            `Error in subscriber handler for event "${event}" (attempt ${attempt}/${maxAttempts}): ${errMsg}`
+            `Error in subscriber handler for event "${event}" (attempt ${attempt}/${maxAttempts}): ${errMsg}`,
           );
-          
+
           if (attempt >= maxAttempts) {
             this.logger.error(
-              `Critical failure: Event subscriber for "${event}" failed after ${maxAttempts} attempts.`
+              `Critical failure: Event subscriber for "${event}" failed after ${maxAttempts} attempts.`,
             );
           } else {
             await new Promise((resolve) => setTimeout(resolve, delay));

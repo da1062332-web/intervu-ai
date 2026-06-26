@@ -73,10 +73,10 @@ export class PlatformAuditService {
                 message: l.message,
                 createdAt: l.createdAt,
                 metadata: l.metadata,
-              })
+              }),
             );
             entries = entries.concat(mapped);
-          })
+          }),
       );
       queries.push(
         this.prisma.generationLog
@@ -85,7 +85,7 @@ export class PlatformAuditService {
           })
           .then((c) => {
             totalCount += c;
-          })
+          }),
       );
     }
 
@@ -107,10 +107,10 @@ export class PlatformAuditService {
                 message: l.failureReason || "Validation passed",
                 createdAt: l.createdAt,
                 metadata: l.metadata,
-              })
+              }),
             );
             entries = entries.concat(mapped);
-          })
+          }),
       );
       queries.push(
         this.prisma.validationLog
@@ -119,7 +119,7 @@ export class PlatformAuditService {
           })
           .then((c) => {
             totalCount += c;
-          })
+          }),
       );
     }
 
@@ -141,10 +141,10 @@ export class PlatformAuditService {
                 message: l.notes || "No notes provided",
                 createdAt: l.createdAt,
                 metadata: { questionId: l.questionId },
-              })
+              }),
             );
             entries = entries.concat(mapped);
-          })
+          }),
       );
       queries.push(
         this.prisma.questionReview
@@ -153,7 +153,7 @@ export class PlatformAuditService {
           })
           .then((c) => {
             totalCount += c;
-          })
+          }),
       );
     }
 
@@ -175,10 +175,10 @@ export class PlatformAuditService {
                 message: s.submissionHash || "Attempt submitted",
                 createdAt: s.createdAt,
                 metadata: { testInstanceId: s.testInstanceId },
-              })
+              }),
             );
             entries = entries.concat(mapped);
-          })
+          }),
       );
       queries.push(
         this.prisma.submission
@@ -187,7 +187,7 @@ export class PlatformAuditService {
           })
           .then((c) => {
             totalCount += c;
-          })
+          }),
       );
     }
 

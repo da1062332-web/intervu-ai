@@ -1,7 +1,10 @@
 import { Controller, Get, Query } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { PlatformHealthService } from "../health/platform-health.service";
-import { PlatformAuditService, GetAuditLogsDto } from "../audit/platform-audit.service";
+import {
+  PlatformAuditService,
+  GetAuditLogsDto,
+} from "../audit/platform-audit.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { Public } from "../../auth/decorators/public.decorator";

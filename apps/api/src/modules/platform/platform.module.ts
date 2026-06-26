@@ -28,6 +28,11 @@ import { PlatformMetricsController } from "./controllers/platform-metrics.contro
     PlatformHealthService,
     PlatformAuditService,
   ],
-  exports: [EventBusService, PlatformOrchestratorService, PlatformHealthService, PlatformAuditService],
+  exports: [
+    EventBusService,
+    PlatformOrchestratorService,
+    PlatformHealthService,
+    PlatformAuditService,
+  ],
 })
 export class PlatformModule {}

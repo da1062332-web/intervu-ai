@@ -22,17 +22,24 @@ export class GlobalErrorFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const traceId = (request.headers["x-correlation-id"] || request.headers["x-request-id"] || "unknown") as string;
+    const traceId = (request.headers["x-correlation-id"] ||
+      request.headers["x-request-id"] ||
+      "unknown") as string;
 
-    const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : null;
+    const exceptionResponse =
+      exception instanceof HttpException ? exception.getResponse() : null;
 
     let errorCode = "INTERNAL_SERVER_ERROR";
-    let message = exception instanceof Error ? exception.message : "An unexpected error occurred";
+    let message =
+      exception instanceof Error
+        ? exception.message
+        : "An unexpected error occurred";
     let details: unknown = null;
 
     if (exceptionResponse && typeof exceptionResponse === "object") {
       const respObj = exceptionResponse as Record<string, unknown>;
-      errorCode = (respObj.code as string) || (respObj.error as string) || "HTTP_ERROR";
+      errorCode =
+        (respObj.code as string) || (respObj.error as string) || "HTTP_ERROR";
       message = (respObj.message as string) || message;
       details = respObj.details || null;
     } else if (exception && typeof exception === "object") {
@@ -49,7 +56,7 @@ export class GlobalErrorFilter implements ExceptionFilter {
     const stack = exception instanceof Error ? exception.stack : undefined;
     this.logger.error(
       `[GlobalErrorFilter] Error details: Status: ${status}, Code: ${errorCode}, Message: ${message}, TraceId: ${traceId}`,
-      stack
+      stack,
     );
 
     response.status(status).json({

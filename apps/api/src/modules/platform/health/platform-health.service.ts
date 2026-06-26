@@ -110,9 +110,13 @@ export class PlatformHealthService {
   private async checkAIProviderHealth(): Promise<ServiceHealthStatus> {
     const start = Date.now();
     try {
-      const hasApiKey = !!process.env.OPENAI_API_KEY || !!process.env.GEMINI_API_KEY;
+      const hasApiKey =
+        !!process.env.OPENAI_API_KEY || !!process.env.GEMINI_API_KEY;
       if (!hasApiKey && process.env.NODE_ENV === "production") {
-        return { status: "unhealthy", error: "AI Provider API keys are missing in production" };
+        return {
+          status: "unhealthy",
+          error: "AI Provider API keys are missing in production",
+        };
       }
       return { status: "healthy", responseTime: Date.now() - start };
     } catch (error: unknown) {

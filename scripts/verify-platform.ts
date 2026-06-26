@@ -44,7 +44,9 @@ async function run() {
     console.log("Event Bus subscriber isolation: PASS");
 
     // 2. Verify Event Bus - Exponential Backoff Retry (Critical Events)
-    console.log("--> Testing Event Bus backoff retry on ASSESSMENT_SUBMITTED...");
+    console.log(
+      "--> Testing Event Bus backoff retry on ASSESSMENT_SUBMITTED...",
+    );
     let submitAttempts = 0;
     eventBus.subscribe("ASSESSMENT_SUBMITTED", async () => {
       submitAttempts++;
@@ -54,25 +56,42 @@ async function run() {
     });
 
     eventBus.publish("ASSESSMENT_SUBMITTED", { testInstanceId: "test_inst" });
-    
+
     // Wait for the retry delays (100ms, then 200ms)
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     if (submitAttempts !== 3) {
-      throw new Error(`Expected exactly 3 retry attempts for critical event, got ${submitAttempts}`);
+      throw new Error(
+        `Expected exactly 3 retry attempts for critical event, got ${submitAttempts}`,
+      );
     }
     console.log("Event Bus backoff retry: PASS");
 
     // 3. Verify Health Telemetry Response
     console.log("--> Testing Health Telemetry...");
     const health = await healthService.getHealth();
-    if (!health.status || !health.timestamp || !health.version || typeof health.uptime !== "number" || typeof health.responseTime !== "number") {
-      throw new Error("Health response contract is missing required metadata fields.");
+    if (
+      !health.status ||
+      !health.timestamp ||
+      !health.version ||
+      typeof health.uptime !== "number" ||
+      typeof health.responseTime !== "number"
+    ) {
+      throw new Error(
+        "Health response contract is missing required metadata fields.",
+      );
     }
-    if (!health.services.database || !health.services.redis || !health.services.queue || !health.services.aiProvider) {
+    if (
+      !health.services.database ||
+      !health.services.redis ||
+      !health.services.queue ||
+      !health.services.aiProvider
+    ) {
       throw new Error("Health services fields are incomplete.");
     }
-    console.log(`Global status: ${health.status}, Database status: ${health.services.database.status}`);
+    console.log(
+      `Global status: ${health.status}, Database status: ${health.services.database.status}`,
+    );
     console.log("Health Telemetry: PASS");
 
     // 4. Verify Request Sanitization Middleware
@@ -82,16 +101,18 @@ async function run() {
         text: "Clean text",
         malicious: "<script>alert('injection')</script><iframe></iframe>",
         nested: {
-          harmful: "javascript:alert(1)"
-        }
+          harmful: "javascript:alert(1)",
+        },
       },
       query: {},
-      params: {}
+      params: {},
     } as any;
-    
+
     const res = {} as any;
     let nextCalled = false;
-    const next = () => { nextCalled = true; };
+    const next = () => {
+      nextCalled = true;
+    };
 
     sanitizationMiddleware.use(req, res, next);
 
@@ -99,13 +120,15 @@ async function run() {
       throw new Error("Sanitization middleware failed to invoke next()");
     }
     if (req.body.malicious !== "" || req.body.nested.harmful !== "alert(1)") {
-      throw new Error(`Sanitization failed. Malicious contents not stripped. Got: ${JSON.stringify(req.body)}`);
+      throw new Error(
+        `Sanitization failed. Malicious contents not stripped. Got: ${JSON.stringify(req.body)}`,
+      );
     }
     console.log("Request Sanitization Middleware: PASS");
 
     // 5. Verify Audit Logs & Pagination
     console.log("--> Testing Audit Log aggregation and pagination...");
-    
+
     // Create dummy logs to verify query joins and union operations
     const logId = createId();
     await prisma.generationLog.create({
@@ -116,7 +139,7 @@ async function run() {
         durationMs: 150,
         retryCount: 0,
         message: "Platform E2E test generation completed successfully",
-      }
+      },
     });
 
     const auditResponse = await auditService.getAuditLogs({
@@ -128,7 +151,9 @@ async function run() {
       throw new Error("Audit service failed to aggregate logs.");
     }
 
-    const testLog = auditResponse.items.find(item => item.metadata?.examId === `verify_platform_exam_${logId}`);
+    const testLog = auditResponse.items.find(
+      (item) => item.metadata?.examId === `verify_platform_exam_${logId}`,
+    );
     if (dtoMatchesLog(auditResponse.items, `verify-platform-exam-${logId}`)) {
       console.log("Located E2E verify logs in audit responses");
     }
@@ -137,15 +162,16 @@ async function run() {
     console.log("Audit Logs Aggregation: PASS");
 
     // Clean up generation log
-    await prisma.generationLog.deleteMany({
-      where: { examId: `verify_platform_exam_${logId}` }
-    }).catch(() => {});
+    await prisma.generationLog
+      .deleteMany({
+        where: { examId: `verify_platform_exam_${logId}` },
+      })
+      .catch(() => {});
 
     console.log("\n==========================================");
     console.log("ALL PLATFORM CHECKS: PASS");
     console.log("==========================================\n");
     process.exit(0);
-
   } catch (err: any) {
     console.error("\n==========================================");
     console.error("PLATFORM VERIFICATION FAIL");
@@ -158,7 +184,7 @@ async function run() {
 }
 
 function dtoMatchesLog(items: any[], value: string): boolean {
-  return items.some(item => JSON.stringify(item).includes(value));
+  return items.some((item) => JSON.stringify(item).includes(value));
 }
 
 run();

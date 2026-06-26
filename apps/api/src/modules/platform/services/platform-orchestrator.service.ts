@@ -20,7 +20,9 @@ export class PlatformOrchestratorService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.logger.log("Initializing Platform Orchestrator and subscribing to event lifecycle...");
+    this.logger.log(
+      "Initializing Platform Orchestrator and subscribing to event lifecycle...",
+    );
 
     // Register event subscriptions
     this.eventBus.subscribe("QUESTION_GENERATED", async (payload: unknown) => {
@@ -39,47 +41,72 @@ export class PlatformOrchestratorService implements OnModuleInit {
       await this.handleAssessmentStarted(payload);
     });
 
-    this.eventBus.subscribe("ASSESSMENT_SUBMITTED", async (payload: unknown) => {
-      await this.handleAssessmentSubmitted(payload);
-    });
+    this.eventBus.subscribe(
+      "ASSESSMENT_SUBMITTED",
+      async (payload: unknown) => {
+        await this.handleAssessmentSubmitted(payload);
+      },
+    );
 
-    this.eventBus.subscribe("EVALUATION_COMPLETED", async (payload: unknown) => {
-      await this.handleEvaluationCompleted(payload);
-    });
+    this.eventBus.subscribe(
+      "EVALUATION_COMPLETED",
+      async (payload: unknown) => {
+        await this.handleEvaluationCompleted(payload);
+      },
+    );
   }
 
   async handleGenerationCompleted(payload: unknown) {
-    this.logger.log(`[PlatformOrchestrator] Question Generation Completed. Payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `[PlatformOrchestrator] Question Generation Completed. Payload: ${JSON.stringify(payload)}`,
+    );
   }
 
   async handleQuestionApproved(payload: unknown) {
-    this.logger.log(`[PlatformOrchestrator] Question Approved. Payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `[PlatformOrchestrator] Question Approved. Payload: ${JSON.stringify(payload)}`,
+    );
   }
 
   async handleAssemblyPublished(payload: unknown) {
-    this.logger.log(`[PlatformOrchestrator] Assembly Published. Payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `[PlatformOrchestrator] Assembly Published. Payload: ${JSON.stringify(payload)}`,
+    );
   }
 
   async handleAssessmentStarted(payload: unknown) {
-    this.logger.log(`[PlatformOrchestrator] Assessment Started. Payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `[PlatformOrchestrator] Assessment Started. Payload: ${JSON.stringify(payload)}`,
+    );
   }
 
   async handleAssessmentSubmitted(payload: unknown) {
-    this.logger.log(`[PlatformOrchestrator] Assessment Submitted. Payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `[PlatformOrchestrator] Assessment Submitted. Payload: ${JSON.stringify(payload)}`,
+    );
     try {
-      if (payload && typeof payload === "object" && "testInstanceId" in payload) {
-        const testInstanceId = (payload as Record<string, unknown>).testInstanceId;
+      if (
+        payload &&
+        typeof payload === "object" &&
+        "testInstanceId" in payload
+      ) {
+        const testInstanceId = (payload as Record<string, unknown>)
+          .testInstanceId;
         if (typeof testInstanceId === "string") {
           await this.evaluationService.evaluateAnswer(testInstanceId);
         }
       }
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to trigger evaluation from orchestrator: ${errMsg}`);
+      this.logger.error(
+        `Failed to trigger evaluation from orchestrator: ${errMsg}`,
+      );
     }
   }
 
   async handleEvaluationCompleted(payload: unknown) {
-    this.logger.log(`[PlatformOrchestrator] Evaluation Completed. Payload: ${JSON.stringify(payload)}`);
+    this.logger.log(
+      `[PlatformOrchestrator] Evaluation Completed. Payload: ${JSON.stringify(payload)}`,
+    );
   }
 }
