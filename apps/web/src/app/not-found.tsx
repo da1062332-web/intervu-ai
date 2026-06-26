@@ -13,34 +13,22 @@ export default function NotFound() {
         </div>
 
         <div className='space-y-2'>
-          <h1 className='font-heading text-4xl font-bold tracking-tight text-foreground'>
-            404
-          </h1>
-          <h2 className='text-xl font-semibold text-foreground/80'>
-            Page not found
-          </h2>
+          <h1 className='font-heading text-4xl font-bold tracking-tight text-foreground'>404</h1>
+          <h2 className='text-xl font-semibold text-foreground/80'>Page not found</h2>
           <p className='text-sm text-muted-foreground leading-relaxed mt-2'>
-            Sorry, we couldn't find the page you're looking for. It might have been
-            removed, had its name changed, or is temporarily unavailable.
+            Sorry, we couldn't find the page you're looking for. It might have been removed, had its
+            name changed, or is temporarily unavailable.
           </p>
         </div>
 
         <div className='flex flex-col sm:flex-row items-center justify-center gap-3 pt-6'>
-          <Button
-            asChild
-            variant='default'
-            className='w-full sm:w-auto h-11'
-          >
+          <Button asChild variant='default' className='w-full sm:w-auto h-11'>
             <Link href='/'>
               <Home className='mr-2 size-4' />
               Return to Dashboard
             </Link>
           </Button>
-          <Button
-            asChild
-            variant='outline'
-            className='w-full sm:w-auto h-11'
-          >
+          <Button asChild variant='outline' className='w-full sm:w-auto h-11'>
             <Link href='javascript:history.back()'>
               <ArrowLeft className='mr-2 size-4' />
               Go Back

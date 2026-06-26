@@ -1,4 +1,9 @@
-type TelemetryEvent = 'PAGE_LOAD' | 'ROUTE_CHANGE' | 'API_FAILURE' | 'SUBMISSION_FAILURE' | 'RENDERING_ERROR';
+type TelemetryEvent =
+  | 'PAGE_LOAD'
+  | 'ROUTE_CHANGE'
+  | 'API_FAILURE'
+  | 'SUBMISSION_FAILURE'
+  | 'RENDERING_ERROR';
 
 interface TelemetryPayload {
   eventName: TelemetryEvent;

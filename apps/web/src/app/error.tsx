@@ -32,8 +32,8 @@ export default function GlobalError({
             Something went wrong
           </h1>
           <p className='text-sm text-muted-foreground leading-relaxed'>
-            We apologize for the inconvenience. An unexpected error has occurred.
-            Our team has been notified.
+            We apologize for the inconvenience. An unexpected error has occurred. Our team has been
+            notified.
           </p>
         </div>
 
@@ -44,19 +44,11 @@ export default function GlobalError({
         )}
 
         <div className='flex flex-col sm:flex-row items-center justify-center gap-3 pt-4'>
-          <Button
-            onClick={reset}
-            variant='default'
-            className='w-full sm:w-auto h-11'
-          >
+          <Button onClick={reset} variant='default' className='w-full sm:w-auto h-11'>
             <RefreshCw className='mr-2 size-4' />
             Try again
           </Button>
-          <Button
-            asChild
-            variant='outline'
-            className='w-full sm:w-auto h-11'
-          >
+          <Button asChild variant='outline' className='w-full sm:w-auto h-11'>
             <Link href='/'>
               <Home className='mr-2 size-4' />
               Return to Dashboard
