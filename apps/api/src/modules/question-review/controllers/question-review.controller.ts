@@ -24,7 +24,12 @@ import { GenerationMonitorService } from "../monitoring/generation-monitor.servi
 import { ReviewAuditService } from "../services/review-audit.service";
 import { QuestionRepository } from "../../question-bank/repositories/question.repository";
 import { QuestionVersionRepository } from "../../question-bank/repositories/question-version.repository";
-import { BulkReviewDto, ReviewQueryDto, QuestionReviewResultDto } from "../dto/question-review.dto";
+// eslint-disable-next-line no-restricted-imports
+import {
+  BulkReviewDto,
+  ReviewQueryDto,
+  QuestionReviewResultDto,
+} from "../dto/question-review.dto";
 
 @ApiTags("Question Review")
 @ApiBearerAuth("jwt-auth")
@@ -45,7 +50,7 @@ export class QuestionReviewController {
   async getQueue(@Query() query: ReviewQueryDto) {
     const page = query.page || 1;
     const limit = query.limit || 10;
-    
+
     // Default queue filters out ACTIVE/ARCHIVED questions
     const whereClause = query.status
       ? { status: query.status as QuestionStatus }
@@ -83,7 +88,7 @@ export class QuestionReviewController {
     // Extract options from latest version snapshot if available
     let options: string[] = [];
     if (versions.length > 0) {
-      const snapshot = versions[0].snapshot as any;
+      const snapshot = versions[0].snapshot as Record<string, unknown>;
       if (snapshot && Array.isArray(snapshot.options)) {
         options = snapshot.options;
       }
@@ -107,7 +112,9 @@ export class QuestionReviewController {
 
   @Post("bulk")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Run AI reviews for multiple questions in parallel" })
+  @ApiOperation({
+    summary: "Run AI reviews for multiple questions in parallel",
+  })
   async bulkReview(@Body() dto: BulkReviewDto) {
     const { questionIds } = dto;
     if (!questionIds || questionIds.length === 0) {
@@ -120,17 +127,21 @@ export class QuestionReviewController {
         try {
           const result = await this.aiReviewService.reviewQuestion(id);
           return { id, success: true, ...result };
-        } catch (e: any) {
-          return { id, success: false, error: e.message };
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          return { id, success: false, error: message };
         }
-      })
+      }),
     );
 
-    const results = resultsArray.reduce((acc, current) => {
-      const { id, ...rest } = current;
-      acc[id] = rest;
-      return acc;
-    }, {} as Record<string, any>);
+    const results = resultsArray.reduce(
+      (acc, current) => {
+        const { id, ...rest } = current;
+        acc[id] = rest;
+        return acc;
+      },
+      {} as Record<string, unknown>,
+    );
 
     return { results };
   }

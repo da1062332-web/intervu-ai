@@ -26,9 +26,11 @@ describe("DifficultyAnalyzerService", () => {
     const res = await service.analyze({
       requestedDifficulty: "HARD",
       generatedQuestion: {
-        questionText: "Explain dynamic programming algorithms for time complexity calculation.",
+        questionText:
+          "Explain dynamic programming algorithms for time complexity calculation.",
         answer: "Complexity is optimized",
-        explanation: "Recursion with memoization solves overlapping subproblems",
+        explanation:
+          "Recursion with memoization solves overlapping subproblems",
       },
     });
 
@@ -41,7 +43,8 @@ describe("DifficultyAnalyzerService", () => {
     const res = await service.analyze({
       requestedDifficulty: "EASY",
       generatedQuestion: {
-        questionText: "Implement a recursion algorithm to traverse a binary search tree in dynamic programming.",
+        questionText:
+          "Implement a recursion algorithm to traverse a binary search tree in dynamic programming.",
         answer: "O(log N)",
         explanation: "Asynchronous concurrent calls optimize the runtime stack",
       },

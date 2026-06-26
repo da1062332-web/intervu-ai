@@ -46,6 +46,8 @@ describe("StructureAnalyzerService", () => {
 
     expect(res.isValid).toBe(false);
     expect(res.score).toBe(80);
-    expect(res.issues).toContain("The correct answer does not match any of the provided options");
+    expect(res.issues).toContain(
+      "The correct answer does not match any of the provided options",
+    );
   });
 });

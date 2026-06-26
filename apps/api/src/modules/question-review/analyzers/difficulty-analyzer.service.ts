@@ -6,7 +6,7 @@ interface DifficultyInput {
     questionText: string;
     answer: string;
     explanation: string;
-    options?: any;
+    options?: unknown;
   };
 }
 
@@ -21,21 +21,49 @@ export class DifficultyAnalyzerService {
   async analyze(input: DifficultyInput): Promise<DifficultyAnalysis> {
     const expected = (input.requestedDifficulty || "MEDIUM").toUpperCase();
     const text = (input.generatedQuestion.questionText || "").toLowerCase();
-    const explanation = (input.generatedQuestion.explanation || "").toLowerCase();
+    const explanation = (
+      input.generatedQuestion.explanation || ""
+    ).toLowerCase();
 
     // Heuristics for actual difficulty estimation
     let actual = "MEDIUM";
 
     const hardKeywords = [
-      "polymorphism", "asynchronous", "recursion", "multithreading", "concurrent",
-      "algorithm", "complexity", "time complexity", "space complexity", "binary search tree",
-      "dynamic programming", "differentiate", "integral", "matrix", "vectors", "probability density",
-      "eigenvalue", "eigenvector", "combinatorics", "combinatorial", "graph theory"
+      "polymorphism",
+      "asynchronous",
+      "recursion",
+      "multithreading",
+      "concurrent",
+      "algorithm",
+      "complexity",
+      "time complexity",
+      "space complexity",
+      "binary search tree",
+      "dynamic programming",
+      "differentiate",
+      "integral",
+      "matrix",
+      "vectors",
+      "probability density",
+      "eigenvalue",
+      "eigenvector",
+      "combinatorics",
+      "combinatorial",
+      "graph theory",
     ];
 
     const easyKeywords = [
-      "what is", "define", "name the", "simple", "basic", "who wrote", "capital of",
-      "formula of", "easy", "addition", "subtraction"
+      "what is",
+      "define",
+      "name the",
+      "simple",
+      "basic",
+      "who wrote",
+      "capital of",
+      "formula of",
+      "easy",
+      "addition",
+      "subtraction",
     ];
 
     let hardHits = 0;

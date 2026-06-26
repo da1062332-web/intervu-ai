@@ -39,10 +39,6 @@ import { GenerationMetricsRepository } from "./repositories/generation-metrics.r
     ReviewAuditLogRepository,
     GenerationMetricsRepository,
   ],
-  exports: [
-    AIReviewService,
-    GenerationMonitorService,
-    ReviewAuditService,
-  ],
+  exports: [AIReviewService, GenerationMonitorService, ReviewAuditService],
 })
 export class QuestionReviewModule {}

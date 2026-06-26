@@ -23,11 +23,64 @@ export class TopicAnalyzerService {
 
     // Map keywords to specific topics
     const topicKeywords: Record<string, string[]> = {
-      "Percentages": ["percent", "percentage", "%", "ratio", "proportion", "fraction"],
-      "Probability": ["probabilit", "chance", "dice", "die", "coin", "card", "red ball", "urn", "marble", "permutation", "combination"],
-      "Logical Reasoning": ["logical", "pattern", "sequence", "next number", "series", "deduce", "syllogism", "blood relation", "direction sense"],
-      "Verbal Ability": ["sentence", "grammar", "synonym", "antonym", "preposition", "comprehension", "passage", "analogies"],
-      "Coding": ["function", "code", "array", "complexity", "big o", "class", "object", "database", "sql", "java", "python", "javascript", "pointer", "compile"]
+      Percentages: [
+        "percent",
+        "percentage",
+        "%",
+        "ratio",
+        "proportion",
+        "fraction",
+      ],
+      Probability: [
+        "probabilit",
+        "chance",
+        "dice",
+        "die",
+        "coin",
+        "card",
+        "red ball",
+        "urn",
+        "marble",
+        "permutation",
+        "combination",
+      ],
+      "Logical Reasoning": [
+        "logical",
+        "pattern",
+        "sequence",
+        "next number",
+        "series",
+        "deduce",
+        "syllogism",
+        "blood relation",
+        "direction sense",
+      ],
+      "Verbal Ability": [
+        "sentence",
+        "grammar",
+        "synonym",
+        "antonym",
+        "preposition",
+        "comprehension",
+        "passage",
+        "analogies",
+      ],
+      Coding: [
+        "function",
+        "code",
+        "array",
+        "complexity",
+        "big o",
+        "class",
+        "object",
+        "database",
+        "sql",
+        "java",
+        "python",
+        "javascript",
+        "pointer",
+        "compile",
+      ],
     };
 
     let actual = requested; // default to requested if no other topic matches strongly
@@ -50,17 +103,29 @@ export class TopicAnalyzerService {
     // Special exact mismatch overrides:
     // If the prompt requested Percentages but the content is clearly Probability (and best match is Probability), match is false!
     let match = true;
-    if (requestedLower === "percentages" && actual.toLowerCase() === "probability") {
+    if (
+      requestedLower === "percentages" &&
+      actual.toLowerCase() === "probability"
+    ) {
       match = false;
-    } else if (requestedLower === "probability" && actual.toLowerCase() === "percentages") {
+    } else if (
+      requestedLower === "probability" &&
+      actual.toLowerCase() === "percentages"
+    ) {
       match = false;
     } else if (requestedLower !== actual.toLowerCase()) {
       // General check: if they don't match, let's see if there's keyword overlap
       const reqKeywords = topicKeywords[requested] || [];
-      const hasReqKeyword = reqKeywords.some(kw => text.includes(kw) || explanation.includes(kw));
-      
+      const hasReqKeyword = reqKeywords.some(
+        (kw) => text.includes(kw) || explanation.includes(kw),
+      );
+
       // If the question contains absolutely no keywords for the requested topic, but contains keywords for another, fail the match
-      if (!hasReqKeyword && bestMatchScore >= 2 && actual.toLowerCase() !== requestedLower) {
+      if (
+        !hasReqKeyword &&
+        bestMatchScore >= 2 &&
+        actual.toLowerCase() !== requestedLower
+      ) {
         match = false;
       }
     }
@@ -70,7 +135,7 @@ export class TopicAnalyzerService {
     if (!match) {
       confidence = 0.4;
     } else if (bestMatchScore > 0) {
-      confidence = Math.min(0.95, 0.7 + (bestMatchScore * 0.05));
+      confidence = Math.min(0.95, 0.7 + bestMatchScore * 0.05);
     }
 
     return {

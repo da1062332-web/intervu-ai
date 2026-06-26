@@ -20,9 +20,13 @@ import { PrismaService } from "../../../prisma/prisma.service";
 describe("Question Review Integration Tests", () => {
   let app: INestApplication;
   let controller: QuestionReviewController;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let questionRepoMock: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let versionRepoMock: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let topicRepoMock: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let prismaMock: any;
 
   beforeEach(async () => {
@@ -43,7 +47,9 @@ describe("Question Review Integration Tests", () => {
     prismaMock = {
       $transaction: jest.fn((callback) => callback(prismaMock)),
       question: {
-        update: jest.fn().mockResolvedValue({ id: "q-123", version: 2, status: "ACTIVE" }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ id: "q-123", version: 2, status: "ACTIVE" }),
       },
       questionVersion: {
         create: jest.fn(),
@@ -95,7 +101,9 @@ describe("Question Review Integration Tests", () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    controller = moduleFixture.get<QuestionReviewController>(QuestionReviewController);
+    controller = moduleFixture.get<QuestionReviewController>(
+      QuestionReviewController,
+    );
   });
 
   afterEach(async () => {
@@ -124,7 +132,10 @@ describe("Question Review Integration Tests", () => {
       topicId: "t-1",
     });
 
-    topicRepoMock.findById.mockResolvedValue({ id: "t-1", name: "Percentages" });
+    topicRepoMock.findById.mockResolvedValue({
+      id: "t-1",
+      name: "Percentages",
+    });
     versionRepoMock.findByQuestionId.mockResolvedValue([
       { snapshot: { options: ["10", "20", "30", "40"] } },
     ]);
@@ -144,13 +155,16 @@ describe("Question Review Integration Tests", () => {
       topicId: "t-1",
     });
 
-    topicRepoMock.findById.mockResolvedValue({ id: "t-1", name: "Percentages" });
+    topicRepoMock.findById.mockResolvedValue({
+      id: "t-1",
+      name: "Percentages",
+    });
     versionRepoMock.findByQuestionId.mockResolvedValue([
       { snapshot: { options: ["10", "20", "30", "40"] } },
     ]);
 
     const res = await controller.bulkReview({ questionIds: ["q-1"] });
     expect(res.results["q-1"]).toBeDefined();
-    expect(res.results["q-1"].recommendation).toBe("APPROVE");
+    expect((res.results["q-1"] as { recommendation: string }).recommendation).toBe("APPROVE");
   });
 });

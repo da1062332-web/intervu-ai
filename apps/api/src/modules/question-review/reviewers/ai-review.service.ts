@@ -11,7 +11,7 @@ import { QuestionEnrichmentService } from "../enrichers/question-enrichment.serv
 import { ReviewAuditService } from "../services/review-audit.service";
 import { GenerationMonitorService } from "../monitoring/generation-monitor.service";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { QuestionStatus } from "@prisma/client";
+import { QuestionStatus, Prisma } from "@prisma/client";
 
 export interface QuestionReviewResult {
   score: number;
@@ -56,7 +56,7 @@ export class AIReviewService {
     let options: string[] = [];
     const versions = await this.versionRepo.findByQuestionId(questionId);
     if (versions.length > 0) {
-      const snapshot = versions[0].snapshot as any;
+      const snapshot = versions[0].snapshot as Record<string, unknown>;
       if (snapshot && Array.isArray(snapshot.options)) {
         options = snapshot.options;
       }
@@ -96,28 +96,37 @@ export class AIReviewService {
 
     // 5. Composite Score Calculation (0-100)
     // Structure holds 50%, Topic match is critical, Readability & Coverage hold 50%
-    let score = (structRes.score * 0.5) + (analyticsRes.readability * 0.2) + (analyticsRes.coverage * 0.3);
-    
+    let score =
+      structRes.score * 0.5 +
+      analyticsRes.readability * 0.2 +
+      analyticsRes.coverage * 0.3;
+
     const issues = [...structRes.issues];
 
     if (!topicRes.match) {
       score = Math.max(0, score - 30);
-      issues.push(`Topic mismatch: requested "${topicRes.requested}", but question content resembles "${topicRes.actual}"`);
+      issues.push(
+        `Topic mismatch: requested "${topicRes.requested}", but question content resembles "${topicRes.actual}"`,
+      );
     }
 
     if (diffRes.expected !== diffRes.actual) {
       score = Math.max(0, score - 15);
-      issues.push(`Difficulty mismatch: requested "${diffRes.expected}", but analyzed actual is "${diffRes.actual}"`);
+      issues.push(
+        `Difficulty mismatch: requested "${diffRes.expected}", but analyzed actual is "${diffRes.actual}"`,
+      );
     }
 
     if (analyticsRes.readability < 40) {
-      issues.push(`Low readability score (${analyticsRes.readability}): text might be too complex or wordy`);
+      issues.push(
+        `Low readability score (${analyticsRes.readability}): text might be too complex or wordy`,
+      );
     }
 
     score = Math.max(0, Math.min(100, Math.round(score)));
 
     // 6. Recommendation Engine
-    const criticalIssuesCount = (!structRes.isValid || !topicRes.match) ? 1 : 0;
+    const criticalIssuesCount = !structRes.isValid || !topicRes.match ? 1 : 0;
     const approval = this.approvalEngine.recommend(score, criticalIssuesCount);
 
     // 7. Write Audit Trail (stores logs)
@@ -138,11 +147,11 @@ export class AIReviewService {
     // 9. Update Database Entity States & Enrichment
     await this.prisma.$transaction(async (tx) => {
       let finalStatus: QuestionStatus = QuestionStatus.DRAFT;
-      let finalMetadata: any = question.metadata || {};
+      let finalMetadata: Record<string, unknown> = (question.metadata as Record<string, unknown>) || {};
 
       if (approval.recommendation === "APPROVE") {
         finalStatus = QuestionStatus.ACTIVE;
-        
+
         // Enrich Metadata
         const enrichment = await this.questionEnrichment.enrich({
           questionText: question.questionText,
@@ -168,13 +177,13 @@ export class AIReviewService {
         where: { id: questionId },
         data: {
           status: finalStatus,
-          metadata: finalMetadata,
+          metadata: finalMetadata as Prisma.InputJsonValue,
           version: { increment: 1 },
         },
       });
 
       // Capture snapshot for version trail
-      const snapshot: Record<string, any> = {
+      const snapshot: Record<string, unknown> = {
         id: updated.id,
         questionText: updated.questionText,
         answer: updated.answer,
@@ -194,7 +203,7 @@ export class AIReviewService {
         data: {
           questionId,
           version: updated.version,
-          snapshot,
+          snapshot: snapshot as Prisma.InputJsonValue,
         },
       });
     });

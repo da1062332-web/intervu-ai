@@ -6,7 +6,9 @@ import { Prisma, GenerationMetrics } from "@prisma/client";
 export class GenerationMetricsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getOrCreateMetrics(tx?: Prisma.TransactionClient): Promise<GenerationMetrics> {
+  async getOrCreateMetrics(
+    tx?: Prisma.TransactionClient,
+  ): Promise<GenerationMetrics> {
     const client = tx || this.prisma;
     const existing = await client.generationMetrics.findFirst();
     if (existing) {

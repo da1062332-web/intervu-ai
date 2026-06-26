@@ -7,7 +7,10 @@ export interface ApprovalRecommendation {
 
 @Injectable()
 export class ApprovalEngineService {
-  recommend(score: number, criticalIssuesCount: number = 0): ApprovalRecommendation {
+  recommend(
+    score: number,
+    criticalIssuesCount: number = 0,
+  ): ApprovalRecommendation {
     if (criticalIssuesCount > 0) {
       return {
         recommendation: "REJECT",

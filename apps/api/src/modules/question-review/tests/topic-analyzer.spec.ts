@@ -22,8 +22,10 @@ describe("TopicAnalyzerService", () => {
   it("should fail when content does not align with topic", async () => {
     const res = await service.analyze({
       requestedTopic: "Percentages",
-      questionText: "A fair die is rolled. Find the probability of getting an even number.",
-      explanation: "Total options are 6, even options are 2, 4, 6. Probability is 3/6 = 0.5.",
+      questionText:
+        "A fair die is rolled. Find the probability of getting an even number.",
+      explanation:
+        "Total options are 6, even options are 2, 4, 6. Probability is 3/6 = 0.5.",
     });
 
     expect(res.match).toBe(false);

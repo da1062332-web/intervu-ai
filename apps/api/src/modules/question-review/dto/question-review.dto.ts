@@ -3,7 +3,10 @@ import { IsArray, IsOptional, IsString, IsInt, Min } from "class-validator";
 import { Type } from "class-transformer";
 
 export class BulkReviewDto {
-  @ApiProperty({ example: ["q-1", "q-2"], description: "List of question IDs to analyze" })
+  @ApiProperty({
+    example: ["q-1", "q-2"],
+    description: "List of question IDs to analyze",
+  })
   @IsArray()
   @IsString({ each: true })
   questionIds!: string[];

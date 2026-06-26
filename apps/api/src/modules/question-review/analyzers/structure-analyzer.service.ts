@@ -4,12 +4,14 @@ interface QuestionInput {
   questionText?: string;
   answer?: string;
   explanation?: string;
-  options?: any;
+  options?: unknown;
 }
 
 @Injectable()
 export class StructureAnalyzerService {
-  async analyze(question: QuestionInput): Promise<{ score: number; isValid: boolean; issues: string[] }> {
+  async analyze(
+    question: QuestionInput,
+  ): Promise<{ score: number; isValid: boolean; issues: string[] }> {
     let score = 100;
     const issues: string[] = [];
 
@@ -48,7 +50,7 @@ export class StructureAnalyzerService {
             score -= 20;
             issues.push("Options string is not a valid JSON array");
           }
-        } catch (e) {
+        } catch {
           score -= 20;
           issues.push("Options string is not a valid JSON");
         }
@@ -65,7 +67,7 @@ export class StructureAnalyzerService {
         issues.push("Multiple choice questions must have at least 2 options");
       }
 
-      const uniqueOpts = new Set(optionsArray.map(o => String(o).trim()));
+      const uniqueOpts = new Set(optionsArray.map((o) => String(o).trim()));
       if (uniqueOpts.size !== optionsArray.length) {
         score -= 10;
         issues.push("Options contain duplicate choices");
@@ -74,11 +76,13 @@ export class StructureAnalyzerService {
       if (question.answer) {
         const trimmedAnswer = question.answer.trim().toLowerCase();
         const hasAnswer = optionsArray.some(
-          o => String(o).trim().toLowerCase() === trimmedAnswer
+          (o) => String(o).trim().toLowerCase() === trimmedAnswer,
         );
         if (!hasAnswer) {
           score -= 20;
-          issues.push("The correct answer does not match any of the provided options");
+          issues.push(
+            "The correct answer does not match any of the provided options",
+          );
         }
       }
     }
