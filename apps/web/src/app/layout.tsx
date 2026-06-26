@@ -15,7 +15,7 @@ const inter = Inter({
 
 const outfit = Outfit({
   subsets: ['latin'],
-  variable: '--font-outfit', 
+  variable: '--font-outfit',
 });
 
 const jetbrainsMono = JetBrains_Mono({
