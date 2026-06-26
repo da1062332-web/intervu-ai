@@ -2,17 +2,17 @@ import { useEffect } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 
 export function useTestTimer() {
-  const { remainingTime, setTimer } = useExecutionStore();
+  const { remainingTime, setTimer, hasAttemptedResume } = useExecutionStore();
 
   useEffect(() => {
-    if (remainingTime <= 0) return;
+    if (remainingTime <= 0 || !hasAttemptedResume) return;
 
     const intervalId = setInterval(() => {
       setTimer(remainingTime - 1);
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [remainingTime, setTimer]);
+  }, [remainingTime, setTimer, hasAttemptedResume]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);

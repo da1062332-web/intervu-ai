@@ -25,7 +25,7 @@ export function StartAssessmentButton({
       onValidationComplete(response);
 
       if (response.isEligible) {
-        router.push(`/candidate/test/${testId}/execution`);
+        router.push(`/candidate/tests/${testId}/execution`);
       } else {
         toast.error('You are not eligible to start this assessment.');
       }

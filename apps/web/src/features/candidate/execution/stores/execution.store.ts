@@ -31,6 +31,7 @@ interface ExecutionState {
   connectionStatus: ConnectionStatus;
   submissionStatus: SubmissionStatus;
   isRecovered: boolean;
+  hasAttemptedResume: boolean;
   hasUnsavedChanges: boolean;
 
   // Actions
@@ -52,6 +53,7 @@ interface ExecutionState {
   // Day 4 Actions
   setAutosaveStatus: (status: AutosaveStatus) => void;
   setRecovered: (recovered: boolean) => void;
+  setAttemptedResume: (attempted: boolean) => void;
   setSubmissionStatus: (status: SubmissionStatus) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
   setUnsavedChanges: (unsaved: boolean) => void;
@@ -82,6 +84,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   connectionStatus: 'ONLINE',
   submissionStatus: 'IDLE',
   isRecovered: false,
+  hasAttemptedResume: false,
   hasUnsavedChanges: false,
 
   initializeTest: (testInstance) => {
@@ -99,6 +102,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       loading: false,
       error: null,
       isRecovered: false,
+      hasAttemptedResume: false,
     });
   },
 
@@ -129,6 +133,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         remainingTime: savedState.remainingTime,
         palette: initialPalette,
         isRecovered: true,
+        hasAttemptedResume: true,
       };
     });
   },
@@ -264,6 +269,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   setAutosaveStatus: (status) =>
     set({ autosaveStatus: status, ...(status === 'SAVED' ? { lastSavedAt: new Date() } : {}) }),
   setRecovered: (recovered) => set({ isRecovered: recovered }),
+  setAttemptedResume: (attempted) => set({ hasAttemptedResume: attempted }),
   setSubmissionStatus: (status) => set({ submissionStatus: status }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setUnsavedChanges: (unsaved) => set({ hasUnsavedChanges: unsaved }),

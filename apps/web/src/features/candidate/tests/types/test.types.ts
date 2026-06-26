@@ -19,11 +19,9 @@ export interface ValidationResponse {
 
 export interface TestConfig {
   id: string;
-  company: string;
+  company: string | null;
   title: string;
-  description: string;
-  totalQuestions: number;
-  durationMinutes: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  sections: TestSection[];
+  difficulty: string;
+  durationMinutes: number | null;
+  sections: string[];
 }

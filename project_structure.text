@@ -1,12 +1,11 @@
-- .agents
-  - rules
-    - interviai.md
 - .dockerignore
 - .editorconfig
+- .env
 - .eslintignore
 - .github
   - workflows
     - ci.yml
+    - module1-validation.yml
 - .gitignore
 - .nvmrc
 - .prettierignore
@@ -21,9 +20,24 @@
   - mirror.out.txt
 - .turbo
   - cache
+    - 000deccfdca0d1ab-meta.json
+    - 000deccfdca0d1ab.tar.zst
+    - 00b17e7a23651024-meta.json
+    - 00b17e7a23651024.tar.zst
+    - 0160426b3f74a90f-manifest.json
+    - 0160426b3f74a90f-meta.json
+    - 0160426b3f74a90f.tar.zst
+    - 020bcd9c87aed9cc-meta.json
+    - 020bcd9c87aed9cc.tar.zst
     - 029024ff710fa5b5-manifest.json
     - 029024ff710fa5b5-meta.json
     - 029024ff710fa5b5.tar.zst
+    - 030b4fd2099805d4-manifest.json
+    - 030b4fd2099805d4-meta.json
+    - 030b4fd2099805d4.tar.zst
+    - 03b4e7a910f2b560-manifest.json
+    - 03b4e7a910f2b560-meta.json
+    - 03b4e7a910f2b560.tar.zst
     - 03c7532542328c1c-manifest.json
     - 03c7532542328c1c-meta.json
     - 03c7532542328c1c.tar.zst
@@ -36,54 +50,154 @@
     - 06c127bb8f5dbb62-manifest.json
     - 06c127bb8f5dbb62-meta.json
     - 06c127bb8f5dbb62.tar.zst
+    - 070b72a62f903a52-manifest.json
+    - 070b72a62f903a52-meta.json
+    - 070b72a62f903a52.tar.zst
     - 072b3404b0216995-manifest.json
     - 072b3404b0216995-meta.json
     - 072b3404b0216995.tar.zst
     - 07a042f1b3cad085-manifest.json
     - 07a042f1b3cad085-meta.json
     - 07a042f1b3cad085.tar.zst
+    - 090e76474152c69c-meta.json
+    - 090e76474152c69c.tar.zst
     - 0a168df72dde9b8d-manifest.json
     - 0a168df72dde9b8d-meta.json
     - 0a168df72dde9b8d.tar.zst
+    - 0a27f120e85d6a77-meta.json
+    - 0a27f120e85d6a77.tar.zst
+    - 0a5d7182e832c3de-meta.json
+    - 0a5d7182e832c3de.tar.zst
+    - 0afa09ef8a0779c2-meta.json
+    - 0afa09ef8a0779c2.tar.zst
+    - 0b0a2bdc8dd104a0-meta.json
+    - 0b0a2bdc8dd104a0.tar.zst
+    - 0c2014136e9e3b52-meta.json
+    - 0c2014136e9e3b52.tar.zst
+    - 0cbb69c15c8285e6-meta.json
+    - 0cbb69c15c8285e6.tar.zst
+    - 0d41a08240ba4a77-manifest.json
+    - 0d41a08240ba4a77-meta.json
+    - 0d41a08240ba4a77.tar.zst
+    - 0dc569ee9de761c7-meta.json
+    - 0dc569ee9de761c7.tar.zst
     - 0e8060a538170bae-manifest.json
     - 0e8060a538170bae-meta.json
     - 0e8060a538170bae.tar.zst
     - 0f6f19f79a5d8d3b-manifest.json
     - 0f6f19f79a5d8d3b-meta.json
     - 0f6f19f79a5d8d3b.tar.zst
+    - 112949bc16746dd2-meta.json
+    - 112949bc16746dd2.tar.zst
+    - 112d2d0961bc372e-meta.json
+    - 112d2d0961bc372e.tar.zst
+    - 117a49117d667df2-meta.json
+    - 117a49117d667df2.tar.zst
+    - 118941ed452fb027-meta.json
+    - 118941ed452fb027.tar.zst
+    - 12e1ecf2e6f137af-meta.json
+    - 12e1ecf2e6f137af.tar.zst
+    - 131c65ea10b522d0-manifest.json
+    - 131c65ea10b522d0-meta.json
+    - 131c65ea10b522d0.tar.zst
+    - 1331ae24a0949c43-meta.json
+    - 1331ae24a0949c43.tar.zst
+    - 1506f7dd91359ccc-meta.json
+    - 1506f7dd91359ccc.tar.zst
     - 1590d7a307525700-manifest.json
     - 1590d7a307525700-meta.json
     - 1590d7a307525700.tar.zst
+    - 161bbd34e9b78cdc-meta.json
+    - 161bbd34e9b78cdc.tar.zst
+    - 16ce7f35783511c1-meta.json
+    - 16ce7f35783511c1.tar.zst
+    - 184d46926080f597-manifest.json
+    - 184d46926080f597-meta.json
+    - 184d46926080f597.tar.zst
+    - 1905ec954c24c805-manifest.json
+    - 1905ec954c24c805-meta.json
+    - 1905ec954c24c805.tar.zst
     - 1957ec4a596d25a1-manifest.json
     - 1957ec4a596d25a1-meta.json
     - 1957ec4a596d25a1.tar.zst
     - 19dbf993081d2be0-manifest.json
     - 19dbf993081d2be0-meta.json
     - 19dbf993081d2be0.tar.zst
+    - 1c83be6b9c7dea69-meta.json
+    - 1c83be6b9c7dea69.tar.zst
+    - 1ddc1d2a9a1a53d9-meta.json
+    - 1ddc1d2a9a1a53d9.tar.zst
+    - 1e345dd8db8dfc87-meta.json
+    - 1e345dd8db8dfc87.tar.zst
     - 1eb529fc84ba8176-manifest.json
     - 1eb529fc84ba8176-meta.json
     - 1eb529fc84ba8176.tar.zst
     - 1ed3db0ca51f74ae-manifest.json
     - 1ed3db0ca51f74ae-meta.json
     - 1ed3db0ca51f74ae.tar.zst
+    - 1f9bb52c1dbb7a33-meta.json
+    - 1f9bb52c1dbb7a33.tar.zst
+    - 1fc845f3a570e65f-manifest.json
+    - 1fc845f3a570e65f-meta.json
+    - 1fc845f3a570e65f.tar.zst
+    - 1fe20d5674b18561-meta.json
+    - 1fe20d5674b18561.tar.zst
+    - 1fe7dabcfb4d8294-meta.json
+    - 1fe7dabcfb4d8294.tar.zst
+    - 2032a34afddb15bb-meta.json
+    - 2032a34afddb15bb.tar.zst
     - 2195cfb83649246f-manifest.json
     - 2195cfb83649246f-meta.json
     - 2195cfb83649246f.tar.zst
+    - 21f1f07205c74f04-manifest.json
+    - 21f1f07205c74f04-meta.json
+    - 21f1f07205c74f04.tar.zst
+    - 22130f0d78becfed-manifest.json
+    - 22130f0d78becfed-meta.json
+    - 22130f0d78becfed.tar.zst
+    - 22513053d577b3f5-meta.json
+    - 22513053d577b3f5.tar.zst
+    - 2254aa302a1c88cd-meta.json
+    - 2254aa302a1c88cd.tar.zst
+    - 2377729b62fb3adf-meta.json
+    - 2377729b62fb3adf.tar.zst
     - 23ddebdfc4a18c9e-manifest.json
     - 23ddebdfc4a18c9e-meta.json
     - 23ddebdfc4a18c9e.tar.zst
+    - 23f0a4dfc07a7ffb-meta.json
+    - 23f0a4dfc07a7ffb.tar.zst
+    - 244dedb0d3743a0a-manifest.json
+    - 244dedb0d3743a0a-meta.json
+    - 244dedb0d3743a0a.tar.zst
+    - 24869276c2deb623-meta.json
+    - 24869276c2deb623.tar.zst
+    - 24c946b99fe3d991-meta.json
+    - 24c946b99fe3d991.tar.zst
+    - 25d59838c4f7904a-meta.json
+    - 25d59838c4f7904a.tar.zst
+    - 26c6002ee5376a46-meta.json
+    - 26c6002ee5376a46.tar.zst
     - 288112a997187d15-manifest.json
     - 288112a997187d15-meta.json
     - 288112a997187d15.tar.zst
+    - 28dda4d7da8309e4-meta.json
+    - 28dda4d7da8309e4.tar.zst
     - 2988425ef16ee392-manifest.json
     - 2988425ef16ee392-meta.json
     - 2988425ef16ee392.tar.zst
+    - 2a28b7bb0a060374-manifest.json
+    - 2a28b7bb0a060374-meta.json
+    - 2a28b7bb0a060374.tar.zst
     - 2a5bbad17dafe363-manifest.json
     - 2a5bbad17dafe363-meta.json
     - 2a5bbad17dafe363.tar.zst
     - 2c67eb8280e60d8c-manifest.json
     - 2c67eb8280e60d8c-meta.json
     - 2c67eb8280e60d8c.tar.zst
+    - 2c9f603c036f2c7e-meta.json
+    - 2c9f603c036f2c7e.tar.zst
+    - 2c9ffb0de4e3c144-meta.json
+    - 2c9ffb0de4e3c144.tar.zst
     - 2df5e84d9e4f15df-manifest.json
     - 2df5e84d9e4f15df-meta.json
     - 2df5e84d9e4f15df.tar.zst
@@ -99,57 +213,146 @@
     - 2f3bb0827cd09f68-manifest.json
     - 2f3bb0827cd09f68-meta.json
     - 2f3bb0827cd09f68.tar.zst
+    - 2f3d8e5f4b34c38f-meta.json
+    - 2f3d8e5f4b34c38f.tar.zst
+    - 313e9118ab4175be-meta.json
+    - 313e9118ab4175be.tar.zst
+    - 31d7f4dc6330254b-meta.json
+    - 31d7f4dc6330254b.tar.zst
+    - 328cfc71459cf9a8-meta.json
+    - 328cfc71459cf9a8.tar.zst
+    - 335af73d3f2772d9-meta.json
+    - 335af73d3f2772d9.tar.zst
+    - 343640757afc949b-meta.json
+    - 343640757afc949b.tar.zst
     - 354f3786cf6907b2-manifest.json
     - 354f3786cf6907b2-meta.json
     - 354f3786cf6907b2.tar.zst
     - 35724240dc32c82a-manifest.json
     - 35724240dc32c82a-meta.json
     - 35724240dc32c82a.tar.zst
+    - 367288d8e69c141d-meta.json
+    - 367288d8e69c141d.tar.zst
     - 36e6f159569f871f-manifest.json
     - 36e6f159569f871f-meta.json
     - 36e6f159569f871f.tar.zst
     - 36fa83ca97ebfff1-manifest.json
     - 36fa83ca97ebfff1-meta.json
     - 36fa83ca97ebfff1.tar.zst
+    - 3728f7ebe06cc4c6-manifest.json
+    - 3728f7ebe06cc4c6-meta.json
+    - 3728f7ebe06cc4c6.tar.zst
     - 374fe23ce6b09761-manifest.json
     - 374fe23ce6b09761-meta.json
     - 374fe23ce6b09761.tar.zst
+    - 3763f4f2a4463fb0-meta.json
+    - 3763f4f2a4463fb0.tar.zst
     - 398360ac31d82a9e-manifest.json
     - 398360ac31d82a9e-meta.json
     - 398360ac31d82a9e.tar.zst
+    - 39b50a237615ef6f-meta.json
+    - 39b50a237615ef6f.tar.zst
+    - 3af73fdea2202427-manifest.json
+    - 3af73fdea2202427-meta.json
+    - 3af73fdea2202427.tar.zst
+    - 3afe8b85b4133a35-meta.json
+    - 3afe8b85b4133a35.tar.zst
     - 3b14418eb0ddb2db-manifest.json
     - 3b14418eb0ddb2db-meta.json
     - 3b14418eb0ddb2db.tar.zst
+    - 3bbf91daf00cab96-manifest.json
+    - 3bbf91daf00cab96-meta.json
+    - 3bbf91daf00cab96.tar.zst
     - 3c2e0dcefba3094b-manifest.json
     - 3c2e0dcefba3094b-meta.json
     - 3c2e0dcefba3094b.tar.zst
+    - 3cee0aabdf660f7f-manifest.json
+    - 3cee0aabdf660f7f-meta.json
+    - 3cee0aabdf660f7f.tar.zst
+    - 3d73d9a6d4bfb2ef-meta.json
+    - 3d73d9a6d4bfb2ef.tar.zst
     - 3d95dd33e22ce599-manifest.json
     - 3d95dd33e22ce599-meta.json
     - 3d95dd33e22ce599.tar.zst
     - 3da81b4af2b2a7af-manifest.json
     - 3da81b4af2b2a7af-meta.json
     - 3da81b4af2b2a7af.tar.zst
+    - 3f9ffcd921bcbb9b-meta.json
+    - 3f9ffcd921bcbb9b.tar.zst
+    - 400133bd71567d9b-manifest.json
+    - 400133bd71567d9b-meta.json
+    - 400133bd71567d9b.tar.zst
+    - 425641f0426ae060-manifest.json
+    - 425641f0426ae060-meta.json
+    - 425641f0426ae060.tar.zst
     - 4394ddac6728b10f-manifest.json
     - 4394ddac6728b10f-meta.json
     - 4394ddac6728b10f.tar.zst
+    - 43a4efbe86fece9c-manifest.json
+    - 43a4efbe86fece9c-meta.json
+    - 43a4efbe86fece9c.tar.zst
+    - 43b29d296a070340-meta.json
+    - 43b29d296a070340.tar.zst
     - 445abaaeee4142c8-manifest.json
     - 445abaaeee4142c8-meta.json
     - 445abaaeee4142c8.tar.zst
+    - 445c1f75727dd931-manifest.json
+    - 445c1f75727dd931-meta.json
+    - 445c1f75727dd931.tar.zst
     - 4535173fadf53232-manifest.json
     - 4535173fadf53232-meta.json
     - 4535173fadf53232.tar.zst
+    - 464a66681e380367-meta.json
+    - 464a66681e380367.tar.zst
+    - 469696661e76c04a-meta.json
+    - 469696661e76c04a.tar.zst
+    - 48aad08aaea3daea-manifest.json
+    - 48aad08aaea3daea-meta.json
+    - 48aad08aaea3daea.tar.zst
     - 48fe06d66a669bac-manifest.json
     - 48fe06d66a669bac-meta.json
     - 48fe06d66a669bac.tar.zst
     - 497a44ffdbadff91-manifest.json
     - 497a44ffdbadff91-meta.json
     - 497a44ffdbadff91.tar.zst
+    - 4b311626a704f5bc-meta.json
+    - 4b311626a704f5bc.tar.zst
+    - 4b9eafc0abadf7dc-meta.json
+    - 4b9eafc0abadf7dc.tar.zst
+    - 4c199d7cec7d3d93-meta.json
+    - 4c199d7cec7d3d93.tar.zst
+    - 4cd58fd21089843e-meta.json
+    - 4cd58fd21089843e.tar.zst
+    - 4e57349ec4fc8eef-meta.json
+    - 4e57349ec4fc8eef.tar.zst
+    - 4ed185a1286fdd98-manifest.json
+    - 4ed185a1286fdd98-meta.json
+    - 4ed185a1286fdd98.tar.zst
     - 4f6b586366e862d0-manifest.json
     - 4f6b586366e862d0-meta.json
     - 4f6b586366e862d0.tar.zst
+    - 4ffee9c77a76ac9d-meta.json
+    - 4ffee9c77a76ac9d.tar.zst
+    - 50cc4f16ddb7bcc4-manifest.json
+    - 50cc4f16ddb7bcc4-meta.json
+    - 50cc4f16ddb7bcc4.tar.zst
+    - 51b61bf8013ddd6d-meta.json
+    - 51b61bf8013ddd6d.tar.zst
+    - 52005eeae6fdc18f-meta.json
+    - 52005eeae6fdc18f.tar.zst
+    - 52eddc43d2b764e7-manifest.json
+    - 52eddc43d2b764e7-meta.json
+    - 52eddc43d2b764e7.tar.zst
+    - 5359fadf09b827f6-meta.json
+    - 5359fadf09b827f6.tar.zst
+    - 535f5e9ec160408f-meta.json
+    - 535f5e9ec160408f.tar.zst
     - 5445229a2b384222-manifest.json
     - 5445229a2b384222-meta.json
     - 5445229a2b384222.tar.zst
+    - 54512ac5f8d914b5-manifest.json
+    - 54512ac5f8d914b5-meta.json
+    - 54512ac5f8d914b5.tar.zst
     - 54b9db37e6712de6-manifest.json
     - 54b9db37e6712de6-meta.json
     - 54b9db37e6712de6.tar.zst
@@ -165,177 +368,637 @@
     - 563b2051c96bac95-manifest.json
     - 563b2051c96bac95-meta.json
     - 563b2051c96bac95.tar.zst
+    - 567e5836329ba8bd-meta.json
+    - 567e5836329ba8bd.tar.zst
+    - 56dd1897cb4b8cbf-meta.json
+    - 56dd1897cb4b8cbf.tar.zst
+    - 56f3bce9b863b518-manifest.json
+    - 56f3bce9b863b518-meta.json
+    - 56f3bce9b863b518.tar.zst
     - 572ca8bace003921-manifest.json
     - 572ca8bace003921-meta.json
     - 572ca8bace003921.tar.zst
     - 574b5c01cee2f55b-manifest.json
     - 574b5c01cee2f55b-meta.json
     - 574b5c01cee2f55b.tar.zst
+    - 594179e79126aab6-meta.json
+    - 594179e79126aab6.tar.zst
     - 59f87809ca4c63d5-manifest.json
     - 59f87809ca4c63d5-meta.json
     - 59f87809ca4c63d5.tar.zst
     - 5c9a25b327fcf137-manifest.json
     - 5c9a25b327fcf137-meta.json
     - 5c9a25b327fcf137.tar.zst
+    - 5e184ac5ce613ead-manifest.json
+    - 5e184ac5ce613ead-meta.json
+    - 5e184ac5ce613ead.tar.zst
+    - 5e81e1497d40236e-meta.json
+    - 5e81e1497d40236e.tar.zst
+    - 5ef98b7d43d1bc46-meta.json
+    - 5ef98b7d43d1bc46.tar.zst
     - 6088e0d105962952-manifest.json
     - 6088e0d105962952-meta.json
     - 6088e0d105962952.tar.zst
+    - 609ced3fb181ce3b-meta.json
+    - 609ced3fb181ce3b.tar.zst
+    - 61194fe7c5b058b5-meta.json
+    - 61194fe7c5b058b5.tar.zst
+    - 61b55b69d6deb164-meta.json
+    - 61b55b69d6deb164.tar.zst
+    - 61cac2fe749cb005-meta.json
+    - 61cac2fe749cb005.tar.zst
+    - 624804b824e66160-meta.json
+    - 624804b824e66160.tar.zst
+    - 625f9560b4d17a37-meta.json
+    - 625f9560b4d17a37.tar.zst
+    - 63a7f8e4f582f6e3-meta.json
+    - 63a7f8e4f582f6e3.tar.zst
+    - 6462b1467caff264-meta.json
+    - 6462b1467caff264.tar.zst
+    - 646b061f6da129ee-manifest.json
+    - 646b061f6da129ee-meta.json
+    - 646b061f6da129ee.tar.zst
+    - 64abca2d433939b5-meta.json
+    - 64abca2d433939b5.tar.zst
+    - 659a50aafef8a9a8-meta.json
+    - 659a50aafef8a9a8.tar.zst
     - 669180ecac4ea925-manifest.json
     - 669180ecac4ea925-meta.json
     - 669180ecac4ea925.tar.zst
+    - 669e85e2daa92f63-meta.json
+    - 669e85e2daa92f63.tar.zst
+    - 66e6385b1dc6bf9a-meta.json
+    - 66e6385b1dc6bf9a.tar.zst
+    - 677499d7b8bf5838-manifest.json
+    - 677499d7b8bf5838-meta.json
+    - 677499d7b8bf5838.tar.zst
+    - 679b6bfd9746262d-meta.json
+    - 679b6bfd9746262d.tar.zst
+    - 6862ae4d3fa705ae-meta.json
+    - 6862ae4d3fa705ae.tar.zst
     - 68addad199522014-manifest.json
     - 68addad199522014-meta.json
     - 68addad199522014.tar.zst
     - 694cc8fbf3d1f9e4-manifest.json
     - 694cc8fbf3d1f9e4-meta.json
     - 694cc8fbf3d1f9e4.tar.zst
+    - 6a7830a666686ae2-meta.json
+    - 6a7830a666686ae2.tar.zst
+    - 6b1f2a94c49ee932-manifest.json
+    - 6b1f2a94c49ee932-meta.json
+    - 6b1f2a94c49ee932.tar.zst
     - 6b5bdd60c1b8dfd1-manifest.json
     - 6b5bdd60c1b8dfd1-meta.json
     - 6b5bdd60c1b8dfd1.tar.zst
+    - 6bad60c352b945f8-meta.json
+    - 6bad60c352b945f8.tar.zst
+    - 6c2f6b779459e995-meta.json
+    - 6c2f6b779459e995.tar.zst
+    - 6d82a81c8cb737dd-meta.json
+    - 6d82a81c8cb737dd.tar.zst
+    - 6d85940ab7e6fdf7-meta.json
+    - 6d85940ab7e6fdf7.tar.zst
+    - 6da4d840c18730b1-meta.json
+    - 6da4d840c18730b1.tar.zst
+    - 6ee5028980d1412b-manifest.json
+    - 6ee5028980d1412b-meta.json
+    - 6ee5028980d1412b.tar.zst
     - 6ef27f5d2aefd76d-manifest.json
     - 6ef27f5d2aefd76d-meta.json
     - 6ef27f5d2aefd76d.tar.zst
     - 6f441076f2c2c199-manifest.json
     - 6f441076f2c2c199-meta.json
     - 6f441076f2c2c199.tar.zst
+    - 6fc28af41713e53b-manifest.json
+    - 6fc28af41713e53b-meta.json
+    - 6fc28af41713e53b.tar.zst
+    - 7056db904582fa6c-meta.json
+    - 7056db904582fa6c.tar.zst
     - 727e5f7eb20e51d3-manifest.json
     - 727e5f7eb20e51d3-meta.json
     - 727e5f7eb20e51d3.tar.zst
+    - 72928bbf02f2f9de-meta.json
+    - 72928bbf02f2f9de.tar.zst
+    - 72e27bd00eb4a83f-meta.json
+    - 72e27bd00eb4a83f.tar.zst
     - 72f9a2f6fcaf3d7c-manifest.json
     - 72f9a2f6fcaf3d7c-meta.json
     - 72f9a2f6fcaf3d7c.tar.zst
+    - 73334a8471bd80cc-meta.json
+    - 73334a8471bd80cc.tar.zst
+    - 74254634942052f8-meta.json
+    - 74254634942052f8.tar.zst
     - 749cdd61cd4d6742-manifest.json
     - 749cdd61cd4d6742-meta.json
     - 749cdd61cd4d6742.tar.zst
+    - 75096a578d36c16b-manifest.json
+    - 75096a578d36c16b-meta.json
+    - 75096a578d36c16b.tar.zst
+    - 76b373c5135cb311-meta.json
+    - 76b373c5135cb311.tar.zst
     - 76ba9995e5d09786-manifest.json
     - 76ba9995e5d09786-meta.json
     - 76ba9995e5d09786.tar.zst
+    - 771ce7ef167f2278-manifest.json
+    - 771ce7ef167f2278-meta.json
+    - 771ce7ef167f2278.tar.zst
+    - 77689eb6fa337b79-manifest.json
+    - 77689eb6fa337b79-meta.json
+    - 77689eb6fa337b79.tar.zst
+    - 77e373bc0fc09c9c-meta.json
+    - 77e373bc0fc09c9c.tar.zst
+    - 7821b8d37b482fb3-meta.json
+    - 7821b8d37b482fb3.tar.zst
+    - 78444b3171cbfc97-meta.json
+    - 78444b3171cbfc97.tar.zst
+    - 78d78e109ac2a483-meta.json
+    - 78d78e109ac2a483.tar.zst
     - 79249e9673247172-manifest.json
     - 79249e9673247172-meta.json
     - 79249e9673247172.tar.zst
+    - 79d0230f2e35104f-meta.json
+    - 79d0230f2e35104f.tar.zst
+    - 7a30b0f5a2323452-meta.json
+    - 7a30b0f5a2323452.tar.zst
+    - 7a77ee4d035588ef-meta.json
+    - 7a77ee4d035588ef.tar.zst
+    - 7bd29f339db91f16-meta.json
+    - 7bd29f339db91f16.tar.zst
+    - 7d24498ac1f7e73b-meta.json
+    - 7d24498ac1f7e73b.tar.zst
+    - 7d37ec0ab2dfd4ec-manifest.json
+    - 7d37ec0ab2dfd4ec-meta.json
+    - 7d37ec0ab2dfd4ec.tar.zst
+    - 7d8401818c30c8ee-meta.json
+    - 7d8401818c30c8ee.tar.zst
+    - 7e759d582deabdeb-meta.json
+    - 7e759d582deabdeb.tar.zst
+    - 7e88768588434a72-manifest.json
+    - 7e88768588434a72-meta.json
+    - 7e88768588434a72.tar.zst
+    - 7e9258b970ccaf73-meta.json
+    - 7e9258b970ccaf73.tar.zst
+    - 7f6ba4baf2400138-meta.json
+    - 7f6ba4baf2400138.tar.zst
+    - 8002a7df6ea79b48-manifest.json
+    - 8002a7df6ea79b48-meta.json
+    - 8002a7df6ea79b48.tar.zst
+    - 80dd705c95823290-manifest.json
+    - 80dd705c95823290-meta.json
+    - 80dd705c95823290.tar.zst
     - 82182bc4938421ea-manifest.json
     - 82182bc4938421ea-meta.json
     - 82182bc4938421ea.tar.zst
+    - 82294b4c925a442e-meta.json
+    - 82294b4c925a442e.tar.zst
+    - 83d707f9d283cbf1-meta.json
+    - 83d707f9d283cbf1.tar.zst
+    - 841093dc56737aa9-manifest.json
+    - 841093dc56737aa9-meta.json
+    - 841093dc56737aa9.tar.zst
     - 848d285ec1f6f982-manifest.json
     - 848d285ec1f6f982-meta.json
     - 848d285ec1f6f982.tar.zst
+    - 85261659c5f2c062-meta.json
+    - 85261659c5f2c062.tar.zst
+    - 85481fc696baaf33-manifest.json
+    - 85481fc696baaf33-meta.json
+    - 85481fc696baaf33.tar.zst
     - 85544e1406e1e329-manifest.json
     - 85544e1406e1e329-meta.json
     - 85544e1406e1e329.tar.zst
+    - 85bcab53ddb6c8f4-meta.json
+    - 85bcab53ddb6c8f4.tar.zst
+    - 85ffa96fd4cf8615-meta.json
+    - 85ffa96fd4cf8615.tar.zst
     - 8639ba311f66711b-manifest.json
     - 8639ba311f66711b-meta.json
     - 8639ba311f66711b.tar.zst
     - 864ce13d0b82aa82-manifest.json
     - 864ce13d0b82aa82-meta.json
     - 864ce13d0b82aa82.tar.zst
+    - 864d828f3243685c-manifest.json
+    - 864d828f3243685c-meta.json
+    - 864d828f3243685c.tar.zst
+    - 8670e54df9524d8d-manifest.json
+    - 8670e54df9524d8d-meta.json
+    - 8670e54df9524d8d.tar.zst
+    - 882938723c395021-meta.json
+    - 882938723c395021.tar.zst
     - 8875e4d696a63ab8-manifest.json
     - 8875e4d696a63ab8-meta.json
     - 8875e4d696a63ab8.tar.zst
+    - 8877f41a00e4c15f-manifest.json
+    - 8877f41a00e4c15f-meta.json
+    - 8877f41a00e4c15f.tar.zst
     - 89a5f097b57d1e61-manifest.json
     - 89a5f097b57d1e61-meta.json
     - 89a5f097b57d1e61.tar.zst
+    - 8c475105f9bf057e-meta.json
+    - 8c475105f9bf057e.tar.zst
     - 8cc33f34d8d91e06-manifest.json
     - 8cc33f34d8d91e06-meta.json
     - 8cc33f34d8d91e06.tar.zst
+    - 8cc93e2791ac72ad-meta.json
+    - 8cc93e2791ac72ad.tar.zst
     - 8d32df8d63442d01-manifest.json
     - 8d32df8d63442d01-meta.json
     - 8d32df8d63442d01.tar.zst
+    - 8dc4d08c6d19d173-meta.json
+    - 8dc4d08c6d19d173.tar.zst
+    - 8e004f8e02f246b0-meta.json
+    - 8e004f8e02f246b0.tar.zst
+    - 8e79459f314deba3-meta.json
+    - 8e79459f314deba3.tar.zst
+    - 9027196bdbd5e6ad-meta.json
+    - 9027196bdbd5e6ad.tar.zst
+    - 904b5dd8d51dcf81-meta.json
+    - 904b5dd8d51dcf81.tar.zst
+    - 910bf13aa76c8f83-manifest.json
+    - 910bf13aa76c8f83-meta.json
+    - 910bf13aa76c8f83.tar.zst
+    - 93a0e53e74a5768f-manifest.json
+    - 93a0e53e74a5768f-meta.json
+    - 93a0e53e74a5768f.tar.zst
     - 94e522cbd8daf877-manifest.json
     - 94e522cbd8daf877-meta.json
     - 94e522cbd8daf877.tar.zst
+    - 96afbb0c8416740c-meta.json
+    - 96afbb0c8416740c.tar.zst
+    - 97b2256e4d7af42c-meta.json
+    - 97b2256e4d7af42c.tar.zst
+    - 97e1633d9d547fcb-manifest.json
+    - 97e1633d9d547fcb-meta.json
+    - 97e1633d9d547fcb.tar.zst
+    - 97fd1cb1dc3d41bb-manifest.json
+    - 97fd1cb1dc3d41bb-meta.json
+    - 97fd1cb1dc3d41bb.tar.zst
     - 9847437be390ae20-manifest.json
     - 9847437be390ae20-meta.json
     - 9847437be390ae20.tar.zst
+    - 98e22d843151292d-manifest.json
+    - 98e22d843151292d-meta.json
+    - 98e22d843151292d.tar.zst
+    - 996af6563923356e-meta.json
+    - 996af6563923356e.tar.zst
     - 998cbfa996c363ba-manifest.json
     - 998cbfa996c363ba-meta.json
     - 998cbfa996c363ba.tar.zst
+    - 9a7c17da86a8c364-manifest.json
+    - 9a7c17da86a8c364-meta.json
+    - 9a7c17da86a8c364.tar.zst
+    - 9b004e22ff6d78c9-manifest.json
+    - 9b004e22ff6d78c9-meta.json
+    - 9b004e22ff6d78c9.tar.zst
     - 9d3a8ac036ede9a3-manifest.json
     - 9d3a8ac036ede9a3-meta.json
     - 9d3a8ac036ede9a3.tar.zst
+    - 9f5a8adeabdc15ea-meta.json
+    - 9f5a8adeabdc15ea.tar.zst
+    - a0ce51a6a1b66557-manifest.json
+    - a0ce51a6a1b66557-meta.json
+    - a0ce51a6a1b66557.tar.zst
+    - a1a3a68aa00088ef-meta.json
+    - a1a3a68aa00088ef.tar.zst
+    - a1c9057e58d48918-meta.json
+    - a1c9057e58d48918.tar.zst
+    - a22eb06e4822a530-meta.json
+    - a22eb06e4822a530.tar.zst
+    - a2e7e3005d3d38c3-meta.json
+    - a2e7e3005d3d38c3.tar.zst
+    - a3533e262343c4ef-meta.json
+    - a3533e262343c4ef.tar.zst
     - a3972f6b6b9e6139-manifest.json
     - a3972f6b6b9e6139-meta.json
     - a3972f6b6b9e6139.tar.zst
+    - a4b5dcaca2caf0a5-meta.json
+    - a4b5dcaca2caf0a5.tar.zst
+    - a4e56977e2c5492e-meta.json
+    - a4e56977e2c5492e.tar.zst
     - a536006a4a80aa49-manifest.json
     - a536006a4a80aa49-meta.json
     - a536006a4a80aa49.tar.zst
+    - a53a5a6e6566daf0-manifest.json
+    - a53a5a6e6566daf0-meta.json
+    - a53a5a6e6566daf0.tar.zst
     - a63a2b4c1ca5ddab-manifest.json
     - a63a2b4c1ca5ddab-meta.json
     - a63a2b4c1ca5ddab.tar.zst
+    - a6d78ab12a49f473-meta.json
+    - a6d78ab12a49f473.tar.zst
     - a784850b4b70ceb3-manifest.json
     - a784850b4b70ceb3-meta.json
     - a784850b4b70ceb3.tar.zst
+    - a8d4bd71b2724405-meta.json
+    - a8d4bd71b2724405.tar.zst
+    - a8d61107ef4b3513-manifest.json
+    - a8d61107ef4b3513-meta.json
+    - a8d61107ef4b3513.tar.zst
+    - a8e19fe8a2f1503b-manifest.json
+    - a8e19fe8a2f1503b-meta.json
+    - a8e19fe8a2f1503b.tar.zst
+    - a9cf4c33ab184639-meta.json
+    - a9cf4c33ab184639.tar.zst
+    - aa0c96f477d0016a-meta.json
+    - aa0c96f477d0016a.tar.zst
+    - aa1f09badf76692e-manifest.json
+    - aa1f09badf76692e-meta.json
+    - aa1f09badf76692e.tar.zst
+    - aa2bf4ed217f1c7e-manifest.json
+    - aa2bf4ed217f1c7e-meta.json
+    - aa2bf4ed217f1c7e.tar.zst
+    - ab6871e3eaf4319c-meta.json
+    - ab6871e3eaf4319c.tar.zst
+    - acb138e516f5b675-manifest.json
+    - acb138e516f5b675-meta.json
+    - acb138e516f5b675.tar.zst
+    - ad9da32975802e24-manifest.json
+    - ad9da32975802e24-meta.json
+    - ad9da32975802e24.tar.zst
+    - add830aff176442d-meta.json
+    - add830aff176442d.tar.zst
     - ae1129a98951067c-manifest.json
     - ae1129a98951067c-meta.json
     - ae1129a98951067c.tar.zst
+    - af8a87b37cf6d4be-manifest.json
+    - af8a87b37cf6d4be-meta.json
+    - af8a87b37cf6d4be.tar.zst
     - b099beb5bb56bff1-manifest.json
     - b099beb5bb56bff1-meta.json
     - b099beb5bb56bff1.tar.zst
+    - b0a8e0315a235ac9-meta.json
+    - b0a8e0315a235ac9.tar.zst
     - b1687bfef3345911-manifest.json
     - b1687bfef3345911-meta.json
     - b1687bfef3345911.tar.zst
+    - b1934b711a240c6d-meta.json
+    - b1934b711a240c6d.tar.zst
+    - b1bbc2ff5cbba583-meta.json
+    - b1bbc2ff5cbba583.tar.zst
     - b2010ced07886af7-manifest.json
     - b2010ced07886af7-meta.json
     - b2010ced07886af7.tar.zst
+    - b2033539fb4f062f-meta.json
+    - b2033539fb4f062f.tar.zst
     - b312dcf689c3d812-manifest.json
     - b312dcf689c3d812-meta.json
     - b312dcf689c3d812.tar.zst
+    - b3b7ef16abe83ac8-meta.json
+    - b3b7ef16abe83ac8.tar.zst
+    - b4055c0ea447d016-meta.json
+    - b4055c0ea447d016.tar.zst
+    - b5f7e44ec9152ddf-meta.json
+    - b5f7e44ec9152ddf.tar.zst
+    - b757311999a85481-meta.json
+    - b757311999a85481.tar.zst
+    - b83f51757ac65afb-meta.json
+    - b83f51757ac65afb.tar.zst
+    - b87e09c2aaf48313-manifest.json
+    - b87e09c2aaf48313-meta.json
+    - b87e09c2aaf48313.tar.zst
+    - b91ac8ae6a977863-meta.json
+    - b91ac8ae6a977863.tar.zst
     - b9b25d1abd656b92-manifest.json
     - b9b25d1abd656b92-meta.json
     - b9b25d1abd656b92.tar.zst
+    - b9f28e915e194d96-manifest.json
+    - b9f28e915e194d96-meta.json
+    - b9f28e915e194d96.tar.zst
     - ba1f343659a3c5b3-manifest.json
     - ba1f343659a3c5b3-meta.json
     - ba1f343659a3c5b3.tar.zst
+    - bb747cc45504abf4-meta.json
+    - bb747cc45504abf4.tar.zst
+    - bb7d3d969784a401-manifest.json
+    - bb7d3d969784a401-meta.json
+    - bb7d3d969784a401.tar.zst
+    - bbcfd33b7be74f8a-manifest.json
+    - bbcfd33b7be74f8a-meta.json
+    - bbcfd33b7be74f8a.tar.zst
+    - c0491fd42bd16eea-manifest.json
+    - c0491fd42bd16eea-meta.json
+    - c0491fd42bd16eea.tar.zst
+    - c07774a3de6f45bb-meta.json
+    - c07774a3de6f45bb.tar.zst
     - c0eb8648838a386d-manifest.json
     - c0eb8648838a386d-meta.json
     - c0eb8648838a386d.tar.zst
+    - c1c94c729c85ee2f-meta.json
+    - c1c94c729c85ee2f.tar.zst
+    - c29c301669daf9d5-meta.json
+    - c29c301669daf9d5.tar.zst
+    - c2d7859fb32c3e02-meta.json
+    - c2d7859fb32c3e02.tar.zst
+    - c304401c44c062ea-meta.json
+    - c304401c44c062ea.tar.zst
+    - c4565be233341297-meta.json
+    - c4565be233341297.tar.zst
+    - c5db6f867ef6c7e8-manifest.json
+    - c5db6f867ef6c7e8-meta.json
+    - c5db6f867ef6c7e8.tar.zst
+    - c5fcbba071427d38-meta.json
+    - c5fcbba071427d38.tar.zst
+    - c685fa354a216b54-meta.json
+    - c685fa354a216b54.tar.zst
+    - c691d0dd11f32aef-manifest.json
+    - c691d0dd11f32aef-meta.json
+    - c691d0dd11f32aef.tar.zst
+    - c8f8e0674418b55f-meta.json
+    - c8f8e0674418b55f.tar.zst
+    - c90c105fa06e2f5e-manifest.json
+    - c90c105fa06e2f5e-meta.json
+    - c90c105fa06e2f5e.tar.zst
+    - ca8fb474b19a977e-meta.json
+    - ca8fb474b19a977e.tar.zst
+    - cbe06a0034b41963-meta.json
+    - cbe06a0034b41963.tar.zst
+    - ceb9e9a8d07512ca-meta.json
+    - ceb9e9a8d07512ca.tar.zst
     - cf02b4e7f548d402-manifest.json
     - cf02b4e7f548d402-meta.json
     - cf02b4e7f548d402.tar.zst
+    - d03762fcddebafb3-meta.json
+    - d03762fcddebafb3.tar.zst
     - d03cd03df7d37677-manifest.json
     - d03cd03df7d37677-meta.json
     - d03cd03df7d37677.tar.zst
+    - d0dbc04747dd1cb2-manifest.json
+    - d0dbc04747dd1cb2-meta.json
+    - d0dbc04747dd1cb2.tar.zst
+    - d1c8493d383e580e-manifest.json
+    - d1c8493d383e580e-meta.json
+    - d1c8493d383e580e.tar.zst
+    - d1dfb844a1214116-manifest.json
+    - d1dfb844a1214116-meta.json
+    - d1dfb844a1214116.tar.zst
+    - d20ef8491c83c9b3-meta.json
+    - d20ef8491c83c9b3.tar.zst
+    - d3272980ef0fc7da-meta.json
+    - d3272980ef0fc7da.tar.zst
+    - d39542e5fd40da35-meta.json
+    - d39542e5fd40da35.tar.zst
+    - d3d37b9bbef43448-meta.json
+    - d3d37b9bbef43448.tar.zst
+    - d44ffbb42be496ea-meta.json
+    - d44ffbb42be496ea.tar.zst
+    - d4fd098fd65eb3d4-manifest.json
+    - d4fd098fd65eb3d4-meta.json
+    - d4fd098fd65eb3d4.tar.zst
+    - d55601233e30765b-manifest.json
+    - d55601233e30765b-meta.json
+    - d55601233e30765b.tar.zst
+    - d5658cb5c7b9bee9-manifest.json
+    - d5658cb5c7b9bee9-meta.json
+    - d5658cb5c7b9bee9.tar.zst
+    - d5a6da09d6c0483b-meta.json
+    - d5a6da09d6c0483b.tar.zst
     - d777b3931734825f-manifest.json
     - d777b3931734825f-meta.json
     - d777b3931734825f.tar.zst
     - d791385c769cf610-manifest.json
     - d791385c769cf610-meta.json
     - d791385c769cf610.tar.zst
+    - d7f05ac9fe65b40e-meta.json
+    - d7f05ac9fe65b40e.tar.zst
+    - d96d66f43a639eff-manifest.json
+    - d96d66f43a639eff-meta.json
+    - d96d66f43a639eff.tar.zst
+    - d9c308f331ed96f9-manifest.json
+    - d9c308f331ed96f9-meta.json
+    - d9c308f331ed96f9.tar.zst
     - da06290cb86f3ad7-manifest.json
     - da06290cb86f3ad7-meta.json
     - da06290cb86f3ad7.tar.zst
+    - da9d178b21b16398-meta.json
+    - da9d178b21b16398.tar.zst
+    - daac10655920c6f9-meta.json
+    - daac10655920c6f9.tar.zst
     - daad20166445c63f-manifest.json
     - daad20166445c63f-meta.json
     - daad20166445c63f.tar.zst
+    - dab0f995540de5f4-manifest.json
+    - dab0f995540de5f4-meta.json
+    - dab0f995540de5f4.tar.zst
+    - dabcf294945cd9a9-meta.json
+    - dabcf294945cd9a9.tar.zst
+    - dbfab3371c9c60e9-manifest.json
+    - dbfab3371c9c60e9-meta.json
+    - dbfab3371c9c60e9.tar.zst
+    - dea276e3bc8b340d-manifest.json
+    - dea276e3bc8b340d-meta.json
+    - dea276e3bc8b340d.tar.zst
+    - dfa01e2f632a283f-manifest.json
+    - dfa01e2f632a283f-meta.json
+    - dfa01e2f632a283f.tar.zst
+    - e132e85724a615b0-meta.json
+    - e132e85724a615b0.tar.zst
     - e155bed6c3bbfbf3-manifest.json
     - e155bed6c3bbfbf3-meta.json
     - e155bed6c3bbfbf3.tar.zst
+    - e26bc3fb7a498794-meta.json
+    - e26bc3fb7a498794.tar.zst
     - e27b861dfa3bc653-manifest.json
     - e27b861dfa3bc653-meta.json
     - e27b861dfa3bc653.tar.zst
+    - e2825b06e0edc468-manifest.json
+    - e2825b06e0edc468-meta.json
+    - e2825b06e0edc468.tar.zst
+    - e2b7e5f5648f50fb-meta.json
+    - e2b7e5f5648f50fb.tar.zst
+    - e2fcc3aa4d75471b-manifest.json
+    - e2fcc3aa4d75471b-meta.json
+    - e2fcc3aa4d75471b.tar.zst
+    - e40a0e231669313b-meta.json
+    - e40a0e231669313b.tar.zst
+    - e413e7a16419cbda-meta.json
+    - e413e7a16419cbda.tar.zst
+    - e5e2ede4f77bb69c-manifest.json
+    - e5e2ede4f77bb69c-meta.json
+    - e5e2ede4f77bb69c.tar.zst
+    - e6356d2d0e260bca-meta.json
+    - e6356d2d0e260bca.tar.zst
+    - e71eddfa81f06ed8-manifest.json
+    - e71eddfa81f06ed8-meta.json
+    - e71eddfa81f06ed8.tar.zst
+    - e7781f80aa296f6c-meta.json
+    - e7781f80aa296f6c.tar.zst
+    - e8a3d1bb733e6048-manifest.json
+    - e8a3d1bb733e6048-meta.json
+    - e8a3d1bb733e6048.tar.zst
+    - e9f59c873eb34fb3-meta.json
+    - e9f59c873eb34fb3.tar.zst
+    - ead85214d302d715-manifest.json
+    - ead85214d302d715-meta.json
+    - ead85214d302d715.tar.zst
+    - eb002a25c0d8cb34-manifest.json
+    - eb002a25c0d8cb34-meta.json
+    - eb002a25c0d8cb34.tar.zst
+    - eb44bdcb5856c9ac-manifest.json
+    - eb44bdcb5856c9ac-meta.json
+    - eb44bdcb5856c9ac.tar.zst
+    - eccd6f093280757e-meta.json
+    - eccd6f093280757e.tar.zst
+    - ecfd0b8fbc18171c-manifest.json
+    - ecfd0b8fbc18171c-meta.json
+    - ecfd0b8fbc18171c.tar.zst
     - ee98e13681ab5b4a-manifest.json
     - ee98e13681ab5b4a-meta.json
     - ee98e13681ab5b4a.tar.zst
+    - ef5aa84f150e391c-manifest.json
+    - ef5aa84f150e391c-meta.json
+    - ef5aa84f150e391c.tar.zst
+    - f003bd9b2909872a-manifest.json
+    - f003bd9b2909872a-meta.json
+    - f003bd9b2909872a.tar.zst
+    - f210b96d555900fa-meta.json
+    - f210b96d555900fa.tar.zst
     - f2bba758345cda82-manifest.json
     - f2bba758345cda82-meta.json
     - f2bba758345cda82.tar.zst
+    - f30e2b2a489f0d9f-meta.json
+    - f30e2b2a489f0d9f.tar.zst
+    - f358440c86036355-meta.json
+    - f358440c86036355.tar.zst
+    - f3792414312f039f-meta.json
+    - f3792414312f039f.tar.zst
+    - f3fec4eeab8b5068-meta.json
+    - f3fec4eeab8b5068.tar.zst
+    - f524ffdc966c939e-manifest.json
+    - f524ffdc966c939e-meta.json
+    - f524ffdc966c939e.tar.zst
     - f55cc1f92d06be23-manifest.json
     - f55cc1f92d06be23-meta.json
     - f55cc1f92d06be23.tar.zst
     - f5b005a105167e77-manifest.json
     - f5b005a105167e77-meta.json
     - f5b005a105167e77.tar.zst
+    - f63ca0981df4c941-meta.json
+    - f63ca0981df4c941.tar.zst
     - f80ead8430019643-manifest.json
     - f80ead8430019643-meta.json
     - f80ead8430019643.tar.zst
+    - f85dae32165578c1-meta.json
+    - f85dae32165578c1.tar.zst
+    - f9093dc1b7039fe4-meta.json
+    - f9093dc1b7039fe4.tar.zst
+    - f968dfe585861011-manifest.json
+    - f968dfe585861011-meta.json
+    - f968dfe585861011.tar.zst
     - f9ee19d586e824fe-manifest.json
     - f9ee19d586e824fe-meta.json
     - f9ee19d586e824fe.tar.zst
     - f9f2dc9cf5e4c7d2-manifest.json
     - f9f2dc9cf5e4c7d2-meta.json
     - f9f2dc9cf5e4c7d2.tar.zst
+    - fb652c759411d325-meta.json
+    - fb652c759411d325.tar.zst
+    - fc74086f7757ef27-meta.json
+    - fc74086f7757ef27.tar.zst
     - fc8c7737f96603d3-manifest.json
     - fc8c7737f96603d3-meta.json
     - fc8c7737f96603d3.tar.zst
+    - fd36f51021247bb5-meta.json
+    - fd36f51021247bb5.tar.zst
 - apps
   - api
     - .env
@@ -348,6 +1011,536 @@
       - turbo-test$colon$regression.log
       - turbo-test.log
       - turbo-type-check.log
+    - coverage
+      - clover.xml
+      - coverage-final.json
+      - lcov-report
+        - base.css
+        - block-navigation.js
+        - favicon.png
+        - index.html
+        - prettify.css
+        - prettify.js
+        - sort-arrow-sprite.png
+        - sorter.js
+        - src
+          - app.module.ts.html
+          - cache
+            - cache.module.ts.html
+            - index.html
+            - index.ts.html
+            - redis-cache.service.ts.html
+            - redis-connection.manager.ts.html
+          - common
+            - decorators
+              - index.html
+              - rate-limit.decorator.ts.html
+            - guards
+              - custom-throttler.guard.ts.html
+              - index.html
+            - index.html
+            - index.ts.html
+            - middleware
+              - correlation.middleware.ts.html
+              - index.html
+              - request-logging.middleware.ts.html
+            - monitoring
+              - index.html
+              - observability.interceptor.ts.html
+            - repositories
+              - base.repository.ts.html
+              - index.html
+          - config
+            - config.module.ts.html
+            - config.service.ts.html
+            - env.schema.ts.html
+            - index.html
+            - index.ts.html
+            - rate-limit.config.ts.html
+          - core
+            - entities
+              - base.entity.ts.html
+              - index.html
+            - exceptions.ts.html
+            - index.html
+            - index.ts.html
+          - index.html
+          - main.ts.html
+          - modules
+            - admin-config
+              - admin-config.module.ts.html
+              - controllers
+                - exam-config.controller.ts.html
+                - exam-section.controller.ts.html
+                - index.html
+              - index.html
+              - repositories
+                - exam-config.repository.ts.html
+                - exam-section.repository.ts.html
+                - index.html
+              - services
+                - exam-config.service.ts.html
+                - exam-section.service.ts.html
+                - index.html
+            - assembly
+              - assembly-business-flow.integration.spec.ts.html
+              - assembly.integration.spec.ts.html
+              - assembly.module.ts.html
+              - controllers
+                - assembly.controller.ts.html
+                - index.html
+              - dto
+                - generate-test-request.dto.ts.html
+                - index.html
+                - preview-test-response.dto.ts.html
+              - index.html
+              - providers
+                - index.html
+                - mock-semantic-similarity.provider.ts.html
+                - semantic-similarity.provider.ts.html
+              - repositories
+                - assembly.repository.ts.html
+                - blueprint.repository.ts.html
+                - index.html
+                - question-pool.repository.ts.html
+              - services
+                - anti-repetition.service.ts.html
+                - blueprint-builder.service.ts.html
+                - index.html
+                - question-allocator.service.ts.html
+                - section-builder.service.ts.html
+                - test-assembly.service.ts.html
+              - validators
+                - assembly-validator.service.ts.html
+                - index.html
+            - auth
+              - auth.module.ts.html
+              - controllers
+                - auth.controller.ts.html
+                - index.html
+              - decorators
+                - current-user.decorator.ts.html
+                - index.html
+                - public.decorator.ts.html
+                - roles.decorator.ts.html
+              - dto
+                - auth.dto.ts.html
+                - index.html
+              - guards
+                - index.html
+                - jwt-auth.guard.ts.html
+                - roles.guard.ts.html
+              - index.html
+              - index.ts.html
+              - services
+                - auth.service.ts.html
+                - index.html
+              - strategies
+                - index.html
+                - jwt.strategy.ts.html
+            - blueprint
+              - blueprint.module.ts.html
+              - controllers
+                - blueprint.controller.ts.html
+                - index.html
+                - style-profile.controller.ts.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - blueprint.repository.ts.html
+                - index.html
+                - style-profile.repository.ts.html
+              - services
+                - blueprint-compiler.service.ts.html
+                - blueprint.service.ts.html
+                - index.html
+                - style-profile.service.ts.html
+            - blueprint-config
+              - blueprint-config.controller.ts.html
+              - blueprint-config.integration.spec.ts.html
+              - blueprint-config.module.ts.html
+              - blueprint-config.repository.ts.html
+              - blueprint-config.service.ts.html
+              - blueprint-validator.service.ts.html
+              - index.html
+            - concept-mapping
+              - concept-mapping.module.ts.html
+              - controllers
+                - concept-mapping.controller.ts.html
+                - index.html
+                - topic.controller.ts.html
+              - index.html
+              - repositories
+                - concept-mapping.repository.ts.html
+                - index.html
+                - topic.repository.ts.html
+              - services
+                - concept-mapping.service.ts.html
+                - index.html
+                - topic-registry-loader.service.ts.html
+                - topic.service.ts.html
+            - config
+              - controllers
+                - index.html
+                - system-config.controller.ts.html
+              - dto
+                - index.html
+                - system-config.dto.ts.html
+                - update-system-config.dto.ts.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - config.repository.ts.html
+                - index.html
+              - services
+                - index.html
+                - system-config.service.ts.html
+              - system-config.module.ts.html
+            - dashboard
+              - controllers
+                - dashboard.controller.ts.html
+                - index.html
+              - dashboard.integration.spec.ts.html
+              - dashboard.module.ts.html
+              - dto
+                - dashboard-response.dto.ts.html
+                - index.html
+              - entities
+                - dashboard-activity-item.entity.ts.html
+                - dashboard-analytics-summary.entity.ts.html
+                - dashboard-stats.entity.ts.html
+                - index.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - dashboard.repository.ts.html
+                - index.html
+              - services
+                - dashboard.service.ts.html
+                - index.html
+            - decision
+              - controllers
+                - decision.controller.ts.html
+                - index.html
+              - decision.module.ts.html
+              - index.html
+              - services
+                - decision.service.ts.html
+                - index.html
+            - difficulty-distribution
+              - controllers
+                - difficulty-distribution.controller.ts.html
+                - index.html
+              - difficulty-distribution.module.ts.html
+              - index.html
+              - repositories
+                - difficulty-distribution.repository.ts.html
+                - index.html
+              - services
+                - difficulty-distribution.service.ts.html
+                - index.html
+            - evaluation
+              - controllers
+                - evaluation.controller.ts.html
+                - index.html
+              - evaluation.module.ts.html
+              - index.html
+              - services
+                - evaluation.service.ts.html
+                - index.html
+            - execution
+              - answer-persistence.service.ts.html
+              - controllers
+                - answer.controller.ts.html
+                - execution.controller.ts.html
+                - index.html
+                - index.ts.html
+                - resume.controller.ts.html
+                - submission.controller.ts.html
+              - dto
+                - candidate-answer.dto.ts.html
+                - execution-result.dto.ts.html
+                - execution.schema.ts.html
+                - index.html
+                - index.ts.html
+                - submit-execution-response.dto.ts.html
+                - submit-execution.dto.ts.html
+              - execution.e2e-spec.ts.html
+              - execution.module.ts.html
+              - index.html
+              - interfaces
+                - evaluation-adapter.interface.ts.html
+                - index.html
+              - repositories
+                - candidate-answer.repository.ts.html
+                - execution-state.repository.ts.html
+                - index.html
+                - index.ts.html
+                - submission.repository.ts.html
+                - test-instance.repository.ts.html
+              - services
+                - answer.service.ts.html
+                - execution-state.service.ts.html
+                - execution-validator.service.ts.html
+                - execution.service.ts.html
+                - index.html
+                - index.ts.html
+                - resume.service.ts.html
+                - submission.service.ts.html
+            - generation
+              - controllers
+                - generation.controller.ts.html
+                - index.html
+              - dto
+                - generation.dto.ts.html
+                - index.html
+              - generation-query.service.ts.html
+              - generation-storage.service.ts.html
+              - generation.module.ts.html
+              - index.html
+              - index.ts.html
+              - services
+                - generation-context.service.ts.html
+                - generation-orchestrator.service.ts.html
+                - generation.service.ts.html
+                - index.html
+                - parameter-generator.service.ts.html
+                - question-instantiator.service.ts.html
+                - question-validation.service.ts.html
+                - template-selector.service.ts.html
+            - health
+              - controllers
+                - health.controller.ts.html
+                - index.html
+              - health.module.ts.html
+              - index.html
+              - index.ts.html
+              - services
+                - health.service.ts.html
+                - index.html
+                - redis-health.indicator.ts.html
+            - lifecycle
+              - eligibility.service.ts.html
+              - index.html
+              - lifecycle.module.ts.html
+            - question-bank
+              - controllers
+                - index.html
+                - question-bank.controller.ts.html
+              - dto
+                - assembly-provider.dto.ts.html
+                - index.html
+                - question-bank.dto.ts.html
+              - entities
+                - index.html
+                - question.entity.ts.html
+              - index.html
+              - question-bank.module.ts.html
+              - repositories
+                - index.html
+                - question-review.repository.ts.html
+                - question-version.repository.ts.html
+                - question.repository.ts.html
+              - services
+                - index.html
+                - question-bank.service.ts.html
+                - question-reservation.service.ts.html
+                - question-review.service.ts.html
+                - question-rotation.service.ts.html
+                - question-search.service.ts.html
+                - question-similarity.service.ts.html
+                - question-usage.service.ts.html
+                - question-version.service.ts.html
+            - question-pool
+              - index.html
+              - question-pool.module.ts.html
+              - repositories
+                - generated-question.repository.ts.html
+                - index.html
+              - services
+                - index.html
+                - question-pool.service.ts.html
+            - queue-monitor
+              - controllers
+                - index.html
+                - queue-monitor.controller.ts.html
+              - index.html
+              - index.ts.html
+              - queue-monitor.module.ts.html
+            - results
+              - controllers
+                - index.html
+                - performance.controller.ts.html
+                - results.controller.ts.html
+              - index.html
+              - index.ts.html
+              - mappers
+                - history.mapper.ts.html
+                - index.html
+                - performance.mapper.ts.html
+                - recommendation.mapper.ts.html
+                - result.mapper.ts.html
+              - repositories
+                - evaluation.repository.ts.html
+                - index.html
+                - performance.repository.ts.html
+                - recommendation.repository.ts.html
+              - results.module.ts.html
+              - services
+                - dashboard-metrics-aggregator.ts.html
+                - evaluation-persistence.service.ts.html
+                - index.html
+                - performance.service.ts.html
+                - recommendations.service.ts.html
+                - results.service.ts.html
+              - tests
+                - index.html
+                - results.integration.spec.ts.html
+            - rule-flags
+              - controllers
+                - index.html
+                - rule-flags.controller.ts.html
+              - index.html
+              - repositories
+                - index.html
+                - rule-flags.repository.ts.html
+              - rule-flags.module.ts.html
+              - services
+                - index.html
+                - rule-flags.service.ts.html
+            - template-library
+              - controllers
+                - index.html
+                - template-rule.controller.ts.html
+                - template-variable.controller.ts.html
+                - template.controller.ts.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - index.html
+                - solution-template.repository.ts.html
+                - template-preview.repository.ts.html
+                - template-rule.repository.ts.html
+                - template-variable.repository.ts.html
+                - template.repository.ts.html
+              - services
+                - index.html
+                - placeholder-validator.service.ts.html
+                - solution-template.integration.spec.ts.html
+                - solution-template.service.ts.html
+                - template-renderer.service.ts.html
+                - template.service.ts.html
+              - template-library.module.ts.html
+            - test-assembly
+              - controllers
+                - index.html
+                - test-assembly.controller.ts.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - index.html
+                - test.repository.ts.html
+              - services
+                - index.html
+                - test-assembly.service.ts.html
+              - test-assembly.module.ts.html
+            - tests
+              - controllers
+                - index.html
+                - tests.controller.ts.html
+              - dto
+                - available-config.dto.ts.html
+                - index.html
+              - index.html
+              - repositories
+                - index.html
+                - test-config.repository.ts.html
+                - tests.repository.ts.html
+              - services
+                - index.html
+                - tests.service.ts.html
+              - start-test
+                - dto
+                  - index.html
+                  - start-test.dto.ts.html
+                - index.html
+                - question-provider.service.ts.html
+                - start-test.controller.ts.html
+                - start-test.module.ts.html
+                - start-test.service.ts.html
+              - test-instance
+                - index.html
+                - test-instance.repository.ts.html
+                - test-instance.service.ts.html
+              - tests.integration.spec.ts.html
+              - tests.module.ts.html
+            - topic-section-mapping
+              - controllers
+                - index.html
+                - topic-section-mapping.controller.ts.html
+                - topic-weightage.controller.ts.html
+              - index.html
+              - repositories
+                - index.html
+                - topic-section-mapping.repository.ts.html
+                - topic-weightage.repository.ts.html
+              - services
+                - index.html
+                - topic-section-mapping.service.ts.html
+                - topic-weightage.service.ts.html
+              - topic-section-mapping.module.ts.html
+            - users
+              - controllers
+                - index.html
+                - users.controller.ts.html
+              - dto
+                - index.html
+                - update-profile.dto.ts.html
+              - entities
+                - index.html
+                - session.entity.ts.html
+                - user.entity.ts.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - index.html
+                - session.repository.ts.html
+                - user.repository.ts.html
+              - services
+                - index.html
+                - users.service.ts.html
+              - users.module.ts.html
+            - validation
+              - controllers
+                - index.html
+                - readiness.controller.ts.html
+                - system-validation.controller.ts.html
+              - index.html
+              - index.ts.html
+              - repositories
+                - index.html
+                - readiness-report.repository.ts.html
+              - services
+                - cross-module-validator.service.ts.html
+                - index.html
+                - readiness-engine.service.ts.html
+              - utils
+                - generation-gate.ts.html
+                - index.html
+              - validation.module.ts.html
+          - prisma
+            - index.html
+            - prisma.module.ts.html
+            - prisma.service.ts.html
+          - queue
+            - index.html
+            - index.ts.html
+            - queue-config.ts.html
+            - queue-payloads.ts.html
+            - queue.module.ts.html
+            - queue.service.ts.html
+          - test-get-mappings.ts.html
+      - lcov.info
     - dist
       - app.module.d.ts
       - app.module.js
@@ -375,10 +1568,18 @@
               - redis-connection.manager.js
               - redis-connection.manager.js.map
             - common
+              - decorators
+                - rate-limit.decorator.d.ts
+                - rate-limit.decorator.js
+                - rate-limit.decorator.js.map
               - filters
                 - http-exception.filter.d.ts
                 - http-exception.filter.js
                 - http-exception.filter.js.map
+              - guards
+                - custom-throttler.guard.d.ts
+                - custom-throttler.guard.js
+                - custom-throttler.guard.js.map
               - index.d.ts
               - index.js
               - index.js.map
@@ -393,6 +1594,10 @@
                 - request-logging.middleware.d.ts
                 - request-logging.middleware.js
                 - request-logging.middleware.js.map
+              - monitoring
+                - observability.interceptor.d.ts
+                - observability.interceptor.js
+                - observability.interceptor.js.map
               - pipes
                 - validation.pipe.d.ts
                 - validation.pipe.js
@@ -414,6 +1619,9 @@
               - index.d.ts
               - index.js
               - index.js.map
+              - rate-limit.config.d.ts
+              - rate-limit.config.js
+              - rate-limit.config.js.map
             - core
               - entities
                 - base.entity.d.ts
@@ -433,9 +1641,39 @@
                 - admin-config.module.d.ts
                 - admin-config.module.js
                 - admin-config.module.js.map
+                - controllers
+                  - exam-config.controller.d.ts
+                  - exam-config.controller.js
+                  - exam-config.controller.js.map
+                  - exam-section.controller.d.ts
+                  - exam-section.controller.js
+                  - exam-section.controller.js.map
                 - index.d.ts
                 - index.js
                 - index.js.map
+                - repositories
+                  - exam-config.repository.d.ts
+                  - exam-config.repository.js
+                  - exam-config.repository.js.map
+                  - exam-config.repository.spec.d.ts
+                  - exam-config.repository.spec.js
+                  - exam-config.repository.spec.js.map
+                  - exam-section.repository.d.ts
+                  - exam-section.repository.js
+                  - exam-section.repository.js.map
+                - services
+                  - exam-config.service.d.ts
+                  - exam-config.service.js
+                  - exam-config.service.js.map
+                  - exam-config.service.spec.d.ts
+                  - exam-config.service.spec.js
+                  - exam-config.service.spec.js.map
+                  - exam-section.service.d.ts
+                  - exam-section.service.js
+                  - exam-section.service.js.map
+                  - exam-section.service.spec.d.ts
+                  - exam-section.service.spec.js
+                  - exam-section.service.spec.js.map
               - ai
                 - ai.module.d.ts
                 - ai.module.js
@@ -454,6 +1692,113 @@
                 - index.d.ts
                 - index.js
                 - index.js.map
+              - assembly
+                - assembly-business-flow.integration.spec.d.ts
+                - assembly-business-flow.integration.spec.js
+                - assembly-business-flow.integration.spec.js.map
+                - assembly-validator.service.d.ts
+                - assembly-validator.service.js
+                - assembly-validator.service.js.map
+                - assembly.controller.d.ts
+                - assembly.controller.js
+                - assembly.controller.js.map
+                - assembly.integration.spec.d.ts
+                - assembly.integration.spec.js
+                - assembly.integration.spec.js.map
+                - assembly.module.d.ts
+                - assembly.module.js
+                - assembly.module.js.map
+                - assembly.repository.d.ts
+                - assembly.repository.js
+                - assembly.repository.js.map
+                - assembly.service.d.ts
+                - assembly.service.js
+                - assembly.service.js.map
+                - assembly.service.spec.d.ts
+                - assembly.service.spec.js
+                - assembly.service.spec.js.map
+                - blueprint-builder.service.d.ts
+                - blueprint-builder.service.js
+                - blueprint-builder.service.js.map
+                - controllers
+                  - assembly.controller.d.ts
+                  - assembly.controller.js
+                  - assembly.controller.js.map
+                - dto
+                  - allocated-question.dto.d.ts
+                  - allocated-question.dto.js
+                  - allocated-question.dto.js.map
+                  - assembly-response.dto.d.ts
+                  - assembly-response.dto.js
+                  - assembly-response.dto.js.map
+                  - blueprint.dto.d.ts
+                  - blueprint.dto.js
+                  - blueprint.dto.js.map
+                  - create-assembly.dto.d.ts
+                  - create-assembly.dto.js
+                  - create-assembly.dto.js.map
+                  - section.dto.d.ts
+                  - section.dto.js
+                  - section.dto.js.map
+                - providers
+                  - mock-semantic-similarity.provider.d.ts
+                  - mock-semantic-similarity.provider.js
+                  - mock-semantic-similarity.provider.js.map
+                  - semantic-similarity.provider.d.ts
+                  - semantic-similarity.provider.js
+                  - semantic-similarity.provider.js.map
+                - question-allocator.service.d.ts
+                - question-allocator.service.js
+                - question-allocator.service.js.map
+                - repositories
+                  - assembly.repository.d.ts
+                  - assembly.repository.js
+                  - assembly.repository.js.map
+                  - blueprint.repository.d.ts
+                  - blueprint.repository.js
+                  - blueprint.repository.js.map
+                  - question-pool.repository.d.ts
+                  - question-pool.repository.js
+                  - question-pool.repository.js.map
+                - section-builder.service.d.ts
+                - section-builder.service.js
+                - section-builder.service.js.map
+                - services
+                  - anti-repetition.service.d.ts
+                  - anti-repetition.service.js
+                  - anti-repetition.service.js.map
+                  - anti-repetition.service.spec.d.ts
+                  - anti-repetition.service.spec.js
+                  - anti-repetition.service.spec.js.map
+                  - blueprint-builder.service.d.ts
+                  - blueprint-builder.service.js
+                  - blueprint-builder.service.js.map
+                  - blueprint-builder.service.spec.d.ts
+                  - blueprint-builder.service.spec.js
+                  - blueprint-builder.service.spec.js.map
+                  - question-allocator.service.d.ts
+                  - question-allocator.service.js
+                  - question-allocator.service.js.map
+                  - question-allocator.service.spec.d.ts
+                  - question-allocator.service.spec.js
+                  - question-allocator.service.spec.js.map
+                  - section-builder.service.d.ts
+                  - section-builder.service.js
+                  - section-builder.service.js.map
+                  - test-assembly.service.d.ts
+                  - test-assembly.service.js
+                  - test-assembly.service.js.map
+                - types
+                  - duplicate-check-result.d.ts
+                  - duplicate-check-result.js
+                  - duplicate-check-result.js.map
+                - validators
+                  - assembly-validator.service.d.ts
+                  - assembly-validator.service.js
+                  - assembly-validator.service.js.map
+                  - assembly-validator.service.spec.d.ts
+                  - assembly-validator.service.spec.js
+                  - assembly-validator.service.spec.js.map
               - auth
                 - auth.module.d.ts
                 - auth.module.js
@@ -469,6 +1814,9 @@
                   - public.decorator.d.ts
                   - public.decorator.js
                   - public.decorator.js.map
+                  - roles.decorator.d.ts
+                  - roles.decorator.js
+                  - roles.decorator.js.map
                 - dto
                   - auth.dto.d.ts
                   - auth.dto.js
@@ -486,6 +1834,9 @@
                   - jwt-auth.guard.d.ts
                   - jwt-auth.guard.js
                   - jwt-auth.guard.js.map
+                  - roles.guard.d.ts
+                  - roles.guard.js
+                  - roles.guard.js.map
                 - index.d.ts
                 - index.js
                 - index.js.map
@@ -507,6 +1858,103 @@
                   - jwt.strategy.d.ts
                   - jwt.strategy.js
                   - jwt.strategy.js.map
+              - blueprint
+                - blueprint.module.d.ts
+                - blueprint.module.js
+                - blueprint.module.js.map
+                - controllers
+                  - blueprint.controller.d.ts
+                  - blueprint.controller.js
+                  - blueprint.controller.js.map
+                  - style-profile.controller.d.ts
+                  - style-profile.controller.js
+                  - style-profile.controller.js.map
+                - index.d.ts
+                - index.js
+                - index.js.map
+                - repositories
+                  - blueprint.repository.d.ts
+                  - blueprint.repository.js
+                  - blueprint.repository.js.map
+                  - style-profile.repository.d.ts
+                  - style-profile.repository.js
+                  - style-profile.repository.js.map
+                - services
+                  - blueprint-compiler.service.d.ts
+                  - blueprint-compiler.service.js
+                  - blueprint-compiler.service.js.map
+                  - blueprint-compiler.service.spec.d.ts
+                  - blueprint-compiler.service.spec.js
+                  - blueprint-compiler.service.spec.js.map
+                  - blueprint.service.d.ts
+                  - blueprint.service.js
+                  - blueprint.service.js.map
+                  - style-profile.service.d.ts
+                  - style-profile.service.js
+                  - style-profile.service.js.map
+              - blueprint-config
+                - blueprint-config.controller.d.ts
+                - blueprint-config.controller.js
+                - blueprint-config.controller.js.map
+                - blueprint-config.integration.spec.d.ts
+                - blueprint-config.integration.spec.js
+                - blueprint-config.integration.spec.js.map
+                - blueprint-config.module.d.ts
+                - blueprint-config.module.js
+                - blueprint-config.module.js.map
+                - blueprint-config.repository.d.ts
+                - blueprint-config.repository.js
+                - blueprint-config.repository.js.map
+                - blueprint-config.service.d.ts
+                - blueprint-config.service.js
+                - blueprint-config.service.js.map
+                - blueprint-config.service.spec.d.ts
+                - blueprint-config.service.spec.js
+                - blueprint-config.service.spec.js.map
+                - blueprint-validator.service.d.ts
+                - blueprint-validator.service.js
+                - blueprint-validator.service.js.map
+                - blueprint-validator.service.spec.d.ts
+                - blueprint-validator.service.spec.js
+                - blueprint-validator.service.spec.js.map
+              - concept-mapping
+                - concept-mapping.module.d.ts
+                - concept-mapping.module.js
+                - concept-mapping.module.js.map
+                - controllers
+                  - concept-mapping.controller.d.ts
+                  - concept-mapping.controller.js
+                  - concept-mapping.controller.js.map
+                  - topic.controller.d.ts
+                  - topic.controller.js
+                  - topic.controller.js.map
+                - repositories
+                  - concept-mapping.repository.d.ts
+                  - concept-mapping.repository.js
+                  - concept-mapping.repository.js.map
+                  - topic.repository.d.ts
+                  - topic.repository.js
+                  - topic.repository.js.map
+                - services
+                  - concept-mapping.service.d.ts
+                  - concept-mapping.service.js
+                  - concept-mapping.service.js.map
+                  - topic-registry-loader.service.d.ts
+                  - topic-registry-loader.service.js
+                  - topic-registry-loader.service.js.map
+                  - topic.service.d.ts
+                  - topic.service.js
+                  - topic.service.js.map
+                - tests
+                  - concept-mapping.service.spec.d.ts
+                  - concept-mapping.service.spec.js
+                  - concept-mapping.service.spec.js.map
+                  - topic.controller.spec.d.ts
+                  - topic.controller.spec.js
+                  - topic.controller.spec.js.map
+                  - topic.service.spec.d.ts
+                  - topic.service.spec.js
+                  - topic.service.spec.js.map
               - config
                 - controllers
                   - system-config.controller.d.ts
@@ -593,6 +2041,29 @@
                   - decision.service.d.ts
                   - decision.service.js
                   - decision.service.js.map
+              - difficulty-distribution
+                - controllers
+                  - difficulty-distribution.controller.d.ts
+                  - difficulty-distribution.controller.js
+                  - difficulty-distribution.controller.js.map
+                - difficulty-distribution.module.d.ts
+                - difficulty-distribution.module.js
+                - difficulty-distribution.module.js.map
+                - repositories
+                  - difficulty-distribution.repository.d.ts
+                  - difficulty-distribution.repository.js
+                  - difficulty-distribution.repository.js.map
+                - services
+                  - difficulty-distribution.service.d.ts
+                  - difficulty-distribution.service.js
+                  - difficulty-distribution.service.js.map
+                - tests
+                  - difficulty-distribution.controller.spec.d.ts
+                  - difficulty-distribution.controller.spec.js
+                  - difficulty-distribution.controller.spec.js.map
+                  - difficulty-distribution.service.spec.d.ts
+                  - difficulty-distribution.service.spec.js
+                  - difficulty-distribution.service.spec.js.map
               - evaluation
                 - controllers
                   - evaluation.controller.d.ts
@@ -609,13 +2080,28 @@
                   - evaluation.service.js
                   - evaluation.service.js.map
               - execution
+                - answer-persistence.service.d.ts
+                - answer-persistence.service.js
+                - answer-persistence.service.js.map
                 - controllers
+                  - answer.controller.d.ts
+                  - answer.controller.js
+                  - answer.controller.js.map
                   - execution.controller.d.ts
                   - execution.controller.js
                   - execution.controller.js.map
                   - execution.controller.spec.d.ts
                   - execution.controller.spec.js
                   - execution.controller.spec.js.map
+                  - index.d.ts
+                  - index.js
+                  - index.js.map
+                  - resume.controller.d.ts
+                  - resume.controller.js
+                  - resume.controller.js.map
+                  - submission.controller.d.ts
+                  - submission.controller.js
+                  - submission.controller.js.map
                 - dto
                   - candidate-answer.dto.d.ts
                   - candidate-answer.dto.js
@@ -623,6 +2109,9 @@
                   - execution-result.dto.d.ts
                   - execution-result.dto.js
                   - execution-result.dto.js.map
+                  - execution.schema.d.ts
+                  - execution.schema.js
+                  - execution.schema.js.map
                   - index.d.ts
                   - index.js
                   - index.js.map
@@ -632,24 +2121,90 @@
                   - submit-execution.dto.d.ts
                   - submit-execution.dto.js
                   - submit-execution.dto.js.map
+                - execution-state.service.d.ts
+                - execution-state.service.js
+                - execution-state.service.js.map
+                - execution.e2e-spec.d.ts
+                - execution.e2e-spec.js
+                - execution.e2e-spec.js.map
                 - execution.module.d.ts
                 - execution.module.js
                 - execution.module.js.map
                 - index.d.ts
                 - index.js
                 - index.js.map
+                - interfaces
+                  - evaluation-adapter.interface.d.ts
+                  - evaluation-adapter.interface.js
+                  - evaluation-adapter.interface.js.map
+                - repositories
+                  - candidate-answer.repository.d.ts
+                  - candidate-answer.repository.js
+                  - candidate-answer.repository.js.map
+                  - execution-state.repository.d.ts
+                  - execution-state.repository.js
+                  - execution-state.repository.js.map
+                  - index.d.ts
+                  - index.js
+                  - index.js.map
+                  - submission.repository.d.ts
+                  - submission.repository.js
+                  - submission.repository.js.map
+                  - test-instance.repository.d.ts
+                  - test-instance.repository.js
+                  - test-instance.repository.js.map
                 - services
+                  - answer.service.d.ts
+                  - answer.service.js
+                  - answer.service.js.map
+                  - answer.service.spec.d.ts
+                  - answer.service.spec.js
+                  - answer.service.spec.js.map
+                  - execution-state.service.d.ts
+                  - execution-state.service.js
+                  - execution-state.service.js.map
+                  - execution-state.service.spec.d.ts
+                  - execution-state.service.spec.js
+                  - execution-state.service.spec.js.map
+                  - execution-validator.service.d.ts
+                  - execution-validator.service.js
+                  - execution-validator.service.js.map
+                  - execution-validator.service.spec.d.ts
+                  - execution-validator.service.spec.js
+                  - execution-validator.service.spec.js.map
                   - execution.service.d.ts
                   - execution.service.js
                   - execution.service.js.map
                   - execution.service.spec.d.ts
                   - execution.service.spec.js
                   - execution.service.spec.js.map
+                  - index.d.ts
+                  - index.js
+                  - index.js.map
+                  - resume.service.d.ts
+                  - resume.service.js
+                  - resume.service.js.map
+                  - submission.service.d.ts
+                  - submission.service.js
+                  - submission.service.js.map
+                  - submission.service.spec.d.ts
+                  - submission.service.spec.js
+                  - submission.service.spec.js.map
               - generation
                 - controllers
                   - generation.controller.d.ts
                   - generation.controller.js
                   - generation.controller.js.map
+                - dto
+                  - generation.dto.d.ts
+                  - generation.dto.js
+                  - generation.dto.js.map
+                - generation-query.service.d.ts
+                - generation-query.service.js
+                - generation-query.service.js.map
+                - generation-storage.service.d.ts
+                - generation-storage.service.js
+                - generation-storage.service.js.map
                 - generation.module.d.ts
                 - generation.module.js
                 - generation.module.js.map
@@ -657,9 +2212,31 @@
                 - index.js
                 - index.js.map
                 - services
+                  - generation-context.service.d.ts
+                  - generation-context.service.js
+                  - generation-context.service.js.map
+                  - generation-orchestrator.service.d.ts
+                  - generation-orchestrator.service.js
+                  - generation-orchestrator.service.js.map
                   - generation.service.d.ts
                   - generation.service.js
                   - generation.service.js.map
+                  - parameter-generator.service.d.ts
+                  - parameter-generator.service.js
+                  - parameter-generator.service.js.map
+                  - question-instantiator.service.d.ts
+                  - question-instantiator.service.js
+                  - question-instantiator.service.js.map
+                  - question-validation.service.d.ts
+                  - question-validation.service.js
+                  - question-validation.service.js.map
+                  - template-selector.service.d.ts
+                  - template-selector.service.js
+                  - template-selector.service.js.map
+                - tests
+                  - generation.spec.d.ts
+                  - generation.spec.js
+                  - generation.spec.js.map
               - health
                 - controllers
                   - health.controller.d.ts
@@ -675,6 +2252,9 @@
                   - health.service.d.ts
                   - health.service.js
                   - health.service.js.map
+                  - redis-health.indicator.d.ts
+                  - redis-health.indicator.js
+                  - redis-health.indicator.js.map
               - interview
                 - index.d.ts
                 - index.js
@@ -682,6 +2262,74 @@
                 - interview.module.d.ts
                 - interview.module.js
                 - interview.module.js.map
+              - lifecycle
+                - eligibility.service.d.ts
+                - eligibility.service.js
+                - eligibility.service.js.map
+                - lifecycle.module.d.ts
+                - lifecycle.module.js
+                - lifecycle.module.js.map
+              - question-bank
+                - controllers
+                  - question-bank.controller.d.ts
+                  - question-bank.controller.js
+                  - question-bank.controller.js.map
+                - dto
+                  - assembly-provider.dto.d.ts
+                  - assembly-provider.dto.js
+                  - assembly-provider.dto.js.map
+                  - question-bank.dto.d.ts
+                  - question-bank.dto.js
+                  - question-bank.dto.js.map
+                - entities
+                  - question.entity.d.ts
+                  - question.entity.js
+                  - question.entity.js.map
+                - question-bank.module.d.ts
+                - question-bank.module.js
+                - question-bank.module.js.map
+                - repositories
+                  - question-review.repository.d.ts
+                  - question-review.repository.js
+                  - question-review.repository.js.map
+                  - question-version.repository.d.ts
+                  - question-version.repository.js
+                  - question-version.repository.js.map
+                  - question.repository.d.ts
+                  - question.repository.js
+                  - question.repository.js.map
+                - services
+                  - question-bank.service.d.ts
+                  - question-bank.service.js
+                  - question-bank.service.js.map
+                  - question-reservation.service.d.ts
+                  - question-reservation.service.js
+                  - question-reservation.service.js.map
+                  - question-review.service.d.ts
+                  - question-review.service.js
+                  - question-review.service.js.map
+                  - question-rotation.service.d.ts
+                  - question-rotation.service.js
+                  - question-rotation.service.js.map
+                  - question-search.service.d.ts
+                  - question-search.service.js
+                  - question-search.service.js.map
+                  - question-similarity.service.d.ts
+                  - question-similarity.service.js
+                  - question-similarity.service.js.map
+                  - question-usage.service.d.ts
+                  - question-usage.service.js
+                  - question-usage.service.js.map
+                  - question-version.service.d.ts
+                  - question-version.service.js
+                  - question-version.service.js.map
+                - tests
+                  - day3.spec.d.ts
+                  - day3.spec.js
+                  - day3.spec.js.map
+                  - question-bank.spec.d.ts
+                  - question-bank.spec.js
+                  - question-bank.spec.js.map
               - question-pool
                 - index.d.ts
                 - index.js
@@ -689,6 +2337,14 @@
                 - question-pool.module.d.ts
                 - question-pool.module.js
                 - question-pool.module.js.map
+                - repositories
+                  - generated-question.repository.d.ts
+                  - generated-question.repository.js
+                  - generated-question.repository.js.map
+                - services
+                  - question-pool.service.d.ts
+                  - question-pool.service.js
+                  - question-pool.service.js.map
               - queue-monitor
                 - controllers
                   - queue-monitor.controller.d.ts
@@ -708,12 +2364,97 @@
                 - recommendation.module.js
                 - recommendation.module.js.map
               - results
+                - controllers
+                  - performance.controller.d.ts
+                  - performance.controller.js
+                  - performance.controller.js.map
+                  - results.controller.d.ts
+                  - results.controller.js
+                  - results.controller.js.map
                 - index.d.ts
                 - index.js
                 - index.js.map
+                - mappers
+                  - history.mapper.d.ts
+                  - history.mapper.js
+                  - history.mapper.js.map
+                  - performance.mapper.d.ts
+                  - performance.mapper.js
+                  - performance.mapper.js.map
+                  - recommendation.mapper.d.ts
+                  - recommendation.mapper.js
+                  - recommendation.mapper.js.map
+                  - result.mapper.d.ts
+                  - result.mapper.js
+                  - result.mapper.js.map
+                - repositories
+                  - evaluation.repository.d.ts
+                  - evaluation.repository.js
+                  - evaluation.repository.js.map
+                  - performance.repository.d.ts
+                  - performance.repository.js
+                  - performance.repository.js.map
+                  - recommendation.repository.d.ts
+                  - recommendation.repository.js
+                  - recommendation.repository.js.map
                 - results.module.d.ts
                 - results.module.js
                 - results.module.js.map
+                - services
+                  - dashboard-metrics-aggregator.d.ts
+                  - dashboard-metrics-aggregator.js
+                  - dashboard-metrics-aggregator.js.map
+                  - evaluation-persistence.service.d.ts
+                  - evaluation-persistence.service.js
+                  - evaluation-persistence.service.js.map
+                  - performance.service.d.ts
+                  - performance.service.js
+                  - performance.service.js.map
+                  - recommendations.service.d.ts
+                  - recommendations.service.js
+                  - recommendations.service.js.map
+                  - results.service.d.ts
+                  - results.service.js
+                  - results.service.js.map
+                - tests
+                  - performance.service.spec.d.ts
+                  - performance.service.spec.js
+                  - performance.service.spec.js.map
+                  - recommendations.service.spec.d.ts
+                  - recommendations.service.spec.js
+                  - recommendations.service.spec.js.map
+                  - results.integration.spec.d.ts
+                  - results.integration.spec.js
+                  - results.integration.spec.js.map
+                  - results.service.spec.d.ts
+                  - results.service.spec.js
+                  - results.service.spec.js.map
+              - rule-flags
+                - controllers
+                  - rule-flags.controller.d.ts
+                  - rule-flags.controller.js
+                  - rule-flags.controller.js.map
+                - repositories
+                  - rule-flags.repository.d.ts
+                  - rule-flags.repository.js
+                  - rule-flags.repository.js.map
+                - rule-flags.module.d.ts
+                - rule-flags.module.js
+                - rule-flags.module.js.map
+                - services
+                  - rule-flags.service.d.ts
+                  - rule-flags.service.js
+                  - rule-flags.service.js.map
+                - tests
+                  - rule-flags.controller.spec.d.ts
+                  - rule-flags.controller.spec.js
+                  - rule-flags.controller.spec.js.map
+                  - rule-flags.repository.spec.d.ts
+                  - rule-flags.repository.spec.js
+                  - rule-flags.repository.spec.js.map
+                  - rule-flags.service.spec.d.ts
+                  - rule-flags.service.spec.js
+                  - rule-flags.service.spec.js.map
               - storage
                 - index.d.ts
                 - index.js
@@ -730,6 +2471,12 @@
                 - syllabus.module.js.map
               - template-library
                 - controllers
+                  - template-rule.controller.d.ts
+                  - template-rule.controller.js
+                  - template-rule.controller.js.map
+                  - template-variable.controller.d.ts
+                  - template-variable.controller.js
+                  - template-variable.controller.js.map
                   - template.controller.d.ts
                   - template.controller.js
                   - template.controller.js.map
@@ -737,10 +2484,43 @@
                 - index.js
                 - index.js.map
                 - repositories
+                  - solution-template.repository.d.ts
+                  - solution-template.repository.js
+                  - solution-template.repository.js.map
+                  - template-preview.repository.d.ts
+                  - template-preview.repository.js
+                  - template-preview.repository.js.map
+                  - template-rule.repository.d.ts
+                  - template-rule.repository.js
+                  - template-rule.repository.js.map
+                  - template-variable.repository.d.ts
+                  - template-variable.repository.js
+                  - template-variable.repository.js.map
                   - template.repository.d.ts
                   - template.repository.js
                   - template.repository.js.map
                 - services
+                  - placeholder-validator.service.d.ts
+                  - placeholder-validator.service.js
+                  - placeholder-validator.service.js.map
+                  - placeholder-validator.service.spec.d.ts
+                  - placeholder-validator.service.spec.js
+                  - placeholder-validator.service.spec.js.map
+                  - solution-template.integration.spec.d.ts
+                  - solution-template.integration.spec.js
+                  - solution-template.integration.spec.js.map
+                  - solution-template.service.d.ts
+                  - solution-template.service.js
+                  - solution-template.service.js.map
+                  - solution-template.service.spec.d.ts
+                  - solution-template.service.spec.js
+                  - solution-template.service.spec.js.map
+                  - template-renderer.service.d.ts
+                  - template-renderer.service.js
+                  - template-renderer.service.js.map
+                  - template-renderer.service.spec.d.ts
+                  - template-renderer.service.spec.js
+                  - template-renderer.service.spec.js.map
                   - template.service.d.ts
                   - template.service.js
                   - template.service.js.map
@@ -776,6 +2556,9 @@
                   - available-config.dto.js
                   - available-config.dto.js.map
                 - repositories
+                  - test-config.repository.d.ts
+                  - test-config.repository.js
+                  - test-config.repository.js.map
                   - tests.repository.d.ts
                   - tests.repository.js
                   - tests.repository.js.map
@@ -786,12 +2569,84 @@
                   - tests.service.spec.d.ts
                   - tests.service.spec.js
                   - tests.service.spec.js.map
+                - start-test
+                  - dto
+                    - start-test.dto.d.ts
+                    - start-test.dto.js
+                    - start-test.dto.js.map
+                  - question-provider.service.d.ts
+                  - question-provider.service.js
+                  - question-provider.service.js.map
+                  - start-test.controller.d.ts
+                  - start-test.controller.js
+                  - start-test.controller.js.map
+                  - start-test.module.d.ts
+                  - start-test.module.js
+                  - start-test.module.js.map
+                  - start-test.service.d.ts
+                  - start-test.service.js
+                  - start-test.service.js.map
+                  - start-test.service.spec.d.ts
+                  - start-test.service.spec.js
+                  - start-test.service.spec.js.map
+                - test-instance
+                  - test-instance.repository.d.ts
+                  - test-instance.repository.js
+                  - test-instance.repository.js.map
+                  - test-instance.service.d.ts
+                  - test-instance.service.js
+                  - test-instance.service.js.map
                 - tests.integration.spec.d.ts
                 - tests.integration.spec.js
                 - tests.integration.spec.js.map
                 - tests.module.d.ts
                 - tests.module.js
                 - tests.module.js.map
+              - topic-section-mapping
+                - controllers
+                  - topic-section-mapping.controller.d.ts
+                  - topic-section-mapping.controller.js
+                  - topic-section-mapping.controller.js.map
+                  - topic-weightage.controller.d.ts
+                  - topic-weightage.controller.js
+                  - topic-weightage.controller.js.map
+                  - topic.controller.d.ts
+                  - topic.controller.js
+                  - topic.controller.js.map
+                - dto
+                  - create-section-topic.dto.d.ts
+                  - create-section-topic.dto.js
+                  - create-section-topic.dto.js.map
+                - repositories
+                  - topic-section-mapping.repository.d.ts
+                  - topic-section-mapping.repository.js
+                  - topic-section-mapping.repository.js.map
+                  - topic-weightage.repository.d.ts
+                  - topic-weightage.repository.js
+                  - topic-weightage.repository.js.map
+                - services
+                  - topic-section-mapping.service.d.ts
+                  - topic-section-mapping.service.js
+                  - topic-section-mapping.service.js.map
+                  - topic-weightage.service.d.ts
+                  - topic-weightage.service.js
+                  - topic-weightage.service.js.map
+                - tests
+                  - topic-section-mapping.controller.spec.d.ts
+                  - topic-section-mapping.controller.spec.js
+                  - topic-section-mapping.controller.spec.js.map
+                  - topic-section-mapping.service.spec.d.ts
+                  - topic-section-mapping.service.spec.js
+                  - topic-section-mapping.service.spec.js.map
+                  - topic-weightage.controller.spec.d.ts
+                  - topic-weightage.controller.spec.js
+                  - topic-weightage.controller.spec.js.map
+                  - topic-weightage.service.spec.d.ts
+                  - topic-weightage.service.spec.js
+                  - topic-weightage.service.spec.js.map
+                - topic-section-mapping.module.d.ts
+                - topic-section-mapping.module.js
+                - topic-section-mapping.module.js.map
               - users
                 - controllers
                   - users.controller.d.ts
@@ -832,9 +2687,34 @@
                 - users.module.js
                 - users.module.js.map
               - validation
+                - controllers
+                  - readiness.controller.d.ts
+                  - readiness.controller.js
+                  - readiness.controller.js.map
+                  - system-validation.controller.d.ts
+                  - system-validation.controller.js
+                  - system-validation.controller.js.map
                 - index.d.ts
                 - index.js
                 - index.js.map
+                - repositories
+                  - readiness-report.repository.d.ts
+                  - readiness-report.repository.js
+                  - readiness-report.repository.js.map
+                - services
+                  - cross-module-validator.service.d.ts
+                  - cross-module-validator.service.js
+                  - cross-module-validator.service.js.map
+                  - readiness-engine.service.d.ts
+                  - readiness-engine.service.js
+                  - readiness-engine.service.js.map
+                  - readiness-engine.service.spec.d.ts
+                  - readiness-engine.service.spec.js
+                  - readiness-engine.service.spec.js.map
+                - utils
+                  - generation-gate.d.ts
+                  - generation-gate.js
+                  - generation-gate.js.map
                 - validation.module.d.ts
                 - validation.module.js
                 - validation.module.js.map
@@ -864,6 +2744,9 @@
               - queue.service.spec.d.ts
               - queue.service.spec.js
               - queue.service.spec.js.map
+            - test-get-mappings.d.ts
+            - test-get-mappings.js
+            - test-get-mappings.js.map
           - tests
             - contracts
               - response-validation.contract.test.d.ts
@@ -876,9 +2759,39 @@
               - violation.contract.test.js
               - violation.contract.test.js.map
             - integration
+              - blueprint-compilation.test.d.ts
+              - blueprint-compilation.test.js
+              - blueprint-compilation.test.js.map
+              - blueprint-config.test.d.ts
+              - blueprint-config.test.js
+              - blueprint-config.test.js.map
+              - blueprint.test.d.ts
+              - blueprint.test.js
+              - blueprint.test.js.map
+              - difficulty-rules.integration.test.d.ts
+              - difficulty-rules.integration.test.js
+              - difficulty-rules.integration.test.js.map
               - e2e-flow.test.d.ts
               - e2e-flow.test.js
               - e2e-flow.test.js.map
+              - exam-config.test.d.ts
+              - exam-config.test.js
+              - exam-config.test.js.map
+              - rbac.test.d.ts
+              - rbac.test.js
+              - rbac.test.js.map
+              - readiness.test.d.ts
+              - readiness.test.js
+              - readiness.test.js.map
+              - system-validation.test.d.ts
+              - system-validation.test.js
+              - system-validation.test.js.map
+              - template-library.spec.d.ts
+              - template-library.spec.js
+              - template-library.spec.js.map
+              - topic-registry.test.d.ts
+              - topic-registry.test.js
+              - topic-registry.test.js.map
               - user.test.d.ts
               - user.test.js
               - user.test.js.map
@@ -890,6 +2803,9 @@
               - queue.test.js
               - queue.test.js.map
             - regression
+              - api-regression.spec.d.ts
+              - api-regression.spec.js
+              - api-regression.spec.js.map
               - contract-enforcement.regression.test.d.ts
               - contract-enforcement.regression.test.js
               - contract-enforcement.regression.test.js.map
@@ -1182,12 +3098,34 @@
         - queue.service.spec.js
         - queue.service.spec.js.map
       - tsconfig.tsbuildinfo
+    - docs
+      - api
+        - day2-test-start-flow.md
+        - day4-execution-apis.md
+      - launch
+        - api-certification-report.md
+        - deployment-readiness-checklist.md
+        - deployment-readiness-report.md
+        - health-check-documentation.md
+        - observability-report.md
+        - performance-report.md
+        - security-audit-report.md
+    - eslint-report.json
     - jest.config.js
     - nest-cli.json
     - package.json
     - postman
       - Dashboard&rRecovery.json
+      - day4-execution.json
       - execution.postman_collection.json
+      - Test-start.json
+    - scripts
+      - benchmark.ts
+      - verify-api-stack.ts
+      - verify-observability.ts
+      - verify-performance.ts
+      - verify-rate-limits.ts
+      - verify-security.ts
     - src
       - app.module.ts
       - cache
@@ -1197,10 +3135,16 @@
         - redis-cache.service.ts
         - redis-connection.manager.ts
       - common
+        - decorators
+          - rate-limit.decorator.ts
+        - guards
+          - custom-throttler.guard.ts
         - index.ts
         - middleware
           - correlation.middleware.ts
           - request-logging.middleware.ts
+        - monitoring
+          - observability.interceptor.ts
         - repositories
           - base.repository.ts
       - config
@@ -1208,6 +3152,7 @@
         - config.service.ts
         - env.schema.ts
         - index.ts
+        - rate-limit.config.ts
       - core
         - entities
           - base.entity.ts
@@ -1217,10 +3162,50 @@
       - modules
         - admin-config
           - admin-config.module.ts
+          - controllers
+            - exam-config.controller.ts
+            - exam-section.controller.ts
           - index.ts
+          - repositories
+            - exam-config.repository.spec.ts
+            - exam-config.repository.ts
+            - exam-section.repository.ts
+          - services
+            - exam-config.service.spec.ts
+            - exam-config.service.ts
+            - exam-section.service.spec.ts
+            - exam-section.service.ts
         - analytics
           - analytics.module.ts
           - index.ts
+        - assembly
+          - assembly-business-flow.integration.spec.ts
+          - assembly.integration.spec.ts
+          - assembly.module.ts
+          - assembly.service.spec.ts
+          - controllers
+            - assembly.controller.ts
+          - providers
+            - mock-semantic-similarity.provider.ts
+            - semantic-similarity.provider.ts
+          - repositories
+            - assembly.repository.ts
+            - blueprint.repository.ts
+            - question-pool.repository.ts
+          - services
+            - anti-repetition.service.spec.ts
+            - anti-repetition.service.ts
+            - blueprint-builder.service.spec.ts
+            - blueprint-builder.service.ts
+            - question-allocator.service.spec.ts
+            - question-allocator.service.ts
+            - section-builder.service.ts
+            - test-assembly.service.ts
+          - types
+            - duplicate-check-result.ts
+          - validators
+            - assembly-validator.service.spec.ts
+            - assembly-validator.service.ts
         - auth
           - auth.module.ts
           - controllers
@@ -1228,10 +3213,12 @@
           - decorators
             - current-user.decorator.ts
             - public.decorator.ts
+            - roles.decorator.ts
           - dto
             - auth.dto.ts
           - guards
             - jwt-auth.guard.ts
+            - roles.guard.ts
           - index.ts
           - interfaces
             - auth-user.interface.ts
@@ -1241,6 +3228,45 @@
             - auth.service.ts
           - strategies
             - jwt.strategy.ts
+        - blueprint
+          - blueprint.module.ts
+          - controllers
+            - blueprint.controller.ts
+            - style-profile.controller.ts
+          - index.ts
+          - repositories
+            - blueprint.repository.ts
+            - style-profile.repository.ts
+          - services
+            - blueprint-compiler.service.spec.ts
+            - blueprint-compiler.service.ts
+            - blueprint.service.ts
+            - style-profile.service.ts
+        - blueprint-config
+          - blueprint-config.controller.ts
+          - blueprint-config.integration.spec.ts
+          - blueprint-config.module.ts
+          - blueprint-config.repository.ts
+          - blueprint-config.service.spec.ts
+          - blueprint-config.service.ts
+          - blueprint-validator.service.spec.ts
+          - blueprint-validator.service.ts
+        - concept-mapping
+          - concept-mapping.module.ts
+          - controllers
+            - concept-mapping.controller.ts
+            - topic.controller.ts
+          - repositories
+            - concept-mapping.repository.ts
+            - topic.repository.ts
+          - services
+            - concept-mapping.service.ts
+            - topic-registry-loader.service.ts
+            - topic.service.ts
+          - tests
+            - concept-mapping.service.spec.ts
+            - topic.controller.spec.ts
+            - topic.service.spec.ts
         - config
           - controllers
             - system-config.controller.spec.ts
@@ -1279,6 +3305,17 @@
           - decision.module.ts
           - services
             - decision.service.ts
+        - difficulty-distribution
+          - controllers
+            - difficulty-distribution.controller.ts
+          - difficulty-distribution.module.ts
+          - repositories
+            - difficulty-distribution.repository.ts
+          - services
+            - difficulty-distribution.service.ts
+          - tests
+            - difficulty-distribution.controller.spec.ts
+            - difficulty-distribution.service.spec.ts
         - evaluation
           - controllers
             - evaluation.controller.ts
@@ -1287,27 +3324,64 @@
           - services
             - evaluation.service.ts
         - execution
+          - answer-persistence.service.ts
           - controllers
+            - answer.controller.ts
             - execution.controller.spec.ts
             - execution.controller.ts
+            - index.ts
+            - resume.controller.ts
+            - submission.controller.ts
           - dto
             - candidate-answer.dto.ts
             - execution-result.dto.ts
+            - execution.schema.ts
             - index.ts
             - submit-execution-response.dto.ts
             - submit-execution.dto.ts
+          - execution.e2e-spec.ts
           - execution.module.ts
           - index.ts
+          - interfaces
+            - evaluation-adapter.interface.ts
+          - repositories
+            - candidate-answer.repository.ts
+            - execution-state.repository.ts
+            - index.ts
+            - submission.repository.ts
+            - test-instance.repository.ts
           - services
+            - answer.service.spec.ts
+            - answer.service.ts
+            - execution-state.service.spec.ts
+            - execution-state.service.ts
+            - execution-validator.service.spec.ts
+            - execution-validator.service.ts
             - execution.service.spec.ts
             - execution.service.ts
+            - index.ts
+            - resume.service.ts
+            - submission.service.spec.ts
+            - submission.service.ts
         - generation
           - controllers
             - generation.controller.ts
+          - dto
+            - generation.dto.ts
+          - generation-query.service.ts
+          - generation-storage.service.ts
           - generation.module.ts
           - index.ts
           - services
+            - generation-context.service.ts
+            - generation-orchestrator.service.ts
             - generation.service.ts
+            - parameter-generator.service.ts
+            - question-instantiator.service.ts
+            - question-validation.service.ts
+            - template-selector.service.ts
+          - tests
+            - generation.spec.ts
         - health
           - controllers
             - health.controller.ts
@@ -1315,12 +3389,45 @@
           - index.ts
           - services
             - health.service.ts
+            - redis-health.indicator.ts
         - interview
           - index.ts
           - interview.module.ts
+        - lifecycle
+          - eligibility.service.ts
+          - lifecycle.module.ts
+        - question-bank
+          - controllers
+            - question-bank.controller.ts
+          - dto
+            - assembly-provider.dto.ts
+            - question-bank.dto.ts
+          - entities
+            - question.entity.ts
+          - question-bank.module.ts
+          - repositories
+            - question-review.repository.ts
+            - question-version.repository.ts
+            - question.repository.ts
+          - services
+            - question-bank.service.ts
+            - question-reservation.service.ts
+            - question-review.service.ts
+            - question-rotation.service.ts
+            - question-search.service.ts
+            - question-similarity.service.ts
+            - question-usage.service.ts
+            - question-version.service.ts
+          - tests
+            - day3.spec.ts
+            - question-bank.spec.ts
         - question-pool
           - index.ts
           - question-pool.module.ts
+          - repositories
+            - generated-question.repository.ts
+          - services
+            - question-pool.service.ts
         - queue-monitor
           - controllers
             - queue-monitor.controller.ts
@@ -1330,8 +3437,43 @@
           - index.ts
           - recommendation.module.ts
         - results
+          - controllers
+            - performance.controller.ts
+            - results.controller.ts
           - index.ts
+          - mappers
+            - history.mapper.ts
+            - performance.mapper.ts
+            - recommendation.mapper.ts
+            - result.mapper.ts
+          - repositories
+            - evaluation.repository.ts
+            - performance.repository.ts
+            - recommendation.repository.ts
           - results.module.ts
+          - services
+            - dashboard-metrics-aggregator.ts
+            - evaluation-persistence.service.ts
+            - performance.service.ts
+            - recommendations.service.ts
+            - results.service.ts
+          - tests
+            - performance.service.spec.ts
+            - recommendations.service.spec.ts
+            - results.integration.spec.ts
+            - results.service.spec.ts
+        - rule-flags
+          - controllers
+            - rule-flags.controller.ts
+          - repositories
+            - rule-flags.repository.ts
+          - rule-flags.module.ts
+          - services
+            - rule-flags.service.ts
+          - tests
+            - rule-flags.controller.spec.ts
+            - rule-flags.repository.spec.ts
+            - rule-flags.service.spec.ts
         - storage
           - index.ts
           - storage.module.ts
@@ -1340,11 +3482,24 @@
           - syllabus.module.ts
         - template-library
           - controllers
+            - template-rule.controller.ts
+            - template-variable.controller.ts
             - template.controller.ts
           - index.ts
           - repositories
+            - solution-template.repository.ts
+            - template-preview.repository.ts
+            - template-rule.repository.ts
+            - template-variable.repository.ts
             - template.repository.ts
           - services
+            - placeholder-validator.service.spec.ts
+            - placeholder-validator.service.ts
+            - solution-template.integration.spec.ts
+            - solution-template.service.spec.ts
+            - solution-template.service.ts
+            - template-renderer.service.spec.ts
+            - template-renderer.service.ts
             - template.service.ts
           - template-library.module.ts
         - test-assembly
@@ -1362,12 +3517,40 @@
           - dto
             - available-config.dto.ts
           - repositories
+            - test-config.repository.ts
             - tests.repository.ts
           - services
             - tests.service.spec.ts
             - tests.service.ts
+          - start-test
+            - dto
+              - start-test.dto.ts
+            - question-provider.service.ts
+            - start-test.controller.ts
+            - start-test.module.ts
+            - start-test.service.spec.ts
+            - start-test.service.ts
+          - test-instance
+            - test-instance.repository.ts
+            - test-instance.service.ts
           - tests.integration.spec.ts
           - tests.module.ts
+        - topic-section-mapping
+          - controllers
+            - topic-section-mapping.controller.ts
+            - topic-weightage.controller.ts
+          - repositories
+            - topic-section-mapping.repository.ts
+            - topic-weightage.repository.ts
+          - services
+            - topic-section-mapping.service.ts
+            - topic-weightage.service.ts
+          - tests
+            - topic-section-mapping.controller.spec.ts
+            - topic-section-mapping.service.spec.ts
+            - topic-weightage.controller.spec.ts
+            - topic-weightage.service.spec.ts
+          - topic-section-mapping.module.ts
         - users
           - controllers
             - users.controller.spec.ts
@@ -1386,7 +3569,18 @@
             - users.service.ts
           - users.module.ts
         - validation
+          - controllers
+            - readiness.controller.ts
+            - system-validation.controller.ts
           - index.ts
+          - repositories
+            - readiness-report.repository.ts
+          - services
+            - cross-module-validator.service.ts
+            - readiness-engine.service.spec.ts
+            - readiness-engine.service.ts
+          - utils
+            - generation-gate.ts
           - validation.module.ts
       - prisma
         - prisma.module.ts
@@ -1398,18 +3592,32 @@
         - queue.module.ts
         - queue.service.spec.ts
         - queue.service.ts
+      - test-get-mappings.ts
+    - test
+      - start-test.e2e-spec.ts
     - tests
       - contracts
         - response-validation.contract.test.ts
         - user.contract.test.ts
         - violation.contract.test.ts
       - integration
+        - blueprint-compilation.test.ts
+        - blueprint-config.test.ts
+        - blueprint.test.ts
+        - difficulty-rules.integration.test.ts
         - e2e-flow.test.ts
+        - exam-config.test.ts
+        - rbac.test.ts
+        - readiness.test.ts
+        - system-validation.test.ts
+        - template-library.spec.ts
+        - topic-registry.test.ts
         - user.test.ts
       - queue
         - pipeline.test.ts
         - queue.test.ts
       - regression
+        - api-regression.spec.ts
         - contract-enforcement.regression.test.ts
       - validation
         - pipeline.test.ts
@@ -1427,12 +3635,28 @@
       - turbo-type-check.log
     - components.json
     - docs
+      - frontend
+        - day4-execution-recovery.md
+        - day5-results-experience.md
       - frontend-architecture.md
+      - launch
+        - accessibility-report.md
+        - candidate-user-journey-report.md
+        - error-state-audit.md
+        - frontend-certification-report.md
+        - frontend-launch-checklist.md
+        - performance-report.md
+        - responsive-validation-report.md
     - eslint.config.mjs
     - next-env.d.ts
     - next.config.ts
     - package.json
     - postcss.config.js
+    - scripts
+      - verify-accessibility.spec.ts
+      - verify-frontend.ts
+      - verify-responsive.spec.ts
+      - verify-ui-performance.spec.ts
     - src
       - app
         - (auth)
@@ -1443,9 +3667,55 @@
             - page.tsx
         - (protected)
           - layout.tsx
+        - 403
+          - page.tsx
         - admin
           - analytics
             - page.tsx
+          - assembly
+            - page.tsx
+            - [id]
+              - page.tsx
+          - blueprints
+            - BlueprintListPageClient.tsx
+            - components
+              - AddTopicModal.tsx
+              - BlueprintHealthWidget.tsx
+              - CreateBlueprintModal.tsx
+              - DifficultyAllocator.tsx
+              - EditBlueprintModal.tsx
+              - PreviewScreen.tsx
+              - SectionConfigurator.tsx
+              - StyleProfileSelector.tsx
+              - TopicAllocator.tsx
+              - ValidationDashboard.tsx
+            - new
+              - page.tsx
+            - page.tsx
+            - [id]
+              - compile
+                - page.tsx
+              - edit
+                - page.tsx
+              - page.tsx
+            - __tests__
+              - AddTopicModal.test.tsx
+              - blueprint-builder.test.tsx
+              - BlueprintCompilePage.test.tsx
+              - BlueprintListPageClient.test.tsx
+              - CreateBlueprintModal.test.tsx
+              - EditBlueprintModal.test.tsx
+          - configs
+            - ConfigsPageClient.tsx
+            - new
+              - page.tsx
+            - page.tsx
+            - [configId]
+              - ConfigPageClient.tsx
+              - edit
+                - EditConfigClient.tsx
+                - page.tsx
+              - page.tsx
           - dashboard
             - page.tsx
           - layout.tsx
@@ -1453,21 +3723,65 @@
             - page.tsx
           - results
             - page.tsx
+          - sections
+            - [sectionId]
+              - topics
+                - page.tsx
           - settings
             - page.tsx
+          - system-validation
+            - page.tsx
+          - templates
+            - page.tsx
+            - TemplateListPageClient.tsx
+            - [id]
+              - components
+                - PreviewBuilder.tsx
+                - PreviewResultPanel.tsx
+                - SolutionTemplateEditor.tsx
+                - SolutionTemplateTab.tsx
+                - ValidationWidget.tsx
+                - VariableHelperPanel.tsx
+                - __tests__
+                  - preview-builder.test.tsx
+                  - solution-template-editor.test.tsx
+                  - validation-widget.test.tsx
+              - page.tsx
           - tests
             - page.tsx
             - _components
               - tests-page-client.tsx
+          - topics
+            - page.tsx
+            - TopicsPageClient.tsx
+            - [id]
+              - page.tsx
+              - TopicDetailPageClient.tsx
+        - assessment
+          - submitted
         - candidate
           - dashboard
             - page.tsx
           - layout.tsx
+          - results
+            - [id]
+              - page.tsx
+          - test
+            - [id]
+              - execution
+                - page.tsx
+              - summary
+                - page.tsx
+          - tests
+            - page.tsx
+            - [id]
+              - instructions
+                - page.tsx
+              - launch
+                - page.tsx
+              - page.tsx
         - layout.tsx
         - page.tsx
-        - tests
-          - [id]
-            - instructions
       - components
         - admin
           - analytics
@@ -1477,9 +3791,12 @@
             - SkeletonChart.tsx
             - StatCard.tsx
             - TrendCard.tsx
+          - config
+            - config-form.tsx
+            - config-header.tsx
+            - config-table.tsx
           - dashboard
             - dashboard-card.tsx
-            - empty-state.tsx
             - page-header.tsx
             - skeleton-card.tsx
             - stat-card.tsx
@@ -1498,6 +3815,7 @@
         - auth
           - protected-route.tsx
           - public-route.tsx
+          - role-guard.tsx
         - candidate
           - dashboard
             - ActiveTestCard.tsx
@@ -1516,44 +3834,162 @@
           - badge.tsx
           - button.tsx
           - card.tsx
+          - checkbox.tsx
           - dropdown-menu.tsx
+          - empty-state.tsx
           - input.tsx
           - label.tsx
           - loading.tsx
           - logo.tsx
           - modal.tsx
+          - progress.tsx
+          - radio-group.tsx
           - separator.tsx
           - sheet.tsx
           - skeleton.tsx
+          - switch.tsx
           - tooltip.tsx
       - config
         - navigation.config.ts
       - features
-        - candidate-dashboard
-          - hooks
-            - useCandidateDashboard.ts
-          - mocks
-            - candidateDashboard.mock.ts
-          - services
-            - candidateDashboard.service.ts
-          - stores
-            - candidateDashboard.store.ts
-          - types
-            - candidateDashboard.types.ts
-        - dashboard
+        - admin
+          - configs
+            - components
+              - concept-mapping
+                - ConceptFormModal.tsx
+                - ConceptManagementPanel.tsx
+                - ConceptTable.tsx
+                - DeactivateConceptDialog.tsx
+                - index.ts
+              - config-preview-tab.tsx
+              - difficulty-distribution-tab.tsx
+              - general-settings-tab.tsx
+              - readiness-tab.tsx
+              - rule-flags-tab.tsx
+              - validation-widget.tsx
+            - hooks
+              - use-difficulty-distribution.ts
+              - use-readiness.ts
+              - use-rule-flags.ts
+            - services
+              - difficulty-distribution.service.ts
+              - readiness.service.ts
+              - rule-flags.service.ts
+            - tests
+              - difficulty-distribution.test.tsx
+              - readiness-tab.test.tsx
+              - rule-flags-tab.test.tsx
+        - candidate
+          - dashboard
+            - hooks
+              - useCandidateDashboard.ts
+            - mocks
+              - candidateDashboard.mock.ts
+            - stores
+              - candidateDashboard.store.ts
+            - types
+              - candidateDashboard.types.ts
+          - execution
+            - components
+              - AutosaveIndicator.tsx
+              - ConnectionStatus.tsx
+              - ExecutionError.tsx
+              - ExecutionHeader.tsx
+              - ExecutionLayout.tsx
+              - ExecutionSkeleton.tsx
+              - NavigationControls.tsx
+              - ProgressTracker.tsx
+              - QuestionPalette.tsx
+              - QuestionPanel.tsx
+              - QuestionRenderer.tsx
+              - QuestionStatusBadge.tsx
+              - ResumeBanner.tsx
+              - SectionTabs.tsx
+              - SubmissionModal.tsx
+              - SubmissionSummary.tsx
+              - TimerWidget.tsx
+              - UnsavedChangesBadge.tsx
+            - hooks
+              - useAutosave.ts
+              - useConnectionMonitor.ts
+              - useExecution.ts
+              - useKeyboardShortcuts.ts
+              - useOfflineRecovery.ts
+              - useResume.ts
+              - useSessionRecovery.ts
+              - useSubmission.ts
+              - useTabMonitor.ts
+              - useTestTimer.ts
+            - mocks
+            - services
+              - execution.service.ts
+              - test-event-tracker.ts
+            - stores
+              - execution.store.ts
+            - types
+              - execution.types.ts
+            - __tests__
+              - execution.store.test.ts
+              - NavigationControls.test.tsx
+              - OfflineRecovery.spec.ts
+              - QuestionRenderer.test.tsx
+              - SessionRecovery.spec.ts
+              - SummaryPage.spec.tsx
+              - TabMonitor.spec.ts
+              - useTestTimer.test.ts
+          - results
+            - components
+              - OverallScoreCard.tsx
+              - PerformanceSummaryCard.tsx
+              - RecommendationCard.tsx
+              - ResultsError.tsx
+              - ResultsHeader.tsx
+              - ResultsSkeleton.tsx
+              - SkillBreakdownCard.tsx
+              - StrengthCard.tsx
+              - WeaknessCard.tsx
+            - hooks
+              - useResults.ts
+            - mocks
+              - results.mock.ts
+            - services
+              - results.service.ts
+            - stores
+              - results.store.ts
+            - types
+              - results.types.ts
+          - tests
+            - components
+              - EligibilityBanner.tsx
+              - InstructionPanel.tsx
+              - StartAssessmentButton.tsx
+              - TestDetailsCard.tsx
+              - TestDiscoveryError.tsx
+              - TestDiscoveryLoaders.tsx
+              - TestMetadata.tsx
+            - hooks
+              - useInstructions.ts
+              - useTestDetails.ts
+              - useValidateStart.ts
+            - mocks
+              - tests.mock.ts
+            - types
+              - test.types.ts
+        - topic-section-mapping
+          - api
+            - queries.ts
           - components
-          - hooks
-          - mocks
-          - services
-          - stores
-          - types
-        - tests
-          - components
-          - mocks
-          - services
-          - types
+            - AvailableTopicsPanel.tsx
+            - TopicMappingHealthWidget.tsx
+            - TopicMappingTable.tsx
+            - WeightageEditor.tsx
+          - store
+            - topic-mapping.store.ts
+          - tests
+            - topic-mapping.test.tsx
       - hooks
         - use-active-route.ts
+        - use-auth.ts
         - use-current-user.ts
         - use-delete-session.ts
         - use-sessions.ts
@@ -1564,12 +4000,70 @@
           - auth.ts
       - modules
         - analytics
+        - candidate
+          - components
+            - CandidateInfo.tsx
+            - EligibilityInfo.tsx
+            - EmptyState.tsx
+            - PerformanceSnapshot.tsx
+            - RecentAttempts.tsx
+            - Recommendations.tsx
+            - SectionBreakdown.tsx
+            - SyllabusBreakdown.tsx
+            - SystemCheck.tsx
+            - TestCard.tsx
+            - TestCardGrid.tsx
+            - TestFilters.tsx
+            - TestOverview.tsx
+            - TestSummary.tsx
+            - UpcomingTests.tsx
+          - hooks
+            - useCandidateDashboard.ts
+            - useInstructions.ts
+            - useTestCatalog.ts
+            - useTestDetails.ts
+          - mocks
+            - dashboard.mock.ts
+            - testCatalog.mock.ts
+          - pages
+            - CandidateDashboard.tsx
+            - TestCatalogPage.tsx
+            - TestDetailsPage.tsx
+            - TestInstructionsPage.tsx
+            - TestLaunchPage.tsx
+          - services
+            - dashboard.service.ts
+            - testCatalog.service.ts
+          - stores
+            - dashboard.store.ts
+            - testCatalog.store.ts
+          - tests
+            - Dashboard.spec.tsx
+            - Instructions.spec.tsx
+            - TestCatalog.spec.tsx
+          - types
+            - Dashboard.ts
+            - Test.ts
+            - TestSection.ts
         - dashboard
           - hooks
             - use-analytics-summary.ts
             - use-dashboard-stats.ts
             - use-recent-activity.ts
           - index.ts
+        - exam-config
+          - components
+            - section-builder
+              - DeleteSectionDialog.tsx
+              - index.ts
+              - SectionBuilder.tsx
+              - SectionCard.tsx
+              - SectionFormModal.tsx
+        - execution
+          - api
+        - session
+          - stores
+            - test-session.store.ts
         - settings
           - components
       - providers
@@ -1578,6 +4072,7 @@
         - session-hydrator.tsx
         - theme-provider.tsx
       - services
+        - admin
         - api
           - auth.api.ts
           - client.ts
@@ -1585,18 +4080,66 @@
           - error.ts
           - test.api.ts
           - user.api.ts
+        - blueprints
+          - api.ts
+          - hooks.ts
+          - index.ts
+          - types.ts
+        - candidate
+          - candidateDashboard.service.ts
+          - test.service.ts
+        - concept-mapping
+          - api.ts
+          - hooks.ts
+          - index.ts
+          - types.ts
+        - exam-configs
+          - api.ts
+          - hooks.ts
+          - index.ts
+          - types.ts
+        - exam-sections
+          - api.ts
+          - hooks.ts
+          - index.ts
+          - types.ts
         - notifications
           - toast.ts
+        - system-validation
+          - api.ts
+          - hooks.ts
+          - index.ts
+        - templates
+          - api.ts
+          - hooks.ts
+        - topic-weightages
+          - api.ts
+          - hooks.ts
+        - topics
+          - api.ts
+          - hooks.ts
+          - index.ts
+          - types.ts
       - store
         - auth.store.ts
+        - blueprint-builder.store.ts
+        - blueprint-editor.store.ts
+        - config-editor.store.ts
+        - config-rules.store.ts
         - dashboard.store.ts
         - layout.store.ts
+        - readiness.store.ts
         - results.store.ts
         - session.store.ts
+        - system-validation.store.ts
+        - template-preview.store.ts
+        - topic-registry.store.ts
         - ui.store.ts
       - styles
         - globals.css
       - styles.d.ts
+      - tests
+        - setup.ts
       - types
         - api.types.ts
         - auth.types.ts
@@ -1605,6 +4148,7 @@
     - tailwind.config.ts
     - tsconfig.json
     - tsconfig.tsbuildinfo
+    - vitest.config.ts
   - worker
     - .turbo
       - turbo-build.log
@@ -1649,16 +4193,136 @@
       - services
         - ai.service.ts
     - tsconfig.json
+- blueprints
+  - campus-placement.json
+  - certification-exam.json
+  - experienced-hiring.json
 - docs
+  - ai
+    - blueprints
+      - blueprint-framework.md
+      - generation-contract.md
+    - day2-generation-engine.md
+    - day3-validation-engine.md
+    - day4-evaluation-engine.md
+    - day5-recommendation-engine.md
+    - generation
+      - examples
+        - campus-placement.json
+        - certification.json
+        - experienced-hiring.json
+      - generation-request-architecture.md
+      - module-2-entry-contract.md
+    - module-1
+      - base-generation-prompt.md
+      - generation-input-contract.md
+      - generation-validation-rules.md
+    - style-profiles
+      - profile-library.md
+      - style-characteristics.md
+    - template-repository
+      - current-state-audit.md
+      - difficulty-compatibility.md
+      - difficulty-mapping.md
+      - output-schema-standard.md
+      - output-schema.md
+      - quality-framework.md
+      - quality-rules.md
+      - template-architecture.md
+      - template-contract.md
+      - template-dependencies.md
+      - template-loader-design.md
+      - template-metadata-spec.md
+      - template-repository-architecture.md
+      - template-selection-rules.md
+      - template-types.md
+      - template-validation-framework.md
+      - template-validation.md
+      - template-versioning.md
+      - variable-schema-standard.md
+      - variable-schema.md
+      - version-rollback-design.md
+      - version-snapshot-contract.md
+    - topic-registry
+      - coverage-rules.md
+      - difficulty-compatibility.md
+      - generation-dependencies.md
+      - registry-loader-design.md
+      - topic-registry-contract.md
+      - topic-taxonomy.md
+      - topic-validation.md
+  - api
+    - day5-results-apis.md
+    - module-1
+      - exam-config-contract.md
   - architecture
+    - api-db-mapping.md
+    - contract-alignment-report.md
+    - day1-readiness-report.md
+    - day1-system-audit.md
     - day4-validation-assessment.md
+    - frontend-backend-mapping.md
+    - source-of-truth-matrix.md
+  - assembly
+    - day3-assembly-engine.md
   - contracts
     - generation-contract-spec.md
   - database
     - day1-persistence-foundation.md
     - day1-schema-audit.md
+    - day2-question-storage.md
+    - day3-test-instance-storage.md
+    - day4-answer-persistence.md
+    - day5-evaluation-storage.md
+  - governance
+    - day3-contract-audit.md
+    - day4-contract-audit.md
+    - day5-contract-audit.md
+    - implementation-checklist.md
+    - merge-gate-process.md
+    - source-of-truth-rules.md
+  - integration
+    - assembly-validation-report.md
+    - assessment-lifecycle-report.md
+    - contract-verification-report.md
+    - day2-integration-matrix.md
+    - day2-integration-report.md
+    - day3-assembly-integration.md
+    - day3-integration-matrix.md
+    - day4-dependencies.md
+    - day4-integration-matrix.md
+    - day4-lifecycle-verification.md
+    - day5-business-value-verification.md
+    - day5-dependencies.md
+    - day5-integration-matrix.md
+    - day6-launch-readiness.md
+    - evaluation-readiness-report.md
+    - execution-readiness-report.md
+    - execution-reliability-report.md
+    - generation-storage-flow.md
+    - history-validation-report.md
+    - integration-checklist.md
+    - readiness-for-day3.md
+    - recommendation-validation-report.md
+    - results-readiness-report.md
+    - submission-audit-report.md
+    - test-start-flow.md
   - launch
+    - ai-certification-report.md
+    - backend-certification-report.md
+    - backup-recovery-guide.md
+    - database-performance-report.md
+    - evaluation-quality-report.md
+    - generation-stability-report.md
     - migration-audit-report.md
+    - recommendation-quality-report.md
+    - repository-validation-report.md
+  - module-1
+    - exam-config-domain.md
+  - module1
+    - module1-validation-checklist.md
+  - security
+    - rbac-matrix.md
   - sprint-1
     - day-4-final-audit.md
     - day-4-final-verification.md
@@ -1748,6 +4412,14 @@
       - evaluation.types.ts
       - question.types.ts
       - template.types.ts
+  - templates
+    - code-output.json
+    - debugging.json
+    - mcq-basic.json
+    - mcq-scenario.json
+    - true-false.json
+  - topic-registry
+    - software-engineering.json
   - tsconfig.json
 - infrastructure
   - docker
@@ -1759,6 +4431,157 @@
 - package-lock.json
 - package.json
 - packages
+  - ai-core
+    - .turbo
+      - turbo-build.log
+      - turbo-lint.log
+      - turbo-test.log
+      - turbo-type-check.log
+    - dist
+      - evaluation
+        - evaluation-engine.service.d.ts
+        - evaluation-engine.service.d.ts.map
+        - evaluation-engine.service.js
+        - evaluation-validator.service.d.ts
+        - evaluation-validator.service.d.ts.map
+        - evaluation-validator.service.js
+        - feedback-generator.service.d.ts
+        - feedback-generator.service.d.ts.map
+        - feedback-generator.service.js
+        - score-calculator.service.d.ts
+        - score-calculator.service.d.ts.map
+        - score-calculator.service.js
+        - skill-evaluator.service.d.ts
+        - skill-evaluator.service.d.ts.map
+        - skill-evaluator.service.js
+        - __tests__
+          - evaluation-engine.spec.d.ts
+          - evaluation-engine.spec.d.ts.map
+          - evaluation-engine.spec.js
+      - generation
+        - generation.service.d.ts
+        - generation.service.d.ts.map
+        - generation.service.js
+        - parameter-generator.service.d.ts
+        - parameter-generator.service.d.ts.map
+        - parameter-generator.service.js
+        - question-instantiator.service.d.ts
+        - question-instantiator.service.d.ts.map
+        - question-instantiator.service.js
+        - template-selector.service.d.ts
+        - template-selector.service.d.ts.map
+        - template-selector.service.js
+        - types
+          - generation.types.d.ts
+          - generation.types.d.ts.map
+          - generation.types.js
+        - utils
+          - random-seed.util.d.ts
+          - random-seed.util.d.ts.map
+          - random-seed.util.js
+        - validation
+          - generation-validation.service.d.ts
+          - generation-validation.service.d.ts.map
+          - generation-validation.service.js
+        - __tests__
+          - generation.spec.d.ts
+          - generation.spec.d.ts.map
+          - generation.spec.js
+      - index.d.ts
+      - index.d.ts.map
+      - index.js
+      - recommendation
+        - improvement-path.service.d.ts
+        - improvement-path.service.d.ts.map
+        - improvement-path.service.js
+        - recommendation-engine.service.d.ts
+        - recommendation-engine.service.d.ts.map
+        - recommendation-engine.service.js
+        - recommendation-generator.service.d.ts
+        - recommendation-generator.service.d.ts.map
+        - recommendation-generator.service.js
+        - recommendation-validator.service.d.ts
+        - recommendation-validator.service.d.ts.map
+        - recommendation-validator.service.js
+        - skill-gap-analyzer.service.d.ts
+        - skill-gap-analyzer.service.d.ts.map
+        - skill-gap-analyzer.service.js
+        - __tests__
+          - recommendation-engine.spec.d.ts
+          - recommendation-engine.spec.d.ts.map
+          - recommendation-engine.spec.js
+      - validation
+        - ambiguity-validator.service.d.ts
+        - ambiguity-validator.service.d.ts.map
+        - ambiguity-validator.service.js
+        - answer-validator.service.d.ts
+        - answer-validator.service.d.ts.map
+        - answer-validator.service.js
+        - difficulty-validator.service.d.ts
+        - difficulty-validator.service.d.ts.map
+        - difficulty-validator.service.js
+        - quality-validator.service.d.ts
+        - quality-validator.service.d.ts.map
+        - quality-validator.service.js
+        - question-validator.service.d.ts
+        - question-validator.service.d.ts.map
+        - question-validator.service.js
+        - rules
+          - validation-rules.d.ts
+          - validation-rules.d.ts.map
+          - validation-rules.js
+        - validation-orchestrator.service.d.ts
+        - validation-orchestrator.service.d.ts.map
+        - validation-orchestrator.service.js
+        - __tests__
+          - validation-engine.spec.d.ts
+          - validation-engine.spec.d.ts.map
+          - validation-engine.spec.js
+    - jest.config.js
+    - package.json
+    - src
+      - evaluation
+        - evaluation-engine.service.ts
+        - evaluation-validator.service.ts
+        - feedback-generator.service.ts
+        - score-calculator.service.ts
+        - skill-evaluator.service.ts
+        - __tests__
+          - evaluation-engine.spec.ts
+      - generation
+        - generation.service.ts
+        - parameter-generator.service.ts
+        - question-instantiator.service.ts
+        - template-selector.service.ts
+        - types
+          - generation.types.ts
+        - utils
+          - random-seed.util.ts
+        - validation
+          - generation-validation.service.ts
+        - __tests__
+          - generation.spec.ts
+      - index.ts
+      - recommendation
+        - improvement-path.service.ts
+        - recommendation-engine.service.ts
+        - recommendation-generator.service.ts
+        - recommendation-validator.service.ts
+        - skill-gap-analyzer.service.ts
+        - __tests__
+          - recommendation-engine.spec.ts
+      - validation
+        - ambiguity-validator.service.ts
+        - answer-validator.service.ts
+        - difficulty-validator.service.ts
+        - quality-validator.service.ts
+        - question-validator.service.ts
+        - rules
+          - validation-rules.ts
+        - validation-orchestrator.service.ts
+        - __tests__
+          - validation-engine.spec.ts
+    - tsconfig.json
   - contracts
     - .turbo
       - turbo-build.log
@@ -1769,15 +4592,39 @@
       - ai.d.ts
       - ai.d.ts.map
       - ai.js
+      - assembly-provider.dto.d.ts
+      - assembly-provider.dto.d.ts.map
+      - assembly-provider.dto.js
+      - blueprint-config.dto.d.ts
+      - blueprint-config.dto.d.ts.map
+      - blueprint-config.dto.js
+      - blueprint.dto.d.ts
+      - blueprint.dto.d.ts.map
+      - blueprint.dto.js
       - candidate-question.dto.d.ts
       - candidate-question.dto.d.ts.map
       - candidate-question.dto.js
+      - compilation.d.ts
+      - compilation.d.ts.map
+      - compilation.js
+      - concept-mapping.dto.d.ts
+      - concept-mapping.dto.d.ts.map
+      - concept-mapping.dto.js
       - dashboard.dto.d.ts
       - dashboard.dto.d.ts.map
       - dashboard.dto.js
       - errors.d.ts
       - errors.d.ts.map
       - errors.js
+      - evaluation.d.ts
+      - evaluation.d.ts.map
+      - evaluation.js
+      - exam-config.dto.d.ts
+      - exam-config.dto.d.ts.map
+      - exam-config.dto.js
+      - exam-section.dto.d.ts
+      - exam-section.dto.d.ts.map
+      - exam-section.dto.js
       - generated-question.dto.d.ts
       - generated-question.dto.d.ts.map
       - generated-question.dto.js
@@ -1799,10 +4646,31 @@
       - queue.d.ts
       - queue.d.ts.map
       - queue.js
+      - recommendation.d.ts
+      - recommendation.d.ts.map
+      - recommendation.js
+      - result-submission.contract.d.ts
+      - result-submission.contract.d.ts.map
+      - result-submission.contract.js
       - schemas
+        - assembly-provider.schema.d.ts
+        - assembly-provider.schema.d.ts.map
+        - assembly-provider.schema.js
+        - blueprint.schema.d.ts
+        - blueprint.schema.d.ts.map
+        - blueprint.schema.js
         - candidate-question.schema.d.ts
         - candidate-question.schema.d.ts.map
         - candidate-question.schema.js
+        - concept-mapping.schema.d.ts
+        - concept-mapping.schema.d.ts.map
+        - concept-mapping.schema.js
+        - exam-config.schema.d.ts
+        - exam-config.schema.d.ts.map
+        - exam-config.schema.js
+        - exam-section.schema.d.ts
+        - exam-section.schema.d.ts.map
+        - exam-section.schema.js
         - generated-question.schema.d.ts
         - generated-question.schema.d.ts.map
         - generated-question.schema.js
@@ -1812,12 +4680,33 @@
         - question-validation.schema.d.ts
         - question-validation.schema.d.ts.map
         - question-validation.schema.js
+        - readiness.schema.d.ts
+        - readiness.schema.d.ts.map
+        - readiness.schema.js
+        - style-profile.schema.d.ts
+        - style-profile.schema.d.ts.map
+        - style-profile.schema.js
+        - system-validation.schema.d.ts
+        - system-validation.schema.d.ts.map
+        - system-validation.schema.js
         - template.schema.d.ts
         - template.schema.d.ts.map
         - template.schema.js
+        - topic-section.schema.d.ts
+        - topic-section.schema.d.ts.map
+        - topic-section.schema.js
+        - topic.schema.d.ts
+        - topic.schema.d.ts.map
+        - topic.schema.js
+      - style-profile.dto.d.ts
+      - style-profile.dto.d.ts.map
+      - style-profile.dto.js
       - template.dto.d.ts
       - template.dto.d.ts.map
       - template.dto.js
+      - topic.dto.d.ts
+      - topic.dto.d.ts.map
+      - topic.dto.js
       - worker.d.ts
       - worker.d.ts.map
       - worker.js
@@ -1825,9 +4714,17 @@
     - package.json
     - src
       - ai.ts
+      - assembly-provider.dto.ts
+      - blueprint-config.dto.ts
+      - blueprint.dto.ts
       - candidate-question.dto.ts
+      - compilation.ts
+      - concept-mapping.dto.ts
       - dashboard.dto.ts
       - errors.ts
+      - evaluation.ts
+      - exam-config.dto.ts
+      - exam-section.dto.ts
       - generated-question.dto.ts
       - generation.ts
       - index.ts
@@ -1835,48 +4732,135 @@
       - question-validation-helpers.ts
       - question-validation.dto.ts
       - queue.ts
+      - recommendation.ts
+      - result-submission.contract.ts
       - schemas
+        - assembly-provider.schema.ts
+        - blueprint.schema.ts
         - candidate-question.schema.ts
+        - concept-mapping.schema.ts
+        - exam-config.schema.ts
+        - exam-section.schema.ts
         - generated-question.schema.ts
         - question-pool.schema.ts
         - question-validation.schema.ts
+        - readiness.schema.ts
+        - style-profile.schema.ts
+        - system-validation.schema.ts
         - template.schema.ts
+        - topic-section.schema.ts
+        - topic.schema.ts
+      - style-profile.dto.ts
       - template.dto.ts
       - tests
         - generation-contracts.spec.ts
+      - topic.dto.ts
       - worker.ts
     - tsconfig.json
   - database
+    - check-columns.ts
+    - check-shapes.js
+    - e2e-audit.js
+    - find-users.js
+    - migration.sql
+    - old.prisma
     - package.json
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
     - prisma
+      - day3_migration.sql
       - migrations
         - 20260608071350_day1_persistence_foundation
           - migration.sql
+        - 20260609000000_day3_test_instance_storage
+          - migration.sql
+        - 20260610000000_day4_execution_persistence
+          - migration.sql
+        - 20260610000001_day5_evaluation_results
+          - migration.sql
+        - 20260610084446_day6_index_optimization
+          - migration.sql
+        - 20260615052038_add_exam_config_foundation
+          - migration.sql
+        - 20260616055421_add_exam_section
+          - migration.sql
+        - 20260617053201_use_cuid_for_config_models
+          - migration.sql
+        - 20260617060000_add_concept_mapping
+          - migration.sql
+        - 20260618050000_refine_exam_config_and_sections
+          - migration.sql
+        - 20260618082618_add_style_profile_and_blueprint
+          - migration.sql
+        - 20260618100847_add_section_topic_mapping
+          - migration.sql
+        - 20260618120000_add_topic_crud
+          - migration.sql
+        - 20260619000000_init_blueprint_config
+          - migration.sql
+        - 20260619061700_add_section_topic_weightage
+          - migration.sql
         - migration_lock.toml
+      - old_schema.prisma
       - schema.prisma
       - seed
+        - day2-question-seed.ts
+        - evaluations.seed.ts
+        - exam-config.seed.ts
         - index.ts
+        - run-day2.ts
         - templates.seed.ts
+        - test-config.seed.ts
+        - topics.seed.ts
         - users.seed.ts
       - seed.ts
+      - seeds
+        - module1
+          - seed.ts
+    - query-db.ts
     - README.md
+    - seed-template.js
     - src
       - client.ts
       - index.ts
       - prisma.service.ts
       - repositories
+        - assembly.repository.ts
+        - candidate-answer.repository.ts
+        - concept-mapping.repository.ts
+        - evaluation-result.repository.ts
         - evaluation.repository.spec.ts
         - evaluation.repository.ts
+        - exam-config.repository.ts
+        - exam-section.repository.ts
+        - execution-persistence.repository.ts
+        - execution-state.repository.ts
         - generated-question.repository.ts
+        - performance-summary.repository.ts
+        - question-pool.repository.ts
+        - recommendation.repository.ts
         - skill-score.repository.spec.ts
         - skill-score.repository.ts
+        - submission.repository.ts
         - template.repository.ts
         - test-config.repository.ts
+        - test-instance-question.repository.ts
+        - test-instance-section.repository.ts
         - test-instance.repository.ts
         - __tests__
           - day1-integration.test.ts
+          - day2-integration.test.ts
+          - day3-integration.test.ts
+          - day3-unit.test.ts
+          - day4-integration.test.ts
+          - day4-unit.spec.ts
+          - day5-integration.test.ts
+          - day5-unit.spec.ts
       - types
         - database.types.ts
+      - utils
+        - hash-question.util.ts
+    - test-entities.js
     - tsconfig.json
   - shared
     - .turbo
@@ -1889,6 +4873,9 @@
         - api.constants.d.ts
         - api.constants.d.ts.map
         - api.constants.js
+        - exam-config.d.ts
+        - exam-config.d.ts.map
+        - exam-config.js
         - index.d.ts
         - index.d.ts.map
         - index.js
@@ -1899,9 +4886,46 @@
         - validation.constants.d.ts.map
         - validation.constants.js
       - contracts
+        - common
+          - api-response.d.ts
+          - api-response.d.ts.map
+          - api-response.js
+        - difficulty-distribution
+          - difficulty-distribution-response.contract.d.ts
+          - difficulty-distribution-response.contract.d.ts.map
+          - difficulty-distribution-response.contract.js
+          - index.d.ts
+          - index.d.ts.map
+          - index.js
+          - update-difficulty-distribution.contract.d.ts
+          - update-difficulty-distribution.contract.d.ts.map
+          - update-difficulty-distribution.contract.js
+        - exam-config
+          - create-exam-config.contract.d.ts
+          - create-exam-config.contract.d.ts.map
+          - create-exam-config.contract.js
+          - exam-config-response.contract.d.ts
+          - exam-config-response.contract.d.ts.map
+          - exam-config-response.contract.js
+          - index.d.ts
+          - index.d.ts.map
+          - index.js
+          - update-exam-config.contract.d.ts
+          - update-exam-config.contract.d.ts.map
+          - update-exam-config.contract.js
         - index.d.ts
         - index.d.ts.map
         - index.js
+        - rule-flags
+          - index.d.ts
+          - index.d.ts.map
+          - index.js
+          - rule-flags-response.contract.d.ts
+          - rule-flags-response.contract.d.ts.map
+          - rule-flags-response.contract.js
+          - update-rule-flags.contract.d.ts
+          - update-rule-flags.contract.d.ts.map
+          - update-rule-flags.contract.js
         - v1
           - ai.contract.d.ts
           - ai.contract.d.ts.map
@@ -1916,30 +4940,90 @@
           - queue.contract.d.ts.map
           - queue.contract.js
       - dto
+        - assembled-test.dto.d.ts
+        - assembled-test.dto.d.ts.map
+        - assembled-test.dto.js
+        - assembly-validation-result.dto.d.ts
+        - assembly-validation-result.dto.d.ts.map
+        - assembly-validation-result.dto.js
         - auth.dto.d.ts
         - auth.dto.d.ts.map
         - auth.dto.js
+        - blueprint-config.dto.d.ts
+        - blueprint-config.dto.d.ts.map
+        - blueprint-config.dto.js
+        - blueprint.dto.d.ts
+        - blueprint.dto.d.ts.map
+        - blueprint.dto.js
         - common.dto.d.ts
         - common.dto.d.ts.map
         - common.dto.js
+        - concept-mapping.dto.d.ts
+        - concept-mapping.dto.d.ts.map
+        - concept-mapping.dto.js
         - create-test.dto.d.ts
         - create-test.dto.d.ts.map
         - create-test.dto.js
+        - difficulty-distribution.dto.d.ts
+        - difficulty-distribution.dto.d.ts.map
+        - difficulty-distribution.dto.js
         - evaluation.dto.d.ts
         - evaluation.dto.d.ts.map
         - evaluation.dto.js
+        - exam-config.dto.d.ts
+        - exam-config.dto.d.ts.map
+        - exam-config.dto.js
+        - exam-section.dto.d.ts
+        - exam-section.dto.d.ts.map
+        - exam-section.dto.js
         - generate-question.dto.d.ts
         - generate-question.dto.d.ts.map
         - generate-question.dto.js
+        - generate-test-request.dto.d.ts
+        - generate-test-request.dto.d.ts.map
+        - generate-test-request.dto.js
         - index.d.ts
         - index.d.ts.map
         - index.js
+        - preview-test-response.dto.d.ts
+        - preview-test-response.dto.d.ts.map
+        - preview-test-response.dto.js
         - queue.dto.d.ts
         - queue.dto.d.ts.map
         - queue.dto.js
+        - readiness.dto.d.ts
+        - readiness.dto.d.ts.map
+        - readiness.dto.js
+        - results.dto.d.ts
+        - results.dto.d.ts.map
+        - results.dto.js
+        - rule-flags.dto.d.ts
+        - rule-flags.dto.d.ts.map
+        - rule-flags.dto.js
+        - solution-template.dto.d.ts
+        - solution-template.dto.d.ts.map
+        - solution-template.dto.js
+        - style-profile.dto.d.ts
+        - style-profile.dto.d.ts.map
+        - style-profile.dto.js
+        - template-rule.dto.d.ts
+        - template-rule.dto.d.ts.map
+        - template-rule.dto.js
+        - template-validation.dto.d.ts
+        - template-validation.dto.d.ts.map
+        - template-validation.dto.js
+        - template-variable.dto.d.ts
+        - template-variable.dto.d.ts.map
+        - template-variable.dto.js
         - template.dto.d.ts
         - template.dto.d.ts.map
         - template.dto.js
+        - topic-weightage.dto.d.ts
+        - topic-weightage.dto.d.ts.map
+        - topic-weightage.dto.js
+        - topic.dto.d.ts
+        - topic.dto.d.ts.map
+        - topic.dto.js
         - user.dto.d.ts
         - user.dto.d.ts.map
         - user.dto.js
@@ -1962,6 +5046,9 @@
         - queue.enum.d.ts
         - queue.enum.d.ts.map
         - queue.enum.js
+        - template-schema.enum.d.ts
+        - template-schema.enum.d.ts.map
+        - template-schema.enum.js
       - errors
         - base.errors.d.ts
         - base.errors.d.ts.map
@@ -1972,6 +5059,9 @@
         - index.d.ts
         - index.d.ts.map
         - index.js
+        - topic-section.errors.d.ts
+        - topic-section.errors.d.ts.map
+        - topic-section.errors.js
       - index.d.ts
       - index.d.ts.map
       - index.js
@@ -2036,12 +5126,18 @@
         - common.schema.d.ts
         - common.schema.d.ts.map
         - common.schema.js
+        - concept-mapping.schema.d.ts
+        - concept-mapping.schema.d.ts.map
+        - concept-mapping.schema.js
         - config.schema.d.ts
         - config.schema.d.ts.map
         - config.schema.js
         - error.schema.d.ts
         - error.schema.d.ts.map
         - error.schema.js
+        - exam-section.schema.d.ts
+        - exam-section.schema.d.ts.map
+        - exam-section.schema.js
         - health.schema.d.ts
         - health.schema.d.ts.map
         - health.schema.js
@@ -2051,6 +5147,15 @@
         - queue.schema.d.ts
         - queue.schema.d.ts.map
         - queue.schema.js
+        - results.schema.d.ts
+        - results.schema.d.ts.map
+        - results.schema.js
+        - solution-template.schema.d.ts
+        - solution-template.schema.d.ts.map
+        - solution-template.schema.js
+        - topic.schema.d.ts
+        - topic.schema.d.ts.map
+        - topic.schema.js
         - user.schema.d.ts
         - user.schema.d.ts.map
         - user.schema.js
@@ -2064,6 +5169,9 @@
         - dashboard.types.d.ts
         - dashboard.types.d.ts.map
         - dashboard.types.js
+        - exam-config.d.ts
+        - exam-config.d.ts.map
+        - exam-config.js
         - index.d.ts
         - index.d.ts.map
         - index.js
@@ -2098,22 +5206,58 @@
     - src
       - constants
         - api.constants.ts
+        - exam-config.ts
         - index.ts
         - queue.constants.ts
         - validation.constants.ts
       - contracts
+        - common
+          - api-response.ts
+        - difficulty-distribution
+          - difficulty-distribution-response.contract.ts
+          - index.ts
+          - update-difficulty-distribution.contract.ts
+        - exam-config
+          - create-exam-config.contract.ts
+          - exam-config-response.contract.ts
+          - index.ts
+          - update-exam-config.contract.ts
         - index.ts
+        - rule-flags
+          - index.ts
+          - rule-flags-response.contract.ts
+          - update-rule-flags.contract.ts
         - v1
           - api.contract.ts
           - index.ts
       - dto
+        - assembled-test.dto.ts
+        - assembly-validation-result.dto.ts
         - auth.dto.ts
+        - blueprint-config.dto.ts
+        - blueprint.dto.ts
         - common.dto.ts
+        - concept-mapping.dto.ts
         - create-test.dto.ts
+        - difficulty-distribution.dto.ts
         - evaluation.dto.ts
+        - exam-config.dto.ts
+        - exam-section.dto.ts
         - generate-question.dto.ts
+        - generate-test-request.dto.ts
         - index.ts
+        - preview-test-response.dto.ts
+        - readiness.dto.ts
+        - results.dto.ts
+        - rule-flags.dto.ts
+        - solution-template.dto.ts
+        - style-profile.dto.ts
+        - template-rule.dto.ts
+        - template-validation.dto.ts
+        - template-variable.dto.ts
         - template.dto.ts
+        - topic-weightage.dto.ts
+        - topic.dto.ts
         - user.dto.ts
       - enums
         - ai-model.enum.ts
@@ -2122,10 +5266,12 @@
         - global.enum.ts
         - index.ts
         - queue.enum.ts
+        - template-schema.enum.ts
       - errors
         - base.errors.ts
         - domain.errors.ts
         - index.ts
+        - topic-section.errors.ts
       - index.ts
       - logging
         - ai-log.schema.ts
@@ -2150,20 +5296,27 @@
         - api.schema.ts
         - auth.schema.ts
         - common.schema.ts
+        - concept-mapping.schema.ts
         - config.schema.ts
         - error.schema.ts
+        - exam-section.schema.ts
         - health.schema.ts
         - index.ts
+        - results.schema.ts
+        - solution-template.schema.ts
+        - topic.schema.ts
         - user.schema.ts
       - tests
         - contract
           - api.contract.spec.ts
+          - exam-config.contract.spec.ts
         - unit
           - recommendation-engine.spec.ts
           - validation.utils.spec.ts
       - types
         - api.types.ts
         - dashboard.types.ts
+        - exam-config.ts
         - index.ts
         - validation.types.ts
       - utils
@@ -2213,10 +5366,46 @@
       - uuid.d.ts
     - tsconfig.json
   - shared-types
+- playwright.config.ts
+- postman
+  - day5-results.json
+- project_structure.text
 - README.md
+- render.yaml
+- run_checks.ps1
 - scripts
   - check-structure.js
+  - inspect-templates.ts
+  - run-ci.js
+  - test-app-context.ts
+  - test-connection.ts
+  - test-generation.ts
+  - verify-ai-stack.ts
+  - verify-assembly.ts
+  - verify-assessment.ts
+  - verify-autosave.ts
+  - verify-backend.ts
+  - verify-dashboard-insights.ts
+  - verify-database.ts
+  - verify-day2.ts
+  - verify-day3.ts
+  - verify-day4.ts
+  - verify-day5.ts
+  - verify-evaluation-quality.ts
+  - verify-evaluation.ts
+  - verify-execution.ts
+  - verify-generation-quality.ts
+  - verify-generation.ts
+  - verify-history.ts
   - verify-migrations.ts
+  - verify-pool.ts
+  - verify-recommendation-quality.ts
+  - verify-recommendations.ts
+  - verify-results.ts
+  - verify-resume.ts
+  - verify-start-test.ts
+  - verify-submission.ts
+  - verify-transactions.ts
 - src
   - components
     - ui
@@ -2225,7 +5414,15 @@
     - utils.ts
   - store
     - ui.store.ts
+- test-api.js
+- test-put.js
+- test-schema.js
+- tests
+  - e2e
+    - module1
+      - e2e-validation.spec.ts
 - tsconfig.base.json
+- tsconfig.json
 - turbo.json
 - Untitled
 - _tmp_write_check.txt

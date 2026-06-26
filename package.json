@@ -29,6 +29,7 @@
     "verify:day3": "tsx scripts/verify-day3.ts",
     "verify:day4": "node --import tsx --env-file=apps/api/.env scripts/verify-day4.ts",
     "verify:day5": "node --import tsx --env-file=apps/api/.env scripts/verify-day5.ts",
+    "verify:platform": "node --import tsx --env-file=apps/api/.env scripts/verify-platform.ts",
     "test:ai-regression": "node --import tsx --env-file=apps/api/.env scripts/verify-ai-stack.ts",
     "verify-backend": "tsx scripts/verify-backend.ts",
     "test:repositories": "vitest run packages/database/src/repositories/__tests__/"

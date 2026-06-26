@@ -90,8 +90,8 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
 
           {/* Sidebar info */}
           <div className='lg:col-span-1 space-y-6'>
-            <SyllabusBreakdown syllabus={test.syllabus} />
-            <EligibilityInfo eligibility={test.eligibility} />
+            <SyllabusBreakdown syllabus={[]} />
+            <EligibilityInfo eligibility={[]} />
           </div>
         </div>
 

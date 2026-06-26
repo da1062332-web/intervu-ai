@@ -17,17 +17,19 @@ export function TestDetailsCard({ config }: { config: TestConfig }) {
           </div>
           <Badge variant='outline'>{config.difficulty}</Badge>
         </div>
-        <CardDescription className='mt-4 text-base'>{config.description}</CardDescription>
+        {false && <CardDescription className='mt-4 text-base'>N/A</CardDescription>}
       </CardHeader>
       <CardContent className='flex gap-6 mt-4'>
         <div className='flex items-center gap-2 text-muted-foreground'>
           <HelpCircle className='size-5 text-primary/70' />
-          <span className='font-medium'>{config.totalQuestions} Questions</span>
+          <span className='font-medium'>Questions count not available</span>
         </div>
-        <div className='flex items-center gap-2 text-muted-foreground'>
-          <Clock className='size-5 text-primary/70' />
-          <span className='font-medium'>{config.durationMinutes} Minutes</span>
-        </div>
+        {config.durationMinutes && (
+          <div className='flex items-center gap-2 text-muted-foreground'>
+            <Clock className='size-5 text-primary/70' />
+            <span className='font-medium'>{config.durationMinutes} Minutes</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
