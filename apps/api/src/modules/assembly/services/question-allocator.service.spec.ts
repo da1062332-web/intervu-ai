@@ -2,25 +2,25 @@ import {
   QuestionAllocatorService,
   AllocationConfig,
 } from "./question-allocator.service";
-import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { AntiRepetitionService } from "./anti-repetition.service";
 import { BlueprintSectionDto } from "@intervu/shared";
+import { IQuestionSource } from "./question-source.interface";
 
 describe("QuestionAllocatorService", () => {
   let service: QuestionAllocatorService;
-  let poolRepo: jest.Mocked<QuestionPoolRepository>;
+  let sourceMock: jest.Mocked<IQuestionSource>;
   let antiRepRepo: jest.Mocked<AntiRepetitionService>;
 
   beforeEach(() => {
-    poolRepo = {
-      findAvailableQuestions: jest.fn(),
+    sourceMock = {
+      fetchQuestions: jest.fn(),
     } as never;
 
     antiRepRepo = {
       filterPool: jest.fn((pool: unknown) => pool), // pass-through
     } as never;
 
-    service = new QuestionAllocatorService(poolRepo, antiRepRepo);
+    service = new QuestionAllocatorService(sourceMock, antiRepRepo);
   });
 
   it("should allocate questions correctly", async () => {
@@ -34,7 +34,7 @@ describe("QuestionAllocatorService", () => {
       difficultyDistribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
     };
 
-    poolRepo.findAvailableQuestions.mockResolvedValue([
+    sourceMock.fetchQuestions.mockResolvedValue([
       {
         id: "q1",
         conceptKey: "top-1",

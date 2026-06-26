@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, ClipboardList, BarChart3, Users, TrendingUp } from 'lucide-react';
+import { Plus, ClipboardList, BarChart3, Users, TrendingUp, LayoutTemplate, Bot } from 'lucide-react';
 import Link from 'next/link';
 
 import { useAuthStore } from '@/store/auth.store';
@@ -87,7 +87,7 @@ export default function DashboardPage() {
         >
           Quick Actions
         </h2>
-        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
           <DashboardCard
             title='Create Assessment'
             description='Build a new AI-powered interview assessment tailored to your specific role and requirements.'
@@ -97,25 +97,29 @@ export default function DashboardPage() {
             color='primary'
           />
           <DashboardCard
-            title='Browse Tests'
-            description='View and manage all your interview assessments, candidates, and test configurations.'
-            icon={<ClipboardList className='size-6' />}
-            actionLabel='View Tests'
-            actionHref='/admin/tests'
+            title='AI Templates'
+            description='Select from our library of curated AI interview templates optimized for various roles.'
+            icon={<LayoutTemplate className='size-6' />}
+            actionLabel='View Templates'
+            actionHref='/admin/templates'
             color='blue'
-          >
-            <EmptyStateCard title='No tests yet' compact cardClassName='min-h-[60px]' />
-          </DashboardCard>
+          />
+          <DashboardCard
+            title='Assembly'
+            description='Manage and configure your interview question sets and AI evaluation rubrics.'
+            icon={<Bot className='size-6' />}
+            actionLabel='Build Assembly'
+            actionHref='/admin/assembly'
+            color='emerald'
+          />
           <DashboardCard
             title='Analytics'
             description='Gain deep insights into candidate performance, pass rates, and hiring metrics.'
             icon={<TrendingUp className='size-6' />}
             actionLabel='View Analytics'
             actionHref='/admin/results'
-            color='emerald'
-          >
-            <EmptyStateCard title='No data yet' compact cardClassName='min-h-[60px]' />
-          </DashboardCard>
+            color='amber'
+          />
         </div>
       </section>
     </div>

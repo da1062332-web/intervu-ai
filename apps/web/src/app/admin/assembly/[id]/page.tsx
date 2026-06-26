@@ -8,24 +8,37 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, ArrowLeft, CheckCircle2, Clock, Layers, Hash } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
+import { TopicDistributionChart } from '@/components/assembly/TopicDistributionChart';
+import { DifficultyDistributionChart } from '@/components/assembly/DifficultyDistributionChart';
+import { CoverageChart } from '@/components/assembly/CoverageChart';
+import { AssemblyHealthCard } from '@/components/assembly/AssemblyHealthCard';
 
 export default function AssemblyPreviewPage() {
   const router = useRouter();
   const params = useParams();
 
   const [assembly, setAssembly] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [versions, setVersions] = useState<any>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (params.id) {
-      fetchAssembly(params.id as string);
+      fetchData(params.id as string);
     }
   }, [params.id]);
 
-  const fetchAssembly = async (id: string) => {
+  const fetchData = async (id: string) => {
+    setLoading(true);
     try {
-      const data = await apiClient.request<any>(`/assembly/${id}`);
-      setAssembly(data);
+      const [assemblyData, analyticsData, versionsData] = await Promise.all([
+        apiClient.request<any>(`/assembly/${id}`),
+        apiClient.request<any>(`/assembly/${id}/analytics`).catch(() => null),
+        apiClient.request<any>(`/assembly/${id}/versions`).catch(() => []),
+      ]);
+      setAssembly(assemblyData);
+      if (analyticsData) setAnalytics(analyticsData);
+      if (versionsData) setVersions(versionsData);
     } catch (error: any) {
       toast.error(error.message || 'Failed to load assembly');
       router.push('/admin/assembly');
@@ -33,6 +46,39 @@ export default function AssemblyPreviewPage() {
       setLoading(false);
     }
   };
+
+  const handlePublish = async () => {
+    try {
+      await apiClient.request(`/assembly/${params.id}/publish`, { method: 'POST' });
+      toast.success('Assembly published successfully!');
+      setAssembly((prev: any) => ({ ...prev, status: 'PUBLISHED' }));
+      fetchData(params.id as string);
+    } catch (error: any) {
+      toast.error(error.message || 'Validation failed. Cannot publish.');
+    }
+  };
+
+  const handleCreateVersion = async () => {
+    try {
+      await apiClient.request(`/assembly/${params.id}/version`, { method: 'POST' });
+      toast.success('Version created successfully!');
+      fetchData(params.id as string);
+    } catch (error: any) {
+      toast.error('Failed to create version');
+    }
+  };
+
+  const handleRestoreVersion = async (versionId: string) => {
+    try {
+      await apiClient.request(`/assembly/${params.id}/restore/${versionId}`, { method: 'POST' });
+      toast.success('Version restored successfully!');
+      fetchData(params.id as string);
+    } catch (error: any) {
+      toast.error('Failed to restore version');
+    }
+  };
+
+
 
   if (loading) {
     return (
@@ -62,6 +108,12 @@ export default function AssemblyPreviewPage() {
             </Badge>
           </div>
           <p className='text-muted-foreground mt-1'>Instance ID: {assembly.id}</p>
+        </div>
+        <div className='ml-auto flex gap-2'>
+          <Button variant='outline' onClick={handleCreateVersion}>Save Version</Button>
+          {assembly.status !== 'PUBLISHED' && (
+            <Button onClick={handlePublish}>Publish Assembly</Button>
+          )}
         </div>
       </div>
 
@@ -109,16 +161,52 @@ export default function AssemblyPreviewPage() {
         </Card>
       </div>
 
+      {analytics && (
+        <div className='mb-8'>
+          <h2 className='text-2xl font-semibold tracking-tight border-b pb-2 mb-4'>Distribution Analytics</h2>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <TopicDistributionChart distribution={analytics.topicDistribution} />
+            <DifficultyDistributionChart distribution={analytics.difficultyDistribution} />
+            <CoverageChart coveragePercentage={analytics.coverageDistribution?.overallCoverage || 0} />
+            <AssemblyHealthCard 
+              isValid={analytics.coverageDistribution?.overallCoverage === 100} 
+              warnings={analytics.coverageDistribution?.overallCoverage < 100 ? ["Question coverage is below 100%"] : []} 
+            />
+          </div>
+        </div>
+      )}
+
+      {versions?.length > 0 && (
+        <div className='mb-8'>
+          <h2 className='text-2xl font-semibold tracking-tight border-b pb-2 mb-4'>Version History</h2>
+          <Card>
+            <CardContent className='p-0 divide-y'>
+              {versions.map((v: any) => (
+                <div key={v.id} className='p-4 flex justify-between items-center'>
+                  <div>
+                    <p className='font-medium'>Version {v.version}</p>
+                    <p className='text-sm text-muted-foreground'>{new Date(v.createdAt).toLocaleString()}</p>
+                  </div>
+                  <Button variant='outline' size='sm' onClick={() => handleRestoreVersion(v.id)}>
+                    Restore
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className='space-y-8'>
         <h2 className='text-2xl font-semibold tracking-tight border-b pb-2'>Assembled Sections</h2>
 
         {assembly.sections?.map((section: any, index: number) => (
-          <Card key={section.sectionId} className='overflow-hidden border-t-4 border-t-primary'>
+          <Card key={section.id || section.sectionId || index} className='overflow-hidden border-t-4 border-t-primary'>
             <CardHeader className='bg-muted/30 pb-4'>
               <div className='flex justify-between items-start'>
                 <div>
                   <CardTitle className='text-xl'>
-                    {section.sectionName || `Section ${index + 1}`}
+                    {section.sectionName || section.displayName || section.sectionKey || `Section ${index + 1}`}
                   </CardTitle>
                   <CardDescription className='mt-1 flex gap-4'>
                     <span className='flex items-center gap-1'>
@@ -135,11 +223,11 @@ export default function AssemblyPreviewPage() {
             </CardHeader>
             <CardContent className='p-0'>
               <div className='divide-y'>
-                {section.questions?.map((q: any) => {
+                {section.questions?.map((q: any, qIndex: number) => {
                   const snap = q.questionSnapshot || {};
                   return (
                     <div
-                      key={q.questionId}
+                      key={q.id || q.questionId || qIndex}
                       className='p-4 hover:bg-muted/20 transition-colors flex flex-col md:flex-row gap-4'
                     >
                       <div className='flex-shrink-0 w-12 h-12 bg-muted rounded-md flex items-center justify-center font-bold text-muted-foreground'>
