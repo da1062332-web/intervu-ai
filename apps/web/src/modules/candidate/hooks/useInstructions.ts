@@ -7,7 +7,7 @@ export function useInstructions(testId: string) {
     queryFn: async () => {
       // First get test details to ensure test exists
       const test = await testService.getTestDetails(testId);
-      
+
       if (!test) {
         throw new Error('Test not found');
       }

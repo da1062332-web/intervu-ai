@@ -7,10 +7,10 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import {
   ZodValidationPipe,
-  GlobalExceptionFilter,
   ResponseInterceptor,
   ResponseValidationInterceptor,
 } from "@intervu/shared";
+import { GlobalErrorFilter } from "./modules/platform/middleware/global-error.middleware";
 import { ObservabilityInterceptor } from "./common/monitoring/observability.interceptor";
 import { RedisConnectionManager } from "./cache";
 import { AppConfigService } from "./config";
@@ -47,7 +47,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ZodValidationPipe());
 
   // Global filters
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalFilters(new GlobalErrorFilter());
 
   // Global Interceptors
   const reflector = app.get(Reflector);

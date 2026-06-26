@@ -69,7 +69,9 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
       <CardContent className='pb-4 pt-0 flex-1 grid grid-cols-3 gap-2 border-y border-border/20 py-3 bg-muted/20'>
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <Clock className='size-4 text-primary/70 mb-1' />
-          <span className='text-[11px] font-bold text-foreground'>{test.durationMinutes || 'N/A'} min</span>
+          <span className='text-[11px] font-bold text-foreground'>
+            {test.durationMinutes || 'N/A'} min
+          </span>
           <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
             Duration
           </span>

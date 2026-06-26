@@ -27,7 +27,7 @@ export function useAutosave(testId: string) {
         timestamp: new Date().toISOString(),
       };
       localStorage.setItem(`${STORAGE_KEY}_${testId}`, JSON.stringify(stateToSave));
-      
+
       // If we are online and this isn't failing, we can assume the persistence layer is handling the network sync.
       // The status will be driven by the useAnswerPersistence mostly, but we can set to SAVED locally if needed.
       // However, we just clear the unsaved changes flag since the local snapshot is updated.

@@ -8,9 +8,12 @@ interface SubmissionSummaryProps {
   answers?: Record<string, AnswerState>;
 }
 
-export function SubmissionSummary({ questions: propQuestions, answers: propAnswers }: SubmissionSummaryProps) {
+export function SubmissionSummary({
+  questions: propQuestions,
+  answers: propAnswers,
+}: SubmissionSummaryProps) {
   const store = useExecutionStore();
-  
+
   const questions = propQuestions || store.questions;
   const answers = propAnswers || store.answers;
 

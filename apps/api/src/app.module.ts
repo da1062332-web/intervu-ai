@@ -1,7 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
-import { CustomThrottlerGuard } from "./common";
+import { RateLimitGuard } from "./modules/platform/middleware/rate-limit.middleware";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
 
@@ -36,6 +36,8 @@ import { BlueprintModule } from "./modules/blueprint/blueprint.module";
 import { BlueprintConfigModule } from "./modules/blueprint-config/blueprint-config.module";
 import { ValidationModule } from "./modules/validation/validation.module";
 import { GenerationAiModule } from "./modules/generation-ai/generation-ai.module";
+import { PlatformModule } from "./modules/platform/platform.module";
+import { SanitizeRequestMiddleware } from "./modules/platform/middleware/sanitize-request.middleware";
 
 @Module({
   imports: [
@@ -76,11 +78,12 @@ import { GenerationAiModule } from "./modules/generation-ai/generation-ai.module
     BlueprintConfigModule,
     ValidationModule,
     GenerationAiModule,
+    PlatformModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: CustomThrottlerGuard,
+      useClass: RateLimitGuard,
     },
     {
       provide: APP_GUARD,
@@ -96,6 +99,8 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CorrelationMiddleware)
+      .forRoutes("*")
+      .apply(SanitizeRequestMiddleware)
       .forRoutes("*")
       .apply(RequestLoggingMiddleware)
       .forRoutes("*");

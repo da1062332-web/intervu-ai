@@ -13,7 +13,7 @@ export function useAnswerPersistence(testId: string) {
     // We only want to persist the specifically changed answer.
     // By keeping a ref of the previous answers object, we can strictly compare references.
     let changedQuestionId: string | null = null;
-    
+
     for (const questionId of Object.keys(currentAnswers)) {
       if (currentAnswers[questionId] !== prevAnswers[questionId]) {
         changedQuestionId = questionId;
@@ -47,7 +47,7 @@ export function useAnswerPersistence(testId: string) {
 
     if (connectionStatus === 'ONLINE') {
       setAutosaveStatus('SAVING');
-      
+
       executionService
         .saveAnswer(testId, payload)
         .then(() => {

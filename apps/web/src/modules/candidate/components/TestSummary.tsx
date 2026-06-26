@@ -59,9 +59,7 @@ export function TestSummary({ test }: TestSummaryProps) {
               <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>
                 Questions
               </p>
-              <p className='text-sm font-bold text-foreground mt-0.5'>
-                N/A
-              </p>
+              <p className='text-sm font-bold text-foreground mt-0.5'>N/A</p>
             </div>
           </div>
         </div>

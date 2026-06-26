@@ -23,7 +23,7 @@ export function useExecution(testId: string) {
           router.replace(`/candidate/tests/${testId}/summary`);
           return;
         }
-        
+
         if (data.status === 'CREATED' || data.status === 'IN_PROGRESS') {
           initializeTest(data);
         } else {
