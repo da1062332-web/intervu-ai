@@ -10,10 +10,11 @@ export class TestsRepository {
    * Returns all non-soft-deleted templates ordered by creation date descending.
    * Repository layer only — no formatting, no business logic.
    */
-  async findAllActiveTemplates(): Promise<Template[]> {
-    return this.prisma.template.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: "desc" },
+  async findAllActiveConfigs(): Promise<any[]> {
+    return this.prisma.testConfig.findMany({
+      where: { isActive: true },
+      include: { sections: true },
+      orderBy: { displayName: "asc" },
     });
   }
 }
