@@ -896,7 +896,6 @@ model ValidationLog {
   @@index([createdAt])
 }
 
-<<<<<<< HEAD
 model GenerationAuditLog {
   id               String   @id @default(cuid())
   prompt           String
@@ -936,7 +935,6 @@ model GenerationMetrics {
   @@map("generation_metrics")
 }
 
-=======
 enum AssemblyStatus {
   DRAFT
   VALIDATED
@@ -1025,5 +1023,44 @@ model AssemblyAuditLog {
   @@map("assembly_audit_logs")
   @@index([assemblyId])
 }
->>>>>>> Bhushan
+
+model GenerationPrompt {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  content   String
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([name, version])
+  @@map("generation_prompts")
+}
+
+model GenerationTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   // MCQ, MSQ, Numeric, Coding
+  schema    Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("generation_templates")
+}
+
+model GenerationJob {
+  id        String   @id @default(cuid())
+  topic     String
+  count     Int
+  generated Int      @default(0)
+  status    String   // QUEUED, RUNNING, COMPLETED, FAILED
+  error     String?
+  result    Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("generation_jobs")
+}
 
