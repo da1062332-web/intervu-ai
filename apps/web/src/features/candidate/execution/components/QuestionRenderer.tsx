@@ -139,7 +139,7 @@ export function QuestionRenderer() {
     return (
       <div className='mt-8'>
         <textarea
-          className='w-full h-64 p-4 font-mono text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary'
+          className='w-full max-w-full h-64 p-4 font-mono text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary overflow-auto'
           placeholder='// Write your code here...'
           value={textResponse}
           onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
@@ -175,7 +175,7 @@ export function QuestionRenderer() {
       </CardHeader>
 
       <CardContent className='pt-6'>
-        <div className='prose prose-slate max-w-none mb-8 dark:prose-invert'>
+        <div className='prose prose-slate max-w-none mb-8 dark:prose-invert break-words'>
           <p className='text-lg leading-relaxed'>{currentQuestion.text}</p>
         </div>
 

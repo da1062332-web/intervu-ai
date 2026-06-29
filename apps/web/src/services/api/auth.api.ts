@@ -165,5 +165,10 @@ export const authApi = {
 configureApiAuthHooks({
   getAccessToken: () => useSessionStore.getState().accessToken,
   refreshSession,
-  onUnauthorized: clearAuthData,
+  onUnauthorized: () => {
+    import('sonner').then(({ toast }) => {
+      toast.error('Session Expired', { description: 'Please log in again to continue.' });
+    });
+    clearAuthData();
+  },
 });

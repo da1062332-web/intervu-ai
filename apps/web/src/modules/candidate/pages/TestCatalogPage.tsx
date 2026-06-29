@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useTestCatalog } from '../hooks/useTestCatalog';
 import { useTestCatalogStore } from '../stores/testCatalog.store';
 import { TestFilters } from '../components/TestFilters';
@@ -18,14 +18,14 @@ export function TestCatalogPage() {
     bookmarkedIds,
     currentPage,
     itemsPerPage,
+    showOnlyBookmarked,
     setSearchQuery,
     setDifficultyFilter,
+    setShowOnlyBookmarked,
     toggleBookmark,
     setCurrentPage,
     resetFilters,
   } = useTestCatalogStore();
-
-  const [showOnlyBookmarked, setShowOnlyBookmarked] = useState(false);
 
   // Sync hydration for store
   useEffect(() => {
@@ -75,7 +75,6 @@ export function TestCatalogPage() {
 
   const handleReset = () => {
     resetFilters();
-    setShowOnlyBookmarked(false);
   };
 
   return (

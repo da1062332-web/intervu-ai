@@ -13,8 +13,9 @@ export interface TrendCardProps {
   isLoading?: boolean;
   isError?: boolean;
 }
+import { memo } from 'react';
 
-export function TrendCard({ title, data, trendValue, isLoading, isError }: TrendCardProps) {
+export const TrendCard = memo(function TrendCard({ title, data, trendValue, isLoading, isError }: TrendCardProps) {
   if (isLoading) {
     return (
       <Card>
@@ -82,4 +83,4 @@ export function TrendCard({ title, data, trendValue, isLoading, isError }: Trend
       </CardContent>
     </Card>
   );
-}
+});
