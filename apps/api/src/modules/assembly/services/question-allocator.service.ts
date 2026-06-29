@@ -1,9 +1,11 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedQuestionDto } from "@intervu/shared";
-import { QuestionPoolRepository } from "../repositories/question-pool.repository";
+
 import { AntiRepetitionService } from "./anti-repetition.service";
 import { DifficultyLevel } from "@prisma/client";
+import { IQuestionSource, QUESTION_SOURCE_TOKEN } from "./question-source.interface";
+import { Inject } from "@nestjs/common";
 
 export interface AllocationConfig {
   distribution: {
@@ -16,7 +18,8 @@ export interface AllocationConfig {
 @Injectable()
 export class QuestionAllocatorService {
   constructor(
-    private readonly poolRepository: QuestionPoolRepository,
+    @Inject(QUESTION_SOURCE_TOKEN)
+    private readonly questionSource: IQuestionSource,
     private readonly antiRepetitionService: AntiRepetitionService,
   ) {}
 
@@ -56,12 +59,12 @@ export class QuestionAllocatorService {
         );
         if (topicCount <= 0) continue;
 
-        const questions = await this.poolRepository.findAvailableQuestions(
-          topicAlloc.topicId, // using topicId as conceptKey proxy per current model
-          diff.level,
-          topicCount * 5, // fetch more for anti-repetition filtering
-          Array.from(allocatedQuestionIds),
-        );
+        const questions = await this.questionSource.fetchQuestions({
+          conceptKey: topicAlloc.topicId,
+          difficultyLevel: diff.level,
+          limit: topicCount * 5,
+          excludeIds: Array.from(allocatedQuestionIds),
+        });
 
         const filteredQuestions = await this.antiRepetitionService.filterPool(
           questions,
@@ -94,12 +97,12 @@ export class QuestionAllocatorService {
       // If rounding caused a shortfall in this difficulty bucket, grab extra from the first topic
       if (remainingDiffCount > 0 && section.topicAllocations.length > 0) {
         const extraTopic = section.topicAllocations[0];
-        const extraQuestions = await this.poolRepository.findAvailableQuestions(
-          extraTopic.topicId,
-          diff.level,
-          remainingDiffCount * 5,
-          Array.from(allocatedQuestionIds),
-        );
+        const extraQuestions = await this.questionSource.fetchQuestions({
+          conceptKey: extraTopic.topicId,
+          difficultyLevel: diff.level,
+          limit: remainingDiffCount * 5,
+          excludeIds: Array.from(allocatedQuestionIds),
+        });
         const filteredExtra = await this.antiRepetitionService.filterPool(
           extraQuestions,
           historyIds,

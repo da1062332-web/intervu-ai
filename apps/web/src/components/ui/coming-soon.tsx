@@ -12,9 +12,7 @@ export function ComingSoon({ title, description }: ComingSoonProps) {
         <HardHat className='size-12 text-primary' />
       </div>
       <div className='space-y-2 max-w-sm mx-auto'>
-        <h2 className='font-heading text-2xl font-bold tracking-tight text-foreground'>
-          {title}
-        </h2>
+        <h2 className='font-heading text-2xl font-bold tracking-tight text-foreground'>{title}</h2>
         <p className='text-sm text-muted-foreground'>
           {description ?? 'This page is currently under development. Please check back later.'}
         </p>

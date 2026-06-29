@@ -377,6 +377,7 @@ model ExamConfig {
   sections               ExamSection[]
   blueprint              Blueprint?
   readinessReports       ReadinessReport[]
+  assembledTests         AssembledTest[]
 
   @@index([createdAt])
   @@index([role])
@@ -778,6 +779,7 @@ model Question {
   templateId      String?        @map("template_id")
   version         Int            @default(1)
   status          QuestionStatus @default(DRAFT)
+  metadata        Json?          @default("{}")
   timesUsed       Int            @default(0) @map("times_used")
   lastUsed        DateTime?      @map("last_used")
   createdAt       DateTime       @default(now()) @map("created_at")
@@ -791,6 +793,7 @@ model Question {
   reviews         QuestionReview[]
   reservations    QuestionReservation[]
   usage           QuestionUsage?
+  reviewAuditLogs ReviewAuditLog[]
 
   @@map("questions")
   @@index([topicId])
@@ -893,6 +896,7 @@ model ValidationLog {
   @@index([createdAt])
 }
 
+<<<<<<< HEAD
 model GenerationAuditLog {
   id               String   @id @default(cuid())
   prompt           String
@@ -905,4 +909,121 @@ model GenerationAuditLog {
   @@index([createdAt])
 }
 
+model ReviewAuditLog {
+  id             String   @id @default(cuid())
+  questionId     String   @map("question_id")
+  score          Float
+  issues         Json     // Stored as string[]
+  recommendation String   // "APPROVE" | "REVIEW" | "REJECT"
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("review_audit_logs")
+  @@index([questionId])
+}
+
+model GenerationMetrics {
+  id                        String   @id @default(cuid())
+  questionsGenerated        Int      @default(0)
+  questionsApproved         Int      @default(0)
+  questionsRejected         Int      @default(0)
+  averageQualityScore       Float    @default(0.0)
+  averageDifficultyAccuracy Float    @default(0.0)
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  @@map("generation_metrics")
+}
+
+=======
+enum AssemblyStatus {
+  DRAFT
+  VALIDATED
+  PUBLISHED
+  ARCHIVED
+}
+
+model AssembledTest {
+  id                   String                 @id @default(cuid())
+  configId             String                 @map("config_id")
+  status               AssemblyStatus         @default(DRAFT)
+  totalDurationSeconds Int                    @map("total_duration_seconds")
+  totalQuestions       Int                    @map("total_questions")
+  sections             AssembledTestSection[]
+  versions             AssemblyVersion[]
+  auditLogs            AssemblyAuditLog[]
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  examConfig           ExamConfig             @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@map("assembled_tests")
+  @@index([configId])
+  @@index([status])
+}
+
+model AssembledTestSection {
+  id              String                  @id @default(cuid())
+  assemblyId      String                  @map("assembly_id")
+  sectionKey      String                  @map("section_key")
+  sectionName     String                  @map("section_name")
+  durationSeconds Int                     @map("duration_seconds")
+  questionCount   Int                     @map("question_count")
+  orderIndex      Int                     @map("order_index")
+  questions       AssembledTestQuestion[]
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+
+  assembly        AssembledTest           @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@map("assembled_test_sections")
+  @@index([assemblyId])
+}
+
+model AssembledTestQuestion {
+  id               String               @id @default(cuid())
+  assemblyId       String               @map("assembly_id")
+  sectionId        String               @map("section_id")
+  questionId       String               @map("question_id")
+  questionOrder    Int                  @map("question_order")
+  questionSnapshot Json                 @map("question_snapshot")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  section          AssembledTestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@map("assembled_test_questions")
+  @@index([assemblyId])
+  @@index([sectionId])
+}
+
+model AssemblyVersion {
+  id         String        @id @default(cuid())
+  assemblyId String        @map("assembly_id")
+  version    Int
+  snapshot   Json
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  assembly   AssembledTest @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@map("assembly_versions")
+  @@index([assemblyId])
+  @@index([version])
+}
+
+model AssemblyAuditLog {
+  id         String        @id @default(cuid())
+  assemblyId String        @map("assembly_id")
+  userId     String        @map("user_id")
+  action     String        // e.g. CREATED, UPDATED, PUBLISHED
+  metadata   Json?
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  assembly   AssembledTest @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@map("assembly_audit_logs")
+  @@index([assemblyId])
+}
+>>>>>>> Bhushan
 

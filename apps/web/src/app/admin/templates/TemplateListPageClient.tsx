@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Plus, Eye, Edit2 } from 'lucide-react';
+import { Plus, Edit2, ClipboardList, ArrowRight, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/ui/modal';
@@ -51,6 +51,24 @@ export function TemplateListPageClient() {
 
   return (
     <div className='container mx-auto py-6 space-y-6 max-w-7xl'>
+      {/* Workflow Guide Banner */}
+      <div className='flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4'>
+        <Info className='w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0' />
+        <div className='flex-1'>
+          <p className='text-sm font-medium text-blue-800 dark:text-blue-300'>How Templates Work</p>
+          <p className='text-sm text-blue-700 dark:text-blue-400 mt-0.5'>
+            Templates define how questions are structured (solution format, variables, rules). Once a template is configured, go to <strong>Test Assembly</strong> to generate a full test instance.
+          </p>
+        </div>
+        <Link href='/admin/assembly'>
+          <Button size='sm' className='gap-1.5 shrink-0 bg-blue-600 hover:bg-blue-700 text-white'>
+            <ClipboardList className='w-4 h-4' />
+            Go to Assembly
+            <ArrowRight className='w-3.5 h-3.5' />
+          </Button>
+        </Link>
+      </div>
+
       <div className='flex justify-between items-center'>
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>Templates</h1>
@@ -137,7 +155,16 @@ export function TemplateListPageClient() {
                           size='sm'
                           className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'
                         >
-                          <Edit2 className='w-4 h-4 mr-1' /> Edit Editor
+                          <Edit2 className='w-4 h-4 mr-1' /> Edit
+                        </Button>
+                      </Link>
+                      <Link href='/admin/assembly'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400'
+                        >
+                          <ClipboardList className='w-4 h-4 mr-1' /> Assemble
                         </Button>
                       </Link>
                     </td>

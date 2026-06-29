@@ -25,12 +25,22 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       heading: 'Overview',
       items: [
         { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
+      ],
+    },
+    {
+      heading: 'Exam Setup',
+      items: [
         { label: 'Configs', route: '/admin/configurations', icon: FileCog },
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
-        { label: 'Assembly', route: '/admin/assembly', icon: ClipboardList },
+      ],
+    },
+    {
+      heading: 'Operations',
+      items: [
+        { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
         { label: 'Results', route: '/admin/results', icon: BarChart3 },
         { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },
       ],
