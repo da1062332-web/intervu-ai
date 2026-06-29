@@ -25,4 +25,12 @@ export class ExamConfigRepository extends BaseRepository<
       where: { code },
     });
   }
+
+  async findLastActivity(): Promise<Date | null> {
+    const last = await this.prisma.examConfig.findFirst({
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    });
+    return last?.updatedAt || null;
+  }
 }

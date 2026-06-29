@@ -896,7 +896,6 @@ model ValidationLog {
   @@index([createdAt])
 }
 
-<<<<<<< HEAD
 model GenerationAuditLog {
   id               String   @id @default(cuid())
   prompt           String
@@ -936,7 +935,6 @@ model GenerationMetrics {
   @@map("generation_metrics")
 }
 
-=======
 enum AssemblyStatus {
   DRAFT
   VALIDATED
@@ -1025,5 +1023,4 @@ model AssemblyAuditLog {
   @@map("assembly_audit_logs")
   @@index([assemblyId])
 }
->>>>>>> Bhushan
 

@@ -73,4 +73,12 @@ export class EvaluationRepository extends BaseRepository<
       limit,
     };
   }
+
+  async findLastActivity(): Promise<Date | null> {
+    const last = await this.prisma.evaluationResult.findFirst({
+      orderBy: { evaluatedAt: "desc" },
+      select: { evaluatedAt: true },
+    });
+    return last?.evaluatedAt || null;
+  }
 }

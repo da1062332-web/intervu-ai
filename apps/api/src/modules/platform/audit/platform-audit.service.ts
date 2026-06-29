@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { SubmissionRepository } from "../../execution/repositories/submission.repository";
 
 export interface AuditLogEntry {
   id: string;
@@ -31,7 +32,10 @@ export interface PaginatedAuditLogs {
 export class PlatformAuditService {
   private readonly logger = new Logger(PlatformAuditService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly submissionRepo: SubmissionRepository,
+  ) {}
 
   async getAuditLogs(dto: GetAuditLogsDto): Promise<PaginatedAuditLogs> {
     const page = Number(dto.page) || 1;
@@ -159,14 +163,14 @@ export class PlatformAuditService {
 
     if (!targetModule || targetModule === "EXECUTION") {
       queries.push(
-        this.prisma.submission
-          .findMany({
-            where: hasDateFilters ? { createdAt: dateFilter } : {},
-            orderBy: { createdAt: "desc" },
-            take: skip + limit,
-          })
-          .then((submissions) => {
-            const mapped = submissions.map(
+        this.submissionRepo
+          .findPaginated(
+            { page: 1, limit: skip + limit },
+            hasDateFilters ? { createdAt: dateFilter } : {},
+            { createdAt: "desc" },
+          )
+          .then((paginated) => {
+            const mapped = paginated.items.map(
               (s): AuditLogEntry => ({
                 id: s.id,
                 module: "EXECUTION",
@@ -181,10 +185,8 @@ export class PlatformAuditService {
           }),
       );
       queries.push(
-        this.prisma.submission
-          .count({
-            where: hasDateFilters ? { createdAt: dateFilter } : {},
-          })
+        this.submissionRepo
+          .count(hasDateFilters ? { createdAt: dateFilter } : {})
           .then((c) => {
             totalCount += c;
           }),

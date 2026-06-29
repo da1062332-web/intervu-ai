@@ -28,6 +28,8 @@ import { PerformanceRepository } from "./repositories/performance.repository";
     ResultsService,
     RecommendationsService,
     PerformanceService,
+    EvaluationRepository,
+    PerformanceRepository,
   ],
 })
 export class ResultsModule {}
