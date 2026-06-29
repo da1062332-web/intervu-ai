@@ -20,4 +20,12 @@ export class ExecutionStateRepository extends BaseRepository<
   withTransaction(tx: Prisma.TransactionClient): this {
     return new ExecutionStateRepository(this.prisma, tx) as this;
   }
+
+  async findLastActivity(): Promise<Date | null> {
+    const last = await this.prisma.executionState.findFirst({
+      orderBy: { lastActivityAt: "desc" },
+      select: { lastActivityAt: true },
+    });
+    return last?.lastActivityAt || null;
+  }
 }

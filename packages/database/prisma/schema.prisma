@@ -1023,7 +1023,6 @@ model AssemblyAuditLog {
   @@map("assembly_audit_logs")
   @@index([assemblyId])
 }
-
 model GenerationPrompt {
   id        String   @id @default(cuid())
   name      String
@@ -1063,4 +1062,3 @@ model GenerationJob {
 
   @@map("generation_jobs")
 }
-

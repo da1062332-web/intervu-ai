@@ -49,11 +49,14 @@ export class AnswerService {
       );
 
       // 5. Validate timer
+      const initialRemaining = testInstance.expiresAt
+        ? Math.max(0, Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000))
+        : 0;
       const { isExpired, actualRemainingTime } = this.validator.validateTimer(
         testInstance,
         executionState,
         dto.timeSpentSeconds
-          ? (executionState?.remainingTimeSeconds || 0) - dto.timeSpentSeconds
+          ? (executionState?.remainingTimeSeconds ?? initialRemaining) - dto.timeSpentSeconds
           : undefined,
       );
 

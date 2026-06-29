@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { useArchiveConfig } from '@/services/exam-configs/hooks';
+import { EmptyStateCard } from '@/components/ui/empty-state';
 
 export interface ExamConfig {
   id: string;
@@ -142,14 +143,13 @@ export function ConfigTable({ configs }: ConfigTableProps) {
           ))}
           {configs.length === 0 && (
             <tr>
-              <td colSpan={8} className='px-4 py-12 text-center text-muted-foreground'>
-                <div className='flex flex-col items-center justify-center space-y-3'>
-                  <p className='text-lg font-medium'>No Configurations Found</p>
-                  <p className='text-sm'>Create your first exam configuration.</p>
-                  <Button asChild className='mt-4'>
-                    <Link href='/admin/configurations/new'>Create Configuration</Link>
-                  </Button>
-                </div>
+              <td colSpan={8} className='px-4 py-12'>
+                <EmptyStateCard
+                  title='No Configurations Found'
+                  description='Create your first exam configuration.'
+                  actionLabel='Create Configuration'
+                  actionHref='/admin/configurations/new'
+                />
               </td>
             </tr>
           )}

@@ -22,22 +22,32 @@ export function ProtectedRoute({
   const user = useAuthStore((state) => state.user);
 
   const blocked = useMemo(() => !accessToken, [accessToken]);
+  const roleDenied = useMemo(() => {
+    return !!(allowedRoles && user && !allowedRoles.includes(user.role));
+  }, [allowedRoles, user]);
 
   useEffect(() => {
     if (hydrated && blocked && !isLoading) {
       router.replace('/login');
     } else if (hydrated && !blocked && !isLoading && status === 'authenticated') {
-      if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        router.replace('/403');
+      if (roleDenied) {
+        // Redirect based on user's actual role
+        if (user?.role === 'CANDIDATE') {
+          router.replace('/candidate/dashboard');
+        } else if (user?.role === 'ADMIN') {
+          router.replace('/admin/dashboard');
+        } else {
+          router.replace('/403');
+        }
       }
     }
-  }, [blocked, hydrated, isLoading, router, allowedRoles, user, status]);
+  }, [blocked, hydrated, isLoading, router, roleDenied, user, status]);
 
   if (!hydrated || isLoading || status === 'unknown') {
     return <Loading fullScreen message='Restoring your session...' />;
   }
 
-  if (blocked) {
+  if (blocked || roleDenied) {
     return null;
   }
 

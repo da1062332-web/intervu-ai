@@ -32,4 +32,12 @@ export class PerformanceRepository {
       lastAssessmentDate: lastAssessment?.evaluatedAt || null,
     };
   }
+
+  async findLastActivity(): Promise<Date | null> {
+    const last = await this.prisma.performanceSummary.findFirst({
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    });
+    return last?.updatedAt || null;
+  }
 }

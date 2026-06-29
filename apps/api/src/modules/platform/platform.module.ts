@@ -5,6 +5,9 @@ import { QuestionBankModule } from "../question-bank/question-bank.module";
 import { AssemblyModule } from "../assembly/assembly.module";
 import { ExecutionModule } from "../execution/execution.module";
 import { EvaluationModule } from "../evaluation/evaluation.module";
+import { AdminConfigModule } from "../admin-config/admin-config.module";
+import { QuestionPoolModule } from "../question-pool/question-pool.module";
+import { ResultsModule } from "../results/results.module";
 
 import { EventBusService } from "./integrations/event-bus/event-bus.service";
 import { PlatformOrchestratorService } from "./services/platform-orchestrator.service";
@@ -20,6 +23,9 @@ import { PlatformMetricsController } from "./controllers/platform-metrics.contro
     AssemblyModule,
     ExecutionModule,
     EvaluationModule,
+    AdminConfigModule,
+    QuestionPoolModule,
+    ResultsModule,
   ],
   controllers: [PlatformMetricsController],
   providers: [
