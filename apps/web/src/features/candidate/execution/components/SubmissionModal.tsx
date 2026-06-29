@@ -5,7 +5,7 @@ import { useSubmission } from '../hooks/useSubmission';
 import { SubmissionSummary } from './SubmissionSummary';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
 interface SubmissionModalProps {
@@ -15,9 +15,27 @@ interface SubmissionModalProps {
 }
 
 export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProps) {
-  const { submissionStatus } = useExecutionStore();
+  const { submissionStatus, questions, answers } = useExecutionStore();
   const { submitAssessment } = useSubmission(testId);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  const total = questions.length;
+  let answered = 0;
+  let markedForReview = 0;
+
+  Object.values(answers).forEach((ans) => {
+    if (ans.status === 'MARKED_FOR_REVIEW') {
+      markedForReview++;
+    } else if (
+      ans.selectedOptionId ||
+      (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+      ans.textResponse
+    ) {
+      answered++;
+    }
+  });
+
+  const unanswered = total - answered - markedForReview;
 
   const handleSubmit = async () => {
     setLocalError(null);
@@ -48,6 +66,16 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
             <AlertCircle className='w-5 h-5 shrink-0' />
             <p>
               Submission failed due to a network error. Please check your connection and try again.
+            </p>
+          </div>
+        )}
+
+        {unanswered > 0 && !hasFailed && (
+          <div className='mt-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm rounded-md flex items-start gap-2'>
+            <AlertTriangle className='w-5 h-5 shrink-0' />
+            <p>
+              You still have <strong>{unanswered} unanswered</strong> {unanswered === 1 ? 'question' : 'questions'}. 
+              Are you sure you want to submit?
             </p>
           </div>
         )}

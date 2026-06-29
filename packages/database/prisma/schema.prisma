@@ -1023,4 +1023,3 @@ model AssemblyAuditLog {
   @@map("assembly_audit_logs")
   @@index([assemblyId])
 }
-

@@ -1,15 +1,15 @@
 import { QuestionStatus } from '../types/execution.types';
 import { cn } from '@/lib/utils';
-import React from 'react';
+import { memo } from 'react';
 
-interface QuestionStatusBadgeProps {
+export interface QuestionStatusBadgeProps {
   index: number;
   status: QuestionStatus;
-  isAnswered?: boolean;
+  isAnswered: boolean;
   onClick: (index: number) => void;
 }
 
-export const QuestionStatusBadge = React.memo(function QuestionStatusBadge({
+export const QuestionStatusBadge = memo(function QuestionStatusBadge({
   index,
   status,
   isAnswered,

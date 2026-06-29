@@ -3,7 +3,8 @@
 import { useExecutionStore } from '../stores/execution.store';
 import { TimerWidget } from './TimerWidget';
 import { AutosaveIndicator } from './AutosaveIndicator';
-import { UnsavedChangesBadge } from './UnsavedChangesBadge';
+import { UnsavedChangesBanner } from './UnsavedChangesBanner';
+import { ConnectionStatusBadge } from './ConnectionStatusBadge';
 import { Badge } from '@/components/ui/badge';
 
 export function ExecutionHeader() {
@@ -41,8 +42,9 @@ export function ExecutionHeader() {
             )}
             <span className='hidden sm:inline text-muted-foreground/40 px-2'>|</span>
             <div className='flex items-center gap-2'>
+              <ConnectionStatusBadge />
               <AutosaveIndicator />
-              <UnsavedChangesBadge />
+              <UnsavedChangesBanner />
             </div>
           </div>
         </div>
