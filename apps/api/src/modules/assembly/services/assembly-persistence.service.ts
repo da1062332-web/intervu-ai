@@ -17,8 +17,14 @@ export class AssemblyPersistenceService {
     sections: AllocatedSectionDto[],
     userId: string = "system-user",
   ): Promise<string> {
-    const totalQuestions = sections.reduce((acc, s) => acc + s.questionCount, 0);
-    const totalDuration = sections.reduce((acc, s) => acc + s.durationSeconds, 0);
+    const totalQuestions = sections.reduce(
+      (acc, s) => acc + s.questionCount,
+      0,
+    );
+    const totalDuration = sections.reduce(
+      (acc, s) => acc + s.durationSeconds,
+      0,
+    );
 
     const assemblyId = await this.repository.createAssemblyWithTransaction(
       configId,
@@ -37,10 +43,11 @@ export class AssemblyPersistenceService {
   }
 
   async getAssembly(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(id);
-    } catch (e) {
+    } catch {
       console.warn(`Fallback to testInstance in persistence for ${id}`);
     }
 
@@ -61,8 +68,14 @@ export class AssemblyPersistenceService {
   ): Promise<void> {
     const assembly = await this.getAssembly(id);
 
-    const totalQuestions = sections.reduce((acc, s) => acc + s.questionCount, 0);
-    const totalDuration = sections.reduce((acc, s) => acc + s.durationSeconds, 0);
+    const totalQuestions = sections.reduce(
+      (acc, s) => acc + s.questionCount,
+      0,
+    );
+    const totalDuration = sections.reduce(
+      (acc, s) => acc + s.durationSeconds,
+      0,
+    );
 
     await this.repository.replaceAssemblyWithTransaction(
       id,
