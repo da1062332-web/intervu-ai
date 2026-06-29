@@ -3,7 +3,6 @@ import { TestsRepository } from "../repositories/tests.repository";
 // eslint-disable-next-line no-restricted-imports
 import {
   AvailableConfigDto,
-  TemplateConfig,
   TestConfigsResponseDto,
 } from "../dto/available-config.dto";
 
@@ -33,7 +32,7 @@ export class TestsService {
         name: tc.displayName,
         difficulty: "MEDIUM",
         duration: tc.totalDurationSeconds,
-        sections: tc.sections.map((s: any) => s.displayName),
+        sections: tc.sections.map((s: { displayName: string }) => s.displayName),
       };
     });
 

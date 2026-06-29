@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { Template } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
@@ -10,6 +9,7 @@ export class TestsRepository {
    * Returns all non-soft-deleted templates ordered by creation date descending.
    * Repository layer only — no formatting, no business logic.
    */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   async findAllActiveConfigs(): Promise<any[]> {
     return this.prisma.testConfig.findMany({
       where: { isActive: true },
