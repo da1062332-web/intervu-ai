@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { EvaluationModule } from "../evaluation/evaluation.module";
 import {
   ExecutionController,
   AnswerController,
@@ -11,6 +12,9 @@ import {
   ExecutionValidatorService,
   ExecutionStateService,
   AnswerService,
+  AutosaveService,
+  SubmissionValidationService,
+  AssessmentAuditService,
   ResumeService,
   SubmissionService,
 } from "./services";
@@ -40,6 +44,9 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
     ExecutionValidatorService,
     ExecutionStateService,
     AnswerService,
+    AutosaveService,
+    SubmissionValidationService,
+    AssessmentAuditService,
     ResumeService,
     SubmissionService,
     ExecutionService,
@@ -51,6 +58,9 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
   exports: [
     ExecutionService,
     AnswerService,
+    AutosaveService,
+    SubmissionValidationService,
+    AssessmentAuditService,
     ResumeService,
     SubmissionService,
     SubmissionRepository,
@@ -58,3 +68,4 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
   ],
 })
 export class ExecutionModule {}
+

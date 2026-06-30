@@ -68,7 +68,7 @@ export const testService = {
   startTest: async (configId: string): Promise<StartTestResponse> => {
     return await apiClient.request<StartTestResponse>('/tests/start', {
       method: 'POST',
-      body: { configId },
+      body: { testConfigId: configId },
     });
   },
 };

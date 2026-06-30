@@ -29,6 +29,9 @@ describe("ResultsService", () => {
               findUnique: jest.fn(),
               findMany: jest.fn(),
             },
+            evaluationResult: {
+              findFirst: jest.fn(),
+            },
             testInstance: {
               findUnique: jest.fn(),
             },

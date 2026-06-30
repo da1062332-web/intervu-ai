@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ExecutionValidatorService } from "./execution-validator.service";
 import { TestInstanceRepository } from "../repositories";
+import { PrismaService } from "../../../prisma/prisma.service";
 import {
   ForbiddenException,
   NotFoundException,
@@ -24,6 +25,15 @@ describe("ExecutionValidatorService", () => {
         {
           provide: TestInstanceRepository,
           useValue: repoMock,
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            testConfig: { findUnique: jest.fn() },
+            examConfig: { findUnique: jest.fn() },
+            executionState: { findUnique: jest.fn() },
+            testInstance: { findMany: jest.fn() },
+          },
         },
       ],
     }).compile();

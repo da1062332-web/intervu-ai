@@ -4,3 +4,7 @@ export * from "./answer.service";
 export * from "./resume.service";
 export * from "./submission.service";
 export * from "./execution.service";
+export * from "./autosave.service";
+export * from "./submission-validation.service";
+export * from "./assessment-audit.service";
+

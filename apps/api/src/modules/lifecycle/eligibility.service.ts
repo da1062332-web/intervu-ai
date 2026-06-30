@@ -7,6 +7,7 @@ export interface EligibilityResult {
   eligible: boolean;
   errorCode?: string;
   reason?: string;
+  activeTestId?: string;
 }
 
 @Injectable()
@@ -62,6 +63,7 @@ export class EligibilityService {
         eligible: false,
         errorCode: "ACTIVE_TEST_EXISTS",
         reason: "You already have an active instance of this test",
+        activeTestId: activeTest.id,
       };
     }
 

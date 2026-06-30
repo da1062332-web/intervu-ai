@@ -32,14 +32,24 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
     );
   }
 
+  const displayTests = tests.slice(0, 3);
+  const hasMore = tests.length > 3;
+
   return (
     <Card className='h-full flex flex-col glass-card'>
-      <CardHeader>
-        <CardTitle className='text-xl font-semibold'>Available Assessments</CardTitle>
-        <CardDescription>Assessments ready to be taken</CardDescription>
+      <CardHeader className='flex flex-row items-center justify-between pb-2'>
+        <div className='space-y-1'>
+          <CardTitle className='text-xl font-semibold'>Available Assessments</CardTitle>
+          <CardDescription>Assessments ready to be taken</CardDescription>
+        </div>
+        {hasMore && (
+          <Button variant='ghost' className='text-sm text-primary' onClick={() => router.push('/candidate/tests')}>
+            View all
+          </Button>
+        )}
       </CardHeader>
-      <CardContent className='flex-1 space-y-4'>
-        {tests.map((test) => (
+      <CardContent className='flex-1 space-y-4 pt-4'>
+        {displayTests.map((test) => (
           <div
             key={test.id}
             className='flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/30 transition-colors gap-4'
@@ -60,11 +70,16 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
                   {test.durationMinutes} Minutes
                 </span>
                 <span className='flex gap-1 flex-wrap'>
-                  {test.sections.map((sec: string) => (
+                  {test.sections.slice(0, 2).map((sec: string) => (
                     <Badge key={sec} variant='secondary' className='text-xs font-normal'>
                       {sec}
                     </Badge>
                   ))}
+                  {test.sections.length > 2 && (
+                    <Badge variant='secondary' className='text-xs font-normal'>
+                      +{test.sections.length - 2} more
+                    </Badge>
+                  )}
                 </span>
               </div>
             </div>

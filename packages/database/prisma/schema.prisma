@@ -234,11 +234,11 @@ model TestInstance {
   userId           String
   testConfigId     String
   status           TestInstanceStatus     @default(CREATED)
-  startedAt        DateTime?
-  expiresAt        DateTime?
-  submittedAt      DateTime?
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
+  startedAt           DateTime?
+  expiresAt           DateTime?
+  submittedAt         DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
   candidateAnswers    CandidateAnswer[]
   evaluationResult    EvaluationResult?
   executionState      ExecutionState?
@@ -250,6 +250,7 @@ model TestInstance {
   candidateResult     CandidateResult?
   evaluationRuns      EvaluationRun[]
   evaluationAnalytics EvaluationAnalytics?
+  assessmentAuditLogs AssessmentAuditLog[]
 
   @@index([userId])
   @@index([status])
@@ -310,13 +311,20 @@ model CandidateAnswer {
 }
 
 model ExecutionState {
-  id                   String       @id @default(cuid())
-  testInstanceId       String       @unique
-  currentQuestionIndex Int          @default(0)
-  remainingTimeSeconds Int
-  lastActivityAt       DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  testInstance         TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  id                     String       @id @default(cuid())
+  testInstanceId         String       @unique
+  currentQuestionIndex   Int          @default(0)
+  remainingTimeSeconds   Int
+  lastActivityAt         DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  testInstance           TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+  
+  // New Checkpoint Fields
+  currentSectionKey      String?      @map("current_section_key")
+  currentQuestionId      String?      @map("current_question_id")
+  markedQuestions        Json?        @map("marked_questions")
+  visitedQuestions       Json?        @map("visited_questions")
+  networkStatusTimestamp DateTime?    @map("network_status_timestamp")
 
   @@index([testInstanceId])
 }
@@ -330,6 +338,10 @@ model Submission {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   testInstance   TestInstance     @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
+
+  // New Queue/Retry Fields
+  retryCount     Int              @default(0) @map("retry_count")
+  errorMessage   String?          @map("error_message")
 
   @@index([testInstanceId])
   @@index([status])
@@ -378,6 +390,23 @@ model EvaluationAnalytics {
 
   @@map("evaluation_analytics")
   @@index([attemptId])
+}
+
+model AssessmentAuditLog {
+  id           String   @id @default(cuid())
+  attemptId    String   @map("attempt_id")
+  candidateId  String   @map("candidate_id")
+  assessmentId String   @map("assessment_id")
+  eventType    String   @map("event_type") // e.g. RUNTIME_VALIDATION_FAILED, START, CHECKPOINT, SUBMIT
+  metadata     Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  testInstance TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("assessment_audit_logs")
+  @@index([attemptId])
+  @@index([candidateId])
+  @@index([assessmentId])
 }
 
 model Recommendation {
@@ -1128,17 +1157,32 @@ model ExamWorkflowHistory {
   @@index([createdAt])
 }
 
+model GenerationJob {
+  id        String   @id @default(cuid())
+  topic     String
+  count     Int
+  category  String?
+  difficulty String?
+  generated Int      @default(0)
+  status    String
+  result    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_jobs")
+}
+
 model GenerationPrompt {
   id        String   @id @default(cuid())
   name      String
   category  String
   content   String
-  version   Int      @default(1)
+  version   Int
   isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([name, version])
   @@map("generation_prompts")
 }
 
@@ -1148,23 +1192,8 @@ model GenerationTemplate {
   category  String
   schema    Json
   isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("generation_templates")
 }
-
-model GenerationJob {
-  id        String   @id @default(cuid())
-  topic     String
-  count     Int
-  generated Int      @default(0)
-  status    String
-  error     String?
-  result    Json?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("generation_jobs")
-}
-

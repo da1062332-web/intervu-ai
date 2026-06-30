@@ -11,12 +11,14 @@ import { RecommendationService } from "./recommendations/recommendation.service"
 import { ResultGeneratorService } from "./services/result-generator.service";
 import { ResultStorageService } from "./services/result-storage.service";
 import { ExecutionEvaluationIntegration } from "./integrations/execution-evaluation.integration";
+import { EvaluationQueueService } from "./services/evaluation-queue.service";
 
 @Module({
   imports: [PrismaModule],
   controllers: [EvaluationController],
   providers: [
     EvaluationService,
+    EvaluationQueueService,
     ObjectiveEvaluatorService,
     SectionScoringService,
     OverallScoreService,
@@ -29,6 +31,7 @@ import { ExecutionEvaluationIntegration } from "./integrations/execution-evaluat
   ],
   exports: [
     EvaluationService,
+    EvaluationQueueService,
     ObjectiveEvaluatorService,
     SectionScoringService,
     OverallScoreService,
