@@ -8,6 +8,12 @@ import {
 import { PrismaService } from "../../../prisma/prisma.service";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { Public } from "../../auth/decorators/public.decorator";
+import { ExamConfigRepository } from "../../admin-config/repositories/exam-config.repository";
+import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
+import { QuestionRepository } from "../../question-bank/repositories/question.repository";
+import { ExecutionStateRepository } from "../../execution/repositories/execution-state.repository";
+import { EvaluationRepository } from "../../results/repositories/evaluation.repository";
+import { PerformanceRepository } from "../../results/repositories/performance.repository";
 
 @ApiTags("platform")
 @Controller("platform")
@@ -16,6 +22,12 @@ export class PlatformMetricsController {
     private readonly healthService: PlatformHealthService,
     private readonly auditService: PlatformAuditService,
     private readonly prisma: PrismaService,
+    private readonly examConfigRepo: ExamConfigRepository,
+    private readonly generatedQuestionRepo: GeneratedQuestionRepository,
+    private readonly questionRepo: QuestionRepository,
+    private readonly executionStateRepo: ExecutionStateRepository,
+    private readonly evaluationRepo: EvaluationRepository,
+    private readonly performanceRepo: PerformanceRepository,
   ) {}
 
   @Get("health")
@@ -36,16 +48,14 @@ export class PlatformMetricsController {
       activeSessions,
       evaluationsCompleted,
     ] = await Promise.all([
-      this.prisma.generatedQuestion.count(),
-      this.prisma.question.count({ where: { status: "ACTIVE" } }),
-      this.prisma.executionState.count({
-        where: {
-          testInstance: {
-            status: "IN_PROGRESS",
-          },
+      this.generatedQuestionRepo.count(),
+      this.questionRepo.count({ status: "ACTIVE" }),
+      this.executionStateRepo.count({
+        testInstance: {
+          status: "IN_PROGRESS",
         },
       }),
-      this.prisma.evaluationResult.count(),
+      this.evaluationRepo.count(),
     ]);
 
     return {
@@ -71,10 +81,7 @@ export class PlatformMetricsController {
   @ApiOperation({ summary: "Module 1: Exam Config Health" })
   async getModule1Health() {
     const start = Date.now();
-    const lastConfig = await this.prisma.examConfig.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-    });
+    const lastActivity = await this.examConfigRepo.findLastActivity();
     const errorCount = await this.prisma.generationLog.count({
       where: { status: "FAILED", step: "CONTEXT_RESOLVE" },
     });
@@ -83,7 +90,7 @@ export class PlatformMetricsController {
       availability: "available",
       responseTime: Date.now() - start,
       errorCount,
-      lastActivity: lastConfig?.updatedAt || null,
+      lastActivity,
     };
   }
 
@@ -134,16 +141,13 @@ export class PlatformMetricsController {
   @ApiOperation({ summary: "Module 4: Execution Engine Health" })
   async getModule4Health() {
     const start = Date.now();
-    const lastSession = await this.prisma.executionState.findFirst({
-      orderBy: { lastActivityAt: "desc" },
-      select: { lastActivityAt: true },
-    });
+    const lastActivity = await this.executionStateRepo.findLastActivity();
     return {
       module: "Module 4 - Test Execution Engine",
       availability: "available",
       responseTime: Date.now() - start,
       errorCount: 0,
-      lastActivity: lastSession?.lastActivityAt || null,
+      lastActivity,
     };
   }
 
@@ -153,16 +157,13 @@ export class PlatformMetricsController {
   @ApiOperation({ summary: "Module 5: Evaluation Health" })
   async getModule5Health() {
     const start = Date.now();
-    const lastEvaluation = await this.prisma.evaluationResult.findFirst({
-      orderBy: { evaluatedAt: "desc" },
-      select: { evaluatedAt: true },
-    });
+    const lastActivity = await this.evaluationRepo.findLastActivity();
     return {
       module: "Module 5 - Evaluation Engine",
       availability: "available",
       responseTime: Date.now() - start,
       errorCount: 0,
-      lastActivity: lastEvaluation?.evaluatedAt || null,
+      lastActivity,
     };
   }
 
@@ -172,16 +173,13 @@ export class PlatformMetricsController {
   @ApiOperation({ summary: "Module 6: Analytics Health" })
   async getModule6Health() {
     const start = Date.now();
-    const lastSummary = await this.prisma.performanceSummary.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-    });
+    const lastActivity = await this.performanceRepo.findLastActivity();
     return {
       module: "Module 6 - Analytics Dashboard",
       availability: "available",
       responseTime: Date.now() - start,
       errorCount: 0,
-      lastActivity: lastSummary?.updatedAt || null,
+      lastActivity,
     };
   }
 }

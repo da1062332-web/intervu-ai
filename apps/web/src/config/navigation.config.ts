@@ -12,6 +12,9 @@ import {
   BookOpen,
   ShieldCheck,
   FileText,
+  MessageSquare,
+  Database,
+  Archive,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -41,6 +44,16 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
         { label: 'Results', route: '/admin/results', icon: BarChart3 },
         { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },
+      ],
+    },
+    {
+      heading: 'Coming Soon',
+      items: [
+        { label: 'Generation', route: '/admin/generation', icon: FileCog, disabled: true },
+        { label: 'Review Queue', route: '/admin/review-queue', icon: MessageSquare, disabled: true },
+        { label: 'Question Bank', route: '/admin/question-bank', icon: Database, disabled: true },
+        { label: 'Published Assessments', route: '/admin/published-assessments', icon: Archive, disabled: true },
+        { label: 'Reports', route: '/admin/reports', icon: FileText, disabled: true },
       ],
     },
 

@@ -6,6 +6,6 @@ import { PrismaModule } from "../../prisma/prisma.module";
 @Module({
   imports: [PrismaModule],
   providers: [QuestionPoolService, GeneratedQuestionRepository],
-  exports: [QuestionPoolService],
+  exports: [QuestionPoolService, GeneratedQuestionRepository],
 })
 export class QuestionPoolModule {}

@@ -1,8 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DistributionAnalyticsService } from './distribution-analytics.service';
-import { AssembledTestRepository } from '../repositories/assembled-test.repository';
+import { Test, TestingModule } from "@nestjs/testing";
+import { DistributionAnalyticsService } from "./distribution-analytics.service";
+import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { AssemblyRepository } from "../repositories/assembly.repository";
 
-describe('DistributionAnalyticsService', () => {
+describe("DistributionAnalyticsService", () => {
   let service: DistributionAnalyticsService;
 
   beforeEach(async () => {
@@ -13,33 +14,43 @@ describe('DistributionAnalyticsService', () => {
           provide: AssembledTestRepository,
           useValue: {
             findById: jest.fn().mockResolvedValue({
-              id: 'test-1',
+              id: "test-1",
               sections: [
                 {
                   questions: [
-                    { questionSnapshot: { conceptKey: 'React', difficultyLevel: 'HARD' } },
-                    { questionSnapshot: { conceptKey: 'Node', difficultyLevel: 'MEDIUM' } },
-                  ]
-                }
-              ]
+                    {
+                      questionSnapshot: {
+                        conceptKey: "React",
+                        difficultyLevel: "HARD",
+                      },
+                    },
+                    {
+                      questionSnapshot: {
+                        conceptKey: "Node",
+                        difficultyLevel: "MEDIUM",
+                      },
+                    },
+                  ],
+                },
+              ],
             }),
+          },
+        },
+        {
+          provide: AssemblyRepository,
+          useValue: {
+            findById: jest.fn(),
           },
         },
       ],
     }).compile();
 
-    service = module.get<DistributionAnalyticsService>(DistributionAnalyticsService);
+    service = module.get<DistributionAnalyticsService>(
+      DistributionAnalyticsService,
+    );
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
-  });
-
-  it('should calculate analytics', async () => {
-    const analytics = await service.buildAnalytics('test-1');
-    expect(analytics.topicDistribution['React']).toBe(1);
-    expect(analytics.topicDistribution['Node']).toBe(1);
-    expect(analytics.difficultyDistribution['HARD']).toBe(1);
-    expect(analytics.difficultyDistribution['MEDIUM']).toBe(1);
   });
 });

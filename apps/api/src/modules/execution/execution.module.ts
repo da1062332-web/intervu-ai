@@ -51,6 +51,13 @@ import { EVALUATION_ADAPTER } from "./interfaces/evaluation-adapter.interface";
       },
     },
   ],
-  exports: [ExecutionService, AnswerService, ResumeService, SubmissionService],
+  exports: [
+    ExecutionService,
+    AnswerService,
+    ResumeService,
+    SubmissionService,
+    SubmissionRepository,
+    ExecutionStateRepository,
+  ],
 })
 export class ExecutionModule {}

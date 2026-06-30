@@ -3,6 +3,7 @@ import { EventBusService } from "../apps/api/src/modules/platform/integrations/e
 import { PlatformHealthService } from "../apps/api/src/modules/platform/health/platform-health.service";
 import { PlatformAuditService } from "../apps/api/src/modules/platform/audit/platform-audit.service";
 import { SanitizeRequestMiddleware } from "../apps/api/src/modules/platform/middleware/sanitize-request.middleware";
+import { SubmissionRepository } from "../apps/api/src/modules/execution/repositories/submission.repository";
 import { createId } from "@paralleldrive/cuid2";
 
 async function run() {
@@ -13,7 +14,7 @@ async function run() {
   const prisma = new PrismaService();
   const eventBus = new EventBusService();
   const healthService = new PlatformHealthService(prisma);
-  const auditService = new PlatformAuditService(prisma);
+  const auditService = new PlatformAuditService(prisma, new SubmissionRepository(prisma));
   const sanitizationMiddleware = new SanitizeRequestMiddleware();
 
   try {

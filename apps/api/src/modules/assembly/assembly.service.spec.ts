@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AssemblyService } from "./services/test-assembly.service";
-import { AssemblyRepository } from "./repositories/assembly.repository";
+import { AssemblyPersistenceService } from "./services/assembly-persistence.service";
 import { BlueprintBuilderService } from "./services/blueprint-builder.service";
 import { QuestionAllocatorService } from "./services/question-allocator.service";
 import { SectionBuilderService } from "./services/section-builder.service";
@@ -8,9 +8,10 @@ import { AssemblyValidatorService } from "./validators/assembly-validator.servic
 import { QuestionPoolRepository } from "./repositories/question-pool.repository";
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { BlueprintDto } from "@intervu/shared";
+
 describe("AssemblyService", () => {
   let service: AssemblyService;
-  let repository: jest.Mocked<AssemblyRepository>;
+  let persistenceService: jest.Mocked<AssemblyPersistenceService>;
   let blueprintBuilder: jest.Mocked<BlueprintBuilderService>;
   let allocator: jest.Mocked<QuestionAllocatorService>;
   let sectionBuilder: jest.Mocked<SectionBuilderService>;
@@ -18,11 +19,9 @@ describe("AssemblyService", () => {
   let poolRepository: jest.Mocked<QuestionPoolRepository>;
 
   beforeEach(async () => {
-    repository = {
-      createTestInstanceWithTransaction: jest.fn(),
-      findById: jest.fn(),
-      findByCandidate: jest.fn(),
-    } as unknown as jest.Mocked<AssemblyRepository>;
+    persistenceService = {
+      saveAssembly: jest.fn(),
+    } as unknown as jest.Mocked<AssemblyPersistenceService>;
 
     blueprintBuilder = {
       generateBlueprint: jest.fn(),
@@ -47,7 +46,7 @@ describe("AssemblyService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AssemblyService,
-        { provide: AssemblyRepository, useValue: repository },
+        { provide: AssemblyPersistenceService, useValue: persistenceService },
         { provide: BlueprintBuilderService, useValue: blueprintBuilder },
         { provide: QuestionAllocatorService, useValue: allocator },
         { provide: SectionBuilderService, useValue: sectionBuilder },
@@ -84,7 +83,7 @@ describe("AssemblyService", () => {
       {} as unknown as SectionDto,
     );
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
-    repository.createTestInstanceWithTransaction.mockResolvedValueOnce(
+    persistenceService.saveAssembly.mockResolvedValueOnce(
       "instance-uuid",
     );
 
@@ -98,12 +97,12 @@ describe("AssemblyService", () => {
       sections: [],
     } as unknown as BlueprintDto);
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
-    repository.createTestInstanceWithTransaction.mockResolvedValueOnce(
+    persistenceService.saveAssembly.mockResolvedValueOnce(
       "success-uuid",
     );
 
     const result = await service.assembleTest("config-1");
-    expect(repository.createTestInstanceWithTransaction).toHaveBeenCalled();
+    expect(persistenceService.saveAssembly).toHaveBeenCalled();
     expect(result).toBe("success-uuid");
   });
 });

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { AssemblyVersionRepository } from "../repositories/assembly-version.repository";
 import { AssemblyPersistenceService } from "./assembly-persistence.service";
 import { AssemblyAuditService } from "./assembly-audit.service";
@@ -21,8 +25,9 @@ export class AssemblyVersionService {
 
     let nextVersion = 1;
     try {
-      nextVersion = (await this.versionRepo.getLatestVersionNumber(assemblyId)) + 1;
-    } catch (e) {
+      nextVersion =
+        (await this.versionRepo.getLatestVersionNumber(assemblyId)) + 1;
+    } catch {
       console.warn(`Could not get latest version number for ${assemblyId}`);
     }
 
@@ -33,20 +38,25 @@ export class AssemblyVersionService {
       status: assembly.status,
       totalDurationSeconds: assembly.totalDurationSeconds,
       totalQuestions: assembly.totalQuestions,
-      sections: assembly.sections?.map((s: any) => ({
-        sectionKey: s.sectionKey,
-        displayName: s.sectionName,
-        durationSeconds: s.durationSeconds,
-        questionCount: s.questionCount,
-        orderIndex: s.orderIndex,
-        questions: s.questions?.map((q: any) => ({
-          questionId: q.questionId,
-          questionOrder: q.questionOrder,
-          questionSnapshot: q.questionSnapshot,
+      sections:
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        assembly.sections?.map((s: any) => ({
+          sectionKey: s.sectionKey,
+          displayName: s.sectionName,
+          durationSeconds: s.durationSeconds,
+          questionCount: s.questionCount,
+          orderIndex: s.orderIndex,
+          questions:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            s.questions?.map((q: any) => ({
+              questionId: q.questionId,
+              questionOrder: q.questionOrder,
+              questionSnapshot: q.questionSnapshot,
+            })) || [],
         })) || [],
-      })) || [],
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let versionRecord: any;
     try {
       versionRecord = await this.versionRepo.createVersion(
@@ -62,8 +72,15 @@ export class AssemblyVersionService {
       });
     } catch (error) {
       console.error(`Version creation failed for ${assemblyId}:`, error);
-      console.warn(`Skipping version creation for ${assemblyId} due to missing table or TestInstance mismatch`);
-      versionRecord = { id: `mock-version-${Date.now()}`, version: nextVersion, assemblyId, createdAt: new Date() };
+      console.warn(
+        `Skipping version creation for ${assemblyId} due to missing table or TestInstance mismatch`,
+      );
+      versionRecord = {
+        id: `mock-version-${Date.now()}`,
+        version: nextVersion,
+        assemblyId,
+        createdAt: new Date(),
+      };
     }
 
     return versionRecord;
@@ -72,8 +89,9 @@ export class AssemblyVersionService {
   async listVersions(assemblyId: string) {
     try {
       return await this.versionRepo.findByAssemblyId(assemblyId);
-    } catch (error: any) {
-      console.warn(`Could not list versions for ${assemblyId}:`, error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`Could not list versions for ${assemblyId}:`, message);
       return [];
     }
   }
@@ -91,7 +109,11 @@ export class AssemblyVersionService {
       throw new BadRequestException("Version does not belong to this assembly");
     }
 
-    const snapshot = versionRecord.snapshot as unknown as { sections: AllocatedSectionDto[], totalDurationSeconds: number, totalQuestions: number };
+    const snapshot = versionRecord.snapshot as unknown as {
+      sections: AllocatedSectionDto[];
+      totalDurationSeconds: number;
+      totalQuestions: number;
+    };
     if (!snapshot || !snapshot.sections) {
       throw new BadRequestException("Invalid snapshot format");
     }

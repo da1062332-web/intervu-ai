@@ -6,7 +6,6 @@ import { QuestionPalette } from './QuestionPalette';
 import { ProgressTracker } from './ProgressTracker';
 import { NavigationControls } from './NavigationControls';
 import { ResumeBanner } from './ResumeBanner';
-import { ConnectionStatus } from './ConnectionStatus';
 import { SubmissionModal } from './SubmissionModal';
 import { SectionTabs } from './SectionTabs';
 import { useExecutionStore } from '../stores/execution.store';
@@ -34,7 +33,6 @@ export function ExecutionLayout() {
 
   return (
     <div className='min-h-screen bg-background flex flex-col relative'>
-      <ConnectionStatus />
       <ResumeBanner />
       <ExecutionHeader />
 
@@ -52,7 +50,7 @@ export function ExecutionLayout() {
           </div>
 
           {/* Right Column - Palette & Progress */}
-          <div className='lg:col-span-4 flex flex-col gap-6 sticky top-[88px]'>
+          <div className='lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-[88px]'>
             <QuestionPalette />
 
             <div className='border rounded-xl p-6 md:shadow-sm'>

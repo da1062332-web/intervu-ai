@@ -3,7 +3,6 @@ import { TestsRepository } from "../repositories/tests.repository";
 // eslint-disable-next-line no-restricted-imports
 import {
   AvailableConfigDto,
-  TemplateConfig,
   TestConfigsResponseDto,
 } from "../dto/available-config.dto";
 
@@ -23,20 +22,17 @@ export class TestsService {
     // 1. validate — no input required for this read-only discovery endpoint
 
     // 2. fetchDependencies
-    const templates = await this.testsRepository.findAllActiveTemplates();
+    const testConfigs = await this.testsRepository.findAllActiveConfigs();
 
-    // 3. coreLogic — map Template rows to AvailableConfigDto
-    const configs: AvailableConfigDto[] = templates.map((template) => {
-      const config = template.config as TemplateConfig;
+    // 3. coreLogic — map TestConfig rows to AvailableConfigDto
+    const configs: AvailableConfigDto[] = testConfigs.map((tc) => {
       return {
-        configId: template.id,
-        company: config.company ?? "",
-        name: template.name,
-        difficulty: template.difficulty,
-        // Template.config.durationSeconds — 0 when not configured
-        duration: config.durationSeconds ?? 0,
-        // Template.config.sections — empty array when not configured
-        sections: config.sections ?? [],
+        configId: tc.id,
+        company: tc.companyName,
+        name: tc.displayName,
+        difficulty: "MEDIUM",
+        duration: tc.totalDurationSeconds,
+        sections: tc.sections.map((s: { displayName: string }) => s.displayName),
       };
     });
 

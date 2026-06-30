@@ -3,9 +3,9 @@
 import { useExecutionStore } from '../stores/execution.store';
 import { QuestionStatusBadge } from './QuestionStatusBadge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useCallback } from 'react';
+import { useCallback, memo } from 'react';
 
-export function QuestionPalette() {
+export const QuestionPalette = memo(function QuestionPalette() {
   const { palette, jumpToQuestion, answers, questions } = useExecutionStore();
 
   const handleJump = useCallback(
@@ -40,4 +40,4 @@ export function QuestionPalette() {
       </CardContent>
     </Card>
   );
-}
+});

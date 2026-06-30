@@ -18,7 +18,7 @@ import { ValidateResponse } from "@intervu/shared";
 
 import { TestAssemblyService } from "../services/test-assembly.service";
 
-@Controller("tests")
+@Controller("test-assemblies")
 export class TestAssemblyController {
   constructor(private readonly testAssemblyService: TestAssemblyService) {}
 

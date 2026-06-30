@@ -17,11 +17,14 @@ export class AssemblyPublisherService {
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(assemblyId);
-    } catch (error) {
-      console.warn(`AssembledTest lookup failed for ${assemblyId}, falling back to TestInstance`);
+    } catch {
+      console.warn(
+        `AssembledTest lookup failed for ${assemblyId}, falling back to TestInstance`,
+      );
     }
 
     if (!assembly) {
@@ -37,31 +40,46 @@ export class AssemblyPublisherService {
     }
 
     // Load blueprint to validate
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let blueprint: any = null;
     const validationErrors: string[] = [];
 
     try {
-      blueprint = await this.blueprintBuilder.generateBlueprint(assembly.configId || assembly.testConfigId);
+      blueprint = await this.blueprintBuilder.generateBlueprint(
+        assembly.configId || assembly.testConfigId,
+      );
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn(`Could not generate blueprint for validation (likely a TestConfig mock): ${errorMessage}`);
+      console.warn(
+        `Could not generate blueprint for validation (likely a TestConfig mock): ${errorMessage}`,
+      );
     }
 
     if (blueprint) {
       // 1. Question count matches Blueprint
-      const blueprintTotalQuestions = blueprint.sections.reduce((acc: any, s: any) => acc + (s.questionCount || 0), 0);
+      const blueprintTotalQuestions = blueprint.sections.reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (acc: any, s: any) => acc + (s.questionCount || 0),
+        0,
+      );
       if (assembly.totalQuestions !== blueprintTotalQuestions) {
-        validationErrors.push(`Question count mismatch. Expected ${blueprintTotalQuestions}, got ${assembly.totalQuestions}`);
+        validationErrors.push(
+          `Question count mismatch. Expected ${blueprintTotalQuestions}, got ${assembly.totalQuestions}`,
+        );
       }
 
       // 2. Section count matches Blueprint
       if (assembly.sections.length !== blueprint.sections.length) {
-        validationErrors.push(`Section count mismatch. Expected ${blueprint.sections.length}, got ${assembly.sections.length}`);
+        validationErrors.push(
+          `Section count mismatch. Expected ${blueprint.sections.length}, got ${assembly.sections.length}`,
+        );
       }
     }
-    
+
     if (validationErrors.length > 0) {
-      throw new BadRequestException(`Validation failed: ${validationErrors.join(", ")}`);
+      throw new BadRequestException(
+        `Validation failed: ${validationErrors.join(", ")}`,
+      );
     }
 
     // Create Version Snapshot
@@ -73,17 +91,22 @@ export class AssemblyPublisherService {
         versionId: version.id,
         versionNumber: version.version,
       });
-    } catch (e) {
+    } catch {
       console.warn("Skipped publishing audit log");
     }
 
     // Update Status
     let publishedAssembly = assembly;
     try {
-      publishedAssembly = await this.repository.updateStatus(assemblyId, AssemblyStatus.PUBLISHED);
+      publishedAssembly = await this.repository.updateStatus(
+        assemblyId,
+        AssemblyStatus.PUBLISHED,
+      );
     } catch (error) {
       console.error(`Status update failed for ${assemblyId}:`, error);
-      console.warn(`Skipping status update for ${assemblyId} due to missing table or TestInstance mismatch`);
+      console.warn(
+        `Skipping status update for ${assemblyId} due to missing table or TestInstance mismatch`,
+      );
       publishedAssembly = { ...assembly, status: "PUBLISHED" };
     }
 
