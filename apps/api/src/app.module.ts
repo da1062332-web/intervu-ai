@@ -39,9 +39,12 @@ import { GenerationAiModule } from "./modules/generation-ai/generation-ai.module
 import { QuestionReviewModule } from "./modules/question-review/question-review.module";
 import { PlatformModule } from "./modules/platform/platform.module";
 import { SanitizeRequestMiddleware } from "./modules/platform/middleware/sanitize-request.middleware";
+import { WorkflowsModule } from "./modules/workflows/workflows.module";
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     // Infrastructure — must be first (ConfigModule provides env vars)
     ConfigModule,
     PrismaModule,
@@ -81,6 +84,7 @@ import { SanitizeRequestMiddleware } from "./modules/platform/middleware/sanitiz
     GenerationAiModule,
     QuestionReviewModule,
     PlatformModule,
+    WorkflowsModule,
   ],
   providers: [
     {

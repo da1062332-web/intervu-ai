@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { QuestionBankModule } from "../question-bank/question-bank.module";
 import { ConceptMappingModule } from "../concept-mapping/concept-mapping.module";
@@ -23,7 +23,7 @@ import { GenerationMetricsRepository } from "./repositories/generation-metrics.r
     PrismaModule,
     QuestionBankModule,
     ConceptMappingModule,
-    GenerationAiModule,
+    forwardRef(() => GenerationAiModule),
   ],
   controllers: [QuestionReviewController],
   providers: [

@@ -17,7 +17,7 @@ export function TestOverview({ test }: TestOverviewProps) {
   };
 
   return (
-    <Card className='h-full flex flex-col glass-card border border-border/60 shadow-sm relative overflow-hidden'>
+    <Card className='glass-card border border-border/60 shadow-sm relative overflow-hidden'>
       <CardHeader className='pb-4'>
         <div className='flex justify-between items-start gap-4'>
           <div>
@@ -39,7 +39,7 @@ export function TestOverview({ test }: TestOverviewProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className='flex gap-6 mt-4 pb-6 pt-0 border-t border-border/20 py-4 bg-muted/10'>
+      <CardContent className='flex items-center gap-6 pt-4 pb-6 border-t border-border/20 bg-muted/10'>
         <div className='flex items-center gap-2 text-muted-foreground font-medium text-sm'>
           <HelpCircle className='size-5 text-primary/70' />
           <span>Questions count not available</span>

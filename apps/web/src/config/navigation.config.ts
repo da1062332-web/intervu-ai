@@ -40,6 +40,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     {
       heading: 'Operations',
       items: [
+        { label: 'Workflows', route: '/admin/workflows', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
         { label: 'Results', route: '/admin/results', icon: BarChart3 },
         { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },

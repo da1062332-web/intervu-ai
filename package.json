@@ -51,6 +51,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@nestjs/event-emitter": "^3.1.0",
     "lucide-react": "^1.21.0",
     "react-hot-toast": "^2.6.0",
     "shared-logger": "^1.0.12"

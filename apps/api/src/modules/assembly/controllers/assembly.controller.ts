@@ -28,9 +28,7 @@ import {
   AssemblyResponseDto,
   SaveAssemblyRequestDto,
 } from "@intervu/shared";
-import {
-  UserRole,
-} from "@prisma/client";
+import { UserRole } from "@prisma/client";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
@@ -132,20 +130,14 @@ export class AssemblyController {
   @Delete(":id")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete an assembled test" })
-  async deleteAssembly(
-    @Param("id") id: string,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async deleteAssembly(@Param("id") id: string, @CurrentUser() user: AuthUser) {
     return this.persistenceService.deleteAssembly(id, user.id);
   }
 
   @Post(":id/version")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a version snapshot of an assembly" })
-  async createVersion(
-    @Param("id") id: string,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async createVersion(@Param("id") id: string, @CurrentUser() user: AuthUser) {
     const version = await this.versionService.createVersion(id, user.id);
     return { success: true, data: version };
   }
@@ -166,7 +158,11 @@ export class AssemblyController {
     @Param("versionId") versionId: string,
     @CurrentUser() user: AuthUser,
   ) {
-    const restored = await this.versionService.restoreVersion(id, versionId, user.id);
+    const restored = await this.versionService.restoreVersion(
+      id,
+      versionId,
+      user.id,
+    );
     return { success: true, data: restored };
   }
 
@@ -222,41 +218,58 @@ export class AssemblyController {
 
   @Get(":id")
   @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
-  @ApiOperation({ summary: "Get an assembled Test Instance (AssembledTest or TestInstance)" })
+  @ApiOperation({
+    summary: "Get an assembled Test Instance (AssembledTest or TestInstance)",
+  })
   @ApiResponse({ status: 200 })
   async getAssembly(@Param("id") id: string) {
     // Try AssembledTest table first (from POST /assembly/save or POST /assembly/tests/generate flow)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let instance: any = null;
-    let sourceTable: "assembledTest" | "testInstance" = "assembledTest";
 
     try {
       instance = await this.persistenceService.getAssembly(id);
     } catch {
       // Fall back to TestInstance table (created by POST /assembly/tests/generate)
       instance = await this.assemblyRepository.findById(id);
-      sourceTable = "testInstance";
     }
 
     if (!instance) {
-      throw new NotFoundException(`Assembly or TestInstance with ID ${id} not found`);
+      throw new NotFoundException(
+        `Assembly or TestInstance with ID ${id} not found`,
+      );
     }
 
     const data: AssemblyResponseDto = {
       id: instance.id,
       configId: instance.configId ?? instance.testConfigId,
       status: instance.status ?? "CREATED",
-      totalDurationSeconds: instance.totalDurationSeconds ??
-        (instance.sections?.reduce((acc: number, s: any) => acc + (s.durationSeconds ?? 0), 0) ?? 0),
-      totalQuestions: instance.totalQuestions ??
-        (instance.sections?.reduce((acc: number, s: any) => acc + (s.questions?.length ?? 0), 0) ?? 0),
+      totalDurationSeconds:
+        instance.totalDurationSeconds ??
+        instance.sections?.reduce(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (acc: number, s: any) => acc + (s.durationSeconds ?? 0),
+          0,
+        ) ??
+        0,
+      totalQuestions:
+        instance.totalQuestions ??
+        instance.sections?.reduce(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (acc: number, s: any) => acc + (s.questions?.length ?? 0),
+          0,
+        ) ??
+        0,
       createdAt: instance.createdAt.toISOString(),
       updatedAt: instance.updatedAt.toISOString(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sections: (instance.sections ?? []).map((s: any) => ({
         sectionKey: s.sectionKey,
         displayName: s.sectionName ?? s.displayName,
         durationSeconds: s.durationSeconds,
         questionCount: s.questionCount ?? s.questions?.length ?? 0,
         orderIndex: s.orderIndex ?? 0,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         questions: (s.questions ?? []).map((q: any) => {
           const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
           return {

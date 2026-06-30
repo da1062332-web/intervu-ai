@@ -14,6 +14,7 @@ import {
 } from '@/features/candidate/tests/components/TestDiscoveryLoaders';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { ChevronLeft, Play, AlertCircle } from 'lucide-react';
+import { testService } from '@/services/candidate/test.service';
 
 interface TestLaunchPageProps {
   testId: string;
@@ -61,8 +62,18 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
     );
   }
 
-  const handleStartAssessment = () => {
-    router.push(`/candidate/tests/${testId}/execution`);
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleStartAssessment = async () => {
+    try {
+      setIsStarting(true);
+      const { testInstanceId } = await testService.startTest(testId);
+      router.push(`/candidate/tests/${testInstanceId}/execution`);
+    } catch (err) {
+      console.error('Failed to start assessment', err);
+      // You could add a toast notification here
+      setIsStarting(false);
+    }
   };
 
   return (
@@ -88,6 +99,17 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
       </div>
 
       <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
+        {/* Warning / Ready Banner */}
+        {!isSystemReady && (
+          <div className='p-4 border border-amber-500/20 bg-amber-500/5 rounded-2xl flex items-center gap-3.5'>
+            <AlertCircle className='size-5 text-amber-500 shrink-0' />
+            <p className='text-sm font-medium text-amber-800 dark:text-amber-300'>
+              Please wait until all system readiness checks complete successfully before launching
+              the assessment. Enable camera and microphone permission if prompted.
+            </p>
+          </div>
+        )}
+
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Main system check panel */}
           <div className='lg:col-span-2 space-y-6'>
@@ -101,26 +123,15 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
           </div>
         </div>
 
-        {/* Warning / Ready Banner */}
-        {!isSystemReady && (
-          <div className='p-4 border border-amber-500/20 bg-amber-500/5 rounded-2xl flex items-center gap-3.5'>
-            <AlertCircle className='size-5 text-amber-500 shrink-0' />
-            <p className='text-sm font-medium text-amber-800 dark:text-amber-300'>
-              Please wait until all system readiness checks complete successfully before launching
-              the assessment. Enable camera and microphone permission if prompted.
-            </p>
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className='flex justify-end pt-6 border-t border-border/40'>
           <Button
             onClick={handleStartAssessment}
-            disabled={!isSystemReady}
+            disabled={!isSystemReady || isStarting}
             size='lg'
             className='px-10 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all'
           >
-            Start Assessment <Play className='ml-2 size-4 fill-current' />
+            {isStarting ? 'Starting...' : 'Start Assessment'} {!isStarting && <Play className='ml-2 size-4 fill-current' />}
           </Button>
         </div>
       </main>

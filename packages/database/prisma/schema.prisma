@@ -407,6 +407,7 @@ model ExamConfig {
   blueprint              Blueprint?
   readinessReports       ReadinessReport[]
   assembledTests         AssembledTest[]
+  workflow               ExamWorkflow?
 
   @@index([createdAt])
   @@index([role])
@@ -1051,4 +1052,99 @@ model AssemblyAuditLog {
 
   @@map("assembly_audit_logs")
   @@index([assemblyId])
+}
+
+enum WorkflowStep {
+  CONFIGURATION
+  QUESTION_GENERATION
+  QUESTION_REVIEW
+  ASSEMBLY
+  PUBLISHING
+  COMPLETED
+}
+
+enum WorkflowStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model ExamWorkflow {
+  id                   String                @id @default(cuid())
+  examId               String                @unique
+  currentStep          WorkflowStep          @default(CONFIGURATION)
+  status               WorkflowStatus        @default(NOT_STARTED)
+  completionPercentage Int                   @default(0)
+  version              Int                   @default(0)
+  metadata             Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  history              ExamWorkflowHistory[]
+  examConfig           ExamConfig            @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@map("exam_workflows")
+  @@index([status])
+  @@index([currentStep])
+  @@index([updatedAt])
+}
+
+model ExamWorkflowHistory {
+  id            String        @id @default(cuid())
+  workflowId    String
+  previousStep  WorkflowStep?
+  currentStep   WorkflowStep
+  changedBy     String?
+  triggerSource String?
+  reason        String?
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  workflow      ExamWorkflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("exam_workflow_history")
+  @@index([workflowId])
+  @@index([createdAt])
+}
+
+model GenerationJob {
+  id        String   @id @default(cuid())
+  topic     String
+  count     Int
+  category  String?
+  difficulty String?
+  generated Int      @default(0)
+  status    String   // "QUEUED", "RUNNING", "COMPLETED", "FAILED"
+  result    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_jobs")
+}
+
+model GenerationPrompt {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  content   String
+  version   Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_prompts")
+}
+
+model GenerationTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  schema    Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_templates")
 }
