@@ -3,7 +3,7 @@
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { ProfileDetailsCard } from '@/modules/profile/components/ProfileDetailsCard';
 import { ActiveSessionsCard } from '@/modules/profile/components/ActiveSessionsCard';
-import { Loader2 } from 'lucide-react';
+import { Loading } from '@/components/ui/loading';
 
 export default function CandidateProfilePage() {
   const { data: user, isLoading, error } = useCurrentUser();
@@ -11,7 +11,7 @@ export default function CandidateProfilePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        <Loading size="md" />
       </div>
     );
   }

@@ -24,7 +24,8 @@ export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const { data: stats, isLoading } = useDashboardStats();
 
-  const firstName = user?.fullName?.split(' ')[0] ?? 'there';
+  const userName = user?.name || user?.fullName;
+  const firstName = userName ? userName.split(' ')[0] : 'there';
 
   return (
     <div className='space-y-8'>

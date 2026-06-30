@@ -27,19 +27,10 @@ export function UnsavedChangesBanner() {
   return (
     <Badge
       variant='outline'
-<<<<<<< HEAD
       className='flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-500/10 text-amber-700 border-amber-500/20'
     >
       <AlertCircle className='w-3.5 h-3.5' />
       Sync Pending
-=======
-      className='flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-500/10 text-amber-700 border-amber-500/20 shadow-sm'
-    >
-      <AlertCircle
-        className={`w-3.5 h-3.5 ${autosaveStatus === 'SAVING' ? 'animate-pulse' : ''}`}
-      />
-      {message}
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
     </Badge>
   );
 }
