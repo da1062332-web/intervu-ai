@@ -1,5 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException } from "@nestjs/common";
+ 
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ExecutionValidatorService } from "./execution-validator.service";
@@ -14,7 +20,7 @@ import {
   EVALUATION_ADAPTER,
   EvaluationAdapter,
 } from "../interfaces/evaluation-adapter.interface";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { ExecutionResultDto } from "../dto";
 
 @Injectable()

@@ -6,7 +6,12 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
-import { TestInstance, ExecutionState, Prisma, ConfigStatus } from "@prisma/client";
+import {
+  TestInstance,
+  ExecutionState,
+  Prisma,
+  ConfigStatus,
+} from "@prisma/client";
 import { TestInstanceRepository } from "../repositories";
 import { PrismaService } from "../../../prisma/prisma.service";
 
@@ -124,7 +129,10 @@ export class ExecutionValidatorService {
     testInstanceId: string,
     userId: string,
   ): Promise<{ isValid: boolean; message: string }> {
-    this.logger.debug("Running deep runtime integrity validation", { testInstanceId, userId });
+    this.logger.debug("Running deep runtime integrity validation", {
+      testInstanceId,
+      userId,
+    });
 
     // 1. Validate assessment presence
     const testInstance = await this.validateAssessment(testInstanceId);
@@ -151,7 +159,8 @@ export class ExecutionValidatorService {
     if (!testConfig.isActive) {
       throw new BadRequestException({
         code: "ASSESSMENT_INACTIVE",
-        message: "This assessment configuration is currently inactive/unavailable",
+        message:
+          "This assessment configuration is currently inactive/unavailable",
       });
     }
 
@@ -193,11 +202,11 @@ export class ExecutionValidatorService {
     if (duplicateAttempts.length > 0) {
       throw new ConflictException({
         code: "DUPLICATE_ATTEMPT",
-        message: "You have another active attempt in progress for this assessment",
+        message:
+          "You have another active attempt in progress for this assessment",
       });
     }
 
     return { isValid: true, message: "Valid runtime session" };
   }
 }
-

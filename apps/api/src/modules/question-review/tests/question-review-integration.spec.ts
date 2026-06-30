@@ -20,13 +20,13 @@ import { PrismaService } from "../../../prisma/prisma.service";
 describe("Question Review Integration Tests", () => {
   let app: INestApplication;
   let controller: QuestionReviewController;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let questionRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let versionRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let topicRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let prismaMock: any;
 
   beforeEach(async () => {

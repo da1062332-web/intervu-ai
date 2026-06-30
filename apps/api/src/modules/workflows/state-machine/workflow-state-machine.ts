@@ -1,5 +1,5 @@
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
-import { ConflictException } from '@nestjs/common';
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
+import { ConflictException } from "@nestjs/common";
 
 export class WorkflowStateMachine {
   static readonly STEP_ORDER: WorkflowStep[] = [
@@ -20,7 +20,7 @@ export class WorkflowStateMachine {
     const idx = this.STEP_ORDER.indexOf(current);
     if (idx === -1) throw new Error(`Unknown step: ${current}`);
     if (idx === this.STEP_ORDER.length - 1) {
-      throw new ConflictException('Already at the final step');
+      throw new ConflictException("Already at the final step");
     }
     return this.STEP_ORDER[idx + 1];
   }
@@ -29,7 +29,7 @@ export class WorkflowStateMachine {
     const idx = this.STEP_ORDER.indexOf(current);
     if (idx === -1) throw new Error(`Unknown step: ${current}`);
     if (idx === 0) {
-      throw new ConflictException('Already at the first step');
+      throw new ConflictException("Already at the first step");
     }
     return this.STEP_ORDER[idx - 1];
   }
@@ -65,13 +65,20 @@ export class WorkflowStateMachine {
 
   static getCompletionPercentage(step: WorkflowStep): number {
     switch (step) {
-      case WorkflowStep.CONFIGURATION: return 10;
-      case WorkflowStep.QUESTION_GENERATION: return 30;
-      case WorkflowStep.QUESTION_REVIEW: return 50;
-      case WorkflowStep.ASSEMBLY: return 70;
-      case WorkflowStep.PUBLISHING: return 90;
-      case WorkflowStep.COMPLETED: return 100;
-      default: return 0;
+      case WorkflowStep.CONFIGURATION:
+        return 10;
+      case WorkflowStep.QUESTION_GENERATION:
+        return 30;
+      case WorkflowStep.QUESTION_REVIEW:
+        return 50;
+      case WorkflowStep.ASSEMBLY:
+        return 70;
+      case WorkflowStep.PUBLISHING:
+        return 90;
+      case WorkflowStep.COMPLETED:
+        return 100;
+      default:
+        return 0;
     }
   }
 }

@@ -14,14 +14,19 @@ export class AssessmentAuditService {
     eventType: string,
     metadata?: any,
   ): Promise<any> {
-    this.logger.debug("Logging assessment audit event", { attemptId, eventType });
+    this.logger.debug("Logging assessment audit event", {
+      attemptId,
+      eventType,
+    });
 
     const attempt = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
     });
 
     if (!attempt) {
-      this.logger.warn("Audit logging failed: attempt not found", { attemptId });
+      this.logger.warn("Audit logging failed: attempt not found", {
+        attemptId,
+      });
       return;
     }
 

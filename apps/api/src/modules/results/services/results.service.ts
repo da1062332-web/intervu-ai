@@ -35,7 +35,7 @@ export class ResultsService {
     return evaluation;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   async getResultDetails(userId: string, idOrAttemptId: string): Promise<any> {
     const evaluation = await this.getEvaluation(idOrAttemptId);
 
@@ -70,11 +70,11 @@ export class ResultsService {
     );
 
     // 2. Perform score, topic, difficulty, and section aggregation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sectionScores: Record<string, any> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const topicScores: Record<string, any> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const difficultyScores: Record<string, any> = {};
     let totalQuestionsCount = 0;
     let correctAnswersCount = evaluation.correctAnswers || 0;
@@ -89,7 +89,7 @@ export class ResultsService {
         sectionQuestions++;
         totalQuestionsCount++;
         const answer = answerMap.get(q.questionId);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const snap = q.questionSnapshot as Record<string, any>;
 
         const timeSpent = answer?.timeSpentSeconds || 0;
@@ -208,12 +208,12 @@ export class ResultsService {
     };
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+   
   getSkillBreakdown(evaluation: any) {
     return evaluation.skillScores || [];
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+   
   composeResultResponse(evaluation: any): ResultResponseDto {
     return ResultMapper.toDto(evaluation);
   }

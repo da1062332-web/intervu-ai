@@ -15,13 +15,13 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 describe("AIReviewService Orchestrator", () => {
   let service: AIReviewService;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let questionRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let versionRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let topicRepoMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let prismaMock: any;
 
   beforeEach(async () => {

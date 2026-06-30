@@ -16,7 +16,14 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
 
 export function ExecutionLayout() {

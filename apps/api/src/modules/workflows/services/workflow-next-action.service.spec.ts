@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowNextActionService } from './workflow-next-action.service';
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
-import { StepStatus } from '../dto/workflow-status.dto';
+import { Test, TestingModule } from "@nestjs/testing";
+import { WorkflowNextActionService } from "./workflow-next-action.service";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
+import { StepStatus } from "../dto/workflow-status.dto";
 
-describe('WorkflowNextActionService', () => {
+describe("WorkflowNextActionService", () => {
   let service: WorkflowNextActionService;
 
   beforeEach(async () => {
@@ -14,11 +14,11 @@ describe('WorkflowNextActionService', () => {
     service = module.get<WorkflowNextActionService>(WorkflowNextActionService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  it('should return retry action on FAILED', () => {
+  it("should return retry action on FAILED", () => {
     const action = service.getNextAction({
       currentStep: WorkflowStep.CONFIGURATION,
       status: WorkflowStatus.FAILED,
@@ -29,6 +29,6 @@ describe('WorkflowNextActionService', () => {
       assembly: {} as StepStatus,
       publishing: {} as StepStatus,
     });
-    expect(action.actionKey).toBe('retry');
+    expect(action.actionKey).toBe("retry");
   });
 });

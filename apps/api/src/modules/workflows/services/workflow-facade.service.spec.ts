@@ -1,14 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowFacadeService } from './workflow-facade.service';
-import { RedisCacheService } from '../../../cache/redis-cache.service';
-import { ExamWorkflowService } from './exam-workflow.service';
-import { WorkflowStatusService } from './workflow-status.service';
-import { WorkflowNextActionService } from './workflow-next-action.service';
-import { ExamWorkflowOrchestrator } from '../orchestrators/exam-workflow.orchestrator';
-import { WorkflowRepository } from '../repositories/workflow.repository';
-import { AssemblyPublisherService } from '../../assembly/services/assembly-publisher.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { WorkflowFacadeService } from "./workflow-facade.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { ExamWorkflowService } from "./exam-workflow.service";
+import { WorkflowStatusService } from "./workflow-status.service";
+import { WorkflowNextActionService } from "./workflow-next-action.service";
+import { ExamWorkflowOrchestrator } from "../orchestrators/exam-workflow.orchestrator";
+import { WorkflowRepository } from "../repositories/workflow.repository";
+import { AssemblyPublisherService } from "../../assembly/services/assembly-publisher.service";
 
-describe('WorkflowFacadeService', () => {
+describe("WorkflowFacadeService", () => {
   let service: WorkflowFacadeService;
 
   beforeEach(async () => {
@@ -17,7 +17,12 @@ describe('WorkflowFacadeService', () => {
         WorkflowFacadeService,
         {
           provide: RedisCacheService,
-          useValue: { get: jest.fn(), set: jest.fn(), exists: jest.fn().mockResolvedValue(false), delete: jest.fn() },
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            exists: jest.fn().mockResolvedValue(false),
+            delete: jest.fn(),
+          },
         },
         { provide: ExamWorkflowService, useValue: {} },
         { provide: WorkflowStatusService, useValue: {} },
@@ -31,7 +36,7 @@ describe('WorkflowFacadeService', () => {
     service = module.get<WorkflowFacadeService>(WorkflowFacadeService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 });

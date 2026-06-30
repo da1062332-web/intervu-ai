@@ -43,7 +43,11 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
           <CardDescription>Assessments ready to be taken</CardDescription>
         </div>
         {hasMore && (
-          <Button variant='ghost' className='text-sm text-primary hover:underline px-0' onClick={() => router.push('/candidate/tests')}>
+          <Button
+            variant='ghost'
+            className='text-sm text-primary hover:underline px-0'
+            onClick={() => router.push('/candidate/tests')}
+          >
             View all
           </Button>
         )}

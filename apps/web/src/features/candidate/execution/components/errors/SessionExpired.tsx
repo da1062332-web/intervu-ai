@@ -18,13 +18,13 @@ export function SessionExpired() {
         <div className='space-y-2'>
           <h2 className='text-2xl font-bold tracking-tight'>Session Expired</h2>
           <p className='text-muted-foreground'>
-            Your assessment session has expired. This typically happens if the timer runs out or if you leave the test window open for too long. Your answers have been automatically submitted.
+            Your assessment session has expired. This typically happens if the timer runs out or if
+            you leave the test window open for too long. Your answers have been automatically
+            submitted.
           </p>
         </div>
         <div className='flex gap-4 justify-center pt-4'>
-          <Button onClick={() => router.push('/candidate/dashboard')}>
-            Return to Dashboard
-          </Button>
+          <Button onClick={() => router.push('/candidate/dashboard')}>Return to Dashboard</Button>
         </div>
       </div>
     </div>

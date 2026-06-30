@@ -18,13 +18,12 @@ export function AssessmentUnavailable() {
         <div className='space-y-2'>
           <h2 className='text-2xl font-bold tracking-tight'>Assessment Unavailable</h2>
           <p className='text-muted-foreground'>
-            We could not locate this assessment or you do not have permission to access it. It may have been withdrawn by the organization.
+            We could not locate this assessment or you do not have permission to access it. It may
+            have been withdrawn by the organization.
           </p>
         </div>
         <div className='flex gap-4 justify-center pt-4'>
-          <Button onClick={() => router.push('/candidate/dashboard')}>
-            Return to Dashboard
-          </Button>
+          <Button onClick={() => router.push('/candidate/dashboard')}>Return to Dashboard</Button>
         </div>
       </div>
     </div>

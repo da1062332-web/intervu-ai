@@ -13,7 +13,7 @@ export const executionService = {
   getTestInstance: async (id: string): Promise<TestInstance> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await apiClient.request<any>(`/tests/${id}`);
-    
+
     // Calculate remaining duration if expiresAt is provided
     let duration = 3600;
     if (response.expiresAt) {
@@ -31,21 +31,23 @@ export const executionService = {
       candidateName: response.candidateName || 'Candidate',
       status: response.status,
       durationSeconds: response.durationSeconds || duration,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sections: response.sections?.map((section: any) => ({
-        id: section.sectionId,
-        sectionKey: section.sectionKey,
-        title: section.sectionName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        questions: section.questions?.map((q: any) => ({
-          id: q.questionId,
-          orderIndex: q.questionOrder,
-          questionHash: q.snapshot?.questionHash || '',
-          type: q.snapshot?.questionType || 'MCQ',
-          text: q.snapshot?.questionText || '',
-          options: q.snapshot?.options || [],
+       
+      sections:
+        response.sections?.map((section: any) => ({
+          id: section.sectionId,
+          sectionKey: section.sectionKey,
+          title: section.sectionName,
+           
+          questions:
+            section.questions?.map((q: any) => ({
+              id: q.questionId,
+              orderIndex: q.questionOrder,
+              questionHash: q.snapshot?.questionHash || '',
+              type: q.snapshot?.questionType || 'MCQ',
+              text: q.snapshot?.questionText || '',
+              options: q.snapshot?.options || [],
+            })) || [],
         })) || [],
-      })) || [],
     } as TestInstance;
   },
 

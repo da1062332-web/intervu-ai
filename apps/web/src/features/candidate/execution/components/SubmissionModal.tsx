@@ -74,8 +74,8 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
           <div className='mt-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm rounded-md flex items-start gap-2'>
             <AlertTriangle className='w-5 h-5 shrink-0' />
             <p>
-              You still have <strong>{unanswered} unanswered</strong> {unanswered === 1 ? 'question' : 'questions'}. 
-              Are you sure you want to submit?
+              You still have <strong>{unanswered} unanswered</strong>{' '}
+              {unanswered === 1 ? 'question' : 'questions'}. Are you sure you want to submit?
             </p>
           </div>
         )}

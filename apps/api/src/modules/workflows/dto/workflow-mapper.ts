@@ -1,10 +1,10 @@
-import { ExamWorkflow, ExamConfig } from '@prisma/client';
-import { WorkflowDashboardDto } from './workflow-dashboard.dto';
-import { NextAction, WorkflowStatusDto } from './workflow-status.dto';
-import { WorkflowResponseDto } from './workflow.dto';
+import { ExamWorkflow, ExamConfig } from "@prisma/client";
+import { WorkflowDashboardDto } from "./workflow-dashboard.dto";
+import { NextAction, WorkflowStatusDto } from "./workflow-status.dto";
+import { WorkflowResponseDto } from "./workflow.dto";
 
 export type ExamWorkflowWithConfig = ExamWorkflow & {
-  examConfig: Pick<ExamConfig, 'name'>;
+  examConfig: Pick<ExamConfig, "name">;
 };
 
 export function toWorkflowDashboardDto(
@@ -14,7 +14,7 @@ export function toWorkflowDashboardDto(
   return {
     id: workflow.id,
     examId: workflow.examId,
-    examName: workflow.examConfig?.name || 'Unknown Exam',
+    examName: workflow.examConfig?.name || "Unknown Exam",
     workflowStatus: workflow.status,
     currentStep: workflow.currentStep,
     completionPercentage: workflow.completionPercentage,
@@ -24,7 +24,9 @@ export function toWorkflowDashboardDto(
   };
 }
 
-export function toWorkflowResponseDto(workflow: ExamWorkflow): WorkflowResponseDto {
+export function toWorkflowResponseDto(
+  workflow: ExamWorkflow,
+): WorkflowResponseDto {
   return {
     id: workflow.id,
     examId: workflow.examId,
@@ -37,7 +39,10 @@ export function toWorkflowResponseDto(workflow: ExamWorkflow): WorkflowResponseD
 }
 
 export function toWorkflowStatusDto(
-  statusData: Omit<WorkflowStatusDto, 'nextAction' | 'currentStep' | 'completionPercentage' | 'status'>,
+  statusData: Omit<
+    WorkflowStatusDto,
+    "nextAction" | "currentStep" | "completionPercentage" | "status"
+  >,
   workflow: ExamWorkflow,
   nextAction: NextAction,
 ): WorkflowStatusDto {

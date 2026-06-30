@@ -10,7 +10,7 @@ jest.mock('../../hooks/useWorkflow', () => ({
 
 // Mock the AdminInsights component to simplify testing
 jest.mock('../AdminInsights', () => ({
-  AdminInsights: () => <div data-testid="admin-insights-mock">Admin Insights</div>,
+  AdminInsights: () => <div data-testid='admin-insights-mock'>Admin Insights</div>,
 }));
 
 describe('WorkflowDashboard', () => {
@@ -62,7 +62,7 @@ describe('WorkflowDashboard', () => {
     });
 
     render(<WorkflowDashboard />);
-    
+
     expect(screen.getByText('Exam Workflows')).toBeInTheDocument();
     expect(screen.getByTestId('admin-insights-mock')).toBeInTheDocument();
     expect(screen.getByText('Frontend Developer Test')).toBeInTheDocument();

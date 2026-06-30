@@ -10,7 +10,9 @@ interface NavigationControlsProps {
 
 import { memo } from 'react';
 
-export const NavigationControls = memo(function NavigationControls({ onSubmitClick }: NavigationControlsProps) {
+export const NavigationControls = memo(function NavigationControls({
+  onSubmitClick,
+}: NavigationControlsProps) {
   const { currentQuestionIndex, questions, goNext, goPrevious } = useExecutionStore();
 
   const isFirst = currentQuestionIndex === 0;

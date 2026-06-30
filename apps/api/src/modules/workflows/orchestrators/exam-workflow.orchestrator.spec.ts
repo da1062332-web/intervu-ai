@@ -1,15 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExamWorkflowOrchestrator } from './exam-workflow.orchestrator';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { WorkflowTransactionService } from '../services/workflow-transaction.service';
-import { ExamWorkflowService } from '../services/exam-workflow.service';
-import { WorkflowStatusService } from '../services/workflow-status.service';
-import { WorkflowTransitionGuard } from '../guards/workflow-transition.guard';
-import { WorkflowEventPublisher } from '../services/workflow-event-publisher';
-import { GenerationOrchestratorService } from '../../generation/services/generation-orchestrator.service';
-import { AssemblyService } from '../../assembly/services/test-assembly.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ExamWorkflowOrchestrator } from "./exam-workflow.orchestrator";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { WorkflowTransactionService } from "../services/workflow-transaction.service";
+import { ExamWorkflowService } from "../services/exam-workflow.service";
+import { WorkflowStatusService } from "../services/workflow-status.service";
+import { WorkflowTransitionGuard } from "../guards/workflow-transition.guard";
+import { WorkflowEventPublisher } from "../services/workflow-event-publisher";
+import { GenerationOrchestratorService } from "../../generation/services/generation-orchestrator.service";
+import { AssemblyService } from "../../assembly/services/test-assembly.service";
 
-describe('ExamWorkflowOrchestrator', () => {
+describe("ExamWorkflowOrchestrator", () => {
   let orchestrator: ExamWorkflowOrchestrator;
 
   beforeEach(async () => {
@@ -23,13 +23,22 @@ describe('ExamWorkflowOrchestrator', () => {
         {
           provide: WorkflowTransactionService,
           useValue: {
-            executeTransition: jest.fn().mockImplementation((id, cb) => cb({ id: 'w1', examId: 'e1' })),
+            executeTransition: jest
+              .fn()
+              .mockImplementation((id, cb) => cb({ id: "w1", examId: "e1" })),
           },
         },
         {
           provide: ExamWorkflowService,
           useValue: {
-            getWorkflow: jest.fn().mockResolvedValue({ id: 'w1', examId: 'e1', currentStep: 'CONFIGURATION', status: 'COMPLETED' }),
+            getWorkflow: jest
+              .fn()
+              .mockResolvedValue({
+                id: "w1",
+                examId: "e1",
+                currentStep: "CONFIGURATION",
+                status: "COMPLETED",
+              }),
             updateWorkflow: jest.fn(),
           },
         },
@@ -58,10 +67,12 @@ describe('ExamWorkflowOrchestrator', () => {
       ],
     }).compile();
 
-    orchestrator = module.get<ExamWorkflowOrchestrator>(ExamWorkflowOrchestrator);
+    orchestrator = module.get<ExamWorkflowOrchestrator>(
+      ExamWorkflowOrchestrator,
+    );
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(orchestrator).toBeDefined();
   });
 });

@@ -64,7 +64,9 @@ export const PerformanceAnalyticsDtoSchema = z.object({
   attemptRate: z.number().min(0).max(100),
 });
 
-export type PerformanceAnalyticsDto = z.infer<typeof PerformanceAnalyticsDtoSchema>;
+export type PerformanceAnalyticsDto = z.infer<
+  typeof PerformanceAnalyticsDtoSchema
+>;
 
 export const CandidateResultDtoSchema = z.object({
   id: z.string().cuid(),

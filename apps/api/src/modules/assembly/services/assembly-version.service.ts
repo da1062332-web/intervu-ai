@@ -39,7 +39,7 @@ export class AssemblyVersionService {
       totalDurationSeconds: assembly.totalDurationSeconds,
       totalQuestions: assembly.totalQuestions,
       sections:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         assembly.sections?.map((s: any) => ({
           sectionKey: s.sectionKey,
           displayName: s.sectionName,
@@ -47,7 +47,7 @@ export class AssemblyVersionService {
           questionCount: s.questionCount,
           orderIndex: s.orderIndex,
           questions:
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             s.questions?.map((q: any) => ({
               questionId: q.questionId,
               questionOrder: q.questionOrder,
@@ -56,7 +56,7 @@ export class AssemblyVersionService {
         })) || [],
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let versionRecord: any;
     try {
       versionRecord = await this.versionRepo.createVersion(

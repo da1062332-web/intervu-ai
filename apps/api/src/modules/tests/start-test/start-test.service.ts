@@ -27,9 +27,14 @@ export class StartTestService {
     );
 
     if (!eligibility.eligible) {
-      if (eligibility.errorCode === "ACTIVE_TEST_EXISTS" && eligibility.activeTestId) {
+      if (
+        eligibility.errorCode === "ACTIVE_TEST_EXISTS" &&
+        eligibility.activeTestId
+      ) {
         // Return existing active instance for idempotency
-        const config = await this.testConfigRepository.findById(input.testConfigId);
+        const config = await this.testConfigRepository.findById(
+          input.testConfigId,
+        );
         return {
           testInstanceId: eligibility.activeTestId,
           status: TestInstanceStatus.IN_PROGRESS,

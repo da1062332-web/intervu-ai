@@ -4,7 +4,10 @@ import { AllocatedQuestionDto } from "@intervu/shared";
 
 import { AntiRepetitionService } from "./anti-repetition.service";
 import { DifficultyLevel } from "@prisma/client";
-import { IQuestionSource, QUESTION_SOURCE_TOKEN } from "./question-source.interface";
+import {
+  IQuestionSource,
+  QUESTION_SOURCE_TOKEN,
+} from "./question-source.interface";
 import { Inject } from "@nestjs/common";
 
 export interface AllocationConfig {

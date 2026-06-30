@@ -57,7 +57,9 @@ export function TemplateListPageClient() {
         <div className='flex-1'>
           <p className='text-sm font-medium text-blue-800 dark:text-blue-300'>How Templates Work</p>
           <p className='text-sm text-blue-700 dark:text-blue-400 mt-0.5'>
-            Templates define how questions are structured (solution format, variables, rules). Once a template is configured, go to <strong>Test Assembly</strong> to generate a full test instance.
+            Templates define how questions are structured (solution format, variables, rules). Once
+            a template is configured, go to <strong>Test Assembly</strong> to generate a full test
+            instance.
           </p>
         </div>
         <Link href='/admin/assembly'>

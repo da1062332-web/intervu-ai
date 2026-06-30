@@ -40,7 +40,8 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
             <div className='space-y-2'>
               <h2 className='text-2xl font-bold tracking-tight'>Something went wrong</h2>
               <p className='text-muted-foreground'>
-                The assessment player encountered an unexpected error. Your progress has been automatically saved up to the last moment.
+                The assessment player encountered an unexpected error. Your progress has been
+                automatically saved up to the last moment.
               </p>
             </div>
             <div className='flex gap-4 justify-center pt-4'>

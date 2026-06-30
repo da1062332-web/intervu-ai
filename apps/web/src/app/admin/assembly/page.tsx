@@ -69,7 +69,8 @@ export default function AssemblyDashboardPage() {
         <div>
           <h1 className='text-3xl font-bold tracking-tight'>Test Assembly</h1>
           <p className='text-muted-foreground mt-1'>
-            Generate full test instances from your exam configurations. Each assembly contains sections, questions, and analytics.
+            Generate full test instances from your exam configurations. Each assembly contains
+            sections, questions, and analytics.
           </p>
         </div>
       </div>
@@ -85,11 +86,16 @@ export default function AssemblyDashboardPage() {
             <span className='font-semibold'>3. Assembly Engine</span> builds the test →{' '}
             <span className='font-semibold'>4. Review & Analytics</span> →{' '}
             <span className='font-semibold'>5. Save Version & Publish</span>.
-            <br />Click <strong>Generate Test Assembly</strong> below to begin step 3.
+            <br />
+            Click <strong>Generate Test Assembly</strong> below to begin step 3.
           </p>
         </div>
         <Link href='/admin/templates' className='shrink-0'>
-          <Button variant='outline' size='sm' className='text-indigo-600 border-indigo-200 hover:bg-indigo-100 dark:border-indigo-700 dark:text-indigo-400'>
+          <Button
+            variant='outline'
+            size='sm'
+            className='text-indigo-600 border-indigo-200 hover:bg-indigo-100 dark:border-indigo-700 dark:text-indigo-400'
+          >
             <ArrowLeft className='w-3.5 h-3.5 mr-1.5' />
             View Templates
           </Button>
@@ -107,7 +113,8 @@ export default function AssemblyDashboardPage() {
             <div className='text-center'>
               <h2 className='text-xl font-semibold'>No Exam Configurations Found</h2>
               <p className='text-muted-foreground mt-2 max-w-md text-center'>
-                An <strong>Exam Configuration</strong> defines the test structure (sections, question counts, duration). You need at least one before generating an assembly.
+                An <strong>Exam Configuration</strong> defines the test structure (sections,
+                question counts, duration). You need at least one before generating an assembly.
               </p>
             </div>
             <div className='flex gap-3'>

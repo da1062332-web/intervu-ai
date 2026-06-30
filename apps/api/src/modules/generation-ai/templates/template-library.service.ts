@@ -22,7 +22,9 @@ export class TemplateLibraryService {
       orderBy: { createdAt: "desc" },
     });
     if (!template) {
-      throw new NotFoundException(`Active template for category "${category}" not found`);
+      throw new NotFoundException(
+        `Active template for category "${category}" not found`,
+      );
     }
     return template;
   }
@@ -63,8 +65,12 @@ export class TemplateLibraryService {
       where: { id },
       data: {
         name: data.name !== undefined ? data.name : existing.name,
-        schema: data.schema !== undefined ? (data.schema as Prisma.InputJsonValue) : (existing.schema as Prisma.InputJsonValue),
-        isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
+        schema:
+          data.schema !== undefined
+            ? (data.schema as Prisma.InputJsonValue)
+            : (existing.schema as Prisma.InputJsonValue),
+        isActive:
+          data.isActive !== undefined ? data.isActive : existing.isActive,
       },
     });
   }

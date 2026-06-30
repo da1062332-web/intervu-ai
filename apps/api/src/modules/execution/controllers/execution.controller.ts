@@ -61,7 +61,8 @@ export class ExecutionController {
   async createCheckpoint(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
-    @Body() body: {
+    @Body()
+    body: {
       currentSection: string;
       currentQuestion: string;
       remainingTime: number;
@@ -140,7 +141,8 @@ export class ExecutionController {
       return {
         status: "INACTIVE",
         isValid: false,
-        reason: error instanceof Error ? error.message : "Session validation failed",
+        reason:
+          error instanceof Error ? error.message : "Session validation failed",
       };
     }
   }
@@ -167,7 +169,10 @@ export class ExecutionController {
   @Get("runtime/:id/validate")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Validate runtime session constraints" })
-  async validateRuntime(@Param("id") id: string, @CurrentUser() user: AuthUser) {
+  async validateRuntime(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
     return this.validator.validateRuntimeSession(id, user.id);
   }
 
@@ -178,4 +183,3 @@ export class ExecutionController {
     return this.auditService.getAuditTrail(id);
   }
 }
-

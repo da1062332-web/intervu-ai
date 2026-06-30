@@ -21,7 +21,7 @@ export class TestInstanceRepository extends BaseRepository<
     return new TestInstanceRepository(this.prisma, tx) as this;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   async loadDeepSnapshot(id: string): Promise<any> {
     return this.db.testInstance.findUnique({
       where: { id },

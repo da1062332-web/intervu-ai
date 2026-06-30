@@ -1,11 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 import { Injectable, BadRequestException, Inject } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ExecutionValidatorService } from "./execution-validator.service";
 import { ExecutionStateService } from "./execution-state.service";
 import { CandidateAnswerRepository } from "../repositories";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { CandidateAnswerDto } from "../dto";
 import { Prisma } from "@prisma/client";
 
@@ -50,13 +50,17 @@ export class AnswerService {
 
       // 5. Validate timer
       const initialRemaining = testInstance.expiresAt
-        ? Math.max(0, Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000))
+        ? Math.max(
+            0,
+            Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000),
+          )
         : 0;
       const { isExpired, actualRemainingTime } = this.validator.validateTimer(
         testInstance,
         executionState,
         dto.timeSpentSeconds
-          ? (executionState?.remainingTimeSeconds ?? initialRemaining) - dto.timeSpentSeconds
+          ? (executionState?.remainingTimeSeconds ?? initialRemaining) -
+              dto.timeSpentSeconds
           : undefined,
       );
 

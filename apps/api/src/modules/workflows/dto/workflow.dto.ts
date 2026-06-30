@@ -1,35 +1,40 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
+import { IsString, IsNotEmpty, IsEnum, IsOptional } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
 
 export class CreateWorkflowDto {
-  @ApiProperty({ description: 'The ID of the exam configuration to start a workflow for' })
+  @ApiProperty({
+    description: "The ID of the exam configuration to start a workflow for",
+  })
   @IsString()
   @IsNotEmpty()
   examId!: string;
 }
 
 export class RollbackDto {
-  @ApiPropertyOptional({ description: 'Optional reason for rollback' })
+  @ApiPropertyOptional({ description: "Optional reason for rollback" })
   @IsString()
   @IsOptional()
   reason?: string;
 }
 
 export class RetryWorkflowDto {
-  @ApiProperty({ enum: WorkflowStep, description: 'The step to retry' })
+  @ApiProperty({ enum: WorkflowStep, description: "The step to retry" })
   @IsEnum(WorkflowStep)
   @IsNotEmpty()
   step!: WorkflowStep;
 }
 
 export class BulkWorkflowDto {
-  @ApiProperty({ type: [String], description: 'List of exam IDs to process' })
+  @ApiProperty({ type: [String], description: "List of exam IDs to process" })
   @IsString({ each: true })
   @IsNotEmpty()
   examIds!: string[];
 
-  @ApiPropertyOptional({ enum: WorkflowStep, description: 'Only needed if action is retry' })
+  @ApiPropertyOptional({
+    enum: WorkflowStep,
+    description: "Only needed if action is retry",
+  })
   @IsEnum(WorkflowStep)
   @IsOptional()
   step?: WorkflowStep;

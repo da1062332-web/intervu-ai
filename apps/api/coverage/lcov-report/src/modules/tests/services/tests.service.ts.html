@@ -32,14 +32,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -107,9 +107,7 @@
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
-<a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L45'></a><a href='#L45'>45</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -118,9 +116,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,33 +131,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable } from "@nestjs/common";
 import { TestsRepository } from "../repositories/tests.repository";
-// eslint-disable-next-line no-restricted-imports
+ 
 import {
   AvailableConfigDto,
-  TemplateConfig,
   TestConfigsResponseDto,
 } from "../dto/available-config.dto";
 &nbsp;
@@ -180,20 +175,19 @@ export class TestsService {
     // 1. validate — no input required for this read-only discovery endpoint
 &nbsp;
     // 2. fetchDependencies
-    const templates = await this.testsRepository.findAllActiveTemplates();
+    const testConfigs = await this.testsRepository.findAllActiveConfigs();
 &nbsp;
-    // 3. coreLogic — map Template rows to AvailableConfigDto
-    const configs: AvailableConfigDto[] = templates.map((template) =&gt; {
-      const config = template.config as TemplateConfig;
+    // 3. coreLogic — map TestConfig rows to AvailableConfigDto
+    const configs: AvailableConfigDto[] = testConfigs.map((tc) =&gt; {
       return {
-        configId: template.id,
-        company: config.company ?? "",
-        name: template.name,
-        difficulty: template.difficulty,
-        // Template.config.durationSeconds — 0 when not configured
-        duration: config.durationSeconds ?? 0,
-        // Template.config.sections — empty array when not configured
-        sections: config.sections ?? [],
+        configId: tc.id,
+        company: tc.companyName,
+        name: tc.displayName,
+        difficulty: "MEDIUM",
+        duration: tc.totalDurationSeconds,
+        sections: tc.sections.map(
+          (s: { displayName: string }) =&gt; s.displayName,
+        ),
       };
     });
 &nbsp;
@@ -208,11 +202,7 @@ export class TestsService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-26T12:01:55.299Z
-=======
-                at 2026-06-26T05:23:39.307Z
->>>>>>> Bhushan
+                at 2026-06-30T11:23:04.813Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

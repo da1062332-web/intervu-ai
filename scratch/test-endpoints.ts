@@ -2,14 +2,17 @@ import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
 const API_URL = "http://127.0.0.1:4000/api/v1";
-const JWT_SECRET = process.env.JWT_SECRET || "replace-with-a-long-secret-at-least-32-chars";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "replace-with-a-long-secret-at-least-32-chars";
 
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres'
-    }
-  }
+      url:
+        process.env.DATABASE_URL ||
+        "postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres",
+    },
+  },
 });
 
 async function main() {
@@ -64,9 +67,14 @@ async function main() {
       }),
     });
     const postPromptData = await postPromptRes.json();
-    console.log("POST /prompts Response:", JSON.stringify(postPromptData, null, 2));
+    console.log(
+      "POST /prompts Response:",
+      JSON.stringify(postPromptData, null, 2),
+    );
     if (postPromptRes.status !== 201) {
-      throw new Error(`Failed to create prompt: status ${postPromptRes.status}`);
+      throw new Error(
+        `Failed to create prompt: status ${postPromptRes.status}`,
+      );
     }
 
     // 4. Test GET /prompts
@@ -76,7 +84,12 @@ async function main() {
       headers,
     });
     const getPromptsData = await getPromptsRes.json();
-    console.log("GET /prompts Response (length):", Array.isArray(getPromptsData.data) ? getPromptsData.data.length : typeof getPromptsData.data);
+    console.log(
+      "GET /prompts Response (length):",
+      Array.isArray(getPromptsData.data)
+        ? getPromptsData.data.length
+        : typeof getPromptsData.data,
+    );
     if (getPromptsRes.status !== 200) {
       throw new Error(`Failed to get prompts: status ${getPromptsRes.status}`);
     }
@@ -91,9 +104,14 @@ async function main() {
       }),
     });
     const topicExpandData = await topicExpandRes.json();
-    console.log("POST /generation/topic-expand Response:", JSON.stringify(topicExpandData, null, 2));
+    console.log(
+      "POST /generation/topic-expand Response:",
+      JSON.stringify(topicExpandData, null, 2),
+    );
     if (topicExpandRes.status !== 201) {
-      throw new Error(`Failed to expand topic: status ${topicExpandRes.status}`);
+      throw new Error(
+        `Failed to expand topic: status ${topicExpandRes.status}`,
+      );
     }
 
     // 6. Test POST /generation/jobs
@@ -109,9 +127,14 @@ async function main() {
       }),
     });
     const postJobData = await postJobRes.json();
-    console.log("POST /generation/jobs Response:", JSON.stringify(postJobData, null, 2));
+    console.log(
+      "POST /generation/jobs Response:",
+      JSON.stringify(postJobData, null, 2),
+    );
     if (postJobRes.status !== 201) {
-      throw new Error(`Failed to trigger generation job: status ${postJobRes.status}`);
+      throw new Error(
+        `Failed to trigger generation job: status ${postJobRes.status}`,
+      );
     }
     const jobId = postJobData.data.id;
 
@@ -126,18 +149,26 @@ async function main() {
         headers,
       });
       jobStatus = await getJobRes.json();
-      console.log(`Poll #${i+1} status:`, jobStatus.data.status);
-      if (jobStatus.data.status === "COMPLETED" || jobStatus.data.status === "FAILED") {
+      console.log(`Poll #${i + 1} status:`, jobStatus.data.status);
+      if (
+        jobStatus.data.status === "COMPLETED" ||
+        jobStatus.data.status === "FAILED"
+      ) {
         completed = true;
         break;
       }
     }
-    console.log("Final Job Status Details:", JSON.stringify(jobStatus, null, 2));
+    console.log(
+      "Final Job Status Details:",
+      JSON.stringify(jobStatus, null, 2),
+    );
     if (!completed) {
       throw new Error("Job polling timed out.");
     }
     if (jobStatus.data.status === "FAILED") {
-      throw new Error(`Job execution failed in backend: ${jobStatus.data.error}`);
+      throw new Error(
+        `Job execution failed in backend: ${jobStatus.data.error}`,
+      );
     }
 
     // 8. Test GET /generation/dashboard
@@ -147,15 +178,19 @@ async function main() {
       headers,
     });
     const dashboardData = await dashboardRes.json();
-    console.log("GET /generation/dashboard Response:", JSON.stringify(dashboardData, null, 2));
+    console.log(
+      "GET /generation/dashboard Response:",
+      JSON.stringify(dashboardData, null, 2),
+    );
     if (dashboardRes.status !== 200) {
-      throw new Error(`Failed to get dashboard metrics: status ${dashboardRes.status}`);
+      throw new Error(
+        `Failed to get dashboard metrics: status ${dashboardRes.status}`,
+      );
     }
 
     console.log("\n==========================================");
     console.log("All API integration checks: PASS ✅");
     console.log("==========================================\n");
-
   } catch (error: any) {
     console.error("\n❌ API Integration check failed:");
     console.error(error.message || error);
@@ -164,9 +199,11 @@ async function main() {
     // 9. Cleanup
     if (adminUserId) {
       console.log(`Cleaning up dummy ADMIN user ID: ${adminUserId}`);
-      await prisma.user.delete({
-        where: { id: adminUserId },
-      }).catch(() => {});
+      await prisma.user
+        .delete({
+          where: { id: adminUserId },
+        })
+        .catch(() => {});
     }
     await prisma.$disconnect();
   }

@@ -43,7 +43,12 @@ export function QuestionRenderer() {
                 }
               `}
             >
-              <RadioGroupItem value={optId} id={optId} className='sr-only' aria-label={`Option ${letter}: ${option.text}`} />
+              <RadioGroupItem
+                value={optId}
+                id={optId}
+                className='sr-only'
+                aria-label={`Option ${letter}: ${option.text}`}
+              />
               <div
                 className={`
                 flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium shrink-0
@@ -57,7 +62,9 @@ export function QuestionRenderer() {
               >
                 {letter}
               </div>
-              <span className='text-base font-normal leading-relaxed break-words'>{option.text}</span>
+              <span className='text-base font-normal leading-relaxed break-words'>
+                {option.text}
+              </span>
             </Label>
           );
         })}
@@ -115,7 +122,9 @@ export function QuestionRenderer() {
               >
                 {letter}
               </div>
-              <span className='text-base font-normal leading-relaxed break-words'>{option.text}</span>
+              <span className='text-base font-normal leading-relaxed break-words'>
+                {option.text}
+              </span>
             </Label>
           );
         })}
@@ -182,7 +191,9 @@ export function QuestionRenderer() {
 
       <CardContent className='pt-6 md:pt-8 px-6 md:px-10'>
         <div className='prose prose-slate max-w-none mb-10 dark:prose-invert break-words'>
-          <p className='text-xl leading-relaxed text-foreground font-medium'>{currentQuestion.text}</p>
+          <p className='text-xl leading-relaxed text-foreground font-medium'>
+            {currentQuestion.text}
+          </p>
         </div>
 
         {renderQuestionContent()}
@@ -196,8 +207,21 @@ export function QuestionRenderer() {
               onChange={() => toggleReview(currentQuestion.id)}
               aria-label='Mark question for review'
             />
-            <div className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${isMarkedForReview ? 'bg-orange-600 border-orange-600 text-white' : 'border-orange-300'}`} aria-hidden='true'>
-              {isMarkedForReview && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3"><path d="M3 7.5L5.5 10L11 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            <div
+              className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${isMarkedForReview ? 'bg-orange-600 border-orange-600 text-white' : 'border-orange-300'}`}
+              aria-hidden='true'
+            >
+              {isMarkedForReview && (
+                <svg viewBox='0 0 14 14' fill='none' className='w-3 h-3'>
+                  <path
+                    d='M3 7.5L5.5 10L11 4.5'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                  />
+                </svg>
+              )}
             </div>
             <span>Mark for Review (Alt + M)</span>
           </label>

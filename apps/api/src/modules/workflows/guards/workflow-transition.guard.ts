@@ -1,6 +1,6 @@
-import { Injectable, ConflictException } from '@nestjs/common';
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
-import { WorkflowStateMachine } from '../state-machine/workflow-state-machine';
+import { Injectable, ConflictException } from "@nestjs/common";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
+import { WorkflowStateMachine } from "../state-machine/workflow-state-machine";
 
 @Injectable()
 export class WorkflowTransitionGuard {

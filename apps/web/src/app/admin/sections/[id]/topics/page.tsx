@@ -16,7 +16,7 @@ export default function SectionTopicsPage() {
   const { data, isLoading, isError, refetch } = useSectionTopics(sectionId);
   // data might be wrapped in an api success response depending on how the hook is mapped, but usually apiClient unwraps it if it's `{ success: true, data }`
   // Looking at useSectionTopics: queryFn: () => apiClient.request<SectionTopicResponse[]>(...)
-  const topics: SectionTopicResponse[] = Array.isArray(data) ? data : ((data as any)?.data || []);
+  const topics: SectionTopicResponse[] = Array.isArray(data) ? data : (data as any)?.data || [];
 
   const existingTopicIds = topics.map((t) => t.topicId);
 
@@ -24,16 +24,18 @@ export default function SectionTopicsPage() {
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
       <div className='mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <Button variant='ghost' className='mb-2 -ml-4 text-muted-foreground' onClick={() => router.back()}>
+          <Button
+            variant='ghost'
+            className='mb-2 -ml-4 text-muted-foreground'
+            onClick={() => router.back()}
+          >
             <ArrowLeft className='mr-2 h-4 w-4' />
             Back to Config
           </Button>
           <h1 className='text-3xl font-bold tracking-tight text-gray-900 dark:text-white'>
             Topic Mapping
           </h1>
-          <p className='text-muted-foreground mt-2'>
-            Assign topics and concepts to this section.
-          </p>
+          <p className='text-muted-foreground mt-2'>Assign topics and concepts to this section.</p>
         </div>
       </div>
 
@@ -52,10 +54,7 @@ export default function SectionTopicsPage() {
         </div>
         <div className='lg:col-span-1'>
           <div className='bg-card border rounded-lg p-6 shadow-sm sticky top-6'>
-            <AvailableTopicsPanel
-              sectionId={sectionId}
-              existingTopicIds={existingTopicIds}
-            />
+            <AvailableTopicsPanel sectionId={sectionId} existingTopicIds={existingTopicIds} />
           </div>
         </div>
       </div>

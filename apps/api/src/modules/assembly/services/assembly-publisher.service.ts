@@ -17,7 +17,7 @@ export class AssemblyPublisherService {
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(assemblyId);
@@ -40,7 +40,7 @@ export class AssemblyPublisherService {
     }
 
     // Load blueprint to validate
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let blueprint: any = null;
     const validationErrors: string[] = [];
 
@@ -58,7 +58,7 @@ export class AssemblyPublisherService {
     if (blueprint) {
       // 1. Question count matches Blueprint
       const blueprintTotalQuestions = blueprint.sections.reduce(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         (acc: any, s: any) => acc + (s.questionCount || 0),
         0,
       );

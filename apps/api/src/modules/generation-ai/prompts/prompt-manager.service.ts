@@ -8,10 +8,7 @@ export class PromptManagerService {
 
   async listPrompts(): Promise<GenerationPrompt[]> {
     return this.prisma.generationPrompt.findMany({
-      orderBy: [
-        { name: "asc" },
-        { version: "desc" },
-      ],
+      orderBy: [{ name: "asc" }, { version: "desc" }],
     });
   }
 
@@ -31,7 +28,9 @@ export class PromptManagerService {
       orderBy: { version: "desc" },
     });
     if (!prompt) {
-      throw new NotFoundException(`Active prompt with name "${name}" not found`);
+      throw new NotFoundException(
+        `Active prompt with name "${name}" not found`,
+      );
     }
     return prompt;
   }
@@ -108,7 +107,8 @@ export class PromptManagerService {
         return tx.generationPrompt.update({
           where: { id },
           data: {
-            isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
+            isActive:
+              data.isActive !== undefined ? data.isActive : existing.isActive,
           },
         });
       }

@@ -13,7 +13,7 @@
  *  - Archived configs cannot be published
  *  - Restore resets status to DRAFT
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigurationValidatorService } from "../validators/configuration-validator.service";
 import { ConfigDependencyValidatorService } from "../validators/config-dependency-validator.service";

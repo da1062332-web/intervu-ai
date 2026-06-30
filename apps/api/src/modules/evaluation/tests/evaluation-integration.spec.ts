@@ -51,7 +51,7 @@ describe("Evaluation Module Integration Tests", () => {
     ],
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const prismaMock: any = {
     testInstance: {
       findUnique: jest.fn().mockResolvedValue(mockTestInstance),

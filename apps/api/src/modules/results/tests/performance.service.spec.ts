@@ -52,7 +52,7 @@ describe("PerformanceService", () => {
       total: 1,
       page: 1,
       limit: 10,
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+       
     } as any);
 
     const result = await service.getHistory("user-1", { page: 1, limit: 10 });

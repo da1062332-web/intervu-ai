@@ -22,7 +22,9 @@ export function AssemblyHealthCard({ isValid, warnings = [] }: AssemblyHealthCar
       </CardHeader>
       <CardContent>
         {isValid && warnings.length === 0 ? (
-          <p className='text-sm text-green-600 font-medium'>Assembly matches blueprint perfectly.</p>
+          <p className='text-sm text-green-600 font-medium'>
+            Assembly matches blueprint perfectly.
+          </p>
         ) : (
           <div className='space-y-2'>
             <p className='text-sm text-amber-600 font-medium'>Validation warnings found:</p>

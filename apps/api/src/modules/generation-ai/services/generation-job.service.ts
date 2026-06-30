@@ -75,13 +75,17 @@ export class GenerationJobService {
       });
     } catch (e: any) {
       console.error(`Generation job ${jobId} failed:`, e);
-      await this.prisma.generationJob.update({
-        where: { id: jobId },
-        data: {
-          status: "FAILED",
-          error: e.message || String(e),
-        },
-      }).catch((logErr) => console.error("Failed to mark job as failed in DB", logErr));
+      await this.prisma.generationJob
+        .update({
+          where: { id: jobId },
+          data: {
+            status: "FAILED",
+            error: e.message || String(e),
+          },
+        })
+        .catch((logErr) =>
+          console.error("Failed to mark job as failed in DB", logErr),
+        );
     }
   }
 }

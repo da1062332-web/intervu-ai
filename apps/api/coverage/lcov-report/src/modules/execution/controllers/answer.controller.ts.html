@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>0/22</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -133,7 +133,9 @@
 <a name='L68'></a><a href='#L68'>68</a>
 <a name='L69'></a><a href='#L69'>69</a>
 <a name='L70'></a><a href='#L70'>70</a>
-<a name='L71'></a><a href='#L71'>71</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -157,19 +159,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -211,7 +215,7 @@
   HttpCode,
   HttpStatus,
   UseGuards,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   ForbiddenException,
 } from "@nestjs/common";
 <span class="cstat-no" title="statement not covered" >import {</span>
@@ -226,8 +230,9 @@
 <span class="cstat-no" title="statement not covered" >import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";</span>
 import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
 <span class="cstat-no" title="statement not covered" >import { AnswerService } from "../services/answer.service";</span>
+<span class="cstat-no" title="statement not covered" >import { AutosaveService } from "../services/autosave.service";</span>
 <span class="cstat-no" title="statement not covered" >import { SubmissionService } from "../services/submission.service";</span>
-// eslint-disable-next-line no-restricted-imports
+ 
 <span class="cstat-no" title="statement not covered" >import { CandidateAnswerDto } from "../dto";</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >import { Roles } from "@/modules/auth/decorators/roles.decorator";</span>
@@ -241,6 +246,7 @@ import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
 export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >AnswerController </span>{</span></span>
 <span class="fstat-no" title="function not covered" >  constructor(</span>
     private readonly <span class="cstat-no" title="statement not covered" >answerService: A</span>nswerService,
+    private readonly <span class="cstat-no" title="statement not covered" >autosaveService: A</span>utosaveService,
     private readonly <span class="cstat-no" title="statement not covered" >submissionService: S</span>ubmissionService,
   ) {}
 &nbsp;
@@ -255,9 +261,9 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
     @Param("id") id: string,
     @Body() dto: CandidateAnswerDto,
     @CurrentUser() user: AuthUser,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   ): Promise&lt;any&gt; {
-    const result = <span class="cstat-no" title="statement not covered" >await this.answerService.saveAnswer(id, user.id, dto);</span>
+    const result = <span class="cstat-no" title="statement not covered" >await this.autosaveService.saveAnswer(id, user.id, dto);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (result.status === "expired") {</span>
       // Authoritative timer expired -&gt; Automatically submit
@@ -280,11 +286,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-26T12:01:55.299Z
-=======
-                at 2026-06-26T05:23:39.307Z
->>>>>>> Bhushan
+                at 2026-06-30T11:23:04.813Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

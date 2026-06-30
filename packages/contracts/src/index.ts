@@ -76,4 +76,3 @@ export * from "./assembly-provider.dto";
 export * from "./schemas/assembly-provider.schema";
 
 export * from "./result-submission.contract";
-

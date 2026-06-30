@@ -26,7 +26,10 @@ export class AutosaveService {
     dto: CandidateAnswerDto,
   ): Promise<{ status: string }> {
     const startTime = Date.now();
-    this.logger.debug("Executing optimized autosave", { testInstanceId, questionId: dto.questionId });
+    this.logger.debug("Executing optimized autosave", {
+      testInstanceId,
+      questionId: dto.questionId,
+    });
 
     // 1. Fetch TestInstance metadata from Cache (or fallback to DB)
     const cacheKey = `test-instance:meta:${testInstanceId}`;
@@ -51,7 +54,10 @@ export class AutosaveService {
     if (!cachedState) {
       const state = await this.stateService.restoreProgress(testInstanceId);
       const initialRemaining = testInstance.expiresAt
-        ? Math.max(0, Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000))
+        ? Math.max(
+            0,
+            Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000),
+          )
         : 0;
 
       cachedState = {
@@ -71,7 +77,10 @@ export class AutosaveService {
     );
 
     if (isExpired) {
-      this.logger.warn("Timer expired during autosave", { testInstanceId, userId });
+      this.logger.warn("Timer expired during autosave", {
+        testInstanceId,
+        userId,
+      });
       return { status: "expired" };
     }
 
@@ -80,12 +89,16 @@ export class AutosaveService {
 
     // 6. Write answer to cache (fast write back for recovery)
     const answerCacheKey = `autosave:answers:${testInstanceId}:${dto.questionId}`;
-    await this.cacheService.set(answerCacheKey, {
-      answer: dto.answer,
-      timeSpentSeconds: dto.timeSpentSeconds,
-      isMarkedForReview: dto.isMarkedForReview,
-      savedAt: new Date(),
-    }, { ttl: 3600 });
+    await this.cacheService.set(
+      answerCacheKey,
+      {
+        answer: dto.answer,
+        timeSpentSeconds: dto.timeSpentSeconds,
+        isMarkedForReview: dto.isMarkedForReview,
+        savedAt: new Date(),
+      },
+      { ttl: 3600 },
+    );
 
     // 7. Write to PostgreSQL using direct transaction-free upsert with retry logic
     const newRemainingTime = Math.max(0, actualRemainingTime);
@@ -96,7 +109,10 @@ export class AutosaveService {
     await this.cacheService.set(stateCacheKey, cachedState, { ttl: 600 });
 
     const duration = Date.now() - startTime;
-    this.logger.debug("Autosave completed", { testInstanceId, durationMs: duration });
+    this.logger.debug("Autosave completed", {
+      testInstanceId,
+      durationMs: duration,
+    });
     return { status: "saved" };
   }
 
@@ -160,14 +176,19 @@ export class AutosaveService {
         return; // Success
       } catch (error) {
         attempt++;
-        this.logger.warn(`Database write failed, retrying (${attempt}/${retries})...`, {
-          testInstanceId,
-          error: error instanceof Error ? error.message : error,
-        });
+        this.logger.warn(
+          `Database write failed, retrying (${attempt}/${retries})...`,
+          {
+            testInstanceId,
+            error: error instanceof Error ? error.message : error,
+          },
+        );
         if (attempt >= retries) {
           throw error;
         }
-        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, attempt)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, delay * Math.pow(2, attempt)),
+        );
       }
     }
   }

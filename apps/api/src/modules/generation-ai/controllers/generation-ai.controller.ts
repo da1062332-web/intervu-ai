@@ -1,11 +1,29 @@
-import { Controller, Get, Post, Body, Param, UseGuards, NotFoundException } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiCreatedResponse } from "@nestjs/swagger";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  NotFoundException,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+} from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole, QuestionStatus } from "@prisma/client";
 import { TopicExpansionService } from "../generators/topic-expansion.service";
 import { GenerationJobService } from "../services/generation-job.service";
-import { CreateGenerationJobDto, TopicExpandDto, GenerationDashboardDto } from "../dto/generation-job.dto";
+import {
+  CreateGenerationJobDto,
+  TopicExpandDto,
+  GenerationDashboardDto,
+} from "../dto/generation-job.dto";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @ApiTags("generation")
@@ -64,7 +82,10 @@ export class GenerationAiController {
     const failedJobs = await this.prisma.generationJob.count({
       where: { status: "FAILED" },
     });
-    const failureRate = totalJobs > 0 ? Math.round((failedJobs / totalJobs) * 100 * 10) / 10 : 0.0;
+    const failureRate =
+      totalJobs > 0
+        ? Math.round((failedJobs / totalJobs) * 100 * 10) / 10
+        : 0.0;
 
     const reviewQueueSize = await this.prisma.question.count({
       where: {

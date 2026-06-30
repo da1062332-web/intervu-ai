@@ -5,7 +5,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class RecommendationRepository extends BaseRepository<
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+   
   any,
   Prisma.RecommendationCreateInput,
   Prisma.RecommendationUpdateInput
