@@ -1,15 +1,33 @@
-import { ComingSoon } from '@/components/ui/coming-soon';
+'use client';
+
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { ProfileDetailsCard } from '@/modules/profile/components/ProfileDetailsCard';
+import { ActiveSessionsCard } from '@/modules/profile/components/ActiveSessionsCard';
+import { Loader2 } from 'lucide-react';
 
 export default function CandidateProfilePage() {
-  return (
-    <div className='animate-fade-in-up'>
-      <div className='mb-8'>
-        <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
-          My Profile
-        </h1>
-        <p className='text-muted-foreground mt-2'>Manage your personal information and resume.</p>
+  const { data: user, isLoading, error } = useCurrentUser();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
-      <ComingSoon title='Profile Management Coming Soon' />
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <p className="text-destructive font-medium">Failed to load profile data.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className='animate-fade-in-up max-w-4xl mx-auto'>
+      <ProfileDetailsCard user={user} />
+      <ActiveSessionsCard />
     </div>
   );
 }

@@ -19,7 +19,7 @@ export const userApi = {
   updateProfile(data: Partial<AuthUser>): Promise<AuthUser> {
     return apiClient.request<AuthUser>(`${USER_BASE_PATH}/profile`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: data,
     });
   },
 
