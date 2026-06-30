@@ -1,11 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
+import { ApiProperty } from "@nestjs/swagger";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
 
 export class StepStatus {
-  @ApiProperty({ enum: ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'BLOCKED'] })
-  status!: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'BLOCKED';
+  @ApiProperty({
+    enum: ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "BLOCKED"],
+  })
+  status!: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "FAILED" | "BLOCKED";
 
-  @ApiProperty({ description: 'Progress from 0 to 100' })
+  @ApiProperty({ description: "Progress from 0 to 100" })
   progress!: number;
 
   @ApiProperty({ required: false, nullable: true })

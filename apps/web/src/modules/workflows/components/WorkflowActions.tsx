@@ -45,69 +45,79 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
   const isCompleted = status === WorkflowStatus.COMPLETED;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className='flex flex-col gap-3'>
       {isFailed ? (
-        <div className="rounded-lg bg-red-50 p-4 border border-red-100 flex flex-col items-start gap-3">
-          <div className="flex items-center gap-2 text-red-800">
-            <AlertTriangle className="h-5 w-5" />
-            <span className="font-semibold text-sm">Workflow Failed at {currentStep}</span>
+        <div className='rounded-lg bg-red-50 p-4 border border-red-100 flex flex-col items-start gap-3'>
+          <div className='flex items-center gap-2 text-red-800'>
+            <AlertTriangle className='h-5 w-5' />
+            <span className='font-semibold text-sm'>Workflow Failed at {currentStep}</span>
           </div>
-          <p className="text-sm text-red-700">You can retry the current step or rollback to the previous one.</p>
-          <div className="flex items-center gap-2 mt-2 w-full">
+          <p className='text-sm text-red-700'>
+            You can retry the current step or rollback to the previous one.
+          </p>
+          <div className='flex items-center gap-2 mt-2 w-full'>
             <Button
-              variant="default"
-              className="bg-red-600 hover:bg-red-700 text-white flex-1"
+              variant='default'
+              className='bg-red-600 hover:bg-red-700 text-white flex-1'
               disabled={!!loading}
               onClick={() => handleAction('retry', currentStep)}
             >
-              {loading === 'retry' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+              {loading === 'retry' ? (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              ) : (
+                <RefreshCw className='mr-2 h-4 w-4' />
+              )}
               Retry {currentStep}
             </Button>
             <Button
-              variant="outline"
-              className="flex-1"
+              variant='outline'
+              className='flex-1'
               disabled={!!loading}
               onClick={() => handleAction('rollback')}
             >
-              {loading === 'rollback' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}
+              {loading === 'rollback' ? (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              ) : (
+                <RotateCcw className='mr-2 h-4 w-4' />
+              )}
               Rollback
             </Button>
           </div>
         </div>
       ) : isCompleted ? (
-        <div className="rounded-lg bg-green-50 p-6 border border-green-100 flex flex-col items-center justify-center text-center gap-2 text-green-800">
-          <Check className="h-8 w-8 text-green-600 mb-2" />
-          <h3 className="font-semibold text-lg">Workflow Completed</h3>
-          <p className="text-sm">The test has been successfully published.</p>
+        <div className='rounded-lg bg-green-50 p-6 border border-green-100 flex flex-col items-center justify-center text-center gap-2 text-green-800'>
+          <Check className='h-8 w-8 text-green-600 mb-2' />
+          <h3 className='font-semibold text-lg'>Workflow Completed</h3>
+          <p className='text-sm'>The test has been successfully published.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className='flex flex-col gap-3'>
           <Button
-            variant="default"
-            size="lg"
-            className="w-full"
+            variant='default'
+            size='lg'
+            className='w-full'
             disabled={!!loading || status === WorkflowStatus.BLOCKED}
             onClick={() => handleAction('advance')}
           >
             {loading === 'advance' ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              <Loader2 className='mr-2 h-5 w-5 animate-spin' />
             ) : (
-              <ArrowRight className="mr-2 h-5 w-5" />
+              <ArrowRight className='mr-2 h-5 w-5' />
             )}
             {nextAction?.label || 'Advance Workflow'}
           </Button>
 
           {currentStep !== WorkflowStep.CONFIGURATION && (
             <Button
-              variant="outline"
-              className="w-full text-muted-foreground"
+              variant='outline'
+              className='w-full text-muted-foreground'
               disabled={!!loading}
               onClick={() => handleAction('rollback')}
             >
               {loading === 'rollback' ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
               ) : (
-                <RotateCcw className="mr-2 h-4 w-4" />
+                <RotateCcw className='mr-2 h-4 w-4' />
               )}
               Rollback to Previous Step
             </Button>

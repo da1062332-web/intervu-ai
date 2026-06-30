@@ -32,7 +32,9 @@ export class TestsService {
         name: tc.displayName,
         difficulty: "MEDIUM",
         duration: tc.totalDurationSeconds,
-        sections: tc.sections.map((s: { displayName: string }) => s.displayName),
+        sections: tc.sections.map(
+          (s: { displayName: string }) => s.displayName,
+        ),
       };
     });
 

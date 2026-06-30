@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/35</span>
+                <span class='fraction'>0/36</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.36% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/33</span>
+                <span class='fraction'>0/34</span>
             </div>
         
             
@@ -180,26 +180,29 @@
 <a name='L115'></a><a href='#L115'>115</a>
 <a name='L116'></a><a href='#L116'>116</a>
 <a name='L117'></a><a href='#L117'>117</a>
-<a name='L118'></a><a href='#L118'>118</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -229,6 +232,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -298,25 +304,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Injectable, BadRequestException, Inject } from "@nestjs/common";
-import { AppLogger } from "@intervu-ai/shared-logger";
-import { PrismaService } from "../../../prisma/prisma.service";
-import { ExecutionValidatorService } from "./execution-validator.service";
-import { ExecutionStateService } from "./execution-state.service";
-import { CandidateAnswerRepository } from "../repositories";
+<span class="cstat-no" title="statement not covered" >import { Injectable, BadRequestException, Inject } from "@nestjs/common";</span>
+<span class="cstat-no" title="statement not covered" >import { AppLogger } from "@intervu-ai/shared-logger";</span>
+<span class="cstat-no" title="statement not covered" >import { PrismaService } from "../../../prisma/prisma.service";</span>
+<span class="cstat-no" title="statement not covered" >import { ExecutionValidatorService } from "./execution-validator.service";</span>
+<span class="cstat-no" title="statement not covered" >import { ExecutionStateService } from "./execution-state.service";</span>
+<span class="cstat-no" title="statement not covered" >import { CandidateAnswerRepository } from "../repositories";</span>
 // eslint-disable-next-line no-restricted-imports
 import { CandidateAnswerDto } from "../dto";
 import { Prisma } from "@prisma/client";
 &nbsp;
 @Injectable()
-export class AnswerService {
-  private readonly logger = new AppLogger({ name: "AnswerService" });
+export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >AnswerService </span>{</span></span>
+  private readonly <span class="cstat-no" title="statement not covered" >logger = new AppLogger({ name: "AnswerService" });</span>
 &nbsp;
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly validator: ExecutionValidatorService,
-    private readonly stateService: ExecutionStateService,
-    private readonly answerRepo: CandidateAnswerRepository,
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    private readonly <span class="cstat-no" title="statement not covered" >prisma: P</span>rismaService,
+    private readonly <span class="cstat-no" title="statement not covered" >validator: E</span>xecutionValidatorService,
+    private readonly <span class="cstat-no" title="statement not covered" >stateService: E</span>xecutionStateService,
+    private readonly <span class="cstat-no" title="statement not covered" >answerRepo: C</span>andidateAnswerRepository,
   ) {}
 &nbsp;
 <span class="fstat-no" title="function not covered" >  async </span>saveAnswer(
@@ -348,11 +354,14 @@ export class AnswerService {
       );
 &nbsp;
       // 5. Validate timer
+      const initialRemaining = <span class="cstat-no" title="statement not covered" >testInstance.expiresAt</span>
+        ? Math.max(0, Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000))
+        : 0;
       const { isExpired, actualRemainingTime } = <span class="cstat-no" title="statement not covered" >this.validator.validateTimer(</span>
         testInstance,
         executionState,
         dto.timeSpentSeconds
-          ? (executionState?.remainingTimeSeconds || 0) - dto.timeSpentSeconds
+          ? (executionState?.remainingTimeSeconds ?? initialRemaining) - dto.timeSpentSeconds
           : undefined,
       );
 &nbsp;
@@ -421,11 +430,7 @@ export class AnswerService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-26T12:01:55.299Z
-=======
-                at 2026-06-26T05:23:39.307Z
->>>>>>> Bhushan
+                at 2026-06-30T05:41:15.691Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

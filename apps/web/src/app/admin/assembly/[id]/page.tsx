@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, CheckCircle2, Clock, Layers, Hash } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle2, Clock, Layers, Hash, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
 import { TopicDistributionChart } from '@/components/assembly/TopicDistributionChart';
@@ -78,8 +78,6 @@ export default function AssemblyPreviewPage() {
     }
   };
 
-
-
   if (loading) {
     return (
       <div className='flex justify-center items-center min-h-[50vh]'>
@@ -110,7 +108,16 @@ export default function AssemblyPreviewPage() {
           <p className='text-muted-foreground mt-1'>Instance ID: {assembly.id}</p>
         </div>
         <div className='ml-auto flex gap-2'>
-          <Button variant='outline' onClick={handleCreateVersion}>Save Version</Button>
+          <Button
+            variant='outline'
+            onClick={() => router.push(`/admin/assembly/${params.id}/package`)}
+          >
+            <Package className='h-4 w-4 mr-2' />
+            Preview Package
+          </Button>
+          <Button variant='outline' onClick={handleCreateVersion}>
+            Save Version
+          </Button>
           {assembly.status !== 'PUBLISHED' && (
             <Button onClick={handlePublish}>Publish Assembly</Button>
           )}
@@ -163,14 +170,22 @@ export default function AssemblyPreviewPage() {
 
       {analytics && (
         <div className='mb-8'>
-          <h2 className='text-2xl font-semibold tracking-tight border-b pb-2 mb-4'>Distribution Analytics</h2>
+          <h2 className='text-2xl font-semibold tracking-tight border-b pb-2 mb-4'>
+            Distribution Analytics
+          </h2>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <TopicDistributionChart distribution={analytics.topicDistribution} />
             <DifficultyDistributionChart distribution={analytics.difficultyDistribution} />
-            <CoverageChart coveragePercentage={analytics.coverageDistribution?.overallCoverage || 0} />
-            <AssemblyHealthCard 
-              isValid={analytics.coverageDistribution?.overallCoverage === 100} 
-              warnings={analytics.coverageDistribution?.overallCoverage < 100 ? ["Question coverage is below 100%"] : []} 
+            <CoverageChart
+              coveragePercentage={analytics.coverageDistribution?.overallCoverage || 0}
+            />
+            <AssemblyHealthCard
+              isValid={analytics.coverageDistribution?.overallCoverage === 100}
+              warnings={
+                analytics.coverageDistribution?.overallCoverage < 100
+                  ? ['Question coverage is below 100%']
+                  : []
+              }
             />
           </div>
         </div>
@@ -178,14 +193,18 @@ export default function AssemblyPreviewPage() {
 
       {versions?.length > 0 && (
         <div className='mb-8'>
-          <h2 className='text-2xl font-semibold tracking-tight border-b pb-2 mb-4'>Version History</h2>
+          <h2 className='text-2xl font-semibold tracking-tight border-b pb-2 mb-4'>
+            Version History
+          </h2>
           <Card>
             <CardContent className='p-0 divide-y'>
               {versions.map((v: any) => (
                 <div key={v.id} className='p-4 flex justify-between items-center'>
                   <div>
                     <p className='font-medium'>Version {v.version}</p>
-                    <p className='text-sm text-muted-foreground'>{new Date(v.createdAt).toLocaleString()}</p>
+                    <p className='text-sm text-muted-foreground'>
+                      {new Date(v.createdAt).toLocaleString()}
+                    </p>
                   </div>
                   <Button variant='outline' size='sm' onClick={() => handleRestoreVersion(v.id)}>
                     Restore
@@ -201,12 +220,18 @@ export default function AssemblyPreviewPage() {
         <h2 className='text-2xl font-semibold tracking-tight border-b pb-2'>Assembled Sections</h2>
 
         {assembly.sections?.map((section: any, index: number) => (
-          <Card key={section.id || section.sectionId || index} className='overflow-hidden border-t-4 border-t-primary'>
+          <Card
+            key={section.id || section.sectionId || index}
+            className='overflow-hidden border-t-4 border-t-primary'
+          >
             <CardHeader className='bg-muted/30 pb-4'>
               <div className='flex justify-between items-start'>
                 <div>
                   <CardTitle className='text-xl'>
-                    {section.sectionName || section.displayName || section.sectionKey || `Section ${index + 1}`}
+                    {section.sectionName ||
+                      section.displayName ||
+                      section.sectionKey ||
+                      `Section ${index + 1}`}
                   </CardTitle>
                   <CardDescription className='mt-1 flex gap-4'>
                     <span className='flex items-center gap-1'>

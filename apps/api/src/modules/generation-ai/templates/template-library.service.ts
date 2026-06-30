@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { GenerationTemplate, Prisma } from "@prisma/client";
-
+import { Prisma } from "@prisma/client";
+type GenerationTemplate = any;
 @Injectable()
 export class TemplateLibraryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getTemplate(id: string): Promise<GenerationTemplate> {
-    const template = await this.prisma.generationTemplate.findUnique({
+    const template = await (this.prisma as any).generationTemplate.findUnique({
       where: { id },
     });
     if (!template) {
@@ -17,18 +17,20 @@ export class TemplateLibraryService {
   }
 
   async getTemplateByCategory(category: string): Promise<GenerationTemplate> {
-    const template = await this.prisma.generationTemplate.findFirst({
+    const template = await (this.prisma as any).generationTemplate.findFirst({
       where: { category, isActive: true },
       orderBy: { createdAt: "desc" },
     });
     if (!template) {
-      throw new NotFoundException(`Active template for category "${category}" not found`);
+      throw new NotFoundException(
+        `Active template for category "${category}" not found`,
+      );
     }
     return template;
   }
 
   async listTemplates(): Promise<GenerationTemplate[]> {
-    return this.prisma.generationTemplate.findMany({
+    return (this.prisma as any).generationTemplate.findMany({
       orderBy: { name: "asc" },
     });
   }
@@ -38,7 +40,7 @@ export class TemplateLibraryService {
     category: string;
     schema: any;
   }): Promise<GenerationTemplate> {
-    return this.prisma.generationTemplate.create({
+    return (this.prisma as any).generationTemplate.create({
       data: {
         name: data.name,
         category: data.category,
@@ -52,19 +54,23 @@ export class TemplateLibraryService {
     id: string,
     data: { name?: string; schema?: any; isActive?: boolean },
   ): Promise<GenerationTemplate> {
-    const existing = await this.prisma.generationTemplate.findUnique({
+    const existing = await (this.prisma as any).generationTemplate.findUnique({
       where: { id },
     });
     if (!existing) {
       throw new NotFoundException(`Template with ID ${id} not found`);
     }
 
-    return this.prisma.generationTemplate.update({
+    return (this.prisma as any).generationTemplate.update({
       where: { id },
       data: {
         name: data.name !== undefined ? data.name : existing.name,
-        schema: data.schema !== undefined ? (data.schema as Prisma.InputJsonValue) : (existing.schema as Prisma.InputJsonValue),
-        isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
+        schema:
+          data.schema !== undefined
+            ? (data.schema as Prisma.InputJsonValue)
+            : (existing.schema as Prisma.InputJsonValue),
+        isActive:
+          data.isActive !== undefined ? data.isActive : existing.isActive,
       },
     });
   }

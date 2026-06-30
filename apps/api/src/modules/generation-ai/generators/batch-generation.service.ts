@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { GenerationOrchestratorService } from "../orchestrators/generation-orchestrator.service";
-import { GenerationQualityService, GenerationQualityReport } from "../evaluators/generation-quality.service";
+import {
+  GenerationQualityService,
+  GenerationQualityReport,
+} from "../evaluators/generation-quality.service";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 
 @Injectable()
@@ -15,7 +18,11 @@ export class BatchGenerationService {
     count: number;
     category?: string;
     difficulty?: string;
-  }): Promise<{ generated: number; questions: any[]; report: GenerationQualityReport }> {
+  }): Promise<{
+    generated: number;
+    questions: any[];
+    report: GenerationQualityReport;
+  }> {
     const { topic, count, category, difficulty } = params;
 
     const result = await this.orchestrator.generateQuestions({

@@ -17,8 +17,14 @@ jest.mock('../hooks/useWorkflow', () => ({
 
 describe('ReviewPanel', () => {
   it('renders correctly', () => {
-    const status = { status: 'NOT_STARTED' as any, progress: 0, startedAt: null, finishedAt: null, errorReason: null };
-    render(<ReviewPanel examId="test-exam-id" status={status} onReview={jest.fn()} />);
+    const status = {
+      status: 'NOT_STARTED' as any,
+      progress: 0,
+      startedAt: null,
+      finishedAt: null,
+      errorReason: null,
+    };
+    render(<ReviewPanel examId='test-exam-id' status={status} onReview={jest.fn()} />);
     expect(screen.getByText('Question Review Queue')).toBeInTheDocument();
   });
 });

@@ -22,14 +22,12 @@ describe("AssemblyPersistenceService", () => {
             replaceAssemblyWithTransaction: jest
               .fn()
               .mockResolvedValue(undefined),
-            findById: jest
-              .fn()
-              .mockResolvedValue({
-                id: "test-assembly-id",
-                totalQuestions: 10,
-                totalDurationSeconds: 600,
-                status: "DRAFT",
-              }),
+            findById: jest.fn().mockResolvedValue({
+              id: "test-assembly-id",
+              totalQuestions: 10,
+              totalDurationSeconds: 600,
+              status: "DRAFT",
+            }),
             delete: jest.fn().mockResolvedValue(undefined),
           },
         },

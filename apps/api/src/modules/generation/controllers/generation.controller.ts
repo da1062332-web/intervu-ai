@@ -61,12 +61,17 @@ export class GenerationController {
 
   @Post("start")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Start full workflow-driven question generation' })
-  async startWorkflowGeneration(@Body("examId") examId: string): Promise<ApiResponseDto> {
+  @ApiOperation({ summary: "Start full workflow-driven question generation" })
+  async startWorkflowGeneration(
+    @Body("examId") examId: string,
+  ): Promise<ApiResponseDto> {
     const result = await this.orchestratorService.generateQuestions(examId);
     return {
       success: true,
-      data: { message: "Generation started synchronously", count: result.generated },
+      data: {
+        message: "Generation started synchronously",
+        count: result.generated,
+      },
       error: null,
       meta: { timestamp: new Date().toISOString() },
     };
@@ -74,12 +79,14 @@ export class GenerationController {
 
   @Get("status/:examId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get generation status for an exam' })
-  async getGenerationStatus(@Param("examId") examId: string): Promise<ApiResponseDto> {
+  @ApiOperation({ summary: "Get generation status for an exam" })
+  async getGenerationStatus(
+    @Param("examId") examId: string,
+  ): Promise<ApiResponseDto> {
     // In a real implementation this would check generation state via GenerationMonitorService
     return {
       success: true,
-      data: { status: 'COMPLETED' }, // placeholder
+      data: { status: "COMPLETED" }, // placeholder
       error: null,
       meta: { timestamp: new Date().toISOString() },
     };

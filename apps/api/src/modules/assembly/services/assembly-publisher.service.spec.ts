@@ -6,6 +6,7 @@ import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AssemblyAuditService } from "./assembly-audit.service";
 import { AssemblyVersionService } from "./assembly-version.service";
 import { BlueprintBuilderService } from "./blueprint-builder.service";
+import { PublishReadinessService } from "./publish-readiness.service";
 import { BadRequestException } from "@nestjs/common";
 
 describe("AssemblyPublisherService", () => {
@@ -60,7 +61,13 @@ describe("AssemblyPublisherService", () => {
         {
           provide: BlueprintBuilderService,
           useValue: {
-            generateBlueprint: jest.fn().mockResolvedValue({}),
+            generateBlueprint: jest.fn().mockResolvedValue({ sections: [] }),
+          },
+        },
+        {
+          provide: PublishReadinessService,
+          useValue: {
+            check: jest.fn().mockResolvedValue({ ready: true, checks: [] }),
           },
         },
       ],

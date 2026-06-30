@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">38.09% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>8/21</span>
+                <span class='fraction'>0/21</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.57% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/19</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
@@ -132,11 +132,11 @@
 <a name='L67'></a><a href='#L67'>67</a>
 <a name='L68'></a><a href='#L68'>68</a>
 <a name='L69'></a><a href='#L69'>69</a>
-<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -189,23 +189,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Global, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
-import { AppLogger } from "@intervu-ai/shared-logger";
-import { AppConfigService, ConfigModule } from "../config";
-import { QueueFactory } from "./queue-config";
-import { QueueService } from "./queue.service";
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Global, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";</span>
+<span class="cstat-no" title="statement not covered" >import { AppLogger } from "@intervu-ai/shared-logger";</span>
+<span class="cstat-no" title="statement not covered" >import { AppConfigService, ConfigModule } from "../config";</span>
+<span class="cstat-no" title="statement not covered" >import { QueueFactory } from "./queue-config";</span>
+<span class="cstat-no" title="statement not covered" >import { QueueService } from "./queue.service";</span>
 &nbsp;
 /**
  * QueueModule — Global NestJS DI wrapper for QueueService and QueueFactory.
@@ -258,7 +258,7 @@ import { QueueService } from "./queue.service";
   ],
   exports: [QueueService],
 })
-export <span class="fstat-no" title="function not covered" >class Q</span>ueueModule implements OnModuleInit, OnModuleDestroy {
+export <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >Q</span>ueueModule </span>implements OnModuleInit, OnModuleDestroy {</span></span>
   private readonly <span class="cstat-no" title="statement not covered" >logger = new AppLogger({ name: "QueueModule" });</span>
 &nbsp;
 <span class="fstat-no" title="function not covered" >  onModuleInit(</span>): void {
@@ -277,11 +277,7 @@ export <span class="fstat-no" title="function not covered" >class Q</span>ueueMo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-26T12:01:55.299Z
-=======
-                at 2026-06-26T05:23:39.307Z
->>>>>>> Bhushan
+                at 2026-06-30T05:41:15.691Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

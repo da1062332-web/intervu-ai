@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">48.48% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/33</span>
+                <span class='fraction'>0/33</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">45.16% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>14/31</span>
+                <span class='fraction'>0/31</span>
             </div>
         
             
@@ -174,16 +174,16 @@
 <a name='L109'></a><a href='#L109'>109</a>
 <a name='L110'></a><a href='#L110'>110</a>
 <a name='L111'></a><a href='#L111'>111</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -191,17 +191,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -284,16 +284,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { AppLogger } from "@intervu-ai/shared-logger";
-import { PrismaService } from "../../../prisma/prisma.service";
-import { ExecutionValidatorService } from "./execution-validator.service";
-import {
+<span class="cstat-no" title="statement not covered" >import { Injectable, Inject, NotFoundException } from "@nestjs/common";</span>
+<span class="cstat-no" title="statement not covered" >import { AppLogger } from "@intervu-ai/shared-logger";</span>
+<span class="cstat-no" title="statement not covered" >import { PrismaService } from "../../../prisma/prisma.service";</span>
+<span class="cstat-no" title="statement not covered" >import { ExecutionValidatorService } from "./execution-validator.service";</span>
+<span class="cstat-no" title="statement not covered" >import {</span>
   TestInstanceRepository,
   SubmissionRepository,
   CandidateAnswerRepository,
 } from "../repositories";
-import {
+<span class="cstat-no" title="statement not covered" >import {</span>
   EVALUATION_ADAPTER,
   EvaluationAdapter,
 } from "../interfaces/evaluation-adapter.interface";
@@ -301,17 +301,17 @@ import {
 import { ExecutionResultDto } from "../dto";
 &nbsp;
 @Injectable()
-export class SubmissionService {
-  private readonly logger = new AppLogger({ name: "SubmissionService" });
+export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >SubmissionService </span>{</span></span>
+  private readonly <span class="cstat-no" title="statement not covered" >logger = new AppLogger({ name: "SubmissionService" });</span>
 &nbsp;
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly validator: ExecutionValidatorService,
-    private readonly testInstanceRepo: TestInstanceRepository,
-    private readonly submissionRepo: SubmissionRepository,
-    private readonly answerRepo: CandidateAnswerRepository,
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    private readonly <span class="cstat-no" title="statement not covered" >prisma: P</span>rismaService,
+    private readonly <span class="cstat-no" title="statement not covered" >validator: E</span>xecutionValidatorService,
+    private readonly <span class="cstat-no" title="statement not covered" >testInstanceRepo: T</span>estInstanceRepository,
+    private readonly <span class="cstat-no" title="statement not covered" >submissionRepo: S</span>ubmissionRepository,
+    private readonly <span class="cstat-no" title="statement not covered" >answerRepo: C</span>andidateAnswerRepository,
     @Inject(EVALUATION_ADAPTER)
-    private readonly evaluationAdapter: EvaluationAdapter,
+    private readonly <span class="cstat-no" title="statement not covered" >evaluationAdapter: EvaluationAdapter,</span>
   ) {}
 &nbsp;
 <span class="fstat-no" title="function not covered" >  async </span>submitAssessment(
@@ -400,11 +400,7 @@ export class SubmissionService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-26T12:01:55.299Z
-=======
-                at 2026-06-26T05:23:39.307Z
->>>>>>> Bhushan
+                at 2026-06-30T05:41:15.691Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

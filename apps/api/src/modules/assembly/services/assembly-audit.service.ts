@@ -12,7 +12,12 @@ export class AssemblyAuditService {
     userId: string = "system-user",
     metadata?: Record<string, unknown>,
   ) {
-    return this.repository.createLog(assemblyId, action, userId, metadata as Prisma.InputJsonValue | undefined);
+    return this.repository.createLog(
+      assemblyId,
+      action,
+      userId,
+      metadata as Prisma.InputJsonValue | undefined,
+    );
   }
 
   async getLogsForAssembly(assemblyId: string) {

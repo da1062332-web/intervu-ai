@@ -3,9 +3,7 @@ import { LLMAdapter } from "../adapters/llm-adapter.interface";
 
 @Injectable()
 export class TopicExpansionService {
-  constructor(
-    @Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter,
-  ) {}
+  constructor(@Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter) {}
 
   async expandTopic(topic: string): Promise<string[]> {
     const prompt = `You are a curriculum expert. Generate a flat list of 5 subtopics/concepts that belong to the core topic: "${topic}".
@@ -26,7 +24,10 @@ Do not include any explanation, markdown or introductory text. Output must be ra
         return parsed.map((item: any) => String(item).trim());
       }
     } catch (e) {
-      console.warn("Topic expansion LLM parsing failed, using fallback subtopics", e);
+      console.warn(
+        "Topic expansion LLM parsing failed, using fallback subtopics",
+        e,
+      );
     }
 
     // Fallbacks

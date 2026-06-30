@@ -21,5 +21,6 @@ export * from "./solution-template.dto";
 export * from "./readiness.dto";
 export * from "./assembled-test.dto";
 export * from "./assembly-validation-result.dto";
+export * from "./assembly-validation-report.dto";
 export * from "./generate-test-request.dto";
 export * from "./preview-test-response.dto";

@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { BatchGenerationService } from "../generators/batch-generation.service";
-import { GenerationJob, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+type GenerationJob = any;
 
 @Injectable()
 export class GenerationJobService {
@@ -16,7 +17,7 @@ export class GenerationJobService {
     category?: string;
     difficulty?: string;
   }): Promise<GenerationJob> {
-    const job = await this.prisma.generationJob.create({
+    const job = await (this.prisma as any).generationJob.create({
       data: {
         topic: params.topic,
         count: params.count,
@@ -31,7 +32,7 @@ export class GenerationJobService {
   }
 
   async getJob(id: string): Promise<GenerationJob> {
-    const job = await this.prisma.generationJob.findUnique({
+    const job = await (this.prisma as any).generationJob.findUnique({
       where: { id },
     });
     if (!job) {
@@ -50,7 +51,7 @@ export class GenerationJobService {
     },
   ): Promise<void> {
     try {
-      await this.prisma.generationJob.update({
+      await (this.prisma as any).generationJob.update({
         where: { id: jobId },
         data: { status: "RUNNING" },
       });
@@ -62,7 +63,7 @@ export class GenerationJobService {
         difficulty: params.difficulty,
       });
 
-      await this.prisma.generationJob.update({
+      await (this.prisma as any).generationJob.update({
         where: { id: jobId },
         data: {
           status: "COMPLETED",
@@ -75,13 +76,17 @@ export class GenerationJobService {
       });
     } catch (e: any) {
       console.error(`Generation job ${jobId} failed:`, e);
-      await this.prisma.generationJob.update({
-        where: { id: jobId },
-        data: {
-          status: "FAILED",
-          error: e.message || String(e),
-        },
-      }).catch((logErr) => console.error("Failed to mark job as failed in DB", logErr));
+      await (this.prisma as any).generationJob
+        .update({
+          where: { id: jobId },
+          data: {
+            status: "FAILED",
+            error: e.message || String(e),
+          },
+        })
+        .catch((logErr: any) =>
+          console.error("Failed to mark job as failed in DB", logErr),
+        );
     }
   }
 }
