@@ -124,7 +124,27 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
+<<<<<<< HEAD
 <a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+=======
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -185,6 +205,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<<<<<<< HEAD
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { IsOptional, IsString, IsEnum, IsInt, Min, Max, IsDateString } from 'class-validator';</span>
 <span class="cstat-no" title="statement not covered" >import { Type } from 'class-transformer';</span>
 <span class="cstat-no" title="statement not covered" >import { WorkflowStatus, WorkflowStep } from '@prisma/client';</span>
@@ -192,6 +213,23 @@
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export class W</span></span>orkflowFilterDto {
   @ApiPropertyOptional({ description: 'Search by exam name or examId' })
+=======
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import {</span>
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsDateString,
+} from "class-validator";
+<span class="cstat-no" title="statement not covered" >import { Type } from "class-transformer";</span>
+<span class="cstat-no" title="statement not covered" >import { WorkflowStatus, WorkflowStep } from "@prisma/client";</span>
+<span class="cstat-no" title="statement not covered" >import { ApiPropertyOptional } from "@nestjs/swagger";</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export class W</span></span>orkflowFilterDto {
+  @ApiPropertyOptional({ description: "Search by exam name or examId" })
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsOptional()
   @IsString()
 <span class="cstat-no" title="statement not covered" >  search?: string;</span>
@@ -206,21 +244,34 @@
   @IsEnum(WorkflowStep)
 <span class="cstat-no" title="statement not covered" >  step?: WorkflowStep;</span>
 &nbsp;
+<<<<<<< HEAD
   @ApiPropertyOptional({ description: 'Created after this date (ISO string)' })
+=======
+  @ApiPropertyOptional({ description: "Created after this date (ISO string)" })
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsOptional()
   @IsDateString()
 <span class="cstat-no" title="statement not covered" >  createdAfter?: string;</span>
 &nbsp;
+<<<<<<< HEAD
   @ApiPropertyOptional({ description: 'Created before this date (ISO string)' })
+=======
+  @ApiPropertyOptional({ description: "Created before this date (ISO string)" })
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsOptional()
   @IsDateString()
 <span class="cstat-no" title="statement not covered" >  createdBefore?: string;</span>
 &nbsp;
+<<<<<<< HEAD
   @ApiPropertyOptional({ description: 'Updated after this date (ISO string)' })
+=======
+  @ApiPropertyOptional({ description: "Updated after this date (ISO string)" })
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsOptional()
   @IsDateString()
 <span class="cstat-no" title="statement not covered" >  updatedAfter?: string;</span>
 &nbsp;
+<<<<<<< HEAD
   @ApiPropertyOptional({ enum: ['asc', 'desc'] })
   @IsOptional()
   @IsEnum(['asc', 'desc'])
@@ -230,6 +281,17 @@
   @IsOptional()
   @IsEnum(['createdAt', 'updatedAt', 'status'])
 <span class="cstat-no" title="statement not covered" >  sortBy?: 'createdAt' | 'updatedAt' | 'status';</span>
+=======
+  @ApiPropertyOptional({ enum: ["asc", "desc"] })
+  @IsOptional()
+  @IsEnum(["asc", "desc"])
+<span class="cstat-no" title="statement not covered" >  sortOrder?: "asc" | "desc";</span>
+&nbsp;
+  @ApiPropertyOptional({ enum: ["createdAt", "updatedAt", "status"] })
+  @IsOptional()
+  @IsEnum(["createdAt", "updatedAt", "status"])
+<span class="cstat-no" title="statement not covered" >  sortBy?: "createdAt" | "updatedAt" | "status";</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 &nbsp;
   @ApiPropertyOptional({ minimum: 1, default: 1 })
   @IsOptional()
@@ -253,7 +315,11 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+<<<<<<< HEAD
                 at 2026-06-30T05:41:15.691Z
+=======
+                at 2026-06-30T11:23:04.813Z
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

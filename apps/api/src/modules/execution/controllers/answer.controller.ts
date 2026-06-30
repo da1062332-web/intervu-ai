@@ -6,7 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   ForbiddenException,
 } from "@nestjs/common";
 import {
@@ -21,8 +21,9 @@ import { JwtAuthGuard } from "@/modules/auth/guards/jwt-auth.guard";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
 import { AnswerService } from "../services/answer.service";
+import { AutosaveService } from "../services/autosave.service";
 import { SubmissionService } from "../services/submission.service";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { CandidateAnswerDto } from "../dto";
 
 import { Roles } from "@/modules/auth/decorators/roles.decorator";
@@ -36,6 +37,7 @@ import { UserRole } from "@prisma/client";
 export class AnswerController {
   constructor(
     private readonly answerService: AnswerService,
+    private readonly autosaveService: AutosaveService,
     private readonly submissionService: SubmissionService,
   ) {}
 
@@ -50,9 +52,9 @@ export class AnswerController {
     @Param("id") id: string,
     @Body() dto: CandidateAnswerDto,
     @CurrentUser() user: AuthUser,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   ): Promise<any> {
-    const result = await this.answerService.saveAnswer(id, user.id, dto);
+    const result = await this.autosaveService.saveAnswer(id, user.id, dto);
 
     if (result.status === "expired") {
       // Authoritative timer expired -> Automatically submit

@@ -4,7 +4,7 @@ import { AssembledTestRepository } from "../repositories/assembled-test.reposito
 import { AssemblyRepository } from "../repositories/assembly.repository";
 import { NotFoundException } from "@nestjs/common";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 type SectionWithQuestions = any; // Loosening type to support both TestInstance and AssembledTest sections
 
 @Injectable()
@@ -19,7 +19,7 @@ export class DistributionAnalyticsService {
   ): Record<string, number> {
     const topicDist: Record<string, number> = {};
     sections.forEach((s) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       s.questions?.forEach((q: any) => {
         const snapshot = q.questionSnapshot as Record<string, unknown>;
         const topic = (snapshot?.conceptKey as string) || "Unknown";
@@ -34,7 +34,7 @@ export class DistributionAnalyticsService {
   ): Record<string, number> {
     const diffDist: Record<string, number> = {};
     sections.forEach((s) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       s.questions?.forEach((q: any) => {
         const snapshot = q.questionSnapshot as Record<string, unknown>;
         const diff = (snapshot?.difficultyLevel as string) || "MEDIUM";
@@ -73,7 +73,7 @@ export class DistributionAnalyticsService {
   }
 
   async buildAnalytics(assemblyId: string): Promise<AssemblyAnalyticsDto> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(assemblyId);

@@ -29,7 +29,7 @@ import { QuestionReviewService } from "../services/question-review.service";
 import { QuestionSimilarityService } from "../services/question-similarity.service";
 import { QuestionReservationService } from "../services/question-reservation.service";
 import { QuestionRotationService } from "../services/question-rotation.service";
-// eslint-disable-next-line no-restricted-imports
+ 
 import {
   CreateQuestionDto,
   UpdateQuestionDto,
@@ -38,7 +38,7 @@ import {
   CheckDuplicateDto,
   ApproveRejectDto,
 } from "../dto/question-bank.dto";
-// eslint-disable-next-line no-restricted-imports
+ 
 import {
   AssemblyProviderRequestDto,
   ReleaseReservationsDto,

@@ -108,6 +108,7 @@ export default function AssemblyPreviewPage() {
           <p className='text-muted-foreground mt-1'>Instance ID: {assembly.id}</p>
         </div>
         <div className='ml-auto flex gap-2'>
+<<<<<<< HEAD
           <Button
             variant='outline'
             onClick={() => router.push(`/admin/assembly/${params.id}/package`)}
@@ -115,6 +116,8 @@ export default function AssemblyPreviewPage() {
             <Package className='h-4 w-4 mr-2' />
             Preview Package
           </Button>
+=======
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
           <Button variant='outline' onClick={handleCreateVersion}>
             Save Version
           </Button>

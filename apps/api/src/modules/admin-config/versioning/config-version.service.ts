@@ -35,7 +35,7 @@ export class ConfigVersionService {
    */
   async createVersion(
     config: FullExamConfig,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     tx?: any, // Optional prisma transaction client
   ): Promise<ConfigVersionEntry> {
     const prismaClient = tx || this.prisma;
@@ -150,7 +150,7 @@ export class ConfigVersionService {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const snapshot = version.snapshot as any;
 
     await this.prisma.$transaction(async (tx) => {
@@ -216,7 +216,7 @@ export class ConfigVersionService {
               sectionOrder: section.sectionOrder ?? 0,
               sectionTopics: {
                 create:
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                   
                   section.sectionTopics?.map((st: any) => ({
                     topicId: st.topicId,
                     topicWeightage: st.topicWeightage

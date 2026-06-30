@@ -145,7 +145,10 @@ export const WorkflowDetail: React.FC<WorkflowDetailProps> = ({ examId }) => {
             )}
             {activeTab === 'assembly' && (
               <AssemblyPanel
+<<<<<<< HEAD
                 examId={examId}
+=======
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
                 status={details.assembly}
                 onAssemble={async () => {
                   try {
@@ -158,7 +161,10 @@ export const WorkflowDetail: React.FC<WorkflowDetailProps> = ({ examId }) => {
             )}
             {activeTab === 'publishing' && (
               <PublishingPanel
+<<<<<<< HEAD
                 examId={examId}
+=======
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
                 status={details.publishing}
                 onPublish={async () => {
                   try {

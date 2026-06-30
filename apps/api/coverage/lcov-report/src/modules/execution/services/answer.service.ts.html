@@ -23,9 +23,15 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
+<<<<<<< HEAD
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
                 <span class='fraction'>0/36</span>
+=======
+                <span class="strong">38.88% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>14/36</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
@@ -44,9 +50,15 @@
         
             
             <div class='fl pad1y space-right2'>
+<<<<<<< HEAD
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
                 <span class='fraction'>0/34</span>
+=======
+                <span class="strong">35.29% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>12/34</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
@@ -183,6 +195,7 @@
 <a name='L118'></a><a href='#L118'>118</a>
 <a name='L119'></a><a href='#L119'>119</a>
 <a name='L120'></a><a href='#L120'>120</a>
+<<<<<<< HEAD
 <a name='L121'></a><a href='#L121'>121</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -190,6 +203,19 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+=======
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -243,6 +269,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -303,6 +336,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<<<<<<< HEAD
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// eslint-disable-next-line @typescript-eslint/no-unused-vars
 <span class="cstat-no" title="statement not covered" >import { Injectable, BadRequestException, Inject } from "@nestjs/common";</span>
 <span class="cstat-no" title="statement not covered" >import { AppLogger } from "@intervu-ai/shared-logger";</span>
@@ -311,6 +345,16 @@
 <span class="cstat-no" title="statement not covered" >import { ExecutionStateService } from "./execution-state.service";</span>
 <span class="cstat-no" title="statement not covered" >import { CandidateAnswerRepository } from "../repositories";</span>
 // eslint-disable-next-line no-restricted-imports
+=======
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"> 
+import { Injectable, BadRequestException, Inject } from "@nestjs/common";
+import { AppLogger } from "@intervu-ai/shared-logger";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { ExecutionValidatorService } from "./execution-validator.service";
+import { ExecutionStateService } from "./execution-state.service";
+import { CandidateAnswerRepository } from "../repositories";
+ 
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 import { CandidateAnswerDto } from "../dto";
 import { Prisma } from "@prisma/client";
 &nbsp;
@@ -355,13 +399,25 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
 &nbsp;
       // 5. Validate timer
       const initialRemaining = <span class="cstat-no" title="statement not covered" >testInstance.expiresAt</span>
+<<<<<<< HEAD
         ? Math.max(0, Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000))
+=======
+        ? Math.max(
+            0,
+            Math.floor((testInstance.expiresAt.getTime() - Date.now()) / 1000),
+          )
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         : 0;
       const { isExpired, actualRemainingTime } = <span class="cstat-no" title="statement not covered" >this.validator.validateTimer(</span>
         testInstance,
         executionState,
         dto.timeSpentSeconds
+<<<<<<< HEAD
           ? (executionState?.remainingTimeSeconds ?? initialRemaining) - dto.timeSpentSeconds
+=======
+          ? (executionState?.remainingTimeSeconds ?? initialRemaining) -
+              dto.timeSpentSeconds
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
           : undefined,
       );
 &nbsp;
@@ -430,7 +486,11 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+<<<<<<< HEAD
                 at 2026-06-30T05:41:15.691Z
+=======
+                at 2026-06-30T11:23:04.813Z
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

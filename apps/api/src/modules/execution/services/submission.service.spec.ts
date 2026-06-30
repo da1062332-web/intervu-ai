@@ -2,6 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { SubmissionService } from "./submission.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ExecutionValidatorService } from "./execution-validator.service";
+import { SubmissionValidationService } from "./submission-validation.service";
+import { EvaluationQueueService } from "../../evaluation/services/evaluation-queue.service";
 import {
   TestInstanceRepository,
   SubmissionRepository,
@@ -24,6 +26,20 @@ describe("SubmissionService", () => {
         { provide: TestInstanceRepository, useValue: {} },
         { provide: SubmissionRepository, useValue: {} },
         { provide: CandidateAnswerRepository, useValue: {} },
+        {
+          provide: SubmissionValidationService,
+          useValue: {
+            validateSubmission: jest.fn(() => ({
+              isValid: true,
+              errors: [],
+              missingQuestionIds: [],
+            })),
+          },
+        },
+        {
+          provide: EvaluationQueueService,
+          useValue: { enqueueSubmission: jest.fn() },
+        },
         { provide: EVALUATION_ADAPTER, useValue: {} },
       ],
     }).compile();

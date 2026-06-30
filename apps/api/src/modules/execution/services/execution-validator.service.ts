@@ -6,8 +6,14 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
-import { TestInstance, ExecutionState, Prisma } from "@prisma/client";
+import {
+  TestInstance,
+  ExecutionState,
+  Prisma,
+  ConfigStatus,
+} from "@prisma/client";
 import { TestInstanceRepository } from "../repositories";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class ExecutionValidatorService {
@@ -15,7 +21,10 @@ export class ExecutionValidatorService {
     name: "ExecutionValidatorService",
   });
 
-  constructor(private readonly testInstanceRepo: TestInstanceRepository) {}
+  constructor(
+    private readonly testInstanceRepo: TestInstanceRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async validateAssessment(
     testInstanceId: string,
@@ -46,7 +55,7 @@ export class ExecutionValidatorService {
         userId,
       });
       throw new ForbiddenException({
-        code: "FORBIDDEN",
+        code: "UNAUTHORIZED_ACCESS",
         message: "You do not own this assessment",
       });
     }
@@ -114,5 +123,90 @@ export class ExecutionValidatorService {
         message: "Question ID is invalid",
       });
     }
+  }
+
+  async validateRuntimeSession(
+    testInstanceId: string,
+    userId: string,
+  ): Promise<{ isValid: boolean; message: string }> {
+    this.logger.debug("Running deep runtime integrity validation", {
+      testInstanceId,
+      userId,
+    });
+
+    // 1. Validate assessment presence
+    const testInstance = await this.validateAssessment(testInstanceId);
+
+    // 2. Validate Authorization / Ownership
+    this.validateOwnership(testInstance, userId);
+
+    // 3. Validate Attempt Status (Already Submitted Attempts)
+    this.validateSubmissionState(testInstance);
+
+    // 4. Fetch associated TestConfig
+    const testConfig = await this.prisma.testConfig.findUnique({
+      where: { id: testInstance.testConfigId },
+    });
+
+    if (!testConfig) {
+      throw new NotFoundException({
+        code: "TEST_CONFIG_NOT_FOUND",
+        message: "Associated test configuration not found",
+      });
+    }
+
+    // 5. Validate Assessment Availability & Publish Status
+    if (!testConfig.isActive) {
+      throw new BadRequestException({
+        code: "ASSESSMENT_INACTIVE",
+        message:
+          "This assessment configuration is currently inactive/unavailable",
+      });
+    }
+
+    // 6. Check Draft Assessments in ExamConfig if connected
+    const examConfig = await this.prisma.examConfig.findUnique({
+      where: { code: testConfig.configKey },
+    });
+
+    if (examConfig && examConfig.status === ConfigStatus.DRAFT) {
+      throw new BadRequestException({
+        code: "DRAFT_ASSESSMENT",
+        message: "This assessment is in draft mode and cannot be executed.",
+      });
+    }
+
+    // 7. Check Expired Attempts / Time Window
+    const executionState = await this.prisma.executionState.findUnique({
+      where: { testInstanceId },
+    });
+
+    const { isExpired } = this.validateTimer(testInstance, executionState);
+    if (isExpired) {
+      throw new BadRequestException({
+        code: "EXPIRED_SESSION",
+        message: "The allowed time window for this assessment has expired",
+      });
+    }
+
+    // 8. Check Duplicate Attempts (concurrent ongoing sessions)
+    const duplicateAttempts = await this.prisma.testInstance.findMany({
+      where: {
+        userId,
+        testConfigId: testInstance.testConfigId,
+        status: { in: ["CREATED", "IN_PROGRESS"] },
+        id: { not: testInstanceId },
+      },
+    });
+
+    if (duplicateAttempts.length > 0) {
+      throw new ConflictException({
+        code: "DUPLICATE_ATTEMPT",
+        message:
+          "You have another active attempt in progress for this assessment",
+      });
+    }
+
+    return { isValid: true, message: "Valid runtime session" };
   }
 }

@@ -1,6 +1,6 @@
 import { ResultResponseDto, SkillScoreDto } from "@intervu/shared";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 export class ResultMapper {
   static toDto(entity: any): ResultResponseDto {
     return {

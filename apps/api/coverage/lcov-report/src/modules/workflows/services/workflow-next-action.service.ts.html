@@ -23,30 +23,54 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
+<<<<<<< HEAD
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
                 <span class='fraction'>0/23</span>
+=======
+                <span class="strong">34.78% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>8/23</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
             <div class='fl pad1y space-right2'>
+<<<<<<< HEAD
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>0/13</span>
+=======
+                <span class="strong">15.38% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>2/13</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
             <div class='fl pad1y space-right2'>
+<<<<<<< HEAD
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
                 <span class='fraction'>0/1</span>
+=======
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/1</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
             <div class='fl pad1y space-right2'>
+<<<<<<< HEAD
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
                 <span class='fraction'>0/21</span>
+=======
+                <span class="strong">28.57% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>6/21</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
@@ -154,6 +178,7 @@
 <a name='L89'></a><a href='#L89'>89</a>
 <a name='L90'></a><a href='#L90'>90</a>
 <a name='L91'></a><a href='#L91'>91</a>
+<<<<<<< HEAD
 <a name='L92'></a><a href='#L92'>92</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,6 +190,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+=======
+<a name='L92'></a><a href='#L92'>92</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -245,6 +283,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<<<<<<< HEAD
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Injectable } from '@nestjs/common';</span>
 <span class="cstat-no" title="statement not covered" >import { WorkflowStep, WorkflowStatus } from '@prisma/client';</span>
 import { NextAction, WorkflowStatusDto } from '../dto/workflow-status.dto';
@@ -259,20 +298,43 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
         label: 'Retry Stage',
         route: `/admin/workflows/${statusDto.configuration?.errorReason ? 'error' : 'retry'}`,
         actionKey: 'retry',
+=======
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable } from "@nestjs/common";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
+import { NextAction, WorkflowStatusDto } from "../dto/workflow-status.dto";
+&nbsp;
+@Injectable()
+export class WorkflowNextActionService {
+  getNextAction(statusDto: Omit&lt;WorkflowStatusDto, "nextAction"&gt;): NextAction {
+    const { currentStep, status } = statusDto;
+&nbsp;
+    if (status === WorkflowStatus.FAILED) {
+      return {
+        label: "Retry Stage",
+        route: `/admin/workflows/${statusDto.configuration?.errorReason ? <span class="branch-0 cbranch-no" title="branch not covered" >"error" </span>: "retry"}`,
+        actionKey: "retry",
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
       };
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (status === WorkflowStatus.COMPLETED) {</span>
 <span class="cstat-no" title="statement not covered" >      return {</span>
+<<<<<<< HEAD
         label: 'View Published Test',
         route: `/admin/publishing`,
         actionKey: 'view',
+=======
+        label: "View Published Test",
+        route: `/admin/publishing`,
+        actionKey: "view",
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
       };
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    switch (currentStep) {</span>
       case WorkflowStep.CONFIGURATION:
 <span class="cstat-no" title="statement not covered" >        return {</span>
+<<<<<<< HEAD
           label: 'Start Generation',
           route: `/admin/workflows/current/generation`,
           actionKey: 'advance',
@@ -318,20 +380,79 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
           label: 'Generate Assembly',
           route: `/admin/workflows/current/assembly`,
           actionKey: 'assemble',
+=======
+          label: "Start Generation",
+          route: `/admin/workflows/current/generation`,
+          actionKey: "advance",
+        };
+&nbsp;
+      case WorkflowStep.QUESTION_GENERATION:
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (statusDto.questionGeneration.status === "COMPLETED") {</span>
+<span class="cstat-no" title="statement not covered" >          return {</span>
+            label: "Start Review",
+            route: `/admin/workflows/current/review`,
+            actionKey: "advance",
+          };
+        }
+<span class="cstat-no" title="statement not covered" >        return {</span>
+          label: "Generate Questions",
+          route: `/admin/workflows/current/generation`,
+          actionKey: "generate",
+        };
+&nbsp;
+      case WorkflowStep.QUESTION_REVIEW:
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (statusDto.questionReview.status === "COMPLETED") {</span>
+<span class="cstat-no" title="statement not covered" >          return {</span>
+            label: "Assemble Test",
+            route: `/admin/workflows/current/assembly`,
+            actionKey: "advance",
+          };
+        }
+<span class="cstat-no" title="statement not covered" >        return {</span>
+          label: "Review Queue",
+          route: `/admin/review`,
+          actionKey: "open-review",
+        };
+&nbsp;
+      case WorkflowStep.ASSEMBLY:
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (statusDto.assembly.status === "COMPLETED") {</span>
+<span class="cstat-no" title="statement not covered" >          return {</span>
+            label: "Go to Publishing",
+            route: `/admin/workflows/current/publish`,
+            actionKey: "advance",
+          };
+        }
+<span class="cstat-no" title="statement not covered" >        return {</span>
+          label: "Generate Assembly",
+          route: `/admin/workflows/current/assembly`,
+          actionKey: "assemble",
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         };
 &nbsp;
       case WorkflowStep.PUBLISHING:
 <span class="cstat-no" title="statement not covered" >        return {</span>
+<<<<<<< HEAD
           label: 'Publish Test',
           route: `/admin/workflows/current/publish`,
           actionKey: 'publish',
+=======
+          label: "Publish Test",
+          route: `/admin/workflows/current/publish`,
+          actionKey: "publish",
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         };
 &nbsp;
       default:
 <span class="cstat-no" title="statement not covered" >        return {</span>
+<<<<<<< HEAD
           label: 'View Status',
           route: `/admin/workflows`,
           actionKey: 'view',
+=======
+          label: "View Status",
+          route: `/admin/workflows`,
+          actionKey: "view",
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         };
     }
   }
@@ -343,7 +464,11 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+<<<<<<< HEAD
                 at 2026-06-30T05:41:15.691Z
+=======
+                at 2026-06-30T11:23:04.813Z
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -1,44 +1,43 @@
+import { apiClient } from '@/services/api/client';
 import {
   EvaluationResult,
   SkillScore,
   Recommendation,
   PerformanceSummary,
 } from '../types/results.types';
-import {
-  mockEvaluationResult,
-  mockSkillScores,
-  mockRecommendations,
-  mockPerformanceSummary,
-} from '../mocks/results.mock';
-
-// In the future, these will make actual API calls to:
-// GET /api/v1/results/:id
-// GET /api/v1/results/:id/recommendations
-// GET /api/v1/users/me/performance-summary
 
 export const resultsService = {
   async getResults(id: string): Promise<EvaluationResult & { skills: SkillScore[] }> {
-    // Simulate network latency
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // In a real app we'd fetch using the id, mock ignores it for now
     if (!id) throw new Error('Result ID is required');
+    const response = await apiClient.request<any>(`/results/${id}`);
 
+    // Map backend DTO to frontend EvaluationResult
     return {
-      ...mockEvaluationResult,
-      id,
-      skills: mockSkillScores,
+      id: response.id,
+      testId: response.testId || '',
+      candidateName: '', // Fallback, would come from user profile in reality
+      testName: 'Assessment', // Fallback, could be fetched or returned from backend
+      overallScore: response.overallScore,
+      confidenceScore: response.confidenceScore || 0,
+      totalQuestions: response.totalQuestions || 0,
+      correctAnswers: response.correctAnswers || 0,
+      submittedAt: response.evaluatedAt?.toString() || new Date().toISOString(),
+      skills:
+        response.skillScores?.map((skill: any) => ({
+          id: skill.id || skill.skill,
+          name: skill.skill,
+          score: skill.score,
+          feedback: skill.feedback,
+        })) || [],
     };
   },
 
   async getRecommendations(id: string): Promise<Recommendation[]> {
     if (!id) throw new Error('Result ID is required');
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return mockRecommendations;
+    return apiClient.request<Recommendation[]>(`/results/${id}/recommendations`);
   },
 
   async getPerformanceSummary(): Promise<PerformanceSummary> {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return mockPerformanceSummary;
+    return apiClient.request<PerformanceSummary>('/users/me/performance-summary');
   },
 };

@@ -7,6 +7,10 @@ import { WorkflowStatusService } from "../services/workflow-status.service";
 import { WorkflowTransitionGuard } from "../guards/workflow-transition.guard";
 import { WorkflowEventPublisher } from "../services/workflow-event-publisher";
 import { GenerationOrchestratorService } from "../../generation/services/generation-orchestrator.service";
+<<<<<<< HEAD
+=======
+import { AssemblyService } from "../../assembly/services/test-assembly.service";
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 
 describe("ExamWorkflowOrchestrator", () => {
   let orchestrator: ExamWorkflowOrchestrator;
@@ -57,6 +61,10 @@ describe("ExamWorkflowOrchestrator", () => {
         },
         {
           provide: GenerationOrchestratorService,
+          useValue: {},
+        },
+        {
+          provide: AssemblyService,
           useValue: {},
         },
       ],

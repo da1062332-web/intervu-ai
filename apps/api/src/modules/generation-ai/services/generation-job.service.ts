@@ -76,7 +76,11 @@ export class GenerationJobService {
       });
     } catch (e: any) {
       console.error(`Generation job ${jobId} failed:`, e);
+<<<<<<< HEAD
       await (this.prisma as any).generationJob
+=======
+      await this.prisma.generationJob
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         .update({
           where: { id: jobId },
           data: {
@@ -84,7 +88,11 @@ export class GenerationJobService {
             error: e.message || String(e),
           },
         })
+<<<<<<< HEAD
         .catch((logErr: any) =>
+=======
+        .catch((logErr) =>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
           console.error("Failed to mark job as failed in DB", logErr),
         );
     }

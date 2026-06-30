@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
+ 
 // @ts-nocheck
 // ts-nocheck-removed
 import { QuestionAllocatorService } from "../src/modules/assembly/services/question-allocator.service";

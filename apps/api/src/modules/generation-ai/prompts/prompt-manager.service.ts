@@ -7,7 +7,11 @@ export class PromptManagerService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listPrompts(): Promise<GenerationPrompt[]> {
+<<<<<<< HEAD
     return (this.prisma as any).generationPrompt.findMany({
+=======
+    return this.prisma.generationPrompt.findMany({
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
       orderBy: [{ name: "asc" }, { version: "desc" }],
     });
   }

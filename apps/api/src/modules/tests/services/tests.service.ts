@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { TestsRepository } from "../repositories/tests.repository";
-// eslint-disable-next-line no-restricted-imports
+ 
 import {
   AvailableConfigDto,
   TestConfigsResponseDto,

@@ -27,6 +27,21 @@ export class StartTestService {
     );
 
     if (!eligibility.eligible) {
+      if (
+        eligibility.errorCode === "ACTIVE_TEST_EXISTS" &&
+        eligibility.activeTestId
+      ) {
+        // Return existing active instance for idempotency
+        const config = await this.testConfigRepository.findById(
+          input.testConfigId,
+        );
+        return {
+          testInstanceId: eligibility.activeTestId,
+          status: TestInstanceStatus.IN_PROGRESS,
+          instructionsUrl: `/test/${eligibility.activeTestId}/instructions`,
+          durationSeconds: config?.totalDurationSeconds || 3600,
+        };
+      }
       throw new BadRequestException({
         code: eligibility.errorCode || "USER_NOT_ELIGIBLE",
         message: eligibility.reason || "User not eligible",

@@ -39,7 +39,11 @@ export function ConnectionStatusBadge() {
       ) : showRestored ? (
         <>
           <Wifi className='w-3.5 h-3.5' />
+<<<<<<< HEAD
           <span>Online</span>
+=======
+          <span>Reconnected</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         </>
       ) : null}
     </Badge>

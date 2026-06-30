@@ -2,9 +2,9 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { RedisCacheService } from "../../../cache";
 import { ConfigRepository } from "../repositories/config.repository";
 import { TemplateRepository } from "../../template-library/repositories/template.repository";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { SystemConfigDto, SystemConfigSchema } from "../dto/system-config.dto";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { UpdateSystemConfigDto } from "../dto/update-system-config.dto";
 import { Template } from "@prisma/client";
 

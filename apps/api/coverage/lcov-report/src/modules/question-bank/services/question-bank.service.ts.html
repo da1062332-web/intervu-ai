@@ -362,26 +362,45 @@
 <a name='L297'></a><a href='#L297'>297</a>
 <a name='L298'></a><a href='#L298'>298</a>
 <a name='L299'></a><a href='#L299'>299</a>
+<<<<<<< HEAD
 <a name='L300'></a><a href='#L300'>300</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+=======
+<a name='L300'></a><a href='#L300'>300</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<<<<<<< HEAD
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+=======
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<<<<<<< HEAD
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+=======
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -666,11 +685,19 @@
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+<<<<<<< HEAD
 <span class="cstat-no" title="statement not covered" >import { PrismaService } from "../../../prisma/prisma.service";</span>
 <span class="cstat-no" title="statement not covered" >import { QuestionRepository } from "../repositories/question.repository";</span>
 <span class="cstat-no" title="statement not covered" >import { QuestionVersionService } from "./question-version.service";</span>
 <span class="cstat-no" title="statement not covered" >import { QuestionReviewService } from "./question-review.service";</span>
 // eslint-disable-next-line no-restricted-imports
+=======
+import { PrismaService } from "../../../prisma/prisma.service";
+import { QuestionRepository } from "../repositories/question.repository";
+import { QuestionVersionService } from "./question-version.service";
+import { QuestionReviewService } from "./question-review.service";
+ 
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 import {
   CreateQuestionDto,
   UpdateQuestionDto,
@@ -731,7 +758,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             templateId: dto.templateId,
             questionHash: createId(), // Satisfy unique key constraint
             conceptKey: dto.topicId, // fallback to topicId
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             difficultyLevel: dto.difficulty as any,
             questionType: "mcq",
             questionText: dto.questionText,
@@ -831,7 +858,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
               templateId: q.templateId,
               questionHash: createId(),
               conceptKey: q.topicId,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               
               difficultyLevel: q.difficulty as any,
               questionType: "mcq",
               questionText: q.questionText,
@@ -855,7 +882,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        return { saved: count, failed: 0 };</span>
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } catch (error: any) {
       // Transaction automatically rolls back on error
 <span class="cstat-no" title="statement not covered" >      throw new BadRequestException({</span>
@@ -948,7 +975,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
 <span class="fstat-no" title="function not covered" >  async </span>getStats(filters: {
     topicId?: string;
     sectionId?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   }): Promise&lt;any&gt; {
     const where: Prisma.QuestionWhereInput = <span class="cstat-no" title="statement not covered" >{};</span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (filters.topicId) {</span>
@@ -967,7 +994,11 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+<<<<<<< HEAD
                 at 2026-06-30T05:41:15.691Z
+=======
+                at 2026-06-30T11:23:04.813Z
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

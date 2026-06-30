@@ -39,7 +39,7 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
     return (
       <div className='flex flex-col min-h-screen pb-20'>
         <div className='border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10'>
-          <div className='container max-w-4xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
+          <div className='container max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
             <div className='flex items-center gap-4'>
               <Button variant='ghost' size='icon' disabled className='shrink-0'>
                 <ChevronLeft className='size-5' />
@@ -48,8 +48,10 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             </div>
           </div>
         </div>
-        <main className='flex-1 container max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 mt-6'>
-          <InstructionsSkeleton />
+        <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6'>
+          <div className='max-w-4xl mx-auto w-full'>
+            <InstructionsSkeleton />
+          </div>
         </main>
       </div>
     );
@@ -67,7 +69,7 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
   return (
     <div className='flex flex-col min-h-screen pb-20'>
       <div className='border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10'>
-        <div className='container max-w-4xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
+        <div className='container max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center gap-4'>
             <Button
               variant='ghost'
@@ -86,121 +88,98 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
         </div>
       </div>
 
-      <main className='flex-1 container max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
-        <div className='mb-6' data-testid='test-instructions-header'>
-          <h2 className='text-2xl font-bold tracking-tight text-foreground'>
-            Assessment Instructions
-          </h2>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Please read the following instructions carefully.
-          </p>
-        </div>
-        <div className='space-y-6'>
-          {/* Assessment Rules */}
+      <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
+        <div className='max-w-4xl mx-auto w-full space-y-8'>
+          <div className='mb-6' data-testid='test-instructions-header'>
+            <h2 className='text-2xl font-bold tracking-tight text-foreground'>
+              Assessment Instructions
+            </h2>
+            <p className='text-sm text-muted-foreground mt-1'>
+              Please read the following instructions carefully.
+            </p>
+          </div>
+          {/* Consolidated Assessment Rules */}
           <Card className='glass-card border border-border/60 shadow-sm'>
-            <CardHeader className='pb-3'>
+            <CardHeader className='pb-3 border-b border-border/20'>
               <CardTitle className='text-lg font-bold flex items-center gap-2 text-foreground'>
                 <BookOpen className='size-5 text-indigo-500' />
-                Assessment Rules
+                Online Exam Rules
               </CardTitle>
-              <CardDescription>Ground rules for taking the online proctored exam</CardDescription>
+              <CardDescription>Ground rules, navigation, and submission procedures</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className='space-y-2.5'>
-                {config.assessmentRules.map((rule: string, idx: number) => (
-                  <li
-                    key={idx}
-                    className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
-                  >
-                    <span className='size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2' />
-                    <span>{rule}</span>
-                  </li>
-                ))}
-              </ul>
+            <CardContent className='pt-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+                <div>
+                  <h4 className='font-semibold flex items-center gap-2 mb-3 text-sm'>
+                    <Navigation className='size-4 text-primary/70' /> Navigation & Rules
+                  </h4>
+                  <ul className='space-y-2'>
+                    {[...config.assessmentRules, ...config.navigationRules].map(
+                      (rule: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                        >
+                          <span className='size-1.5 rounded-full bg-indigo-500/70 shrink-0 mt-1.5' />
+                          <span>{rule}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className='font-semibold flex items-center gap-2 mb-3 text-sm'>
+                    <Laptop className='size-4 text-primary/70' /> Timer & Submission
+                  </h4>
+                  <ul className='space-y-2'>
+                    {[...config.timerRules, ...config.submissionRules].map(
+                      (rule: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                        >
+                          <span className='size-1.5 rounded-full bg-indigo-500/70 shrink-0 mt-1.5' />
+                          <span>{rule}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Navigation Rules */}
-          <Card className='glass-card border border-border/60 shadow-sm'>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-lg font-bold flex items-center gap-2 text-foreground'>
-                <Navigation className='size-5 text-indigo-500' />
-                Navigation Rules
-              </CardTitle>
-              <CardDescription>Rules on moving between questions and sections</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className='space-y-2.5'>
-                {config.navigationRules.map((rule: string, idx: number) => (
-                  <li
-                    key={idx}
-                    className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
-                  >
-                    <span className='size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2' />
-                    <span>{rule}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          {/* Declaration and Agreement Checkbox */}
+          <div className='p-5 border border-border/60 bg-muted/20 rounded-2xl flex items-start gap-3.5'>
+            <Checkbox
+              id='terms-accept'
+              checked={isAccepted}
+              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                handleCheckboxChange(checked === true)
+              }
+              className='mt-1 text-primary border-muted-foreground size-5 rounded'
+            />
+            <label
+              htmlFor='terms-accept'
+              className='text-sm font-medium leading-relaxed text-muted-foreground cursor-pointer select-none'
+            >
+              I have read and understood all the instructions listed above. I agree that I will
+              abide by the rules during the assessment, and I consent to screen sharing, camera
+              recording, and focus tracking monitoring.
+            </label>
+          </div>
 
-          {/* Timer and Submission Rules */}
-          <Card className='glass-card border border-border/60 shadow-sm'>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-lg font-bold flex items-center gap-2 text-foreground'>
-                <Laptop className='size-5 text-indigo-500' />
-                Timer & Submission Rules
-              </CardTitle>
-              <CardDescription>Details about time limits and submission procedures</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className='space-y-2.5'>
-                {[...config.timerRules, ...config.submissionRules].map(
-                  (rule: string, idx: number) => (
-                    <li
-                      key={idx}
-                      className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
-                    >
-                      <span className='size-1.5 rounded-full bg-indigo-500 shrink-0 mt-2' />
-                      <span>{rule}</span>
-                    </li>
-                  ),
-                )}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Declaration and Agreement Checkbox */}
-        <div className='p-5 border border-border/60 bg-muted/20 rounded-2xl flex items-start gap-3.5'>
-          <Checkbox
-            id='terms-accept'
-            checked={isAccepted}
-            onCheckedChange={(checked: boolean | 'indeterminate') =>
-              handleCheckboxChange(checked === true)
-            }
-            className='mt-1 text-primary border-muted-foreground size-5 rounded'
-          />
-          <label
-            htmlFor='terms-accept'
-            className='text-sm font-medium leading-relaxed text-muted-foreground cursor-pointer select-none'
-          >
-            I have read and understood all the instructions listed above. I agree that I will abide
-            by the rules during the assessment, and I consent to screen sharing, camera recording,
-            and focus tracking monitoring.
-          </label>
-        </div>
-
-        {/* Action Buttons */}
-        <div className='flex justify-end pt-6 border-t border-border/40'>
-          <Button
-            onClick={() => router.push(`/candidate/tests/${testId}/launch`)}
-            disabled={!isAccepted}
-            size='lg'
-            className='px-8 shadow-md hover:shadow-lg transition-shadow'
-          >
-            Proceed to System Check <ArrowRight className='ml-2 size-4' />
-          </Button>
+          {/* Action Buttons */}
+          <div className='flex justify-end pt-6 border-t border-border/40'>
+            <Button
+              onClick={() => router.push(`/candidate/tests/${testId}/launch`)}
+              disabled={!isAccepted}
+              size='lg'
+              className='px-8 shadow-md hover:shadow-lg transition-shadow'
+            >
+              Proceed to System Check <ArrowRight className='ml-2 size-4' />
+            </Button>
+          </div>
         </div>
       </main>
     </div>

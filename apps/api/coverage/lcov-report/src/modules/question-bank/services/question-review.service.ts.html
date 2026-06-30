@@ -218,15 +218,45 @@
 <a name='L153'></a><a href='#L153'>153</a>
 <a name='L154'></a><a href='#L154'>154</a>
 <a name='L155'></a><a href='#L155'>155</a>
+<<<<<<< HEAD
 <a name='L156'></a><a href='#L156'>156</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+=======
+<a name='L156'></a><a href='#L156'>156</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<<<<<<< HEAD
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+=======
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -396,11 +426,19 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
   /**
    * Approves a question to ACTIVE status.
    */
+<<<<<<< HEAD
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 <span class="fstat-no" title="function not covered" >  async </span>approveQuestion(id: string, notes?: string): Promise&lt;any&gt; {
 <span class="cstat-no" title="statement not covered" >    return this.prisma.$transaction(<span class="fstat-no" title="function not covered" >async </span>(tx) =&gt; {</span>
       const question = <span class="cstat-no" title="statement not covered" >await this.questionRepo.findById(id);</span>
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!question) {</span>
+=======
+   
+  async approveQuestion(id: string, notes?: string): Promise&lt;any&gt; {
+    return this.prisma.$transaction(async (tx) =&gt; {
+      const question = await this.questionRepo.findById(id);
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (!question) {
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cstat-no" title="statement not covered" >        throw new NotFoundException(`Question with ID ${id} not found`);</span>
       }
 &nbsp;
@@ -440,11 +478,19 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
   /**
    * Rejects a question and marks it back to DRAFT status.
    */
+<<<<<<< HEAD
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 <span class="fstat-no" title="function not covered" >  async </span>rejectQuestion(id: string, notes?: string): Promise&lt;any&gt; {
 <span class="cstat-no" title="statement not covered" >    return this.prisma.$transaction(<span class="fstat-no" title="function not covered" >async </span>(tx) =&gt; {</span>
       const question = <span class="cstat-no" title="statement not covered" >await this.questionRepo.findById(id);</span>
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!question) {</span>
+=======
+   
+  async rejectQuestion(id: string, notes?: string): Promise&lt;any&gt; {
+    return this.prisma.$transaction(async (tx) =&gt; {
+      const question = await this.questionRepo.findById(id);
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (!question) {
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cstat-no" title="statement not covered" >        throw new NotFoundException(`Question with ID ${id} not found`);</span>
       }
 &nbsp;
@@ -487,11 +533,19 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
   /**
    * Restores an ARCHIVED question back to DRAFT status.
    */
+<<<<<<< HEAD
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 <span class="fstat-no" title="function not covered" >  async </span>restoreQuestion(id: string, notes?: string): Promise&lt;any&gt; {
 <span class="cstat-no" title="statement not covered" >    return this.prisma.$transaction(<span class="fstat-no" title="function not covered" >async </span>(tx) =&gt; {</span>
       const question = <span class="cstat-no" title="statement not covered" >await this.questionRepo.findById(id);</span>
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!question) {</span>
+=======
+   
+  async restoreQuestion(id: string, notes?: string): Promise&lt;any&gt; {
+    return this.prisma.$transaction(async (tx) =&gt; {
+      const question = await this.questionRepo.findById(id);
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (!question) {
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cstat-no" title="statement not covered" >        throw new NotFoundException(`Question with ID ${id} not found`);</span>
       }
 &nbsp;
@@ -535,7 +589,11 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+<<<<<<< HEAD
                 at 2026-06-30T05:41:15.691Z
+=======
+                at 2026-06-30T11:23:04.813Z
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

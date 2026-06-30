@@ -1,8 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Injectable, Inject, NotFoundException } from "@nestjs/common";
+ 
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ExecutionValidatorService } from "./execution-validator.service";
+import { SubmissionValidationService } from "./submission-validation.service";
+import { EvaluationQueueService } from "../../evaluation/services/evaluation-queue.service";
 import {
   TestInstanceRepository,
   SubmissionRepository,
@@ -12,7 +20,7 @@ import {
   EVALUATION_ADAPTER,
   EvaluationAdapter,
 } from "../interfaces/evaluation-adapter.interface";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { ExecutionResultDto } from "../dto";
 
 @Injectable()
@@ -25,6 +33,8 @@ export class SubmissionService {
     private readonly testInstanceRepo: TestInstanceRepository,
     private readonly submissionRepo: SubmissionRepository,
     private readonly answerRepo: CandidateAnswerRepository,
+    private readonly validationService: SubmissionValidationService,
+    private readonly evaluationQueueService: EvaluationQueueService,
     @Inject(EVALUATION_ADAPTER)
     private readonly evaluationAdapter: EvaluationAdapter,
   ) {}
@@ -40,18 +50,53 @@ export class SubmissionService {
       isAutoSubmit,
     });
 
+    // 1. Run pre-submission validation checks
+    const validation = await this.validationService.validateSubmission(
+      testInstanceId,
+      userId,
+    );
+
+    if (!validation.isValid) {
+      if (validation.isDuplicate) {
+        throw new ConflictException({
+          code: "DUPLICATE_SUBMISSION",
+          message: "This assessment has already been submitted.",
+        });
+      }
+      if (validation.isExpired && !isAutoSubmit) {
+        throw new BadRequestException({
+          code: "EXPIRED_SESSION",
+          message: "The allowed time window for this assessment has expired.",
+        });
+      }
+      if (validation.missingQuestionIds.length > 0 && !isAutoSubmit) {
+        throw new BadRequestException({
+          code: "MISSING_ANSWERS",
+          message: `${validation.missingQuestionIds.length} required questions have not been answered.`,
+          details: validation.missingQuestionIds,
+        });
+      }
+      if (!isAutoSubmit) {
+        throw new BadRequestException({
+          code: "VALIDATION_FAILED",
+          message: "Pre-submission validation pipeline failed.",
+          details: validation.errors,
+        });
+      }
+    }
+
     const { submission, executionResult } = await this.prisma.$transaction(
       async (tx) => {
-        // 1. Lock and fetch assessment
+        // 2. Lock and fetch assessment
         const testInstance = await this.validator.validateAssessment(
           testInstanceId,
           tx,
         );
 
-        // 2. Ownership
+        // 3. Ownership
         this.validator.validateOwnership(testInstance, userId);
 
-        // 3. Check if already submitted
+        // 4. Check if already submitted
         this.validator.validateSubmissionState(testInstance);
 
         // 5. Update Status to SUBMITTED
@@ -91,16 +136,26 @@ export class SubmissionService {
     );
 
     this.logger.info(
-      "Transaction committed successfully, triggering evaluation",
+      "Transaction committed successfully, enqueuing to evaluation queue",
       {
         submissionId: submission.id,
         testInstanceId,
       },
     );
 
-    // 8. Trigger Evaluation (Mocked via DI adapter) outside the DB transaction
-    // This prevents slow evaluation engines from blocking DB connections
-    await this.evaluationAdapter.triggerEvaluation(executionResult);
+    // 8. Convert answers array to map for the queue
+    const answersMap: Record<string, string> = {};
+    executionResult.answers.forEach((ans) => {
+      answersMap[ans.questionId] = ans.answer;
+    });
+
+    // 9. Enqueue evaluation in background queue
+    await this.evaluationQueueService.enqueueSubmission(
+      submission.id,
+      testInstanceId,
+      userId,
+      answersMap,
+    );
 
     return {
       submissionId: submission.id,

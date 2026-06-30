@@ -23,17 +23,19 @@ export function QuestionRenderer() {
         value={selectedOptionId || ''}
         onValueChange={(val: string) => saveAnswer(currentQuestion.id, { selectedOptionId: val })}
         className='space-y-4 mt-8'
+        aria-label='Select an option'
       >
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
-          const isSelected = selectedOptionId === option.id;
+          const optId = option.id || index.toString();
+          const isSelected = selectedOptionId === optId;
 
           return (
             <Label
-              key={option.id}
-              htmlFor={option.id}
+              key={optId}
+              htmlFor={optId}
               className={`
-                flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200
+                flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2
                 ${
                   isSelected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
@@ -41,20 +43,28 @@ export function QuestionRenderer() {
                 }
               `}
             >
-              <RadioGroupItem value={option.id} id={option.id} className='sr-only' />
+              <RadioGroupItem
+                value={optId}
+                id={optId}
+                className='sr-only'
+                aria-label={`Option ${letter}: ${option.text}`}
+              />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium
+                flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium shrink-0
                 ${
                   isSelected
                     ? 'bg-primary border-primary text-primary-foreground'
                     : 'bg-background border-muted-foreground/30 text-muted-foreground'
                 }
               `}
+                aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-normal leading-relaxed'>{option.text}</span>
+              <span className='text-base font-normal leading-relaxed break-words'>
+                {option.text}
+              </span>
             </Label>
           );
         })}
@@ -74,16 +84,17 @@ export function QuestionRenderer() {
     };
 
     return (
-      <div className='space-y-4 mt-8'>
+      <div className='space-y-4 mt-8' role='group' aria-label='Select multiple options'>
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index);
-          const isSelected = selectedOptionIds.includes(option.id);
+          const optId = option.id || index.toString();
+          const isSelected = selectedOptionIds.includes(optId);
 
           return (
             <Label
-              key={option.id}
+              key={optId}
               className={`
-                flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200
+                flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2
                 ${
                   isSelected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
@@ -95,21 +106,25 @@ export function QuestionRenderer() {
                 type='checkbox'
                 className='sr-only'
                 checked={isSelected}
-                onChange={() => handleToggle(option.id)}
+                onChange={() => handleToggle(optId)}
+                aria-label={`Option ${letter}: ${option.text}`}
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded border mr-4 text-sm font-medium
+                flex items-center justify-center w-8 h-8 rounded border mr-4 text-sm font-medium shrink-0
                 ${
                   isSelected
                     ? 'bg-primary border-primary text-primary-foreground'
                     : 'bg-background border-muted-foreground/30 text-muted-foreground'
                 }
               `}
+                aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-normal leading-relaxed'>{option.text}</span>
+              <span className='text-base font-normal leading-relaxed break-words'>
+                {option.text}
+              </span>
             </Label>
           );
         })}
@@ -174,21 +189,40 @@ export function QuestionRenderer() {
         </div>
       </CardHeader>
 
-      <CardContent className='pt-6'>
-        <div className='prose prose-slate max-w-none mb-8 dark:prose-invert break-words'>
-          <p className='text-lg leading-relaxed'>{currentQuestion.text}</p>
+      <CardContent className='pt-6 md:pt-8 px-6 md:px-10'>
+        <div className='prose prose-slate max-w-none mb-10 dark:prose-invert break-words'>
+          <p className='text-xl leading-relaxed text-foreground font-medium'>
+            {currentQuestion.text}
+          </p>
         </div>
 
         {renderQuestionContent()}
 
         <div className='flex justify-between items-center mt-6 pt-6 border-t'>
-          <label className='flex items-center space-x-2 cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors'>
+          <label className='flex items-center space-x-2 cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors focus-within:ring-2 focus-within:ring-orange-500 focus-within:ring-offset-2 rounded'>
             <input
               type='checkbox'
-              className='w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500 cursor-pointer'
+              className='w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-0 cursor-pointer sr-only'
               checked={isMarkedForReview}
               onChange={() => toggleReview(currentQuestion.id)}
+              aria-label='Mark question for review'
             />
+            <div
+              className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${isMarkedForReview ? 'bg-orange-600 border-orange-600 text-white' : 'border-orange-300'}`}
+              aria-hidden='true'
+            >
+              {isMarkedForReview && (
+                <svg viewBox='0 0 14 14' fill='none' className='w-3 h-3'>
+                  <path
+                    d='M3 7.5L5.5 10L11 4.5'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                  />
+                </svg>
+              )}
+            </div>
             <span>Mark for Review (Alt + M)</span>
           </label>
         </div>

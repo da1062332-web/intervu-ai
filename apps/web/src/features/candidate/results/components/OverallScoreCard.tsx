@@ -46,9 +46,17 @@ export function OverallScoreCard({ evaluation }: OverallScoreCardProps) {
             <span className='text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1.5'>
               <CheckCircle2 className='w-3.5 h-3.5' /> Correct
             </span>
-            <span className='text-3xl font-bold text-green-600 dark:text-green-500'>
-              {evaluation.correctAnswers}
-            </span>
+            <div className='flex items-end gap-2'>
+              <span className='text-3xl font-bold text-green-600 dark:text-green-500'>
+                {evaluation.correctAnswers}
+              </span>
+              <span className='text-sm font-semibold text-muted-foreground pb-1 bg-muted px-2 py-0.5 rounded-full'>
+                {evaluation.totalQuestions > 0
+                  ? Math.round((evaluation.correctAnswers / evaluation.totalQuestions) * 100)
+                  : 0}
+                % Accuracy
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>

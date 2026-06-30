@@ -1,5 +1,9 @@
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\app.module.ts
+=======
+SF:src/app.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:105,(anonymous_1)
 FNF:1
 FNH:0
@@ -54,7 +58,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\main.ts
+=======
+SF:src/main.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:18,bootstrap
 FN:108,(anonymous_2)
 FNF:2
@@ -109,7 +117,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\test-get-mappings.ts
+=======
+SF:src/test-get-mappings.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,bootstrap
 FNF:1
 FNH:0
@@ -131,7 +143,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\cache\cache.module.ts
+=======
+SF:src/cache/cache.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:17,(anonymous_1)
 FNF:1
 FNH:0
@@ -147,7 +163,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\cache\index.ts
+=======
+SF:src/cache/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_0)
 FN:2,(anonymous_1)
 FN:3,(anonymous_2)
@@ -165,7 +185,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\cache\redis-cache.service.ts
+=======
+SF:src/cache/redis-cache.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:22,(anonymous_0)
 FN:28,(anonymous_1)
 FN:37,(anonymous_2)
@@ -232,6 +256,7 @@ FNDA:0,(anonymous_28)
 FNDA:0,(anonymous_29)
 FNDA:0,(anonymous_30)
 FNDA:0,(anonymous_31)
+<<<<<<< HEAD
 DA:1,0
 DA:10,0
 DA:19,0
@@ -239,6 +264,15 @@ DA:23,0
 DA:29,0
 DA:38,0
 DA:44,0
+=======
+DA:1,4
+DA:10,4
+DA:19,4
+DA:23,1
+DA:29,35
+DA:38,36
+DA:44,14
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:45,0
 DA:48,0
 DA:50,0
@@ -356,7 +390,11 @@ BRF:18
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\cache\redis-connection.manager.ts
+=======
+SF:src/cache/redis-connection.manager.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_1)
 FN:11,(anonymous_2)
 FN:15,(anonymous_3)
@@ -380,6 +418,7 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
 FNDA:0,(anonymous_12)
@@ -389,6 +428,17 @@ DA:5,0
 DA:7,0
 DA:12,0
 DA:19,0
+=======
+FNDA:36,(anonymous_10)
+FNDA:1,(anonymous_11)
+FNDA:36,(anonymous_12)
+DA:1,4
+DA:4,4
+DA:5,4
+DA:7,4
+DA:12,1
+DA:19,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:20,0
 DA:23,0
 DA:33,0
@@ -452,7 +502,11 @@ BRF:16
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\index.ts
+=======
+SF:src/common/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_4)
 FN:2,(anonymous_5)
 FN:3,(anonymous_6)
@@ -460,26 +514,45 @@ FNF:3
 FNH:0
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
+<<<<<<< HEAD
 FNDA:0,(anonymous_6)
 DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
 DA:5,0
+=======
+FNDA:58,(anonymous_6)
+DA:1,26
+DA:2,26
+DA:3,84
+DA:4,26
+DA:5,26
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:5
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\decorators\rate-limit.decorator.ts
+=======
+SF:src/common/decorators/rate-limit.decorator.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:10,(anonymous_0)
 FNF:1
 FNH:0
 FNDA:0,(anonymous_0)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:10,0
+=======
+DA:1,26
+DA:2,26
+DA:10,26
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:11,0
 LF:4
 LH:0
@@ -487,15 +560,26 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\guards\custom-throttler.guard.ts
+=======
+SF:src/common/guards/custom-throttler.guard.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_1)
 FNF:1
 FNH:0
 FNDA:0,(anonymous_1)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:4,0
 DA:7,0
+=======
+DA:1,26
+DA:2,26
+DA:4,26
+DA:7,26
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:11,0
 DA:13,0
 DA:18,0
@@ -511,17 +595,28 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\middleware\correlation.middleware.ts
+=======
+SF:src/common/middleware/correlation.middleware.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_1)
 FN:16,(anonymous_2)
 FNF:2
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
+<<<<<<< HEAD
 DA:1,0
 DA:3,0
 DA:4,0
 DA:7,0
+=======
+DA:1,26
+DA:3,26
+DA:4,26
+DA:7,26
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:10,0
 DA:12,0
 DA:13,0
@@ -535,7 +630,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\middleware\request-logging.middleware.ts
+=======
+SF:src/common/middleware/request-logging.middleware.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,(anonymous_1)
 FN:8,(anonymous_2)
 FN:20,(anonymous_3)
@@ -544,9 +643,15 @@ FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:5,0
+=======
+DA:1,26
+DA:2,26
+DA:5,26
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:6,0
 DA:13,0
 DA:14,0
@@ -566,7 +671,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\monitoring\observability.interceptor.ts
+=======
+SF:src/common/monitoring/observability.interceptor.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_1)
 FN:24,(anonymous_2)
 FN:34,(anonymous_3)
@@ -623,7 +732,11 @@ BRF:9
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\common\repositories\base.repository.ts
+=======
+SF:src/common/repositories/base.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_0)
 FN:27,(anonymous_1)
 FN:31,(anonymous_2)
@@ -646,6 +759,7 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 DA:4,0
 DA:10,0
 DA:11,0
@@ -655,6 +769,17 @@ DA:28,0
 DA:32,0
 DA:53,0
 DA:54,0
+=======
+DA:4,31
+DA:10,4
+DA:11,4
+DA:21,4
+DA:24,4
+DA:28,3
+DA:32,3
+DA:53,1
+DA:54,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:55,0
 DA:57,0
 DA:63,0
@@ -706,7 +831,11 @@ BRF:18
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\config\config.module.ts
+=======
+SF:src/config/config.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:10,(anonymous_1)
 FNF:1
 FNH:0
@@ -728,7 +857,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\config\config.service.ts
+=======
+SF:src/config/config.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_2)
 FN:10,(anonymous_3)
 FN:16,(anonymous_4)
@@ -803,7 +936,11 @@ BRF:30
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\config\env.schema.ts
+=======
+SF:src/config/env.schema.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -814,7 +951,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\config\index.ts
+=======
+SF:src/config/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_4)
 FN:2,(anonymous_5)
 FN:3,(anonymous_6)
@@ -833,7 +974,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\config\rate-limit.config.ts
+=======
+SF:src/config/rate-limit.config.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:11,(anonymous_0)
 FNF:1
 FNH:0
@@ -849,7 +994,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\core\exceptions.ts
+=======
+SF:src/core/exceptions.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:4,(anonymous_0)
 FN:22,(anonymous_1)
 FN:31,(anonymous_2)
@@ -890,7 +1039,11 @@ BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\core\index.ts
+=======
+SF:src/core/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:2,(anonymous_0)
 FN:3,(anonymous_1)
 FN:4,(anonymous_2)
@@ -921,7 +1074,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\core\entities\base.entity.ts
+=======
+SF:src/core/entities/base.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -931,7 +1088,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\admin-config.module.ts
+=======
+SF:src/modules/admin-config/admin-config.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -954,7 +1115,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\controllers\exam-config.controller.ts
+=======
+SF:src/modules/admin-config/controllers/exam-config.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:45,(anonymous_4)
 FN:60,(anonymous_5)
 FN:71,(anonymous_6)
@@ -1025,7 +1190,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\controllers\exam-section.controller.ts
+=======
+SF:src/modules/admin-config/controllers/exam-section.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:32,(anonymous_4)
 FN:38,(anonymous_5)
 FN:48,(anonymous_6)
@@ -1063,12 +1232,17 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\publishing\config-publisher.service.ts
+=======
+SF:src/modules/admin-config/publishing/config-publisher.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:36,(anonymous_2)
 FN:43,(anonymous_3)
 FN:117,(anonymous_4)
 FN:159,(anonymous_5)
 FNF:4
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -1156,6 +1330,95 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\admin-config\repositories\exam-section.repository.ts
+=======
+FNH:4
+FNDA:8,(anonymous_2)
+FNDA:5,(anonymous_3)
+FNDA:1,(anonymous_4)
+FNDA:2,(anonymous_5)
+DA:1,1
+DA:6,1
+DA:7,1
+DA:8,1
+DA:9,1
+DA:35,1
+DA:37,8
+DA:38,8
+DA:39,8
+DA:40,8
+DA:49,5
+DA:70,5
+DA:71,1
+DA:76,4
+DA:77,1
+DA:84,3
+DA:86,3
+DA:87,1
+DA:98,2
+DA:100,2
+DA:101,1
+DA:111,1
+DA:113,1
+DA:114,1
+DA:117,1
+DA:119,1
+DA:120,1
+DA:123,1
+DA:132,1
+DA:142,1
+DA:164,2
+DA:185,2
+DA:191,2
+DA:192,1
+DA:198,2
+LF:35
+LH:35
+BRDA:70,0,0,1
+BRDA:76,1,0,1
+BRDA:76,2,0,4
+BRDA:76,2,1,3
+BRDA:86,3,0,1
+BRDA:100,4,0,1
+BRDA:135,5,0,1
+BRDA:135,5,1,0
+BRDA:191,6,0,1
+BRDA:191,7,0,2
+BRDA:191,7,1,1
+BRF:11
+BRH:10
+end_of_record
+TN:
+SF:src/modules/admin-config/repositories/exam-config.repository.ts
+FN:12,(anonymous_4)
+FN:19,(anonymous_5)
+FN:23,(anonymous_6)
+FN:29,(anonymous_7)
+FNF:4
+FNH:1
+FNDA:4,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+DA:1,8
+DA:2,8
+DA:3,8
+DA:4,8
+DA:7,8
+DA:16,4
+DA:20,0
+DA:24,0
+DA:30,0
+DA:34,0
+LF:10
+LH:6
+BRDA:34,0,0,0
+BRDA:34,0,1,0
+BRF:2
+BRH:0
+end_of_record
+TN:
+SF:src/modules/admin-config/repositories/exam-section.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_4)
 FN:19,(anonymous_5)
 FN:23,(anonymous_6)
@@ -1184,7 +1447,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\services\config-preview.service.ts
+=======
+SF:src/modules/admin-config/services/config-preview.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:34,(anonymous_2)
 FN:36,(anonymous_3)
 FN:50,(anonymous_4)
@@ -1220,7 +1487,11 @@ BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\services\exam-config.service.ts
+=======
+SF:src/modules/admin-config/services/exam-config.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_2)
 FN:15,(anonymous_3)
 FN:32,(anonymous_4)
@@ -1283,7 +1554,11 @@ BRF:15
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\services\exam-section.service.ts
+=======
+SF:src/modules/admin-config/services/exam-section.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_2)
 FN:18,(anonymous_3)
 FN:70,(anonymous_4)
@@ -1378,7 +1653,11 @@ BRF:31
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\tests\config-lifecycle.integration.spec.ts
+=======
+SF:src/modules/admin-config/tests/config-lifecycle.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:57,(anonymous_0)
 FN:62,(anonymous_1)
 FN:110,(anonymous_2)
@@ -1607,7 +1886,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\validators\config-dependency-validator.service.ts
+=======
+SF:src/modules/admin-config/validators/config-dependency-validator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:18,(anonymous_2)
 FN:20,(anonymous_3)
 FN:59,(anonymous_4)
@@ -1669,7 +1952,11 @@ BRF:15
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\validators\configuration-validator.service.ts
+=======
+SF:src/modules/admin-config/validators/configuration-validator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:19,(anonymous_2)
 FN:21,(anonymous_3)
 FN:91,(anonymous_4)
@@ -1767,7 +2054,11 @@ BRF:37
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\admin-config\versioning\config-version.service.ts
+=======
+SF:src/modules/admin-config/versioning/config-version.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:30,(anonymous_2)
 FN:36,(anonymous_3)
 FN:67,(anonymous_4)
@@ -1874,7 +2165,11 @@ BRF:38
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\assembly-business-flow.integration.spec.ts
+=======
+SF:src/modules/assembly/assembly-business-flow.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_0)
 FN:10,(anonymous_1)
 FN:18,(anonymous_2)
@@ -1903,7 +2198,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\assembly-workflow.integration.spec.ts
+=======
+SF:src/modules/assembly/assembly-workflow.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_0)
 FN:20,(anonymous_1)
 FN:32,(anonymous_2)
@@ -1935,24 +2234,28 @@ DA:32,0
 DA:33,0
 DA:36,0
 DA:38,0
-DA:46,0
-DA:47,0
-DA:50,0
+DA:54,0
+DA:55,0
 DA:58,0
-DA:61,0
-DA:62,0
-DA:65,0
-DA:66,0
-DA:69,0
-DA:70,0
-DA:73,0
+DA:72,0
+DA:75,0
+DA:76,0
+DA:79,0
+DA:80,0
+DA:83,0
+DA:84,0
+DA:87,0
 LF:32
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\assembly.integration.spec.ts
+=======
+SF:src/modules/assembly/assembly.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_0)
 FN:9,(anonymous_1)
 FN:19,(anonymous_2)
@@ -1981,7 +2284,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\assembly.module.ts
+=======
+SF:src/modules/assembly/assembly.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -2024,6 +2331,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\controllers\assembly.controller.ts
 FN:48,(anonymous_4)
 FN:68,(anonymous_5)
@@ -2052,6 +2360,28 @@ FN:389,(anonymous_27)
 FN:396,(anonymous_28)
 FN:424,(anonymous_29)
 FNF:26
+=======
+SF:src/modules/assembly/controllers/assembly.controller.ts
+FN:43,(anonymous_4)
+FN:57,(anonymous_5)
+FN:78,(anonymous_6)
+FN:97,(anonymous_7)
+FN:117,(anonymous_8)
+FN:133,(anonymous_9)
+FN:140,(anonymous_10)
+FN:148,(anonymous_11)
+FN:156,(anonymous_12)
+FN:172,(anonymous_13)
+FN:180,(anonymous_14)
+FN:197,(anonymous_15)
+FN:212,(anonymous_16)
+FN:225,(anonymous_17)
+FN:251,(anonymous_18)
+FN:259,(anonymous_19)
+FN:266,(anonymous_20)
+FN:273,(anonymous_21)
+FNF:18
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNH:0
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
@@ -2071,6 +2401,7 @@ FNDA:0,(anonymous_18)
 FNDA:0,(anonymous_19)
 FNDA:0,(anonymous_20)
 FNDA:0,(anonymous_21)
+<<<<<<< HEAD
 FNDA:0,(anonymous_22)
 FNDA:0,(anonymous_23)
 FNDA:0,(anonymous_24)
@@ -2079,6 +2410,8 @@ FNDA:0,(anonymous_26)
 FNDA:0,(anonymous_27)
 FNDA:0,(anonymous_28)
 FNDA:0,(anonymous_29)
+=======
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:1,0
 DA:13,0
 DA:19,0
@@ -2088,6 +2421,7 @@ DA:22,0
 DA:23,0
 DA:24,0
 DA:25,0
+<<<<<<< HEAD
 DA:26,0
 DA:27,0
 DA:28,0
@@ -2255,6 +2589,109 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\assembly\providers\mock-semantic-similarity.provider.ts
+=======
+DA:31,0
+DA:32,0
+DA:33,0
+DA:34,0
+DA:42,0
+DA:44,0
+DA:45,0
+DA:46,0
+DA:47,0
+DA:48,0
+DA:49,0
+DA:57,0
+DA:61,0
+DA:66,0
+DA:78,0
+DA:82,0
+DA:83,0
+DA:97,0
+DA:101,0
+DA:105,0
+DA:117,0
+DA:121,0
+DA:127,0
+DA:133,0
+DA:134,0
+DA:140,0
+DA:141,0
+DA:142,0
+DA:148,0
+DA:149,0
+DA:150,0
+DA:156,0
+DA:161,0
+DA:166,0
+DA:172,0
+DA:173,0
+DA:174,0
+DA:180,0
+DA:184,0
+DA:185,0
+DA:197,0
+DA:201,0
+DA:212,0
+DA:216,0
+DA:225,0
+DA:228,0
+DA:230,0
+DA:231,0
+DA:234,0
+DA:237,0
+DA:238,0
+DA:243,0
+DA:251,0
+DA:259,0
+DA:266,0
+DA:274,0
+DA:275,0
+DA:288,0
+LF:67
+LH:0
+BRDA:237,0,0,0
+BRDA:245,1,0,0
+BRDA:245,1,1,0
+BRDA:246,2,0,0
+BRDA:246,2,1,0
+BRDA:248,3,0,0
+BRDA:248,3,1,0
+BRDA:248,3,2,0
+BRDA:251,4,0,0
+BRDA:251,4,1,0
+BRDA:256,5,0,0
+BRDA:256,5,1,0
+BRDA:256,5,2,0
+BRDA:259,6,0,0
+BRDA:259,6,1,0
+BRDA:266,7,0,0
+BRDA:266,7,1,0
+BRDA:268,8,0,0
+BRDA:268,8,1,0
+BRDA:270,9,0,0
+BRDA:270,9,1,0
+BRDA:270,9,2,0
+BRDA:271,10,0,0
+BRDA:271,10,1,0
+BRDA:273,11,0,0
+BRDA:273,11,1,0
+BRDA:274,12,0,0
+BRDA:274,12,1,0
+BRDA:277,13,0,0
+BRDA:277,13,1,0
+BRDA:278,14,0,0
+BRDA:278,14,1,0
+BRDA:279,15,0,0
+BRDA:279,15,1,0
+BRDA:280,16,0,0
+BRDA:280,16,1,0
+BRF:36
+BRH:0
+end_of_record
+TN:
+SF:src/modules/assembly/providers/mock-semantic-similarity.provider.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_1)
 FN:7,(anonymous_2)
 FNF:2
@@ -2283,17 +2720,25 @@ BRF:4
 BRH:2
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\providers\semantic-similarity.provider.ts
+=======
+SF:src/modules/assembly/providers/semantic-similarity.provider.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
-DA:1,3
+DA:1,5
 LF:1
 LH:1
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\repositories\assembled-test.repository.ts
+=======
+SF:src/modules/assembly/repositories/assembled-test.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_2)
 FN:10,(anonymous_3)
 FN:18,(anonymous_4)
@@ -2316,10 +2761,17 @@ FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
+<<<<<<< HEAD
 DA:1,8
 DA:2,8
 DA:3,8
 DA:7,8
+=======
+DA:1,7
+DA:2,7
+DA:3,7
+DA:7,7
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:8,0
 DA:16,0
 DA:17,0
@@ -2353,7 +2805,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\repositories\assembly-audit.repository.ts
+=======
+SF:src/modules/assembly/repositories/assembly-audit.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:25,(anonymous_4)
@@ -2362,9 +2818,15 @@ FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
+<<<<<<< HEAD
 DA:1,4
 DA:2,4
 DA:6,4
+=======
+DA:1,6
+DA:2,6
+DA:6,6
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:7,0
 DA:15,0
 DA:26,0
@@ -2374,7 +2836,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\repositories\assembly-version.repository.ts
+=======
+SF:src/modules/assembly/repositories/assembly-version.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:23,(anonymous_4)
@@ -2387,9 +2853,15 @@ FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
+<<<<<<< HEAD
 DA:1,4
 DA:2,4
 DA:6,4
+=======
+DA:1,3
+DA:2,3
+DA:6,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:7,0
 DA:14,0
 DA:24,0
@@ -2404,7 +2876,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\repositories\assembly.repository.ts
+=======
+SF:src/modules/assembly/repositories/assembly.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FN:11,(anonymous_3)
 FN:18,(anonymous_4)
@@ -2419,10 +2895,17 @@ FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
+<<<<<<< HEAD
 DA:1,5
 DA:2,5
 DA:3,5
 DA:8,5
+=======
+DA:1,7
+DA:2,7
+DA:3,7
+DA:8,7
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:9,0
 DA:16,0
 DA:17,0
@@ -2455,16 +2938,26 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\repositories\blueprint.repository.ts
+=======
+SF:src/modules/assembly/repositories/blueprint.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_2)
 FN:8,(anonymous_3)
 FNF:2
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
+<<<<<<< HEAD
 DA:1,6
 DA:2,6
 DA:5,6
+=======
+DA:1,5
+DA:2,5
+DA:5,5
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:6,0
 DA:9,0
 DA:28,0
@@ -2477,12 +2970,21 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\repositories\question-pool.repository.ts
 FN:9,(anonymous_2)
 FN:11,(anonymous_3)
 FN:20,(anonymous_4)
 FN:62,(anonymous_5)
 FN:83,(anonymous_6)
+=======
+SF:src/modules/assembly/repositories/question-pool.repository.ts
+FN:12,(anonymous_2)
+FN:14,(anonymous_3)
+FN:23,(anonymous_4)
+FN:65,(anonymous_5)
+FN:86,(anonymous_6)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:5
 FNH:0
 FNDA:0,(anonymous_2)
@@ -2490,43 +2992,54 @@ FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
+<<<<<<< HEAD
 DA:1,4
 DA:2,4
 DA:8,4
 DA:9,0
+=======
+DA:1,5
+DA:2,5
+DA:11,5
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:12,0
-DA:26,0
-DA:40,0
-DA:41,0
-DA:42,0
+DA:15,0
+DA:29,0
 DA:43,0
-DA:59,0
-DA:64,0
-DA:73,0
-DA:74,0
-DA:75,0
+DA:44,0
+DA:45,0
+DA:46,0
+DA:62,0
+DA:67,0
 DA:76,0
-DA:80,0
-DA:84,0
-DA:85,0
+DA:77,0
+DA:78,0
+DA:79,0
+DA:83,0
+DA:87,0
+DA:88,0
 LF:19
 LH:3
-BRDA:13,0,0,0
-BRDA:13,0,1,0
-BRDA:14,1,0,0
-BRDA:14,1,1,0
-BRDA:15,2,0,0
-BRDA:15,2,1,0
-BRDA:16,3,0,0
-BRDA:16,3,1,0
-BRDA:24,4,0,0
-BRDA:40,5,0,0
-BRDA:84,6,0,0
+BRDA:16,0,0,0
+BRDA:16,0,1,0
+BRDA:17,1,0,0
+BRDA:17,1,1,0
+BRDA:18,2,0,0
+BRDA:18,2,1,0
+BRDA:19,3,0,0
+BRDA:19,3,1,0
+BRDA:27,4,0,0
+BRDA:43,5,0,0
+BRDA:87,6,0,0
 BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\anti-repetition.service.ts
+=======
+SF:src/modules/assembly/services/anti-repetition.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:25,(anonymous_4)
 FN:31,(anonymous_5)
 FN:38,(anonymous_6)
@@ -2541,11 +3054,11 @@ FNDA:4,(anonymous_6)
 FNDA:3,(anonymous_7)
 FNDA:3,(anonymous_8)
 FNDA:2,(anonymous_9)
-DA:1,3
-DA:3,3
-DA:4,3
-DA:8,3
-DA:22,3
+DA:1,5
+DA:3,5
+DA:4,5
+DA:8,5
+DA:22,5
 DA:23,2
 DA:27,2
 DA:28,2
@@ -2596,21 +3109,31 @@ BRF:14
 BRH:6
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\assembly-audit.service.ts
+=======
+SF:src/modules/assembly/services/assembly-audit.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
-FN:18,(anonymous_4)
+FN:23,(anonymous_4)
 FNF:3
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
+<<<<<<< HEAD
 DA:1,4
 DA:2,4
 DA:6,4
+=======
+DA:1,6
+DA:2,6
+DA:6,6
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:7,0
 DA:15,0
-DA:19,0
+DA:24,0
 LF:6
 LH:3
 BRDA:12,0,0,0
@@ -2618,7 +3141,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\assembly-persistence.service.ts
+=======
+SF:src/modules/assembly/services/assembly-persistence.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FN:15,(anonymous_3)
 FN:21,(anonymous_4)
@@ -2639,11 +3166,19 @@ FNDA:1,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
 FNDA:1,(anonymous_10)
+<<<<<<< HEAD
 DA:1,4
 DA:2,4
 DA:3,4
 DA:5,4
 DA:8,4
+=======
+DA:1,6
+DA:2,6
+DA:3,6
+DA:5,6
+DA:8,6
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:10,4
 DA:11,4
 DA:12,4
@@ -2685,6 +3220,7 @@ BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\assembly-publisher.service.ts
 FN:12,(anonymous_2)
 FN:21,(anonymous_3)
@@ -2707,10 +3243,31 @@ DA:6,1
 DA:7,1
 DA:8,1
 DA:11,1
+=======
+SF:src/modules/assembly/services/assembly-publisher.service.ts
+FN:11,(anonymous_2)
+FN:19,(anonymous_3)
+FN:62,(anonymous_4)
+FNF:3
+FNH:3
+FNDA:3,(anonymous_2)
+FNDA:2,(anonymous_3)
+FNDA:1,(anonymous_4)
+DA:1,2
+DA:2,2
+DA:3,2
+DA:4,2
+DA:5,2
+DA:6,2
+DA:7,2
+DA:10,2
+DA:12,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:13,3
 DA:14,3
 DA:15,3
 DA:16,3
+<<<<<<< HEAD
 DA:17,3
 DA:18,3
 DA:24,2
@@ -2917,6 +3474,65 @@ BRH:18
 end_of_record
 TN:
 SF:apps\api\src\modules\assembly\services\assembly-version.service.ts
+=======
+DA:21,2
+DA:22,2
+DA:23,2
+DA:25,0
+DA:30,2
+DA:31,0
+DA:34,2
+DA:35,0
+DA:38,2
+DA:39,1
+DA:44,1
+DA:45,1
+DA:47,1
+DA:48,1
+DA:52,0
+DA:53,0
+DA:58,1
+DA:60,1
+DA:62,1
+DA:65,1
+DA:66,0
+DA:72,1
+DA:73,0
+DA:79,1
+DA:80,0
+DA:86,1
+DA:89,1
+DA:90,1
+DA:95,0
+DA:99,1
+DA:100,1
+DA:101,1
+DA:106,0
+DA:107,0
+DA:110,0
+DA:113,1
+LF:49
+LH:37
+BRDA:19,0,0,0
+BRDA:30,1,0,0
+BRDA:34,2,0,0
+BRDA:38,3,0,1
+BRDA:49,4,0,1
+BRDA:49,4,1,1
+BRDA:52,5,0,0
+BRDA:52,5,1,0
+BRDA:58,6,0,1
+BRDA:62,7,0,1
+BRDA:62,7,1,0
+BRDA:65,8,0,0
+BRDA:72,9,0,0
+BRDA:79,10,0,0
+BRF:14
+BRH:5
+end_of_record
+TN:
+SF:src/modules/assembly/services/assembly-version.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:15,(anonymous_2)
 FN:22,(anonymous_3)
 FN:43,(anonymous_4)
@@ -2931,12 +3547,21 @@ FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:1,(anonymous_7)
+<<<<<<< HEAD
 DA:1,2
 DA:6,2
 DA:7,2
 DA:8,2
 DA:9,2
 DA:14,2
+=======
+DA:1,3
+DA:6,3
+DA:7,3
+DA:8,3
+DA:9,3
+DA:14,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:16,3
 DA:17,3
 DA:18,3
@@ -2993,7 +3618,11 @@ BRF:15
 BRH:5
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\blueprint-builder.service.ts
+=======
+SF:src/modules/assembly/services/blueprint-builder.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:31,(anonymous_4)
@@ -3056,7 +3685,11 @@ BRF:16
 BRH:8
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\blueprint-simulation.service.ts
+=======
+SF:src/modules/assembly/services/blueprint-simulation.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:16,(anonymous_1)
 FNF:1
 FNH:1
@@ -3084,7 +3717,11 @@ BRF:6
 BRH:3
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\distribution-analytics.service.ts
+=======
+SF:src/modules/assembly/services/distribution-analytics.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:17,(anonymous_3)
 FN:21,(anonymous_4)
@@ -3189,6 +3826,7 @@ BRF:22
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\duplicate-detection.service.ts
 FN:53,(anonymous_1)
 FN:62,(anonymous_2)
@@ -3387,6 +4025,9 @@ BRH:18
 end_of_record
 TN:
 SF:apps\api\src\modules\assembly\services\mock-question-source.ts
+=======
+SF:src/modules/assembly/services/mock-question-source.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_1)
 FNF:1
 FNH:0
@@ -3414,6 +4055,7 @@ BRF:10
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\publish-readiness.service.ts
 FN:48,(anonymous_2)
 FN:62,(anonymous_3)
@@ -3550,77 +4192,83 @@ TN:
 SF:apps\api\src\modules\assembly\services\question-allocator.service.ts
 FN:20,(anonymous_4)
 FN:26,(anonymous_5)
+=======
+SF:src/modules/assembly/services/question-allocator.service.ts
+FN:23,(anonymous_4)
+FN:29,(anonymous_5)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:2
 FNH:2
 FNDA:1,(anonymous_4)
 FNDA:1,(anonymous_5)
-DA:1,2
-DA:5,2
-DA:6,2
-DA:7,2
-DA:8,2
-DA:19,2
-DA:22,1
-DA:23,1
-DA:32,1
-DA:33,1
+DA:1,4
+DA:5,4
+DA:6,4
+DA:7,4
+DA:11,4
+DA:22,4
+DA:25,1
+DA:26,1
+DA:35,1
 DA:36,1
-DA:37,1
-DA:38,1
 DA:39,1
+DA:40,1
 DA:41,1
-DA:47,1
-DA:48,1
+DA:42,1
+DA:44,1
 DA:50,1
-DA:51,3
+DA:51,1
 DA:53,1
-DA:55,1
-DA:57,1
+DA:54,3
+DA:56,1
+DA:58,1
 DA:60,1
-DA:62,1
-DA:69,1
-DA:75,1
-DA:76,0
-DA:81,1
-DA:82,1
-DA:83,2
-DA:84,2
-DA:93,2
-DA:98,1
-DA:99,0
-DA:100,0
-DA:106,0
-DA:112,0
-DA:113,0
-DA:118,0
-DA:119,0
-DA:120,0
+DA:63,1
+DA:65,1
+DA:72,1
+DA:78,1
+DA:79,0
+DA:84,1
+DA:85,1
+DA:86,2
+DA:87,2
+DA:96,2
+DA:101,1
+DA:102,0
+DA:103,0
+DA:109,0
+DA:115,0
+DA:116,0
 DA:121,0
-DA:130,0
-DA:135,1
-DA:136,0
-DA:141,1
+DA:122,0
+DA:123,0
+DA:124,0
+DA:133,0
+DA:138,1
+DA:139,0
+DA:144,1
 LF:46
 LH:34
-BRDA:33,0,0,0
-BRDA:36,1,0,1
-BRDA:36,1,1,0
-BRDA:51,2,0,2
-BRDA:60,3,0,0
-BRDA:75,4,0,0
-BRDA:86,5,0,2
-BRDA:86,5,1,2
-BRDA:98,6,0,0
-BRDA:98,7,0,1
-BRDA:98,7,1,0
-BRDA:112,8,0,0
-BRDA:123,9,0,0
-BRDA:123,9,1,0
-BRDA:135,10,0,0
+BRDA:36,0,0,0
+BRDA:39,1,0,1
+BRDA:39,1,1,0
+BRDA:54,2,0,2
+BRDA:63,3,0,0
+BRDA:78,4,0,0
+BRDA:89,5,0,2
+BRDA:89,5,1,2
+BRDA:101,6,0,0
+BRDA:101,7,0,1
+BRDA:101,7,1,0
+BRDA:115,8,0,0
+BRDA:126,9,0,0
+BRDA:126,9,1,0
+BRDA:138,10,0,0
 BRF:15
 BRH:5
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\question-bank-source.ts
 FN:27,(anonymous_2)
 FN:32,(anonymous_3)
@@ -3696,6 +4344,9 @@ BRH:15
 end_of_record
 TN:
 SF:apps\api\src\modules\assembly\services\question-source.interface.ts
+=======
+SF:src/modules/assembly/services/question-source.interface.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:3,4
@@ -3705,13 +4356,17 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\section-builder.service.ts
+=======
+SF:src/modules/assembly/services/section-builder.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_1)
 FNF:1
 FNH:0
 FNDA:0,(anonymous_1)
-DA:1,1
-DA:7,1
+DA:1,3
+DA:7,3
 DA:12,0
 LF:3
 LH:2
@@ -3719,7 +4374,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\test-assembly.service.ts
+=======
+SF:src/modules/assembly/services/test-assembly.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:27,(anonymous_2)
 FN:36,(anonymous_3)
 FN:81,(anonymous_4)
@@ -3732,14 +4391,14 @@ FNDA:2,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
-DA:1,1
-DA:7,1
-DA:8,1
-DA:9,1
-DA:13,1
-DA:14,1
-DA:16,1
-DA:19,1
+DA:1,3
+DA:7,3
+DA:8,3
+DA:9,3
+DA:13,3
+DA:14,3
+DA:16,3
+DA:19,3
 DA:20,3
 DA:28,3
 DA:29,3
@@ -3803,6 +4462,7 @@ BRF:9
 BRH:1
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\assembly\services\test-package.service.ts
 FN:30,(anonymous_2)
 FN:42,(anonymous_3)
@@ -3977,6 +4637,9 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\assembly\validators\assembly-validator.service.ts
+=======
+SF:src/modules/assembly/validators/assembly-validator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_1)
 FN:17,(anonymous_2)
 FN:34,(anonymous_3)
@@ -3995,8 +4658,8 @@ FNDA:4,(anonymous_5)
 FNDA:4,(anonymous_6)
 FNDA:4,(anonymous_7)
 FNDA:4,(anonymous_8)
-DA:1,2
-DA:11,2
+DA:1,4
+DA:11,4
 DA:13,2
 DA:16,2
 DA:17,2
@@ -4077,7 +4740,11 @@ BRF:22
 BRH:11
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\auth.module.ts
+=======
+SF:src/modules/auth/auth.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:21,(anonymous_1)
 FNF:1
 FNH:0
@@ -4100,7 +4767,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\index.ts
+=======
+SF:src/modules/auth/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -4116,7 +4787,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\controllers\auth.controller.ts
+=======
+SF:src/modules/auth/controllers/auth.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:35,(anonymous_4)
 FN:43,(anonymous_5)
 FN:60,(anonymous_6)
@@ -4164,7 +4839,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\decorators\current-user.decorator.ts
+=======
+SF:src/modules/auth/decorators/current-user.decorator.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:11,(anonymous_0)
 FNF:1
 FNH:0
@@ -4186,7 +4865,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\decorators\public.decorator.ts
+=======
+SF:src/modules/auth/decorators/public.decorator.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:4,(anonymous_0)
 FNF:1
 FNH:0
@@ -4200,7 +4883,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\decorators\roles.decorator.ts
+=======
+SF:src/modules/auth/decorators/roles.decorator.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,(anonymous_0)
 FNF:1
 FNH:0
@@ -4214,7 +4901,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\dto\auth.dto.ts
+=======
+SF:src/modules/auth/dto/auth.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:28,(anonymous_2)
 FN:49,(anonymous_3)
 FN:64,(anonymous_4)
@@ -4243,7 +4934,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\guards\jwt-auth.guard.ts
+=======
+SF:src/modules/auth/guards/jwt-auth.guard.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_2)
 FN:17,(anonymous_3)
 FN:28,(anonymous_4)
@@ -4276,7 +4971,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\guards\roles.guard.ts
+=======
+SF:src/modules/auth/guards/roles.guard.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:16,(anonymous_3)
 FNF:2
@@ -4310,7 +5009,11 @@ BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\services\auth.service.ts
+=======
+SF:src/modules/auth/services/auth.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:35,(anonymous_11)
 FN:42,(anonymous_12)
 FN:60,(anonymous_13)
@@ -4415,7 +5118,11 @@ BRF:23
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\auth\strategies\jwt.strategy.ts
+=======
+SF:src/modules/auth/strategies/jwt.strategy.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:23,(anonymous_3)
 FNF:2
@@ -4445,7 +5152,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\blueprint.module.ts
+=======
+SF:src/modules/blueprint/blueprint.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -4466,7 +5177,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\index.ts
+=======
+SF:src/modules/blueprint/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -4476,7 +5191,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint-config\blueprint-config.controller.ts
+=======
+SF:src/modules/blueprint-config/blueprint-config.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:38,(anonymous_4)
 FN:47,(anonymous_5)
 FN:59,(anonymous_6)
@@ -4534,7 +5253,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint-config\blueprint-config.integration.spec.ts
+=======
+SF:src/modules/blueprint-config/blueprint-config.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_0)
 FN:12,(anonymous_1)
 FN:22,(anonymous_2)
@@ -4592,7 +5315,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint-config\blueprint-config.module.ts
+=======
+SF:src/modules/blueprint-config/blueprint-config.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -4608,7 +5335,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint-config\blueprint-config.repository.ts
+=======
+SF:src/modules/blueprint-config/blueprint-config.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:15,(anonymous_4)
@@ -4647,7 +5378,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint-config\blueprint-config.service.ts
+=======
+SF:src/modules/blueprint-config/blueprint-config.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:16,(anonymous_2)
 FN:21,(anonymous_3)
 FN:37,(anonymous_4)
@@ -4718,7 +5453,11 @@ BRF:7
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint-config\blueprint-validator.service.ts
+=======
+SF:src/modules/blueprint-config/blueprint-validator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_1)
 FN:13,(anonymous_2)
 FN:30,(anonymous_3)
@@ -4762,7 +5501,11 @@ BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\controllers\blueprint.controller.ts
+=======
+SF:src/modules/blueprint/controllers/blueprint.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:34,(anonymous_4)
 FN:46,(anonymous_5)
 FN:59,(anonymous_6)
@@ -4864,7 +5607,11 @@ BRF:16
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\controllers\style-profile.controller.ts
+=======
+SF:src/modules/blueprint/controllers/style-profile.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:33,(anonymous_4)
 FN:40,(anonymous_5)
 FN:53,(anonymous_6)
@@ -4904,7 +5651,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\repositories\blueprint.repository.ts
+=======
+SF:src/modules/blueprint/repositories/blueprint.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_4)
 FN:19,(anonymous_5)
 FN:23,(anonymous_6)
@@ -4933,7 +5684,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\repositories\style-profile.repository.ts
+=======
+SF:src/modules/blueprint/repositories/style-profile.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_4)
 FN:19,(anonymous_5)
 FN:23,(anonymous_6)
@@ -4986,7 +5741,11 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\services\blueprint-compiler.service.ts
+=======
+SF:src/modules/blueprint/services/blueprint-compiler.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:23,(anonymous_2)
 FN:31,(anonymous_3)
 FN:60,(anonymous_4)
@@ -5264,7 +6023,11 @@ BRF:66
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\services\blueprint.service.ts
+=======
+SF:src/modules/blueprint/services/blueprint.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:27,(anonymous_2)
 FN:33,(anonymous_3)
 FN:52,(anonymous_4)
@@ -5464,7 +6227,11 @@ BRF:71
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\blueprint\services\style-profile.service.ts
+=======
+SF:src/modules/blueprint/services/style-profile.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:16,(anonymous_3)
 FN:20,(anonymous_4)
@@ -5530,7 +6297,11 @@ BRF:6
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\concept-mapping.module.ts
+=======
+SF:src/modules/concept-mapping/concept-mapping.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -5549,7 +6320,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\controllers\concept-mapping.controller.ts
+=======
+SF:src/modules/concept-mapping/controllers/concept-mapping.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:33,(anonymous_4)
 FN:39,(anonymous_5)
 FN:49,(anonymous_6)
@@ -5588,7 +6363,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\controllers\topic.controller.ts
+=======
+SF:src/modules/concept-mapping/controllers/topic.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:39,(anonymous_4)
 FN:46,(anonymous_5)
 FN:54,(anonymous_6)
@@ -5629,7 +6408,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\repositories\concept-mapping.repository.ts
+=======
+SF:src/modules/concept-mapping/repositories/concept-mapping.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_4)
 FN:19,(anonymous_5)
 FN:23,(anonymous_6)
@@ -5661,7 +6444,11 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\repositories\topic.repository.ts
+=======
+SF:src/modules/concept-mapping/repositories/topic.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_4)
 FN:19,(anonymous_5)
 FN:23,(anonymous_6)
@@ -5674,11 +6461,19 @@ FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
 DA:7,0
+=======
+DA:1,9
+DA:2,9
+DA:3,9
+DA:4,9
+DA:7,9
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:16,0
 DA:20,0
 DA:24,0
@@ -5693,7 +6488,11 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\services\concept-mapping.service.ts
+=======
+SF:src/modules/concept-mapping/services/concept-mapping.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:17,(anonymous_2)
 FN:22,(anonymous_3)
 FN:55,(anonymous_4)
@@ -5775,7 +6574,11 @@ BRF:23
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\services\topic-registry-loader.service.ts
+=======
+SF:src/modules/concept-mapping/services/topic-registry-loader.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:24,(anonymous_2)
 FN:26,(anonymous_3)
 FN:30,(anonymous_4)
@@ -5855,7 +6658,11 @@ BRF:15
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\concept-mapping\services\topic.service.ts
+=======
+SF:src/modules/concept-mapping/services/topic.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_2)
 FN:18,(anonymous_3)
 FN:38,(anonymous_4)
@@ -5921,7 +6728,11 @@ BRF:12
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\index.ts
+=======
+SF:src/modules/config/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -5935,7 +6746,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\system-config.module.ts
+=======
+SF:src/modules/config/system-config.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -5951,7 +6766,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\controllers\system-config.controller.ts
+=======
+SF:src/modules/config/controllers/system-config.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:29,(anonymous_4)
 FN:39,(anonymous_5)
 FN:52,(anonymous_6)
@@ -5985,7 +6804,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\dto\system-config.dto.ts
+=======
+SF:src/modules/config/dto/system-config.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6036,7 +6859,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\dto\update-system-config.dto.ts
+=======
+SF:src/modules/config/dto/update-system-config.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:55,(anonymous_2)
 FNF:1
 FNH:0
@@ -6058,7 +6885,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\repositories\config.repository.ts
+=======
+SF:src/modules/config/repositories/config.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -6081,7 +6912,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\config\services\system-config.service.ts
+=======
+SF:src/modules/config/services/system-config.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:70,(anonymous_2)
 FN:79,(anonymous_3)
 FN:172,(anonymous_4)
@@ -6195,7 +7030,11 @@ BRF:29
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\dashboard.integration.spec.ts
+=======
+SF:src/modules/dashboard/dashboard.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:57,(anonymous_0)
 FN:60,(anonymous_1)
 FN:71,(anonymous_2)
@@ -6270,7 +7109,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\dashboard.module.ts
+=======
+SF:src/modules/dashboard/dashboard.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6285,7 +7128,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\index.ts
+=======
+SF:src/modules/dashboard/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6295,7 +7142,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\controllers\dashboard.controller.ts
+=======
+SF:src/modules/dashboard/controllers/dashboard.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:28,(anonymous_4)
 FN:57,(anonymous_5)
 FN:75,(anonymous_6)
@@ -6335,7 +7186,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\dto\dashboard-response.dto.ts
+=======
+SF:src/modules/dashboard/dto/dashboard-response.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6368,7 +7223,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\entities\dashboard-activity-item.entity.ts
+=======
+SF:src/modules/dashboard/entities/dashboard-activity-item.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6383,7 +7242,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\entities\dashboard-analytics-summary.entity.ts
+=======
+SF:src/modules/dashboard/entities/dashboard-analytics-summary.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6398,7 +7261,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\entities\dashboard-stats.entity.ts
+=======
+SF:src/modules/dashboard/entities/dashboard-stats.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6413,7 +7280,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\repositories\dashboard.repository.ts
+=======
+SF:src/modules/dashboard/repositories/dashboard.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:18,(anonymous_3)
 FN:52,(anonymous_4)
@@ -6448,7 +7319,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\dashboard\services\dashboard.service.ts
+=======
+SF:src/modules/dashboard/services/dashboard.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:21,(anonymous_2)
 FN:25,(anonymous_3)
 FN:51,(anonymous_4)
@@ -6561,7 +7436,11 @@ BRF:44
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\decision\decision.module.ts
+=======
+SF:src/modules/decision/decision.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6574,7 +7453,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\decision\controllers\decision.controller.ts
+=======
+SF:src/modules/decision/controllers/decision.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:24,(anonymous_4)
 FN:30,(anonymous_5)
 FN:38,(anonymous_6)
@@ -6603,7 +7486,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\decision\services\decision.service.ts
+=======
+SF:src/modules/decision/services/decision.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,(anonymous_1)
 FN:10,(anonymous_2)
 FNF:2
@@ -6622,7 +7509,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\difficulty-distribution\difficulty-distribution.module.ts
+=======
+SF:src/modules/difficulty-distribution/difficulty-distribution.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6637,7 +7528,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\difficulty-distribution\controllers\difficulty-distribution.controller.ts
+=======
+SF:src/modules/difficulty-distribution/controllers/difficulty-distribution.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:38,(anonymous_4)
 FN:50,(anonymous_5)
 FN:68,(anonymous_6)
@@ -6677,7 +7572,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\difficulty-distribution\repositories\difficulty-distribution.repository.ts
+=======
+SF:src/modules/difficulty-distribution/repositories/difficulty-distribution.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:17,(anonymous_4)
@@ -6712,7 +7611,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\difficulty-distribution\services\difficulty-distribution.service.ts
+=======
+SF:src/modules/difficulty-distribution/services/difficulty-distribution.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:14,(anonymous_3)
 FN:27,(anonymous_4)
@@ -6765,12 +7668,17 @@ BRF:12
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\evaluation\evaluation.module.ts
+=======
+SF:src/modules/evaluation/evaluation.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
 DA:2,0
 DA:3,0
+<<<<<<< HEAD
 DA:10,0
 LF:4
 LH:0
@@ -6788,26 +7696,567 @@ FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 DA:1,0
+=======
+DA:4,0
+DA:5,0
+DA:6,0
+DA:7,0
+DA:8,0
+DA:9,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:10,0
 DA:11,0
 DA:12,0
 DA:13,0
 DA:14,0
-DA:15,0
-DA:16,0
-DA:23,0
-DA:24,0
-DA:30,0
-DA:31,0
-DA:38,0
-DA:39,0
-LF:14
+DA:46,0
+LF:15
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\evaluation\services\evaluation.service.ts
+=======
+SF:src/modules/evaluation/analytics/performance-analytics.service.ts
+FN:10,(anonymous_1)
+FN:29,(anonymous_2)
+FNF:2
+FNH:2
+FNDA:1,(anonymous_1)
+FNDA:3,(anonymous_2)
+DA:1,3
+DA:6,3
+DA:19,1
+DA:21,1
+DA:22,1
+DA:24,1
+DA:25,1
+DA:26,1
+DA:28,1
+DA:29,3
+DA:30,2
+DA:31,2
+DA:32,2
+DA:38,2
+DA:39,2
+DA:40,2
+DA:44,2
+DA:45,2
+DA:46,2
+DA:50,2
+DA:51,2
+DA:53,2
+DA:54,2
+DA:55,2
+DA:59,2
+DA:60,2
+DA:61,2
+DA:63,2
+DA:64,2
+DA:65,2
+DA:69,2
+DA:70,1
+DA:72,2
+DA:73,2
+DA:74,2
+DA:78,1
+DA:79,1
+DA:80,2
+DA:84,1
+DA:85,1
+DA:86,2
+DA:90,1
+DA:91,1
+DA:92,1
+DA:97,1
+DA:101,1
+DA:105,1
+LF:47
+LH:47
+BRDA:30,0,0,2
+BRDA:30,0,1,0
+BRDA:30,1,0,2
+BRDA:30,1,1,0
+BRDA:31,2,0,2
+BRDA:31,2,1,0
+BRDA:31,3,0,2
+BRDA:31,3,1,0
+BRDA:32,4,0,2
+BRDA:32,4,1,0
+BRDA:33,5,0,2
+BRDA:33,5,1,0
+BRDA:38,6,0,2
+BRDA:38,6,1,2
+BRDA:39,7,0,2
+BRDA:44,8,0,2
+BRDA:44,8,1,0
+BRDA:44,8,2,0
+BRDA:45,9,0,2
+BRDA:50,10,0,2
+BRDA:54,11,0,2
+BRDA:60,12,0,2
+BRDA:64,13,0,2
+BRDA:69,14,0,1
+BRDA:73,15,0,2
+BRDA:81,16,0,2
+BRDA:81,16,1,0
+BRDA:87,17,0,2
+BRDA:87,17,1,0
+BRDA:93,18,0,1
+BRDA:93,18,1,0
+BRDA:97,19,0,1
+BRDA:97,19,1,0
+BRDA:101,20,0,1
+BRDA:101,20,1,0
+BRF:35
+BRH:22
+end_of_record
+TN:
+SF:src/modules/evaluation/analytics/strength-weakness.service.ts
+FN:15,(anonymous_1)
+FNF:1
+FNH:1
+FNDA:1,(anonymous_1)
+DA:1,3
+DA:10,3
+DA:18,1
+DA:19,1
+DA:22,1
+DA:23,2
+DA:24,2
+DA:26,0
+DA:32,1
+DA:33,1
+DA:35,1
+LF:11
+LH:10
+BRDA:23,0,0,2
+BRDA:23,0,1,0
+BRF:2
+BRH:1
+end_of_record
+TN:
+SF:src/modules/evaluation/controllers/evaluation.controller.ts
+FN:30,(anonymous_4)
+FN:43,(anonymous_5)
+FN:51,(anonymous_6)
+FN:58,(anonymous_7)
+FN:94,(anonymous_8)
+FN:95,(anonymous_9)
+FN:124,(anonymous_10)
+FN:148,(anonymous_11)
+FN:169,(anonymous_12)
+FN:176,(anonymous_13)
+FNF:10
+FNH:0
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+FNDA:0,(anonymous_9)
+FNDA:0,(anonymous_10)
+FNDA:0,(anonymous_11)
+FNDA:0,(anonymous_12)
+FNDA:0,(anonymous_13)
+DA:1,0
+DA:12,0
+DA:13,0
+DA:14,0
+DA:15,0
+DA:16,0
+DA:17,0
+DA:18,0
+DA:19,0
+DA:20,0
+DA:21,0
+DA:22,0
+DA:23,0
+DA:29,0
+DA:31,0
+DA:32,0
+DA:33,0
+DA:34,0
+DA:35,0
+DA:36,0
+DA:43,0
+DA:44,0
+DA:51,0
+DA:52,0
+DA:58,0
+DA:59,0
+DA:60,0
+DA:61,0
+DA:65,0
+DA:80,0
+DA:81,0
+DA:92,0
+DA:94,0
+DA:95,0
+DA:97,0
+DA:98,0
+DA:99,0
+DA:100,0
+DA:101,0
+DA:103,0
+DA:112,0
+DA:115,0
+DA:124,0
+DA:137,0
+DA:138,0
+DA:142,0
+DA:148,0
+DA:157,0
+DA:158,0
+DA:169,0
+DA:170,0
+DA:176,0
+DA:177,0
+LF:53
+LH:0
+BRDA:60,0,0,0
+BRDA:80,1,0,0
+BRDA:97,2,0,0
+BRDA:97,2,1,0
+BRDA:98,3,0,0
+BRDA:98,3,1,0
+BRDA:98,3,2,0
+BRDA:99,4,0,0
+BRDA:99,4,1,0
+BRDA:99,4,2,0
+BRDA:100,5,0,0
+BRDA:100,5,1,0
+BRDA:100,5,2,0
+BRDA:101,6,0,0
+BRDA:101,6,1,0
+BRDA:101,6,2,0
+BRDA:128,7,0,0
+BRDA:128,7,1,0
+BRDA:128,8,0,0
+BRDA:128,8,1,0
+BRDA:133,9,0,0
+BRDA:133,9,1,0
+BRF:22
+BRH:0
+end_of_record
+TN:
+SF:src/modules/evaluation/integrations/execution-evaluation.integration.ts
+FN:14,(anonymous_2)
+FN:23,(anonymous_3)
+FNF:2
+FNH:2
+FNDA:1,(anonymous_2)
+FNDA:1,(anonymous_3)
+DA:1,1
+DA:4,1
+DA:5,1
+DA:6,1
+DA:9,1
+DA:10,1
+DA:15,1
+DA:16,1
+DA:24,1
+DA:25,1
+DA:26,1
+DA:31,1
+DA:34,1
+DA:37,1
+DA:38,1
+DA:40,1
+DA:45,0
+DA:47,0
+DA:48,0
+DA:54,0
+DA:59,0
+LF:21
+LH:16
+BRDA:47,0,0,0
+BRDA:47,0,1,0
+BRF:2
+BRH:0
+end_of_record
+TN:
+SF:src/modules/evaluation/objective/objective-evaluator.service.ts
+FN:19,(anonymous_1)
+FN:31,(anonymous_2)
+FN:79,(anonymous_3)
+FN:88,(anonymous_4)
+FN:93,(anonymous_5)
+FN:101,(anonymous_6)
+FN:102,(anonymous_7)
+FN:111,(anonymous_8)
+FNF:8
+FNH:8
+FNDA:4,(anonymous_1)
+FNDA:12,(anonymous_2)
+FNDA:8,(anonymous_3)
+FNDA:6,(anonymous_4)
+FNDA:8,(anonymous_5)
+FNDA:4,(anonymous_6)
+FNDA:4,(anonymous_7)
+FNDA:6,(anonymous_8)
+DA:1,4
+DA:15,4
+DA:28,4
+DA:30,4
+DA:31,12
+DA:34,8
+DA:35,8
+DA:37,8
+DA:38,8
+DA:39,8
+DA:43,3
+DA:44,5
+DA:45,3
+DA:46,2
+DA:47,2
+DA:51,8
+DA:52,8
+DA:54,8
+DA:59,8
+DA:60,8
+DA:62,8
+DA:73,4
+DA:80,8
+DA:81,8
+DA:83,8
+DA:84,0
+DA:87,8
+DA:88,3
+DA:89,6
+DA:90,4
+DA:91,4
+DA:92,4
+DA:93,8
+DA:99,2
+DA:101,4
+DA:102,4
+DA:105,3
+DA:106,3
+DA:108,3
+DA:109,0
+DA:111,6
+DA:114,5
+DA:115,2
+DA:116,2
+DA:117,2
+DA:118,0
+DA:120,2
+DA:124,3
+LF:48
+LH:45
+BRDA:37,0,0,8
+BRDA:38,1,0,8
+BRDA:38,1,1,0
+BRDA:39,2,0,3
+BRDA:39,2,1,5
+BRDA:40,3,0,8
+BRDA:40,3,1,3
+BRDA:44,4,0,3
+BRDA:44,4,1,2
+BRDA:46,5,0,2
+BRDA:51,6,0,8
+BRDA:51,6,1,0
+BRDA:52,7,0,8
+BRDA:52,7,1,0
+BRDA:59,8,0,5
+BRDA:59,8,1,3
+BRDA:80,9,0,8
+BRDA:80,9,1,0
+BRDA:81,10,0,8
+BRDA:81,10,1,0
+BRDA:83,11,0,0
+BRDA:87,12,0,3
+BRDA:89,13,0,4
+BRDA:89,14,0,6
+BRDA:89,14,1,4
+BRDA:92,15,0,4
+BRDA:108,16,0,0
+BRDA:114,17,0,2
+BRDA:117,18,0,0
+BRDA:117,19,0,2
+BRDA:117,19,1,2
+BRF:31
+BRH:23
+end_of_record
+TN:
+SF:src/modules/evaluation/recommendations/recommendation.service.ts
+FN:7,(anonymous_1)
+FN:24,(anonymous_2)
+FNF:2
+FNH:2
+FNDA:3,(anonymous_1)
+FNDA:3,(anonymous_2)
+DA:1,4
+DA:4,4
+DA:7,4
+DA:8,3
+DA:27,3
+DA:29,3
+DA:30,7
+DA:31,2
+DA:32,2
+DA:34,2
+DA:45,3
+DA:46,2
+DA:56,3
+LF:13
+LH:13
+BRDA:30,0,0,2
+BRDA:31,1,0,2
+BRDA:31,1,1,0
+BRDA:32,2,0,1
+BRDA:32,2,1,1
+BRDA:45,3,0,2
+BRF:6
+BRH:5
+end_of_record
+TN:
+SF:src/modules/evaluation/scoring/overall-score.service.ts
+FN:9,(anonymous_1)
+FNF:1
+FNH:1
+FNDA:2,(anonymous_1)
+DA:1,4
+DA:5,4
+DA:10,2
+DA:11,2
+DA:12,2
+DA:13,2
+DA:15,2
+DA:16,3
+DA:17,3
+DA:18,3
+DA:19,3
+DA:23,2
+DA:27,2
+DA:30,2
+DA:32,2
+LF:15
+LH:15
+BRDA:23,0,0,2
+BRDA:23,0,1,0
+BRDA:27,1,0,2
+BRDA:27,1,1,0
+BRF:4
+BRH:2
+end_of_record
+TN:
+SF:src/modules/evaluation/scoring/section-scoring.service.ts
+FN:11,(anonymous_1)
+FN:24,(anonymous_2)
+FN:26,(anonymous_3)
+FNF:3
+FNH:3
+FNDA:2,(anonymous_1)
+FNDA:5,(anonymous_2)
+FNDA:5,(anonymous_3)
+DA:1,4
+DA:6,4
+DA:20,2
+DA:22,2
+DA:23,2
+DA:24,5
+DA:26,2
+DA:27,5
+DA:30,2
+DA:31,2
+DA:32,2
+DA:33,2
+DA:35,2
+DA:36,5
+DA:37,3
+DA:38,3
+DA:39,2
+DA:43,1
+DA:45,1
+DA:49,2
+DA:51,2
+DA:53,2
+DA:64,2
+LF:23
+LH:23
+BRDA:36,0,0,3
+BRDA:36,0,1,2
+BRDA:39,1,0,1
+BRDA:39,1,1,1
+BRDA:40,2,0,2
+BRDA:40,2,1,1
+BRDA:51,3,0,2
+BRDA:51,3,1,0
+BRF:8
+BRH:7
+end_of_record
+TN:
+SF:src/modules/evaluation/services/evaluation-queue.service.ts
+FN:15,(anonymous_2)
+FN:20,(anonymous_3)
+FN:89,(anonymous_4)
+FN:114,(anonymous_5)
+FN:142,(anonymous_6)
+FNF:5
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+DA:1,1
+DA:6,1
+DA:7,1
+DA:8,1
+DA:9,1
+DA:12,1
+DA:13,0
+DA:16,0
+DA:17,0
+DA:26,0
+DA:32,0
+DA:36,0
+DA:40,0
+DA:43,0
+DA:50,0
+DA:51,0
+DA:63,0
+DA:71,0
+DA:78,0
+DA:85,0
+DA:90,0
+DA:92,0
+DA:96,0
+DA:97,0
+DA:103,0
+DA:115,0
+DA:117,0
+DA:121,0
+DA:122,0
+DA:128,0
+DA:129,0
+DA:137,0
+DA:141,0
+DA:142,0
+DA:143,0
+DA:147,0
+DA:158,0
+DA:169,0
+LF:38
+LH:6
+BRDA:36,0,0,0
+BRDA:37,1,0,0
+BRDA:37,1,1,0
+BRDA:82,2,0,0
+BRDA:82,2,1,0
+BRDA:96,3,0,0
+BRDA:121,4,0,0
+BRDA:128,5,0,0
+BRF:8
+BRH:0
+end_of_record
+TN:
+SF:src/modules/evaluation/services/evaluation.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,(anonymous_1)
 FN:10,(anonymous_2)
 FNF:2
@@ -6826,7 +8275,153 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\answer-persistence.service.ts
+=======
+SF:src/modules/evaluation/services/result-generator.service.ts
+FN:18,(anonymous_2)
+FN:31,(anonymous_3)
+FN:66,(anonymous_4)
+FN:67,(anonymous_5)
+FN:84,(anonymous_6)
+FN:109,(anonymous_7)
+FNF:6
+FNH:6
+FNDA:1,(anonymous_2)
+FNDA:1,(anonymous_3)
+FNDA:1,(anonymous_4)
+FNDA:2,(anonymous_5)
+FNDA:2,(anonymous_6)
+FNDA:2,(anonymous_7)
+DA:1,3
+DA:2,3
+DA:3,3
+DA:4,3
+DA:5,3
+DA:6,3
+DA:7,3
+DA:8,3
+DA:11,3
+DA:12,3
+DA:15,3
+DA:16,1
+DA:19,1
+DA:20,1
+DA:21,1
+DA:22,1
+DA:23,1
+DA:24,1
+DA:25,1
+DA:34,1
+DA:35,1
+DA:38,1
+DA:52,1
+DA:53,0
+DA:64,1
+DA:66,1
+DA:67,1
+DA:69,2
+DA:70,2
+DA:71,2
+DA:72,2
+DA:75,2
+DA:76,2
+DA:77,0
+DA:78,2
+DA:79,0
+DA:80,2
+DA:82,2
+DA:84,2
+DA:88,2
+DA:97,2
+DA:100,1
+DA:109,2
+DA:122,1
+DA:128,1
+DA:135,1
+DA:138,1
+DA:145,1
+DA:151,1
+DA:154,1
+LF:50
+LH:47
+BRDA:52,0,0,0
+BRDA:69,1,0,2
+BRDA:69,1,1,0
+BRDA:70,2,0,2
+BRDA:70,2,1,0
+BRDA:70,2,2,0
+BRDA:71,3,0,2
+BRDA:71,3,1,2
+BRDA:71,3,2,0
+BRDA:72,4,0,2
+BRDA:72,4,1,0
+BRDA:72,4,2,0
+BRDA:76,5,0,0
+BRDA:76,5,1,2
+BRDA:76,6,0,2
+BRDA:76,6,1,0
+BRDA:78,7,0,0
+BRDA:78,7,1,2
+BRDA:80,8,0,2
+BRDA:113,9,0,1
+BRDA:113,9,1,1
+BRDA:113,10,0,2
+BRDA:113,10,1,1
+BRDA:118,11,0,2
+BRDA:118,11,1,0
+BRF:25
+BRH:14
+end_of_record
+TN:
+SF:src/modules/evaluation/services/result-storage.service.ts
+FN:10,(anonymous_2)
+FN:15,(anonymous_3)
+FN:23,(anonymous_4)
+FN:88,(anonymous_5)
+FNF:4
+FNH:3
+FNDA:1,(anonymous_2)
+FNDA:1,(anonymous_3)
+FNDA:1,(anonymous_4)
+FNDA:0,(anonymous_5)
+DA:1,1
+DA:2,1
+DA:4,1
+DA:7,1
+DA:8,1
+DA:10,1
+DA:16,1
+DA:18,1
+DA:23,1
+DA:25,1
+DA:43,1
+DA:44,1
+DA:65,1
+DA:74,1
+DA:93,0
+DA:97,0
+DA:98,0
+DA:108,0
+LF:18
+LH:14
+BRDA:15,0,0,0
+BRDA:43,1,0,1
+BRDA:47,2,0,1
+BRDA:47,2,1,0
+BRDA:48,3,0,1
+BRDA:48,3,1,0
+BRDA:55,4,0,1
+BRDA:55,4,1,0
+BRDA:56,5,0,1
+BRDA:56,5,1,0
+BRDA:91,6,0,0
+BRF:11
+BRH:5
+end_of_record
+TN:
+SF:src/modules/execution/answer-persistence.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:8,(anonymous_0)
 FN:17,(anonymous_1)
 FN:58,(anonymous_2)
@@ -6865,7 +8460,11 @@ BRF:10
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\execution.e2e-spec.ts
+=======
+SF:src/modules/execution/execution.e2e-spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:23,(anonymous_0)
 FN:26,(anonymous_1)
 FN:43,(anonymous_2)
@@ -6900,28 +8499,48 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\execution.module.ts
 FN:48,(anonymous_1)
 FNF:1
+=======
+SF:src/modules/execution/execution.module.ts
+FNF:0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNH:0
-FNDA:0,(anonymous_1)
 DA:1,0
 DA:2,0
 DA:3,0
+<<<<<<< HEAD
 DA:9,0
 DA:17,0
 DA:23,0
 DA:49,0
 DA:63,0
 LF:8
+=======
+DA:4,0
+DA:10,0
+DA:21,0
+DA:27,0
+DA:28,0
+DA:69,0
+LF:9
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\controllers\answer.controller.ts
 FN:37,(anonymous_4)
 FN:49,(anonymous_5)
+=======
+SF:src/modules/execution/controllers/answer.controller.ts
+FN:38,(anonymous_4)
+FN:51,(anonymous_5)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:2
 FNH:0
 FNDA:0,(anonymous_4)
@@ -6932,50 +8551,108 @@ DA:20,0
 DA:21,0
 DA:23,0
 DA:24,0
-DA:26,0
-DA:28,0
+DA:25,0
+DA:27,0
 DA:29,0
-DA:36,0
-DA:38,0
+DA:30,0
+DA:37,0
 DA:39,0
-DA:49,0
-DA:55,0
+DA:40,0
+DA:41,0
+DA:51,0
 DA:57,0
 DA:59,0
 DA:61,0
-DA:68,0
-LF:18
+DA:63,0
+DA:70,0
+LF:20
 LH:0
-BRDA:57,0,0,0
+BRDA:59,0,0,0
 BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\controllers\execution.controller.ts
 FN:30,(anonymous_4)
 FN:41,(anonymous_5)
 FNF:2
+=======
+SF:src/modules/execution/controllers/execution.controller.ts
+FN:35,(anonymous_4)
+FN:51,(anonymous_5)
+FN:61,(anonymous_6)
+FN:104,(anonymous_7)
+FN:120,(anonymous_8)
+FN:133,(anonymous_9)
+FN:153,(anonymous_10)
+FN:172,(anonymous_11)
+FN:182,(anonymous_12)
+FNF:9
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNH:0
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+FNDA:0,(anonymous_9)
+FNDA:0,(anonymous_10)
+FNDA:0,(anonymous_11)
+FNDA:0,(anonymous_12)
 DA:1,0
-DA:9,0
-DA:16,0
-DA:17,0
+DA:11,0
+DA:18,0
 DA:19,0
 DA:21,0
 DA:22,0
-DA:29,0
-DA:30,0
-DA:41,0
-DA:46,0
-LF:11
+DA:23,0
+DA:24,0
+DA:26,0
+DA:27,0
+DA:34,0
+DA:36,0
+DA:37,0
+DA:38,0
+DA:39,0
+DA:51,0
+DA:55,0
+DA:61,0
+DA:75,0
+DA:97,0
+DA:98,0
+DA:104,0
+DA:108,0
+DA:111,0
+DA:115,0
+DA:117,0
+DA:120,0
+DA:133,0
+DA:137,0
+DA:138,0
+DA:139,0
+DA:141,0
+DA:153,0
+DA:157,0
+DA:165,0
+DA:166,0
+DA:172,0
+DA:176,0
+DA:182,0
+DA:183,0
+LF:40
 LH:0
-BRF:0
+BRDA:145,0,0,0
+BRDA:145,0,1,0
+BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\controllers\index.ts
+=======
+SF:src/modules/execution/controllers/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -6988,7 +8665,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\controllers\resume.controller.ts
+=======
+SF:src/modules/execution/controllers/resume.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:30,(anonymous_4)
 FN:37,(anonymous_5)
 FNF:2
@@ -7012,7 +8693,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\controllers\submission.controller.ts
+=======
+SF:src/modules/execution/controllers/submission.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:30,(anonymous_4)
 FN:41,(anonymous_5)
 FNF:2
@@ -7036,7 +8721,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\dto\candidate-answer.dto.ts
+=======
+SF:src/modules/execution/dto/candidate-answer.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:24,(anonymous_2)
 FNF:1
 FNH:0
@@ -7055,7 +8744,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\dto\execution-result.dto.ts
+=======
+SF:src/modules/execution/dto/execution-result.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7072,7 +8765,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\dto\execution.schema.ts
+=======
+SF:src/modules/execution/dto/execution.schema.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7084,7 +8781,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\dto\index.ts
+=======
+SF:src/modules/execution/dto/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7098,7 +8799,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\dto\submit-execution-response.dto.ts
+=======
+SF:src/modules/execution/dto/submit-execution-response.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7111,7 +8816,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\dto\submit-execution.dto.ts
+=======
+SF:src/modules/execution/dto/submit-execution.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FNF:1
 FNH:0
@@ -7127,7 +8836,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\interfaces\evaluation-adapter.interface.ts
+=======
+SF:src/modules/execution/interfaces/evaluation-adapter.interface.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:8,0
@@ -7137,7 +8850,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\repositories\candidate-answer.repository.ts
+=======
+SF:src/modules/execution/repositories/candidate-answer.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FNF:2
@@ -7157,7 +8874,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\repositories\execution-state.repository.ts
+=======
+SF:src/modules/execution/repositories/execution-state.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -7166,24 +8887,40 @@ FNH:0
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:4,0
 DA:5,0
 DA:8,0
+=======
+DA:1,4
+DA:2,4
+DA:4,4
+DA:5,4
+DA:8,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:17,0
 DA:21,0
 DA:25,0
 DA:29,0
 LF:9
+<<<<<<< HEAD
 LH:0
+=======
+LH:5
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:29,0,0,0
 BRDA:29,0,1,0
 BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\repositories\index.ts
+=======
+SF:src/modules/execution/repositories/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7196,7 +8933,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\repositories\submission.repository.ts
+=======
+SF:src/modules/execution/repositories/submission.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FNF:2
@@ -7216,7 +8957,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\repositories\test-instance.repository.ts
+=======
+SF:src/modules/execution/repositories/test-instance.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:25,(anonymous_6)
@@ -7239,7 +8984,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\services\answer.service.ts
+=======
+SF:src/modules/execution/services/answer.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:16,(anonymous_2)
 FN:23,(anonymous_3)
 FN:32,(anonymous_4)
@@ -7267,6 +9016,7 @@ DA:40,0
 DA:43,0
 DA:46,0
 DA:52,0
+<<<<<<< HEAD
 DA:55,0
 DA:63,0
 DA:64,0
@@ -7303,11 +9053,189 @@ BRDA:99,8,0,0
 BRDA:99,8,1,0
 BRDA:108,9,0,0
 BRDA:108,9,1,0
+=======
+DA:58,0
+DA:67,0
+DA:68,0
+DA:72,0
+DA:76,0
+DA:79,0
+DA:80,0
+DA:84,0
+DA:86,0
+DA:87,0
+DA:98,0
+DA:109,0
+DA:110,0
+DA:117,0
+DA:121,0
+LF:34
+LH:12
+BRDA:52,0,0,0
+BRDA:52,0,1,0
+BRDA:61,1,0,0
+BRDA:61,1,1,0
+BRDA:62,2,0,0
+BRDA:62,2,1,0
+BRDA:67,3,0,0
+BRDA:86,4,0,0
+BRDA:86,4,1,0
+BRDA:90,5,0,0
+BRDA:90,5,1,0
+BRDA:92,6,0,0
+BRDA:92,6,1,0
+BRDA:102,7,0,0
+BRDA:102,7,1,0
+BRDA:103,8,0,0
+BRDA:103,8,1,0
+BRDA:112,9,0,0
+BRDA:112,9,1,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:19
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\services\execution-state.service.ts
+=======
+SF:src/modules/execution/services/assessment-audit.service.ts
+FN:10,(anonymous_2)
+FN:12,(anonymous_3)
+FN:44,(anonymous_4)
+FNF:3
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+DA:1,0
+DA:2,0
+DA:3,0
+DA:7,0
+DA:8,0
+DA:10,0
+DA:17,0
+DA:22,0
+DA:26,0
+DA:27,0
+DA:30,0
+DA:33,0
+DA:45,0
+DA:48,0
+DA:52,0
+DA:53,0
+DA:59,0
+LF:17
+LH:0
+BRDA:26,0,0,0
+BRDA:39,1,0,0
+BRDA:39,1,1,0
+BRDA:52,2,0,0
+BRF:4
+BRH:0
+end_of_record
+TN:
+SF:src/modules/execution/services/autosave.service.ts
+FN:15,(anonymous_2)
+FN:23,(anonymous_3)
+FN:119,(anonymous_4)
+FN:129,(anonymous_5)
+FN:189,(anonymous_6)
+FNF:5
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+DA:1,0
+DA:2,0
+DA:3,0
+DA:4,0
+DA:5,0
+DA:6,0
+DA:7,0
+DA:12,0
+DA:13,0
+DA:16,0
+DA:17,0
+DA:18,0
+DA:19,0
+DA:20,0
+DA:28,0
+DA:29,0
+DA:35,0
+DA:36,0
+DA:38,0
+DA:39,0
+DA:40,0
+DA:44,0
+DA:45,0
+DA:48,0
+DA:49,0
+DA:54,0
+DA:55,0
+DA:56,0
+DA:63,0
+DA:67,0
+DA:71,0
+DA:79,0
+DA:80,0
+DA:84,0
+DA:88,0
+DA:91,0
+DA:92,0
+DA:104,0
+DA:105,0
+DA:108,0
+DA:109,0
+DA:111,0
+DA:112,0
+DA:116,0
+DA:126,0
+DA:127,0
+DA:128,0
+DA:129,0
+DA:131,0
+DA:160,0
+DA:176,0
+DA:178,0
+DA:179,0
+DA:186,0
+DA:187,0
+DA:189,0
+DA:190,0
+LF:57
+LH:0
+BRDA:38,0,0,0
+BRDA:54,1,0,0
+BRDA:56,2,0,0
+BRDA:56,2,1,0
+BRDA:64,3,0,0
+BRDA:64,3,1,0
+BRDA:65,4,0,0
+BRDA:65,4,1,0
+BRDA:74,5,0,0
+BRDA:74,5,1,0
+BRDA:79,6,0,0
+BRDA:123,7,0,0
+BRDA:124,8,0,0
+BRDA:141,9,0,0
+BRDA:141,9,1,0
+BRDA:144,10,0,0
+BRDA:144,10,1,0
+BRDA:153,11,0,0
+BRDA:153,11,1,0
+BRDA:154,12,0,0
+BRDA:154,12,1,0
+BRDA:183,13,0,0
+BRDA:183,13,1,0
+BRDA:186,14,0,0
+BRF:24
+BRH:0
+end_of_record
+TN:
+SF:src/modules/execution/services/execution-state.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FN:11,(anonymous_3)
 FN:40,(anonymous_4)
@@ -7342,6 +9270,7 @@ BRF:7
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\services\execution-validator.service.ts
 FN:18,(anonymous_2)
 FN:20,(anonymous_3)
@@ -7379,12 +9308,52 @@ DA:76,0
 DA:77,0
 DA:80,0
 DA:81,0
+=======
+SF:src/modules/execution/services/execution-validator.service.ts
+FN:24,(anonymous_2)
+FN:29,(anonymous_3)
+FN:51,(anonymous_4)
+FN:64,(anonymous_5)
+FN:80,(anonymous_6)
+FN:115,(anonymous_7)
+FN:128,(anonymous_8)
+FNF:7
+FNH:4
+FNDA:7,(anonymous_2)
+FNDA:2,(anonymous_3)
+FNDA:2,(anonymous_4)
+FNDA:2,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+DA:1,3
+DA:8,3
+DA:9,3
+DA:15,3
+DA:16,3
+DA:19,3
+DA:20,7
+DA:25,7
+DA:26,7
+DA:33,2
+DA:36,2
+DA:38,2
+DA:39,1
+DA:42,1
+DA:48,1
+DA:52,2
+DA:53,1
+DA:57,1
+DA:65,2
+DA:69,1
+DA:73,1
+DA:85,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:86,0
-DA:88,0
 DA:89,0
-DA:92,0
-DA:93,0
+DA:90,0
 DA:95,0
+<<<<<<< HEAD
 DA:96,0
 DA:100,0
 DA:107,0
@@ -7419,6 +9388,74 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\execution\services\execution.service.ts
+=======
+DA:97,0
+DA:98,0
+DA:101,0
+DA:102,0
+DA:104,0
+DA:105,0
+DA:109,0
+DA:116,0
+DA:117,0
+DA:121,0
+DA:132,0
+DA:138,0
+DA:141,0
+DA:144,0
+DA:147,0
+DA:151,0
+DA:152,0
+DA:159,0
+DA:160,0
+DA:168,0
+DA:172,0
+DA:173,0
+DA:180,0
+DA:184,0
+DA:185,0
+DA:186,0
+DA:193,0
+DA:202,0
+DA:203,0
+DA:210,0
+LF:56
+LH:21
+BRDA:33,0,0,0
+BRDA:33,0,1,2
+BRDA:38,1,0,1
+BRDA:52,2,0,1
+BRDA:65,3,0,1
+BRDA:66,4,0,2
+BRDA:66,4,1,1
+BRDA:85,5,0,0
+BRDA:85,6,0,0
+BRDA:85,6,1,0
+BRDA:89,7,0,0
+BRDA:89,8,0,0
+BRDA:89,8,1,0
+BRDA:95,9,0,0
+BRDA:95,9,1,0
+BRDA:95,9,2,0
+BRDA:97,10,0,0
+BRDA:101,11,0,0
+BRDA:104,12,0,0
+BRDA:104,13,0,0
+BRDA:104,13,1,0
+BRDA:116,14,0,0
+BRDA:151,15,0,0
+BRDA:159,16,0,0
+BRDA:172,17,0,0
+BRDA:172,18,0,0
+BRDA:172,18,1,0
+BRDA:185,19,0,0
+BRDA:202,20,0,0
+BRF:29
+BRH:6
+end_of_record
+TN:
+SF:src/modules/execution/services/execution.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:29,(anonymous_2)
 FN:35,(anonymous_3)
 FN:65,(anonymous_4)
@@ -7455,7 +9492,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\services\index.ts
+=======
+SF:src/modules/execution/services/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7464,13 +9505,20 @@ DA:3,0
 DA:4,0
 DA:5,0
 DA:6,0
-LF:6
+DA:7,0
+DA:8,0
+DA:9,0
+LF:9
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\services\resume.service.ts
+=======
+SF:src/modules/execution/services/resume.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:11,(anonymous_2)
 FN:18,(anonymous_3)
 FN:46,(anonymous_4)
@@ -7504,6 +9552,7 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\execution\services\submission.service.ts
 FN:22,(anonymous_4)
 FN:32,(anonymous_5)
@@ -7535,16 +9584,144 @@ DA:46,0
 DA:52,0
 DA:55,0
 DA:58,0
-DA:59,0
-DA:65,0
-DA:66,0
+=======
+SF:src/modules/execution/services/submission-validation.service.ts
+FN:30,(anonymous_2)
+FN:38,(anonymous_3)
+FN:106,(anonymous_4)
+FNF:3
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+DA:1,1
+DA:7,1
+DA:8,1
+DA:9,1
+DA:10,1
+DA:25,1
+DA:26,0
+DA:31,0
+DA:32,0
+DA:33,0
+DA:34,0
+DA:35,0
+DA:42,0
+DA:45,0
+DA:46,0
+DA:47,0
+DA:48,0
+DA:52,0
+DA:53,0
+DA:54,0
+DA:61,0
+DA:62,0
+DA:69,0
 DA:73,0
 DA:74,0
-DA:76,0
-DA:81,0
-DA:89,0
-DA:93,0
+DA:80,0
+DA:83,0
+DA:84,0
+DA:85,0
+DA:90,0
+DA:97,0
+DA:98,0
+DA:99,0
+DA:105,0
+DA:106,0
+DA:108,0
+DA:109,0
+DA:110,0
+DA:113,0
+DA:114,0
+DA:116,0
+DA:117,0
+DA:118,0
+DA:119,0
+DA:120,0
+DA:125,0
+DA:129,0
+DA:132,0
+DA:140,0
+DA:141,0
+DA:146,0
+DA:148,0
+DA:154,0
+LF:53
+LH:6
+BRDA:53,0,0,0
+BRDA:61,1,0,0
+BRDA:69,2,0,0
+BRDA:70,3,0,0
+BRDA:70,3,1,0
+BRDA:83,4,0,0
+BRDA:85,5,0,0
+BRDA:97,6,0,0
+BRDA:97,7,0,0
+BRDA:97,7,1,0
+BRDA:113,8,0,0
+BRDA:113,8,1,0
+BRDA:113,9,0,0
+BRDA:113,9,1,0
+BRDA:118,10,0,0
+BRDA:125,11,0,0
+BRDA:126,12,0,0
+BRDA:126,12,1,0
+BRDA:126,12,2,0
+BRDA:140,13,0,0
+BRF:20
+BRH:0
+end_of_record
+TN:
+SF:src/modules/execution/services/submission.service.ts
+FN:30,(anonymous_4)
+FN:42,(anonymous_5)
+FN:89,(anonymous_6)
+FN:126,(anonymous_7)
+FN:148,(anonymous_8)
+FNF:5
+FNH:1
+FNDA:1,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+DA:2,1
+DA:9,1
+DA:10,1
+DA:11,1
+DA:12,1
+DA:13,1
+DA:14,1
+DA:19,1
+DA:27,1
+DA:28,1
+DA:31,1
+DA:32,1
+DA:33,1
+DA:34,1
+DA:35,1
+DA:36,1
+DA:37,1
+DA:39,1
+DA:47,0
+DA:54,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+DA:59,0
+DA:60,0
+DA:61,0
+DA:66,0
+DA:67,0
+DA:72,0
+DA:73,0
+DA:79,0
+DA:80,0
+DA:88,0
+DA:91,0
+DA:97,0
+DA:100,0
 DA:103,0
+<<<<<<< HEAD
 DA:105,0
 LF:31
 LH:0
@@ -7556,6 +9733,41 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\generation\generation-query.service.ts
+=======
+DA:104,0
+DA:110,0
+DA:111,0
+DA:118,0
+DA:119,0
+DA:121,0
+DA:126,0
+DA:134,0
+DA:138,0
+DA:147,0
+DA:148,0
+DA:149,0
+DA:153,0
+DA:160,0
+LF:48
+LH:18
+BRDA:45,0,0,0
+BRDA:59,1,0,0
+BRDA:60,2,0,0
+BRDA:66,3,0,0
+BRDA:66,4,0,0
+BRDA:66,4,1,0
+BRDA:72,5,0,0
+BRDA:72,6,0,0
+BRDA:72,6,1,0
+BRDA:79,7,0,0
+BRDA:162,8,0,0
+BRDA:162,8,1,0
+BRF:12
+BRH:0
+end_of_record
+TN:
+SF:src/modules/generation/generation-query.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:18,(anonymous_3)
 FN:30,(anonymous_4)
@@ -7590,7 +9802,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\generation-storage.service.ts
+=======
+SF:src/modules/generation/generation-storage.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:15,(anonymous_2)
 FN:23,(anonymous_3)
 FN:63,(anonymous_4)
@@ -7646,7 +9862,11 @@ BRF:10
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\generation.module.ts
+=======
+SF:src/modules/generation/generation.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7665,7 +9885,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\index.ts
+=======
+SF:src/modules/generation/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_0)
 FN:2,(anonymous_1)
 FN:3,(anonymous_2)
@@ -7683,7 +9907,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\generation-ai.module.ts
+=======
+SF:src/modules/generation-ai/generation-ai.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:35,(anonymous_1)
 FN:58,(anonymous_2)
 FNF:2
@@ -7819,6 +10047,7 @@ BRF:7
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\controllers\prompts.controller.ts
 FN:15,(anonymous_4)
 FN:19,(anonymous_5)
@@ -7847,10 +10076,110 @@ DA:33,0
 DA:34,0
 LF:15
 LH:0
+=======
+SF:src/modules/generation-ai/controllers/generation-ai.controller.ts
+FN:35,(anonymous_4)
+FN:44,(anonymous_5)
+FN:55,(anonymous_6)
+FN:62,(anonymous_7)
+FN:69,(anonymous_8)
+FNF:5
+FNH:0
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+DA:1,0
+DA:10,0
+DA:17,0
+DA:18,0
+DA:19,0
+DA:20,0
+DA:21,0
+DA:22,0
+DA:27,0
+DA:34,0
+DA:36,0
+DA:37,0
+DA:38,0
+DA:44,0
+DA:45,0
+DA:46,0
+DA:55,0
+DA:56,0
+DA:62,0
+DA:63,0
+DA:69,0
+DA:70,0
+DA:74,0
+DA:78,0
+DA:79,0
+DA:81,0
+DA:82,0
+DA:86,0
+DA:90,0
+DA:96,0
+LF:30
+LH:0
+BRDA:79,0,0,0
+BRDA:79,0,1,0
+BRDA:86,1,0,0
+BRDA:86,1,1,0
+BRF:4
+BRH:0
+end_of_record
+TN:
+SF:src/modules/generation-ai/controllers/prompts.controller.ts
+FN:29,(anonymous_4)
+FN:33,(anonymous_5)
+FN:40,(anonymous_6)
+FN:47,(anonymous_7)
+FNF:4
+FNH:0
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+DA:1,0
+DA:10,0
+DA:17,0
+DA:18,0
+DA:19,0
+DA:20,0
+DA:21,0
+DA:28,0
+DA:29,0
+DA:33,0
+DA:34,0
+DA:40,0
+DA:41,0
+DA:47,0
+DA:48,0
+LF:15
+LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+SF:src/modules/generation-ai/dto/generated-question.dto.ts
+FNF:0
+FNH:0
+DA:1,4
+DA:3,4
+DA:6,4
+DA:10,4
+DA:14,4
+DA:18,4
+DA:22,4
+LF:7
+LH:7
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+BRF:0
+BRH:0
+end_of_record
+TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\dto\generated-question.dto.ts
 FNF:0
 FNH:0
@@ -7885,13 +10214,37 @@ DA:39,0
 DA:42,0
 DA:45,0
 DA:48,0
+=======
+SF:src/modules/generation-ai/dto/generation-job.dto.ts
+FNF:0
+FNH:0
+DA:1,0
+DA:9,0
+DA:11,0
+DA:15,0
+DA:21,0
+DA:26,0
+DA:31,0
+DA:34,0
+DA:38,0
+DA:41,0
+DA:43,0
+DA:46,0
+DA:49,0
+DA:52,0
+DA:55,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:15
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\dto\prompt.dto.ts
+=======
+SF:src/modules/generation-ai/dto/prompt.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -7909,6 +10262,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\evaluators\generation-quality.service.ts
 FN:17,(anonymous_2)
 FN:22,(anonymous_3)
@@ -8030,6 +10384,129 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\generation-ai\integrations\review-queue.integration.ts
+=======
+SF:src/modules/generation-ai/evaluators/generation-quality.service.ts
+FN:17,(anonymous_2)
+FN:22,(anonymous_3)
+FNF:2
+FNH:2
+FNDA:2,(anonymous_2)
+FNDA:2,(anonymous_3)
+DA:1,2
+DA:3,2
+DA:4,2
+DA:16,2
+DA:18,2
+DA:19,2
+DA:27,2
+DA:28,2
+DA:29,0
+DA:39,2
+DA:40,2
+DA:41,2
+DA:42,2
+DA:44,2
+DA:46,2
+DA:47,4
+DA:49,4
+DA:50,4
+DA:51,1
+DA:52,1
+DA:54,3
+DA:57,4
+DA:58,4
+DA:59,4
+DA:62,4
+DA:66,4
+DA:67,4
+DA:70,4
+DA:71,3
+DA:75,2
+DA:76,2
+DA:77,2
+DA:80,2
+DA:84,2
+LF:34
+LH:33
+BRDA:28,0,0,0
+BRDA:47,1,0,4
+BRDA:47,1,1,0
+BRDA:50,2,0,1
+BRDA:50,2,1,3
+BRDA:58,3,0,4
+BRDA:66,4,0,4
+BRDA:70,5,0,3
+BRDA:70,6,0,4
+BRDA:70,6,1,3
+BRDA:70,6,2,3
+BRF:11
+BRH:9
+end_of_record
+TN:
+SF:src/modules/generation-ai/generators/batch-generation.service.ts
+FN:11,(anonymous_2)
+FN:16,(anonymous_3)
+FN:35,(anonymous_4)
+FNF:3
+FNH:3
+FNDA:1,(anonymous_2)
+FNDA:1,(anonymous_3)
+FNDA:2,(anonymous_4)
+DA:1,1
+DA:2,1
+DA:3,1
+DA:10,1
+DA:12,1
+DA:13,1
+DA:26,1
+DA:28,1
+DA:35,2
+DA:43,1
+DA:49,1
+LF:11
+LH:11
+BRDA:46,0,0,1
+BRDA:46,0,1,0
+BRF:2
+BRH:1
+end_of_record
+TN:
+SF:src/modules/generation-ai/generators/topic-expansion.service.ts
+FN:6,(anonymous_4)
+FN:8,(anonymous_5)
+FN:24,(anonymous_6)
+FNF:3
+FNH:3
+FNDA:2,(anonymous_4)
+FNDA:2,(anonymous_5)
+FNDA:3,(anonymous_6)
+DA:1,1
+DA:5,1
+DA:6,2
+DA:9,2
+DA:13,2
+DA:14,2
+DA:15,2
+DA:16,2
+DA:17,0
+DA:22,2
+DA:23,1
+DA:24,3
+DA:27,1
+DA:34,1
+DA:35,1
+DA:44,0
+LF:16
+LH:14
+BRDA:16,0,0,0
+BRDA:23,1,0,1
+BRDA:34,2,0,1
+BRF:3
+BRH:2
+end_of_record
+TN:
+SF:src/modules/generation-ai/integrations/review-queue.integration.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:10,(anonymous_4)
 FN:17,(anonymous_5)
 FN:13,(anonymous_6)
@@ -8038,11 +10515,19 @@ FNH:0
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
 DA:9,0
+=======
+DA:1,2
+DA:2,2
+DA:3,2
+DA:4,2
+DA:9,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:11,0
 DA:12,0
 DA:13,0
@@ -8051,6 +10536,7 @@ DA:21,0
 DA:22,0
 DA:31,0
 DA:32,0
+<<<<<<< HEAD
 DA:33,0
 DA:44,0
 DA:48,0
@@ -8098,10 +10584,60 @@ BRDA:115,9,0,0
 BRDA:115,10,0,0
 BRDA:115,10,1,0
 BRDA:120,11,0,0
+=======
+DA:36,0
+DA:47,0
+DA:51,0
+DA:52,0
+DA:54,0
+DA:55,0
+DA:56,0
+DA:59,0
+DA:60,0
+DA:61,0
+DA:73,0
+DA:83,0
+DA:87,0
+DA:103,0
+DA:104,0
+DA:108,0
+DA:120,0
+DA:121,0
+DA:122,0
+DA:126,0
+DA:127,0
+DA:128,0
+DA:129,0
+DA:137,0
+DA:139,0
+LF:38
+LH:5
+BRDA:21,0,0,0
+BRDA:21,0,1,0
+BRDA:31,1,0,0
+BRDA:39,2,0,0
+BRDA:39,2,1,0
+BRDA:51,3,0,0
+BRDA:51,3,1,0
+BRDA:55,4,0,0
+BRDA:55,4,1,0
+BRDA:60,5,0,0
+BRDA:103,6,0,0
+BRDA:103,6,1,0
+BRDA:104,7,0,0
+BRDA:104,7,1,0
+BRDA:116,8,0,0
+BRDA:116,8,1,0
+BRDA:121,9,0,0
+BRDA:121,10,0,0
+BRDA:121,10,1,0
+BRDA:126,11,0,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:20
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\orchestrators\generation-orchestrator.service.ts
 FN:15,(anonymous_4)
 FN:27,(anonymous_5)
@@ -8224,6 +10760,131 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\generation-ai\prompts\coding.prompt.ts
+=======
+SF:src/modules/generation-ai/orchestrators/generation-orchestrator.service.ts
+FN:15,(anonymous_4)
+FN:27,(anonymous_5)
+FN:73,(anonymous_6)
+FNF:3
+FNH:3
+FNDA:1,(anonymous_4)
+FNDA:1,(anonymous_5)
+FNDA:1,(anonymous_6)
+DA:1,2
+DA:2,2
+DA:3,2
+DA:5,2
+DA:6,2
+DA:7,2
+DA:8,2
+DA:9,2
+DA:10,2
+DA:14,2
+DA:16,1
+DA:17,1
+DA:18,1
+DA:19,1
+DA:20,1
+DA:21,1
+DA:22,1
+DA:23,1
+DA:24,1
+DA:33,1
+DA:34,1
+DA:35,1
+DA:37,1
+DA:38,1
+DA:39,1
+DA:40,1
+DA:42,0
+DA:48,1
+DA:49,1
+DA:52,1
+DA:54,1
+DA:55,1
+DA:57,0
+DA:67,1
+DA:68,1
+DA:70,1
+DA:71,1
+DA:72,1
+DA:73,1
+DA:74,1
+DA:75,1
+DA:76,1
+DA:77,1
+DA:78,1
+DA:79,1
+DA:92,1
+DA:93,1
+DA:95,1
+DA:96,1
+DA:99,1
+DA:100,1
+DA:108,1
+DA:112,1
+DA:116,1
+DA:117,1
+DA:124,1
+DA:129,1
+DA:131,1
+DA:132,1
+DA:134,0
+DA:135,0
+DA:136,0
+DA:137,0
+DA:138,0
+DA:139,0
+DA:140,0
+DA:143,0
+DA:144,0
+DA:148,0
+DA:151,1
+DA:152,1
+DA:153,1
+DA:154,1
+DA:156,0
+DA:161,1
+LF:75
+LH:62
+BRDA:33,0,0,1
+BRDA:33,0,1,0
+BRDA:34,1,0,1
+BRDA:34,1,1,0
+BRDA:35,2,0,1
+BRDA:35,2,1,0
+BRDA:49,3,0,0
+BRDA:49,3,1,1
+BRDA:55,4,0,1
+BRDA:55,4,1,0
+BRDA:95,5,0,0
+BRDA:96,6,0,0
+BRDA:99,7,0,1
+BRDA:124,8,0,1
+BRDA:124,8,1,1
+BRDA:124,8,2,1
+BRDA:124,8,3,1
+BRDA:129,9,0,1
+BRDA:129,9,1,0
+BRDA:135,10,0,0
+BRDA:136,11,0,0
+BRDA:137,12,0,0
+BRDA:138,13,0,0
+BRDA:140,14,0,0
+BRDA:140,14,1,0
+BRDA:143,15,0,0
+BRDA:153,16,0,1
+BRDA:153,16,1,0
+BRDA:153,17,0,1
+BRDA:153,17,1,1
+BRDA:156,18,0,0
+BRDA:156,18,1,0
+BRF:32
+BRH:14
+end_of_record
+TN:
+SF:src/modules/generation-ai/prompts/coding.prompt.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:3,generateCodingPrompt
 FNF:1
 FNH:0
@@ -8251,7 +10912,79 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\prompts\quantitative.prompt.ts
+=======
+SF:src/modules/generation-ai/prompts/prompt-manager.service.ts
+FN:7,(anonymous_2)
+FN:9,(anonymous_3)
+FN:15,(anonymous_4)
+FN:25,(anonymous_5)
+FN:38,(anonymous_6)
+FN:43,(anonymous_7)
+FN:70,(anonymous_8)
+FN:74,(anonymous_9)
+FNF:8
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+FNDA:0,(anonymous_9)
+DA:1,2
+DA:2,2
+DA:6,2
+DA:7,0
+DA:10,0
+DA:16,0
+DA:19,0
+DA:20,0
+DA:22,0
+DA:26,0
+DA:30,0
+DA:31,0
+DA:35,0
+DA:43,0
+DA:45,0
+DA:50,0
+DA:53,0
+DA:58,0
+DA:74,0
+DA:75,0
+DA:78,0
+DA:79,0
+DA:82,0
+DA:84,0
+DA:88,0
+DA:91,0
+DA:96,0
+DA:107,0
+LF:28
+LH:3
+BRDA:19,0,0,0
+BRDA:30,1,0,0
+BRDA:50,2,0,0
+BRDA:50,2,1,0
+BRDA:78,3,0,0
+BRDA:82,4,0,0
+BRDA:82,4,1,0
+BRDA:82,5,0,0
+BRDA:82,5,1,0
+BRDA:88,6,0,0
+BRDA:88,6,1,0
+BRDA:102,7,0,0
+BRDA:102,7,1,0
+BRDA:111,8,0,0
+BRDA:111,8,1,0
+BRF:15
+BRH:0
+end_of_record
+TN:
+SF:src/modules/generation-ai/prompts/quantitative.prompt.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:3,generateQuantitativePrompt
 FNF:1
 FNH:0
@@ -8382,6 +11115,7 @@ SF:apps\api\src\modules\generation-ai\scorers\question-quality.service.ts
 FN:14,(anonymous_2)
 FN:19,(anonymous_3)
 FNF:2
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -8409,6 +11143,35 @@ DA:55,0
 DA:56,0
 DA:62,0
 DA:63,0
+=======
+FNH:2
+FNDA:6,(anonymous_2)
+FNDA:104,(anonymous_3)
+DA:1,4
+DA:3,4
+DA:4,4
+DA:13,4
+DA:15,6
+DA:16,6
+DA:24,104
+DA:27,104
+DA:28,104
+DA:29,1
+DA:30,1
+DA:32,104
+DA:33,1
+DA:34,1
+DA:38,104
+DA:42,104
+DA:43,104
+DA:44,1
+DA:50,104
+DA:54,104
+DA:55,104
+DA:56,1
+DA:62,104
+DA:63,104
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:64,0
 DA:65,0
 DA:66,0
@@ -8470,6 +11233,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation-ai\validators\difficulty-validator.service.ts
 FN:6,(anonymous_1)
 FNF:1
@@ -8480,6 +11244,111 @@ DA:5,0
 DA:10,0
 DA:11,0
 DA:13,0
+=======
+SF:src/modules/generation-ai/services/generation-job.service.ts
+FN:8,(anonymous_2)
+FN:13,(anonymous_3)
+FN:33,(anonymous_4)
+FN:43,(anonymous_5)
+FN:71,(anonymous_6)
+FN:86,(anonymous_7)
+FNF:6
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+DA:1,0
+DA:2,0
+DA:3,0
+DA:7,0
+DA:9,0
+DA:10,0
+DA:19,0
+DA:28,0
+DA:30,0
+DA:34,0
+DA:37,0
+DA:38,0
+DA:40,0
+DA:52,0
+DA:53,0
+DA:58,0
+DA:65,0
+DA:71,0
+DA:77,0
+DA:78,0
+DA:87,0
+LF:21
+LH:0
+BRDA:37,0,0,0
+BRDA:83,1,0,0
+BRDA:83,1,1,0
+BRF:3
+BRH:0
+end_of_record
+TN:
+SF:src/modules/generation-ai/templates/template-library.service.ts
+FN:7,(anonymous_2)
+FN:9,(anonymous_3)
+FN:19,(anonymous_4)
+FN:32,(anonymous_5)
+FN:38,(anonymous_6)
+FN:53,(anonymous_7)
+FNF:6
+FNH:0
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+DA:1,2
+DA:2,2
+DA:6,2
+DA:7,0
+DA:10,0
+DA:13,0
+DA:14,0
+DA:16,0
+DA:20,0
+DA:24,0
+DA:25,0
+DA:29,0
+DA:33,0
+DA:43,0
+DA:57,0
+DA:60,0
+DA:61,0
+DA:64,0
+LF:18
+LH:3
+BRDA:13,0,0,0
+BRDA:24,1,0,0
+BRDA:60,2,0,0
+BRDA:67,3,0,0
+BRDA:67,3,1,0
+BRDA:69,4,0,0
+BRDA:69,4,1,0
+BRDA:73,5,0,0
+BRDA:73,5,1,0
+BRF:9
+BRH:0
+end_of_record
+TN:
+SF:src/modules/generation-ai/validators/difficulty-validator.service.ts
+FN:6,(anonymous_1)
+FNF:1
+FNH:1
+FNDA:205,(anonymous_1)
+DA:1,6
+DA:5,6
+DA:10,205
+DA:11,205
+DA:13,205
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:5
 LH:0
 BRDA:10,0,0,0
@@ -8496,6 +11365,7 @@ FN:14,(anonymous_3)
 FN:15,(anonymous_4)
 FN:35,(anonymous_5)
 FNF:4
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -8510,6 +11380,22 @@ DA:16,0
 DA:17,0
 DA:18,0
 DA:20,0
+=======
+FNH:4
+FNDA:3,(anonymous_2)
+FNDA:1,(anonymous_3)
+FNDA:2,(anonymous_4)
+FNDA:3,(anonymous_5)
+DA:1,4
+DA:2,4
+DA:11,4
+DA:12,3
+DA:15,1
+DA:16,2
+DA:17,1
+DA:18,1
+DA:20,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:21,0
 DA:24,0
 DA:25,0
@@ -8560,6 +11446,7 @@ SF:apps\api\src\modules\generation-ai\validators\response-parser.service.ts
 FN:8,(anonymous_1)
 FN:34,(anonymous_2)
 FNF:2
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -8583,6 +11470,31 @@ DA:33,0
 DA:34,0
 DA:36,0
 DA:39,0
+=======
+FNH:2
+FNDA:109,(anonymous_1)
+FNDA:1,(anonymous_2)
+DA:1,4
+DA:2,4
+DA:3,4
+DA:4,4
+DA:7,4
+DA:9,109
+DA:10,1
+DA:13,108
+DA:15,108
+DA:16,1
+DA:23,108
+DA:24,108
+DA:26,4
+DA:29,104
+DA:30,104
+DA:32,104
+DA:33,1
+DA:34,1
+DA:36,1
+DA:39,103
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:20
 LH:0
 BRDA:9,0,0,0
@@ -8599,6 +11511,7 @@ TN:
 SF:apps\api\src\modules\generation-ai\validators\topic-alignment.service.ts
 FN:11,(anonymous_1)
 FNF:1
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 DA:1,0
@@ -8617,6 +11530,26 @@ DA:40,0
 DA:45,0
 DA:46,0
 DA:48,0
+=======
+FNH:1
+FNDA:206,(anonymous_1)
+DA:1,6
+DA:10,6
+DA:15,206
+DA:16,206
+DA:18,206
+DA:23,202
+DA:27,4
+DA:34,4
+DA:35,4
+DA:36,4
+DA:38,4
+DA:39,19
+DA:40,14
+DA:45,4
+DA:46,4
+DA:48,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:16
 LH:0
 BRDA:15,0,0,0
@@ -8638,6 +11571,7 @@ BRF:15
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\controllers\generation.controller.ts
 FN:34,(anonymous_4)
 FN:50,(anonymous_5)
@@ -8645,6 +11579,15 @@ FN:65,(anonymous_6)
 FN:78,(anonymous_7)
 FN:100,(anonymous_8)
 FN:124,(anonymous_9)
+=======
+SF:src/modules/generation/controllers/generation.controller.ts
+FN:34,(anonymous_4)
+FN:50,(anonymous_5)
+FN:65,(anonymous_6)
+FN:83,(anonymous_7)
+FN:107,(anonymous_8)
+FN:131,(anonymous_9)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:6
 FNH:0
 FNDA:0,(anonymous_4)
@@ -8668,6 +11611,7 @@ DA:50,0
 DA:51,0
 DA:52,0
 DA:65,0
+<<<<<<< HEAD
 DA:66,0
 DA:67,0
 DA:78,0
@@ -8678,13 +11622,29 @@ DA:104,0
 DA:124,0
 DA:125,0
 DA:126,0
+=======
+DA:68,0
+DA:69,0
+DA:83,0
+DA:87,0
+DA:107,0
+DA:110,0
+DA:111,0
+DA:131,0
+DA:132,0
+DA:133,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:25
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\dto\generation.dto.ts
+=======
+SF:src/modules/generation/dto/generation.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -8707,7 +11667,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\services\generation-context.service.ts
+=======
+SF:src/modules/generation/services/generation-context.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:16,(anonymous_2)
 FN:18,(anonymous_3)
 FN:92,(anonymous_4)
@@ -8715,6 +11679,7 @@ FN:113,(anonymous_5)
 FN:114,(anonymous_6)
 FN:170,(anonymous_7)
 FNF:6
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -8728,6 +11693,21 @@ DA:15,0
 DA:16,0
 DA:20,0
 DA:45,0
+=======
+FNH:6
+FNDA:8,(anonymous_2)
+FNDA:4,(anonymous_3)
+FNDA:3,(anonymous_4)
+FNDA:3,(anonymous_5)
+FNDA:3,(anonymous_6)
+FNDA:2,(anonymous_7)
+DA:1,3
+DA:6,3
+DA:15,3
+DA:16,8
+DA:20,4
+DA:45,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:46,0
 DA:56,0
 DA:57,0
@@ -8776,7 +11756,11 @@ BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\services\generation-orchestrator.service.ts
+=======
+SF:src/modules/generation/services/generation-orchestrator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:20,(anonymous_2)
 FN:32,(anonymous_3)
 FN:46,(anonymous_4)
@@ -8801,6 +11785,7 @@ FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
+<<<<<<< HEAD
 FNDA:0,(anonymous_9)
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
@@ -8830,6 +11815,37 @@ DA:44,0
 DA:45,0
 DA:46,0
 DA:48,0
+=======
+FNDA:1,(anonymous_9)
+FNDA:1,(anonymous_10)
+FNDA:2,(anonymous_11)
+FNDA:1,(anonymous_12)
+FNDA:3,(anonymous_13)
+FNDA:3,(anonymous_14)
+FNDA:1,(anonymous_15)
+FNDA:3,(anonymous_16)
+DA:1,3
+DA:7,3
+DA:8,3
+DA:9,3
+DA:10,3
+DA:11,3
+DA:12,3
+DA:19,3
+DA:21,8
+DA:22,8
+DA:23,8
+DA:24,8
+DA:25,8
+DA:26,8
+DA:37,1
+DA:40,1
+DA:43,1
+DA:44,1
+DA:45,1
+DA:46,1
+DA:48,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:49,0
 DA:60,0
 DA:66,0
@@ -8948,7 +11964,11 @@ BRF:36
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\services\generation.service.ts
+=======
+SF:src/modules/generation/services/generation.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:23,(anonymous_2)
 FN:31,(anonymous_3)
 FN:78,(anonymous_4)
@@ -8992,11 +12012,16 @@ BRF:8
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\services\parameter-generator.service.ts
+=======
+SF:src/modules/generation/services/parameter-generator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:30,(anonymous_1)
 FN:87,(anonymous_2)
 FN:121,(anonymous_3)
 FNF:3
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -9018,21 +12043,53 @@ DA:46,0
 DA:47,0
 DA:48,0
 DA:56,0
+=======
+FNH:3
+FNDA:2,(anonymous_1)
+FNDA:2,(anonymous_2)
+FNDA:1,(anonymous_3)
+DA:1,3
+DA:26,3
+DA:31,2
+DA:32,2
+DA:33,2
+DA:35,2
+DA:36,2
+DA:38,2
+DA:39,2
+DA:40,2
+DA:43,2
+DA:44,2
+DA:45,2
+DA:46,2
+DA:47,2
+DA:48,0
+DA:56,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:57,0
 DA:58,0
 DA:59,0
 DA:60,0
 DA:61,0
 DA:64,0
+<<<<<<< HEAD
 DA:69,0
 DA:70,0
 DA:74,0
 DA:91,0
 DA:94,0
+=======
+DA:69,2
+DA:70,2
+DA:74,0
+DA:91,2
+DA:94,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:95,0
 DA:96,0
 DA:97,0
 DA:98,0
+<<<<<<< HEAD
 DA:103,0
 DA:104,0
 DA:105,0
@@ -9052,6 +12109,27 @@ DA:139,0
 DA:141,0
 DA:144,0
 DA:147,0
+=======
+DA:103,2
+DA:104,1
+DA:105,1
+DA:106,1
+DA:107,0
+DA:111,0
+DA:115,2
+DA:124,1
+DA:125,1
+DA:127,1
+DA:128,1
+DA:129,1
+DA:131,1
+DA:134,1
+DA:138,1
+DA:139,1
+DA:141,1
+DA:144,0
+DA:147,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:149,0
 DA:151,0
 DA:153,0
@@ -9063,6 +12141,7 @@ DA:161,0
 DA:163,0
 DA:165,0
 LF:61
+<<<<<<< HEAD
 LH:0
 BRDA:31,0,0,0
 BRDA:31,0,1,0
@@ -9075,6 +12154,20 @@ BRDA:44,3,1,0
 BRDA:45,4,0,0
 BRDA:45,4,1,0
 BRDA:46,5,0,0
+=======
+LH:36
+BRDA:31,0,0,2
+BRDA:31,0,1,1
+BRDA:32,1,0,2
+BRDA:32,1,1,1
+BRDA:33,2,0,2
+BRDA:33,2,1,1
+BRDA:44,3,0,2
+BRDA:44,3,1,0
+BRDA:45,4,0,2
+BRDA:45,4,1,0
+BRDA:46,5,0,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:46,5,1,0
 BRDA:47,6,0,0
 BRDA:57,7,0,0
@@ -9084,14 +12177,21 @@ BRDA:57,8,1,0
 BRDA:57,8,2,0
 BRDA:60,9,0,0
 BRDA:60,9,1,0
+<<<<<<< HEAD
 BRDA:69,10,0,0
 BRDA:91,11,0,0
 BRDA:91,11,1,0
+=======
+BRDA:69,10,0,2
+BRDA:91,11,0,2
+BRDA:91,11,1,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:94,12,0,0
 BRDA:97,13,0,0
 BRDA:104,14,0,0
 BRDA:106,15,0,0
 BRDA:125,16,0,0
+<<<<<<< HEAD
 BRDA:131,17,0,0
 BRDA:131,17,1,0
 BRDA:134,18,0,0
@@ -9106,6 +12206,22 @@ BRDA:141,23,0,0
 BRDA:141,23,1,0
 BRDA:141,23,2,0
 BRDA:141,23,3,0
+=======
+BRDA:131,17,0,1
+BRDA:131,17,1,0
+BRDA:134,18,0,1
+BRDA:134,18,1,0
+BRDA:138,19,0,0
+BRDA:138,20,0,1
+BRDA:138,20,1,0
+BRDA:139,21,0,0
+BRDA:139,22,0,1
+BRDA:139,22,1,0
+BRDA:141,23,0,0
+BRDA:141,23,1,0
+BRDA:141,23,2,1
+BRDA:141,23,3,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:141,23,4,0
 BRDA:141,23,5,0
 BRDA:141,23,6,0
@@ -9116,10 +12232,17 @@ BRDA:158,24,0,0
 BRDA:158,25,0,0
 BRDA:158,25,1,0
 BRF:51
+<<<<<<< HEAD
 BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\generation\services\question-instantiator.service.ts
+=======
+BRH:18
+end_of_record
+TN:
+SF:src/modules/generation/services/question-instantiator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:32,(anonymous_1)
 FN:45,(anonymous_2)
 FN:100,(anonymous_3)
@@ -9129,6 +12252,7 @@ FN:117,(anonymous_6)
 FN:159,(anonymous_7)
 FN:187,(anonymous_8)
 FNF:8
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -9153,6 +12277,32 @@ DA:46,0
 DA:50,0
 DA:53,0
 DA:59,0
+=======
+FNH:8
+FNDA:2,(anonymous_1)
+FNDA:6,(anonymous_2)
+FNDA:10,(anonymous_3)
+FNDA:4,(anonymous_4)
+FNDA:2,(anonymous_5)
+FNDA:2,(anonymous_6)
+FNDA:1,(anonymous_7)
+FNDA:2,(anonymous_8)
+DA:1,3
+DA:28,3
+DA:33,2
+DA:34,2
+DA:35,2
+DA:38,2
+DA:39,2
+DA:40,2
+DA:43,2
+DA:44,2
+DA:45,2
+DA:46,6
+DA:50,2
+DA:53,2
+DA:59,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:60,0
 DA:69,0
 DA:70,0
@@ -9231,7 +12381,11 @@ BRF:33
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\services\question-validation.service.ts
+=======
+SF:src/modules/generation/services/question-validation.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:25,(anonymous_2)
 FN:30,(anonymous_3)
 FN:54,(anonymous_4)
@@ -9239,6 +12393,7 @@ FN:95,(anonymous_5)
 FN:120,(anonymous_6)
 FN:134,(anonymous_7)
 FNF:6
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -9258,6 +12413,27 @@ DA:43,0
 DA:45,0
 DA:55,0
 DA:57,0
+=======
+FNH:6
+FNDA:8,(anonymous_2)
+FNDA:2,(anonymous_3)
+FNDA:2,(anonymous_4)
+FNDA:2,(anonymous_5)
+FNDA:2,(anonymous_6)
+FNDA:2,(anonymous_7)
+DA:1,3
+DA:2,3
+DA:24,3
+DA:25,8
+DA:31,2
+DA:34,2
+DA:37,2
+DA:40,2
+DA:43,2
+DA:45,2
+DA:55,2
+DA:57,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:58,0
 DA:61,0
 DA:62,0
@@ -9330,7 +12506,11 @@ BRF:33
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\generation\services\template-selector.service.ts
+=======
+SF:src/modules/generation/services/template-selector.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_2)
 FN:18,(anonymous_3)
 FN:42,(anonymous_4)
@@ -9349,6 +12529,7 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:10,0
@@ -9358,6 +12539,17 @@ DA:21,0
 DA:22,0
 DA:25,0
 DA:32,0
+=======
+DA:1,3
+DA:2,3
+DA:10,3
+DA:11,8
+DA:13,8
+DA:21,2
+DA:22,2
+DA:25,2
+DA:32,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:33,0
 DA:42,0
 DA:45,0
@@ -9415,7 +12607,11 @@ BRF:19
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\health\health.module.ts
+=======
+SF:src/modules/health/health.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -9430,7 +12626,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\health\index.ts
+=======
+SF:src/modules/health/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:3,(anonymous_4)
 FNF:1
 FNH:0
@@ -9444,7 +12644,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\health\controllers\health.controller.ts
+=======
+SF:src/modules/health/controllers/health.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:17,(anonymous_2)
 FN:34,(anonymous_3)
 FN:52,(anonymous_4)
@@ -9493,7 +12697,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\health\services\health.service.ts
+=======
+SF:src/modules/health/services/health.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:24,(anonymous_1)
 FN:42,(anonymous_2)
 FNF:2
@@ -9526,7 +12734,11 @@ BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\health\services\redis-health.indicator.ts
+=======
+SF:src/modules/health/services/redis-health.indicator.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:11,(anonymous_1)
 FNF:1
 FNH:0
@@ -9549,48 +12761,76 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\lifecycle\eligibility.service.ts
 FN:14,(anonymous_2)
 FN:20,(anonymous_3)
+=======
+SF:src/modules/lifecycle/eligibility.service.ts
+FN:15,(anonymous_2)
+FN:21,(anonymous_3)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:2
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
 DA:13,0
 DA:15,0
+=======
+DA:1,1
+DA:2,1
+DA:3,1
+DA:4,1
+DA:14,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:16,0
 DA:17,0
-DA:25,0
-DA:27,0
+DA:18,0
+DA:26,0
 DA:28,0
-DA:36,0
-DA:38,0
+DA:29,0
+DA:37,0
 DA:39,0
-DA:46,0
+DA:40,0
 DA:47,0
-DA:55,0
-DA:60,0
+DA:48,0
+DA:56,0
 DA:61,0
-DA:69,0
-DA:75,0
-DA:76,0
-DA:83,0
+DA:62,0
+DA:71,0
+DA:77,0
+DA:78,0
+DA:85,0
 LF:23
+<<<<<<< HEAD
 LH:0
 BRDA:27,0,0,0
 BRDA:38,1,0,0
 BRDA:46,2,0,0
 BRDA:60,3,0,0
 BRDA:75,4,0,0
+=======
+LH:5
+BRDA:28,0,0,0
+BRDA:39,1,0,0
+BRDA:47,2,0,0
+BRDA:61,3,0,0
+BRDA:77,4,0,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\lifecycle\lifecycle.module.ts
+=======
+SF:src/modules/lifecycle/lifecycle.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -9605,7 +12845,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\platform\platform.module.ts
+=======
+SF:src/modules/platform/platform.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -9630,7 +12874,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\platform\audit\platform-audit.service.ts
+=======
+SF:src/modules/platform/audit/platform-audit.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:35,(anonymous_2)
 FN:40,(anonymous_3)
 FN:70,(anonymous_4)
@@ -9763,7 +13011,11 @@ BRF:42
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\platform\controllers\platform-metrics.controller.ts
+=======
+SF:src/modules/platform/controllers/platform-metrics.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:21,(anonymous_4)
 FN:36,(anonymous_5)
 FN:44,(anonymous_6)
@@ -10252,7 +13504,11 @@ BRF:7
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\question-bank.module.ts
+=======
+SF:src/modules/question-bank/question-bank.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -10275,7 +13531,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\controllers\question-bank.controller.ts
+=======
+SF:src/modules/question-bank/controllers/question-bank.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:52,(anonymous_4)
 FN:66,(anonymous_5)
 FN:84,(anonymous_6)
@@ -10393,7 +13653,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\dto\assembly-provider.dto.ts
+=======
+SF:src/modules/question-bank/dto/assembly-provider.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:51,(anonymous_2)
 FNF:1
 FNH:0
@@ -10420,7 +13684,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\dto\question-bank.dto.ts
+=======
+SF:src/modules/question-bank/dto/question-bank.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:123,(anonymous_2)
 FN:158,(anonymous_3)
 FN:166,(anonymous_4)
@@ -10480,7 +13748,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\entities\question.entity.ts
+=======
+SF:src/modules/question-bank/entities/question.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -10508,7 +13780,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\repositories\question-review.repository.ts
+=======
+SF:src/modules/question-bank/repositories/question-review.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:17,(anonymous_4)
@@ -10517,12 +13793,21 @@ FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:6,0
 DA:7,0
 DA:13,0
 DA:14,0
+=======
+DA:1,3
+DA:2,3
+DA:6,3
+DA:7,12
+DA:13,3
+DA:14,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:18,0
 LF:7
 LH:0
@@ -10532,7 +13817,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\repositories\question-version.repository.ts
+=======
+SF:src/modules/question-bank/repositories/question-version.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:17,(anonymous_4)
@@ -10543,12 +13832,21 @@ FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:6,0
 DA:7,0
 DA:13,0
 DA:14,0
+=======
+DA:1,5
+DA:2,5
+DA:6,5
+DA:7,12
+DA:13,4
+DA:14,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:21,0
 DA:22,0
 DA:23,0
@@ -10563,7 +13861,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\repositories\question.repository.ts
+=======
+SF:src/modules/question-bank/repositories/question.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:17,(anonymous_4)
@@ -10583,6 +13885,7 @@ FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
+<<<<<<< HEAD
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
 FNDA:0,(anonymous_10)
@@ -10593,6 +13896,18 @@ DA:2,0
 DA:3,0
 DA:6,0
 DA:7,0
+=======
+FNDA:1,(anonymous_8)
+FNDA:1,(anonymous_9)
+FNDA:1,(anonymous_10)
+FNDA:3,(anonymous_11)
+FNDA:2,(anonymous_12)
+DA:1,5
+DA:2,5
+DA:3,5
+DA:6,5
+DA:7,12
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:13,0
 DA:14,0
 DA:21,0
@@ -10633,7 +13948,11 @@ BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-bank.service.ts
+=======
+SF:src/modules/question-bank/services/question-bank.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:21,(anonymous_2)
 FN:31,(anonymous_3)
 FN:32,(anonymous_4)
@@ -10657,6 +13976,7 @@ FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
+<<<<<<< HEAD
 FNDA:0,(anonymous_12)
 DA:1,0
 DA:6,0
@@ -10670,6 +13990,21 @@ DA:22,0
 DA:23,0
 DA:24,0
 DA:25,0
+=======
+FNDA:1,(anonymous_12)
+DA:1,3
+DA:6,3
+DA:7,3
+DA:8,3
+DA:9,3
+DA:16,3
+DA:17,3
+DA:20,3
+DA:22,12
+DA:23,12
+DA:24,12
+DA:25,12
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:32,0
 DA:34,0
 DA:51,0
@@ -10778,7 +14113,11 @@ BRF:46
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-reservation.service.ts
+=======
+SF:src/modules/question-bank/services/question-reservation.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:17,(anonymous_3)
 FN:29,(anonymous_4)
@@ -10837,7 +14176,11 @@ BRF:7
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-review.service.ts
+=======
+SF:src/modules/question-bank/services/question-review.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:25,(anonymous_3)
 FN:26,(anonymous_4)
@@ -10846,6 +14189,7 @@ FN:70,(anonymous_6)
 FN:116,(anonymous_7)
 FN:117,(anonymous_8)
 FNF:7
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -10868,6 +14212,30 @@ DA:18,0
 DA:26,0
 DA:27,0
 DA:28,0
+=======
+FNH:7
+FNDA:12,(anonymous_2)
+FNDA:2,(anonymous_3)
+FNDA:2,(anonymous_4)
+FNDA:1,(anonymous_5)
+FNDA:1,(anonymous_6)
+FNDA:1,(anonymous_7)
+FNDA:1,(anonymous_8)
+DA:1,3
+DA:6,3
+DA:7,3
+DA:8,3
+DA:9,3
+DA:10,3
+DA:13,3
+DA:15,12
+DA:16,12
+DA:17,12
+DA:18,12
+DA:26,2
+DA:27,2
+DA:28,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:29,0
 DA:32,0
 DA:33,0
@@ -10911,7 +14279,11 @@ BRF:10
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-rotation.service.ts
+=======
+SF:src/modules/question-bank/services/question-rotation.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:17,(anonymous_2)
 FN:25,(anonymous_3)
 FN:41,(anonymous_4)
@@ -11034,7 +14406,11 @@ BRF:25
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-search.service.ts
+=======
+SF:src/modules/question-bank/services/question-search.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:17,(anonymous_2)
 FN:22,(anonymous_3)
 FNF:2
@@ -11084,7 +14460,11 @@ BRF:13
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-similarity.service.ts
+=======
+SF:src/modules/question-bank/services/question-similarity.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:17,(anonymous_3)
 FN:22,(anonymous_4)
@@ -11142,7 +14522,11 @@ BRF:8
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-usage.service.ts
+=======
+SF:src/modules/question-bank/services/question-usage.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FN:15,(anonymous_3)
 FN:22,(anonymous_4)
@@ -11194,7 +14578,11 @@ BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-bank\services\question-version.service.ts
+=======
+SF:src/modules/question-bank/services/question-version.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:12,(anonymous_3)
 FN:45,(anonymous_4)
@@ -11203,12 +14591,21 @@ FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:6,0
 DA:7,0
 DA:17,0
 DA:32,0
+=======
+DA:1,3
+DA:2,3
+DA:6,3
+DA:7,12
+DA:17,4
+DA:32,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:46,0
 LF:7
 LH:0
@@ -11218,7 +14615,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-pool\question-pool.module.ts
+=======
+SF:src/modules/question-pool/question-pool.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -11232,7 +14633,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-pool\repositories\generated-question.repository.ts
+=======
+SF:src/modules/question-pool/repositories/generated-question.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -11258,7 +14663,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-pool\services\question-pool.service.ts
+=======
+SF:src/modules/question-pool/services/question-pool.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:11,(anonymous_3)
 FNF:2
@@ -11276,7 +14685,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\question-review\question-review.module.ts
+=======
+SF:src/modules/question-review/question-review.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:26,(anonymous_1)
 FNF:1
 FNH:0
@@ -11309,6 +14722,7 @@ TN:
 SF:apps\api\src\modules\question-review\analyzers\difficulty-analyzer.service.ts
 FN:21,(anonymous_1)
 FNF:1
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 DA:1,0
@@ -11332,6 +14746,31 @@ DA:86,0
 DA:87,0
 DA:88,0
 DA:89,0
+=======
+FNH:1
+FNDA:6,(anonymous_1)
+DA:1,5
+DA:20,5
+DA:22,6
+DA:23,6
+DA:24,6
+DA:29,6
+DA:31,6
+DA:55,6
+DA:69,6
+DA:70,6
+DA:72,6
+DA:73,126
+DA:74,11
+DA:78,6
+DA:79,66
+DA:80,6
+DA:84,6
+DA:86,6
+DA:87,2
+DA:88,4
+DA:89,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:91,0
 DA:95,0
 DA:96,0
@@ -11373,6 +14812,7 @@ FN:115,(anonymous_4)
 FN:121,(anonymous_5)
 FN:126,(anonymous_6)
 FNF:6
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -11409,6 +14849,44 @@ DA:125,0
 DA:126,0
 DA:128,0
 DA:129,0
+=======
+FNH:6
+FNDA:3,(anonymous_1)
+FNDA:18,(anonymous_2)
+FNDA:18,(anonymous_3)
+FNDA:3,(anonymous_4)
+FNDA:3,(anonymous_5)
+FNDA:3,(anonymous_6)
+DA:1,4
+DA:18,4
+DA:20,3
+DA:21,3
+DA:22,3
+DA:23,3
+DA:24,3
+DA:28,18
+DA:29,18
+DA:30,3
+DA:31,3
+DA:32,3
+DA:36,3
+DA:37,3
+DA:38,3
+DA:39,3
+DA:40,3
+DA:55,3
+DA:112,3
+DA:115,3
+DA:116,3
+DA:118,3
+DA:119,3
+DA:120,3
+DA:122,3
+DA:125,3
+DA:126,3
+DA:128,3
+DA:129,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:131,0
 DA:135,0
 LF:31
@@ -11443,6 +14921,7 @@ FN:12,(anonymous_1)
 FN:70,(anonymous_2)
 FN:79,(anonymous_3)
 FNF:3
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -11466,6 +14945,31 @@ DA:39,0
 DA:40,0
 DA:42,0
 DA:43,0
+=======
+FNH:3
+FNDA:6,(anonymous_1)
+FNDA:18,(anonymous_2)
+FNDA:10,(anonymous_3)
+DA:1,5
+DA:11,5
+DA:15,6
+DA:16,6
+DA:19,6
+DA:20,1
+DA:21,1
+DA:25,6
+DA:26,1
+DA:27,1
+DA:31,6
+DA:32,1
+DA:33,1
+DA:37,6
+DA:38,6
+DA:39,1
+DA:40,1
+DA:42,5
+DA:43,5
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:44,0
 DA:45,0
 DA:46,0
@@ -11529,6 +15033,7 @@ FNF:2
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
+<<<<<<< HEAD
 DA:1,0
 DA:17,0
 DA:19,0
@@ -11550,6 +15055,29 @@ DA:105,0
 DA:106,0
 DA:110,0
 DA:111,0
+=======
+DA:1,5
+DA:17,5
+DA:19,5
+DA:20,5
+DA:21,5
+DA:22,5
+DA:25,5
+DA:86,5
+DA:87,5
+DA:89,5
+DA:90,25
+DA:91,25
+DA:92,240
+DA:93,11
+DA:97,25
+DA:98,5
+DA:99,5
+DA:105,5
+DA:106,5
+DA:110,1
+DA:111,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:115,0
 DA:116,0
 DA:118,0
@@ -11730,6 +15258,7 @@ FN:34,(anonymous_2)
 FN:124,(anonymous_3)
 FN:125,(anonymous_4)
 FNF:4
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -11742,6 +15271,20 @@ DA:24,0
 DA:27,0
 DA:28,0
 DA:29,0
+=======
+FNH:4
+FNDA:3,(anonymous_1)
+FNDA:18,(anonymous_2)
+FNDA:18,(anonymous_3)
+FNDA:18,(anonymous_4)
+DA:1,4
+DA:21,4
+DA:23,3
+DA:24,3
+DA:27,3
+DA:28,3
+DA:29,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:30,0
 DA:31,0
 DA:34,0
@@ -11784,12 +15327,21 @@ FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
 DA:6,0
 DA:8,0
 DA:9,0
+=======
+DA:1,4
+DA:2,4
+DA:3,4
+DA:6,4
+DA:8,3
+DA:9,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:13,0
 DA:14,0
 DA:24,0
@@ -11825,6 +15377,7 @@ FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:28,(anonymous_4)
 FNF:3
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -11836,6 +15389,19 @@ DA:7,0
 DA:12,0
 DA:13,0
 DA:14,0
+=======
+FNH:3
+FNDA:3,(anonymous_2)
+FNDA:4,(anonymous_3)
+FNDA:2,(anonymous_4)
+DA:1,4
+DA:2,4
+DA:6,4
+DA:7,3
+DA:12,4
+DA:13,4
+DA:14,4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:15,0
 DA:17,0
 DA:32,0
@@ -11863,12 +15429,21 @@ FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:6,0
 DA:7,0
 DA:13,0
 DA:14,0
+=======
+DA:1,4
+DA:2,4
+DA:6,4
+DA:7,3
+DA:13,2
+DA:14,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:18,0
 DA:30,0
 LF:8
@@ -11884,6 +15459,7 @@ FN:24,(anonymous_2)
 FN:39,(anonymous_3)
 FN:148,(anonymous_4)
 FNF:3
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -11917,6 +15493,41 @@ DA:35,0
 DA:36,0
 DA:41,0
 DA:42,0
+=======
+FNH:3
+FNDA:4,(anonymous_2)
+FNDA:3,(anonymous_3)
+FNDA:3,(anonymous_4)
+DA:1,4
+DA:2,4
+DA:3,4
+DA:4,4
+DA:5,4
+DA:6,4
+DA:7,4
+DA:8,4
+DA:9,4
+DA:10,4
+DA:11,4
+DA:12,4
+DA:13,4
+DA:14,4
+DA:23,4
+DA:25,4
+DA:26,4
+DA:27,4
+DA:28,4
+DA:29,4
+DA:30,4
+DA:31,4
+DA:32,4
+DA:33,4
+DA:34,4
+DA:35,4
+DA:36,4
+DA:41,3
+DA:42,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:43,0
 DA:47,0
 DA:48,0
@@ -11991,6 +15602,7 @@ TN:
 SF:apps\api\src\modules\question-review\reviewers\approval-engine.service.ts
 FN:10,(anonymous_1)
 FNF:1
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 DA:1,0
@@ -12002,6 +15614,19 @@ DA:22,0
 DA:26,0
 DA:27,0
 DA:32,0
+=======
+FNH:1
+FNDA:7,(anonymous_1)
+DA:1,5
+DA:9,5
+DA:14,7
+DA:15,1
+DA:21,6
+DA:22,4
+DA:26,2
+DA:27,1
+DA:32,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:9
 LH:0
 BRDA:12,0,0,0
@@ -12023,11 +15648,19 @@ FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:5,0
 DA:6,0
 DA:14,0
+=======
+DA:1,4
+DA:2,4
+DA:5,4
+DA:6,3
+DA:14,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:23,0
 LF:6
 LH:0
@@ -12035,7 +15668,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\queue-monitor\index.ts
+=======
+SF:src/modules/queue-monitor/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_0)
 FN:2,(anonymous_1)
 FNF:2
@@ -12050,7 +15687,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\queue-monitor\queue-monitor.module.ts
+=======
+SF:src/modules/queue-monitor/queue-monitor.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -12062,7 +15703,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\queue-monitor\controllers\queue-monitor.controller.ts
+=======
+SF:src/modules/queue-monitor/controllers/queue-monitor.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:32,(anonymous_4)
 FN:45,(anonymous_5)
 FN:55,(anonymous_6)
@@ -12101,7 +15746,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\index.ts
+=======
+SF:src/modules/results/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -12112,7 +15761,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\results.module.ts
+=======
+SF:src/modules/results/results.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -12126,14 +15779,25 @@ DA:8,0
 DA:9,0
 DA:10,0
 DA:11,0
+<<<<<<< HEAD
 DA:35,0
 LF:12
+=======
+DA:12,0
+DA:13,0
+DA:38,0
+LF:14
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\controllers\performance.controller.ts
+=======
+SF:src/modules/results/controllers/performance.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:32,(anonymous_4)
 FN:41,(anonymous_5)
 FN:54,(anonymous_6)
@@ -12163,15 +15827,25 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\controllers\results.controller.ts
 FN:34,(anonymous_4)
 FN:53,(anonymous_5)
 FN:74,(anonymous_6)
 FNF:3
+=======
+SF:src/modules/results/controllers/results.controller.ts
+FN:33,(anonymous_4)
+FN:49,(anonymous_5)
+FN:69,(anonymous_6)
+FN:96,(anonymous_7)
+FNF:4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNH:0
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
 DA:1,0
 DA:8,0
 DA:18,0
@@ -12179,22 +15853,30 @@ DA:19,0
 DA:20,0
 DA:21,0
 DA:22,0
+DA:23,0
 DA:24,0
-DA:25,0
-DA:33,0
+DA:32,0
+DA:34,0
 DA:35,0
-DA:36,0
-DA:53,0
-DA:57,0
-DA:74,0
+DA:49,0
+DA:50,0
+DA:69,0
+DA:73,0
+DA:75,0
 DA:78,0
-LF:16
+DA:96,0
+DA:100,0
+LF:20
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\mappers\history.mapper.ts
+=======
+SF:src/modules/results/mappers/history.mapper.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_0)
 FN:16,(anonymous_1)
 FNF:2
@@ -12210,7 +15892,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\mappers\performance.mapper.ts
+=======
+SF:src/modules/results/mappers/performance.mapper.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:4,(anonymous_0)
 FNF:1
 FNH:0
@@ -12223,7 +15909,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\mappers\recommendation.mapper.ts
+=======
+SF:src/modules/results/mappers/recommendation.mapper.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_0)
 FN:18,(anonymous_1)
 FNF:2
@@ -12239,7 +15929,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\mappers\result.mapper.ts
+=======
+SF:src/modules/results/mappers/result.mapper.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,(anonymous_0)
 FN:22,(anonymous_1)
 FNF:2
@@ -12257,7 +15951,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\repositories\evaluation.repository.ts
+=======
+SF:src/modules/results/repositories/evaluation.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_4)
 FN:21,(anonymous_5)
 FN:25,(anonymous_6)
@@ -12272,11 +15970,19 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
 DA:8,0
+=======
+DA:1,3
+DA:2,3
+DA:3,3
+DA:4,3
+DA:8,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:18,0
 DA:22,0
 DA:26,0
@@ -12291,7 +15997,11 @@ DA:69,0
 DA:78,0
 DA:82,0
 LF:18
+<<<<<<< HEAD
 LH:0
+=======
+LH:5
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:32,0,0,0
 BRDA:48,1,0,0
 BRDA:48,1,1,0
@@ -12307,7 +16017,11 @@ BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\repositories\performance.repository.ts
+=======
+SF:src/modules/results/repositories/performance.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_2)
 FN:8,(anonymous_3)
 FN:36,(anonymous_4)
@@ -12316,9 +16030,15 @@ FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:5,0
+=======
+DA:1,1
+DA:2,1
+DA:5,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:6,0
 DA:9,0
 DA:22,0
@@ -12326,7 +16046,11 @@ DA:28,0
 DA:37,0
 DA:41,0
 LF:9
+<<<<<<< HEAD
 LH:0
+=======
+LH:3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:30,0,0,0
 BRDA:30,0,1,0
 BRDA:31,1,0,0
@@ -12339,7 +16063,11 @@ BRF:8
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\repositories\recommendation.repository.ts
+=======
+SF:src/modules/results/repositories/recommendation.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -12362,7 +16090,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\services\dashboard-metrics-aggregator.ts
+=======
+SF:src/modules/results/services/dashboard-metrics-aggregator.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:5,(anonymous_0)
 FN:14,(anonymous_1)
 FNF:2
@@ -12378,7 +16110,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\services\evaluation-persistence.service.ts
+=======
+SF:src/modules/results/services/evaluation-persistence.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:43,(anonymous_0)
 FN:58,(anonymous_1)
 FN:71,(anonymous_2)
@@ -12418,7 +16154,11 @@ BRF:8
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\services\performance.service.ts
+=======
+SF:src/modules/results/services/performance.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:19,(anonymous_3)
 FN:27,(anonymous_4)
@@ -12447,7 +16187,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\services\recommendations.service.ts
+=======
+SF:src/modules/results/services/recommendations.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FN:14,(anonymous_3)
 FN:25,(anonymous_4)
@@ -12485,6 +16229,7 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\results\services\results.service.ts
 FN:12,(anonymous_2)
 FN:14,(anonymous_3)
@@ -12525,6 +16270,193 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\results\tests\results.integration.spec.ts
+=======
+SF:src/modules/results/services/results.service.ts
+FN:15,(anonymous_2)
+FN:21,(anonymous_3)
+FN:39,(anonymous_4)
+FN:69,(anonymous_5)
+FN:83,(anonymous_6)
+FN:88,(anonymous_7)
+FN:148,(anonymous_8)
+FN:153,(anonymous_9)
+FN:166,(anonymous_10)
+FN:212,(anonymous_11)
+FN:217,(anonymous_12)
+FN:224,(anonymous_13)
+FN:249,(anonymous_14)
+FN:270,(anonymous_15)
+FNF:14
+FNH:4
+FNDA:3,(anonymous_2)
+FNDA:3,(anonymous_3)
+FNDA:3,(anonymous_4)
+FNDA:0,(anonymous_5)
+FNDA:0,(anonymous_6)
+FNDA:0,(anonymous_7)
+FNDA:0,(anonymous_8)
+FNDA:0,(anonymous_9)
+FNDA:0,(anonymous_10)
+FNDA:0,(anonymous_11)
+FNDA:1,(anonymous_12)
+FNDA:0,(anonymous_13)
+FNDA:0,(anonymous_14)
+FNDA:0,(anonymous_15)
+DA:1,2
+DA:2,2
+DA:3,2
+DA:4,2
+DA:5,2
+DA:10,2
+DA:14,2
+DA:16,3
+DA:17,3
+DA:18,3
+DA:23,3
+DA:24,3
+DA:26,1
+DA:30,1
+DA:31,1
+DA:33,0
+DA:35,2
+DA:40,3
+DA:42,2
+DA:43,1
+DA:46,1
+DA:47,1
+DA:48,1
+DA:52,0
+DA:64,0
+DA:65,0
+DA:68,0
+DA:69,0
+DA:74,0
+DA:76,0
+DA:78,0
+DA:79,0
+DA:80,0
+DA:81,0
+DA:83,0
+DA:84,0
+DA:85,0
+DA:86,0
+DA:88,0
+DA:89,0
+DA:90,0
+DA:91,0
+DA:93,0
+DA:95,0
+DA:96,0
+DA:97,0
+DA:101,0
+DA:102,0
+DA:103,0
+DA:104,0
+DA:107,0
+DA:109,0
+DA:112,0
+DA:113,0
+DA:117,0
+DA:118,0
+DA:119,0
+DA:121,0
+DA:122,0
+DA:123,0
+DA:126,0
+DA:127,0
+DA:128,0
+DA:130,0
+DA:131,0
+DA:132,0
+DA:135,0
+DA:136,0
+DA:148,0
+DA:153,0
+DA:166,0
+DA:181,0
+DA:185,0
+DA:213,0
+DA:218,1
+DA:225,0
+DA:229,0
+DA:230,0
+DA:234,0
+DA:239,0
+DA:240,0
+DA:244,0
+DA:249,0
+DA:258,0
+DA:261,0
+DA:262,0
+DA:264,0
+DA:273,0
+DA:278,0
+DA:279,0
+DA:280,0
+DA:281,0
+DA:282,0
+DA:285,0
+DA:296,0
+LF:95
+LH:23
+BRDA:24,0,0,1
+BRDA:30,1,0,1
+BRDA:42,2,0,1
+BRDA:47,3,0,1
+BRDA:64,4,0,0
+BRDA:80,5,0,0
+BRDA:80,5,1,0
+BRDA:95,6,0,0
+BRDA:95,6,1,0
+BRDA:101,7,0,0
+BRDA:101,7,1,0
+BRDA:101,7,2,0
+BRDA:103,8,0,0
+BRDA:103,8,1,0
+BRDA:103,9,0,0
+BRDA:103,9,1,0
+BRDA:107,10,0,0
+BRDA:112,11,0,0
+BRDA:117,12,0,0
+BRDA:117,12,1,0
+BRDA:117,12,2,0
+BRDA:118,13,0,0
+BRDA:122,14,0,0
+BRDA:126,15,0,0
+BRDA:126,15,1,0
+BRDA:126,15,2,0
+BRDA:127,16,0,0
+BRDA:131,17,0,0
+BRDA:135,18,0,0
+BRDA:135,18,1,0
+BRDA:141,19,0,0
+BRDA:141,19,1,0
+BRDA:156,20,0,0
+BRDA:156,20,1,0
+BRDA:169,21,0,0
+BRDA:169,21,1,0
+BRDA:181,22,0,0
+BRDA:181,22,1,0
+BRDA:200,23,0,0
+BRDA:200,23,1,0
+BRDA:207,24,0,0
+BRDA:207,24,1,0
+BRDA:213,25,0,0
+BRDA:213,25,1,0
+BRDA:229,26,0,0
+BRDA:239,27,0,0
+BRDA:248,28,0,0
+BRDA:248,28,1,0
+BRDA:252,29,0,0
+BRDA:252,29,1,0
+BRDA:253,30,0,0
+BRDA:253,30,1,0
+BRF:52
+BRH:4
+end_of_record
+TN:
+SF:src/modules/results/tests/results.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:11,(anonymous_1)
 FN:20,(anonymous_2)
 FN:85,(anonymous_3)
@@ -12611,7 +16543,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\rule-flags\rule-flags.module.ts
+=======
+SF:src/modules/rule-flags/rule-flags.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -12625,7 +16561,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\rule-flags\controllers\rule-flags.controller.ts
+=======
+SF:src/modules/rule-flags/controllers/rule-flags.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:37,(anonymous_4)
 FN:44,(anonymous_5)
 FN:55,(anonymous_6)
@@ -12661,7 +16601,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\rule-flags\repositories\rule-flags.repository.ts
+=======
+SF:src/modules/rule-flags/repositories/rule-flags.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_2)
 FN:9,(anonymous_3)
 FN:15,(anonymous_4)
@@ -12689,7 +16633,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\rule-flags\services\rule-flags.service.ts
+=======
+SF:src/modules/rule-flags/services/rule-flags.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:14,(anonymous_3)
 FN:41,(anonymous_4)
@@ -12727,7 +16675,11 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\index.ts
+=======
+SF:src/modules/template-library/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_0)
 FN:2,(anonymous_1)
 FN:3,(anonymous_2)
@@ -12760,7 +16712,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\template-library.module.ts
+=======
+SF:src/modules/template-library/template-library.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -12783,7 +16739,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\controllers\template-rule.controller.ts
+=======
+SF:src/modules/template-library/controllers/template-rule.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:40,(anonymous_4)
 FN:47,(anonymous_5)
 FN:58,(anonymous_6)
@@ -12820,7 +16780,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\controllers\template-variable.controller.ts
+=======
+SF:src/modules/template-library/controllers/template-variable.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:43,(anonymous_4)
 FN:50,(anonymous_5)
 FN:61,(anonymous_6)
@@ -12857,7 +16821,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\controllers\template.controller.ts
+=======
+SF:src/modules/template-library/controllers/template.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:58,(anonymous_4)
 FN:70,(anonymous_5)
 FN:86,(anonymous_6)
@@ -12940,7 +16908,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\repositories\solution-template.repository.ts
+=======
+SF:src/modules/template-library/repositories/solution-template.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -12963,7 +16935,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\repositories\template-preview.repository.ts
+=======
+SF:src/modules/template-library/repositories/template-preview.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -12989,7 +16965,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\repositories\template-rule.repository.ts
+=======
+SF:src/modules/template-library/repositories/template-rule.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FNF:2
@@ -13009,7 +16989,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\repositories\template-variable.repository.ts
+=======
+SF:src/modules/template-library/repositories/template-variable.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FNF:2
@@ -13029,7 +17013,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\repositories\template.repository.ts
+=======
+SF:src/modules/template-library/repositories/template.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -13063,7 +17051,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\services\placeholder-validator.service.ts
+=======
+SF:src/modules/template-library/services/placeholder-validator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_1)
 FN:26,(anonymous_2)
 FN:30,(anonymous_3)
@@ -13091,7 +17083,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\services\solution-template.integration.spec.ts
+=======
+SF:src/modules/template-library/services/solution-template.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:4,(anonymous_0)
 FN:5,(anonymous_1)
 FNF:2
@@ -13107,7 +17103,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\services\solution-template.service.ts
+=======
+SF:src/modules/template-library/services/solution-template.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:20,(anonymous_2)
 FN:29,(anonymous_3)
 FN:53,(anonymous_4)
@@ -13195,7 +17195,11 @@ BRF:11
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\services\template-renderer.service.ts
+=======
+SF:src/modules/template-library/services/template-renderer.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_1)
 FN:19,(anonymous_2)
 FNF:2
@@ -13227,7 +17231,11 @@ BRF:5
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\template-library\services\template.service.ts
+=======
+SF:src/modules/template-library/services/template.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:54,(anonymous_2)
 FN:65,(anonymous_3)
 FN:107,(anonymous_4)
@@ -13771,7 +17779,11 @@ BRF:167
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\test-assembly\index.ts
+=======
+SF:src/modules/test-assembly/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -13782,7 +17794,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\test-assembly\test-assembly.module.ts
+=======
+SF:src/modules/test-assembly/test-assembly.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -13797,7 +17813,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\test-assembly\controllers\test-assembly.controller.ts
+=======
+SF:src/modules/test-assembly/controllers/test-assembly.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:23,(anonymous_4)
 FN:27,(anonymous_5)
 FN:38,(anonymous_6)
@@ -13834,7 +17854,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\test-assembly\repositories\test.repository.ts
+=======
+SF:src/modules/test-assembly/repositories/test.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -13875,7 +17899,11 @@ BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\test-assembly\services\test-assembly.service.ts
+=======
+SF:src/modules/test-assembly/services/test-assembly.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:17,(anonymous_3)
 FN:21,(anonymous_4)
@@ -13905,7 +17933,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\tests.integration.spec.ts
+=======
+SF:src/modules/tests/tests.integration.spec.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:40,(anonymous_0)
 FN:43,(anonymous_1)
 FN:52,(anonymous_2)
@@ -13986,7 +18018,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\tests.module.ts
+=======
+SF:src/modules/tests/tests.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14002,7 +18038,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\controllers\tests.controller.ts
+=======
+SF:src/modules/tests/controllers/tests.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:23,(anonymous_2)
 FN:49,(anonymous_3)
 FNF:2
@@ -14026,7 +18066,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\dto\available-config.dto.ts
+=======
+SF:src/modules/tests/dto/available-config.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14045,7 +18089,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\repositories\test-config.repository.ts
+=======
+SF:src/modules/tests/repositories/test-config.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -14068,16 +18116,26 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\repositories\tests.repository.ts
+=======
+SF:src/modules/tests/repositories/tests.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_2)
 FN:13,(anonymous_3)
 FNF:2
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:5,0
+=======
+DA:1,1
+DA:2,1
+DA:5,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:6,0
 DA:14,0
 LF:5
@@ -14086,6 +18144,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\services\tests.service.ts
 FN:11,(anonymous_2)
 FN:21,(anonymous_3)
@@ -14108,11 +18167,39 @@ DA:35,0
 DA:40,0
 LF:9
 LH:0
+=======
+SF:src/modules/tests/services/tests.service.ts
+FN:11,(anonymous_2)
+FN:21,(anonymous_3)
+FN:28,(anonymous_4)
+FN:36,(anonymous_5)
+FNF:4
+FNH:4
+FNDA:4,(anonymous_2)
+FNDA:3,(anonymous_3)
+FNDA:3,(anonymous_4)
+FNDA:9,(anonymous_5)
+DA:1,1
+DA:2,1
+DA:10,1
+DA:11,4
+DA:25,3
+DA:28,3
+DA:29,3
+DA:36,9
+DA:42,3
+LF:9
+LH:9
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\start-test\question-provider.service.ts
+=======
+SF:src/modules/tests/start-test/question-provider.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_2)
 FN:18,(anonymous_3)
 FNF:2
@@ -14138,7 +18225,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\start-test\start-test.controller.ts
+=======
+SF:src/modules/tests/start-test/start-test.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:29,(anonymous_4)
 FN:66,(anonymous_5)
 FNF:2
@@ -14208,7 +18299,11 @@ BRF:23
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\start-test\start-test.module.ts
+=======
+SF:src/modules/tests/start-test/start-test.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14228,11 +18323,16 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\start-test\start-test.service.ts
+=======
+SF:src/modules/tests/start-test/start-test.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:15,(anonymous_2)
 FN:22,(anonymous_3)
-FN:66,(anonymous_4)
+FN:81,(anonymous_4)
 FNF:3
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
@@ -14296,6 +18396,79 @@ BRH:0
 end_of_record
 TN:
 SF:apps\api\src\modules\tests\start-test\dto\start-test.dto.ts
+=======
+FNH:3
+FNDA:6,(anonymous_2)
+FNDA:6,(anonymous_3)
+FNDA:5,(anonymous_4)
+DA:1,1
+DA:7,1
+DA:8,1
+DA:9,1
+DA:10,1
+DA:11,1
+DA:14,1
+DA:16,6
+DA:17,6
+DA:18,6
+DA:19,6
+DA:24,6
+DA:29,6
+DA:30,2
+DA:35,0
+DA:38,0
+DA:45,2
+DA:51,4
+DA:55,4
+DA:56,1
+DA:63,3
+DA:65,3
+DA:66,3
+DA:67,3
+DA:75,2
+DA:81,5
+DA:89,1
+DA:90,1
+DA:91,1
+DA:97,1
+DA:99,0
+DA:100,0
+DA:103,0
+DA:110,2
+DA:111,2
+DA:113,2
+DA:121,1
+DA:122,0
+DA:129,1
+LF:39
+LH:33
+BRDA:29,0,0,2
+BRDA:30,1,0,0
+BRDA:31,2,0,2
+BRDA:31,2,1,0
+BRDA:42,3,0,0
+BRDA:42,3,1,0
+BRDA:46,4,0,2
+BRDA:46,4,1,2
+BRDA:47,5,0,2
+BRDA:47,5,1,0
+BRDA:55,6,0,1
+BRDA:89,7,0,1
+BRDA:91,8,0,1
+BRDA:92,9,0,1
+BRDA:92,9,1,1
+BRDA:92,9,2,1
+BRDA:92,9,3,1
+BRDA:99,10,0,0
+BRDA:99,11,0,0
+BRDA:99,11,1,0
+BRDA:121,12,0,0
+BRF:21
+BRH:12
+end_of_record
+TN:
+SF:src/modules/tests/start-test/dto/start-test.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14308,7 +18481,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\test-instance\test-instance.repository.ts
+=======
+SF:src/modules/tests/test-instance/test-instance.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:27,(anonymous_2)
 FN:29,(anonymous_3)
 FN:64,(anonymous_4)
@@ -14352,7 +18529,11 @@ BRF:1
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\tests\test-instance\test-instance.service.ts
+=======
+SF:src/modules/tests/test-instance/test-instance.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,(anonymous_2)
 FN:11,(anonymous_3)
 FN:21,(anonymous_4)
@@ -14375,7 +18556,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\topic-section-mapping.module.ts
+=======
+SF:src/modules/topic-section-mapping/topic-section-mapping.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14395,7 +18580,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\controllers\topic-section-mapping.controller.ts
+=======
+SF:src/modules/topic-section-mapping/controllers/topic-section-mapping.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:21,(anonymous_4)
 FN:25,(anonymous_5)
 FN:42,(anonymous_6)
@@ -14430,7 +18619,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\controllers\topic-weightage.controller.ts
+=======
+SF:src/modules/topic-section-mapping/controllers/topic-weightage.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:24,(anonymous_4)
 FN:28,(anonymous_5)
 FN:45,(anonymous_6)
@@ -14467,7 +18660,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\repositories\topic-section-mapping.repository.ts
+=======
+SF:src/modules/topic-section-mapping/repositories/topic-section-mapping.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_2)
 FN:8,(anonymous_3)
 FN:14,(anonymous_4)
@@ -14498,7 +18695,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\repositories\topic-weightage.repository.ts
+=======
+SF:src/modules/topic-section-mapping/repositories/topic-weightage.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:6,(anonymous_2)
 FN:8,(anonymous_3)
 FN:22,(anonymous_4)
@@ -14537,7 +18738,11 @@ BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\services\topic-section-mapping.service.ts
+=======
+SF:src/modules/topic-section-mapping/services/topic-section-mapping.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:20,(anonymous_2)
 FN:28,(anonymous_3)
 FN:46,(anonymous_4)
@@ -14623,7 +18828,11 @@ BRF:13
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\topic-section-mapping\services\topic-weightage.service.ts
+=======
+SF:src/modules/topic-section-mapping/services/topic-weightage.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:19,(anonymous_2)
 FN:26,(anonymous_3)
 FN:43,(anonymous_4)
@@ -14716,7 +18925,11 @@ BRF:13
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\index.ts
+=======
+SF:src/modules/users/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_0)
 FN:2,(anonymous_1)
 FN:3,(anonymous_2)
@@ -14737,7 +18950,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\users.module.ts
+=======
+SF:src/modules/users/users.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14753,7 +18970,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\controllers\users.controller.ts
+=======
+SF:src/modules/users/controllers/users.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:42,(anonymous_4)
 FN:51,(anonymous_5)
 FN:63,(anonymous_6)
@@ -14797,7 +19018,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\dto\update-profile.dto.ts
+=======
+SF:src/modules/users/dto/update-profile.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FNF:1
 FNH:0
@@ -14813,7 +19038,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\entities\session.entity.ts
+=======
+SF:src/modules/users/entities/session.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14830,7 +19059,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\entities\user.entity.ts
+=======
+SF:src/modules/users/entities/user.entity.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -14848,7 +19081,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\repositories\session.repository.ts
+=======
+SF:src/modules/users/repositories/session.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -14904,7 +19141,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\repositories\user.repository.ts
+=======
+SF:src/modules/users/repositories/user.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:13,(anonymous_4)
 FN:20,(anonymous_5)
 FN:24,(anonymous_6)
@@ -14934,7 +19175,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\users\services\users.service.ts
+=======
+SF:src/modules/users/services/users.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_2)
 FN:17,(anonymous_3)
 FN:35,(anonymous_4)
@@ -15014,7 +19259,11 @@ BRF:12
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\index.ts
+=======
+SF:src/modules/validation/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -15027,7 +19276,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\validation.module.ts
+=======
+SF:src/modules/validation/validation.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -15049,7 +19302,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\controllers\readiness.controller.ts
+=======
+SF:src/modules/validation/controllers/readiness.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:31,(anonymous_4)
 FN:41,(anonymous_5)
 FN:58,(anonymous_6)
@@ -15088,7 +19345,11 @@ BRF:8
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\controllers\system-validation.controller.ts
+=======
+SF:src/modules/validation/controllers/system-validation.controller.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:29,(anonymous_4)
 FN:41,(anonymous_5)
 FNF:2
@@ -15114,7 +19375,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\repositories\readiness-report.repository.ts
+=======
+SF:src/modules/validation/repositories/readiness-report.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:12,(anonymous_4)
 FN:19,(anonymous_5)
 FN:23,(anonymous_6)
@@ -15137,7 +19402,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\services\cross-module-validator.service.ts
+=======
+SF:src/modules/validation/services/cross-module-validator.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:18,(anonymous_2)
 FN:33,(anonymous_3)
 FN:55,(anonymous_4)
@@ -15447,7 +19716,11 @@ BRF:88
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\services\readiness-engine.service.ts
+=======
+SF:src/modules/validation/services/readiness-engine.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:19,(anonymous_2)
 FN:35,(anonymous_3)
 FN:57,(anonymous_4)
@@ -15896,7 +20169,11 @@ BRF:164
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\validation\utils\generation-gate.ts
+=======
+SF:src/modules/validation/utils/generation-gate.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:9,canGenerateExam
 FNF:1
 FNH:0
@@ -15914,7 +20191,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\workflows.module.ts
+=======
+SF:src/modules/workflows/workflows.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -15942,6 +20223,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\controllers\workflow.controller.ts
 FN:23,(anonymous_4)
 FN:28,(anonymous_5)
@@ -15964,6 +20246,30 @@ FN:165,(anonymous_21)
 FN:176,(anonymous_22)
 FN:183,(anonymous_23)
 FN:190,(anonymous_24)
+=======
+SF:src/modules/workflows/controllers/workflow.controller.ts
+FN:47,(anonymous_4)
+FN:52,(anonymous_5)
+FN:62,(anonymous_6)
+FN:76,(anonymous_7)
+FN:86,(anonymous_8)
+FN:94,(anonymous_9)
+FN:102,(anonymous_10)
+FN:108,(anonymous_11)
+FN:124,(anonymous_12)
+FN:134,(anonymous_13)
+FN:145,(anonymous_14)
+FN:158,(anonymous_15)
+FN:167,(anonymous_16)
+FN:176,(anonymous_17)
+FN:186,(anonymous_18)
+FN:199,(anonymous_19)
+FN:211,(anonymous_20)
+FN:223,(anonymous_21)
+FN:242,(anonymous_22)
+FN:249,(anonymous_23)
+FN:256,(anonymous_24)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:21
 FNH:0
 FNDA:0,(anonymous_4)
@@ -15988,6 +20294,7 @@ FNDA:0,(anonymous_22)
 FNDA:0,(anonymous_23)
 FNDA:0,(anonymous_24)
 DA:1,0
+<<<<<<< HEAD
 DA:2,0
 DA:3,0
 DA:4,0
@@ -16056,11 +20363,85 @@ BRDA:166,2,0,0
 BRDA:166,2,1,0
 BRDA:166,2,2,0
 BRDA:166,2,3,0
+=======
+DA:11,0
+DA:21,0
+DA:22,0
+DA:23,0
+DA:24,0
+DA:26,0
+DA:28,0
+DA:29,0
+DA:30,0
+DA:37,0
+DA:38,0
+DA:39,0
+DA:46,0
+DA:47,0
+DA:52,0
+DA:53,0
+DA:62,0
+DA:63,0
+DA:76,0
+DA:77,0
+DA:86,0
+DA:87,0
+DA:94,0
+DA:95,0
+DA:102,0
+DA:103,0
+DA:108,0
+DA:114,0
+DA:124,0
+DA:129,0
+DA:134,0
+DA:140,0
+DA:145,0
+DA:150,0
+DA:158,0
+DA:162,0
+DA:167,0
+DA:171,0
+DA:176,0
+DA:180,0
+DA:186,0
+DA:191,0
+DA:199,0
+DA:203,0
+DA:211,0
+DA:216,0
+DA:223,0
+DA:228,0
+DA:230,0
+DA:232,0
+DA:234,0
+DA:236,0
+DA:242,0
+DA:243,0
+DA:249,0
+DA:250,0
+DA:256,0
+DA:260,0
+LF:59
+LH:0
+BRDA:116,0,0,0
+BRDA:116,0,1,0
+BRDA:117,1,0,0
+BRDA:117,1,1,0
+BRDA:228,2,0,0
+BRDA:228,2,1,0
+BRDA:228,2,2,0
+BRDA:228,2,3,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:8
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\dto\admin-insights.dto.ts
+=======
+SF:src/modules/workflows/dto/admin-insights.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -16087,7 +20468,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\dto\workflow-dashboard.dto.ts
+=======
+SF:src/modules/workflows/dto/workflow-dashboard.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -16109,16 +20494,24 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\dto\workflow-filter.dto.ts
 FN:6,(anonymous_2)
 FN:49,(anonymous_3)
 FN:56,(anonymous_4)
+=======
+SF:src/modules/workflows/dto/workflow-filter.dto.ts
+FN:14,(anonymous_2)
+FN:57,(anonymous_3)
+FN:64,(anonymous_4)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:3
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 DA:1,0
+<<<<<<< HEAD
 DA:2,0
 DA:3,0
 DA:4,0
@@ -16135,21 +20528,47 @@ DA:49,0
 DA:52,0
 DA:56,0
 DA:60,0
+=======
+DA:10,0
+DA:11,0
+DA:12,0
+DA:14,0
+DA:18,0
+DA:23,0
+DA:28,0
+DA:33,0
+DA:38,0
+DA:43,0
+DA:48,0
+DA:53,0
+DA:57,0
+DA:60,0
+DA:64,0
+DA:68,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:17
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\dto\workflow-mapper.ts
 FN:10,toWorkflowDashboardDto
 FN:27,toWorkflowResponseDto
 FN:39,toWorkflowStatusDto
+=======
+SF:src/modules/workflows/dto/workflow-mapper.ts
+FN:10,toWorkflowDashboardDto
+FN:27,toWorkflowResponseDto
+FN:41,toWorkflowStatusDto
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:3
 FNH:0
 FNDA:0,toWorkflowDashboardDto
 FNDA:0,toWorkflowResponseDto
 FNDA:0,toWorkflowStatusDto
+<<<<<<< HEAD
 DA:10,0
 DA:14,0
 DA:27,0
@@ -16158,18 +20577,33 @@ DA:39,0
 DA:44,0
 LF:6
 LH:0
+=======
+DA:10,1
+DA:14,0
+DA:27,1
+DA:30,0
+DA:41,1
+DA:49,0
+LF:6
+LH:3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:17,0,0,0
 BRDA:17,0,1,0
 BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\dto\workflow-status.dto.ts
+=======
+SF:src/modules/workflows/dto/workflow-status.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
 DA:2,0
 DA:4,0
+<<<<<<< HEAD
 DA:6,0
 DA:9,0
 DA:12,0
@@ -16189,19 +20623,45 @@ DA:49,0
 DA:52,0
 DA:55,0
 DA:58,0
+=======
+DA:8,0
+DA:11,0
+DA:14,0
+DA:17,0
+DA:20,0
+DA:23,0
+DA:25,0
+DA:28,0
+DA:31,0
+DA:34,0
+DA:36,0
+DA:39,0
+DA:42,0
+DA:45,0
+DA:48,0
+DA:51,0
+DA:54,0
+DA:57,0
+DA:60,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:22
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\dto\workflow.dto.ts
+=======
+SF:src/modules/workflows/dto/workflow.dto.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
 DA:2,0
 DA:3,0
 DA:5,0
+<<<<<<< HEAD
 DA:9,0
 DA:12,0
 DA:16,0
@@ -16218,13 +20678,35 @@ DA:49,0
 DA:52,0
 DA:55,0
 DA:58,0
+=======
+DA:11,0
+DA:14,0
+DA:18,0
+DA:21,0
+DA:25,0
+DA:28,0
+DA:32,0
+DA:40,0
+DA:43,0
+DA:45,0
+DA:48,0
+DA:51,0
+DA:54,0
+DA:57,0
+DA:60,0
+DA:63,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:20
 LH:0
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\events\workflow.events.ts
+=======
+SF:src/modules/workflows/events/workflow.events.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:4,(anonymous_0)
 FN:8,(anonymous_1)
 FN:12,(anonymous_2)
@@ -16245,6 +20727,7 @@ FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
+<<<<<<< HEAD
 DA:3,0
 DA:4,0
 DA:7,0
@@ -16268,16 +20751,46 @@ DA:43,0
 DA:44,0
 LF:21
 LH:0
+=======
+DA:3,3
+DA:4,0
+DA:7,3
+DA:8,0
+DA:11,3
+DA:13,0
+DA:14,0
+DA:18,3
+DA:19,0
+DA:22,3
+DA:23,0
+DA:26,3
+DA:27,0
+DA:30,3
+DA:31,0
+DA:34,3
+DA:36,0
+DA:37,0
+DA:41,3
+DA:43,0
+DA:44,0
+LF:21
+LH:9
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\guards\workflow-transition.guard.ts
+=======
+SF:src/modules/workflows/guards/workflow-transition.guard.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:7,(anonymous_1)
 FN:15,(anonymous_2)
 FN:23,(anonymous_3)
 FN:34,(anonymous_4)
 FNF:4
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
@@ -16289,6 +20802,19 @@ DA:3,0
 DA:6,0
 DA:8,0
 DA:9,0
+=======
+FNH:1
+FNDA:2,(anonymous_1)
+FNDA:0,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:0,(anonymous_4)
+DA:1,3
+DA:2,3
+DA:3,3
+DA:6,3
+DA:8,2
+DA:9,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:16,0
 DA:17,0
 DA:24,0
@@ -16298,8 +20824,13 @@ DA:36,0
 DA:38,0
 DA:39,0
 LF:14
+<<<<<<< HEAD
 LH:0
 BRDA:8,0,0,0
+=======
+LH:6
+BRDA:8,0,0,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:16,1,0,0
 BRDA:24,2,0,0
 BRDA:25,3,0,0
@@ -16307,6 +20838,7 @@ BRDA:25,3,1,0
 BRDA:35,4,0,0
 BRDA:38,5,0,0
 BRF:7
+<<<<<<< HEAD
 BRH:0
 end_of_record
 TN:
@@ -16321,12 +20853,29 @@ FN:96,(anonymous_8)
 FNF:7
 FNH:0
 FNDA:0,(anonymous_2)
+=======
+BRH:1
+end_of_record
+TN:
+SF:src/modules/workflows/orchestrators/exam-workflow.orchestrator.ts
+FN:14,(anonymous_2)
+FN:23,(anonymous_3)
+FN:35,(anonymous_4)
+FN:46,(anonymous_5)
+FN:59,(anonymous_6)
+FN:86,(anonymous_7)
+FN:107,(anonymous_8)
+FNF:7
+FNH:1
+FNDA:1,(anonymous_2)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
@@ -16343,16 +20892,38 @@ DA:17,0
 DA:18,0
 DA:19,0
 DA:20,0
+=======
+DA:1,2
+DA:2,2
+DA:3,2
+DA:4,2
+DA:5,2
+DA:6,2
+DA:7,2
+DA:8,2
+DA:11,2
+DA:12,1
+DA:15,1
+DA:16,1
+DA:17,1
+DA:18,1
+DA:19,1
+DA:20,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:24,0
 DA:27,0
 DA:30,0
 DA:33,0
 DA:35,0
+<<<<<<< HEAD
 DA:36,0
+=======
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:37,0
 DA:38,0
 DA:39,0
 DA:40,0
+<<<<<<< HEAD
 DA:45,0
 DA:48,0
 DA:50,0
@@ -16398,11 +20969,64 @@ BRDA:81,9,0,0
 BRDA:89,10,0,0
 BRDA:89,10,1,0
 BRDA:96,11,0,0
+=======
+DA:41,0
+DA:42,0
+DA:51,0
+DA:54,0
+DA:56,0
+DA:63,0
+DA:65,0
+DA:70,0
+DA:72,0
+DA:74,0
+DA:77,0
+DA:79,0
+DA:80,0
+DA:81,0
+DA:82,0
+DA:90,0
+DA:92,0
+DA:96,0
+DA:97,0
+DA:98,0
+DA:100,0
+DA:101,0
+DA:102,0
+DA:103,0
+DA:108,0
+DA:109,0
+DA:113,0
+DA:114,0
+DA:115,0
+LF:54
+LH:16
+BRDA:23,0,0,0
+BRDA:37,1,0,0
+BRDA:37,1,1,0
+BRDA:39,2,0,0
+BRDA:39,2,1,0
+BRDA:41,3,0,0
+BRDA:48,4,0,0
+BRDA:61,5,0,0
+BRDA:65,6,0,0
+BRDA:79,7,0,0
+BRDA:79,7,1,0
+BRDA:88,8,0,0
+BRDA:92,9,0,0
+BRDA:100,10,0,0
+BRDA:100,10,1,0
+BRDA:107,11,0,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:16
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\repositories\workflow.repository.ts
+=======
+SF:src/modules/workflows/repositories/workflow.repository.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:14,(anonymous_4)
 FN:21,(anonymous_5)
 FN:25,(anonymous_6)
@@ -16417,11 +21041,19 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
 DA:4,0
 DA:9,0
+=======
+DA:1,2
+DA:2,2
+DA:3,2
+DA:4,2
+DA:9,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:15,0
 DA:16,0
 DA:18,0
@@ -16448,7 +21080,11 @@ DA:92,0
 DA:98,0
 DA:102,0
 LF:30
+<<<<<<< HEAD
 LH:0
+=======
+LH:5
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:41,0,0,0
 BRDA:42,1,0,0
 BRDA:43,2,0,0
@@ -16470,6 +21106,7 @@ BRF:17
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\services\exam-workflow.service.ts
 FN:9,(anonymous_2)
 FN:14,(anonymous_3)
@@ -16479,6 +21116,17 @@ FN:64,(anonymous_6)
 FN:85,(anonymous_7)
 FN:105,(anonymous_8)
 FN:122,(anonymous_9)
+=======
+SF:src/modules/workflows/services/exam-workflow.service.ts
+FN:9,(anonymous_2)
+FN:14,(anonymous_3)
+FN:37,(anonymous_4)
+FN:45,(anonymous_5)
+FN:73,(anonymous_6)
+FN:101,(anonymous_7)
+FN:126,(anonymous_8)
+FN:147,(anonymous_9)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:8
 FNH:0
 FNDA:0,(anonymous_2)
@@ -16489,6 +21137,7 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
@@ -16529,10 +21178,53 @@ BRDA:80,4,1,0
 BRDA:85,5,0,0
 BRDA:105,6,0,0
 BRDA:122,7,0,0
+=======
+DA:1,2
+DA:2,2
+DA:3,2
+DA:4,2
+DA:5,2
+DA:8,2
+DA:10,0
+DA:11,0
+DA:18,0
+DA:38,0
+DA:39,0
+DA:40,0
+DA:42,0
+DA:49,0
+DA:50,0
+DA:53,0
+DA:55,0
+DA:57,0
+DA:78,0
+DA:79,0
+DA:83,0
+DA:85,0
+DA:105,0
+DA:106,0
+DA:110,0
+DA:131,0
+DA:133,0
+DA:152,0
+DA:154,0
+LF:29
+LH:6
+BRDA:16,0,0,0
+BRDA:39,1,0,0
+BRDA:47,2,0,0
+BRDA:75,3,0,0
+BRDA:96,4,0,0
+BRDA:96,4,1,0
+BRDA:103,5,0,0
+BRDA:129,6,0,0
+BRDA:150,7,0,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:9
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\services\workflow-event-publisher.ts
 FN:18,(anonymous_2)
 FN:20,(anonymous_3)
@@ -16544,6 +21236,19 @@ FN:40,(anonymous_8)
 FN:44,(anonymous_9)
 FN:48,(anonymous_10)
 FN:52,(anonymous_11)
+=======
+SF:src/modules/workflows/services/workflow-event-publisher.ts
+FN:18,(anonymous_2)
+FN:20,(anonymous_3)
+FN:27,(anonymous_4)
+FN:34,(anonymous_5)
+FN:41,(anonymous_6)
+FN:48,(anonymous_7)
+FN:55,(anonymous_8)
+FN:62,(anonymous_9)
+FN:69,(anonymous_10)
+FN:76,(anonymous_11)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:10
 FNH:0
 FNDA:0,(anonymous_2)
@@ -16556,6 +21261,7 @@ FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:4,0
@@ -16572,10 +21278,29 @@ DA:49,0
 DA:53,0
 LF:14
 LH:0
+=======
+DA:1,2
+DA:2,2
+DA:4,2
+DA:17,2
+DA:18,0
+DA:21,0
+DA:28,0
+DA:35,0
+DA:42,0
+DA:49,0
+DA:56,0
+DA:63,0
+DA:70,0
+DA:77,0
+LF:14
+LH:4
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\services\workflow-facade.service.ts
 FN:19,(anonymous_2)
 FN:29,(anonymous_3)
@@ -16616,6 +21341,48 @@ FN:347,(anonymous_37)
 FNF:36
 FNH:0
 FNDA:0,(anonymous_2)
+=======
+SF:src/modules/workflows/services/workflow-facade.service.ts
+FN:23,(anonymous_2)
+FN:33,(anonymous_3)
+FN:50,(anonymous_4)
+FN:55,(anonymous_5)
+FN:59,(anonymous_6)
+FN:74,(anonymous_7)
+FN:78,(anonymous_8)
+FN:95,(anonymous_9)
+FN:103,(anonymous_10)
+FN:112,(anonymous_11)
+FN:116,(anonymous_12)
+FN:125,(anonymous_13)
+FN:129,(anonymous_14)
+FN:137,(anonymous_15)
+FN:141,(anonymous_16)
+FN:171,(anonymous_17)
+FN:179,(anonymous_18)
+FN:192,(anonymous_19)
+FN:201,(anonymous_20)
+FN:218,(anonymous_21)
+FN:243,(anonymous_22)
+FN:257,(anonymous_23)
+FN:280,(anonymous_24)
+FN:308,(anonymous_25)
+FN:310,(anonymous_26)
+FN:312,(anonymous_27)
+FN:321,(anonymous_28)
+FN:325,(anonymous_29)
+FN:337,(anonymous_30)
+FN:361,(anonymous_31)
+FN:388,(anonymous_32)
+FN:401,(anonymous_33)
+FN:418,(anonymous_34)
+FN:428,(anonymous_35)
+FN:431,(anonymous_36)
+FN:434,(anonymous_37)
+FNF:36
+FNH:1
+FNDA:1,(anonymous_2)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
@@ -16651,6 +21418,7 @@ FNDA:0,(anonymous_34)
 FNDA:0,(anonymous_35)
 FNDA:0,(anonymous_36)
 FNDA:0,(anonymous_37)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
@@ -16849,10 +21617,212 @@ BRDA:326,42,1,0
 BRDA:341,43,0,0
 BRDA:344,44,0,0
 BRDA:347,45,0,0
+=======
+DA:1,1
+DA:6,1
+DA:7,1
+DA:8,1
+DA:9,1
+DA:10,1
+DA:11,1
+DA:12,1
+DA:14,1
+DA:19,1
+DA:22,1
+DA:24,1
+DA:25,1
+DA:26,1
+DA:27,1
+DA:28,1
+DA:29,1
+DA:30,1
+DA:38,0
+DA:39,0
+DA:40,0
+DA:42,0
+DA:43,0
+DA:44,0
+DA:46,0
+DA:51,0
+DA:56,0
+DA:60,0
+DA:61,0
+DA:62,0
+DA:64,0
+DA:68,0
+DA:69,0
+DA:75,0
+DA:79,0
+DA:81,0
+DA:85,0
+DA:87,0
+DA:88,0
+DA:89,0
+DA:90,0
+DA:100,0
+DA:104,0
+DA:105,0
+DA:106,0
+DA:107,0
+DA:113,0
+DA:118,0
+DA:119,0
+DA:120,0
+DA:126,0
+DA:130,0
+DA:131,0
+DA:132,0
+DA:138,0
+DA:142,0
+DA:145,0
+DA:146,0
+DA:150,0
+DA:157,0
+DA:159,0
+DA:163,0
+DA:164,0
+DA:165,0
+DA:166,0
+DA:176,0
+DA:180,0
+DA:181,0
+DA:182,0
+DA:184,0
+DA:185,0
+DA:186,0
+DA:187,0
+DA:193,0
+DA:194,0
+DA:195,0
+DA:197,0
+DA:200,0
+DA:202,0
+DA:203,0
+DA:209,0
+DA:213,0
+DA:214,0
+DA:215,0
+DA:219,0
+DA:220,0
+DA:221,0
+DA:223,0
+DA:224,0
+DA:225,0
+DA:233,0
+DA:241,0
+DA:243,0
+DA:253,0
+DA:254,0
+DA:258,0
+DA:281,0
+DA:283,0
+DA:305,0
+DA:308,0
+DA:310,0
+DA:312,0
+DA:315,0
+DA:321,0
+DA:325,0
+DA:343,0
+DA:344,0
+DA:346,0
+DA:347,0
+DA:349,0
+DA:360,0
+DA:361,0
+DA:389,0
+DA:391,0
+DA:395,0
+DA:398,0
+DA:402,0
+DA:404,0
+DA:408,0
+DA:415,0
+DA:419,0
+DA:420,0
+DA:424,0
+DA:429,0
+DA:432,0
+DA:439,0
+LF:126
+LH:18
+BRDA:39,0,0,0
+BRDA:55,1,0,0
+BRDA:61,2,0,0
+BRDA:74,3,0,0
+BRDA:81,4,0,0
+BRDA:82,5,0,0
+BRDA:82,5,1,0
+BRDA:98,6,0,0
+BRDA:112,7,0,0
+BRDA:125,8,0,0
+BRDA:137,9,0,0
+BRDA:145,10,0,0
+BRDA:157,11,0,0
+BRDA:157,12,0,0
+BRDA:157,12,1,0
+BRDA:174,13,0,0
+BRDA:181,14,0,0
+BRDA:195,15,0,0
+BRDA:221,16,0,0
+BRDA:246,17,0,0
+BRDA:246,17,1,0
+BRDA:249,18,0,0
+BRDA:249,18,1,0
+BRDA:250,19,0,0
+BRDA:250,19,1,0
+BRDA:310,20,0,0
+BRDA:310,20,1,0
+BRDA:316,21,0,0
+BRDA:316,21,1,0
+BRDA:317,22,0,0
+BRDA:317,22,1,0
+BRDA:318,23,0,0
+BRDA:318,23,1,0
+BRDA:319,24,0,0
+BRDA:319,24,1,0
+BRDA:321,25,0,0
+BRDA:321,25,1,0
+BRDA:325,26,0,0
+BRDA:325,26,1,0
+BRDA:325,27,0,0
+BRDA:325,27,1,0
+BRDA:328,28,0,0
+BRDA:328,28,1,0
+BRDA:329,29,0,0
+BRDA:329,29,1,0
+BRDA:330,30,0,0
+BRDA:330,30,1,0
+BRDA:331,31,0,0
+BRDA:331,31,1,0
+BRDA:332,32,0,0
+BRDA:332,32,1,0
+BRDA:333,33,0,0
+BRDA:333,33,1,0
+BRDA:339,34,0,0
+BRDA:340,35,0,0
+BRDA:347,36,0,0
+BRDA:369,37,0,0
+BRDA:369,37,1,0
+BRDA:369,38,0,0
+BRDA:369,38,1,0
+BRDA:371,39,0,0
+BRDA:371,39,1,0
+BRDA:375,40,0,0
+BRDA:375,40,1,0
+BRDA:377,41,0,0
+BRDA:377,41,1,0
+BRDA:412,42,0,0
+BRDA:412,42,1,0
+BRDA:428,43,0,0
+BRDA:431,44,0,0
+BRDA:437,45,0,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:71
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\services\workflow-next-action.service.ts
 FN:7,(anonymous_1)
 FNF:1
@@ -16864,6 +21834,19 @@ DA:6,0
 DA:8,0
 DA:10,0
 DA:11,0
+=======
+SF:src/modules/workflows/services/workflow-next-action.service.ts
+FN:7,(anonymous_1)
+FNF:1
+FNH:1
+FNDA:1,(anonymous_1)
+DA:1,2
+DA:2,2
+DA:6,2
+DA:8,1
+DA:10,1
+DA:11,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:18,0
 DA:19,0
 DA:26,0
@@ -16880,10 +21863,17 @@ DA:70,0
 DA:77,0
 DA:84,0
 LF:21
+<<<<<<< HEAD
 LH:0
 BRDA:10,0,0,0
 BRDA:13,1,0,0
 BRDA:13,1,1,0
+=======
+LH:6
+BRDA:10,0,0,1
+BRDA:13,1,0,0
+BRDA:13,1,1,1
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:18,2,0,0
 BRDA:26,3,0,0
 BRDA:26,3,1,0
@@ -16895,6 +21885,7 @@ BRDA:35,4,0,0
 BRDA:49,5,0,0
 BRDA:63,6,0,0
 BRF:13
+<<<<<<< HEAD
 BRH:0
 end_of_record
 TN:
@@ -16913,6 +21904,26 @@ FNF:10
 FNH:0
 FNDA:0,(anonymous_2)
 FNDA:0,(anonymous_3)
+=======
+BRH:2
+end_of_record
+TN:
+SF:src/modules/workflows/services/workflow-notification.service.ts
+FN:16,(anonymous_2)
+FN:20,(anonymous_3)
+FN:27,(anonymous_4)
+FN:34,(anonymous_5)
+FN:41,(anonymous_6)
+FN:46,(anonymous_7)
+FN:53,(anonymous_8)
+FN:60,(anonymous_9)
+FN:67,(anonymous_10)
+FN:74,(anonymous_11)
+FNF:10
+FNH:2
+FNDA:2,(anonymous_2)
+FNDA:1,(anonymous_3)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNDA:0,(anonymous_4)
 FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
@@ -16921,6 +21932,7 @@ FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
@@ -16946,10 +21958,38 @@ DA:62,0
 DA:63,0
 LF:23
 LH:0
+=======
+DA:1,1
+DA:2,1
+DA:3,1
+DA:16,1
+DA:17,2
+DA:20,1
+DA:21,1
+DA:27,1
+DA:28,0
+DA:34,1
+DA:35,0
+DA:41,1
+DA:42,0
+DA:46,1
+DA:47,0
+DA:53,1
+DA:54,0
+DA:60,1
+DA:61,0
+DA:67,1
+DA:68,0
+DA:74,1
+DA:75,0
+LF:23
+LH:15
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\services\workflow-status.service.ts
 FN:15,(anonymous_2)
 FN:24,(anonymous_3)
@@ -17089,6 +22129,147 @@ FN:60,(anonymous_5)
 FN:63,(anonymous_6)
 FN:91,(anonymous_7)
 FN:97,(anonymous_8)
+=======
+SF:src/modules/workflows/services/workflow-status.service.ts
+FN:19,(anonymous_2)
+FN:28,(anonymous_3)
+FN:81,(anonymous_4)
+FN:102,(anonymous_5)
+FN:129,(anonymous_6)
+FN:163,(anonymous_7)
+FN:198,(anonymous_8)
+FN:236,(anonymous_9)
+FN:250,(anonymous_10)
+FNF:9
+FNH:9
+FNDA:2,(anonymous_2)
+FNDA:1,(anonymous_3)
+FNDA:1,(anonymous_4)
+FNDA:1,(anonymous_5)
+FNDA:1,(anonymous_6)
+FNDA:1,(anonymous_7)
+FNDA:1,(anonymous_8)
+FNDA:5,(anonymous_9)
+FNDA:4,(anonymous_10)
+DA:1,3
+DA:2,3
+DA:8,3
+DA:16,3
+DA:17,2
+DA:25,2
+DA:36,1
+DA:39,1
+DA:45,1
+DA:51,1
+DA:57,1
+DA:63,1
+DA:69,1
+DA:85,1
+DA:86,1
+DA:89,1
+DA:90,0
+DA:92,1
+DA:93,0
+DA:95,1
+DA:97,0
+DA:98,0
+DA:106,1
+DA:107,1
+DA:110,0
+DA:112,0
+DA:114,0
+DA:115,0
+DA:120,0
+DA:125,0
+DA:133,1
+DA:134,1
+DA:137,0
+DA:139,0
+DA:140,0
+DA:143,0
+DA:147,0
+DA:148,0
+DA:154,0
+DA:159,0
+DA:167,1
+DA:168,1
+DA:172,0
+DA:176,0
+DA:179,0
+DA:180,0
+DA:185,0
+DA:186,0
+DA:189,0
+DA:194,0
+DA:203,1
+DA:207,1
+DA:211,0
+DA:215,0
+DA:218,0
+DA:219,0
+DA:223,0
+DA:224,0
+DA:227,0
+DA:232,0
+DA:241,5
+DA:251,4
+DA:259,4
+LF:63
+LH:29
+BRDA:89,0,0,0
+BRDA:92,1,0,0
+BRDA:106,2,0,1
+BRDA:114,3,0,0
+BRDA:116,4,0,0
+BRDA:116,4,1,0
+BRDA:117,5,0,0
+BRDA:117,5,1,0
+BRDA:121,6,0,0
+BRDA:121,6,1,0
+BRDA:122,7,0,0
+BRDA:122,7,1,0
+BRDA:133,8,0,1
+BRDA:143,9,0,0
+BRDA:143,9,1,0
+BRDA:147,10,0,0
+BRDA:149,11,0,0
+BRDA:149,11,1,0
+BRDA:155,12,0,0
+BRDA:155,12,1,0
+BRDA:167,13,0,1
+BRDA:172,14,0,0
+BRDA:173,15,0,0
+BRDA:173,15,1,0
+BRDA:185,16,0,0
+BRDA:190,17,0,0
+BRDA:190,17,1,0
+BRDA:203,18,0,1
+BRDA:204,19,0,1
+BRDA:204,19,1,1
+BRDA:211,20,0,0
+BRDA:212,21,0,0
+BRDA:212,21,1,0
+BRDA:223,22,0,0
+BRDA:228,23,0,0
+BRDA:228,23,1,0
+BRDA:239,24,0,5
+BRDA:244,25,0,1
+BRDA:244,25,1,4
+BRDA:245,26,0,0
+BRDA:245,26,1,5
+BRF:41
+BRH:10
+end_of_record
+TN:
+SF:src/modules/workflows/services/workflow-transaction.service.ts
+FN:36,(anonymous_2)
+FN:38,(anonymous_3)
+FN:48,(anonymous_4)
+FN:84,(anonymous_5)
+FN:87,(anonymous_6)
+FN:119,(anonymous_7)
+FN:128,(anonymous_8)
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:7
 FNH:0
 FNDA:0,(anonymous_2)
@@ -17098,6 +22279,7 @@ FNDA:0,(anonymous_5)
 FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
+<<<<<<< HEAD
 DA:1,0
 DA:2,0
 DA:3,0
@@ -17133,11 +22315,52 @@ LH:0
 BRDA:42,0,0,0
 BRDA:73,1,0,0
 BRDA:107,2,0,0
+=======
+DA:1,2
+DA:2,2
+DA:3,2
+DA:33,2
+DA:34,0
+DA:36,0
+DA:46,0
+DA:48,0
+DA:50,0
+DA:60,0
+DA:61,0
+DA:64,0
+DA:69,0
+DA:73,0
+DA:80,0
+DA:85,0
+DA:87,0
+DA:88,0
+DA:97,0
+DA:98,0
+DA:103,0
+DA:107,0
+DA:115,0
+DA:128,0
+DA:129,0
+DA:138,0
+DA:139,0
+DA:144,0
+DA:148,0
+DA:155,0
+LF:30
+LH:4
+BRDA:60,0,0,0
+BRDA:97,1,0,0
+BRDA:138,2,0,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:3
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\modules\workflows\state-machine\workflow-state-machine.ts
+=======
+SF:src/modules/workflows/state-machine/workflow-state-machine.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:19,(anonymous_0)
 FN:28,(anonymous_1)
 FN:37,(anonymous_2)
@@ -17146,6 +22369,7 @@ FN:52,(anonymous_4)
 FN:62,(anonymous_5)
 FN:66,(anonymous_6)
 FNF:7
+<<<<<<< HEAD
 FNH:0
 FNDA:0,(anonymous_0)
 FNDA:0,(anonymous_1)
@@ -17164,11 +22388,32 @@ DA:21,0
 DA:22,0
 DA:23,0
 DA:25,0
+=======
+FNH:4
+FNDA:4,(anonymous_0)
+FNDA:0,(anonymous_1)
+FNDA:5,(anonymous_2)
+FNDA:0,(anonymous_3)
+FNDA:2,(anonymous_4)
+FNDA:5,(anonymous_5)
+FNDA:0,(anonymous_6)
+DA:1,4
+DA:2,4
+DA:4,4
+DA:5,4
+DA:14,4
+DA:20,4
+DA:21,4
+DA:22,4
+DA:23,1
+DA:25,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:29,0
 DA:30,0
 DA:31,0
 DA:32,0
 DA:34,0
+<<<<<<< HEAD
 DA:38,0
 DA:39,0
 DA:40,0
@@ -17193,6 +22438,32 @@ BRDA:22,1,0,0
 BRDA:30,2,0,0
 BRDA:31,3,0,0
 BRDA:38,4,0,0
+=======
+DA:38,5
+DA:39,2
+DA:40,2
+DA:45,0
+DA:48,0
+DA:49,0
+DA:53,2
+DA:59,2
+DA:63,5
+DA:67,0
+DA:69,0
+DA:71,0
+DA:73,0
+DA:75,0
+DA:77,0
+DA:79,0
+DA:81,0
+LF:32
+LH:16
+BRDA:21,0,0,0
+BRDA:22,1,0,1
+BRDA:30,2,0,0
+BRDA:31,3,0,0
+BRDA:38,4,0,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRDA:39,5,0,0
 BRDA:45,6,0,0
 BRDA:48,7,0,0
@@ -17204,10 +22475,17 @@ BRDA:67,8,4,0
 BRDA:67,8,5,0
 BRDA:67,8,6,0
 BRF:15
+<<<<<<< HEAD
 BRH:0
 end_of_record
 TN:
 SF:apps\api\src\prisma\prisma.module.ts
+=======
+BRH:2
+end_of_record
+TN:
+SF:src/prisma/prisma.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FNF:0
 FNH:0
 DA:1,0
@@ -17219,6 +22497,7 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\prisma\prisma.service.ts
 FN:7,(anonymous_1)
 FNF:1
@@ -17228,13 +22507,28 @@ DA:1,11
 DA:2,11
 DA:5,11
 DA:8,0
+=======
+SF:src/prisma/prisma.service.ts
+FN:6,(anonymous_1)
+FNF:1
+FNH:0
+FNDA:0,(anonymous_1)
+DA:1,60
+DA:2,60
+DA:5,60
+DA:7,0
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 LF:4
 LH:3
 BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\queue\index.ts
+=======
+SF:src/queue/index.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:1,(anonymous_0)
 FN:1,(anonymous_1)
 FN:3,(anonymous_2)
@@ -17274,7 +22568,11 @@ BRF:0
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\queue\queue-config.ts
+=======
+SF:src/queue/queue-config.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:71,(anonymous_0)
 FN:86,(anonymous_1)
 FN:96,(anonymous_2)
@@ -17285,6 +22583,7 @@ FNH:0
 FNDA:0,(anonymous_0)
 FNDA:0,(anonymous_1)
 FNDA:0,(anonymous_2)
+<<<<<<< HEAD
 FNDA:0,(anonymous_3)
 FNDA:0,(anonymous_4)
 DA:1,0
@@ -17292,6 +22591,15 @@ DA:5,0
 DA:68,0
 DA:69,0
 DA:72,0
+=======
+FNDA:1,(anonymous_3)
+FNDA:3,(anonymous_4)
+DA:1,2
+DA:5,2
+DA:68,2
+DA:69,2
+DA:72,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:73,0
 DA:76,0
 DA:77,0
@@ -17316,6 +22624,7 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\queue\queue-payloads.ts
 FN:12,(anonymous_0)
 FNF:1
@@ -17337,11 +22646,38 @@ LF:12
 LH:0
 BRDA:12,0,0,0
 BRDA:12,0,1,0
+=======
+SF:src/queue/queue-payloads.ts
+FN:12,(anonymous_0)
+FNF:1
+FNH:1
+FNDA:2,(anonymous_0)
+DA:1,2
+DA:12,2
+DA:13,2
+DA:14,2
+DA:15,2
+DA:16,2
+DA:80,2
+DA:87,2
+DA:97,2
+DA:106,2
+DA:114,2
+DA:123,2
+LF:12
+LH:12
+BRDA:12,0,0,2
+BRDA:12,0,1,2
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 BRF:2
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\queue\queue.module.ts
+=======
+SF:src/queue/queue.module.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:58,(anonymous_1)
 FN:61,(anonymous_2)
 FN:65,(anonymous_3)
@@ -17383,7 +22719,11 @@ BRF:4
 BRH:0
 end_of_record
 TN:
+<<<<<<< HEAD
 SF:apps\api\src\queue\queue.service.ts
+=======
+SF:src/queue/queue.service.ts
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 FN:40,(anonymous_0)
 FN:46,(anonymous_1)
 FN:68,(anonymous_2)
@@ -17408,6 +22748,7 @@ FNDA:0,(anonymous_6)
 FNDA:0,(anonymous_7)
 FNDA:0,(anonymous_8)
 FNDA:0,(anonymous_9)
+<<<<<<< HEAD
 FNDA:0,(anonymous_10)
 FNDA:0,(anonymous_11)
 DA:3,0
@@ -17418,6 +22759,18 @@ DA:41,0
 DA:50,0
 DA:54,0
 DA:55,0
+=======
+FNDA:2,(anonymous_10)
+FNDA:11,(anonymous_11)
+DA:3,2
+DA:4,2
+DA:20,2
+DA:37,2
+DA:41,1
+DA:50,3
+DA:54,3
+DA:55,3
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 DA:56,0
 DA:65,0
 DA:72,0
