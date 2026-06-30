@@ -21,9 +21,11 @@ import {
   SubmissionRepository,
 } from "./repositories";
 import { EVALUATION_ADAPTER } from "./interfaces/evaluation-adapter.interface";
+import { EvaluationModule } from "../evaluation/evaluation.module";
+import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execution-evaluation.integration";
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, EvaluationModule],
   controllers: [
     ExecutionController,
     AnswerController,
@@ -43,12 +45,7 @@ import { EVALUATION_ADAPTER } from "./interfaces/evaluation-adapter.interface";
     ExecutionService,
     {
       provide: EVALUATION_ADAPTER,
-      useValue: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        triggerEvaluation: async (result: any) => {
-          console.log("Mock Evaluation Triggered for:", result.executionId);
-        },
-      },
+      useClass: ExecutionEvaluationIntegration,
     },
   ],
   exports: [
