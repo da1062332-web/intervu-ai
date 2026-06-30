@@ -1079,3 +1079,43 @@ model ExamWorkflowHistory {
   @@index([createdAt])
 }
 
+model GenerationJob {
+  id        String   @id @default(cuid())
+  topic     String
+  count     Int
+  category  String?
+  difficulty String?
+  generated Int      @default(0)
+  status    String   // "QUEUED", "RUNNING", "COMPLETED", "FAILED"
+  result    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_jobs")
+}
+
+model GenerationPrompt {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  content   String
+  version   Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_prompts")
+}
+
+model GenerationTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  schema    Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_templates")
+}

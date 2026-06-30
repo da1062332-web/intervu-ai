@@ -26,12 +26,13 @@ export function QuestionRenderer() {
       >
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
-          const isSelected = selectedOptionId === option.id;
+          const optId = option.id || index.toString();
+          const isSelected = selectedOptionId === optId;
 
           return (
             <Label
-              key={option.id}
-              htmlFor={option.id}
+              key={optId}
+              htmlFor={optId}
               className={`
                 flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200
                 ${
@@ -41,7 +42,7 @@ export function QuestionRenderer() {
                 }
               `}
             >
-              <RadioGroupItem value={option.id} id={option.id} className='sr-only' />
+              <RadioGroupItem value={optId} id={optId} className='sr-only' />
               <div
                 className={`
                 flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium
@@ -77,11 +78,12 @@ export function QuestionRenderer() {
       <div className='space-y-4 mt-8'>
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index);
-          const isSelected = selectedOptionIds.includes(option.id);
+          const optId = option.id || index.toString();
+          const isSelected = selectedOptionIds.includes(optId);
 
           return (
             <Label
-              key={option.id}
+              key={optId}
               className={`
                 flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200
                 ${
@@ -95,7 +97,7 @@ export function QuestionRenderer() {
                 type='checkbox'
                 className='sr-only'
                 checked={isSelected}
-                onChange={() => handleToggle(option.id)}
+                onChange={() => handleToggle(optId)}
               />
               <div
                 className={`
@@ -174,9 +176,9 @@ export function QuestionRenderer() {
         </div>
       </CardHeader>
 
-      <CardContent className='pt-6'>
-        <div className='prose prose-slate max-w-none mb-8 dark:prose-invert break-words'>
-          <p className='text-lg leading-relaxed'>{currentQuestion.text}</p>
+      <CardContent className='pt-6 md:pt-8 px-6 md:px-10'>
+        <div className='prose prose-slate max-w-none mb-10 dark:prose-invert break-words'>
+          <p className='text-xl leading-relaxed text-foreground font-medium'>{currentQuestion.text}</p>
         </div>
 
         {renderQuestionContent()}
