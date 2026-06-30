@@ -57,6 +57,6 @@ import { QUESTION_SOURCE_TOKEN } from "./services/question-source.interface";
       useClass: MockSemanticSimilarityProvider,
     },
   ],
-  exports: [AssemblyService],
+  exports: [AssemblyService, AssemblyPublisherService],
 })
 export class AssemblyModule {}

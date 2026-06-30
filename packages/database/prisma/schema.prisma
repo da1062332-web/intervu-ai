@@ -378,6 +378,7 @@ model ExamConfig {
   blueprint              Blueprint?
   readinessReports       ReadinessReport[]
   assembledTests         AssembledTest[]
+  workflow               ExamWorkflow?
 
   @@index([createdAt])
   @@index([role])
@@ -896,7 +897,6 @@ model ValidationLog {
   @@index([createdAt])
 }
 
-<<<<<<< HEAD
 model GenerationAuditLog {
   id               String   @id @default(cuid())
   prompt           String
@@ -936,7 +936,6 @@ model GenerationMetrics {
   @@map("generation_metrics")
 }
 
-=======
 enum AssemblyStatus {
   DRAFT
   VALIDATED
@@ -1025,5 +1024,58 @@ model AssemblyAuditLog {
   @@map("assembly_audit_logs")
   @@index([assemblyId])
 }
->>>>>>> Bhushan
+
+enum WorkflowStep {
+  CONFIGURATION
+  QUESTION_GENERATION
+  QUESTION_REVIEW
+  ASSEMBLY
+  PUBLISHING
+  COMPLETED
+}
+
+enum WorkflowStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model ExamWorkflow {
+  id                   String                @id @default(cuid())
+  examId               String                @unique
+  currentStep          WorkflowStep          @default(CONFIGURATION)
+  status               WorkflowStatus        @default(NOT_STARTED)
+  completionPercentage Int                   @default(0)
+  version              Int                   @default(0)
+  metadata             Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  history              ExamWorkflowHistory[]
+  examConfig           ExamConfig            @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@map("exam_workflows")
+  @@index([status])
+  @@index([currentStep])
+  @@index([updatedAt])
+}
+
+model ExamWorkflowHistory {
+  id            String        @id @default(cuid())
+  workflowId    String
+  previousStep  WorkflowStep?
+  currentStep   WorkflowStep
+  changedBy     String?
+  triggerSource String?
+  reason        String?
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  workflow      ExamWorkflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("exam_workflow_history")
+  @@index([workflowId])
+  @@index([createdAt])
+}
 
