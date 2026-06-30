@@ -23,6 +23,7 @@ model User {
   templates          Template[]
   tests              Test[]
   testInstances      TestInstance[]
+  candidateResults   CandidateResult[]
 
   @@index([deletedAt])
   @@index([role])
@@ -233,19 +234,22 @@ model TestInstance {
   userId           String
   testConfigId     String
   status           TestInstanceStatus     @default(CREATED)
-  startedAt        DateTime?
-  expiresAt        DateTime?
-  submittedAt      DateTime?
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
-  candidateAnswers CandidateAnswer[]
-  evaluationResult EvaluationResult?
-  executionState   ExecutionState?
-  submission       Submission?
-  testConfig       TestConfig             @relation(fields: [testConfigId], references: [id])
-  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  questions        TestInstanceQuestion[]
-  sections         TestInstanceSection[]
+  startedAt           DateTime?
+  expiresAt           DateTime?
+  submittedAt         DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  candidateAnswers    CandidateAnswer[]
+  evaluationResult    EvaluationResult?
+  executionState      ExecutionState?
+  submission          Submission?
+  testConfig          TestConfig             @relation(fields: [testConfigId], references: [id])
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions           TestInstanceQuestion[]
+  sections            TestInstanceSection[]
+  candidateResult     CandidateResult?
+  evaluationRuns      EvaluationRun[]
+  evaluationAnalytics EvaluationAnalytics?
   assessmentAuditLogs AssessmentAuditLog[]
 
   @@index([userId])
@@ -341,6 +345,51 @@ model Submission {
 
   @@index([testInstanceId])
   @@index([status])
+}
+
+model CandidateResult {
+  id          String   @id @default(cuid())
+  candidateId String   @map("candidate_id")
+  attemptId   String   @unique @map("attempt_id")
+  score       Float
+  percentage  Float
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  attempt     TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("candidate_results")
+  @@index([candidateId])
+  @@index([attemptId])
+}
+
+model EvaluationRun {
+  id         String   @id @default(cuid())
+  attemptId  String   @map("attempt_id")
+  status     String   // e.g. "COMPLETED", "FAILED"
+  error      String?
+  durationMs Int      @map("duration_ms")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("evaluation_runs")
+  @@index([attemptId])
+}
+
+model EvaluationAnalytics {
+  id                 String   @id @default(cuid())
+  attemptId          String   @unique @map("attempt_id")
+  topicAccuracy      Json     @map("topic_accuracy")
+  difficultyAccuracy Json     @map("difficulty_accuracy")
+  completionRate     Float    @map("completion_rate")
+  attemptRate        Float    @map("attempt_rate")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  attempt            TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("evaluation_analytics")
+  @@index([attemptId])
 }
 
 model AssessmentAuditLog {
@@ -1115,7 +1164,7 @@ model GenerationJob {
   category  String?
   difficulty String?
   generated Int      @default(0)
-  status    String   // "QUEUED", "RUNNING", "COMPLETED", "FAILED"
+  status    String
   result    Json?
   error     String?
   createdAt DateTime @default(now())

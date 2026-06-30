@@ -29,7 +29,10 @@ export class ReviewQueueIntegration {
     });
 
     if (!topic) {
-      const code = requestedTopic.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+      const code = requestedTopic
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_]/g, "");
       topic = await this.prisma.topic.create({
         data: {
           name: requestedTopic,
@@ -44,7 +47,7 @@ export class ReviewQueueIntegration {
     const sectionTopic = await this.prisma.sectionTopic.findFirst({
       where: { topicId: topic.id },
     });
-    
+
     if (sectionTopic) {
       sectionId = sectionTopic.sectionId;
     } else {
@@ -59,7 +62,8 @@ export class ReviewQueueIntegration {
             data: {
               name: "Default Exam Config",
               code: "DEFAULT_CONFIG",
-              description: "Auto-generated default config for generation references",
+              description:
+                "Auto-generated default config for generation references",
               role: "ADMIN",
               durationMinutes: 60,
               totalQuestions: 100,
@@ -97,7 +101,9 @@ export class ReviewQueueIntegration {
 
     // 3. Create the question in the bank
     const diffUpper = (generated.difficulty || "MEDIUM").toUpperCase();
-    const finalDifficulty = ["EASY", "MEDIUM", "HARD"].includes(diffUpper) ? diffUpper : "MEDIUM";
+    const finalDifficulty = ["EASY", "MEDIUM", "HARD"].includes(diffUpper)
+      ? diffUpper
+      : "MEDIUM";
 
     const question = await this.questionBankService.createQuestion({
       questionText: generated.question,

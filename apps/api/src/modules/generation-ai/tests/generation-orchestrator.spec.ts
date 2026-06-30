@@ -64,8 +64,12 @@ describe("GenerationOrchestratorService", () => {
   });
 
   it("should orchestrate prompt, template, llm, validation and queueing", async () => {
-    promptManager.getPromptByName.mockResolvedValue({ content: "prompt template" } as any);
-    templateLibrary.getTemplateByCategory.mockResolvedValue({ schema: {} } as any);
+    promptManager.getPromptByName.mockResolvedValue({
+      content: "prompt template",
+    } as any);
+    templateLibrary.getTemplateByCategory.mockResolvedValue({
+      schema: {},
+    } as any);
     llmAdapter.generate.mockResolvedValue("raw response");
     responseParser.parse.mockResolvedValue({
       question: "Q1 text is long enough",
@@ -76,9 +80,18 @@ describe("GenerationOrchestratorService", () => {
     });
     topicValidator.validate.mockResolvedValue({ match: true, confidence: 1.0 });
     difficultyValidator.validate.mockResolvedValue(true);
-    duplicateDetector.checkDuplicate.mockResolvedValue({ duplicate: false, similarity: 0 });
-    qualityScorer.score.mockResolvedValue({ status: "PASS", score: 90, reasons: [] });
-    reviewQueueIntegration.sendToReviewQueue.mockResolvedValue({ question: { id: "q1" } } as any);
+    duplicateDetector.checkDuplicate.mockResolvedValue({
+      duplicate: false,
+      similarity: 0,
+    });
+    qualityScorer.score.mockResolvedValue({
+      status: "PASS",
+      score: 90,
+      reasons: [],
+    });
+    reviewQueueIntegration.sendToReviewQueue.mockResolvedValue({
+      question: { id: "q1" },
+    } as any);
 
     const result = await service.generateQuestions({
       topic: "Percentages",

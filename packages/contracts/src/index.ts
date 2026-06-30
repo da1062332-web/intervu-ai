@@ -74,3 +74,10 @@ export * from "./schemas/system-validation.schema";
 // Assembly Provider Contracts
 export * from "./assembly-provider.dto";
 export * from "./schemas/assembly-provider.schema";
+
+<<<<<<< HEAD
+// Execution-Ready Contracts (Module 3 → Module 4 handoff)
+export * from "./execution-ready.dto";
+=======
+export * from "./result-submission.contract";
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb

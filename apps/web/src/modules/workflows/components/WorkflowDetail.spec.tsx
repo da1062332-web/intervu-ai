@@ -13,7 +13,7 @@ describe('WorkflowDetail', () => {
       error: null,
       fetchDetails: jest.fn(),
     });
-    render(<WorkflowDetail examId="e1" />);
+    render(<WorkflowDetail examId='e1' />);
     expect(screen.getByRole('status')).toBeInTheDocument(); // Loader2 creates svg, need specific role/label in real app
   });
 });

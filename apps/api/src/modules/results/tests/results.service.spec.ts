@@ -1,7 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ResultsService } from "../services/results.service";
 import { EvaluationRepository } from "../repositories/evaluation.repository";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
 import {
   ResultNotFoundError,
   UnauthorizedResultAccessError,
@@ -24,8 +25,22 @@ describe("ResultsService", () => {
         {
           provide: PrismaService,
           useValue: {
-            evaluationResult: { findFirst: jest.fn() },
-            testInstance: { findUnique: jest.fn() },
+            candidateResult: {
+              findUnique: jest.fn(),
+              findMany: jest.fn(),
+            },
+            evaluationResult: {
+              findFirst: jest.fn(),
+            },
+            testInstance: {
+              findUnique: jest.fn(),
+            },
+          },
+        },
+        {
+          provide: ResultGeneratorService,
+          useValue: {
+            generateResult: jest.fn(),
           },
         },
       ],

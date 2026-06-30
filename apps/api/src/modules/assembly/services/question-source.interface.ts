@@ -1,6 +1,6 @@
 import { GeneratedQuestion } from "@prisma/client";
 
-export const QUESTION_SOURCE_TOKEN = 'QUESTION_SOURCE_TOKEN';
+export const QUESTION_SOURCE_TOKEN = "QUESTION_SOURCE_TOKEN";
 
 export interface QuestionFilters {
   conceptKey?: string;

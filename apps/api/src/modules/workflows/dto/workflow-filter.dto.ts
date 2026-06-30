@@ -1,10 +1,18 @@
-import { IsOptional, IsString, IsEnum, IsInt, Min, Max, IsDateString } from 'class-validator';
-import { Type } from 'class-transformer';
-import { WorkflowStatus, WorkflowStep } from '@prisma/client';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsDateString,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { WorkflowStatus, WorkflowStep } from "@prisma/client";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export class WorkflowFilterDto {
-  @ApiPropertyOptional({ description: 'Search by exam name or examId' })
+  @ApiPropertyOptional({ description: "Search by exam name or examId" })
   @IsOptional()
   @IsString()
   search?: string;
@@ -19,30 +27,30 @@ export class WorkflowFilterDto {
   @IsEnum(WorkflowStep)
   step?: WorkflowStep;
 
-  @ApiPropertyOptional({ description: 'Created after this date (ISO string)' })
+  @ApiPropertyOptional({ description: "Created after this date (ISO string)" })
   @IsOptional()
   @IsDateString()
   createdAfter?: string;
 
-  @ApiPropertyOptional({ description: 'Created before this date (ISO string)' })
+  @ApiPropertyOptional({ description: "Created before this date (ISO string)" })
   @IsOptional()
   @IsDateString()
   createdBefore?: string;
 
-  @ApiPropertyOptional({ description: 'Updated after this date (ISO string)' })
+  @ApiPropertyOptional({ description: "Updated after this date (ISO string)" })
   @IsOptional()
   @IsDateString()
   updatedAfter?: string;
 
-  @ApiPropertyOptional({ enum: ['asc', 'desc'] })
+  @ApiPropertyOptional({ enum: ["asc", "desc"] })
   @IsOptional()
-  @IsEnum(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc';
+  @IsEnum(["asc", "desc"])
+  sortOrder?: "asc" | "desc";
 
-  @ApiPropertyOptional({ enum: ['createdAt', 'updatedAt', 'status'] })
+  @ApiPropertyOptional({ enum: ["createdAt", "updatedAt", "status"] })
   @IsOptional()
-  @IsEnum(['createdAt', 'updatedAt', 'status'])
-  sortBy?: 'createdAt' | 'updatedAt' | 'status';
+  @IsEnum(["createdAt", "updatedAt", "status"])
+  sortBy?: "createdAt" | "updatedAt" | "status";
 
   @ApiPropertyOptional({ minimum: 1, default: 1 })
   @IsOptional()

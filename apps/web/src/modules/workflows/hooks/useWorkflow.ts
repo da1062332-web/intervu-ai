@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { WorkflowDashboardItem, WorkflowStatusDetails, WorkflowStep } from '../types';
-import { apiClient } from '@/services/api/client'; 
+import { apiClient } from '@/services/api/client';
 
 export const useWorkflows = () => {
   const [workflows, setWorkflows] = useState<WorkflowDashboardItem[]>([]);
@@ -14,12 +14,15 @@ export const useWorkflows = () => {
     try {
       const query: Record<string, any> = { page, limit };
       if (status) query.status = status;
-      
-      const response = await apiClient.request<{ items: WorkflowDashboardItem[]; total: number }>('/workflows', {
-        method: 'GET',
-        query,
-        skipErrorToast: true,
-      });
+
+      const response = await apiClient.request<{ items: WorkflowDashboardItem[]; total: number }>(
+        '/workflows',
+        {
+          method: 'GET',
+          query,
+          skipErrorToast: true,
+        },
+      );
       setWorkflows(response.items);
       setTotal(response.total);
     } catch (err: any) {
@@ -193,7 +196,9 @@ export const useWorkflowOverview = (examId: string) => {
     }
   }, [examId]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
 
   return { overview, loading, error, refetch: fetch };
 };
@@ -204,30 +209,37 @@ export const useWorkflowQuestions = (examId: string, statusFilter?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async (page = 1, limit = 100, status?: string) => {
-    if (!examId) return;
-    setLoading(true);
-    try {
-      const query: any = { page, limit };
-      if (status) query.status = status;
-      const res = await apiClient.request<any>(`/workflows/${examId}/questions`, {
-        method: 'GET',
-        query,
-        skipErrorToast: true,
-      });
-      setQuestions(res.items ?? []);
-      setTotal(res.total ?? 0);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load questions');
-    } finally {
-      setLoading(false);
-    }
-  }, [examId]);
+  const fetch = useCallback(
+    async (page = 1, limit = 100, status?: string) => {
+      if (!examId) return;
+      setLoading(true);
+      try {
+        const query: any = { page, limit };
+        if (status) query.status = status;
+        const res = await apiClient.request<any>(`/workflows/${examId}/questions`, {
+          method: 'GET',
+          query,
+          skipErrorToast: true,
+        });
+        setQuestions(res.items ?? []);
+        setTotal(res.total ?? 0);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load questions');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [examId],
+  );
 
-  useEffect(() => { fetch(1, 100, statusFilter); }, [fetch, statusFilter]);
+  useEffect(() => {
+    fetch(1, 100, statusFilter);
+  }, [fetch, statusFilter]);
 
   const approveQuestion = async (questionId: string) => {
-    await apiClient.request(`/workflows/${examId}/questions/${questionId}/approve`, { method: 'PATCH' });
+    await apiClient.request(`/workflows/${examId}/questions/${questionId}/approve`, {
+      method: 'PATCH',
+    });
     await fetch(1, 100, statusFilter);
   };
 
@@ -247,6 +259,14 @@ export const useWorkflowQuestions = (examId: string, statusFilter?: string) => {
     await fetch(1, 100, statusFilter);
   };
 
-  return { questions, total, loading, error, refetch: fetch, approveQuestion, rejectQuestion, bulkApprove };
+  return {
+    questions,
+    total,
+    loading,
+    error,
+    refetch: fetch,
+    approveQuestion,
+    rejectQuestion,
+    bulkApprove,
+  };
 };
-

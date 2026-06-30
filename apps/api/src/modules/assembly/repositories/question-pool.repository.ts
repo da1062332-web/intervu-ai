@@ -2,7 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { DifficultyLevel, GeneratedQuestion } from "@prisma/client";
 
-import { QuestionFilters, IQuestionSource } from "../services/question-source.interface";
+import {
+  QuestionFilters,
+  IQuestionSource,
+} from "../services/question-source.interface";
 
 @Injectable()
 export class QuestionPoolRepository implements IQuestionSource {
@@ -11,7 +14,7 @@ export class QuestionPoolRepository implements IQuestionSource {
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
     return this.findAvailableQuestions(
       filters.conceptKey || "",
-      filters.difficultyLevel as DifficultyLevel || "MEDIUM",
+      (filters.difficultyLevel as DifficultyLevel) || "MEDIUM",
       filters.limit || 10,
       filters.excludeIds || [],
     );

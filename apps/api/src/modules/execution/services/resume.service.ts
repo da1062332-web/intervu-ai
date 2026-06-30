@@ -14,7 +14,7 @@ export class ResumeService {
     private readonly answerRepo: CandidateAnswerRepository,
   ) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   async resumeAssessment(testInstanceId: string, userId: string): Promise<any> {
     this.logger.debug("Resuming assessment", { testInstanceId, userId });
     // 1. Validate assessment exists

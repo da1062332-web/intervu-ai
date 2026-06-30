@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowNotificationService } from './workflow-notification.service';
-import { Logger } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { WorkflowNotificationService } from "./workflow-notification.service";
+import { Logger } from "@nestjs/common";
 
-describe('WorkflowNotificationService', () => {
+describe("WorkflowNotificationService", () => {
   let service: WorkflowNotificationService;
 
   beforeEach(async () => {
@@ -10,17 +10,19 @@ describe('WorkflowNotificationService', () => {
       providers: [WorkflowNotificationService],
     }).compile();
 
-    service = module.get<WorkflowNotificationService>(WorkflowNotificationService);
+    service = module.get<WorkflowNotificationService>(
+      WorkflowNotificationService,
+    );
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  it('should handle transition events', () => {
-    const spy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+  it("should handle transition events", () => {
+    const spy = jest.spyOn(Logger.prototype, "log").mockImplementation();
     service.handleConfigurationCompleted({
-      examId: 'e1',
+      examId: "e1",
     } as any);
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();

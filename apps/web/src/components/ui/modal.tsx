@@ -20,16 +20,16 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      
+
       if (e.key === 'Tab') {
         if (!modalRef.current) return;
         const focusableElements = modalRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         ) as NodeListOf<HTMLElement>;
-        
+
         if (focusableElements.length === 0) return;
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
@@ -53,7 +53,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
     setTimeout(() => {
       if (modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         ) as NodeListOf<HTMLElement>;
         if (focusableElements.length > 0) focusableElements[0].focus();
       }

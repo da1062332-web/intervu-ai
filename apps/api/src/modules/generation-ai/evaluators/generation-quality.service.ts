@@ -45,7 +45,7 @@ export class GenerationQualityService {
 
     for (const q of questions) {
       const textNormalized = (q.question || "").trim().toLowerCase();
-      
+
       let isDuplicate = false;
       if (questionTexts.has(textNormalized)) {
         isDuplicate = true;
@@ -59,7 +59,10 @@ export class GenerationQualityService {
         topicMatchCount++;
       }
 
-      const diffResult = await this.difficultyValidator.validate(q, requestedDifficulty);
+      const diffResult = await this.difficultyValidator.validate(
+        q,
+        requestedDifficulty,
+      );
       if (diffResult) {
         difficultyMatchCount++;
       }
@@ -71,8 +74,12 @@ export class GenerationQualityService {
 
     const duplicateRate = Math.round((duplicateCount / totalGenerated) * 100);
     const topicAccuracy = Math.round((topicMatchCount / totalGenerated) * 100);
-    const difficultyAccuracy = Math.round((difficultyMatchCount / totalGenerated) * 100);
-    const validationSuccessRate = Math.round((passedCount / totalGenerated) * 100);
+    const difficultyAccuracy = Math.round(
+      (difficultyMatchCount / totalGenerated) * 100,
+    );
+    const validationSuccessRate = Math.round(
+      (passedCount / totalGenerated) * 100,
+    );
 
     return {
       duplicateRate,

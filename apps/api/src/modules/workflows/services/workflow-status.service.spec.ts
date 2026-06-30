@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowStatusService } from './workflow-status.service';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { WorkflowStep, WorkflowStatus, Prisma } from '@prisma/client';
+import { Test, TestingModule } from "@nestjs/testing";
+import { WorkflowStatusService } from "./workflow-status.service";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { WorkflowStep, WorkflowStatus, Prisma } from "@prisma/client";
 
-describe('WorkflowStatusService', () => {
+describe("WorkflowStatusService", () => {
   let service: WorkflowStatusService;
 
   beforeEach(async () => {
@@ -13,7 +13,11 @@ describe('WorkflowStatusService', () => {
         {
           provide: PrismaService,
           useValue: {
-            examConfig: { findUnique: jest.fn().mockResolvedValue({ id: '1', status: 'DRAFT' }) },
+            examConfig: {
+              findUnique: jest
+                .fn()
+                .mockResolvedValue({ id: "1", status: "DRAFT" }),
+            },
             assembledTest: { findFirst: jest.fn().mockResolvedValue(null) },
           },
         },
@@ -23,14 +27,14 @@ describe('WorkflowStatusService', () => {
     service = module.get<WorkflowStatusService>(WorkflowStatusService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  it('should aggregate status successfully', async () => {
+  it("should aggregate status successfully", async () => {
     const mockWorkflow = {
-      id: 'w1',
-      examId: 'e1',
+      id: "w1",
+      examId: "e1",
       currentStep: WorkflowStep.CONFIGURATION,
       status: WorkflowStatus.COMPLETED,
       completionPercentage: 20,
@@ -39,7 +43,7 @@ describe('WorkflowStatusService', () => {
       updatedAt: new Date(),
       version: 1,
     };
-    
+
     const status = await service.aggregateStatus(mockWorkflow);
     expect(status.configuration).toBeDefined();
     expect(status.questionGeneration).toBeDefined();

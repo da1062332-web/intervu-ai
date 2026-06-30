@@ -43,7 +43,7 @@ export class AssemblyPersistenceService {
   }
 
   async getAssembly(id: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(id);

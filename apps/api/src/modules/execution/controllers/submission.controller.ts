@@ -41,7 +41,7 @@ export class SubmissionController {
   async submitAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   ): Promise<any> {
     return this.submissionService.submitAssessment(id, user.id, false);
   }

@@ -54,7 +54,7 @@ export class CrossModuleValidatorService {
 
   private validateRuleConfigAndCompatibility(
     ruleType: string,
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+     
     config: any,
     variables: TemplateVariable[],
   ): string | null {

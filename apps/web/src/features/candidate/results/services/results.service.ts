@@ -10,7 +10,7 @@ export const resultsService = {
   async getResults(id: string): Promise<EvaluationResult & { skills: SkillScore[] }> {
     if (!id) throw new Error('Result ID is required');
     const response = await apiClient.request<any>(`/results/${id}`);
-    
+
     // Map backend DTO to frontend EvaluationResult
     return {
       id: response.id,
@@ -22,12 +22,13 @@ export const resultsService = {
       totalQuestions: response.totalQuestions || 0,
       correctAnswers: response.correctAnswers || 0,
       submittedAt: response.evaluatedAt?.toString() || new Date().toISOString(),
-      skills: response.skillScores?.map((skill: any) => ({
-        id: skill.id || skill.skill,
-        name: skill.skill,
-        score: skill.score,
-        feedback: skill.feedback,
-      })) || [],
+      skills:
+        response.skillScores?.map((skill: any) => ({
+          id: skill.id || skill.skill,
+          name: skill.skill,
+          score: skill.score,
+          feedback: skill.feedback,
+        })) || [],
     };
   },
 

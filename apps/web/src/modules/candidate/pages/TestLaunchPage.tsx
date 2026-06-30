@@ -131,7 +131,8 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
             size='lg'
             className='w-full sm:w-auto px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl'
           >
-            {isStarting ? 'Starting...' : 'Start Assessment'} {!isStarting && <Play className='ml-2 size-5 fill-current' />}
+            {isStarting ? 'Starting...' : 'Start Assessment'}{' '}
+            {!isStarting && <Play className='ml-2 size-5 fill-current' />}
           </Button>
         </div>
       </main>

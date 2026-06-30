@@ -43,7 +43,13 @@ export const useTestCatalogStore = create<TestCatalogState>()(
         }),
       setSelectedTestId: (id) => set({ selectedTestId: id }),
       setCurrentPage: (page) => set({ currentPage: page }),
-      resetFilters: () => set({ searchQuery: '', difficultyFilter: 'All', showOnlyBookmarked: false, currentPage: 1 }),
+      resetFilters: () =>
+        set({
+          searchQuery: '',
+          difficultyFilter: 'All',
+          showOnlyBookmarked: false,
+          currentPage: 1,
+        }),
     }),
     {
       name: 'intervu-candidate-catalog-store',

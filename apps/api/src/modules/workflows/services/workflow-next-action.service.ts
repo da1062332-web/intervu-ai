@@ -1,90 +1,90 @@
-import { Injectable } from '@nestjs/common';
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
-import { NextAction, WorkflowStatusDto } from '../dto/workflow-status.dto';
+import { Injectable } from "@nestjs/common";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
+import { NextAction, WorkflowStatusDto } from "../dto/workflow-status.dto";
 
 @Injectable()
 export class WorkflowNextActionService {
-  getNextAction(statusDto: Omit<WorkflowStatusDto, 'nextAction'>): NextAction {
+  getNextAction(statusDto: Omit<WorkflowStatusDto, "nextAction">): NextAction {
     const { currentStep, status } = statusDto;
 
     if (status === WorkflowStatus.FAILED) {
       return {
-        label: 'Retry Stage',
-        route: `/admin/workflows/${statusDto.configuration?.errorReason ? 'error' : 'retry'}`,
-        actionKey: 'retry',
+        label: "Retry Stage",
+        route: `/admin/workflows/${statusDto.configuration?.errorReason ? "error" : "retry"}`,
+        actionKey: "retry",
       };
     }
 
     if (status === WorkflowStatus.COMPLETED) {
       return {
-        label: 'View Published Test',
+        label: "View Published Test",
         route: `/admin/publishing`,
-        actionKey: 'view',
+        actionKey: "view",
       };
     }
 
     switch (currentStep) {
       case WorkflowStep.CONFIGURATION:
         return {
-          label: 'Start Generation',
+          label: "Start Generation",
           route: `/admin/workflows/current/generation`,
-          actionKey: 'advance',
+          actionKey: "advance",
         };
 
       case WorkflowStep.QUESTION_GENERATION:
-        if (statusDto.questionGeneration.status === 'COMPLETED') {
+        if (statusDto.questionGeneration.status === "COMPLETED") {
           return {
-            label: 'Start Review',
+            label: "Start Review",
             route: `/admin/workflows/current/review`,
-            actionKey: 'advance',
+            actionKey: "advance",
           };
         }
         return {
-          label: 'Generate Questions',
+          label: "Generate Questions",
           route: `/admin/workflows/current/generation`,
-          actionKey: 'generate',
+          actionKey: "generate",
         };
 
       case WorkflowStep.QUESTION_REVIEW:
-        if (statusDto.questionReview.status === 'COMPLETED') {
+        if (statusDto.questionReview.status === "COMPLETED") {
           return {
-            label: 'Assemble Test',
+            label: "Assemble Test",
             route: `/admin/workflows/current/assembly`,
-            actionKey: 'advance',
+            actionKey: "advance",
           };
         }
         return {
-          label: 'Review Queue',
+          label: "Review Queue",
           route: `/admin/review`,
-          actionKey: 'open-review',
+          actionKey: "open-review",
         };
 
       case WorkflowStep.ASSEMBLY:
-        if (statusDto.assembly.status === 'COMPLETED') {
+        if (statusDto.assembly.status === "COMPLETED") {
           return {
-            label: 'Go to Publishing',
+            label: "Go to Publishing",
             route: `/admin/workflows/current/publish`,
-            actionKey: 'advance',
+            actionKey: "advance",
           };
         }
         return {
-          label: 'Generate Assembly',
+          label: "Generate Assembly",
           route: `/admin/workflows/current/assembly`,
-          actionKey: 'assemble',
+          actionKey: "assemble",
         };
 
       case WorkflowStep.PUBLISHING:
         return {
-          label: 'Publish Test',
+          label: "Publish Test",
           route: `/admin/workflows/current/publish`,
-          actionKey: 'publish',
+          actionKey: "publish",
         };
 
       default:
         return {
-          label: 'View Status',
+          label: "View Status",
           route: `/admin/workflows`,
-          actionKey: 'view',
+          actionKey: "view",
         };
     }
   }

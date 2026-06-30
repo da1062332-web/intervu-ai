@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { AllocatedSectionDto } from "../../dto/assembled-test.dto";
 
 export interface AssemblyResponseDto {

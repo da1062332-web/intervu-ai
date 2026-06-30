@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { WorkflowStep, WorkflowStatus, ExamWorkflow } from '@prisma/client';
-import { WorkflowRepository } from '../repositories/workflow.repository';
-import { WorkflowTransactionService } from './workflow-transaction.service';
-import { WorkflowStateMachine } from '../state-machine/workflow-state-machine';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { WorkflowStep, WorkflowStatus, ExamWorkflow } from "@prisma/client";
+import { WorkflowRepository } from "../repositories/workflow.repository";
+import { WorkflowTransactionService } from "./workflow-transaction.service";
+import { WorkflowStateMachine } from "../state-machine/workflow-state-machine";
 
 @Injectable()
 export class ExamWorkflowService {
@@ -11,19 +11,24 @@ export class ExamWorkflowService {
     private readonly transactionService: WorkflowTransactionService,
   ) {}
 
-  async createWorkflow(examId: string, userId: string = 'system'): Promise<ExamWorkflow> {
+  async createWorkflow(
+    examId: string,
+    userId: string = "system",
+  ): Promise<ExamWorkflow> {
     return this.repository.create({
       examConfig: { connect: { id: examId } },
       currentStep: WorkflowStep.CONFIGURATION,
       status: WorkflowStatus.NOT_STARTED,
-      completionPercentage: WorkflowStateMachine.getCompletionPercentage(WorkflowStep.CONFIGURATION),
+      completionPercentage: WorkflowStateMachine.getCompletionPercentage(
+        WorkflowStep.CONFIGURATION,
+      ),
       version: 0,
       history: {
         create: {
           currentStep: WorkflowStep.CONFIGURATION,
           changedBy: userId,
-          triggerSource: 'manual',
-          reason: 'Workflow initialized',
+          triggerSource: "manual",
+          reason: "Workflow initialized",
         },
       },
     });
@@ -37,13 +42,17 @@ export class ExamWorkflowService {
     return workflow;
   }
 
-  async advanceStep(examId: string, userId: string = 'system'): Promise<ExamWorkflow> {
+  async advanceStep(
+    examId: string,
+    userId: string = "system",
+  ): Promise<ExamWorkflow> {
     const workflow = await this.getWorkflow(examId);
     const nextStep = WorkflowStateMachine.getNextStep(workflow.currentStep);
-    
+
     // Status is IN_PROGRESS when advancing, unless we reach the end
     const newStatus = WorkflowStatus.IN_PROGRESS;
-    const newPercentage = WorkflowStateMachine.getCompletionPercentage(nextStep);
+    const newPercentage =
+      WorkflowStateMachine.getCompletionPercentage(nextStep);
 
     return this.transactionService.executeTransition({
       workflowId: workflow.id,
@@ -55,16 +64,23 @@ export class ExamWorkflowService {
         previousStep: workflow.currentStep,
         currentStep: nextStep,
         changedBy: userId,
-        triggerSource: 'system',
-        reason: 'Advanced to next step',
+        triggerSource: "system",
+        reason: "Advanced to next step",
       },
     });
   }
 
-  async rollback(examId: string, userId: string = 'system', reason?: string): Promise<ExamWorkflow> {
+  async rollback(
+    examId: string,
+    userId: string = "system",
+    reason?: string,
+  ): Promise<ExamWorkflow> {
     const workflow = await this.getWorkflow(examId);
-    const previousStep = WorkflowStateMachine.getPreviousStep(workflow.currentStep);
-    const newPercentage = WorkflowStateMachine.getCompletionPercentage(previousStep);
+    const previousStep = WorkflowStateMachine.getPreviousStep(
+      workflow.currentStep,
+    );
+    const newPercentage =
+      WorkflowStateMachine.getCompletionPercentage(previousStep);
 
     return this.transactionService.executeTransition({
       workflowId: workflow.id,
@@ -76,15 +92,20 @@ export class ExamWorkflowService {
         previousStep: workflow.currentStep,
         currentStep: previousStep,
         changedBy: userId,
-        triggerSource: 'manual',
-        reason: reason || 'Rolled back to previous step',
+        triggerSource: "manual",
+        reason: reason || "Rolled back to previous step",
       },
     });
   }
 
-  async complete(examId: string, userId: string = 'system'): Promise<ExamWorkflow> {
+  async complete(
+    examId: string,
+    userId: string = "system",
+  ): Promise<ExamWorkflow> {
     const workflow = await this.getWorkflow(examId);
-    const newPercentage = WorkflowStateMachine.getCompletionPercentage(WorkflowStep.COMPLETED);
+    const newPercentage = WorkflowStateMachine.getCompletionPercentage(
+      WorkflowStep.COMPLETED,
+    );
 
     return this.transactionService.executeTransition({
       workflowId: workflow.id,
@@ -96,13 +117,17 @@ export class ExamWorkflowService {
         previousStep: workflow.currentStep,
         currentStep: WorkflowStep.COMPLETED,
         changedBy: userId,
-        triggerSource: 'system',
-        reason: 'Workflow completed successfully',
+        triggerSource: "system",
+        reason: "Workflow completed successfully",
       },
     });
   }
 
-  async fail(examId: string, reason: string, userId: string = 'system'): Promise<ExamWorkflow> {
+  async fail(
+    examId: string,
+    reason: string,
+    userId: string = "system",
+  ): Promise<ExamWorkflow> {
     const workflow = await this.getWorkflow(examId);
 
     return this.transactionService.executeFailure({
@@ -113,13 +138,17 @@ export class ExamWorkflowService {
         previousStep: workflow.currentStep,
         currentStep: workflow.currentStep,
         changedBy: userId,
-        triggerSource: 'system',
+        triggerSource: "system",
         reason: `Workflow failed: ${reason}`,
       },
     });
   }
 
-  async retry(examId: string, step: WorkflowStep, userId: string = 'system'): Promise<ExamWorkflow> {
+  async retry(
+    examId: string,
+    step: WorkflowStep,
+    userId: string = "system",
+  ): Promise<ExamWorkflow> {
     const workflow = await this.getWorkflow(examId);
 
     return this.transactionService.executeRetry(
@@ -130,7 +159,7 @@ export class ExamWorkflowService {
         previousStep: workflow.currentStep,
         currentStep: step,
         changedBy: userId,
-        triggerSource: 'retry',
+        triggerSource: "retry",
         reason: `Retrying step ${step}`,
       },
     );

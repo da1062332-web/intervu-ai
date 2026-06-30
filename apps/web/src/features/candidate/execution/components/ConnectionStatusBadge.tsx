@@ -25,7 +25,7 @@ export function ConnectionStatusBadge() {
   if (connectionStatus === 'ONLINE' && !showRestored) return null;
 
   return (
-    <Badge 
+    <Badge
       variant={connectionStatus === 'OFFLINE' ? 'destructive' : 'default'}
       className={`flex items-center gap-1 font-medium shadow-sm transition-all animate-in fade-in ${
         connectionStatus === 'ONLINE' ? 'bg-green-500 hover:bg-green-600' : ''
@@ -33,13 +33,17 @@ export function ConnectionStatusBadge() {
     >
       {connectionStatus === 'OFFLINE' ? (
         <>
-          <WifiOff className="w-3.5 h-3.5" />
+          <WifiOff className='w-3.5 h-3.5' />
           <span>Offline</span>
         </>
       ) : showRestored ? (
         <>
-          <Wifi className="w-3.5 h-3.5" />
+          <Wifi className='w-3.5 h-3.5' />
+<<<<<<< HEAD
+          <span>Online</span>
+=======
           <span>Reconnected</span>
+>>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         </>
       ) : null}
     </Badge>

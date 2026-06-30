@@ -1,6 +1,14 @@
 'use client';
 
-import { Plus, ClipboardList, BarChart3, Users, TrendingUp, LayoutTemplate, Bot } from 'lucide-react';
+import {
+  Plus,
+  ClipboardList,
+  BarChart3,
+  Users,
+  TrendingUp,
+  LayoutTemplate,
+  Bot,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { useAuthStore } from '@/store/auth.store';

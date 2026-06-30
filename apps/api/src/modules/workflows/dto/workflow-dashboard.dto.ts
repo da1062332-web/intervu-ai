@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { WorkflowStep, WorkflowStatus } from '@prisma/client';
-import { NextAction } from './workflow-status.dto';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { WorkflowStep, WorkflowStatus } from "@prisma/client";
+import { NextAction } from "./workflow-status.dto";
 
 export class WorkflowDashboardDto {
   @ApiProperty()

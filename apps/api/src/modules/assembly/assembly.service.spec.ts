@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { AssemblyService } from "./services/test-assembly.service";
 import { AssemblyPersistenceService } from "./services/assembly-persistence.service";
+import { AssemblyService } from "./services/test-assembly.service";
 import { BlueprintBuilderService } from "./services/blueprint-builder.service";
 import { QuestionAllocatorService } from "./services/question-allocator.service";
 import { SectionBuilderService } from "./services/section-builder.service";
@@ -83,9 +83,7 @@ describe("AssemblyService", () => {
       {} as unknown as SectionDto,
     );
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
-    persistenceService.saveAssembly.mockResolvedValueOnce(
-      "instance-uuid",
-    );
+    persistenceService.saveAssembly.mockResolvedValueOnce("instance-uuid");
 
     const result = await service.assembleTest("config-1");
     expect(blueprintBuilder.generateBlueprint).toHaveBeenCalledWith("config-1");
@@ -97,9 +95,7 @@ describe("AssemblyService", () => {
       sections: [],
     } as unknown as BlueprintDto);
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
-    persistenceService.saveAssembly.mockResolvedValueOnce(
-      "success-uuid",
-    );
+    persistenceService.saveAssembly.mockResolvedValueOnce("success-uuid");
 
     const result = await service.assembleTest("config-1");
     expect(persistenceService.saveAssembly).toHaveBeenCalled();

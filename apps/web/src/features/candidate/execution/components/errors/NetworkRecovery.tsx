@@ -37,7 +37,9 @@ export function NetworkRecovery() {
         <div className='space-y-2'>
           <h2 className='text-2xl font-bold tracking-tight'>Connection Lost</h2>
           <p className='text-muted-foreground'>
-            We have lost connection to the server. Do not close your browser. We will automatically reconnect you once your internet is restored, and your answers are safely stored locally.
+            We have lost connection to the server. Do not close your browser. We will automatically
+            reconnect you once your internet is restored, and your answers are safely stored
+            locally.
           </p>
         </div>
         <div className='flex gap-4 justify-center pt-4'>

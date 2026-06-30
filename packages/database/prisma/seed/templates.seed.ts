@@ -20,7 +20,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
         ],
       },
       isSystem: true,
-    }
+    },
   ];
 
   for (const template of templates) {

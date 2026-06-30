@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { WorkflowStep } from '@prisma/client';
-import { ExamWorkflowService } from '../services/exam-workflow.service';
-import { WorkflowStatusService } from '../services/workflow-status.service';
-import { WorkflowTransitionGuard } from '../guards/workflow-transition.guard';
-import { WorkflowEventPublisher } from '../services/workflow-event-publisher';
-import { GenerationOrchestratorService } from '../../generation/services/generation-orchestrator.service';
-import { AssemblyService } from '../../assembly/services/test-assembly.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { WorkflowStep } from "@prisma/client";
+import { ExamWorkflowService } from "../services/exam-workflow.service";
+import { WorkflowStatusService } from "../services/workflow-status.service";
+import { WorkflowTransitionGuard } from "../guards/workflow-transition.guard";
+import { WorkflowEventPublisher } from "../services/workflow-event-publisher";
+import { GenerationOrchestratorService } from "../../generation/services/generation-orchestrator.service";
+import { AssemblyService } from "../../assembly/services/test-assembly.service";
 
 @Injectable()
 export class ExamWorkflowOrchestrator {
@@ -20,7 +20,7 @@ export class ExamWorkflowOrchestrator {
     private readonly assemblyService: AssemblyService,
   ) {}
 
-  async advance(examId: string, userId: string = 'system'): Promise<void> {
+  async advance(examId: string, userId: string = "system"): Promise<void> {
     const workflow = await this.workflowService.getWorkflow(examId);
 
     // Validate transition
@@ -30,8 +30,10 @@ export class ExamWorkflowOrchestrator {
     await this.workflowService.advanceStep(examId, userId);
 
     // Emit appropriate event based on NEW step
-    const nextStep = await this.workflowService.getWorkflow(examId).then(w => w.currentStep);
-    
+    const nextStep = await this.workflowService
+      .getWorkflow(examId)
+      .then((w) => w.currentStep);
+
     if (nextStep === WorkflowStep.QUESTION_REVIEW) {
       this.eventPublisher.emitGenerationCompleted(examId, 0); // we can update the count logic later
     } else if (nextStep === WorkflowStep.ASSEMBLY) {
@@ -41,7 +43,11 @@ export class ExamWorkflowOrchestrator {
     }
   }
 
-  async rollback(examId: string, userId: string = 'system', reason?: string): Promise<void> {
+  async rollback(
+    examId: string,
+    userId: string = "system",
+    reason?: string,
+  ): Promise<void> {
     const workflow = await this.workflowService.getWorkflow(examId);
 
     // Validate rollback
@@ -50,7 +56,10 @@ export class ExamWorkflowOrchestrator {
     await this.workflowService.rollback(examId, userId, reason);
   }
 
-  async startGeneration(examId: string, userId: string = 'system'): Promise<void> {
+  async startGeneration(
+    examId: string,
+    userId: string = "system",
+  ): Promise<void> {
     const workflow = await this.workflowService.getWorkflow(examId);
 
     if (workflow.currentStep !== WorkflowStep.CONFIGURATION) {
@@ -63,10 +72,9 @@ export class ExamWorkflowOrchestrator {
     try {
       // Synchronous generation call as per architectural decision
       await this.generationOrchestrator.generateQuestions(examId);
-      
+
       // Auto-advance workflow when complete
       await this.advance(examId, userId);
-      
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       this.logger.error(`Generation failed for exam ${examId}: ${reason}`);
@@ -75,7 +83,10 @@ export class ExamWorkflowOrchestrator {
     }
   }
 
-  async startAssembly(examId: string, userId: string = 'system'): Promise<void> {
+  async startAssembly(
+    examId: string,
+    userId: string = "system",
+  ): Promise<void> {
     const workflow = await this.workflowService.getWorkflow(examId);
 
     if (workflow.currentStep !== WorkflowStep.QUESTION_REVIEW) {
@@ -93,7 +104,7 @@ export class ExamWorkflowOrchestrator {
     }
   }
 
-  async publish(examId: string, userId: string = 'system'): Promise<void> {
+  async publish(examId: string, userId: string = "system"): Promise<void> {
     const workflow = await this.workflowService.getWorkflow(examId);
     this.transitionGuard.canPublish(workflow.currentStep, workflow.status);
 
