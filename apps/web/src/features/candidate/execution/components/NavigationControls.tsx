@@ -8,7 +8,9 @@ interface NavigationControlsProps {
   onSubmitClick?: () => void;
 }
 
-export function NavigationControls({ onSubmitClick }: NavigationControlsProps) {
+import { memo } from 'react';
+
+export const NavigationControls = memo(function NavigationControls({ onSubmitClick }: NavigationControlsProps) {
   const { currentQuestionIndex, questions, goNext, goPrevious } = useExecutionStore();
 
   const isFirst = currentQuestionIndex === 0;
@@ -46,4 +48,4 @@ export function NavigationControls({ onSubmitClick }: NavigationControlsProps) {
       )}
     </div>
   );
-}
+});

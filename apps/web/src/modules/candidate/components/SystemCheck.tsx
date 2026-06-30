@@ -159,7 +159,7 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   }
 
   return (
-    <Card className='glass-card border border-border/60 shadow-sm'>
+    <Card className='glass-card border border-border/60 shadow-sm h-full flex flex-col'>
       <CardHeader className='pb-3 flex flex-row items-center justify-between gap-4'>
         <div>
           <CardTitle className='text-lg font-bold flex items-center gap-2 text-foreground'>
@@ -178,7 +178,7 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
           <RefreshCw className='size-4 text-muted-foreground' />
         </Button>
       </CardHeader>
-      <CardContent className='space-y-4'>
+      <CardContent className='space-y-4 flex-1 flex flex-col justify-center'>
         {checks.map((check) => (
           <div
             key={check.id}

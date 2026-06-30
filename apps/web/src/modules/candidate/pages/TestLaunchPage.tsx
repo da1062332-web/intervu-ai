@@ -98,40 +98,40 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
         </div>
       </div>
 
-      <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
+      <main className='flex-1 w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 mt-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
         {/* Warning / Ready Banner */}
         {!isSystemReady && (
-          <div className='p-4 border border-amber-500/20 bg-amber-500/5 rounded-2xl flex items-center gap-3.5'>
+          <div className='p-4 border border-amber-500/20 bg-amber-500/5 rounded-2xl flex items-center gap-3.5 shadow-sm max-w-4xl mx-auto'>
             <AlertCircle className='size-5 text-amber-500 shrink-0' />
             <p className='text-sm font-medium text-amber-800 dark:text-amber-300'>
               Please wait until all system readiness checks complete successfully before launching
-              the assessment. Enable camera and microphone permission if prompted.
+              the assessment. Enable camera and microphone permissions if prompted.
             </p>
           </div>
         )}
 
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12'>
           {/* Main system check panel */}
-          <div className='lg:col-span-2 space-y-6'>
+          <div className='lg:col-span-7 xl:col-span-8 flex flex-col'>
             <SystemCheck onStatusChange={setIsSystemReady} />
           </div>
 
           {/* Sidebar parameters summary */}
-          <div className='lg:col-span-1 space-y-6'>
+          <div className='lg:col-span-5 xl:col-span-4 flex flex-col space-y-6'>
             <CandidateInfo />
             <TestSummary test={test} />
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className='flex justify-end pt-6 border-t border-border/40'>
+        <div className='flex justify-center lg:justify-end pt-8 border-t border-border/40 mt-8'>
           <Button
             onClick={handleStartAssessment}
             disabled={!isSystemReady || isStarting}
             size='lg'
-            className='px-10 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all'
+            className='w-full sm:w-auto px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl'
           >
-            {isStarting ? 'Starting...' : 'Start Assessment'} {!isStarting && <Play className='ml-2 size-4 fill-current' />}
+            {isStarting ? 'Starting...' : 'Start Assessment'} {!isStarting && <Play className='ml-2 size-5 fill-current' />}
           </Button>
         </div>
       </main>

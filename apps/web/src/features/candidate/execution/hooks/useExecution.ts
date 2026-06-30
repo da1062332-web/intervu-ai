@@ -30,9 +30,14 @@ export function useExecution(testId: string) {
           // E.g., EXPIRED or CANCELLED, though EXPIRED could route to summary as well if it's considered completed
           router.replace('/candidate/dashboard');
         }
-      } catch (err) {
+      } catch (err: any) {
         if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load assessment');
+          if (err.status === 401) setError('UNAUTHORIZED');
+          else if (err.status === 403) setError('FORBIDDEN');
+          else if (err.status === 404) setError('NOT_FOUND');
+          else if (err.status === 410) setError('EXPIRED');
+          else if (err.status === 500) setError('SERVER_ERROR');
+          else setError(err instanceof Error ? err.message : 'Failed to load assessment');
           setLoading(false);
         }
       }

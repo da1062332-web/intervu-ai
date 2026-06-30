@@ -5,6 +5,10 @@ import { useExecution } from '@/features/candidate/execution/hooks/useExecution'
 import { ExecutionLayout } from '@/features/candidate/execution/components/ExecutionLayout';
 import { ExecutionSkeleton } from '@/features/candidate/execution/components/ExecutionSkeleton';
 import { ExecutionError } from '@/features/candidate/execution/components/ExecutionError';
+import { AssessmentErrorBoundary } from '@/features/candidate/execution/components/errors/AssessmentErrorBoundary';
+import { SessionExpired } from '@/features/candidate/execution/components/errors/SessionExpired';
+import { AssessmentUnavailable } from '@/features/candidate/execution/components/errors/AssessmentUnavailable';
+import { NetworkRecovery } from '@/features/candidate/execution/components/errors/NetworkRecovery';
 
 export default function AssessmentExecutionPage() {
   const params = useParams();
@@ -16,9 +20,28 @@ export default function AssessmentExecutionPage() {
     return <ExecutionSkeleton />;
   }
 
-  if (error || !id) {
-    return <ExecutionError error={error || 'Invalid Assessment ID'} />;
+  if (!id) {
+    return <ExecutionError error='Invalid Assessment ID' />;
   }
 
-  return <ExecutionLayout />;
+  if (error) {
+    switch (error) {
+      case 'EXPIRED':
+        return <SessionExpired />;
+      case 'NOT_FOUND':
+      case 'FORBIDDEN':
+      case 'UNAUTHORIZED':
+        return <AssessmentUnavailable />;
+      case 'OFFLINE': // Handled via network monitor
+        return <NetworkRecovery />;
+      default:
+        return <ExecutionError error={error} />;
+    }
+  }
+
+  return (
+    <AssessmentErrorBoundary>
+      <ExecutionLayout />
+    </AssessmentErrorBoundary>
+  );
 }
