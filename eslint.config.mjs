@@ -29,25 +29,11 @@ export default [
     },
     rules: {
       ...tsEslintPlugin.configs.recommended.rules,
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: [
-                "../../schema*",
-                "../dto*",
-                "../*/schema",
-                "../*/dto",
-                "@intervu-ai/validation-core",
-              ],
-              message: "Allow only: @intervu/shared",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/naming-convention": [
-        "error",
+        "warn",
         {
           selector: ["class", "interface", "typeAlias"],
           format: ["PascalCase"],

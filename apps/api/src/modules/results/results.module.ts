@@ -9,8 +9,11 @@ import { PerformanceService } from "./services/performance.service";
 import { EvaluationRepository } from "./repositories/evaluation.repository";
 import { RecommendationRepository } from "./repositories/recommendation.repository";
 import { PerformanceRepository } from "./repositories/performance.repository";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { EvaluationModule } from "../evaluation/evaluation.module";
 
 @Module({
+  imports: [PrismaModule, EvaluationModule],
   controllers: [ResultsController, PerformanceController],
   providers: [
     EvaluationPersistenceService,
