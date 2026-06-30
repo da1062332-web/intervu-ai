@@ -51,6 +51,7 @@ describe("Evaluation Module Integration Tests", () => {
     ],
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const prismaMock: any = {
     testInstance: {
       findUnique: jest.fn().mockResolvedValue(mockTestInstance),
@@ -107,13 +108,15 @@ describe("Evaluation Module Integration Tests", () => {
         },
         {
           questionId: "q2",
-          answer: "[\"B\", \"C\"]", // Correct MSQ
+          answer: '["B", "C"]', // Correct MSQ
           timeSpentSeconds: 35,
         },
       ],
     };
 
-    await expect(integration.triggerEvaluation(executionResult)).resolves.not.toThrow();
+    await expect(
+      integration.triggerEvaluation(executionResult),
+    ).resolves.not.toThrow();
 
     // Verify correct DB operations executed
     expect(prisma.testInstance.findUnique).toHaveBeenCalledWith({
@@ -129,7 +132,7 @@ describe("Evaluation Module Integration Tests", () => {
           score: 2, // Both correct
           percentage: 100,
         }),
-      })
+      }),
     );
 
     expect(prisma.evaluationAnalytics.upsert).toHaveBeenCalledWith(
@@ -139,7 +142,7 @@ describe("Evaluation Module Integration Tests", () => {
           completionRate: 100,
           attemptRate: 100,
         }),
-      })
+      }),
     );
 
     expect(prisma.submission.updateMany).toHaveBeenCalledWith({

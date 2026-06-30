@@ -44,7 +44,11 @@ describe("SectionScoringService Unit Tests", () => {
         id: "s1",
         sectionKey: "sec_aptitude",
         sectionName: "Aptitude Section",
-        questions: [{ questionId: "q1" }, { questionId: "q2" }, { questionId: "q3" }],
+        questions: [
+          { questionId: "q1" },
+          { questionId: "q2" },
+          { questionId: "q3" },
+        ],
       },
     ];
 

@@ -93,6 +93,7 @@ export class EvaluationController {
 
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const snap = (q.questionSnapshot || {}) as any;
         const answer = snap.answer || snap.correctAnswer || "";
         const questionType = snap.questionType || snap.type || "MCQ";
@@ -123,7 +124,10 @@ export class EvaluationController {
     const answers = testInstance.candidateAnswers.map((a) => ({
       questionId: a.questionId,
       selectedOptionId: String(a.answer),
-      selectedOptionIds: String(a.answer).startsWith("[") && String(a.answer).endsWith("]") ? JSON.parse(String(a.answer)) : undefined,
+      selectedOptionIds:
+        String(a.answer).startsWith("[") && String(a.answer).endsWith("]")
+          ? JSON.parse(String(a.answer))
+          : undefined,
       textResponse: String(a.answer),
       status: "ANSWERED" as const,
       timeSpentSeconds: a.timeSpentSeconds || 0,
@@ -131,7 +135,10 @@ export class EvaluationController {
 
     // 4. Evaluate and calculate scores
     const evalResults = this.evaluator.evaluateAnswers(answers, questionsList);
-    const sectionScores = this.sectionScoring.calculateSectionScores(evalResults, parsedSections);
+    const sectionScores = this.sectionScoring.calculateSectionScores(
+      evalResults,
+      parsedSections,
+    );
     return this.overallScoring.calculateOverallScore(sectionScores);
   }
 
@@ -139,7 +146,12 @@ export class EvaluationController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Queue evaluation for a test attempt" })
   async enqueueEvaluation(
-    @Body() body: { attemptId: string; userId: string; answers: Record<string, string> }
+    @Body()
+    body: {
+      attemptId: string;
+      userId: string;
+      answers: Record<string, string>;
+    },
   ) {
     // Generate a fallback submission ID if not already existing
     const submissionId = `sub-${body.attemptId}`;

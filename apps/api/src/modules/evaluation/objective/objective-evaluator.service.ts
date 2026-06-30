@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CandidateSubmissionDto, AnswerDto } from "@intervu-ai/contracts";
+import { AnswerDto } from "@intervu-ai/contracts";
 
 export interface QuestionEvaluationResult {
   questionId: string;
@@ -18,20 +18,28 @@ export class ObjectiveEvaluatorService {
    */
   evaluateAnswers(
     answers: AnswerDto[],
-    questions: Array<{ id: string; answer: string; questionType: string; metadata?: any }>,
+    questions: Array<{
+      id: string;
+      answer: string;
+      questionType: string;
+      metadata?: Record<string, unknown>;
+    }>,
   ): QuestionEvaluationResult[] {
     const results: QuestionEvaluationResult[] = [];
 
     for (const question of questions) {
       const candidateAnsObj = answers.find((a) => a.questionId === question.id);
-      
+
       // Determine candidate answer string based on properties in AnswerDto
       let candidateAnswer = "";
       let timeSpentSeconds = 0;
 
       if (candidateAnsObj) {
         timeSpentSeconds = candidateAnsObj.timeSpentSeconds || 0;
-        if (candidateAnsObj.selectedOptionIds && candidateAnsObj.selectedOptionIds.length > 0) {
+        if (
+          candidateAnsObj.selectedOptionIds &&
+          candidateAnsObj.selectedOptionIds.length > 0
+        ) {
           candidateAnswer = JSON.stringify(candidateAnsObj.selectedOptionIds);
         } else if (candidateAnsObj.selectedOptionId) {
           candidateAnswer = candidateAnsObj.selectedOptionId;
@@ -43,7 +51,11 @@ export class ObjectiveEvaluatorService {
       const correctAnswer = question.answer || "";
       const type = (question.questionType || "MCQ").toLowerCase();
 
-      const isCorrect = this.compareAnswers(candidateAnswer, correctAnswer, type);
+      const isCorrect = this.compareAnswers(
+        candidateAnswer,
+        correctAnswer,
+        type,
+      );
       const score = isCorrect ? 1 : 0;
       const maxMarks = 1; // Default to 1 mark per question
 

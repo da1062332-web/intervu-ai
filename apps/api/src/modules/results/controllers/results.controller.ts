@@ -46,14 +46,14 @@ export class ResultsController {
     status: 200,
     description: "Candidate results retrieved successfully",
   })
-  async listCandidateResults(
-    @Param("candidateId") candidateId: string,
-  ) {
+  async listCandidateResults(@Param("candidateId") candidateId: string) {
     return this.resultsService.listCandidateResults(candidateId);
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get assessment result details by attempt ID or evaluation ID" })
+  @ApiOperation({
+    summary: "Get assessment result details by attempt ID or evaluation ID",
+  })
   @ApiParam({
     name: "id",
     required: true,
@@ -73,7 +73,7 @@ export class ResultsController {
     try {
       // Try to fetch CandidateResult (attempt ID) first
       return await this.resultsService.getCandidateResult(id);
-    } catch (error) {
+    } catch {
       // Fallback to EvaluationResult details (Day 3 legacy path)
       return this.resultsService.getResultDetails(user.id, id);
     }

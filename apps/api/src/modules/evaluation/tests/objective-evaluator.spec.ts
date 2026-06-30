@@ -56,7 +56,7 @@ describe("ObjectiveEvaluatorService Unit Tests", () => {
 
     const questions = [
       { id: "q1", answer: "B,A", questionType: "MSQ" },
-      { id: "q2", answer: "[\"A\", \"B\"]", questionType: "MSQ" }, // mismatch
+      { id: "q2", answer: '["A", "B"]', questionType: "MSQ" }, // mismatch
     ];
 
     const results = service.evaluateAnswers(answers, questions);

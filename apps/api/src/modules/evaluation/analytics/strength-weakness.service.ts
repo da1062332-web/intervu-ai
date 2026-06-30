@@ -12,7 +12,9 @@ export class StrengthWeaknessService {
    * Identifies candidate strengths and weaknesses based on accuracy thresholds.
    * Threshold: >= 75% for Strengths, < 75% for Weaknesses.
    */
-  determineStrengthsAndWeaknesses(analytics: PerformanceAnalyticsDto): StrengthWeaknessResult {
+  determineStrengthsAndWeaknesses(
+    analytics: PerformanceAnalyticsDto,
+  ): StrengthWeaknessResult {
     const strengths: string[] = [];
     const weaknesses: string[] = [];
 

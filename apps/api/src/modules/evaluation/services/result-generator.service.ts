@@ -28,7 +28,9 @@ export class ResultGeneratorService {
   /**
    * Generates a complete CandidateResultDto from execution answers and test snapshots.
    */
-  async generateResult(executionResult: ExecutionResultDto): Promise<CandidateResultDto> {
+  async generateResult(
+    executionResult: ExecutionResultDto,
+  ): Promise<CandidateResultDto> {
     const attemptId = executionResult.testId;
     this.logger.info("Generating candidate assessment results", { attemptId });
 
@@ -63,11 +65,12 @@ export class ResultGeneratorService {
 
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const snap = (q.questionSnapshot || {}) as any;
         const answer = snap.answer || snap.correctAnswer || "";
         const questionType = snap.questionType || snap.type || "MCQ";
         const difficulty = snap.difficulty || snap.difficultyLevel || "MEDIUM";
-        
+
         // Resolve topic display name or concept display name
         let topicName = "General";
         if (snap.topic && snap.topic.name) {
@@ -106,29 +109,46 @@ export class ResultGeneratorService {
     const submissionAnswers = executionResult.answers.map((a) => ({
       questionId: a.questionId,
       selectedOptionId: a.answer,
-      selectedOptionIds: a.answer.startsWith("[") && a.answer.endsWith("]") ? JSON.parse(a.answer) : undefined,
+      selectedOptionIds:
+        a.answer.startsWith("[") && a.answer.endsWith("]")
+          ? JSON.parse(a.answer)
+          : undefined,
       textResponse: a.answer,
       status: "ANSWERED" as const,
       timeSpentSeconds: a.timeSpentSeconds || 0,
     }));
 
     // 4. Run Objective Evaluator
-    const evalResults = this.evaluator.evaluateAnswers(submissionAnswers, questionsList);
+    const evalResults = this.evaluator.evaluateAnswers(
+      submissionAnswers,
+      questionsList,
+    );
 
     // 5. Run Section Scoring
-    const sectionScores = this.sectionScoring.calculateSectionScores(evalResults, parsedSections);
+    const sectionScores = this.sectionScoring.calculateSectionScores(
+      evalResults,
+      parsedSections,
+    );
 
     // 6. Run Overall Scoring
-    const overallScore = this.overallScoring.calculateOverallScore(sectionScores);
+    const overallScore =
+      this.overallScoring.calculateOverallScore(sectionScores);
 
     // 7. Run Analytics
-    const performanceAnalytics = this.analytics.calculateAnalytics(evalResults, questionsList);
+    const performanceAnalytics = this.analytics.calculateAnalytics(
+      evalResults,
+      questionsList,
+    );
 
     // 8. Run Strength/Weakness
-    const { strengths, weaknesses } = this.strengthWeakness.determineStrengthsAndWeaknesses(performanceAnalytics);
+    const { strengths, weaknesses } =
+      this.strengthWeakness.determineStrengthsAndWeaknesses(
+        performanceAnalytics,
+      );
 
     // 9. Run Recommendations
-    const recommendationsList = this.recommendation.generateRecommendations(performanceAnalytics);
+    const recommendationsList =
+      this.recommendation.generateRecommendations(performanceAnalytics);
 
     // 10. Assemble and return final CandidateResultDto
     return {

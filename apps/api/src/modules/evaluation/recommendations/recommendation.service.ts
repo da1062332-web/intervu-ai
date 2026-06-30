@@ -6,29 +6,31 @@ import { randomUUID } from "crypto";
 @Injectable()
 export class RecommendationService {
   private readonly conceptToSkillMap: Record<string, string> = {
-    "time_work": "aptitude",
+    time_work: "aptitude",
     "Time and Work": "aptitude",
-    "percentages": "aptitude",
-    "Percentages": "aptitude",
-    "averages": "aptitude",
-    "Averages": "aptitude",
-    "profit_loss": "aptitude",
+    percentages: "aptitude",
+    Percentages: "aptitude",
+    averages: "aptitude",
+    Averages: "aptitude",
+    profit_loss: "aptitude",
     "Profit and Loss": "aptitude",
-    "probability": "reasoning",
-    "Probability": "reasoning",
+    probability: "reasoning",
+    Probability: "reasoning",
   };
 
   /**
    * Generates recommendations based on topic-wise performance.
    */
-  generateRecommendations(analytics: PerformanceAnalyticsDto): RecommendationDto[] {
+  generateRecommendations(
+    analytics: PerformanceAnalyticsDto,
+  ): RecommendationDto[] {
     const recommendations: RecommendationDto[] = [];
 
     for (const [topic, accuracy] of Object.entries(analytics.topicAccuracy)) {
       if (accuracy < 75) {
         const skill = this.conceptToSkillMap[topic] || "general";
         const priority = accuracy < 50 ? "HIGH" : "MEDIUM";
-        
+
         recommendations.push({
           recommendationId: `rec_${randomUUID()}`,
           skill,
@@ -46,7 +48,8 @@ export class RecommendationService {
         skill: "general",
         priority: "LOW",
         title: "Maintain Excellence",
-        description: "Great job! You achieved 75% or higher accuracy across all topics. Keep practicing to maintain your proficiency.",
+        description:
+          "Great job! You achieved 75% or higher accuracy across all topics. Keep practicing to maintain your proficiency.",
       });
     }
 

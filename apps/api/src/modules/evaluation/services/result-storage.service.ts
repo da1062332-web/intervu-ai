@@ -15,7 +15,10 @@ export class ResultStorageService {
   async saveResult(result: CandidateResultDto, durationMs = 0): Promise<void> {
     const { attemptId, candidateId, score, percentage, analytics } = result;
 
-    this.logger.info("Persisting assessment result to database", { attemptId, candidateId });
+    this.logger.info("Persisting assessment result to database", {
+      attemptId,
+      candidateId,
+    });
 
     await this.prisma.$transaction(async (tx) => {
       // 1. Create or Update CandidateResult
@@ -82,8 +85,15 @@ export class ResultStorageService {
   /**
    * Logs a failed evaluation run.
    */
-  async recordFailedRun(attemptId: string, errorMessage: string, durationMs = 0): Promise<void> {
-    this.logger.warn("Recording failed evaluation run", { attemptId, errorMessage });
+  async recordFailedRun(
+    attemptId: string,
+    errorMessage: string,
+    durationMs = 0,
+  ): Promise<void> {
+    this.logger.warn("Recording failed evaluation run", {
+      attemptId,
+      errorMessage,
+    });
     try {
       await this.prisma.evaluationRun.create({
         data: {

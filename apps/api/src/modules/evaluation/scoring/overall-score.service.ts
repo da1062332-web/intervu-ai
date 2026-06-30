@@ -19,8 +19,14 @@ export class OverallScoreService {
       totalAttempted += section.correct + section.incorrect;
     }
 
-    const percentage = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
-    const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+    const percentage =
+      totalQuestions > 0
+        ? Math.round((totalCorrect / totalQuestions) * 100)
+        : 0;
+    const accuracy =
+      totalAttempted > 0
+        ? Math.round((totalCorrect / totalAttempted) * 100)
+        : 0;
     const normalizedScore = percentage; // Default normalization out of 100%
 
     return {

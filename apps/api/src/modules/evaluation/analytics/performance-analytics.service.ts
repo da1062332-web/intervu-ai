@@ -9,10 +9,16 @@ export class PerformanceAnalyticsService {
    */
   calculateAnalytics(
     evalResults: QuestionEvaluationResult[],
-    questions: Array<{ id: string; topicName: string; difficulty: string; sectionKey: string }>,
+    questions: Array<{
+      id: string;
+      topicName: string;
+      difficulty: string;
+      sectionKey: string;
+    }>,
   ): PerformanceAnalyticsDto {
     const topicStats: Record<string, { correct: number; total: number }> = {};
-    const difficultyStats: Record<string, { correct: number; total: number }> = {};
+    const difficultyStats: Record<string, { correct: number; total: number }> =
+      {};
     const sectionStats: Record<string, { correct: number; total: number }> = {};
 
     let answeredCount = 0;
@@ -23,10 +29,13 @@ export class PerformanceAnalyticsService {
       const question = questions.find((q) => q.id === result.questionId);
       const topicName = question ? question.topicName || "General" : "General";
       const difficulty = question ? question.difficulty || "MEDIUM" : "MEDIUM";
-      const sectionKey = question ? question.sectionKey || "default" : "default";
+      const sectionKey = question
+        ? question.sectionKey || "default"
+        : "default";
 
       // answered means not empty/whitespace
-      const isAnswered = result.candidateAnswer && result.candidateAnswer.trim() !== "";
+      const isAnswered =
+        result.candidateAnswer && result.candidateAnswer.trim() !== "";
       if (isAnswered) {
         answeredCount += 1;
       }
@@ -68,21 +77,30 @@ export class PerformanceAnalyticsService {
 
     const topicAccuracy: Record<string, number> = {};
     for (const [topic, stats] of Object.entries(topicStats)) {
-      topicAccuracy[topic] = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+      topicAccuracy[topic] =
+        stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
     }
 
     const difficultyAccuracy: Record<string, number> = {};
     for (const [difficulty, stats] of Object.entries(difficultyStats)) {
-      difficultyAccuracy[difficulty] = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+      difficultyAccuracy[difficulty] =
+        stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
     }
 
     const sectionAccuracy: Record<string, number> = {};
     for (const [section, stats] of Object.entries(sectionStats)) {
-      sectionAccuracy[section] = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+      sectionAccuracy[section] =
+        stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
     }
 
-    const completionRate = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
-    const attemptRate = totalQuestions > 0 ? Math.round((attemptedCount / totalQuestions) * 100) : 0;
+    const completionRate =
+      totalQuestions > 0
+        ? Math.round((answeredCount / totalQuestions) * 100)
+        : 0;
+    const attemptRate =
+      totalQuestions > 0
+        ? Math.round((attemptedCount / totalQuestions) * 100)
+        : 0;
 
     return {
       topicAccuracy,

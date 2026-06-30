@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QueueService } from "../../../queue/queue.service";
@@ -18,16 +22,24 @@ export class EvaluationQueueService {
     testInstanceId: string,
     userId: string,
     answers: Record<string, string>,
-  ): Promise<any> {
-    this.logger.debug("Enqueuing submission for evaluation", { submissionId, testInstanceId });
+  ): Promise<unknown> {
+    this.logger.debug("Enqueuing submission for evaluation", {
+      submissionId,
+      testInstanceId,
+    });
 
     // 1. Prevent duplicate evaluation
     const existingSubmission = await this.prisma.submission.findUnique({
       where: { testInstanceId },
     });
 
-    if (existingSubmission && existingSubmission.status === SubmissionStatus.EVALUATED) {
-      this.logger.warn("Evaluation already completed for this attempt", { testInstanceId });
+    if (
+      existingSubmission &&
+      existingSubmission.status === SubmissionStatus.EVALUATED
+    ) {
+      this.logger.warn("Evaluation already completed for this attempt", {
+        testInstanceId,
+      });
       throw new ConflictException({
         code: "EVALUATION_ALREADY_COMPLETED",
         message: "Evaluation has already been completed for this assessment.",
@@ -56,20 +68,25 @@ export class EvaluationQueueService {
         },
       });
     } catch (error) {
-      this.logger.error("Failed to enqueue evaluation in background queue", error, { testInstanceId });
-      
+      this.logger.error(
+        "Failed to enqueue evaluation in background queue",
+        error,
+        { testInstanceId },
+      );
+
       // Update submission record with queue error
       await this.prisma.submission.update({
         where: { testInstanceId },
         data: {
-          errorMessage: error instanceof Error ? error.message : "Failed to enqueue",
+          errorMessage:
+            error instanceof Error ? error.message : "Failed to enqueue",
         },
       });
       throw error;
     }
   }
 
-  async getEvaluationStatus(attemptId: string): Promise<any> {
+  async getEvaluationStatus(attemptId: string): Promise<unknown> {
     this.logger.debug("Fetching evaluation status", { attemptId });
 
     const submission = await this.prisma.submission.findUnique({
@@ -94,7 +111,7 @@ export class EvaluationQueueService {
     };
   }
 
-  async retryFailedEvaluation(attemptId: string): Promise<any> {
+  async retryFailedEvaluation(attemptId: string): Promise<unknown> {
     this.logger.info("Retrying failed evaluation", { attemptId });
 
     const submission = await this.prisma.submission.findUnique({
@@ -111,7 +128,8 @@ export class EvaluationQueueService {
     if (submission.status === SubmissionStatus.EVALUATED) {
       throw new ConflictException({
         code: "EVALUATION_ALREADY_COMPLETED",
-        message: "Cannot retry evaluation that has already completed successfully.",
+        message:
+          "Cannot retry evaluation that has already completed successfully.",
       });
     }
 

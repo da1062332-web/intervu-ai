@@ -25,7 +25,6 @@ import {
   SubmissionRepository,
 } from "./repositories";
 import { EVALUATION_ADAPTER } from "./interfaces/evaluation-adapter.interface";
-import { EvaluationModule } from "../evaluation/evaluation.module";
 import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execution-evaluation.integration";
 
 @Module({
@@ -68,4 +67,3 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
   ],
 })
 export class ExecutionModule {}
-

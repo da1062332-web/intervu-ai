@@ -10,13 +10,22 @@ export class SectionScoringService {
    */
   calculateSectionScores(
     evalResults: QuestionEvaluationResult[],
-    sections: Array<{ id: string; sectionKey: string; sectionName: string; questions: Array<{ questionId: string }> }>,
+    sections: Array<{
+      id: string;
+      sectionKey: string;
+      sectionName: string;
+      questions: Array<{ questionId: string }>;
+    }>,
   ): SectionScoreDto[] {
     const scores: SectionScoreDto[] = [];
 
     for (const section of sections) {
-      const sectionQuestionIds = new Set(section.questions.map((q) => q.questionId));
-      const sectionResults = evalResults.filter((r) => sectionQuestionIds.has(r.questionId));
+      const sectionQuestionIds = new Set(
+        section.questions.map((q) => q.questionId),
+      );
+      const sectionResults = evalResults.filter((r) =>
+        sectionQuestionIds.has(r.questionId),
+      );
 
       let correct = 0;
       let incorrect = 0;
@@ -27,7 +36,10 @@ export class SectionScoringService {
         if (result.isCorrect) {
           correct += 1;
           marks += result.score;
-        } else if (!result.candidateAnswer || result.candidateAnswer.trim() === "") {
+        } else if (
+          !result.candidateAnswer ||
+          result.candidateAnswer.trim() === ""
+        ) {
           skipped += 1;
         } else {
           incorrect += 1;
@@ -35,7 +47,8 @@ export class SectionScoringService {
       }
 
       const totalQuestions = sectionResults.length;
-      const accuracy = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+      const accuracy =
+        totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
 
       scores.push({
         sectionKey: section.sectionKey,

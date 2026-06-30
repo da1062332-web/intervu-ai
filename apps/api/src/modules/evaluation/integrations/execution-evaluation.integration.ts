@@ -7,7 +7,9 @@ import { AppLogger } from "@intervu-ai/shared-logger";
 
 @Injectable()
 export class ExecutionEvaluationIntegration implements EvaluationAdapter {
-  private readonly logger = new AppLogger({ name: "ExecutionEvaluationIntegration" });
+  private readonly logger = new AppLogger({
+    name: "ExecutionEvaluationIntegration",
+  });
 
   constructor(
     private readonly resultGenerator: ResultGeneratorService,
@@ -28,7 +30,8 @@ export class ExecutionEvaluationIntegration implements EvaluationAdapter {
 
     try {
       // 1. Generate results DTO
-      const resultDto = await this.resultGenerator.generateResult(executionResult);
+      const resultDto =
+        await this.resultGenerator.generateResult(executionResult);
 
       // 2. Persist the results, analytics, and run details
       const durationMs = Date.now() - startTime;
@@ -40,11 +43,19 @@ export class ExecutionEvaluationIntegration implements EvaluationAdapter {
       });
     } catch (error) {
       const durationMs = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.logger.error("Failed to run assessment evaluation integration", error);
-      
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        "Failed to run assessment evaluation integration",
+        error,
+      );
+
       // Record failed run in the database
-      await this.resultStorage.recordFailedRun(attemptId, errorMessage, durationMs);
+      await this.resultStorage.recordFailedRun(
+        attemptId,
+        errorMessage,
+        durationMs,
+      );
       throw error;
     }
   }

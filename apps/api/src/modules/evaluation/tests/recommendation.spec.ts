@@ -11,8 +11,8 @@ describe("RecommendationService Unit Tests", () => {
   it("should generate appropriate priority recommendations based on accuracy levels", () => {
     const analytics: PerformanceAnalyticsDto = {
       topicAccuracy: {
-        "Percentages": 40, // < 50% -> HIGH priority
-        "Probability": 60, // >= 50% and < 75% -> MEDIUM priority
+        Percentages: 40, // < 50% -> HIGH priority
+        Probability: 60, // >= 50% and < 75% -> MEDIUM priority
         "Time and Work": 80, // >= 75% -> no recommendation
       },
       difficultyAccuracy: {},
@@ -24,9 +24,13 @@ describe("RecommendationService Unit Tests", () => {
     const recommendations = service.generateRecommendations(analytics);
 
     expect(recommendations.length).toBe(2);
-    
-    const percentageRec = recommendations.find((r) => r.title.includes("Percentages"));
-    const probabilityRec = recommendations.find((r) => r.title.includes("Probability"));
+
+    const percentageRec = recommendations.find((r) =>
+      r.title.includes("Percentages"),
+    );
+    const probabilityRec = recommendations.find((r) =>
+      r.title.includes("Probability"),
+    );
 
     expect(percentageRec).toBeDefined();
     expect(percentageRec?.priority).toBe("HIGH");
@@ -40,7 +44,7 @@ describe("RecommendationService Unit Tests", () => {
   it("should generate fallback maintain-excellence recommendation when all topics are above 75%", () => {
     const analytics: PerformanceAnalyticsDto = {
       topicAccuracy: {
-        "Percentages": 85,
+        Percentages: 85,
         "Time and Work": 90,
       },
       difficultyAccuracy: {},
