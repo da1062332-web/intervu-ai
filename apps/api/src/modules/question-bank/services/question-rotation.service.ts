@@ -77,16 +77,13 @@ export class QuestionRotationService {
           difficulty: diff,
           topicId:
             topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
-          OR: [
-            { reservations: null },
-            {
-              reservations: {
-                expiresAt: {
-                  lte: new Date(),
-                },
+          reservations: {
+            none: {
+              expiresAt: {
+                gt: new Date(),
               },
             },
-          ],
+          },
         },
       });
 
