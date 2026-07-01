@@ -28,7 +28,9 @@ export default function TemplatePage() {
           </Link>
           <div>
             <h1 className='text-2xl font-bold tracking-tight'>Template Editor</h1>
-            <p className='text-muted-foreground'>Manage your template and solution configurations.</p>
+            <p className='text-muted-foreground'>
+              Manage your template and solution configurations.
+            </p>
           </div>
         </div>
         {/* Primary CTA: Go to Assembly */}
@@ -49,7 +51,9 @@ export default function TemplatePage() {
           </div>
           <div className='flex-1 min-w-0'>
             <div className='flex items-center gap-2 flex-wrap'>
-              <h2 className='font-semibold text-gray-900 dark:text-gray-100 text-lg'>{template.name}</h2>
+              <h2 className='font-semibold text-gray-900 dark:text-gray-100 text-lg'>
+                {template.name}
+              </h2>
               <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'>
                 {template.difficultyLevel ?? template.difficulty ?? 'MEDIUM'}
               </span>
@@ -69,18 +73,28 @@ export default function TemplatePage() {
             )}
             <div className='flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground'>
               {template.templateKey && (
-                <span className='font-mono bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded'>{template.templateKey}</span>
+                <span className='font-mono bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded'>
+                  {template.templateKey}
+                </span>
               )}
               {template.conceptKey && (
-                <span>Concept: <strong>{template.conceptKey}</strong></span>
+                <span>
+                  Concept: <strong>{template.conceptKey}</strong>
+                </span>
               )}
               {template.questionType && (
-                <span>Type: <strong>{template.questionType}</strong></span>
+                <span>
+                  Type: <strong>{template.questionType}</strong>
+                </span>
               )}
             </div>
           </div>
           <Link href='/admin/assembly'>
-            <Button variant='outline' size='sm' className='gap-1.5 shrink-0 border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400'>
+            <Button
+              variant='outline'
+              size='sm'
+              className='gap-1.5 shrink-0 border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400'
+            >
               <ClipboardList className='w-3.5 h-3.5' />
               Assemble
             </Button>

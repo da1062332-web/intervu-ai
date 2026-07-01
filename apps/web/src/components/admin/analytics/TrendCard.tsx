@@ -15,7 +15,13 @@ export interface TrendCardProps {
 }
 import { memo } from 'react';
 
-export const TrendCard = memo(function TrendCard({ title, data, trendValue, isLoading, isError }: TrendCardProps) {
+export const TrendCard = memo(function TrendCard({
+  title,
+  data,
+  trendValue,
+  isLoading,
+  isError,
+}: TrendCardProps) {
   if (isLoading) {
     return (
       <Card>

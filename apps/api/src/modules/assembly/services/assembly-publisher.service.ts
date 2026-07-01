@@ -5,6 +5,7 @@ import { AssemblyVersionService } from "./assembly-version.service";
 import { AssemblyAuditService } from "./assembly-audit.service";
 import { AssemblyStatus } from "@prisma/client";
 import { BlueprintBuilderService } from "./blueprint-builder.service";
+import { PublishReadinessService } from "./publish-readiness.service";
 
 @Injectable()
 export class AssemblyPublisherService {
@@ -14,9 +15,23 @@ export class AssemblyPublisherService {
     private readonly versionService: AssemblyVersionService,
     private readonly auditService: AssemblyAuditService,
     private readonly blueprintBuilder: BlueprintBuilderService,
+    private readonly readinessService: PublishReadinessService,
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
+    // --- Readiness Gate (added by Module 3 Integration Layer) ---
+    // Run all 6 pre-publish checks. Throws BadRequestException if any fail.
+    const readiness = await this.readinessService.check(assemblyId);
+    if (!readiness.ready) {
+      const failedChecks = readiness.checks
+        .filter((c) => !c.passed)
+        .map((c) => `${c.name}: ${c.message}`)
+        .join(" | ");
+      throw new BadRequestException(
+        `Publish blocked by readiness gate. Failed checks: ${failedChecks}`,
+      );
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let assembly: any = null;
     try {
@@ -40,7 +55,7 @@ export class AssemblyPublisherService {
     }
 
     // Load blueprint to validate
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let blueprint: any = null;
     const validationErrors: string[] = [];
 
@@ -58,7 +73,7 @@ export class AssemblyPublisherService {
     if (blueprint) {
       // 1. Question count matches Blueprint
       const blueprintTotalQuestions = blueprint.sections.reduce(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         (acc: any, s: any) => acc + (s.questionCount || 0),
         0,
       );

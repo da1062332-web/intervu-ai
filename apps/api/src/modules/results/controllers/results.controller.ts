@@ -20,7 +20,6 @@ import { ResponseInterceptor } from "@intervu/shared";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { ResultsService } from "../services/results.service";
 import { RecommendationsService } from "../services/recommendations.service";
-
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
@@ -36,12 +35,29 @@ export class ResultsController {
     private readonly recommendationsService: RecommendationsService,
   ) {}
 
-  @Get(":evaluationId")
-  @ApiOperation({ summary: "Get evaluation result details" })
+  @Get("candidate/:candidateId")
+  @ApiOperation({ summary: "List assessment results for a specific candidate" })
   @ApiParam({
-    name: "evaluationId",
+    name: "candidateId",
     required: true,
-    description: "Evaluation ID",
+    description: "Candidate ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Candidate results retrieved successfully",
+  })
+  async listCandidateResults(@Param("candidateId") candidateId: string) {
+    return this.resultsService.listCandidateResults(candidateId);
+  }
+
+  @Get(":id")
+  @ApiOperation({
+    summary: "Get assessment result details by attempt ID or evaluation ID",
+  })
+  @ApiParam({
+    name: "id",
+    required: true,
+    description: "Test attempt ID or evaluation ID",
   })
   @ApiResponse({
     status: 200,
@@ -52,9 +68,15 @@ export class ResultsController {
   @ApiNotFoundResponse({ description: "Result not found" })
   async getResultDetails(
     @CurrentUser() user: { id: string },
-    @Param("evaluationId") evaluationId: string,
+    @Param("id") id: string,
   ) {
-    return this.resultsService.getResultDetails(user.id, evaluationId);
+    try {
+      // Try to fetch CandidateResult (attempt ID) first
+      return await this.resultsService.getCandidateResult(id);
+    } catch {
+      // Fallback to EvaluationResult details (Day 3 legacy path)
+      return this.resultsService.getResultDetails(user.id, id);
+    }
   }
 
   @Get(":evaluationId/recommendations")

@@ -24,7 +24,14 @@ export const QuestionPalette = memo(function QuestionPalette() {
         <div className='grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-4 lg:grid-cols-5'>
           {palette.map((status, index) => {
             const questionId = questions[index]?.id;
-            const isAnswered = questionId ? !!answers[questionId]?.selectedOptionId : false;
+            const ans = answers[questionId];
+            const isAnswered = questionId
+              ? !!(
+                  ans?.selectedOptionId ||
+                  (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+                  ans?.textResponse
+                )
+              : false;
 
             return (
               <QuestionStatusBadge

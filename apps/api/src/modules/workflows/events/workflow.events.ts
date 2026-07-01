@@ -1,4 +1,4 @@
-import { WorkflowStep } from '@prisma/client';
+import { WorkflowStep } from "@prisma/client";
 
 export class ConfigurationCompletedEvent {
   constructor(public readonly examId: string) {}

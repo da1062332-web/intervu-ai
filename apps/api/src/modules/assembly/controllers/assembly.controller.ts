@@ -22,6 +22,11 @@ import { AssemblyVersionService } from "../services/assembly-version.service";
 import { DistributionAnalyticsService } from "../services/distribution-analytics.service";
 import { AssemblyPublisherService } from "../services/assembly-publisher.service";
 import { AssemblyRepository } from "../repositories/assembly.repository";
+import { TestPackageService } from "../services/test-package.service";
+import { PublishReadinessService } from "../services/publish-readiness.service";
+import { AssemblyValidationV2Service } from "../services/assembly-validation-v2.service";
+import { BlueprintBuilderService } from "../services/blueprint-builder.service";
+import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import {
   CreateAssemblyDto,
   AssemblyBuildResponseDto,
@@ -47,6 +52,12 @@ export class AssemblyController {
     private readonly analyticsService: DistributionAnalyticsService,
     private readonly publisherService: AssemblyPublisherService,
     private readonly assemblyRepository: AssemblyRepository,
+    // --- New Integration Layer Services ---
+    private readonly testPackageService: TestPackageService,
+    private readonly readinessService: PublishReadinessService,
+    private readonly validationV2Service: AssemblyValidationV2Service,
+    private readonly blueprintBuilder: BlueprintBuilderService,
+    private readonly assembledTestRepository: AssembledTestRepository,
   ) {}
 
   // --- NEW ROUTES ---
@@ -224,7 +235,7 @@ export class AssemblyController {
   @ApiResponse({ status: 200 })
   async getAssembly(@Param("id") id: string) {
     // Try AssembledTest table first (from POST /assembly/save or POST /assembly/tests/generate flow)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let instance: any = null;
 
     try {
@@ -247,7 +258,7 @@ export class AssemblyController {
       totalDurationSeconds:
         instance.totalDurationSeconds ??
         instance.sections?.reduce(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           (acc: number, s: any) => acc + (s.durationSeconds ?? 0),
           0,
         ) ??
@@ -255,21 +266,21 @@ export class AssemblyController {
       totalQuestions:
         instance.totalQuestions ??
         instance.sections?.reduce(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           (acc: number, s: any) => acc + (s.questions?.length ?? 0),
           0,
         ) ??
         0,
       createdAt: instance.createdAt.toISOString(),
       updatedAt: instance.updatedAt.toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       sections: (instance.sections ?? []).map((s: any) => ({
         sectionKey: s.sectionKey,
         displayName: s.sectionName ?? s.displayName,
         durationSeconds: s.durationSeconds,
         questionCount: s.questionCount ?? s.questions?.length ?? 0,
         orderIndex: s.orderIndex ?? 0,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         questions: (s.questions ?? []).map((q: any) => {
           const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
           return {
@@ -291,5 +302,142 @@ export class AssemblyController {
       error: null,
       meta: null,
     };
+  }
+
+  // =========================================================
+  // NEW INTEGRATION LAYER ROUTES
+  // =========================================================
+
+  /**
+   * POST /assembly/:id/validate-v2
+   * Run V2 validation on a persisted assembly.
+   * Returns enriched report with coverage %, accuracy scores, warnings, and duplicate count.
+   * Does NOT modify the assembly.
+   */
+  @Post(":id/validate-v2")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "V2 Assembly Validation — enriched report with coverage and accuracy metrics",
+  })
+  @ApiResponse({ status: 200, description: "AssemblyValidationReportDto" })
+  async validateV2(@Param("id") id: string) {
+    const assembly = await this.assembledTestRepository.findById(id);
+    if (!assembly) {
+      throw new NotFoundException(`Assembly ${id} not found`);
+    }
+
+    const blueprint = await this.blueprintBuilder.generateBlueprint(
+      assembly.configId,
+    );
+
+    // Map persisted questions to AllocatedSectionDto shape for validation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sections = (assembly.sections ?? []).map((s: any) => ({
+      sectionKey: s.sectionKey,
+      displayName: s.sectionName,
+      durationSeconds: s.durationSeconds,
+      questionCount: s.questionCount,
+      orderIndex: s.orderIndex,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      questions: (s.questions ?? []).map((q: any) => {
+        const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
+        return {
+          questionId: q.questionId,
+          questionHash: (snap["questionHash"] as string) ?? q.questionId,
+          conceptKey: (snap["conceptKey"] as string) ?? "",
+          difficultyLevel: (snap["difficultyLevel"] as string) ?? "MEDIUM",
+          questionType: (snap["questionType"] as string) ?? "MULTIPLE_CHOICE",
+          questionOrder: q.questionOrder,
+          questionSnapshot: q.questionSnapshot,
+        };
+      }),
+    }));
+
+    const report = this.validationV2Service.validate(blueprint, sections);
+    return { success: true, data: report, error: null, meta: null };
+  }
+
+  /**
+   * POST /assembly/package/:id
+   * Generate an execution-ready test package from a persisted assembly.
+   * Returns ExecutionReadyTestDto — the Module 4 handoff contract.
+   * Does NOT persist. Pure transformation.
+   */
+  @Post("package/:id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Generate ExecutionReadyTestDto for Module 4 consumption",
+  })
+  @ApiResponse({ status: 200, description: "ExecutionReadyTestDto" })
+  async packageAssembly(@Param("id") id: string) {
+    const pkg = await this.testPackageService.generatePackage(id);
+    return { success: true, data: pkg, error: null, meta: null };
+  }
+
+  /**
+   * GET /assembly/:id/health
+   * Get the V2 validation health report for a persisted assembly.
+   * Used by the AssemblyHealthDashboard frontend component.
+   */
+  @Get(":id/health")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Assembly health report — V2 validation with coverage, accuracy, duplicates",
+  })
+  @ApiResponse({ status: 200, description: "AssemblyValidationReportDto" })
+  async getAssemblyHealth(@Param("id") id: string) {
+    const assembly = await this.assembledTestRepository.findById(id);
+    if (!assembly) {
+      throw new NotFoundException(`Assembly ${id} not found`);
+    }
+
+    const blueprint = await this.blueprintBuilder.generateBlueprint(
+      assembly.configId,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sections = (assembly.sections ?? []).map((s: any) => ({
+      sectionKey: s.sectionKey,
+      displayName: s.sectionName,
+      durationSeconds: s.durationSeconds,
+      questionCount: s.questionCount,
+      orderIndex: s.orderIndex,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      questions: (s.questions ?? []).map((q: any) => {
+        const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
+        return {
+          questionId: q.questionId,
+          questionHash: (snap["questionHash"] as string) ?? q.questionId,
+          conceptKey: (snap["conceptKey"] as string) ?? "",
+          difficultyLevel: (snap["difficultyLevel"] as string) ?? "MEDIUM",
+          questionType: (snap["questionType"] as string) ?? "MULTIPLE_CHOICE",
+          questionOrder: q.questionOrder,
+          questionSnapshot: q.questionSnapshot,
+        };
+      }),
+    }));
+
+    const report = this.validationV2Service.validate(blueprint, sections);
+    return { success: true, data: report, error: null, meta: null };
+  }
+
+  /**
+   * POST /assembly/:id/readiness
+   * Run all 6 pre-publish readiness checks.
+   * Returns PublishReadinessReport. Does NOT publish.
+   * Admins can use this to diagnose issues before attempting to publish.
+   */
+  @Post(":id/readiness")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Pre-publish readiness check — run 6 gate checks without publishing",
+  })
+  @ApiResponse({ status: 200, description: "PublishReadinessReport" })
+  async checkReadiness(@Param("id") id: string) {
+    const report = await this.readinessService.check(id);
+    return { success: true, data: report, error: null, meta: null };
   }
 }

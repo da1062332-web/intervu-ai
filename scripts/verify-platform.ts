@@ -14,7 +14,10 @@ async function run() {
   const prisma = new PrismaService();
   const eventBus = new EventBusService();
   const healthService = new PlatformHealthService(prisma);
-  const auditService = new PlatformAuditService(prisma, new SubmissionRepository(prisma));
+  const auditService = new PlatformAuditService(
+    prisma,
+    new SubmissionRepository(prisma),
+  );
   const sanitizationMiddleware = new SanitizeRequestMiddleware();
 
   try {

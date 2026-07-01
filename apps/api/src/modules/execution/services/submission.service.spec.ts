@@ -26,8 +26,20 @@ describe("SubmissionService", () => {
         { provide: TestInstanceRepository, useValue: {} },
         { provide: SubmissionRepository, useValue: {} },
         { provide: CandidateAnswerRepository, useValue: {} },
-        { provide: SubmissionValidationService, useValue: { validateSubmission: jest.fn(() => ({ isValid: true, errors: [], missingQuestionIds: [] })) } },
-        { provide: EvaluationQueueService, useValue: { enqueueSubmission: jest.fn() } },
+        {
+          provide: SubmissionValidationService,
+          useValue: {
+            validateSubmission: jest.fn(() => ({
+              isValid: true,
+              errors: [],
+              missingQuestionIds: [],
+            })),
+          },
+        },
+        {
+          provide: EvaluationQueueService,
+          useValue: { enqueueSubmission: jest.fn() },
+        },
         { provide: EVALUATION_ADAPTER, useValue: {} },
       ],
     }).compile();

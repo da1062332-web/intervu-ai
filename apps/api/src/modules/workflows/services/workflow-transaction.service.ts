@@ -1,6 +1,11 @@
-import { Injectable, ConflictException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { Prisma, ExamWorkflow, WorkflowStep, WorkflowStatus } from '@prisma/client';
+import { Injectable, ConflictException, Logger } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
+import {
+  Prisma,
+  ExamWorkflow,
+  WorkflowStep,
+  WorkflowStatus,
+} from "@prisma/client";
 
 export interface TransitionParams {
   workflowId: string;
@@ -8,14 +13,20 @@ export interface TransitionParams {
   newStep: WorkflowStep;
   newStatus: WorkflowStatus;
   newPercentage: number;
-  historyEntry: Omit<Prisma.ExamWorkflowHistoryCreateInput, 'workflow' | 'workflowId'>;
+  historyEntry: Omit<
+    Prisma.ExamWorkflowHistoryCreateInput,
+    "workflow" | "workflowId"
+  >;
 }
 
 export interface FailureParams {
   workflowId: string;
   expectedVersion: number;
   reason: string;
-  historyEntry: Omit<Prisma.ExamWorkflowHistoryCreateInput, 'workflow' | 'workflowId'>;
+  historyEntry: Omit<
+    Prisma.ExamWorkflowHistoryCreateInput,
+    "workflow" | "workflowId"
+  >;
 }
 
 @Injectable()
@@ -25,7 +36,14 @@ export class WorkflowTransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
   async executeTransition(params: TransitionParams): Promise<ExamWorkflow> {
-    const { workflowId, expectedVersion, newStep, newStatus, newPercentage, historyEntry } = params;
+    const {
+      workflowId,
+      expectedVersion,
+      newStep,
+      newStatus,
+      newPercentage,
+      historyEntry,
+    } = params;
 
     return this.prisma.$transaction(async (tx) => {
       // Optimistic concurrency control using version
@@ -40,11 +58,17 @@ export class WorkflowTransactionService {
       });
 
       if (updateResult.count === 0) {
-        this.logger.warn(`Concurrency conflict detected on workflow ${workflowId} (expected version ${expectedVersion})`);
-        throw new ConflictException('Workflow was concurrently modified. Please reload and retry.');
+        this.logger.warn(
+          `Concurrency conflict detected on workflow ${workflowId} (expected version ${expectedVersion})`,
+        );
+        throw new ConflictException(
+          "Workflow was concurrently modified. Please reload and retry.",
+        );
       }
 
-      const workflow = await tx.examWorkflow.findUniqueOrThrow({ where: { id: workflowId } });
+      const workflow = await tx.examWorkflow.findUniqueOrThrow({
+        where: { id: workflowId },
+      });
 
       await tx.examWorkflowHistory.create({
         data: {
@@ -71,10 +95,14 @@ export class WorkflowTransactionService {
       });
 
       if (updateResult.count === 0) {
-        throw new ConflictException('Workflow was concurrently modified. Please reload and retry.');
+        throw new ConflictException(
+          "Workflow was concurrently modified. Please reload and retry.",
+        );
       }
 
-      const workflow = await tx.examWorkflow.findUniqueOrThrow({ where: { id: workflowId } });
+      const workflow = await tx.examWorkflow.findUniqueOrThrow({
+        where: { id: workflowId },
+      });
 
       await tx.examWorkflowHistory.create({
         data: {
@@ -92,7 +120,10 @@ export class WorkflowTransactionService {
     workflowId: string,
     expectedVersion: number,
     step: WorkflowStep,
-    historyEntry: Omit<Prisma.ExamWorkflowHistoryCreateInput, 'workflow' | 'workflowId'>,
+    historyEntry: Omit<
+      Prisma.ExamWorkflowHistoryCreateInput,
+      "workflow" | "workflowId"
+    >,
   ): Promise<ExamWorkflow> {
     return this.prisma.$transaction(async (tx) => {
       const updateResult = await tx.examWorkflow.updateMany({
@@ -105,10 +136,14 @@ export class WorkflowTransactionService {
       });
 
       if (updateResult.count === 0) {
-        throw new ConflictException('Workflow was concurrently modified. Please reload and retry.');
+        throw new ConflictException(
+          "Workflow was concurrently modified. Please reload and retry.",
+        );
       }
 
-      const workflow = await tx.examWorkflow.findUniqueOrThrow({ where: { id: workflowId } });
+      const workflow = await tx.examWorkflow.findUniqueOrThrow({
+        where: { id: workflowId },
+      });
 
       await tx.examWorkflowHistory.create({
         data: {

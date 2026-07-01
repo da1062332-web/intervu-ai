@@ -1,11 +1,29 @@
-import { Controller, Get, Post, Body, Param, UseGuards, NotFoundException } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiCreatedResponse } from "@nestjs/swagger";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  NotFoundException,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+} from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole, QuestionStatus } from "@prisma/client";
 import { TopicExpansionService } from "../generators/topic-expansion.service";
 import { GenerationJobService } from "../services/generation-job.service";
-import { CreateGenerationJobDto, TopicExpandDto, GenerationDashboardDto } from "../dto/generation-job.dto";
+import {
+  CreateGenerationJobDto,
+  TopicExpandDto,
+  GenerationDashboardDto,
+} from "../dto/generation-job.dto";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @ApiTags("generation")
@@ -49,7 +67,7 @@ export class GenerationAiController {
   @ApiOperation({ summary: "Get generation monitoring dashboard statistics" })
   @ApiOkResponse({ type: GenerationDashboardDto })
   async getDashboard(): Promise<GenerationDashboardDto> {
-    const jobsCompleted = await this.prisma.generationJob.count({
+    const jobsCompleted = await (this.prisma as any).generationJob.count({
       where: { status: "COMPLETED" },
     });
 
@@ -60,11 +78,14 @@ export class GenerationAiController {
     const metrics = await this.prisma.generationMetrics.findFirst();
     const averageQuality = metrics ? metrics.averageQualityScore : 0.0;
 
-    const totalJobs = await this.prisma.generationJob.count();
-    const failedJobs = await this.prisma.generationJob.count({
+    const totalJobs = await (this.prisma as any).generationJob.count();
+    const failedJobs = await (this.prisma as any).generationJob.count({
       where: { status: "FAILED" },
     });
-    const failureRate = totalJobs > 0 ? Math.round((failedJobs / totalJobs) * 100 * 10) / 10 : 0.0;
+    const failureRate =
+      totalJobs > 0
+        ? Math.round((failedJobs / totalJobs) * 100 * 10) / 10
+        : 0.0;
 
     const reviewQueueSize = await this.prisma.question.count({
       where: {

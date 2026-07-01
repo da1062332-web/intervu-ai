@@ -4,7 +4,9 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName?: string | null;
+  name?: string | null;
   role: UserRole;
+  createdAt?: string;
 }
 
 export interface TokenSession {
@@ -36,6 +38,10 @@ export interface UserSession {
   id: string;
   userId: string;
   device?: string;
+  userAgent?: string;
   ip?: string;
   lastActiveAt?: string;
+  createdAt?: string;
+  expiresAt?: string;
+  isCurrent?: boolean;
 }

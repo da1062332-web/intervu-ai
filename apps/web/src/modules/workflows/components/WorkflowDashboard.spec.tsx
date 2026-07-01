@@ -20,7 +20,13 @@ describe('WorkflowDashboard', () => {
   it('renders workflows table', () => {
     (useWorkflows as jest.Mock).mockReturnValue({
       workflows: [
-        { id: '1', examId: 'e1', currentStep: 'CONFIGURATION', status: 'COMPLETED', nextAction: { label: 'Start Generation' } }
+        {
+          id: '1',
+          examId: 'e1',
+          currentStep: 'CONFIGURATION',
+          status: 'COMPLETED',
+          nextAction: { label: 'Start Generation' },
+        },
       ],
       loading: false,
       error: null,

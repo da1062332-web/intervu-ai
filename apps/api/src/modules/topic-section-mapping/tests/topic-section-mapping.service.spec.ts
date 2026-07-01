@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Test, TestingModule } from "@nestjs/testing";
 import { TopicSectionMappingService } from "../services/topic-section-mapping.service";
 import { TopicSectionMappingRepository } from "../repositories/topic-section-mapping.repository";

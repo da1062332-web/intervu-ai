@@ -7,7 +7,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionRepository } from "../repositories/question.repository";
 import { QuestionVersionService } from "./question-version.service";
 import { QuestionReviewService } from "./question-review.service";
-// eslint-disable-next-line no-restricted-imports
+ 
 import {
   CreateQuestionDto,
   UpdateQuestionDto,
@@ -68,7 +68,7 @@ export class QuestionBankService {
             templateId: dto.templateId,
             questionHash: createId(), // Satisfy unique key constraint
             conceptKey: dto.topicId, // fallback to topicId
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             difficultyLevel: dto.difficulty as any,
             questionType: "mcq",
             questionText: dto.questionText,
@@ -168,7 +168,7 @@ export class QuestionBankService {
               templateId: q.templateId,
               questionHash: createId(),
               conceptKey: q.topicId,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               
               difficultyLevel: q.difficulty as any,
               questionType: "mcq",
               questionText: q.questionText,
@@ -192,7 +192,7 @@ export class QuestionBankService {
 
         return { saved: count, failed: 0 };
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } catch (error: any) {
       // Transaction automatically rolls back on error
       throw new BadRequestException({
@@ -285,7 +285,7 @@ export class QuestionBankService {
   async getStats(filters: {
     topicId?: string;
     sectionId?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   }): Promise<any> {
     const where: Prisma.QuestionWhereInput = {};
     if (filters.topicId) {

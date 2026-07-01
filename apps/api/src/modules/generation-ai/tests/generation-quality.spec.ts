@@ -24,11 +24,27 @@ describe("GenerationQualityService", () => {
     difficultyValidator.validate.mockResolvedValue(true);
 
     const questions: GeneratedQuestionDto[] = [
-      { question: "Q1 text is long enough", answer: "A1", explanation: "E1", difficulty: "Medium", topic: "Percentages" },
-      { question: "Q2 text is long enough", answer: "A2", explanation: "E2", difficulty: "Medium", topic: "Percentages" },
+      {
+        question: "Q1 text is long enough",
+        answer: "A1",
+        explanation: "E1",
+        difficulty: "Medium",
+        topic: "Percentages",
+      },
+      {
+        question: "Q2 text is long enough",
+        answer: "A2",
+        explanation: "E2",
+        difficulty: "Medium",
+        topic: "Percentages",
+      },
     ];
 
-    const report = await service.evaluateBatch(questions, "Percentages", "Medium");
+    const report = await service.evaluateBatch(
+      questions,
+      "Percentages",
+      "Medium",
+    );
     expect(report.totalGenerated).toBe(2);
     expect(report.totalPassed).toBe(2);
     expect(report.duplicateRate).toBe(0);
@@ -42,11 +58,27 @@ describe("GenerationQualityService", () => {
     difficultyValidator.validate.mockResolvedValue(true);
 
     const questions: GeneratedQuestionDto[] = [
-      { question: "Duplicate Text", answer: "A1", explanation: "E1", difficulty: "Medium", topic: "Percentages" },
-      { question: "Duplicate Text", answer: "A2", explanation: "E2", difficulty: "Medium", topic: "Percentages" },
+      {
+        question: "Duplicate Text",
+        answer: "A1",
+        explanation: "E1",
+        difficulty: "Medium",
+        topic: "Percentages",
+      },
+      {
+        question: "Duplicate Text",
+        answer: "A2",
+        explanation: "E2",
+        difficulty: "Medium",
+        topic: "Percentages",
+      },
     ];
 
-    const report = await service.evaluateBatch(questions, "Percentages", "Medium");
+    const report = await service.evaluateBatch(
+      questions,
+      "Percentages",
+      "Medium",
+    );
     expect(report.duplicateRate).toBe(50);
     expect(report.validationSuccessRate).toBe(50);
   });

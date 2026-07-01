@@ -46,9 +46,12 @@ Provide: Question, Correct Answer, Explanation.`;
     }
 
     let templateSchema = {};
-    const templateCategory = category.toLowerCase().includes("coding") ? "Coding" : "MCQ";
+    const templateCategory = category.toLowerCase().includes("coding")
+      ? "Coding"
+      : "MCQ";
     try {
-      const activeTemplate = await this.templateLibrary.getTemplateByCategory(templateCategory);
+      const activeTemplate =
+        await this.templateLibrary.getTemplateByCategory(templateCategory);
       templateSchema = activeTemplate.schema || {};
     } catch {
       templateSchema = {
@@ -94,25 +97,46 @@ Ensure there are no leading or trailing markdown blocks (like \`\`\`json). The o
 
             // Normalize options if missing (MCQ templates should generate options, but fallback just in case)
             if (!(parsed as any).options) {
-              (parsed as any).options = [parsed.answer, "Incorrect A", "Incorrect B", "Incorrect C"];
+              (parsed as any).options = [
+                parsed.answer,
+                "Incorrect A",
+                "Incorrect B",
+                "Incorrect C",
+              ];
             }
 
-            const topicRes = await this.topicValidator.validate(parsed, params.topic);
-            const diffRes = await this.difficultyValidator.validate(parsed, difficulty);
+            const topicRes = await this.topicValidator.validate(
+              parsed,
+              params.topic,
+            );
+            const diffRes = await this.difficultyValidator.validate(
+              parsed,
+              difficulty,
+            );
             const dupRes = await this.duplicateDetector.checkDuplicate(parsed);
-            const qualityRes = await this.qualityScorer.score(parsed, params.topic, difficulty);
+            const qualityRes = await this.qualityScorer.score(
+              parsed,
+              params.topic,
+              difficulty,
+            );
 
-            const isValid = topicRes.match && diffRes && !dupRes.duplicate && qualityRes.status === "PASS";
+            const isValid =
+              topicRes.match &&
+              diffRes &&
+              !dupRes.duplicate &&
+              qualityRes.status === "PASS";
 
             if (isValid) {
-              const reviewRes = await this.reviewQueueIntegration.sendToReviewQueue(parsed);
+              const reviewRes =
+                await this.reviewQueueIntegration.sendToReviewQueue(parsed);
               return { success: true, data: reviewRes.question };
             } else {
               let reason = "";
               if (!topicRes.match) reason += "Topic mismatch. ";
               if (!diffRes) reason += "Difficulty mismatch. ";
               if (dupRes.duplicate) reason += "Duplicate detected. ";
-              if (qualityRes.status === "FAIL") reason += `Quality check failed: ${qualityRes.reasons.join(", ")}`;
+              if (qualityRes.status === "FAIL")
+                reason += `Quality check failed: ${qualityRes.reasons.join(", ")}`;
               throw new Error(reason || "Validation failed");
             }
           } catch (e: any) {

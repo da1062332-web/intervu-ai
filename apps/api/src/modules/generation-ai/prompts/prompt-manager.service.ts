@@ -1,22 +1,19 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { GenerationPrompt } from "@prisma/client";
-
+// import { GenerationPrompt } from "@prisma/client";
+type GenerationPrompt = any;
 @Injectable()
 export class PromptManagerService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listPrompts(): Promise<GenerationPrompt[]> {
-    return this.prisma.generationPrompt.findMany({
-      orderBy: [
-        { name: "asc" },
-        { version: "desc" },
-      ],
+    return (this.prisma as any).generationPrompt.findMany({
+      orderBy: [{ name: "asc" }, { version: "desc" }],
     });
   }
 
   async getPrompt(id: string): Promise<GenerationPrompt> {
-    const prompt = await this.prisma.generationPrompt.findUnique({
+    const prompt = await (this.prisma as any).generationPrompt.findUnique({
       where: { id },
     });
     if (!prompt) {
@@ -26,12 +23,14 @@ export class PromptManagerService {
   }
 
   async getPromptByName(name: string): Promise<GenerationPrompt> {
-    const prompt = await this.prisma.generationPrompt.findFirst({
+    const prompt = await (this.prisma as any).generationPrompt.findFirst({
       where: { name, isActive: true },
       orderBy: { version: "desc" },
     });
     if (!prompt) {
-      throw new NotFoundException(`Active prompt with name "${name}" not found`);
+      throw new NotFoundException(
+        `Active prompt with name "${name}" not found`,
+      );
     }
     return prompt;
   }
@@ -41,7 +40,7 @@ export class PromptManagerService {
     category: string;
     content: string;
   }): Promise<GenerationPrompt> {
-    return this.prisma.$transaction(async (tx) => {
+    return (this.prisma as any).$transaction(async (tx: any) => {
       // Find max version
       const latest = await tx.generationPrompt.findFirst({
         where: { name: data.name },
@@ -72,7 +71,7 @@ export class PromptManagerService {
     id: string,
     data: { content?: string; isActive?: boolean },
   ): Promise<GenerationPrompt> {
-    return this.prisma.$transaction(async (tx) => {
+    return (this.prisma as any).$transaction(async (tx: any) => {
       const existing = await tx.generationPrompt.findUnique({
         where: { id },
       });
@@ -108,7 +107,8 @@ export class PromptManagerService {
         return tx.generationPrompt.update({
           where: { id },
           data: {
-            isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
+            isActive:
+              data.isActive !== undefined ? data.isActive : existing.isActive,
           },
         });
       }

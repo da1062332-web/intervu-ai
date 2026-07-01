@@ -23,9 +23,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
   primary: [
     {
       heading: 'Overview',
-      items: [
-        { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
-      ],
+      items: [{ label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard }],
     },
     {
       heading: 'Exam Setup',
@@ -50,9 +48,19 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       heading: 'Coming Soon',
       items: [
         { label: 'Generation', route: '/admin/generation', icon: FileCog, disabled: true },
-        { label: 'Review Queue', route: '/admin/review-queue', icon: MessageSquare, disabled: true },
+        {
+          label: 'Review Queue',
+          route: '/admin/review-queue',
+          icon: MessageSquare,
+          disabled: true,
+        },
         { label: 'Question Bank', route: '/admin/question-bank', icon: Database, disabled: true },
-        { label: 'Published Assessments', route: '/admin/published-assessments', icon: Archive, disabled: true },
+        {
+          label: 'Published Assessments',
+          route: '/admin/published-assessments',
+          icon: Archive,
+          disabled: true,
+        },
         { label: 'Reports', route: '/admin/reports', icon: FileText, disabled: true },
       ],
     },

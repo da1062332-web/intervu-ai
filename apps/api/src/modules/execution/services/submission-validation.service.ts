@@ -1,8 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ExecutionValidatorService } from "./execution-validator.service";
-import { TestInstanceRepository, SubmissionRepository, CandidateAnswerRepository } from "../repositories";
+import {
+  TestInstanceRepository,
+  SubmissionRepository,
+  CandidateAnswerRepository,
+} from "../repositories";
 
 export interface SubmissionValidationResult {
   isValid: boolean;
@@ -14,7 +23,9 @@ export interface SubmissionValidationResult {
 
 @Injectable()
 export class SubmissionValidationService {
-  private readonly logger = new AppLogger({ name: "SubmissionValidationService" });
+  private readonly logger = new AppLogger({
+    name: "SubmissionValidationService",
+  });
 
   constructor(
     private readonly prisma: PrismaService,
@@ -28,14 +39,17 @@ export class SubmissionValidationService {
     testInstanceId: string,
     userId: string,
   ): Promise<SubmissionValidationResult> {
-    this.logger.debug("Running pre-submission validation pipeline", { testInstanceId });
+    this.logger.debug("Running pre-submission validation pipeline", {
+      testInstanceId,
+    });
     const errors: string[] = [];
     const missingQuestionIds: string[] = [];
     let isExpired = false;
     let isDuplicate = false;
 
     // 1. Fetch test instance with sections/questions
-    const testInstance = await this.testInstanceRepo.loadDeepSnapshot(testInstanceId);
+    const testInstance =
+      await this.testInstanceRepo.loadDeepSnapshot(testInstanceId);
     if (!testInstance) {
       throw new NotFoundException({
         code: "ASSESSMENT_NOT_FOUND",
@@ -57,22 +71,34 @@ export class SubmissionValidationService {
       testInstance.status === "COMPLETED"
     ) {
       isDuplicate = true;
-      errors.push("Duplicate Submission: This assessment has already been submitted.");
+      errors.push(
+        "Duplicate Submission: This assessment has already been submitted.",
+      );
     }
 
     // Check existing submission record
-    const existingSubmission = await this.submissionRepo.findAll({ testInstanceId });
+    const existingSubmission = await this.submissionRepo.findAll({
+      testInstanceId,
+    });
     if (existingSubmission.length > 0) {
       isDuplicate = true;
-      if (!errors.includes("Duplicate Submission: This assessment has already been submitted.")) {
-        errors.push("Duplicate Submission: This assessment has already been submitted.");
+      if (
+        !errors.includes(
+          "Duplicate Submission: This assessment has already been submitted.",
+        )
+      ) {
+        errors.push(
+          "Duplicate Submission: This assessment has already been submitted.",
+        );
       }
     }
 
     // 4. Validate Assessment Time Window (Expired Session check)
     if (testInstance.expiresAt && testInstance.expiresAt < new Date()) {
       isExpired = true;
-      errors.push("Expired Session: The allowed time window for this assessment has expired.");
+      errors.push(
+        "Expired Session: The allowed time window for this assessment has expired.",
+      );
     }
 
     // 5. Check Required Questions & Answer Integrity
@@ -82,7 +108,7 @@ export class SubmissionValidationService {
     for (const section of testInstance.sections) {
       for (const question of section.questions) {
         const candidateAnswer = answerMap.get(question.questionId);
-        
+
         // Check if answer is missing
         if (!candidateAnswer || !candidateAnswer.answer) {
           missingQuestionIds.push(question.questionId);
@@ -96,18 +122,25 @@ export class SubmissionValidationService {
                 // Keep as plain string, no issue
               }
             }
-            if (!parsed || (typeof parsed === "object" && Object.keys(parsed).length === 0)) {
+            if (
+              !parsed ||
+              (typeof parsed === "object" && Object.keys(parsed).length === 0)
+            ) {
               missingQuestionIds.push(question.questionId);
             }
           } catch (e) {
-            errors.push(`Answer integrity check failed for question ${question.questionId}: Invalid data.`);
+            errors.push(
+              `Answer integrity check failed for question ${question.questionId}: Invalid data.`,
+            );
           }
         }
       }
     }
 
     if (missingQuestionIds.length > 0) {
-      errors.push(`Missing Answers: ${missingQuestionIds.length} required questions have not been answered.`);
+      errors.push(
+        `Missing Answers: ${missingQuestionIds.length} required questions have not been answered.`,
+      );
     }
 
     const isValid = errors.length === 0;

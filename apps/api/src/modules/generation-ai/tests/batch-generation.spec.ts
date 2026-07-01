@@ -20,10 +20,25 @@ describe("BatchGenerationService", () => {
 
   it("should generate questions and return a batch quality report", async () => {
     const mockQuestions = [
-      { id: "q1", questionText: "Q1", answer: "A1", explanation: "E1", difficulty: "Medium" },
-      { id: "q2", questionText: "Q2", answer: "A2", explanation: "E2", difficulty: "Medium" },
+      {
+        id: "q1",
+        questionText: "Q1",
+        answer: "A1",
+        explanation: "E1",
+        difficulty: "Medium",
+      },
+      {
+        id: "q2",
+        questionText: "Q2",
+        answer: "A2",
+        explanation: "E2",
+        difficulty: "Medium",
+      },
     ];
-    orchestrator.generateQuestions.mockResolvedValue({ questions: mockQuestions, failures: [] });
+    orchestrator.generateQuestions.mockResolvedValue({
+      questions: mockQuestions,
+      failures: [],
+    });
     qualityEvaluator.evaluateBatch.mockResolvedValue({
       duplicateRate: 0,
       topicAccuracy: 100,

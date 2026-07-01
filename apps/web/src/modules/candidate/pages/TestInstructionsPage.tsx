@@ -91,13 +91,13 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
       <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
         <div className='max-w-4xl mx-auto w-full space-y-8'>
           <div className='mb-6' data-testid='test-instructions-header'>
-          <h2 className='text-2xl font-bold tracking-tight text-foreground'>
-            Assessment Instructions
-          </h2>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Please read the following instructions carefully.
-          </p>
-        </div>
+            <h2 className='text-2xl font-bold tracking-tight text-foreground'>
+              Assessment Instructions
+            </h2>
+            <p className='text-sm text-muted-foreground mt-1'>
+              Please read the following instructions carefully.
+            </p>
+          </div>
           {/* Consolidated Assessment Rules */}
           <Card className='glass-card border border-border/60 shadow-sm'>
             <CardHeader className='pb-3 border-b border-border/20'>
@@ -114,12 +114,17 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
                     <Navigation className='size-4 text-primary/70' /> Navigation & Rules
                   </h4>
                   <ul className='space-y-2'>
-                    {[...config.assessmentRules, ...config.navigationRules].map((rule: string, idx: number) => (
-                      <li key={idx} className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'>
-                        <span className='size-1.5 rounded-full bg-indigo-500/70 shrink-0 mt-1.5' />
-                        <span>{rule}</span>
-                      </li>
-                    ))}
+                    {[...config.assessmentRules, ...config.navigationRules].map(
+                      (rule: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                        >
+                          <span className='size-1.5 rounded-full bg-indigo-500/70 shrink-0 mt-1.5' />
+                          <span>{rule}</span>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </div>
                 <div>
@@ -129,7 +134,10 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
                   <ul className='space-y-2'>
                     {[...config.timerRules, ...config.submissionRules].map(
                       (rule: string, idx: number) => (
-                        <li key={idx} className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'>
+                        <li
+                          key={idx}
+                          className='text-sm text-muted-foreground flex items-start gap-2 leading-relaxed'
+                        >
                           <span className='size-1.5 rounded-full bg-indigo-500/70 shrink-0 mt-1.5' />
                           <span>{rule}</span>
                         </li>
@@ -141,25 +149,25 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
             </CardContent>
           </Card>
 
-        {/* Declaration and Agreement Checkbox */}
-        <div className='p-5 border border-border/60 bg-muted/20 rounded-2xl flex items-start gap-3.5'>
-          <Checkbox
-            id='terms-accept'
-            checked={isAccepted}
-            onCheckedChange={(checked: boolean | 'indeterminate') =>
-              handleCheckboxChange(checked === true)
-            }
-            className='mt-1 text-primary border-muted-foreground size-5 rounded'
-          />
-          <label
-            htmlFor='terms-accept'
-            className='text-sm font-medium leading-relaxed text-muted-foreground cursor-pointer select-none'
-          >
-            I have read and understood all the instructions listed above. I agree that I will abide
-            by the rules during the assessment, and I consent to screen sharing, camera recording,
-            and focus tracking monitoring.
-          </label>
-        </div>
+          {/* Declaration and Agreement Checkbox */}
+          <div className='p-5 border border-border/60 bg-muted/20 rounded-2xl flex items-start gap-3.5'>
+            <Checkbox
+              id='terms-accept'
+              checked={isAccepted}
+              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                handleCheckboxChange(checked === true)
+              }
+              className='mt-1 text-primary border-muted-foreground size-5 rounded'
+            />
+            <label
+              htmlFor='terms-accept'
+              className='text-sm font-medium leading-relaxed text-muted-foreground cursor-pointer select-none'
+            >
+              I have read and understood all the instructions listed above. I agree that I will
+              abide by the rules during the assessment, and I consent to screen sharing, camera
+              recording, and focus tracking monitoring.
+            </label>
+          </div>
 
           {/* Action Buttons */}
           <div className='flex justify-end pt-6 border-t border-border/40'>

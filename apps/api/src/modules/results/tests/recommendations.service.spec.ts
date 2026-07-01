@@ -38,10 +38,10 @@ describe("RecommendationsService", () => {
       { id: "2", priority: "HIGH" },
       { id: "3", priority: "MEDIUM" },
     ];
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+     
     jest.spyOn(resultsService, "getResultDetails").mockResolvedValue({} as any);
     jest.spyOn(repo, "findByEvaluationId").mockResolvedValue(mockRecs as any);
-    /* eslint-enable @typescript-eslint/no-explicit-any */
+     
 
     const result = await service.getRecommendations("user-1", "eval-1");
     expect(result[0].priority).toBe("HIGH");

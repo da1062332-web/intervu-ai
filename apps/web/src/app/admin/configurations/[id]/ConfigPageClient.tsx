@@ -62,7 +62,15 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         throw new Error('Failed to generate assembly');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to generate assembly');
+      const errorMsg = error.message || 'Failed to generate assembly';
+      if (errorMsg.includes('has no sections defined')) {
+        toast.error('This exam config has no sections. Redirecting to sections tab to fix it...', {
+          duration: 4000,
+        });
+        setActiveTab('sections');
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setGenerating(false);
     }

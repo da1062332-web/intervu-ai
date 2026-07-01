@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Test, TestingModule } from "@nestjs/testing";
 import { TopicWeightageService } from "../services/topic-weightage.service";
 import { TopicWeightageRepository } from "../repositories/topic-weightage.repository";

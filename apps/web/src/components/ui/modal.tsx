@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface ModalProps {
   children: React.ReactNode;
@@ -11,19 +12,24 @@ export interface ModalProps {
 
 export function Modal({ children, isOpen, onClose, className, showBackdrop = true }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      
+
       if (e.key === 'Tab') {
         if (!modalRef.current) return;
         const focusableElements = modalRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         ) as NodeListOf<HTMLElement>;
-        
+
         if (focusableElements.length === 0) return;
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
@@ -47,7 +53,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
     setTimeout(() => {
       if (modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         ) as NodeListOf<HTMLElement>;
         if (focusableElements.length > 0) focusableElements[0].focus();
       }
@@ -56,9 +62,9 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       className='fixed inset-0 z-50 flex items-center justify-center'
       onClick={onClose}
@@ -79,6 +85,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
