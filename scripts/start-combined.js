@@ -40,7 +40,7 @@ console.log("🚀 Bootstrapping NestJS API...");
 require(path.join(__dirname, "../apps/api/dist/main"));
 
 // 4. Poll API Health check to confirm startup before loading the Worker (Item 4)
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 7860;
 const healthUrl = `http://localhost:${port}/api/v1/health`;
 let attempts = 0;
 const maxAttempts = 30; // 30 seconds max timeout
