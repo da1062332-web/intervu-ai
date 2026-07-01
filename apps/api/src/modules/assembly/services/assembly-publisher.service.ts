@@ -19,7 +19,6 @@ export class AssemblyPublisherService {
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
-<<<<<<< HEAD
     // --- Readiness Gate (added by Module 3 Integration Layer) ---
     // Run all 6 pre-publish checks. Throws BadRequestException if any fail.
     const readiness = await this.readinessService.check(assemblyId);
@@ -34,9 +33,6 @@ export class AssemblyPublisherService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-=======
-     
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(assemblyId);
