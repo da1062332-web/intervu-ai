@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import PDFDocument = require("pdfkit");
+import PDFDocument from "pdfkit";
 import { ReportAuditService } from "./report-audit.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
