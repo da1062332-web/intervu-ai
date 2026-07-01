@@ -235,7 +235,7 @@ export class AssemblyController {
   @ApiResponse({ status: 200 })
   async getAssembly(@Param("id") id: string) {
     // Try AssembledTest table first (from POST /assembly/save or POST /assembly/tests/generate flow)
-     
+
     let instance: any = null;
 
     try {
@@ -258,7 +258,6 @@ export class AssemblyController {
       totalDurationSeconds:
         instance.totalDurationSeconds ??
         instance.sections?.reduce(
-           
           (acc: number, s: any) => acc + (s.durationSeconds ?? 0),
           0,
         ) ??
@@ -266,21 +265,20 @@ export class AssemblyController {
       totalQuestions:
         instance.totalQuestions ??
         instance.sections?.reduce(
-           
           (acc: number, s: any) => acc + (s.questions?.length ?? 0),
           0,
         ) ??
         0,
       createdAt: instance.createdAt.toISOString(),
       updatedAt: instance.updatedAt.toISOString(),
-       
+
       sections: (instance.sections ?? []).map((s: any) => ({
         sectionKey: s.sectionKey,
         displayName: s.sectionName ?? s.displayName,
         durationSeconds: s.durationSeconds,
         questionCount: s.questionCount ?? s.questions?.length ?? 0,
         orderIndex: s.orderIndex ?? 0,
-         
+
         questions: (s.questions ?? []).map((q: any) => {
           const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
           return {
@@ -332,14 +330,14 @@ export class AssemblyController {
     );
 
     // Map persisted questions to AllocatedSectionDto shape for validation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sections = (assembly.sections ?? []).map((s: any) => ({
       sectionKey: s.sectionKey,
       displayName: s.sectionName,
       durationSeconds: s.durationSeconds,
       questionCount: s.questionCount,
       orderIndex: s.orderIndex,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
         return {
@@ -397,14 +395,14 @@ export class AssemblyController {
       assembly.configId,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sections = (assembly.sections ?? []).map((s: any) => ({
       sectionKey: s.sectionKey,
       displayName: s.sectionName,
       durationSeconds: s.durationSeconds,
       questionCount: s.questionCount,
       orderIndex: s.orderIndex,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
         return {

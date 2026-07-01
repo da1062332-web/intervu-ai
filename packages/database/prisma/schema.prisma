@@ -12,6 +12,9 @@ model User {
   email              String              @unique
   passwordHash       String
   fullName           String?
+  phone              String?
+  college            String?
+  graduationYear     Int?                @map("graduation_year")
   role               UserRole            @default(CANDIDATE)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -24,6 +27,7 @@ model User {
   tests              Test[]
   testInstances      TestInstance[]
   candidateResults   CandidateResult[]
+  enrollments        CandidateEnrollment[]
 
   @@index([deletedAt])
   @@index([role])
@@ -171,18 +175,19 @@ model SkillScore {
 }
 
 model TestConfig {
-  id                   String         @id @default(cuid())
-  configKey            String         @unique
+  id                   String                @id @default(cuid())
+  configKey            String                @unique
   companyName          String
   displayName          String
   totalDurationSeconds Int
   totalQuestions       Int
-  isActive             Boolean        @default(true)
-  version              Int            @default(1)
-  createdAt            DateTime       @default(now())
+  isActive             Boolean               @default(true)
+  version              Int                   @default(1)
+  createdAt            DateTime              @default(now())
   testInstances        TestInstance[]
   rule                 TestRule?
   sections             TestSection[]
+  enrollments          CandidateEnrollment[]
 
   @@index([configKey])
 }
@@ -692,6 +697,13 @@ enum ConfigStatus {
   ARCHIVED
 }
 
+enum EnrollmentStatus {
+  AVAILABLE
+  ENROLLED
+  STARTED
+  COMPLETED
+}
+
 model ConfigPublishLog {
   id          String     @id @default(cuid())
   configId    String
@@ -1196,4 +1208,22 @@ model GenerationTemplate {
   updatedAt DateTime @updatedAt
 
   @@map("generation_templates")
+}
+
+model CandidateEnrollment {
+  id          String           @id @default(cuid())
+  candidateId String           @map("candidate_id")
+  testId      String           @map("test_id")
+  status      EnrollmentStatus @default(ENROLLED)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  testConfig TestConfig @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, testId])
+  @@map("candidate_enrollments")
+  @@index([candidateId])
+  @@index([testId])
+  @@index([status])
 }

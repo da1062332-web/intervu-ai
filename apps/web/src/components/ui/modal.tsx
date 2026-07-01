@@ -86,6 +86,6 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
         {children}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

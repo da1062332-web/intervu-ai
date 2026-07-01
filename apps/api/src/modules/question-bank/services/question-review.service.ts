@@ -21,7 +21,7 @@ export class QuestionReviewService {
   /**
    * Approves a question to ACTIVE status.
    */
-   
+
   async approveQuestion(id: string, notes?: string): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       const question = await this.questionRepo.findById(id);
@@ -65,7 +65,7 @@ export class QuestionReviewService {
   /**
    * Rejects a question and marks it back to DRAFT status.
    */
-   
+
   async rejectQuestion(id: string, notes?: string): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       const question = await this.questionRepo.findById(id);
@@ -112,7 +112,7 @@ export class QuestionReviewService {
   /**
    * Restores an ARCHIVED question back to DRAFT status.
    */
-   
+
   async restoreQuestion(id: string, notes?: string): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       const question = await this.questionRepo.findById(id);

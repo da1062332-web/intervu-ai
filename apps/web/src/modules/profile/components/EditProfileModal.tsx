@@ -37,45 +37,45 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
         onError: (error) => {
           notifyApiError(error, 'Failed to update profile');
         },
-      }
+      },
     );
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="sm:max-w-[425px]">
-      <div className="flex flex-col space-y-4">
-        <div className="flex flex-col space-y-1">
-          <h2 className="text-xl font-bold tracking-tight text-foreground">Edit Profile</h2>
-          <p className="text-sm text-muted-foreground">Update your personal information.</p>
+    <Modal isOpen={isOpen} onClose={onClose} className='sm:max-w-[425px]'>
+      <div className='flex flex-col space-y-4'>
+        <div className='flex flex-col space-y-1'>
+          <h2 className='text-xl font-bold tracking-tight text-foreground'>Edit Profile</h2>
+          <p className='text-sm text-muted-foreground'>Update your personal information.</p>
         </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-foreground">
+
+        <form onSubmit={handleSubmit} className='space-y-4 py-2'>
+          <div className='space-y-2'>
+            <label htmlFor='name' className='text-sm font-medium text-foreground'>
               Full Name
             </label>
             <input
-              id="name"
-              type="text"
+              id='name'
+              type='text'
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter your full name"
+              className='flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+              placeholder='Enter your full name'
               disabled={updateProfile.isPending}
               required
             />
           </div>
-          
-          <div className="flex justify-end space-x-2 pt-4">
+
+          <div className='flex justify-end space-x-2 pt-4'>
             <Button
-              type="button"
-              variant="outline"
+              type='button'
+              variant='outline'
               onClick={onClose}
               disabled={updateProfile.isPending}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={updateProfile.isPending || !name.trim()}>
+            <Button type='submit' disabled={updateProfile.isPending || !name.trim()}>
               {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>

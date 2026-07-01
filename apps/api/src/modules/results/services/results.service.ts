@@ -35,7 +35,6 @@ export class ResultsService {
     return evaluation;
   }
 
-   
   async getResultDetails(userId: string, idOrAttemptId: string): Promise<any> {
     const evaluation = await this.getEvaluation(idOrAttemptId);
 
@@ -70,11 +69,11 @@ export class ResultsService {
     );
 
     // 2. Perform score, topic, difficulty, and section aggregation
-     
+
     const sectionScores: Record<string, any> = {};
-     
+
     const topicScores: Record<string, any> = {};
-     
+
     const difficultyScores: Record<string, any> = {};
     let totalQuestionsCount = 0;
     let correctAnswersCount = evaluation.correctAnswers || 0;
@@ -89,7 +88,7 @@ export class ResultsService {
         sectionQuestions++;
         totalQuestionsCount++;
         const answer = answerMap.get(q.questionId);
-         
+
         const snap = q.questionSnapshot as Record<string, any>;
 
         const timeSpent = answer?.timeSpentSeconds || 0;
@@ -208,12 +207,10 @@ export class ResultsService {
     };
   }
 
-   
   getSkillBreakdown(evaluation: any) {
     return evaluation.skillScores || [];
   }
 
-   
   composeResultResponse(evaluation: any): ResultResponseDto {
     return ResultMapper.toDto(evaluation);
   }

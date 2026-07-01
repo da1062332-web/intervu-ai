@@ -1,4 +1,3 @@
- 
 import { ExecutionResultDto } from "../dto/execution-result.dto";
 
 export interface EvaluationAdapter {

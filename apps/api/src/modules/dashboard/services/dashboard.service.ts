@@ -7,7 +7,7 @@ import {
 import { UserNotFoundError } from "@intervu/shared";
 import { DashboardRepository } from "../repositories/dashboard.repository";
 import type { TestWithTemplate } from "../repositories/dashboard.repository";
- 
+
 import {
   DashboardResponseDto,
   AvailableTestDto,

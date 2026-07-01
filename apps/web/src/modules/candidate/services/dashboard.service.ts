@@ -1,41 +1,34 @@
 import { apiClient } from '@/services/api/client';
 import { CandidateDashboardData, CandidateRecommendations } from '../types/Dashboard';
+import { AuthUser } from '@/types/auth.types';
 
 export const dashboardService = {
   getDashboard: async (): Promise<CandidateDashboardData> => {
     try {
-      const { configs } = await apiClient.request<{ configs: any[] }>('/tests/configs');
-      const historyResponse = await apiClient.request<any>('/users/me/history');
-      const performanceSummary = await apiClient.request<any>('/users/me/performance-summary');
+      const data = await apiClient.request<any>('/candidate/dashboard');
 
       return {
         availableTests:
-          configs?.map((config: any) => ({
-            id: config.configId,
-            title: config.name,
-            durationMinutes: config.duration ? Math.floor(config.duration / 60) : 0,
-            sections: config.sections || [],
-            status: 'AVAILABLE',
+          data.upcomingTests?.map((t: any) => ({
+            id: t.configId,
+            title: t.name,
+            durationMinutes: Math.floor((t.durationSeconds || 0) / 60),
+            sections: t.sections || [],
+            status: t.enrollmentStatus || 'AVAILABLE',
           })) || [],
 
-        activeTests: [],
+        activeTests: data.activeAttempts || [],
 
         completedAttempts:
-          historyResponse?.items?.map((item: any) => ({
-            id: item.evaluationId,
-            assessmentName: 'Assessment',
-            score: item.overallScore || 0,
-            completedDate: item.evaluatedAt || new Date().toISOString(),
+          data.completedTests?.map((t: any) => ({
+            id: t.instanceId,
+            assessmentName: t.name,
+            score: t.score,
+            completedDate: t.submittedAt || new Date().toISOString(),
             status: 'Completed',
           })) || [],
 
-        recommendations: performanceSummary
-          ? {
-              overallScore: performanceSummary.averageScore || 0,
-              confidenceScore: 0,
-              recommendationSummary: `Based on your recent performance, your average score is ${performanceSummary.averageScore || 0}%.`,
-            }
-          : null,
+        recommendations: null,
 
         skillProgress: [],
       };
@@ -59,5 +52,53 @@ export const dashboardService = {
       console.error('Failed to fetch recommendations', error);
       return null;
     }
+  },
+
+  getPublicTests: async (params?: Record<string, any>) => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) searchParams.append(key, String(value));
+      });
+    }
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    const response = await apiClient.request<any>(`/candidate/tests${query}`);
+    if (response && response.tests) {
+      response.tests = response.tests.map((t: any) => ({
+        id: t.configId,
+        title: t.name,
+        company: t.company,
+        durationMinutes: t.duration ? Math.floor(t.duration / 60) : 0,
+        sections: t.sections || [],
+        difficulty: t.difficulty || 'Medium',
+      }));
+    }
+    return response;
+  },
+
+  enroll: async (testId: string) => {
+    return apiClient.request<any>('/candidate/enrollments', {
+      method: 'POST',
+      body: { testId },
+    });
+  },
+
+  getEnrollments: async () => {
+    return apiClient.request<any>('/candidate/enrollments');
+  },
+
+  getAttemptHistory: async (page = 1, limit = 10) => {
+    return apiClient.request<any>(`/candidate/attempts?page=${page}&limit=${limit}`);
+  },
+
+  getProfile: async (): Promise<AuthUser> => {
+    return apiClient.request<AuthUser>('/candidate/profile');
+  },
+
+  updateProfile: async (data: Partial<AuthUser>): Promise<AuthUser> => {
+    return apiClient.request<AuthUser>('/candidate/profile', {
+      method: 'PUT',
+      body: data,
+    });
   },
 };

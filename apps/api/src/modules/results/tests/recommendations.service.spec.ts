@@ -38,10 +38,9 @@ describe("RecommendationsService", () => {
       { id: "2", priority: "HIGH" },
       { id: "3", priority: "MEDIUM" },
     ];
-     
+
     jest.spyOn(resultsService, "getResultDetails").mockResolvedValue({} as any);
     jest.spyOn(repo, "findByEvaluationId").mockResolvedValue(mockRecs as any);
-     
 
     const result = await service.getRecommendations("user-1", "eval-1");
     expect(result[0].priority).toBe("HIGH");

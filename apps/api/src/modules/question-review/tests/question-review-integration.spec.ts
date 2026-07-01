@@ -20,13 +20,13 @@ import { PrismaService } from "../../../prisma/prisma.service";
 describe("Question Review Integration Tests", () => {
   let app: INestApplication;
   let controller: QuestionReviewController;
-   
+
   let questionRepoMock: any;
-   
+
   let versionRepoMock: any;
-   
+
   let topicRepoMock: any;
-   
+
   let prismaMock: any;
 
   beforeEach(async () => {

@@ -89,7 +89,7 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
             </div>
             <Button
               className='w-full sm:w-auto shrink-0 group shadow-sm hover:shadow-md transition-shadow'
-              onClick={() => router.push(`/candidate/tests/${test.id}`)}
+              onClick={() => router.push(`/candidate/tests/${test.id}/instructions`)}
             >
               Start Assessment
               <PlayCircle className='ml-2 size-4 group-hover:scale-110 transition-transform' />

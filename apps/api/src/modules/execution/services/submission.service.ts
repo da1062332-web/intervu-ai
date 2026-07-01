@@ -1,4 +1,3 @@
- 
 import {
   Injectable,
   Inject,
@@ -20,7 +19,7 @@ import {
   EVALUATION_ADAPTER,
   EvaluationAdapter,
 } from "../interfaces/evaluation-adapter.interface";
- 
+
 import { ExecutionResultDto } from "../dto";
 
 @Injectable()

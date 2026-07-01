@@ -31,13 +31,13 @@ export const executionService = {
       candidateName: response.candidateName || 'Candidate',
       status: response.status,
       durationSeconds: response.durationSeconds || duration,
-       
+
       sections:
         response.sections?.map((section: any) => ({
           id: section.sectionId,
           sectionKey: section.sectionKey,
           title: section.sectionName,
-           
+
           questions:
             section.questions?.map((q: any) => ({
               id: q.questionId,

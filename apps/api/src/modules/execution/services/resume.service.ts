@@ -14,7 +14,6 @@ export class ResumeService {
     private readonly answerRepo: CandidateAnswerRepository,
   ) {}
 
-   
   async resumeAssessment(testInstanceId: string, userId: string): Promise<any> {
     this.logger.debug("Resuming assessment", { testInstanceId, userId });
     // 1. Validate assessment exists

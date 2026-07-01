@@ -21,7 +21,6 @@ export class TestInstanceRepository extends BaseRepository<
     return new TestInstanceRepository(this.prisma, tx) as this;
   }
 
-   
   async loadDeepSnapshot(id: string): Promise<any> {
     return this.db.testInstance.findUnique({
       where: { id },

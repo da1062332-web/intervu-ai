@@ -11,11 +11,7 @@ describe('PublishingPanel', () => {
       finishedAt: null,
       errorReason: null,
     };
-<<<<<<< HEAD
     render(<PublishingPanel examId='test-exam-123' status={status} onPublish={jest.fn()} />);
-=======
-    render(<PublishingPanel status={status} onPublish={jest.fn()} />);
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
     expect(screen.getByText('Publish Test')).toBeInTheDocument();
   });
 });

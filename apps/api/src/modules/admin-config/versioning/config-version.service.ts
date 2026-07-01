@@ -35,7 +35,7 @@ export class ConfigVersionService {
    */
   async createVersion(
     config: FullExamConfig,
-     
+
     tx?: any, // Optional prisma transaction client
   ): Promise<ConfigVersionEntry> {
     const prismaClient = tx || this.prisma;
@@ -150,7 +150,6 @@ export class ConfigVersionService {
       );
     }
 
-     
     const snapshot = version.snapshot as any;
 
     await this.prisma.$transaction(async (tx) => {
@@ -216,7 +215,6 @@ export class ConfigVersionService {
               sectionOrder: section.sectionOrder ?? 0,
               sectionTopics: {
                 create:
-                   
                   section.sectionTopics?.map((st: any) => ({
                     topicId: st.topicId,
                     topicWeightage: st.topicWeightage
