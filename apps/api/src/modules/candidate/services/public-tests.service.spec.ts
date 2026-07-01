@@ -31,7 +31,7 @@ describe("PublicTestsService", () => {
           displayName: "React Basics",
           companyName: "Acme",
           totalDurationSeconds: 1800,
-          sections: [{ sectionName: "Coding" }],
+          sections: [{ displayName: "Coding" }],
         } as any,
       ],
     });
