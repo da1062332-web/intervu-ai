@@ -21,6 +21,9 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { ObjectiveEvaluatorService } from "../objective/objective-evaluator.service";
 import { SectionScoringService } from "../scoring/section-scoring.service";
 import { OverallScoreService } from "../scoring/overall-score.service";
+import { EvaluationReliabilityService } from "../reliability/evaluation-reliability.service";
+import { ReEvaluationService } from "../services/re-evaluation.service";
+
 @ApiTags("evaluation")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
@@ -34,7 +37,33 @@ export class EvaluationController {
     private readonly evaluator: ObjectiveEvaluatorService,
     private readonly sectionScoring: SectionScoringService,
     private readonly overallScoring: OverallScoreService,
+    private readonly reliabilityService: EvaluationReliabilityService,
+    private readonly reEvaluationService: ReEvaluationService,
   ) {}
+
+  @Get("reliability")
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Validate database evaluation integrity" })
+  async getReliabilityReport() {
+    return this.reliabilityService.generateReliabilityReport();
+  }
+
+  @Get("analytics/platform")
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Fetch platform-wide evaluation analytics and trends" })
+  async getPlatformAnalytics() {
+    return this.reEvaluationService.getPlatformAnalytics();
+  }
+
+  @Post("reprocess/:attemptId")
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Trigger manual re-evaluation and result regeneration" })
+  async reprocessAttempt(@Param("attemptId") attemptId: string) {
+    return this.reEvaluationService.reprocess(attemptId);
+  }
 
   @Post(":answerId/evaluate")
   @HttpCode(HttpStatus.OK)

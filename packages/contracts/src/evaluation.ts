@@ -86,3 +86,73 @@ export const CandidateResultDtoSchema = z.object({
 });
 
 export type CandidateResultDto = z.infer<typeof CandidateResultDtoSchema>;
+
+export const CandidateRankDtoSchema = z.object({
+  rank: z.number().int().positive(),
+  totalCandidates: z.number().int().positive(),
+  percentile: z.number().min(0).max(100),
+});
+
+export type CandidateRankDto = z.infer<typeof CandidateRankDtoSchema>;
+
+export const BenchmarkDtoSchema = z.object({
+  candidate: z.number().min(0).max(100),
+  assessmentAverage: z.number().min(0).max(100),
+  sections: z.array(
+    z.object({
+      sectionKey: z.string(),
+      sectionName: z.string(),
+      candidateScore: z.number().min(0).max(100),
+      averageScore: z.number().min(0).max(100),
+    }),
+  ),
+  topics: z.array(
+    z.object({
+      topicName: z.string(),
+      candidateAccuracy: z.number().min(0).max(100),
+      averageAccuracy: z.number().min(0).max(100),
+    }),
+  ),
+  difficulties: z.array(
+    z.object({
+      difficulty: z.string(),
+      candidateAccuracy: z.number().min(0).max(100),
+      averageAccuracy: z.number().min(0).max(100),
+    }),
+  ),
+});
+
+export type BenchmarkDto = z.infer<typeof BenchmarkDtoSchema>;
+
+export const PlatformEvaluationAnalyticsDtoSchema = z.object({
+  averageScore: z.number().min(0).max(100),
+  averageAccuracy: z.number().min(0).max(100),
+  topTopics: z.array(
+    z.object({
+      topicName: z.string(),
+      averageAccuracy: z.number().min(0).max(100),
+    }),
+  ),
+  weakestTopics: z.array(
+    z.object({
+      topicName: z.string(),
+      averageAccuracy: z.number().min(0).max(100),
+    }),
+  ),
+  completionRates: z.object({
+    completionRate: z.number().min(0).max(100),
+    attemptRate: z.number().min(0).max(100),
+  }),
+  assessmentPerformanceTrends: z.array(
+    z.object({
+      date: z.string(),
+      averageScore: z.number().min(0).max(100),
+      totalAttempts: z.number().int().nonnegative(),
+    }),
+  ),
+});
+
+export type PlatformEvaluationAnalyticsDto = z.infer<
+  typeof PlatformEvaluationAnalyticsDtoSchema
+>;
+
