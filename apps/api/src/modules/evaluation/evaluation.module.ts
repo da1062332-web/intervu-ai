@@ -1,5 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { ConfigModule } from "../../config";
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 import { EvaluationController } from "./controllers/evaluation.controller";
 import { EvaluationService } from "./services/evaluation.service";
@@ -26,7 +27,7 @@ import { ReEvaluationService } from "./services/re-evaluation.service";
 import { EvaluationWorkerService } from "./services/evaluation-worker.service";
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => GenerationAiModule)],
+  imports: [PrismaModule, ConfigModule, forwardRef(() => GenerationAiModule)],
   controllers: [EvaluationController],
   providers: [
     EvaluationService,
