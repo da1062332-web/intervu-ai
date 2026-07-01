@@ -8,7 +8,7 @@ import { QuestionUsageService } from "../services/question-usage.service";
 describe("Question Bank Module - Day 3 Assembly Integration", () => {
   let rotationService: QuestionRotationService;
   let usageService: QuestionUsageService;
-   
+
   let prismaMock: any;
 
   beforeEach(async () => {

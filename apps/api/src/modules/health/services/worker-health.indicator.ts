@@ -10,7 +10,9 @@ export class WorkerHealthIndicator extends HealthIndicator {
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     const isInitialized = (global as any).isWorkerInitialized === true;
     const result = this.getStatus(key, isInitialized, {
-      message: isInitialized ? "Worker is initialized" : "Worker is not initialized",
+      message: isInitialized
+        ? "Worker is initialized"
+        : "Worker is not initialized",
     });
 
     if (isInitialized) {

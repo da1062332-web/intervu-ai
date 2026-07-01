@@ -13,7 +13,6 @@ export class QuestionVersionService {
     question: Question & { options?: string[] },
     tx?: Prisma.TransactionClient,
   ): Promise<QuestionVersion> {
-     
     const snapshot: Record<string, any> = {
       id: question.id,
       questionText: question.questionText,

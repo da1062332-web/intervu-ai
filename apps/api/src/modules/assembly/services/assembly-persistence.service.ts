@@ -43,7 +43,6 @@ export class AssemblyPersistenceService {
   }
 
   async getAssembly(id: string) {
-     
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(id);

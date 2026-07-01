@@ -7,9 +7,9 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { SystemConfigService } from "../services/system-config.service";
- 
+
 import { SystemConfigDto } from "../dto/system-config.dto";
- 
+
 import { UpdateSystemConfigDto } from "../dto/update-system-config.dto";
 import { Template, UserRole } from "@prisma/client";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";

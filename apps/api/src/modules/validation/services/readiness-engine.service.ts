@@ -56,7 +56,7 @@ export class ReadinessEngineService {
 
   private validateRuleConfigAndCompatibility(
     ruleType: string,
-     
+
     config: any,
     variables: TemplateVariable[],
   ): string | null {

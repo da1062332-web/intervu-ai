@@ -1,6 +1,5 @@
 import { ResultResponseDto, SkillScoreDto } from "@intervu/shared";
 
- 
 export class ResultMapper {
   static toDto(entity: any): ResultResponseDto {
     return {

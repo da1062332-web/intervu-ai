@@ -16,14 +16,14 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
   const userName = user.name || user.fullName || 'Not set';
   const userInitial = (userName !== 'Not set' ? userName : user.email)[0].toUpperCase();
   const userEmail = user.email || 'Not set';
-  
+
   // Format createdAt date if available
-  const memberSince = user.createdAt 
-    ? new Date(user.createdAt).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }) 
+  const memberSince = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : '—';
 
   return (
@@ -33,7 +33,9 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
           <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
             My Profile
           </h1>
-          <p className='text-muted-foreground mt-1'>Manage your personal information and account details.</p>
+          <p className='text-muted-foreground mt-1'>
+            Manage your personal information and account details.
+          </p>
         </div>
         <Button onClick={() => setIsEditModalOpen(true)} size='sm' className='shrink-0'>
           Edit Profile
@@ -66,7 +68,10 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
             { icon: Shield, label: 'Account Role', value: user.role },
             { icon: Calendar, label: 'Member Since', value: memberSince },
           ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className='flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors'>
+            <div
+              key={label}
+              className='flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors'
+            >
               <div className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted'>
                 <Icon className='size-4 text-muted-foreground' aria-hidden='true' />
               </div>
@@ -81,10 +86,10 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
         </div>
       </div>
 
-      <EditProfileModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
-        user={user} 
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={user}
       />
     </>
   );

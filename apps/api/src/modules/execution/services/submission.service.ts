@@ -1,4 +1,3 @@
- 
 import {
   Injectable,
   Inject,
@@ -20,8 +19,9 @@ import {
   EVALUATION_ADAPTER,
   EvaluationAdapter,
 } from "../interfaces/evaluation-adapter.interface";
- 
+
 import { ExecutionResultDto } from "../dto";
+import { RedisCacheService } from "@/cache/redis-cache.service";
 
 @Injectable()
 export class SubmissionService {
@@ -35,6 +35,7 @@ export class SubmissionService {
     private readonly answerRepo: CandidateAnswerRepository,
     private readonly validationService: SubmissionValidationService,
     private readonly evaluationQueueService: EvaluationQueueService,
+    private readonly cacheService: RedisCacheService,
     @Inject(EVALUATION_ADAPTER)
     private readonly evaluationAdapter: EvaluationAdapter,
   ) {}
@@ -50,116 +51,163 @@ export class SubmissionService {
       isAutoSubmit,
     });
 
-    // 1. Run pre-submission validation checks
-    const validation = await this.validationService.validateSubmission(
-      testInstanceId,
-      userId,
-    );
-
-    if (!validation.isValid) {
-      if (validation.isDuplicate) {
-        throw new ConflictException({
-          code: "DUPLICATE_SUBMISSION",
-          message: "This assessment has already been submitted.",
-        });
-      }
-      if (validation.isExpired && !isAutoSubmit) {
-        throw new BadRequestException({
-          code: "EXPIRED_SESSION",
-          message: "The allowed time window for this assessment has expired.",
-        });
-      }
-      if (validation.missingQuestionIds.length > 0 && !isAutoSubmit) {
-        throw new BadRequestException({
-          code: "MISSING_ANSWERS",
-          message: `${validation.missingQuestionIds.length} required questions have not been answered.`,
-          details: validation.missingQuestionIds,
-        });
-      }
-      if (!isAutoSubmit) {
-        throw new BadRequestException({
-          code: "VALIDATION_FAILED",
-          message: "Pre-submission validation pipeline failed.",
-          details: validation.errors,
-        });
-      }
+    // A. Submission Idempotency: Check if already submitted
+    const existingSubmission = await this.prisma.submission.findUnique({
+      where: { testInstanceId },
+    });
+    if (
+      existingSubmission &&
+      (existingSubmission.status === "SUBMITTED" ||
+        existingSubmission.status === "EVALUATED")
+    ) {
+      this.logger.info(
+        "Submission already processed, returning existing reference (idempotency)",
+        {
+          testInstanceId,
+          submissionId: existingSubmission.id,
+        },
+      );
+      return {
+        submissionId: existingSubmission.id,
+        status: existingSubmission.status,
+      };
     }
 
-    const { submission, executionResult } = await this.prisma.$transaction(
-      async (tx) => {
-        // 2. Lock and fetch assessment
-        const testInstance = await this.validator.validateAssessment(
-          testInstanceId,
-          tx,
-        );
+    // B. Locking & Double-Submit Guard via Redis Cache
+    const lockKey = `lock:submit:${testInstanceId}`;
+    const isLocked = await this.cacheService.get<string>(lockKey);
+    if (isLocked) {
+      throw new ConflictException(
+        "Submission is already in progress for this assessment attempt.",
+      );
+    }
+    await this.cacheService.set(lockKey, "true", { ttl: 30 });
 
-        // 3. Ownership
-        this.validator.validateOwnership(testInstance, userId);
-
-        // 4. Check if already submitted
-        this.validator.validateSubmissionState(testInstance);
-
-        // 5. Update Status to SUBMITTED
-        const repo = this.testInstanceRepo.withTransaction(tx);
-        await repo.update(testInstance.id, {
-          status: "SUBMITTED",
-          submittedAt: new Date(),
-        });
-
-        // 6. Create Submission record
-        const subRepo = this.submissionRepo.withTransaction(tx);
-        const submission = await subRepo.create({
-          testInstance: { connect: { id: testInstanceId } },
-          status: "SUBMITTED",
-          submittedAt: new Date(),
-        });
-
-        // 7. Collect answers for Evaluation
-        const ansRepo = this.answerRepo.withTransaction(tx);
-        const answers = await ansRepo.findAll({ testInstanceId });
-
-        const executionResult: ExecutionResultDto = {
-          executionId: submission.id,
-          testId: testInstanceId,
-          status: "submitted",
-          submittedAt: new Date(),
-          answers: answers.map((a) => ({
-            questionId: a.questionId,
-            answer: String(a.answer), // assuming scalar for now
-            timeSpentSeconds: a.timeSpentSeconds,
-            isMarkedForReview: a.isMarkedForReview,
-          })),
-        };
-
-        return { submission, executionResult };
-      },
-    );
-
-    this.logger.info(
-      "Transaction committed successfully, enqueuing to evaluation queue",
-      {
-        submissionId: submission.id,
+    try {
+      // 1. Run pre-submission validation checks
+      let validation = await this.validationService.validateSubmission(
         testInstanceId,
-      },
-    );
+        userId,
+      );
 
-    // 8. Convert answers array to map for the queue
-    const answersMap: Record<string, string> = {};
-    executionResult.answers.forEach((ans) => {
-      answersMap[ans.questionId] = ans.answer;
-    });
+      // C. Late Submissions: If expired, force auto-submit flow to truncate and save state
+      if (validation.isExpired && !isAutoSubmit) {
+        this.logger.warn(
+          "Manual submission received after expiration. Forcing auto-submit handling to preserve candidate answers.",
+          {
+            testInstanceId,
+          },
+        );
+        isAutoSubmit = true;
+      }
 
-    // 9. Enqueue evaluation in background queue
-    await this.evaluationQueueService.enqueueSubmission(
-      submission.id,
-      testInstanceId,
-      userId,
-      answersMap,
-    );
+      if (!validation.isValid) {
+        if (validation.isDuplicate) {
+          throw new ConflictException({
+            code: "DUPLICATE_SUBMISSION",
+            message: "This assessment has already been submitted.",
+          });
+        }
+        if (validation.isExpired && !isAutoSubmit) {
+          throw new BadRequestException({
+            code: "EXPIRED_SESSION",
+            message: "The allowed time window for this assessment has expired.",
+          });
+        }
+        if (validation.missingQuestionIds.length > 0 && !isAutoSubmit) {
+          throw new BadRequestException({
+            code: "MISSING_ANSWERS",
+            message: `${validation.missingQuestionIds.length} required questions have not been answered.`,
+            details: validation.missingQuestionIds,
+          });
+        }
+        if (!isAutoSubmit) {
+          throw new BadRequestException({
+            code: "VALIDATION_FAILED",
+            message: "Pre-submission validation pipeline failed.",
+            details: validation.errors,
+          });
+        }
+      }
 
-    return {
-      submissionId: submission.id,
-      status: isAutoSubmit ? "EXPIRED_AND_SUBMITTED" : "SUBMITTED",
-    };
+      const { submission, executionResult } = await this.prisma.$transaction(
+        async (tx) => {
+          // 2. Lock and fetch assessment
+          const testInstance = await this.validator.validateAssessment(
+            testInstanceId,
+            tx,
+          );
+
+          // 3. Ownership
+          this.validator.validateOwnership(testInstance, userId);
+
+          // 4. Check if already submitted
+          this.validator.validateSubmissionState(testInstance);
+
+          // 5. Update Status to SUBMITTED
+          const repo = this.testInstanceRepo.withTransaction(tx);
+          await repo.update(testInstance.id, {
+            status: "SUBMITTED",
+            submittedAt: new Date(),
+          });
+
+          // 6. Create Submission record
+          const subRepo = this.submissionRepo.withTransaction(tx);
+          const submission = await subRepo.create({
+            testInstance: { connect: { id: testInstanceId } },
+            status: "SUBMITTED",
+            submittedAt: new Date(),
+          });
+
+          // 7. Collect answers for Evaluation
+          const ansRepo = this.answerRepo.withTransaction(tx);
+          const answers = await ansRepo.findAll({ testInstanceId });
+
+          const executionResult: ExecutionResultDto = {
+            executionId: submission.id,
+            testId: testInstanceId,
+            status: "submitted",
+            submittedAt: new Date(),
+            answers: answers.map((a) => ({
+              questionId: a.questionId,
+              answer: String(a.answer), // assuming scalar for now
+              timeSpentSeconds: a.timeSpentSeconds,
+              isMarkedForReview: a.isMarkedForReview,
+            })),
+          };
+
+          return { submission, executionResult };
+        },
+      );
+
+      this.logger.info(
+        "Transaction committed successfully, enqueuing to evaluation queue",
+        {
+          submissionId: submission.id,
+          testInstanceId,
+        },
+      );
+
+      // 8. Convert answers array to map for the queue
+      const answersMap: Record<string, string> = {};
+      executionResult.answers.forEach((ans) => {
+        answersMap[ans.questionId] = ans.answer;
+      });
+
+      // 9. Enqueue evaluation in background queue
+      await this.evaluationQueueService.enqueueSubmission(
+        submission.id,
+        testInstanceId,
+        userId,
+        answersMap,
+      );
+
+      return {
+        submissionId: submission.id,
+        status: isAutoSubmit ? "EXPIRED_AND_SUBMITTED" : "SUBMITTED",
+      };
+    } finally {
+      await this.cacheService.delete(lockKey);
+    }
   }
 }

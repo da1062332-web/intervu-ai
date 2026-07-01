@@ -14,7 +14,7 @@ import { DashboardService } from "../services/dashboard.service";
 import { DashboardStatsEntity } from "../entities/dashboard-stats.entity";
 import { DashboardAnalyticsSummaryEntity } from "../entities/dashboard-analytics-summary.entity";
 import { DashboardActivityItemEntity } from "../entities/dashboard-activity-item.entity";
- 
+
 import { DashboardResponseDto } from "../dto/dashboard-response.dto";
 
 import { Roles } from "../../auth/decorators/roles.decorator";

@@ -11,16 +11,16 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <Loading size="md" />
+      <div className='flex items-center justify-center h-[50vh]'>
+        <Loading size='md' />
       </div>
     );
   }
 
   if (error || !user) {
     return (
-      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-        <p className="text-destructive font-medium">Failed to load profile data.</p>
+      <div className='flex flex-col items-center justify-center h-[50vh] space-y-4'>
+        <p className='text-destructive font-medium'>Failed to load profile data.</p>
       </div>
     );
   }

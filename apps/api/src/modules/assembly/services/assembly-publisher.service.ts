@@ -55,7 +55,7 @@ export class AssemblyPublisherService {
     }
 
     // Load blueprint to validate
-     
+
     let blueprint: any = null;
     const validationErrors: string[] = [];
 
@@ -73,7 +73,6 @@ export class AssemblyPublisherService {
     if (blueprint) {
       // 1. Question count matches Blueprint
       const blueprintTotalQuestions = blueprint.sections.reduce(
-         
         (acc: any, s: any) => acc + (s.questionCount || 0),
         0,
       );
