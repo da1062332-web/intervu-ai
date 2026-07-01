@@ -1,16 +1,16 @@
 services:
-  # 1. API Service (NestJS Backend)
+  # 1. Combined API and Worker Web Service (Free Tier)
   - type: web
-    name: intervu-api
+    name: intervu-backend-combined
     env: node
-    plan: starter
-    buildCommand: npm run build --workspace @intervu-ai/api
-    startCommand: npm run start --workspace @intervu-ai/api
+    plan: free
+    buildCommand: npm install && npx turbo run build --filter=@intervu-ai/api --filter=@intervu-ai/worker
+    startCommand: node scripts/start-combined.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 4000
+        value: 10000
       - key: DATABASE_URL
         sync: false # User will configure their Supabase DATABASE_URL
       - key: REDIS_URL
@@ -18,43 +18,27 @@ services:
           type: redis
           name: intervu-redis
           property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_REFRESH_SECRET
-        generateValue: true
-
-  # 2. Worker Service (BullMQ Job Processor)
-  - type: worker
-    name: intervu-worker
-    env: node
-    plan: starter
-    buildCommand: npm run build --workspace @intervu-ai/worker
-    startCommand: npm run start --workspace @intervu-ai/worker
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        sync: false # User will configure their Supabase DATABASE_URL
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: intervu-redis
-          property: connectionString
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=350
       - key: WORKER_CONCURRENCY
-        value: 5
+        value: 1
       - key: ENABLE_GENERATION_QUEUE
         value: true
       - key: ENABLE_EVALUATION_QUEUE
         value: true
       - key: ENABLE_ANALYTICS_QUEUE
         value: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
 
-  # 3. Next.js Frontend Web Service
+  # 2. Next.js Frontend Web Service (Free Tier Option)
   - type: web
     name: intervu-web
     env: node
-    plan: starter
-    buildCommand: npm run build --workspace @intervu-ai/web
+    plan: free
+    buildCommand: npm install && npx turbo run build --filter=@intervu-ai/web
     startCommand: npm run start --workspace @intervu-ai/web
     envVars:
       - key: NODE_ENV
@@ -62,10 +46,10 @@ services:
       - key: NEXT_PUBLIC_API_URL
         fromService:
           type: web
-          name: intervu-api
+          name: intervu-backend-combined
           property: url
 
-# 4. Managed Redis for queues and caching
+# 3. Managed Redis (Free Tier - Note: expires after 25 days on Render)
 redis:
   - name: intervu-redis
     plan: free

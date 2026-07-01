@@ -5,3 +5,5 @@ dist
 coverage
 .git
 pnpm-lock.yaml
+.env
+*.env

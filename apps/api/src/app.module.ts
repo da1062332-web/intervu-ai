@@ -41,6 +41,7 @@ import { PlatformModule } from "./modules/platform/platform.module";
 import { SanitizeRequestMiddleware } from "./modules/platform/middleware/sanitize-request.middleware";
 import { WorkflowsModule } from "./modules/workflows/workflows.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
+import { ReportsModule } from "./modules/reports/reports.module";
 import { CandidateModule } from "./modules/candidate/candidate.module";
 
 @Module({
@@ -86,6 +87,7 @@ import { CandidateModule } from "./modules/candidate/candidate.module";
     QuestionReviewModule,
     PlatformModule,
     WorkflowsModule,
+    ReportsModule,
     CandidateModule,
   ],
   providers: [

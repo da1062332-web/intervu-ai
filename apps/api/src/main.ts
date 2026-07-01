@@ -21,6 +21,9 @@ async function bootstrap() {
     logger: ["debug", "error", "log", "warn", "verbose"],
   });
 
+  // Enable graceful shutdown hooks
+  app.enableShutdownHooks();
+
   // Get config service
   const configService = app.get(AppConfigService);
   const port = configService.port;

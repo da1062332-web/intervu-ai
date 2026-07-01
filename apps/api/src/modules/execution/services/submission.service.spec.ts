@@ -10,6 +10,7 @@ import {
   CandidateAnswerRepository,
 } from "../repositories";
 import { EVALUATION_ADAPTER } from "../interfaces/evaluation-adapter.interface";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 describe("SubmissionService", () => {
   let service: SubmissionService;
@@ -40,6 +41,7 @@ describe("SubmissionService", () => {
           provide: EvaluationQueueService,
           useValue: { enqueueSubmission: jest.fn() },
         },
+        { provide: RedisCacheService, useValue: {} },
         { provide: EVALUATION_ADAPTER, useValue: {} },
       ],
     }).compile();

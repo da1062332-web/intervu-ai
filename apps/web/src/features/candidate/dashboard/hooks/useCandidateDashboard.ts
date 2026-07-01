@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { candidateDashboardService } from '@/services/candidate/candidateDashboard.service';
+import { dashboardService } from '@/modules/candidate/services/dashboard.service';
 import { useCandidateDashboardStore } from '../stores/candidateDashboard.store';
 
 export function useCandidateDashboard() {
@@ -11,12 +11,12 @@ export function useCandidateDashboard() {
 
   const query = useQuery({
     queryKey: ['candidate-dashboard'],
-    queryFn: candidateDashboardService.getCandidateDashboard,
+    queryFn: dashboardService.getDashboard,
   });
 
   useEffect(() => {
     if (query.data) {
-      setDashboard(query.data);
+      setDashboard(query.data as any);
     } else if (query.error) {
       setError(query.error instanceof Error ? query.error.message : 'Failed to load dashboard');
     } else if (query.isLoading) {

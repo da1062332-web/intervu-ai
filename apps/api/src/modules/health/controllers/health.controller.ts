@@ -9,6 +9,7 @@ import {
 import { PrismaService } from "../../../prisma/prisma.service";
 import { Public } from "../../auth/decorators/public.decorator";
 import { RedisHealthIndicator } from "../services/redis-health.indicator";
+import { WorkerHealthIndicator } from "../services/worker-health.indicator";
 import { ObservabilityInterceptor } from "../../../common/monitoring/observability.interceptor";
 
 @ApiTags("health")
@@ -19,6 +20,7 @@ export class HealthController {
     private readonly prismaHealth: PrismaHealthIndicator,
     private readonly memoryHealth: MemoryHealthIndicator,
     private readonly redisHealth: RedisHealthIndicator,
+    private readonly workerHealth: WorkerHealthIndicator,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -58,6 +60,8 @@ export class HealthController {
       () => this.prismaHealth.pingCheck("database", this.prisma),
       // Redis check
       () => this.redisHealth.isHealthy("redis"),
+      // Worker check
+      () => this.workerHealth.isHealthy("worker"),
     ]);
   }
 
