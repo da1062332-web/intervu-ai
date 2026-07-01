@@ -330,14 +330,14 @@ export class AssemblyController {
     );
 
     // Map persisted questions to AllocatedSectionDto shape for validation
-     
+
     const sections = (assembly.sections ?? []).map((s: any) => ({
       sectionKey: s.sectionKey,
       displayName: s.sectionName,
       durationSeconds: s.durationSeconds,
       questionCount: s.questionCount,
       orderIndex: s.orderIndex,
-       
+
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
         return {
@@ -395,14 +395,13 @@ export class AssemblyController {
       assembly.configId,
     );
 
-     
     const sections = (assembly.sections ?? []).map((s: any) => ({
       sectionKey: s.sectionKey,
       displayName: s.sectionName,
       durationSeconds: s.durationSeconds,
       questionCount: s.questionCount,
       orderIndex: s.orderIndex,
-       
+
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
         return {

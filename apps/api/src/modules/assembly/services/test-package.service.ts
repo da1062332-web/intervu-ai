@@ -134,10 +134,7 @@ export class TestPackageService {
    * Extract scoring rules from ExamConfig.
    * Maps ruleFlags JSON to strongly-typed ExecutionScoringRules.
    */
-  private extractScoringRules(
-     
-    config: any,
-  ): ExecutionScoringRules {
+  private extractScoringRules(config: any): ExecutionScoringRules {
     const flags = (config.ruleFlags as Record<string, unknown>) ?? {};
 
     return {
