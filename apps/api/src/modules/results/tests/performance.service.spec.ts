@@ -52,7 +52,6 @@ describe("PerformanceService", () => {
       total: 1,
       page: 1,
       limit: 10,
-       
     } as any);
 
     const result = await service.getHistory("user-1", { page: 1, limit: 10 });

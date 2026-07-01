@@ -6,7 +6,6 @@ import { PaginationDto } from "@intervu/shared";
 
 @Injectable()
 export class EvaluationRepository extends BaseRepository<
-   
   any, // We use any because BaseRepository assumes { id: string; deletedAt?: Date | null } but EvaluationResult doesn't have deletedAt
   Prisma.EvaluationResultCreateInput,
   Prisma.EvaluationResultUpdateInput
@@ -25,7 +24,6 @@ export class EvaluationRepository extends BaseRepository<
   async findEvaluationWithDetails(evaluationId: string) {
     return this.model
       .findUnique({
-         
         where: { id: evaluationId } as any,
       })
       .then(async (result) => {

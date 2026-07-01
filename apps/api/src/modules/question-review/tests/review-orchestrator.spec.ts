@@ -15,13 +15,13 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 describe("AIReviewService Orchestrator", () => {
   let service: AIReviewService;
-   
+
   let questionRepoMock: any;
-   
+
   let versionRepoMock: any;
-   
+
   let topicRepoMock: any;
-   
+
   let prismaMock: any;
 
   beforeEach(async () => {

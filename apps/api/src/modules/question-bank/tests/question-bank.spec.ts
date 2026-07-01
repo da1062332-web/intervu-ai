@@ -17,7 +17,7 @@ describe("Question Bank Module (Day 2)", () => {
 
   let reviewService: QuestionReviewService;
   let similarityService: QuestionSimilarityService;
-   
+
   let prismaMock: any;
 
   beforeEach(async () => {

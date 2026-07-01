@@ -41,7 +41,6 @@ export class SubmissionController {
   async submitAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
-     
   ): Promise<any> {
     return this.submissionService.submitAssessment(id, user.id, false);
   }

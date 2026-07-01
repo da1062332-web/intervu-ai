@@ -37,7 +37,6 @@ export class ResumeController {
   async resumeAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
-     
   ): Promise<any> {
     return this.resumeService.resumeAssessment(id, user.id);
   }

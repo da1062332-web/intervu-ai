@@ -122,7 +122,6 @@ export class EvaluationController {
 
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
-         
         const snap = (q.questionSnapshot || {}) as any;
         const answer = snap.answer || snap.correctAnswer || "";
         const questionType = snap.questionType || snap.type || "MCQ";

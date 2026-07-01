@@ -2,9 +2,9 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { RedisCacheService } from "../../../cache";
 import { ConfigRepository } from "../repositories/config.repository";
 import { TemplateRepository } from "../../template-library/repositories/template.repository";
- 
+
 import { SystemConfigDto, SystemConfigSchema } from "../dto/system-config.dto";
- 
+
 import { UpdateSystemConfigDto } from "../dto/update-system-config.dto";
 import { Template } from "@prisma/client";
 

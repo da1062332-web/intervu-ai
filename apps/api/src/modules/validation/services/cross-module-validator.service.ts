@@ -54,7 +54,7 @@ export class CrossModuleValidatorService {
 
   private validateRuleConfigAndCompatibility(
     ruleType: string,
-     
+
     config: any,
     variables: TemplateVariable[],
   ): string | null {

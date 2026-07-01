@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-   
   ForbiddenException,
 } from "@nestjs/common";
 import {
@@ -23,7 +22,7 @@ import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
 import { AnswerService } from "../services/answer.service";
 import { AutosaveService } from "../services/autosave.service";
 import { SubmissionService } from "../services/submission.service";
- 
+
 import { CandidateAnswerDto } from "../dto";
 
 import { Roles } from "@/modules/auth/decorators/roles.decorator";
@@ -52,7 +51,6 @@ export class AnswerController {
     @Param("id") id: string,
     @Body() dto: CandidateAnswerDto,
     @CurrentUser() user: AuthUser,
-     
   ): Promise<any> {
     const result = await this.autosaveService.saveAnswer(id, user.id, dto);
 

@@ -9,7 +9,7 @@ export class TestsRepository {
    * Returns all non-soft-deleted templates ordered by creation date descending.
    * Repository layer only — no formatting, no business logic.
    */
-   
+
   async findAllActiveConfigs(): Promise<any[]> {
     return this.prisma.testConfig.findMany({
       where: { isActive: true },
