@@ -37,7 +37,8 @@ export class EvaluationReliabilityService {
       anomalousAttempts.push({
         attemptId: att.id,
         issue: "MISSING_SCORE",
-        details: "Submission exists but no CandidateResult score record is created.",
+        details:
+          "Submission exists but no CandidateResult score record is created.",
       });
     });
 

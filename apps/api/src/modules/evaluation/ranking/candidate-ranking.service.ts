@@ -30,7 +30,9 @@ export class CandidateRankingService {
   /**
    * Computes the candidate's rank across different cohorts.
    */
-  async calculateRanking(result: CandidateResultDto): Promise<CandidateRankResponseDto> {
+  async calculateRanking(
+    result: CandidateResultDto,
+  ): Promise<CandidateRankResponseDto> {
     const { attemptId, percentage } = result;
 
     // Fetch the test instance details
@@ -64,8 +66,20 @@ export class CandidateRankingService {
     };
 
     // 3. Batch (Same testConfigId and submitted within the same calendar month)
-    const startOfMonth = new Date(submissionDate.getFullYear(), submissionDate.getMonth(), 1);
-    const endOfMonth = new Date(submissionDate.getFullYear(), submissionDate.getMonth() + 1, 0, 23, 59, 59, 999);
+    const startOfMonth = new Date(
+      submissionDate.getFullYear(),
+      submissionDate.getMonth(),
+      1,
+    );
+    const endOfMonth = new Date(
+      submissionDate.getFullYear(),
+      submissionDate.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
     const batchWhere = {
       attempt: {
         testConfigId: testInstance.testConfigId,
@@ -77,7 +91,10 @@ export class CandidateRankingService {
     };
 
     // Calculate rankings
-    const assessmentCohort = await this.computeCohortRank(percentage, assessmentWhere);
+    const assessmentCohort = await this.computeCohortRank(
+      percentage,
+      assessmentWhere,
+    );
     const orgCohort = await this.computeCohortRank(percentage, orgWhere);
     const batchCohort = await this.computeCohortRank(percentage, batchWhere);
 
@@ -110,8 +127,10 @@ export class CandidateRankingService {
     percentage: number,
     whereClause: any,
   ): Promise<{ rank: number; totalCandidates: number; percentile: number }> {
-    const total = await this.prisma.candidateResult.count({ where: whereClause });
-    
+    const total = await this.prisma.candidateResult.count({
+      where: whereClause,
+    });
+
     const countHigher = await this.prisma.candidateResult.count({
       where: {
         ...whereClause,
@@ -128,11 +147,10 @@ export class CandidateRankingService {
 
     const rank = countHigher + 1;
     const countLess = total - countHigher - countEqual;
-    
+
     // Percentile using standard formula
-    const percentile = total > 0 
-      ? ((countLess + 0.5 * countEqual) / total) * 100 
-      : 100.0;
+    const percentile =
+      total > 0 ? ((countLess + 0.5 * countEqual) / total) * 100 : 100.0;
 
     return {
       rank,

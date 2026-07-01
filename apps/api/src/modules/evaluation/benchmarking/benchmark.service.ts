@@ -44,10 +44,13 @@ export class BenchmarkService {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
 
-    const { testConfigId, candidateResult, evaluationAnalytics } = currentAttempt;
+    const { testConfigId, candidateResult, evaluationAnalytics } =
+      currentAttempt;
 
     if (!candidateResult || !evaluationAnalytics) {
-      throw new NotFoundException(`Result or analytics not found for attempt ${attemptId}`);
+      throw new NotFoundException(
+        `Result or analytics not found for attempt ${attemptId}`,
+      );
     }
 
     // 2. Fetch all other attempts for this assessment to calculate averages
@@ -64,7 +67,8 @@ export class BenchmarkService {
     });
 
     // Fallback: if no other attempts, use the current attempt itself as the baseline cohort
-    const activeCohort = cohortAttempts.length > 0 ? cohortAttempts : [currentAttempt];
+    const activeCohort =
+      cohortAttempts.length > 0 ? cohortAttempts : [currentAttempt];
 
     // 3. Compute overall assessment average
     let totalScoreSum = 0;
@@ -75,15 +79,22 @@ export class BenchmarkService {
         scoredAttemptsCount++;
       }
     });
-    const assessmentAverage = scoredAttemptsCount > 0 ? totalScoreSum / scoredAttemptsCount : candidateResult.percentage;
+    const assessmentAverage =
+      scoredAttemptsCount > 0
+        ? totalScoreSum / scoredAttemptsCount
+        : candidateResult.percentage;
 
     // 4. Compute section averages
-    const currentSections = (evaluationAnalytics.sectionAccuracy as Record<string, number>) || {};
+    const currentSections =
+      (evaluationAnalytics.sectionAccuracy as Record<string, number>) || {};
     const sectionAverages: Record<string, { sum: number; count: number }> = {};
 
     activeCohort.forEach((att) => {
       if (att.evaluationAnalytics?.sectionAccuracy) {
-        const secAcc = att.evaluationAnalytics.sectionAccuracy as Record<string, number>;
+        const secAcc = att.evaluationAnalytics.sectionAccuracy as Record<
+          string,
+          number
+        >;
         Object.entries(secAcc).forEach(([secName, score]) => {
           if (!sectionAverages[secName]) {
             sectionAverages[secName] = { sum: 0, count: 0 };
@@ -96,9 +107,16 @@ export class BenchmarkService {
 
     const sectionsDto = currentAttempt.sections.map((section) => {
       const sectionName = section.sectionName || section.sectionKey;
-      const candidateScore = currentSections[sectionName] ?? currentSections[section.sectionKey] ?? 0;
-      const avgData = sectionAverages[sectionName] ?? sectionAverages[section.sectionKey];
-      const averageScore = avgData && avgData.count > 0 ? avgData.sum / avgData.count : candidateScore;
+      const candidateScore =
+        currentSections[sectionName] ??
+        currentSections[section.sectionKey] ??
+        0;
+      const avgData =
+        sectionAverages[sectionName] ?? sectionAverages[section.sectionKey];
+      const averageScore =
+        avgData && avgData.count > 0
+          ? avgData.sum / avgData.count
+          : candidateScore;
 
       return {
         sectionKey: section.sectionKey,
@@ -109,12 +127,16 @@ export class BenchmarkService {
     });
 
     // 5. Compute topic averages
-    const currentTopics = (evaluationAnalytics.topicAccuracy as Record<string, number>) || {};
+    const currentTopics =
+      (evaluationAnalytics.topicAccuracy as Record<string, number>) || {};
     const topicAverages: Record<string, { sum: number; count: number }> = {};
 
     activeCohort.forEach((att) => {
       if (att.evaluationAnalytics?.topicAccuracy) {
-        const topAcc = att.evaluationAnalytics.topicAccuracy as Record<string, number>;
+        const topAcc = att.evaluationAnalytics.topicAccuracy as Record<
+          string,
+          number
+        >;
         Object.entries(topAcc).forEach(([topicName, score]) => {
           if (!topicAverages[topicName]) {
             topicAverages[topicName] = { sum: 0, count: 0 };
@@ -128,7 +150,10 @@ export class BenchmarkService {
     const topicsDto = Object.keys(currentTopics).map((topicName) => {
       const candidateAccuracy = currentTopics[topicName] ?? 0;
       const avgData = topicAverages[topicName];
-      const averageAccuracy = avgData && avgData.count > 0 ? avgData.sum / avgData.count : candidateAccuracy;
+      const averageAccuracy =
+        avgData && avgData.count > 0
+          ? avgData.sum / avgData.count
+          : candidateAccuracy;
 
       return {
         topicName,
@@ -138,12 +163,17 @@ export class BenchmarkService {
     });
 
     // 6. Compute difficulty averages
-    const currentDifficulties = (evaluationAnalytics.difficultyAccuracy as Record<string, number>) || {};
-    const difficultyAverages: Record<string, { sum: number; count: number }> = {};
+    const currentDifficulties =
+      (evaluationAnalytics.difficultyAccuracy as Record<string, number>) || {};
+    const difficultyAverages: Record<string, { sum: number; count: number }> =
+      {};
 
     activeCohort.forEach((att) => {
       if (att.evaluationAnalytics?.difficultyAccuracy) {
-        const diffAcc = att.evaluationAnalytics.difficultyAccuracy as Record<string, number>;
+        const diffAcc = att.evaluationAnalytics.difficultyAccuracy as Record<
+          string,
+          number
+        >;
         Object.entries(diffAcc).forEach(([difficulty, score]) => {
           if (!difficultyAverages[difficulty]) {
             difficultyAverages[difficulty] = { sum: 0, count: 0 };
@@ -154,17 +184,22 @@ export class BenchmarkService {
       }
     });
 
-    const difficultiesDto = Object.keys(currentDifficulties).map((difficulty) => {
-      const candidateAccuracy = currentDifficulties[difficulty] ?? 0;
-      const avgData = difficultyAverages[difficulty];
-      const averageAccuracy = avgData && avgData.count > 0 ? avgData.sum / avgData.count : candidateAccuracy;
+    const difficultiesDto = Object.keys(currentDifficulties).map(
+      (difficulty) => {
+        const candidateAccuracy = currentDifficulties[difficulty] ?? 0;
+        const avgData = difficultyAverages[difficulty];
+        const averageAccuracy =
+          avgData && avgData.count > 0
+            ? avgData.sum / avgData.count
+            : candidateAccuracy;
 
-      return {
-        difficulty,
-        candidateAccuracy: Math.round(candidateAccuracy),
-        averageAccuracy: Math.round(averageAccuracy),
-      };
-    });
+        return {
+          difficulty,
+          candidateAccuracy: Math.round(candidateAccuracy),
+          averageAccuracy: Math.round(averageAccuracy),
+        };
+      },
+    );
 
     return {
       candidate: Math.round(candidateResult.percentage),

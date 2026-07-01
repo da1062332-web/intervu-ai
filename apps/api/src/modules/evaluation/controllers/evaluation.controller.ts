@@ -52,7 +52,9 @@ export class EvaluationController {
   @Get("analytics/platform")
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Fetch platform-wide evaluation analytics and trends" })
+  @ApiOperation({
+    summary: "Fetch platform-wide evaluation analytics and trends",
+  })
   async getPlatformAnalytics() {
     return this.reEvaluationService.getPlatformAnalytics();
   }
@@ -60,7 +62,9 @@ export class EvaluationController {
   @Post("reprocess/:attemptId")
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Trigger manual re-evaluation and result regeneration" })
+  @ApiOperation({
+    summary: "Trigger manual re-evaluation and result regeneration",
+  })
   async reprocessAttempt(@Param("attemptId") attemptId: string) {
     return this.reEvaluationService.reprocess(attemptId);
   }

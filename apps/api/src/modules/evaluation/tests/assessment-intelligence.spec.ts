@@ -190,7 +190,7 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
     };
 
     prismaMock.testInstance.findUnique.mockResolvedValue(mockAttempt);
-    
+
     resultGeneratorMock.generateResult.mockResolvedValue({
       id: "res_abc",
       candidateId: "candidate_123",
@@ -229,6 +229,8 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
 
     expect(response.body.averageScore).toBe(75);
     expect(response.body.averageAccuracy).toBe(80);
-    expect(response.body.topTopics).toEqual([{ topicName: "math", averageAccuracy: 80 }]);
+    expect(response.body.topTopics).toEqual([
+      { topicName: "math", averageAccuracy: 80 },
+    ]);
   });
 });

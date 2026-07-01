@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from "@nestjs/common";
 import { Worker, Job } from "bullmq";
 import { AppConfigService } from "../../../config/config.service";
 import { ReEvaluationService } from "./re-evaluation.service";
@@ -19,12 +24,16 @@ export class EvaluationWorkerService implements OnModuleInit, OnModuleDestroy {
     const enableWorker = process.env.ENABLE_EVALUATION_WORKER !== "false";
 
     if (!enableWorker && !isTest) {
-      this.logger.log("Background Evaluation Worker is disabled in environment config");
+      this.logger.log(
+        "Background Evaluation Worker is disabled in environment config",
+      );
       return;
     }
 
     const redisUrlString = this.configService.redisUrl;
-    this.logger.log(`Initializing BullMQ Evaluation worker. Redis URL: ${redisUrlString}`);
+    this.logger.log(
+      `Initializing BullMQ Evaluation worker. Redis URL: ${redisUrlString}`,
+    );
 
     try {
       const redisUrl = new URL(redisUrlString);
@@ -39,8 +48,13 @@ export class EvaluationWorkerService implements OnModuleInit, OnModuleDestroy {
         "evaluation",
         async (job: Job) => {
           const attemptId = job.data.payload.testId;
-          this.logger.log(`Worker received job ${job.id} for attempt ${attemptId}`);
-          await this.reEvaluationService.reprocess(attemptId, "BACKGROUND_WORKER");
+          this.logger.log(
+            `Worker received job ${job.id} for attempt ${attemptId}`,
+          );
+          await this.reEvaluationService.reprocess(
+            attemptId,
+            "BACKGROUND_WORKER",
+          );
         },
         {
           connection,

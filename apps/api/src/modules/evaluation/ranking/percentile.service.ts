@@ -8,7 +8,10 @@ export class PercentileService {
   /**
    * Calculates the percentile band/bucket for an attempt and stores it in the database.
    */
-  async calculateAndStorePercentile(attemptId: string, percentile: number): Promise<void> {
+  async calculateAndStorePercentile(
+    attemptId: string,
+    percentile: number,
+  ): Promise<void> {
     // Determine the percentile bucket/band
     let bucket = "Other";
     if (percentile >= 99.0) {

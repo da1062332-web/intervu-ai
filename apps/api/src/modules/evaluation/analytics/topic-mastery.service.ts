@@ -1,13 +1,19 @@
 import { Injectable } from "@nestjs/common";
 
-export type TopicMasteryLevel = "Mastered" | "Proficient" | "Developing" | "Weak";
+export type TopicMasteryLevel =
+  | "Mastered"
+  | "Proficient"
+  | "Developing"
+  | "Weak";
 
 @Injectable()
 export class TopicMasteryService {
   /**
    * Computes topic mastery levels based on accuracy percentages.
    */
-  calculateTopicMastery(topicAccuracy: Record<string, number>): Record<string, TopicMasteryLevel> {
+  calculateTopicMastery(
+    topicAccuracy: Record<string, number>,
+  ): Record<string, TopicMasteryLevel> {
     const topicMastery: Record<string, TopicMasteryLevel> = {};
 
     Object.entries(topicAccuracy).forEach(([topic, accuracy]) => {

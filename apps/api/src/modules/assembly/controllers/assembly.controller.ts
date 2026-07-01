@@ -330,14 +330,14 @@ export class AssemblyController {
     );
 
     // Map persisted questions to AllocatedSectionDto shape for validation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sections = (assembly.sections ?? []).map((s: any) => ({
       sectionKey: s.sectionKey,
       displayName: s.sectionName,
       durationSeconds: s.durationSeconds,
       questionCount: s.questionCount,
       orderIndex: s.orderIndex,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
         return {
@@ -395,14 +395,14 @@ export class AssemblyController {
       assembly.configId,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const sections = (assembly.sections ?? []).map((s: any) => ({
       sectionKey: s.sectionKey,
       displayName: s.sectionName,
       durationSeconds: s.durationSeconds,
       questionCount: s.questionCount,
       orderIndex: s.orderIndex,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
         return {

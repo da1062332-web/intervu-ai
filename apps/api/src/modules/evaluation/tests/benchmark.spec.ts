@@ -70,7 +70,9 @@ describe("BenchmarkService", () => {
   it("should throw NotFoundException if attempt is not found", async () => {
     prismaMock.testInstance.findUnique.mockResolvedValue(null);
 
-    await expect(service.getBenchmark("invalid")).rejects.toThrow(NotFoundException);
+    await expect(service.getBenchmark("invalid")).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it("should calculate correct average score benchmark comparisons", async () => {
@@ -86,8 +88,18 @@ describe("BenchmarkService", () => {
 
     // Sections
     expect(result.sections).toEqual([
-      { sectionKey: "sec_math", sectionName: "Math", candidateScore: 90, averageScore: 80 },
-      { sectionKey: "sec_logic", sectionName: "Logic", candidateScore: 70, averageScore: 60 },
+      {
+        sectionKey: "sec_math",
+        sectionName: "Math",
+        candidateScore: 90,
+        averageScore: 80,
+      },
+      {
+        sectionKey: "sec_logic",
+        sectionName: "Logic",
+        candidateScore: 70,
+        averageScore: 60,
+      },
     ]);
 
     // Topics

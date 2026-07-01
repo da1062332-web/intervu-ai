@@ -82,7 +82,9 @@ describe("AiInsightService", () => {
     expect(result).toBeDefined();
     expect(result).toContain("Strong performance in percentages.");
     expect(result).toContain("probability requires improvement.");
-    expect(result).toContain("High completion rate indicates strong time management.");
+    expect(result).toContain(
+      "High completion rate indicates strong time management.",
+    );
     expect(prismaMock.evaluationInsight.upsert).toHaveBeenCalled();
   });
 });

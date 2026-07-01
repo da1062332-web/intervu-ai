@@ -141,7 +141,9 @@ export class ResultsController {
   }
 
   @Get(":attemptId/insights")
-  @ApiOperation({ summary: "Get candidate evaluation insights and improvement plans" })
+  @ApiOperation({
+    summary: "Get candidate evaluation insights and improvement plans",
+  })
   @ApiParam({
     name: "attemptId",
     required: true,
@@ -182,7 +184,8 @@ export class ResultsController {
         }
       : null;
     if (!plan) {
-      const generated = await this.improvementPlanService.generatePlans(attemptId);
+      const generated =
+        await this.improvementPlanService.generatePlans(attemptId);
       plan = {
         plan7Day: generated.plan7Day,
         plan14Day: generated.plan14Day,

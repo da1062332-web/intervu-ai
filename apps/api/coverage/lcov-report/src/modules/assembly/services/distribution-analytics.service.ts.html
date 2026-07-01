@@ -174,16 +174,11 @@
 <a name='L109'></a><a href='#L109'>109</a>
 <a name='L110'></a><a href='#L110'>110</a>
 <a name='L111'></a><a href='#L111'>111</a>
-<a name='L112'></a><a href='#L112'>112</a>
-<a name='L113'></a><a href='#L113'>113</a>
-<a name='L114'></a><a href='#L114'>114</a>
-<a name='L115'></a><a href='#L115'>115</a>
-<a name='L116'></a><a href='#L116'>116</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L112'></a><a href='#L112'>112</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -199,7 +194,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -214,7 +208,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -250,7 +243,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -299,11 +291,6 @@ import { AssembledTestRepository } from "../repositories/assembled-test.reposito
 import { AssemblyRepository } from "../repositories/assembly.repository";
 import { NotFoundException } from "@nestjs/common";
 &nbsp;
-<<<<<<< HEAD
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-=======
- 
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 type SectionWithQuestions = any; // Loosening type to support both TestInstance and AssembledTest sections
 &nbsp;
 @Injectable()
@@ -318,11 +305,6 @@ export class DistributionAnalyticsService {
   ): Record&lt;string, number&gt; {
     const topicDist: Record&lt;string, number&gt; = <span class="cstat-no" title="statement not covered" >{};</span>
 <span class="cstat-no" title="statement not covered" >    sections.forEach(<span class="fstat-no" title="function not covered" >(s</span>) =&gt; {</span>
-<<<<<<< HEAD
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-=======
-       
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cstat-no" title="statement not covered" >      s.questions?.forEach(<span class="fstat-no" title="function not covered" >(q</span>: any) =&gt; {</span>
         const snapshot = <span class="cstat-no" title="statement not covered" >q.questionSnapshot as Record&lt;string, unknown&gt;;</span>
         const topic = (<span class="cstat-no" title="statement not covered" >snapshot?.conceptKey as string) || "Unknown";</span>
@@ -337,11 +319,6 @@ export class DistributionAnalyticsService {
   ): Record&lt;string, number&gt; {
     const diffDist: Record&lt;string, number&gt; = <span class="cstat-no" title="statement not covered" >{};</span>
 <span class="cstat-no" title="statement not covered" >    sections.forEach(<span class="fstat-no" title="function not covered" >(s</span>) =&gt; {</span>
-<<<<<<< HEAD
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-=======
-       
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cstat-no" title="statement not covered" >      s.questions?.forEach(<span class="fstat-no" title="function not covered" >(q</span>: any) =&gt; {</span>
         const snapshot = <span class="cstat-no" title="statement not covered" >q.questionSnapshot as Record&lt;string, unknown&gt;;</span>
         const diff = (<span class="cstat-no" title="statement not covered" >snapshot?.difficultyLevel as string) || "MEDIUM";</span>
@@ -380,11 +357,6 @@ export class DistributionAnalyticsService {
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  async </span>buildAnalytics(assemblyId: string): Promise&lt;AssemblyAnalyticsDto&gt; {
-<<<<<<< HEAD
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-=======
-     
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
     let assembly: any = <span class="cstat-no" title="statement not covered" >null;</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      assembly = await this.repository.findById(assemblyId);</span>
@@ -431,11 +403,7 @@ export class DistributionAnalyticsService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-30T05:41:15.691Z
-=======
-                at 2026-06-30T11:23:04.813Z
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+                at 2026-07-01T10:29:12.750Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

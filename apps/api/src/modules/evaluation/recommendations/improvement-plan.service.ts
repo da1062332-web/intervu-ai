@@ -34,12 +34,17 @@ export class ImprovementPlanService {
     });
 
     if (!attempt || !attempt.candidateResult || !attempt.evaluationAnalytics) {
-      this.logger.warn("Attempt results or analytics missing for plans generation", { attemptId });
+      this.logger.warn(
+        "Attempt results or analytics missing for plans generation",
+        { attemptId },
+      );
       return this.generateFallbackPlans([]);
     }
 
-    const topicAccuracy = (attempt.evaluationAnalytics.topicAccuracy as Record<string, number>) || {};
-    
+    const topicAccuracy =
+      (attempt.evaluationAnalytics.topicAccuracy as Record<string, number>) ||
+      {};
+
     // Find weakest topics (accuracy < 75%)
     const weakTopics = Object.entries(topicAccuracy)
       .filter(([_, acc]) => acc < 75)
@@ -88,10 +93,13 @@ Ensure the output is valid JSON. Do not include markdown tags.
 
       throw new Error("Invalid format returned by LLM");
     } catch (error) {
-      this.logger.warn("LLM plans generation failed or returned mock. Falling back to rule-based plans.", {
-        attemptId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.warn(
+        "LLM plans generation failed or returned mock. Falling back to rule-based plans.",
+        {
+          attemptId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
 
       const fallbackPlans = this.generateFallbackPlans(weakTopics);
       await this.savePlans(attemptId, fallbackPlans);
@@ -102,7 +110,10 @@ Ensure the output is valid JSON. Do not include markdown tags.
   /**
    * Saves the generated plans to the improvement_plans table.
    */
-  async savePlans(attemptId: string, plans: ImprovementPlansResponse): Promise<void> {
+  async savePlans(
+    attemptId: string,
+    plans: ImprovementPlansResponse,
+  ): Promise<void> {
     await this.prisma.improvementPlan.upsert({
       where: { attemptId },
       update: {
@@ -124,7 +135,9 @@ Ensure the output is valid JSON. Do not include markdown tags.
   /**
    * Rule-based fallback generator for study plans.
    */
-  private generateFallbackPlans(weakTopics: string[]): ImprovementPlansResponse {
+  private generateFallbackPlans(
+    weakTopics: string[],
+  ): ImprovementPlansResponse {
     const focusTopic1 = weakTopics[0] || "General Aptitude";
     const focusTopic2 = weakTopics[1] || "Logical Reasoning";
 

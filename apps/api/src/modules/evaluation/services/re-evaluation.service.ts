@@ -26,7 +26,9 @@ export class ReEvaluationService {
    */
   async reprocess(attemptId: string, triggeredBy = "MANUAL"): Promise<any> {
     const startTime = Date.now();
-    this.logger.log(`Reprocessing evaluation for attempt: ${attemptId} triggered by ${triggeredBy}`);
+    this.logger.log(
+      `Reprocessing evaluation for attempt: ${attemptId} triggered by ${triggeredBy}`,
+    );
 
     try {
       // 1. Fetch attempt and answers
@@ -53,7 +55,8 @@ export class ReEvaluationService {
       };
 
       // 3. Generate candidate result DTO
-      const resultDto = await this.resultGenerator.generateResult(executionResult);
+      const resultDto =
+        await this.resultGenerator.generateResult(executionResult);
 
       // 4. Save base results (transactional upsert of CandidateResult, EvaluationAnalytics)
       const durationMs = Date.now() - startTime;
@@ -87,7 +90,10 @@ export class ReEvaluationService {
       });
 
       // 6. Calculate and store percentile bands
-      await this.percentileService.calculateAndStorePercentile(attemptId, rankingDto.percentile);
+      await this.percentileService.calculateAndStorePercentile(
+        attemptId,
+        rankingDto.percentile,
+      );
 
       // 7. Generate AI Insights and Study Plans
       await this.aiInsightService.generateInsights(attemptId);
@@ -112,7 +118,10 @@ export class ReEvaluationService {
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Reprocessing failed for attempt ${attemptId}: ${errorMsg}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Reprocessing failed for attempt ${attemptId}: ${errorMsg}`,
+        error instanceof Error ? error.stack : undefined,
+      );
 
       // Log failure in reprocess log table
       await this.prisma.evaluationReprocessLog.create({
@@ -147,7 +156,8 @@ export class ReEvaluationService {
     let totalAccuracySum = 0;
     let totalCompletionRateSum = 0;
     let totalAttemptRateSum = 0;
-    const topicAccuracySums: Record<string, { sum: number; count: number }> = {};
+    const topicAccuracySums: Record<string, { sum: number; count: number }> =
+      {};
 
     analytics.forEach((ann) => {
       // completion and attempt rates
@@ -173,17 +183,24 @@ export class ReEvaluationService {
       }
     });
 
-    const averageAccuracy = analytics.length > 0 ? totalAccuracySum / analytics.length : averageScore;
-    const avgCompletionRate = analytics.length > 0 ? totalCompletionRateSum / analytics.length : 0;
-    const avgAttemptRate = analytics.length > 0 ? totalAttemptRateSum / analytics.length : 0;
+    const averageAccuracy =
+      analytics.length > 0 ? totalAccuracySum / analytics.length : averageScore;
+    const avgCompletionRate =
+      analytics.length > 0 ? totalCompletionRateSum / analytics.length : 0;
+    const avgAttemptRate =
+      analytics.length > 0 ? totalAttemptRateSum / analytics.length : 0;
 
     // Sort topics to find top and weakest
-    const topicsList = Object.entries(topicAccuracySums).map(([topicName, data]) => ({
-      topicName,
-      averageAccuracy: Math.round(data.sum / data.count),
-    }));
+    const topicsList = Object.entries(topicAccuracySums).map(
+      ([topicName, data]) => ({
+        topicName,
+        averageAccuracy: Math.round(data.sum / data.count),
+      }),
+    );
 
-    const sortedTopics = [...topicsList].sort((a, b) => b.averageAccuracy - a.averageAccuracy);
+    const sortedTopics = [...topicsList].sort(
+      (a, b) => b.averageAccuracy - a.averageAccuracy,
+    );
     const topTopics = sortedTopics.slice(0, 3);
     const weakestTopics = [...sortedTopics].reverse().slice(0, 3);
 
@@ -203,11 +220,13 @@ export class ReEvaluationService {
       dailyGroups[dateStr].count++;
     });
 
-    const assessmentPerformanceTrends = Object.entries(dailyGroups).map(([date, data]) => ({
-      date,
-      averageScore: Math.round(data.sum / data.count),
-      totalAttempts: data.count,
-    }));
+    const assessmentPerformanceTrends = Object.entries(dailyGroups).map(
+      ([date, data]) => ({
+        date,
+        averageScore: Math.round(data.sum / data.count),
+        totalAttempts: data.count,
+      }),
+    );
 
     return {
       averageScore: Math.round(averageScore),

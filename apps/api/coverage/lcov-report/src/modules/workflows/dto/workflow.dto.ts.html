@@ -122,16 +122,12 @@
 <a name='L57'></a><a href='#L57'>57</a>
 <a name='L58'></a><a href='#L58'>58</a>
 <a name='L59'></a><a href='#L59'>59</a>
-<<<<<<< HEAD
-<a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-=======
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
 <a name='L64'></a><a href='#L64'>64</a>
 <a name='L65'></a><a href='#L65'>65</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,11 +135,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<<<<<<< HEAD
-=======
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -170,12 +163,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<<<<<<< HEAD
-=======
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -201,14 +191,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<<<<<<< HEAD
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';</span>
-<span class="cstat-no" title="statement not covered" >import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';</span>
-<span class="cstat-no" title="statement not covered" >import { WorkflowStep, WorkflowStatus } from '@prisma/client';</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >export class C</span>reateWorkflowDto {
-  @ApiProperty({ description: 'The ID of the exam configuration to start a workflow for' })
-=======
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { IsString, IsNotEmpty, IsEnum, IsOptional } from "class-validator";</span>
 <span class="cstat-no" title="statement not covered" >import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";</span>
 <span class="cstat-no" title="statement not covered" >import { WorkflowStep, WorkflowStatus } from "@prisma/client";</span>
@@ -217,52 +199,35 @@
   @ApiProperty({
     description: "The ID of the exam configuration to start a workflow for",
   })
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsString()
   @IsNotEmpty()
 <span class="cstat-no" title="statement not covered" >  examId!: string;</span>
 }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >export class R</span>ollbackDto {
-<<<<<<< HEAD
-  @ApiPropertyOptional({ description: 'Optional reason for rollback' })
-=======
   @ApiPropertyOptional({ description: "Optional reason for rollback" })
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsString()
   @IsOptional()
 <span class="cstat-no" title="statement not covered" >  reason?: string;</span>
 }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >export class R</span>etryWorkflowDto {
-<<<<<<< HEAD
-  @ApiProperty({ enum: WorkflowStep, description: 'The step to retry' })
-=======
   @ApiProperty({ enum: WorkflowStep, description: "The step to retry" })
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsEnum(WorkflowStep)
   @IsNotEmpty()
 <span class="cstat-no" title="statement not covered" >  step!: WorkflowStep;</span>
 }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >export class B</span>ulkWorkflowDto {
-<<<<<<< HEAD
-  @ApiProperty({ type: [String], description: 'List of exam IDs to process' })
-=======
   @ApiProperty({ type: [String], description: "List of exam IDs to process" })
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsString({ each: true })
   @IsNotEmpty()
 <span class="cstat-no" title="statement not covered" >  examIds!: string[];</span>
 &nbsp;
-<<<<<<< HEAD
-  @ApiPropertyOptional({ enum: WorkflowStep, description: 'Only needed if action is retry' })
-=======
   @ApiPropertyOptional({
     enum: WorkflowStep,
     description: "Only needed if action is retry",
   })
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
   @IsEnum(WorkflowStep)
   @IsOptional()
 <span class="cstat-no" title="statement not covered" >  step?: WorkflowStep;</span>
@@ -297,11 +262,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-30T05:41:15.691Z
-=======
-                at 2026-06-30T11:23:04.813Z
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+                at 2026-07-01T10:29:12.750Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

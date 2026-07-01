@@ -28,13 +28,22 @@ export class AiInsightService {
     });
 
     if (!attempt || !attempt.candidateResult || !attempt.evaluationAnalytics) {
-      this.logger.warn("Attempt results or analytics missing for insights generation", { attemptId });
+      this.logger.warn(
+        "Attempt results or analytics missing for insights generation",
+        { attemptId },
+      );
       return this.generateFallbackInsights(50, {}, {}, 100);
     }
 
     const score = attempt.candidateResult.percentage;
-    const topicAccuracy = (attempt.evaluationAnalytics.topicAccuracy as Record<string, number>) || {};
-    const difficultyAccuracy = (attempt.evaluationAnalytics.difficultyAccuracy as Record<string, number>) || {};
+    const topicAccuracy =
+      (attempt.evaluationAnalytics.topicAccuracy as Record<string, number>) ||
+      {};
+    const difficultyAccuracy =
+      (attempt.evaluationAnalytics.difficultyAccuracy as Record<
+        string,
+        number
+      >) || {};
     const completionRate = attempt.evaluationAnalytics.completionRate || 0;
 
     try {
@@ -61,7 +70,11 @@ Ensure the output contains only valid JSON. Do not include markdown tags.
       const response = await this.llmAdapter.generate(prompt);
       const parsed = JSON.parse(response);
 
-      if (parsed && Array.isArray(parsed.insights) && parsed.insights.length > 0) {
+      if (
+        parsed &&
+        Array.isArray(parsed.insights) &&
+        parsed.insights.length > 0
+      ) {
         // Save generated insights to the database
         await this.saveInsights(attemptId, parsed.insights);
         return parsed.insights;
@@ -69,10 +82,13 @@ Ensure the output contains only valid JSON. Do not include markdown tags.
 
       throw new Error("Invalid format returned by LLM");
     } catch (error) {
-      this.logger.warn("LLM insights generation failed or returned mock. Falling back to rule-based insights.", {
-        attemptId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.warn(
+        "LLM insights generation failed or returned mock. Falling back to rule-based insights.",
+        {
+          attemptId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
 
       const fallbackInsights = this.generateFallbackInsights(
         score,
@@ -116,7 +132,9 @@ Ensure the output contains only valid JSON. Do not include markdown tags.
     const insights: string[] = [];
 
     // Topic performance insights
-    const sortedTopics = Object.entries(topicAccuracy).sort((a, b) => b[1] - a[1]);
+    const sortedTopics = Object.entries(topicAccuracy).sort(
+      (a, b) => b[1] - a[1],
+    );
     if (sortedTopics.length > 0) {
       const [bestTopic, bestAcc] = sortedTopics[0];
       if (bestAcc >= 75) {
@@ -129,29 +147,42 @@ Ensure the output contains only valid JSON. Do not include markdown tags.
     }
 
     // Difficulty performance insights
-    const hardAcc = difficultyAccuracy["HARD"] ?? difficultyAccuracy["Hard"] ?? 0;
-    const mediumAcc = difficultyAccuracy["MEDIUM"] ?? difficultyAccuracy["Medium"] ?? 0;
-    const easyAcc = difficultyAccuracy["EASY"] ?? difficultyAccuracy["Easy"] ?? 0;
+    const hardAcc =
+      difficultyAccuracy["HARD"] ?? difficultyAccuracy["Hard"] ?? 0;
+    const mediumAcc =
+      difficultyAccuracy["MEDIUM"] ?? difficultyAccuracy["Medium"] ?? 0;
+    const easyAcc =
+      difficultyAccuracy["EASY"] ?? difficultyAccuracy["Easy"] ?? 0;
 
     if (hardAcc >= 70) {
-      insights.push(`Candidate performs exceptionally well on hard difficulty questions.`);
+      insights.push(
+        `Candidate performs exceptionally well on hard difficulty questions.`,
+      );
     } else if (mediumAcc > easyAcc && mediumAcc >= 60) {
-      insights.push(`Candidate performs better on medium difficulty questions.`);
+      insights.push(
+        `Candidate performs better on medium difficulty questions.`,
+      );
     } else if (easyAcc >= 75 && hardAcc < 40) {
-      insights.push(`Strong foundation on easy concepts, but needs focus on complex, hard questions.`);
+      insights.push(
+        `Strong foundation on easy concepts, but needs focus on complex, hard questions.`,
+      );
     }
 
     // Time management / Completion rate insights
     if (completionRate >= 90) {
       insights.push(`High completion rate indicates strong time management.`);
     } else if (completionRate < 60) {
-      insights.push(`Lower completion rate suggests candidate struggled with pacing or time management.`);
+      insights.push(
+        `Lower completion rate suggests candidate struggled with pacing or time management.`,
+      );
     }
 
     // Default fallback if no insights matched
     if (insights.length === 0) {
       insights.push(`Completed the assessment with a score of ${score}%.`);
-      insights.push(`Maintain regular practice to improve overall speed and accuracy.`);
+      insights.push(
+        `Maintain regular practice to improve overall speed and accuracy.`,
+      );
     }
 
     return insights;
