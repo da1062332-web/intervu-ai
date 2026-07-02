@@ -43,6 +43,7 @@ import { WorkflowsModule } from "./modules/workflows/workflows.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { CandidateModule } from "./modules/candidate/candidate.module";
+import { RuntimeModule } from "./modules/runtime/runtime.module";
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { CandidateModule } from "./modules/candidate/candidate.module";
     WorkflowsModule,
     ReportsModule,
     CandidateModule,
+    RuntimeModule,
   ],
   providers: [
     {
