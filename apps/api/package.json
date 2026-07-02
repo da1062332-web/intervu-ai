@@ -25,6 +25,7 @@
     "@intervu-ai/database": "*",
     "@intervu-ai/shared-logger": "*",
     "@intervu/shared": "*",
+    "@paralleldrive/cuid2": "^2.2.2",
     "@nestjs/bullmq": "^10.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",
