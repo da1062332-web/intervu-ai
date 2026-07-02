@@ -1,7 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useCandidateProfile, useUpdateCandidateProfile } from '../hooks/useCandidateProfile';
+import { useAuthStore } from '@/store/auth.store';
 import {
   Card,
   CardHeader,
@@ -16,81 +20,83 @@ import { Label } from '@/components/ui/label';
 import { User, Phone, GraduationCap, School } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface CandidateUser {
-  id: string;
-  name?: string | null;
-  phone?: string | null;
-  college?: string | null;
-  graduationYear?: number | null;
-}
+const profileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  college: z.string().optional().or(z.literal('')),
+  graduationYear: z.string()
+    .optional()
+    .or(z.literal(''))
+    .refine((val) => {
+      if (!val) return true;
+      const num = parseInt(val, 10);
+      return !isNaN(num) && num >= 1990 && num <= 2040;
+    }, 'Must be a valid year between 1990 and 2040'),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function CandidateProfilePage() {
   const { data: profile, isLoading } = useCandidateProfile();
   const { mutate: updateProfile, isPending } = useUpdateCandidateProfile();
-
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    college: '',
-    graduationYear: '',
+  
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      college: '',
+      graduationYear: '',
+    },
   });
 
-  const [isDirty, setIsDirty] = useState(false);
+  const { register, handleSubmit, reset, formState: { isDirty, errors } } = form;
 
   useEffect(() => {
     if (profile) {
-      const p = profile as CandidateUser;
-      const initialData = {
-        name: p.name || '',
-        phone: p.phone || '',
-        college: p.college || '',
-        graduationYear: p.graduationYear?.toString() || '',
-      };
-      setFormData(initialData);
-      setIsDirty(false);
+      reset({
+        name: profile.name || '',
+        phone: profile.phone || '',
+        college: profile.college || '',
+        graduationYear: profile.graduationYear ? profile.graduationYear.toString() : '',
+      });
     }
-  }, [profile]);
+  }, [profile, reset]);
 
   if (isLoading) {
     return (
-      <div className='h-[400px] w-full max-w-2xl mx-auto bg-muted/30 animate-pulse rounded-xl' />
+      <div className='h-[400px] w-full max-w-2xl mx-auto bg-muted/30 animate-pulse rounded-xl mt-8' />
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFormData = { ...formData, [e.target.name]: e.target.value };
-    setFormData(newFormData);
-
-    if (profile) {
-      const p = profile as CandidateUser;
-      setIsDirty(
-        newFormData.name !== (p.name || '') ||
-          newFormData.phone !== (p.phone || '') ||
-          newFormData.college !== (p.college || '') ||
-          newFormData.graduationYear !== (p.graduationYear?.toString() || ''),
-      );
-    } else {
-      setIsDirty(true);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: ProfileFormValues) => {
     if (!isDirty) return;
 
     updateProfile(
       {
-        name: formData.name,
-        phone: formData.phone,
-        college: formData.college,
-        graduationYear: formData.graduationYear ? parseInt(formData.graduationYear, 10) : undefined,
-      } as any,
+        name: data.name,
+        phone: data.phone,
+        college: data.college,
+        graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
+      },
       {
-        onSuccess: () => {
-          toast.success('Profile updated successfully');
-          setIsDirty(false);
+        onSuccess: (updatedUser) => {
+          toast.success('Profile updated successfully', { ariaLive: 'polite' });
+          reset(data); // reset to new clean state
+          
+          // Update the auth/Zustand store immediately
+          const currentUser = useAuthStore.getState().user;
+          if (currentUser) {
+            useAuthStore.getState().setAuthenticated({
+              ...currentUser,
+              name: data.name || null,
+              phone: data.phone || null,
+              college: data.college || null,
+              graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : null,
+            });
+          }
         },
-        onError: () => toast.error('Failed to update profile'),
+        onError: () => toast.error('Failed to update profile', { ariaLive: 'polite' }),
       },
     );
   };
@@ -110,7 +116,7 @@ export function CandidateProfilePage() {
       </div>
 
       <Card>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
@@ -130,13 +136,12 @@ export function CandidateProfilePage() {
                 <User className='absolute left-3 top-3 size-4 text-muted-foreground' />
                 <Input
                   id='name'
-                  name='name'
-                  value={formData.name}
-                  onChange={handleChange}
+                  {...register('name')}
                   className='pl-9'
                   placeholder='John Doe'
                 />
               </div>
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className='space-y-2'>
@@ -145,13 +150,12 @@ export function CandidateProfilePage() {
                 <Phone className='absolute left-3 top-3 size-4 text-muted-foreground' />
                 <Input
                   id='phone'
-                  name='phone'
-                  value={formData.phone}
-                  onChange={handleChange}
+                  {...register('phone')}
                   className='pl-9'
                   placeholder='+91 9876543210'
                 />
               </div>
+              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -161,13 +165,12 @@ export function CandidateProfilePage() {
                   <School className='absolute left-3 top-3 size-4 text-muted-foreground' />
                   <Input
                     id='college'
-                    name='college'
-                    value={formData.college}
-                    onChange={handleChange}
+                    {...register('college')}
                     className='pl-9'
                     placeholder='IIT Bombay'
                   />
                 </div>
+                {errors.college && <p className="text-sm text-destructive">{errors.college.message}</p>}
               </div>
 
               <div className='space-y-2'>
@@ -176,16 +179,15 @@ export function CandidateProfilePage() {
                   <GraduationCap className='absolute left-3 top-3 size-4 text-muted-foreground' />
                   <Input
                     id='graduationYear'
-                    name='graduationYear'
                     type='number'
                     min='1990'
                     max='2040'
-                    value={formData.graduationYear}
-                    onChange={handleChange}
+                    {...register('graduationYear')}
                     className='pl-9'
                     placeholder='2026'
                   />
                 </div>
+                {errors.graduationYear && <p className="text-sm text-destructive">{errors.graduationYear.message}</p>}
               </div>
             </div>
           </CardContent>

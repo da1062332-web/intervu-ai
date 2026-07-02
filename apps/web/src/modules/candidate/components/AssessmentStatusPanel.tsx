@@ -1,30 +1,33 @@
 'use client';
 
-import { useEnrollments } from '../hooks/useEnrollments';
+
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
-interface EnrollmentItem {
-  id: string;
-  testId: string;
-  testName: string;
+import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
+import { Button } from '@/components/ui/button';
+import { PlayCircle } from 'lucide-react';
+
+interface ActiveTestItem {
+  instanceId?: string;
+  testId?: string;
+  testName?: string;
+  name?: string;
   status: string;
 }
 
 export function AssessmentStatusPanel() {
-  const { data: enrollmentsData, isLoading } = useEnrollments();
+  const { data, isLoading } = useCandidateDashboard();
 
   if (isLoading) {
     return <div className='h-40 animate-pulse bg-muted rounded-xl' />;
   }
 
-  const enrollments = enrollmentsData?.enrollments || [];
-
-  if (enrollments.length === 0) {
-    return null; // Don't show panel if no active enrollments
-  }
+  const activeTests = data?.activeTests || [];
+  const inProgressTests = activeTests.filter((t: any) => t.status === 'IN_PROGRESS');
+  const enrolledTests = activeTests.filter((t: any) => t.status === 'ENROLLED');
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -40,34 +43,75 @@ export function AssessmentStatusPanel() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>My Assessments</CardTitle>
-      </CardHeader>
-      <CardContent className='space-y-4'>
-        {enrollments.map((enrollment: EnrollmentItem) => (
-          <div
-            key={enrollment.id}
-            className='flex items-center justify-between p-3 border rounded-lg bg-card/50'
-          >
-            <div>
-              <div className='font-medium'>{enrollment.testName}</div>
-              <div className='text-sm text-muted-foreground flex items-center gap-1 mt-1'>
-                {getStatusIcon(enrollment.status)}
-                {enrollment.status}
-              </div>
-            </div>
-            {enrollment.status === 'ENROLLED' && (
-              <Link
-                href={`/candidate/tests/${enrollment.testId}`}
-                className='text-sm text-primary hover:underline font-medium'
+    <div className='space-y-8'>
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className='flex gap-4'>
+          <Button variant='outline' asChild>
+            <Link href='/candidate/tests'>Browse Catalog</Link>
+          </Button>
+          <Button variant='outline' asChild>
+            <Link href='/candidate/history'>View History</Link>
+          </Button>
+          <Button variant='outline' asChild>
+            <Link href='/candidate/profile'>My Profile</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Active / Continue Assessments */}
+      {(inProgressTests.length > 0 || enrolledTests.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Assessments</CardTitle>
+          </CardHeader>
+          <CardContent className='space-y-4'>
+            {inProgressTests.map((test: ActiveTestItem) => (
+              <div
+                key={test.instanceId || test.testId}
+                className='flex items-center justify-between p-4 border rounded-lg bg-blue-500/5 border-blue-500/20'
               >
-                Start Test
-              </Link>
-            )}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+                <div>
+                  <div className='font-semibold text-foreground'>{test.testName || test.name}</div>
+                  <div className='text-sm text-blue-500 flex items-center gap-1 mt-1 font-medium'>
+                    <Clock className='size-4' />
+                    In Progress
+                  </div>
+                </div>
+                <Button asChild size='sm' className='gap-2 shadow-sm'>
+                  <Link href={`/candidate/tests/${test.testId || test.instanceId}/resume`}>
+                    Continue Assessment <PlayCircle className='size-4' />
+                  </Link>
+                </Button>
+              </div>
+            ))}
+            
+            {enrolledTests.map((test: ActiveTestItem) => (
+              <div
+                key={test.instanceId || test.testId}
+                className='flex items-center justify-between p-4 border rounded-lg bg-card/50'
+              >
+                <div>
+                  <div className='font-medium'>{test.testName || test.name}</div>
+                  <div className='text-sm text-muted-foreground flex items-center gap-1 mt-1'>
+                    <AlertCircle className='size-4 text-orange-500' />
+                    Enrolled
+                  </div>
+                </div>
+                <Link
+                  href={`/candidate/tests/${test.testId}`}
+                  className='text-sm text-primary hover:underline font-medium'
+                >
+                  Start Test
+                </Link>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

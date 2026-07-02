@@ -4,11 +4,39 @@ import { CandidateRecommendations } from '../types/Dashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, TrendingUp, Target } from 'lucide-react';
 
-interface RecommendationsProps {
-  recommendations: CandidateRecommendations | null;
-}
+import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
 
-export function Recommendations({ recommendations }: RecommendationsProps) {
+export function Recommendations() {
+  const { data, isLoading, error } = useCandidateDashboard();
+
+  if (isLoading) {
+    return (
+      <Card className='h-full glass-card'>
+        <CardHeader>
+          <CardTitle className='text-lg font-semibold flex items-center gap-2'>
+            <Sparkles className='size-5 text-indigo-500' />
+            AI Recommendations
+          </CardTitle>
+          <CardDescription>Based on your performance trend</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='h-32 bg-muted animate-pulse rounded-lg'></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <Card className='h-full glass-card'>
+        <CardContent className='flex-1 flex items-center justify-center text-destructive'>
+          Failed to load recommendations.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const recommendations = data.recommendations;
   if (!recommendations) {
     return (
       <Card className='h-full glass-card'>

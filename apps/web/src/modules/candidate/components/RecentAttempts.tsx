@@ -5,11 +5,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Trophy } from 'lucide-react';
 
-interface RecentAttemptsProps {
-  history: AttemptHistory[];
-}
+import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
 
-export function RecentAttempts({ history }: RecentAttemptsProps) {
+export function RecentAttempts() {
+  const { data, isLoading, error } = useCandidateDashboard();
+
+  if (isLoading) {
+    return (
+      <Card className='h-full flex flex-col glass-card'>
+        <CardHeader>
+          <CardTitle className='text-xl font-semibold'>Previous Attempts</CardTitle>
+          <CardDescription>Your latest assessment results</CardDescription>
+        </CardHeader>
+        <CardContent className='flex-1 space-y-4'>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className='h-16 bg-muted animate-pulse rounded-md'></div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <Card className='h-full flex flex-col glass-card'>
+        <CardContent className='flex-1 flex items-center justify-center text-destructive'>
+          Failed to load previous attempts.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const history = data.completedAttempts || [];
+
   return (
     <Card className='h-full flex flex-col glass-card'>
       <CardHeader>
