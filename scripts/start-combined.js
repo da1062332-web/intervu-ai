@@ -7,6 +7,7 @@ console.log("🚀 Starting Combined API & Worker Bootstrap...");
 // 1. Validate Environment Variables (Item 2)
 const REQUIRED_ENV = [
   "DATABASE_URL",
+  "DIRECT_URL",
   "REDIS_URL",
   "JWT_SECRET",
   "JWT_REFRESH_SECRET",
