@@ -26,6 +26,7 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
   let app: INestApplication;
 
   const prismaMock = {
+    $queryRawUnsafe: jest.fn().mockResolvedValue([]),
     testInstance: {
       findUnique: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
@@ -38,6 +39,7 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
     evaluationAnalytics: {
       findMany: jest.fn().mockResolvedValue([]),
       upsert: jest.fn(),
+      aggregate: jest.fn(),
     },
     evaluationInsight: {
       findUnique: jest.fn(),
@@ -218,10 +220,14 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
       _avg: { percentage: 75.0 },
       _count: { id: 10 },
     });
+    prismaMock.evaluationAnalytics.aggregate.mockResolvedValue({
+      _avg: { completionRate: 90.0, attemptRate: 90.0 },
+      _count: { id: 1 },
+    });
     prismaMock.evaluationAnalytics.findMany.mockResolvedValue([
-      { topicAccuracy: { math: 80 }, completionRate: 90, attemptRate: 90 },
+      { topicAccuracy: { math: 80 } },
     ]);
-    prismaMock.candidateResult.findMany.mockResolvedValue([]);
+    prismaMock.$queryRawUnsafe.mockResolvedValue([]);
 
     const response = await request(app.getHttpServer())
       .get("/evaluation/analytics/platform")
