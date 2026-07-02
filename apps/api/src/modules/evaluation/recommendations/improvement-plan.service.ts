@@ -44,6 +44,7 @@ export class ImprovementPlanService {
     const topicAccuracy =
       (attempt.evaluationAnalytics.topicAccuracy as Record<string, number>) ||
       {};
+    const score = attempt.candidateResult.percentage;
 
     // Find weakest topics (accuracy < 75%)
     const weakTopics = Object.entries(topicAccuracy)
@@ -51,12 +52,23 @@ export class ImprovementPlanService {
       .sort((a, b) => a[1] - b[1])
       .map(([topic]) => topic);
 
+    let performanceLevel: "HIGH" | "AVERAGE" | "WEAK" = "AVERAGE";
+    if (score >= 85 && weakTopics.length === 0) {
+      performanceLevel = "HIGH";
+    } else if (score < 60 || weakTopics.length >= 3) {
+      performanceLevel = "WEAK";
+    }
+
     try {
       const prompt = `
-You are an expert tutor. Create three distinct, structured study plans (7-day, 14-day, and 30-day timelines) for a candidate based on their weakest topics: ${JSON.stringify(weakTopics)}.
+You are an expert tutor. Create three distinct, structured study plans (7-day, 14-day, and 30-day timelines) for a candidate based on their performance level: ${performanceLevel} and their weakest topics: ${JSON.stringify(weakTopics)}.
+
+INSTRUCTIONS:
+- If the performance level is HIGH, focus the plans on speed optimization, hard problems, advanced mock exams, and pacing. Do NOT suggest basic concept review.
+- If the performance level is AVERAGE, focus the plans on concept reinforcement, medium difficulty sets, section tests, and error logging.
+- If the performance level is WEAK, focus the plans on foundational basics, easy-to-medium questions, step-by-step concepts, and revision.
+
 Each plan should contain actionable study steps as arrays of strings.
-Example:
-Week 1: Focus on Logical Reasoning. Solve 20 medium difficulty questions daily. Review incorrect answers.
 
 Return a JSON object matching this schema:
 {
@@ -75,11 +87,18 @@ Return a JSON object matching this schema:
     "Week 4: Focus on timed section practices and revision of incorrect answers."
   ]
 }
-Ensure the output is valid JSON. Do not include markdown tags.
+Ensure the output is valid JSON. Do not include markdown tags like \`\`\`json.
 `;
 
       const response = await this.llmAdapter.generate(prompt);
-      const parsed = JSON.parse(response);
+      let cleaned = response.trim();
+      if (cleaned.startsWith("```")) {
+        cleaned = cleaned
+          .replace(/^```(?:json)?/gi, "")
+          .replace(/```$/gi, "")
+          .trim();
+      }
+      const parsed = JSON.parse(cleaned);
 
       if (
         parsed &&
@@ -101,7 +120,7 @@ Ensure the output is valid JSON. Do not include markdown tags.
         },
       );
 
-      const fallbackPlans = this.generateFallbackPlans(weakTopics);
+      const fallbackPlans = this.generateFallbackPlans(weakTopics, performanceLevel);
       await this.savePlans(attemptId, fallbackPlans);
       return fallbackPlans;
     }
@@ -137,7 +156,27 @@ Ensure the output is valid JSON. Do not include markdown tags.
    */
   private generateFallbackPlans(
     weakTopics: string[],
+    performanceLevel: "HIGH" | "AVERAGE" | "WEAK" = "AVERAGE"
   ): ImprovementPlansResponse {
+    if (performanceLevel === "HIGH" || weakTopics.length === 0) {
+      return {
+        plan7Day: [
+          "Day 1-2: Complete advanced, high-difficulty challenge problem sets on core topics.",
+          "Day 3-5: Run timed full-length mock exams and analyze pacing and time spent per question.",
+          "Day 6-7: Focus on micro-error logs, reviewing solutions for alternative/faster methods."
+        ],
+        plan14Day: [
+          "Week 1: Perform 20 high-difficulty timed section tests, targeting <45 seconds per question.",
+          "Week 2: Solve complex case study challenges and practice mathematical shortcut techniques."
+        ],
+        plan30Day: [
+          "Week 1-2: Complete high-difficulty conceptual revisions and timed mock series.",
+          "Week 3: Target weak subsections with custom timed exercises and focus on extreme pacing constraints.",
+          "Week 4: Execute 4 complete mock exams under 90% of actual time limits to build safety buffers."
+        ]
+      };
+    }
+
     const focusTopic1 = weakTopics[0] || "General Aptitude";
     const focusTopic2 = weakTopics[1] || "Logical Reasoning";
 

@@ -64,20 +64,33 @@ Return a JSON object matching this schema:
     "High completion rate indicates strong time management."
   ]
 }
-Ensure the output contains only valid JSON. Do not include markdown tags.
+
+CRITICAL INSTRUCTIONS:
+1. Ensure the output contains only valid JSON. Do not include markdown tags like \`\`\`json.
+2. Ensure there are NO duplicate insights.
+3. Ensure there are NO contradictions (e.g., do not say a topic requires improvement if accuracy is high, and do not say a candidate excels in a topic if they performed poorly).
+4. Each insight must be distinct and specific.
 `;
 
       const response = await this.llmAdapter.generate(prompt);
-      const parsed = JSON.parse(response);
+      let cleaned = response.trim();
+      if (cleaned.startsWith("```")) {
+        cleaned = cleaned
+          .replace(/^```(?:json)?/gi, "")
+          .replace(/```$/gi, "")
+          .trim();
+      }
+      const parsed = JSON.parse(cleaned);
 
       if (
         parsed &&
         Array.isArray(parsed.insights) &&
         parsed.insights.length > 0
       ) {
+        const filtered = this.filterInsights(parsed.insights);
         // Save generated insights to the database
-        await this.saveInsights(attemptId, parsed.insights);
-        return parsed.insights;
+        await this.saveInsights(attemptId, filtered);
+        return filtered;
       }
 
       throw new Error("Invalid format returned by LLM");
@@ -97,9 +110,55 @@ Ensure the output contains only valid JSON. Do not include markdown tags.
         completionRate,
       );
 
-      await this.saveInsights(attemptId, fallbackInsights);
-      return fallbackInsights;
+      const filteredFallback = this.filterInsights(fallbackInsights);
+      await this.saveInsights(attemptId, filteredFallback);
+      return filteredFallback;
     }
+  }
+
+  /**
+   * Post-processes insights to clean duplicates and resolve contradictions
+   */
+  filterInsights(insights: string[]): string[] {
+    const unique = Array.from(new Set(insights.map((s) => s.trim())));
+    const clean: string[] = [];
+
+    for (const insight of unique) {
+      if (!insight) continue;
+
+      const lower = insight.toLowerCase();
+      let isContradictory = false;
+
+      for (const existing of clean) {
+        const existingLower = existing.toLowerCase();
+        
+        // Find matching words of significant length (e.g. topic names like Quantitative, Mathematics, Verbal)
+        const words = lower.split(/[^a-zA-Z0-9]+/).filter(w => w.length > 4);
+        const matches = words.filter(w => existingLower.includes(w));
+
+        if (matches.length > 0) {
+          const positiveKeywords = ["strong", "excel", "great", "high", "good", "foundation", "success"];
+          const negativeKeywords = ["improvement", "weak", "struggle", "low", "poor", "difficult", "focus"];
+
+          const thisIsPositive = positiveKeywords.some(w => lower.includes(w));
+          const thisIsNegative = negativeKeywords.some(w => lower.includes(w));
+          const existingIsPositive = positiveKeywords.some(w => existingLower.includes(w));
+          const existingIsNegative = negativeKeywords.some(w => existingLower.includes(w));
+
+          // If one is positive and the other is negative regarding the same matched topic/concept, it is a contradiction
+          if ((thisIsPositive && existingIsNegative) || (thisIsNegative && existingIsPositive)) {
+            isContradictory = true;
+            break;
+          }
+        }
+      }
+
+      if (!isContradictory) {
+        clean.push(insight);
+      }
+    }
+
+    return clean.slice(0, 5); // Return maximum of 5 insights
   }
 
   /**

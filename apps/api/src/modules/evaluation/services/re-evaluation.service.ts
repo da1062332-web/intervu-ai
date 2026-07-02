@@ -149,22 +149,29 @@ export class ReEvaluationService {
     });
     const averageScore = scoreAgg._avg.percentage || 0;
 
-    // 2. Fetch all EvaluationAnalytics records
-    const analytics = await this.prisma.evaluationAnalytics.findMany();
+    // 2. Fetch completion and attempt rate averages in a single DB aggregate
+    const analyticsAgg = await this.prisma.evaluationAnalytics.aggregate({
+      _avg: {
+        completionRate: true,
+        attemptRate: true,
+      },
+      _count: { id: true },
+    });
+    const avgCompletionRate = analyticsAgg._avg.completionRate || 0;
+    const avgAttemptRate = analyticsAgg._avg.attemptRate || 0;
 
-    // 3. Average Accuracy, completion rates
+    // 3. Fetch topic accuracy select-only fields (avoiding loading full tables)
+    const analyticsAccs = await this.prisma.evaluationAnalytics.findMany({
+      select: {
+        topicAccuracy: true,
+      },
+    });
+
+    const topicAccuracySums: Record<string, { sum: number; count: number }> = {};
     let totalAccuracySum = 0;
-    let totalCompletionRateSum = 0;
-    let totalAttemptRateSum = 0;
-    const topicAccuracySums: Record<string, { sum: number; count: number }> =
-      {};
+    let totalAttemptsCount = 0;
 
-    analytics.forEach((ann) => {
-      // completion and attempt rates
-      totalCompletionRateSum += ann.completionRate;
-      totalAttemptRateSum += ann.attemptRate;
-
-      // topic accuracy
+    analyticsAccs.forEach((ann) => {
       const topicAcc = (ann.topicAccuracy as Record<string, number>) || {};
       let accSum = 0;
       let accCount = 0;
@@ -180,15 +187,12 @@ export class ReEvaluationService {
 
       if (accCount > 0) {
         totalAccuracySum += accSum / accCount;
+        totalAttemptsCount++;
       }
     });
 
     const averageAccuracy =
-      analytics.length > 0 ? totalAccuracySum / analytics.length : averageScore;
-    const avgCompletionRate =
-      analytics.length > 0 ? totalCompletionRateSum / analytics.length : 0;
-    const avgAttemptRate =
-      analytics.length > 0 ? totalAttemptRateSum / analytics.length : 0;
+      totalAttemptsCount > 0 ? totalAccuracySum / totalAttemptsCount : averageScore;
 
     // Sort topics to find top and weakest
     const topicsList = Object.entries(topicAccuracySums).map(
@@ -204,29 +208,16 @@ export class ReEvaluationService {
     const topTopics = sortedTopics.slice(0, 3);
     const weakestTopics = [...sortedTopics].reverse().slice(0, 3);
 
-    // 4. Calculate Assessment Performance Trends (daily groups)
-    const results = await this.prisma.candidateResult.findMany({
-      select: { percentage: true, createdAt: true },
-      orderBy: { createdAt: "asc" },
-    });
-
-    const dailyGroups: Record<string, { sum: number; count: number }> = {};
-    results.forEach((res) => {
-      const dateStr = res.createdAt.toISOString().split("T")[0]; // YYYY-MM-DD
-      if (!dailyGroups[dateStr]) {
-        dailyGroups[dateStr] = { sum: 0, count: 0 };
-      }
-      dailyGroups[dateStr].sum += res.percentage;
-      dailyGroups[dateStr].count++;
-    });
-
-    const assessmentPerformanceTrends = Object.entries(dailyGroups).map(
-      ([date, data]) => ({
-        date,
-        averageScore: Math.round(data.sum / data.count),
-        totalAttempts: data.count,
-      }),
-    );
+    // 4. Calculate Assessment Performance Trends using highly optimized PostgreSQL aggregation
+    const trends: any[] = await this.prisma.$queryRawUnsafe(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM-DD') as "date",
+        ROUND(AVG(percentage))::integer as "averageScore",
+        COUNT(*)::integer as "totalAttempts"
+      FROM candidate_results
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
+      ORDER BY "date" ASC
+    `);
 
     return {
       averageScore: Math.round(averageScore),
@@ -237,7 +228,7 @@ export class ReEvaluationService {
         completionRate: Math.round(avgCompletionRate),
         attemptRate: Math.round(avgAttemptRate),
       },
-      assessmentPerformanceTrends,
+      assessmentPerformanceTrends: trends,
     };
   }
 }
