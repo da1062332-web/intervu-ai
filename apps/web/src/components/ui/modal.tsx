@@ -49,8 +49,14 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
     };
 
     document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
     // Focus the first element on open
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -58,9 +64,9 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
         if (focusableElements.length > 0) focusableElements[0].focus();
       }
     }, 10);
-
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isOpen]);
 
   if (!isOpen || !mounted) return null;
 

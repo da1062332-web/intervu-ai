@@ -6,6 +6,7 @@ import { useRemoveTopic } from '../api/queries';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTopicMappingStore } from '../store/topic-mapping.store';
 import { RefreshCw } from 'lucide-react';
 
@@ -68,36 +69,36 @@ export function TopicMappingTable({
   return (
     <div>
       <div className='overflow-x-auto'>
-        <table className='w-full text-left text-sm border-collapse'>
-          <thead>
-            <tr className='border-b'>
-              <th className='p-4 font-medium'>Topic Name</th>
-              <th className='p-4 font-medium'>Topic Code</th>
-              <th className='p-4 font-medium'>Weightage</th>
-              <th className='p-4 font-medium'>Created At</th>
-              <th className='p-4 font-medium text-right'>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Topic Name</TableHead>
+              <TableHead>Topic Code</TableHead>
+              <TableHead>Weightage</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead className='text-right'>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {topics.map((topic) => (
-              <tr
+              <TableRow
                 key={topic.topicId}
-                className='border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                className='hover:bg-gray-50 dark:hover:bg-gray-800/50'
               >
-                <td className='p-4 font-medium'>
+                <TableCell className='font-medium'>
                   {(topic as any).topicName ||
                     (topic as any).topic ||
                     (topic as any).name ||
                     'Unnamed Topic'}
-                </td>
-                <td className='p-4'>{(topic as any).topicCode || (topic as any).code || '-'}</td>
-                <td className='p-4'>
+                </TableCell>
+                <TableCell>{(topic as any).topicCode || (topic as any).code || '-'}</TableCell>
+                <TableCell>
                   {weightages[topic.topicId] !== undefined ? `${weightages[topic.topicId]}%` : '-'}
-                </td>
-                <td className='p-4 text-gray-500'>
+                </TableCell>
+                <TableCell className='text-muted-foreground'>
                   {topic.createdAt ? new Date(topic.createdAt).toLocaleDateString() : 'N/A'}
-                </td>
-                <td className='p-4 text-right'>
+                </TableCell>
+                <TableCell className='text-right'>
                   <Button
                     variant='destructive'
                     size='sm'
@@ -108,11 +109,11 @@ export function TopicMappingTable({
                       ? 'Removing...'
                       : 'Remove'}
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <Modal isOpen={!!topicToRemove} onClose={() => setTopicToRemove(null)}>
