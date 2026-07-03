@@ -6,6 +6,8 @@ import { TestOverview } from '../components/TestOverview';
 import { SyllabusBreakdown } from '../components/SyllabusBreakdown';
 import { SectionBreakdown } from '../components/SectionBreakdown';
 import { EligibilityInfo } from '../components/EligibilityInfo';
+import { EnrollmentCard } from '../components/EnrollmentCard';
+import { useEnrollments } from '../hooks/useEnrollments';
 import { Button } from '@/components/ui/button';
 import {
   TestDetailsSkeleton,
@@ -20,6 +22,10 @@ interface TestDetailsPageProps {
 
 export function TestDetailsPage({ testId }: TestDetailsPageProps) {
   const { data: test, isLoading, error, refetch } = useTestDetails(testId);
+  const { data: enrollmentsData } = useEnrollments();
+
+  const enrollment = enrollmentsData?.enrollments?.find((e: any) => e.testId === testId);
+  const enrollmentStatus = enrollment ? enrollment.status : 'AVAILABLE';
 
   if (isLoading) {
     return (
@@ -40,7 +46,7 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
             <div className='lg:col-span-2'>
               <TestDetailsSkeleton />
             </div>
-            <div className='lg:col-span-1'>
+            <div className='lg:col-span-1 space-y-6'>
               <MetadataSkeleton />
             </div>
           </div>
@@ -84,14 +90,19 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
         <div className='max-w-3xl mx-auto w-full flex flex-col space-y-6'>
           <TestOverview test={test} />
           <SectionBreakdown sections={test.sections} />
+          <SyllabusBreakdown syllabus={(test as any).syllabus} />
+          <EligibilityInfo eligibility={(test as any).eligibility} />
         </div>
 
         <div className='max-w-3xl mx-auto w-full flex justify-end pt-6 border-t border-border/40'>
-          <Button asChild size='lg' className='px-8 shadow-md hover:shadow-lg transition-shadow'>
-            <Link href={`/candidate/tests/${testId}/instructions`}>
-              Continue to Instructions <ArrowRight className='ml-2 size-4' />
-            </Link>
-          </Button>
+          <div className='w-full sm:w-1/2'>
+            <EnrollmentCard
+              testId={testId}
+              testName={test.title}
+              company={test.company || 'InterVu'}
+              status={(test as any).status || enrollmentStatus}
+            />
+          </div>
         </div>
       </main>
     </div>

@@ -13,6 +13,9 @@ model User {
   email              String              @unique
   passwordHash       String
   fullName           String?
+  phone              String?
+  college            String?
+  graduationYear     Int?                @map("graduation_year")
   role               UserRole            @default(CANDIDATE)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -25,6 +28,7 @@ model User {
   tests              Test[]
   testInstances      TestInstance[]
   candidateResults   CandidateResult[]
+  enrollments        CandidateEnrollment[]
 
   @@index([deletedAt])
   @@index([role])
@@ -172,18 +176,19 @@ model SkillScore {
 }
 
 model TestConfig {
-  id                   String         @id @default(cuid())
-  configKey            String         @unique
+  id                   String                @id @default(cuid())
+  configKey            String                @unique
   companyName          String
   displayName          String
   totalDurationSeconds Int
   totalQuestions       Int
-  isActive             Boolean        @default(true)
-  version              Int            @default(1)
-  createdAt            DateTime       @default(now())
+  isActive             Boolean               @default(true)
+  version              Int                   @default(1)
+  createdAt            DateTime              @default(now())
   testInstances        TestInstance[]
   rule                 TestRule?
   sections             TestSection[]
+  enrollments          CandidateEnrollment[]
 
   @@index([configKey])
 }
@@ -252,6 +257,12 @@ model TestInstance {
   evaluationRuns      EvaluationRun[]
   evaluationAnalytics EvaluationAnalytics?
   assessmentAuditLogs AssessmentAuditLog[]
+  candidateRanking    CandidateRanking?
+  candidatePercentile CandidatePercentile?
+  evaluationInsight   EvaluationInsight?
+  improvementPlan     ImprovementPlan?
+  reprocessLogs       EvaluationReprocessLog[]
+
 
   @@index([userId])
   @@index([status])
@@ -383,6 +394,7 @@ model EvaluationAnalytics {
   attemptId          String   @unique @map("attempt_id")
   topicAccuracy      Json     @map("topic_accuracy")
   difficultyAccuracy Json     @map("difficulty_accuracy")
+  sectionAccuracy    Json?    @map("section_accuracy")
   completionRate     Float    @map("completion_rate")
   attemptRate        Float    @map("attempt_rate")
   createdAt          DateTime @default(now()) @map("created_at")
@@ -691,6 +703,13 @@ enum ConfigStatus {
   ACTIVE
   PUBLISHED
   ARCHIVED
+}
+
+enum EnrollmentStatus {
+  AVAILABLE
+  ENROLLED
+  STARTED
+  COMPLETED
 }
 
 model ConfigPublishLog {
@@ -1197,4 +1216,133 @@ model GenerationTemplate {
   updatedAt DateTime @updatedAt
 
   @@map("generation_templates")
+}
+
+model CandidateRanking {
+  id                        String       @id @default(cuid())
+  attemptId                 String       @unique @map("attempt_id")
+  assessmentRank            Int          @map("assessment_rank")
+  orgRank                   Int          @map("org_rank")
+  batchRank                 Int          @map("batch_rank")
+  totalAssessmentCandidates Int          @map("total_assessment_candidates")
+  totalOrgCandidates        Int          @map("total_org_candidates")
+  totalBatchCandidates      Int          @map("total_batch_candidates")
+  percentile                Float
+  createdAt                 DateTime     @default(now()) @map("created_at")
+
+  attempt                   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("candidate_rankings")
+  @@index([attemptId])
+}
+
+model CandidatePercentile {
+  id         String       @id @default(cuid())
+  attemptId  String       @unique @map("attempt_id")
+  percentile Float
+  bucket     String
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("candidate_percentiles")
+  @@index([attemptId])
+}
+
+model EvaluationInsight {
+  id        String       @id @default(cuid())
+  attemptId String       @unique @map("attempt_id")
+  insights  Json
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  attempt   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("evaluation_insights")
+  @@index([attemptId])
+}
+
+model ImprovementPlan {
+  id         String       @id @default(cuid())
+  attemptId  String       @unique @map("attempt_id")
+  plan7Day   Json         @map("plan_7_day")
+  plan14Day  Json         @map("plan_14_day")
+  plan30Day  Json         @map("plan_30_day")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("improvement_plans")
+  @@index([attemptId])
+}
+
+model EvaluationReprocessLog {
+  id          String       @id @default(cuid())
+  attemptId   String       @map("attempt_id")
+  status      String
+  error       String?      @db.Text
+  triggeredBy String       @map("triggered_by")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  attempt     TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@map("evaluation_reprocess_logs")
+  @@index([attemptId])
+}
+
+
+model CandidateEnrollment {
+  id          String           @id @default(cuid())
+  candidateId String           @map("candidate_id")
+  testId      String           @map("test_id")
+  status      EnrollmentStatus @default(ENROLLED)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  testConfig TestConfig @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, testId])
+  @@map("candidate_enrollments")
+  @@index([candidateId])
+  @@index([testId])
+  @@index([status])
+}
+
+model RuntimeBuild {
+  id          String   @id @default(cuid())
+  testId      String   @map("test_id")
+  status      String   // e.g. "STARTED", "COMPLETED", "FAILED"
+  durationMs  Int      @map("duration_ms")
+  metadata    Json?
+  errors      Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("runtime_builds")
+  @@index([testId])
+}
+
+model RuntimeMetric {
+  id                   String   @id @default(cuid())
+  testId               String   @map("test_id")
+  metricName           String   @map("metric_name")
+  metricValue          Float    @map("metric_value")
+  metadata             Json?
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("runtime_metrics")
+  @@index([testId])
+  @@index([metricName])
+}
+
+model RuntimeValidationLog {
+  id             String   @id @default(cuid())
+  testId         String   @map("test_id")
+  isValid        Boolean  @map("is_valid")
+  errors         Json?
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("runtime_validation_logs")
+  @@index([testId])
 }

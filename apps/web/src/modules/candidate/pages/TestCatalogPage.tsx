@@ -9,9 +9,15 @@ import { EmptyState } from '../components/EmptyState';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { Layers } from 'lucide-react';
 
-export function TestCatalogPage() {
-  const { data: tests, isLoading, error, refetch } = useTestCatalog();
+interface TestItem {
+  id: string;
+  configId?: string;
+  title: string;
+  company?: string;
+  difficulty?: string;
+}
 
+export function TestCatalogPage() {
   const {
     searchQuery,
     difficultyFilter,
@@ -26,6 +32,15 @@ export function TestCatalogPage() {
     setCurrentPage,
     resetFilters,
   } = useTestCatalogStore();
+
+  const queryParams = {
+    search: searchQuery || undefined,
+    difficulty: difficultyFilter !== 'All' ? difficultyFilter : undefined,
+    page: currentPage,
+    limit: itemsPerPage,
+  };
+
+  const { data: tests, pagination, isLoading, error, refetch } = useTestCatalog(queryParams);
 
   // Sync hydration for store
   useEffect(() => {
@@ -60,17 +75,10 @@ export function TestCatalogPage() {
     );
   }
 
-  // Filter Logic
-  const filteredTests = tests.filter((test) => {
-    const matchesSearch =
-      test.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (test.company?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-
-    const matchesDifficulty = difficultyFilter === 'All' || test.difficulty === difficultyFilter;
-
-    const matchesBookmark = !showOnlyBookmarked || bookmarkedIds.includes(test.id);
-
-    return matchesSearch && matchesDifficulty && matchesBookmark;
+  // Bookmark filtering is still client-side since bookmarks are local in this MVP
+  const filteredTests = tests.filter((test: TestItem) => {
+    const matchesBookmark = !showOnlyBookmarked || bookmarkedIds.includes(test.configId || test.id);
+    return matchesBookmark;
   });
 
   const handleReset = () => {
@@ -98,7 +106,7 @@ export function TestCatalogPage() {
         onDifficultyChange={setDifficultyFilter}
         showOnlyBookmarked={showOnlyBookmarked}
         onShowOnlyBookmarkedChange={setShowOnlyBookmarked}
-        totalResults={filteredTests.length}
+        totalResults={pagination.total}
       />
 
       {filteredTests.length === 0 ? (

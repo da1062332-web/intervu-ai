@@ -23,54 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-<<<<<<< HEAD
-                <span class="strong">0% </span>
-                <span class="quiet">Statements</span>
-                <span class='fraction'>0/16</span>
-=======
                 <span class="strong">50% </span>
                 <span class="quiet">Statements</span>
                 <span class='fraction'>8/16</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
             <div class='fl pad1y space-right2'>
-<<<<<<< HEAD
-                <span class="strong">0% </span>
-                <span class="quiet">Branches</span>
-                <span class='fraction'>0/7</span>
-=======
                 <span class="strong">14.28% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>1/7</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
             <div class='fl pad1y space-right2'>
-<<<<<<< HEAD
-                <span class="strong">0% </span>
-                <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
-=======
                 <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
                 <span class='fraction'>1/4</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
             <div class='fl pad1y space-right2'>
-<<<<<<< HEAD
-                <span class="strong">0% </span>
-                <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
-=======
                 <span class="strong">42.85% </span>
                 <span class="quiet">Lines</span>
                 <span class='fraction'>6/14</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
             </div>
         
             
@@ -85,11 +61,7 @@
             </div>
         </template>
     </div>
-<<<<<<< HEAD
-    <div class='status-line low'></div>
-=======
     <div class='status-line medium'></div>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -133,17 +105,6 @@
 <a name='L40'></a><a href='#L40'>40</a>
 <a name='L41'></a><a href='#L41'>41</a>
 <a name='L42'></a><a href='#L42'>42</a>
-<<<<<<< HEAD
-<a name='L43'></a><a href='#L43'>43</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-=======
 <a name='L43'></a><a href='#L43'>43</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
@@ -153,7 +114,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -187,17 +147,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<<<<<<< HEAD
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Injectable, ConflictException } from '@nestjs/common';</span>
-<span class="cstat-no" title="statement not covered" >import { WorkflowStep, WorkflowStatus } from '@prisma/client';</span>
-<span class="cstat-no" title="statement not covered" >import { WorkflowStateMachine } from '../state-machine/workflow-state-machine';</span>
-&nbsp;
-@Injectable()
-export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >WorkflowTransitionGuard </span>{</span></span>
-<span class="fstat-no" title="function not covered" >  canAdvance(</span>currentStep: WorkflowStep, status: WorkflowStatus): void {
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!WorkflowStateMachine.canAdvance(currentStep, status)) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new ConflictException(</span>
-=======
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable, ConflictException } from "@nestjs/common";
 import { WorkflowStep, WorkflowStatus } from "@prisma/client";
 import { WorkflowStateMachine } from "../state-machine/workflow-state-machine";
@@ -207,7 +156,6 @@ export class WorkflowTransitionGuard {
   canAdvance(currentStep: WorkflowStep, status: WorkflowStatus): void {
     if (!WorkflowStateMachine.canAdvance(currentStep, status)) {
       throw new ConflictException(
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
         `Cannot advance workflow from step ${currentStep} in status ${status}`,
       );
     }
@@ -248,11 +196,7 @@ export class WorkflowTransitionGuard {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-30T05:41:15.691Z
-=======
-                at 2026-06-30T11:23:04.813Z
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+                at 2026-07-01T10:29:12.750Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

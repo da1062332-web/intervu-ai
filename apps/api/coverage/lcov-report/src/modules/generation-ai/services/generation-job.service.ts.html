@@ -154,9 +154,11 @@
 <a name='L89'></a><a href='#L89'>89</a>
 <a name='L90'></a><a href='#L90'>90</a>
 <a name='L91'></a><a href='#L91'>91</a>
-<a name='L92'></a><a href='#L92'>92</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -248,7 +250,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Injectable, NotFoundException } from "@nestjs/common";</span>
 <span class="cstat-no" title="statement not covered" >import { PrismaService } from "../../../prisma/prisma.service";</span>
 <span class="cstat-no" title="statement not covered" >import { BatchGenerationService } from "../generators/batch-generation.service";</span>
-import { GenerationJob, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+type GenerationJob = any;
 &nbsp;
 @Injectable()
 export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >GenerationJobService </span>{</span></span>
@@ -263,7 +266,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
     category?: string;
     difficulty?: string;
   }): Promise&lt;GenerationJob&gt; {
-    const job = <span class="cstat-no" title="statement not covered" >await this.prisma.generationJob.create({</span>
+    const job = <span class="cstat-no" title="statement not covered" >await (this.prisma as any).generationJob.create({</span>
       data: {
         topic: params.topic,
         count: params.count,
@@ -278,7 +281,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  async </span>getJob(id: string): Promise&lt;GenerationJob&gt; {
-    const job = <span class="cstat-no" title="statement not covered" >await this.prisma.generationJob.findUnique({</span>
+    const job = <span class="cstat-no" title="statement not covered" >await (this.prisma as any).generationJob.findUnique({</span>
       where: { id },
     });
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!job) {</span>
@@ -297,7 +300,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
     },
   ): Promise&lt;void&gt; {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      await this.prisma.generationJob.update({</span>
+<span class="cstat-no" title="statement not covered" >      await (this.prisma as any).generationJob.update({</span>
         where: { id: jobId },
         data: { status: "RUNNING" },
       });
@@ -309,7 +312,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
         difficulty: params.difficulty,
       });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      await this.prisma.generationJob.update({</span>
+<span class="cstat-no" title="statement not covered" >      await (this.prisma as any).generationJob.update({</span>
         where: { id: jobId },
         data: {
           status: "COMPLETED",
@@ -322,7 +325,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
       });
     } catch (e: any) {
 <span class="cstat-no" title="statement not covered" >      console.error(`Generation job ${jobId} failed:`, e);</span>
-<span class="cstat-no" title="statement not covered" >      await this.prisma.generationJob</span>
+<span class="cstat-no" title="statement not covered" >      await (this.prisma as any).generationJob</span>
         .update({
           where: { id: jobId },
           data: {
@@ -330,7 +333,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             error: e.message || String(e),
           },
         })
-        .catch(<span class="fstat-no" title="function not covered" >(l</span>ogErr) =&gt;
+        .catch(<span class="fstat-no" title="function not covered" >(l</span>ogErr: any) =&gt;
 <span class="cstat-no" title="statement not covered" >          console.error("Failed to mark job as failed in DB", logErr),</span>
         );
     }
@@ -343,7 +346,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-30T11:23:04.813Z
+                at 2026-07-01T10:29:12.750Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

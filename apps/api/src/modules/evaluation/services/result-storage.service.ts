@@ -46,6 +46,7 @@ export class ResultStorageService {
           update: {
             topicAccuracy: analytics.topicAccuracy || {},
             difficultyAccuracy: analytics.difficultyAccuracy || {},
+            sectionAccuracy: analytics.sectionAccuracy || {},
             completionRate: analytics.completionRate,
             attemptRate: analytics.attemptRate,
             createdAt: new Date(),
@@ -54,6 +55,7 @@ export class ResultStorageService {
             attemptId,
             topicAccuracy: analytics.topicAccuracy || {},
             difficultyAccuracy: analytics.difficultyAccuracy || {},
+            sectionAccuracy: analytics.sectionAccuracy || {},
             completionRate: analytics.completionRate,
             attemptRate: analytics.attemptRate,
             createdAt: new Date(),

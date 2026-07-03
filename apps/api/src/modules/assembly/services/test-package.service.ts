@@ -134,10 +134,7 @@ export class TestPackageService {
    * Extract scoring rules from ExamConfig.
    * Maps ruleFlags JSON to strongly-typed ExecutionScoringRules.
    */
-  private extractScoringRules(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any,
-  ): ExecutionScoringRules {
+  private extractScoringRules(config: any): ExecutionScoringRules {
     const flags = (config.ruleFlags as Record<string, unknown>) ?? {};
 
     return {

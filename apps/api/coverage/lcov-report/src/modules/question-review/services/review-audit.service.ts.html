@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>2/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>5/6</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -88,21 +88,21 @@
 <a name='L23'></a><a href='#L23'>23</a>
 <a name='L24'></a><a href='#L24'>24</a>
 <a name='L25'></a><a href='#L25'>25</a>
-<<<<<<< HEAD
-<a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-=======
 <a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">3x</span>
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -113,29 +113,20 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Injectable } from "@nestjs/common";</span>
-<span class="cstat-no" title="statement not covered" >import { ReviewAuditLogRepository } from "../repositories/review-audit-log.repository";</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable } from "@nestjs/common";
+import { ReviewAuditLogRepository } from "../repositories/review-audit-log.repository";
 &nbsp;
 @Injectable()
-export <span class="cstat-no" title="statement not covered" >class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >ReviewAuditService </span>{</span></span>
-<span class="fstat-no" title="function not covered" >  constructor(private readonly <span class="cstat-no" title="statement not covered" >a</span>uditLogRepo: R</span>eviewAuditLogRepository) {}
+export class ReviewAuditService {
+  constructor(private readonly auditLogRepo: ReviewAuditLogRepository) {}
 &nbsp;
-<span class="fstat-no" title="function not covered" >  async </span>logReview(params: {
+  async logReview(params: {
     questionId: string;
     score: number;
     issues: string[];
     recommendation: string;
   }) {
-<span class="cstat-no" title="statement not covered" >    return this.auditLogRepo.create({</span>
+    return this.auditLogRepo.create({
       questionId: params.questionId,
       score: params.score,
       issues: params.issues,
@@ -154,11 +145,7 @@ export <span class="cstat-no" title="statement not covered" >class <span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-<<<<<<< HEAD
-                at 2026-06-30T05:41:15.691Z
-=======
-                at 2026-06-30T11:23:04.813Z
->>>>>>> df114762eb99866ba825edb9aff504802cb730eb
+                at 2026-07-01T10:29:12.750Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

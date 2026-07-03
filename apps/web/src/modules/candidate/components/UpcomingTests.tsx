@@ -7,12 +7,41 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, PlayCircle } from 'lucide-react';
 
-interface UpcomingTestsProps {
-  tests: AvailableTest[];
-}
+import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
 
-export function UpcomingTests({ tests }: UpcomingTestsProps) {
+export function UpcomingTests() {
   const router = useRouter();
+  const { data, isLoading, error } = useCandidateDashboard();
+
+  if (isLoading) {
+    return (
+      <Card className='h-full flex flex-col glass-card'>
+        <CardHeader>
+          <CardTitle className='text-xl font-semibold'>Available Assessments</CardTitle>
+          <CardDescription>Assessments ready to be taken</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='space-y-4'>
+            {[1, 2].map((i) => (
+              <div key={i} className='h-24 bg-muted animate-pulse rounded-lg'></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <Card className='h-full flex flex-col glass-card'>
+        <CardContent className='flex-1 flex items-center justify-center text-destructive'>
+          Failed to load upcoming tests.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const tests = data.availableTests;
 
   if (tests.length === 0) {
     return (
@@ -89,7 +118,7 @@ export function UpcomingTests({ tests }: UpcomingTestsProps) {
             </div>
             <Button
               className='w-full sm:w-auto shrink-0 group shadow-sm hover:shadow-md transition-shadow'
-              onClick={() => router.push(`/candidate/tests/${test.id}`)}
+              onClick={() => router.push(`/candidate/tests/${test.id}/instructions`)}
             >
               Start Assessment
               <PlayCircle className='ml-2 size-4 group-hover:scale-110 transition-transform' />

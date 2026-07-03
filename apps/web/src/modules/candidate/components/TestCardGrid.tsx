@@ -35,9 +35,9 @@ export function TestCardGrid({
     <div className='space-y-8'>
       {/* Cards Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {paginatedTests.map((test) => (
+        {paginatedTests.map((test, idx) => (
           <TestCard
-            key={test.id}
+            key={test.id || (test as any).configId || `test-${idx}`}
             test={test}
             isBookmarked={bookmarkedIds.includes(test.id)}
             onToggleBookmark={() => onToggleBookmark(test.id)}
@@ -89,7 +89,7 @@ export function TestCardGrid({
               ) {
                 return (
                   <span
-                    key={pageNum}
+                    key={`ellipsis-${pageNum}`}
                     className='px-1.5 text-muted-foreground/60 text-sm font-semibold select-none'
                   >
                     ...
