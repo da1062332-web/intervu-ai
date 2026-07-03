@@ -53,48 +53,48 @@ export class BenchmarkService {
       );
     }
 
-    // 2. Fetch all other attempts for this assessment to calculate averages
-    const cohortAttempts = await this.prisma.testInstance.findMany({
+    // 2. Fetch assessment overall average using aggregate
+    const scoreAgg = await this.prisma.candidateResult.aggregate({
       where: {
-        testConfigId,
-        candidateResult: { isNot: null },
+        attempt: {
+          testConfigId,
+        },
       },
-      include: {
-        candidateResult: true,
-        evaluationAnalytics: true,
-        sections: true,
-      },
+      _avg: { percentage: true },
+      _count: { id: true },
     });
 
-    // Fallback: if no other attempts, use the current attempt itself as the baseline cohort
-    const activeCohort =
-      cohortAttempts.length > 0 ? cohortAttempts : [currentAttempt];
-
-    // 3. Compute overall assessment average
-    let totalScoreSum = 0;
-    let scoredAttemptsCount = 0;
-    activeCohort.forEach((att) => {
-      if (att.candidateResult) {
-        totalScoreSum += att.candidateResult.percentage;
-        scoredAttemptsCount++;
-      }
-    });
     const assessmentAverage =
-      scoredAttemptsCount > 0
-        ? totalScoreSum / scoredAttemptsCount
+      scoreAgg._count.id > 0
+        ? scoreAgg._avg.percentage ?? candidateResult.percentage
         : candidateResult.percentage;
+
+    // 3. Fetch lightweight cohort analytics records (only JSON columns)
+    const cohortAnalytics = await this.prisma.evaluationAnalytics.findMany({
+      where: {
+        attempt: {
+          testConfigId,
+        },
+      },
+      select: {
+        sectionAccuracy: true,
+        topicAccuracy: true,
+        difficultyAccuracy: true,
+      },
+    });
+
+    // Fallback: if no cohort analytics found, use current candidate analytics
+    const activeAnalytics =
+      cohortAnalytics.length > 0 ? cohortAnalytics : [evaluationAnalytics];
 
     // 4. Compute section averages
     const currentSections =
       (evaluationAnalytics.sectionAccuracy as Record<string, number>) || {};
     const sectionAverages: Record<string, { sum: number; count: number }> = {};
 
-    activeCohort.forEach((att) => {
-      if (att.evaluationAnalytics?.sectionAccuracy) {
-        const secAcc = att.evaluationAnalytics.sectionAccuracy as Record<
-          string,
-          number
-        >;
+    activeAnalytics.forEach((ann) => {
+      if (ann.sectionAccuracy) {
+        const secAcc = ann.sectionAccuracy as Record<string, number>;
         Object.entries(secAcc).forEach(([secName, score]) => {
           if (!sectionAverages[secName]) {
             sectionAverages[secName] = { sum: 0, count: 0 };
@@ -131,12 +131,9 @@ export class BenchmarkService {
       (evaluationAnalytics.topicAccuracy as Record<string, number>) || {};
     const topicAverages: Record<string, { sum: number; count: number }> = {};
 
-    activeCohort.forEach((att) => {
-      if (att.evaluationAnalytics?.topicAccuracy) {
-        const topAcc = att.evaluationAnalytics.topicAccuracy as Record<
-          string,
-          number
-        >;
+    activeAnalytics.forEach((ann) => {
+      if (ann.topicAccuracy) {
+        const topAcc = ann.topicAccuracy as Record<string, number>;
         Object.entries(topAcc).forEach(([topicName, score]) => {
           if (!topicAverages[topicName]) {
             topicAverages[topicName] = { sum: 0, count: 0 };
@@ -168,12 +165,9 @@ export class BenchmarkService {
     const difficultyAverages: Record<string, { sum: number; count: number }> =
       {};
 
-    activeCohort.forEach((att) => {
-      if (att.evaluationAnalytics?.difficultyAccuracy) {
-        const diffAcc = att.evaluationAnalytics.difficultyAccuracy as Record<
-          string,
-          number
-        >;
+    activeAnalytics.forEach((ann) => {
+      if (ann.difficultyAccuracy) {
+        const diffAcc = ann.difficultyAccuracy as Record<string, number>;
         Object.entries(diffAcc).forEach(([difficulty, score]) => {
           if (!difficultyAverages[difficulty]) {
             difficultyAverages[difficulty] = { sum: 0, count: 0 };

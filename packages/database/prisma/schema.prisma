@@ -1306,3 +1306,42 @@ model CandidateEnrollment {
   @@index([testId])
   @@index([status])
 }
+
+model RuntimeBuild {
+  id          String   @id @default(cuid())
+  testId      String   @map("test_id")
+  status      String   // e.g. "STARTED", "COMPLETED", "FAILED"
+  durationMs  Int      @map("duration_ms")
+  metadata    Json?
+  errors      Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("runtime_builds")
+  @@index([testId])
+}
+
+model RuntimeMetric {
+  id                   String   @id @default(cuid())
+  testId               String   @map("test_id")
+  metricName           String   @map("metric_name")
+  metricValue          Float    @map("metric_value")
+  metadata             Json?
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("runtime_metrics")
+  @@index([testId])
+  @@index([metricName])
+}
+
+model RuntimeValidationLog {
+  id             String   @id @default(cuid())
+  testId         String   @map("test_id")
+  isValid        Boolean  @map("is_valid")
+  errors         Json?
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("runtime_validation_logs")
+  @@index([testId])
+}

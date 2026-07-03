@@ -50,8 +50,14 @@ export class QuestionPoolRepository implements IQuestionSource {
           questionHash: `mock-hash-${Date.now()}-${i}`,
           questionType: "MULTIPLE_CHOICE",
           questionText: `This is an auto-generated mock question for topic ${conceptKey} at ${difficulty} difficulty.`,
-          expectedAnswer: "Mock Answer",
-          rubric: {},
+          options: [
+            { id: 'opt1', text: 'Option A' },
+            { id: 'opt2', text: 'Option B' },
+            { id: 'opt3', text: 'Option C' },
+            { id: 'opt4', text: 'Option D' }
+          ],
+          correctAnswer: 'opt1',
+          solution: 'This is the mock solution.',
           metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),

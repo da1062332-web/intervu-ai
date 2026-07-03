@@ -22,28 +22,27 @@ describe("BenchmarkService", () => {
     ],
   };
 
-  const mockCohort = [
+  const mockCohortAnalytics = [
     {
-      candidateResult: { percentage: 80 },
-      evaluationAnalytics: {
-        sectionAccuracy: { Math: 90, Logic: 70 },
-        topicAccuracy: { percentages: 90, probability: 70 },
-        difficultyAccuracy: { EASY: 100, MEDIUM: 80, HARD: 60 },
-      },
+      sectionAccuracy: { Math: 90, Logic: 70 },
+      topicAccuracy: { percentages: 90, probability: 70 },
+      difficultyAccuracy: { EASY: 100, MEDIUM: 80, HARD: 60 },
     },
     {
-      candidateResult: { percentage: 60 },
-      evaluationAnalytics: {
-        sectionAccuracy: { Math: 70, Logic: 50 },
-        topicAccuracy: { percentages: 70, probability: 50 },
-        difficultyAccuracy: { EASY: 80, MEDIUM: 60, HARD: 40 },
-      },
+      sectionAccuracy: { Math: 70, Logic: 50 },
+      topicAccuracy: { percentages: 70, probability: 50 },
+      difficultyAccuracy: { EASY: 80, MEDIUM: 60, HARD: 40 },
     },
   ];
 
   const prismaMock = {
     testInstance: {
       findUnique: jest.fn(),
+    },
+    candidateResult: {
+      aggregate: jest.fn(),
+    },
+    evaluationAnalytics: {
       findMany: jest.fn(),
     },
   };
@@ -77,7 +76,11 @@ describe("BenchmarkService", () => {
 
   it("should calculate correct average score benchmark comparisons", async () => {
     prismaMock.testInstance.findUnique.mockResolvedValue(mockAttempt);
-    prismaMock.testInstance.findMany.mockResolvedValue(mockCohort);
+    prismaMock.candidateResult.aggregate.mockResolvedValue({
+      _avg: { percentage: 70 },
+      _count: { id: 2 },
+    });
+    prismaMock.evaluationAnalytics.findMany.mockResolvedValue(mockCohortAnalytics);
 
     const result = await service.getBenchmark("attempt_1");
 
