@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { BenchmarkService } from "../benchmarking/benchmark.service";
-import { CandidateResultDto, EvaluationExplanation } from "@intervu-ai/contracts";
+import {
+  CandidateResultDto,
+  EvaluationExplanation,
+} from "@intervu-ai/contracts";
 
 @Injectable()
 export class EvaluationExplainabilityService {
@@ -20,7 +23,10 @@ export class EvaluationExplainabilityService {
     const score = result.percentage;
     const sections = result.sections || [];
     const correct = sections.reduce((acc, s) => acc + s.correct, 0);
-    const total = sections.reduce((acc, s) => acc + (s.correct + s.incorrect + s.skipped), 0);
+    const total = sections.reduce(
+      (acc, s) => acc + (s.correct + s.incorrect + s.skipped),
+      0,
+    );
 
     // 1. Score Explanation
     const scoreExplanation = `Your overall score of ${score}% is determined by answering ${correct} out of ${total} questions correctly across ${sections.length} section(s).`;

@@ -79,12 +79,22 @@ describe("BenchmarkService", () => {
       _avg: { percentage: 75 },
       _count: { id: 2 },
     });
-    
+
     // Mock successful Postgres raw query outputs
     prismaMock.$queryRawUnsafe
-      .mockResolvedValueOnce([{ name: "Math", avg: 80 }, { name: "Logic", avg: 60 }]) // sections
-      .mockResolvedValueOnce([{ name: "percentages", avg: 80 }, { name: "probability", avg: 60 }]) // topics
-      .mockResolvedValueOnce([{ name: "EASY", avg: 90 }, { name: "MEDIUM", avg: 70 }, { name: "HARD", avg: 50 }]); // difficulties
+      .mockResolvedValueOnce([
+        { name: "Math", avg: 80 },
+        { name: "Logic", avg: 60 },
+      ]) // sections
+      .mockResolvedValueOnce([
+        { name: "percentages", avg: 80 },
+        { name: "probability", avg: 60 },
+      ]) // topics
+      .mockResolvedValueOnce([
+        { name: "EASY", avg: 90 },
+        { name: "MEDIUM", avg: 70 },
+        { name: "HARD", avg: 50 },
+      ]); // difficulties
 
     const result = await service.getBenchmark("attempt_1");
 
@@ -101,7 +111,9 @@ describe("BenchmarkService", () => {
       _count: { id: 2 },
     });
     prismaMock.$queryRawUnsafe.mockRejectedValue(new Error("Raw query failed"));
-    prismaMock.evaluationAnalytics.findMany.mockResolvedValue(mockCohortAnalytics);
+    prismaMock.evaluationAnalytics.findMany.mockResolvedValue(
+      mockCohortAnalytics,
+    );
 
     const result = await service.getBenchmark("attempt_1");
 

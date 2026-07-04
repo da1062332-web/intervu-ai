@@ -14,9 +14,18 @@ export interface SimulatedAttempt {
   expected: {
     percentage: number;
     score: number;
-    sectionScores: Record<string, { correct: number; total: number; score: number }>;
-    topicScores: Record<string, { correct: number; total: number; accuracy: number }>;
-    difficultyScores: Record<string, { correct: number; total: number; accuracy: number }>;
+    sectionScores: Record<
+      string,
+      { correct: number; total: number; score: number }
+    >;
+    topicScores: Record<
+      string,
+      { correct: number; total: number; accuracy: number }
+    >;
+    difficultyScores: Record<
+      string,
+      { correct: number; total: number; accuracy: number }
+    >;
     completionRate: number;
     totalTimeSpent: number;
   };
@@ -26,9 +35,17 @@ export class ExpectedResultGenerator {
   /**
    * Generates a stable list of mock questions covering various topics and difficulties.
    */
-  private generateMockQuestions(count = 10, sectionMode = "single", difficultyMode = "mixed") {
+  private generateMockQuestions(
+    count = 10,
+    sectionMode = "single",
+    difficultyMode = "mixed",
+  ) {
     const questions = [];
-    const topics = ["Quantitative Aptitude", "Logical Reasoning", "Verbal Ability"];
+    const topics = [
+      "Quantitative Aptitude",
+      "Logical Reasoning",
+      "Verbal Ability",
+    ];
     const difficulties = ["EASY", "MEDIUM", "HARD"];
 
     for (let i = 0; i < count; i++) {
@@ -48,7 +65,14 @@ export class ExpectedResultGenerator {
         sectionName = `${topics[secIndex]} Section`;
       }
 
-      const questionType = i % 4 === 0 ? "MCQ" : i % 4 === 1 ? "MSQ" : i % 4 === 2 ? "TrueFalse" : "Numeric";
+      const questionType =
+        i % 4 === 0
+          ? "MCQ"
+          : i % 4 === 1
+            ? "MSQ"
+            : i % 4 === 2
+              ? "TrueFalse"
+              : "Numeric";
       let answer = "OptionA";
       if (questionType === "MSQ") answer = "OptionA,OptionB";
       else if (questionType === "TrueFalse") answer = "true";
@@ -76,10 +100,21 @@ export class ExpectedResultGenerator {
 
     for (let i = 0; i < count; i++) {
       const sectionMode = i % 3 === 0 ? "sectional" : "single";
-      const difficultyMode = i % 4 === 0 ? "easy" : i % 4 === 1 ? "medium" : i % 4 === 2 ? "hard" : "mixed";
+      const difficultyMode =
+        i % 4 === 0
+          ? "easy"
+          : i % 4 === 1
+            ? "medium"
+            : i % 4 === 2
+              ? "hard"
+              : "mixed";
       const qCount = 5 + (i % 6); // 5 to 10 questions
 
-      const questions = this.generateMockQuestions(qCount, sectionMode, difficultyMode);
+      const questions = this.generateMockQuestions(
+        qCount,
+        sectionMode,
+        difficultyMode,
+      );
       const answers: Array<{
         questionId: string;
         answer: string;
@@ -90,14 +125,21 @@ export class ExpectedResultGenerator {
       let totalTimeSpent = 0;
       let answeredCount = 0;
 
-      const sectionStats: Record<string, { correct: number; total: number }> = {};
+      const sectionStats: Record<string, { correct: number; total: number }> =
+        {};
       const topicStats: Record<string, { correct: number; total: number }> = {};
-      const difficultyStats: Record<string, { correct: number; total: number }> = {};
+      const difficultyStats: Record<
+        string,
+        { correct: number; total: number }
+      > = {};
 
       questions.forEach((q, idx) => {
-        if (!sectionStats[q.sectionName]) sectionStats[q.sectionName] = { correct: 0, total: 0 };
-        if (!topicStats[q.topicName]) topicStats[q.topicName] = { correct: 0, total: 0 };
-        if (!difficultyStats[q.difficulty]) difficultyStats[q.difficulty] = { correct: 0, total: 0 };
+        if (!sectionStats[q.sectionName])
+          sectionStats[q.sectionName] = { correct: 0, total: 0 };
+        if (!topicStats[q.topicName])
+          topicStats[q.topicName] = { correct: 0, total: 0 };
+        if (!difficultyStats[q.difficulty])
+          difficultyStats[q.difficulty] = { correct: 0, total: 0 };
 
         sectionStats[q.sectionName].total++;
         topicStats[q.topicName].total++;
@@ -106,7 +148,7 @@ export class ExpectedResultGenerator {
         let isCorrect = false;
         let answerVal = "";
         let isAnswered = false;
-        const timeSpent = 10 + (idx * 5);
+        const timeSpent = 10 + idx * 5;
         totalTimeSpent += timeSpent;
 
         if (i % 3 === 0) {
@@ -164,30 +206,48 @@ export class ExpectedResultGenerator {
       const percentage = Math.round((totalCorrect / qCount) * 100);
       const completionRate = Math.round((answeredCount / qCount) * 100);
 
-      const sectionScores: Record<string, { correct: number; total: number; score: number }> = {};
+      const sectionScores: Record<
+        string,
+        { correct: number; total: number; score: number }
+      > = {};
       Object.entries(sectionStats).forEach(([name, stats]) => {
         sectionScores[name] = {
           correct: stats.correct,
           total: stats.total,
-          score: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+          score:
+            stats.total > 0
+              ? Math.round((stats.correct / stats.total) * 100)
+              : 0,
         };
       });
 
-      const topicScores: Record<string, { correct: number; total: number; accuracy: number }> = {};
+      const topicScores: Record<
+        string,
+        { correct: number; total: number; accuracy: number }
+      > = {};
       Object.entries(topicStats).forEach(([name, stats]) => {
         topicScores[name] = {
           correct: stats.correct,
           total: stats.total,
-          accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+          accuracy:
+            stats.total > 0
+              ? Math.round((stats.correct / stats.total) * 100)
+              : 0,
         };
       });
 
-      const difficultyScores: Record<string, { correct: number; total: number; accuracy: number }> = {};
+      const difficultyScores: Record<
+        string,
+        { correct: number; total: number; accuracy: number }
+      > = {};
       Object.entries(difficultyStats).forEach(([name, stats]) => {
         difficultyScores[name] = {
           correct: stats.correct,
           total: stats.total,
-          accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+          accuracy:
+            stats.total > 0
+              ? Math.round((stats.correct / stats.total) * 100)
+              : 0,
         };
       });
 

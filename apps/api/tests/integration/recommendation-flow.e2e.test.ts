@@ -8,7 +8,9 @@ describe("Recommendation Flow integration E2E", () => {
       providers: [RecommendationService],
     }).compile();
 
-    const recommendationService = moduleFixture.get<RecommendationService>(RecommendationService);
+    const recommendationService = moduleFixture.get<RecommendationService>(
+      RecommendationService,
+    );
 
     // 1. Weak performer analytics
     const weakAnalytics = {

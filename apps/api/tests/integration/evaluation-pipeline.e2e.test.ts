@@ -20,7 +20,12 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
       testConfigId: "cfg_1",
       status: "COMPLETED",
       submittedAt: new Date(),
-      candidateResult: { id: "res_1", percentage: 80, score: 8, createdAt: new Date() },
+      candidateResult: {
+        id: "res_1",
+        percentage: 80,
+        score: 8,
+        createdAt: new Date(),
+      },
       evaluationAnalytics: {
         id: "ea_1",
         sectionAccuracy: { "Math Section": 100 },
@@ -52,16 +57,34 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
         findUnique: vi.fn().mockResolvedValue(mockTestInstance),
       },
       candidateResult: {
-        aggregate: vi.fn().mockResolvedValue({ _avg: { percentage: 70 }, _count: { id: 10 } }),
-        findUnique: vi.fn().mockResolvedValue({ id: "res_1", percentage: 80, score: 8, attemptId: "attempt_1", createdAt: new Date() }),
-        groupBy: vi.fn().mockResolvedValue([{ percentage: 80, _count: { id: 1 } }]),
+        aggregate: vi
+          .fn()
+          .mockResolvedValue({ _avg: { percentage: 70 }, _count: { id: 10 } }),
+        findUnique: vi
+          .fn()
+          .mockResolvedValue({
+            id: "res_1",
+            percentage: 80,
+            score: 8,
+            attemptId: "attempt_1",
+            createdAt: new Date(),
+          }),
+        groupBy: vi
+          .fn()
+          .mockResolvedValue([{ percentage: 80, _count: { id: 1 } }]),
       },
       evaluationAnalytics: {
         findMany: vi.fn().mockResolvedValue([]),
         upsert: vi.fn().mockResolvedValue({}),
       },
       candidateRanking: {
-        findUnique: vi.fn().mockResolvedValue({ assessmentRank: 2, totalAssessmentCandidates: 10, percentile: 80.0 }),
+        findUnique: vi
+          .fn()
+          .mockResolvedValue({
+            assessmentRank: 2,
+            totalAssessmentCandidates: 10,
+            percentile: 80.0,
+          }),
       },
       evaluationInsight: {
         upsert: vi.fn().mockResolvedValue({}),
@@ -90,7 +113,9 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
       ],
     }).compile();
 
-    const generator = moduleFixture.get<ResultGeneratorService>(ResultGeneratorService);
+    const generator = moduleFixture.get<ResultGeneratorService>(
+      ResultGeneratorService,
+    );
 
     // 2. Mock submission input
     const executionResult = {

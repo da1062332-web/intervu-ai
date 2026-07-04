@@ -19,24 +19,82 @@ describe("AI Regression Test Suite", () => {
   const mastery = new TopicMasteryService();
 
   const mockQuestions = [
-    { id: "q1", answer: "OptionA", questionType: "MCQ", difficulty: "EASY", topicName: "percentages", sectionKey: "sec1" },
-    { id: "q2", answer: "OptionA,OptionB", questionType: "MSQ", difficulty: "MEDIUM", topicName: "time_work", sectionKey: "sec1" },
-    { id: "q3", answer: "true", questionType: "TrueFalse", difficulty: "HARD", topicName: "probability", sectionKey: "sec2" },
-    { id: "q4", answer: "10.0", questionType: "Numeric", difficulty: "MEDIUM", topicName: "averages", sectionKey: "sec2" },
+    {
+      id: "q1",
+      answer: "OptionA",
+      questionType: "MCQ",
+      difficulty: "EASY",
+      topicName: "percentages",
+      sectionKey: "sec1",
+    },
+    {
+      id: "q2",
+      answer: "OptionA,OptionB",
+      questionType: "MSQ",
+      difficulty: "MEDIUM",
+      topicName: "time_work",
+      sectionKey: "sec1",
+    },
+    {
+      id: "q3",
+      answer: "true",
+      questionType: "TrueFalse",
+      difficulty: "HARD",
+      topicName: "probability",
+      sectionKey: "sec2",
+    },
+    {
+      id: "q4",
+      answer: "10.0",
+      questionType: "Numeric",
+      difficulty: "MEDIUM",
+      topicName: "averages",
+      sectionKey: "sec2",
+    },
   ];
 
   const parsedSections = [
-    { id: "sec1", sectionKey: "sec1", sectionName: "Section 1", questions: [{ questionId: "q1" }, { questionId: "q2" }] },
-    { id: "sec2", sectionKey: "sec2", sectionName: "Section 2", questions: [{ questionId: "q3" }, { questionId: "q4" }] },
+    {
+      id: "sec1",
+      sectionKey: "sec1",
+      sectionName: "Section 1",
+      questions: [{ questionId: "q1" }, { questionId: "q2" }],
+    },
+    {
+      id: "sec2",
+      sectionKey: "sec2",
+      sectionName: "Section 2",
+      questions: [{ questionId: "q3" }, { questionId: "q4" }],
+    },
   ];
 
   it("1. Evaluation Scoring: Deterministic grading of candidate submissions", () => {
     // Attempt 1: All correct
     const answers1: AnswerDto[] = [
-      { questionId: "q1", selectedOptionId: "OptionA", timeSpentSeconds: 15, status: "ANSWERED" },
-      { questionId: "q2", selectedOptionIds: ["OptionB", "OptionA"], timeSpentSeconds: 20, status: "ANSWERED" }, // MSQ unsorted
-      { questionId: "q3", selectedOptionId: "TRUE", timeSpentSeconds: 10, status: "ANSWERED" }, // TrueFalse case mismatch
-      { questionId: "q4", textResponse: "10.00003", timeSpentSeconds: 25, status: "ANSWERED" }, // Numeric within tolerance
+      {
+        questionId: "q1",
+        selectedOptionId: "OptionA",
+        timeSpentSeconds: 15,
+        status: "ANSWERED",
+      },
+      {
+        questionId: "q2",
+        selectedOptionIds: ["OptionB", "OptionA"],
+        timeSpentSeconds: 20,
+        status: "ANSWERED",
+      }, // MSQ unsorted
+      {
+        questionId: "q3",
+        selectedOptionId: "TRUE",
+        timeSpentSeconds: 10,
+        status: "ANSWERED",
+      }, // TrueFalse case mismatch
+      {
+        questionId: "q4",
+        textResponse: "10.00003",
+        timeSpentSeconds: 25,
+        status: "ANSWERED",
+      }, // Numeric within tolerance
     ];
 
     const eval1 = evaluator.evaluateAnswers(answers1, mockQuestions);
@@ -45,17 +103,35 @@ describe("AI Regression Test Suite", () => {
     expect(eval1[2].isCorrect).toBe(true);
     expect(eval1[3].isCorrect).toBe(true);
 
-    const secScores1 = sectionScoring.calculateSectionScores(eval1, parsedSections);
+    const secScores1 = sectionScoring.calculateSectionScores(
+      eval1,
+      parsedSections,
+    );
     const overall1 = overallScoring.calculateOverallScore(secScores1);
     expect(overall1.percentage).toBe(100);
     expect(overall1.accuracy).toBe(100);
 
     // Attempt 2: Partial correct and skipped
     const answers2: AnswerDto[] = [
-      { questionId: "q1", selectedOptionId: "OptionA", timeSpentSeconds: 10, status: "ANSWERED" },
-      { questionId: "q2", selectedOptionIds: ["OptionWrong"], timeSpentSeconds: 15, status: "ANSWERED" },
+      {
+        questionId: "q1",
+        selectedOptionId: "OptionA",
+        timeSpentSeconds: 10,
+        status: "ANSWERED",
+      },
+      {
+        questionId: "q2",
+        selectedOptionIds: ["OptionWrong"],
+        timeSpentSeconds: 15,
+        status: "ANSWERED",
+      },
       { questionId: "q3", status: "SKIPPED" }, // skipped
-      { questionId: "q4", textResponse: "10.5", timeSpentSeconds: 12, status: "ANSWERED" }, // numeric out of tolerance
+      {
+        questionId: "q4",
+        textResponse: "10.5",
+        timeSpentSeconds: 12,
+        status: "ANSWERED",
+      }, // numeric out of tolerance
     ];
 
     const eval2 = evaluator.evaluateAnswers(answers2, mockQuestions);
@@ -64,7 +140,10 @@ describe("AI Regression Test Suite", () => {
     expect(eval2[2].isCorrect).toBe(false);
     expect(eval2[3].isCorrect).toBe(false);
 
-    const secScores2 = sectionScoring.calculateSectionScores(eval2, parsedSections);
+    const secScores2 = sectionScoring.calculateSectionScores(
+      eval2,
+      parsedSections,
+    );
     const overall2 = overallScoring.calculateOverallScore(secScores2);
     expect(overall2.percentage).toBe(25);
   });
@@ -82,14 +161,14 @@ describe("AI Regression Test Suite", () => {
     const recs = recommendation.generateRecommendations(mockAnalytics);
     // Should trigger recommendations for topics with accuracy < 75%
     expect(recs.length).toBeGreaterThan(0);
-    
-    const triggeredTopics = recs.map(r => r.title);
+
+    const triggeredTopics = recs.map((r) => r.title);
     expect(triggeredTopics).toContain("Improve time_work");
     expect(triggeredTopics).toContain("Improve probability");
     expect(triggeredTopics).not.toContain("Improve percentages");
 
     // All should be marked with proper skill associations
-    recs.forEach(r => {
+    recs.forEach((r) => {
       expect(r.skill).toBeDefined();
       expect(r.priority).toMatch(/HIGH|MEDIUM/);
     });
@@ -127,7 +206,10 @@ describe("AI Regression Test Suite", () => {
       }),
     } as any;
 
-    const explainability = new EvaluationExplainabilityService(mockPrisma, mockBenchmark);
+    const explainability = new EvaluationExplainabilityService(
+      mockPrisma,
+      mockBenchmark,
+    );
 
     const mockResult = {
       id: "res1",
@@ -137,17 +219,38 @@ describe("AI Regression Test Suite", () => {
       percentage: 80,
       createdAt: new Date(),
       sections: [
-        { sectionKey: "sec1", sectionName: "Section 1", correct: 2, incorrect: 0, skipped: 0, marks: 2, accuracy: 100 },
+        {
+          sectionKey: "sec1",
+          sectionName: "Section 1",
+          correct: 2,
+          incorrect: 0,
+          skipped: 0,
+          marks: 2,
+          accuracy: 100,
+        },
       ],
       recommendations: [
-        { recommendationId: "rec1", skill: "aptitude", priority: "MEDIUM" as const, title: "Improve Percentages", description: "Study hard." }
-      ]
+        {
+          recommendationId: "rec1",
+          skill: "aptitude",
+          priority: "MEDIUM" as const,
+          title: "Improve Percentages",
+          description: "Study hard.",
+        },
+      ],
     };
 
-    const explanations = await explainability.getExplanation("att1", mockResult);
+    const explanations = await explainability.getExplanation(
+      "att1",
+      mockResult,
+    );
     expect(explanations.scoreExplanation).toContain("score of 80%");
     expect(explanations.recommendationReason).toContain("Percentages");
-    expect(explanations.benchmarkReason).toContain("higher than the cohort average of 70%");
-    expect(explanations.rankingReason).toContain("ranked #2 out of 10 candidates");
+    expect(explanations.benchmarkReason).toContain(
+      "higher than the cohort average of 70%",
+    );
+    expect(explanations.rankingReason).toContain(
+      "ranked #2 out of 10 candidates",
+    );
   });
 });

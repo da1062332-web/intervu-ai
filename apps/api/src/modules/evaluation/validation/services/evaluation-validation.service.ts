@@ -1,8 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../../prisma/prisma.service";
 import { ResultGeneratorService } from "../../services/result-generator.service";
-import { ExpectedResultGenerator, SimulatedAttempt } from "../fixtures/expected-result-generator";
-import { EvaluationComparator, ComparisonResult } from "../comparators/evaluation-comparator";
+import {
+  ExpectedResultGenerator,
+  SimulatedAttempt,
+} from "../fixtures/expected-result-generator";
+import {
+  EvaluationComparator,
+  ComparisonResult,
+} from "../comparators/evaluation-comparator";
 import fs from "fs";
 import path from "path";
 
@@ -31,7 +37,9 @@ export class EvaluationValidationService {
    */
   async runValidationSuite(count = 2000): Promise<ValidationReportDto> {
     const startTime = Date.now();
-    this.logger.log(`Starting Evaluation Validation run with ${count} attempts...`);
+    this.logger.log(
+      `Starting Evaluation Validation run with ${count} attempts...`,
+    );
 
     // 1. Generate the expected dataset
     const dataset = this.generator.generateDataset(count);
@@ -67,7 +75,9 @@ export class EvaluationValidationService {
       // 3. Loop and evaluate all attempts
       for (const item of dataset) {
         try {
-          const actualResult = await this.resultGenerator.generateResult(item.executionResult);
+          const actualResult = await this.resultGenerator.generateResult(
+            item.executionResult,
+          );
           const compResult = this.comparator.compare(actualResult, item);
 
           if (compResult.passed) {
@@ -107,7 +117,9 @@ export class EvaluationValidationService {
     // Save report to disk inside the reports/ folder
     this.saveReportFile(report);
 
-    this.logger.log(`Validation run completed: ${passedCount} PASS, ${failedCount} FAIL in ${durationMs}ms`);
+    this.logger.log(
+      `Validation run completed: ${passedCount} PASS, ${failedCount} FAIL in ${durationMs}ms`,
+    );
     return report;
   }
 
@@ -148,7 +160,10 @@ export class EvaluationValidationService {
       const filePath = path.join(dirPath, "evaluation-validation-report.json");
       fs.writeFileSync(filePath, JSON.stringify(report, null, 2), "utf8");
     } catch (err) {
-      this.logger.error("Failed to save evaluation validation report to file", err);
+      this.logger.error(
+        "Failed to save evaluation validation report to file",
+        err,
+      );
     }
   }
 }

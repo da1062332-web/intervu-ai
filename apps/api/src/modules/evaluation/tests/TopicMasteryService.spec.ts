@@ -9,10 +9,10 @@ describe("TopicMasteryService Unit Tests", () => {
 
   it("should classify topic mastery levels accurately across all threshold bounds", () => {
     const accuracyMapping = {
-      quant: 95,      // >= 90 -> Mastered
-      verbal: 80,     // 75 to 89 -> Proficient
-      logic: 65,      // 50 to 74 -> Developing
-      general: 40,    // < 50 -> Needs Improvement
+      quant: 95, // >= 90 -> Mastered
+      verbal: 80, // 75 to 89 -> Proficient
+      logic: 65, // 50 to 74 -> Developing
+      general: 40, // < 50 -> Needs Improvement
     };
 
     const result = service.calculateTopicMastery(accuracyMapping);

@@ -76,7 +76,8 @@ export class BenchmarkService {
     let fallbackToPrisma = false;
 
     try {
-      const sectionAvgRaw: any[] = await this.prisma.$queryRawUnsafe(`
+      const sectionAvgRaw: any[] = await this.prisma.$queryRawUnsafe(
+        `
         SELECT 
           key as "name",
           ROUND(AVG((value::text)::numeric))::integer as "avg"
@@ -85,9 +86,12 @@ export class BenchmarkService {
         CROSS JOIN LATERAL jsonb_each_text(ea.section_accuracy)
         WHERE ti."testConfigId" = $1
         GROUP BY key
-      `, testConfigId);
+      `,
+        testConfigId,
+      );
 
-      const topicAvgRaw: any[] = await this.prisma.$queryRawUnsafe(`
+      const topicAvgRaw: any[] = await this.prisma.$queryRawUnsafe(
+        `
         SELECT 
           key as "name",
           ROUND(AVG((value::text)::numeric))::integer as "avg"
@@ -96,9 +100,12 @@ export class BenchmarkService {
         CROSS JOIN LATERAL jsonb_each_text(ea.topic_accuracy)
         WHERE ti."testConfigId" = $1
         GROUP BY key
-      `, testConfigId);
+      `,
+        testConfigId,
+      );
 
-      const diffAvgRaw: any[] = await this.prisma.$queryRawUnsafe(`
+      const diffAvgRaw: any[] = await this.prisma.$queryRawUnsafe(
+        `
         SELECT 
           key as "name",
           ROUND(AVG((value::text)::numeric))::integer as "avg"
@@ -107,7 +114,9 @@ export class BenchmarkService {
         CROSS JOIN LATERAL jsonb_each_text(ea.difficulty_accuracy)
         WHERE ti."testConfigId" = $1
         GROUP BY key
-      `, testConfigId);
+      `,
+        testConfigId,
+      );
 
       sectionAvgRaw.forEach((r) => (sectionAvgMap[r.name] = r.avg));
       topicAvgRaw.forEach((r) => (topicAvgMap[r.name] = r.avg));
@@ -140,7 +149,8 @@ export class BenchmarkService {
         cohortAnalytics.length > 0 ? cohortAnalytics : [evaluationAnalytics];
 
       // Calculate section averages
-      const sectionAverages: Record<string, { sum: number; count: number }> = {};
+      const sectionAverages: Record<string, { sum: number; count: number }> =
+        {};
       activeAnalytics.forEach((ann) => {
         if (ann.sectionAccuracy) {
           const secAcc = ann.sectionAccuracy as Record<string, number>;
@@ -154,7 +164,8 @@ export class BenchmarkService {
         }
       });
       Object.entries(sectionAverages).forEach(([name, data]) => {
-        sectionAvgMap[name] = data.count > 0 ? Math.round(data.sum / data.count) : 0;
+        sectionAvgMap[name] =
+          data.count > 0 ? Math.round(data.sum / data.count) : 0;
       });
 
       // Calculate topic averages
@@ -172,11 +183,13 @@ export class BenchmarkService {
         }
       });
       Object.entries(topicAverages).forEach(([name, data]) => {
-        topicAvgMap[name] = data.count > 0 ? Math.round(data.sum / data.count) : 0;
+        topicAvgMap[name] =
+          data.count > 0 ? Math.round(data.sum / data.count) : 0;
       });
 
       // Calculate difficulty averages
-      const difficultyAverages: Record<string, { sum: number; count: number }> = {};
+      const difficultyAverages: Record<string, { sum: number; count: number }> =
+        {};
       activeAnalytics.forEach((ann) => {
         if (ann.difficultyAccuracy) {
           const diffAcc = ann.difficultyAccuracy as Record<string, number>;
@@ -190,7 +203,8 @@ export class BenchmarkService {
         }
       });
       Object.entries(difficultyAverages).forEach(([name, data]) => {
-        difficultyAvgMap[name] = data.count > 0 ? Math.round(data.sum / data.count) : 0;
+        difficultyAvgMap[name] =
+          data.count > 0 ? Math.round(data.sum / data.count) : 0;
       });
     }
 
@@ -204,7 +218,9 @@ export class BenchmarkService {
         currentSections[section.sectionKey] ??
         0;
       const averageScore =
-        sectionAvgMap[sectionName] ?? sectionAvgMap[section.sectionKey] ?? candidateScore;
+        sectionAvgMap[sectionName] ??
+        sectionAvgMap[section.sectionKey] ??
+        candidateScore;
 
       return {
         sectionKey: section.sectionKey,
@@ -234,7 +250,8 @@ export class BenchmarkService {
     const difficultiesDto = Object.keys(currentDifficulties).map(
       (difficulty) => {
         const candidateAccuracy = currentDifficulties[difficulty] ?? 0;
-        const averageAccuracy = difficultyAvgMap[difficulty] ?? candidateAccuracy;
+        const averageAccuracy =
+          difficultyAvgMap[difficulty] ?? candidateAccuracy;
 
         return {
           difficulty,

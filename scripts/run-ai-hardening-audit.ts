@@ -14,7 +14,8 @@ import fs from "fs";
 import path from "path";
 
 const prisma = new PrismaClient();
-const artifactsDir = "C:\\Users\\91932\\.gemini\\antigravity\\brain\\331c752a-d4ba-4c5c-8098-4e28ee949de2";
+const artifactsDir =
+  "C:\\Users\\91932\\.gemini\\antigravity\\brain\\331c752a-d4ba-4c5c-8098-4e28ee949de2";
 
 async function main() {
   console.log("==========================================");
@@ -33,7 +34,9 @@ async function main() {
   // =========================================================================
   // TASK GROUP 1: End-to-End Evaluation Validation Framework (2,000 Attempts)
   // =========================================================================
-  console.log("--> Stage 1: Running E2E Evaluation Validation Suite (2,000 Attempts)...");
+  console.log(
+    "--> Stage 1: Running E2E Evaluation Validation Suite (2,000 Attempts)...",
+  );
   const dataset = generator.generateDataset(2000);
   let passes = 0;
   let failures = 0;
@@ -67,11 +70,21 @@ async function main() {
     }));
 
     // Run evaluation engine mock
-    const evalResults = evaluator.evaluateAnswers(submissionAnswers, attempt.questions);
-    const sectionScores = sectionScoring.calculateSectionScores(evalResults, parsedSections);
+    const evalResults = evaluator.evaluateAnswers(
+      submissionAnswers,
+      attempt.questions,
+    );
+    const sectionScores = sectionScoring.calculateSectionScores(
+      evalResults,
+      parsedSections,
+    );
     const overallScore = overallScoring.calculateOverallScore(sectionScores);
-    const performanceAnalytics = analyticsService.calculateAnalytics(evalResults, attempt.questions);
-    const recommendations = recommendationService.generateRecommendations(performanceAnalytics);
+    const performanceAnalytics = analyticsService.calculateAnalytics(
+      evalResults,
+      attempt.questions,
+    );
+    const recommendations =
+      recommendationService.generateRecommendations(performanceAnalytics);
 
     const actualResult = {
       id: attempt.executionResult.executionId,
@@ -90,19 +103,26 @@ async function main() {
       passes++;
     } else {
       if (failures < 5) {
-        console.log(`Failed attempt: ${attempt.executionResult.testId}`, compResult.errors);
+        console.log(
+          `Failed attempt: ${attempt.executionResult.testId}`,
+          compResult.errors,
+        );
       }
       failures++;
     }
   });
 
   const durationEval = Date.now() - startEval;
-  console.log(`✓ Completed 2,000 evaluations. Passes: ${passes}, Failures: ${failures}, Latency: ${durationEval}ms`);
+  console.log(
+    `✓ Completed 2,000 evaluations. Passes: ${passes}, Failures: ${failures}, Latency: ${durationEval}ms`,
+  );
 
   // =========================================================================
   // TASK GROUP 2: Recommendation Quality Validation (1,000 Profiles)
   // =========================================================================
-  console.log("\n--> Stage 2: Auditing Recommendation Quality (1,000 Profiles)...");
+  console.log(
+    "\n--> Stage 2: Auditing Recommendation Quality (1,000 Profiles)...",
+  );
   let recPasses = 0;
   let recFailures = 0;
   let genericCount = 0;
@@ -111,9 +131,14 @@ async function main() {
 
   for (let idx = 0; idx < 1000; idx++) {
     // Generate simulated profiles (High, Average, Weak, Inconsistent)
-    const accuracy = idx % 4 === 0 ? 95 : idx % 4 === 1 ? 70 : idx % 4 === 2 ? 30 : 50;
+    const accuracy =
+      idx % 4 === 0 ? 95 : idx % 4 === 1 ? 70 : idx % 4 === 2 ? 30 : 50;
     const mockAnalytics = {
-      topicAccuracy: { percentages: accuracy, time_work: accuracy, probability: accuracy },
+      topicAccuracy: {
+        percentages: accuracy,
+        time_work: accuracy,
+        probability: accuracy,
+      },
       difficultyAccuracy: { EASY: accuracy, MEDIUM: accuracy, HARD: accuracy },
       sectionAccuracy: { "Quantitative Section": accuracy },
       completionRate: 100,
@@ -121,7 +146,7 @@ async function main() {
     };
 
     const recs = recommendationService.generateRecommendations(mockAnalytics);
-    
+
     // Validate rules
     let hasContradiction = false;
     let hasDuplicate = false;
@@ -151,10 +176,15 @@ async function main() {
     }
   }
 
-  console.log(`✓ Audited 1,000 recommendation profiles. Passes: ${recPasses}, Failures: ${recFailures}`);
-  
+  console.log(
+    `✓ Audited 1,000 recommendation profiles. Passes: ${recPasses}, Failures: ${recFailures}`,
+  );
+
   // Write recommendation-validation-report.md
-  const recReportPath = path.join(artifactsDir, "recommendation-validation-report.md");
+  const recReportPath = path.join(
+    artifactsDir,
+    "recommendation-validation-report.md",
+  );
   const recReportContent = `# Recommendation Quality Validation Report
 
 ## Executive Summary
@@ -184,8 +214,10 @@ RecommendationService meets all production-grade criteria. Recommendations are s
   // =========================================================================
   // TASK GROUP 4: Ranking Engine Stress Testing (50,000 attempts)
   // =========================================================================
-  console.log("\n--> Stage 3: Stress Testing Ranking Engine (50,000 attempts)...");
-  
+  console.log(
+    "\n--> Stage 3: Stress Testing Ranking Engine (50,000 attempts)...",
+  );
+
   // Create mock DB query returning 50,000 records cohorted count
   // Since we group by percentage, the maximum rows returned is 101.
   // We simulate 50,000 candidate attempts distributed across these 101 scores.
@@ -194,7 +226,7 @@ RecommendationService meets all production-grade criteria. Recommendations are s
   for (let p = 0; p <= 100; p++) {
     mockGroups.push({
       percentage: p,
-      _count: { id: p === 75 ? 1000 : 490 } // 50,000 total candidates distributed
+      _count: { id: p === 75 ? 1000 : 490 }, // 50,000 total candidates distributed
     });
   }
 
@@ -216,17 +248,27 @@ RecommendationService meets all production-grade criteria. Recommendations are s
 
   const rank = countHigher + 1;
   const countLess = totalCount - countHigher - countEqual;
-  const percentile = totalCount > 0 ? ((countLess + 0.5 * countEqual) / totalCount) * 100 : 100.0;
-  
+  const percentile =
+    totalCount > 0
+      ? ((countLess + 0.5 * countEqual) / totalCount) * 100
+      : 100.0;
+
   const durationRank = Date.now() - startRank;
-  console.log(`✓ Processed ranking logic for 50,000 candidates in: ${durationRank}ms (Target: <5,000ms)`);
-  console.log(`  Computed Rank: ${rank}/${totalCount}, Percentile: ${percentile.toFixed(2)}%`);
+  console.log(
+    `✓ Processed ranking logic for 50,000 candidates in: ${durationRank}ms (Target: <5,000ms)`,
+  );
+  console.log(
+    `  Computed Rank: ${rank}/${totalCount}, Percentile: ${percentile.toFixed(2)}%`,
+  );
 
   // =========================================================================
   // TASK GROUP 5: AI Report Narrative Review
   // =========================================================================
   console.log("\n--> Stage 4: Reviewing AI Narrative Prompt templates...");
-  const narrativeReportPath = path.join(artifactsDir, "report-narrative-review.md");
+  const narrativeReportPath = path.join(
+    artifactsDir,
+    "report-narrative-review.md",
+  );
   const narrativeReportContent = `# AI Report Narrative Review
 
 ## Audit Parameters
@@ -249,13 +291,17 @@ RecommendationService meets all production-grade criteria. Recommendations are s
   // =========================================================================
   // TASK GROUP 6: Topic Mastery Validation (5,000 Responses)
   // =========================================================================
-  console.log("\n--> Stage 5: Validating Topic Mastery Classifications (5,000 Responses)...");
+  console.log(
+    "\n--> Stage 5: Validating Topic Mastery Classifications (5,000 Responses)...",
+  );
   let masteryPasses = 0;
   let masteryFailures = 0;
 
   for (let idx = 0; idx < 5000; idx++) {
     const accuracy = idx % 101; // 0% to 100%
-    const levels = masteryService.calculateTopicMastery({ testTopic: accuracy });
+    const levels = masteryService.calculateTopicMastery({
+      testTopic: accuracy,
+    });
     const computedLevel = levels.testTopic;
 
     let expected = "Needs Improvement";
@@ -269,13 +315,18 @@ RecommendationService meets all production-grade criteria. Recommendations are s
       masteryFailures++;
     }
   }
-  console.log(`✓ Checked 5,000 topic responses. Passes: ${masteryPasses}, Failures: ${masteryFailures}`);
+  console.log(
+    `✓ Checked 5,000 topic responses. Passes: ${masteryPasses}, Failures: ${masteryFailures}`,
+  );
 
   // =========================================================================
   // TASK GROUP 10: Production Readiness Audit
   // =========================================================================
   console.log("\n--> Stage 6: Compiling Production Readiness Audit...");
-  const readinessReportPath = path.join(artifactsDir, "ai-production-readiness-report.md");
+  const readinessReportPath = path.join(
+    artifactsDir,
+    "ai-production-readiness-report.md",
+  );
   const readinessReportContent = `# AI Production Readiness Report
 
 ## Stability Checklist

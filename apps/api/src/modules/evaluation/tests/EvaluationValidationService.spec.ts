@@ -36,7 +36,9 @@ describe("EvaluationValidationService", () => {
       ],
     }).compile();
 
-    service = module.get<EvaluationValidationService>(EvaluationValidationService);
+    service = module.get<EvaluationValidationService>(
+      EvaluationValidationService,
+    );
   });
 
   it("should run the validation suite and return report telemetry", async () => {

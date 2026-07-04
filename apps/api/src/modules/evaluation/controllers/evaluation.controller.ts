@@ -46,7 +46,9 @@ export class EvaluationController {
   @Post("validation/run")
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Run E2E evaluation validation suite with 2,000 attempts" })
+  @ApiOperation({
+    summary: "Run E2E evaluation validation suite with 2,000 attempts",
+  })
   async runValidationSuite() {
     return this.validationService.runValidationSuite();
   }

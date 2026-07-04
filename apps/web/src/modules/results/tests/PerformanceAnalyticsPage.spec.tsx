@@ -10,18 +10,16 @@ vi.mock('../hooks/results.hooks', () => ({
   useResultAnalysis: vi
     .fn()
     .mockReturnValue({ isLoading: false, data: { strengths: [], weaknesses: [] } }),
-  useResultRecommendations: vi
-    .fn()
-    .mockReturnValue({
-      isLoading: false,
-      data: {
-        practiceSuggestions: [],
-        focusTopics: [],
-        improvementPlan: [],
-        estimatedPracticeHours: 5,
-        priority: 'High',
-      },
-    }),
+  useResultRecommendations: vi.fn().mockReturnValue({
+    isLoading: false,
+    data: {
+      practiceSuggestions: [],
+      focusTopics: [],
+      improvementPlan: [],
+      estimatedPracticeHours: 5,
+      priority: 'High',
+    },
+  }),
 }));
 
 vi.mock('next/navigation', () => ({

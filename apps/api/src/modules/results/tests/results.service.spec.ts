@@ -3,6 +3,7 @@ import { ResultsService } from "../services/results.service";
 import { EvaluationRepository } from "../repositories/evaluation.repository";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
+import { EvaluationExplainabilityService } from "../../evaluation/insights/explainability.service";
 import {
   ResultNotFoundError,
   UnauthorizedResultAccessError,
@@ -41,6 +42,17 @@ describe("ResultsService", () => {
           provide: ResultGeneratorService,
           useValue: {
             generateResult: jest.fn(),
+          },
+        },
+        {
+          provide: EvaluationExplainabilityService,
+          useValue: {
+            generateExplanation: jest.fn().mockReturnValue({
+              scoreExplanation: "Mock score",
+              recommendationReason: "Mock rec",
+              benchmarkReason: "Mock benchmark",
+              rankingReason: "Mock rank",
+            }),
           },
         },
       ],
