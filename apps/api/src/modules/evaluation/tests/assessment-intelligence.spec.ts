@@ -20,6 +20,7 @@ import { ResultQueryService } from "../../results/services/result-query.service"
 import { ResultExportService } from "../../results/services/result-export.service";
 import { PercentileService } from "../ranking/percentile.service";
 import { ResultGeneratorService } from "../services/result-generator.service";
+import { EvaluationValidationService } from "../validation/services/evaluation-validation.service";
 import { ResultStorageService } from "../services/result-storage.service";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { ExecutionContext } from "@nestjs/common";
@@ -37,6 +38,7 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
       count: jest.fn(),
       aggregate: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
+      groupBy: jest.fn().mockResolvedValue([]),
     },
     evaluationAnalytics: {
       findMany: jest.fn().mockResolvedValue([]),
@@ -146,6 +148,10 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
         },
         {
           provide: SectionScoringService,
+          useValue: {},
+        },
+        {
+          provide: EvaluationValidationService,
           useValue: {},
         },
         {

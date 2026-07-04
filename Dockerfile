@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Install build dependencies for Prisma and native C++ modules (like bcrypt)
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk add --no-cache libc6-compat python3 make g++ openssl
 
 WORKDIR /app
 
@@ -36,7 +36,7 @@ RUN npm install prisma@5 --save-dev --workspace=@intervu-ai/database --ignore-sc
 FROM node:20-alpine AS runner
 
 # Install compatibility libraries for running Prisma and native binaries in Alpine
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 
 WORKDIR /app
 

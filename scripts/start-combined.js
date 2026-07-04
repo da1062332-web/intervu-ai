@@ -7,6 +7,7 @@ console.log("🚀 Starting Combined API & Worker Bootstrap...");
 // 1. Validate Environment Variables (Item 2)
 const REQUIRED_ENV = [
   "DATABASE_URL",
+  "DIRECT_URL",
   "REDIS_URL",
   "JWT_SECRET",
   "JWT_REFRESH_SECRET",
@@ -37,7 +38,7 @@ try {
 
 // 3. Start NestJS API
 console.log("🚀 Bootstrapping NestJS API...");
-require(path.join(__dirname, "../apps/api/dist/main"));
+require(path.join(__dirname, "../apps/api/dist/apps/api/src/main"));
 
 // 4. Poll API Health check to confirm startup before loading the Worker (Item 4)
 const port = process.env.PORT || 7860;
@@ -73,7 +74,7 @@ function retry() {
 
 function startWorker() {
   try {
-    require(path.join(__dirname, "../apps/worker/dist/main"));
+    require(path.join(__dirname, "../apps/worker/dist/apps/worker/src/main"));
     console.log("🚀 Worker bootstrapped successfully.");
     global.isWorkerInitialized = true; // Sets flag for readiness checks
   } catch (error) {
