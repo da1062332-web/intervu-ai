@@ -86,17 +86,10 @@ export const ResultDetailsPage = () => {
           <Button variant='outline' onClick={() => navigate(`/results/${attemptId}/analytics`)}>
             View Analytics
           </Button>
-          <Button 
-            variant='outline' 
-            onClick={handleExportJson} 
-            disabled={isExportingJson}
-          >
+          <Button variant='outline' onClick={handleExportJson} disabled={isExportingJson}>
             {isExportingJson ? 'Exporting...' : 'Export JSON'}
           </Button>
-          <Button 
-            onClick={handleExportPdf} 
-            disabled={isExportingPdf}
-          >
+          <Button onClick={handleExportPdf} disabled={isExportingPdf}>
             {isExportingPdf ? 'Exporting...' : 'Export PDF'}
           </Button>
         </div>
