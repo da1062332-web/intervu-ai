@@ -67,7 +67,7 @@ async function bootstrap() {
   });
 
   // Swagger documentation
-  const config = new DocumentBuilder()
+  const configBuilder = new DocumentBuilder()
     .setTitle("InterVu AI API")
     .setDescription("Interview preparation AI platform - REST API")
     .setVersion("1.0.0")
@@ -81,12 +81,15 @@ async function bootstrap() {
         in: "header",
       },
       "jwt-auth",
-    )
-    .addServer(
-      `http://localhost:${port}`,
-      configService.isDevelopment ? "Development" : "Production",
-    )
-    .build();
+    );
+
+  if (configService.isDevelopment) {
+    configBuilder.addServer(`http://localhost:${port}`, "Development");
+  } else {
+    configBuilder.addServer("/", "Production");
+  }
+
+  const config = configBuilder.build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document, {

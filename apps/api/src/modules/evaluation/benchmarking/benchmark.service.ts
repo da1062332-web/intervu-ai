@@ -66,7 +66,7 @@ export class BenchmarkService {
 
     const assessmentAverage =
       scoreAgg._count.id > 0
-        ? scoreAgg._avg.percentage ?? candidateResult.percentage
+        ? (scoreAgg._avg.percentage ?? candidateResult.percentage)
         : candidateResult.percentage;
 
     // 3. Try PostgreSQL raw queries to aggregate JSON averages (highly optimized)

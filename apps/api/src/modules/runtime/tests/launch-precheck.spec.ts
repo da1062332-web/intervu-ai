@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { LaunchPrecheckService } from '../services/launch-precheck.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { LaunchPrecheckService } from "../services/launch-precheck.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
-describe('LaunchPrecheckService', () => {
+describe("LaunchPrecheckService", () => {
   let service: LaunchPrecheckService;
   let prisma: PrismaService;
 
@@ -31,35 +31,35 @@ describe('LaunchPrecheckService', () => {
     prisma = module.get<PrismaService>(PrismaService);
   });
 
-  it('should allow launch if all checks pass', async () => {
+  it("should allow launch if all checks pass", async () => {
     (prisma.assembledTest.findUnique as jest.Mock).mockResolvedValue({
-      status: 'PUBLISHED',
+      status: "PUBLISHED",
     });
     (prisma.runtimeBuild.findFirst as jest.Mock).mockResolvedValue({
-      status: 'COMPLETED',
+      status: "COMPLETED",
     });
     (prisma.runtimeValidationLog.findFirst as jest.Mock).mockResolvedValue({
       isValid: true,
     });
 
-    const result = await service.precheck('test-1');
+    const result = await service.precheck("test-1");
     expect(result.allowed).toBe(true);
     expect(result.reasons).toBeUndefined();
   });
 
-  it('should deny launch if validation failed', async () => {
+  it("should deny launch if validation failed", async () => {
     (prisma.assembledTest.findUnique as jest.Mock).mockResolvedValue({
-      status: 'PUBLISHED',
+      status: "PUBLISHED",
     });
     (prisma.runtimeBuild.findFirst as jest.Mock).mockResolvedValue({
-      status: 'COMPLETED',
+      status: "COMPLETED",
     });
     (prisma.runtimeValidationLog.findFirst as jest.Mock).mockResolvedValue({
       isValid: false,
     });
 
-    const result = await service.precheck('test-2');
+    const result = await service.precheck("test-2");
     expect(result.allowed).toBe(false);
-    expect(result.reasons).toContain('Runtime validation failed');
+    expect(result.reasons).toContain("Runtime validation failed");
   });
 });

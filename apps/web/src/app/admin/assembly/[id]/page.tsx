@@ -5,7 +5,16 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, CheckCircle2, Clock, Layers, Hash, Package, PlayCircle } from 'lucide-react';
+import {
+  Loader2,
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  Layers,
+  Hash,
+  Package,
+  PlayCircle,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
 import { TopicDistributionChart } from '@/components/assembly/TopicDistributionChart';
@@ -115,10 +124,7 @@ export default function AssemblyPreviewPage() {
             <Package className='h-4 w-4 mr-2' />
             Preview Package
           </Button>
-          <Button
-            variant='outline'
-            onClick={() => router.push(`/admin/runtime/${params.id}`)}
-          >
+          <Button variant='outline' onClick={() => router.push(`/admin/runtime/${params.id}`)}>
             <PlayCircle className='h-4 w-4 mr-2' />
             Runtime Preview
           </Button>

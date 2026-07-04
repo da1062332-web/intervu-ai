@@ -1,31 +1,31 @@
-import { RuntimeValidationService } from '../validation/runtime-validation.service';
-import { RuntimeTestDto } from '../dto/runtime.dto';
+import { RuntimeValidationService } from "../validation/runtime-validation.service";
+import { RuntimeTestDto } from "../dto/runtime.dto";
 
-describe('RuntimeValidationService', () => {
+describe("RuntimeValidationService", () => {
   let service: RuntimeValidationService;
 
   beforeEach(() => {
     service = new RuntimeValidationService();
   });
 
-  it('should validate a valid test payload', () => {
+  it("should validate a valid test payload", () => {
     const validTest: RuntimeTestDto = {
-      testId: 'test-123',
-      title: 'Valid Test',
+      testId: "test-123",
+      title: "Valid Test",
       duration: 3600,
-      metadata: { source: 'blueprint' },
+      metadata: { source: "blueprint" },
       sections: [
         {
-          sectionId: 'sec-1',
-          title: 'Aptitude',
+          sectionId: "sec-1",
+          title: "Aptitude",
           duration: 1800,
           questionCount: 1,
           questions: [
             {
-              questionId: 'q-1',
-              questionType: 'MULTIPLE_CHOICE',
-              questionText: 'What is 2+2?',
-              options: ['3', '4', '5'],
+              questionId: "q-1",
+              questionType: "MULTIPLE_CHOICE",
+              questionText: "What is 2+2?",
+              options: ["3", "4", "5"],
             },
           ],
         },
@@ -37,9 +37,9 @@ describe('RuntimeValidationService', () => {
     expect(result.errors).toBeUndefined();
   });
 
-  it('should detect missing test ID', () => {
+  it("should detect missing test ID", () => {
     const invalidTest = {
-      title: 'Invalid',
+      title: "Invalid",
       duration: 3600,
       metadata: {},
       sections: [],
@@ -47,13 +47,13 @@ describe('RuntimeValidationService', () => {
 
     const result = service.validate(invalidTest);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Test ID is missing');
+    expect(result.errors).toContain("Test ID is missing");
   });
 
-  it('should detect negative duration and missing metadata', () => {
+  it("should detect negative duration and missing metadata", () => {
     const invalidTest: any = {
-      testId: 'test-1',
-      title: 'Negative Duration',
+      testId: "test-1",
+      title: "Negative Duration",
       duration: -100,
       sections: [],
     };
@@ -61,34 +61,34 @@ describe('RuntimeValidationService', () => {
     const result = service.validate(invalidTest);
     expect(result.valid).toBe(false);
     expect(result.errors).toContain(
-      'Negative Duration is not allowed for the test',
+      "Negative Duration is not allowed for the test",
     );
-    expect(result.errors).toContain('Missing Metadata at the test level');
-    expect(result.errors).toContain('Section Count must be greater than zero');
+    expect(result.errors).toContain("Missing Metadata at the test level");
+    expect(result.errors).toContain("Section Count must be greater than zero");
   });
 
-  it('should detect duplicate questions', () => {
+  it("should detect duplicate questions", () => {
     const invalidTest: RuntimeTestDto = {
-      testId: 'test-2',
-      title: 'Duplicate Q',
+      testId: "test-2",
+      title: "Duplicate Q",
       duration: 60,
       metadata: {},
       sections: [
         {
-          sectionId: 'sec-1',
-          title: 'Sec 1',
+          sectionId: "sec-1",
+          title: "Sec 1",
           duration: 60,
           questionCount: 2,
           questions: [
             {
-              questionId: 'q-dup',
-              questionType: 'TEXT',
-              questionText: 'Hello',
+              questionId: "q-dup",
+              questionType: "TEXT",
+              questionText: "Hello",
             },
             {
-              questionId: 'q-dup',
-              questionType: 'TEXT',
-              questionText: 'World',
+              questionId: "q-dup",
+              questionType: "TEXT",
+              questionText: "World",
             },
           ],
         },
@@ -97,6 +97,6 @@ describe('RuntimeValidationService', () => {
 
     const result = service.validate(invalidTest);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Duplicate Questions found: q-dup');
+    expect(result.errors).toContain("Duplicate Questions found: q-dup");
   });
 });

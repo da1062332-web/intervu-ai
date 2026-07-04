@@ -12,6 +12,10 @@ import { PerformanceRepository } from "./repositories/performance.repository";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { EvaluationModule } from "../evaluation/evaluation.module";
 
+import { ResultQueryService } from "./services/result-query.service";
+import { ResultExportService } from "./services/result-export.service";
+import { CandidateResultRepository } from "./repositories/candidate-result.repository";
+
 @Module({
   imports: [PrismaModule, EvaluationModule],
   controllers: [ResultsController, PerformanceController],
@@ -24,6 +28,9 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
     EvaluationRepository,
     RecommendationRepository,
     PerformanceRepository,
+    ResultQueryService,
+    ResultExportService,
+    CandidateResultRepository,
   ],
   exports: [
     EvaluationPersistenceService,
@@ -33,6 +40,9 @@ import { EvaluationModule } from "../evaluation/evaluation.module";
     PerformanceService,
     EvaluationRepository,
     PerformanceRepository,
+    ResultQueryService,
+    ResultExportService,
+    CandidateResultRepository,
   ],
 })
 export class ResultsModule {}

@@ -28,7 +28,14 @@ async function runAccuracyAudit() {
 
   // Generate 1,000 test scenarios programmatically
   for (let i = 1; i <= 1000; i++) {
-    const questionType = i % 4 === 1 ? "MCQ" : i % 4 === 2 ? "MSQ" : i % 4 === 3 ? "TrueFalse" : "Numeric";
+    const questionType =
+      i % 4 === 1
+        ? "MCQ"
+        : i % 4 === 2
+          ? "MSQ"
+          : i % 4 === 3
+            ? "TrueFalse"
+            : "Numeric";
     let expectedAnswer = "";
     let candidateResponse: any = {};
     let expectedCorrect = false;
@@ -58,17 +65,27 @@ async function runAccuracyAudit() {
       const mod = i % 4;
       if (mod === 0) {
         // Correct - sorted array match
-        candidateResponse = { selectedOptionIds: ["OptionA", "OptionB", `Option_${i % 5}`] };
+        candidateResponse = {
+          selectedOptionIds: ["OptionA", "OptionB", `Option_${i % 5}`],
+        };
         expectedCorrect = true;
         reason = "Exact sorted MSQ array match";
       } else if (mod === 1) {
         // Correct - unsorted array match with casing
-        candidateResponse = { selectedOptionIds: [`option_${i % 5}`, "optionb", "optiona"] };
+        candidateResponse = {
+          selectedOptionIds: [`option_${i % 5}`, "optionb", "optiona"],
+        };
         expectedCorrect = true;
         reason = "Unsorted MSQ array with case-insensitive match";
       } else if (mod === 2) {
         // Correct - JSON string format input
-        candidateResponse = { textResponse: JSON.stringify(["OptionA", "OptionB", `Option_${i % 5}`]) };
+        candidateResponse = {
+          textResponse: JSON.stringify([
+            "OptionA",
+            "OptionB",
+            `Option_${i % 5}`,
+          ]),
+        };
         expectedCorrect = true;
         reason = "JSON string array MSQ match";
       } else {
@@ -92,7 +109,9 @@ async function runAccuracyAudit() {
         reason = "Case-insensitive True/False match";
       } else {
         // Incorrect
-        candidateResponse = { selectedOptionId: expectedAnswer === "true" ? "false" : "true" };
+        candidateResponse = {
+          selectedOptionId: expectedAnswer === "true" ? "false" : "true",
+        };
         expectedCorrect = false;
         reason = "Mismatched True/False value";
       }
@@ -108,9 +127,12 @@ async function runAccuracyAudit() {
         reason = "Exact numeric float string representation";
       } else if (mod === 1) {
         // Correct - extra zeros and spacing
-        candidateResponse = { textResponse: `  ${expectedNum.toFixed(6)}000  ` };
+        candidateResponse = {
+          textResponse: `  ${expectedNum.toFixed(6)}000  `,
+        };
         expectedCorrect = true;
-        reason = "Numeric float with trailing zeros and spacing within tolerance";
+        reason =
+          "Numeric float with trailing zeros and spacing within tolerance";
       } else if (mod === 2) {
         // Correct - within 0.00005 tolerance (< 0.0001)
         candidateResponse = { textResponse: `${expectedNum + 0.00004}` };
@@ -154,12 +176,15 @@ async function runAccuracyAudit() {
 
     const result = service.evaluateAnswers([answerDto], questionsList)[0];
 
-    if (result.isCorrect === sc.expectedCorrect && result.score === (sc.expectedCorrect ? 1 : 0)) {
+    if (
+      result.isCorrect === sc.expectedCorrect &&
+      result.score === (sc.expectedCorrect ? 1 : 0)
+    ) {
       passes++;
     } else {
       failures++;
       auditLogs.push(
-        `FAIL: Scenario #${sc.id} [${sc.questionType}] - expectedCorrect: ${sc.expectedCorrect}, got: ${result.isCorrect}. Candidate answer: ${JSON.stringify(sc.candidateResponse)}, Expected answer: ${sc.expectedAnswer} (${sc.reason})`
+        `FAIL: Scenario #${sc.id} [${sc.questionType}] - expectedCorrect: ${sc.expectedCorrect}, got: ${result.isCorrect}. Candidate answer: ${JSON.stringify(sc.candidateResponse)}, Expected answer: ${sc.expectedAnswer} (${sc.reason})`,
       );
     }
   });
@@ -177,7 +202,10 @@ async function runAccuracyAudit() {
   }
 
   // Generate the accuracy report markdown
-  const reportPath = path.join("C:\\Users\\91932\\.gemini\\antigravity\\brain\\42d66139-c0bf-434e-b6f5-88ccac7ae24a", "evaluation-accuracy-report.md");
+  const reportPath = path.join(
+    "C:\\Users\\91932\\.gemini\\antigravity\\brain\\42d66139-c0bf-434e-b6f5-88ccac7ae24a",
+    "evaluation-accuracy-report.md",
+  );
   const reportContent = `# Evaluation Accuracy Audit Report
 
 ## Audit Summary

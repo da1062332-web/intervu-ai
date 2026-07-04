@@ -120,7 +120,10 @@ Ensure the output is valid JSON. Do not include markdown tags like \`\`\`json.
         },
       );
 
-      const fallbackPlans = this.generateFallbackPlans(weakTopics, performanceLevel);
+      const fallbackPlans = this.generateFallbackPlans(
+        weakTopics,
+        performanceLevel,
+      );
       await this.savePlans(attemptId, fallbackPlans);
       return fallbackPlans;
     }
@@ -156,24 +159,24 @@ Ensure the output is valid JSON. Do not include markdown tags like \`\`\`json.
    */
   private generateFallbackPlans(
     weakTopics: string[],
-    performanceLevel: "HIGH" | "AVERAGE" | "WEAK" = "AVERAGE"
+    performanceLevel: "HIGH" | "AVERAGE" | "WEAK" = "AVERAGE",
   ): ImprovementPlansResponse {
     if (performanceLevel === "HIGH" || weakTopics.length === 0) {
       return {
         plan7Day: [
           "Day 1-2: Complete advanced, high-difficulty challenge problem sets on core topics.",
           "Day 3-5: Run timed full-length mock exams and analyze pacing and time spent per question.",
-          "Day 6-7: Focus on micro-error logs, reviewing solutions for alternative/faster methods."
+          "Day 6-7: Focus on micro-error logs, reviewing solutions for alternative/faster methods.",
         ],
         plan14Day: [
           "Week 1: Perform 20 high-difficulty timed section tests, targeting <45 seconds per question.",
-          "Week 2: Solve complex case study challenges and practice mathematical shortcut techniques."
+          "Week 2: Solve complex case study challenges and practice mathematical shortcut techniques.",
         ],
         plan30Day: [
           "Week 1-2: Complete high-difficulty conceptual revisions and timed mock series.",
           "Week 3: Target weak subsections with custom timed exercises and focus on extreme pacing constraints.",
-          "Week 4: Execute 4 complete mock exams under 90% of actual time limits to build safety buffers."
-        ]
+          "Week 4: Execute 4 complete mock exams under 90% of actual time limits to build safety buffers.",
+        ],
       };
     }
 

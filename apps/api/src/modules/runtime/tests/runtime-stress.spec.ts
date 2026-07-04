@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { RuntimeGeneratorService } from '../services/runtime-generator.service';
-import { RuntimeMapperService } from '../services/runtime-mapper.service';
-import { RuntimeValidationService } from '../validation/runtime-validation.service';
-import { RuntimeMonitoringService } from '../monitoring/runtime-monitoring.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { RuntimeGeneratorService } from "../services/runtime-generator.service";
+import { RuntimeMapperService } from "../services/runtime-mapper.service";
+import { RuntimeValidationService } from "../validation/runtime-validation.service";
+import { RuntimeMonitoringService } from "../monitoring/runtime-monitoring.service";
 
-describe('Runtime Stress Test - 250 Concurrent Launches', () => {
+describe("Runtime Stress Test - 250 Concurrent Launches", () => {
   let generatorService: RuntimeGeneratorService;
 
   beforeAll(async () => {
@@ -31,40 +31,40 @@ describe('Runtime Stress Test - 250 Concurrent Launches', () => {
     );
   });
 
-  it('should successfully handle 250 concurrent runtime generations within performance limits', async () => {
+  it("should successfully handle 250 concurrent runtime generations within performance limits", async () => {
     const packagePayload: any = {
-      assemblyId: 'asmb-stress-test',
-      configId: 'cfg-stress',
+      assemblyId: "asmb-stress-test",
+      configId: "cfg-stress",
       totalDurationSeconds: 7200,
       totalQuestions: 2,
-      metadata: { env: 'stress' },
+      metadata: { env: "stress" },
       sections: [
         {
-          sectionKey: 'sec-1',
-          displayName: 'Aptitude',
+          sectionKey: "sec-1",
+          displayName: "Aptitude",
           durationSeconds: 3600,
           questionCount: 1,
           questions: [
             {
-              questionId: 'q-1',
+              questionId: "q-1",
               questionOrder: 1,
-              questionType: 'MULTIPLE_CHOICE',
-              questionText: 'Test?',
-              options: ['A', 'B'],
+              questionType: "MULTIPLE_CHOICE",
+              questionText: "Test?",
+              options: ["A", "B"],
             },
           ],
         },
         {
-          sectionKey: 'sec-2',
-          displayName: 'Technical',
+          sectionKey: "sec-2",
+          displayName: "Technical",
           durationSeconds: 3600,
           questionCount: 1,
           questions: [
             {
-              questionId: 'q-2',
+              questionId: "q-2",
               questionOrder: 1,
-              questionType: 'SUBJECTIVE',
-              questionText: 'Explain testing',
+              questionType: "SUBJECTIVE",
+              questionText: "Explain testing",
             },
           ],
         },
@@ -81,8 +81,8 @@ describe('Runtime Stress Test - 250 Concurrent Launches', () => {
     const results = await Promise.allSettled(promises);
     const endTime = Date.now();
 
-    const successful = results.filter((r) => r.status === 'fulfilled').length;
-    const failed = results.filter((r) => r.status === 'rejected').length;
+    const successful = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
 
     const totalTimeMs = endTime - startTime;
     const averageTimeMs = totalTimeMs / CONCURRENT_REQUESTS;
