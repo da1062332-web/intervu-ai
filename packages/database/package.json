@@ -4,8 +4,8 @@
   "private": true,
   "main": "./src/index.ts",
   "scripts": {
-    "postinstall": "npx --no-install prisma generate",
-    "prisma:generate": "npx --no-install prisma generate",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "test:day3": "vitest run src/repositories/__tests__/day3-integration.test.ts src/repositories/__tests__/day3-unit.test.ts"
