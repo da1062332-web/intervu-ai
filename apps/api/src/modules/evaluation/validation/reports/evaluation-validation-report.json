@@ -1,0 +1,71 @@
+{
+  "totalScenarios": 5,
+  "passedCount": 0,
+  "failedCount": 5,
+  "successRate": 0,
+  "failures": [
+    {
+      "attemptId": "test_val_0",
+      "errors": [
+        "Section missing in actual results: Quantitative Aptitude Section",
+        "Section missing in actual results: Logical Reasoning Section",
+        "Section missing in actual results: Verbal Ability Section",
+        "Topic missing in actual analytics: Logical Reasoning",
+        "Topic missing in actual analytics: Verbal Ability"
+      ]
+    },
+    {
+      "attemptId": "test_val_1",
+      "errors": [
+        "Score mismatch: expected 0, got 5",
+        "Percentage mismatch: expected 0%, got 100%",
+        "Section missing in actual results: General Section",
+        "Topic \"Quantitative Aptitude\" accuracy mismatch: expected 0%, got 100%",
+        "Topic missing in actual analytics: Logical Reasoning",
+        "Topic missing in actual analytics: Verbal Ability",
+        "Difficulty \"EASY\" accuracy mismatch: expected 0%, got 100%",
+        "Difficulty level missing in actual analytics: MEDIUM",
+        "Difficulty level missing in actual analytics: HARD"
+      ]
+    },
+    {
+      "attemptId": "test_val_2",
+      "errors": [
+        "Score mismatch: expected 4, got 5",
+        "Percentage mismatch: expected 57%, got 100%",
+        "Section missing in actual results: General Section",
+        "Topic \"Quantitative Aptitude\" accuracy mismatch: expected 67%, got 100%",
+        "Topic missing in actual analytics: Logical Reasoning",
+        "Topic missing in actual analytics: Verbal Ability",
+        "Difficulty level missing in actual analytics: HARD",
+        "Completion rate mismatch: expected 71%, got 100%"
+      ]
+    },
+    {
+      "attemptId": "test_val_3",
+      "errors": [
+        "Score mismatch: expected 8, got 5",
+        "Section missing in actual results: Quantitative Aptitude Section",
+        "Section missing in actual results: Logical Reasoning Section",
+        "Section missing in actual results: Verbal Ability Section",
+        "Topic missing in actual analytics: Logical Reasoning",
+        "Topic missing in actual analytics: Verbal Ability",
+        "Difficulty level missing in actual analytics: MEDIUM",
+        "Difficulty level missing in actual analytics: HARD"
+      ]
+    },
+    {
+      "attemptId": "test_val_4",
+      "errors": [
+        "Score mismatch: expected 0, got 5",
+        "Percentage mismatch: expected 0%, got 100%",
+        "Section missing in actual results: General Section",
+        "Topic \"Quantitative Aptitude\" accuracy mismatch: expected 0%, got 100%",
+        "Topic missing in actual analytics: Logical Reasoning",
+        "Topic missing in actual analytics: Verbal Ability",
+        "Difficulty \"EASY\" accuracy mismatch: expected 0%, got 100%"
+      ]
+    }
+  ],
+  "durationMs": 6
+}

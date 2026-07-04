@@ -27,8 +27,10 @@ export class ObjectiveEvaluatorService {
   ): QuestionEvaluationResult[] {
     const results: QuestionEvaluationResult[] = [];
 
+    const answersMap = new Map(answers.map((a) => [a.questionId, a]));
+
     for (const question of questions) {
-      const candidateAnsObj = answers.find((a) => a.questionId === question.id);
+      const candidateAnsObj = answersMap.get(question.id);
 
       // Determine candidate answer string based on properties in AnswerDto
       let candidateAnswer = "";

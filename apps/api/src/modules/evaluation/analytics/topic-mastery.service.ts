@@ -4,7 +4,7 @@ export type TopicMasteryLevel =
   | "Mastered"
   | "Proficient"
   | "Developing"
-  | "Weak";
+  | "Needs Improvement";
 
 @Injectable()
 export class TopicMasteryService {
@@ -24,7 +24,7 @@ export class TopicMasteryService {
       } else if (accuracy >= 50) {
         topicMastery[topic] = "Developing";
       } else {
-        topicMastery[topic] = "Weak";
+        topicMastery[topic] = "Needs Improvement";
       }
     });
 

@@ -23,6 +23,7 @@ import { SectionScoringService } from "../scoring/section-scoring.service";
 import { OverallScoreService } from "../scoring/overall-score.service";
 import { EvaluationReliabilityService } from "../reliability/evaluation-reliability.service";
 import { ReEvaluationService } from "../services/re-evaluation.service";
+import { EvaluationValidationService } from "../validation/services/evaluation-validation.service";
 
 @ApiTags("evaluation")
 @ApiBearerAuth("jwt-auth")
@@ -39,7 +40,16 @@ export class EvaluationController {
     private readonly overallScoring: OverallScoreService,
     private readonly reliabilityService: EvaluationReliabilityService,
     private readonly reEvaluationService: ReEvaluationService,
+    private readonly validationService: EvaluationValidationService,
   ) {}
+
+  @Post("validation/run")
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Run E2E evaluation validation suite with 2,000 attempts" })
+  async runValidationSuite() {
+    return this.validationService.runValidationSuite();
+  }
 
   @Get("reliability")
   @Roles(UserRole.ADMIN)

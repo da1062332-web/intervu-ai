@@ -68,6 +68,15 @@ export type PerformanceAnalyticsDto = z.infer<
   typeof PerformanceAnalyticsDtoSchema
 >;
 
+export const EvaluationExplanationSchema = z.object({
+  scoreExplanation: z.string(),
+  recommendationReason: z.string(),
+  benchmarkReason: z.string(),
+  rankingReason: z.string(),
+});
+
+export type EvaluationExplanation = z.infer<typeof EvaluationExplanationSchema>;
+
 export const CandidateResultDtoSchema = z.object({
   id: z.string().cuid(),
   candidateId: z.string().min(1, "candidateId is required"),
@@ -83,6 +92,7 @@ export const CandidateResultDtoSchema = z.object({
   strengths: z.array(z.string()).optional(),
   weaknesses: z.array(z.string()).optional(),
   recommendations: z.array(RecommendationDtoSchema).optional(),
+  explanations: EvaluationExplanationSchema.optional(),
 });
 
 export type CandidateResultDto = z.infer<typeof CandidateResultDtoSchema>;

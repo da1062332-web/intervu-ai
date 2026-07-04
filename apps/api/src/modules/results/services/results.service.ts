@@ -8,6 +8,7 @@ import {
   ResultResponseDto,
 } from "@intervu/shared";
 import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
+import { EvaluationExplainabilityService } from "../../evaluation/insights/explainability.service";
 import { CandidateResultDto } from "@intervu-ai/contracts";
 
 @Injectable()
@@ -16,6 +17,7 @@ export class ResultsService {
     private readonly evaluationRepository: EvaluationRepository,
     private readonly prisma: PrismaService,
     private readonly resultGenerator: ResultGeneratorService,
+    private readonly explainabilityService: EvaluationExplainabilityService,
   ) {}
 
   async getEvaluation(evaluationId: string) {
@@ -257,6 +259,12 @@ export class ResultsService {
     // Override IDs with persisted DB records for consistency
     fullResult.id = candidateResult.id;
     fullResult.createdAt = candidateResult.createdAt;
+
+    // Attach Explainability Layer
+    fullResult.explanations = await this.explainabilityService.getExplanation(
+      attemptId,
+      fullResult,
+    );
 
     return fullResult;
   }

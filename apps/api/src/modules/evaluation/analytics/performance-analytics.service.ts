@@ -25,8 +25,10 @@ export class PerformanceAnalyticsService {
     let attemptedCount = 0;
     const totalQuestions = evalResults.length;
 
+    const questionMap = new Map(questions.map((q) => [q.id, q]));
+
     for (const result of evalResults) {
-      const question = questions.find((q) => q.id === result.questionId);
+      const question = questionMap.get(result.questionId);
       const topicName = question ? question.topicName || "General" : "General";
       const difficulty = question ? question.difficulty || "MEDIUM" : "MEDIUM";
       const sectionKey = question
