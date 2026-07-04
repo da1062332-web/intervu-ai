@@ -44,6 +44,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { CandidateModule } from "./modules/candidate/candidate.module";
 import { RuntimeModule } from "./modules/runtime/runtime.module";
+import { AdminAnalyticsModule } from "./modules/admin-analytics/admin-analytics.module";
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { RuntimeModule } from "./modules/runtime/runtime.module";
     ReportsModule,
     CandidateModule,
     RuntimeModule,
+    AdminAnalyticsModule,
   ],
   providers: [
     {

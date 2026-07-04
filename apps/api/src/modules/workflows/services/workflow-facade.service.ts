@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { WorkflowStep, WorkflowStatus } from "@prisma/client";
 import { ExamWorkflowService } from "./exam-workflow.service";
 import { WorkflowStatusService } from "./workflow-status.service";
@@ -28,6 +29,7 @@ export class WorkflowFacadeService {
     private readonly orchestrator: ExamWorkflowOrchestrator,
     private readonly repository: WorkflowRepository,
     private readonly assemblyPublisher: AssemblyPublisherService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private async withIdempotency<T>(
@@ -195,17 +197,56 @@ export class WorkflowFacadeService {
     if (cached) return JSON.parse(cached as string);
 
     const result = await this.repository.findFiltered(filter);
+    const examIds = result.items.map((w) => w.examId);
 
-    // Compute pending actions
+    // Batch-query configurations and assemblies to prevent N+1 queries
+    const configs = await this.prisma.examConfig.findMany({
+      where: { id: { in: examIds } },
+    });
+
+    const assemblies = await this.prisma.assembledTest.findMany({
+      where: { configId: { in: examIds } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Create maps for instant in-memory lookups
+    const configMap = new Map(configs.map((c) => [c.id, c]));
+    
+    // Latest assembly per config
+    const assemblyMap = new Map();
+    // Published assembly per config
+    const publishedAssemblyMap = new Map();
+
+    for (const a of assemblies) {
+      if (!assemblyMap.has(a.configId)) {
+        assemblyMap.set(a.configId, a);
+      }
+      if (a.status === "PUBLISHED" && !publishedAssemblyMap.has(a.configId)) {
+        publishedAssemblyMap.set(a.configId, a);
+      }
+    }
+
+    // Compute pending actions using in-memory mappings
     const items = await Promise.all(
       result.items.map(async (workflow) => {
-        const statusData = await this.statusService.aggregateStatus(workflow);
+        const prefetchedConfig = configMap.get(workflow.examId);
+        const prefetchedAssembly = assemblyMap.get(workflow.examId);
+        const prefetchedPublished = publishedAssemblyMap.get(workflow.examId);
+
+        const statusData = await this.statusService.aggregateStatus(
+          workflow,
+          prefetchedConfig,
+          prefetchedAssembly,
+          prefetchedPublished,
+        );
+
         const nextAction = this.nextActionService.getNextAction({
           ...statusData,
           currentStep: workflow.currentStep,
           status: workflow.status,
           completionPercentage: workflow.completionPercentage,
         });
+
         return toWorkflowDashboardDto(workflow, nextAction);
       }),
     );
