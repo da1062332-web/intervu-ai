@@ -57,7 +57,8 @@ export class HealthController {
       () => this.memoryHealth.checkHeap("memory_heap", 1024 * 1024 * 1024),
       () => this.memoryHealth.checkRSS("memory_rss", 1024 * 1024 * 1024),
       // Database check
-      () => this.prismaHealth.pingCheck("database", this.prisma),
+      () =>
+        this.prismaHealth.pingCheck("database", this.prisma, { timeout: 5000 }),
       // Redis check
       () => this.redisHealth.isHealthy("redis"),
       // Worker check

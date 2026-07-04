@@ -32,9 +32,9 @@ describe('ResultHistoryPage', () => {
             percentage: 95,
             status: 'COMPLETED',
             createdAt: new Date().toISOString(),
-          }
+          },
         ],
-        meta: { totalPages: 1 }
+        meta: { totalPages: 1 },
       },
     } as any);
 

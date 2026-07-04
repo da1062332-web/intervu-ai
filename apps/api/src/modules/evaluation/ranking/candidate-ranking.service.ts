@@ -127,23 +127,27 @@ export class CandidateRankingService {
     percentage: number,
     whereClause: any,
   ): Promise<{ rank: number; totalCandidates: number; percentile: number }> {
-    const total = await this.prisma.candidateResult.count({
+    const groups = await this.prisma.candidateResult.groupBy({
+      by: ["percentage"],
       where: whereClause,
-    });
-
-    const countHigher = await this.prisma.candidateResult.count({
-      where: {
-        ...whereClause,
-        percentage: { gt: percentage },
+      _count: {
+        id: true,
       },
     });
 
-    const countEqual = await this.prisma.candidateResult.count({
-      where: {
-        ...whereClause,
-        percentage: percentage,
-      },
-    });
+    let total = 0;
+    let countHigher = 0;
+    let countEqual = 0;
+
+    for (const g of groups) {
+      const count = g._count.id;
+      total += count;
+      if (g.percentage > percentage) {
+        countHigher += count;
+      } else if (g.percentage === percentage) {
+        countEqual += count;
+      }
+    }
 
     const rank = countHigher + 1;
     const countLess = total - countHigher - countEqual;

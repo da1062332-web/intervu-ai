@@ -21,9 +21,14 @@ export const ResultDetailsPage = () => {
   const attemptId = params?.attemptId as string;
   const router = useRouter();
   const navigate = router.push;
-  const { data: result, isLoading: detailsLoading, isError, refetch } = useResultDetails(attemptId || '');
+  const {
+    data: result,
+    isLoading: detailsLoading,
+    isError,
+    refetch,
+  } = useResultDetails(attemptId || '');
   const { data: analytics, isLoading: analyticsLoading } = useResultAnalytics(attemptId || '');
-  
+
   const [isExportingPdf, setIsExportingPdf] = React.useState(false);
   const [isExportingJson, setIsExportingJson] = React.useState(false);
 
@@ -89,17 +94,13 @@ export const ResultDetailsPage = () => {
           </p>
         </div>
         <div className='mt-4 md:mt-0 flex flex-wrap gap-2'>
-          <Button 
-            variant='outline' 
-            onClick={handleExportJson} 
-            disabled={isExportingJson}
-          >
+          <Button variant='outline' onClick={() => navigate(`/results/${attemptId}/analytics`)}>
+            View Analytics
+          </Button>
+          <Button variant='outline' onClick={handleExportJson} disabled={isExportingJson}>
             {isExportingJson ? 'Exporting...' : 'Export JSON'}
           </Button>
-          <Button 
-            onClick={handleExportPdf} 
-            disabled={isExportingPdf}
-          >
+          <Button onClick={handleExportPdf} disabled={isExportingPdf}>
             {isExportingPdf ? 'Exporting...' : 'Export PDF'}
           </Button>
         </div>
@@ -157,11 +158,13 @@ export const ResultDetailsPage = () => {
       </div>
 
       {analyticsLoading ? (
-        <div className='pt-8 flex justify-center'><Loading /></div>
+        <div className='pt-8 flex justify-center'>
+          <Loading />
+        </div>
       ) : analytics ? (
         <div className='pt-8 space-y-8'>
           <h2 className='text-2xl font-bold tracking-tight text-gray-900'>Performance Analytics</h2>
-          
+
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
             <Card>
               <CardContent className='p-4 flex items-center gap-4'>
@@ -202,7 +205,9 @@ export const ResultDetailsPage = () => {
                 <CardTitle>Difficulty Accuracy</CardTitle>
               </CardHeader>
               <CardContent>
-                <SectionAccuracyChart data={analytics.difficultyAccuracy as Record<string, number>} />
+                <SectionAccuracyChart
+                  data={analytics.difficultyAccuracy as Record<string, number>}
+                />
               </CardContent>
             </Card>
 

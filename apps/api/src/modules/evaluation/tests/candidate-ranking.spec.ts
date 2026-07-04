@@ -21,7 +21,7 @@ describe("CandidateRankingService", () => {
       findUnique: jest.fn(),
     },
     candidateResult: {
-      count: jest.fn(),
+      groupBy: jest.fn(),
     },
   };
 
@@ -62,20 +62,23 @@ describe("CandidateRankingService", () => {
   it("should calculate correct rankings and percentiles across all cohorts", async () => {
     prismaMock.testInstance.findUnique.mockResolvedValue(mockTestInstance);
 
-    // Setup mock counts:
-    // For Assessment: Total = 10, Higher = 2, Equal = 1 -> Rank = 3, Percentile = ((7 + 0.5) / 10) * 100 = 75
-    // For Org: Total = 20, Higher = 4, Equal = 2 -> Rank = 5, Percentile = ((14 + 1) / 20) * 100 = 75
-    // For Batch: Total = 5, Higher = 0, Equal = 1 -> Rank = 1, Percentile = ((4 + 0.5) / 5) * 100 = 90
-    prismaMock.candidateResult.count
-      .mockResolvedValueOnce(10) // Assessment total
-      .mockResolvedValueOnce(2) // Assessment higher
-      .mockResolvedValueOnce(1) // Assessment equal
-      .mockResolvedValueOnce(20) // Org total
-      .mockResolvedValueOnce(4) // Org higher
-      .mockResolvedValueOnce(2) // Org equal
-      .mockResolvedValueOnce(5) // Batch total
-      .mockResolvedValueOnce(0) // Batch higher
-      .mockResolvedValueOnce(1); // Batch equal
+    // Setup mock groupBy results
+    // Assessment: Total = 10, Higher = 2, Equal = 1 -> Rank = 3
+    prismaMock.candidateResult.groupBy
+      .mockResolvedValueOnce([
+        { percentage: 90, _count: { id: 2 } },
+        { percentage: 80, _count: { id: 1 } },
+        { percentage: 70, _count: { id: 7 } },
+      ]) // Assessment (Total = 10)
+      .mockResolvedValueOnce([
+        { percentage: 90, _count: { id: 4 } },
+        { percentage: 80, _count: { id: 2 } },
+        { percentage: 70, _count: { id: 14 } },
+      ]) // Org (Total = 20)
+      .mockResolvedValueOnce([
+        { percentage: 80, _count: { id: 1 } },
+        { percentage: 70, _count: { id: 4 } },
+      ]); // Batch (Total = 5)
 
     const result = await service.calculateRanking({
       id: "res_1",

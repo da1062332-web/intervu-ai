@@ -6,7 +6,7 @@ import { useResultDetails } from '../hooks/results.hooks';
 
 vi.mock('../hooks/results.hooks', () => ({
   useResultDetails: vi.fn(),
-  useResultStatus: vi.fn().mockReturnValue({ isLoading: false, data: { status: 'COMPLETED' } })
+  useResultStatus: vi.fn().mockReturnValue({ isLoading: false, data: { status: 'COMPLETED' } }),
 }));
 
 vi.mock('next/navigation', () => ({

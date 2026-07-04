@@ -7,8 +7,19 @@ import { useResultAnalytics, useResultDetails } from '../hooks/results.hooks';
 vi.mock('../hooks/results.hooks', () => ({
   useResultAnalytics: vi.fn(),
   useResultDetails: vi.fn(),
-  useResultAnalysis: vi.fn().mockReturnValue({ isLoading: false, data: { strengths: [], weaknesses: [] } }),
-  useResultRecommendations: vi.fn().mockReturnValue({ isLoading: false, data: { practiceSuggestions: [], focusTopics: [], improvementPlan: [], estimatedPracticeHours: 5, priority: 'High' } })
+  useResultAnalysis: vi
+    .fn()
+    .mockReturnValue({ isLoading: false, data: { strengths: [], weaknesses: [] } }),
+  useResultRecommendations: vi.fn().mockReturnValue({
+    isLoading: false,
+    data: {
+      practiceSuggestions: [],
+      focusTopics: [],
+      improvementPlan: [],
+      estimatedPracticeHours: 5,
+      priority: 'High',
+    },
+  }),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -18,15 +29,18 @@ vi.mock('next/navigation', () => ({
 
 describe('PerformanceAnalyticsPage', () => {
   it('renders analytics metrics', () => {
-    vi.mocked(useResultDetails).mockReturnValue({ isLoading: false, data: { assessmentName: 'Test' } } as any);
+    vi.mocked(useResultDetails).mockReturnValue({
+      isLoading: false,
+      data: { assessmentName: 'Test' },
+    } as any);
     vi.mocked(useResultAnalytics).mockReturnValue({
       isLoading: false,
       data: {
         attemptRate: 80,
         completionRate: 95,
-        topicAccuracy: { 'React': 80 },
-        difficultyAccuracy: { 'Hard': 50 },
-        sectionAccuracy: { 'Frontend': 92 }
+        topicAccuracy: { React: 80 },
+        difficultyAccuracy: { Hard: 50 },
+        sectionAccuracy: { Frontend: 92 },
       },
     } as any);
 

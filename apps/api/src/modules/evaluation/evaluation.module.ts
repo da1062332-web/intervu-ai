@@ -25,6 +25,8 @@ import { ImprovementPlanService } from "./recommendations/improvement-plan.servi
 import { EvaluationReliabilityService } from "./reliability/evaluation-reliability.service";
 import { ReEvaluationService } from "./services/re-evaluation.service";
 import { EvaluationWorkerService } from "./services/evaluation-worker.service";
+import { EvaluationExplainabilityService } from "./insights/explainability.service";
+import { EvaluationValidationService } from "./validation/services/evaluation-validation.service";
 
 @Module({
   imports: [PrismaModule, ConfigModule, forwardRef(() => GenerationAiModule)],
@@ -50,6 +52,8 @@ import { EvaluationWorkerService } from "./services/evaluation-worker.service";
     EvaluationReliabilityService,
     ReEvaluationService,
     EvaluationWorkerService,
+    EvaluationExplainabilityService,
+    EvaluationValidationService,
   ],
   exports: [
     EvaluationService,
@@ -72,6 +76,8 @@ import { EvaluationWorkerService } from "./services/evaluation-worker.service";
     EvaluationReliabilityService,
     ReEvaluationService,
     EvaluationWorkerService,
+    EvaluationExplainabilityService,
+    EvaluationValidationService,
   ],
 })
 export class EvaluationModule {}
