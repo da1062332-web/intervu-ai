@@ -12,6 +12,7 @@ export type FullExamConfig = Prisma.ExamConfigGetPayload<{
                 concepts: true;
               };
             };
+            topicWeightage: true;
           };
         };
       };

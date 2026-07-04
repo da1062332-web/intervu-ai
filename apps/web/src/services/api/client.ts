@@ -15,6 +15,7 @@ export interface ApiRequestConfig extends Omit<RequestInit, 'body' | 'headers'> 
   skipAuthRefresh?: boolean;
   skipErrorToast?: boolean;
   trackLoading?: boolean;
+  responseType?: 'json' | 'blob' | 'text';
 }
 
 interface InternalRequestConfig extends ApiRequestConfig {
@@ -166,6 +167,14 @@ class ApiClient {
       ...config,
       _retry: false,
     });
+    
+    if (config.responseType === 'blob') {
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      return response.blob() as unknown as TData;
+    }
+    
     const parsed = await parseResponseBody(response);
 
     if (!response.ok) {

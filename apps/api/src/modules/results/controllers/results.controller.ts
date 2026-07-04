@@ -83,13 +83,13 @@ export class ResultsController {
   })
   async listCandidateResults(
     @Param("candidateId") candidateId: string,
-    @Query("page") page: number = 1,
-    @Query("limit") limit: number = 10,
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "10",
   ) {
     return this.resultQueryService.listCandidateResults(
       candidateId,
-      page,
-      limit,
+      Number(page) || 1,
+      Number(limit) || 10,
     );
   }
 

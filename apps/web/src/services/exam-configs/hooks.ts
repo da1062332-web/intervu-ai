@@ -115,6 +115,15 @@ export const useConfigValidation = (configId: string) => {
   });
 };
 
+export const useAutoValidateConfig = (configId: string) => {
+  return useQuery({
+    queryKey: ['config-validation-auto', configId],
+    queryFn: () => examConfigsApi.validateConfig(configId),
+    enabled: !!configId,
+    refetchOnWindowFocus: true,
+  });
+};
+
 export const usePublishConfig = (configId: string) => {
   const queryClient = useQueryClient();
 

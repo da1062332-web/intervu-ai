@@ -20,6 +20,8 @@ export interface ConfigPreviewResponse {
     durationMinutes: number;
     topicCount: number;
   }>;
+  totalTopics: number;
+  totalTemplates: number;
   isReadyToPublish: boolean;
 }
 
@@ -39,7 +41,15 @@ export class ConfigPreviewService {
       include: {
         sections: {
           include: {
-            sectionTopics: true,
+            sectionTopics: {
+              include: {
+                topic: {
+                  include: {
+                    concepts: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: { sectionOrder: "asc" },
         },
@@ -71,6 +81,34 @@ export class ConfigPreviewService {
       difficultyValid &&
       !config.isArchived;
 
+    // Calculate unique topics and templates
+    const uniqueTopics = new Set<string>();
+    const uniqueConceptCodes = new Set<string>();
+
+    config.sections.forEach((section) => {
+      section.sectionTopics.forEach((st) => {
+        if (st.topic) {
+          uniqueTopics.add(st.topic.id);
+          st.topic.concepts?.forEach((c) => {
+            if (c.code) uniqueConceptCodes.add(c.code);
+          });
+        }
+      });
+    });
+
+    const totalTopics = uniqueTopics.size;
+
+    let totalTemplates = 0;
+    if (uniqueConceptCodes.size > 0) {
+      totalTemplates = await this.prisma.template.count({
+        where: {
+          isActive: true,
+          deletedAt: null,
+          conceptKey: { in: Array.from(uniqueConceptCodes) },
+        },
+      });
+    }
+
     return {
       configId: config.id,
       name: config.name,
@@ -80,6 +118,8 @@ export class ConfigPreviewService {
       questions: config.totalQuestions,
       difficulty,
       sectionBreakdown,
+      totalTopics,
+      totalTemplates,
       isReadyToPublish,
     };
   }

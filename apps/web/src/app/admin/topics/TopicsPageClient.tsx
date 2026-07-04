@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyStateCard } from '@/components/ui/empty-state';
 import { Search, Plus, Eye, Trash2, RefreshCcw, Edit2, X, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -214,37 +215,37 @@ export function TopicsPageClient() {
       ) : (
         <div className='overflow-hidden rounded-xl border border-border bg-card shadow-md transition-all duration-300 hover:shadow-lg'>
           <div className='overflow-x-auto'>
-            <table className='w-full border-collapse text-left text-sm'>
-              <thead>
-                <tr className='border-b border-border bg-muted/55 text-muted-foreground font-semibold'>
-                  <th className='p-4 font-medium'>Topic Info</th>
-                  <th className='p-4 font-medium'>Code</th>
-                  <th className='p-4 font-medium'>Description</th>
-                  <th className='p-4 font-medium'>Status</th>
-                  <th className='p-4 font-medium text-right'>Actions</th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-border'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Topic Info</TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className='text-right'>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredTopics.map((topic) => (
-                  <tr
+                  <TableRow
                     key={topic.id}
                     className='group hover:bg-muted/30 transition-all duration-200 cursor-pointer'
                     onClick={() => router.push(`/admin/topics/${topic.id}`)}
                   >
-                    <td className='p-4 font-medium text-foreground group-hover:text-primary transition-colors'>
+                    <TableCell className='font-medium text-foreground group-hover:text-primary transition-colors'>
                       {topic.name}
-                    </td>
-                    <td className='p-4'>
+                    </TableCell>
+                    <TableCell>
                       <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
                         {topic.code}
                       </Badge>
-                    </td>
-                    <td className='p-4 text-muted-foreground max-w-xs truncate'>
+                    </TableCell>
+                    <TableCell className='text-muted-foreground max-w-xs truncate'>
                       {topic.description || (
                         <span className='text-muted-foreground/40 italic'>No description</span>
                       )}
-                    </td>
-                    <td className='p-4'>
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant={topic.status === 'ACTIVE' ? 'outline' : 'secondary'}
                         className={
@@ -255,8 +256,8 @@ export function TopicsPageClient() {
                       >
                         {topic.status.toLowerCase()}
                       </Badge>
-                    </td>
-                    <td className='p-4 text-right' onClick={(e) => e.stopPropagation()}>
+                    </TableCell>
+                    <TableCell className='text-right' onClick={(e) => e.stopPropagation()}>
                       <div className='inline-flex items-center gap-2'>
                         <Button
                           asChild
@@ -296,11 +297,11 @@ export function TopicsPageClient() {
                           )}
                         </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
@@ -339,7 +340,7 @@ export function TopicsPageClient() {
               id='create-code'
               placeholder='e.g., DATA_STRUCTURES'
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.replace(/\s+/g, '_'))}
               required
               className='uppercase font-mono'
             />
@@ -425,7 +426,7 @@ export function TopicsPageClient() {
               id='edit-code'
               placeholder='e.g., DATA_STRUCTURES'
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.replace(/\s+/g, '_'))}
               required
               className='uppercase font-mono'
             />
