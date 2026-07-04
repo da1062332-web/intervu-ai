@@ -156,9 +156,9 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      toast.success(`${format.toUpperCase()} Exported successfully`, { ariaLive: 'polite' });
+      toast.success(`${format.toUpperCase()} Exported successfully`, { ariaLive: 'polite' } as any);
     } catch (err) {
-      toast.error(`Failed to export ${format.toUpperCase()}`, { ariaLive: 'polite' });
+      toast.error(`Failed to export ${format.toUpperCase()}`, { ariaLive: 'polite' } as any);
     } finally {
       setIsExporting(false);
     }

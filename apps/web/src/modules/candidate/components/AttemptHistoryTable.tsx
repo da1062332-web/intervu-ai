@@ -108,11 +108,8 @@ export function AttemptHistoryTable({ showFilters = false, defaultLimit = 5 }: A
     }
 
     result.sort((a, b) => {
-      let valA = a[sortField];
-      let valB = b[sortField];
-      
-      if (valA === null) valA = '';
-      if (valB === null) valB = '';
+      let valA = a[sortField] as any;
+      let valB = b[sortField] as any;
 
       if (valA < valB) return sortAsc ? -1 : 1;
       if (valA > valB) return sortAsc ? 1 : -1;

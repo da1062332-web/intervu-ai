@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Sparkles, Github as GithubIcon } from 'lucide-react';
+import { ArrowRight, Sparkles, GithubIcon } from 'lucide-react';
 
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';

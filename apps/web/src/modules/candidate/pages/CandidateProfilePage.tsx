@@ -56,9 +56,9 @@ export function CandidateProfilePage() {
     if (profile) {
       reset({
         name: profile.name || '',
-        phone: profile.phone || '',
-        college: profile.college || '',
-        graduationYear: profile.graduationYear ? profile.graduationYear.toString() : '',
+        phone: (profile as any).phone || '',
+        college: (profile as any).college || '',
+        graduationYear: (profile as any).graduationYear ? (profile as any).graduationYear.toString() : '',
       });
     }
   }, [profile, reset]);
@@ -78,10 +78,10 @@ export function CandidateProfilePage() {
         phone: data.phone,
         college: data.college,
         graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
-      },
+      } as any,
       {
         onSuccess: (updatedUser) => {
-          toast.success('Profile updated successfully', { ariaLive: 'polite' });
+          toast.success('Profile updated successfully', { ariaLive: 'polite' } as any);
           reset(data); // reset to new clean state
           
           // Update the auth/Zustand store immediately
@@ -93,10 +93,10 @@ export function CandidateProfilePage() {
               phone: data.phone || null,
               college: data.college || null,
               graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : null,
-            });
+            } as any);
           }
         },
-        onError: () => toast.error('Failed to update profile', { ariaLive: 'polite' }),
+        onError: () => toast.error('Failed to update profile', { ariaLive: 'polite' } as any),
       },
     );
   };
