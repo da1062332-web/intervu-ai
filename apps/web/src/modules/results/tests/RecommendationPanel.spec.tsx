@@ -17,7 +17,7 @@ describe('RecommendationPanel', () => {
         focusTopics: ['Topic A', 'Topic B'],
         improvementPlan: ['Step 1'],
         estimatedPracticeHours: 10,
-        priority: 'Medium'
+        priority: 'Medium',
       },
     } as any);
 
