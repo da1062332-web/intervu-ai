@@ -7,14 +7,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
-import { FileText, Calendar, TrendingUp } from 'lucide-react';
+import { FileText, Calendar, TrendingUp, Search, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 export const ResultHistoryPage = () => {
   const { user } = useAuth();
   const router = useRouter();
   const navigate = router.push;
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('date-desc');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   const { data, isLoading, isError } = useCandidateResults(user?.id || '', page, 10);
 
@@ -29,6 +33,32 @@ export const ResultHistoryPage = () => {
     );
   }
 
+  const filteredData = (() => {
+    if (!data?.data) return [];
+    let result = [...data.data];
+
+    if (searchQuery) {
+      result = result.filter(r => r.assessmentName.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    if (statusFilter !== 'ALL') {
+      result = result.filter(r => {
+        const s = (r as any).status || 'COMPLETED';
+        return s === statusFilter;
+      });
+    }
+
+    result.sort((a, b) => {
+      if (sortBy === 'date-desc') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === 'date-asc') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (sortBy === 'score-desc') return b.score - a.score;
+      if (sortBy === 'score-asc') return a.score - b.score;
+      return 0;
+    });
+
+    return result;
+  })();
+
   return (
     <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-6'>
       <div>
@@ -38,8 +68,45 @@ export const ResultHistoryPage = () => {
         </p>
       </div>
 
+      <div className='flex flex-col md:flex-row gap-4 mb-6'>
+        <div className='relative flex-1'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
+          <Input 
+            placeholder='Search assessments...' 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className='pl-9'
+          />
+        </div>
+        <div className='flex gap-2'>
+          <select 
+            className='flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value='ALL'>All Status</option>
+            <option value='COMPLETED'>Completed</option>
+            <option value='FAILED'>Failed</option>
+          </select>
+
+          <select 
+            className='flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value='date-desc'>Newest First</option>
+            <option value='date-asc'>Oldest First</option>
+            <option value='score-desc'>Highest Score</option>
+            <option value='score-asc'>Lowest Score</option>
+          </select>
+        </div>
+      </div>
+
       <div className='space-y-4'>
-        {data.data.map((result) => (
+        {filteredData.length === 0 ? (
+          <div className='text-center py-8 text-gray-500'>No results match your filters.</div>
+        ) : (
+          filteredData.map((result) => (
           <Card key={result.id} className='hover:shadow-md transition-shadow'>
             <CardContent className='p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
               <div className='flex items-start gap-4 flex-1'>
@@ -57,6 +124,9 @@ export const ResultHistoryPage = () => {
                       <TrendingUp className='w-4 h-4' />
                       Score: {result.score}
                     </div>
+                    <Badge variant='outline' className='ml-2 text-xs'>
+                      {(result as any).status || 'COMPLETED'}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -80,7 +150,8 @@ export const ResultHistoryPage = () => {
               </div>
             </CardContent>
           </Card>
-        ))}
+        ))
+        )}
       </div>
 
       {data.meta.totalPages > 1 && (

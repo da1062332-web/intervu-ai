@@ -8,7 +8,7 @@ import type {
 } from '../types/results.types';
 import type { PerformanceAnalyticsDto } from '@intervu-ai/contracts';
 
-const BASE_PATH = '/api/v1/results';
+const BASE_PATH = '/results';
 
 export const resultApi = {
   getDashboardWidgets: async (): Promise<DashboardWidgets> => {
