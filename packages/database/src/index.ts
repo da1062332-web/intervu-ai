@@ -1,14 +1,14 @@
 export { prisma } from "./client";
 export { connectPrisma, disconnectPrisma } from "./prisma.service";
-export {
-  EvaluationRepository,
-  type CreateEvaluationInput,
-  type UpdateEvaluationInput,
+export { EvaluationRepository } from "./repositories/evaluation.repository";
+export type {
+  CreateEvaluationInput,
+  UpdateEvaluationInput,
 } from "./repositories/evaluation.repository";
-export {
-  SkillScoreRepository,
-  type CreateSkillScoreInput,
-} from "./repositories/skill-score.repository";
+
+export { SkillScoreRepository } from "./repositories/skill-score.repository";
+export type { CreateSkillScoreInput } from "./repositories/skill-score.repository";
+
 // Day 1 & 2 Persistence
 export * from "./repositories/test-config.repository";
 export * from "./repositories/template.repository";
@@ -31,22 +31,27 @@ export * from "./repositories/concept-mapping.repository";
 export * from "./utils/hash-question.util";
 
 export * from "./types/database.types";
+
 export {
-  type GeneratedQuestion,
-  type DifficultyLevel,
-  type Template,
-  type Test,
-  type TestInstance,
-  type TestInstanceSection,
-  type TestInstanceQuestion,
   TestInstanceStatus,
-  type CandidateAnswer,
-  type ExecutionState,
-  type Submission,
   SubmissionStatus,
-  type Recommendation,
-  type PerformanceSummary,
   RecommendationPriority,
-  type Prisma,
-  type Concept,
 } from "@prisma/client";
+
+export type {
+  GeneratedQuestion,
+  DifficultyLevel,
+  Template,
+  Test,
+  TestInstance,
+  TestInstanceSection,
+  TestInstanceQuestion,
+  CandidateAnswer,
+  ExecutionState,
+  Submission,
+  Recommendation,
+  PerformanceSummary,
+  Prisma,
+  Concept,
+} from "@prisma/client";
+
