@@ -54,8 +54,20 @@ async function main() {
     });
     const parsedSections = Array.from(sectionsMap.values());
 
+    const submissionAnswers = attempt.executionResult.answers.map((a) => ({
+      questionId: a.questionId,
+      selectedOptionId: a.answer,
+      selectedOptionIds:
+        a.answer.startsWith("[") && a.answer.endsWith("]")
+          ? JSON.parse(a.answer)
+          : undefined,
+      textResponse: a.answer,
+      status: "ANSWERED" as const,
+      timeSpentSeconds: a.timeSpentSeconds || 0,
+    }));
+
     // Run evaluation engine mock
-    const evalResults = evaluator.evaluateAnswers(attempt.executionResult.answers, attempt.questions);
+    const evalResults = evaluator.evaluateAnswers(submissionAnswers, attempt.questions);
     const sectionScores = sectionScoring.calculateSectionScores(evalResults, parsedSections);
     const overallScore = overallScoring.calculateOverallScore(sectionScores);
     const performanceAnalytics = analyticsService.calculateAnalytics(evalResults, attempt.questions);
