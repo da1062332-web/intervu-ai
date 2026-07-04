@@ -19,7 +19,7 @@ const ReportHeader = React.memo(({ data }: { data: ReportData }) => (
     <div>
       <h1 className='text-3xl font-bold tracking-tight'>{data.testName}</h1>
       <p className='text-muted-foreground mt-1'>
-        Completed on {format(new Date(data.completedAt), 'MMMM d, yyyy')}
+        Completed on {data.completedAt ? format(new Date(data.completedAt), 'MMMM d, yyyy') : 'N/A'}
       </p>
     </div>
   </div>
@@ -60,7 +60,7 @@ const ScoreOverview = React.memo(({ data }: { data: ReportData }) => (
 ));
 ScoreOverview.displayName = 'ScoreOverview';
 
-const StrengthSection = React.memo(({ strengths }: { strengths: string[] }) => (
+const StrengthSection = React.memo(({ strengths }: { strengths: any[] }) => (
   <Card className='glass-card h-full'>
     <CardHeader>
       <CardTitle className='flex items-center gap-2 text-green-600 dark:text-green-400'>
@@ -70,12 +70,17 @@ const StrengthSection = React.memo(({ strengths }: { strengths: string[] }) => (
     </CardHeader>
     <CardContent>
       <ul className='space-y-3'>
-        {strengths.map((str, idx) => (
-          <li key={idx} className='flex items-start gap-2'>
-            <span className='size-1.5 rounded-full bg-green-500 mt-2 shrink-0' />
-            <span className='text-sm'>{str}</span>
-          </li>
-        ))}
+        {strengths.map((str, idx) => {
+          const content = typeof str === 'object' && str !== null 
+            ? (str.description || str.title || str.name || JSON.stringify(str)) 
+            : str;
+          return (
+            <li key={idx} className='flex items-start gap-2'>
+              <span className='size-1.5 rounded-full bg-green-500 mt-2 shrink-0' />
+              <span className='text-sm'>{content}</span>
+            </li>
+          );
+        })}
       </ul>
       {strengths.length === 0 && (
         <p className='text-sm text-muted-foreground italic'>No key strengths identified.</p>
@@ -85,7 +90,7 @@ const StrengthSection = React.memo(({ strengths }: { strengths: string[] }) => (
 ));
 StrengthSection.displayName = 'StrengthSection';
 
-const WeaknessSection = React.memo(({ weaknesses }: { weaknesses: string[] }) => (
+const WeaknessSection = React.memo(({ weaknesses }: { weaknesses: any[] }) => (
   <Card className='glass-card h-full'>
     <CardHeader>
       <CardTitle className='flex items-center gap-2 text-red-500'>
@@ -95,12 +100,17 @@ const WeaknessSection = React.memo(({ weaknesses }: { weaknesses: string[] }) =>
     </CardHeader>
     <CardContent>
       <ul className='space-y-3'>
-        {weaknesses.map((weak, idx) => (
-          <li key={idx} className='flex items-start gap-2'>
-            <span className='size-1.5 rounded-full bg-red-500 mt-2 shrink-0' />
-            <span className='text-sm'>{weak}</span>
-          </li>
-        ))}
+        {weaknesses.map((weak, idx) => {
+          const content = typeof weak === 'object' && weak !== null 
+            ? (weak.description || weak.title || weak.name || JSON.stringify(weak)) 
+            : weak;
+          return (
+            <li key={idx} className='flex items-start gap-2'>
+              <span className='size-1.5 rounded-full bg-red-500 mt-2 shrink-0' />
+              <span className='text-sm'>{content}</span>
+            </li>
+          );
+        })}
       </ul>
       {weaknesses.length === 0 && (
         <p className='text-sm text-muted-foreground italic'>
@@ -112,7 +122,7 @@ const WeaknessSection = React.memo(({ weaknesses }: { weaknesses: string[] }) =>
 ));
 WeaknessSection.displayName = 'WeaknessSection';
 
-const RecommendationSection = React.memo(({ recommendations }: { recommendations: string[] }) => (
+const RecommendationSection = React.memo(({ recommendations }: { recommendations: any[] }) => (
   <Card className='glass-card'>
     <CardHeader>
       <CardTitle className='flex items-center gap-2 text-yellow-500'>
@@ -122,12 +132,18 @@ const RecommendationSection = React.memo(({ recommendations }: { recommendations
     </CardHeader>
     <CardContent>
       <ul className='space-y-3'>
-        {recommendations.map((rec, idx) => (
-          <li key={idx} className='flex items-start gap-2'>
-            <span className='size-1.5 rounded-full bg-yellow-500 mt-2 shrink-0' />
-            <span className='text-sm'>{rec}</span>
-          </li>
-        ))}
+        {recommendations.map((rec, idx) => {
+          const content = typeof rec === 'object' && rec !== null 
+            ? (rec.description || rec.title || JSON.stringify(rec)) 
+            : rec;
+          
+          return (
+            <li key={idx} className='flex items-start gap-2'>
+              <span className='size-1.5 rounded-full bg-yellow-500 mt-2 shrink-0' />
+              <span className='text-sm'>{content}</span>
+            </li>
+          );
+        })}
       </ul>
       {recommendations.length === 0 && (
         <p className='text-sm text-muted-foreground italic'>

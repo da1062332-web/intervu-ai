@@ -144,7 +144,7 @@ export const ResultHistoryPage = () => {
                 >
                   {result.percentage}%
                 </Badge>
-                <Button onClick={() => navigate(`/results/${result.attemptId}`)}>
+                <Button onClick={() => navigate(`/candidate/results/${result.attemptId}`)}>
                   View Details
                 </Button>
               </div>

@@ -50,8 +50,9 @@ export const resultApi = {
   },
 
   exportToPdf: async (attemptId: string): Promise<Blob> => {
-    // Backend currently returns JSON pending status
-    return apiClient.request<any>(`${BASE_PATH}/${attemptId}/export/pdf`);
+    return apiClient.request<Blob>(`${BASE_PATH}/${attemptId}/export/pdf`, {
+      responseType: 'blob',
+    });
   },
 
   exportToJson: async (attemptId: string): Promise<any> => {
