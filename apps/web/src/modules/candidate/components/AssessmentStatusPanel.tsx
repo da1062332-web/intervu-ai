@@ -25,9 +25,8 @@ export function AssessmentStatusPanel() {
     return <div className='h-40 animate-pulse bg-muted rounded-xl' />;
   }
 
-  const activeTests = data?.activeTests || [];
-  const inProgressTests = activeTests.filter((t: any) => t.status === 'IN_PROGRESS');
-  const enrolledTests = activeTests.filter((t: any) => t.status === 'ENROLLED');
+  const inProgressTests = data?.activeTests || [];
+  const enrolledTests = data?.availableTests?.filter((t: any) => t.status === 'ENROLLED') || [];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -49,7 +48,7 @@ export function AssessmentStatusPanel() {
         <CardHeader className='pb-3'>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className='flex gap-4'>
+        <CardContent className='flex flex-wrap gap-4'>
           <Button variant='outline' asChild>
             <Link href='/candidate/tests'>Browse Catalog</Link>
           </Button>
@@ -89,20 +88,20 @@ export function AssessmentStatusPanel() {
               </div>
             ))}
             
-            {enrolledTests.map((test: ActiveTestItem) => (
+            {enrolledTests.map((test: any) => (
               <div
-                key={test.instanceId || test.testId}
+                key={test.id}
                 className='flex items-center justify-between p-4 border rounded-lg bg-card/50'
               >
                 <div>
-                  <div className='font-medium'>{test.testName || test.name}</div>
+                  <div className='font-medium'>{test.title}</div>
                   <div className='text-sm text-muted-foreground flex items-center gap-1 mt-1'>
                     <AlertCircle className='size-4 text-orange-500' />
                     Enrolled
                   </div>
                 </div>
                 <Link
-                  href={`/candidate/tests/${test.testId}`}
+                  href={`/candidate/tests/${test.id}`}
                   className='text-sm text-primary hover:underline font-medium'
                 >
                   Start Test

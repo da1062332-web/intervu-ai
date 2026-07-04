@@ -22,10 +22,21 @@ export class TemplateSelectorService {
       request.difficultyLevel.toUpperCase() as DifficultyLevel;
 
     // Fetch matching templates from the database
-    const templates = await this.templateRepository.findByConceptAndDifficulty(
+    let templates = await this.templateRepository.findByConceptAndDifficulty(
       conceptKey,
       dbDifficulty,
     );
+
+    if (templates.length === 0) {
+      templates = await this.templateRepository.findByConceptAndDifficulty(
+        "default_concept",
+        dbDifficulty,
+      );
+    }
+
+    if (templates.length === 0) {
+      templates = await this.templateRepository.findByDifficulty(dbDifficulty);
+    }
 
     // Filter by question type (case-insensitive)
     const normalizedRequestType = this.normalizeQuestionType(

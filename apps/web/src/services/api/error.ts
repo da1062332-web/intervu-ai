@@ -66,6 +66,15 @@ export function normalizeApiError(input: unknown, fallbackStatus = 500): Normali
     });
   }
 
+  if (input instanceof TypeError && input.message.includes('fetch')) {
+    return buildNormalizedError({
+      code: 'NETWORK_ERROR',
+      message: 'Network error. Please check your internet connection.',
+      status: 0,
+      raw: input,
+    });
+  }
+
   if (input instanceof Error) {
     return buildNormalizedError({
       code: FALLBACK_ERROR_CODE,

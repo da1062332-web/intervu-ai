@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { useRemoveTopic } from '../api/queries';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow as ShadcnTableRow } from '@/components/ui/table';
 import { useTopicMappingStore } from '../store/topic-mapping.store';
 import { RefreshCw } from 'lucide-react';
 
@@ -18,13 +18,54 @@ interface TopicMappingTableProps {
   onRetry?: () => void;
 }
 
-export function TopicMappingTable({
+const MemoizedTopicRow = React.memo(({ 
+  topic, 
+  weightage, 
+  onRemove, 
+  isRemoving 
+}: { 
+  topic: SectionTopicResponse; 
+  weightage?: number; 
+  onRemove: (id: string) => void;
+  isRemoving: boolean;
+}) => {
+  return (
+    <ShadcnTableRow className='hover:bg-gray-50 dark:hover:bg-gray-800/50'>
+      <TableCell className='font-medium'>
+        {(topic as any).topicName ||
+          (topic as any).topic ||
+          (topic as any).name ||
+          'Unnamed Topic'}
+      </TableCell>
+      <TableCell>{(topic as any).topicCode || (topic as any).code || '-'}</TableCell>
+      <TableCell>
+        {weightage !== undefined ? `${weightage}%` : '-'}
+      </TableCell>
+      <TableCell className='text-muted-foreground'>
+        {topic.createdAt ? new Date(topic.createdAt).toLocaleDateString() : 'N/A'}
+      </TableCell>
+      <TableCell className='text-right'>
+        <Button
+          variant='destructive'
+          size='sm'
+          onClick={() => onRemove(topic.topicId)}
+          disabled={isRemoving}
+        >
+          {isRemoving ? 'Removing...' : 'Remove'}
+        </Button>
+      </TableCell>
+    </ShadcnTableRow>
+  );
+});
+MemoizedTopicRow.displayName = 'MemoizedTopicRow';
+
+export const TopicMappingTable = React.memo(({
   sectionId,
   topics,
   isLoading,
   isError,
   onRetry,
-}: TopicMappingTableProps) {
+}: TopicMappingTableProps) => {
   const [topicToRemove, setTopicToRemove] = useState<string | null>(null);
   const removeTopic = useRemoveTopic(sectionId);
   const weightages = useTopicMappingStore((state) => state.weightages);
@@ -71,46 +112,23 @@ export function TopicMappingTable({
       <div className='overflow-x-auto'>
         <Table>
           <TableHeader>
-            <TableRow>
+            <ShadcnTableRow>
               <TableHead>Topic Name</TableHead>
               <TableHead>Topic Code</TableHead>
               <TableHead>Weightage</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className='text-right'>Actions</TableHead>
-            </TableRow>
+            </ShadcnTableRow>
           </TableHeader>
           <TableBody>
             {topics.map((topic) => (
-              <TableRow
+              <MemoizedTopicRow
                 key={topic.topicId}
-                className='hover:bg-gray-50 dark:hover:bg-gray-800/50'
-              >
-                <TableCell className='font-medium'>
-                  {(topic as any).topicName ||
-                    (topic as any).topic ||
-                    (topic as any).name ||
-                    'Unnamed Topic'}
-                </TableCell>
-                <TableCell>{(topic as any).topicCode || (topic as any).code || '-'}</TableCell>
-                <TableCell>
-                  {weightages[topic.topicId] !== undefined ? `${weightages[topic.topicId]}%` : '-'}
-                </TableCell>
-                <TableCell className='text-muted-foreground'>
-                  {topic.createdAt ? new Date(topic.createdAt).toLocaleDateString() : 'N/A'}
-                </TableCell>
-                <TableCell className='text-right'>
-                  <Button
-                    variant='destructive'
-                    size='sm'
-                    onClick={() => setTopicToRemove(topic.topicId)}
-                    disabled={removeTopic.isPending && removeTopic.variables === topic.topicId}
-                  >
-                    {removeTopic.isPending && removeTopic.variables === topic.topicId
-                      ? 'Removing...'
-                      : 'Remove'}
-                  </Button>
-                </TableCell>
-              </TableRow>
+                topic={topic}
+                weightage={weightages[topic.topicId]}
+                onRemove={setTopicToRemove}
+                isRemoving={removeTopic.isPending && removeTopic.variables === topic.topicId}
+              />
             ))}
           </TableBody>
         </Table>
@@ -142,4 +160,5 @@ export function TopicMappingTable({
       </Modal>
     </div>
   );
-}
+});
+TopicMappingTable.displayName = 'TopicMappingTable';

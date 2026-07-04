@@ -8,9 +8,10 @@ export interface ModalProps {
   onClose: () => void;
   className?: string;
   showBackdrop?: boolean;
+  'aria-labelledby'?: string;
 }
 
-export function Modal({ children, isOpen, onClose, className, showBackdrop = true }: ModalProps) {
+export function Modal({ children, isOpen, onClose, className, showBackdrop = true, 'aria-labelledby': ariaLabelledby }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -76,6 +77,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
       onClick={onClose}
       role='dialog'
       aria-modal='true'
+      aria-labelledby={ariaLabelledby}
     >
       {showBackdrop && <div className='fixed inset-0 bg-black/50 dark:bg-black/70' />}
 
@@ -88,6 +90,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
         )}
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         {children}
       </div>
