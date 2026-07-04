@@ -8,6 +8,7 @@ import {
   Body,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from "@nestjs/common";
 import { TopicWeightageService } from "../services/topic-weightage.service";
 import {
@@ -15,9 +16,14 @@ import {
   UpdateTopicWeightageDto,
 } from "@intervu/shared";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("Topic Weightages")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
 @Controller("admin")
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class TopicWeightageController {

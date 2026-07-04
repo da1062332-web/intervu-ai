@@ -4,12 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // ─── Skeleton primitives ──────────────────────────────────────────────────────
 
 function SkeletonLine({ className }: { className?: string }) {
-  return (
-    <Skeleton
-      className={cn('h-3.5 rounded-full', className)}
-      aria-hidden='true'
-    />
-  );
+  return <Skeleton className={cn('h-3.5 rounded-full', className)} aria-hidden='true' />;
 }
 
 // ─── Skeleton Card Variants ───────────────────────────────────────────────────

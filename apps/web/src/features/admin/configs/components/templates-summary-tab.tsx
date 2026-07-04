@@ -19,7 +19,8 @@ export function TemplatesSummaryTab({ configId }: TemplatesSummaryTabProps) {
       <div>
         <h3 className='text-lg font-medium'>Templates</h3>
         <p className='text-sm text-muted-foreground'>
-          Templates are the standard questions used in your assessments. They are managed independently.
+          Templates are the standard questions used in your assessments. They are managed
+          independently.
         </p>
       </div>
 

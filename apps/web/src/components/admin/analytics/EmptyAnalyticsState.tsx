@@ -13,7 +13,7 @@ export function EmptyAnalyticsState({ title, description, icon }: EmptyAnalytics
       title={title}
       description={description}
       icon={icon}
-      cardClassName="h-full min-h-[200px]"
+      cardClassName='h-full min-h-[200px]'
     />
   );
 }

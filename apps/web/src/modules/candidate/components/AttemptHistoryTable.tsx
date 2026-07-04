@@ -3,7 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { useAttemptHistory } from '../hooks/useAttemptHistory';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow as ShadcnTableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow as ShadcnTableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
@@ -30,11 +37,15 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
       <TableCell className='font-medium'>{attempt.assessmentName}</TableCell>
       <TableCell>{format(new Date(attempt.date), 'MMM d, yyyy')}</TableCell>
       <TableCell>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          attempt.status === 'COMPLETED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-          attempt.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-          'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            attempt.status === 'COMPLETED'
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              : attempt.status === 'IN_PROGRESS'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+          }`}
+        >
           {attempt.status.replace('_', ' ')}
         </span>
       </TableCell>
@@ -170,17 +181,47 @@ export function AttemptHistoryTable({
           <Table>
             <TableHeader>
               <ShadcnTableRow>
-                <TableHead className='cursor-pointer hover:text-foreground' onClick={() => toggleSort('assessmentName')} aria-sort={sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center gap-1'>Assessment <ArrowUpDown className='size-3 opacity-50' /></div>
+                <TableHead
+                  className='cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('assessmentName')}
+                  aria-sort={
+                    sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'
+                  }
+                >
+                  <div className='flex items-center gap-1'>
+                    Assessment <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </TableHead>
-                <TableHead className='cursor-pointer hover:text-foreground' onClick={() => toggleSort('date')} aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center gap-1'>Date <ArrowUpDown className='size-3 opacity-50' /></div>
+                <TableHead
+                  className='cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('date')}
+                  aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
+                >
+                  <div className='flex items-center gap-1'>
+                    Date <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </TableHead>
-                <TableHead className='cursor-pointer hover:text-foreground' onClick={() => toggleSort('status')} aria-sort={sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center gap-1'>Status <ArrowUpDown className='size-3 opacity-50' /></div>
+                <TableHead
+                  className='cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('status')}
+                  aria-sort={
+                    sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'
+                  }
+                >
+                  <div className='flex items-center gap-1'>
+                    Status <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </TableHead>
-                <TableHead className='text-right cursor-pointer hover:text-foreground' onClick={() => toggleSort('score')} aria-sort={sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center justify-end gap-1'>Score <ArrowUpDown className='size-3 opacity-50' /></div>
+                <TableHead
+                  className='text-right cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('score')}
+                  aria-sort={
+                    sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'
+                  }
+                >
+                  <div className='flex items-center justify-end gap-1'>
+                    Score <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </TableHead>
                 <TableHead className='text-right'>Actions</TableHead>
               </ShadcnTableRow>

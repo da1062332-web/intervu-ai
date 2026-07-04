@@ -109,17 +109,19 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     setGenerating(true);
     try {
       // 1. Pre-flight config validation
-      const validation = await apiClient.request<any>(
-        `/admin/configs/${configId}/validate`,
-        { method: 'POST', skipErrorToast: true }
-      );
+      const validation = await apiClient.request<any>(`/admin/configs/${configId}/validate`, {
+        method: 'POST',
+        skipErrorToast: true,
+      });
 
       if (!validation.valid) {
         toast.error('Cannot generate assembly. Validation failed:', {
           description: (
-            <ul className="list-disc pl-4 mt-1 space-y-1">
+            <ul className='list-disc pl-4 mt-1 space-y-1'>
               {validation.errors?.map((err: string, i: number) => (
-                <li key={i} className="text-xs">{err}</li>
+                <li key={i} className='text-xs'>
+                  {err}
+                </li>
               ))}
             </ul>
           ),
@@ -175,16 +177,15 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     );
   }
 
-
   // Derived Health State
   const hasSections = preview ? preview.sections > 0 : false;
   const isDifficultyValid = preview
     ? preview.difficulty.easy + preview.difficulty.medium + preview.difficulty.hard === 100
     : false;
   const hasTopics = preview?.sectionBreakdown
-    ? preview.sections > 0 && preview.sectionBreakdown.every(s => s.topicCount > 0)
+    ? preview.sections > 0 && preview.sectionBreakdown.every((s) => s.topicCount > 0)
     : false;
-  const hasTemplatesWarn = validation?.warnings?.some(w => w.includes('No templates found'));
+  const hasTemplatesWarn = validation?.warnings?.some((w) => w.includes('No templates found'));
 
   const healthChecks = [
     { label: 'Configuration Saved', passed: !!config.id },
@@ -301,10 +302,13 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         )}
         {activeTabId === 'readiness' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <ReadinessTab configId={configId} onTabChange={(id) => {
-              const idx = WIZARD_TABS.findIndex(t => t.id === id);
-              if (idx !== -1) setActiveTabIndex(idx);
-            }} />
+            <ReadinessTab
+              configId={configId}
+              onTabChange={(id) => {
+                const idx = WIZARD_TABS.findIndex((t) => t.id === id);
+                if (idx !== -1) setActiveTabIndex(idx);
+              }}
+            />
           </div>
         )}
         {activeTabId === 'preview' && (
@@ -360,9 +364,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
               )}
             </div>
           ) : (
-            <Button onClick={handleNext}>
-              Continue
-            </Button>
+            <Button onClick={handleNext}>Continue</Button>
           )}
         </div>
       </div>

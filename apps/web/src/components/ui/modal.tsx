@@ -11,7 +11,14 @@ export interface ModalProps {
   'aria-labelledby'?: string;
 }
 
-export function Modal({ children, isOpen, onClose, className, showBackdrop = true, 'aria-labelledby': ariaLabelledby }: ModalProps) {
+export function Modal({
+  children,
+  isOpen,
+  onClose,
+  className,
+  showBackdrop = true,
+  'aria-labelledby': ariaLabelledby,
+}: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -65,7 +72,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
         if (focusableElements.length > 0) focusableElements[0].focus();
       }
     }, 10);
-    
+
     return () => clearTimeout(timeoutId);
   }, [isOpen]);
 

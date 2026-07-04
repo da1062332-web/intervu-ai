@@ -60,15 +60,13 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
         aggregate: vi
           .fn()
           .mockResolvedValue({ _avg: { percentage: 70 }, _count: { id: 10 } }),
-        findUnique: vi
-          .fn()
-          .mockResolvedValue({
-            id: "res_1",
-            percentage: 80,
-            score: 8,
-            attemptId: "attempt_1",
-            createdAt: new Date(),
-          }),
+        findUnique: vi.fn().mockResolvedValue({
+          id: "res_1",
+          percentage: 80,
+          score: 8,
+          attemptId: "attempt_1",
+          createdAt: new Date(),
+        }),
         groupBy: vi
           .fn()
           .mockResolvedValue([{ percentage: 80, _count: { id: 1 } }]),
@@ -78,13 +76,11 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
         upsert: vi.fn().mockResolvedValue({}),
       },
       candidateRanking: {
-        findUnique: vi
-          .fn()
-          .mockResolvedValue({
-            assessmentRank: 2,
-            totalAssessmentCandidates: 10,
-            percentile: 80.0,
-          }),
+        findUnique: vi.fn().mockResolvedValue({
+          assessmentRank: 2,
+          totalAssessmentCandidates: 10,
+          percentile: 80.0,
+        }),
       },
       evaluationInsight: {
         upsert: vi.fn().mockResolvedValue({}),

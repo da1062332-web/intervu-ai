@@ -22,6 +22,6 @@ export const useConfigWizardStore = create<WizardState>()(
     }),
     {
       name: 'config-wizard-storage',
-    }
-  )
+    },
+  ),
 );

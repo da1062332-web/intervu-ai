@@ -167,14 +167,14 @@ class ApiClient {
       ...config,
       _retry: false,
     });
-    
+
     if (config.responseType === 'blob') {
       if (!response.ok) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
       return response.blob() as unknown as TData;
     }
-    
+
     const parsed = await parseResponseBody(response);
 
     if (!response.ok) {

@@ -68,21 +68,24 @@ export class EvaluationQueueService {
         },
       });
     } catch (error) {
-      this.logger.error(
-        "Failed to enqueue evaluation in background queue",
-        error,
-        { testInstanceId },
+      this.logger.warn(
+        "Background queue enqueue failed (running in degraded mode); submission persisted to DB",
+        {
+          testInstanceId,
+          error: error instanceof Error ? error.message : String(error),
+        },
       );
 
-      // Update submission record with queue error
-      await this.prisma.submission.update({
+      // Update submission record with queue warning but return successfully
+      return await this.prisma.submission.update({
         where: { testInstanceId },
         data: {
           errorMessage:
-            error instanceof Error ? error.message : "Failed to enqueue",
+            error instanceof Error
+              ? error.message
+              : "Background queue unavailable",
         },
       });
-      throw error;
     }
   }
 

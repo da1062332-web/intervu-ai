@@ -2,7 +2,14 @@ import React from 'react';
 import type { ConceptMapping } from '@/services/concept-mapping';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Edit2, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -51,7 +58,10 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
           </TableHeader>
           <TableBody>
             {concepts.map((concept) => (
-              <TableRow key={concept.id} className='bg-background hover:bg-muted/50 transition-colors'>
+              <TableRow
+                key={concept.id}
+                className='bg-background hover:bg-muted/50 transition-colors'
+              >
                 <TableCell className='font-medium'>
                   {concept.name || concept.conceptName}
                   {concept.description && (

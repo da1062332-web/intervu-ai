@@ -22,9 +22,9 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
     ? preview.difficulty.easy + preview.difficulty.medium + preview.difficulty.hard === 100
     : false;
   const hasTopics = preview?.sectionBreakdown
-    ? preview.sections > 0 && preview.sectionBreakdown.every(s => s.topicCount > 0)
+    ? preview.sections > 0 && preview.sectionBreakdown.every((s) => s.topicCount > 0)
     : false;
-  const hasTemplatesWarn = validation?.warnings?.some(w => w.includes('No templates found'));
+  const hasTemplatesWarn = validation?.warnings?.some((w) => w.includes('No templates found'));
 
   const checks = [
     { label: 'Configuration', state: 'Saved', passed: !!config?.id, tab: 'general' },
@@ -32,7 +32,12 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
     { label: 'Sections', state: 'Configured', passed: hasSections, tab: 'sections' },
     { label: 'Topics', state: 'Available', passed: hasTopics, tab: 'topics' },
     { label: 'Concepts', state: 'Linked', passed: hasTopics, tab: 'concepts' },
-    { label: 'Templates', state: 'Ready', passed: validation ? !hasTemplatesWarn : false, tab: 'templates' },
+    {
+      label: 'Templates',
+      state: 'Ready',
+      passed: validation ? !hasTemplatesWarn : false,
+      tab: 'templates',
+    },
     { label: 'Difficulty', state: '100%', passed: isDifficultyValid, tab: 'difficulty' },
     { label: 'Rules', state: 'Configured', passed: true, tab: 'rules' },
     { label: 'Validation', state: 'Passed', passed: !!validation?.valid, tab: 'preview' },
@@ -60,9 +65,13 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
             }`}
           >
             {allPassed ? (
-              <><ShieldCheck className='w-4 h-4' /> Ready: YES</>
+              <>
+                <ShieldCheck className='w-4 h-4' /> Ready: YES
+              </>
             ) : (
-              <><ShieldAlert className='w-4 h-4' /> Ready: NO</>
+              <>
+                <ShieldAlert className='w-4 h-4' /> Ready: NO
+              </>
             )}
           </span>
         </div>
@@ -83,7 +92,11 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
                 {check.passed ? (
                   <CheckCircle2 className='w-5 h-5 text-green-500' />
                 ) : (
-                  <Button variant='link' className='h-auto p-0 text-amber-600' onClick={() => onTabChange(check.tab)}>
+                  <Button
+                    variant='link'
+                    className='h-auto p-0 text-amber-600'
+                    onClick={() => onTabChange(check.tab)}
+                  >
                     Fix Issue
                   </Button>
                 )}

@@ -14,7 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { EmptyStateCard } from '@/components/ui/empty-state';
 import { ArrowLeft, Search, Plus, Trash2, Edit2, X, RefreshCcw, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';

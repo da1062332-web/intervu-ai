@@ -4,7 +4,14 @@ import { useState } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Plus, Edit2, ClipboardList, ArrowRight, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -130,12 +137,12 @@ export function TemplateListPageClient() {
                     <TableCell className='font-medium'>
                       <div>{tpl.name}</div>
                       {tpl.templateKey && (
-                        <div className='text-xs text-muted-foreground font-mono'>{tpl.templateKey}</div>
+                        <div className='text-xs text-muted-foreground font-mono'>
+                          {tpl.templateKey}
+                        </div>
                       )}
                     </TableCell>
-                    <TableCell className='text-muted-foreground'>
-                      {tpl.conceptKey ?? '-'}
-                    </TableCell>
+                    <TableCell className='text-muted-foreground'>{tpl.conceptKey ?? '-'}</TableCell>
                     <TableCell>
                       <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'>
                         {tpl.difficultyLevel ?? tpl.difficulty ?? '-'}

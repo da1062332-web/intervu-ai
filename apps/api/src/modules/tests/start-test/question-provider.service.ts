@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
+import { GenerationService } from "@intervu-ai/ai-core";
 
 import { GeneratedQuestion } from "@prisma/client";
 
@@ -38,8 +39,6 @@ export class QuestionProviderService {
         continue;
       }
 
-      // We dynamically import GenerationService so we don't break if not present
-      const { GenerationService } = require('@intervu-ai/ai-core');
       const generationService = new GenerationService();
 
       for (let i = 0; i < missingCount; i++) {
@@ -47,10 +46,13 @@ export class QuestionProviderService {
         const result = await generationService.generateQuestion(
           {
             conceptKey: req.conceptKey,
-            difficultyLevel: req.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
-            questionType: 'mcq',
+            difficultyLevel: req.difficultyLevel.toLowerCase() as
+              | "easy"
+              | "medium"
+              | "hard",
+            questionType: "mcq",
           },
-          seedInput
+          seedInput,
         );
 
         const savedQuestion = await this.questionRepository.create({

@@ -61,7 +61,9 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
             </div>
             <div>
               <p className='text-muted-foreground'>Blueprint</p>
-              <p className='font-medium'>{selectedBlueprintId ? 'QA Automation (Linked)' : 'None'}</p>
+              <p className='font-medium'>
+                {selectedBlueprintId ? 'QA Automation (Linked)' : 'None'}
+              </p>
             </div>
             <div>
               <p className='text-muted-foreground'>Status</p>

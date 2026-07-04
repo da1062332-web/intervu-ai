@@ -3,7 +3,14 @@
 import { useBlueprints } from '@/services/blueprints/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Plus, Eye, Edit2, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 

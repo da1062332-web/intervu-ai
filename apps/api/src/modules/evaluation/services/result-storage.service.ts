@@ -39,6 +39,24 @@ export class ResultStorageService {
         },
       });
 
+      // 1b. Create or Update EvaluationResult for CandidateReportService compatibility
+      await tx.evaluationResult.upsert({
+        where: { testInstanceId: attemptId },
+        update: {
+          overallScore: score,
+          technicalScore: score,
+          confidenceScore: percentage,
+        },
+        create: {
+          testInstanceId: attemptId,
+          userId: candidateId,
+          overallScore: score,
+          technicalScore: score,
+          confidenceScore: percentage,
+          overallRating: percentage >= 70 ? 4.5 : 3.0,
+        },
+      });
+
       // 2. Create or Update EvaluationAnalytics
       if (analytics) {
         await tx.evaluationAnalytics.upsert({

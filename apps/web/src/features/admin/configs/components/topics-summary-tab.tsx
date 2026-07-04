@@ -19,7 +19,8 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
       <div>
         <h3 className='text-lg font-medium'>Topics</h3>
         <p className='text-sm text-muted-foreground'>
-          Topics define the high-level subjects covered in this configuration. They are managed independently.
+          Topics define the high-level subjects covered in this configuration. They are managed
+          independently.
         </p>
       </div>
 

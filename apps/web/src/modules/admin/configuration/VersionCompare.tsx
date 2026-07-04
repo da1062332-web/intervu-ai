@@ -3,7 +3,14 @@
 import React from 'react';
 import type { ConfigVersionEntry } from '@/services/exam-configs/types';
 import { ArrowRight } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface VersionCompareProps {
   versionA: ConfigVersionEntry;

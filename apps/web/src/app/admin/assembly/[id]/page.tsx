@@ -3,7 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
@@ -16,7 +23,7 @@ import {
   PlayCircle,
   AlertCircle,
   Save,
-  CheckSquare
+  CheckSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
@@ -52,10 +59,10 @@ export default function AssemblyPreviewPage() {
       ]);
       setAssembly(assemblyData);
       if (analyticsData) setAnalytics(analyticsData);
-      
+
       // Sort versions descending by creation date if not already sorted
-      const sortedVersions = (versionsData || []).sort((a: any, b: any) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const sortedVersions = (versionsData || []).sort(
+        (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
       setVersions(sortedVersions);
     } catch (error: any) {
@@ -74,19 +81,23 @@ export default function AssemblyPreviewPage() {
       toast.error('Cannot publish. Please save a version snapshot first.');
       return;
     }
-    
+
     setIsPublishing(true);
     try {
       // Pre-publish readiness check
-      const readiness = await apiClient.request<any>(`/assembly/${params.id}/readiness`, { method: 'POST' });
-      
+      const readiness = await apiClient.request<any>(`/assembly/${params.id}/readiness`, {
+        method: 'POST',
+      });
+
       if (!readiness.ready) {
         const failedChecks = readiness.checks
           ?.filter((c: any) => !c.passed)
           .map((c: any) => c.message || c.name)
           .join('\n');
-          
-        toast.error(`Publish blocked. Readiness checks failed:\n${failedChecks || 'Unknown error'}`);
+
+        toast.error(
+          `Publish blocked. Readiness checks failed:\n${failedChecks || 'Unknown error'}`,
+        );
         setIsPublishing(false);
         return;
       }
@@ -137,7 +148,7 @@ export default function AssemblyPreviewPage() {
 
   const totalQuestions =
     assembly.sections?.reduce((acc: number, s: any) => acc + (s.questions?.length || 0), 0) || 0;
-    
+
   const isPublished = assembly.status === 'PUBLISHED';
 
   return (
@@ -156,7 +167,7 @@ export default function AssemblyPreviewPage() {
           </div>
           <p className='text-muted-foreground mt-1'>Instance ID: {assembly.id}</p>
         </div>
-        
+
         <div className='ml-auto flex gap-2'>
           <Button
             variant='outline'
@@ -182,17 +193,17 @@ export default function AssemblyPreviewPage() {
                 Version &amp; Readiness
               </div>
               <div className='flex gap-2 items-center'>
-                <Button 
-                  variant='outline' 
+                <Button
+                  variant='outline'
                   onClick={handleCreateVersion}
                   disabled={isSavingVersion || isPublished}
                 >
                   {isSavingVersion && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                   Save Version Snapshot
                 </Button>
-                
+
                 <div className='relative group'>
-                  <Button 
+                  <Button
                     onClick={handlePublish}
                     disabled={!hasVersionSnapshot || isPublished || isPublishing}
                     className='min-w-[140px]'
@@ -200,7 +211,7 @@ export default function AssemblyPreviewPage() {
                     {isPublishing && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                     {isPublished ? 'Published' : 'Publish Assembly'}
                   </Button>
-                  
+
                   {!hasVersionSnapshot && !isPublished && (
                     <div className='absolute bottom-full mb-2 right-0 hidden group-hover:block bg-popover text-popover-foreground border p-3 rounded-md shadow-lg text-sm w-56 z-50'>
                       <p className='font-semibold mb-2 flex items-center gap-1.5 text-amber-500'>
@@ -249,7 +260,9 @@ export default function AssemblyPreviewPage() {
                     <AlertCircle className='h-6 w-6 text-amber-500' />
                     <div>
                       <p className='font-semibold text-amber-700'>No Version Snapshot</p>
-                      <p className='text-xs text-amber-600/80'>Create a version before publishing.</p>
+                      <p className='text-xs text-amber-600/80'>
+                        Create a version before publishing.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -270,7 +283,10 @@ export default function AssemblyPreviewPage() {
                       )}
                       Version Snapshot Exists
                     </span>
-                    <Badge variant={hasVersionSnapshot ? 'default' : 'destructive'} className={hasVersionSnapshot ? 'bg-green-100 text-green-800' : ''}>
+                    <Badge
+                      variant={hasVersionSnapshot ? 'default' : 'destructive'}
+                      className={hasVersionSnapshot ? 'bg-green-100 text-green-800' : ''}
+                    >
                       {hasVersionSnapshot ? 'Passed' : 'Missing'}
                     </Badge>
                   </div>
@@ -279,7 +295,9 @@ export default function AssemblyPreviewPage() {
                       <CheckCircle2 className='h-4 w-4 text-green-500' />
                       Assembly Generated
                     </span>
-                    <Badge variant='default' className='bg-green-100 text-green-800'>Passed</Badge>
+                    <Badge variant='default' className='bg-green-100 text-green-800'>
+                      Passed
+                    </Badge>
                   </div>
                   {analytics && (
                     <div className='flex justify-between items-center text-sm'>
@@ -291,11 +309,21 @@ export default function AssemblyPreviewPage() {
                         )}
                         Coverage at 100%
                       </span>
-                      <Badge 
-                        variant={analytics.coverageDistribution?.overallCoverage === 100 ? 'default' : 'secondary'} 
-                        className={analytics.coverageDistribution?.overallCoverage === 100 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}
+                      <Badge
+                        variant={
+                          analytics.coverageDistribution?.overallCoverage === 100
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className={
+                          analytics.coverageDistribution?.overallCoverage === 100
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }
                       >
-                        {analytics.coverageDistribution?.overallCoverage === 100 ? 'Passed' : 'Warning'}
+                        {analytics.coverageDistribution?.overallCoverage === 100
+                          ? 'Passed'
+                          : 'Warning'}
                       </Badge>
                     </div>
                   )}
@@ -384,7 +412,11 @@ export default function AssemblyPreviewPage() {
                   <div>
                     <div className='flex items-center gap-2'>
                       <p className='font-medium'>Version {v.version}</p>
-                      {index === 0 && <Badge variant='secondary' className='text-xs'>Latest</Badge>}
+                      {index === 0 && (
+                        <Badge variant='secondary' className='text-xs'>
+                          Latest
+                        </Badge>
+                      )}
                     </div>
                     <p className='text-sm text-muted-foreground'>
                       {new Date(v.createdAt).toLocaleString()}
