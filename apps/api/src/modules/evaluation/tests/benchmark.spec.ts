@@ -80,7 +80,9 @@ describe("BenchmarkService", () => {
       _avg: { percentage: 70 },
       _count: { id: 2 },
     });
-    prismaMock.evaluationAnalytics.findMany.mockResolvedValue(mockCohortAnalytics);
+    prismaMock.evaluationAnalytics.findMany.mockResolvedValue(
+      mockCohortAnalytics,
+    );
 
     const result = await service.getBenchmark("attempt_1");
 

@@ -8,7 +8,7 @@ export class ResultExportService {
   async exportToPdf(attemptId: string) {
     // PDF generation strategy placeholder
     // In next sprint, we will map ResultDetailDto to a PDF template
-    
+
     const result = await this.resultQueryService.getResult(attemptId);
     if (!result) {
       throw new NotFoundException(`Result not found for attempt ${attemptId}`);
@@ -16,8 +16,9 @@ export class ResultExportService {
 
     return {
       status: "pending_implementation",
-      message: "PDF Export architecture is ready. Generation logic will be implemented in the next sprint.",
-      dataContext: result
+      message:
+        "PDF Export architecture is ready. Generation logic will be implemented in the next sprint.",
+      dataContext: result,
     };
   }
 
@@ -27,9 +28,15 @@ export class ResultExportService {
       throw new NotFoundException(`Result not found for attempt ${attemptId}`);
     }
 
-    const analytics = await this.resultQueryService.getAnalytics(attemptId).catch(() => null);
-    const analysis = await this.resultQueryService.getAnalysis(attemptId).catch(() => null);
-    const recommendations = await this.resultQueryService.getRecommendations(attemptId).catch(() => null);
+    const analytics = await this.resultQueryService
+      .getAnalytics(attemptId)
+      .catch(() => null);
+    const analysis = await this.resultQueryService
+      .getAnalysis(attemptId)
+      .catch(() => null);
+    const recommendations = await this.resultQueryService
+      .getRecommendations(attemptId)
+      .catch(() => null);
 
     return {
       exportDate: new Date(),

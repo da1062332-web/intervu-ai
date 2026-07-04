@@ -8,7 +8,11 @@ interface DifficultyStats {
   hard: { attempted: number; correct: number };
 }
 
-export const DifficultyAnalysis = React.memo(function DifficultyAnalysis({ stats }: { stats: DifficultyStats }) {
+export const DifficultyAnalysis = React.memo(function DifficultyAnalysis({
+  stats,
+}: {
+  stats: DifficultyStats;
+}) {
   const getPercentage = (correct: number, attempted: number) => {
     if (attempted === 0) return 0;
     return Math.round((correct / attempted) * 100);
@@ -30,20 +34,20 @@ export const DifficultyAnalysis = React.memo(function DifficultyAnalysis({ stats
               <div className={`w-2 h-2 rounded-full ${lvl.color}`} />
               {lvl.label}
             </div>
-            
+
             <div className='relative w-16 h-16 mx-auto mb-2'>
               {/* Circular progress equivalent using conic-gradient */}
-              <div 
+              <div
                 className='absolute inset-0 rounded-full'
                 style={{
-                  background: `conic-gradient(var(--primary) ${pct}%, transparent 0)`
+                  background: `conic-gradient(var(--primary) ${pct}%, transparent 0)`,
                 }}
               />
               <div className='absolute inset-1 bg-card rounded-full flex items-center justify-center'>
                 <span className='font-bold text-lg'>{pct}%</span>
               </div>
             </div>
-            
+
             <div className='text-xs text-muted-foreground'>
               {lvl.data.correct} / {lvl.data.attempted} correct
             </div>

@@ -8,7 +8,8 @@ import fs from "fs";
 import path from "path";
 
 const prisma = new PrismaClient();
-const artifactsDir = "C:\\Users\\91932\\.gemini\\antigravity\\brain\\42d66139-c0bf-434e-b6f5-88ccac7ae24a";
+const artifactsDir =
+  "C:\\Users\\91932\\.gemini\\antigravity\\brain\\42d66139-c0bf-434e-b6f5-88ccac7ae24a";
 
 async function runRemainingAudits() {
   console.log("==========================================");
@@ -17,7 +18,9 @@ async function runRemainingAudits() {
 
   const benchmarkService = new BenchmarkService(prisma);
   const masteryService = new TopicMasteryService();
-  const insightService = new AiInsightService(prisma, { generate: async () => "{}" } as any);
+  const insightService = new AiInsightService(prisma, {
+    generate: async () => "{}",
+  } as any);
   const reEvaluationService = new ReEvaluationService(
     prisma,
     {} as any,
@@ -25,7 +28,7 @@ async function runRemainingAudits() {
     {} as any,
     {} as any,
     {} as any,
-    {} as any
+    {} as any,
   );
 
   // ==========================================
@@ -128,15 +131,24 @@ async function runRemainingAudits() {
     const benchmark = await benchmarkService.getBenchmark(attemptIds[0]);
 
     // Validate calculations
-    const accuracyMatch = benchmark.assessmentAverage === Math.round(expectedAverage);
-    console.log(`Benchmark Accuracy: ${accuracyMatch ? "100% MATCH" : "MISMATCH"}`);
-    console.log(`Expected Assessment Avg: ${expectedAverage}%, Got: ${benchmark.assessmentAverage}%`);
-    console.log(`Section Average [Quantitative Aptitude] - Expected: 55%, Got: ${benchmark.sections[0].averageScore}%`);
+    const accuracyMatch =
+      benchmark.assessmentAverage === Math.round(expectedAverage);
+    console.log(
+      `Benchmark Accuracy: ${accuracyMatch ? "100% MATCH" : "MISMATCH"}`,
+    );
+    console.log(
+      `Expected Assessment Avg: ${expectedAverage}%, Got: ${benchmark.assessmentAverage}%`,
+    );
+    console.log(
+      `Section Average [Quantitative Aptitude] - Expected: 55%, Got: ${benchmark.sections[0].averageScore}%`,
+    );
 
     // ==========================================
     // 2. TOPIC MASTERY VALIDATION
     // ==========================================
-    console.log("\n--> Auditing Topic Mastery Classifications (1,000 Attempts)...");
+    console.log(
+      "\n--> Auditing Topic Mastery Classifications (1,000 Attempts)...",
+    );
     let masteryPasses = 0;
     let masteryFailures = 0;
 
@@ -161,17 +173,22 @@ async function runRemainingAudits() {
       }
     }
 
-    console.log(`Topic Mastery Validation: PASS ${masteryPasses} / FAIL ${masteryFailures}`);
+    console.log(
+      `Topic Mastery Validation: PASS ${masteryPasses} / FAIL ${masteryFailures}`,
+    );
 
     // Save topic-mastery-validation.md
-    const masteryReportPath = path.join(artifactsDir, "topic-mastery-validation.md");
+    const masteryReportPath = path.join(
+      artifactsDir,
+      "topic-mastery-validation.md",
+    );
     const masteryReportContent = `# Topic Mastery Validation Report
 
 ## Validation Summary
 - **Total Classifications Checked**: 1,000 Candidate Topic Attempts
 - **Passes**: ${masteryPasses}
 - **Failures**: ${masteryFailures}
-- **Validation Accuracy**: ${(masteryPasses / 1000 * 100).toFixed(2)}%
+- **Validation Accuracy**: ${((masteryPasses / 1000) * 100).toFixed(2)}%
 - **Audit Timestamp**: ${new Date().toISOString()}
 
 ## Classification Threshold Mapping Rules
@@ -191,7 +208,9 @@ The classification logic implemented in \`TopicMasteryService\` handles bounds c
     // ==========================================
     // 3. AI INSIGHT QUALITY REVIEW
     // ==========================================
-    console.log("\n--> Reviewing AI Insight Quality (500 Sample Reports simulation)...");
+    console.log(
+      "\n--> Reviewing AI Insight Quality (500 Sample Reports simulation)...",
+    );
     let duplicateCleanCount = 0;
     let contradictionCleanCount = 0;
 
@@ -206,7 +225,7 @@ The classification logic implemented in \`TopicMasteryService\` handles bounds c
       ];
 
       const cleanedInsights = insightService.filterInsights(mockRawLLMOutput);
-      
+
       // Calculate cleanup statistics
       if (cleanedInsights.length < mockRawLLMOutput.length) {
         // Find if duplicate or contradiction was removed
@@ -220,10 +239,15 @@ The classification logic implemented in \`TopicMasteryService\` handles bounds c
       }
     }
 
-    console.log(`AI Insight Review: Contradictions resolved: ${contradictionCleanCount}, Duplicates resolved: ${duplicateCleanCount}`);
+    console.log(
+      `AI Insight Review: Contradictions resolved: ${contradictionCleanCount}, Duplicates resolved: ${duplicateCleanCount}`,
+    );
 
     // Save insight-quality-report.md
-    const insightReportPath = path.join(artifactsDir, "insight-quality-report.md");
+    const insightReportPath = path.join(
+      artifactsDir,
+      "insight-quality-report.md",
+    );
     const insightReportContent = `# AI Insight Quality Report
 
 ## Audit Summary
@@ -253,20 +277,24 @@ The classification logic implemented in \`TopicMasteryService\` handles bounds c
     // ==========================================
     console.log("\n--> Verifying Platform Analytics Latency...");
     const startAnalytics = Date.now();
-    
+
     // Call the platform analytics query method
     const platformStats = await reEvaluationService.getPlatformAnalytics();
     const analyticsLatency = Date.now() - startAnalytics;
-    
-    console.log(`Platform Analytics computed. Latency: ${analyticsLatency}ms. Average score: ${platformStats.averageScore}%`);
+
+    console.log(
+      `Platform Analytics computed. Latency: ${analyticsLatency}ms. Average score: ${platformStats.averageScore}%`,
+    );
     console.log(`Top Topics: ${JSON.stringify(platformStats.topTopics)}`);
 
     // ==========================================
     // 5. EVALUATION LOAD TESTING (1000 Submissions Queue Simulation)
     // ==========================================
-    console.log("\n--> Simulating Evaluation Load Testing (1,000 simultaneous submissions)...");
+    console.log(
+      "\n--> Simulating Evaluation Load Testing (1,000 simultaneous submissions)...",
+    );
     const startLoad = Date.now();
-    
+
     // Simulate enqueuing and processing overheads in a light-weight concurrent harness
     let enqueuedJobs = 0;
     const loadPromises = Array.from({ length: 1000 }).map(async (_, idx) => {
@@ -274,9 +302,9 @@ The classification logic implemented in \`TopicMasteryService\` handles bounds c
     });
     await Promise.all(loadPromises);
     const loadDuration = Date.now() - startLoad;
-    
+
     console.log(`Simulated enqueuing of 1,000 jobs in: ${loadDuration}ms`);
-    
+
     // Save evaluation-load-test.md
     const loadTestPath = path.join(artifactsDir, "evaluation-load-test.md");
     const loadTestContent = `# Evaluation Load Testing Report
@@ -303,7 +331,10 @@ The BullMQ + Redis evaluation worker is capable of handling peak candidate submi
     // 6. END-TO-END EVALUATION UAT & GAP REPORT
     // ==========================================
     console.log("\n--> Generating E2E UAT Gap Report...");
-    const uatReportPath = path.join(artifactsDir, "evaluation-uat-gap-report.md");
+    const uatReportPath = path.join(
+      artifactsDir,
+      "evaluation-uat-gap-report.md",
+    );
     const uatReportContent = `# End-to-End Evaluation UAT Gap Report
 
 ## UAT Flow Checked
@@ -332,11 +363,10 @@ The core assessment intelligence engine has zero active critical or major archit
     console.log("\n==========================================");
     console.log("All audits completed successfully!");
     console.log("==========================================");
-
   } finally {
     // Teardown: Cleanup all seeded benchmark records safely in reverse order
     console.log("\nInitiating benchmark data clean up...");
-    
+
     await prisma.evaluationAnalytics.deleteMany({
       where: { attemptId: { in: attemptIds } },
     });
@@ -358,9 +388,11 @@ The core assessment intelligence engine has zero active critical or major archit
       where: { id: { in: userIds } },
     });
 
-    await prisma.testConfig.delete({
-      where: { id: testConfigId },
-    }).catch(() => {});
+    await prisma.testConfig
+      .delete({
+        where: { id: testConfigId },
+      })
+      .catch(() => {});
 
     console.log("Cleanup complete. Database clean.");
   }

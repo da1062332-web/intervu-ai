@@ -27,13 +27,17 @@ export class CandidateResultRepository extends BaseRepository<
         attempt: {
           include: {
             testConfig: true,
-          }
-        }
+          },
+        },
       },
     });
   }
 
-  async findCandidateResults(candidateId: string, page: number = 1, limit: number = 10) {
+  async findCandidateResults(
+    candidateId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
     const skip = (page - 1) * limit;
     const where = { candidateId };
 
@@ -45,9 +49,9 @@ export class CandidateResultRepository extends BaseRepository<
         skip,
         include: {
           attempt: {
-            include: { testConfig: true }
-          }
-        }
+            include: { testConfig: true },
+          },
+        },
       }),
       this.db.candidateResult.count({ where }),
     ]);
@@ -61,9 +65,9 @@ export class CandidateResultRepository extends BaseRepository<
       orderBy: { createdAt: "desc" },
       include: {
         attempt: {
-          include: { testConfig: true }
-        }
-      }
+          include: { testConfig: true },
+        },
+      },
     });
   }
 
@@ -75,7 +79,7 @@ export class CandidateResultRepository extends BaseRepository<
 
   async findRecommendations(attemptId: string) {
     const evaluation = await this.db.evaluationResult.findFirst({
-      where: { testInstanceId: attemptId }
+      where: { testInstanceId: attemptId },
     });
     if (!evaluation) return [];
     return this.db.recommendation.findMany({
@@ -93,16 +97,16 @@ export class CandidateResultRepository extends BaseRepository<
   async getEvaluationStatus(attemptId: string) {
     const state = await this.db.testInstance.findUnique({
       where: { id: attemptId },
-      select: { 
+      select: {
         status: true,
-        candidateResult: { select: { id: true } }
-      }
+        candidateResult: { select: { id: true } },
+      },
     });
-    
+
     // Also check evaluation run
     const evalRun = await this.db.evaluationRun.findFirst({
       where: { attemptId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     return { state, evalRun };

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class RuntimeRepository {
@@ -30,7 +30,7 @@ export class RuntimeRepository {
     // Update the latest started build for this testId
     const build = await this.prisma.runtimeBuild.findFirst({
       where: { testId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     if (build) {
       await this.prisma.runtimeBuild.update({

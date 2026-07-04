@@ -52,28 +52,45 @@ export class ResultsController {
 
   @Get("dashboard")
   @ApiOperation({ summary: "Get candidate dashboard widgets" })
-  @ApiResponse({ status: 200, description: "Dashboard widgets retrieved successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Dashboard widgets retrieved successfully",
+  })
   async getDashboardWidgets(@CurrentUser() user: { id: string }) {
     return this.resultQueryService.getDashboardWidgets(user.id);
   }
 
   @Get("latest")
   @ApiOperation({ summary: "Get latest result for the candidate" })
-  @ApiResponse({ status: 200, description: "Latest result retrieved successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Latest result retrieved successfully",
+  })
   async getLatestResult(@CurrentUser() user: { id: string }) {
     return this.resultQueryService.getLatestResult(user.id);
   }
 
   @Get("candidate/:candidateId")
   @ApiOperation({ summary: "List assessment results for a specific candidate" })
-  @ApiParam({ name: "candidateId", required: true, description: "Candidate ID" })
-  @ApiResponse({ status: 200, description: "Candidate results retrieved successfully" })
+  @ApiParam({
+    name: "candidateId",
+    required: true,
+    description: "Candidate ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Candidate results retrieved successfully",
+  })
   async listCandidateResults(
     @Param("candidateId") candidateId: string,
     @Query("page") page: number = 1,
-    @Query("limit") limit: number = 10
+    @Query("limit") limit: number = 10,
   ) {
-    return this.resultQueryService.listCandidateResults(candidateId, page, limit);
+    return this.resultQueryService.listCandidateResults(
+      candidateId,
+      page,
+      limit,
+    );
   }
 
   @Get("status/:attemptId")
@@ -102,8 +119,15 @@ export class ResultsController {
 
   @Get(":attemptId/recommendations")
   @ApiOperation({ summary: "Get evaluation recommendations" })
-  @ApiParam({ name: "attemptId", required: true, description: "Test attempt ID" })
-  @ApiResponse({ status: 200, description: "Recommendations retrieved successfully" })
+  @ApiParam({
+    name: "attemptId",
+    required: true,
+    description: "Test attempt ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Recommendations retrieved successfully",
+  })
   async getRecommendations(@Param("attemptId") attemptId: string) {
     // Calling our new result-query recommendations mapping
     return this.resultQueryService.getRecommendations(attemptId);
@@ -125,7 +149,11 @@ export class ResultsController {
 
   @Get(":attemptId/rank")
   @ApiOperation({ summary: "Get candidate ranking details" })
-  @ApiParam({ name: "attemptId", required: true, description: "Test attempt ID" })
+  @ApiParam({
+    name: "attemptId",
+    required: true,
+    description: "Test attempt ID",
+  })
   async getCandidateRank(
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
@@ -147,8 +175,14 @@ export class ResultsController {
   }
 
   @Get(":attemptId/insights")
-  @ApiOperation({ summary: "Get candidate evaluation insights and improvement plans" })
-  @ApiParam({ name: "attemptId", required: true, description: "Test attempt ID" })
+  @ApiOperation({
+    summary: "Get candidate evaluation insights and improvement plans",
+  })
+  @ApiParam({
+    name: "attemptId",
+    required: true,
+    description: "Test attempt ID",
+  })
   async getCandidateInsights(
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
@@ -182,7 +216,8 @@ export class ResultsController {
         }
       : null;
     if (!plan) {
-      const generated = await this.improvementPlanService.generatePlans(attemptId);
+      const generated =
+        await this.improvementPlanService.generatePlans(attemptId);
       plan = {
         plan7Day: generated.plan7Day,
         plan14Day: generated.plan14Day,
@@ -197,9 +232,18 @@ export class ResultsController {
   }
 
   @Get(":id")
-  @ApiOperation({ summary: "Get assessment result details by attempt ID or evaluation ID" })
-  @ApiParam({ name: "id", required: true, description: "Test attempt ID or evaluation ID" })
-  @ApiResponse({ status: 200, description: "Result details retrieved successfully" })
+  @ApiOperation({
+    summary: "Get assessment result details by attempt ID or evaluation ID",
+  })
+  @ApiParam({
+    name: "id",
+    required: true,
+    description: "Test attempt ID or evaluation ID",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Result details retrieved successfully",
+  })
   @ApiUnauthorizedResponse({ description: "Unauthorized" })
   @ApiForbiddenResponse({ description: "Forbidden" })
   @ApiNotFoundResponse({ description: "Result not found" })

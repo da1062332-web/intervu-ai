@@ -5,12 +5,14 @@ export const resultKeys = {
   all: ['results'] as const,
   dashboard: () => [...resultKeys.all, 'dashboard'] as const,
   latest: () => [...resultKeys.all, 'latest'] as const,
-  candidate: (candidateId: string, page: number, limit: number) => [...resultKeys.all, 'candidate', candidateId, { page, limit }] as const,
+  candidate: (candidateId: string, page: number, limit: number) =>
+    [...resultKeys.all, 'candidate', candidateId, { page, limit }] as const,
   detail: (attemptId: string) => [...resultKeys.all, 'detail', attemptId] as const,
   status: (attemptId: string) => [...resultKeys.all, 'status', attemptId] as const,
   analytics: (attemptId: string) => [...resultKeys.all, 'analytics', attemptId] as const,
   analysis: (attemptId: string) => [...resultKeys.all, 'analysis', attemptId] as const,
-  recommendations: (attemptId: string) => [...resultKeys.all, 'recommendations', attemptId] as const,
+  recommendations: (attemptId: string) =>
+    [...resultKeys.all, 'recommendations', attemptId] as const,
 };
 
 export function useDashboardWidgets() {

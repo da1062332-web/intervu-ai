@@ -19,8 +19,14 @@ export const resultApi = {
     return apiClient.request<any>(`${BASE_PATH}/latest`);
   },
 
-  listCandidateResults: async (candidateId: string, page = 1, limit = 10): Promise<PaginatedResults> => {
-    return apiClient.request<PaginatedResults>(`${BASE_PATH}/candidate/${candidateId}`, { query: { page, limit } });
+  listCandidateResults: async (
+    candidateId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResults> => {
+    return apiClient.request<PaginatedResults>(`${BASE_PATH}/candidate/${candidateId}`, {
+      query: { page, limit },
+    });
   },
 
   getResultDetails: async (attemptId: string): Promise<ResultDetails> => {
