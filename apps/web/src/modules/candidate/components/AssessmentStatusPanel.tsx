@@ -87,7 +87,7 @@ export function AssessmentStatusPanel() {
               </div>
             ))}
 
-            {enrolledTests.map((test: ActiveTestItem) => (
+            {enrolledTests.map((test: any) => (
               <div
                 key={test.id}
                 className='flex items-center justify-between p-4 border rounded-lg bg-card/50'

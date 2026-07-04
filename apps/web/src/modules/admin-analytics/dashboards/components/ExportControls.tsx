@@ -9,13 +9,16 @@ import { useSessionStore } from '@/store/session.store';
 export function ExportControls() {
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const triggerExport = async (type: 'questions' | 'reviews' | 'assessments', format: 'csv' | 'json') => {
+  const triggerExport = async (
+    type: 'questions' | 'reviews' | 'assessments',
+    format: 'csv' | 'json',
+  ) => {
     const key = `${type}-${format}`;
     try {
       setDownloading(key);
       const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/admin/export/${type}?format=${format}`;
       const token = useSessionStore.getState().accessToken;
-      
+
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token || ''}`,

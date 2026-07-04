@@ -38,6 +38,7 @@ const makeConfig = (
           {
             topicId: "topic-1",
             topic: { id: "topic-1", name: "Arrays", status: "ACTIVE" },
+            topicWeightage: { weightage: 100 },
           },
         ],
       },

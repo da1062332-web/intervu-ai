@@ -39,7 +39,7 @@ export class QuestionProviderService {
       }
 
       // We dynamically import GenerationService so we don't break if not present
-      const { GenerationService } = require('@intervu-ai/ai-core');
+      const { GenerationService } = await import("@intervu-ai/ai-core");
       const generationService = new GenerationService();
 
       for (let i = 0; i < missingCount; i++) {
@@ -47,10 +47,13 @@ export class QuestionProviderService {
         const result = await generationService.generateQuestion(
           {
             conceptKey: req.conceptKey,
-            difficultyLevel: req.difficultyLevel.toLowerCase() as 'easy' | 'medium' | 'hard',
-            questionType: 'mcq',
+            difficultyLevel: req.difficultyLevel.toLowerCase() as
+              | "easy"
+              | "medium"
+              | "hard",
+            questionType: "mcq",
           },
-          seedInput
+          seedInput,
         );
 
         const savedQuestion = await this.questionRepository.create({
@@ -61,10 +64,10 @@ export class QuestionProviderService {
           difficultyLevel: result.question.difficultyLevel.toUpperCase() as any,
           questionType: result.question.questionType,
           questionText: result.question.questionText,
-          options: result.question.options,
+          options: (result.question.options as any) || [],
           correctAnswer: result.question.correctAnswer,
           solution: result.question.solution,
-          metadata: result.question.metadata,
+          metadata: (result.question.metadata as any) || {},
         });
 
         results.push(savedQuestion);
