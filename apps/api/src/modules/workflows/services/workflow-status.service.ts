@@ -27,6 +27,9 @@ export class WorkflowStatusService {
 
   async aggregateStatus(
     workflow: ExamWorkflow,
+    prefetchedConfig?: any,
+    prefetchedAssembly?: any,
+    prefetchedPublishedAssembly?: any,
   ): Promise<
     Omit<
       WorkflowStatusDto,
@@ -39,6 +42,7 @@ export class WorkflowStatusService {
     const configStatus = await this.getConfigurationStatus(
       examId,
       workflow.currentStep,
+      prefetchedConfig,
     );
 
     // 2. Generation Status
@@ -57,6 +61,7 @@ export class WorkflowStatusService {
     const assemblyStatus = await this.getAssemblyStatus(
       examId,
       workflow.currentStep,
+      prefetchedAssembly,
     );
 
     // 5. Publishing Status (pass workflow status so COMPLETED workflows show publishing as done)
@@ -64,6 +69,7 @@ export class WorkflowStatusService {
       examId,
       workflow.currentStep,
       workflow.status,
+      prefetchedPublishedAssembly,
     );
 
     return {
@@ -81,11 +87,14 @@ export class WorkflowStatusService {
   private async getConfigurationStatus(
     examId: string,
     currentStep: WorkflowStep,
+    prefetchedConfig?: any,
   ): Promise<StepStatus> {
     try {
-      const config = await this.prisma.examConfig.findUnique({
-        where: { id: examId },
-      });
+      const config = prefetchedConfig !== undefined
+        ? prefetchedConfig
+        : await this.prisma.examConfig.findUnique({
+            where: { id: examId },
+          });
       if (!config) {
         return this.buildStepStatus("NOT_STARTED", 0);
       }
@@ -163,6 +172,7 @@ export class WorkflowStatusService {
   private async getAssemblyStatus(
     examId: string,
     currentStep: WorkflowStep,
+    prefetchedAssembly?: any,
   ): Promise<StepStatus> {
     if (this.isStepBefore(currentStep, WorkflowStep.ASSEMBLY)) {
       return this.buildStepStatus("NOT_STARTED", 0);
@@ -177,10 +187,12 @@ export class WorkflowStatusService {
     }
 
     try {
-      const assembly = await this.prisma.assembledTest.findFirst({
-        where: { configId: examId },
-        orderBy: { createdAt: "desc" },
-      });
+      const assembly = prefetchedAssembly !== undefined
+        ? prefetchedAssembly
+        : await this.prisma.assembledTest.findFirst({
+            where: { configId: examId },
+            orderBy: { createdAt: "desc" },
+          });
 
       if (assembly) {
         return this.buildStepStatus("COMPLETED", 100);
@@ -199,6 +211,7 @@ export class WorkflowStatusService {
     examId: string,
     currentStep: WorkflowStep,
     workflowStatus?: string,
+    prefetchedPublishedAssembly?: any,
   ): Promise<StepStatus> {
     if (
       this.isStepBefore(currentStep, WorkflowStep.PUBLISHING) &&
@@ -216,9 +229,11 @@ export class WorkflowStatusService {
     }
 
     try {
-      const assembly = await this.prisma.assembledTest.findFirst({
-        where: { configId: examId, status: "PUBLISHED" },
-      });
+      const assembly = prefetchedPublishedAssembly !== undefined
+        ? prefetchedPublishedAssembly
+        : await this.prisma.assembledTest.findFirst({
+            where: { configId: examId, status: "PUBLISHED" },
+          });
 
       if (assembly) {
         return this.buildStepStatus("COMPLETED", 100);

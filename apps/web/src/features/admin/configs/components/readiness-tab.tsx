@@ -93,8 +93,8 @@ export function ReadinessTab({ configId, onTabChange }: ReadinessTabProps) {
                   <CheckCircle2 className='w-5 h-5 text-green-500' />
                 ) : (
                   <Button
-                    variant='link'
-                    className='h-auto p-0 text-amber-600'
+                    variant='ghost'
+                    className='h-auto p-0 text-amber-600 underline hover:bg-transparent'
                     onClick={() => onTabChange(check.tab)}
                   >
                     Fix Issue

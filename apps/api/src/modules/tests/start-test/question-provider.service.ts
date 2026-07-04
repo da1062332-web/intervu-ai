@@ -38,7 +38,6 @@ export class QuestionProviderService {
       if (missingCount <= 0) {
         continue;
       }
-
       const generationService = new GenerationService();
 
       for (let i = 0; i < missingCount; i++) {
@@ -63,10 +62,10 @@ export class QuestionProviderService {
           difficultyLevel: result.question.difficultyLevel.toUpperCase() as any,
           questionType: result.question.questionType,
           questionText: result.question.questionText,
-          options: result.question.options,
+          options: (result.question.options as any) || [],
           correctAnswer: result.question.correctAnswer,
           solution: result.question.solution,
-          metadata: result.question.metadata,
+          metadata: (result.question.metadata as any) || {},
         });
 
         results.push(savedQuestion);

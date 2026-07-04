@@ -71,10 +71,10 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
             <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
               <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
                 <span className='text-2xl font-bold'>
-                  {selectedBlueprint.settings?.topics?.length || 0}
+                  {(selectedBlueprint as any).settings?.topics?.length || 0}
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Topics</span>
-                <Button variant='link' className='p-0 h-auto justify-start text-xs' asChild>
+                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
                   <Link href='/admin/topics' target='_blank'>
                     View Topics <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>
@@ -84,10 +84,10 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
               <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
                 <span className='text-2xl font-bold'>
                   {/* Mock logic: assume each topic has ~4 concepts for display, since blueprint schema might not embed full concepts */}
-                  {(selectedBlueprint.settings?.topics?.length || 0) * 4}
+                  {((selectedBlueprint as any).settings?.topics?.length || 0) * 4}
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Concepts</span>
-                <Button variant='link' className='p-0 h-auto justify-start text-xs' asChild>
+                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
                   <Link href='/admin/topics' target='_blank'>
                     View Concepts <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>
@@ -100,7 +100,7 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                   15
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Templates</span>
-                <Button variant='link' className='p-0 h-auto justify-start text-xs' asChild>
+                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
                   <Link href='/admin/templates' target='_blank'>
                     View Templates <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>
@@ -109,10 +109,10 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
 
               <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
                 <span className='text-2xl font-bold'>
-                  {selectedBlueprint.settings?.sections?.length || 0}
+                  {(selectedBlueprint as any).settings?.sections?.length || 0}
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Sections</span>
-                <Button variant='link' className='p-0 h-auto justify-start text-xs' asChild>
+                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
                   <Link href='/admin/blueprints' target='_blank'>
                     View Sections <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>

@@ -7,6 +7,7 @@ import { WorkflowNextActionService } from "./workflow-next-action.service";
 import { ExamWorkflowOrchestrator } from "../orchestrators/exam-workflow.orchestrator";
 import { WorkflowRepository } from "../repositories/workflow.repository";
 import { AssemblyPublisherService } from "../../assembly/services/assembly-publisher.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 describe("WorkflowFacadeService", () => {
   let service: WorkflowFacadeService;
@@ -30,6 +31,7 @@ describe("WorkflowFacadeService", () => {
         { provide: ExamWorkflowOrchestrator, useValue: {} },
         { provide: WorkflowRepository, useValue: {} },
         { provide: AssemblyPublisherService, useValue: {} },
+        { provide: PrismaService, useValue: {} },
       ],
     }).compile();
 
