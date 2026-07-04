@@ -4,7 +4,7 @@
   "private": true,
   "main": "./src/index.ts",
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "echo 'Database postinstall complete'",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",

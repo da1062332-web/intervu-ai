@@ -11,10 +11,10 @@
     "seed": "tsx packages/database/prisma/seed/index.ts"
   },
   "scripts": {
-    "postinstall": "prisma generate --schema=packages/database/prisma/schema.prisma",
+    "postinstall": "echo 'Postinstall complete'",
     "prisma:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "dev": "turbo run dev",
-    "build": "turbo run build",
+    "build": "prisma generate --schema=packages/database/prisma/schema.prisma && turbo run build",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "format": "prettier . --write",
