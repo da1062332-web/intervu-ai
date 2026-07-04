@@ -12,10 +12,12 @@ export function CandidateHistoryPage() {
         </div>
         <div>
           <h1 className='text-3xl font-bold tracking-tight'>Assessment History</h1>
-          <p className='text-muted-foreground'>Review your previous attempts, scores, and access detailed reports.</p>
+          <p className='text-muted-foreground'>
+            Review your previous attempts, scores, and access detailed reports.
+          </p>
         </div>
       </div>
-      
+
       <AttemptHistoryTable showFilters defaultLimit={10} />
     </div>
   );

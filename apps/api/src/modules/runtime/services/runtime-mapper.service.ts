@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import {
   ExecutionReadyTestDto,
   ExecutionSectionDto,
   ExecutionQuestionDto,
-} from '../../assembly/contracts/execution-ready.contract';
+} from "../../assembly/contracts/execution-ready.contract";
 import {
   RuntimeTestDto,
   RuntimeSectionDto,
   RuntimeQuestionDto,
-} from '../dto/runtime.dto';
+} from "../dto/runtime.dto";
 
 @Injectable()
 export class RuntimeMapperService {
@@ -46,7 +46,7 @@ export class RuntimeMapperService {
         difficulty: question.difficulty,
         topicId: question.topicId,
         questionOrder: question.questionOrder,
-        ...(typeof question.snapshot === 'object' && question.snapshot !== null
+        ...(typeof question.snapshot === "object" && question.snapshot !== null
           ? question.snapshot
           : {}),
       },

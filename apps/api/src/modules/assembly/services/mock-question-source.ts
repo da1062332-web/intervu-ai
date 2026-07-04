@@ -16,13 +16,13 @@ export class MockQuestionSource implements IQuestionSource {
         questionText: `Mock Question ${i + 1} for ${filters.conceptKey || "general"} (${filters.difficultyLevel || "MEDIUM"})`,
         questionType: "MULTIPLE_CHOICE",
         options: [
-          { id: 'opt1', text: 'Option A' },
-          { id: 'opt2', text: 'Option B' },
-          { id: 'opt3', text: 'Option C' },
-          { id: 'opt4', text: 'Option D' }
+          { id: "opt1", text: "Option A" },
+          { id: "opt2", text: "Option B" },
+          { id: "opt3", text: "Option C" },
+          { id: "opt4", text: "Option D" },
         ],
-        correctAnswer: 'opt1',
-        solution: 'This is the mock solution.',
+        correctAnswer: "opt1",
+        solution: "This is the mock solution.",
         metadata: {},
       } as unknown as GeneratedQuestion);
     }

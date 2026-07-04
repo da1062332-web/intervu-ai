@@ -16,6 +16,8 @@ import { AiInsightService } from "../insights/ai-insight.service";
 import { ImprovementPlanService } from "../recommendations/improvement-plan.service";
 import { ResultsService } from "../../results/services/results.service";
 import { RecommendationsService } from "../../results/services/recommendations.service";
+import { ResultQueryService } from "../../results/services/result-query.service";
+import { ResultExportService } from "../../results/services/result-export.service";
 import { PercentileService } from "../ranking/percentile.service";
 import { ResultGeneratorService } from "../services/result-generator.service";
 import { ResultStorageService } from "../services/result-storage.service";
@@ -120,6 +122,14 @@ describe("Assessment Intelligence Integration (HTTP Stack)", () => {
         {
           provide: RecommendationsService,
           useValue: recommendationsServiceMock,
+        },
+        {
+          provide: ResultQueryService,
+          useValue: {},
+        },
+        {
+          provide: ResultExportService,
+          useValue: {},
         },
         // Mock other controller deps that are not under test
         {

@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ExecutionReadyTestDto } from '../../assembly/contracts/execution-ready.contract';
-import { RuntimeTestDto } from '../dto/runtime.dto';
-import { RuntimeMapperService } from './runtime-mapper.service';
-import { RuntimeValidationService } from '../validation/runtime-validation.service';
-import { RuntimeMonitoringService } from '../monitoring/runtime-monitoring.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { ExecutionReadyTestDto } from "../../assembly/contracts/execution-ready.contract";
+import { RuntimeTestDto } from "../dto/runtime.dto";
+import { RuntimeMapperService } from "./runtime-mapper.service";
+import { RuntimeValidationService } from "../validation/runtime-validation.service";
+import { RuntimeMonitoringService } from "../monitoring/runtime-monitoring.service";
 
 @Injectable()
 export class RuntimeGeneratorService {
@@ -37,7 +37,7 @@ export class RuntimeGeneratorService {
           validationDuration,
         );
         throw new Error(
-          `Runtime validation failed: ${validationResult.errors?.join(', ')}`,
+          `Runtime validation failed: ${validationResult.errors?.join(", ")}`,
         );
       }
 

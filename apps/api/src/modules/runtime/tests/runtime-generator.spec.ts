@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { RuntimeGeneratorService } from '../services/runtime-generator.service';
-import { RuntimeMapperService } from '../services/runtime-mapper.service';
-import { RuntimeValidationService } from '../validation/runtime-validation.service';
-import { RuntimeMonitoringService } from '../monitoring/runtime-monitoring.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { RuntimeGeneratorService } from "../services/runtime-generator.service";
+import { RuntimeMapperService } from "../services/runtime-mapper.service";
+import { RuntimeValidationService } from "../validation/runtime-validation.service";
+import { RuntimeMonitoringService } from "../monitoring/runtime-monitoring.service";
 
-describe('RuntimeGeneratorService', () => {
+describe("RuntimeGeneratorService", () => {
   let service: RuntimeGeneratorService;
 
   beforeEach(async () => {
@@ -29,40 +29,40 @@ describe('RuntimeGeneratorService', () => {
     service = module.get<RuntimeGeneratorService>(RuntimeGeneratorService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 
-  it('should throw if validation fails', async () => {
+  it("should throw if validation fails", async () => {
     const invalidPackage: any = {
-      assemblyId: 'asmb-1',
+      assemblyId: "asmb-1",
       totalDurationSeconds: -100,
       sections: [],
     };
 
     await expect(service.generateRuntime(invalidPackage)).rejects.toThrow(
-      'Runtime validation failed',
+      "Runtime validation failed",
     );
   });
 
-  it('should successfully map and validate a valid package', async () => {
+  it("should successfully map and validate a valid package", async () => {
     const validPackage: any = {
-      assemblyId: 'asmb-valid',
-      configId: 'config-1',
+      assemblyId: "asmb-valid",
+      configId: "config-1",
       totalDurationSeconds: 3600,
-      metadata: { key: 'value' },
+      metadata: { key: "value" },
       sections: [
         {
-          sectionKey: 'sec-1',
-          displayName: 'Sec 1',
+          sectionKey: "sec-1",
+          displayName: "Sec 1",
           durationSeconds: 1800,
           questionCount: 1,
           questions: [
             {
-              questionId: 'q-1',
-              questionType: 'MULTIPLE_CHOICE',
-              questionText: 'Valid?',
-              options: ['Yes', 'No'],
+              questionId: "q-1",
+              questionType: "MULTIPLE_CHOICE",
+              questionText: "Valid?",
+              options: ["Yes", "No"],
             },
           ],
         },
@@ -70,7 +70,7 @@ describe('RuntimeGeneratorService', () => {
     };
 
     const result = await service.generateRuntime(validPackage);
-    expect(result.testId).toBe('asmb-valid');
+    expect(result.testId).toBe("asmb-valid");
     expect(result.duration).toBe(3600);
     expect(result.sections.length).toBe(1);
   });

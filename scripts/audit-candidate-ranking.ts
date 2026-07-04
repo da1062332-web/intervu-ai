@@ -15,13 +15,21 @@ async function runRankingAudit() {
 
   // 1. Create Performance Indexes if not already present
   console.log("Creating database performance indexes...");
-  await prisma.$executeRawUnsafe(
-    `CREATE INDEX IF NOT EXISTS idx_candidate_results_percentage ON candidate_results(percentage);`
-  ).catch(err => console.log("Skipping index creation or already exists", err.message));
-  
-  await prisma.$executeRawUnsafe(
-    `CREATE INDEX IF NOT EXISTS idx_test_instance_config_sub ON "TestInstance"("testConfigId", "submittedAt");`
-  ).catch(err => console.log("Skipping index creation or already exists", err.message));
+  await prisma
+    .$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS idx_candidate_results_percentage ON candidate_results(percentage);`,
+    )
+    .catch((err) =>
+      console.log("Skipping index creation or already exists", err.message),
+    );
+
+  await prisma
+    .$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS idx_test_instance_config_sub ON "TestInstance"("testConfigId", "submittedAt");`,
+    )
+    .catch((err) =>
+      console.log("Skipping index creation or already exists", err.message),
+    );
 
   // Define unique identifiers for our test run
   const testConfigId = `cfg_audit_${Date.now()}`;
@@ -49,7 +57,7 @@ async function runRankingAudit() {
 
     console.log("Generating 10,000 candidate results...");
     const TOTAL_RECORDS = 10000;
-    
+
     // Create users in batches of 1,000 to prevent memory limits
     const batchSize = 1000;
     for (let i = 0; i < TOTAL_RECORDS; i += batchSize) {
@@ -122,33 +130,39 @@ async function runRankingAudit() {
 
     // Test Case A: Top Performer (Index 0, 100%)
     const topResult = await prisma.candidateResult.findFirst({
-      where: { attemptId: createdInstanceIds[0] }
+      where: { attemptId: createdInstanceIds[0] },
     });
-    
+
     const startTimeTop = Date.now();
     const topRankInfo = await service.calculateRanking(topResult as any);
     const durationTop = Date.now() - startTimeTop;
-    console.log(`Top Performer Rank: ${topRankInfo.rank}/${topRankInfo.totalCandidates}, Percentile: ${topRankInfo.percentile}%, Latency: ${durationTop}ms`);
+    console.log(
+      `Top Performer Rank: ${topRankInfo.rank}/${topRankInfo.totalCandidates}, Percentile: ${topRankInfo.percentile}%, Latency: ${durationTop}ms`,
+    );
 
     // Test Case B: Bottom Performer (Index 9999, 0%)
     const bottomResult = await prisma.candidateResult.findFirst({
-      where: { attemptId: createdInstanceIds[TOTAL_RECORDS - 1] }
+      where: { attemptId: createdInstanceIds[TOTAL_RECORDS - 1] },
     });
-    
+
     const startTimeBottom = Date.now();
     const bottomRankInfo = await service.calculateRanking(bottomResult as any);
     const durationBottom = Date.now() - startTimeBottom;
-    console.log(`Bottom Performer Rank: ${bottomRankInfo.rank}/${bottomRankInfo.totalCandidates}, Percentile: ${bottomRankInfo.percentile}%, Latency: ${durationBottom}ms`);
+    console.log(
+      `Bottom Performer Rank: ${bottomRankInfo.rank}/${bottomRankInfo.totalCandidates}, Percentile: ${bottomRankInfo.percentile}%, Latency: ${durationBottom}ms`,
+    );
 
     // Test Case C: Tied Score (Index 1000, 75%)
     const tiedResult = await prisma.candidateResult.findFirst({
-      where: { attemptId: createdInstanceIds[1000] }
+      where: { attemptId: createdInstanceIds[1000] },
     });
-    
+
     const startTimeTied = Date.now();
     const tiedRankInfo = await service.calculateRanking(tiedResult as any);
     const durationTied = Date.now() - startTimeTied;
-    console.log(`Tied Score (75%) Performer Rank: ${tiedRankInfo.rank}/${tiedRankInfo.totalCandidates}, Percentile: ${tiedRankInfo.percentile}%, Latency: ${durationTied}ms`);
+    console.log(
+      `Tied Score (75%) Performer Rank: ${tiedRankInfo.rank}/${tiedRankInfo.totalCandidates}, Percentile: ${tiedRankInfo.percentile}%, Latency: ${durationTied}ms`,
+    );
 
     // Ensure SLA calculations are valid
     const totalLatency = durationTop + durationBottom + durationTied;
@@ -156,7 +170,10 @@ async function runRankingAudit() {
     console.log(`Average Rank Latency: ${averageLatency.toFixed(2)}ms`);
 
     // Generate the ranking validation report
-    const reportPath = path.join("C:\\Users\\91932\\.gemini\\antigravity\\brain\\42d66139-c0bf-434e-b6f5-88ccac7ae24a", "ranking-validation-report.md");
+    const reportPath = path.join(
+      "C:\\Users\\91932\\.gemini\\antigravity\\brain\\42d66139-c0bf-434e-b6f5-88ccac7ae24a",
+      "ranking-validation-report.md",
+    );
     const reportContent = `# Ranking Engine Validation Report
 
 ## Execution Summary
@@ -188,7 +205,7 @@ async function runRankingAudit() {
   } finally {
     // 4. Teardown: Delete all mock data safely in reverse order
     console.log("Initiating database teardown & clean up...");
-    
+
     // Split deletions into batches to avoid transaction limits
     const batchSize = 1000;
     for (let i = 0; i < createdResultIds.length; i += batchSize) {
@@ -197,7 +214,7 @@ async function runRankingAudit() {
         where: { id: { in: resultBatch } },
       });
     }
-    
+
     for (let i = 0; i < createdInstanceIds.length; i += batchSize) {
       const instanceBatch = createdInstanceIds.slice(i, i + batchSize);
       await prisma.testInstance.deleteMany({
@@ -212,9 +229,11 @@ async function runRankingAudit() {
       });
     }
 
-    await prisma.testConfig.delete({
-      where: { id: testConfigId },
-    }).catch(() => {});
+    await prisma.testConfig
+      .delete({
+        where: { id: testConfigId },
+      })
+      .catch(() => {});
 
     console.log("Teardown completed successfully. Database clean.");
   }

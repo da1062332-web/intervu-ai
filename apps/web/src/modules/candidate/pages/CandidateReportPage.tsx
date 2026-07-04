@@ -33,7 +33,7 @@ const ScoreOverview = React.memo(({ data }: { data: ReportData }) => (
       <div className='text-5xl font-bold text-primary mb-2'>{data.score}%</div>
       <Progress value={data.score} className='h-2 w-full max-w-[200px]' />
     </Card>
-    
+
     <Card className='glass-card p-6 md:col-span-2'>
       <h3 className='font-semibold mb-4 flex items-center gap-2'>
         <Clock className='size-5 text-muted-foreground' />
@@ -77,7 +77,9 @@ const StrengthSection = React.memo(({ strengths }: { strengths: string[] }) => (
           </li>
         ))}
       </ul>
-      {strengths.length === 0 && <p className='text-sm text-muted-foreground italic'>No key strengths identified.</p>}
+      {strengths.length === 0 && (
+        <p className='text-sm text-muted-foreground italic'>No key strengths identified.</p>
+      )}
     </CardContent>
   </Card>
 ));
@@ -100,7 +102,11 @@ const WeaknessSection = React.memo(({ weaknesses }: { weaknesses: string[] }) =>
           </li>
         ))}
       </ul>
-      {weaknesses.length === 0 && <p className='text-sm text-muted-foreground italic'>No significant areas for improvement identified.</p>}
+      {weaknesses.length === 0 && (
+        <p className='text-sm text-muted-foreground italic'>
+          No significant areas for improvement identified.
+        </p>
+      )}
     </CardContent>
   </Card>
 ));
@@ -123,7 +129,11 @@ const RecommendationSection = React.memo(({ recommendations }: { recommendations
           </li>
         ))}
       </ul>
-      {recommendations.length === 0 && <p className='text-sm text-muted-foreground italic'>No specific recommendations available.</p>}
+      {recommendations.length === 0 && (
+        <p className='text-sm text-muted-foreground italic'>
+          No specific recommendations available.
+        </p>
+      )}
     </CardContent>
   </Card>
 ));
@@ -138,14 +148,17 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
       setIsExporting(true);
       // Constructing standard API fetch to download blob
       const token = localStorage.getItem('intervu_access_token'); // Or however it's stored if apiClient handles it, we can use fetch for blob
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api/v1'}/reports/export/${format}?attemptId=${attemptId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || '/api/v1'}/reports/export/${format}?attemptId=${attemptId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
       if (!res.ok) throw new Error('Export failed');
-      
+
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -155,10 +168,10 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
-      toast.success(`${format.toUpperCase()} Exported successfully`, { ariaLive: 'polite' });
+
+      toast.success(`${format.toUpperCase()} Exported successfully`, { ariaLive: 'polite' } as any);
     } catch (err) {
-      toast.error(`Failed to export ${format.toUpperCase()}`, { ariaLive: 'polite' });
+      toast.error(`Failed to export ${format.toUpperCase()}`, { ariaLive: 'polite' } as any);
     } finally {
       setIsExporting(false);
     }
@@ -191,25 +204,16 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
 
   return (
     <div className='space-y-8 animate-fade-in-up pb-8'>
-      
       <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-6'>
         <ReportHeader data={data} />
-        
+
         {/* Export Panel */}
         <div className='flex gap-3 mt-4 md:mt-0'>
-          <Button 
-            variant='outline' 
-            onClick={() => handleExport('json')}
-            disabled={isExporting}
-          >
+          <Button variant='outline' onClick={() => handleExport('json')} disabled={isExporting}>
             <Download className='size-4 mr-2' />
             JSON
           </Button>
-          <Button 
-            variant='default' 
-            onClick={() => handleExport('pdf')}
-            disabled={isExporting}
-          >
+          <Button variant='default' onClick={() => handleExport('pdf')} disabled={isExporting}>
             <Download className='size-4 mr-2' />
             {isExporting ? 'Exporting...' : 'PDF'}
           </Button>
@@ -224,7 +228,6 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
       </div>
 
       <RecommendationSection recommendations={data.recommendations || []} />
-
     </div>
   );
 }

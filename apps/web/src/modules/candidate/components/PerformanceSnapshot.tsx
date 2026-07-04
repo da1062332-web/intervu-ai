@@ -1,14 +1,13 @@
 'use client';
 import React from 'react';
-import { SkillProgress } from '../types/Dashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BarChart3 } from 'lucide-react';
 
-import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
+import { useDashboardWidgets } from '@/modules/results/hooks/results.hooks';
 
 export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
-  const { data, isLoading, error } = useCandidateDashboard();
+  const { data, isLoading, error } = useDashboardWidgets();
 
   if (isLoading) {
     return (
@@ -18,7 +17,7 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
             <BarChart3 className='size-5 text-indigo-500' />
             Performance Snapshot
           </CardTitle>
-          <CardDescription>Topic mastery metrics</CardDescription>
+          <CardDescription>Overall performance metrics</CardDescription>
         </CardHeader>
         <CardContent>
           <div className='space-y-4'>
@@ -47,8 +46,6 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
     );
   }
 
-  const skills = data.skillProgress;
-
   return (
     <Card className='h-full glass-card'>
       <CardHeader>
@@ -56,24 +53,31 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
           <BarChart3 className='size-5 text-indigo-500' />
           Performance Snapshot
         </CardTitle>
-        <CardDescription>Topic mastery metrics</CardDescription>
+        <CardDescription>Overall performance metrics</CardDescription>
       </CardHeader>
       <CardContent className='space-y-5'>
-        {skills.length === 0 ? (
-          <p className='text-sm text-muted-foreground text-center py-4'>
-            No skill metrics recorded yet.
-          </p>
-        ) : (
-          skills.map((skill) => (
-            <div key={skill.skill} className='space-y-2'>
-              <div className='flex items-center justify-between text-sm'>
-                <span className='font-medium text-foreground'>{skill.skill}</span>
-                <span className='font-semibold text-muted-foreground'>{skill.score}%</span>
-              </div>
-              <Progress value={skill.score} className='h-2 bg-muted' />
-            </div>
-          ))
-        )}
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between text-sm'>
+            <span className='font-medium text-foreground'>Best Score</span>
+            <span className='font-semibold text-muted-foreground'>{data.bestScore ?? 0}%</span>
+          </div>
+          <Progress value={data.bestScore ?? 0} className='h-2 bg-indigo-100' />
+        </div>
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between text-sm'>
+            <span className='font-medium text-foreground'>Average Accuracy</span>
+            <span className='font-semibold text-muted-foreground'>
+              {data.averageAccuracy ? Math.round(data.averageAccuracy) : 0}%
+            </span>
+          </div>
+          <Progress value={data.averageAccuracy ?? 0} className='h-2 bg-blue-100' />
+        </div>
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between text-sm'>
+            <span className='font-medium text-foreground'>Assessments Completed</span>
+            <span className='font-semibold text-muted-foreground'>{data.attemptCount}</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

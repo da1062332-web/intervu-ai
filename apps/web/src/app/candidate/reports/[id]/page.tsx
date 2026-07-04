@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: 'View your detailed assessment report.',
 };
 
-export default function ReportRoute({ params }: { params: { id: string } }) {
-  return <CandidateReportPage attemptId={params.id} />;
+export default async function ReportRoute({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  return <CandidateReportPage attemptId={resolvedParams.id} />;
 }

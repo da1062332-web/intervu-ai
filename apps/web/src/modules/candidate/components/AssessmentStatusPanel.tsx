@@ -1,6 +1,5 @@
 'use client';
 
-
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
@@ -87,8 +86,8 @@ export function AssessmentStatusPanel() {
                 </Button>
               </div>
             ))}
-            
-            {enrolledTests.map((test: any) => (
+
+            {enrolledTests.map((test: ActiveTestItem) => (
               <div
                 key={test.id}
                 className='flex items-center justify-between p-4 border rounded-lg bg-card/50'

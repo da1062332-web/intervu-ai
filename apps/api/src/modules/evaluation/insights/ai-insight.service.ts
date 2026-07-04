@@ -131,22 +131,49 @@ CRITICAL INSTRUCTIONS:
 
       for (const existing of clean) {
         const existingLower = existing.toLowerCase();
-        
+
         // Find matching words of significant length (e.g. topic names like Quantitative, Mathematics, Verbal)
-        const words = lower.split(/[^a-zA-Z0-9]+/).filter(w => w.length > 4);
-        const matches = words.filter(w => existingLower.includes(w));
+        const words = lower.split(/[^a-zA-Z0-9]+/).filter((w) => w.length > 4);
+        const matches = words.filter((w) => existingLower.includes(w));
 
         if (matches.length > 0) {
-          const positiveKeywords = ["strong", "excel", "great", "high", "good", "foundation", "success"];
-          const negativeKeywords = ["improvement", "weak", "struggle", "low", "poor", "difficult", "focus"];
+          const positiveKeywords = [
+            "strong",
+            "excel",
+            "great",
+            "high",
+            "good",
+            "foundation",
+            "success",
+          ];
+          const negativeKeywords = [
+            "improvement",
+            "weak",
+            "struggle",
+            "low",
+            "poor",
+            "difficult",
+            "focus",
+          ];
 
-          const thisIsPositive = positiveKeywords.some(w => lower.includes(w));
-          const thisIsNegative = negativeKeywords.some(w => lower.includes(w));
-          const existingIsPositive = positiveKeywords.some(w => existingLower.includes(w));
-          const existingIsNegative = negativeKeywords.some(w => existingLower.includes(w));
+          const thisIsPositive = positiveKeywords.some((w) =>
+            lower.includes(w),
+          );
+          const thisIsNegative = negativeKeywords.some((w) =>
+            lower.includes(w),
+          );
+          const existingIsPositive = positiveKeywords.some((w) =>
+            existingLower.includes(w),
+          );
+          const existingIsNegative = negativeKeywords.some((w) =>
+            existingLower.includes(w),
+          );
 
           // If one is positive and the other is negative regarding the same matched topic/concept, it is a contradiction
-          if ((thisIsPositive && existingIsNegative) || (thisIsNegative && existingIsPositive)) {
+          if (
+            (thisIsPositive && existingIsNegative) ||
+            (thisIsNegative && existingIsPositive)
+          ) {
             isContradictory = true;
             break;
           }

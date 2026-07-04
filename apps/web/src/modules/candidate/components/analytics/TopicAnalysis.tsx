@@ -14,7 +14,7 @@ interface TopicAnalysisProps {
 
 export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: TopicAnalysisProps) {
   if (!topics || topics.length === 0) {
-    return <div className="text-sm text-muted-foreground italic">No topic analysis available.</div>;
+    return <div className='text-sm text-muted-foreground italic'>No topic analysis available.</div>;
   }
 
   // Sort by score descending
@@ -26,17 +26,28 @@ export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: Topic
         <div key={idx} className='space-y-1.5'>
           <div className='flex justify-between items-center text-sm'>
             <span className='font-medium text-foreground'>{t.topic}</span>
-            <span className={`font-semibold ${
-              t.score >= 80 ? 'text-green-600 dark:text-green-400' :
-              t.score >= 50 ? 'text-orange-500' : 'text-red-500'
-            }`}>
+            <span
+              className={`font-semibold ${
+                t.score >= 80
+                  ? 'text-green-600 dark:text-green-400'
+                  : t.score >= 50
+                    ? 'text-orange-500'
+                    : 'text-red-500'
+              }`}
+            >
               {t.score}%
             </span>
           </div>
-          <Progress value={t.score} className={`h-2 ${
-            t.score >= 80 ? '[&>div]:bg-green-500' :
-            t.score >= 50 ? '[&>div]:bg-orange-500' : '[&>div]:bg-red-500'
-          }`} />
+          <Progress
+            value={t.score}
+            className={`h-2 ${
+              t.score >= 80
+                ? '[&>div]:bg-green-500'
+                : t.score >= 50
+                  ? '[&>div]:bg-orange-500'
+                  : '[&>div]:bg-red-500'
+            }`}
+          />
         </div>
       ))}
     </div>

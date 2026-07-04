@@ -24,7 +24,8 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   college: z.string().optional().or(z.literal('')),
-  graduationYear: z.string()
+  graduationYear: z
+    .string()
     .optional()
     .or(z.literal(''))
     .refine((val) => {
@@ -39,7 +40,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function CandidateProfilePage() {
   const { data: profile, isLoading } = useCandidateProfile();
   const { mutate: updateProfile, isPending } = useUpdateCandidateProfile();
-  
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -50,15 +51,22 @@ export function CandidateProfilePage() {
     },
   });
 
-  const { register, handleSubmit, reset, formState: { isDirty, errors } } = form;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isDirty, errors },
+  } = form;
 
   useEffect(() => {
     if (profile) {
       reset({
         name: profile.name || '',
-        phone: profile.phone || '',
-        college: profile.college || '',
-        graduationYear: profile.graduationYear ? profile.graduationYear.toString() : '',
+        phone: (profile as any).phone || '',
+        college: (profile as any).college || '',
+        graduationYear: (profile as any).graduationYear
+          ? (profile as any).graduationYear.toString()
+          : '',
       });
     }
   }, [profile, reset]);
@@ -78,12 +86,12 @@ export function CandidateProfilePage() {
         phone: data.phone,
         college: data.college,
         graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
-      },
+      } as any,
       {
         onSuccess: (updatedUser) => {
-          toast.success('Profile updated successfully', { ariaLive: 'polite' });
+          toast.success('Profile updated successfully', { ariaLive: 'polite' } as any);
           reset(data); // reset to new clean state
-          
+
           // Update the auth/Zustand store immediately
           const currentUser = useAuthStore.getState().user;
           if (currentUser) {
@@ -93,10 +101,10 @@ export function CandidateProfilePage() {
               phone: data.phone || null,
               college: data.college || null,
               graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : null,
-            });
+            } as any);
           }
         },
-        onError: () => toast.error('Failed to update profile', { ariaLive: 'polite' }),
+        onError: () => toast.error('Failed to update profile', { ariaLive: 'polite' } as any),
       },
     );
   };
@@ -134,14 +142,9 @@ export function CandidateProfilePage() {
               <Label htmlFor='name'>Full Name</Label>
               <div className='relative'>
                 <User className='absolute left-3 top-3 size-4 text-muted-foreground' />
-                <Input
-                  id='name'
-                  {...register('name')}
-                  className='pl-9'
-                  placeholder='John Doe'
-                />
+                <Input id='name' {...register('name')} className='pl-9' placeholder='John Doe' />
               </div>
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+              {errors.name && <p className='text-sm text-destructive'>{errors.name.message}</p>}
             </div>
 
             <div className='space-y-2'>
@@ -155,7 +158,7 @@ export function CandidateProfilePage() {
                   placeholder='+91 9876543210'
                 />
               </div>
-              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+              {errors.phone && <p className='text-sm text-destructive'>{errors.phone.message}</p>}
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -170,7 +173,9 @@ export function CandidateProfilePage() {
                     placeholder='IIT Bombay'
                   />
                 </div>
-                {errors.college && <p className="text-sm text-destructive">{errors.college.message}</p>}
+                {errors.college && (
+                  <p className='text-sm text-destructive'>{errors.college.message}</p>
+                )}
               </div>
 
               <div className='space-y-2'>
@@ -187,7 +192,9 @@ export function CandidateProfilePage() {
                     placeholder='2026'
                   />
                 </div>
-                {errors.graduationYear && <p className="text-sm text-destructive">{errors.graduationYear.message}</p>}
+                {errors.graduationYear && (
+                  <p className='text-sm text-destructive'>{errors.graduationYear.message}</p>
+                )}
               </div>
             </div>
           </CardContent>

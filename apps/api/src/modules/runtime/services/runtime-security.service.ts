@@ -1,5 +1,5 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Injectable, ForbiddenException } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class RuntimeSecurityService {
@@ -17,23 +17,23 @@ export class RuntimeSecurityService {
     });
 
     if (!assembly) {
-      throw new ForbiddenException('Runtime does not exist');
+      throw new ForbiddenException("Runtime does not exist");
     }
 
-    if (assembly.status === 'ARCHIVED') {
-      throw new ForbiddenException('Runtime is archived');
+    if (assembly.status === "ARCHIVED") {
+      throw new ForbiddenException("Runtime is archived");
     }
 
-    if (assembly.status !== 'PUBLISHED') {
-      throw new ForbiddenException('Runtime is not published');
+    if (assembly.status !== "PUBLISHED") {
+      throw new ForbiddenException("Runtime is not published");
     }
 
     if (assembly.examConfig?.isArchived) {
-      throw new ForbiddenException('Exam Configuration is archived');
+      throw new ForbiddenException("Exam Configuration is archived");
     }
 
     if (assembly.examConfig?.isActive === false) {
-      throw new ForbiddenException('Exam Configuration is disabled');
+      throw new ForbiddenException("Exam Configuration is disabled");
     }
 
     return true;
