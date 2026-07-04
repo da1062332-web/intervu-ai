@@ -82,6 +82,11 @@ export class ConfigurationValidatorService {
                 `Section "${section.name}": topic "${st.topic.name}" is not active`,
               );
             }
+            if (!st.topicWeightage) {
+              errors.push(
+                `Missing topic mappings for topic ${st.topic?.name || st.topicId} in section ${section.name}`,
+              );
+            }
           }
         }
       }

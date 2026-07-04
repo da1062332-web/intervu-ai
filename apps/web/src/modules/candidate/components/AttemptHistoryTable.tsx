@@ -26,19 +26,6 @@ interface AttemptHistoryTableProps {
 
 const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
   return (
-    <tr className='hover:bg-muted/50 transition-colors'>
-      <td className='px-4 py-3 font-medium'>{attempt.assessmentName}</td>
-      <td className='px-4 py-3'>{format(new Date(attempt.date), 'MMM d, yyyy')}</td>
-      <td className='px-4 py-3'>
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            attempt.status === 'COMPLETED'
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : attempt.status === 'IN_PROGRESS'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-          }`}
-        >
     <ShadcnTableRow className='hover:bg-muted/50 transition-colors'>
       <TableCell className='font-medium'>{attempt.assessmentName}</TableCell>
       <TableCell>{format(new Date(attempt.date), 'MMM d, yyyy')}</TableCell>
@@ -180,55 +167,6 @@ export function AttemptHistoryTable({
       </CardHeader>
       <CardContent className='flex-1 flex flex-col'>
         <div className='rounded-md border overflow-x-auto'>
-          <table className='w-full text-sm text-left'>
-            <thead className='bg-muted/50 text-muted-foreground border-b'>
-              <tr>
-                <th
-                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('assessmentName')}
-                  aria-sort={
-                    sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'
-                  }
-                >
-                  <div className='flex items-center gap-1'>
-                    Assessment <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </th>
-                <th
-                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('date')}
-                  aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
-                >
-                  <div className='flex items-center gap-1'>
-                    Date <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </th>
-                <th
-                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('status')}
-                  aria-sort={
-                    sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'
-                  }
-                >
-                  <div className='flex items-center gap-1'>
-                    Status <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </th>
-                <th
-                  className='px-4 py-3 font-medium text-right cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('score')}
-                  aria-sort={
-                    sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'
-                  }
-                >
-                  <div className='flex items-center justify-end gap-1'>
-                    Score <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </th>
-                <th className='px-4 py-3 font-medium text-right'>Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y'>
           <Table>
             <TableHeader>
               <ShadcnTableRow>

@@ -51,6 +51,8 @@ export interface ConfigPreviewResponse {
     durationMinutes: number;
     topicCount: number;
   }>;
+  totalTopics: number;
+  totalTemplates: number;
   isReadyToPublish: boolean;
 }
 

@@ -33,14 +33,6 @@ export default function DashboardPage() {
       <PageHeader
         title={`Welcome back, ${firstName} 👋`}
         subtitle="Here's what's happening with your interview assessments today."
-        action={
-          <Button asChild className='gap-2' id='create-assessment-btn'>
-            <Link href='/admin/tests'>
-              <Plus className='size-4' />
-              New Assessment
-            </Link>
-          </Button>
-        }
       />
 
       {/* ── Stat Cards ── */}
