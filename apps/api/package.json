@@ -21,6 +21,7 @@
     "verify-api-stack": "ts-node scripts/verify-api-stack.ts"
   },
   "dependencies": {
+    "@intervu-ai/ai-core": "*",
     "@intervu-ai/contracts": "*",
     "@intervu-ai/database": "*",
     "@intervu-ai/shared-logger": "*",
