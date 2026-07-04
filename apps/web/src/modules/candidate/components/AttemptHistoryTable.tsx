@@ -29,11 +29,15 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
       <td className='px-4 py-3 font-medium'>{attempt.assessmentName}</td>
       <td className='px-4 py-3'>{format(new Date(attempt.date), 'MMM d, yyyy')}</td>
       <td className='px-4 py-3'>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          attempt.status === 'COMPLETED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-          attempt.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-          'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            attempt.status === 'COMPLETED'
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              : attempt.status === 'IN_PROGRESS'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+          }`}
+        >
           {attempt.status.replace('_', ' ')}
         </span>
       </td>
@@ -73,7 +77,10 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
 });
 TableRow.displayName = 'TableRow';
 
-export function AttemptHistoryTable({ showFilters = false, defaultLimit = 5 }: AttemptHistoryTableProps) {
+export function AttemptHistoryTable({
+  showFilters = false,
+  defaultLimit = 5,
+}: AttemptHistoryTableProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -100,19 +107,16 @@ export function AttemptHistoryTable({ showFilters = false, defaultLimit = 5 }: A
 
     if (search) {
       const lower = search.toLowerCase();
-      result = result.filter(a => a.assessmentName.toLowerCase().includes(lower));
+      result = result.filter((a) => a.assessmentName.toLowerCase().includes(lower));
     }
 
     if (statusFilter !== 'ALL') {
-      result = result.filter(a => a.status === statusFilter);
+      result = result.filter((a) => a.status === statusFilter);
     }
 
     result.sort((a, b) => {
-      let valA = a[sortField];
-      let valB = b[sortField];
-      
-      if (valA === null) valA = '';
-      if (valB === null) valB = '';
+      let valA = a[sortField] as any;
+      let valB = b[sortField] as any;
 
       if (valA < valB) return sortAsc ? -1 : 1;
       if (valA > valB) return sortAsc ? 1 : -1;
@@ -144,17 +148,17 @@ export function AttemptHistoryTable({ showFilters = false, defaultLimit = 5 }: A
           <div className='flex flex-wrap items-center gap-2'>
             <div className='relative'>
               <Search className='absolute left-2.5 top-2.5 size-4 text-muted-foreground' />
-              <Input 
-                placeholder='Search assessments...' 
+              <Input
+                placeholder='Search assessments...'
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 className='pl-9 h-9 w-[180px] sm:w-[220px] text-sm'
               />
             </div>
-            <select 
+            <select
               className='h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
               value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
+              onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value='ALL'>All Status</option>
               <option value='COMPLETED'>Completed</option>
@@ -169,17 +173,47 @@ export function AttemptHistoryTable({ showFilters = false, defaultLimit = 5 }: A
           <table className='w-full text-sm text-left'>
             <thead className='bg-muted/50 text-muted-foreground border-b'>
               <tr>
-                <th className='px-4 py-3 font-medium cursor-pointer hover:text-foreground' onClick={() => toggleSort('assessmentName')} aria-sort={sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center gap-1'>Assessment <ArrowUpDown className='size-3 opacity-50' /></div>
+                <th
+                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('assessmentName')}
+                  aria-sort={
+                    sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'
+                  }
+                >
+                  <div className='flex items-center gap-1'>
+                    Assessment <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </th>
-                <th className='px-4 py-3 font-medium cursor-pointer hover:text-foreground' onClick={() => toggleSort('date')} aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center gap-1'>Date <ArrowUpDown className='size-3 opacity-50' /></div>
+                <th
+                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('date')}
+                  aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
+                >
+                  <div className='flex items-center gap-1'>
+                    Date <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </th>
-                <th className='px-4 py-3 font-medium cursor-pointer hover:text-foreground' onClick={() => toggleSort('status')} aria-sort={sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center gap-1'>Status <ArrowUpDown className='size-3 opacity-50' /></div>
+                <th
+                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('status')}
+                  aria-sort={
+                    sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'
+                  }
+                >
+                  <div className='flex items-center gap-1'>
+                    Status <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </th>
-                <th className='px-4 py-3 font-medium text-right cursor-pointer hover:text-foreground' onClick={() => toggleSort('score')} aria-sort={sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <div className='flex items-center justify-end gap-1'>Score <ArrowUpDown className='size-3 opacity-50' /></div>
+                <th
+                  className='px-4 py-3 font-medium text-right cursor-pointer hover:text-foreground'
+                  onClick={() => toggleSort('score')}
+                  aria-sort={
+                    sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'
+                  }
+                >
+                  <div className='flex items-center justify-end gap-1'>
+                    Score <ArrowUpDown className='size-3 opacity-50' />
+                  </div>
                 </th>
                 <th className='px-4 py-3 font-medium text-right'>Actions</th>
               </tr>

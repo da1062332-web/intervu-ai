@@ -1,6 +1,5 @@
 'use client';
 
-
 import { CandidateDashboardHeader } from '@/components/candidate/dashboard/CandidateDashboardHeader';
 
 import { UpcomingTests } from '../components/UpcomingTests';

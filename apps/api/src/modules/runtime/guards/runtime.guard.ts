@@ -3,8 +3,8 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-} from '@nestjs/common';
-import { RuntimeSecurityService } from '../services/runtime-security.service';
+} from "@nestjs/common";
+import { RuntimeSecurityService } from "../services/runtime-security.service";
 
 @Injectable()
 export class RuntimeGuard implements CanActivate {
@@ -15,11 +15,11 @@ export class RuntimeGuard implements CanActivate {
     const testId = request.params.testId;
 
     if (!testId) {
-      throw new ForbiddenException('Test ID is required');
+      throw new ForbiddenException("Test ID is required");
     }
 
     const user = request.user;
-    if (user?.role === 'ADMIN') {
+    if (user?.role === "ADMIN") {
       return true;
     }
 

@@ -167,7 +167,8 @@ export class ReEvaluationService {
       },
     });
 
-    const topicAccuracySums: Record<string, { sum: number; count: number }> = {};
+    const topicAccuracySums: Record<string, { sum: number; count: number }> =
+      {};
     let totalAccuracySum = 0;
     let totalAttemptsCount = 0;
 
@@ -192,7 +193,9 @@ export class ReEvaluationService {
     });
 
     const averageAccuracy =
-      totalAttemptsCount > 0 ? totalAccuracySum / totalAttemptsCount : averageScore;
+      totalAttemptsCount > 0
+        ? totalAccuracySum / totalAttemptsCount
+        : averageScore;
 
     // Sort topics to find top and weakest
     const topicsList = Object.entries(topicAccuracySums).map(

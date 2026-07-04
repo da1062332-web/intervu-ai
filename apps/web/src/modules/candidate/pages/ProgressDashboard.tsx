@@ -24,7 +24,7 @@ const ProgressCards = React.memo(({ overview }: { overview: any }) => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className='glass-card'>
         <CardContent className='p-6 flex items-center gap-4'>
           <div className='bg-green-500/10 p-3 rounded-xl text-green-500'>
@@ -36,7 +36,7 @@ const ProgressCards = React.memo(({ overview }: { overview: any }) => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className='glass-card'>
         <CardContent className='p-6 flex items-center gap-4'>
           <div className='bg-yellow-500/10 p-3 rounded-xl text-yellow-500'>
@@ -73,7 +73,9 @@ export function ProgressDashboard() {
       <div className='space-y-6 animate-pulse'>
         <div className='h-12 w-48 bg-muted rounded' />
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-          {[1,2,3,4].map(i => <div key={i} className='h-24 bg-muted rounded-xl' />)}
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className='h-24 bg-muted rounded-xl' />
+          ))}
         </div>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           <div className='lg:col-span-2 h-64 bg-muted rounded-xl' />
@@ -89,7 +91,9 @@ export function ProgressDashboard() {
         <AlertCircle className='size-12 text-destructive' />
         <div>
           <h2 className='text-xl font-bold'>Unable to load progress</h2>
-          <p className='text-muted-foreground'>We couldn't fetch your progress data at this time.</p>
+          <p className='text-muted-foreground'>
+            We couldn't fetch your progress data at this time.
+          </p>
         </div>
       </div>
     );
@@ -116,7 +120,7 @@ export function ProgressDashboard() {
             <CardDescription>Your performance over recent assessments</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScoreTrendChart data={data.trend} height="240px" />
+            <ScoreTrendChart data={data.trend} height='240px' />
           </CardContent>
         </Card>
 
@@ -146,10 +150,10 @@ export function ProgressDashboard() {
             <CardDescription>How you stack up against other candidates</CardDescription>
           </CardHeader>
           <CardContent className='flex flex-col justify-center h-full pb-8'>
-            <PerformanceComparisonChart 
-              userScore={data.overview.averageScore} 
+            <PerformanceComparisonChart
+              userScore={data.overview.averageScore}
               averageScore={65} // Example static for average
-              topPercentileScore={data.overview.topPercentileScore} 
+              topPercentileScore={data.overview.topPercentileScore}
             />
           </CardContent>
         </Card>

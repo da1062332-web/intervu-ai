@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RuntimeRepository } from '../repositories/runtime.repository';
+import { Injectable, Logger } from "@nestjs/common";
+import { RuntimeRepository } from "../repositories/runtime.repository";
 
 @Injectable()
 export class RuntimeMonitoringService {
@@ -8,12 +8,12 @@ export class RuntimeMonitoringService {
   constructor(private readonly runtimeRepository: RuntimeRepository) {}
 
   async trackBuildStarted(testId: string): Promise<void> {
-    await this.runtimeRepository.createBuild(testId, 'STARTED', 0);
+    await this.runtimeRepository.createBuild(testId, "STARTED", 0);
   }
 
   async trackBuildCompleted(testId: string, durationMs: number): Promise<void> {
-    await this.runtimeRepository.updateBuild(testId, 'COMPLETED', durationMs);
-    await this.recordMetric(testId, 'generation_time', durationMs);
+    await this.runtimeRepository.updateBuild(testId, "COMPLETED", durationMs);
+    await this.recordMetric(testId, "generation_time", durationMs);
   }
 
   async trackBuildFailed(
@@ -21,7 +21,7 @@ export class RuntimeMonitoringService {
     error: string,
     durationMs: number,
   ): Promise<void> {
-    await this.runtimeRepository.updateBuild(testId, 'FAILED', durationMs, {
+    await this.runtimeRepository.updateBuild(testId, "FAILED", durationMs, {
       error,
     });
   }
@@ -31,7 +31,7 @@ export class RuntimeMonitoringService {
     durationMs: number,
   ): Promise<void> {
     await this.runtimeRepository.logValidation(testId, true);
-    await this.recordMetric(testId, 'validation_time', durationMs);
+    await this.recordMetric(testId, "validation_time", durationMs);
   }
 
   async trackValidationFailed(
@@ -40,11 +40,11 @@ export class RuntimeMonitoringService {
     durationMs: number,
   ): Promise<void> {
     await this.runtimeRepository.logValidation(testId, false, errors);
-    await this.recordMetric(testId, 'validation_time', durationMs);
+    await this.recordMetric(testId, "validation_time", durationMs);
   }
 
   async trackLoadTime(testId: string, loadTimeMs: number): Promise<void> {
-    await this.recordMetric(testId, 'load_time', loadTimeMs);
+    await this.recordMetric(testId, "load_time", loadTimeMs);
   }
 
   private async recordMetric(
