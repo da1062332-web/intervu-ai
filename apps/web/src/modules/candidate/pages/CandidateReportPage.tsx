@@ -165,20 +165,10 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
   const handleExport = async (format: 'pdf' | 'json') => {
     try {
       setIsExporting(true);
-      // Constructing standard API fetch to download blob
-      const token = localStorage.getItem('intervu_access_token'); // Or however it's stored if apiClient handles it, we can use fetch for blob
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || '/api/v1'}/reports/export/${format}?attemptId=${attemptId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!res.ok) throw new Error('Export failed');
-
-      const blob = await res.blob();
+      const blob = await apiClient.request<Blob>(`/reports/export/${format}?attemptId=${attemptId}`, {
+        responseType: 'blob',
+        skipErrorToast: true
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -198,7 +188,7 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
 
   if (isLoading) {
     return (
-      <div className='space-y-6 animate-pulse p-4'>
+      <div className='space-y-6 animate-pulse p-4' aria-busy='true' aria-label='Loading report'>
         <div className='h-12 w-1/3 bg-muted rounded' />
         <div className='h-48 bg-muted rounded-xl' />
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>

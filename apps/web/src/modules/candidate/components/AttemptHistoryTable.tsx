@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAttemptHistory } from '../hooks/useAttemptHistory';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
@@ -100,14 +100,14 @@ export function AttemptHistoryTable({
   const limit = showFilters ? 20 : defaultLimit;
   const { data, isLoading } = useAttemptHistory(page, limit);
 
-  const toggleSort = (field: keyof AttemptItem) => {
+  const toggleSort = useCallback((field: keyof AttemptItem) => {
     if (sortField === field) {
       setSortAsc(!sortAsc);
     } else {
       setSortField(field);
       setSortAsc(true);
     }
-  };
+  }, [sortField, sortAsc]);
 
   const processedAttempts = useMemo(() => {
     if (!data?.attempts) return [];
@@ -182,6 +182,7 @@ export function AttemptHistoryTable({
             <TableHeader>
               <ShadcnTableRow>
                 <TableHead
+                  scope="col"
                   className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('assessmentName')}
                   aria-sort={
@@ -193,6 +194,7 @@ export function AttemptHistoryTable({
                   </div>
                 </TableHead>
                 <TableHead
+                  scope="col"
                   className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('date')}
                   aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
@@ -202,6 +204,7 @@ export function AttemptHistoryTable({
                   </div>
                 </TableHead>
                 <TableHead
+                  scope="col"
                   className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('status')}
                   aria-sort={
@@ -213,6 +216,7 @@ export function AttemptHistoryTable({
                   </div>
                 </TableHead>
                 <TableHead
+                  scope="col"
                   className='text-right cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('score')}
                   aria-sort={
@@ -223,7 +227,7 @@ export function AttemptHistoryTable({
                     Score <ArrowUpDown className='size-3 opacity-50' />
                   </div>
                 </TableHead>
-                <TableHead className='text-right'>Actions</TableHead>
+                <TableHead scope="col" className='text-right'>Actions</TableHead>
               </ShadcnTableRow>
             </TableHeader>
             <TableBody>
