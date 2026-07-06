@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Download, FileText, Database, ShieldAlert, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { useSessionStore } from '@/store/session.store';
+import { apiClient } from '@/services/api/client';
 
 export function ExportControls() {
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -16,20 +16,10 @@ export function ExportControls() {
     const key = `${type}-${format}`;
     try {
       setDownloading(key);
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/v1/admin/export/${type}?format=${format}`;
-      const token = useSessionStore.getState().accessToken;
-
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token || ''}`,
-        },
+      const blob = await apiClient.request<Blob>(`/admin/export/${type}?format=${format}`, {
+        responseType: 'blob',
+        skipErrorToast: true
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate export file');
-      }
-
-      const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;

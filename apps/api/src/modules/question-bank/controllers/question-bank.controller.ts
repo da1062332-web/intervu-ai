@@ -75,6 +75,16 @@ export class QuestionBankController {
     };
   }
 
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Root search of the question bank",
+  })
+  @ApiOkResponse({ description: "Search results returned successfully" })
+  async rootSearch(@Query() filters: SearchFiltersDto) {
+    return this.search(filters);
+  }
+
   @Get("search")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

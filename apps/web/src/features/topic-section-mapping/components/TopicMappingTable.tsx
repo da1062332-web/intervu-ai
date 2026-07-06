@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { useRemoveTopic } from '../api/queries';
 import { Button } from '@/components/ui/button';
@@ -72,12 +72,12 @@ export const TopicMappingTable = React.memo(
     const removeTopic = useRemoveTopic(sectionId);
     const weightages = useTopicMappingStore((state) => state.weightages);
 
-    const handleConfirmRemove = () => {
+    const handleConfirmRemove = useCallback(() => {
       if (!topicToRemove) return;
       removeTopic.mutate(topicToRemove, {
         onSettled: () => setTopicToRemove(null),
       });
-    };
+    }, [topicToRemove, removeTopic]);
 
     if (isError) {
       return (
@@ -115,11 +115,11 @@ export const TopicMappingTable = React.memo(
           <Table>
             <TableHeader>
               <ShadcnTableRow>
-                <TableHead>Topic Name</TableHead>
-                <TableHead>Topic Code</TableHead>
-                <TableHead>Weightage</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className='text-right'>Actions</TableHead>
+                <TableHead scope="col">Topic Name</TableHead>
+                <TableHead scope="col">Topic Code</TableHead>
+                <TableHead scope="col">Weightage</TableHead>
+                <TableHead scope="col">Created At</TableHead>
+                <TableHead scope="col" className='text-right'>Actions</TableHead>
               </ShadcnTableRow>
             </TableHeader>
             <TableBody>

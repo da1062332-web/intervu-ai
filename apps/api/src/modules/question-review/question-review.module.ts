@@ -18,6 +18,8 @@ import { GenerationMonitorService } from "./monitoring/generation-monitor.servic
 import { ReviewAuditLogRepository } from "./repositories/review-audit-log.repository";
 import { GenerationMetricsRepository } from "./repositories/generation-metrics.repository";
 
+import { ReviewsController } from "./controllers/reviews.controller";
+
 @Module({
   imports: [
     PrismaModule,
@@ -25,7 +27,7 @@ import { GenerationMetricsRepository } from "./repositories/generation-metrics.r
     ConceptMappingModule,
     forwardRef(() => GenerationAiModule),
   ],
-  controllers: [QuestionReviewController],
+  controllers: [QuestionReviewController, ReviewsController],
   providers: [
     AIReviewService,
     StructureAnalyzerService,

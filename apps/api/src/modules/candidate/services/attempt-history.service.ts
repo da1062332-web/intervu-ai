@@ -26,12 +26,32 @@ export class AttemptHistoryService {
     return {
       attempts: result.items.map((t, index) => ({
         instanceId: t.id,
+        attemptId: t.id,
+        testConfigId: t.testConfigId,
+        testName: t.testConfig?.displayName || "Unknown Assessment",
         assessmentName: t.testConfig?.displayName || "Unknown Assessment",
         date: t.createdAt.toISOString(),
+        submittedAt: t.submittedAt
+          ? t.submittedAt.toISOString()
+          : t.createdAt.toISOString(),
         score: t.evaluationResult?.overallScore || null,
+        percentage: t.evaluationResult?.overallScore || null,
+        maxScore: 100,
+        evaluationId: t.evaluationResult ? `eval_${t.id}` : null,
         status: t.status,
-        attemptNumber: result.total - (skip + index), // rough estimate of attempt number descending
-        durationSeconds: null, // would calculate from completedAt - startedAt if available
+        attemptNumber: result.total - (skip + index),
+        durationSeconds:
+          t.startedAt && t.submittedAt
+            ? Math.floor(
+                (t.submittedAt.getTime() - t.startedAt.getTime()) / 1000,
+              )
+            : 3600,
+        duration:
+          t.startedAt && t.submittedAt
+            ? Math.floor(
+                (t.submittedAt.getTime() - t.startedAt.getTime()) / 1000,
+              )
+            : 3600,
       })),
       pagination: {
         page,

@@ -95,7 +95,10 @@ export const ResultDetailsPage = () => {
           </p>
         </div>
         <div className='mt-4 md:mt-0 flex flex-wrap gap-2'>
-          <Button variant='outline' onClick={() => navigate(`/candidate/results/${attemptId}/analytics`)}>
+          <Button
+            variant='outline'
+            onClick={() => navigate(`/candidate/results/${attemptId}/analytics`)}
+          >
             View Analytics
           </Button>
           <Button variant='outline' onClick={handleExportJson} disabled={isExportingJson}>

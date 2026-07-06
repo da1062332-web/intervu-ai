@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CandidateProgressService } from './candidate-progress.service';
-import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCacheService } from '../../../cache/redis-cache.service';
-import { ReportAuditService } from './report-audit.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { CandidateProgressService } from "./candidate-progress.service";
+import { PrismaService } from "@/prisma/prisma.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { ReportAuditService } from "./report-audit.service";
 
-describe('CandidateProgressService', () => {
+describe("CandidateProgressService", () => {
   let service: CandidateProgressService;
   let prisma: any;
   let cacheService: any;
@@ -36,25 +36,35 @@ describe('CandidateProgressService', () => {
     service = module.get<CandidateProgressService>(CandidateProgressService);
   });
 
-  it('should return empty progress if no evaluations', async () => {
+  it("should return empty progress if no evaluations", async () => {
     prisma.evaluationResult.findMany.mockResolvedValue([]);
     prisma.candidateAnswer.findMany.mockResolvedValue([]);
-    
-    const result = await service.getCandidateProgress('user-1');
+
+    const result = await service.getCandidateProgress("user-1");
     expect(result.overview.totalAssessments).toBe(0);
     expect(result.overview.averageScore).toBe(0);
     expect(result.trend).toEqual([]);
     expect(result.skills).toEqual([]);
   });
 
-  it('should compile progress report accurately', async () => {
+  it("should compile progress report accurately", async () => {
     prisma.evaluationResult.findMany.mockResolvedValue([
-      { overallScore: 80, evaluatedAt: new Date(), testInstanceId: 'ti-1', testInstance: { testConfig: { displayName: 'Assessment 1' } } },
-      { overallScore: 90, evaluatedAt: new Date(), testInstanceId: 'ti-2', testInstance: { testConfig: { displayName: 'Assessment 2' } } },
+      {
+        overallScore: 80,
+        evaluatedAt: new Date(),
+        testInstanceId: "ti-1",
+        testInstance: { testConfig: { displayName: "Assessment 1" } },
+      },
+      {
+        overallScore: 90,
+        evaluatedAt: new Date(),
+        testInstanceId: "ti-2",
+        testInstance: { testConfig: { displayName: "Assessment 2" } },
+      },
     ]);
     prisma.candidateAnswer.findMany.mockResolvedValue([]);
 
-    const result = await service.getCandidateProgress('user-1');
+    const result = await service.getCandidateProgress("user-1");
     expect(result.overview.totalAssessments).toBe(2);
     expect(result.overview.averageScore).toBe(85);
     expect(result.overview.topPercentileScore).toBe(90);

@@ -1,20 +1,13 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { TestsController } from "./controllers/tests.controller";
 import { TestsService } from "./services/tests.service";
 import { TestsRepository } from "./repositories/tests.repository";
 import { StartTestModule } from "./start-test/start-test.module";
+import { CandidateModule } from "../candidate/candidate.module";
 
-/**
- * TestsModule — candidate-facing test discovery vertical slice.
- *
- * Exposes:
- *   GET /api/v1/tests/configs  — config discovery for dashboard + test selection
- *
- * Completely independent of SystemConfigModule (admin config) and DashboardModule.
- */
 @Module({
-  imports: [PrismaModule, StartTestModule],
+  imports: [PrismaModule, StartTestModule, forwardRef(() => CandidateModule)],
   controllers: [TestsController],
   providers: [TestsService, TestsRepository],
   exports: [TestsService],

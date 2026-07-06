@@ -12,7 +12,11 @@ export class AdminAnalyticsSyncService {
 
   async syncAll() {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
 
     // ─── 1. Sync Generation Analytics ───
     const genRequests = await this.prisma.generationJob.count();
@@ -39,17 +43,47 @@ export class AdminAnalyticsSyncService {
 
     for (const q of questions) {
       const topicName = q.topic?.name || "Unknown";
-      questionsGeneratedPerTopic[topicName] = (questionsGeneratedPerTopic[topicName] || 0) + 1;
-      questionsGeneratedPerDifficulty[q.difficulty] = (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
+      questionsGeneratedPerTopic[topicName] =
+        (questionsGeneratedPerTopic[topicName] || 0) + 1;
+      questionsGeneratedPerDifficulty[q.difficulty] =
+        (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
     }
 
     // Mock trend data for visualization
     const trendData = [
-      { date: new Date(now.getTime() - 4 * 24 * 3600 * 1000).toISOString().split("T")[0], success: Math.round(genSuccesses * 0.1), failure: Math.round(genFailures * 0.1) },
-      { date: new Date(now.getTime() - 3 * 24 * 3600 * 1000).toISOString().split("T")[0], success: Math.round(genSuccesses * 0.2), failure: Math.round(genFailures * 0.1) },
-      { date: new Date(now.getTime() - 2 * 24 * 3600 * 1000).toISOString().split("T")[0], success: Math.round(genSuccesses * 0.3), failure: Math.round(genFailures * 0.2) },
-      { date: new Date(now.getTime() - 1 * 24 * 3600 * 1000).toISOString().split("T")[0], success: Math.round(genSuccesses * 0.2), failure: Math.round(genFailures * 0.4) },
-      { date: now.toISOString().split("T")[0], success: Math.round(genSuccesses * 0.2), failure: Math.round(genFailures * 0.2) },
+      {
+        date: new Date(now.getTime() - 4 * 24 * 3600 * 1000)
+          .toISOString()
+          .split("T")[0],
+        success: Math.round(genSuccesses * 0.1),
+        failure: Math.round(genFailures * 0.1),
+      },
+      {
+        date: new Date(now.getTime() - 3 * 24 * 3600 * 1000)
+          .toISOString()
+          .split("T")[0],
+        success: Math.round(genSuccesses * 0.2),
+        failure: Math.round(genFailures * 0.1),
+      },
+      {
+        date: new Date(now.getTime() - 2 * 24 * 3600 * 1000)
+          .toISOString()
+          .split("T")[0],
+        success: Math.round(genSuccesses * 0.3),
+        failure: Math.round(genFailures * 0.2),
+      },
+      {
+        date: new Date(now.getTime() - 1 * 24 * 3600 * 1000)
+          .toISOString()
+          .split("T")[0],
+        success: Math.round(genSuccesses * 0.2),
+        failure: Math.round(genFailures * 0.4),
+      },
+      {
+        date: now.toISOString().split("T")[0],
+        success: Math.round(genSuccesses * 0.2),
+        failure: Math.round(genFailures * 0.2),
+      },
     ];
 
     const genAnalytics = await this.prisma.generationAnalytics.create({

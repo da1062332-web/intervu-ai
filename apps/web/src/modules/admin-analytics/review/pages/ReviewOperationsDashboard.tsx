@@ -90,8 +90,12 @@ export function ReviewOperationsDashboard() {
                   <Clock className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Pending Reviews</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.pendingReviews ?? 0}</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Pending Reviews
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.pendingReviews ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -102,8 +106,12 @@ export function ReviewOperationsDashboard() {
                   <CheckCircle className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Approved Today</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.approvedToday ?? 0}</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Approved Today
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.approvedToday ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -114,8 +122,12 @@ export function ReviewOperationsDashboard() {
                   <XCircle className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Rejected Today</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.rejectedToday ?? 0}</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Rejected Today
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.rejectedToday ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -126,8 +138,12 @@ export function ReviewOperationsDashboard() {
                   <ShieldCheck className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Avg Review Speed</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.averageReviewTime ?? 120}s</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Avg Review Speed
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.averageReviewTime ?? 120}s
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -148,15 +164,22 @@ export function ReviewOperationsDashboard() {
               </CardHeader>
               <CardContent className='space-y-4 pt-6 border-t border-border/40'>
                 {workloadArray.length === 0 ? (
-                  <div className='text-sm text-muted-foreground text-center py-6'>No reviews recorded.</div>
+                  <div className='text-sm text-muted-foreground text-center py-6'>
+                    No reviews recorded.
+                  </div>
                 ) : (
                   workloadArray.map((w, idx) => (
-                    <div key={idx} className='flex items-center justify-between border-b border-border/30 pb-3 last:border-b-0 last:pb-0'>
+                    <div
+                      key={idx}
+                      className='flex items-center justify-between border-b border-border/30 pb-3 last:border-b-0 last:pb-0'
+                    >
                       <div className='flex items-center gap-2'>
                         <div className='size-2.5 rounded-full bg-primary' />
                         <span className='text-sm text-foreground font-medium'>{w.reviewer}</span>
                       </div>
-                      <span className='text-sm text-muted-foreground font-bold'>{w.count} Reviews</span>
+                      <span className='text-sm text-muted-foreground font-bold'>
+                        {w.count} Reviews
+                      </span>
                     </div>
                   ))
                 )}
@@ -176,7 +199,9 @@ export function ReviewOperationsDashboard() {
               </CardHeader>
               <CardContent className='p-0 border-t border-border/40'>
                 {data?.pendingItems.length === 0 ? (
-                  <div className='text-sm text-muted-foreground text-center py-12'>🎉 Review Queue is empty! All items cleared.</div>
+                  <div className='text-sm text-muted-foreground text-center py-12'>
+                    🎉 Review Queue is empty! All items cleared.
+                  </div>
                 ) : (
                   <div className='overflow-x-auto w-full'>
                     <table className='w-full text-sm text-left border-collapse'>
@@ -192,7 +217,10 @@ export function ReviewOperationsDashboard() {
                       <tbody className='divide-y divide-border/50 bg-card/25'>
                         {data?.pendingItems.map((item) => (
                           <tr key={item.id} className='hover:bg-muted/30 transition-colors'>
-                            <td className='p-3.5 font-medium text-foreground max-w-[200px] truncate' title={item.questionText}>
+                            <td
+                              className='p-3.5 font-medium text-foreground max-w-[200px] truncate'
+                              title={item.questionText}
+                            >
                               {item.questionText}
                             </td>
                             <td className='p-3.5 text-muted-foreground text-sm'>{item.topic}</td>
@@ -209,7 +237,9 @@ export function ReviewOperationsDashboard() {
                                 {item.difficulty}
                               </span>
                             </td>
-                            <td className='p-3.5 text-muted-foreground text-sm'>{new Date(item.createdAt).toLocaleDateString()}</td>
+                            <td className='p-3.5 text-muted-foreground text-sm'>
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </td>
                             <td className='p-3.5 text-right'>
                               <Button asChild size='sm'>
                                 <Link href={`/admin/workflows`}>Review</Link>
@@ -237,7 +267,9 @@ export function ReviewOperationsDashboard() {
             </CardHeader>
             <CardContent className='p-0 border-t border-border/40'>
               {data?.recentDecisions.length === 0 ? (
-                <div className='text-sm text-muted-foreground text-center py-12'>No decisions recorded.</div>
+                <div className='text-sm text-muted-foreground text-center py-12'>
+                  No decisions recorded.
+                </div>
               ) : (
                 <div className='overflow-x-auto w-full'>
                   <table className='w-full text-sm text-left border-collapse'>
@@ -253,7 +285,10 @@ export function ReviewOperationsDashboard() {
                     <tbody className='divide-y divide-border/50 bg-card/25'>
                       {data?.recentDecisions.map((d) => (
                         <tr key={d.id} className='hover:bg-muted/30 transition-colors'>
-                          <td className='p-3.5 font-medium text-foreground max-w-[300px] truncate' title={d.questionText}>
+                          <td
+                            className='p-3.5 font-medium text-foreground max-w-[300px] truncate'
+                            title={d.questionText}
+                          >
                             {d.questionText}
                           </td>
                           <td className='p-3.5 text-muted-foreground text-sm'>{d.topic}</td>

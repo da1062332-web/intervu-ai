@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { JsonExportService } from './json-export.service';
-import { ReportAuditService } from './report-audit.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { JsonExportService } from "./json-export.service";
+import { ReportAuditService } from "./report-audit.service";
 
-describe('ReportExportService (JSON)', () => {
+describe("ReportExportService (JSON)", () => {
   let jsonService: JsonExportService;
   let auditService: any;
 
@@ -22,29 +22,29 @@ describe('ReportExportService (JSON)', () => {
     jsonService = module.get<JsonExportService>(JsonExportService);
   });
 
-  it('should generate valid json export string', async () => {
-    const reportData = { 
-      score: 100, 
+  it("should generate valid json export string", async () => {
+    const reportData = {
+      score: 100,
       rank: 1,
       percentile: 99,
       accuracy: 95,
       timeTaken: 3600,
-      candidate: { fullName: 'Test User', email: 'test@example.com' },
-      assessment: { title: 'Assessment Title' },
+      candidate: { fullName: "Test User", email: "test@example.com" },
+      assessment: { title: "Assessment Title" },
       sectionBreakdown: [],
       topicBreakdown: [],
       difficultyBreakdown: [],
       strengths: [],
       weaknesses: [],
       recommendations: [],
-      improvementPlan: []
+      improvementPlan: [],
     };
-    const result = await jsonService.generateJsonExport('attempt-1', reportData);
+    const result = await jsonService.generateJsonExport("attempt-1", reportData);
     
     // Result is a JSON-serializable object payload
     expect(result.summary.overallScore).toBe(100);
     expect(result.summary.rank).toBe(1);
     expect(result.metadata.exportedAt).toBeDefined();
-    expect(result.metadata.attemptId).toBe('attempt-1');
+    expect(result.metadata.attemptId).toBe("attempt-1");
   });
 });

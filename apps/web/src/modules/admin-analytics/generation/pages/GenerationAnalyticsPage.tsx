@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayCircle, CheckCircle, XCircle, Clock, BarChart3, TrendingUp, AlertTriangle, ArrowLeft } from 'lucide-react';
+import {
+  PlayCircle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  BarChart3,
+  TrendingUp,
+  AlertTriangle,
+  ArrowLeft,
+} from 'lucide-react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
@@ -25,7 +34,9 @@ export function GenerationAnalyticsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await apiClient.request<GenerationAnalyticsData>('/admin/analytics/generation');
+        const response = await apiClient.request<GenerationAnalyticsData>(
+          '/admin/analytics/generation',
+        );
         setData(response);
       } catch (error) {
         console.error('Failed to load generation analytics', error);
@@ -44,11 +55,13 @@ export function GenerationAnalyticsPage() {
   const difficultyArray = data
     ? Object.entries(data.questionsGeneratedPerDifficulty).map(([diff, count]) => ({ diff, count }))
     : [];
-  const maxDiffCount = difficultyArray.length > 0 ? Math.max(...difficultyArray.map((d) => d.count)) : 1;
+  const maxDiffCount =
+    difficultyArray.length > 0 ? Math.max(...difficultyArray.map((d) => d.count)) : 1;
 
-  const maxTrendVal = data?.trendData && data.trendData.length > 0
-    ? Math.max(...data.trendData.map((t) => t.success + t.failure))
-    : 1;
+  const maxTrendVal =
+    data?.trendData && data.trendData.length > 0
+      ? Math.max(...data.trendData.map((t) => t.success + t.failure))
+      : 1;
 
   return (
     <div className='space-y-8 animate-fade-in-up pb-8'>
@@ -88,8 +101,12 @@ export function GenerationAnalyticsPage() {
                   <PlayCircle className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Total Requests</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.requests ?? 0}</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Total Requests
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.requests ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -100,8 +117,12 @@ export function GenerationAnalyticsPage() {
                   <CheckCircle className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Successes</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.successes ?? 0}</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Successes
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.successes ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -112,8 +133,12 @@ export function GenerationAnalyticsPage() {
                   <XCircle className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Failures</p>
-                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>{data?.failures ?? 0}</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Failures
+                  </p>
+                  <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
+                    {data?.failures ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -124,7 +149,9 @@ export function GenerationAnalyticsPage() {
                   <Clock className='size-6' />
                 </div>
                 <div>
-                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Avg Duration</p>
+                  <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>
+                    Avg Duration
+                  </p>
                   <p className='text-2xl font-bold font-heading text-foreground mt-0.5'>
                     {((data?.avgDurationMs ?? 0) / 1000).toFixed(2)}s
                   </p>
@@ -148,10 +175,13 @@ export function GenerationAnalyticsPage() {
               </CardHeader>
               <CardContent className='h-[300px] flex items-end gap-4 pt-6 border-t border-border/40'>
                 {data?.trendData.map((t, idx) => {
-                  const successPct = ((t.success) / maxTrendVal) * 100;
-                  const failurePct = ((t.failure) / maxTrendVal) * 100;
+                  const successPct = (t.success / maxTrendVal) * 100;
+                  const failurePct = (t.failure / maxTrendVal) * 100;
                   return (
-                    <div key={idx} className='flex-1 flex flex-col items-center gap-2 h-full justify-end'>
+                    <div
+                      key={idx}
+                      className='flex-1 flex flex-col items-center gap-2 h-full justify-end'
+                    >
                       <div className='w-full relative flex-1 flex flex-col justify-end gap-1 min-h-[120px]'>
                         {t.failure > 0 && (
                           <div
@@ -168,7 +198,9 @@ export function GenerationAnalyticsPage() {
                           />
                         )}
                       </div>
-                      <span className='text-[10px] text-muted-foreground whitespace-nowrap'>{t.date}</span>
+                      <span className='text-[10px] text-muted-foreground whitespace-nowrap'>
+                        {t.date}
+                      </span>
                     </div>
                   );
                 })}
@@ -191,7 +223,9 @@ export function GenerationAnalyticsPage() {
                   <div key={idx} className='space-y-2'>
                     <div className='flex items-center justify-between text-sm'>
                       <span className='font-medium text-foreground'>{d.diff}</span>
-                      <span className='text-muted-foreground font-semibold'>{d.count} Questions</span>
+                      <span className='text-muted-foreground font-semibold'>
+                        {d.count} Questions
+                      </span>
                     </div>
                     <div className='h-2 bg-muted rounded-full overflow-hidden w-full'>
                       <div
@@ -225,14 +259,18 @@ export function GenerationAnalyticsPage() {
               <div className='divide-y divide-border/50'>
                 {topicsArray.map((t, idx) => (
                   <div key={idx} className='py-4 flex items-center justify-between gap-6'>
-                    <span className='text-sm text-foreground font-semibold w-1/4 truncate'>{t.topic}</span>
+                    <span className='text-sm text-foreground font-semibold w-1/4 truncate'>
+                      {t.topic}
+                    </span>
                     <div className='flex-1 max-w-xl h-2.5 bg-muted rounded-full overflow-hidden'>
                       <div
                         className='h-full bg-primary transition-all duration-500 rounded-full'
                         style={{ width: `${(t.count / maxTopicCount) * 100}%` }}
                       />
                     </div>
-                    <span className='text-sm text-muted-foreground w-[80px] text-right font-bold'>{t.count} items</span>
+                    <span className='text-sm text-muted-foreground w-[80px] text-right font-bold'>
+                      {t.count} items
+                    </span>
                   </div>
                 ))}
               </div>

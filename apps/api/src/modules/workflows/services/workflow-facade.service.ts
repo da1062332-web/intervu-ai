@@ -211,7 +211,7 @@ export class WorkflowFacadeService {
 
     // Create maps for instant in-memory lookups
     const configMap = new Map(configs.map((c) => [c.id, c]));
-    
+
     // Latest assembly per config
     const assemblyMap = new Map();
     // Published assembly per config
