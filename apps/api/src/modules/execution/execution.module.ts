@@ -17,6 +17,7 @@ import {
   AssessmentAuditService,
   ResumeService,
   SubmissionService,
+  AssessmentResilienceTestService,
 } from "./services";
 import {
   TestInstanceRepository,
@@ -49,6 +50,7 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
     ResumeService,
     SubmissionService,
     ExecutionService,
+    AssessmentResilienceTestService,
     {
       provide: EVALUATION_ADAPTER,
       useClass: ExecutionEvaluationIntegration,

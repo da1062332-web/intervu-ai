@@ -43,11 +43,19 @@ export class EnrollmentService {
     }
 
     // 3. Create enrollment
-    const enrollment = await this.enrollmentRepository.create({
-      user: { connect: { id: userId } },
-      testConfig: { connect: { id: dto.testId } },
-      status: "ENROLLED",
-    });
+    let enrollment;
+    try {
+      enrollment = await this.enrollmentRepository.create({
+        user: { connect: { id: userId } },
+        testConfig: { connect: { id: dto.testId } },
+        status: "ENROLLED",
+      });
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        throw new ConflictException("You are already enrolled in this test");
+      }
+      throw error;
+    }
 
     // Need to get the test config details to return the full item
     // In a real app we might do a join in the create or fetch after

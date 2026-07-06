@@ -86,6 +86,8 @@ export class StartTestService {
         });
       }
     } catch (error) {
+      require("fs").writeFileSync("c:\\Users\\Bhush\\Desktop\\intervu-ai\\error.log", String((error as any).stack || error));
+      console.error("Assembly Error:", error);
       if (error instanceof InternalServerErrorException) {
         const res = error.getResponse();
         if (
