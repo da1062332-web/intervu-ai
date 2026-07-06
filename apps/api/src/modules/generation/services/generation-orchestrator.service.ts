@@ -283,24 +283,52 @@ export class GenerationOrchestratorService {
                   templateId: selectedTemplate.templateId,
                   version: 1,
                   status: "DRAFT",
+                  metadata: { options: instantiated.options },
                 },
               });
 
-              // Replicate to GeneratedQuestion for legacy compatibility if required
-              await tx.generatedQuestion.create({
-                data: {
-                  templateId: selectedTemplate.templateId,
-                  questionHash: Math.random().toString(36).substring(7), // dummy random hash for schema constraint
-                  conceptKey: selectedTemplate.metadata.conceptKey,
-                  difficultyLevel: selectedTemplate.metadata.difficultyLevel,
-                  questionType: selectedTemplate.metadata.questionType,
-                  questionText: instantiated.questionText,
+              // Create Version 1 snapshot
+              if (tx.questionVersion) {
+                const snapshot = {
+                  id: q.id,
+                  questionText: q.questionText,
+                  answer: q.answer,
+                  explanation: q.explanation,
+                  topicId: q.topicId,
+                  sectionId: q.sectionId,
+                  difficulty: q.difficulty,
+                  difficultyScore: q.difficultyScore,
+                  source: q.source,
+                  templateId: q.templateId,
+                  status: q.status,
                   options: instantiated.options,
-                  correctAnswer: instantiated.answer,
-                  solution: instantiated.explanation,
-                  metadata: instantiated.metadata,
-                },
-              });
+                };
+                await tx.questionVersion.create({
+                  data: {
+                    questionId: q.id,
+                    version: 1,
+                    snapshot: snapshot,
+                  },
+                });
+              }
+
+              // Replicate to GeneratedQuestion for legacy compatibility if required
+              if (tx.generatedQuestion) {
+                await tx.generatedQuestion.create({
+                  data: {
+                    templateId: selectedTemplate.templateId,
+                    questionHash: Math.random().toString(36).substring(7), // dummy random hash for schema constraint
+                    conceptKey: selectedTemplate.metadata.conceptKey,
+                    difficultyLevel: selectedTemplate.metadata.difficultyLevel,
+                    questionType: selectedTemplate.metadata.questionType,
+                    questionText: instantiated.questionText,
+                    options: instantiated.options,
+                    correctAnswer: instantiated.answer,
+                    solution: instantiated.explanation,
+                    metadata: instantiated.metadata,
+                  },
+                });
+              }
 
               return q;
             },

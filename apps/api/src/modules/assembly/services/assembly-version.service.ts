@@ -9,6 +9,7 @@ import { AssemblyAuditService } from "./assembly-audit.service";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { Prisma } from "@prisma/client";
 import { AllocatedSectionDto } from "@intervu/shared";
+import { AssessmentVersionValidatorService } from "./assessment-version-validator.service";
 
 @Injectable()
 export class AssemblyVersionService {
@@ -17,6 +18,7 @@ export class AssemblyVersionService {
     private readonly auditService: AssemblyAuditService,
     private readonly persistenceService: AssemblyPersistenceService,
     private readonly assembledTestRepo: AssembledTestRepository,
+    private readonly validatorService: AssessmentVersionValidatorService,
   ) {}
 
   async createVersion(assemblyId: string, userId: string = "system-user") {
@@ -114,6 +116,13 @@ export class AssemblyVersionService {
     if (!snapshot || !snapshot.sections) {
       throw new BadRequestException("Invalid snapshot format");
     }
+
+    // Validate sequential sequencing, schema, and rollback safety
+    await this.validatorService.validateRollback(
+      assemblyId,
+      versionRecord.version,
+      snapshot,
+    );
 
     // Replace the current assembly
     await this.assembledTestRepo.replaceAssemblyWithTransaction(

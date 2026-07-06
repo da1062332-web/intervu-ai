@@ -58,6 +58,9 @@ describe("Evaluation Module Integration Tests", () => {
     candidateResult: {
       upsert: jest.fn().mockResolvedValue({}),
     },
+    evaluationResult: {
+      upsert: jest.fn().mockResolvedValue({}),
+    },
     evaluationAnalytics: {
       upsert: jest.fn().mockResolvedValue({}),
     },
