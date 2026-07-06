@@ -44,16 +44,14 @@ describe("ContentCoverageService", () => {
               findMany: jest.fn().mockResolvedValue(mockTopics),
             },
             question: {
-              findMany: jest
-                .fn()
-                .mockResolvedValue([
-                  {
-                    id: "q-1",
-                    questionText: "React Q1",
-                    topic: { name: "React" },
-                    difficulty: "EASY",
-                  },
-                ]),
+              findMany: jest.fn().mockResolvedValue([
+                {
+                  id: "q-1",
+                  questionText: "React Q1",
+                  topic: { name: "React" },
+                  difficulty: "EASY",
+                },
+              ]),
             },
           },
         },
