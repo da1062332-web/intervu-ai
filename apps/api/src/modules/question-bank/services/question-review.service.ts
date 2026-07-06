@@ -35,6 +35,24 @@ export class QuestionReviewService {
         );
       }
 
+      // Preserve options
+      let options: string[] = [];
+      if (question.metadata && typeof question.metadata === "object") {
+        const metadata = question.metadata as Record<string, unknown>;
+        if (Array.isArray(metadata.options)) {
+          options = metadata.options as string[];
+        }
+      }
+      if (options.length === 0) {
+        const versions = await this.versionService.getVersions(id);
+        if (versions && versions.length > 0) {
+          const snapshot = versions[0].snapshot as Record<string, unknown>;
+          if (snapshot && Array.isArray(snapshot.options)) {
+            options = snapshot.options as string[];
+          }
+        }
+      }
+
       // Update question status and increment version
       const updated = await this.questionRepo.update(
         id,
@@ -46,7 +64,7 @@ export class QuestionReviewService {
       );
 
       // Create snapshot for audit trail
-      await this.versionService.createVersionSnapshot(updated, tx);
+      await this.versionService.createVersionSnapshot({ ...updated, options }, tx);
 
       // Save review logs
       await this.reviewRepo.create(
@@ -63,7 +81,7 @@ export class QuestionReviewService {
   }
 
   /**
-   * Rejects a question and marks it back to DRAFT status.
+   * Rejects a question and marks it back to ARCHIVED status.
    */
 
   async rejectQuestion(id: string, notes?: string): Promise<any> {
@@ -82,18 +100,36 @@ export class QuestionReviewService {
         );
       }
 
-      // Update status to DRAFT and increment version
+      // Preserve options
+      let options: string[] = [];
+      if (question.metadata && typeof question.metadata === "object") {
+        const metadata = question.metadata as Record<string, unknown>;
+        if (Array.isArray(metadata.options)) {
+          options = metadata.options as string[];
+        }
+      }
+      if (options.length === 0) {
+        const versions = await this.versionService.getVersions(id);
+        if (versions && versions.length > 0) {
+          const snapshot = versions[0].snapshot as Record<string, unknown>;
+          if (snapshot && Array.isArray(snapshot.options)) {
+            options = snapshot.options as string[];
+          }
+        }
+      }
+
+      // Update status to ARCHIVED and increment version
       const updated = await this.questionRepo.update(
         id,
         {
-          status: QuestionStatus.DRAFT,
+          status: QuestionStatus.ARCHIVED,
           version: { increment: 1 },
         },
         tx,
       );
 
       // Create snapshot
-      await this.versionService.createVersionSnapshot(updated, tx);
+      await this.versionService.createVersionSnapshot({ ...updated, options }, tx);
 
       // Save review logs
       await this.reviewRepo.create(
@@ -126,6 +162,24 @@ export class QuestionReviewService {
         );
       }
 
+      // Preserve options
+      let options: string[] = [];
+      if (question.metadata && typeof question.metadata === "object") {
+        const metadata = question.metadata as Record<string, unknown>;
+        if (Array.isArray(metadata.options)) {
+          options = metadata.options as string[];
+        }
+      }
+      if (options.length === 0) {
+        const versions = await this.versionService.getVersions(id);
+        if (versions && versions.length > 0) {
+          const snapshot = versions[0].snapshot as Record<string, unknown>;
+          if (snapshot && Array.isArray(snapshot.options)) {
+            options = snapshot.options as string[];
+          }
+        }
+      }
+
       // Update status to DRAFT and increment version
       const updated = await this.questionRepo.update(
         id,
@@ -137,7 +191,7 @@ export class QuestionReviewService {
       );
 
       // Create snapshot
-      await this.versionService.createVersionSnapshot(updated, tx);
+      await this.versionService.createVersionSnapshot({ ...updated, options }, tx);
 
       // Save review logs
       await this.reviewRepo.create(

@@ -33,3 +33,19 @@ Created dedicated database tables for tracking cumulative generation runs, revie
 
 - Exposes warning state `LOW_INVENTORY` whenever active topics have fewer than 10 validated questions, ensuring the generation pipeline can be proactively triggered.
 - Safe retries: Hooked up `/api/v1/admin/generation/retry/:jobId` to automatically re-queue failed AI generation requests, handling transient rate-limiting blocks safely.
+
+---
+
+## 4. New Backend APIs
+- `GET /api/v1/admin/dashboard`
+- `GET /api/v1/admin/analytics/generation`
+- `GET /api/v1/admin/analytics/review`
+- `GET /api/v1/admin/analytics/question-bank`
+- `GET /api/v1/admin/analytics/assembly`
+- `GET /api/v1/admin/content-coverage`
+- `GET /api/v1/admin/generation/failures`
+- `POST /api/v1/admin/generation/retry/:jobId`
+- `GET /api/v1/admin/alerts`
+- `GET /api/v1/admin/export/questions`
+- `GET /api/v1/admin/export/reviews`
+- `GET /api/v1/admin/export/assessments`

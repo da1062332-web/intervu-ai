@@ -5,6 +5,7 @@ import { AssemblyPersistenceService } from "./assembly-persistence.service";
 
 import { AssemblyAuditService } from "./assembly-audit.service";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { AssessmentVersionValidatorService } from "./assessment-version-validator.service";
 
 describe("AssemblyVersionService", () => {
   let service: AssemblyVersionService;
@@ -58,6 +59,12 @@ describe("AssemblyVersionService", () => {
             replaceAssemblyWithTransaction: jest
               .fn()
               .mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: AssessmentVersionValidatorService,
+          useValue: {
+            validateRollback: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
