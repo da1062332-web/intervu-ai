@@ -34,18 +34,18 @@ export const PerformanceAnalyticsPage = () => {
   }
 
   // Transform data for charts
-  const topicData = progress.skills?.reduce((acc: any, s: any) => {
+  const topicData: Record<string, number> = progress.skills?.reduce((acc: Record<string, number>, s: any) => {
     acc[s.topic] = s.score;
     return acc;
   }, {}) || {};
 
-  const difficultyData = progress.difficulty ? {
+  const difficultyData: Record<string, number> = progress.difficulty ? {
     'Easy': progress.difficulty.easy.attempted ? Math.round((progress.difficulty.easy.correct / progress.difficulty.easy.attempted) * 100) : 0,
     'Medium': progress.difficulty.medium.attempted ? Math.round((progress.difficulty.medium.correct / progress.difficulty.medium.attempted) * 100) : 0,
     'Hard': progress.difficulty.hard.attempted ? Math.round((progress.difficulty.hard.correct / progress.difficulty.hard.attempted) * 100) : 0,
   } : {};
 
-  const accuracyData = progress.trend?.reduce((acc: any, t: any) => {
+  const accuracyData: Record<string, number> = progress.trend?.reduce((acc: Record<string, number>, t: any) => {
     acc[`Attempt ${new Date(t.date).toLocaleDateString()}`] = t.score;
     return acc;
   }, {}) || {};
