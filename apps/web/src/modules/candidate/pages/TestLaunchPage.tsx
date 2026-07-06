@@ -70,8 +70,8 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
       const { testInstanceId } = await testService.startTest(testId);
       router.push(`/candidate/tests/${testInstanceId}/execution`);
     } catch (err) {
-      console.error('Failed to start assessment', err);
-      // You could add a toast notification here
+      // The API client automatically shows a toast for this error.
+      // We just need to reset the loading state.
       setIsStarting(false);
     }
   };
