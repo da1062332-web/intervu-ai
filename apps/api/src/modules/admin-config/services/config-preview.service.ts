@@ -22,6 +22,7 @@ export interface ConfigPreviewResponse {
   }>;
   totalTopics: number;
   totalTemplates: number;
+  conceptCodes: string[];
   isReadyToPublish: boolean;
 }
 
@@ -120,6 +121,7 @@ export class ConfigPreviewService {
       sectionBreakdown,
       totalTopics,
       totalTemplates,
+      conceptCodes: Array.from(uniqueConceptCodes),
       isReadyToPublish,
     };
   }
