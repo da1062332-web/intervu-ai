@@ -9,7 +9,9 @@ export class AdminReportService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAssessmentOutcome(assessmentId: string) {
-    this.logger.debug("Generating admin assessment outcome report", { assessmentId });
+    this.logger.debug("Generating admin assessment outcome report", {
+      assessmentId,
+    });
 
     const assessment = await this.prisma.testConfig.findUnique({
       where: { id: assessmentId },
@@ -25,9 +27,9 @@ export class AdminReportService {
         testInstance: {
           select: {
             status: true,
-          }
+          },
         },
-        skillScores: true
+        skillScores: true,
       },
     });
 
@@ -43,7 +45,7 @@ export class AdminReportService {
         lowestScore: 0,
         passRate: 0,
         completionRate: 0,
-        topicPerformance: []
+        topicPerformance: [],
       };
     }
 
@@ -55,15 +57,19 @@ export class AdminReportService {
 
     const topicScores: Record<string, { total: number; count: number }> = {};
 
-    attempts.forEach(attempt => {
+    attempts.forEach((attempt) => {
       const score = attempt.overallScore;
       totalScore += score;
       if (score > highestScore) highestScore = score;
       if (score < lowestScore) lowestScore = score;
       if (score >= 60) passedCount++; // Assuming 60 is pass
-      if (attempt.testInstance?.status === "COMPLETED" || attempt.testInstance?.status === "SUBMITTED") completedCount++;
+      if (
+        attempt.testInstance?.status === "COMPLETED" ||
+        attempt.testInstance?.status === "SUBMITTED"
+      )
+        completedCount++;
 
-      attempt.skillScores.forEach(skill => {
+      attempt.skillScores.forEach((skill) => {
         if (!topicScores[skill.skill]) {
           topicScores[skill.skill] = { total: 0, count: 0 };
         }
@@ -72,17 +78,20 @@ export class AdminReportService {
       });
     });
 
-    const topicPerformance = Object.entries(topicScores).map(([topic, data]) => ({
-      topic,
-      averageScore: data.total / data.count,
-    }));
+    const topicPerformance = Object.entries(topicScores).map(
+      ([topic, data]) => ({
+        topic,
+        averageScore: data.total / data.count,
+      }),
+    );
 
     // Find total enrollments or started instances to calculate completion rate properly
     const allInstances = await this.prisma.testInstance.count({
-      where: { testConfigId: assessmentId }
+      where: { testConfigId: assessmentId },
     });
 
-    const completionRate = allInstances > 0 ? (completedCount / allInstances) * 100 : 0;
+    const completionRate =
+      allInstances > 0 ? (completedCount / allInstances) * 100 : 0;
     const passRate = (passedCount / totalAttempts) * 100;
     const averageScore = totalScore / totalAttempts;
 
@@ -102,32 +111,38 @@ export class AdminReportService {
 
   async getCandidateReports(filters: any) {
     this.logger.debug("Fetching candidate reports with filters", { filters });
-    
+
     const whereClause: any = {};
     if (filters.assessmentId) {
       whereClause.testConfigId = filters.assessmentId;
     }
-    
+
     whereClause.evaluationResult = { isNot: null };
 
     if (filters.search) {
       whereClause.OR = [
-        { user: { fullName: { contains: filters.search, mode: 'insensitive' } } },
-        { user: { email: { contains: filters.search, mode: 'insensitive' } } },
-        { testConfig: { displayName: { contains: filters.search, mode: 'insensitive' } } },
+        {
+          user: { fullName: { contains: filters.search, mode: "insensitive" } },
+        },
+        { user: { email: { contains: filters.search, mode: "insensitive" } } },
+        {
+          testConfig: {
+            displayName: { contains: filters.search, mode: "insensitive" },
+          },
+        },
       ];
     }
 
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: any = { createdAt: "desc" };
     if (filters.sortBy) {
-      const order = filters.sortOrder === 'asc' ? 'asc' : 'desc';
-      if (filters.sortBy === 'score') {
+      const order = filters.sortOrder === "asc" ? "asc" : "desc";
+      if (filters.sortBy === "score") {
         orderBy = { evaluationResult: { overallScore: order } };
-      } else if (filters.sortBy === 'candidate') {
+      } else if (filters.sortBy === "candidate") {
         orderBy = { user: { fullName: order } };
-      } else if (filters.sortBy === 'assessment') {
+      } else if (filters.sortBy === "assessment") {
         orderBy = { testConfig: { displayName: order } };
-      } else if (filters.sortBy === 'completedAt') {
+      } else if (filters.sortBy === "completedAt") {
         orderBy = { submittedAt: order };
       }
     }
@@ -144,7 +159,7 @@ export class AdminReportService {
       skip: filters.skip ? parseInt(filters.skip, 10) : 0,
     });
 
-    const results = attempts.map(attempt => {
+    const results = attempts.map((attempt) => {
       const score = attempt.evaluationResult?.overallScore || 0;
       return {
         id: attempt.id,
@@ -157,10 +172,14 @@ export class AdminReportService {
 
     let filteredResults = results;
     if (filters.minScore !== undefined) {
-      filteredResults = filteredResults.filter(r => r.score >= parseFloat(filters.minScore));
+      filteredResults = filteredResults.filter(
+        (r) => r.score >= parseFloat(filters.minScore),
+      );
     }
     if (filters.maxScore !== undefined) {
-      filteredResults = filteredResults.filter(r => r.score <= parseFloat(filters.maxScore));
+      filteredResults = filteredResults.filter(
+        (r) => r.score <= parseFloat(filters.maxScore),
+      );
     }
     return filteredResults;
   }
@@ -175,16 +194,17 @@ export class AdminReportService {
       return "Candidate Name,Candidate Email,Assessment,Score,Completed At\n";
     }
 
-    const header = "Candidate Name,Candidate Email,Assessment,Score,Completed At\n";
-    const rows = reports.map(r => {
-      const name = `"${r.candidate?.fullName || 'Candidate'}"`;
-      const email = `"${r.candidate?.email || ''}"`;
-      const assessment = `"${r.assessment?.displayName || ''}"`;
+    const header =
+      "Candidate Name,Candidate Email,Assessment,Score,Completed At\n";
+    const rows = reports.map((r) => {
+      const name = `"${r.candidate?.fullName || "Candidate"}"`;
+      const email = `"${r.candidate?.email || ""}"`;
+      const assessment = `"${r.assessment?.displayName || ""}"`;
       const score = r.score;
       const completed = `"${new Date(r.completedAt).toISOString()}"`;
       return `${name},${email},${assessment},${score},${completed}`;
     });
 
-    return header + rows.join('\n');
+    return header + rows.join("\n");
   }
 }

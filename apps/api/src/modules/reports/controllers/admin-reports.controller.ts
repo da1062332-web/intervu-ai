@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-  Res,
-} from "@nestjs/common";
+import { Controller, Get, Param, Query, UseGuards, Res } from "@nestjs/common";
 import { Response } from "express";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../auth/guards/roles.guard";
@@ -28,25 +21,38 @@ export class AdminReportsController {
 
   @Get("assessment/:assessmentId")
   @ApiOperation({ summary: "Get aggregated assessment outcome report" })
-  @ApiResponse({ status: 200, description: "Successfully retrieved outcome report" })
+  @ApiResponse({
+    status: 200,
+    description: "Successfully retrieved outcome report",
+  })
   async getAssessmentOutcome(@Param("assessmentId") assessmentId: string) {
     return this.adminReportService.getAssessmentOutcome(assessmentId);
   }
 
   @Get("candidates")
   @ApiOperation({ summary: "Get candidate reports explorer data" })
-  @ApiResponse({ status: 200, description: "Successfully retrieved candidate reports" })
+  @ApiResponse({
+    status: 200,
+    description: "Successfully retrieved candidate reports",
+  })
   async getCandidateReports(@Query() filters: any) {
     return this.adminReportService.getCandidateReports(filters);
   }
 
   @Get("exports/candidates")
   @ApiOperation({ summary: "Bulk export candidate reports as CSV" })
-  @ApiResponse({ status: 200, description: "Successfully exported candidate CSV" })
+  @ApiResponse({
+    status: 200,
+    description: "Successfully exported candidate CSV",
+  })
   async exportCandidatesCsv(@Query() filters: any, @Res() res: Response) {
-    const csvContent = await this.adminReportService.exportCandidatesCsv(filters);
+    const csvContent =
+      await this.adminReportService.exportCandidatesCsv(filters);
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=candidates-export.csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=candidates-export.csv",
+    );
     res.send(csvContent);
   }
 }

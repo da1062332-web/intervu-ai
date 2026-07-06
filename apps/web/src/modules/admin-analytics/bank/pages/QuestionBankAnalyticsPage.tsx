@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Database, Filter, Layers, AlertCircle, EyeOff, Search, ArrowLeft, Loader2 } from 'lucide-react';
+import {
+  Database,
+  Filter,
+  Layers,
+  AlertCircle,
+  EyeOff,
+  Search,
+  ArrowLeft,
+  Loader2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
@@ -52,15 +61,18 @@ export function QuestionBankAnalyticsPage() {
   }, []);
 
   // Filtered Unused Questions based on UI select filters
-  const filteredUnused = coverageData?.unusedQuestions.filter((q) => {
-    const matchTopic = filterTopic === '' || q.topic.toLowerCase().includes(filterTopic.toLowerCase());
-    const matchDiff = filterDifficulty === '' || q.difficulty === filterDifficulty;
-    return matchTopic && matchDiff;
-  }) ?? [];
+  const filteredUnused =
+    coverageData?.unusedQuestions.filter((q) => {
+      const matchTopic =
+        filterTopic === '' || q.topic.toLowerCase().includes(filterTopic.toLowerCase());
+      const matchDiff = filterDifficulty === '' || q.difficulty === filterDifficulty;
+      return matchTopic && matchDiff;
+    }) ?? [];
 
-  const maxTopicVal = bankData?.questionsByTopic && bankData.questionsByTopic.length > 0
-    ? Math.max(...bankData.questionsByTopic.map((t) => t.count))
-    : 1;
+  const maxTopicVal =
+    bankData?.questionsByTopic && bankData.questionsByTopic.length > 0
+      ? Math.max(...bankData.questionsByTopic.map((t) => t.count))
+      : 1;
 
   return (
     <div className='space-y-8 animate-fade-in-up pb-8'>
@@ -98,20 +110,35 @@ export function QuestionBankAnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4 pt-4 border-t border-red-500/10'>
-                {coverageData?.missingTopics.length === 0 && coverageData?.difficultyGaps.length === 0 ? (
-                  <div className='text-sm text-muted-foreground text-center py-6'>🎉 No coverage gaps detected! All syllabus entries populated.</div>
+                {coverageData?.missingTopics.length === 0 &&
+                coverageData?.difficultyGaps.length === 0 ? (
+                  <div className='text-sm text-muted-foreground text-center py-6'>
+                    🎉 No coverage gaps detected! All syllabus entries populated.
+                  </div>
                 ) : (
                   <>
                     {coverageData?.missingTopics.map((topic, idx) => (
-                      <div key={idx} className='p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 rounded-xl text-sm flex items-center gap-2'>
-                        <span className='font-semibold uppercase tracking-wider text-[10px] bg-red-500/25 px-1.5 py-0.5 rounded'>Topic Gap</span>
-                        Topic <strong>{topic}</strong> has <strong>0</strong> questions in the registry.
+                      <div
+                        key={idx}
+                        className='p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 rounded-xl text-sm flex items-center gap-2'
+                      >
+                        <span className='font-semibold uppercase tracking-wider text-[10px] bg-red-500/25 px-1.5 py-0.5 rounded'>
+                          Topic Gap
+                        </span>
+                        Topic <strong>{topic}</strong> has <strong>0</strong> questions in the
+                        registry.
                       </div>
                     ))}
                     {coverageData?.difficultyGaps.map((gap, idx) => (
-                      <div key={idx} className='p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl text-sm flex items-center gap-2'>
-                        <span className='font-semibold uppercase tracking-wider text-[10px] bg-amber-500/25 px-1.5 py-0.5 rounded'>Difficulty Gap</span>
-                        Topic <strong>{gap.topic}</strong> lacks questions for: <strong>{gap.missingDifficulties.join(', ')}</strong>.
+                      <div
+                        key={idx}
+                        className='p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl text-sm flex items-center gap-2'
+                      >
+                        <span className='font-semibold uppercase tracking-wider text-[10px] bg-amber-500/25 px-1.5 py-0.5 rounded'>
+                          Difficulty Gap
+                        </span>
+                        Topic <strong>{gap.topic}</strong> lacks questions for:{' '}
+                        <strong>{gap.missingDifficulties.join(', ')}</strong>.
                       </div>
                     ))}
                   </>
@@ -132,13 +159,22 @@ export function QuestionBankAnalyticsPage() {
               </CardHeader>
               <CardContent className='space-y-3 pt-4 border-t border-amber-500/10 max-h-[220px] overflow-y-auto'>
                 {coverageData?.lowCoverageTopics.length === 0 ? (
-                  <div className='text-sm text-muted-foreground text-center py-6'>🎉 All active topics satisfy coverage requirements.</div>
+                  <div className='text-sm text-muted-foreground text-center py-6'>
+                    🎉 All active topics satisfy coverage requirements.
+                  </div>
                 ) : (
                   coverageData?.lowCoverageTopics.map((t, idx) => (
-                    <div key={idx} className='flex items-center justify-between border-b border-border/30 pb-2 last:border-0 last:pb-0'>
-                      <span className='text-sm font-semibold text-foreground truncate w-1/2'>{t.topic}</span>
+                    <div
+                      key={idx}
+                      className='flex items-center justify-between border-b border-border/30 pb-2 last:border-0 last:pb-0'
+                    >
+                      <span className='text-sm font-semibold text-foreground truncate w-1/2'>
+                        {t.topic}
+                      </span>
                       <div className='flex items-center gap-3 w-1/2 justify-end'>
-                        <span className='text-xs text-muted-foreground font-medium'>{t.count} / {t.required} count</span>
+                        <span className='text-xs text-muted-foreground font-medium'>
+                          {t.count} / {t.required} count
+                        </span>
                         <div className='w-20 h-2 bg-muted rounded-full overflow-hidden'>
                           <div
                             className='h-full bg-amber-500 rounded-full'
@@ -165,8 +201,13 @@ export function QuestionBankAnalyticsPage() {
               </CardHeader>
               <CardContent className='space-y-4 pt-4 border-t border-border/40'>
                 {bankData?.questionsByStatus.map((s, idx) => (
-                  <div key={idx} className='flex items-center justify-between border-b border-border/20 pb-2.5 last:border-0 last:pb-0'>
-                    <span className='text-sm text-foreground font-semibold uppercase tracking-wider text-[11px]'>{s.status}</span>
+                  <div
+                    key={idx}
+                    className='flex items-center justify-between border-b border-border/20 pb-2.5 last:border-0 last:pb-0'
+                  >
+                    <span className='text-sm text-foreground font-semibold uppercase tracking-wider text-[11px]'>
+                      {s.status}
+                    </span>
                     <span className='text-sm text-muted-foreground font-bold'>{s.count} items</span>
                   </div>
                 ))}
@@ -183,8 +224,13 @@ export function QuestionBankAnalyticsPage() {
               </CardHeader>
               <CardContent className='space-y-4 pt-4 border-t border-border/40'>
                 {bankData?.questionsBySource.map((s, idx) => (
-                  <div key={idx} className='flex items-center justify-between border-b border-border/20 pb-2.5 last:border-0 last:pb-0'>
-                    <span className='text-sm text-foreground font-semibold uppercase tracking-wider text-[11px]'>{s.source}</span>
+                  <div
+                    key={idx}
+                    className='flex items-center justify-between border-b border-border/20 pb-2.5 last:border-0 last:pb-0'
+                  >
+                    <span className='text-sm text-foreground font-semibold uppercase tracking-wider text-[11px]'>
+                      {s.source}
+                    </span>
                     <span className='text-sm text-muted-foreground font-bold'>{s.count} items</span>
                   </div>
                 ))}
@@ -201,8 +247,13 @@ export function QuestionBankAnalyticsPage() {
               </CardHeader>
               <CardContent className='space-y-3 pt-4 border-t border-border/40 max-h-[195px] overflow-y-auto'>
                 {bankData?.questionsByTopic.map((t, idx) => (
-                  <div key={idx} className='flex items-center justify-between border-b border-border/20 pb-2 last:border-0 last:pb-0'>
-                    <span className='text-sm text-foreground truncate w-2/3 font-medium'>{t.topic}</span>
+                  <div
+                    key={idx}
+                    className='flex items-center justify-between border-b border-border/20 pb-2 last:border-0 last:pb-0'
+                  >
+                    <span className='text-sm text-foreground truncate w-2/3 font-medium'>
+                      {t.topic}
+                    </span>
                     <div className='flex items-center gap-2 w-1/3 justify-end'>
                       <span className='text-xs font-bold text-muted-foreground'>{t.count}</span>
                       <div className='w-12 h-1.5 bg-muted rounded-full overflow-hidden'>
@@ -227,7 +278,8 @@ export function QuestionBankAnalyticsPage() {
                   Unused Question Registry
                 </CardTitle>
                 <CardDescription>
-                  Active questions in the pool that have not yet been assigned to any candidate tests.
+                  Active questions in the pool that have not yet been assigned to any candidate
+                  tests.
                 </CardDescription>
               </div>
 
@@ -258,7 +310,9 @@ export function QuestionBankAnalyticsPage() {
             </CardHeader>
             <CardContent className='p-0'>
               {filteredUnused.length === 0 ? (
-                <div className='text-sm text-muted-foreground text-center py-12'>No unused questions matching selected filter filters.</div>
+                <div className='text-sm text-muted-foreground text-center py-12'>
+                  No unused questions matching selected filter filters.
+                </div>
               ) : (
                 <div className='overflow-x-auto w-full'>
                   <table className='w-full text-sm text-left border-collapse'>
@@ -273,8 +327,13 @@ export function QuestionBankAnalyticsPage() {
                     <tbody className='divide-y divide-border/50 bg-card/25'>
                       {filteredUnused.slice(0, 15).map((q) => (
                         <tr key={q.id} className='hover:bg-muted/30 transition-colors'>
-                          <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>{q.id}</td>
-                          <td className='p-3.5 font-medium text-foreground max-w-[400px] truncate' title={q.questionText}>
+                          <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>
+                            {q.id}
+                          </td>
+                          <td
+                            className='p-3.5 font-medium text-foreground max-w-[400px] truncate'
+                            title={q.questionText}
+                          >
                             {q.questionText}
                           </td>
                           <td className='p-3.5 text-muted-foreground text-sm'>{q.topic}</td>

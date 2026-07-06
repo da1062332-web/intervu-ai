@@ -75,12 +75,16 @@ export class ReportsController {
 
   @Public()
   @Get("share/:attemptId")
-  @ApiOperation({ summary: "Get sanitized shareable candidate assessment report summary" })
-  @ApiResponse({ status: 200, description: "Successfully retrieved shareable report summary" })
+  @ApiOperation({
+    summary: "Get sanitized shareable candidate assessment report summary",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Successfully retrieved shareable report summary",
+  })
   async getShareableReport(@Param("attemptId") attemptId: string) {
     return this.reportService.getShareableReport(attemptId);
   }
-
 
   @Get("progress")
   @ApiOperation({ summary: "Get candidate historical progress analytics" })

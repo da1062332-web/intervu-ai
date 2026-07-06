@@ -126,8 +126,12 @@ export class CandidateProgressService {
       if (foundQuestion) {
         const snap = foundQuestion.questionSnapshot as Record<string, any>;
         const topic = snap?.conceptKey || "General";
-        const correctVal = snap?.correctOption || snap?.correctAnswer || snap?.answer;
-        const isCorrect = correctVal && String(ans.answer).toLowerCase().trim() === String(correctVal).toLowerCase().trim();
+        const correctVal =
+          snap?.correctOption || snap?.correctAnswer || snap?.answer;
+        const isCorrect =
+          correctVal &&
+          String(ans.answer).toLowerCase().trim() ===
+            String(correctVal).toLowerCase().trim();
 
         if (!topicScores[topic]) topicScores[topic] = { correct: 0, total: 0 };
         topicScores[topic].total++;
@@ -137,7 +141,9 @@ export class CandidateProgressService {
 
     const skills = Object.keys(topicScores).map((topic) => ({
       topic,
-      score: Math.round((topicScores[topic].correct / topicScores[topic].total) * 100),
+      score: Math.round(
+        (topicScores[topic].correct / topicScores[topic].total) * 100,
+      ),
     }));
 
     // Difficulty
@@ -150,16 +156,25 @@ export class CandidateProgressService {
     answers.forEach((ans) => {
       let foundQuestion: any = null;
       for (const section of ans.testInstance.sections) {
-        foundQuestion = section.questions.find((q: any) => q.questionId === ans.questionId);
+        foundQuestion = section.questions.find(
+          (q: any) => q.questionId === ans.questionId,
+        );
         if (foundQuestion) break;
       }
 
       if (foundQuestion) {
         const snap = foundQuestion.questionSnapshot as Record<string, any>;
-        const diff = (snap?.difficultyLevel || "MEDIUM").toLowerCase() as 'easy' | 'medium' | 'hard';
-        const correctVal = snap?.correctOption || snap?.correctAnswer || snap?.answer;
-        const isCorrect = correctVal && String(ans.answer).toLowerCase().trim() === String(correctVal).toLowerCase().trim();
-        
+        const diff = (snap?.difficultyLevel || "MEDIUM").toLowerCase() as
+          | "easy"
+          | "medium"
+          | "hard";
+        const correctVal =
+          snap?.correctOption || snap?.correctAnswer || snap?.answer;
+        const isCorrect =
+          correctVal &&
+          String(ans.answer).toLowerCase().trim() ===
+            String(correctVal).toLowerCase().trim();
+
         if (difficulty[diff]) {
           difficulty[diff].attempted++;
           if (isCorrect) difficulty[diff].correct++;
@@ -170,14 +185,21 @@ export class CandidateProgressService {
     // Overview
     const totalScore = evaluations.reduce((sum, e) => sum + e.overallScore, 0);
     const averageScore = Math.round(totalScore / totalAssessments);
-    const topPercentileScore = Math.max(...evaluations.map(e => e.overallScore));
+    const topPercentileScore = Math.max(
+      ...evaluations.map((e) => e.overallScore),
+    );
 
     const completedCount = evaluations.length;
     const abandonedCount = answers.filter(
-      (a) => a.testInstance.status === "EXPIRED" || a.testInstance.status === "TERMINATED",
+      (a) =>
+        a.testInstance.status === "EXPIRED" ||
+        a.testInstance.status === "TERMINATED",
     ).length;
     const totalAttempts = completedCount + abandonedCount;
-    const completionRate = totalAttempts > 0 ? Math.round((completedCount / totalAttempts) * 100) : 100;
+    const completionRate =
+      totalAttempts > 0
+        ? Math.round((completedCount / totalAttempts) * 100)
+        : 100;
 
     return {
       trend,
@@ -192,8 +214,8 @@ export class CandidateProgressService {
       // Explicit aliases for specific report requirements
       attemptsOverTime: trend,
       bestScore: topPercentileScore,
-      weakTopics: skills.filter(s => s.score < 60),
-      improvingTopics: skills.filter(s => s.score >= 60),
+      weakTopics: skills.filter((s) => s.score < 60),
+      improvingTopics: skills.filter((s) => s.score >= 60),
     };
   }
 }

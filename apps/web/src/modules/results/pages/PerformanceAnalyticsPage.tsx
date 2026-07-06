@@ -14,11 +14,7 @@ export const PerformanceAnalyticsPage = () => {
   const router = useRouter();
   const navigate = router.push;
 
-  const {
-    data: progress,
-    isLoading: progressLoading,
-    isError,
-  } = useCandidateProgress();
+  const { data: progress, isLoading: progressLoading, isError } = useCandidateProgress();
 
   if (progressLoading) return <Loading />;
 
@@ -34,21 +30,37 @@ export const PerformanceAnalyticsPage = () => {
   }
 
   // Transform data for charts
-  const topicData: Record<string, number> = progress.skills?.reduce((acc: Record<string, number>, s: any) => {
-    acc[s.topic] = s.score;
-    return acc;
-  }, {}) || {};
+  const topicData: Record<string, number> =
+    progress.skills?.reduce((acc: Record<string, number>, s: any) => {
+      acc[s.topic] = s.score;
+      return acc;
+    }, {}) || {};
 
-  const difficultyData: Record<string, number> = progress.difficulty ? {
-    'Easy': progress.difficulty.easy.attempted ? Math.round((progress.difficulty.easy.correct / progress.difficulty.easy.attempted) * 100) : 0,
-    'Medium': progress.difficulty.medium.attempted ? Math.round((progress.difficulty.medium.correct / progress.difficulty.medium.attempted) * 100) : 0,
-    'Hard': progress.difficulty.hard.attempted ? Math.round((progress.difficulty.hard.correct / progress.difficulty.hard.attempted) * 100) : 0,
-  } : {};
+  const difficultyData: Record<string, number> = progress.difficulty
+    ? {
+        Easy: progress.difficulty.easy.attempted
+          ? Math.round(
+              (progress.difficulty.easy.correct / progress.difficulty.easy.attempted) * 100,
+            )
+          : 0,
+        Medium: progress.difficulty.medium.attempted
+          ? Math.round(
+              (progress.difficulty.medium.correct / progress.difficulty.medium.attempted) * 100,
+            )
+          : 0,
+        Hard: progress.difficulty.hard.attempted
+          ? Math.round(
+              (progress.difficulty.hard.correct / progress.difficulty.hard.attempted) * 100,
+            )
+          : 0,
+      }
+    : {};
 
-  const accuracyData: Record<string, number> = progress.trend?.reduce((acc: Record<string, number>, t: any) => {
-    acc[`Attempt ${new Date(t.date).toLocaleDateString()}`] = t.score;
-    return acc;
-  }, {}) || {};
+  const accuracyData: Record<string, number> =
+    progress.trend?.reduce((acc: Record<string, number>, t: any) => {
+      acc[`Attempt ${new Date(t.date).toLocaleDateString()}`] = t.score;
+      return acc;
+    }, {}) || {};
 
   return (
     <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-8'>
@@ -57,7 +69,9 @@ export const PerformanceAnalyticsPage = () => {
           <ChevronLeft className='w-5 h-5' />
         </Button>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Performance Trend Dashboard</h1>
+          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
+            Performance Trend Dashboard
+          </h1>
           <p className='text-sm text-gray-500'>Your historical progress and analytics</p>
         </div>
       </div>
@@ -104,7 +118,8 @@ export const PerformanceAnalyticsPage = () => {
             <div>
               <p className='text-sm font-medium text-gray-500'>Best Attempt</p>
               <h3 className='text-2xl font-bold'>
-                {progress.bestScore ?? Math.max(...(progress.trend?.map((p: any) => p.score) || [0]))}
+                {progress.bestScore ??
+                  Math.max(...(progress.trend?.map((p: any) => p.score) || [0]))}
               </h3>
             </div>
           </CardContent>
@@ -120,7 +135,7 @@ export const PerformanceAnalyticsPage = () => {
             {Object.keys(topicData).length > 0 ? (
               <RadarChart data={topicData} />
             ) : (
-              <p className="text-gray-500 text-sm">Not enough topic data.</p>
+              <p className='text-gray-500 text-sm'>Not enough topic data.</p>
             )}
           </CardContent>
         </Card>
@@ -133,7 +148,7 @@ export const PerformanceAnalyticsPage = () => {
             {Object.keys(difficultyData).length > 0 ? (
               <SectionAccuracyChart data={difficultyData} />
             ) : (
-              <p className="text-gray-500 text-sm">Not enough difficulty data.</p>
+              <p className='text-gray-500 text-sm'>Not enough difficulty data.</p>
             )}
           </CardContent>
         </Card>
@@ -146,7 +161,7 @@ export const PerformanceAnalyticsPage = () => {
             {Object.keys(accuracyData).length > 0 ? (
               <SectionAccuracyChart data={accuracyData} />
             ) : (
-              <p className="text-gray-500 text-sm">Not enough accuracy data.</p>
+              <p className='text-gray-500 text-sm'>Not enough accuracy data.</p>
             )}
           </CardContent>
         </Card>

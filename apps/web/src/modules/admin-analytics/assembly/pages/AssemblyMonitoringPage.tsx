@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Layers, CheckCircle, AlertTriangle, Clock, ArrowLeft, Eye, Play, Loader2 } from 'lucide-react';
+import {
+  Layers,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
+  ArrowLeft,
+  Eye,
+  Play,
+  Loader2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
@@ -31,7 +40,9 @@ export function AssemblyMonitoringPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await apiClient.request<AssemblyAnalyticsData>('/admin/analytics/assembly');
+        const response = await apiClient.request<AssemblyAnalyticsData>(
+          '/admin/analytics/assembly',
+        );
         setData(response);
       } catch (error) {
         console.error('Failed to load assembly analytics', error);
@@ -80,8 +91,12 @@ export function AssemblyMonitoringPage() {
                   <Layers className='size-5' />
                 </div>
                 <div>
-                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>Created</p>
-                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>{data?.assembliesCreated ?? 0}</p>
+                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>
+                    Created
+                  </p>
+                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>
+                    {data?.assembliesCreated ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -92,8 +107,12 @@ export function AssemblyMonitoringPage() {
                   <CheckCircle className='size-5' />
                 </div>
                 <div>
-                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>Published</p>
-                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>{data?.publishedTests ?? 0}</p>
+                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>
+                    Published
+                  </p>
+                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>
+                    {data?.publishedTests ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -104,8 +123,12 @@ export function AssemblyMonitoringPage() {
                   <Layers className='size-5' />
                 </div>
                 <div>
-                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>Drafts</p>
-                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>{data?.draftTests ?? 0}</p>
+                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>
+                    Drafts
+                  </p>
+                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>
+                    {data?.draftTests ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -116,8 +139,12 @@ export function AssemblyMonitoringPage() {
                   <AlertTriangle className='size-5' />
                 </div>
                 <div>
-                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>Failures</p>
-                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>{data?.failedAssemblies ?? 0}</p>
+                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>
+                    Failures
+                  </p>
+                  <p className='text-lg font-bold font-heading text-foreground mt-0.5'>
+                    {data?.failedAssemblies ?? 0}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -128,7 +155,9 @@ export function AssemblyMonitoringPage() {
                   <Clock className='size-5' />
                 </div>
                 <div>
-                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>Avg Speed</p>
+                  <p className='text-[10px] text-muted-foreground font-medium uppercase tracking-wider'>
+                    Avg Speed
+                  </p>
                   <p className='text-lg font-bold font-heading text-foreground mt-0.5'>
                     {((data?.averageAssemblyTime ?? 3200) / 1000).toFixed(2)}s
                   </p>
@@ -145,12 +174,15 @@ export function AssemblyMonitoringPage() {
                 Assembled Exam History
               </CardTitle>
               <CardDescription>
-                Detailed register of all generated test instances, versions, status, and config references.
+                Detailed register of all generated test instances, versions, status, and config
+                references.
               </CardDescription>
             </CardHeader>
             <CardContent className='p-0 border-t border-border/40'>
               {data?.drilldowns.length === 0 ? (
-                <div className='text-sm text-muted-foreground text-center py-12'>No assembled tests found in history.</div>
+                <div className='text-sm text-muted-foreground text-center py-12'>
+                  No assembled tests found in history.
+                </div>
               ) : (
                 <div className='overflow-x-auto w-full'>
                   <table className='w-full text-sm text-left border-collapse'>
@@ -168,9 +200,13 @@ export function AssemblyMonitoringPage() {
                     <tbody className='divide-y divide-border/50 bg-card/25'>
                       {data?.drilldowns.map((t) => (
                         <tr key={t.id} className='hover:bg-muted/30 transition-colors'>
-                          <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>{t.id}</td>
+                          <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>
+                            {t.id}
+                          </td>
                           <td className='p-3.5 font-medium text-foreground'>{t.assessment}</td>
-                          <td className='p-3.5 text-muted-foreground text-sm'>{t.totalQuestions} items</td>
+                          <td className='p-3.5 text-muted-foreground text-sm'>
+                            {t.totalQuestions} items
+                          </td>
                           <td className='p-3.5'>
                             <span
                               className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
@@ -185,7 +221,9 @@ export function AssemblyMonitoringPage() {
                             </span>
                           </td>
                           <td className='p-3.5 text-muted-foreground text-sm'>v{t.version}</td>
-                          <td className='p-3.5 text-muted-foreground text-sm'>{new Date(t.createdAt).toLocaleDateString()}</td>
+                          <td className='p-3.5 text-muted-foreground text-sm'>
+                            {new Date(t.createdAt).toLocaleDateString()}
+                          </td>
                           <td className='p-3.5 text-right'>
                             <Button asChild size='sm' variant='outline'>
                               <Link href={`/admin/assembly/${t.id}`}>

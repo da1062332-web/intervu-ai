@@ -20,8 +20,15 @@ export class ContentCoverageService {
     });
 
     const missingTopics: string[] = [];
-    const lowCoverageTopics: Array<{ topic: string; count: number; required: number }> = [];
-    const difficultyGaps: Array<{ topic: string; missingDifficulties: string[] }> = [];
+    const lowCoverageTopics: Array<{
+      topic: string;
+      count: number;
+      required: number;
+    }> = [];
+    const difficultyGaps: Array<{
+      topic: string;
+      missingDifficulties: string[];
+    }> = [];
 
     for (const topic of topics) {
       const qCount = topic.questions.length;

@@ -23,6 +23,6 @@ export const useCandidateProgress = () => {
     queryKey: ['candidate-progress'],
     queryFn: async () => {
       return apiClient.request<CandidateProgressData>('/reports/progress');
-    }
+    },
   });
 };
