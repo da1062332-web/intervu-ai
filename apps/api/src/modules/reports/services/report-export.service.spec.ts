@@ -39,8 +39,11 @@ describe("ReportExportService (JSON)", () => {
       recommendations: [],
       improvementPlan: [],
     };
-    const result = await jsonService.generateJsonExport("attempt-1", reportData);
-    
+    const result = await jsonService.generateJsonExport(
+      "attempt-1",
+      reportData,
+    );
+
     // Result is a JSON-serializable object payload
     expect(result.summary.overallScore).toBe(100);
     expect(result.summary.rank).toBe(1);
