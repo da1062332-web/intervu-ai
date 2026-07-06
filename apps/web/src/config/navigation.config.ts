@@ -16,7 +16,7 @@ import {
   Database,
   Archive,
   Download,
-  LineChart
+  LineChart,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -42,30 +42,18 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Workflows', route: '/admin/workflows', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
-        { label: 'Results', route: '/admin/results', icon: BarChart3 },
-        { label: 'Analytics', route: '/admin/analytics', icon: TrendingUp },
+        { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
+        { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
+        { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
+        { label: 'Gen Failures', route: '/admin/generation/failures', icon: Archive },
+        { label: 'Gen Analytics', route: '/admin/analytics/generation', icon: TrendingUp },
         { label: 'Reports', route: '/admin/reports/candidates', icon: FileText },
         { label: 'Exports', route: '/admin/exports', icon: Download },
       ],
     },
     {
       heading: 'Coming Soon',
-      items: [
-        { label: 'Generation', route: '/admin/generation', icon: FileCog, disabled: true },
-        {
-          label: 'Review Queue',
-          route: '/admin/review-queue',
-          icon: MessageSquare,
-          disabled: true,
-        },
-        { label: 'Question Bank', route: '/admin/question-bank', icon: Database, disabled: true },
-        {
-          label: 'Published Assessments',
-          route: '/admin/published-assessments',
-          icon: Archive,
-          disabled: true,
-        },
-      ],
+      items: [],
     },
 
     {

@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
+import { GenerationService } from "@intervu-ai/ai-core";
 
 import { GeneratedQuestion } from "@prisma/client";
 
@@ -33,15 +34,42 @@ export class QuestionProviderService {
         continue;
       }
 
-      // If pool is empty or not enough, invoke Generation Engine
-      // Abstraction: This is where we'd call the AI Generation Engine via BullMQ or an internal service.
-      // Since it's not fully implemented in Day 2 MVP, we throw or return a simulated generation error.
-      // Wait, the instructions say "Never use mocked business logic" and "If an interface is missing, define a clean abstraction instead of mocking."
-      // So we will throw QUESTION_POOL_EMPTY if we can't generate it immediately here.
-      throw new InternalServerErrorException({
-        code: "QUESTION_POOL_EMPTY",
-        message: `Not enough questions in pool for concept ${req.conceptKey} and difficulty ${req.difficultyLevel}. Generation Service invocation is required.`,
-      });
+      const missingCount = req.count - poolQuestions.length;
+      if (missingCount <= 0) {
+        continue;
+      }
+      const generationService = new GenerationService();
+
+      for (let i = 0; i < missingCount; i++) {
+        const seedInput = `${req.conceptKey}_${req.difficultyLevel}_${Date.now()}_${i}`;
+        const result = await generationService.generateQuestion(
+          {
+            conceptKey: req.conceptKey,
+            difficultyLevel: req.difficultyLevel.toLowerCase() as
+              | "easy"
+              | "medium"
+              | "hard",
+            questionType: "mcq",
+          },
+          seedInput,
+        );
+
+        const savedQuestion = await this.questionRepository.create({
+          id: result.question.questionId,
+          questionHash: result.question.questionId,
+          template: { connect: { id: (result.question as any).templateId } },
+          conceptKey: result.question.conceptKey,
+          difficultyLevel: result.question.difficultyLevel.toUpperCase() as any,
+          questionType: result.question.questionType,
+          questionText: result.question.questionText,
+          options: (result.question.options as any) || [],
+          correctAnswer: result.question.correctAnswer,
+          solution: result.question.solution,
+          metadata: (result.question.metadata as any) || {},
+        });
+
+        results.push(savedQuestion);
+      }
     }
 
     return results;

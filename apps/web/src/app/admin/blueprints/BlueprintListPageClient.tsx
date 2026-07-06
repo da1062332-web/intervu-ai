@@ -3,6 +3,14 @@
 import { useBlueprints } from '@/services/blueprints/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Plus, Eye, Edit2, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
@@ -57,45 +65,42 @@ export function BlueprintListPageClient() {
 
         {!isLoading && !isError && bpList && bpList.length > 0 && (
           <div className='overflow-x-auto'>
-            <table className='w-full text-sm text-left'>
-              <thead className='text-xs text-gray-500 uppercase bg-gray-50 dark:bg-gray-800'>
-                <tr>
-                  <th className='px-6 py-4 font-medium'>Blueprint Name</th>
-                  <th className='px-6 py-4 font-medium'>Exam Config</th>
-                  <th className='px-6 py-4 font-medium'>Style Profile</th>
-                  <th className='px-6 py-4 font-medium'>Status</th>
-                  <th className='px-6 py-4 font-medium'>Created At</th>
-                  <th className='px-6 py-4 font-medium text-right'>Actions</th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-800'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Blueprint Name</TableHead>
+                  <TableHead>Exam Config</TableHead>
+                  <TableHead>Style Profile</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead className='text-right'>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {bpList.map((bp: any) => (
-                  <tr
-                    key={bp.id}
-                    className='hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'
-                  >
-                    <td className='px-6 py-4 font-medium text-gray-900 dark:text-gray-100'>
+                  <TableRow key={bp.id}>
+                    <TableCell className='font-medium'>
                       {bp.name ?? bp.examConfig?.name ?? bp.configId ?? '-'}
-                    </td>
-                    <td className='px-6 py-4'>
+                    </TableCell>
+                    <TableCell>
                       <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'>
                         {bp.examConfig?.code ?? bp.code ?? bp.configId ?? '-'}
                       </span>
-                    </td>
-                    <td className='px-6 py-4 text-gray-500 dark:text-gray-400'>
+                    </TableCell>
+                    <TableCell className='text-muted-foreground'>
                       {bp.styleProfile?.name ?? bp.styleProfileId ?? '-'}
-                    </td>
-                    <td className='px-6 py-4'>
+                    </TableCell>
+                    <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bp.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}
                       >
                         {bp.isActive ? 'Active' : 'Draft'}
                       </span>
-                    </td>
-                    <td className='px-6 py-4 text-gray-500 dark:text-gray-400'>
+                    </TableCell>
+                    <TableCell className='text-muted-foreground'>
                       {bp.createdAt ? new Date(bp.createdAt).toLocaleDateString() : '-'}
-                    </td>
-                    <td className='px-6 py-4 text-right space-x-2'>
+                    </TableCell>
+                    <TableCell className='text-right space-x-2'>
                       <Link href={`/admin/blueprints/${bp.id}`}>
                         <Button
                           variant='ghost'
@@ -123,11 +128,11 @@ export function BlueprintListPageClient() {
                           <ShieldAlert className='w-4 h-4 mr-1' /> Validate
                         </Button>
                       </Link>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

@@ -3,6 +3,14 @@
 import React from 'react';
 import type { ConfigVersionEntry } from '@/services/exam-configs/types';
 import { ArrowRight } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface VersionCompareProps {
   versionA: ConfigVersionEntry;
@@ -29,26 +37,26 @@ export function VersionCompare({ versionA, versionB }: VersionCompareProps) {
   const compareField = (label: string, a: unknown, b: unknown, unit = '') => {
     const changed = String(a) !== String(b);
     return (
-      <tr key={label} className={changed ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}>
-        <td className='py-2 pr-3 text-xs text-muted-foreground font-medium whitespace-nowrap'>
+      <TableRow key={label} className={changed ? 'bg-amber-50/50 dark:bg-amber-950/10' : ''}>
+        <TableCell className='py-2 pr-3 text-xs text-muted-foreground font-medium whitespace-nowrap'>
           {label}
-        </td>
-        <td
+        </TableCell>
+        <TableCell
           className={`py-2 pr-6 text-xs font-mono ${changed ? 'text-amber-700 dark:text-amber-400' : ''}`}
         >
           {String(a ?? '—')}
           {unit}
-        </td>
-        <td className='py-2 pr-3'>
+        </TableCell>
+        <TableCell className='py-2 pr-3'>
           {changed && <ArrowRight className='w-3 h-3 text-muted-foreground' />}
-        </td>
-        <td
+        </TableCell>
+        <TableCell
           className={`py-2 text-xs font-mono ${changed ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : ''}`}
         >
           {String(b ?? '—')}
           {unit}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   };
 
@@ -74,22 +82,22 @@ export function VersionCompare({ versionA, versionB }: VersionCompareProps) {
           General Settings
         </h4>
         <div className='border rounded-lg overflow-hidden'>
-          <table className='w-full'>
-            <thead>
-              <tr className='bg-muted/30 text-xs text-muted-foreground'>
-                <th className='text-left py-2 px-3 font-medium w-28'>Field</th>
-                <th className='text-left py-2 pr-6 font-medium'>v{versionA.versionNumber}</th>
-                <th className='w-6' />
-                <th className='text-left py-2 font-medium'>v{versionB.versionNumber}</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-border'>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className='w-28'>Field</TableHead>
+                <TableHead>v{versionA.versionNumber}</TableHead>
+                <TableHead className='w-6' />
+                <TableHead>v{versionB.versionNumber}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {compareField('Name', configA.name, configB.name)}
               {compareField('Role', configA.role, configB.role)}
               {compareField('Duration', configA.durationMinutes, configB.durationMinutes, ' min')}
               {compareField('Questions', configA.totalQuestions, configB.totalQuestions)}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 
@@ -99,21 +107,21 @@ export function VersionCompare({ versionA, versionB }: VersionCompareProps) {
           Difficulty Distribution
         </h4>
         <div className='border rounded-lg overflow-hidden'>
-          <table className='w-full'>
-            <thead>
-              <tr className='bg-muted/30 text-xs text-muted-foreground'>
-                <th className='text-left py-2 px-3 font-medium w-28'>Level</th>
-                <th className='text-left py-2 pr-6 font-medium'>v{versionA.versionNumber}</th>
-                <th className='w-6' />
-                <th className='text-left py-2 font-medium'>v{versionB.versionNumber}</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-border'>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className='w-28'>Level</TableHead>
+                <TableHead>v{versionA.versionNumber}</TableHead>
+                <TableHead className='w-6' />
+                <TableHead>v{versionB.versionNumber}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {compareField('Easy', diffA.easyPercentage, diffB.easyPercentage, '%')}
               {compareField('Medium', diffA.mediumPercentage, diffB.mediumPercentage, '%')}
               {compareField('Hard', diffA.hardPercentage, diffB.hardPercentage, '%')}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 

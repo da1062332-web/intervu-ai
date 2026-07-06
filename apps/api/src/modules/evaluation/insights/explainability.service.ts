@@ -1,10 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { BenchmarkService } from "../benchmarking/benchmark.service";
-import {
-  CandidateResultDto,
-  EvaluationExplanation,
-} from "@intervu-ai/contracts";
+import { CandidateResultDto } from "@intervu-ai/contracts";
+
+export interface EvaluationExplanation {
+  scoreExplanation: string;
+  recommendationReason: string;
+  benchmarkReason: string;
+  rankingReason: string;
+}
 
 @Injectable()
 export class EvaluationExplainabilityService {

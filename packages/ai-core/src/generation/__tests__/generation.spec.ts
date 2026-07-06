@@ -60,6 +60,7 @@ describe("Question Generation Engine Unit Tests", () => {
 
   const mockTemplateRepo = {
     findByConceptAndDifficulty: jest.fn(),
+    findByDifficulty: jest.fn().mockResolvedValue([]),
   };
 
   beforeEach(() => {

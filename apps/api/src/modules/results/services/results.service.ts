@@ -261,7 +261,7 @@ export class ResultsService {
     fullResult.createdAt = candidateResult.createdAt;
 
     // Attach Explainability Layer
-    fullResult.explanations = await this.explainabilityService.getExplanation(
+    (fullResult as any).explanations = await this.explainabilityService.getExplanation(
       attemptId,
       fullResult,
     );

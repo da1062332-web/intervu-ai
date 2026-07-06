@@ -4,6 +4,14 @@ import { useState } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Plus, Edit2, ClipboardList, ArrowRight, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -113,44 +121,41 @@ export function TemplateListPageClient() {
 
         {!isLoading && !isError && templates && templates.length > 0 && (
           <div className='overflow-x-auto'>
-            <table className='w-full text-sm text-left'>
-              <thead className='text-xs text-gray-500 uppercase bg-gray-50 dark:bg-gray-800'>
-                <tr>
-                  <th className='px-6 py-4 font-medium'>Name</th>
-                  <th className='px-6 py-4 font-medium'>Concept Key</th>
-                  <th className='px-6 py-4 font-medium'>Difficulty</th>
-                  <th className='px-6 py-4 font-medium'>Status</th>
-                  <th className='px-6 py-4 font-medium text-right'>Actions</th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-800'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Concept Key</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className='text-right'>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {templates.map((tpl: any) => (
-                  <tr
-                    key={tpl.id}
-                    className='hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'
-                  >
-                    <td className='px-6 py-4 font-medium text-gray-900 dark:text-gray-100'>
+                  <TableRow key={tpl.id}>
+                    <TableCell className='font-medium'>
                       <div>{tpl.name}</div>
                       {tpl.templateKey && (
-                        <div className='text-xs text-gray-400 font-mono'>{tpl.templateKey}</div>
+                        <div className='text-xs text-muted-foreground font-mono'>
+                          {tpl.templateKey}
+                        </div>
                       )}
-                    </td>
-                    <td className='px-6 py-4 text-gray-500 dark:text-gray-400'>
-                      {tpl.conceptKey ?? '-'}
-                    </td>
-                    <td className='px-6 py-4'>
+                    </TableCell>
+                    <TableCell className='text-muted-foreground'>{tpl.conceptKey ?? '-'}</TableCell>
+                    <TableCell>
                       <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'>
                         {tpl.difficultyLevel ?? tpl.difficulty ?? '-'}
                       </span>
-                    </td>
-                    <td className='px-6 py-4'>
+                    </TableCell>
+                    <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tpl.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}
                       >
                         {tpl.isActive ? 'Active' : 'Inactive'}
                       </span>
-                    </td>
-                    <td className='px-6 py-4 text-right space-x-2'>
+                    </TableCell>
+                    <TableCell className='text-right space-x-2'>
                       <Link href={`/admin/templates/${tpl.id}`}>
                         <Button
                           variant='ghost'
@@ -169,11 +174,11 @@ export function TemplateListPageClient() {
                           <ClipboardList className='w-4 h-4 mr-1' /> Assemble
                         </Button>
                       </Link>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

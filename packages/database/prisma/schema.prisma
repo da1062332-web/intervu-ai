@@ -1346,3 +1346,54 @@ model RuntimeValidationLog {
   @@map("runtime_validation_logs")
   @@index([testId])
 }
+
+model GenerationAnalytics {
+  id                               String   @id @default(cuid())
+  timestamp                        DateTime @default(now())
+  requests                         Int      @default(0)
+  successes                        Int      @default(0)
+  failures                         Int      @default(0)
+  avgDurationMs                    Float    @default(0.0)
+  questionsGeneratedPerTopic       Json     @default("{}")
+  questionsGeneratedPerDifficulty  Json     @default("{}")
+  trendData                        Json     @default("[]")
+
+  @@map("generation_analytics")
+}
+
+model ReviewAnalytics {
+  id                   String   @id @default(cuid())
+  timestamp            DateTime @default(now())
+  pendingReviews       Int      @default(0)
+  approvedToday        Int      @default(0)
+  rejectedToday        Int      @default(0)
+  avgReviewTimeSeconds Float    @default(0.0)
+  reviewerWorkload     Json     @default("{}")
+
+  @@map("review_analytics")
+}
+
+model ContentCoverage {
+  id                String   @id @default(cuid())
+  timestamp         DateTime @default(now())
+  missingTopics     Json     @default("[]")
+  lowCoverageTopics Json     @default("[]")
+  difficultyGaps    Json     @default("[]")
+  unusedQuestions   Json     @default("[]")
+
+  @@map("content_coverage")
+}
+
+model AdminAlert {
+  id        String   @id @default(cuid())
+  type      String   // e.g. "LOW_INVENTORY", "QUEUE_OVERFLOW", "ASSEMBLY_FAILURE", "GENERATION_FAILURE", "EVALUATION_FAILURE"
+  message   String
+  severity  String   @default("WARNING") // "INFO" | "WARNING" | "CRITICAL"
+  status    String   @default("ACTIVE")  // "ACTIVE" | "RESOLVED"
+  metadata  Json?    @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_alerts")
+}
+

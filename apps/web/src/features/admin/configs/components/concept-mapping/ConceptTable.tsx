@@ -2,6 +2,14 @@ import React from 'react';
 import type { ConceptMapping } from '@/services/concept-mapping';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Edit2, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -38,41 +46,34 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
   return (
     <div className='rounded-md border overflow-hidden'>
       <div className='overflow-x-auto'>
-        <table className='w-full text-sm text-left'>
-          <thead className='text-xs text-muted-foreground uppercase bg-muted/50'>
-            <tr>
-              <th scope='col' className='px-6 py-3 font-medium'>
-                Concept Name
-              </th>
-              <th scope='col' className='px-6 py-3 font-medium'>
-                Concept Code
-              </th>
-              <th scope='col' className='px-6 py-3 font-medium'>
-                Status
-              </th>
-              <th scope='col' className='px-6 py-3 font-medium'>
-                Created At
-              </th>
-              <th scope='col' className='px-6 py-3 font-medium text-right'>
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className='divide-y divide-border'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Concept Name</TableHead>
+              <TableHead>Concept Code</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead className='text-right'>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {concepts.map((concept) => (
-              <tr key={concept.id} className='bg-background hover:bg-muted/50 transition-colors'>
-                <td className='px-6 py-4 font-medium'>
+              <TableRow
+                key={concept.id}
+                className='bg-background hover:bg-muted/50 transition-colors'
+              >
+                <TableCell className='font-medium'>
                   {concept.name || concept.conceptName}
                   {concept.description && (
                     <p className='text-xs text-muted-foreground mt-1 font-normal line-clamp-1'>
                       {concept.description}
                     </p>
                   )}
-                </td>
-                <td className='px-6 py-4 font-mono text-xs'>
+                </TableCell>
+                <TableCell className='font-mono text-xs'>
                   {concept.code || concept.conceptCode}
-                </td>
-                <td className='px-6 py-4'>
+                </TableCell>
+                <TableCell>
                   <Badge
                     variant={
                       concept.status === 'ACTIVE' || concept.isActive ? 'default' : 'secondary'
@@ -80,11 +81,11 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
                   >
                     {concept.status === 'ACTIVE' || concept.isActive ? 'ACTIVE' : 'INACTIVE'}
                   </Badge>
-                </td>
-                <td className='px-6 py-4 text-muted-foreground'>
+                </TableCell>
+                <TableCell className='text-muted-foreground'>
                   {new Date(concept.createdAt).toLocaleDateString()}
-                </td>
-                <td className='px-6 py-4 text-right'>
+                </TableCell>
+                <TableCell className='text-right'>
                   <div className='flex justify-end gap-2'>
                     <Button
                       variant='ghost'
@@ -104,11 +105,11 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
                       <Trash2 className='h-4 w-4 text-muted-foreground hover:text-destructive' />
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

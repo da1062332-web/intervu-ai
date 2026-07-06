@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function SkeletonChart({ className }: { className?: string }) {
   return (
@@ -6,13 +7,13 @@ export function SkeletonChart({ className }: { className?: string }) {
       <div className='flex items-end gap-2 flex-1 pt-4 pb-2'>
         {[40, 70, 45, 90, 65, 30, 80].map((height, i) => (
           <div key={i} className='flex flex-col items-center flex-1 gap-2'>
-            <div className='w-full bg-muted animate-pulse rounded-t-sm relative flex-1'>
-              <div
+            <div className='w-full relative flex-1'>
+              <Skeleton
                 className='absolute bottom-0 w-full bg-muted-foreground/20 rounded-t-sm'
                 style={{ height: `${height}%` }}
               />
             </div>
-            <div className='w-6 h-3 bg-muted rounded animate-pulse' />
+            <Skeleton className='w-6 h-3 rounded' />
           </div>
         ))}
       </div>

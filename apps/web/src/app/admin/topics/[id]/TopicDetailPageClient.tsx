@@ -14,6 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { EmptyStateCard } from '@/components/ui/empty-state';
 import { ArrowLeft, Search, Plus, Trash2, Edit2, X, RefreshCcw, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -312,17 +320,17 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         ) : (
           <div className='overflow-hidden rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300'>
             <div className='overflow-x-auto'>
-              <table className='w-full border-collapse text-left text-sm'>
-                <thead>
-                  <tr className='border-b border-border bg-muted/50 text-muted-foreground font-semibold'>
-                    <th className='p-4 font-medium'>Concept Name</th>
-                    <th className='p-4 font-medium'>Code</th>
-                    <th className='p-4 font-medium'>Description</th>
-                    <th className='p-4 font-medium'>Status</th>
-                    <th className='p-4 font-medium text-right'>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className='divide-y divide-border'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Concept Name</TableHead>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className='text-right'>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filteredConcepts.map((concept) => {
                     const cName = concept.name || concept.conceptName;
                     const cCode = concept.code || concept.conceptCode;
@@ -330,27 +338,27 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                       (concept.status || (concept.isActive ? 'ACTIVE' : 'INACTIVE')) === 'ACTIVE';
 
                     return (
-                      <tr
+                      <TableRow
                         key={concept.id}
                         className='group hover:bg-muted/20 transition-all duration-200'
                       >
-                        <td className='p-4 font-medium text-foreground group-hover:text-primary transition-colors'>
+                        <TableCell className='font-medium text-foreground group-hover:text-primary transition-colors'>
                           {cName}
-                        </td>
-                        <td className='p-4'>
+                        </TableCell>
+                        <TableCell>
                           <Badge
                             variant='outline'
                             className='font-mono text-xs uppercase bg-muted/40'
                           >
                             {cCode}
                           </Badge>
-                        </td>
-                        <td className='p-4 text-muted-foreground max-w-xs truncate'>
+                        </TableCell>
+                        <TableCell className='text-muted-foreground max-w-xs truncate'>
                           {concept.description || (
                             <span className='text-muted-foreground/30 italic'>No description</span>
                           )}
-                        </td>
-                        <td className='p-4'>
+                        </TableCell>
+                        <TableCell>
                           <Badge
                             variant={isAct ? 'outline' : 'secondary'}
                             className={
@@ -361,8 +369,8 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                           >
                             {isAct ? 'active' : 'inactive'}
                           </Badge>
-                        </td>
-                        <td className='p-4 text-right'>
+                        </TableCell>
+                        <TableCell className='text-right'>
                           <div className='inline-flex items-center gap-2'>
                             <Button
                               variant='ghost'
@@ -391,12 +399,12 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                               )}
                             </Button>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         )}
@@ -436,7 +444,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
               id='concept-create-code'
               placeholder='e.g., TRAVERSAL'
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.replace(/\s+/g, '_'))}
               required
               className='uppercase font-mono'
             />
@@ -522,7 +530,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
               id='concept-edit-code'
               placeholder='e.g., TRAVERSAL'
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.replace(/\s+/g, '_'))}
               required
               className='uppercase font-mono'
             />

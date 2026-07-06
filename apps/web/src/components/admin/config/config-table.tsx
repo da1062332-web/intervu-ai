@@ -1,4 +1,12 @@
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Eye, Edit2, Archive } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -39,49 +47,30 @@ export function ConfigTable({ configs }: ConfigTableProps) {
 
   return (
     <div className='w-full overflow-x-auto rounded-md border mt-6'>
-      <table className='w-full text-sm text-left'>
-        <thead className='bg-muted/50 border-b'>
-          <tr>
-            <th scope='col' className='px-4 py-3 font-medium'>
-              Config Name
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium hidden sm:table-cell'>
-              Code
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium'>
-              Role
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium hidden sm:table-cell'>
-              Duration
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium hidden md:table-cell'>
-              Questions
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium'>
-              Status
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium hidden lg:table-cell'>
-              Created At
-            </th>
-            <th scope='col' className='px-4 py-3 font-medium text-right'>
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Config Name</TableHead>
+            <TableHead className='hidden sm:table-cell'>Code</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead className='hidden sm:table-cell'>Duration</TableHead>
+            <TableHead className='hidden md:table-cell'>Questions</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className='hidden lg:table-cell'>Created At</TableHead>
+            <TableHead className='text-right'>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {configs.map((config) => (
-            <tr
-              key={config.id}
-              className='border-b last:border-0 hover:bg-muted/50 transition-colors'
-            >
-              <td className='px-4 py-3 font-medium'>{config.name}</td>
-              <td className='px-4 py-3 hidden sm:table-cell text-muted-foreground'>
+            <TableRow key={config.id}>
+              <TableCell className='font-medium'>{config.name}</TableCell>
+              <TableCell className='hidden sm:table-cell text-muted-foreground'>
                 {config.code || 'N/A'}
-              </td>
-              <td className='px-4 py-3'>{config.role}</td>
-              <td className='px-4 py-3 hidden sm:table-cell'>{config.durationMinutes}m</td>
-              <td className='px-4 py-3 hidden md:table-cell'>{config.totalQuestions}</td>
-              <td className='px-4 py-3'>
+              </TableCell>
+              <TableCell>{config.role}</TableCell>
+              <TableCell className='hidden sm:table-cell'>{config.durationMinutes}m</TableCell>
+              <TableCell className='hidden md:table-cell'>{config.totalQuestions}</TableCell>
+              <TableCell>
                 <Badge
                   variant={
                     config.status === 'ARCHIVED'
@@ -105,11 +94,11 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                           ? 'Active'
                           : 'Draft'}
                 </Badge>
-              </td>
-              <td className='px-4 py-3 hidden lg:table-cell'>
+              </TableCell>
+              <TableCell className='hidden lg:table-cell'>
                 {config.createdAt ? new Date(config.createdAt).toLocaleDateString() : 'N/A'}
-              </td>
-              <td className='px-4 py-3 text-right'>
+              </TableCell>
+              <TableCell className='text-right'>
                 <div className='flex items-center justify-end gap-2'>
                   <Button variant='ghost' size='icon' aria-label='View' asChild>
                     <Link href={`/admin/configurations/${config.id}`}>
@@ -138,23 +127,23 @@ export function ConfigTable({ configs }: ConfigTableProps) {
                     <Archive className='w-4 h-4' />
                   </Button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
           {configs.length === 0 && (
-            <tr>
-              <td colSpan={8} className='px-4 py-12'>
+            <TableRow>
+              <TableCell colSpan={8} className='py-12'>
                 <EmptyStateCard
                   title='No Configurations Found'
                   description='Create your first exam configuration.'
                   actionLabel='Create Configuration'
                   actionHref='/admin/configurations/new'
                 />
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
       <Modal isOpen={!!configToArchive} onClose={() => setConfigToArchive(null)}>
         <div className='space-y-4'>

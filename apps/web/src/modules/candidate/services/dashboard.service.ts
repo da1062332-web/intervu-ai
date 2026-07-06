@@ -8,16 +8,26 @@ export const dashboardService = {
       const data = await apiClient.request<any>('/candidate/dashboard');
 
       return {
-        availableTests:
-          data.upcomingTests?.map((t: any) => ({
+        availableTests: [...(data.upcomingTests || []), ...(data.recommendedTests || [])]
+          .filter((v, i, a) => a.findIndex((t: any) => t.configId === v.configId) === i)
+          .map((t: any) => ({
             id: t.configId,
             title: t.name,
             durationMinutes: Math.floor((t.durationSeconds || 0) / 60),
             sections: t.sections || [],
             status: t.enrollmentStatus || 'AVAILABLE',
-          })) || [],
+          })),
 
-        activeTests: data.activeAttempts || [],
+        activeTests:
+          data.activeAttempts?.map((a: any) => ({
+            id: a.instanceId,
+            title: a.name,
+            remainingMinutes: Math.floor((a.timeRemainingSeconds || 0) / 60),
+            status: 'IN_PROGRESS',
+            testId: a.configId,
+            testName: a.name,
+            instanceId: a.instanceId,
+          })) || [],
 
         completedAttempts:
           data.completedTests?.map((t: any) => ({

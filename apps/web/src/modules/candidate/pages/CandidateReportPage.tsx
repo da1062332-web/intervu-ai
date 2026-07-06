@@ -71,9 +71,10 @@ const StrengthSection = React.memo(({ strengths }: { strengths: any[] }) => (
     <CardContent>
       <ul className='space-y-3'>
         {strengths.map((str, idx) => {
-          const content = typeof str === 'object' && str !== null 
-            ? (str.description || str.title || str.name || JSON.stringify(str)) 
-            : str;
+          const content =
+            typeof str === 'object' && str !== null
+              ? str.description || str.title || str.name || JSON.stringify(str)
+              : str;
           return (
             <li key={idx} className='flex items-start gap-2'>
               <span className='size-1.5 rounded-full bg-green-500 mt-2 shrink-0' />
@@ -101,9 +102,10 @@ const WeaknessSection = React.memo(({ weaknesses }: { weaknesses: any[] }) => (
     <CardContent>
       <ul className='space-y-3'>
         {weaknesses.map((weak, idx) => {
-          const content = typeof weak === 'object' && weak !== null 
-            ? (weak.description || weak.title || weak.name || JSON.stringify(weak)) 
-            : weak;
+          const content =
+            typeof weak === 'object' && weak !== null
+              ? weak.description || weak.title || weak.name || JSON.stringify(weak)
+              : weak;
           return (
             <li key={idx} className='flex items-start gap-2'>
               <span className='size-1.5 rounded-full bg-red-500 mt-2 shrink-0' />
@@ -133,10 +135,11 @@ const RecommendationSection = React.memo(({ recommendations }: { recommendations
     <CardContent>
       <ul className='space-y-3'>
         {recommendations.map((rec, idx) => {
-          const content = typeof rec === 'object' && rec !== null 
-            ? (rec.description || rec.title || JSON.stringify(rec)) 
-            : rec;
-          
+          const content =
+            typeof rec === 'object' && rec !== null
+              ? rec.description || rec.title || JSON.stringify(rec)
+              : rec;
+
           return (
             <li key={idx} className='flex items-start gap-2'>
               <span className='size-1.5 rounded-full bg-yellow-500 mt-2 shrink-0' />

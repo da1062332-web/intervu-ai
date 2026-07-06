@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -6,7 +6,7 @@ async function main() {
   const attemptId = "cmr5vh7c50002hc9wv6hcvefp";
 
   const attempt = await prisma.testInstance.findUnique({
-    where: { id: attemptId }
+    where: { id: attemptId },
   });
 
   if (!attempt) {
@@ -15,7 +15,7 @@ async function main() {
   }
 
   let evaluationResult = await prisma.evaluationResult.findUnique({
-    where: { testInstanceId: attemptId }
+    where: { testInstanceId: attemptId },
   });
 
   if (!evaluationResult) {
@@ -29,13 +29,13 @@ async function main() {
         overallScore: 85.5,
         overallRating: 4.5,
         notes: "Good performance overall.",
-      }
+      },
     });
   }
 
   // Check if recommendations exist
   const existingRecs = await prisma.recommendation.findMany({
-    where: { evaluationId: evaluationResult.id }
+    where: { evaluationId: evaluationResult.id },
   });
 
   if (existingRecs.length === 0) {
@@ -46,16 +46,17 @@ async function main() {
           skill: "React",
           priority: "LOW",
           title: "Keep up the good work",
-          description: "Your React skills are solid."
+          description: "Your React skills are solid.",
         },
         {
           evaluationId: evaluationResult.id,
           skill: "Node.js",
           priority: "HIGH",
           title: "Improve Error Handling",
-          description: "Focus on catching and handling asynchronous errors properly."
-        }
-      ]
+          description:
+            "Focus on catching and handling asynchronous errors properly.",
+        },
+      ],
     });
     console.log("Added recommendations");
   } else {
@@ -64,7 +65,7 @@ async function main() {
 }
 
 main()
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   })

@@ -8,9 +8,17 @@ export interface ModalProps {
   onClose: () => void;
   className?: string;
   showBackdrop?: boolean;
+  'aria-labelledby'?: string;
 }
 
-export function Modal({ children, isOpen, onClose, className, showBackdrop = true }: ModalProps) {
+export function Modal({
+  children,
+  isOpen,
+  onClose,
+  className,
+  showBackdrop = true,
+  'aria-labelledby': ariaLabelledby,
+}: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -49,8 +57,14 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
     };
 
     document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
     // Focus the first element on open
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -59,8 +73,8 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
       }
     }, 10);
 
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    return () => clearTimeout(timeoutId);
+  }, [isOpen]);
 
   if (!isOpen || !mounted) return null;
 
@@ -70,6 +84,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
       onClick={onClose}
       role='dialog'
       aria-modal='true'
+      aria-labelledby={ariaLabelledby}
     >
       {showBackdrop && <div className='fixed inset-0 bg-black/50 dark:bg-black/70' />}
 
@@ -82,6 +97,7 @@ export function Modal({ children, isOpen, onClose, className, showBackdrop = tru
         )}
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         {children}
       </div>

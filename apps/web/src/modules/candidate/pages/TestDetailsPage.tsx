@@ -86,22 +86,26 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
         </div>
       </div>
 
-      <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500'>
-        <div className='max-w-3xl mx-auto w-full flex flex-col space-y-6'>
-          <TestOverview test={test} />
-          <SectionBreakdown sections={test.sections} />
-          <SyllabusBreakdown syllabus={(test as any).syllabus} />
-          <EligibilityInfo eligibility={(test as any).eligibility} />
-        </div>
+      <main className='flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+          {/* Main Content Column */}
+          <div className='lg:col-span-2 flex flex-col space-y-6'>
+            <TestOverview test={test} />
+            <SectionBreakdown sections={test.sections} />
+            <SyllabusBreakdown syllabus={(test as any).syllabus} />
+            <EligibilityInfo eligibility={(test as any).eligibility} />
+          </div>
 
-        <div className='max-w-3xl mx-auto w-full flex justify-end pt-6 border-t border-border/40'>
-          <div className='w-full sm:w-1/2'>
-            <EnrollmentCard
-              testId={testId}
-              testName={test.title}
-              company={test.company || 'InterVu'}
-              status={(test as any).status || enrollmentStatus}
-            />
+          {/* Sidebar Content Column */}
+          <div className='flex flex-col space-y-6'>
+            <div className='sticky top-24'>
+              <EnrollmentCard
+                testId={testId}
+                testName={test.title}
+                company={test.company || 'InterVu'}
+                status={(test as any).status || enrollmentStatus}
+              />
+            </div>
           </div>
         </div>
       </main>

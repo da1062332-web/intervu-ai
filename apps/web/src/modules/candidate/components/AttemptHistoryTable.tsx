@@ -3,6 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { useAttemptHistory } from '../hooks/useAttemptHistory';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow as ShadcnTableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
@@ -25,10 +33,10 @@ interface AttemptHistoryTableProps {
 
 const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
   return (
-    <tr className='hover:bg-muted/50 transition-colors'>
-      <td className='px-4 py-3 font-medium'>{attempt.assessmentName}</td>
-      <td className='px-4 py-3'>{format(new Date(attempt.date), 'MMM d, yyyy')}</td>
-      <td className='px-4 py-3'>
+    <ShadcnTableRow className='hover:bg-muted/50 transition-colors'>
+      <TableCell className='font-medium'>{attempt.assessmentName}</TableCell>
+      <TableCell>{format(new Date(attempt.date), 'MMM d, yyyy')}</TableCell>
+      <TableCell>
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             attempt.status === 'COMPLETED'
@@ -40,11 +48,11 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
         >
           {attempt.status.replace('_', ' ')}
         </span>
-      </td>
-      <td className='px-4 py-3 text-right font-medium'>
+      </TableCell>
+      <TableCell className='text-right font-medium'>
         {attempt.score !== null ? `${attempt.score}%` : '-'}
-      </td>
-      <td className='px-4 py-3 text-right'>
+      </TableCell>
+      <TableCell className='text-right'>
         <div className='flex items-center justify-end gap-2'>
           {attempt.status === 'COMPLETED' ? (
             <>
@@ -71,8 +79,8 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
             </Button>
           )}
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </ShadcnTableRow>
   );
 });
 TableRow.displayName = 'TableRow';
@@ -170,11 +178,11 @@ export function AttemptHistoryTable({
       </CardHeader>
       <CardContent className='flex-1 flex flex-col'>
         <div className='rounded-md border overflow-x-auto'>
-          <table className='w-full text-sm text-left'>
-            <thead className='bg-muted/50 text-muted-foreground border-b'>
-              <tr>
-                <th
-                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
+          <Table>
+            <TableHeader>
+              <ShadcnTableRow>
+                <TableHead
+                  className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('assessmentName')}
                   aria-sort={
                     sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'
@@ -183,18 +191,18 @@ export function AttemptHistoryTable({
                   <div className='flex items-center gap-1'>
                     Assessment <ArrowUpDown className='size-3 opacity-50' />
                   </div>
-                </th>
-                <th
-                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
+                </TableHead>
+                <TableHead
+                  className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('date')}
                   aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <div className='flex items-center gap-1'>
                     Date <ArrowUpDown className='size-3 opacity-50' />
                   </div>
-                </th>
-                <th
-                  className='px-4 py-3 font-medium cursor-pointer hover:text-foreground'
+                </TableHead>
+                <TableHead
+                  className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('status')}
                   aria-sort={
                     sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'
@@ -203,9 +211,9 @@ export function AttemptHistoryTable({
                   <div className='flex items-center gap-1'>
                     Status <ArrowUpDown className='size-3 opacity-50' />
                   </div>
-                </th>
-                <th
-                  className='px-4 py-3 font-medium text-right cursor-pointer hover:text-foreground'
+                </TableHead>
+                <TableHead
+                  className='text-right cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('score')}
                   aria-sort={
                     sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'
@@ -214,24 +222,24 @@ export function AttemptHistoryTable({
                   <div className='flex items-center justify-end gap-1'>
                     Score <ArrowUpDown className='size-3 opacity-50' />
                   </div>
-                </th>
-                <th className='px-4 py-3 font-medium text-right'>Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y'>
+                </TableHead>
+                <TableHead className='text-right'>Actions</TableHead>
+              </ShadcnTableRow>
+            </TableHeader>
+            <TableBody>
               {processedAttempts.length > 0 ? (
                 processedAttempts.map((attempt) => (
                   <TableRow key={attempt.instanceId} attempt={attempt} />
                 ))
               ) : (
-                <tr>
-                  <td colSpan={5} className='px-4 py-8 text-center text-muted-foreground'>
+                <ShadcnTableRow>
+                  <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
                     No matching attempts found on this page.
-                  </td>
-                </tr>
+                  </TableCell>
+                </ShadcnTableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {data.pagination.totalPages > 1 && (
