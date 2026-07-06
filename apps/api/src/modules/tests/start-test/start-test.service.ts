@@ -89,11 +89,12 @@ export class StartTestService {
         });
       }
     } catch (error) {
-      require("fs").writeFileSync(
-        "c:\\Users\\Bhush\\Desktop\\intervu-ai\\error.log",
-        String((error as any).stack || error),
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Failed assembling test sections for configId: ${input.testConfigId}. Cause: ${errorMsg}`,
+        error instanceof Error ? error.stack : undefined,
       );
-      console.error("Assembly Error:", error);
+
       if (error instanceof InternalServerErrorException) {
         const res = error.getResponse();
         if (

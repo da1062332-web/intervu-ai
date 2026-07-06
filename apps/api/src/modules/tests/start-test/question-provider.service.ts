@@ -90,9 +90,14 @@ export class QuestionProviderService {
               await this.questionRepository.create(createInput);
             results.push(savedQuestion);
           }
+          } catch (err) {
+            console.warn(
+              "Question generation iteration failed:",
+              err instanceof Error ? err.message : String(err)
+            );
+          }
         }
       } catch (genError) {
-        // Log generation failure without failing if pool already gave some questions
         if (results.length === 0) {
           throw new InternalServerErrorException({
             code: "QUESTION_POOL_EMPTY",
