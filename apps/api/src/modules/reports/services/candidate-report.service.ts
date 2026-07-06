@@ -106,6 +106,9 @@ export class CandidateReportService {
         fullName: attempt.user.fullName || "Candidate",
         email: attempt.user.email,
       },
+      attemptId: attempt.id,
+      assessmentName: attempt.testConfig.displayName,
+      submittedAt: attempt.submittedAt || attempt.updatedAt,
       assessment: {
         id: attempt.testConfigId,
         title: attempt.testConfig.displayName,
@@ -162,5 +165,66 @@ export class CandidateReportService {
     );
 
     return plan;
+  }
+
+  async getShareableReport(attemptId: string): Promise<any> {
+    this.logger.debug("Generating shareable report", { attemptId });
+
+    const attempt = await this.prisma.testInstance.findUnique({
+      where: { id: attemptId },
+      include: {
+        testConfig: true,
+      },
+    });
+
+    if (!attempt) {
+      throw new NotFoundException(`Assessment attempt ${attemptId} not found`);
+    }
+
+    const evaluation = await this.prisma.evaluationResult.findUnique({
+      where: { testInstanceId: attemptId },
+    });
+
+    if (!evaluation) {
+      throw new NotFoundException(
+        `Evaluation for attempt ${attemptId} has not been completed yet`,
+      );
+    }
+
+    const testConfigId = attempt.testConfigId;
+    const allAttempts = await this.prisma.evaluationResult.findMany({
+      where: {
+        testInstance: {
+          testConfigId,
+        },
+      },
+      select: {
+        overallScore: true,
+      },
+    });
+
+    const totalAttemptsCount = allAttempts.length;
+    const score = evaluation.overallScore;
+    const countHigher = allAttempts.filter(
+      (a) => a.overallScore > score,
+    ).length;
+    const rank = countHigher + 1;
+    const percentile =
+      totalAttemptsCount > 1
+        ? Math.round(
+            ((totalAttemptsCount - rank) / (totalAttemptsCount - 1)) * 100,
+          )
+        : 100;
+
+    return {
+      assessment: {
+        id: attempt.testConfigId,
+        title: attempt.testConfig.displayName,
+      },
+      score,
+      percentile,
+      rank,
+      completedAt: attempt.submittedAt || attempt.updatedAt,
+    };
   }
 }

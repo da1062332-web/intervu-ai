@@ -89,81 +89,32 @@ export class CandidateProgressService {
     const totalAssessments = evaluations.length;
     if (totalAssessments === 0) {
       return {
-        assessmentCount: 0,
-        averageScore: 0,
-        historicalPerformance: [],
-        topicImprovement: [],
-        skillGrowth: [],
-        difficultyTrends: [],
-        accuracyTrends: [],
-        completionTrends: { completed: 0, abandoned: 0, completionRate: 0 },
+        trend: [],
+        skills: [],
+        difficulty: {
+          easy: { attempted: 0, correct: 0 },
+          medium: { attempted: 0, correct: 0 },
+          hard: { attempted: 0, correct: 0 },
+        },
+        overview: {
+          averageScore: 0,
+          topPercentileScore: 0,
+          totalAssessments: 0,
+          completionRate: 0,
+        },
       };
     }
 
-    // Average Score
-    const totalScore = evaluations.reduce((sum, e) => sum + e.overallScore, 0);
-    const averageScore = Math.round(totalScore / totalAssessments);
-
-    // Historical Performance & Accuracy Trends
-    const historicalPerformance = evaluations.map((e) => ({
-      attemptId: e.testInstanceId,
+    // Trend
+    const trend = evaluations.map((e) => ({
       date: e.evaluatedAt,
       score: e.overallScore,
-      testName: e.testInstance?.testConfig?.displayName || "Assessment",
+      label: e.testInstance?.testConfig?.displayName || "Assessment",
     }));
 
-    const accuracyTrends = evaluations.map((e) => {
-      const totalQ = e.totalQuestions || 1;
-      const correct = e.correctAnswers || 0;
-      return {
-        attemptId: e.testInstanceId,
-        date: e.evaluatedAt,
-        accuracy: Math.round((correct / totalQ) * 100),
-      };
-    });
-
-    // Skill Growth Trends
-    const skillScoresMap: Record<string, { date: Date; score: number }[]> = {};
-    evaluations.forEach((e) => {
-      const date = e.evaluatedAt;
-      (e.skillScores || []).forEach((s: any) => {
-        if (!skillScoresMap[s.skill]) {
-          skillScoresMap[s.skill] = [];
-        }
-        skillScoresMap[s.skill].push({ date, score: s.score });
-      });
-    });
-
-    const skillGrowth = Object.keys(skillScoresMap).map((skill) => ({
-      skill,
-      history: skillScoresMap[skill],
-    }));
-
-    // Difficulty Trends
-    const difficultyMap: Record<string, { totalScore: number; count: number }> =
-      {};
-    evaluations.forEach((e) => {
-      const difficulty =
-        e.testInstance?.testConfig?.difficultyLevel || "MEDIUM";
-      if (!difficultyMap[difficulty]) {
-        difficultyMap[difficulty] = { totalScore: 0, count: 0 };
-      }
-      difficultyMap[difficulty].totalScore += e.overallScore;
-      difficultyMap[difficulty].count++;
-    });
-
-    const difficultyTrends = Object.keys(difficultyMap).map((difficulty) => ({
-      difficulty,
-      averageScore: Math.round(
-        difficultyMap[difficulty].totalScore / difficultyMap[difficulty].count,
-      ),
-      count: difficultyMap[difficulty].count,
-    }));
-
-    // Topic Performance & Improvement
+    // Skills
     const topicScores: Record<string, { correct: number; total: number }> = {};
     answers.forEach((ans) => {
-      // Find question details
       let foundQuestion: any = null;
       for (const section of ans.testInstance.sections) {
         foundQuestion = section.questions.find(
@@ -175,57 +126,74 @@ export class CandidateProgressService {
       if (foundQuestion) {
         const snap = foundQuestion.questionSnapshot as Record<string, any>;
         const topic = snap?.conceptKey || "General";
-        const correctVal =
-          snap?.correctOption || snap?.correctAnswer || snap?.answer;
-        const isCorrect =
-          correctVal &&
-          String(ans.answer).toLowerCase().trim() ===
-            String(correctVal).toLowerCase().trim();
+        const correctVal = snap?.correctOption || snap?.correctAnswer || snap?.answer;
+        const isCorrect = correctVal && String(ans.answer).toLowerCase().trim() === String(correctVal).toLowerCase().trim();
 
-        if (!topicScores[topic]) {
-          topicScores[topic] = { correct: 0, total: 0 };
-        }
+        if (!topicScores[topic]) topicScores[topic] = { correct: 0, total: 0 };
         topicScores[topic].total++;
-        if (isCorrect) {
-          topicScores[topic].correct++;
+        if (isCorrect) topicScores[topic].correct++;
+      }
+    });
+
+    const skills = Object.keys(topicScores).map((topic) => ({
+      topic,
+      score: Math.round((topicScores[topic].correct / topicScores[topic].total) * 100),
+    }));
+
+    // Difficulty
+    const difficulty = {
+      easy: { attempted: 0, correct: 0 },
+      medium: { attempted: 0, correct: 0 },
+      hard: { attempted: 0, correct: 0 },
+    };
+
+    answers.forEach((ans) => {
+      let foundQuestion: any = null;
+      for (const section of ans.testInstance.sections) {
+        foundQuestion = section.questions.find((q: any) => q.questionId === ans.questionId);
+        if (foundQuestion) break;
+      }
+
+      if (foundQuestion) {
+        const snap = foundQuestion.questionSnapshot as Record<string, any>;
+        const diff = (snap?.difficultyLevel || "MEDIUM").toLowerCase() as 'easy' | 'medium' | 'hard';
+        const correctVal = snap?.correctOption || snap?.correctAnswer || snap?.answer;
+        const isCorrect = correctVal && String(ans.answer).toLowerCase().trim() === String(correctVal).toLowerCase().trim();
+        
+        if (difficulty[diff]) {
+          difficulty[diff].attempted++;
+          if (isCorrect) difficulty[diff].correct++;
         }
       }
     });
 
-    const topicImprovement = Object.keys(topicScores).map((topic) => ({
-      topic,
-      accuracy: Math.round(
-        (topicScores[topic].correct / topicScores[topic].total) * 100,
-      ),
-      totalQuestions: topicScores[topic].total,
-    }));
+    // Overview
+    const totalScore = evaluations.reduce((sum, e) => sum + e.overallScore, 0);
+    const averageScore = Math.round(totalScore / totalAssessments);
+    const topPercentileScore = Math.max(...evaluations.map(e => e.overallScore));
 
-    // Completion Trends
     const completedCount = evaluations.length;
     const abandonedCount = answers.filter(
-      (a) =>
-        a.testInstance.status === "EXPIRED" ||
-        a.testInstance.status === "TERMINATED",
+      (a) => a.testInstance.status === "EXPIRED" || a.testInstance.status === "TERMINATED",
     ).length;
     const totalAttempts = completedCount + abandonedCount;
-    const completionRate =
-      totalAttempts > 0
-        ? Math.round((completedCount / totalAttempts) * 100)
-        : 100;
+    const completionRate = totalAttempts > 0 ? Math.round((completedCount / totalAttempts) * 100) : 100;
 
     return {
-      assessmentCount: totalAssessments,
-      averageScore,
-      historicalPerformance,
-      topicImprovement,
-      skillGrowth,
-      difficultyTrends,
-      accuracyTrends,
-      completionTrends: {
-        completed: completedCount,
-        abandoned: abandonedCount,
+      trend,
+      skills,
+      difficulty,
+      overview: {
+        averageScore,
+        topPercentileScore,
+        totalAssessments,
         completionRate,
       },
+      // Explicit aliases for specific report requirements
+      attemptsOverTime: trend,
+      bestScore: topPercentileScore,
+      weakTopics: skills.filter(s => s.score < 60),
+      improvingTopics: skills.filter(s => s.score >= 60),
     };
   }
 }

@@ -11,6 +11,7 @@ import {
 import { Response } from "express";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../auth/guards/roles.guard";
+import { Public } from "../../auth/decorators/public.decorator";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { PrismaService } from "@/prisma/prisma.service";
@@ -71,6 +72,15 @@ export class ReportsController {
     const attempt = await this.validateAccess(user, attemptId);
     return this.reportService.getCandidateReport(attempt.userId, attemptId);
   }
+
+  @Public()
+  @Get("share/:attemptId")
+  @ApiOperation({ summary: "Get sanitized shareable candidate assessment report summary" })
+  @ApiResponse({ status: 200, description: "Successfully retrieved shareable report summary" })
+  async getShareableReport(@Param("attemptId") attemptId: string) {
+    return this.reportService.getShareableReport(attemptId);
+  }
+
 
   @Get("progress")
   @ApiOperation({ summary: "Get candidate historical progress analytics" })

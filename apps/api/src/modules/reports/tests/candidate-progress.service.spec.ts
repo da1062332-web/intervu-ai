@@ -88,8 +88,8 @@ describe("CandidateProgressService", () => {
 
     const result = await service.getCandidateProgress("user-1");
 
-    expect(result.assessmentCount).toBe(1);
-    expect(result.averageScore).toBe(80);
+    expect(result.overview.totalAssessments).toBe(1);
+    expect(result.overview.averageScore).toBe(80);
     expect(mockCacheService.set).toHaveBeenCalledWith(
       "user-1",
       expect.any(Object),

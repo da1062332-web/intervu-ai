@@ -14,6 +14,7 @@ import { RadarChart } from '../components/RadarChart';
 import { SectionAccuracyChart } from '../components/SectionAccuracyChart';
 import { StrengthWeaknessPanel } from '../components/StrengthWeaknessPanel';
 import { RecommendationPanel } from '../components/RecommendationPanel';
+import { ShareableResultCard } from '../components/ShareableResultCard';
 import { Target, PlayCircle } from 'lucide-react';
 
 export const ResultDetailsPage = () => {
@@ -94,7 +95,7 @@ export const ResultDetailsPage = () => {
           </p>
         </div>
         <div className='mt-4 md:mt-0 flex flex-wrap gap-2'>
-          <Button variant='outline' onClick={() => navigate(`/results/${attemptId}/analytics`)}>
+          <Button variant='outline' onClick={() => navigate(`/candidate/results/${attemptId}/analytics`)}>
             View Analytics
           </Button>
           <Button variant='outline' onClick={handleExportJson} disabled={isExportingJson}>
@@ -230,6 +231,8 @@ export const ResultDetailsPage = () => {
             <h2 className='text-xl font-bold text-gray-900 mb-4'>Improvement Recommendations</h2>
             <RecommendationPanel attemptId={attemptId!} />
           </div>
+
+          <ShareableResultCard attemptId={attemptId!} />
         </div>
       ) : null}
     </div>

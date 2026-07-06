@@ -5,6 +5,7 @@ import {
   PlatformAuditService,
   GetAuditLogsDto,
 } from "../audit/platform-audit.service";
+import { UatChecklistService } from "../services/uat-checklist.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { Public } from "../../auth/decorators/public.decorator";
@@ -21,6 +22,7 @@ export class PlatformMetricsController {
   constructor(
     private readonly healthService: PlatformHealthService,
     private readonly auditService: PlatformAuditService,
+    private readonly uatService: UatChecklistService,
     private readonly prisma: PrismaService,
     private readonly examConfigRepo: ExamConfigRepository,
     private readonly generatedQuestionRepo: GeneratedQuestionRepository,
@@ -35,6 +37,14 @@ export class PlatformMetricsController {
   @ApiOperation({ summary: "Get global platform health telemetry" })
   async getGlobalHealth() {
     return this.healthService.getHealth();
+  }
+
+  @Get("uat-status")
+  @Roles("ADMIN")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get dynamic platform UAT readiness status" })
+  async getUatStatus() {
+    return this.uatService.getPlatformUatStatus();
   }
 
   @Get("metrics")

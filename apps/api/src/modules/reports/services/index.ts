@@ -3,3 +3,4 @@ export * from "./candidate-progress.service";
 export * from "./pdf-report.service";
 export * from "./json-export.service";
 export * from "./report-audit.service";
+export * from "./admin-report.service";
