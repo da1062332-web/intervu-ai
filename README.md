@@ -1,3 +1,13 @@
+---
+title: InterVu AI Backend
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # InterVu AI
 
 InterVu AI is a monorepo for an interview preparation platform built with:
