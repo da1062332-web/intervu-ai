@@ -27,7 +27,11 @@ export enum ExportFormat {
 }
 
 export class ExportQueryDto {
-  @ApiProperty({ required: false, enum: ExportFormat, default: ExportFormat.CSV })
+  @ApiProperty({
+    required: false,
+    enum: ExportFormat,
+    default: ExportFormat.CSV,
+  })
   @IsOptional()
   @IsEnum(ExportFormat)
   format?: ExportFormat = ExportFormat.CSV;

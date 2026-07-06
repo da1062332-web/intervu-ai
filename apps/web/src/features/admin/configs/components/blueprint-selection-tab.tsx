@@ -74,7 +74,11 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                   {(selectedBlueprint as any).settings?.topics?.length || 0}
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Topics</span>
-                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
+                <Button
+                  variant='ghost'
+                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
+                  asChild
+                >
                   <Link href='/admin/topics' target='_blank'>
                     View Topics <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>
@@ -87,7 +91,11 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                   {((selectedBlueprint as any).settings?.topics?.length || 0) * 4}
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Concepts</span>
-                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
+                <Button
+                  variant='ghost'
+                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
+                  asChild
+                >
                   <Link href='/admin/topics' target='_blank'>
                     View Concepts <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>
@@ -100,7 +108,11 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                   15
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Templates</span>
-                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
+                <Button
+                  variant='ghost'
+                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
+                  asChild
+                >
                   <Link href='/admin/templates' target='_blank'>
                     View Templates <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>
@@ -112,7 +124,11 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                   {(selectedBlueprint as any).settings?.sections?.length || 0}
                 </span>
                 <span className='text-sm font-medium text-muted-foreground'>Sections</span>
-                <Button variant='ghost' className='p-0 h-auto justify-start text-xs underline hover:bg-transparent' asChild>
+                <Button
+                  variant='ghost'
+                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
+                  asChild
+                >
                   <Link href='/admin/blueprints' target='_blank'>
                     View Sections <ExternalLink className='ml-1 h-3 w-3' />
                   </Link>

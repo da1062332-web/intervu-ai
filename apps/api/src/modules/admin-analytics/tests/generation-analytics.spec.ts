@@ -18,7 +18,12 @@ describe("GenerationAnalytics", () => {
           provide: AdminAnalyticsSyncService,
           useValue: {
             syncAll: jest.fn().mockResolvedValue({
-              generation: { id: "gen-1", requests: 10, successes: 8, failures: 2 },
+              generation: {
+                id: "gen-1",
+                requests: 10,
+                successes: 8,
+                failures: 2,
+              },
               review: { id: "rev-1" },
             }),
           },
@@ -56,7 +61,9 @@ describe("GenerationAnalytics", () => {
     }).compile();
 
     controller = module.get<AdminAnalyticsController>(AdminAnalyticsController);
-    syncService = module.get<AdminAnalyticsSyncService>(AdminAnalyticsSyncService);
+    syncService = module.get<AdminAnalyticsSyncService>(
+      AdminAnalyticsSyncService,
+    );
     prisma = module.get<PrismaService>(PrismaService);
   });
 

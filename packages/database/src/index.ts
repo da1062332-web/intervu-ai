@@ -54,4 +54,3 @@ export type {
   Prisma,
   Concept,
 } from "@prisma/client";
-

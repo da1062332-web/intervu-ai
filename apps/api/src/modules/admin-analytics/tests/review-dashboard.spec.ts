@@ -18,7 +18,14 @@ describe("ReviewDashboard", () => {
           useValue: {
             syncAll: jest.fn().mockResolvedValue({
               generation: { id: "gen-1" },
-              review: { id: "rev-1", pendingReviews: 5, approvedToday: 3, rejectedToday: 1, avgReviewTimeSeconds: 120, reviewerWorkload: { "AI Reviewer": 4 } },
+              review: {
+                id: "rev-1",
+                pendingReviews: 5,
+                approvedToday: 3,
+                rejectedToday: 1,
+                avgReviewTimeSeconds: 120,
+                reviewerWorkload: { "AI Reviewer": 4 },
+              },
             }),
           },
         },

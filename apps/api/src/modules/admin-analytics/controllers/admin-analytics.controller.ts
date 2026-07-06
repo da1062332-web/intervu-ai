@@ -62,7 +62,9 @@ export class AdminAnalyticsController {
 
     const totalQuestions = await this.prisma.question.count();
     const approvedQuestions = await this.prisma.question.count({
-      where: { status: { in: [QuestionStatus.VALIDATED, QuestionStatus.ACTIVE] } },
+      where: {
+        status: { in: [QuestionStatus.VALIDATED, QuestionStatus.ACTIVE] },
+      },
     });
     const pendingReviews = await this.prisma.question.count({
       where: { status: QuestionStatus.DRAFT },
@@ -145,7 +147,9 @@ export class AdminAnalyticsController {
       questionText: d.question?.questionText || "Deleted question",
       topic: d.question?.topic?.name || "Unknown",
       status: d.status,
-      reviewer: d.notes?.includes("Approved by") ? d.notes.replace("Approved by ", "") : "AI Reviewer",
+      reviewer: d.notes?.includes("Approved by")
+        ? d.notes.replace("Approved by ", "")
+        : "AI Reviewer",
       timestamp: d.createdAt,
     }));
 
@@ -183,7 +187,12 @@ export class AdminAnalyticsController {
       }),
     );
 
-    const statuses = [QuestionStatus.DRAFT, QuestionStatus.VALIDATED, QuestionStatus.ACTIVE, QuestionStatus.ARCHIVED];
+    const statuses = [
+      QuestionStatus.DRAFT,
+      QuestionStatus.VALIDATED,
+      QuestionStatus.ACTIVE,
+      QuestionStatus.ARCHIVED,
+    ];
     const questionsByStatus = await Promise.all(
       statuses.map(async (stat) => {
         const count = await this.prisma.question.count({
@@ -332,10 +341,22 @@ export class AdminAnalyticsController {
 
     if (query.format === ExportFormat.JSON) {
       res.setHeader("Content-Type", "application/json");
-      res.setHeader("Content-Disposition", "attachment; filename=questions.json");
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=questions.json",
+      );
       return res.status(HttpStatus.OK).send(JSON.stringify(data, null, 2));
     } else {
-      const headers = ["id", "questionText", "answer", "difficulty", "source", "status", "topicName", "createdAt"];
+      const headers = [
+        "id",
+        "questionText",
+        "answer",
+        "difficulty",
+        "source",
+        "status",
+        "topicName",
+        "createdAt",
+      ];
       const rows = data.map((q) => [
         q.id,
         `"${(q.questionText || "").replace(/"/g, '""')}"`,
@@ -346,9 +367,14 @@ export class AdminAnalyticsController {
         q.topic?.name || "",
         q.createdAt.toISOString(),
       ]);
-      const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join(
+        "\n",
+      );
       res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", "attachment; filename=questions.csv");
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=questions.csv",
+      );
       return res.status(HttpStatus.OK).send(csv);
     }
   }
@@ -365,7 +391,15 @@ export class AdminAnalyticsController {
       res.setHeader("Content-Disposition", "attachment; filename=reviews.json");
       return res.status(HttpStatus.OK).send(JSON.stringify(data, null, 2));
     } else {
-      const headers = ["id", "questionId", "questionText", "topicName", "status", "notes", "createdAt"];
+      const headers = [
+        "id",
+        "questionId",
+        "questionText",
+        "topicName",
+        "status",
+        "notes",
+        "createdAt",
+      ];
       const rows = data.map((r) => [
         r.id,
         r.questionId,
@@ -375,7 +409,9 @@ export class AdminAnalyticsController {
         `"${(r.notes || "").replace(/"/g, '""')}"`,
         r.createdAt.toISOString(),
       ]);
-      const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+      const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join(
+        "\n",
+      );
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", "attachment; filename=reviews.csv");
       return res.status(HttpStatus.OK).send(csv);
@@ -391,10 +427,21 @@ export class AdminAnalyticsController {
 
     if (query.format === ExportFormat.JSON) {
       res.setHeader("Content-Type", "application/json");
-      res.setHeader("Content-Disposition", "attachment; filename=assessments.json");
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=assessments.json",
+      );
       return res.status(HttpStatus.OK).send(JSON.stringify(data, null, 2));
     } else {
-      const headers = ["id", "configId", "examName", "status", "totalQuestions", "totalDurationSeconds", "createdAt"];
+      const headers = [
+        "id",
+        "configId",
+        "examName",
+        "status",
+        "totalQuestions",
+        "totalDurationSeconds",
+        "createdAt",
+      ];
       const rows = data.map((a) => [
         a.id,
         a.configId,
@@ -404,9 +451,14 @@ export class AdminAnalyticsController {
         a.totalDurationSeconds,
         a.createdAt.toISOString(),
       ]);
-      const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+      const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join(
+        "\n",
+      );
       res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", "attachment; filename=assessments.csv");
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=assessments.csv",
+      );
       return res.status(HttpStatus.OK).send(csv);
     }
   }

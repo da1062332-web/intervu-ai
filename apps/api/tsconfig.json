@@ -29,7 +29,9 @@
 
       "@intervu-ai/shared-logger": ["../../packages/shared-logger/src"],
       "@intervu-ai/generation": ["../../generation/src"],
-      "@intervu-ai/validation-core": ["../../packages/validation-core/src"]
+      "@intervu-ai/validation-core": ["../../packages/validation-core/src"],
+      "@intervu-ai/database": ["../../packages/database/src"],
+      "@intervu-ai/database/*": ["../../packages/database/src/*"]
     }
   },
 

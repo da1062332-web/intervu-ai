@@ -4,7 +4,7 @@ import { useUIStore } from '@/store/ui.store';
 import { normalizeApiError } from '@/services/api/error';
 
 export function notifySuccess(message: string): void {
-  toast.success(message);
+  toast.success(message, { ariaLive: 'polite' } as any);
 }
 
 function formatValidationSummary(validationErrors: Record<string, string[]>): string | null {
@@ -37,6 +37,6 @@ export function notifyApiError(
 
   useUIStore.getState().setError(renderedMessage);
 
-  toast.error(renderedMessage);
+  toast.error(renderedMessage, { ariaLive: 'assertive' } as any);
   normalized.notified = true;
 }

@@ -26,6 +26,9 @@ export class QuestionSearchService {
 
     const where: Prisma.QuestionWhereInput = {};
 
+    if (filters.search) {
+      where.questionText = { contains: filters.search, mode: "insensitive" };
+    }
     if (filters.topicId) {
       where.topicId = filters.topicId;
     }

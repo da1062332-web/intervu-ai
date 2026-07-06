@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  Logger,
 } from "@nestjs/common";
 import { StartTestDto } from "./dto/start-test.dto";
 import { EligibilityService } from "../../lifecycle/eligibility.service";
@@ -12,6 +13,8 @@ import { TestInstanceStatus, Prisma } from "@prisma/client";
 
 @Injectable()
 export class StartTestService {
+  private readonly logger = new Logger(StartTestService.name);
+
   constructor(
     private readonly eligibilityService: EligibilityService,
     private readonly testConfigRepository: TestConfigRepository,
@@ -86,7 +89,10 @@ export class StartTestService {
         });
       }
     } catch (error) {
-      require("fs").writeFileSync("c:\\Users\\Bhush\\Desktop\\intervu-ai\\error.log", String((error as any).stack || error));
+      require("fs").writeFileSync(
+        "c:\\Users\\Bhush\\Desktop\\intervu-ai\\error.log",
+        String((error as any).stack || error),
+      );
       console.error("Assembly Error:", error);
       if (error instanceof InternalServerErrorException) {
         const res = error.getResponse();
@@ -104,7 +110,7 @@ export class StartTestService {
       }
       throw new InternalServerErrorException({
         code: "ASSEMBLY_FAILED",
-        message: "Failed to assemble test sections",
+        message: `Failed to assemble test sections: ${errorMsg}`,
       });
     }
 
