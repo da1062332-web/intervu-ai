@@ -9,6 +9,7 @@ describe("ReportExportService (JSON)", () => {
   beforeEach(async () => {
     auditService = {
       logExport: jest.fn(),
+      logJsonExported: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -43,11 +44,10 @@ describe("ReportExportService (JSON)", () => {
       reportData,
     );
 
-    // Result should be a stringified buffer or string that parses back to the data
-    const parsed = JSON.parse(result.toString());
-    expect(parsed.score).toBe(100);
-    expect(parsed.rank).toBe(1);
-    expect(parsed.exportedAt).toBeDefined();
-    expect(parsed.attemptId).toBe("attempt-1");
+    // Result is a JSON-serializable object payload
+    expect(result.summary.overallScore).toBe(100);
+    expect(result.summary.rank).toBe(1);
+    expect(result.metadata.exportedAt).toBeDefined();
+    expect(result.metadata.attemptId).toBe("attempt-1");
   });
 });

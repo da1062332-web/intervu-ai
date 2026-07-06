@@ -45,7 +45,8 @@ export class QuestionProviderService {
       try {
         const generationService = new GenerationService();
 
-        for (let i = 0; i < missingCount; i++) {
+      for (let i = 0; i < missingCount; i++) {
+        try {
           const seedInput = `${req.conceptKey}_${req.difficultyLevel}_${Date.now()}_${i}`;
           const result = await generationService.generateQuestion(
             {
@@ -89,9 +90,14 @@ export class QuestionProviderService {
               await this.questionRepository.create(createInput);
             results.push(savedQuestion);
           }
+          } catch (err) {
+            console.warn(
+              "Question generation iteration failed:",
+              err instanceof Error ? err.message : String(err)
+            );
+          }
         }
       } catch (genError) {
-        // Log generation failure without failing if pool already gave some questions
         if (results.length === 0) {
           throw new InternalServerErrorException({
             code: "QUESTION_POOL_EMPTY",

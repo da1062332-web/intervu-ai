@@ -24,6 +24,7 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   const router = useRouter();
   const { data: test, isLoading, error, refetch } = useTestDetails(testId);
   const [isSystemReady, setIsSystemReady] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   if (isLoading) {
     return (
@@ -61,8 +62,6 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
       />
     );
   }
-
-  const [isStarting, setIsStarting] = useState(false);
 
   const handleStartAssessment = async () => {
     try {

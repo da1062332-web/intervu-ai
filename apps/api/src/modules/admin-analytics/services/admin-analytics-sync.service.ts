@@ -150,35 +150,78 @@ export class AdminAnalyticsSyncService {
     });
 
     // ─── 4. Evaluate & Sync Admin Alerts ───
-    // Acknowledge/resolve old active alerts if condition cleared, or create new ones
-    await this.prisma.adminAlert.updateMany({
+    // Fetch all currently active alerts
+    const activeAlerts = await this.prisma.adminAlert.findMany({
       where: { status: "ACTIVE" },
-      data: { status: "RESOLVED" },
     });
 
+    // Helper to find alert by type and optionally match metadata fields
+    const findAlert = (type: string, matchMeta?: (meta: any) => boolean) => {
+      return activeAlerts.find((alert) => {
+        if (alert.type !== type) return false;
+        if (!matchMeta) return true;
+        const meta = alert.metadata ? (alert.metadata as any) : {};
+        return matchMeta(meta);
+      });
+    };
+
     // Low question inventory alert
+    const lowInvAlert = findAlert("LOW_INVENTORY");
     if (coverage.lowCoverageTopics.length > 0) {
-      await this.prisma.adminAlert.create({
-        data: {
-          type: "LOW_INVENTORY",
-          message: `There are ${coverage.lowCoverageTopics.length} topics with low question inventory (< 10 questions).`,
-          severity: "WARNING",
-          status: "ACTIVE",
-          metadata: { count: coverage.lowCoverageTopics.length },
-        },
+      const message = `There are ${coverage.lowCoverageTopics.length} topics with low question inventory (< 10 questions).`;
+      if (lowInvAlert) {
+        await this.prisma.adminAlert.update({
+          where: { id: lowInvAlert.id },
+          data: {
+            message,
+            metadata: { count: coverage.lowCoverageTopics.length },
+          },
+        });
+      } else {
+        await this.prisma.adminAlert.create({
+          data: {
+            type: "LOW_INVENTORY",
+            message,
+            severity: "WARNING",
+            status: "ACTIVE",
+            metadata: { count: coverage.lowCoverageTopics.length },
+          },
+        });
+      }
+    } else if (lowInvAlert) {
+      await this.prisma.adminAlert.update({
+        where: { id: lowInvAlert.id },
+        data: { status: "RESOLVED" },
       });
     }
 
     // Review Queue Overflow alert
+    const queueOverflowAlert = findAlert("QUEUE_OVERFLOW");
     if (pendingReviews > 30) {
-      await this.prisma.adminAlert.create({
-        data: {
-          type: "QUEUE_OVERFLOW",
-          message: `Review Queue size is critical! ${pendingReviews} questions are pending review.`,
-          severity: "CRITICAL",
-          status: "ACTIVE",
-          metadata: { count: pendingReviews },
-        },
+      const message = `Review Queue size is critical! ${pendingReviews} questions are pending review.`;
+      if (queueOverflowAlert) {
+        await this.prisma.adminAlert.update({
+          where: { id: queueOverflowAlert.id },
+          data: {
+            message,
+            metadata: { count: pendingReviews },
+          },
+        });
+      } else {
+        await this.prisma.adminAlert.create({
+          data: {
+            type: "QUEUE_OVERFLOW",
+            message,
+            severity: "CRITICAL",
+            status: "ACTIVE",
+            metadata: { count: pendingReviews },
+          },
+        });
+      }
+    } else if (queueOverflowAlert) {
+      await this.prisma.adminAlert.update({
+        where: { id: queueOverflowAlert.id },
+        data: { status: "RESOLVED" },
       });
     }
 
@@ -189,15 +232,18 @@ export class AdminAnalyticsSyncService {
       take: 5,
     });
     for (const job of activeFailedJobs) {
-      await this.prisma.adminAlert.create({
-        data: {
-          type: "GENERATION_FAILURE",
-          message: `AI Generation Job failed for topic: ${job.topic}. Reason: ${job.error || "Unknown error"}`,
-          severity: "CRITICAL",
-          status: "ACTIVE",
-          metadata: { jobId: job.id, topic: job.topic },
-        },
-      });
+      const existing = findAlert("GENERATION_FAILURE", (meta) => meta.jobId === job.id);
+      if (!existing) {
+        await this.prisma.adminAlert.create({
+          data: {
+            type: "GENERATION_FAILURE",
+            message: `AI Generation Job failed for topic: ${job.topic}. Reason: ${job.error || "Unknown error"}`,
+            severity: "CRITICAL",
+            status: "ACTIVE",
+            metadata: { jobId: job.id, topic: job.topic },
+          },
+        });
+      }
     }
 
     // Assembly Failure alerts
@@ -206,15 +252,18 @@ export class AdminAnalyticsSyncService {
       take: 5,
     });
     for (const assembly of failedAssemblies) {
-      await this.prisma.adminAlert.create({
-        data: {
-          type: "ASSEMBLY_FAILURE",
-          message: `Test Assembly failed for Config ID: ${assembly.configId}.`,
-          severity: "WARNING",
-          status: "ACTIVE",
-          metadata: { assemblyId: assembly.id, configId: assembly.configId },
-        },
-      });
+      const existing = findAlert("ASSEMBLY_FAILURE", (meta) => meta.assemblyId === assembly.id);
+      if (!existing) {
+        await this.prisma.adminAlert.create({
+          data: {
+            type: "ASSEMBLY_FAILURE",
+            message: `Test Assembly failed for Config ID: ${assembly.configId}.`,
+            severity: "WARNING",
+            status: "ACTIVE",
+            metadata: { assemblyId: assembly.id, configId: assembly.configId },
+          },
+        });
+      }
     }
 
     return {

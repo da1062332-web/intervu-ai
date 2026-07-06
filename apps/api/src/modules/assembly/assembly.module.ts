@@ -32,6 +32,7 @@ import { DuplicateDetectionService } from "./services/duplicate-detection.servic
 import { AssemblyValidationV2Service } from "./services/assembly-validation-v2.service";
 import { TestPackageService } from "./services/test-package.service";
 import { PublishReadinessService } from "./services/publish-readiness.service";
+import { AssessmentVersionValidatorService } from "./services/assessment-version-validator.service";
 
 @Module({
   imports: [PrismaModule, QuestionPoolModule, QuestionBankModule],
@@ -54,6 +55,7 @@ import { PublishReadinessService } from "./services/publish-readiness.service";
     AssemblyPersistenceService,
     AssemblyAuditService,
     AssemblyVersionService,
+    AssessmentVersionValidatorService,
     DistributionAnalyticsService,
     AssemblyPublisherService,
     BlueprintSimulationService,
@@ -80,6 +82,7 @@ import { PublishReadinessService } from "./services/publish-readiness.service";
   exports: [
     AssemblyService,
     AssemblyPublisherService,
+    AssessmentVersionValidatorService,
     // Export new services for Module 4 / other consumers
     TestPackageService,
     PublishReadinessService,

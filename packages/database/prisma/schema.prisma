@@ -9,17 +9,17 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid())
-  email              String              @unique
+  id                 String                @id @default(cuid())
+  email              String                @unique
   passwordHash       String
   fullName           String?
-  phone              String?
-  college            String?
-  graduationYear     Int?                @map("graduation_year")
-  role               UserRole            @default(CANDIDATE)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  role               UserRole              @default(CANDIDATE)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
   deletedAt          DateTime?
+  college            String?
+  graduationYear     Int?                  @map("graduation_year")
+  phone              String?
   evaluationResults  EvaluationResult[]
   performanceSummary PerformanceSummary?
   refreshTokens      RefreshToken[]
@@ -27,8 +27,8 @@ model User {
   templates          Template[]
   tests              Test[]
   testInstances      TestInstance[]
-  candidateResults   CandidateResult[]
   enrollments        CandidateEnrollment[]
+  candidateResults   CandidateResult[]
 
   @@index([deletedAt])
   @@index([role])
@@ -85,13 +85,13 @@ model Template {
   updatedAt          DateTime            @updatedAt
   deletedAt          DateTime?
   generatedQuestions GeneratedQuestion[]
-  questions          Question[]
   creator            User?               @relation(fields: [creatorId], references: [id])
   tests              Test[]
-  variables          TemplateVariable[]
-  rules              TemplateRule[]
+  questions          Question[]
   solutionTemplate   SolutionTemplate?
   previews           TemplatePreview[]
+  rules              TemplateRule[]
+  variables          TemplateVariable[]
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -236,33 +236,32 @@ model GeneratedQuestion {
 }
 
 model TestInstance {
-  id               String                 @id @default(cuid())
-  userId           String
-  testConfigId     String
-  status           TestInstanceStatus     @default(CREATED)
+  id                  String                   @id @default(cuid())
+  userId              String
+  testConfigId        String
+  status              TestInstanceStatus       @default(CREATED)
   startedAt           DateTime?
   expiresAt           DateTime?
   submittedAt         DateTime?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
   candidateAnswers    CandidateAnswer[]
   evaluationResult    EvaluationResult?
   executionState      ExecutionState?
   submission          Submission?
-  testConfig          TestConfig             @relation(fields: [testConfigId], references: [id])
-  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testConfig          TestConfig               @relation(fields: [testConfigId], references: [id])
+  user                User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions           TestInstanceQuestion[]
   sections            TestInstanceSection[]
-  candidateResult     CandidateResult?
-  evaluationRuns      EvaluationRun[]
-  evaluationAnalytics EvaluationAnalytics?
   assessmentAuditLogs AssessmentAuditLog[]
-  candidateRanking    CandidateRanking?
   candidatePercentile CandidatePercentile?
+  candidateRanking    CandidateRanking?
+  candidateResult     CandidateResult?
+  evaluationAnalytics EvaluationAnalytics?
   evaluationInsight   EvaluationInsight?
-  improvementPlan     ImprovementPlan?
   reprocessLogs       EvaluationReprocessLog[]
-
+  evaluationRuns      EvaluationRun[]
+  improvementPlan     ImprovementPlan?
 
   @@index([userId])
   @@index([status])
@@ -329,14 +328,12 @@ model ExecutionState {
   remainingTimeSeconds   Int
   lastActivityAt         DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
-  testInstance           TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-  
-  // New Checkpoint Fields
-  currentSectionKey      String?      @map("current_section_key")
   currentQuestionId      String?      @map("current_question_id")
+  currentSectionKey      String?      @map("current_section_key")
   markedQuestions        Json?        @map("marked_questions")
-  visitedQuestions       Json?        @map("visited_questions")
   networkStatusTimestamp DateTime?    @map("network_status_timestamp")
+  visitedQuestions       Json?        @map("visited_questions")
+  testInstance           TestInstance @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
 
   @@index([testInstanceId])
 }
@@ -349,77 +346,71 @@ model Submission {
   status         SubmissionStatus @default(PENDING)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  testInstance   TestInstance     @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
-
-  // New Queue/Retry Fields
-  retryCount     Int              @default(0) @map("retry_count")
   errorMessage   String?          @map("error_message")
+  retryCount     Int              @default(0) @map("retry_count")
+  testInstance   TestInstance     @relation(fields: [testInstanceId], references: [id], onDelete: Cascade)
 
   @@index([testInstanceId])
   @@index([status])
 }
 
 model CandidateResult {
-  id          String   @id @default(cuid())
-  candidateId String   @map("candidate_id")
-  attemptId   String   @unique @map("attempt_id")
+  id          String       @id @default(cuid())
+  candidateId String       @map("candidate_id")
+  attemptId   String       @unique @map("attempt_id")
   score       Float
   percentage  Float
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  user        User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now()) @map("created_at")
   attempt     TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  @@map("candidate_results")
   @@index([candidateId])
   @@index([attemptId])
+  @@map("candidate_results")
 }
 
 model EvaluationRun {
-  id         String   @id @default(cuid())
-  attemptId  String   @map("attempt_id")
-  status     String   // e.g. "COMPLETED", "FAILED"
+  id         String       @id @default(cuid())
+  attemptId  String       @map("attempt_id")
+  status     String
   error      String?
-  durationMs Int      @map("duration_ms")
-  createdAt  DateTime @default(now()) @map("created_at")
-
+  durationMs Int          @map("duration_ms")
+  createdAt  DateTime     @default(now()) @map("created_at")
   attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
-  @@map("evaluation_runs")
   @@index([attemptId])
+  @@map("evaluation_runs")
 }
 
 model EvaluationAnalytics {
-  id                 String   @id @default(cuid())
-  attemptId          String   @unique @map("attempt_id")
-  topicAccuracy      Json     @map("topic_accuracy")
-  difficultyAccuracy Json     @map("difficulty_accuracy")
-  sectionAccuracy    Json?    @map("section_accuracy")
-  completionRate     Float    @map("completion_rate")
-  attemptRate        Float    @map("attempt_rate")
-  createdAt          DateTime @default(now()) @map("created_at")
-
+  id                 String       @id @default(cuid())
+  attemptId          String       @unique @map("attempt_id")
+  topicAccuracy      Json         @map("topic_accuracy")
+  difficultyAccuracy Json         @map("difficulty_accuracy")
+  completionRate     Float        @map("completion_rate")
+  attemptRate        Float        @map("attempt_rate")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  sectionAccuracy    Json?        @map("section_accuracy")
   attempt            TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
-  @@map("evaluation_analytics")
   @@index([attemptId])
+  @@map("evaluation_analytics")
 }
 
 model AssessmentAuditLog {
-  id           String   @id @default(cuid())
-  attemptId    String   @map("attempt_id")
-  candidateId  String   @map("candidate_id")
-  assessmentId String   @map("assessment_id")
-  eventType    String   @map("event_type") // e.g. RUNTIME_VALIDATION_FAILED, START, CHECKPOINT, SUBMIT
+  id           String       @id @default(cuid())
+  attemptId    String       @map("attempt_id")
+  candidateId  String       @map("candidate_id")
+  assessmentId String       @map("assessment_id")
+  eventType    String       @map("event_type")
   metadata     Json?
-  createdAt    DateTime @default(now()) @map("created_at")
-
+  createdAt    DateTime     @default(now()) @map("created_at")
   testInstance TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
-  @@map("assessment_audit_logs")
   @@index([attemptId])
   @@index([candidateId])
   @@index([assessmentId])
+  @@map("assessment_audit_logs")
 }
 
 model Recommendation {
@@ -461,15 +452,15 @@ model ExamConfig {
   description            String?
   isArchived             Boolean                 @default(false)
   status                 ConfigStatus            @default(DRAFT)
+  publishLogs            ConfigPublishLog[]
   difficultyDistribution DifficultyDistribution?
   versions               ExamConfigVersion[]
-  publishLogs            ConfigPublishLog[]
-  ruleFlags              RuleFlags?
   sections               ExamSection[]
-  blueprint              Blueprint?
-  readinessReports       ReadinessReport[]
+  ruleFlags              RuleFlags?
   assembledTests         AssembledTest[]
+  blueprint              Blueprint?
   workflow               ExamWorkflow?
+  readinessReports       ReadinessReport[]
 
   @@index([createdAt])
   @@index([role])
@@ -477,19 +468,18 @@ model ExamConfig {
 }
 
 model ExamSection {
-  id                     String         @id @default(cuid())
+  id                     String                 @id @default(cuid())
   examConfigId           String
   name                   String
   questionCount          Int
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
   code                   String
-  isRequired             Boolean        @default(true)
+  isRequired             Boolean                @default(true)
   sectionDurationMinutes Int
   sectionOrder           Int
-  examConfig             ExamConfig     @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  examConfig             ExamConfig             @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
   sectionTopics          SectionTopic[]
-
   blueprintTopicConfigs  BlueprintTopicConfig[]
   questions              Question[]
 
@@ -499,15 +489,14 @@ model ExamSection {
 }
 
 model DifficultyDistribution {
-  id               String   @id @default(uuid())
-  examConfigId     String   @unique
+  id               String     @id @default(uuid())
+  examConfigId     String     @unique
   easyPercentage   Int
   mediumPercentage Int
   hardPercentage   Int
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  examConfig       ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
   @@index([examConfigId])
 }
@@ -525,34 +514,33 @@ model ExamConfigVersion {
 }
 
 model RuleFlags {
-  id                         String   @id @default(uuid())
-  examConfigId               String   @unique
-  negativeMarkingEnabled     Boolean  @default(false)
-  sectionalCutoffEnabled     Boolean  @default(false)
-  adaptiveDifficultyEnabled  Boolean  @default(false)
-  shuffleQuestionsEnabled    Boolean  @default(false)
-  shuffleOptionsEnabled      Boolean  @default(false)
-  allowSectionNavigation     Boolean  @default(false)
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
-
-  examConfig ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  id                        String     @id @default(uuid())
+  examConfigId              String     @unique
+  negativeMarkingEnabled    Boolean    @default(false)
+  sectionalCutoffEnabled    Boolean    @default(false)
+  adaptiveDifficultyEnabled Boolean    @default(false)
+  shuffleQuestionsEnabled   Boolean    @default(false)
+  shuffleOptionsEnabled     Boolean    @default(false)
+  allowSectionNavigation    Boolean    @default(false)
+  createdAt                 DateTime   @default(now())
+  updatedAt                 DateTime   @updatedAt
+  examConfig                ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
   @@index([examConfigId])
 }
 
 model Topic {
-  id              String                 @id @default(uuid())
-  name            String
-  code            String                 @unique
-  description     String?
-  status          TopicStatus            @default(ACTIVE)
-  concepts        Concept[]
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  sectionTopics   SectionTopic[]
+  id                    String                 @id @default(uuid())
+  name                  String
+  code                  String                 @unique
+  description           String?
+  status                TopicStatus            @default(ACTIVE)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  concepts              Concept[]
+  sectionTopics         SectionTopic[]
   blueprintTopicConfigs BlueprintTopicConfig[]
-  questions       Question[]
+  questions             Question[]
 }
 
 model Concept {
@@ -570,71 +558,57 @@ model Concept {
   @@index([topicId])
 }
 
-enum TopicStatus {
-  ACTIVE
-  INACTIVE
-}
-
-enum ConceptStatus {
-  ACTIVE
-  INACTIVE
-}
-
 model StyleProfile {
-  id          String   @id @default(uuid())
-  name        String
-  profileType String   @map("profile_type")
-  description String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  characteristics StyleProfileCharacteristic[]
+  id              String                       @id @default(uuid())
+  name            String
+  profileType     String                       @map("profile_type")
+  description     String?
+  active          Boolean                      @default(true)
+  createdAt       DateTime                     @default(now()) @map("created_at")
+  updatedAt       DateTime                     @updatedAt @map("updated_at")
   blueprints      Blueprint[]
+  characteristics StyleProfileCharacteristic[]
 
-  @@map("style_profiles")
   @@index([profileType])
   @@index([active])
+  @@map("style_profiles")
 }
 
 model StyleProfileCharacteristic {
-  id                 String   @id @default(uuid())
-  profileId          String   @map("profile_id")
-  characteristicName String   @map("characteristic_name")
-  characteristicValue Json     @map("characteristic_value")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-
-  profile StyleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id                  String       @id @default(uuid())
+  profileId           String       @map("profile_id")
+  characteristicName  String       @map("characteristic_name")
+  characteristicValue Json         @map("characteristic_value")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  profile             StyleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, characteristicName])
-  @@map("style_profile_characteristics")
   @@index([profileId])
+  @@map("style_profile_characteristics")
 }
 
 model Blueprint {
-  id             String   @id @default(uuid())
-  configId       String   @unique @map("config_id")
-  styleProfileId String   @map("style_profile_id")
-  sections       Json     // Stored as BlueprintSection[] JSON
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id             String       @id @default(uuid())
+  configId       String       @unique @map("config_id")
+  styleProfileId String       @map("style_profile_id")
+  sections       Json
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  examConfig     ExamConfig   @relation(fields: [configId], references: [id], onDelete: Cascade)
+  styleProfile   StyleProfile @relation(fields: [styleProfileId], references: [id])
 
-  examConfig   ExamConfig   @relation(fields: [configId], references: [id], onDelete: Cascade)
-  styleProfile StyleProfile @relation(fields: [styleProfileId], references: [id], onDelete: Restrict)
-
-  @@map("blueprints")
   @@index([configId])
   @@index([styleProfileId])
+  @@map("blueprints")
 }
 
 model SectionTopic {
-  id        String   @id @default(cuid())
-  sectionId String
-  topicId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id             String          @id @default(cuid())
+  sectionId      String
+  topicId        String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   section        ExamSection     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   topic          Topic           @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicWeightage TopicWeightage?
@@ -645,18 +619,632 @@ model SectionTopic {
 }
 
 model TopicWeightage {
-  id                  String   @id @default(cuid())
+  id                  String       @id @default(cuid())
   sectionId           String
   topicId             String
   weightagePercentage Int
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
   sectionTopic        SectionTopic @relation(fields: [sectionId, topicId], references: [sectionId, topicId], onDelete: Cascade)
 
   @@unique([sectionId, topicId])
   @@index([sectionId])
   @@index([topicId])
+}
+
+model ConfigPublishLog {
+  id          String     @id @default(cuid())
+  configId    String
+  publishedBy String?
+  version     String
+  publishedAt DateTime   @default(now())
+  examConfig  ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
+}
+
+model BlueprintConfig {
+  id                   String                 @id @default(uuid())
+  name                 String
+  code                 String                 @unique
+  description          String?
+  totalQuestions       Int
+  totalDurationMinutes Int
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  deletedAt            DateTime?
+  topicConfigs         BlueprintTopicConfig[]
+
+  @@index([deletedAt])
+  @@map("blueprint_configs")
+}
+
+model BlueprintTopicConfig {
+  id            String          @id @default(uuid())
+  blueprintId   String
+  sectionId     String
+  topicId       String
+  questionCount Int
+  weightage     Decimal
+  easyCount     Int
+  mediumCount   Int
+  hardCount     Int
+  createdAt     DateTime        @default(now())
+  blueprint     BlueprintConfig @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  examSection   ExamSection     @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  topic         Topic           @relation(fields: [topicId], references: [id])
+
+  @@unique([blueprintId, topicId])
+  @@index([blueprintId])
+  @@index([sectionId])
+  @@index([topicId])
+  @@map("blueprint_topic_configs")
+}
+
+model TemplateVariable {
+  id           String       @id @default(uuid())
+  templateId   String       @map("template_id")
+  variableName String       @map("variable_name")
+  variableType VariableType @map("variable_type")
+  required     Boolean      @default(false)
+  defaultValue String?      @map("default_value")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  template     Template     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, variableName])
+  @@index([templateId])
+  @@map("template_variables")
+}
+
+model TemplateRule {
+  id         String   @id @default(uuid())
+  templateId String   @map("template_id")
+  ruleType   RuleType @map("rule_type")
+  ruleConfig Json     @map("rule_config")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("template_rules")
+}
+
+model SolutionTemplate {
+  id                  String   @id @default(uuid())
+  templateId          String   @unique @map("template_id")
+  solutionTemplate    String   @map("solution_template")
+  explanationTemplate String?  @map("explanation_template")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  template            Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("solution_templates")
+}
+
+model TemplatePreview {
+  id             String   @id @default(uuid())
+  templateId     String   @map("template_id")
+  previewPayload Json     @map("preview_payload")
+  previewResult  Json     @map("preview_result")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  template       Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("template_previews")
+}
+
+model ReadinessReport {
+  id         String     @id @default(uuid())
+  configId   String     @map("config_id")
+  score      Int
+  status     String     @db.VarChar(20)
+  report     Json
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  examConfig ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
+  @@map("readiness_reports")
+}
+
+model Question {
+  id              String               @id @default(cuid())
+  questionText    String               @map("question_text")
+  answer          String
+  explanation     String
+  topicId         String               @map("topic_id")
+  sectionId       String               @map("section_id")
+  difficulty      String
+  difficultyScore Float?               @map("difficulty_score")
+  source          String
+  templateId      String?              @map("template_id")
+  version         Int                  @default(1)
+  status          QuestionStatus       @default(DRAFT)
+  timesUsed       Int                  @default(0) @map("times_used")
+  lastUsed        DateTime?            @map("last_used")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+  metadata        Json?                @default("{}")
+  reservations    QuestionReservation?
+  reviews         QuestionReview[]
+  usage           QuestionUsage?
+  versions        QuestionVersion[]
+  section         ExamSection          @relation(fields: [sectionId], references: [id])
+  template        Template?            @relation(fields: [templateId], references: [id])
+  topic           Topic                @relation(fields: [topicId], references: [id])
+  reviewAuditLogs ReviewAuditLog[]
+
+  @@index([topicId])
+  @@index([difficulty])
+  @@index([templateId])
+  @@index([status])
+  @@map("questions")
+}
+
+model QuestionVersion {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  version    Int
+  snapshot   Json
+  createdAt  DateTime @default(now()) @map("created_at")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([version])
+  @@map("question_versions")
+}
+
+model QuestionReview {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  status     String
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_reviews")
+}
+
+model QuestionReservation {
+  id         String   @id @default(cuid())
+  questionId String   @unique @map("question_id")
+  assemblyId String   @map("assembly_id")
+  reservedAt DateTime @default(now()) @map("reserved_at")
+  expiresAt  DateTime @map("expires_at")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId])
+  @@map("question_reservations")
+}
+
+model QuestionUsage {
+  id           String    @id @default(cuid())
+  questionId   String    @unique @map("question_id")
+  timesUsed    Int       @default(0) @map("times_used")
+  lastUsed     DateTime? @map("last_used")
+  sectionUsage Json      @default("{}") @map("section_usage")
+  examUsage    Json      @default("{}") @map("exam_usage")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  question     Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_usage")
+}
+
+model GenerationLog {
+  id         String   @id @default(cuid())
+  examId     String   @map("exam_id")
+  sectionId  String?  @map("section_id")
+  step       String
+  status     String
+  durationMs Int      @map("duration_ms")
+  templateId String?  @map("template_id")
+  retryCount Int      @map("retry_count")
+  message    String
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([examId])
+  @@index([createdAt])
+  @@map("generation_logs")
+}
+
+model ValidationLog {
+  id              String   @id @default(cuid())
+  questionId      String?  @map("question_id")
+  validationStage String   @map("validation_stage")
+  isValid         Boolean  @map("is_valid")
+  failureReason   String?  @map("failure_reason")
+  retryTriggered  Boolean  @map("retry_triggered")
+  errors          Json
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([isValid])
+  @@index([createdAt])
+  @@map("validation_logs")
+}
+
+model GenerationAuditLog {
+  id               String   @id @default(cuid())
+  prompt           String
+  response         String
+  qualityScore     Float    @map("quality_score")
+  validationResult Json     @map("validation_result")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("generation_audit_logs")
+}
+
+model ReviewAuditLog {
+  id             String   @id @default(cuid())
+  questionId     String   @map("question_id")
+  score          Float
+  issues         Json
+  recommendation String
+  createdAt      DateTime @default(now()) @map("created_at")
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("review_audit_logs")
+}
+
+model GenerationMetrics {
+  id                        String   @id @default(cuid())
+  questionsGenerated        Int      @default(0)
+  questionsApproved         Int      @default(0)
+  questionsRejected         Int      @default(0)
+  averageQualityScore       Float    @default(0.0)
+  averageDifficultyAccuracy Float    @default(0.0)
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  @@map("generation_metrics")
+}
+
+model AssembledTest {
+  id                   String                 @id @default(cuid())
+  configId             String                 @map("config_id")
+  status               AssemblyStatus         @default(DRAFT)
+  totalDurationSeconds Int                    @map("total_duration_seconds")
+  totalQuestions       Int                    @map("total_questions")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+  sections             AssembledTestSection[]
+  examConfig           ExamConfig             @relation(fields: [configId], references: [id], onDelete: Cascade)
+  auditLogs            AssemblyAuditLog[]
+  versions             AssemblyVersion[]
+
+  @@index([configId])
+  @@index([status])
+  @@map("assembled_tests")
+}
+
+model AssembledTestSection {
+  id              String                  @id @default(cuid())
+  assemblyId      String                  @map("assembly_id")
+  sectionKey      String                  @map("section_key")
+  sectionName     String                  @map("section_name")
+  durationSeconds Int                     @map("duration_seconds")
+  questionCount   Int                     @map("question_count")
+  orderIndex      Int                     @map("order_index")
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+  questions       AssembledTestQuestion[]
+  assembly        AssembledTest           @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId])
+  @@map("assembled_test_sections")
+}
+
+model AssembledTestQuestion {
+  id               String               @id @default(cuid())
+  assemblyId       String               @map("assembly_id")
+  sectionId        String               @map("section_id")
+  questionId       String               @map("question_id")
+  questionOrder    Int                  @map("question_order")
+  questionSnapshot Json                 @map("question_snapshot")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+  section          AssembledTestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId])
+  @@index([sectionId])
+  @@map("assembled_test_questions")
+}
+
+model AssemblyVersion {
+  id         String        @id @default(cuid())
+  assemblyId String        @map("assembly_id")
+  version    Int
+  snapshot   Json
+  createdAt  DateTime      @default(now()) @map("created_at")
+  assembly   AssembledTest @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId])
+  @@index([version])
+  @@map("assembly_versions")
+}
+
+model AssemblyAuditLog {
+  id         String        @id @default(cuid())
+  assemblyId String        @map("assembly_id")
+  userId     String        @map("user_id")
+  action     String
+  metadata   Json?
+  createdAt  DateTime      @default(now()) @map("created_at")
+  assembly   AssembledTest @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId])
+  @@map("assembly_audit_logs")
+}
+
+model ExamWorkflow {
+  id                   String                @id @default(cuid())
+  examId               String                @unique
+  currentStep          WorkflowStep          @default(CONFIGURATION)
+  status               WorkflowStatus        @default(NOT_STARTED)
+  completionPercentage Int                   @default(0)
+  version              Int                   @default(0)
+  metadata             Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  history              ExamWorkflowHistory[]
+  examConfig           ExamConfig            @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([currentStep])
+  @@index([updatedAt])
+  @@map("exam_workflows")
+}
+
+model ExamWorkflowHistory {
+  id            String        @id @default(cuid())
+  workflowId    String
+  previousStep  WorkflowStep?
+  currentStep   WorkflowStep
+  changedBy     String?
+  triggerSource String?
+  reason        String?
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  workflow      ExamWorkflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([createdAt])
+  @@map("exam_workflow_history")
+}
+
+model GenerationJob {
+  id         String   @id @default(cuid())
+  topic      String
+  count      Int
+  generated  Int      @default(0)
+  status     String
+  error      String?
+  result     Json?
+  category   String?
+  createdAt  DateTime @default(now())
+  difficulty String?
+  updatedAt  DateTime @updatedAt
+
+  @@map("generation_jobs")
+}
+
+model GenerationPrompt {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  content   String
+  version   Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_prompts")
+}
+
+model GenerationTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  schema    Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generation_templates")
+}
+
+model CandidateRanking {
+  id                        String       @id @default(cuid())
+  attemptId                 String       @unique @map("attempt_id")
+  assessmentRank            Int          @map("assessment_rank")
+  orgRank                   Int          @map("org_rank")
+  batchRank                 Int          @map("batch_rank")
+  totalAssessmentCandidates Int          @map("total_assessment_candidates")
+  totalOrgCandidates        Int          @map("total_org_candidates")
+  totalBatchCandidates      Int          @map("total_batch_candidates")
+  percentile                Float
+  createdAt                 DateTime     @default(now()) @map("created_at")
+  attempt                   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@map("candidate_rankings")
+}
+
+model CandidatePercentile {
+  id         String       @id @default(cuid())
+  attemptId  String       @unique @map("attempt_id")
+  percentile Float
+  bucket     String
+  createdAt  DateTime     @default(now()) @map("created_at")
+  attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@map("candidate_percentiles")
+}
+
+model EvaluationInsight {
+  id        String       @id @default(cuid())
+  attemptId String       @unique @map("attempt_id")
+  insights  Json
+  createdAt DateTime     @default(now()) @map("created_at")
+  attempt   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@map("evaluation_insights")
+}
+
+model ImprovementPlan {
+  id        String       @id @default(cuid())
+  attemptId String       @unique @map("attempt_id")
+  plan7Day  Json         @map("plan_7_day")
+  plan14Day Json         @map("plan_14_day")
+  plan30Day Json         @map("plan_30_day")
+  createdAt DateTime     @default(now()) @map("created_at")
+  attempt   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@map("improvement_plans")
+}
+
+model EvaluationReprocessLog {
+  id          String       @id @default(cuid())
+  attemptId   String       @map("attempt_id")
+  status      String
+  error       String?
+  triggeredBy String       @map("triggered_by")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  attempt     TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@map("evaluation_reprocess_logs")
+}
+
+model CandidateEnrollment {
+  id          String           @id @default(cuid())
+  candidateId String           @map("candidate_id")
+  testId      String           @map("test_id")
+  status      EnrollmentStatus @default(ENROLLED)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  user        User             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  testConfig  TestConfig       @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, testId])
+  @@index([candidateId])
+  @@index([testId])
+  @@index([status])
+  @@map("candidate_enrollments")
+}
+
+model RuntimeBuild {
+  id         String   @id @default(cuid())
+  testId     String   @map("test_id")
+  status     String
+  durationMs Int      @map("duration_ms")
+  metadata   Json?
+  errors     Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([testId])
+  @@map("runtime_builds")
+}
+
+model RuntimeMetric {
+  id          String   @id @default(cuid())
+  testId      String   @map("test_id")
+  metricName  String   @map("metric_name")
+  metricValue Float    @map("metric_value")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([testId])
+  @@index([metricName])
+  @@map("runtime_metrics")
+}
+
+model RuntimeValidationLog {
+  id        String   @id @default(cuid())
+  testId    String   @map("test_id")
+  isValid   Boolean  @map("is_valid")
+  errors    Json?
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([testId])
+  @@map("runtime_validation_logs")
+}
+
+model GenerationAnalytics {
+  id                              String   @id @default(cuid())
+  timestamp                       DateTime @default(now())
+  requests                        Int      @default(0)
+  successes                       Int      @default(0)
+  failures                        Int      @default(0)
+  avgDurationMs                   Float    @default(0.0)
+  questionsGeneratedPerTopic      Json     @default("{}")
+  questionsGeneratedPerDifficulty Json     @default("{}")
+  trendData                       Json     @default("[]")
+
+  @@map("generation_analytics")
+}
+
+model ReviewAnalytics {
+  id                   String   @id @default(cuid())
+  timestamp            DateTime @default(now())
+  pendingReviews       Int      @default(0)
+  approvedToday        Int      @default(0)
+  rejectedToday        Int      @default(0)
+  avgReviewTimeSeconds Float    @default(0.0)
+  reviewerWorkload     Json     @default("{}")
+
+  @@map("review_analytics")
+}
+
+model ContentCoverage {
+  id                String   @id @default(cuid())
+  timestamp         DateTime @default(now())
+  missingTopics     Json     @default("[]")
+  lowCoverageTopics Json     @default("[]")
+  difficultyGaps    Json     @default("[]")
+  unusedQuestions   Json     @default("[]")
+
+  @@map("content_coverage")
+}
+
+model AdminAlert {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  severity  String   @default("WARNING")
+  status    String   @default("ACTIVE")
+  metadata  Json?    @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_alerts")
+}
+
+enum TopicStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ConceptStatus {
+  ACTIVE
+  INACTIVE
 }
 
 enum UserRole {
@@ -699,10 +1287,10 @@ enum RecommendationPriority {
 
 enum ConfigStatus {
   DRAFT
-  VALIDATED
   ACTIVE
-  PUBLISHED
   ARCHIVED
+  VALIDATED
+  PUBLISHED
 }
 
 enum EnrollmentStatus {
@@ -710,65 +1298,6 @@ enum EnrollmentStatus {
   ENROLLED
   STARTED
   COMPLETED
-}
-
-model ConfigPublishLog {
-  id          String     @id @default(cuid())
-  configId    String
-  publishedBy String?
-  version     String
-  publishedAt DateTime   @default(now())
-  examConfig  ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
-
-  @@index([configId])
-}
-
-model BlueprintConfig {
-  id                   String @id @default(uuid())
-  name                 String
-  code                 String @unique
-  description          String?
-
-  totalQuestions       Int
-  totalDurationMinutes Int
-
-  isActive             Boolean @default(true)
-
-  topicConfigs         BlueprintTopicConfig[]
-
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  deletedAt            DateTime?
-
-  @@map("blueprint_configs")
-  @@index([deletedAt])
-}
-
-model BlueprintTopicConfig {
-  id            String @id @default(uuid())
-
-  blueprintId   String
-  sectionId     String
-  topicId       String
-
-  questionCount Int
-  weightage     Decimal
-
-  easyCount     Int
-  mediumCount   Int
-  hardCount     Int
-
-  createdAt     DateTime @default(now())
-
-  blueprint     BlueprintConfig @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
-  topic         Topic           @relation(fields: [topicId], references: [id], onDelete: Restrict)
-  examSection   ExamSection?    @relation(fields: [sectionId], references: [id], onDelete: SetNull)
-
-  @@unique([blueprintId, topicId])
-  @@map("blueprint_topic_configs")
-  @@index([blueprintId])
-  @@index([sectionId])
-  @@index([topicId])
 }
 
 enum VariableType {
@@ -786,78 +1315,6 @@ enum RuleType {
   REGEX
 }
 
-model TemplateVariable {
-  id           String       @id @default(uuid())
-  templateId   String       @map("template_id")
-  variableName String       @map("variable_name")
-  variableType VariableType @map("variable_type")
-  required     Boolean      @default(false)
-  defaultValue String?      @map("default_value")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
-  template     Template     @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  @@unique([templateId, variableName])
-  @@map("template_variables")
-  @@index([templateId])
-}
-
-model TemplateRule {
-  id         String   @id @default(uuid())
-  templateId String   @map("template_id")
-  ruleType   RuleType @map("rule_type")
-  ruleConfig Json     @map("rule_config")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  @@map("template_rules")
-  @@index([templateId])
-}
-
-model SolutionTemplate {
-  id                  String   @id @default(uuid())
-  templateId          String   @unique @map("template_id")
-  solutionTemplate    String   @map("solution_template")
-  explanationTemplate String?  @map("explanation_template")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-
-  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  @@map("solution_templates")
-  @@index([templateId])
-}
-
-model TemplatePreview {
-  id             String   @id @default(uuid())
-  templateId     String   @map("template_id")
-  previewPayload Json     @map("preview_payload")
-  previewResult  Json     @map("preview_result")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  @@map("template_previews")
-  @@index([templateId])
-}
-
-model ReadinessReport {
-  id        String   @id @default(uuid())
-  configId  String   @map("config_id")
-  score     Int
-  status    String   @db.VarChar(20)
-  report    Json
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  examConfig ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
-
-  @@map("readiness_reports")
-  @@index([configId])
-}
-
 enum QuestionStatus {
   DRAFT
   VALIDATED
@@ -865,262 +1322,11 @@ enum QuestionStatus {
   ARCHIVED
 }
 
-model Question {
-  id              String         @id @default(cuid())
-  questionText    String         @map("question_text")
-  answer          String
-  explanation     String
-  topicId         String         @map("topic_id")
-  sectionId       String         @map("section_id")
-  difficulty      String         // "EASY", "MEDIUM", "HARD"
-  difficultyScore Float?         @map("difficulty_score")
-  source          String         // "GENERATED" | "MANUAL"
-  templateId      String?        @map("template_id")
-  version         Int            @default(1)
-  status          QuestionStatus @default(DRAFT)
-  metadata        Json?          @default("{}")
-  timesUsed       Int            @default(0) @map("times_used")
-  lastUsed        DateTime?      @map("last_used")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-
-  // Relations
-  topic           Topic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
-  section         ExamSection    @relation(fields: [sectionId], references: [id], onDelete: Restrict)
-  template        Template?      @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  versions        QuestionVersion[]
-  reviews         QuestionReview[]
-  reservations    QuestionReservation[]
-  usage           QuestionUsage?
-  reviewAuditLogs ReviewAuditLog[]
-
-  @@map("questions")
-  @@index([topicId])
-  @@index([difficulty])
-  @@index([templateId])
-  @@index([status])
-}
-
-model QuestionVersion {
-  id         String   @id @default(cuid())
-  questionId String   @map("question_id")
-  version    Int
-  snapshot   Json
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  // Relations
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("question_versions")
-  @@index([questionId])
-  @@index([version])
-}
-
-model QuestionReview {
-  id         String   @id @default(cuid())
-  questionId String   @map("question_id")
-  status     String   // "APPROVED" | "REJECTED"
-  notes      String?
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  // Relations
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("question_reviews")
-  @@index([questionId])
-}
-
-model QuestionReservation {
-  id         String   @id @default(cuid())
-  questionId String   @unique @map("question_id")
-  assemblyId String   @map("assembly_id")
-  reservedAt DateTime @default(now()) @map("reserved_at")
-  expiresAt  DateTime @map("expires_at")
-
-  // Relations
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("question_reservations")
-  @@index([assemblyId])
-}
-
-model QuestionUsage {
-  id           String    @id @default(cuid())
-  questionId   String    @unique @map("question_id")
-  timesUsed    Int       @default(0) @map("times_used")
-  lastUsed     DateTime? @map("last_used")
-  sectionUsage Json      @default("{}") @map("section_usage")
-  examUsage    Json      @default("{}") @map("exam_usage")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  question     Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("question_usage")
-  @@index([questionId])
-}
-
-model GenerationLog {
-  id         String   @id @default(cuid())
-  examId     String   @map("exam_id")
-  sectionId  String?  @map("section_id")
-  step       String   // "CONTEXT_RESOLVE", "TEMPLATE_SELECT", "PARAM_GEN", "INSTANTIATION", "VALIDATION"
-  status     String   // "SUCCESS", "FAILED", "RETRYING"
-  durationMs Int      @map("duration_ms")
-  templateId String?  @map("template_id")
-  retryCount Int      @map("retry_count")
-  message    String
-  metadata   Json?
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@map("generation_logs")
-  @@index([examId])
-  @@index([createdAt])
-}
-
-model ValidationLog {
-  id             String   @id @default(cuid())
-  questionId     String?  @map("question_id")
-  validationStage String   @map("validation_stage") // "STRUCTURAL" | "TOPIC" | "DIFFICULTY" | "CONTRACT"
-  isValid        Boolean  @map("is_valid")
-  failureReason  String?  @map("failure_reason")
-  retryTriggered Boolean  @map("retry_triggered")
-  errors         Json     // array of strings
-  metadata       Json?
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  @@map("validation_logs")
-  @@index([isValid])
-  @@index([createdAt])
-}
-
-model GenerationAuditLog {
-  id               String   @id @default(cuid())
-  prompt           String
-  response         String
-  qualityScore     Float    @map("quality_score")
-  validationResult Json     @map("validation_result")
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  @@map("generation_audit_logs")
-  @@index([createdAt])
-}
-
-model ReviewAuditLog {
-  id             String   @id @default(cuid())
-  questionId     String   @map("question_id")
-  score          Float
-  issues         Json     // Stored as string[]
-  recommendation String   // "APPROVE" | "REVIEW" | "REJECT"
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("review_audit_logs")
-  @@index([questionId])
-}
-
-model GenerationMetrics {
-  id                        String   @id @default(cuid())
-  questionsGenerated        Int      @default(0)
-  questionsApproved         Int      @default(0)
-  questionsRejected         Int      @default(0)
-  averageQualityScore       Float    @default(0.0)
-  averageDifficultyAccuracy Float    @default(0.0)
-  createdAt                 DateTime @default(now()) @map("created_at")
-  updatedAt                 DateTime @updatedAt @map("updated_at")
-
-  @@map("generation_metrics")
-}
-
 enum AssemblyStatus {
   DRAFT
   VALIDATED
   PUBLISHED
   ARCHIVED
-}
-
-model AssembledTest {
-  id                   String                 @id @default(cuid())
-  configId             String                 @map("config_id")
-  status               AssemblyStatus         @default(DRAFT)
-  totalDurationSeconds Int                    @map("total_duration_seconds")
-  totalQuestions       Int                    @map("total_questions")
-  sections             AssembledTestSection[]
-  versions             AssemblyVersion[]
-  auditLogs            AssemblyAuditLog[]
-  createdAt            DateTime               @default(now()) @map("created_at")
-  updatedAt            DateTime               @updatedAt @map("updated_at")
-
-  examConfig           ExamConfig             @relation(fields: [configId], references: [id], onDelete: Cascade)
-
-  @@map("assembled_tests")
-  @@index([configId])
-  @@index([status])
-}
-
-model AssembledTestSection {
-  id              String                  @id @default(cuid())
-  assemblyId      String                  @map("assembly_id")
-  sectionKey      String                  @map("section_key")
-  sectionName     String                  @map("section_name")
-  durationSeconds Int                     @map("duration_seconds")
-  questionCount   Int                     @map("question_count")
-  orderIndex      Int                     @map("order_index")
-  questions       AssembledTestQuestion[]
-  createdAt       DateTime                @default(now()) @map("created_at")
-  updatedAt       DateTime                @updatedAt @map("updated_at")
-
-  assembly        AssembledTest           @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-
-  @@map("assembled_test_sections")
-  @@index([assemblyId])
-}
-
-model AssembledTestQuestion {
-  id               String               @id @default(cuid())
-  assemblyId       String               @map("assembly_id")
-  sectionId        String               @map("section_id")
-  questionId       String               @map("question_id")
-  questionOrder    Int                  @map("question_order")
-  questionSnapshot Json                 @map("question_snapshot")
-  createdAt        DateTime             @default(now()) @map("created_at")
-  updatedAt        DateTime             @updatedAt @map("updated_at")
-
-  section          AssembledTestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-
-  @@map("assembled_test_questions")
-  @@index([assemblyId])
-  @@index([sectionId])
-}
-
-model AssemblyVersion {
-  id         String        @id @default(cuid())
-  assemblyId String        @map("assembly_id")
-  version    Int
-  snapshot   Json
-  createdAt  DateTime      @default(now()) @map("created_at")
-
-  assembly   AssembledTest @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-
-  @@map("assembly_versions")
-  @@index([assemblyId])
-  @@index([version])
-}
-
-model AssemblyAuditLog {
-  id         String        @id @default(cuid())
-  assemblyId String        @map("assembly_id")
-  userId     String        @map("user_id")
-  action     String        // e.g. CREATED, UPDATED, PUBLISHED
-  metadata   Json?
-  createdAt  DateTime      @default(now()) @map("created_at")
-
-  assembly   AssembledTest @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-
-  @@map("assembly_audit_logs")
-  @@index([assemblyId])
 }
 
 enum WorkflowStep {
@@ -1138,262 +1344,3 @@ enum WorkflowStatus {
   COMPLETED
   FAILED
 }
-
-model ExamWorkflow {
-  id                   String                @id @default(cuid())
-  examId               String                @unique
-  currentStep          WorkflowStep          @default(CONFIGURATION)
-  status               WorkflowStatus        @default(NOT_STARTED)
-  completionPercentage Int                   @default(0)
-  version              Int                   @default(0)
-  metadata             Json?
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  history              ExamWorkflowHistory[]
-  examConfig           ExamConfig            @relation(fields: [examId], references: [id], onDelete: Cascade)
-
-  @@map("exam_workflows")
-  @@index([status])
-  @@index([currentStep])
-  @@index([updatedAt])
-}
-
-model ExamWorkflowHistory {
-  id            String        @id @default(cuid())
-  workflowId    String
-  previousStep  WorkflowStep?
-  currentStep   WorkflowStep
-  changedBy     String?
-  triggerSource String?
-  reason        String?
-  ipAddress     String?
-  userAgent     String?
-  metadata      Json?
-  createdAt     DateTime      @default(now())
-  workflow      ExamWorkflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-
-  @@map("exam_workflow_history")
-  @@index([workflowId])
-  @@index([createdAt])
-}
-
-model GenerationJob {
-  id        String   @id @default(cuid())
-  topic     String
-  count     Int
-  category  String?
-  difficulty String?
-  generated Int      @default(0)
-  status    String
-  result    Json?
-  error     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("generation_jobs")
-}
-
-model GenerationPrompt {
-  id        String   @id @default(cuid())
-  name      String
-  category  String
-  content   String
-  version   Int
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("generation_prompts")
-}
-
-model GenerationTemplate {
-  id        String   @id @default(cuid())
-  name      String
-  category  String
-  schema    Json
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("generation_templates")
-}
-
-model CandidateRanking {
-  id                        String       @id @default(cuid())
-  attemptId                 String       @unique @map("attempt_id")
-  assessmentRank            Int          @map("assessment_rank")
-  orgRank                   Int          @map("org_rank")
-  batchRank                 Int          @map("batch_rank")
-  totalAssessmentCandidates Int          @map("total_assessment_candidates")
-  totalOrgCandidates        Int          @map("total_org_candidates")
-  totalBatchCandidates      Int          @map("total_batch_candidates")
-  percentile                Float
-  createdAt                 DateTime     @default(now()) @map("created_at")
-
-  attempt                   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-
-  @@map("candidate_rankings")
-  @@index([attemptId])
-}
-
-model CandidatePercentile {
-  id         String       @id @default(cuid())
-  attemptId  String       @unique @map("attempt_id")
-  percentile Float
-  bucket     String
-  createdAt  DateTime     @default(now()) @map("created_at")
-
-  attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-
-  @@map("candidate_percentiles")
-  @@index([attemptId])
-}
-
-model EvaluationInsight {
-  id        String       @id @default(cuid())
-  attemptId String       @unique @map("attempt_id")
-  insights  Json
-  createdAt DateTime     @default(now()) @map("created_at")
-
-  attempt   TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-
-  @@map("evaluation_insights")
-  @@index([attemptId])
-}
-
-model ImprovementPlan {
-  id         String       @id @default(cuid())
-  attemptId  String       @unique @map("attempt_id")
-  plan7Day   Json         @map("plan_7_day")
-  plan14Day  Json         @map("plan_14_day")
-  plan30Day  Json         @map("plan_30_day")
-  createdAt  DateTime     @default(now()) @map("created_at")
-
-  attempt    TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-
-  @@map("improvement_plans")
-  @@index([attemptId])
-}
-
-model EvaluationReprocessLog {
-  id          String       @id @default(cuid())
-  attemptId   String       @map("attempt_id")
-  status      String
-  error       String?      @db.Text
-  triggeredBy String       @map("triggered_by")
-  createdAt   DateTime     @default(now()) @map("created_at")
-
-  attempt     TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-
-  @@map("evaluation_reprocess_logs")
-  @@index([attemptId])
-}
-
-
-model CandidateEnrollment {
-  id          String           @id @default(cuid())
-  candidateId String           @map("candidate_id")
-  testId      String           @map("test_id")
-  status      EnrollmentStatus @default(ENROLLED)
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-
-  user       User       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  testConfig TestConfig @relation(fields: [testId], references: [id], onDelete: Cascade)
-
-  @@unique([candidateId, testId])
-  @@map("candidate_enrollments")
-  @@index([candidateId])
-  @@index([testId])
-  @@index([status])
-}
-
-model RuntimeBuild {
-  id          String   @id @default(cuid())
-  testId      String   @map("test_id")
-  status      String   // e.g. "STARTED", "COMPLETED", "FAILED"
-  durationMs  Int      @map("duration_ms")
-  metadata    Json?
-  errors      Json?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@map("runtime_builds")
-  @@index([testId])
-}
-
-model RuntimeMetric {
-  id                   String   @id @default(cuid())
-  testId               String   @map("test_id")
-  metricName           String   @map("metric_name")
-  metricValue          Float    @map("metric_value")
-  metadata             Json?
-  createdAt            DateTime @default(now()) @map("created_at")
-
-  @@map("runtime_metrics")
-  @@index([testId])
-  @@index([metricName])
-}
-
-model RuntimeValidationLog {
-  id             String   @id @default(cuid())
-  testId         String   @map("test_id")
-  isValid        Boolean  @map("is_valid")
-  errors         Json?
-  metadata       Json?
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  @@map("runtime_validation_logs")
-  @@index([testId])
-}
-
-model GenerationAnalytics {
-  id                               String   @id @default(cuid())
-  timestamp                        DateTime @default(now())
-  requests                         Int      @default(0)
-  successes                        Int      @default(0)
-  failures                         Int      @default(0)
-  avgDurationMs                    Float    @default(0.0)
-  questionsGeneratedPerTopic       Json     @default("{}")
-  questionsGeneratedPerDifficulty  Json     @default("{}")
-  trendData                        Json     @default("[]")
-
-  @@map("generation_analytics")
-}
-
-model ReviewAnalytics {
-  id                   String   @id @default(cuid())
-  timestamp            DateTime @default(now())
-  pendingReviews       Int      @default(0)
-  approvedToday        Int      @default(0)
-  rejectedToday        Int      @default(0)
-  avgReviewTimeSeconds Float    @default(0.0)
-  reviewerWorkload     Json     @default("{}")
-
-  @@map("review_analytics")
-}
-
-model ContentCoverage {
-  id                String   @id @default(cuid())
-  timestamp         DateTime @default(now())
-  missingTopics     Json     @default("[]")
-  lowCoverageTopics Json     @default("[]")
-  difficultyGaps    Json     @default("[]")
-  unusedQuestions   Json     @default("[]")
-
-  @@map("content_coverage")
-}
-
-model AdminAlert {
-  id        String   @id @default(cuid())
-  type      String   // e.g. "LOW_INVENTORY", "QUEUE_OVERFLOW", "ASSEMBLY_FAILURE", "GENERATION_FAILURE", "EVALUATION_FAILURE"
-  message   String
-  severity  String   @default("WARNING") // "INFO" | "WARNING" | "CRITICAL"
-  status    String   @default("ACTIVE")  // "ACTIVE" | "RESOLVED"
-  metadata  Json?    @default("{}")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("admin_alerts")
-}
-

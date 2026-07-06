@@ -38,8 +38,8 @@ export class ContentCoverageService {
         missingTopics.push(topic.name);
       }
 
-      // Check Insufficient Question Counts (< 10 questions)
-      if (qCount < 10) {
+      // Check Insufficient Question Counts (0 < count < 10)
+      if (qCount > 0 && qCount < 10) {
         lowCoverageTopics.push({
           topic: topic.name,
           count: qCount,
@@ -47,18 +47,20 @@ export class ContentCoverageService {
         });
       }
 
-      // Check Difficulty Gaps (missing EASY, MEDIUM, or HARD)
-      const difficulties = new Set(topic.questions.map((q) => q.difficulty));
-      const missingDiffs: string[] = [];
-      if (!difficulties.has("EASY")) missingDiffs.push("EASY");
-      if (!difficulties.has("MEDIUM")) missingDiffs.push("MEDIUM");
-      if (!difficulties.has("HARD")) missingDiffs.push("HARD");
+      // Check Difficulty Gaps (missing EASY, MEDIUM, or HARD) - only relevant if topic has questions
+      if (qCount > 0) {
+        const difficulties = new Set(topic.questions.map((q) => q.difficulty));
+        const missingDiffs: string[] = [];
+        if (!difficulties.has("EASY")) missingDiffs.push("EASY");
+        if (!difficulties.has("MEDIUM")) missingDiffs.push("MEDIUM");
+        if (!difficulties.has("HARD")) missingDiffs.push("HARD");
 
-      if (missingDiffs.length > 0) {
-        difficultyGaps.push({
-          topic: topic.name,
-          missingDifficulties: missingDiffs,
-        });
+        if (missingDiffs.length > 0) {
+          difficultyGaps.push({
+            topic: topic.name,
+            missingDifficulties: missingDiffs,
+          });
+        }
       }
     }
 
