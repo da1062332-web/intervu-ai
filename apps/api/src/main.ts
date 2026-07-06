@@ -103,7 +103,7 @@ async function bootstrap() {
     customCss: ".swagger-ui .topbar { display: none }",
   });
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   const baseUrl = `http://localhost:${port}`;
   console.log(`\n✅ API running on ${baseUrl}`);
