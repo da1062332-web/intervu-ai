@@ -12,8 +12,18 @@ describe("ContentCoverageService", () => {
       id: "topic-1",
       name: "React",
       questions: [
-        { id: "q-1", difficulty: "EASY", timesUsed: 0, status: QuestionStatus.VALIDATED },
-        { id: "q-2", difficulty: "MEDIUM", timesUsed: 0, status: QuestionStatus.VALIDATED },
+        {
+          id: "q-1",
+          difficulty: "EASY",
+          timesUsed: 0,
+          status: QuestionStatus.VALIDATED,
+        },
+        {
+          id: "q-2",
+          difficulty: "MEDIUM",
+          timesUsed: 0,
+          status: QuestionStatus.VALIDATED,
+        },
       ],
     },
     {
@@ -35,7 +45,12 @@ describe("ContentCoverageService", () => {
             },
             question: {
               findMany: jest.fn().mockResolvedValue([
-                { id: "q-1", questionText: "React Q1", topic: { name: "React" }, difficulty: "EASY" },
+                {
+                  id: "q-1",
+                  questionText: "React Q1",
+                  topic: { name: "React" },
+                  difficulty: "EASY",
+                },
               ]),
             },
           },
@@ -54,7 +69,9 @@ describe("ContentCoverageService", () => {
     expect(result.missingTopics).toContain("Docker");
 
     // Topic 1 has 2 questions (< 10) -> lowCoverageTopics
-    const lowCoverage = result.lowCoverageTopics.find((t) => t.topic === "React");
+    const lowCoverage = result.lowCoverageTopics.find(
+      (t) => t.topic === "React",
+    );
     expect(lowCoverage).toBeDefined();
     expect(lowCoverage?.count).toBe(2);
 

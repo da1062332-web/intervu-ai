@@ -13,6 +13,7 @@ import { EventBusService } from "./integrations/event-bus/event-bus.service";
 import { PlatformOrchestratorService } from "./services/platform-orchestrator.service";
 import { PlatformHealthService } from "./health/platform-health.service";
 import { PlatformAuditService } from "./audit/platform-audit.service";
+import { UatChecklistService } from "./services/uat-checklist.service";
 import { PlatformMetricsController } from "./controllers/platform-metrics.controller";
 
 @Module({
@@ -33,12 +34,14 @@ import { PlatformMetricsController } from "./controllers/platform-metrics.contro
     PlatformOrchestratorService,
     PlatformHealthService,
     PlatformAuditService,
+    UatChecklistService,
   ],
   exports: [
     EventBusService,
     PlatformOrchestratorService,
     PlatformHealthService,
     PlatformAuditService,
+    UatChecklistService,
   ],
 })
 export class PlatformModule {}

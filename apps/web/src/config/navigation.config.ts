@@ -15,6 +15,8 @@ import {
   MessageSquare,
   Database,
   Archive,
+  Download,
+  LineChart,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -45,13 +47,13 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
         { label: 'Gen Failures', route: '/admin/generation/failures', icon: Archive },
         { label: 'Gen Analytics', route: '/admin/analytics/generation', icon: TrendingUp },
+        { label: 'Reports', route: '/admin/reports/candidates', icon: FileText },
+        { label: 'Exports', route: '/admin/exports', icon: Download },
       ],
     },
     {
       heading: 'Coming Soon',
-      items: [
-        { label: 'Reports', route: '/admin/reports', icon: FileText, disabled: true },
-      ],
+      items: [],
     },
 
     {
@@ -71,6 +73,7 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
         { label: 'Assessments', route: '/candidate/tests', icon: Briefcase },
         { label: 'Interviews', route: '/candidate/interviews', icon: PlayCircle },
         { label: 'Results', route: '/candidate/results', icon: BarChart3 },
+        { label: 'Progress', route: '/candidate/progress', icon: LineChart },
       ],
     },
     {

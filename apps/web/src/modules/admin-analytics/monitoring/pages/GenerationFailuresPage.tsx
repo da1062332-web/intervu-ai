@@ -114,7 +114,9 @@ export function GenerationFailuresPage() {
                 <tbody className='divide-y divide-border/50 bg-card/25'>
                   {failures.map((f) => (
                     <tr key={f.jobId} className='hover:bg-muted/30 transition-colors'>
-                      <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>{f.jobId}</td>
+                      <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>
+                        {f.jobId}
+                      </td>
                       <td className='p-3.5 font-semibold text-foreground'>{f.topic}</td>
                       <td className='p-3.5 text-muted-foreground text-sm'>{f.count} questions</td>
                       <td className='p-3.5'>
@@ -122,7 +124,10 @@ export function GenerationFailuresPage() {
                           {f.provider}
                         </span>
                       </td>
-                      <td className='p-3.5 text-sm text-red-500 max-w-[280px] truncate' title={f.reason}>
+                      <td
+                        className='p-3.5 text-sm text-red-500 max-w-[280px] truncate'
+                        title={f.reason}
+                      >
                         {f.reason}
                       </td>
                       <td className='p-3.5 text-muted-foreground text-xs'>

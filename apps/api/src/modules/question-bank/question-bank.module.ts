@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { QuestionBankController } from "./controllers/question-bank.controller";
+import { QuestionsController } from "./controllers/questions.controller";
 import { QuestionBankService } from "./services/question-bank.service";
 import { QuestionSearchService } from "./services/question-search.service";
 import { QuestionVersionService } from "./services/question-version.service";
@@ -13,7 +14,7 @@ import { QuestionVersionRepository } from "./repositories/question-version.repos
 import { QuestionReviewRepository } from "./repositories/question-review.repository";
 
 @Module({
-  controllers: [QuestionBankController],
+  controllers: [QuestionBankController, QuestionsController],
   providers: [
     QuestionBankService,
     QuestionSearchService,

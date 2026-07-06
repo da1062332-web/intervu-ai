@@ -49,7 +49,8 @@ describe("AssemblyMonitoring", () => {
           useValue: {
             assembledTest: {
               count: jest.fn().mockImplementation((args) => {
-                if (args?.where?.status === "PUBLISHED") return Promise.resolve(1);
+                if (args?.where?.status === "PUBLISHED")
+                  return Promise.resolve(1);
                 if (args?.where?.status === "DRAFT") return Promise.resolve(0);
                 return Promise.resolve(1); // total
               }),

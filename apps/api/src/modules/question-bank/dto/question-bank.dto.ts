@@ -128,6 +128,16 @@ export class SearchFiltersDto {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
+  search?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  companyId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
   topicId?: string;
 
   @ApiProperty({ required: false })
