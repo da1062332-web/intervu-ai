@@ -28,7 +28,7 @@ export class GeneratedQuestionRepository extends BaseRepository<
   ): Promise<GeneratedQuestion[]> {
     return this.db.generatedQuestion.findMany({
       where: {
-        conceptKey,
+        conceptKey: { equals: conceptKey, mode: "insensitive" },
         difficultyLevel,
       },
       take: count,
