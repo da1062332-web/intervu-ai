@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { apiClient } from '@/services/api/client';
 
 export interface AssemblyAnalyticsData {
@@ -180,8 +181,12 @@ export function AssemblyMonitoringPage() {
             </CardHeader>
             <CardContent className='p-0 border-t border-border/40'>
               {data?.drilldowns.length === 0 ? (
-                <div className='text-sm text-muted-foreground text-center py-12'>
-                  No assembled tests found in history.
+                <div className='p-8'>
+                  <EmptyState 
+                    title="No Assembly History"
+                    description="No assembled tests found in history."
+                    icon={<Layers className="size-8 text-muted-foreground" />}
+                  />
                 </div>
               ) : (
                 <div className='overflow-x-auto w-full'>

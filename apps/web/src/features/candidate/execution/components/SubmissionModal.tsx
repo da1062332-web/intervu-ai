@@ -40,7 +40,7 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
   const handleSubmit = async () => {
     setLocalError(null);
     try {
-      await submitAssessment();
+      await submitAssessment({ allowPartial: unanswered > 0 });
     } catch {
       setLocalError('Failed to submit assessment. Please try again.');
     }

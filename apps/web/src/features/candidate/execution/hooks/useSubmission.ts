@@ -8,7 +8,7 @@ export function useSubmission(testId: string) {
   const router = useRouter();
   const { setSubmissionStatus, connectionStatus } = useExecutionStore();
 
-  const submitAssessment = async () => {
+  const submitAssessment = async (options?: { autoSubmit?: boolean; allowPartial?: boolean }) => {
     if (connectionStatus !== 'ONLINE') {
       setSubmissionStatus('FAILED');
       return;
@@ -17,7 +17,7 @@ export function useSubmission(testId: string) {
     setSubmissionStatus('SUBMITTING');
 
     try {
-      await executionService.submitAssessment(testId);
+      await executionService.submitAssessment(testId, options);
 
       // Save a snapshot for the summary page before clearing
       const summarySnapshot = {

@@ -13,8 +13,9 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { EmptyState } from '@/components/ui/empty-state';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Search, Download, Play, Eye, ArrowUpDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Download, Play, Eye, ArrowUpDown, History } from 'lucide-react';
 import Link from 'next/link';
 
 interface AttemptItem {
@@ -141,8 +142,12 @@ export function AttemptHistoryTable({
   if (!data?.attempts || data.attempts.length === 0) {
     return (
       <Card>
-        <CardContent className='py-8 text-center text-muted-foreground'>
-          No attempt history found.
+        <CardContent className='py-8'>
+          <EmptyState 
+            title="No Attempt History"
+            description="No attempt history found."
+            icon={<History className="size-8 text-muted-foreground" />}
+          />
         </CardContent>
       </Card>
     );
@@ -237,8 +242,12 @@ export function AttemptHistoryTable({
                 ))
               ) : (
                 <ShadcnTableRow>
-                  <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
-                    No matching attempts found on this page.
+                  <TableCell colSpan={5} className='p-8'>
+                    <EmptyState 
+                      title="No Results"
+                      description="No matching attempts found on this page."
+                      icon={<Search className="size-8 text-muted-foreground" />}
+                    />
                   </TableCell>
                 </ShadcnTableRow>
               )}

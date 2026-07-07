@@ -10,6 +10,7 @@ export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInp
         'dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
         'dark:focus:ring-blue-400',
         'disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900',
+        'aria-invalid:border-red-500 aria-invalid:focus:ring-red-500 dark:aria-invalid:border-red-500 dark:aria-invalid:focus:ring-red-500',
         className,
       )}
       {...props}

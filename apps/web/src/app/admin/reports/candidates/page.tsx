@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Eye, Search, Filter } from 'lucide-react';
+import { apiClient } from '@/services/api/client';
 
 interface CandidateReport {
   id: string;
@@ -28,22 +30,15 @@ export default function AdminCandidateReportsPage() {
     const fetchReports = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const queryParams = new URLSearchParams({
-          search: searchTerm,
-          sortBy,
-          sortOrder,
-          limit: '50',
-        });
-        const res = await fetch(`/api/v1/admin/reports/candidates?${queryParams.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const data = await apiClient.request<CandidateReport[]>('/admin/reports/candidates', {
+          query: {
+            search: searchTerm,
+            sortBy,
+            sortOrder,
+            limit: 50,
           },
         });
-        if (res.ok) {
-          const data = await res.json();
-          setReports(data);
-        }
+        setReports(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -106,30 +101,34 @@ export default function AdminCandidateReportsPage() {
                 <thead className='bg-gray-50 border-b border-gray-200'>
                   <tr>
                     <th
+                      scope='col'
                       className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
                       onClick={() => toggleSort('candidate')}
                     >
                       Candidate {sortBy === 'candidate' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
+                      scope='col'
                       className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
                       onClick={() => toggleSort('assessment')}
                     >
                       Assessment {sortBy === 'assessment' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
+                      scope='col'
                       className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
                       onClick={() => toggleSort('score')}
                     >
                       Score {sortBy === 'score' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
+                      scope='col'
                       className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
                       onClick={() => toggleSort('completedAt')}
                     >
                       Completed Date {sortBy === 'completedAt' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th className='px-6 py-3 font-medium text-gray-500 text-right'>Action</th>
+                    <th scope='col' className='px-6 py-3 font-medium text-gray-500 text-right'>Action</th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200'>
@@ -163,8 +162,12 @@ export default function AdminCandidateReportsPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className='text-center py-8 text-gray-500'>
-                        No reports found matching your search.
+                      <td colSpan={5} className='p-8'>
+                        <EmptyState 
+                          title="No Reports Found"
+                          description="No candidate reports matched your search criteria."
+                          icon={<Search className="w-8 h-8 text-gray-400" />}
+                        />
                       </td>
                     </tr>
                   )}

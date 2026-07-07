@@ -62,9 +62,13 @@ export const executionService = {
     });
   },
 
-  submitAssessment: async (testId: string): Promise<void> => {
+  submitAssessment: async (
+    testId: string,
+    options?: { autoSubmit?: boolean; allowPartial?: boolean }
+  ): Promise<void> => {
     return apiClient.request(`/tests/${testId}/submit`, {
       method: 'POST',
+      query: options as Record<string, string | number | boolean>,
     });
   },
 };
