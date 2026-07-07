@@ -72,7 +72,7 @@ describe("GenerationRetryService", () => {
     expect(result.success).toBe(true);
     expect(result.attempts).toBe(1);
     expect(result.question?.topic).toBe("Percentages");
-    expect(result.question?.difficulty).toBe("Medium");
+    expect(result.question?.difficulty).toBe("MEDIUM");
     expect(auditService.log).toHaveBeenCalledTimes(1);
   });
 
