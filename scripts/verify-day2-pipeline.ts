@@ -35,7 +35,8 @@ async function run() {
           { name: "oldPrice", type: "integer", min: 100, max: 200 },
           { name: "margin", type: "integer", min: 10, max: 50 },
           { name: "newPrice", type: "formula", formula: "oldPrice + margin" },
-          { name: "currency", type: "static", value: "USD" }
+          { name: "currency", type: "static", value: "USD" },
+          { name: "isActive", type: "boolean" }
         ]
       },
       constraints: {
@@ -119,6 +120,11 @@ async function run() {
       // 8. Verify answer in options
       if (!options.includes(ans)) {
         throw new Error("Answer not present in options.");
+      }
+
+      // 8b. Verify boolean variable type
+      if (typeof vars.isActive !== "boolean") {
+        throw new Error("Boolean variable generator failed.");
       }
 
       // 9. Uniqueness check & persistence

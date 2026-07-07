@@ -73,6 +73,8 @@ export function generateVariables(
       context[variable.name] = parseFloat(rawValue.toFixed(precision));
     } else if (variable.type === "static") {
       context[variable.name] = (variable as any).value !== undefined ? (variable as any).value : (variable as any).defaultValue;
+    } else if (variable.type === "boolean") {
+      context[variable.name] = prng.next() < 0.5;
     }
   }
 

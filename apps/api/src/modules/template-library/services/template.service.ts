@@ -1053,11 +1053,12 @@ export class TemplateService {
     let correctAnswer = "";
     let explanation = "";
     let questionHash = "";
+    let prngSeed = 0;
 
     while (attempts < maxAttempts) {
       attempts++;
       try {
-        const prngSeed = Math.floor(Math.random() * 1000000);
+        prngSeed = Math.floor(Math.random() * 1000000);
         const prng = new PRNG(prngSeed);
 
         // Generate values
@@ -1119,6 +1120,17 @@ export class TemplateService {
           correctAnswer = options[0] || "0";
         }
 
+        // Option Validation (QGES Stage 7)
+        if (options.length === 0 || options.some((o) => !o || o.trim() === "")) {
+          continue;
+        }
+        if (new Set(options).size !== options.length) {
+          continue;
+        }
+        if (!options.includes(correctAnswer)) {
+          continue;
+        }
+
         // Unresolved placeholder detection
         if (
           this.hasUnresolvedPlaceholders(questionText) ||
@@ -1171,7 +1183,11 @@ export class TemplateService {
         options,
         correctAnswer,
         solution: explanation, // store explanation in solution JSON field
-        metadata: parameters, // store variables in metadata JSON field
+        metadata: {
+          ...parameters,
+          _generationSeed: prngSeed,
+          _templateVersion: template.version,
+        },
       },
     });
 

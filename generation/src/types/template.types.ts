@@ -51,6 +51,11 @@ export const VariableSchema = z.discriminatedUnion("type", [
     type: z.literal("formula"),
     formula: z.string(),
   }),
+  z.object({
+    name: z.string(),
+    type: z.literal("boolean"),
+    defaultValue: z.boolean().optional(),
+  }),
 ]);
 
 export const ConstraintSeveritySchema = z.enum(["warning", "critical"]);
