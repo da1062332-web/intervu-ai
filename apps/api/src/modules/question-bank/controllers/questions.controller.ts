@@ -23,6 +23,7 @@ import { UserRole } from "@prisma/client";
 import { QuestionSearchService } from "../services/question-search.service";
 import { SearchFiltersDto } from "../dto/question-bank.dto";
 import { GenerationOrchestratorService } from "../../generation/services/generation-orchestrator.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @ApiTags("questions")
 @ApiBearerAuth("jwt-auth")
@@ -32,6 +33,7 @@ import { GenerationOrchestratorService } from "../../generation/services/generat
 export class QuestionsController {
   constructor(
     private readonly searchService: QuestionSearchService,
+    private readonly prisma: PrismaService,
     @Optional()
     private readonly generationOrchestrator?: GenerationOrchestratorService,
   ) {}
@@ -100,6 +102,48 @@ export class QuestionsController {
           : [difficultyLevel],
       },
       meta: { timestamp: new Date().toISOString() },
+    };
+  }
+
+  @Get("generated")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "View generated question pool" })
+  @ApiOkResponse({ description: "Generated questions retrieved successfully" })
+  async getGeneratedQuestions(
+    @Query("conceptKey") conceptKey?: string,
+    @Query("difficulty") difficulty?: string,
+    @Query("limit") limit?: string,
+  ) {
+    const where: any = {};
+    if (conceptKey) {
+      where.conceptKey = { equals: conceptKey, mode: "insensitive" };
+    }
+    if (difficulty) {
+      where.difficultyLevel = difficulty.toUpperCase();
+    }
+    const questions = await this.prisma.generatedQuestion.findMany({
+      where,
+      take: limit ? parseInt(limit, 10) : 50,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      success: true,
+      data: questions.map((q) => ({
+        id: q.id,
+        templateId: q.templateId,
+        conceptKey: q.conceptKey,
+        questionText: q.questionText,
+        variables: q.metadata,
+        options: q.options,
+        answer: q.correctAnswer,
+        explanation: q.solution,
+        createdAt: q.createdAt,
+      })),
+      meta: {
+        count: questions.length,
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 }

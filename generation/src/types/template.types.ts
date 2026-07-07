@@ -25,6 +25,32 @@ export const VariableSchema = z.discriminatedUnion("type", [
     type: z.literal("string"),
     options: z.array(z.string()),
   }),
+  z.object({
+    name: z.string(),
+    type: z.literal("integer"),
+    min: z.number().optional(),
+    max: z.number().optional(),
+    step: z.number().optional(),
+  }),
+  z.object({
+    name: z.string(),
+    type: z.literal("decimal"),
+    min: z.number().optional(),
+    max: z.number().optional(),
+    step: z.number().optional(),
+    precision: z.number().optional(),
+  }),
+  z.object({
+    name: z.string(),
+    type: z.literal("static"),
+    value: z.any().optional(),
+    defaultValue: z.any().optional(),
+  }),
+  z.object({
+    name: z.string(),
+    type: z.literal("formula"),
+    formula: z.string(),
+  }),
 ]);
 
 export const ConstraintSeveritySchema = z.enum(["warning", "critical"]);
