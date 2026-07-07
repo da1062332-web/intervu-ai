@@ -2,7 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
+import { GenerationRetryService } from "../../generation-ai/retry/generation-retry.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { SolutionTemplateRepository } from "../repositories/solution-template.repository";
 import { TemplatePreviewRepository } from "../repositories/template-preview.repository";
@@ -24,6 +27,8 @@ export class SolutionTemplateService {
     private readonly templateRepo: TemplateRepository,
     private readonly renderer: TemplateRendererService,
     private readonly validator: PlaceholderValidatorService,
+    @Inject(forwardRef(() => GenerationRetryService))
+    private readonly retryService: GenerationRetryService,
   ) {}
 
   async createSolutionTemplate(
@@ -76,81 +81,43 @@ export class SolutionTemplateService {
     templateId: string,
     dto: GenerateTemplatePreviewRequest,
   ) {
-    let solutionTemplateString = dto.solutionTemplate;
-    let explanationTemplateString = dto.explanationTemplate;
-
-    if (!solutionTemplateString) {
-      const solutionTemplate =
-        await this.solutionTemplateRepo.findByTemplateId(templateId);
-      if (!solutionTemplate) {
-        throw new NotFoundException("Solution template not found");
-      }
-      solutionTemplateString = solutionTemplate.solutionTemplate;
-      explanationTemplateString =
-        solutionTemplate.explanationTemplate ?? undefined;
+    const template = await this.templateRepo.findById(templateId);
+    if (!template) {
+      throw new NotFoundException("Template not found");
     }
 
-    // Fetch allowed variables (template variables)
-    const variables = await this.prisma.templateVariable.findMany({
-      where: { templateId },
-      select: { variableName: true },
-    });
-    const allowedVariables = variables.map((v) => v.variableName);
-
-    // Validate placeholders in solution
-    const validation = this.validator.validate(
-      solutionTemplateString,
-      allowedVariables,
+    // Run preview generation through the AI Question Generation Pipeline
+    const result = await this.retryService.generateFromTemplate(
+      template,
+      dto.previewPayload,
+      3,
     );
 
-    // Also validate explanation if present
-    if (explanationTemplateString) {
-      const explanationValidation = this.validator.validate(
-        explanationTemplateString,
-        allowedVariables,
-      );
-      if (!explanationValidation.valid) {
-        validation.valid = false;
-        validation.unknownVariables = [
-          ...new Set([
-            ...validation.unknownVariables,
-            ...explanationValidation.unknownVariables,
-          ]),
-        ];
-      }
-    }
-
-    if (!validation.valid) {
+    if (!result.success || !result.question) {
       throw new BadRequestException({
-        message: "Template contains unknown variables",
-        unknownVariables: validation.unknownVariables,
+        message: "AI Generation failed during preview generation",
+        errors: result.errors,
       });
     }
 
-    // Render outputs
-    const solutionResult = this.renderer.render(
-      solutionTemplateString,
-      dto.previewPayload,
-    );
-    let explanationResult: {
-      renderedOutput: string | null;
-      resolvedVariables: Record<string, unknown>;
-    } = { renderedOutput: null, resolvedVariables: {} };
-    if (explanationTemplateString) {
-      explanationResult = this.renderer.render(
-        explanationTemplateString,
-        dto.previewPayload,
-      );
-    }
+    const question = result.question;
+    const optionsText = question.options && question.options.length > 0
+      ? `\n\nOptions:\n${question.options.map((o, idx) => `${String.fromCharCode(65 + idx)}) ${o}`).join("\n")}`
+      : "";
+
+    const solutionText = `Question:\n${question.question}${optionsText}\n\nCorrect Answer: ${question.correctAnswer}\n\nExplanation:\n${question.explanation}`;
 
     const previewResult = {
-      solution: solutionResult.renderedOutput,
-      explanation: explanationResult.renderedOutput,
-      resolvedVariables: {
-        ...solutionResult.resolvedVariables,
-        ...explanationResult.resolvedVariables,
+      solution: solutionText,
+      explanation: question.explanation,
+      resolvedVariables: dto.previewPayload,
+      validation: {
+        valid: true,
+        unknownVariables: [],
       },
-      validation,
+      questionText: question.question,
+      options: question.options,
+      correctAnswer: question.correctAnswer,
     } as any;
 
     // Store preview

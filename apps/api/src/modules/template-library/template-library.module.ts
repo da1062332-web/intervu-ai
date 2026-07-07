@@ -1,4 +1,5 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
+import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 import { TemplateRepository } from "./repositories/template.repository";
 import { TemplateVariableRepository } from "./repositories/template-variable.repository";
 import { TemplateRuleRepository } from "./repositories/template-rule.repository";
@@ -13,6 +14,7 @@ import { PlaceholderValidatorService } from "./services/placeholder-validator.se
 import { SolutionTemplateService } from "./services/solution-template.service";
 
 @Module({
+  imports: [forwardRef(() => GenerationAiModule)],
   controllers: [
     TemplateController,
     TemplateVariableController,
