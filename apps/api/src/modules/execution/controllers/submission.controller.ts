@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -41,7 +42,10 @@ export class SubmissionController {
   async submitAssessment(
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
+    @Query("autoSubmit") autoSubmit?: string,
+    @Query("allowPartial") allowPartial?: string,
   ): Promise<any> {
-    return this.submissionService.submitAssessment(id, user.id, false);
+    const isAutoSubmit = autoSubmit === "true" || allowPartial === "true";
+    return this.submissionService.submitAssessment(id, user.id, isAutoSubmit);
   }
 }
