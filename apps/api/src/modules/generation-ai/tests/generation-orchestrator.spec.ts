@@ -20,6 +20,7 @@ describe("GenerationOrchestratorService", () => {
   let duplicateDetector: jest.Mocked<DuplicateDetectorService>;
   let qualityScorer: jest.Mocked<QuestionQualityService>;
   let reviewQueueIntegration: jest.Mocked<ReviewQueueIntegration>;
+  let retryService: any;
 
   beforeEach(() => {
     promptManager = {
@@ -50,6 +51,10 @@ describe("GenerationOrchestratorService", () => {
       sendToReviewQueue: jest.fn(),
     } as any;
 
+    retryService = {
+      generateWithRetry: jest.fn(),
+    } as any;
+
     service = new GenerationOrchestratorService(
       promptManager,
       templateLibrary,
@@ -60,10 +65,23 @@ describe("GenerationOrchestratorService", () => {
       duplicateDetector,
       qualityScorer,
       reviewQueueIntegration,
+      retryService,
     );
   });
 
   it("should orchestrate prompt, template, llm, validation and queueing", async () => {
+    retryService.generateWithRetry.mockResolvedValue({
+      success: true,
+      attempts: 1,
+      question: {
+        question: "Q1 text is long enough",
+        answer: "A1",
+        explanation: "Concept\nFormula\nStep-by-Step\nFinal Answer",
+        difficulty: "Medium",
+        topic: "Percentages",
+        options: ["A1", "Incorrect B", "Incorrect C", "Incorrect D"],
+      },
+    });
     promptManager.getPromptByName.mockResolvedValue({
       content: "prompt template",
     } as any);

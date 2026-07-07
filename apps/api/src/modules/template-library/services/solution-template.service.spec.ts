@@ -6,6 +6,7 @@ import { SolutionTemplateRepository } from "../repositories/solution-template.re
 import { TemplatePreviewRepository } from "../repositories/template-preview.repository";
 import { TemplateRepository } from "../repositories/template.repository";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { GenerationRetryService } from "../../generation-ai/retry/generation-retry.service";
 
 describe("SolutionTemplateService", () => {
   let service: SolutionTemplateService;
@@ -30,6 +31,10 @@ describe("SolutionTemplateService", () => {
     create: jest.fn(),
   };
 
+  const mockRetryService = {
+    generateFromTemplate: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -40,6 +45,7 @@ describe("SolutionTemplateService", () => {
         { provide: SolutionTemplateRepository, useValue: mockSolutionRepo },
         { provide: TemplatePreviewRepository, useValue: mockPreviewRepo },
         { provide: TemplateRepository, useValue: mockTemplateRepo },
+        { provide: GenerationRetryService, useValue: mockRetryService },
       ],
     }).compile();
 

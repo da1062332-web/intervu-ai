@@ -1,5 +1,6 @@
 import { PRNG } from "./prng";
 import { Variable } from "../types/template.types";
+import { evaluateExpression } from "./math-parser";
 
 /**
  * Rounds a number to the precision of the step to prevent floating point inaccuracies.
@@ -22,6 +23,7 @@ export function generateVariables(
 ): Record<string, unknown> {
   const context: Record<string, unknown> = {};
 
+  // 1. Generate base (non-formula) variables
   for (const variable of variables) {
     if (variable.type === "number") {
       const { min, max, step } = variable.range;
@@ -44,7 +46,67 @@ export function generateVariables(
       }
       const randomIdx = prng.nextInt(0, options.length - 1);
       context[variable.name] = options[randomIdx];
+    } else if (variable.type === "integer") {
+      const min = (variable as any).min !== undefined ? (variable as any).min : 0;
+      const max = (variable as any).max !== undefined ? (variable as any).max : 100;
+      const step = (variable as any).step;
+      if (step !== undefined && step > 0) {
+        const stepsCount = Math.floor((max - min) / step);
+        const randomStepIdx = prng.nextInt(0, stepsCount);
+        context[variable.name] = Math.round(min + randomStepIdx * step);
+      } else {
+        context[variable.name] = prng.nextInt(min, max);
+      }
+    } else if (variable.type === "decimal") {
+      const min = (variable as any).min !== undefined ? (variable as any).min : 0.0;
+      const max = (variable as any).max !== undefined ? (variable as any).max : 1.0;
+      const step = (variable as any).step;
+      const precision = (variable as any).precision !== undefined ? (variable as any).precision : 2;
+      let rawValue: number;
+      if (step !== undefined && step > 0) {
+        const stepsCount = Math.floor((max - min) / step);
+        const randomStepIdx = prng.nextInt(0, stepsCount);
+        rawValue = min + randomStepIdx * step;
+      } else {
+        rawValue = min + prng.next() * (max - min);
+      }
+      context[variable.name] = parseFloat(rawValue.toFixed(precision));
+    } else if (variable.type === "static") {
+      context[variable.name] = (variable as any).value !== undefined ? (variable as any).value : (variable as any).defaultValue;
+    } else if (variable.type === "boolean") {
+      context[variable.name] = prng.next() < 0.5;
     }
+  }
+
+  // 2. Iteratively resolve formula/derived variables (topological dependency resolution)
+  const formulaVars = variables.filter((v) => v.type === "formula");
+  let unresolved = [...formulaVars];
+  let lastUnresolvedCount = unresolved.length + 1;
+
+  while (unresolved.length > 0 && unresolved.length < lastUnresolvedCount) {
+    lastUnresolvedCount = unresolved.length;
+    const nextUnresolved: typeof unresolved = [];
+
+    for (const v of unresolved) {
+      const formulaStr = (v as any).formula;
+      try {
+        const evaluated = evaluateExpression(formulaStr, context);
+        if (evaluated === undefined || evaluated === null) {
+          throw new Error("Formula evaluated to null or undefined");
+        }
+        context[v.name] = evaluated;
+      } catch (err) {
+        // Retry in the next iteration if it depends on another unresolved formula variable
+        nextUnresolved.push(v);
+      }
+    }
+    unresolved = nextUnresolved;
+  }
+
+  if (unresolved.length > 0) {
+    throw new Error(
+      `Circular or unresolved dependencies in formula variables: ${unresolved.map((v) => v.name).join(", ")}`,
+    );
   }
 
   return context;

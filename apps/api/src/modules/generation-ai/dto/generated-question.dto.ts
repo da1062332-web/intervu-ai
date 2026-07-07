@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsArray, IsOptional, IsObject } from "class-validator";
 
 export class GeneratedQuestionDto {
   @IsString()
@@ -10,6 +10,10 @@ export class GeneratedQuestionDto {
   answer!: string;
 
   @IsString()
+  @IsOptional()
+  correctAnswer?: string;
+
+  @IsString()
   @IsNotEmpty()
   explanation!: string;
 
@@ -18,6 +22,15 @@ export class GeneratedQuestionDto {
   difficulty!: string;
 
   @IsString()
-  @IsNotEmpty()
-  topic!: string;
+  @IsOptional()
+  topic?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  options?: string[];
+
+  @IsObject()
+  @IsOptional()
+  metadata?: Record<string, unknown>;
 }

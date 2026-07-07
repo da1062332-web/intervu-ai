@@ -9,6 +9,7 @@ import { DuplicateDetectorService } from "../validators/duplicate-detector.servi
 import { QuestionQualityService } from "../scorers/question-quality.service";
 import { ReviewQueueIntegration } from "../integrations/review-queue.integration";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
+import { GenerationRetryService } from "../retry/generation-retry.service";
 
 @Injectable()
 export class GenerationOrchestratorService {
@@ -22,6 +23,7 @@ export class GenerationOrchestratorService {
     private readonly duplicateDetector: DuplicateDetectorService,
     private readonly qualityScorer: QuestionQualityService,
     private readonly reviewQueueIntegration: ReviewQueueIntegration,
+    private readonly retryService: GenerationRetryService,
   ) {}
 
   async generateQuestions(params: {
@@ -71,81 +73,25 @@ Provide: Question, Correct Answer, Explanation.`;
     for (let i = 0; i < count; i += batchSize) {
       const chunkCount = Math.min(batchSize, count - i);
       const promises = Array.from({ length: chunkCount }).map(async () => {
-        let attempts = 0;
-        const maxAttempts = 3;
-        while (attempts < maxAttempts) {
-          attempts++;
-          try {
-            const finalPrompt = `
-Category: ${category}
-Topic: ${params.topic}
-Difficulty: ${difficulty}
+        try {
+          const result = await this.retryService.generateWithRetry(
+            category,
+            params.topic,
+            difficulty,
+            3,
+          );
 
-${promptTemplate}
-
-You MUST return your response in the following JSON format matching this schema:
-${JSON.stringify(templateSchema, null, 2)}
-
-Ensure there are no leading or trailing markdown blocks (like \`\`\`json). The output must be raw JSON parsable.
-`;
-
-            const rawResponse = await this.llmAdapter.generate(finalPrompt);
-            const parsed = await this.responseParser.parse(rawResponse);
-
-            if (!parsed.topic) parsed.topic = params.topic;
-            if (!parsed.difficulty) parsed.difficulty = difficulty;
-
-            // Normalize options if missing (MCQ templates should generate options, but fallback just in case)
-            if (!(parsed as any).options) {
-              (parsed as any).options = [
-                parsed.answer,
-                "Incorrect A",
-                "Incorrect B",
-                "Incorrect C",
-              ];
-            }
-
-            const topicRes = await this.topicValidator.validate(
-              parsed,
-              params.topic,
+          if (result.success && result.question) {
+            const reviewRes = await this.reviewQueueIntegration.sendToReviewQueue(
+              result.question,
             );
-            const diffRes = await this.difficultyValidator.validate(
-              parsed,
-              difficulty,
-            );
-            const dupRes = await this.duplicateDetector.checkDuplicate(parsed);
-            const qualityRes = await this.qualityScorer.score(
-              parsed,
-              params.topic,
-              difficulty,
-            );
-
-            const isValid =
-              topicRes.match &&
-              diffRes &&
-              !dupRes.duplicate &&
-              qualityRes.status === "PASS";
-
-            if (isValid) {
-              const reviewRes =
-                await this.reviewQueueIntegration.sendToReviewQueue(parsed);
-              return { success: true, data: reviewRes.question };
-            } else {
-              let reason = "";
-              if (!topicRes.match) reason += "Topic mismatch. ";
-              if (!diffRes) reason += "Difficulty mismatch. ";
-              if (dupRes.duplicate) reason += "Duplicate detected. ";
-              if (qualityRes.status === "FAIL")
-                reason += `Quality check failed: ${qualityRes.reasons.join(", ")}`;
-              throw new Error(reason || "Validation failed");
-            }
-          } catch (e: any) {
-            if (attempts >= maxAttempts) {
-              return { success: false, error: e.message };
-            }
+            return { success: true, data: reviewRes.question };
+          } else {
+            return { success: false, error: result.errors?.join("; ") || "Generation failed" };
           }
+        } catch (e: any) {
+          return { success: false, error: e.message || String(e) };
         }
-        return { success: false, error: "Max attempts reached" };
       });
 
       const chunkResults = await Promise.all(promises);

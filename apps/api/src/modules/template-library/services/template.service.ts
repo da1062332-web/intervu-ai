@@ -13,6 +13,15 @@ import {
   RuleType,
 } from "@prisma/client";
 import { createHash } from "crypto";
+import {
+  PRNG,
+  generateVariables,
+  evaluateConstraints,
+  hydrateString,
+  generateDistractors,
+  evaluateExpression,
+  roundToPrecision,
+} from "@intervu-ai/generation";
 
 import { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
@@ -975,5 +984,231 @@ export class TemplateService {
       }
     }
     return false;
+  }
+
+  // Question generation pipeline
+  async generateQuestionForTemplate(id: string): Promise<any> {
+    // 1. Load template
+    const template = await this.templateRepository.findById(id);
+    if (!template) {
+      throw new NotFoundException(`Template ${id} not found`);
+    }
+
+    // 2. Resolve variables definition
+    let variablesDef: any[] = [];
+    const varSchema = template.variableSchema as any;
+    if (varSchema && Array.isArray(varSchema.variables)) {
+      variablesDef = varSchema.variables;
+    } else {
+      // Fetch from repository relation
+      const dbVars = await this.templateVariableRepository.findAll({ templateId: id });
+      variablesDef = dbVars.map((v) => ({
+        name: v.variableName,
+        type: v.variableType.toLowerCase(),
+        min: 1,
+        max: 100,
+        defaultValue: v.defaultValue,
+      }));
+    }
+
+    // 3. Resolve constraints definition
+    let constraintsDef: any[] = [];
+    const consSchema = template.constraints as any;
+    if (consSchema && Array.isArray(consSchema.constraints)) {
+      constraintsDef = consSchema.constraints;
+    } else {
+      // Fetch from repository relation
+      const dbRules = await this.templateRuleRepository.findAll({ templateId: id });
+      constraintsDef = dbRules.map((r) => ({
+        rule: (r.ruleConfig as any).pattern || (r.ruleConfig as any).rule || "",
+        severity: "critical",
+      }));
+    }
+
+    // 4. Resolve structure (questionTemplate, optionsTemplate, etc.)
+    const structure = (template.structure as any) || {};
+    const questionTemplate = structure.questionTemplate || structure.prompt || "";
+    const optionsTemplate = structure.optionsTemplate || [];
+
+    // 5. Resolve solution / explanation
+    const solutionSchema = (template.solutionSchema as any) || {};
+    const finalAnswerExpression = solutionSchema.finalAnswer || "";
+    let explanationTemplate = "";
+
+    // If solutionSchema doesn't have explanation, check solutionTemplate relation
+    const solTemplate = await this.prisma.solutionTemplate.findUnique({
+      where: { templateId: id },
+    });
+    if (solTemplate) {
+      explanationTemplate = solTemplate.explanationTemplate || "";
+    }
+
+    // Generate loop with retry policy (maximum 20 attempts)
+    let attempts = 0;
+    const maxAttempts = 20;
+    let parameters: Record<string, any> = {};
+    let isConstraintValid = false;
+    let questionText = "";
+    let options: string[] = [];
+    let correctAnswer = "";
+    let explanation = "";
+    let questionHash = "";
+    let prngSeed = 0;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        prngSeed = Math.floor(Math.random() * 1000000);
+        const prng = new PRNG(prngSeed);
+
+        // Generate values
+        parameters = generateVariables(variablesDef, prng);
+
+        // Validate constraints
+        const constraintCheck = evaluateConstraints(constraintsDef, parameters);
+        if (!constraintCheck.isValid) {
+          continue;
+        }
+
+        // Render question text
+        questionText = hydrateString(questionTemplate, parameters);
+
+        // Render explanation
+        explanation = hydrateString(explanationTemplate || solutionSchema.explanationTemplate || "", parameters);
+
+        // Render options
+        options = optionsTemplate.map((opt: string) => hydrateString(opt, parameters));
+
+        // Generate distractors if none provided
+        if (options.length === 0) {
+          let ansVal = 0;
+          try {
+            const res = evaluateExpression(finalAnswerExpression, parameters);
+            ansVal = typeof res === "number" ? res : parseFloat(String(res));
+          } catch {
+            ansVal = 1;
+          }
+          const distractors = generateDistractors(ansVal);
+          const isAnswerInt = Number.isInteger(ansVal);
+          const formattedAnswer = String(roundToPrecision(ansVal, isAnswerInt ? 1 : 0.01));
+          options = prng.shuffle([formattedAnswer, ...distractors]);
+        }
+
+        // Generate Answer
+        if (solutionSchema.formula) {
+          try {
+            const ansVal = evaluateExpression(solutionSchema.formula, parameters);
+            correctAnswer = String(ansVal);
+          } catch {
+            correctAnswer = "0";
+          }
+        } else if (solutionSchema.correctVariable && parameters.hasOwnProperty(solutionSchema.correctVariable)) {
+          correctAnswer = String(parameters[solutionSchema.correctVariable]);
+        } else if (solutionSchema.correctOptionIndex !== undefined) {
+          const idx = solutionSchema.correctOptionIndex;
+          if (idx >= 0 && idx < options.length) {
+            correctAnswer = options[idx];
+          }
+        } else if (finalAnswerExpression) {
+          try {
+            const ansVal = evaluateExpression(finalAnswerExpression, parameters);
+            correctAnswer = String(ansVal);
+          } catch {
+            correctAnswer = "0";
+          }
+        } else {
+          correctAnswer = options[0] || "0";
+        }
+
+        // Option Validation (QGES Stage 7)
+        if (options.length === 0 || options.some((o) => !o || o.trim() === "")) {
+          continue;
+        }
+        if (new Set(options).size !== options.length) {
+          continue;
+        }
+        if (!options.includes(correctAnswer)) {
+          continue;
+        }
+
+        // Unresolved placeholder detection
+        if (
+          this.hasUnresolvedPlaceholders(questionText) ||
+          options.some((o) => this.hasUnresolvedPlaceholders(o)) ||
+          this.hasUnresolvedPlaceholders(explanation)
+        ) {
+          continue;
+        }
+
+        // Hash generated question for duplicate checking
+        questionHash = createHash("sha256")
+          .update(`${template.id}_${questionText}_${options.join(",")}_${correctAnswer}`)
+          .digest("hex");
+
+        // Check if question exists in GeneratedQuestion table
+        const existing = await this.prisma.generatedQuestion.findUnique({
+          where: { questionHash },
+        });
+
+        if (existing) {
+          continue;
+        }
+
+        isConstraintValid = true;
+        break;
+      } catch (err) {
+        // Log generation failure attempt
+      }
+    }
+
+    if (!isConstraintValid) {
+      throw new BadRequestException({
+        success: false,
+        error: {
+          code: "CONSTRAINT_VIOLATION",
+          message: "Failed to generate variables satisfying constraints after 20 attempts",
+        },
+      });
+    }
+
+    // Save entity to pool (Zero Schema Change: store explanation in solution field, variables in metadata)
+    const saved = await this.prisma.generatedQuestion.create({
+      data: {
+        template: { connect: { id: template.id } },
+        questionHash,
+        conceptKey: template.conceptKey,
+        difficultyLevel: template.difficultyLevel,
+        questionType: template.questionType,
+        questionText,
+        options,
+        correctAnswer,
+        solution: explanation, // store explanation in solution JSON field
+        metadata: {
+          ...parameters,
+          _generationSeed: prngSeed,
+          _templateVersion: template.version,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      question: {
+        id: saved.id,
+        templateId: saved.templateId,
+        conceptKey: saved.conceptKey,
+        questionText: saved.questionText,
+        variables: saved.metadata,
+        options: saved.options,
+        answer: saved.correctAnswer,
+        explanation: saved.solution,
+      },
+      answer: saved.correctAnswer,
+      explanation: saved.solution,
+    };
+  }
+
+  private hasUnresolvedPlaceholders(text: string): boolean {
+    return /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/.test(text) || /\{([^}]+)\}/.test(text);
   }
 }

@@ -18,8 +18,24 @@ export function evaluateConstraints(
 
   for (const constraint of constraints) {
     try {
-      const isSatisfied = evaluateExpression(constraint.rule, context);
-      if (isSatisfied !== true) {
+      let isSatisfied = false;
+      const ruleText = constraint.rule.trim();
+
+      // Check if it's a Range rule: "varName Range min-max"
+      const rangeMatch = ruleText.match(/^(\w+)\s+Range\s+([-\d.]+)-([-\d.]+)$/i);
+      if (rangeMatch) {
+        const [_, varName, minStr, maxStr] = rangeMatch;
+        const val = context[varName];
+        if (val !== undefined && val !== null) {
+          const numVal = Number(val);
+          isSatisfied = numVal >= Number(minStr) && numVal <= Number(maxStr);
+        }
+      } else {
+        const evalResult = evaluateExpression(ruleText, context);
+        isSatisfied = evalResult === true;
+      }
+
+      if (!isSatisfied) {
         violatedConstraints.push(constraint);
       }
     } catch {

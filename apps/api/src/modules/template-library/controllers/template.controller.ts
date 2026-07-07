@@ -234,4 +234,12 @@ export class TemplateController {
   async getLatestPreview(@Param("id") id: string) {
     return this.solutionTemplateService.getLatestPreview(id);
   }
+
+  @Post(":id/generate")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Generate one question from a template and store it in the pool" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async generateQuestion(@Param("id") id: string) {
+    return this.templateService.generateQuestionForTemplate(id);
+  }
 }
