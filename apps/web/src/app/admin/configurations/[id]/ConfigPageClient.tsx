@@ -15,6 +15,7 @@ import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-sum
 import { TemplatesSummaryTab } from '@/features/admin/configs/components/templates-summary-tab';
 import { RolesSummaryTab } from '@/features/admin/configs/components/roles-summary-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
+import { GenerationReadinessPanel } from '@/features/admin/configs/components/GenerationReadinessPanel';
 
 import { cn } from '@/lib/utils';
 import { useConfig, useConfigPreview, useAutoValidateConfig } from '@/services/exam-configs';
@@ -188,7 +189,9 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const hasTopics = preview?.sectionBreakdown
     ? preview.sections > 0 && preview.sectionBreakdown.every((s) => s.topicCount > 0)
     : false;
-  const hasTemplatesWarn = autoValidation?.warnings?.some((w: string) => w.includes('No templates found'));
+  const hasTemplatesWarn = autoValidation?.warnings?.some((w: string) =>
+    w.includes('No templates found'),
+  );
 
   const healthChecks = [
     { label: 'Configuration Saved', passed: !!config.id },
@@ -313,7 +316,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
             <GenerationReadinessPanel
               configId={configId}
-              onTabChange={(id) => {
+              onTabChange={(id: string) => {
                 const idx = WIZARD_TABS.findIndex((t) => t.id === id);
                 if (idx !== -1) setActiveTabIndex(idx);
               }}

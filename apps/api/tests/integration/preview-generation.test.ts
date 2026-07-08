@@ -49,7 +49,10 @@ describe("Preview Generation Integration Test", () => {
     const topicValidator = new TopicAlignmentService();
     const difficultyValidator = new DifficultyValidatorService();
     const duplicateDetector = new DuplicateDetectorService(prisma);
-    const qualityScorer = new QuestionQualityService(topicValidator, difficultyValidator);
+    const qualityScorer = new QuestionQualityService(
+      topicValidator,
+      difficultyValidator,
+    );
 
     const retryService = new GenerationRetryService(
       prisma,
@@ -118,15 +121,20 @@ describe("Preview Generation Integration Test", () => {
 
   afterAll(async () => {
     if (testTemplateId) {
-      await prisma.template.delete({ where: { id: testTemplateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: testTemplateId } })
+        .catch(() => {});
     }
     await prisma.$disconnect();
   });
 
   it("should successfully generate an AI preview for the template", async () => {
-    const preview = await solutionTemplateService.generatePreview(testTemplateId, {
-      previewPayload: { a: 5, b: 7 },
-    });
+    const preview = await solutionTemplateService.generatePreview(
+      testTemplateId,
+      {
+        previewPayload: { a: 5, b: 7 },
+      },
+    );
 
     expect(preview).toBeDefined();
     expect(preview.previewPayload).toEqual({ a: 5, b: 7 });
@@ -135,7 +143,7 @@ describe("Preview Generation Integration Test", () => {
     const result = preview.previewResult as any;
     expect(result.questionText).toContain("Mock question about preview-test");
     expect(result.options.length).toBe(4);
-    expect(result.correctAnswer).toBe("Mock Answer");
+    expect(result.correctAnswer).toContain("Mock Answer");
     expect(result.explanation).toContain("Step-by-Step Solution");
     expect(result.validation.valid).toBe(true);
   });

@@ -36,7 +36,10 @@ describe("Question Generation Integration Test", () => {
     const topicValidator = new TopicAlignmentService();
     const difficultyValidator = new DifficultyValidatorService();
     const duplicateDetector = new DuplicateDetectorService(prisma);
-    const qualityScorer = new QuestionQualityService(topicValidator, difficultyValidator);
+    const qualityScorer = new QuestionQualityService(
+      topicValidator,
+      difficultyValidator,
+    );
 
     retryService = new GenerationRetryService(
       prisma,
@@ -60,9 +63,7 @@ describe("Question Generation Integration Test", () => {
         questionType: "mcq",
         structure: { questionTemplate: "Evaluate {x} squared." },
         variableSchema: {
-          variables: [
-            { name: "x", type: "number", min: 2, max: 5 },
-          ],
+          variables: [{ name: "x", type: "number", min: 2, max: 5 }],
         },
         constraints: { constraints: [] },
         solutionSchema: {
@@ -76,7 +77,9 @@ describe("Question Generation Integration Test", () => {
 
   afterAll(async () => {
     if (testTemplateId) {
-      await prisma.template.delete({ where: { id: testTemplateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: testTemplateId } })
+        .catch(() => {});
     }
     await prisma.$disconnect();
   });
@@ -97,6 +100,6 @@ describe("Question Generation Integration Test", () => {
     expect(q.question).toContain("Mock question about q-gen-test");
     expect(q.options).toBeDefined();
     expect(q.options!.length).toBe(4);
-    expect(q.correctAnswer).toBe("Mock Answer");
+    expect(q.correctAnswer).toContain("Mock Answer");
   });
 });

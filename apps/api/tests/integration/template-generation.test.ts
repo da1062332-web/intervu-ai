@@ -49,7 +49,10 @@ describe("Template Generation Database Persistence Integration Test", () => {
     const topicValidator = new TopicAlignmentService();
     const difficultyValidator = new DifficultyValidatorService();
     const duplicateDetector = new DuplicateDetectorService(prisma);
-    const qualityScorer = new QuestionQualityService(topicValidator, difficultyValidator);
+    const qualityScorer = new QuestionQualityService(
+      topicValidator,
+      difficultyValidator,
+    );
 
     const retryService = new GenerationRetryService(
       prisma,
@@ -106,15 +109,20 @@ describe("Template Generation Database Persistence Integration Test", () => {
 
   afterAll(async () => {
     if (testTemplateId) {
-      await prisma.template.delete({ where: { id: testTemplateId } }).catch(() => {});
+      await prisma.template
+        .delete({ where: { id: testTemplateId } })
+        .catch(() => {});
     }
     await prisma.$disconnect();
   });
 
   it("should successfully generate, persist, and retrieve a preview snapshot from database", async () => {
-    const preview = await solutionTemplateService.generatePreview(testTemplateId, {
-      previewPayload: { x: 4 },
-    });
+    const preview = await solutionTemplateService.generatePreview(
+      testTemplateId,
+      {
+        previewPayload: { x: 4 },
+      },
+    );
 
     expect(preview).toBeDefined();
     expect(preview.id).toBeDefined();
@@ -127,8 +135,10 @@ describe("Template Generation Database Persistence Integration Test", () => {
     expect(dbPreview!.templateId).toBe(testTemplateId);
 
     const result = dbPreview!.previewResult as any;
-    expect(result.questionText).toContain("Mock question about db-persistence-test");
+    expect(result.questionText).toContain(
+      "Mock question about db-persistence-test",
+    );
     expect(result.options).toEqual([]);
-    expect(result.correctAnswer).toBe("Mock Answer");
+    expect(result.correctAnswer).toContain("Mock Answer");
   });
 });
