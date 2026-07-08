@@ -8,6 +8,8 @@ import { ResponseValidatorService } from "../validators/response-validator.servi
 import { ParameterGeneratorService } from "../../generation/services/parameter-generator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
+import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
+import { QuestionQualityService } from "../scorers/question-quality.service";
 
 export interface RetryResult {
   attempts: number;
@@ -28,6 +30,8 @@ export class GenerationRetryService {
     private readonly explanationGenerator: ExplanationGeneratorService,
     private readonly responseValidator: ResponseValidatorService,
     private readonly auditService: GenerationAuditService,
+    private readonly duplicateDetector: DuplicateDetectorService,
+    private readonly qualityScorer: QuestionQualityService,
   ) {
     this.parameterGenerator = new ParameterGeneratorService();
   }
@@ -177,7 +181,11 @@ export class GenerationRetryService {
           explanation: parsed.explanation,
           difficulty: parsed.difficulty || difficulty,
           topic: parsed.topic || topic,
-          metadata: parsed.metadata || {},
+          metadata: {
+            ...(parsed.metadata || {}),
+            templateId: template.id,
+            variables: variableValues,
+          },
         };
 
         // 3. Process & Shuffle options
@@ -202,9 +210,37 @@ export class GenerationRetryService {
 
         // 5. Run response validator (leak checks, template alignment, schema validity)
         this.responseValidator.validate(parsedQuestion, difficulty, topic);
+
+        // 5b. Run duplicate check (Task Group 5)
+        const dupResult = await this.duplicateDetector.checkDuplicate(parsedQuestion);
+        if (dupResult.duplicate) {
+          throw new BadRequestException(
+            `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`
+          );
+        }
+
+        // 5c. Run quality scorer (Task Group 7)
+        const qScore = await this.qualityScorer.score(parsedQuestion, topic, difficulty);
+        if (qScore.status === "FAIL") {
+          throw new BadRequestException(
+            `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`
+          );
+        }
+
         validationSuccess = true;
       } catch (e: any) {
         attemptErrors.push(e.message || String(e));
+      }
+
+      // 6. Calculate quality score for log
+      let finalScore = 0.0;
+      if (validationSuccess && parsedQuestion) {
+        try {
+          const qScore = await this.qualityScorer.score(parsedQuestion, topic, difficulty);
+          finalScore = qScore.score;
+        } catch {
+          finalScore = 100.0;
+        }
       }
 
       // Save audit logs
@@ -212,7 +248,7 @@ export class GenerationRetryService {
         await this.auditService.log({
           prompt,
           response: response || "ERROR",
-          qualityScore: validationSuccess ? 100.0 : 0.0,
+          qualityScore: finalScore,
           validationResult: {
             success: validationSuccess,
             attempt: attempts,

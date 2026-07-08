@@ -43,6 +43,7 @@ export class QuestionBankService {
           templateId: dto.templateId || null,
           version: 1,
           status: QuestionStatus.DRAFT,
+          metadata: dto.metadata || {},
         },
         tx,
       );

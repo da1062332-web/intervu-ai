@@ -66,6 +66,9 @@ export class CreateQuestionDto {
   @IsArray()
   @IsOptional()
   options?: string[];
+
+  @IsOptional()
+  metadata?: any;
 }
 
 export class UpdateQuestionDto {

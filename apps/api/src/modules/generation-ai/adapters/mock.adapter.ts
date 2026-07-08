@@ -43,16 +43,28 @@ export class MockAdapter implements LLMAdapter {
       }
     }
 
+    const rand = Math.floor(Math.random() * 1000000);
+    const words = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"];
+    const w1 = words[rand % words.length];
+    const w2 = words[Math.floor(rand / 100) % words.length];
+    const w3 = words[Math.floor(rand / 10000) % words.length];
+
     return JSON.stringify({
-      question: `Mock question about ${topic} at ${difficulty} level? (At least 15 chars)`,
-      options: ["Mock Answer", "Incorrect Option B", "Incorrect Option C", "Incorrect Option D"],
-      correctAnswer: "Mock Answer",
-      answer: "Mock Answer",
-      explanation: `Concept\nMock Concept about ${topic}\n\nFormula / Reasoning\nMock Reasoning\n\nStep-by-Step Solution\n1. Analyze the topic ${topic}\n2. Compute result at difficulty ${difficulty}\n\nFinal Answer\nMock Answer`,
+      question: `Mock question about ${topic} at ${difficulty} level referencing ${w1} value, ${w2} factor, and ${w3} constraint? (At least 15 chars) #${rand}`,
+      options: [
+        `Mock Answer #${rand}`,
+        `Incorrect Option B #${rand}`,
+        `Incorrect Option C #${rand}`,
+        `Incorrect Option D #${rand}`
+      ],
+      correctAnswer: `Mock Answer #${rand}`,
+      answer: `Mock Answer #${rand}`,
+      explanation: `Concept\nMock Concept about ${topic}\n\nFormula / Reasoning\nMock Reasoning\n\nStep-by-Step Solution\n1. Analyze the topic ${topic} with ${w1}\n2. Compute result at difficulty ${difficulty} with ${w2} and ${w3}\n\nFinal Answer\nMock Answer #${rand}`,
       difficulty,
       topic,
       metadata: {
-        topic
+        topic,
+        randomVal: rand
       }
     });
   }

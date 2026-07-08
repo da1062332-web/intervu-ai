@@ -70,9 +70,10 @@ Inject the provided variable values directly into the corresponding placeholders
 [OPTION STRATEGY]
 You must generate exactly 4 options.
 - 1 Option must be the correct answer.
-- 3 Options must be plausible distractors that are context-relevant and represent common conceptual/mathematical misconceptions.
+- 3 Options must be plausible distractors that are context-relevant and represent common conceptual/mathematical misconceptions (e.g. applying wrong formulas, calculation slipups, logical oversights).
 - Do not generate duplicate options.
 - All options must have consistent formatting (e.g. units, casing, number of decimal places).
+- IMPORTANT: All 4 options must be similar in character length. The correct answer must not be noticeably longer, more detailed, or structured differently than the distractors.
 `;
     } else {
       optionStrategyText = `
@@ -87,7 +88,7 @@ Since this is a ${questionType} question type, return an empty array for options
 
     const explanationRules = `
 [EXPLANATION RULES]
-You must provide a clear step-by-step explanation. The explanation must adhere to the following exact structure:
+You must provide a clear step-by-step explanation. The explanation must adhere to the following exact structure with exactly these headings:
 
 Concept
 <Brief summary of the concept used in the question>
@@ -96,12 +97,12 @@ Formula / Reasoning
 <Detail of the formula, rule, or logical reasoning applied>
 
 Step-by-Step Solution
-<Detailed, step-by-step layout of how the solution is solved using the supplied variable values. Relate it to the template steps:
+<Detailed, step-by-step layout of how the solution is solved using the supplied variable values. Ensure all calculations are mathematically accurate. Relate it to the template steps:
 ${solutionSteps.map((step: string, idx: number) => `Step ${idx + 1}: ${step}`).join("\n")}
 >
 
 Final Answer
-<State the final answer clearly>
+<State the final answer clearly. It MUST end by explicitly stating the correct answer option value, matching the "correctAnswer" property exactly.>
 `;
 
     // 7. Output Format Section

@@ -53,8 +53,24 @@ export class DuplicateDetectorService {
     // 2. Fetch existing questions under that topic
     const existingQuestions = await this.prisma.question.findMany({
       where: topic ? { topicId: topic.id } : undefined,
-      select: { questionText: true },
+      select: { questionText: true, templateId: true, metadata: true },
     });
+
+    const candidateTemplateId = (generated.metadata as any)?.templateId || null;
+    const candidateVars = (generated.metadata as any)?.variables || generated.metadata || {};
+
+    const areVariableSetsEqual = (varsA: any, varsB: any): boolean => {
+      if (!varsA || !varsB || typeof varsA !== "object" || typeof varsB !== "object") {
+        return false;
+      }
+      const keysA = Object.keys(varsA).sort();
+      const keysB = Object.keys(varsB).sort();
+      if (keysA.length !== keysB.length) return false;
+      return keysA.every((k, idx) => {
+        if (keysB[idx] !== k) return false;
+        return String(varsA[k]).trim().toLowerCase() === String(varsB[k]).trim().toLowerCase();
+      });
+    };
 
     let maxSimilarity = 0.0;
 
@@ -67,6 +83,14 @@ export class DuplicateDetectorService {
       // Exact Match check
       if (eqText.toLowerCase() === candidateText.toLowerCase()) {
         return { duplicate: true, similarity: 1.0 };
+      }
+
+      // Check duplicate variable sets for same template
+      if (candidateTemplateId && eq.templateId === candidateTemplateId) {
+        const eqVars = (eq.metadata as any)?.variables || eq.metadata || {};
+        if (areVariableSetsEqual(candidateVars, eqVars)) {
+          return { duplicate: true, similarity: 1.0 };
+        }
       }
 
       // Jaccard similarity check

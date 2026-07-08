@@ -25,10 +25,10 @@ async function runMasterVerification() {
       shell: true,
     });
 
-    // Wait up to 30 seconds
+    // Wait up to 60 seconds
     const start = Date.now();
     let up = false;
-    while (Date.now() - start < 30000) {
+    while (Date.now() - start < 60000) {
       if (await ping(`${API_URL}/health`)) {
         up = true;
         break;

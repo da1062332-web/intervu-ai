@@ -97,7 +97,30 @@ Provide: Question, Correct Answer, Explanation.`;
       const chunkResults = await Promise.all(promises);
       for (const res of chunkResults) {
         if (res.success && res.data) {
-          generatedQuestions.push(res.data);
+          const candidateText = (res.data.questionText || "").trim().toLowerCase();
+          const isBatchDuplicate = generatedQuestions.some((eq) => {
+            const eqText = (eq.questionText || "").trim().toLowerCase();
+            if (eqText === candidateText) return true;
+            const tokenize = (text: string) =>
+              new Set(text.toLowerCase().split(/\W+/).filter(Boolean));
+            const setA = tokenize(candidateText);
+            const setB = tokenize(eqText);
+            if (setA.size === 0 && setB.size === 0) return true;
+            let intersection = 0;
+            for (const item of setA) {
+              if (setB.has(item)) intersection++;
+            }
+            const union = setA.size + setB.size - intersection;
+            return intersection / union > 0.85;
+          });
+
+          if (isBatchDuplicate) {
+            failures.push(
+              "Batch duplicate detected: Question similar to another in same batch run."
+            );
+          } else {
+            generatedQuestions.push(res.data);
+          }
         } else {
           failures.push(res.error || "Unknown error during chunk generation");
         }

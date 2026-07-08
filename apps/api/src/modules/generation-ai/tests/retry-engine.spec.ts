@@ -16,6 +16,8 @@ describe("GenerationRetryService", () => {
   let explanationGenerator: ExplanationGeneratorService;
   let responseValidator: ResponseValidatorService;
   let auditService: jest.Mocked<GenerationAuditService>;
+  let duplicateDetector: any;
+  let qualityScorer: any;
   let prisma: any;
 
   beforeEach(() => {
@@ -52,6 +54,14 @@ describe("GenerationRetryService", () => {
       log: jest.fn().mockResolvedValue({ id: "log-1" }),
     } as any;
 
+    duplicateDetector = {
+      checkDuplicate: jest.fn().mockResolvedValue({ duplicate: false, similarity: 0.0 }),
+    } as any;
+
+    qualityScorer = {
+      score: jest.fn().mockResolvedValue({ score: 90, status: "PASS", reasons: [] }),
+    } as any;
+
     service = new GenerationRetryService(
       prisma,
       promptBuilder,
@@ -60,6 +70,8 @@ describe("GenerationRetryService", () => {
       explanationGenerator,
       responseValidator,
       auditService,
+      duplicateDetector,
+      qualityScorer,
     );
   });
 

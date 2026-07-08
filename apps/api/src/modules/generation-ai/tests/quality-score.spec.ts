@@ -26,7 +26,7 @@ describe("QuestionQualityService", () => {
     const q: GeneratedQuestionDto = {
       question: "This is a very long and clear question text.",
       answer: "Valid Answer",
-      explanation: "This is a detailed step by step explanation.",
+      explanation: "Concept\nMath.\n\nFormula / Reasoning\nRules.\n\nStep-by-Step Solution\n1. Solve.\n\nFinal Answer\nValid Answer",
       difficulty: "Medium",
       topic: "Percentages",
     };
@@ -47,20 +47,21 @@ describe("QuestionQualityService", () => {
     const q: GeneratedQuestionDto = {
       question: "This is a valid question text.",
       answer: "Answer",
-      explanation: "This is a valid explanation.",
+      explanation: "Concept\nMath.\n\nFormula / Reasoning\nRules.\n\nStep-by-Step Solution\n1. Solve.\n\nFinal Answer\nAnswer",
       difficulty: "Easy",
       topic: "Probability",
     };
 
     const result = await service.score(q, "Percentages", "Hard");
     // Weighted Score:
-    // Structure (20%): 100 -> 20
-    // Topic (25%): 0 -> 0
-    // Difficulty (25%): 0 -> 0
-    // Answer (20%): 100 -> 20
     // Clarity (10%): 100 -> 10
-    // Total: 50 -> FAIL
-    expect(result.score).toBe(50);
+    // Validity (20%): 100 -> 20
+    // Explanation (20%): 100 -> 20
+    // Compliance (20%): 0 -> 0
+    // Difficulty (20%): 0 -> 0
+    // Parity (10%): 100 -> 10
+    // Total: 60 -> FAIL
+    expect(result.score).toBe(60);
     expect(result.status).toBe("FAIL");
     expect(result.reasons).toContain(
       'Topic mismatch: requested "Percentages", generated "Probability"',

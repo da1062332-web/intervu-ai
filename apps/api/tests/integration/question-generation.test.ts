@@ -11,6 +11,10 @@ import { ExplanationGeneratorService } from "../../src/modules/generation-ai/gen
 import { ResponseValidatorService } from "../../src/modules/generation-ai/validators/response-validator.service";
 import { GenerationAuditService } from "../../src/modules/generation-ai/services/generation-audit.service";
 import { MockAdapter } from "../../src/modules/generation-ai/adapters/mock.adapter";
+import { DuplicateDetectorService } from "../../src/modules/generation-ai/validators/duplicate-detector.service";
+import { QuestionQualityService } from "../../src/modules/generation-ai/scorers/question-quality.service";
+import { TopicAlignmentService } from "../../src/modules/generation-ai/validators/topic-alignment.service";
+import { DifficultyValidatorService } from "../../src/modules/generation-ai/validators/difficulty-validator.service";
 import { DifficultyLevel } from "@prisma/client";
 
 describe("Question Generation Integration Test", () => {
@@ -29,6 +33,11 @@ describe("Question Generation Integration Test", () => {
     const responseValidator = new ResponseValidatorService();
     const auditService = new GenerationAuditService(prisma);
 
+    const topicValidator = new TopicAlignmentService();
+    const difficultyValidator = new DifficultyValidatorService();
+    const duplicateDetector = new DuplicateDetectorService(prisma);
+    const qualityScorer = new QuestionQualityService(topicValidator, difficultyValidator);
+
     retryService = new GenerationRetryService(
       prisma,
       promptBuilder,
@@ -37,6 +46,8 @@ describe("Question Generation Integration Test", () => {
       explanationGenerator,
       responseValidator,
       auditService,
+      duplicateDetector,
+      qualityScorer,
     );
 
     // Seed dummy template

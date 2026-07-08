@@ -55,6 +55,24 @@ export class OptionGeneratorService {
       );
     }
 
+    // 1b. Option Length Parity Check with exemptions for code, math and short options
+    const lengths = cleanOptions.map((opt) => opt.length);
+    const minLen = Math.min(...lengths);
+    const maxLen = Math.max(...lengths);
+    const hasCodeSyntax = cleanOptions.some((opt) =>
+      opt.includes("`") ||
+      /({|}|\bconst\b|\bdef\b|=>|\bimport\b|\bfunction\b|\bpublic\s+class\b|<html>|<\/html>|\bconsole\.log\b|;|\[|\])/.test(opt)
+    );
+    const allShort = cleanOptions.every((opt) => opt.length < 15);
+
+    if (!hasCodeSyntax && !allShort) {
+      if (minLen === 0 || maxLen / minLen > 2.5) {
+        throw new BadRequestException(
+          `Option length mismatch: the options are not of balanced lengths (longest option is more than 2.5x the length of the shortest option). Longest: ${maxLen} chars, Shortest: ${minLen} chars.`
+        );
+      }
+    }
+
     // 2. Shuffling (Fisher-Yates)
     const shuffled = [...cleanOptions];
     for (let i = shuffled.length - 1; i > 0; i--) {

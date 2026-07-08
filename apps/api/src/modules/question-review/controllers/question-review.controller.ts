@@ -48,8 +48,8 @@ export class QuestionReviewController {
   @Get("questions")
   @ApiOperation({ summary: "Get questions in the review queue" })
   async getQueue(@Query() query: ReviewQueryDto) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
 
     // Default queue filters out ACTIVE/ARCHIVED questions
     const whereClause = query.status

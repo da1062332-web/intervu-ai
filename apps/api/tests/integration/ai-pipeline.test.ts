@@ -37,6 +37,11 @@ describe("E2E AI Generation Pipeline Integration Test", () => {
     const explanationGenerator = new ExplanationGeneratorService();
     const responseValidator = new ResponseValidatorService();
     const auditService = new GenerationAuditService(prisma);
+    
+    const topicValidator = new TopicAlignmentService();
+    const difficultyValidator = new DifficultyValidatorService();
+    const duplicateDetector = new DuplicateDetectorService(prisma);
+    const qualityScorer = new QuestionQualityService(topicValidator, difficultyValidator);
 
     const retryService = new GenerationRetryService(
       prisma,
@@ -46,15 +51,13 @@ describe("E2E AI Generation Pipeline Integration Test", () => {
       explanationGenerator,
       responseValidator,
       auditService,
+      duplicateDetector,
+      qualityScorer,
     );
 
     const promptManager = new PromptManagerService(prisma);
     const templateLibrary = new TemplateLibraryService(prisma);
     const responseParser = new ResponseParserService();
-    const topicValidator = new TopicAlignmentService();
-    const difficultyValidator = new DifficultyValidatorService();
-    const duplicateDetector = new DuplicateDetectorService(prisma);
-    const qualityScorer = new QuestionQualityService(topicValidator, difficultyValidator);
     const reviewQueueIntegration = {
       sendToReviewQueue: vi.fn().mockImplementation(async (q) => {
         return {

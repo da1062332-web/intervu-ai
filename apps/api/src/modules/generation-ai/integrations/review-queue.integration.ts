@@ -114,6 +114,8 @@ export class ReviewQueueIntegration {
       difficulty: finalDifficulty,
       source: "GENERATED",
       options: (generated as any).options || [generated.answer],
+      templateId: (generated.metadata as any)?.templateId || null,
+      metadata: generated.metadata || {},
     });
 
     // 4. Update the snapshot to include the options if they exist
