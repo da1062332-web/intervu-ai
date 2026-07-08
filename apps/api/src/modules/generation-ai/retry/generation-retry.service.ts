@@ -1,16 +1,13 @@
 import { Injectable, Inject, BadRequestException } from "@nestjs/common";
-import { LLMAdapter } from "../adapters/llm-adapter.interface";
-import { GeneratedQuestionDto } from "../dto/generated-question.dto";
-import { generateCodingPrompt } from "../prompts/coding.prompt";
-import { generateLogicalPrompt } from "../prompts/logical.prompt";
-import { generateQuantitativePrompt } from "../prompts/quantitative.prompt";
-import { generateVerbalPrompt } from "../prompts/verbal.prompt";
-import { QuestionQualityService } from "../scorers/question-quality.service";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { PromptBuilderService } from "../prompts/prompt-builder.service";
+import { QuestionGeneratorService } from "../generators/question-generator.service";
+import { OptionGeneratorService } from "../generators/option-generator.service";
+import { ExplanationGeneratorService } from "../generators/explanation-generator.service";
+import { ResponseValidatorService } from "../validators/response-validator.service";
+import { ParameterGeneratorService } from "../../generation/services/parameter-generator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
-import { DifficultyValidatorService } from "../validators/difficulty-validator.service";
-import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
-import { ResponseParserService } from "../validators/response-parser.service";
-import { TopicAlignmentService } from "../validators/topic-alignment.service";
+import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 
 export interface RetryResult {
   attempts: number;
@@ -21,119 +18,209 @@ export interface RetryResult {
 
 @Injectable()
 export class GenerationRetryService {
-  constructor(
-    @Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter,
-    private readonly responseParser: ResponseParserService,
-    private readonly qualityScorer: QuestionQualityService,
-    private readonly topicValidator: TopicAlignmentService,
-    private readonly difficultyValidator: DifficultyValidatorService,
-    private readonly duplicateDetector: DuplicateDetectorService,
-    private readonly auditService: GenerationAuditService,
-  ) {}
+  private readonly parameterGenerator: ParameterGeneratorService;
 
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly promptBuilder: PromptBuilderService,
+    private readonly questionGenerator: QuestionGeneratorService,
+    private readonly optionGenerator: OptionGeneratorService,
+    private readonly explanationGenerator: ExplanationGeneratorService,
+    private readonly responseValidator: ResponseValidatorService,
+    private readonly auditService: GenerationAuditService,
+  ) {
+    this.parameterGenerator = new ParameterGeneratorService();
+  }
+
+  /**
+   * Main retry-loop orchestrator for generating questions from category, topic, and difficulty.
+   */
   async generateWithRetry(
-    category: "quantitative" | "logical" | "verbal" | "coding",
+    category: string,
     topic: string,
     difficulty: string,
+    maxAttempts: number = 3,
+  ): Promise<RetryResult> {
+    const normDiff = difficulty.toUpperCase();
+    const cleanTopic = topic.trim();
+
+    // 1. Fetch matching template from the database
+    let template = await this.prisma.template.findFirst({
+      where: {
+        conceptKey: {
+          equals: cleanTopic,
+          mode: "insensitive",
+        },
+        difficultyLevel: normDiff as any,
+        isActive: true,
+        deletedAt: null,
+      },
+    });
+
+    if (!template) {
+      // Fallback: active template matching the topic/concept regardless of difficulty
+      template = await this.prisma.template.findFirst({
+        where: {
+          conceptKey: {
+            equals: cleanTopic,
+            mode: "insensitive",
+          },
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+    }
+
+    if (!template) {
+      // Fallback 2: first active template in database
+      template = await this.prisma.template.findFirst({
+        where: {
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+    }
+
+    // Resolve template data structure
+    const templateData = template
+      ? {
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          conceptKey: template.conceptKey,
+          difficultyLevel: template.difficultyLevel,
+          questionType: template.questionType,
+          structure: template.structure,
+          variableSchema: template.variableSchema,
+          constraints: template.constraints,
+          solutionSchema: template.solutionSchema,
+        }
+      : {
+          id: "fallback_id",
+          name: `Standard ${category.toUpperCase()} Template`,
+          description: `Fallback template for topic: ${topic}`,
+          conceptKey: topic,
+          difficultyLevel: normDiff,
+          questionType: "mcq",
+          structure: {
+            questionTemplate: `Solve this ${category} problem about ${topic} at ${difficulty} level.`,
+          },
+          variableSchema: { variables: [] },
+          constraints: { constraints: [] },
+          solutionSchema: {
+            steps: ["Step 1: Parse parameter values", "Step 2: Solve formula", "Step 3: State final answer"],
+            finalAnswer: "Mock Answer",
+          },
+        };
+
+    // 2. Generate parameter values
+    let variableValues: Record<string, any> = {};
+    try {
+      variableValues = this.parameterGenerator.generateParameters({
+        variableSchema: templateData.variableSchema as any,
+        constraints: templateData.constraints as any,
+      });
+    } catch {
+      variableValues = {};
+    }
+
+    return this.generateFromTemplate(templateData, variableValues, maxAttempts);
+  }
+
+  /**
+   * Compiles dynamic prompt, runs generation and full multi-stage validation checks.
+   */
+  async generateFromTemplate(
+    template: any,
+    variableValues: Record<string, unknown>,
     maxAttempts: number = 3,
   ): Promise<RetryResult> {
     let attempts = 0;
     const errors: string[] = [];
 
-    // 1. Select the correct prompt template
-    let prompt = "";
-    if (category === "quantitative") {
-      prompt = generateQuantitativePrompt(topic, difficulty);
-    } else if (category === "logical") {
-      prompt = generateLogicalPrompt(topic, difficulty);
-    } else if (category === "verbal") {
-      prompt = generateVerbalPrompt(topic, difficulty);
-    } else if (category === "coding") {
-      prompt = generateCodingPrompt(topic, difficulty);
-    } else {
-      throw new BadRequestException(`Invalid category: ${category}`);
-    }
+    // Compile dynamic structured prompt
+    const prompt = this.promptBuilder.buildPrompt({
+      template,
+      variableValues,
+    });
+
+    const difficulty = template.difficultyLevel.toLowerCase();
+    const topic = template.conceptKey;
 
     while (attempts < maxAttempts) {
       attempts++;
       let response = "";
       let parsedQuestion: GeneratedQuestionDto | undefined;
-      let scoreResult: any = null;
       let validationSuccess = false;
       const attemptErrors: string[] = [];
 
       try {
-        // 2. Generate response from LLM
-        response = await this.llmAdapter.generate(prompt);
+        // 1. Generate LLM Output
+        response = await this.questionGenerator.generate(prompt);
 
-        // 3. Parse LLM response
-        parsedQuestion = await this.responseParser.parse(response);
+        // 2. Parse LLM JSON
+        let cleaned = response.trim();
+        if (cleaned.startsWith("```")) {
+          cleaned = cleaned
+            .replace(/^```(?:json)?/gi, "")
+            .replace(/```$/gi, "")
+            .trim();
+        }
+        const parsed = JSON.parse(cleaned);
 
-        // 4. Run validators individually for granular validation logging
-        const topicResult = await this.topicValidator.validate(
-          parsedQuestion,
-          topic,
-        );
-        if (!topicResult.match) {
-          attemptErrors.push(
-            `Topic mismatch: expected "${topic}" but got "${parsedQuestion.topic}"`,
+        // Map parsed keys to standard GeneratedQuestionDto
+        parsedQuestion = {
+          question: parsed.question,
+          options: parsed.options || [],
+          correctAnswer: parsed.correctAnswer || parsed.answer,
+          answer: parsed.correctAnswer || parsed.answer,
+          explanation: parsed.explanation,
+          difficulty: parsed.difficulty || difficulty,
+          topic: parsed.topic || topic,
+          metadata: parsed.metadata || {},
+        };
+
+        // 3. Process & Shuffle options
+        if (template.questionType === "mcq" || template.questionType === "multiple_choice") {
+          const processed = this.optionGenerator.processOptions(
+            parsedQuestion.options || [],
+            parsedQuestion.correctAnswer!,
+            template.questionType,
           );
+          parsedQuestion.options = processed.shuffledOptions;
+          parsedQuestion.correctAnswer = processed.normalizedCorrectAnswer;
+          parsedQuestion.answer = processed.normalizedCorrectAnswer;
+        } else {
+          parsedQuestion.options = [];
         }
 
-        const diffResult = await this.difficultyValidator.validate(
-          parsedQuestion,
-          difficulty,
-        );
-        if (!diffResult) {
-          attemptErrors.push(
-            `Difficulty mismatch: expected "${difficulty}" but got "${parsedQuestion.difficulty}"`,
-          );
-        }
-
-        const duplicateResult =
-          await this.duplicateDetector.checkDuplicate(parsedQuestion);
-        if (duplicateResult.duplicate) {
-          attemptErrors.push(
-            `Duplicate detected with similarity: ${duplicateResult.similarity}`,
-          );
-        }
-
-        // 5. Compute quality score
-        scoreResult = await this.qualityScorer.score(
-          parsedQuestion,
-          topic,
-          difficulty,
+        // 4. Validate structured explanation
+        this.explanationGenerator.validateExplanation(
+          parsedQuestion.explanation,
+          parsedQuestion.correctAnswer!,
         );
 
-        validationSuccess =
-          topicResult.match &&
-          diffResult &&
-          !duplicateResult.duplicate &&
-          scoreResult.status === "PASS";
-
-        if (!validationSuccess) {
-          attemptErrors.push(...scoreResult.reasons);
-        }
+        // 5. Run response validator (leak checks, template alignment, schema validity)
+        this.responseValidator.validate(parsedQuestion, difficulty, topic);
+        validationSuccess = true;
       } catch (e: any) {
-        attemptErrors.push(`Attempt error: ${e.message}`);
-        scoreResult = { score: 0, status: "FAIL", reasons: [e.message] };
+        attemptErrors.push(e.message || String(e));
       }
 
-      // 6. Save audit trace to the DB
+      // Save audit logs
       try {
         await this.auditService.log({
           prompt,
           response: response || "ERROR",
-          qualityScore: scoreResult ? scoreResult.score : 0.0,
+          qualityScore: validationSuccess ? 100.0 : 0.0,
           validationResult: {
             success: validationSuccess,
             attempt: attempts,
             errors: attemptErrors,
-            qualityDetails: scoreResult,
           },
         });
-      } catch (logError) {
-        console.error("Auditing log failed to persist:", logError);
+      } catch (logErr) {
+        console.error("Auditing log persistence error:", logErr);
       }
 
       if (validationSuccess && parsedQuestion) {
@@ -144,7 +231,7 @@ export class GenerationRetryService {
         };
       }
 
-      errors.push(`Attempt ${attempts} failed: ${attemptErrors.join(", ")}`);
+      errors.push(`Attempt ${attempts} failed: ${attemptErrors.join("; ")}`);
     }
 
     return {

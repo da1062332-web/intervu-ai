@@ -7,6 +7,7 @@ import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChevronLeft, BarChart3, Users, Target, Activity } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { apiClient } from '@/services/api/client';
 
 interface AssessmentOutcome {
   assessment: {
@@ -32,16 +33,8 @@ export default function AdminAssessmentOutcomePage() {
   useEffect(() => {
     const fetchOutcome = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/v1/admin/reports/assessment/${assessmentId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setOutcome(data);
-        }
+        const data = await apiClient.request<AssessmentOutcome>(`/admin/reports/assessment/${assessmentId}`);
+        setOutcome(data);
       } catch (err) {
         console.error(err);
       } finally {

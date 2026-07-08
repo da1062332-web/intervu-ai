@@ -82,7 +82,7 @@ export class ExecutionValidatorService {
     executionState: ExecutionState | null,
     providedRemainingTime?: number,
   ): { isExpired: boolean; actualRemainingTime: number } {
-    if (testInstance.expiresAt && testInstance.expiresAt < new Date()) {
+    if (testInstance.expiresAt && new Date(testInstance.expiresAt) < new Date()) {
       return { isExpired: true, actualRemainingTime: 0 };
     }
 
@@ -95,8 +95,9 @@ export class ExecutionValidatorService {
       executionState?.remainingTimeSeconds ?? providedRemainingTime ?? 0;
 
     if (testInstance.expiresAt) {
+      const expiryDate = new Date(testInstance.expiresAt);
       const timeToExpiry = Math.floor(
-        (testInstance.expiresAt.getTime() - Date.now()) / 1000,
+        (expiryDate.getTime() - Date.now()) / 1000,
       );
       if (timeToExpiry <= 0) {
         return { isExpired: true, actualRemainingTime: 0 };

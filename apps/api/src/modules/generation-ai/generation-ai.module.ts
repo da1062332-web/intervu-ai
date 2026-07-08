@@ -26,6 +26,11 @@ import { GenerationJobService } from "./services/generation-job.service";
 
 import { PromptsController } from "./controllers/prompts.controller";
 import { GenerationAiController } from "./controllers/generation-ai.controller";
+import { PromptBuilderService } from "./prompts/prompt-builder.service";
+import { QuestionGeneratorService } from "./generators/question-generator.service";
+import { OptionGeneratorService } from "./generators/option-generator.service";
+import { ExplanationGeneratorService } from "./generators/explanation-generator.service";
+import { ResponseValidatorService } from "./validators/response-validator.service";
 
 @Module({
   imports: [
@@ -43,6 +48,11 @@ import { GenerationAiController } from "./controllers/generation-ai.controller";
     QuestionQualityService,
     GenerationRetryService,
     GenerationAuditService,
+    PromptBuilderService,
+    QuestionGeneratorService,
+    OptionGeneratorService,
+    ExplanationGeneratorService,
+    ResponseValidatorService,
     OpenAIAdapter,
     MockAdapter,
     PromptManagerService,
@@ -79,6 +89,11 @@ import { GenerationAiController } from "./controllers/generation-ai.controller";
     QuestionQualityService,
     GenerationRetryService,
     GenerationAuditService,
+    PromptBuilderService,
+    QuestionGeneratorService,
+    OptionGeneratorService,
+    ExplanationGeneratorService,
+    ResponseValidatorService,
     PromptManagerService,
     TemplateLibraryService,
     TopicExpansionService,

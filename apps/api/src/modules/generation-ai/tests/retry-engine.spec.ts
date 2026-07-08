@@ -1,48 +1,64 @@
 import { GenerationRetryService } from "../retry/generation-retry.service";
-import { MockAdapter } from "../adapters/mock.adapter";
-import { ResponseParserService } from "../validators/response-parser.service";
-import { QuestionQualityService } from "../scorers/question-quality.service";
-import { TopicAlignmentService } from "../validators/topic-alignment.service";
-import { DifficultyValidatorService } from "../validators/difficulty-validator.service";
-import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
+import { PromptBuilderService } from "../prompts/prompt-builder.service";
+import { QuestionGeneratorService } from "../generators/question-generator.service";
+import { OptionGeneratorService } from "../generators/option-generator.service";
+import { ExplanationGeneratorService } from "../generators/explanation-generator.service";
+import { ResponseValidatorService } from "../validators/response-validator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
+import { MockAdapter } from "../adapters/mock.adapter";
 
 describe("GenerationRetryService", () => {
   let service: GenerationRetryService;
   let mockAdapter: MockAdapter;
-  let responseParser: ResponseParserService;
-  let qualityScorer: QuestionQualityService;
-  let topicValidator: TopicAlignmentService;
-  let difficultyValidator: DifficultyValidatorService;
-  let duplicateDetector: jest.Mocked<DuplicateDetectorService>;
+  let promptBuilder: PromptBuilderService;
+  let questionGenerator: QuestionGeneratorService;
+  let optionGenerator: OptionGeneratorService;
+  let explanationGenerator: ExplanationGeneratorService;
+  let responseValidator: ResponseValidatorService;
   let auditService: jest.Mocked<GenerationAuditService>;
+  let prisma: any;
 
   beforeEach(() => {
+    prisma = {
+      template: {
+        findFirst: jest.fn().mockResolvedValue({
+          id: "tpl-1",
+          name: "Test Template",
+          conceptKey: "Percentages",
+          difficultyLevel: "MEDIUM",
+          questionType: "mcq",
+          structure: { questionTemplate: "Evaluate percentage sum." },
+          variableSchema: { variables: [] },
+          constraints: { constraints: [] },
+          solutionSchema: {
+            steps: ["Calculate step"],
+            finalAnswer: "42",
+          },
+        }),
+      },
+      generationAuditLog: {
+        create: jest.fn().mockResolvedValue({ id: "log-1" }),
+      },
+    };
+
     mockAdapter = new MockAdapter();
-    responseParser = new ResponseParserService();
-    topicValidator = new TopicAlignmentService();
-    difficultyValidator = new DifficultyValidatorService();
-    duplicateDetector = {
-      checkDuplicate: jest
-        .fn()
-        .mockResolvedValue({ duplicate: false, similarity: 0.0 }),
-    } as any;
+    promptBuilder = new PromptBuilderService();
+    questionGenerator = new QuestionGeneratorService(mockAdapter);
+    optionGenerator = new OptionGeneratorService();
+    explanationGenerator = new ExplanationGeneratorService();
+    responseValidator = new ResponseValidatorService();
+
     auditService = {
       log: jest.fn().mockResolvedValue({ id: "log-1" }),
     } as any;
 
-    qualityScorer = new QuestionQualityService(
-      topicValidator,
-      difficultyValidator,
-    );
-
     service = new GenerationRetryService(
-      mockAdapter,
-      responseParser,
-      qualityScorer,
-      topicValidator,
-      difficultyValidator,
-      duplicateDetector,
+      prisma,
+      promptBuilder,
+      questionGenerator,
+      optionGenerator,
+      explanationGenerator,
+      responseValidator,
       auditService,
     );
   });
@@ -56,7 +72,7 @@ describe("GenerationRetryService", () => {
     expect(result.success).toBe(true);
     expect(result.attempts).toBe(1);
     expect(result.question?.topic).toBe("Percentages");
-    expect(result.question?.difficulty).toBe("Medium");
+    expect(result.question?.difficulty).toBe("MEDIUM");
     expect(auditService.log).toHaveBeenCalledTimes(1);
   });
 

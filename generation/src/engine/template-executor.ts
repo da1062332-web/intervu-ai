@@ -31,20 +31,22 @@ export interface GeneratedOutput {
 }
 
 /**
- * Hydrates placeholders in the template string (e.g., {variable} or {(math expression)}).
+ * Hydrates placeholders in the template string (e.g., {{variable}}, {variable}, or {(math expression)}).
  */
 export function hydrateString(
   template: string,
   parameters: Record<string, unknown>,
 ): string {
-  return template.replace(/\{([^}]+)\}/g, (match, expr) => {
+  if (!template) return "";
+
+  // 1. Process double curly braces first: {{expr}}
+  let resultStr = template.replace(/\{\{([^}]+)\}\}/g, (match, expr) => {
     const trimmed = expr.trim();
     if (trimmed in parameters) {
       return String(parameters[trimmed]);
     }
     try {
       const result = evaluateExpression(trimmed, parameters);
-      // Format number properties
       if (typeof result === "number") {
         return String(roundToPrecision(result, 0.01));
       }
@@ -53,6 +55,25 @@ export function hydrateString(
       return match;
     }
   });
+
+  // 2. Process single curly braces for backward compatibility: {expr}
+  resultStr = resultStr.replace(/\{([^}]+)\}/g, (match, expr) => {
+    const trimmed = expr.trim();
+    if (trimmed in parameters) {
+      return String(parameters[trimmed]);
+    }
+    try {
+      const result = evaluateExpression(trimmed, parameters);
+      if (typeof result === "number") {
+        return String(roundToPrecision(result, 0.01));
+      }
+      return String(result);
+    } catch {
+      return match;
+    }
+  });
+
+  return resultStr;
 }
 
 /**

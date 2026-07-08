@@ -14,8 +14,9 @@ import {
   TableHeader,
   TableRow as ShadcnTableRow,
 } from '@/components/ui/table';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useTopicMappingStore } from '../store/topic-mapping.store';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, BookX } from 'lucide-react';
 
 interface TopicMappingTableProps {
   sectionId: string;
@@ -103,8 +104,12 @@ export const TopicMappingTable = React.memo(
 
     if (topics.length === 0) {
       return (
-        <div className='p-8 text-center border rounded-lg text-muted-foreground bg-gray-50/50 dark:bg-gray-800/50'>
-          No Topics Assigned To This Section
+        <div className='p-8'>
+          <EmptyState 
+            title="No Topics Assigned"
+            description="No topics have been mapped to this section yet."
+            icon={<BookX className="w-8 h-8 text-gray-400" />}
+          />
         </div>
       );
     }

@@ -234,4 +234,25 @@ export class TemplateController {
   async getLatestPreview(@Param("id") id: string) {
     return this.solutionTemplateService.getLatestPreview(id);
   }
+
+  @Post(":id/generate")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Generate one question from a template and store it in the pool" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async generateQuestion(@Param("id") id: string) {
+    return this.templateService.generateQuestionForTemplate(id);
+  }
+
+  @Post(":id/generate-batch")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Generate questions in batch from a template and store in pool" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async generateQuestionBatch(
+    @Param("id") id: string,
+    @Body() body: { count: number; saveToPool?: boolean },
+  ) {
+    const count = body.count || 10;
+    const saveToPool = body.saveToPool !== undefined ? body.saveToPool : true;
+    return this.templateService.generateBatchForTemplate(id, count, saveToPool);
+  }
 }
