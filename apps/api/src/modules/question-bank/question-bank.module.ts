@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { QuestionBankController } from "./controllers/question-bank.controller";
 import { QuestionsController } from "./controllers/questions.controller";
 import { QuestionBankService } from "./services/question-bank.service";
@@ -12,8 +12,10 @@ import { QuestionUsageService } from "./services/question-usage.service";
 import { QuestionRepository } from "./repositories/question.repository";
 import { QuestionVersionRepository } from "./repositories/question-version.repository";
 import { QuestionReviewRepository } from "./repositories/question-review.repository";
+import { TemplateLibraryModule } from "../template-library/template-library.module";
 
 @Module({
+  imports: [forwardRef(() => TemplateLibraryModule)],
   controllers: [QuestionBankController, QuestionsController],
   providers: [
     QuestionBankService,

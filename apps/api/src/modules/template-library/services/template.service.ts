@@ -1185,6 +1185,7 @@ export class TemplateService {
         solution: explanation, // store explanation in solution JSON field
         metadata: {
           ...parameters,
+          status: "GENERATED",
           _generationSeed: prngSeed,
           _templateVersion: template.version,
         },
@@ -1205,6 +1206,104 @@ export class TemplateService {
       },
       answer: saved.correctAnswer,
       explanation: saved.solution,
+    };
+  }
+
+  // Batch Generation Engine
+  async generateBatchForTemplate(
+    id: string,
+    count: number,
+    saveToPool = true,
+  ): Promise<{ generated: number; failed: number; questionIds: string[] }> {
+    const template = await this.templateRepository.findById(id);
+    if (!template) {
+      throw new NotFoundException(`Template ${id} not found`);
+    }
+
+    let generatedCount = 0;
+    let failedCount = 0;
+    const questionIds: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      try {
+        const result = await this.generateQuestionForTemplate(id);
+        if (result && result.question && result.question.id) {
+          questionIds.push(result.question.id);
+          generatedCount++;
+
+          if (!saveToPool) {
+            await this.prisma.generatedQuestion.delete({
+              where: { id: result.question.id },
+            });
+          }
+        } else {
+          failedCount++;
+        }
+      } catch (err) {
+        failedCount++;
+      }
+    }
+
+    return {
+      generated: generatedCount,
+      failed: failedCount,
+      questionIds,
+    };
+  }
+
+  // Question Validation Engine
+  validateGeneratedQuestion(question: {
+    questionText?: string;
+    options?: any;
+    correctAnswer?: any;
+    solution?: any;
+    templateId?: string;
+    conceptKey?: string;
+    difficultyLevel?: string;
+  }): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    if (!question.questionText || question.questionText.trim() === "") {
+      errors.push("Question text exists validation failed: questionText is missing or empty");
+    }
+
+    if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
+      errors.push("Options complete validation failed: options must be a non-empty array");
+    } else {
+      if (question.options.some((o) => !o || String(o).trim() === "")) {
+        errors.push("Reject on empty option: options must not contain empty values");
+      }
+      if (new Set(question.options).size !== question.options.length) {
+        errors.push("Reject on duplicate options: options must be unique");
+      }
+    }
+
+    if (question.correctAnswer === undefined || question.correctAnswer === null || String(question.correctAnswer).trim() === "") {
+      errors.push("Reject on missing answer: correctAnswer is missing or empty");
+    } else if (question.options && Array.isArray(question.options) && !question.options.includes(String(question.correctAnswer))) {
+      errors.push("Exactly one correct answer validation failed: correctAnswer must match one of the options");
+    }
+
+    const explanationText = typeof question.solution === "string" ? question.solution : String(question.solution || "");
+    if (!question.solution || explanationText.trim() === "") {
+      errors.push("Explanation exists validation failed: solution/explanation is missing or empty");
+    }
+
+    if (!question.templateId || question.templateId.trim() === "") {
+      errors.push("Template reference exists validation failed: templateId is missing");
+    }
+
+    if (!question.conceptKey || question.conceptKey.trim() === "") {
+      errors.push("Concept exists validation failed: conceptKey is missing");
+    }
+
+    if (!question.difficultyLevel || question.difficultyLevel.trim() === "") {
+      errors.push("Difficulty assigned validation failed: difficultyLevel is missing");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
     };
   }
 
