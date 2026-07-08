@@ -123,6 +123,11 @@ export default function TemplatePage() {
                   <h2 className='font-semibold text-gray-900 dark:text-gray-100 text-sm line-clamp-1'>
                     {template.name}
                   </h2>
+                  {template.conceptKey && (
+                    <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium">
+                      Concept: {template.conceptKey}
+                    </div>
+                  )}
                   <div className="flex gap-2 mt-1">
                     <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'>
                       {template.difficultyLevel ?? template.difficulty ?? 'MEDIUM'}

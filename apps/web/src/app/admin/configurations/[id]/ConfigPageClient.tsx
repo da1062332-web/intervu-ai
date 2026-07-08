@@ -14,6 +14,7 @@ import { BlueprintSelectionTab } from '@/features/admin/configs/components/bluep
 import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-summary-tab';
 import { TemplatesSummaryTab } from '@/features/admin/configs/components/templates-summary-tab';
 import { ReadinessTab } from '@/features/admin/configs/components/readiness-tab';
+import { RolesSummaryTab } from '@/features/admin/configs/components/roles-summary-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
 
 import { cn } from '@/lib/utils';
@@ -29,13 +30,14 @@ interface ConfigPageClientProps {
 
 const WIZARD_TABS = [
   { id: 'general', label: 'General' },
-  { id: 'blueprint', label: 'Blueprint' },
   { id: 'sections', label: 'Sections' },
   { id: 'topics', label: 'Topics' },
   { id: 'concepts', label: 'Concept Mapping' },
   { id: 'templates', label: 'Templates' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
+  { id: 'roles', label: 'Roles' },
+  { id: 'blueprint', label: 'Blueprint' },
   { id: 'readiness', label: 'Readiness' },
   { id: 'preview', label: 'Preview' },
 ];
@@ -97,9 +99,9 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
       markClean();
     }
     // Strict block if no blueprint and trying to skip past it
-    if (!selectedBlueprintId && index > 1) {
+    if (!selectedBlueprintId && index > 8) {
       toast.error('Please select a blueprint first.');
-      setActiveTabIndex(1); // Force them to blueprint tab
+      setActiveTabIndex(8); // Force them to blueprint tab
       return;
     }
     setActiveTabIndex(index);
@@ -189,13 +191,14 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
   const healthChecks = [
     { label: 'Configuration Saved', passed: !!config.id },
-    { label: 'Blueprint Selected', passed: !!selectedBlueprintId },
     { label: 'Sections Configured', passed: hasSections },
     { label: 'Topics Available', passed: hasTopics },
-    { label: 'Concepts Linked', passed: hasTopics },
+    { label: 'Concepts Linked', passed: hasTopics }, // Adjust mapping if specific concept logic exists
     { label: 'Templates Ready', passed: validation ? !hasTemplatesWarn : false },
     { label: 'Difficulty = 100%', passed: isDifficultyValid },
     { label: 'Rules Configured', passed: true }, // Rules are optional and apply default values
+    { label: 'Roles Configured', passed: true }, // Placeholder for roles
+    { label: 'Blueprint Selected', passed: !!selectedBlueprintId },
     { label: 'Validation Passed', passed: !!validation?.valid },
   ];
   const passedCount = healthChecks.filter((c) => c.passed).length;
@@ -269,11 +272,6 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
             <GeneralSettingsTab configId={configId} />
           </div>
         )}
-        {activeTabId === 'blueprint' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <BlueprintSelectionTab configId={configId} />
-          </div>
-        )}
         {activeTabId === 'sections' && <SectionBuilder configId={configId} />}
         {activeTabId === 'topics' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
@@ -298,6 +296,16 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         {activeTabId === 'rules' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
             <RuleFlagsTab configId={configId} onNext={handleNext} />
+          </div>
+        )}
+        {activeTabId === 'roles' && (
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <RolesSummaryTab configId={configId} />
+          </div>
+        )}
+        {activeTabId === 'blueprint' && (
+          <div className='p-6 border rounded-lg bg-background shadow-sm'>
+            <BlueprintSelectionTab configId={configId} />
           </div>
         )}
         {activeTabId === 'readiness' && (

@@ -13,6 +13,21 @@ export const useTemplates = (page = 1, limit = 10) => {
   });
 };
 
+export const useTemplatesByConcept = (conceptKey: string, page = 1, limit = 100) => {
+  return useQuery({
+    queryKey: ['templatesByConcept', conceptKey, page, limit],
+    queryFn: async () => {
+      const response = await templateApi.getTemplates(page, limit, conceptKey);
+      if (response && response.items) {
+        response.items = response.items.filter((t: any) => t.conceptKey === conceptKey);
+        response.totalCount = response.items.length;
+      }
+      return response;
+    },
+    enabled: !!conceptKey,
+  });
+};
+
 export const useCreateTemplate = () => {
   const queryClient = useQueryClient();
   return useMutation({

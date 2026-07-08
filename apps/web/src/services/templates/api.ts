@@ -7,8 +7,10 @@ import type {
   TemplatePreviewResponse,
 } from '@intervu/shared';
 
-export const getTemplates = async (page = 1, limit = 10): Promise<any> => {
-  return await apiClient.request<any>(`/templates?page=${page}&limit=${limit}`, { method: 'GET' });
+export const getTemplates = async (page = 1, limit = 10, conceptKey?: string): Promise<any> => {
+  let url = `/templates?page=${page}&limit=${limit}`;
+  if (conceptKey) url += `&conceptKey=${conceptKey}`;
+  return await apiClient.request<any>(url, { method: 'GET' });
 };
 
 export const createTemplate = async (payload: any): Promise<any> => {

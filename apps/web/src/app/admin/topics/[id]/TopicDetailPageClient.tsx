@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useTopic } from '@/services/topics';
 import {
@@ -23,15 +23,109 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EmptyStateCard } from '@/components/ui/empty-state';
-import { ArrowLeft, Search, Plus, Trash2, Edit2, X, RefreshCcw, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Trash2, Edit2, X, RefreshCcw, CheckCircle, ChevronDown, ChevronRight, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ConceptMapping } from '@/services/concept-mapping/types';
+import { useTemplatesByConcept, useCreateTemplate } from '@/services/templates/hooks';
+import { Label } from '@/components/ui/label';
+import { useQueries } from '@tanstack/react-query';
+import * as templateApi from '@/services/templates/api';
+import { useRouter } from 'next/navigation';
 
 interface ClientProps {
   topicId: string;
 }
 
+// Child component to fetch and render templates for a specific concept
+function ConceptTemplatesRow({
+  concept,
+  onAddTemplate,
+}: {
+  concept: ConceptMapping;
+  onAddTemplate: (c: ConceptMapping) => void;
+}) {
+  const conceptKey = concept.code || concept.conceptCode;
+  const { data: response, isLoading, isError } = useTemplatesByConcept(conceptKey);
+  const templates = response?.items || [];
+
+  if (isLoading) {
+    return (
+      <TableRow className='bg-muted/5'>
+        <TableCell colSpan={5} className='p-6'>
+          <Skeleton className='h-24 w-full' />
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TableRow className='bg-muted/5'>
+        <TableCell colSpan={5} className='p-6 text-center text-red-500'>
+          Error loading templates for this concept.
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return (
+    <TableRow className='bg-muted/5 hover:bg-muted/5 border-b-2'>
+      <TableCell colSpan={5} className='p-0'>
+        <div className='p-6 border-l-4 border-l-primary/60 m-4 rounded-r-lg bg-background shadow-inner space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h4 className='font-semibold text-sm flex items-center gap-2'>
+              <FileText className='w-4 h-4 text-muted-foreground' />
+              Templates ({templates.length})
+            </h4>
+            <Button size='sm' onClick={() => onAddTemplate(concept)}>
+              <Plus className='w-4 h-4 mr-2' /> Add Template
+            </Button>
+          </div>
+
+          {templates.length === 0 ? (
+            <div className='text-center py-8 border-2 border-dashed rounded-lg'>
+              <p className='text-muted-foreground text-sm mb-4'>No templates created for this concept.</p>
+              <Button variant='outline' size='sm' onClick={() => onAddTemplate(concept)}>
+                <Plus className='w-4 h-4 mr-2' /> Create First Template
+              </Button>
+            </div>
+          ) : (
+            <div className='border rounded-md divide-y'>
+              {templates.map((tpl: any) => (
+                <div key={tpl.id} className='flex items-center justify-between p-3 hover:bg-muted/20 transition-colors'>
+                  <div>
+                    <div className='font-medium text-sm'>{tpl.name}</div>
+                    <div className='flex items-center gap-2 mt-1'>
+                      <Badge variant='outline' className='text-[10px] uppercase'>
+                        {tpl.difficultyLevel ?? tpl.difficulty ?? 'MEDIUM'}
+                      </Badge>
+                      <span className={`text-[10px] font-medium ${tpl.isActive ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        {tpl.isActive ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Button variant='ghost' size='sm' asChild className='h-8'>
+                      <Link href={`/admin/templates/${tpl.id}`}>
+                        <Edit2 className='w-3.5 h-3.5 mr-1' /> Edit
+                      </Link>
+                    </Button>
+                    <Button variant='ghost' size='sm' className='h-8 text-red-500 hover:text-red-600'>
+                      <Trash2 className='w-3.5 h-3.5 mr-1' /> Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function TopicDetailPageClient({ topicId }: ClientProps) {
+  const router = useRouter();
   const {
     data: topic,
     isLoading: topicLoading,
@@ -60,8 +154,43 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
+  // Accordion state
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Template creation modal state
+  const createTemplateMutation = useCreateTemplate();
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [selectedConceptForTemplate, setSelectedConceptForTemplate] = useState<ConceptMapping | null>(null);
+  const [templateFormData, setTemplateFormData] = useState({
+    name: 'New Template',
+    questionType: 'coding',
+    difficulty: 'MEDIUM',
+  });
+
   const isLoading = topicLoading || conceptsLoading;
   const isError = topicError || conceptsError;
+
+  // Fetch templates for all concepts to calculate readiness
+  const templateQueries = useQueries({
+    queries: (concepts || []).map((c) => {
+      const cKey = c.code || c.conceptCode;
+      return {
+        queryKey: ['templatesByConcept', cKey, 1, 100],
+        queryFn: async () => {
+          const res = await templateApi.getTemplates(1, 100, cKey);
+          if (res && res.items) {
+            res.items = res.items.filter((t: any) => t.conceptKey === cKey);
+            res.totalCount = res.items.length;
+          }
+          return res;
+        },
+        enabled: !!cKey,
+      };
+    }),
+  });
+
+  const readyConceptsCount = templateQueries.filter((q) => q.isSuccess && q.data?.items?.length > 0).length;
+  const isTopicReady = concepts && concepts.length > 0 && readyConceptsCount === concepts.length;
 
   if (isLoading) {
     return (
@@ -226,6 +355,52 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     }
   };
 
+  const toggleRow = (conceptId: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(conceptId)) {
+        next.delete(conceptId);
+      } else {
+        next.add(conceptId);
+      }
+      return next;
+    });
+  };
+
+  const handleOpenAddTemplate = (concept: ConceptMapping) => {
+    setSelectedConceptForTemplate(concept);
+    setTemplateFormData({
+      name: 'New Template',
+      questionType: 'coding',
+      difficulty: 'MEDIUM',
+    });
+    setIsTemplateModalOpen(true);
+  };
+
+  const handleCreateTemplateSubmit = () => {
+    if (!selectedConceptForTemplate) return;
+    createTemplateMutation.mutate(
+      {
+        name: templateFormData.name,
+        description: 'A new template for generation',
+        templateKey: undefined,
+        conceptKey: selectedConceptForTemplate.code || selectedConceptForTemplate.conceptCode,
+        questionType: templateFormData.questionType,
+        difficulty: templateFormData.difficulty as any,
+        config: { topics: [], timeLimit: 3600 },
+        isSystem: false,
+      },
+      {
+        onSuccess: (data) => {
+          if (data && data.id) {
+            setIsTemplateModalOpen(false);
+            router.push(`/admin/templates/${data.id}`);
+          }
+        },
+      },
+    );
+  };
+
   return (
     <div className='space-y-8 animate-fade-in'>
       {/* Navigation Breadcrumb */}
@@ -272,6 +447,58 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             </span>
           )}
         </p>
+      </div>
+
+      {/* Topic Readiness Panel */}
+      <div className='bg-muted/10 border rounded-xl p-6'>
+        <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4'>
+          <div>
+            <h3 className='text-lg font-bold'>Topic Readiness</h3>
+            <p className='text-sm text-muted-foreground mt-1'>
+              Only mark the Topic as Ready when every concept has at least one template.
+            </p>
+          </div>
+          <div className='flex flex-col items-end'>
+            <span className='text-sm font-medium text-muted-foreground mb-1'>Overall</span>
+            {concepts && concepts.length > 0 ? (
+              <Badge variant={isTopicReady ? 'default' : 'secondary'} className={`text-sm ${isTopicReady ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}>
+                {readyConceptsCount} / {concepts.length} Concepts Ready
+              </Badge>
+            ) : (
+              <Badge variant='outline'>0 Concepts</Badge>
+            )}
+          </div>
+        </div>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {concepts?.map((c, idx) => {
+            const cName = c.name || c.conceptName;
+            const query = templateQueries[idx];
+            const templateCount = query?.data?.items?.length || 0;
+            const isReady = templateCount > 0;
+            const isLoadingQuery = query?.isLoading;
+
+            return (
+              <div key={c.id} className={`flex items-center gap-3 text-sm bg-background border p-3 rounded-md shadow-sm transition-colors ${isReady ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
+                {isLoadingQuery ? (
+                  <Skeleton className='w-5 h-5 rounded-full' />
+                ) : isReady ? (
+                  <CheckCircle className='w-5 h-5 text-green-600 shrink-0' />
+                ) : (
+                  <X className='w-5 h-5 text-red-500 shrink-0' />
+                )}
+                <span className='truncate flex-1 font-medium'>{cName}</span>
+                <span className={`text-xs font-medium px-2 py-1 rounded-full ${isReady ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {templateCount} {templateCount === 1 ? 'Template' : 'Templates'}
+                </span>
+              </div>
+            );
+          })}
+          {(!concepts || concepts.length === 0) && (
+            <div className='col-span-full text-sm text-muted-foreground italic text-center py-4'>
+              No concepts added yet. Topic is not ready.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Concepts Registry Section */}
@@ -323,10 +550,11 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className='w-[40px]'></TableHead>
                     <TableHead>Concept Name</TableHead>
                     <TableHead>Code</TableHead>
-                    <TableHead>Description</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Templates</TableHead>
                     <TableHead className='text-right'>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -336,71 +564,102 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                     const cCode = concept.code || concept.conceptCode;
                     const isAct =
                       (concept.status || (concept.isActive ? 'ACTIVE' : 'INACTIVE')) === 'ACTIVE';
+                    const isExpanded = expandedRows.has(concept.id);
 
                     return (
-                      <TableRow
-                        key={concept.id}
-                        className='group hover:bg-muted/20 transition-all duration-200'
-                      >
-                        <TableCell className='font-medium text-foreground group-hover:text-primary transition-colors'>
-                          {cName}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant='outline'
-                            className='font-mono text-xs uppercase bg-muted/40'
-                          >
-                            {cCode}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className='text-muted-foreground max-w-xs truncate'>
-                          {concept.description || (
-                            <span className='text-muted-foreground/30 italic'>No description</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={isAct ? 'outline' : 'secondary'}
-                            className={
-                              isAct
-                                ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize'
-                                : 'capitalize'
-                            }
-                          >
-                            {isAct ? 'active' : 'inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className='text-right'>
-                          <div className='inline-flex items-center gap-2'>
-                            <Button
-                              variant='ghost'
-                              size='icon'
-                              title='Edit Concept'
-                              onClick={() => handleOpenEdit(concept)}
-                              className='h-8 w-8 text-muted-foreground hover:text-primary'
+                      <React.Fragment key={concept.id}>
+                        <TableRow
+                          className='group hover:bg-muted/20 transition-all duration-200 cursor-pointer'
+                          onClick={() => toggleRow(concept.id)}
+                        >
+                          <TableCell>
+                            {isExpanded ? (
+                              <ChevronDown className='w-4 h-4 text-muted-foreground' />
+                            ) : (
+                              <ChevronRight className='w-4 h-4 text-muted-foreground' />
+                            )}
+                          </TableCell>
+                          <TableCell className='font-medium text-foreground group-hover:text-primary transition-colors'>
+                            {cName}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant='outline'
+                              className='font-mono text-xs uppercase bg-muted/40'
                             >
-                              <Edit2 className='w-4 h-4' />
-                            </Button>
-                            <Button
-                              variant='ghost'
-                              size='icon'
-                              title={isAct ? 'Deactivate Concept' : 'Activate Concept'}
-                              onClick={() => handleToggleDeactivate(concept)}
-                              className={`h-8 w-8 ${
+                              {cCode}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={isAct ? 'outline' : 'secondary'}
+                              className={
                                 isAct
-                                  ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20'
-                                  : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
-                              }`}
+                                  ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize'
+                                  : 'capitalize'
+                              }
                             >
-                              {isAct ? (
-                                <Trash2 className='w-4 h-4' />
-                              ) : (
-                                <CheckCircle className='w-4 h-4' />
-                              )}
+                              {isAct ? 'active' : 'inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              variant='ghost' 
+                              size='sm' 
+                              className='h-8 text-xs font-medium text-muted-foreground hover:text-foreground'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleRow(concept.id);
+                              }}
+                            >
+                              <FileText className='w-3.5 h-3.5 mr-1.5' />
+                              Templates
                             </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                          </TableCell>
+                          <TableCell className='text-right'>
+                            <div className='inline-flex items-center gap-2'>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                title='Edit Concept'
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEdit(concept);
+                                }}
+                                className='h-8 w-8 text-muted-foreground hover:text-primary'
+                              >
+                                <Edit2 className='w-4 h-4' />
+                              </Button>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                title={isAct ? 'Deactivate Concept' : 'Activate Concept'}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleDeactivate(concept);
+                                }}
+                                className={`h-8 w-8 ${
+                                  isAct
+                                    ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20'
+                                    : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
+                                }`}
+                              >
+                                {isAct ? (
+                                  <Trash2 className='w-4 h-4' />
+                                ) : (
+                                  <CheckCircle className='w-4 h-4' />
+                                )}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {isExpanded && (
+                          <ConceptTemplatesRow 
+                            concept={concept} 
+                            onAddTemplate={handleOpenAddTemplate} 
+                          />
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </TableBody>
@@ -580,6 +839,57 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Add Template Modal */}
+      <Modal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)}>
+        <h2 className='text-xl font-semibold mb-4'>Create New Template</h2>
+        <div className='space-y-4'>
+          <div>
+            <Label>Name</Label>
+            <Input
+              value={templateFormData.name}
+              onChange={(e) => setTemplateFormData({ ...templateFormData, name: e.target.value })}
+              placeholder='e.g. React Custom Hook'
+            />
+          </div>
+          <div>
+            <Label>Concept</Label>
+            <Input
+              value={selectedConceptForTemplate?.name || selectedConceptForTemplate?.conceptName || ''}
+              disabled
+              className='bg-muted cursor-not-allowed'
+            />
+          </div>
+          <div>
+            <Label>Question Type</Label>
+            <Input
+              value={templateFormData.questionType}
+              onChange={(e) => setTemplateFormData({ ...templateFormData, questionType: e.target.value })}
+              placeholder='e.g. coding'
+            />
+          </div>
+          <div>
+            <Label>Difficulty</Label>
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              value={templateFormData.difficulty}
+              onChange={(e) => setTemplateFormData({ ...templateFormData, difficulty: e.target.value })}
+            >
+              <option value='EASY'>EASY</option>
+              <option value='MEDIUM'>MEDIUM</option>
+              <option value='HARD'>HARD</option>
+            </select>
+          </div>
+          <div className='flex justify-end space-x-2 mt-6'>
+            <Button variant='outline' onClick={() => setIsTemplateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateTemplateSubmit} disabled={createTemplateMutation.isPending}>
+              {createTemplateMutation.isPending ? 'Creating...' : 'Create Template'}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
