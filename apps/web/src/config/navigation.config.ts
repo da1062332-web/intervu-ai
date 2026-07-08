@@ -17,6 +17,7 @@ import {
   Archive,
   Download,
   LineChart,
+  Sparkles,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -43,6 +44,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Workflows', route: '/admin/workflows', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
+        { label: 'Question Gen', route: '/admin/question-generation', icon: Sparkles },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
         { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
         { label: 'Gen Failures', route: '/admin/generation/failures', icon: Archive },
