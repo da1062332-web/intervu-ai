@@ -17,6 +17,7 @@ import {
   Archive,
   Download,
   LineChart,
+  Sparkles,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -32,7 +33,6 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Configs', route: '/admin/configurations', icon: FileCog },
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
-        { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
       ],
@@ -42,7 +42,9 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Workflows', route: '/admin/workflows', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
+        { label: 'Assessment Builder', route: '/admin/assessment-builder', icon: FileCog, badge: 'New' },
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
+        { label: 'Question Gen', route: '/admin/question-generation', icon: Sparkles },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
         { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
         { label: 'Gen Failures', route: '/admin/generation/failures', icon: Archive },

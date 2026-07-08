@@ -30,4 +30,11 @@ export const conceptMappingApi = {
       method: 'DELETE',
     });
   },
+
+  assignTemplates: async (conceptId: string, templateIds: string[]) => {
+    return apiClient.request<void>(`/admin/concepts/${conceptId}/templates`, {
+      method: 'POST',
+      body: { templateIds },
+    });
+  },
 };

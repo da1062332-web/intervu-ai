@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSectionTopics } from '@/features/topic-section-mapping/api/queries';
 import { TopicMappingTable } from '@/features/topic-section-mapping/components/TopicMappingTable';
 import { AvailableTopicsPanel } from '@/features/topic-section-mapping/components/AvailableTopicsPanel';
+import { WeightageEditor } from '@/features/topic-section-mapping/components/WeightageEditor';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import type { SectionTopicResponse } from '@intervu-ai/contracts';
@@ -50,6 +51,9 @@ export default function SectionTopicsPage() {
               isError={isError}
               onRetry={refetch}
             />
+          </div>
+          <div className='bg-card border rounded-lg p-6 shadow-sm mt-6'>
+            <WeightageEditor sectionId={sectionId} topics={topics} />
           </div>
         </div>
         <div className='lg:col-span-1'>

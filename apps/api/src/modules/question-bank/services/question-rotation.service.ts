@@ -78,7 +78,7 @@ export class QuestionRotationService {
           topicId:
             topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
           reservations: {
-            isNot: {
+            none: {
               expiresAt: {
                 gt: new Date(),
               },
