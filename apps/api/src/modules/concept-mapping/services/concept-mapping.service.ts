@@ -106,4 +106,15 @@ export class ConceptMappingService {
   async getAllTopics() {
     return this.topicRegistryLoader.getAllTopics();
   }
+
+  async assignTemplates(conceptId: string, templateIds: string[]) {
+    try {
+      return await this.repository.assignTemplates(conceptId, templateIds);
+    } catch (e: any) {
+      if (e.message.includes('not found')) {
+        throw new NotFoundException(e.message);
+      }
+      throw e;
+    }
+  }
 }

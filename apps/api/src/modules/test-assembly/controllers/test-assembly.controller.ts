@@ -51,6 +51,12 @@ export class TestAssemblyController {
     return this.testAssemblyService.generateQuestions(body);
   }
 
+  @Get("jobs/:id")
+  @ValidateResponse(z.unknown())
+  async getJobStatus(@Param("id") id: string) {
+    return this.testAssemblyService.getJobStatus(id);
+  }
+
   @Post("evaluate")
   @HttpCode(HttpStatus.OK)
   @ValidateResponse(z.unknown())

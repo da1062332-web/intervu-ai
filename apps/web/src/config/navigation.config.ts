@@ -42,6 +42,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Workflows', route: '/admin/workflows', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
+        { label: 'Assessment Builder', route: '/admin/assessment-builder', icon: FileCog, badge: 'New' },
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
         { label: 'Question Bank', route: '/admin/question-bank', icon: Database },

@@ -50,4 +50,21 @@ export class TestAssemblyService {
       status: "queued",
     };
   }
+
+  async getJobStatus(jobId: string) {
+    const job = await this.queueService.getJob("GENERATION" as any, jobId);
+    const state = await this.queueService.getJobState("GENERATION" as any, jobId);
+
+    if (!job) {
+      return { status: "unknown", progress: 0 };
+    }
+
+    return {
+      id: job.id,
+      status: state || "unknown",
+      progress: job.progress || 0,
+      result: job.returnvalue || null,
+      failedReason: job.failedReason || null,
+    };
+  }
 }

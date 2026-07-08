@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
 import { useTemplates } from '@/services/templates/hooks';
 import { type ConceptMapping } from '@/services/concept-mapping';
+import { conceptMappingApi } from '@/services/concept-mapping/api';
 import { toast } from 'sonner';
 
 interface TemplateMappingModalProps {
@@ -34,15 +35,13 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
     );
   }, [templates, searchQuery]);
 
-  // Mock saving the assignment
+  // Saving the assignment
   const handleSave = async () => {
     if (!concept) return;
     setIsSaving(true);
     
     try {
-      // TODO: Replace with real API call once Backend completes Phase 0 implementation
-      // await conceptMappingApi.assignTemplates(concept.id, Array.from(selectedTemplateIds));
-      await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate API delay
+      await conceptMappingApi.assignTemplates(concept.id, Array.from(selectedTemplateIds));
       toast.success(`Assigned ${selectedTemplateIds.size} templates to ${concept.name || concept.conceptName}`);
       
       // Update local storage for demo purposes if needed, but for now we just show success
