@@ -71,4 +71,15 @@ export class ConceptMappingController {
     await this.service.deleteConcept(conceptId);
     return { success: true };
   }
+
+  @Post("concepts/:conceptId/templates")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Assign templates to a concept" })
+  async assignTemplates(
+    @Param("conceptId") conceptId: string,
+    @Body() dto: { templateIds: string[] },
+  ) {
+    await this.service.assignTemplates(conceptId, dto.templateIds);
+    return { success: true };
+  }
 }

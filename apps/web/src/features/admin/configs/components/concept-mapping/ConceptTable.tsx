@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Link } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ConceptTableProps {
@@ -18,9 +18,10 @@ interface ConceptTableProps {
   isLoading: boolean;
   onEdit: (concept: ConceptMapping) => void;
   onDeactivate: (concept: ConceptMapping) => void;
+  onMapTemplates?: (concept: ConceptMapping) => void;
 }
 
-export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: ConceptTableProps) {
+export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate, onMapTemplates }: ConceptTableProps) {
   if (isLoading) {
     return (
       <div className='space-y-4'>
@@ -51,6 +52,7 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
             <TableRow>
               <TableHead>Concept Name</TableHead>
               <TableHead>Concept Code</TableHead>
+              <TableHead>Templates</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className='text-right'>Actions</TableHead>
@@ -72,6 +74,16 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate }: Conc
                 </TableCell>
                 <TableCell className='font-mono text-xs'>
                   {concept.code || concept.conceptCode}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => onMapTemplates?.(concept)}
+                    className="h-7 text-xs"
+                  >
+                    <Link className="h-3 w-3 mr-1" /> Map
+                  </Button>
                 </TableCell>
                 <TableCell>
                   <Badge

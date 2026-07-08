@@ -39,6 +39,25 @@ export class ConceptMappingRepository extends BaseRepository<
     });
   }
 
+  async assignTemplates(conceptId: string, templateIds: string[]) {
+    const concept = await this.prisma.concept.findUnique({
+      where: { id: conceptId }
+    });
+    
+    if (!concept) {
+      throw new Error(`Concept with ID ${conceptId} not found`);
+    }
+
+    return this.prisma.template.updateMany({
+      where: {
+        id: { in: templateIds }
+      },
+      data: {
+        conceptKey: concept.code
+      }
+    });
+  }
+
   // Override delete to set status: INACTIVE
   override async delete(id: string): Promise<Concept> {
     return this.prisma.concept.update({

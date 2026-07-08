@@ -13,12 +13,12 @@ import { ConceptManagementPanel } from '@/features/admin/configs/components/conc
 import { BlueprintSelectionTab } from '@/features/admin/configs/components/blueprint-selection-tab';
 import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-summary-tab';
 import { TemplatesSummaryTab } from '@/features/admin/configs/components/templates-summary-tab';
-import { ReadinessTab } from '@/features/admin/configs/components/readiness-tab';
 import { RolesSummaryTab } from '@/features/admin/configs/components/roles-summary-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
 
 import { cn } from '@/lib/utils';
 import { useConfig, useConfigPreview, useAutoValidateConfig } from '@/services/exam-configs';
+import { useConfigurationValidation } from '@/features/admin/configs/hooks/useConfigurationValidation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Loader2, Play, CheckCircle2, Circle } from 'lucide-react';
@@ -49,7 +49,8 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const [isDirty, setIsDirty] = useState(false);
   const { data: config, isLoading, isError } = useConfig(configId);
   const { data: preview } = useConfigPreview(configId);
-  const { data: validation } = useAutoValidateConfig(configId);
+  const { data: autoValidation } = useAutoValidateConfig(configId);
+  const { data: generationReadiness } = useConfigurationValidation(configId);
   const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
 
   const activeTabId = WIZARD_TABS[activeTabIndex].id;
@@ -187,19 +188,19 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const hasTopics = preview?.sectionBreakdown
     ? preview.sections > 0 && preview.sectionBreakdown.every((s) => s.topicCount > 0)
     : false;
-  const hasTemplatesWarn = validation?.warnings?.some((w) => w.includes('No templates found'));
+  const hasTemplatesWarn = autoValidation?.warnings?.some((w: string) => w.includes('No templates found'));
 
   const healthChecks = [
     { label: 'Configuration Saved', passed: !!config.id },
     { label: 'Sections Configured', passed: hasSections },
     { label: 'Topics Available', passed: hasTopics },
     { label: 'Concepts Linked', passed: hasTopics }, // Adjust mapping if specific concept logic exists
-    { label: 'Templates Ready', passed: validation ? !hasTemplatesWarn : false },
+    { label: 'Templates Ready', passed: autoValidation ? !hasTemplatesWarn : false },
     { label: 'Difficulty = 100%', passed: isDifficultyValid },
     { label: 'Rules Configured', passed: true }, // Rules are optional and apply default values
     { label: 'Roles Configured', passed: true }, // Placeholder for roles
     { label: 'Blueprint Selected', passed: !!selectedBlueprintId },
-    { label: 'Validation Passed', passed: !!validation?.valid },
+    { label: 'Validation Passed', passed: !!generationReadiness?.valid },
   ];
   const passedCount = healthChecks.filter((c) => c.passed).length;
   const progressPercent = Math.round((passedCount / healthChecks.length) * 100);
@@ -310,7 +311,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         )}
         {activeTabId === 'readiness' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <ReadinessTab
+            <GenerationReadinessPanel
               configId={configId}
               onTabChange={(id) => {
                 const idx = WIZARD_TABS.findIndex((t) => t.id === id);
