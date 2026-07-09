@@ -255,4 +255,88 @@ export class TemplateController {
     const saveToPool = body.saveToPool !== undefined ? body.saveToPool : true;
     return this.templateService.generateBatchForTemplate(id, count, saveToPool);
   }
+
+  @Get(":id/question")
+  @ApiOperation({ summary: "Load question template definition" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async getQuestionDefinition(@Param("id") id: string) {
+    const template = await this.templateService.findById(id);
+    const structure = (template.structure as any) || {};
+    return {
+      templateId: template.id,
+      questionTemplate: structure.questionTemplate || "",
+    };
+  }
+
+  @Post(":id/question")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Save question template definition" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async saveQuestionDefinition(
+    @Param("id") id: string,
+    @Body() body: { questionTemplate: string },
+  ) {
+    const template = await this.templateService.findById(id);
+    const structure = (template.structure as any) || {};
+    const updatedStructure = {
+      ...structure,
+      questionTemplate: body.questionTemplate,
+    };
+    return this.templateService.update(id, {
+      structure: updatedStructure as any,
+    });
+  }
+
+  @Patch(":id/question")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update question template definition" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async patchQuestionDefinition(
+    @Param("id") id: string,
+    @Body() body: { questionTemplate: string },
+  ) {
+    return this.saveQuestionDefinition(id, body);
+  }
+
+  @Get(":id/options")
+  @ApiOperation({ summary: "Load option strategy template" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async getOptionStrategy(@Param("id") id: string) {
+    const template = await this.templateService.findById(id);
+    const structure = (template.structure as any) || {};
+    return {
+      templateId: template.id,
+      optionsTemplate: structure.optionsTemplate || [],
+    };
+  }
+
+  @Post(":id/options")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Save option strategy template" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async saveOptionStrategy(
+    @Param("id") id: string,
+    @Body() body: { optionsTemplate: string[] },
+  ) {
+    const template = await this.templateService.findById(id);
+    const structure = (template.structure as any) || {};
+    const updatedStructure = {
+      ...structure,
+      optionsTemplate: body.optionsTemplate,
+    };
+    return this.templateService.update(id, {
+      structure: updatedStructure as any,
+    });
+  }
+
+  @Patch(":id/options")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update option strategy template" })
+  @ApiParam({ name: "id", description: "Template ID" })
+  async patchOptionStrategy(
+    @Param("id") id: string,
+    @Body() body: { optionsTemplate: string[] },
+  ) {
+    return this.saveOptionStrategy(id, body);
+  }
 }
