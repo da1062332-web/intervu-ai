@@ -98,6 +98,7 @@ export class GenerationRetryService {
           variableSchema: template.variableSchema,
           constraints: template.constraints,
           solutionSchema: template.solutionSchema,
+          generationStrategy: (template as any).generationStrategy || "VARIABLE",
         }
       : {
           id: "fallback_id",
@@ -115,7 +116,38 @@ export class GenerationRetryService {
             steps: ["Step 1: Parse parameter values", "Step 2: Solve formula", "Step 3: State final answer"],
             finalAnswer: "Mock Answer",
           },
+          generationStrategy: "VARIABLE",
         };
+
+    const cat = category.toLowerCase();
+    let defaultStrategy = "VARIABLE";
+    if (cat.includes("verbal") || cat.includes("reading") || cat.includes("english") || cat.includes("vocabulary")) {
+      defaultStrategy = "DATASET";
+    } else if (cat.includes("logical") || cat.includes("puzzle") || cat.includes("relation")) {
+      defaultStrategy = "HYBRID";
+    }
+
+    const finalStrategy = templateData.generationStrategy || defaultStrategy;
+    templateData.generationStrategy = finalStrategy;
+
+    let datasetItem = (template as any)?.datasetItem || (template as any)?.metadata?.datasetItem;
+    if (!datasetItem && finalStrategy === "DATASET") {
+      datasetItem = {
+        content: `Reading Passage context for ${topic} at ${difficulty} level. Modern technology is reshaping traditional educational frameworks. Assessments are moving towards dynamic, skill-based evaluations rather than static test structures. This shift is crucial for accurately measuring candidate potential in real-world scenarios.`,
+        metadata: { topic, difficulty }
+      };
+    }
+
+    let logicalGraph = (template as any)?.logicalGraph || (template as any)?.metadata?.logicalGraph;
+    if (!logicalGraph && finalStrategy === "HYBRID") {
+      logicalGraph = {
+        entities: ["Rohan", "Amit", "Neha"],
+        relations: [
+          { source: "Rohan", target: "Amit", type: "brother" },
+          { source: "Amit", target: "Neha", type: "father" }
+        ]
+      };
+    }
 
     // 2. Generate parameter values
     let variableValues: Record<string, any> = {};
@@ -128,7 +160,7 @@ export class GenerationRetryService {
       variableValues = {};
     }
 
-    return this.generateFromTemplate(templateData, variableValues, maxAttempts);
+    return this.generateFromTemplate(templateData, variableValues, maxAttempts, { datasetItem, logicalGraph });
   }
 
   /**
@@ -138,6 +170,7 @@ export class GenerationRetryService {
     template: any,
     variableValues: Record<string, unknown>,
     maxAttempts: number = 3,
+    options?: { datasetItem?: any; logicalGraph?: any; correctAnswer?: string }
   ): Promise<RetryResult> {
     let attempts = 0;
     const errors: string[] = [];
@@ -146,6 +179,9 @@ export class GenerationRetryService {
     const prompt = this.promptBuilder.buildPrompt({
       template,
       variableValues,
+      correctAnswer: options?.correctAnswer,
+      datasetItem: options?.datasetItem,
+      logicalGraph: options?.logicalGraph,
     });
 
     const difficulty = template.difficultyLevel.toLowerCase();
@@ -166,9 +202,9 @@ export class GenerationRetryService {
         let cleaned = response.trim();
         if (cleaned.startsWith("```")) {
           cleaned = cleaned
-            .replace(/^```(?:json)?/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
+             .replace(/^```(?:json)?/gi, "")
+             .replace(/```$/gi, "")
+             .trim();
         }
         const parsed = JSON.parse(cleaned);
 
@@ -185,6 +221,9 @@ export class GenerationRetryService {
             ...(parsed.metadata || {}),
             templateId: template.id,
             variables: variableValues,
+            generationStrategy: template.generationStrategy,
+            datasetItem: options?.datasetItem,
+            logicalGraph: options?.logicalGraph,
           },
         };
 
@@ -209,7 +248,7 @@ export class GenerationRetryService {
         );
 
         // 5. Run response validator (leak checks, template alignment, schema validity)
-        this.responseValidator.validate(parsedQuestion, difficulty, topic);
+        this.responseValidator.validate(parsedQuestion, difficulty, topic, template);
 
         // 5b. Run duplicate check (Task Group 5)
         const dupResult = await this.duplicateDetector.checkDuplicate(parsedQuestion);
