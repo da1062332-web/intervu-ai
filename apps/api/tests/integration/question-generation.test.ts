@@ -11,6 +11,7 @@ import { ExplanationGeneratorService } from "../../src/modules/generation-ai/gen
 import { ResponseValidatorService } from "../../src/modules/generation-ai/validators/response-validator.service";
 import { GenerationAuditService } from "../../src/modules/generation-ai/services/generation-audit.service";
 import { MockAdapter } from "../../src/modules/generation-ai/adapters/mock.adapter";
+import { ParameterGeneratorService } from "../../src/modules/generation/services/parameter-generator.service";
 import { DuplicateDetectorService } from "../../src/modules/generation-ai/validators/duplicate-detector.service";
 import { QuestionQualityService } from "../../src/modules/generation-ai/scorers/question-quality.service";
 import { TopicAlignmentService } from "../../src/modules/generation-ai/validators/topic-alignment.service";
@@ -51,6 +52,9 @@ describe("Question Generation Integration Test", () => {
       auditService,
       duplicateDetector,
       qualityScorer,
+      new ParameterGeneratorService(),
+      {} as any,
+      {} as any,
     );
 
     // Seed dummy template

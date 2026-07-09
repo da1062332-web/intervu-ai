@@ -13,7 +13,7 @@ export const CreateTemplateVariableSchema = z.object({
     }),
   variableType: z.nativeEnum(VariableType),
   required: z.boolean().default(false),
-  defaultValue: z.string().optional().nullable(),
+  defaultValue: z.union([z.string(), z.number(), z.boolean()]).nullable().optional().transform(val => val !== undefined && val !== null ? String(val) : val),
 });
 
 export const UpdateTemplateVariableSchema = z.object({
@@ -25,7 +25,7 @@ export const UpdateTemplateVariableSchema = z.object({
     .optional(),
   variableType: z.nativeEnum(VariableType).optional(),
   required: z.boolean().optional(),
-  defaultValue: z.string().optional().nullable(),
+  defaultValue: z.union([z.string(), z.number(), z.boolean()]).nullable().optional().transform(val => val !== undefined && val !== null ? String(val) : val),
 });
 
 export class CreateTemplateVariableDto {

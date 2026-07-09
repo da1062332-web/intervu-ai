@@ -55,6 +55,9 @@ describe("Question Generation Engine Unit Tests", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       deletedAt: null,
+      generationStrategy: "VARIABLE",
+      datasetConfig: {},
+      hybridConfig: {},
     },
   ];
 

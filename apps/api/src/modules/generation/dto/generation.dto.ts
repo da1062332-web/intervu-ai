@@ -48,6 +48,9 @@ export class TemplateDto {
   variableSchema?: any;
   constraints?: any;
   solutionSchema?: any;
+  generationStrategy?: string;
+  datasetConfig?: any;
+  hybridConfig?: any;
 }
 
 export class GenerationContextDto {

@@ -6,6 +6,8 @@ import { OptionGeneratorService } from "../generators/option-generator.service";
 import { ExplanationGeneratorService } from "../generators/explanation-generator.service";
 import { ResponseValidatorService } from "../validators/response-validator.service";
 import { ParameterGeneratorService } from "../../generation/services/parameter-generator.service";
+import { DatasetLoaderService } from "../../generation/services/dataset-loader.service";
+import { EntityGeneratorService } from "../../generation/services/entity-generator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
@@ -20,8 +22,6 @@ export interface RetryResult {
 
 @Injectable()
 export class GenerationRetryService {
-  private readonly parameterGenerator: ParameterGeneratorService;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly promptBuilder: PromptBuilderService,
@@ -32,9 +32,10 @@ export class GenerationRetryService {
     private readonly auditService: GenerationAuditService,
     private readonly duplicateDetector: DuplicateDetectorService,
     private readonly qualityScorer: QuestionQualityService,
-  ) {
-    this.parameterGenerator = new ParameterGeneratorService();
-  }
+    private readonly parameterGenerator: ParameterGeneratorService,
+    private readonly datasetLoader: DatasetLoaderService,
+    private readonly entityGenerator: EntityGeneratorService,
+  ) {}
 
   /**
    * Main retry-loop orchestrator for generating questions from category, topic, and difficulty.
@@ -98,6 +99,8 @@ export class GenerationRetryService {
           variableSchema: template.variableSchema,
           constraints: template.constraints,
           solutionSchema: template.solutionSchema,
+          generationStrategy:
+            (template as any).generationStrategy || "VARIABLE",
         }
       : {
           id: "fallback_id",
@@ -112,23 +115,85 @@ export class GenerationRetryService {
           variableSchema: { variables: [] },
           constraints: { constraints: [] },
           solutionSchema: {
-            steps: ["Step 1: Parse parameter values", "Step 2: Solve formula", "Step 3: State final answer"],
+            steps: [
+              "Step 1: Parse parameter values",
+              "Step 2: Solve formula",
+              "Step 3: State final answer",
+            ],
             finalAnswer: "Mock Answer",
           },
+          generationStrategy: "VARIABLE",
         };
+
+    const cat = category.toLowerCase();
+    let defaultStrategy = "VARIABLE";
+    if (
+      cat.includes("verbal") ||
+      cat.includes("reading") ||
+      cat.includes("english") ||
+      cat.includes("vocabulary")
+    ) {
+      defaultStrategy = "DATASET";
+    } else if (
+      cat.includes("logical") ||
+      cat.includes("puzzle") ||
+      cat.includes("relation")
+    ) {
+      defaultStrategy = "HYBRID";
+    }
+
+    const finalStrategy = templateData.generationStrategy || defaultStrategy;
+    templateData.generationStrategy = finalStrategy;
+
+    let datasetItem =
+      (template as any)?.datasetItem ||
+      (template as any)?.metadata?.datasetItem;
+    if (!datasetItem && finalStrategy === "DATASET" && template) {
+      try {
+        datasetItem = await this.datasetLoader.loadDatasetItem(template as any);
+      } catch {
+        datasetItem = {
+          content: `Reading Passage context for ${topic} at ${difficulty} level. Modern technology is reshaping traditional educational frameworks. Assessments are moving towards dynamic, skill-based evaluations rather than static test structures. This shift is crucial for accurately measuring candidate potential in real-world scenarios.`,
+          metadata: { topic, difficulty },
+        };
+      }
+    }
+
+    let logicalGraph =
+      (template as any)?.logicalGraph ||
+      (template as any)?.metadata?.logicalGraph;
+    if (!logicalGraph && finalStrategy === "HYBRID" && template) {
+      try {
+        logicalGraph = this.entityGenerator.generateGraph(template as any);
+      } catch {
+        logicalGraph = {
+          entities: ["Rohan", "Amit", "Neha"],
+          relations: [
+            { source: "Rohan", target: "Amit", type: "brother" },
+            { source: "Amit", target: "Neha", type: "father" },
+          ],
+        };
+      }
+    }
 
     // 2. Generate parameter values
     let variableValues: Record<string, any> = {};
-    try {
-      variableValues = this.parameterGenerator.generateParameters({
-        variableSchema: templateData.variableSchema as any,
-        constraints: templateData.constraints as any,
-      });
-    } catch {
-      variableValues = {};
+    if (template && finalStrategy === "VARIABLE") {
+      try {
+        variableValues = this.parameterGenerator.generateParameters(
+          template as any,
+        );
+      } catch {
+        variableValues = {};
+      }
     }
 
-    return this.generateFromTemplate(templateData, variableValues, maxAttempts);
+    return this.generateFromTemplate(
+      templateData,
+      variableValues,
+      maxAttempts,
+      { datasetItem, logicalGraph },
+    );
   }
 
   /**
@@ -138,6 +203,7 @@ export class GenerationRetryService {
     template: any,
     variableValues: Record<string, unknown>,
     maxAttempts: number = 3,
+    options?: { datasetItem?: any; logicalGraph?: any; correctAnswer?: string },
   ): Promise<RetryResult> {
     let attempts = 0;
     const errors: string[] = [];
@@ -146,6 +212,9 @@ export class GenerationRetryService {
     const prompt = this.promptBuilder.buildPrompt({
       template,
       variableValues,
+      correctAnswer: options?.correctAnswer,
+      datasetItem: options?.datasetItem,
+      logicalGraph: options?.logicalGraph,
     });
 
     const difficulty = template.difficultyLevel.toLowerCase();
@@ -185,11 +254,17 @@ export class GenerationRetryService {
             ...(parsed.metadata || {}),
             templateId: template.id,
             variables: variableValues,
+            generationStrategy: template.generationStrategy,
+            datasetItem: options?.datasetItem,
+            logicalGraph: options?.logicalGraph,
           },
         };
 
         // 3. Process & Shuffle options
-        if (template.questionType === "mcq" || template.questionType === "multiple_choice") {
+        if (
+          template.questionType === "mcq" ||
+          template.questionType === "multiple_choice"
+        ) {
           const processed = this.optionGenerator.processOptions(
             parsedQuestion.options || [],
             parsedQuestion.correctAnswer!,
@@ -209,21 +284,31 @@ export class GenerationRetryService {
         );
 
         // 5. Run response validator (leak checks, template alignment, schema validity)
-        this.responseValidator.validate(parsedQuestion, difficulty, topic);
+        this.responseValidator.validate(
+          parsedQuestion,
+          difficulty,
+          topic,
+          template,
+        );
 
         // 5b. Run duplicate check (Task Group 5)
-        const dupResult = await this.duplicateDetector.checkDuplicate(parsedQuestion);
+        const dupResult =
+          await this.duplicateDetector.checkDuplicate(parsedQuestion);
         if (dupResult.duplicate) {
           throw new BadRequestException(
-            `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`
+            `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`,
           );
         }
 
         // 5c. Run quality scorer (Task Group 7)
-        const qScore = await this.qualityScorer.score(parsedQuestion, topic, difficulty);
+        const qScore = await this.qualityScorer.score(
+          parsedQuestion,
+          topic,
+          difficulty,
+        );
         if (qScore.status === "FAIL") {
           throw new BadRequestException(
-            `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`
+            `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`,
           );
         }
 
@@ -236,7 +321,11 @@ export class GenerationRetryService {
       let finalScore = 0.0;
       if (validationSuccess && parsedQuestion) {
         try {
-          const qScore = await this.qualityScorer.score(parsedQuestion, topic, difficulty);
+          const qScore = await this.qualityScorer.score(
+            parsedQuestion,
+            topic,
+            difficulty,
+          );
           finalScore = qScore.score;
         } catch {
           finalScore = 100.0;

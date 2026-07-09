@@ -6,6 +6,7 @@ import { ExplanationGeneratorService } from "../generators/explanation-generator
 import { ResponseValidatorService } from "../validators/response-validator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
 import { MockAdapter } from "../adapters/mock.adapter";
+import { ParameterGeneratorService } from "../../generation/services/parameter-generator.service";
 
 describe("GenerationRetryService", () => {
   let service: GenerationRetryService;
@@ -55,11 +56,15 @@ describe("GenerationRetryService", () => {
     } as any;
 
     duplicateDetector = {
-      checkDuplicate: jest.fn().mockResolvedValue({ duplicate: false, similarity: 0.0 }),
+      checkDuplicate: jest
+        .fn()
+        .mockResolvedValue({ duplicate: false, similarity: 0.0 }),
     } as any;
 
     qualityScorer = {
-      score: jest.fn().mockResolvedValue({ score: 90, status: "PASS", reasons: [] }),
+      score: jest
+        .fn()
+        .mockResolvedValue({ score: 90, status: "PASS", reasons: [] }),
     } as any;
 
     service = new GenerationRetryService(
@@ -72,6 +77,9 @@ describe("GenerationRetryService", () => {
       auditService,
       duplicateDetector,
       qualityScorer,
+      new ParameterGeneratorService(),
+      {} as any,
+      {} as any,
     );
   });
 

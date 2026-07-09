@@ -45,9 +45,13 @@ import { ReportsModule } from "./modules/reports/reports.module";
 import { CandidateModule } from "./modules/candidate/candidate.module";
 import { RuntimeModule } from "./modules/runtime/runtime.module";
 import { AdminAnalyticsModule } from "./modules/admin-analytics/admin-analytics.module";
+import { DatasetModule } from "./modules/dataset/dataset.module";
+import { ScenarioModule } from "./modules/scenario/scenario.module";
 
 @Module({
   imports: [
+    DatasetModule,
+    ScenarioModule,
     EventEmitterModule.forRoot(),
     // Infrastructure — must be first (ConfigModule provides env vars)
     ConfigModule,
