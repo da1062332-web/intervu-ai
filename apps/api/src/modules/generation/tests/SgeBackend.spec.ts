@@ -38,17 +38,31 @@ describe("SGE Backend Pipeline", () => {
       ],
     }).compile();
 
-    resolver = module.get<GenerationStrategyResolver>(GenerationStrategyResolver);
+    resolver = module.get<GenerationStrategyResolver>(
+      GenerationStrategyResolver,
+    );
     datasetLoader = module.get<DatasetLoaderService>(DatasetLoaderService);
-    entityGenerator = module.get<EntityGeneratorService>(EntityGeneratorService);
+    entityGenerator = module.get<EntityGeneratorService>(
+      EntityGeneratorService,
+    );
     prisma = module.get<PrismaService>(PrismaService);
   });
 
   describe("DatasetLoaderService", () => {
     it("should query dataset items based on tags, topic, and difficulty", async () => {
-      mockPrisma.dataset.findFirst.mockResolvedValue({ id: "ds-1", name: "Vocabulary" });
+      mockPrisma.dataset.findFirst.mockResolvedValue({
+        id: "ds-1",
+        name: "Vocabulary",
+      });
       mockPrisma.datasetItem.findMany.mockResolvedValue([
-        { id: "item-1", content: "benevolent", difficulty: "MEDIUM", topic: "synonyms", tags: ["english"], metadata: { synonym: "kind" } },
+        {
+          id: "item-1",
+          content: "benevolent",
+          difficulty: "MEDIUM",
+          topic: "synonyms",
+          tags: ["english"],
+          metadata: { synonym: "kind" },
+        },
       ]);
 
       const template = {
@@ -109,9 +123,19 @@ describe("SGE Backend Pipeline", () => {
         datasetConfig: { datasetName: "Vocabulary" },
       });
 
-      mockPrisma.dataset.findFirst.mockResolvedValue({ id: "ds-2", name: "Vocabulary" });
+      mockPrisma.dataset.findFirst.mockResolvedValue({
+        id: "ds-2",
+        name: "Vocabulary",
+      });
       mockPrisma.datasetItem.findMany.mockResolvedValue([
-        { id: "item-2", content: "covert", difficulty: "HARD", topic: "synonyms", tags: [], metadata: { synonym: "secret" } },
+        {
+          id: "item-2",
+          content: "covert",
+          difficulty: "HARD",
+          topic: "synonyms",
+          tags: [],
+          metadata: { synonym: "secret" },
+        },
       ]);
 
       const result = await resolver.resolve("tpl-2");

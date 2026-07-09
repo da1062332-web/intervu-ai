@@ -20,15 +20,14 @@ export class DatasetLoaderService {
     // 1. Locate dataset
     const dataset = await this.prismaService.dataset.findFirst({
       where: {
-        OR: [
-          { name: datasetName },
-          { type: config.datasetType },
-        ],
+        OR: [{ name: datasetName }, { type: config.datasetType }],
       },
     });
 
     if (!dataset) {
-      throw new NotFoundException(`Dataset with name/type "${datasetName}" not found`);
+      throw new NotFoundException(
+        `Dataset with name/type "${datasetName}" not found`,
+      );
     }
 
     // 2. Query items matching topic, difficulty, and tags
@@ -60,7 +59,9 @@ export class DatasetLoaderService {
     }
 
     if (items.length === 0) {
-      throw new NotFoundException(`No items found in dataset "${dataset.name}"`);
+      throw new NotFoundException(
+        `No items found in dataset "${dataset.name}"`,
+      );
     }
 
     // 3. Randomly select one item

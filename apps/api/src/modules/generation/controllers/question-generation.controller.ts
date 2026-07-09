@@ -45,7 +45,10 @@ export class QuestionGenerationController {
 
   @Post("generate")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Generate and save a question to the pool using SGE strategy context" })
+  @ApiOperation({
+    summary:
+      "Generate and save a question to the pool using SGE strategy context",
+  })
   @ApiBody({
     schema: {
       type: "object",
@@ -56,7 +59,10 @@ export class QuestionGenerationController {
       required: ["templateId"],
     },
   })
-  async generateQuestion(@Body("templateId") templateId: string, @Body("count") count?: number) {
+  async generateQuestion(
+    @Body("templateId") templateId: string,
+    @Body("count") count?: number,
+  ) {
     const loopCount = count || 1;
     const generated: any[] = [];
 
@@ -152,7 +158,10 @@ export class QuestionGenerationController {
 
   @Post("preview")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Generate and return a preview question using SGE strategy context without saving" })
+  @ApiOperation({
+    summary:
+      "Generate and return a preview question using SGE strategy context without saving",
+  })
   @ApiBody({
     schema: {
       type: "object",
@@ -218,7 +227,9 @@ export class QuestionGenerationController {
 
   @Post("validate")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Validate an existing pool question using strategy checks" })
+  @ApiOperation({
+    summary: "Validate an existing pool question using strategy checks",
+  })
   @ApiBody({
     schema: {
       type: "object",
@@ -237,7 +248,9 @@ export class QuestionGenerationController {
     }
 
     const template = question.templateId
-      ? await this.prisma.template.findUnique({ where: { id: question.templateId } })
+      ? await this.prisma.template.findUnique({
+          where: { id: question.templateId },
+        })
       : null;
 
     // Build generated question structure for validator

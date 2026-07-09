@@ -48,7 +48,9 @@ export class GenerationStrategyResolver {
     switch (strategy.toUpperCase()) {
       case "VARIABLE": {
         // VARIABLE: Runs Parameter & Formula evaluation
-        const variables = this.paramGenerator.generateParameters(template as any);
+        const variables = this.paramGenerator.generateParameters(
+          template as any,
+        );
         return {
           templateId: template.id,
           conceptKey: template.conceptKey,
@@ -58,7 +60,9 @@ export class GenerationStrategyResolver {
       }
       case "DATASET": {
         // DATASET: Loads content passage/vocabulary
-        const datasetItem = await this.datasetLoader.loadDatasetItem(template as any);
+        const datasetItem = await this.datasetLoader.loadDatasetItem(
+          template as any,
+        );
         return {
           templateId: template.id,
           conceptKey: template.conceptKey,
@@ -69,7 +73,9 @@ export class GenerationStrategyResolver {
       }
       case "HYBRID": {
         // HYBRID: Generates relationship entities graph
-        const logicalGraph = this.entityGenerator.generateGraph(template as any);
+        const logicalGraph = this.entityGenerator.generateGraph(
+          template as any,
+        );
         return {
           templateId: template.id,
           conceptKey: template.conceptKey,
@@ -79,7 +85,9 @@ export class GenerationStrategyResolver {
         };
       }
       default:
-        throw new BadRequestException(`Unsupported generation strategy: ${strategy}`);
+        throw new BadRequestException(
+          `Unsupported generation strategy: ${strategy}`,
+        );
     }
   }
 }

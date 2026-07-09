@@ -96,15 +96,22 @@ export class ParameterGeneratorService {
               for (let i = min; i <= max; i++) {
                 if (i % 2 === 0) evens.push(i);
               }
-              params[v.name] = evens.length > 0 ? evens[Math.floor(Math.random() * evens.length)] : min;
+              params[v.name] =
+                evens.length > 0
+                  ? evens[Math.floor(Math.random() * evens.length)]
+                  : min;
             } else if (v.generator === "odd") {
               const odds: number[] = [];
               for (let i = min; i <= max; i++) {
                 if (i % 2 !== 0) odds.push(i);
               }
-              params[v.name] = odds.length > 0 ? odds[Math.floor(Math.random() * odds.length)] : min;
+              params[v.name] =
+                odds.length > 0
+                  ? odds[Math.floor(Math.random() * odds.length)]
+                  : min;
             } else {
-              params[v.name] = Math.floor(Math.random() * (max - min + 1)) + min;
+              params[v.name] =
+                Math.floor(Math.random() * (max - min + 1)) + min;
             }
           }
         } else if (v.type === "string" && v.options && v.options.length > 0) {

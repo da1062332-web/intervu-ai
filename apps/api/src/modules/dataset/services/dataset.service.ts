@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { CreateDatasetDto, UpdateDatasetDto, CreateDatasetItemDto } from "../dto/dataset.dto";
+import {
+  CreateDatasetDto,
+  UpdateDatasetDto,
+  CreateDatasetItemDto,
+} from "../dto/dataset.dto";
 
 @Injectable()
 export class DatasetService {
@@ -11,7 +19,9 @@ export class DatasetService {
       where: { name: dto.name },
     });
     if (existing) {
-      throw new BadRequestException(`Dataset with name "${dto.name}" already exists`);
+      throw new BadRequestException(
+        `Dataset with name "${dto.name}" already exists`,
+      );
     }
     return this.prismaService.dataset.create({
       data: dto,

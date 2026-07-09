@@ -24,7 +24,11 @@ import { UserRole } from "@prisma/client";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { DatasetService } from "../services/dataset.service";
-import { CreateDatasetDto, UpdateDatasetDto, CreateDatasetItemDto } from "../dto/dataset.dto";
+import {
+  CreateDatasetDto,
+  UpdateDatasetDto,
+  CreateDatasetItemDto,
+} from "../dto/dataset.dto";
 
 @ApiTags("datasets")
 @ApiBearerAuth("jwt-auth")
@@ -91,7 +95,10 @@ export class DatasetController {
   @ApiParam({ name: "id", description: "Dataset ID" })
   @ApiBody({ type: [CreateDatasetItemDto] })
   @ApiCreatedResponse({ description: "Items added successfully" })
-  async addItemsBulk(@Param("id") id: string, @Body() dtos: CreateDatasetItemDto[]) {
+  async addItemsBulk(
+    @Param("id") id: string,
+    @Body() dtos: CreateDatasetItemDto[],
+  ) {
     return this.datasetService.addDatasetItemsBulk(id, dtos);
   }
 

@@ -66,21 +66,24 @@ export async function seedDatasets(prisma: PrismaClient) {
     update: {},
     create: {
       name: "Reading Comprehension Passages",
-      description: "Sample reading comprehension passages for SGE text templates",
+      description:
+        "Sample reading comprehension passages for SGE text templates",
       type: "READING_PASSAGE",
     },
   });
 
   const passages = [
     {
-      content: "The emergence of artificial intelligence has revolutionized modern software development. Advanced language models can now draft code, run test cases, and analyze errors in real-time, boosting developer efficiency.",
+      content:
+        "The emergence of artificial intelligence has revolutionized modern software development. Advanced language models can now draft code, run test cases, and analyze errors in real-time, boosting developer efficiency.",
       difficulty: "MEDIUM",
       topic: "reading_comprehension",
       tags: ["english", "reading"],
       metadata: { title: "AI in Software Engineering", length: 35 },
     },
     {
-      content: "Photosynthesis is the chemical process by which green plants utilize sunlight to synthesize nutrients from carbon dioxide and water. In this process, plants generate oxygen as a byproduct, sustaining life on Earth.",
+      content:
+        "Photosynthesis is the chemical process by which green plants utilize sunlight to synthesize nutrients from carbon dioxide and water. In this process, plants generate oxygen as a byproduct, sustaining life on Earth.",
       difficulty: "EASY",
       topic: "reading_comprehension",
       tags: ["science", "reading"],

@@ -24,7 +24,14 @@ export class EntityGeneratorService {
     "Kiran",
   ];
 
-  private readonly defaultRelations = ["father", "mother", "brother", "sister", "wife", "husband"];
+  private readonly defaultRelations = [
+    "father",
+    "mother",
+    "brother",
+    "sister",
+    "wife",
+    "husband",
+  ];
 
   /**
    * Generates a cycle-free directed relationship graph using template rules.
@@ -32,7 +39,8 @@ export class EntityGeneratorService {
   generateGraph(template: { hybridConfig?: any }): LogicalGraph {
     const config = template.hybridConfig || {};
     const namePool = config.entitySchema?.names || this.defaultNames;
-    const relationPool = config.relationSchema?.relations || this.defaultRelations;
+    const relationPool =
+      config.relationSchema?.relations || this.defaultRelations;
 
     // Pick 3-5 random entities depending on complexity
     const entityCount = Math.floor(Math.random() * 3) + 3; // 3 to 5
@@ -49,7 +57,8 @@ export class EntityGeneratorService {
     for (let i = 0; i < entities.length - 1; i++) {
       const from = entities[i];
       const to = entities[i + 1];
-      const type = relationPool[Math.floor(Math.random() * relationPool.length)];
+      const type =
+        relationPool[Math.floor(Math.random() * relationPool.length)];
 
       relations.push({ from, to, type });
 
@@ -66,14 +75,17 @@ export class EntityGeneratorService {
         const to = entities[Math.floor(Math.random() * entities.length)];
 
         if (from === to) continue;
-        
+
         // Check if relation already exists
         const exists = relations.some(
-          (r) => (r.from === from && r.to === to) || (r.from === to && r.to === from),
+          (r) =>
+            (r.from === from && r.to === to) ||
+            (r.from === to && r.to === from),
         );
         if (exists) continue;
 
-        const type = relationPool[Math.floor(Math.random() * relationPool.length)];
+        const type =
+          relationPool[Math.floor(Math.random() * relationPool.length)];
 
         // Test cycle
         const tempAdj = new Map<string, string[]>();

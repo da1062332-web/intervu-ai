@@ -1,13 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsOptional, IsArray, IsObject } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  IsObject,
+} from "class-validator";
 
 export class CreateDatasetDto {
-  @ApiProperty({ description: "Unique name of the dataset", example: "Vocabulary Synonym List" })
+  @ApiProperty({
+    description: "Unique name of the dataset",
+    example: "Vocabulary Synonym List",
+  })
   @IsString()
   @IsNotEmpty()
   name!: string;
 
-  @ApiPropertyOptional({ description: "Detailed description of dataset content", example: "Terms and synonyms" })
+  @ApiPropertyOptional({
+    description: "Detailed description of dataset content",
+    example: "Terms and synonyms",
+  })
   @IsString()
   @IsOptional()
   description?: string;
@@ -36,7 +48,10 @@ export class UpdateDatasetDto {
 }
 
 export class CreateDatasetItemDto {
-  @ApiProperty({ description: "Passage, vocabulary word, or sentence content", example: "abundant" })
+  @ApiProperty({
+    description: "Passage, vocabulary word, or sentence content",
+    example: "abundant",
+  })
   @IsString()
   @IsNotEmpty()
   content!: string;
@@ -56,7 +71,10 @@ export class CreateDatasetItemDto {
   @IsString({ each: true })
   tags!: string[];
 
-  @ApiPropertyOptional({ description: "Additional metadata (e.g., synonyms, distractors)", example: { synonym: "plentiful" } })
+  @ApiPropertyOptional({
+    description: "Additional metadata (e.g., synonyms, distractors)",
+    example: { synonym: "plentiful" },
+  })
   @IsObject()
   @IsOptional()
   metadata?: Record<string, any>;
