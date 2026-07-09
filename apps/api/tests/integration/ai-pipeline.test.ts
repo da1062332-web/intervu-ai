@@ -20,6 +20,7 @@ import { DuplicateDetectorService } from "../../src/modules/generation-ai/valida
 import { QuestionQualityService } from "../../src/modules/generation-ai/scorers/question-quality.service";
 import { ReviewQueueIntegration } from "../../src/modules/generation-ai/integrations/review-queue.integration";
 import { MockAdapter } from "../../src/modules/generation-ai/adapters/mock.adapter";
+import { ParameterGeneratorService } from "../../src/modules/generation/services/parameter-generator.service";
 import { DifficultyLevel } from "@prisma/client";
 
 describe("E2E AI Generation Pipeline Integration Test", () => {
@@ -56,6 +57,9 @@ describe("E2E AI Generation Pipeline Integration Test", () => {
       auditService,
       duplicateDetector,
       qualityScorer,
+      new ParameterGeneratorService(),
+      {} as any,
+      {} as any,
     );
 
     const promptManager = new PromptManagerService(prisma);

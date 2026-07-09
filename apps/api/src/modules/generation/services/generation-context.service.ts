@@ -178,6 +178,9 @@ export class GenerationContextService {
       variableSchema: t.variableSchema,
       constraints: t.constraints,
       solutionSchema: t.solutionSchema,
+      generationStrategy: t.generationStrategy,
+      datasetConfig: t.datasetConfig,
+      hybridConfig: t.hybridConfig,
     }));
 
     return {

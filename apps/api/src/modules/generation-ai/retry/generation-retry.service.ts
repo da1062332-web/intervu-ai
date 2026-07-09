@@ -6,6 +6,8 @@ import { OptionGeneratorService } from "../generators/option-generator.service";
 import { ExplanationGeneratorService } from "../generators/explanation-generator.service";
 import { ResponseValidatorService } from "../validators/response-validator.service";
 import { ParameterGeneratorService } from "../../generation/services/parameter-generator.service";
+import { DatasetLoaderService } from "../../generation/services/dataset-loader.service";
+import { EntityGeneratorService } from "../../generation/services/entity-generator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
@@ -20,8 +22,6 @@ export interface RetryResult {
 
 @Injectable()
 export class GenerationRetryService {
-  private readonly parameterGenerator: ParameterGeneratorService;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly promptBuilder: PromptBuilderService,
@@ -32,9 +32,10 @@ export class GenerationRetryService {
     private readonly auditService: GenerationAuditService,
     private readonly duplicateDetector: DuplicateDetectorService,
     private readonly qualityScorer: QuestionQualityService,
-  ) {
-    this.parameterGenerator = new ParameterGeneratorService();
-  }
+    private readonly parameterGenerator: ParameterGeneratorService,
+    private readonly datasetLoader: DatasetLoaderService,
+    private readonly entityGenerator: EntityGeneratorService,
+  ) {}
 
   /**
    * Main retry-loop orchestrator for generating questions from category, topic, and difficulty.
@@ -131,33 +132,40 @@ export class GenerationRetryService {
     templateData.generationStrategy = finalStrategy;
 
     let datasetItem = (template as any)?.datasetItem || (template as any)?.metadata?.datasetItem;
-    if (!datasetItem && finalStrategy === "DATASET") {
-      datasetItem = {
-        content: `Reading Passage context for ${topic} at ${difficulty} level. Modern technology is reshaping traditional educational frameworks. Assessments are moving towards dynamic, skill-based evaluations rather than static test structures. This shift is crucial for accurately measuring candidate potential in real-world scenarios.`,
-        metadata: { topic, difficulty }
-      };
+    if (!datasetItem && finalStrategy === "DATASET" && template) {
+      try {
+        datasetItem = await this.datasetLoader.loadDatasetItem(template as any);
+      } catch {
+        datasetItem = {
+          content: `Reading Passage context for ${topic} at ${difficulty} level. Modern technology is reshaping traditional educational frameworks. Assessments are moving towards dynamic, skill-based evaluations rather than static test structures. This shift is crucial for accurately measuring candidate potential in real-world scenarios.`,
+          metadata: { topic, difficulty }
+        };
+      }
     }
 
     let logicalGraph = (template as any)?.logicalGraph || (template as any)?.metadata?.logicalGraph;
-    if (!logicalGraph && finalStrategy === "HYBRID") {
-      logicalGraph = {
-        entities: ["Rohan", "Amit", "Neha"],
-        relations: [
-          { source: "Rohan", target: "Amit", type: "brother" },
-          { source: "Amit", target: "Neha", type: "father" }
-        ]
-      };
+    if (!logicalGraph && finalStrategy === "HYBRID" && template) {
+      try {
+        logicalGraph = this.entityGenerator.generateGraph(template as any);
+      } catch {
+        logicalGraph = {
+          entities: ["Rohan", "Amit", "Neha"],
+          relations: [
+            { source: "Rohan", target: "Amit", type: "brother" },
+            { source: "Amit", target: "Neha", type: "father" }
+          ]
+        };
+      }
     }
 
     // 2. Generate parameter values
     let variableValues: Record<string, any> = {};
-    try {
-      variableValues = this.parameterGenerator.generateParameters({
-        variableSchema: templateData.variableSchema as any,
-        constraints: templateData.constraints as any,
-      });
-    } catch {
-      variableValues = {};
+    if (template && finalStrategy === "VARIABLE") {
+      try {
+        variableValues = this.parameterGenerator.generateParameters(template as any);
+      } catch {
+        variableValues = {};
+      }
     }
 
     return this.generateFromTemplate(templateData, variableValues, maxAttempts, { datasetItem, logicalGraph });

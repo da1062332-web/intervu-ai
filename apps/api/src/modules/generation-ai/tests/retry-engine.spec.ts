@@ -6,6 +6,7 @@ import { ExplanationGeneratorService } from "../generators/explanation-generator
 import { ResponseValidatorService } from "../validators/response-validator.service";
 import { GenerationAuditService } from "../services/generation-audit.service";
 import { MockAdapter } from "../adapters/mock.adapter";
+import { ParameterGeneratorService } from "../../generation/services/parameter-generator.service";
 
 describe("GenerationRetryService", () => {
   let service: GenerationRetryService;
@@ -72,6 +73,9 @@ describe("GenerationRetryService", () => {
       auditService,
       duplicateDetector,
       qualityScorer,
+      new ParameterGeneratorService(),
+      {} as any,
+      {} as any,
     );
   });
 
