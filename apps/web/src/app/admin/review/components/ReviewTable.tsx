@@ -37,7 +37,7 @@ export function ReviewTable({
 
   const filtered = questions.filter(q => 
     q.status === 'Draft' && 
-    (q.statement.toLowerCase().includes(search.toLowerCase()) || q.id.toLowerCase().includes(search.toLowerCase()))
+    (q.questionText.toLowerCase().includes(search.toLowerCase()) || q.id.toLowerCase().includes(search.toLowerCase()))
   );
 
   const allSelected = filtered.length > 0 && selectedIds.length === filtered.length;
@@ -103,8 +103,8 @@ export function ReviewTable({
                     />
                   </TableCell>
                   <TableCell className="font-mono text-xs">{q.id}</TableCell>
-                  <TableCell className="max-w-[300px] truncate" title={q.statement}>
-                    {q.statement}
+                  <TableCell className="max-w-[300px] truncate" title={q.questionText}>
+                    {q.questionText}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{q.difficulty}</Badge>

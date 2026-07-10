@@ -14,6 +14,7 @@ import { VariableBuilderSection } from './components/VariableBuilderSection';
 import { ConstraintBuilderSection } from './components/ConstraintBuilderSection';
 import { OptionStrategySection } from './components/OptionStrategySection';
 import { SolutionLogicSection } from './components/SolutionLogicSection';
+import { StrategyConfigSection } from './components/StrategyConfigSection';
 import { PreviewSection } from './components/PreviewSection';
 
 type SectionType = 
@@ -23,6 +24,7 @@ type SectionType =
   | 'constraints' 
   | 'options' 
   | 'solution' 
+  | 'strategy'
   | 'preview' 
   | 'media' 
   | 'validation' 
@@ -45,6 +47,7 @@ export default function TemplatePage() {
     { id: 'constraints', label: 'Constraint Builder' },
     { id: 'options', label: 'Option Strategy' },
     { id: 'solution', label: 'Solution & Explanation' },
+    { id: 'strategy', label: 'Strategy Configuration' },
     { id: 'preview', label: 'Preview' },
   ];
 
@@ -63,6 +66,7 @@ export default function TemplatePage() {
       case 'constraints': return <ConstraintBuilderSection />;
       case 'options': return <OptionStrategySection />;
       case 'solution': return <SolutionLogicSection />;
+      case 'strategy': return <StrategyConfigSection />;
       case 'preview': return <PreviewSection />;
       case 'media':
       case 'validation':

@@ -64,37 +64,39 @@ model RefreshToken {
 }
 
 model Template {
-  id                 String              @id @default(cuid())
-  templateKey        String              @unique @default(cuid())
-  conceptKey         String              @default("default_concept")
-  difficultyLevel    DifficultyLevel     @default(MEDIUM)
-  questionType       String              @default("multiple_choice")
-  structure          Json                @default("{}")
-  variableSchema     Json                @default("{}")
-  constraints        Json                @default("{}")
-  solutionSchema     Json                @default("{}")
-  generationStrategy GenerationStrategy  @default(VARIABLE)
-  datasetConfig      Json                @default("{}")
-  hybridConfig       Json                @default("{}")
-  version            Int                 @default(1)
-  isActive           Boolean             @default(true)
-  name               String              @default("Legacy Template")
-  description        String?
-  difficulty         DifficultyLevel     @default(MEDIUM)
-  config             Json                @default("{}")
-  isSystem           Boolean             @default(false)
-  creatorId          String?
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  deletedAt          DateTime?
-  generatedQuestions GeneratedQuestion[]
-  creator            User?               @relation(fields: [creatorId], references: [id])
-  tests              Test[]
-  questions          Question[]
-  solutionTemplate   SolutionTemplate?
-  previews           TemplatePreview[]
-  rules              TemplateRule[]
-  variables          TemplateVariable[]
+  id                         String                       @id @default(cuid())
+  templateKey                String                       @unique @default(cuid())
+  conceptKey                 String                       @default("default_concept")
+  difficultyLevel            DifficultyLevel              @default(MEDIUM)
+  questionType               String                       @default("multiple_choice")
+  structure                  Json                         @default("{}")
+  variableSchema             Json                         @default("{}")
+  constraints                Json                         @default("{}")
+  solutionSchema             Json                         @default("{}")
+  generationStrategy         GenerationStrategy           @default(VARIABLE)
+  datasetConfig              Json                         @default("{}")
+  hybridConfig               Json                         @default("{}")
+  version                    Int                          @default(1)
+  isActive                   Boolean                      @default(true)
+  name                       String                       @default("Legacy Template")
+  description                String?
+  difficulty                 DifficultyLevel              @default(MEDIUM)
+  config                     Json                         @default("{}")
+  isSystem                   Boolean                      @default(false)
+  creatorId                  String?
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  deletedAt                  DateTime?
+  generatedQuestions         GeneratedQuestion[]
+  creator                    User?                        @relation(fields: [creatorId], references: [id])
+  tests                      Test[]
+  questions                  Question[]
+  solutionTemplate           SolutionTemplate?
+  previews                   TemplatePreview[]
+  rules                      TemplateRule[]
+  variables                  TemplateVariable[]
+  QuestionGenerationJob      QuestionGenerationJob[]
+  QuestionGenerationAuditLog QuestionGenerationAuditLog[]
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -1358,23 +1360,23 @@ model Dataset {
   id          String        @id @default(cuid())
   name        String        @unique
   description String?
-  type        String        // READING_PASSAGE, VOCABULARY, SENTENCE
+  type        String // READING_PASSAGE, VOCABULARY, SENTENCE
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   items       DatasetItem[]
 }
 
 model DatasetItem {
-  id          String   @id @default(cuid())
-  datasetId   String
-  dataset     Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  content     String   // The text, passage, or vocabulary word
-  difficulty  String   // EASY, MEDIUM, HARD
-  topic       String
-  tags        String[]
-  metadata    Json     @default("{}") // synonyms, distractors, length, reading time
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  datasetId  String
+  dataset    Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  content    String // The text, passage, or vocabulary word
+  difficulty String // EASY, MEDIUM, HARD
+  topic      String
+  tags       String[]
+  metadata   Json     @default("{}") // synonyms, distractors, length, reading time
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([datasetId])
   @@index([difficulty])
@@ -1390,4 +1392,46 @@ model Scenario {
   rules          Json     @default("{}")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+enum QuestionGenerationJobStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model QuestionGenerationJob {
+  id           String                      @id @default(cuid())
+  templateId   String
+  status       QuestionGenerationJobStatus @default(PENDING)
+  totalCount   Int
+  successCount Int                         @default(0)
+  failureCount Int                         @default(0)
+  strategy     GenerationStrategy
+  context      Json                        @default("{}")
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+
+  template  Template                     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  auditLogs QuestionGenerationAuditLog[]
+
+  @@index([templateId])
+  @@index([status])
+}
+
+model QuestionGenerationAuditLog {
+  id         String   @id @default(cuid())
+  jobId      String?
+  templateId String
+  level      String   @default("INFO") // INFO, WARN, ERROR
+  event      String // e.g., "VALIDATION_FAILED", "LLM_GENERATED"
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  job      QuestionGenerationJob? @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  template Template               @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([templateId])
 }

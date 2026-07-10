@@ -47,11 +47,13 @@ import { RuntimeModule } from "./modules/runtime/runtime.module";
 import { AdminAnalyticsModule } from "./modules/admin-analytics/admin-analytics.module";
 import { DatasetModule } from "./modules/dataset/dataset.module";
 import { ScenarioModule } from "./modules/scenario/scenario.module";
+import { QuestionGenerationModule } from "./modules/question-generation/question-generation.module";
 
 @Module({
   imports: [
     DatasetModule,
     ScenarioModule,
+    QuestionGenerationModule,
     EventEmitterModule.forRoot(),
     // Infrastructure — must be first (ConfigModule provides env vars)
     ConfigModule,

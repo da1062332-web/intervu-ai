@@ -79,8 +79,8 @@ export function QuestionPoolTable({
                   )}
                 </TableCell>
                 <TableCell className="font-mono text-xs">{q.id}</TableCell>
-                <TableCell className="max-w-[300px] truncate" title={q.statement}>
-                  {q.statement}
+                <TableCell className="max-w-[300px] truncate" title={q.questionText}>
+                  {q.questionText}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{q.difficulty}</Badge>
