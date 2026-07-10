@@ -14,6 +14,16 @@ export interface ValidationResult {
   readiness: number; // 0 to 100
   errors: string[];
   warnings: string[];
+  checklist?: {
+    sectionsCreated: boolean;
+    topicsAssigned: boolean;
+    conceptsAvailable: boolean;
+    templatesCreated: boolean;
+    difficultyConfigured: boolean;
+    rulesConfigured: boolean;
+    blueprintComplete: boolean;
+    totalQuestionsMatch: boolean;
+  };
 }
 
 export function validateConfiguration(state: ValidationState): ValidationResult {

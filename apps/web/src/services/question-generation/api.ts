@@ -1,97 +1,74 @@
-import { GeneratedQuestion, GenerationHistoryEntry } from './types';
+import { apiClient } from '@/services/api/client';
+import type {
+  QuestionGenerationRequest,
+  ValidateQuestionRequest,
+  GenerateQuestionResponse,
+  QuestionPreviewResult,
+  ValidateQuestionResponse,
+} from './types';
 
-// In-memory mock storage
-let mockGeneratedQuestions: GeneratedQuestion[] = [];
-let mockHistory: GenerationHistoryEntry[] = [
-  {
-    id: 'hist-1',
-    templateId: 'temp-1',
-    batchSize: 5,
-    successCount: 5,
-    failureCount: 0,
-    status: 'Completed',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
+/**
+ * Question Generation API Service
+ *
+ * All three endpoints share the same request shape (QuestionGenerationRequest).
+ * Only backend behavior differs — preview never persists, generate always persists.
+ */
 export const questionGenerationApi = {
-  // TODO: Replace with backend API (POST /api/v1/templates/:id/generate)
-  generateQuestion: async (templateId: string, payload: any): Promise<GeneratedQuestion> => {
-    await delay(1500); // Simulate network latency
-    const newQuestion: GeneratedQuestion = {
-      id: `q-${Date.now()}`,
-      templateId,
-      conceptId: payload.conceptId || 'c-1',
-      topicId: payload.topicId || 't-1',
-      statement: `Mock generated question for template ${templateId}`,
-      instructions: 'Please select the correct option.',
-      difficulty: 'Medium',
-      generationMethod: 'Formula',
-      status: 'Draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...payload, // Merge any overrides
-    };
-    mockGeneratedQuestions = [newQuestion, ...mockGeneratedQuestions];
-    return newQuestion;
+  /**
+   * POST /api/v1/question-generation/generate
+   *
+   * Full pipeline: Resolve → Context → Prompt → LLM → Validate → Assemble → Persist.
+   * Always persists. Returns the saved Question + validationReport.
+   */
+  generate: async (payload: QuestionGenerationRequest): Promise<GenerateQuestionResponse> => {
+    return apiClient.request<GenerateQuestionResponse>('/question-generation/generate', {
+      method: 'POST',
+      body: payload,
+    });
   },
 
-  // TODO: Replace with backend API (POST /api/v1/templates/:id/generate-batch)
-  generateBatch: async (
-    templateId: string,
-    count: number,
-    payload: any,
-  ): Promise<{ success: boolean; count: number }> => {
-    await delay(3000); // Simulate longer processing time
-
-    const newQuestions: GeneratedQuestion[] = Array.from({ length: count }).map((_, i) => ({
-      id: `q-${Date.now()}-${i}`,
-      templateId,
-      conceptId: payload.conceptId || 'c-1',
-      topicId: payload.topicId || 't-1',
-      statement: `Mock batch generated question ${i + 1} for template ${templateId}`,
-      instructions: 'Please select the correct option.',
-      difficulty: 'Medium',
-      generationMethod: 'Formula',
-      status: 'Draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...payload,
-    }));
-
-    mockGeneratedQuestions = [...newQuestions, ...mockGeneratedQuestions];
-
-    // Add to history
-    mockHistory = [
-      {
-        id: `hist-${Date.now()}`,
-        templateId,
-        batchSize: count,
-        successCount: count,
-        failureCount: 0,
-        status: 'Completed',
-        createdAt: new Date().toISOString(),
-      },
-      ...mockHistory,
-    ];
-
-    return { success: true, count };
+  /**
+   * POST /api/v1/question-generation/preview
+   *
+   * Preview-only: Resolve → Context → Prompt → LLM.
+   * NEVER persists. Returns rendered preview text + context.
+   */
+  preview: async (payload: QuestionGenerationRequest): Promise<QuestionPreviewResult> => {
+    return apiClient.request<QuestionPreviewResult>('/question-generation/preview', {
+      method: 'POST',
+      body: payload,
+    });
   },
 
-  // TODO: Replace with backend API (GET /api/v1/templates/:id/generation-history)
-  getHistory: async (templateId?: string): Promise<GenerationHistoryEntry[]> => {
-    await delay(500);
-    if (templateId) {
-      return mockHistory.filter((h) => h.templateId === templateId);
-    }
-    return mockHistory;
+  /**
+   * POST /api/v1/question-generation/validate
+   *
+   * Validates a question (or generates one) against strategy-specific rules.
+   * Returns a ValidationReport. Does not persist.
+   */
+  validate: async (payload: ValidateQuestionRequest): Promise<ValidateQuestionResponse> => {
+    return apiClient.request<ValidateQuestionResponse>('/question-generation/validate', {
+      method: 'POST',
+      body: payload,
+    });
   },
 
-  // Helper for cross-module mocking: Allow question-pool to access/update this store
-  _getMockQuestions: () => mockGeneratedQuestions,
-  _setMockQuestions: (q: GeneratedQuestion[]) => {
-    mockGeneratedQuestions = q;
+  batch: async (payload: { templateId: string; count: number; context?: any }): Promise<{ jobId: string; status: string }> => {
+    return apiClient.request<{ jobId: string; status: string }>('/question-generation/batch', {
+      method: 'POST',
+      body: payload,
+    });
+  },
+
+  getJobs: async (templateId: string): Promise<any[]> => {
+    return apiClient.request<any[]>(`/question-generation/jobs/${templateId}`, {
+      method: 'GET',
+    });
+  },
+
+  getAuditLogs: async (jobId: string): Promise<any[]> => {
+    return apiClient.request<any[]>(`/question-generation/audit/${jobId}`, {
+      method: 'GET',
+    });
   },
 };

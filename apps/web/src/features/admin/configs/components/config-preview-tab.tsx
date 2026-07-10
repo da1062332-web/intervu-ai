@@ -6,6 +6,7 @@ import { useSections } from '@/services/exam-sections';
 import { useRuleFlags } from '@/features/admin/configs/hooks/use-rule-flags';
 import { useConfigWizardStore } from './wizard-store';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useConfigPreview } from '@/services/exam-configs/hooks';
 
 interface ConfigPreviewTabProps {
   configId: string;
@@ -13,11 +14,12 @@ interface ConfigPreviewTabProps {
 
 export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
   const { data: config, isLoading: isLoadingConfig } = useConfig(configId);
+  const { data: previewData, isLoading: isLoadingPreview } = useConfigPreview(configId);
   const { data: sections, isLoading: isLoadingSections } = useSections(configId);
   const { data: rules, isLoading: isLoadingRules } = useRuleFlags(configId);
   const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
 
-  const isLoading = isLoadingConfig || isLoadingSections || isLoadingRules;
+  const isLoading = isLoadingConfig || isLoadingSections || isLoadingRules || isLoadingPreview;
 
   if (isLoading) {
     return (
@@ -33,7 +35,7 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
     return <div>Configuration data not available.</div>;
   }
 
-  const isReady = !!config.id && !!selectedBlueprintId; // Simplified readiness mock for display
+  const isReady = previewData?.isReadyToPublish;
 
   return (
     <div className='space-y-8 max-w-4xl pb-16'>
@@ -62,7 +64,7 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
             <div>
               <p className='text-muted-foreground'>Blueprint</p>
               <p className='font-medium'>
-                {selectedBlueprintId ? 'QA Automation (Linked)' : 'None'}
+                {selectedBlueprintId ? 'QA Automation (Linked)' : 'Generated Dynamically'}
               </p>
             </div>
             <div>
@@ -80,15 +82,15 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
           <div className='p-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
             <div>
               <p className='text-muted-foreground'>Topics</p>
-              <p className='font-medium'>12 Available</p>
+              <p className='font-medium'>{previewData?.totalTopics || 0} Available</p>
             </div>
             <div>
               <p className='text-muted-foreground'>Concepts</p>
-              <p className='font-medium'>48 Mapped</p>
+              <p className='font-medium'>{previewData?.conceptCodes?.length || 0} Mapped</p>
             </div>
             <div>
               <p className='text-muted-foreground'>Templates</p>
-              <p className='font-medium'>15 Linked</p>
+              <p className='font-medium'>{previewData?.totalTemplates || 0} Linked</p>
             </div>
             <div>
               <p className='text-muted-foreground'>Sections</p>

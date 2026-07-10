@@ -32,7 +32,7 @@ export class BlueprintBuilderService {
         const topicAllocations = section.sectionTopics.map((st) => {
           if (!st.topicWeightage) {
             throw new BadRequestException(
-              `Missing topic mappings for topic ${st.topicId} in section ${section.id}`,
+              `Missing topic weightage for topic ${st.topicId} in section ${section.id}`,
             );
           }
           return {

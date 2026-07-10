@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; import * as argon2 from 'argon2'; const prisma = new PrismaClient(); argon2.hash('password123').then(h => prisma.user.updateMany({ where: { role: 'ADMIN' }, data: { passwordHash: h } }).then(() => console.log('Reset passwords to password123')));

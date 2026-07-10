@@ -12,7 +12,7 @@ export interface ConfigurationValidationResult {
  * Task Group 1 — Configuration Validation Engine
  *
  * Performs multi-layer validation of a complete exam configuration.
- * Layers: Exam → Section → Topic → Difficulty → Template
+ * Layers: Exam → Section → Topic → Concept → Template → Difficulty
  */
 @Injectable()
 export class ConfigurationValidatorService {
@@ -82,10 +82,38 @@ export class ConfigurationValidatorService {
                 `Section "${section.name}": topic "${st.topic.name}" is not active`,
               );
             }
+            if (!st.topic) {
+              continue; // Skip further validation if topic is undefined
+            }
+
             if (!st.topicWeightage) {
               errors.push(
-                `Missing topic mappings for topic ${st.topic?.name || st.topicId} in section ${section.name}`,
+                `Topic "${st.topic.name}" is missing a weightage assignment in section "${section.name}"`
               );
+            }
+            
+            // Validate Concepts mapping
+            const activeConcepts = st.topic.concepts?.filter(c => c.status === 'ACTIVE') || [];
+            if (activeConcepts.length === 0) {
+              errors.push(
+                `Topic "${st.topic.name}" has no active concepts assigned in section "${section.name}"`
+              );
+            } else {
+              // Validate Templates mapping
+              for (const concept of st.topic.concepts) {
+                if (concept.status !== 'ACTIVE') {
+                  continue; // Skip disabled/inactive concepts
+                }
+
+                const templateCount = await this.prisma.template.count({
+                  where: { conceptKey: concept.code, isActive: true, deletedAt: null }
+                });
+                if (templateCount === 0) {
+                  errors.push(
+                    `Concept "${concept.name}" has no active templates mapped in topic "${st.topic.name}"`
+                  );
+                }
+              }
             }
           }
         }
@@ -120,14 +148,7 @@ export class ConfigurationValidatorService {
     }
 
     // ─── Template Layer (advisory) ───────────────────────────────────────────
-    const templateCount = await this.prisma.template.count({
-      where: { isActive: true, deletedAt: null },
-    });
-    if (templateCount === 0) {
-      warnings.push(
-        "No active templates found in the system. Question generation may fail.",
-      );
-    }
+    // Removed the global template count check as we now check templates hierarchically.
 
     const valid = errors.length === 0;
     return { valid, errors, warnings };

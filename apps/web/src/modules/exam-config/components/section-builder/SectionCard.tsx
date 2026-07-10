@@ -7,11 +7,10 @@ interface SectionCardProps {
   section: ExamSection;
   onEdit: (section: ExamSection) => void;
   onDelete: (section: ExamSection) => void;
+  onManageTopics?: (section: ExamSection) => void;
 }
 
-import Link from 'next/link';
-
-export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
+export function SectionCard({ section, onEdit, onDelete, onManageTopics }: SectionCardProps) {
   return (
     <Card className='flex flex-col h-full bg-card'>
       <CardHeader className='pb-3 flex flex-row items-start justify-between space-y-0'>
@@ -55,11 +54,14 @@ export function SectionCard({ section, onEdit, onDelete }: SectionCardProps) {
           <Trash2 className='w-4 h-4 mr-1' />
           Delete
         </Button>
-        <Link href={`/admin/sections/${section.id}/topics`} className='w-full mt-2'>
-          <Button variant='default' size='sm' className='w-full'>
-            Manage Topics
-          </Button>
-        </Link>
+        <Button 
+          variant='default' 
+          size='sm' 
+          className='w-full mt-2'
+          onClick={() => onManageTopics?.(section)}
+        >
+          Manage Topics
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -53,6 +53,7 @@ export class ConfigPublisherService {
           include: {
             sectionTopics: {
               include: {
+                topicWeightage: true,
                 topic: {
                   include: {
                     concepts: true,
@@ -168,6 +169,7 @@ export class ConfigPublisherService {
           include: {
             sectionTopics: {
               include: {
+                topicWeightage: true,
                 topic: {
                   include: {
                     concepts: true,

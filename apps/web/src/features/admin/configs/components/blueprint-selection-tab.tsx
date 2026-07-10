@@ -67,73 +67,12 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                 </p>
               )}
             </div>
-
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-              <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
-                <span className='text-2xl font-bold'>
-                  {(selectedBlueprint as any).settings?.topics?.length || 0}
-                </span>
-                <span className='text-sm font-medium text-muted-foreground'>Topics</span>
-                <Button
-                  variant='ghost'
-                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
-                  asChild
-                >
-                  <Link href='/admin/topics' target='_blank'>
-                    View Topics <ExternalLink className='ml-1 h-3 w-3' />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
-                <span className='text-2xl font-bold'>
-                  {/* Mock logic: assume each topic has ~4 concepts for display, since blueprint schema might not embed full concepts */}
-                  {((selectedBlueprint as any).settings?.topics?.length || 0) * 4}
-                </span>
-                <span className='text-sm font-medium text-muted-foreground'>Concepts</span>
-                <Button
-                  variant='ghost'
-                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
-                  asChild
-                >
-                  <Link href='/admin/topics' target='_blank'>
-                    View Concepts <ExternalLink className='ml-1 h-3 w-3' />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
-                <span className='text-2xl font-bold'>
-                  {/* Mock templates count */}
-                  15
-                </span>
-                <span className='text-sm font-medium text-muted-foreground'>Templates</span>
-                <Button
-                  variant='ghost'
-                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
-                  asChild
-                >
-                  <Link href='/admin/templates' target='_blank'>
-                    View Templates <ExternalLink className='ml-1 h-3 w-3' />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className='flex flex-col space-y-2 p-4 bg-background border rounded-md'>
-                <span className='text-2xl font-bold'>
-                  {(selectedBlueprint as any).settings?.sections?.length || 0}
-                </span>
-                <span className='text-sm font-medium text-muted-foreground'>Sections</span>
-                <Button
-                  variant='ghost'
-                  className='p-0 h-auto justify-start text-xs underline hover:bg-transparent'
-                  asChild
-                >
-                  <Link href='/admin/blueprints' target='_blank'>
-                    View Sections <ExternalLink className='ml-1 h-3 w-3' />
-                  </Link>
-                </Button>
-              </div>
+            <div className='flex gap-4'>
+              <Button asChild variant='outline'>
+                <Link href={`/admin/blueprints/${selectedBlueprint.id}`} target='_blank'>
+                  View Blueprint Configuration <ExternalLink className='ml-2 h-4 w-4' />
+                </Link>
+              </Button>
             </div>
           </div>
         )}

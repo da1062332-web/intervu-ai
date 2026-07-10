@@ -15,10 +15,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface ConceptTableProps {
   concepts: ConceptMapping[];
-  isLoading: boolean;
+  isLoading?: boolean;
   onEdit: (concept: ConceptMapping) => void;
   onDeactivate: (concept: ConceptMapping) => void;
   onMapTemplates?: (concept: ConceptMapping) => void;
+  hideTemplatesButton?: boolean;
 }
 
 export function ConceptTable({
@@ -27,6 +28,7 @@ export function ConceptTable({
   onEdit,
   onDeactivate,
   onMapTemplates,
+  hideTemplatesButton = false,
 }: ConceptTableProps) {
   if (isLoading) {
     return (
@@ -58,7 +60,7 @@ export function ConceptTable({
             <TableRow>
               <TableHead>Concept Name</TableHead>
               <TableHead>Concept Code</TableHead>
-              <TableHead>Templates</TableHead>
+              {!hideTemplatesButton && <TableHead>Templates</TableHead>}
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className='text-right'>Actions</TableHead>
@@ -81,16 +83,18 @@ export function ConceptTable({
                 <TableCell className='font-mono text-xs'>
                   {concept.code || concept.conceptCode}
                 </TableCell>
-                <TableCell>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => onMapTemplates?.(concept)}
-                    className='h-7 text-xs'
-                  >
-                    <Link className='h-3 w-3 mr-1' /> Map
-                  </Button>
-                </TableCell>
+                {!hideTemplatesButton && (
+                  <TableCell>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => onMapTemplates?.(concept)}
+                      className="h-7 text-xs"
+                    >
+                      <Link className="h-3 w-3 mr-1" /> Map
+                    </Button>
+                  </TableCell>
+                )}
                 <TableCell>
                   <Badge
                     variant={
