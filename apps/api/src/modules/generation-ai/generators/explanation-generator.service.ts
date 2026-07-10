@@ -1,4 +1,5 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+
+git add apps/worker/package.json package-lock.jsonimport { Injectable, BadRequestException } from "@nestjs/common";
 
 @Injectable()
 export class ExplanationGeneratorService {

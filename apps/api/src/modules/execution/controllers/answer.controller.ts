@@ -16,9 +16,9 @@ import {
   ApiParam,
   ApiBody,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/modules/auth/guards/jwt-auth.guard";
-import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
-import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { CurrentUser } from "../../auth/decorators/current-user.decorator";
+import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { AnswerService } from "../services/answer.service";
 import { AutosaveService } from "../services/autosave.service";
 import { SubmissionService } from "../services/submission.service";

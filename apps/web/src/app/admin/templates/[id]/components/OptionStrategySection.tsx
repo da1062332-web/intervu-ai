@@ -18,7 +18,7 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
     if (template?.config?.optionStrategy) {
       setStrategy(template.config.optionStrategy);
     }
-  }, [template]);
+  }, [template?.id, template?.config?.optionStrategy]);
 
   const handleSave = () => {
     if (!template?.id) return;
@@ -33,6 +33,11 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
     });
   };
 
+  const handleSelect = (val: string) => {
+    console.log("Setting strategy to:", val);
+    setStrategy(val);
+  };
+
   return (
     <TemplateSection
       title="Option Strategy"
@@ -45,42 +50,69 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
       }
     >
       <div className="space-y-6">
-
         <div className="space-y-4">
           <Label className="text-base font-semibold">Generation Strategy</Label>
           <RadioGroup
             value={strategy}
-            onValueChange={setStrategy}
+            onValueChange={handleSelect}
             className="flex flex-col space-y-3"
           >
-            <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors" onClick={() => setStrategy('static')}>
+            <div 
+              className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-all ${
+                strategy === 'static' 
+                  ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/20' 
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-900 border-gray-200'
+              }`}
+              onClick={() => handleSelect('static')}
+            >
               <RadioGroupItem value="static" id="static" />
               <Label htmlFor="static" className="flex flex-col cursor-pointer">
-                <span className="font-medium text-sm">Static</span>
+                <span className="font-semibold text-sm text-foreground">Static</span>
                 <span className="text-sm text-muted-foreground font-normal">Fixed options provided manually.</span>
               </Label>
             </div>
             
-            <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors" onClick={() => setStrategy('formula')}>
+            <div 
+              className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-all ${
+                strategy === 'formula' 
+                  ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/20' 
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-900 border-gray-200'
+              }`}
+              onClick={() => handleSelect('formula')}
+            >
               <RadioGroupItem value="formula" id="formula" />
               <Label htmlFor="formula" className="flex flex-col cursor-pointer">
-                <span className="font-medium text-sm">Formula</span>
+                <span className="font-semibold text-sm text-foreground">Formula</span>
                 <span className="text-sm text-muted-foreground font-normal">Options calculated from variables (e.g., answer + 10).</span>
               </Label>
             </div>
             
-            <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors" onClick={() => setStrategy('dynamic')}>
+            <div 
+              className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-all ${
+                strategy === 'dynamic' 
+                  ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/20' 
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-900 border-gray-200'
+              }`}
+              onClick={() => handleSelect('dynamic')}
+            >
               <RadioGroupItem value="dynamic" id="dynamic" />
               <Label htmlFor="dynamic" className="flex flex-col cursor-pointer">
-                <span className="font-medium text-sm">Dynamic Constraints</span>
+                <span className="font-semibold text-sm text-foreground">Dynamic Constraints</span>
                 <span className="text-sm text-muted-foreground font-normal">Distractors generated based on range constraints.</span>
               </Label>
             </div>
             
-            <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors" onClick={() => setStrategy('ai')}>
+            <div 
+              className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-all ${
+                strategy === 'ai' 
+                  ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/20' 
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-900 border-gray-200'
+              }`}
+              onClick={() => handleSelect('ai')}
+            >
               <RadioGroupItem value="ai" id="ai" />
               <Label htmlFor="ai" className="flex flex-col cursor-pointer">
-                <span className="font-medium text-sm">AI Assisted</span>
+                <span className="font-semibold text-sm text-foreground">AI Assisted</span>
                 <span className="text-sm text-muted-foreground font-normal">AI will generate plausible distractors based on the concept context.</span>
               </Label>
             </div>

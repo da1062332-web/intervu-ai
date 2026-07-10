@@ -21,9 +21,32 @@ export class TestAssemblyService {
   async generateQuestions(body: GenerationRequest) {
     const jobId = randomUUID();
     const correlationId = randomUUID(); // Ideally comes from Request Scope Context
+    
+    let topicId = body.topicId;
+    if (topicId === "default-topic" || !topicId) {
+      try {
+        const { PrismaClient } = require("@prisma/client");
+        const prisma = new PrismaClient();
+        const blueprint = await prisma.blueprint.findFirst({
+          where: { configId: body.blueprintId },
+        });
+        if (blueprint) {
+          const sections = (blueprint.sections as any) || [];
+          if (sections.length > 0) {
+            const topicAllocations = sections[0].topicAllocations || [];
+            if (topicAllocations.length > 0) {
+              topicId = topicAllocations[0].topicId || topicId;
+            }
+          }
+        }
+        await prisma.$disconnect();
+      } catch (err) {
+        this.logger.error("Failed to resolve topicId from blueprint", err as Error);
+      }
+    }
 
     this.logger.info(
-      `Orchestrating question generation for topic: ${body.topicId}`,
+      `Orchestrating question generation for topic: ${topicId}`,
       {
         jobId,
         correlationId,
@@ -36,7 +59,7 @@ export class TestAssemblyService {
       timestamp: Date.now(),
       payload: {
         assemblyId: "test_123", // the older shared queue interface uses assemblyId
-        topicId: body.topicId,
+        topicId: topicId,
         difficulty: body.difficulty as string,
         count: body.quantity,
       },
@@ -52,18 +75,44 @@ export class TestAssemblyService {
   }
 
   async getJobStatus(jobId: string) {
-    const job = await this.queueService.getJob("GENERATION" as any, jobId);
-    const state = await this.queueService.getJobState("GENERATION" as any, jobId);
+    const job = await this.queueService.getJob("generation" as any, jobId);
+    const state = await this.queueService.getJobState("generation" as any, jobId);
 
     if (!job) {
       return { status: "unknown", progress: 0 };
+    }
+
+    let mappedResult = null;
+    if (job.returnvalue && job.returnvalue.success) {
+      const aiResult = job.returnvalue.result;
+      const rawQuestions = aiResult?.questions || [];
+      const mappedQuestions = rawQuestions.map((q: any, index: number) => ({
+        id: q.id || `q_${index}_${Date.now()}`,
+        questionText: q.text || q.questionText || "",
+        options: q.options || [],
+        answer: q.correctAnswer || q.answer || "",
+        explanation: q.explanation || "No explanation provided.",
+        difficulty: (q.difficulty || "MEDIUM").toUpperCase(),
+        conceptKey: q.conceptKey || "standard",
+        topicId: q.topic || q.topicId || "default-topic",
+        sectionId: q.sectionId || "default-section"
+      }));
+
+      mappedResult = {
+        testId: jobId,
+        title: "AI Generated Assessment",
+        companyId: "system",
+        examConfigId: null,
+        status: "COMPLETED",
+        questions: mappedQuestions
+      };
     }
 
     return {
       id: job.id,
       status: state || "unknown",
       progress: job.progress || 0,
-      result: job.returnvalue || null,
+      result: mappedResult || job.returnvalue || null,
       failedReason: job.failedReason || null,
     };
   }

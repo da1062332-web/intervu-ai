@@ -15,12 +15,14 @@ export interface ValidationResult {
   errors: string[];
   warnings: string[];
   checklist?: {
+    generalInformation?: boolean;
     sectionsCreated: boolean;
     topicsAssigned: boolean;
     conceptsAvailable: boolean;
     templatesCreated: boolean;
     difficultyConfigured: boolean;
     rulesConfigured: boolean;
+    rolesConfigured?: boolean;
     blueprintComplete: boolean;
     totalQuestionsMatch: boolean;
   };

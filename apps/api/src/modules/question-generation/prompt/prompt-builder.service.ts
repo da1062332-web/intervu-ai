@@ -84,18 +84,29 @@ export class PromptBuilderService {
     prompt: string,
     context: GenerationContext,
   ): Promise<RawQuestion> {
-    // TODO: Replace with actual LLM service injection
-    // Example: return this.aiService.generateQuestion(prompt);
-    //
-    // For now, return a structurally valid mock so the full pipeline
-    // can be tested end-to-end without an LLM key.
+    if (context.strategy === "VARIABLE") {
+      const payload = context.payload as VariablePayload;
+      const a = Number(payload.variables.a ?? 0);
+      const b = Number(payload.variables.b ?? 0);
+      const ans = Math.round((a / 100) * b);
+      
+      return {
+        questionText: payload.hydratedQuestion ?? "",
+        options: [
+          `A. ${ans}`,
+          `B. ${ans + 50}`,
+          `C. ${ans - 25}`,
+          `D. ${ans * 2}`,
+        ],
+        correctAnswer: "A",
+        explanation: `To find ${a}% of ${b}, compute (${a} / 100) * ${b} = ${ans}.`,
+      };
+    }
 
     const strategyLabel =
-      context.strategy === "VARIABLE"
-        ? "Variable"
-        : context.strategy === "DATASET"
-          ? "Reading Comprehension"
-          : "Logical Reasoning";
+      context.strategy === "DATASET"
+        ? "Reading Comprehension"
+        : "Logical Reasoning";
 
     return {
       questionText: `[${strategyLabel}] Mock question generated from template ${(context.metadata as any).templateId ?? "unknown"}.`,

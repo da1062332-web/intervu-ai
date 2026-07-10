@@ -8,6 +8,7 @@ import { OptionStrategySection } from '../OptionStrategySection';
 import { QuestionDefinitionSection } from '../QuestionDefinitionSection';
 import { SolutionLogicSection } from '../SolutionLogicSection';
 import type { StrategyPanelProps } from '../../registry/strategy-panel.registry';
+import { useTemplates } from '@/services/templates/hooks';
 
 /**
  * VariableStrategyPanel
@@ -15,7 +16,10 @@ import type { StrategyPanelProps } from '../../registry/strategy-panel.registry'
  * Renders all variable-strategy specific sections by composing existing
  * components — no duplication of existing UI.
  */
-export function VariableStrategyPanel({ templateId: _ }: StrategyPanelProps) {
+export function VariableStrategyPanel({ templateId }: StrategyPanelProps) {
+  const { data: response } = useTemplates(1, 100);
+  const template = response?.items?.find((t: any) => t.id === templateId);
+
   return (
     <div className="space-y-6">
       <TemplateSection
@@ -32,7 +36,7 @@ export function VariableStrategyPanel({ templateId: _ }: StrategyPanelProps) {
       </TemplateSection>
 
       {/* Question Template — where variables are embedded as {{variableName}} */}
-      <QuestionDefinitionSection />
+      <QuestionDefinitionSection template={template} />
 
       {/* Variable Builder — define variables, types, and generation rules */}
       <VariableBuilderSection />
@@ -41,7 +45,7 @@ export function VariableStrategyPanel({ templateId: _ }: StrategyPanelProps) {
       <ConstraintBuilderSection />
 
       {/* Option Strategy — how distractors are generated */}
-      <OptionStrategySection />
+      <OptionStrategySection template={template} />
 
       {/* Solution & Explanation — template for the answer */}
       <SolutionLogicSection />

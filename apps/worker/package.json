@@ -5,7 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node dist/main",
-    "start:dev": "tsx watch src/main.ts",
+    "start:dev": "tsx watch --env-file=../api/.env src/main.ts",
+    "dev": "npm run start:dev",
     "build": "tsc",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",

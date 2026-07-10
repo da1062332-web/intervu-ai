@@ -15,15 +15,15 @@ import {
   ApiResponse,
   ApiParam,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@/modules/auth/guards/jwt-auth.guard";
-import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
-import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { CurrentUser } from "../../auth/decorators/current-user.decorator";
+import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { ExecutionService } from "../services/execution.service";
 import { ExecutionValidatorService } from "../services/execution-validator.service";
 import { AssessmentAuditService } from "../services/assessment-audit.service";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
-import { Roles } from "@/modules/auth/decorators/roles.decorator";
+import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
 @ApiTags("execution")
