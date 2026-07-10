@@ -10,6 +10,7 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { TestInstanceStatus } from "@prisma/client";
+import { PrismaService } from "@/prisma/prisma.service";
 
 describe("StartTestService", () => {
   let service: StartTestService;
@@ -39,6 +40,7 @@ describe("StartTestService", () => {
         { provide: TestConfigRepository, useValue: testConfigRepositoryMock },
         { provide: QuestionProviderService, useValue: questionProviderMock },
         { provide: TestInstanceService, useValue: testInstanceMock },
+        { provide: PrismaService, useValue: {} },
       ],
     }).compile();
 

@@ -23,7 +23,6 @@ export class CandidateReportService {
       include: {
         user: true,
         testConfig: true,
-        // @ts-ignore
         examConfig: true,
         candidateAnswers: true,
       },
@@ -60,7 +59,6 @@ export class CandidateReportService {
       where: {
         testInstance: {
           testConfigId: attempt.testConfigId,
-          // @ts-ignore
           examConfigId: (attempt as any).examConfigId,
         },
       },
@@ -124,7 +122,9 @@ export class CandidateReportService {
           "Unknown Assessment",
         totalDurationSeconds:
           (attempt as any).testConfig?.totalDurationSeconds ||
-          ((attempt as any).examConfig ? (attempt as any).examConfig.durationMinutes * 60 : 0),
+          ((attempt as any).examConfig
+            ? (attempt as any).examConfig.durationMinutes * 60
+            : 0),
       },
       score,
       rank,
@@ -186,7 +186,6 @@ export class CandidateReportService {
       where: { id: attemptId },
       include: {
         testConfig: true,
-        // @ts-ignore
         examConfig: true,
       },
     });
@@ -210,7 +209,6 @@ export class CandidateReportService {
       where: {
         testInstance: {
           testConfigId: attempt.testConfigId,
-          // @ts-ignore
           examConfigId: (attempt as any).examConfigId,
         },
       },

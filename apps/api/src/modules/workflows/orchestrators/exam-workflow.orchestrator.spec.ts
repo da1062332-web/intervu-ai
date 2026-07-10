@@ -8,6 +8,7 @@ import { WorkflowTransitionGuard } from "../guards/workflow-transition.guard";
 import { WorkflowEventPublisher } from "../services/workflow-event-publisher";
 import { GenerationOrchestratorService } from "../../generation/services/generation-orchestrator.service";
 import { AssemblyService } from "@/modules/assembly/services/test-assembly.service";
+import { PrismaService } from "@/prisma/prisma.service";
 
 describe("ExamWorkflowOrchestrator", () => {
   let orchestrator: ExamWorkflowOrchestrator;
@@ -60,6 +61,10 @@ describe("ExamWorkflowOrchestrator", () => {
         },
         {
           provide: AssemblyService,
+          useValue: {},
+        },
+        {
+          provide: PrismaService,
           useValue: {},
         },
       ],

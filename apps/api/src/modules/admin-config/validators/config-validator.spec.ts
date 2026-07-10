@@ -37,7 +37,19 @@ const makeConfig = (
         sectionTopics: [
           {
             topicId: "topic-1",
-            topic: { id: "topic-1", name: "Arrays", status: "ACTIVE" },
+            topic: {
+              id: "topic-1",
+              name: "Arrays",
+              status: "ACTIVE",
+              concepts: [
+                {
+                  id: "concept-1",
+                  code: "ARRAY_MANIPULATION",
+                  name: "Array Manipulation",
+                  status: "ACTIVE",
+                },
+              ],
+            },
             topicWeightage: { weightage: 100 },
           },
         ],
@@ -188,11 +200,11 @@ describe("ConfigurationValidatorService", () => {
   });
 
   describe("validate - WARNING cases", () => {
-    it("should warn if no templates exist in the system", async () => {
+    it("should fail if no templates exist in the system for configured concepts", async () => {
       mockPrisma.template.count.mockResolvedValue(0);
       const result = await service.validate(makeConfig());
-      expect(result.valid).toBe(true);
-      expect(result.warnings).toEqual(
+      expect(result.valid).toBe(false);
+      expect(result.errors).toEqual(
         expect.arrayContaining([expect.stringMatching(/no active templates/i)]),
       );
     });
