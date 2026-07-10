@@ -64,7 +64,7 @@ export const executionService = {
 
   submitAssessment: async (
     testId: string,
-    options?: { autoSubmit?: boolean; allowPartial?: boolean }
+    options?: { autoSubmit?: boolean; allowPartial?: boolean },
   ): Promise<void> => {
     return apiClient.request(`/tests/${testId}/submit`, {
       method: 'POST',

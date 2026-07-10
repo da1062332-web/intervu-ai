@@ -33,7 +33,9 @@ export default function AdminAssessmentOutcomePage() {
   useEffect(() => {
     const fetchOutcome = async () => {
       try {
-        const data = await apiClient.request<AssessmentOutcome>(`/admin/reports/assessment/${assessmentId}`);
+        const data = await apiClient.request<AssessmentOutcome>(
+          `/admin/reports/assessment/${assessmentId}`,
+        );
         setOutcome(data);
       } catch (err) {
         console.error(err);

@@ -32,11 +32,11 @@ describe('ConceptMapping', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <ConceptManagementPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText(/Test Topic/i)).toBeInTheDocument();
-    
+
     await waitFor(() => {
       expect(screen.getByText('Concept A')).toBeInTheDocument();
     });
@@ -48,7 +48,7 @@ describe('ConceptMapping', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <ConceptManagementPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {

@@ -78,7 +78,9 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         difficultyLevel: "MEDIUM",
       });
       expect(invalid.isValid).toBe(false);
-      expect(invalid.errors).toContain("Question text exists validation failed: questionText is missing or empty");
+      expect(invalid.errors).toContain(
+        "Question text exists validation failed: questionText is missing or empty",
+      );
     });
 
     it("should reject if options contain duplicates", () => {
@@ -92,7 +94,9 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         difficultyLevel: "MEDIUM",
       });
       expect(invalid.isValid).toBe(false);
-      expect(invalid.errors).toContain("Reject on duplicate options: options must be unique");
+      expect(invalid.errors).toContain(
+        "Reject on duplicate options: options must be unique",
+      );
     });
 
     it("should reject if correctAnswer is missing from options", () => {
@@ -106,7 +110,9 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         difficultyLevel: "MEDIUM",
       });
       expect(invalid.isValid).toBe(false);
-      expect(invalid.errors).toContain("Exactly one correct answer validation failed: correctAnswer must match one of the options");
+      expect(invalid.errors).toContain(
+        "Exactly one correct answer validation failed: correctAnswer must match one of the options",
+      );
     });
   });
 
@@ -178,7 +184,11 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         templateId: "template-a",
         conceptKey: "concept-a",
         difficultyLevel: "MEDIUM",
-        metadata: { status: "APPROVED", _generationSeed: 123, _templateVersion: 1 },
+        metadata: {
+          status: "APPROVED",
+          _generationSeed: 123,
+          _templateVersion: 1,
+        },
       };
 
       prismaMock.generatedQuestion.findUnique.mockResolvedValue(mockQuestion);

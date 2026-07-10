@@ -128,7 +128,9 @@ export default function AdminCandidateReportsPage() {
                     >
                       Completed Date {sortBy === 'completedAt' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th scope='col' className='px-6 py-3 font-medium text-gray-500 text-right'>Action</th>
+                    <th scope='col' className='px-6 py-3 font-medium text-gray-500 text-right'>
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200'>
@@ -163,10 +165,10 @@ export default function AdminCandidateReportsPage() {
                   ) : (
                     <tr>
                       <td colSpan={5} className='p-8'>
-                        <EmptyState 
-                          title="No Reports Found"
-                          description="No candidate reports matched your search criteria."
-                          icon={<Search className="w-8 h-8 text-gray-400" />}
+                        <EmptyState
+                          title='No Reports Found'
+                          description='No candidate reports matched your search criteria.'
+                          icon={<Search className='w-8 h-8 text-gray-400' />}
                         />
                       </td>
                     </tr>

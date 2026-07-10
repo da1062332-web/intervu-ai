@@ -385,7 +385,19 @@ export class WorkflowFacadeService {
     const skip = (page - 1) * limit;
 
     const where: any = { section: { examConfigId: examId } };
-    if (status) where.status = status;
+    if (status) {
+      const upperStatus = status.toUpperCase();
+      if (upperStatus === "APPROVED") {
+        where.status = { in: ["VALIDATED", "ACTIVE"] };
+      } else if (upperStatus === "REJECTED") {
+        where.status = "ARCHIVED";
+      } else if (["DRAFT", "VALIDATED", "ACTIVE", "ARCHIVED"].includes(upperStatus)) {
+        where.status = upperStatus;
+      } else {
+        // Safe fallback for invalid status to return empty result instead of crashing
+        where.status = { in: [] };
+      }
+    }
 
     const [questions, total] = await Promise.all([
       prisma.question.findMany({

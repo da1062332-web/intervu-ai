@@ -122,9 +122,15 @@ describe("AI Generation Failure Recovery Spec", () => {
       ],
     }).compile();
 
-    orchestrator = module.get<GenerationOrchestratorService>(GenerationOrchestratorService);
-    instantiator = module.get<QuestionInstantiatorService>(QuestionInstantiatorService);
-    validationService = module.get<QuestionValidationService>(QuestionValidationService);
+    orchestrator = module.get<GenerationOrchestratorService>(
+      GenerationOrchestratorService,
+    );
+    instantiator = module.get<QuestionInstantiatorService>(
+      QuestionInstantiatorService,
+    );
+    validationService = module.get<QuestionValidationService>(
+      QuestionValidationService,
+    );
   });
 
   it("should successfully recover when LLM provider initially times out, then succeeds", async () => {
@@ -248,11 +254,24 @@ describe("AI Generation Failure Recovery Spec", () => {
 
     const mockValidate = validationService.validateQuestion as jest.Mock;
     mockValidate
-      .mockResolvedValueOnce({ isValid: false, errors: ["MCQ must have 4 options"] })
-      .mockResolvedValueOnce({ isValid: false, errors: ["MCQ must have 4 options"] })
-      .mockResolvedValueOnce({ isValid: false, errors: ["MCQ must have 4 options"] });
+      .mockResolvedValueOnce({
+        isValid: false,
+        errors: ["MCQ must have 4 options"],
+      })
+      .mockResolvedValueOnce({
+        isValid: false,
+        errors: ["MCQ must have 4 options"],
+      })
+      .mockResolvedValueOnce({
+        isValid: false,
+        errors: ["MCQ must have 4 options"],
+      });
 
-    const callOrchestrator = orchestrator.generateQuestions("cfg-1", "sec-1", 1);
+    const callOrchestrator = orchestrator.generateQuestions(
+      "cfg-1",
+      "sec-1",
+      1,
+    );
 
     await expect(callOrchestrator).rejects.toThrow();
 

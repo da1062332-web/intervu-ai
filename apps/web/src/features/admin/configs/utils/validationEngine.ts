@@ -39,14 +39,16 @@ export function validateConfiguration(state: ValidationState): ValidationResult 
     errors.push('No topics have been assigned to this configuration.');
   } else {
     readinessPoints += 20;
-    
+
     // Check if each topic has at least one concept
     let allTopicsHaveConcepts = true;
     for (const topic of state.topics) {
       const concepts = state.conceptsByTopic[topic.topicId];
       if (!concepts || concepts.length === 0) {
         allTopicsHaveConcepts = false;
-        warnings.push(`Topic "${(topic as any).topicName || topic.topicId}" has no concepts mapped.`);
+        warnings.push(
+          `Topic "${(topic as any).topicName || topic.topicId}" has no concepts mapped.`,
+        );
       }
     }
   }
@@ -55,10 +57,10 @@ export function validateConfiguration(state: ValidationState): ValidationResult 
   maxPoints += 30;
   let totalConcepts = 0;
   let activeConcepts = 0;
-  
-  Object.values(state.conceptsByTopic).forEach(concepts => {
+
+  Object.values(state.conceptsByTopic).forEach((concepts) => {
     totalConcepts += concepts.length;
-    activeConcepts += concepts.filter(c => c.status === 'ACTIVE' || c.isActive).length;
+    activeConcepts += concepts.filter((c) => c.status === 'ACTIVE' || c.isActive).length;
   });
 
   if (totalConcepts === 0) {
@@ -77,7 +79,7 @@ export function validateConfiguration(state: ValidationState): ValidationResult 
   let conceptsWithoutTemplates = 0;
 
   Object.entries(state.conceptsByTopic).forEach(([topicId, concepts]) => {
-    concepts.forEach(concept => {
+    concepts.forEach((concept) => {
       // In this mocked environment, we might not have full template tracking globally yet,
       // but the UI will supply templatesByConcept if loaded.
       const templates = state.templatesByConcept[concept.id];
@@ -90,7 +92,9 @@ export function validateConfiguration(state: ValidationState): ValidationResult 
   });
 
   if (activeConcepts > 0 && !anyConceptHasTemplate) {
-    warnings.push('No templates have been assigned to any concepts. Generation will fallback to defaults or fail.');
+    warnings.push(
+      'No templates have been assigned to any concepts. Generation will fallback to defaults or fail.',
+    );
   } else if (anyConceptHasTemplate) {
     readinessPoints += 30;
     if (conceptsWithoutTemplates > 0) {
@@ -106,7 +110,7 @@ export function validateConfiguration(state: ValidationState): ValidationResult 
     }
   } else {
     let totalPercentage = 0;
-    state.weightages.forEach(w => {
+    state.weightages.forEach((w) => {
       totalPercentage += w.weightagePercentage || 0;
     });
 

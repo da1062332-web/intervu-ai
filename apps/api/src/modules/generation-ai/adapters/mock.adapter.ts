@@ -44,7 +44,32 @@ export class MockAdapter implements LLMAdapter {
     }
 
     const rand = Math.floor(Math.random() * 1000000);
-    const words = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"];
+    const words = [
+      "alpha",
+      "beta",
+      "gamma",
+      "delta",
+      "epsilon",
+      "zeta",
+      "eta",
+      "theta",
+      "iota",
+      "kappa",
+      "lambda",
+      "mu",
+      "nu",
+      "xi",
+      "omicron",
+      "pi",
+      "rho",
+      "sigma",
+      "tau",
+      "upsilon",
+      "phi",
+      "chi",
+      "psi",
+      "omega",
+    ];
     const w1 = words[rand % words.length];
     const w2 = words[Math.floor(rand / 100) % words.length];
     const w3 = words[Math.floor(rand / 10000) % words.length];
@@ -55,7 +80,7 @@ export class MockAdapter implements LLMAdapter {
         `Mock Answer #${rand}`,
         `Incorrect Option B #${rand}`,
         `Incorrect Option C #${rand}`,
-        `Incorrect Option D #${rand}`
+        `Incorrect Option D #${rand}`,
       ],
       correctAnswer: `Mock Answer #${rand}`,
       answer: `Mock Answer #${rand}`,
@@ -64,8 +89,8 @@ export class MockAdapter implements LLMAdapter {
       topic,
       metadata: {
         topic,
-        randomVal: rand
-      }
+        randomVal: rand,
+      },
     });
   }
 }

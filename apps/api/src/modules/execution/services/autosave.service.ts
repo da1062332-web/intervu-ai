@@ -56,7 +56,9 @@ export class AutosaveService {
       const initialRemaining = testInstance.expiresAt
         ? Math.max(
             0,
-            Math.floor((new Date(testInstance.expiresAt).getTime() - Date.now()) / 1000),
+            Math.floor(
+              (new Date(testInstance.expiresAt).getTime() - Date.now()) / 1000,
+            ),
           )
         : 0;
 

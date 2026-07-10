@@ -23,7 +23,9 @@ export class ResponseValidatorService {
 
     // Question length must be at least 10 characters as per contract spec
     if (question.question.trim().length < 10) {
-      throw new BadRequestException("Question text must be at least 10 characters long");
+      throw new BadRequestException(
+        "Question text must be at least 10 characters long",
+      );
     }
 
     const isMcq =
@@ -41,11 +43,15 @@ export class ResponseValidatorService {
     if (isMcq) {
       const options = question.options!;
       if (options.length !== 4) {
-        throw new BadRequestException(`MCQ question must have exactly 4 options, got ${options.length}`);
+        throw new BadRequestException(
+          `MCQ question must have exactly 4 options, got ${options.length}`,
+        );
       }
 
       if (options.some((opt) => !opt || opt.trim().length === 0)) {
-        throw new BadRequestException("MCQ options cannot contain empty or blank strings");
+        throw new BadRequestException(
+          "MCQ options cannot contain empty or blank strings",
+        );
       }
 
       const uniqueOptions = new Set(options.map((opt) => opt.trim()));
@@ -71,13 +77,19 @@ export class ResponseValidatorService {
     // 5. Placeholder Leakage Scan (curly brace detection)
     const placeholderRegex = /\{([a-zA-Z0-9_]+)\}/;
     if (placeholderRegex.test(question.question)) {
-      throw new BadRequestException("Question text contains unresolved template placeholder tokens");
+      throw new BadRequestException(
+        "Question text contains unresolved template placeholder tokens",
+      );
     }
     if (placeholderRegex.test(question.explanation)) {
-      throw new BadRequestException("Explanation text contains unresolved template placeholder tokens");
+      throw new BadRequestException(
+        "Explanation text contains unresolved template placeholder tokens",
+      );
     }
     if (isMcq && question.options!.some((opt) => placeholderRegex.test(opt))) {
-      throw new BadRequestException("MCQ options contain unresolved template placeholder tokens");
+      throw new BadRequestException(
+        "MCQ options contain unresolved template placeholder tokens",
+      );
     }
 
     // 6. Template Violations (Difficulty & Topic Alignment)
@@ -89,9 +101,18 @@ export class ResponseValidatorService {
       );
     }
 
-    const topic = String(question.topic || (question.metadata && (question.metadata as any).topic) || "").toLowerCase();
+    const topic = String(
+      question.topic ||
+        (question.metadata && (question.metadata as any).topic) ||
+        "",
+    ).toLowerCase();
     const reqTopic = requestedTopic.toLowerCase();
-    if (topic && topic !== reqTopic && !reqTopic.includes(topic) && !topic.includes(reqTopic)) {
+    if (
+      topic &&
+      topic !== reqTopic &&
+      !reqTopic.includes(topic) &&
+      !topic.includes(reqTopic)
+    ) {
       throw new BadRequestException(
         `Topic alignment check failed: expected "${requestedTopic}" but got "${question.topic}"`,
       );

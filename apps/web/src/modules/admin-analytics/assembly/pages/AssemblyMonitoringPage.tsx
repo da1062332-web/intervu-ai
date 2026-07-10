@@ -182,10 +182,10 @@ export function AssemblyMonitoringPage() {
             <CardContent className='p-0 border-t border-border/40'>
               {data?.drilldowns.length === 0 ? (
                 <div className='p-8'>
-                  <EmptyState 
-                    title="No Assembly History"
-                    description="No assembled tests found in history."
-                    icon={<Layers className="size-8 text-muted-foreground" />}
+                  <EmptyState
+                    title='No Assembly History'
+                    description='No assembled tests found in history.'
+                    icon={<Layers className='size-8 text-muted-foreground' />}
                   />
                 </div>
               ) : (

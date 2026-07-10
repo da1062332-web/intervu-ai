@@ -23,6 +23,9 @@ export const CreateTemplateSchema = z.object({
     .default(TemplateDifficulty.MEDIUM),
   config: z.record(z.unknown()).optional(),
   isSystem: z.boolean().default(false),
+  variableSchema: z.record(z.unknown()).optional(),
+  solutionSchema: z.record(z.unknown()).optional(),
+  constraints: z.record(z.unknown()).optional(),
 });
 
 export const UpdateTemplateSchema = z.object({
@@ -34,6 +37,9 @@ export const UpdateTemplateSchema = z.object({
   structure: z.record(z.unknown()).optional(),
   difficulty: z.nativeEnum(TemplateDifficulty).optional(),
   config: z.record(z.unknown()).optional(),
+  variableSchema: z.record(z.unknown()).optional(),
+  solutionSchema: z.record(z.unknown()).optional(),
+  constraints: z.record(z.unknown()).optional(),
 });
 
 // ─── DTO Classes ───────────────────────────────────────────────────────────────
@@ -94,6 +100,24 @@ export class CreateTemplateDto {
   })
   isSystem?: boolean;
 
+  @ApiPropertyOptional({
+    example: { variables: [{ name: "price", type: "number", min: 100, max: 200 }] },
+    description: "Variables schema configuration",
+  })
+  variableSchema?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: { correctVariable: "C", explanationTemplate: "The total is {{price}} + {{tax}} = {{price + tax}}." },
+    description: "Solution schema configuration",
+  })
+  solutionSchema?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: {},
+    description: "Constraints configuration",
+  })
+  constraints?: Record<string, unknown>;
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, CreateTemplateDto> {
@@ -152,6 +176,24 @@ export class UpdateTemplateDto {
     description: "Structure",
   })
   structure?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: { variables: [{ name: "price", type: "number", min: 100, max: 200 }] },
+    description: "Variables schema configuration",
+  })
+  variableSchema?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: { correctVariable: "C", explanationTemplate: "The total is {{price}} + {{tax}} = {{price + tax}}." },
+    description: "Solution schema configuration",
+  })
+  solutionSchema?: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    example: {},
+    description: "Constraints configuration",
+  })
+  constraints?: Record<string, unknown>;
 
   static validate(
     data: unknown,

@@ -15,7 +15,7 @@ test.describe('Topic Mapping E2E', () => {
 
     // Click assign topics
     await page.click('button:has-text("Assign Topics")');
-    
+
     // Wait for the modal and click a topic to assign
     const topicRow = page.locator('text=React');
     await expect(topicRow).toBeVisible();

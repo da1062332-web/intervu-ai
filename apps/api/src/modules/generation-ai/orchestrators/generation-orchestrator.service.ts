@@ -82,12 +82,16 @@ Provide: Question, Correct Answer, Explanation.`;
           );
 
           if (result.success && result.question) {
-            const reviewRes = await this.reviewQueueIntegration.sendToReviewQueue(
-              result.question,
-            );
+            const reviewRes =
+              await this.reviewQueueIntegration.sendToReviewQueue(
+                result.question,
+              );
             return { success: true, data: reviewRes.question };
           } else {
-            return { success: false, error: result.errors?.join("; ") || "Generation failed" };
+            return {
+              success: false,
+              error: result.errors?.join("; ") || "Generation failed",
+            };
           }
         } catch (e: any) {
           return { success: false, error: e.message || String(e) };
@@ -97,7 +101,9 @@ Provide: Question, Correct Answer, Explanation.`;
       const chunkResults = await Promise.all(promises);
       for (const res of chunkResults) {
         if (res.success && res.data) {
-          const candidateText = (res.data.questionText || "").trim().toLowerCase();
+          const candidateText = (res.data.questionText || "")
+            .trim()
+            .toLowerCase();
           const isBatchDuplicate = generatedQuestions.some((eq) => {
             const eqText = (eq.questionText || "").trim().toLowerCase();
             if (eqText === candidateText) return true;
@@ -116,7 +122,7 @@ Provide: Question, Correct Answer, Explanation.`;
 
           if (isBatchDuplicate) {
             failures.push(
-              "Batch duplicate detected: Question similar to another in same batch run."
+              "Batch duplicate detected: Question similar to another in same batch run.",
             );
           } else {
             generatedQuestions.push(res.data);

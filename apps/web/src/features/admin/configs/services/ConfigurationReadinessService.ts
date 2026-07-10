@@ -1,4 +1,8 @@
-import { validateConfiguration, ValidationState, ValidationResult } from '../utils/validationEngine';
+import {
+  validateConfiguration,
+  ValidationState,
+  ValidationResult,
+} from '../utils/validationEngine';
 import { topicsApi, conceptsApi, templatesApi, weightagesApi } from './api';
 import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { ConceptMapping } from '@/services/concept-mapping';
@@ -8,7 +12,10 @@ export class ConfigurationReadinessService {
    * Fetches the entire state tree needed for configuration validation and validates it.
    * This bridges the gap between different APIs and the pure validation engine.
    */
-  static async validate(sectionId: string, topics: SectionTopicResponse[]): Promise<ValidationResult> {
+  static async validate(
+    sectionId: string,
+    topics: SectionTopicResponse[],
+  ): Promise<ValidationResult> {
     try {
       const state: ValidationState = {
         topics,
@@ -25,18 +32,18 @@ export class ConfigurationReadinessService {
       // Fetch concepts and mock templates
       // In a real backend, we'd have a single endpoint to fetch readiness or bulk fetch.
       // Doing it in parallel to minimize waterfall.
-      const conceptPromises = topics.map(topic => 
-        conceptsApi.getConcepts(topic.topicId).then(concepts => ({
+      const conceptPromises = topics.map((topic) =>
+        conceptsApi.getConcepts(topic.topicId).then((concepts) => ({
           topicId: topic.topicId,
-          concepts
-        }))
+          concepts,
+        })),
       );
 
       const conceptsResults = await Promise.allSettled(conceptPromises);
-      
+
       const allConcepts: ConceptMapping[] = [];
 
-      conceptsResults.forEach(result => {
+      conceptsResults.forEach((result) => {
         if (result.status === 'fulfilled') {
           state.conceptsByTopic[result.value.topicId] = result.value.concepts;
           allConcepts.push(...result.value.concepts);

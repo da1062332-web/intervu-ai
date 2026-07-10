@@ -18,7 +18,7 @@ export function ExportControls() {
       setDownloading(key);
       const blob = await apiClient.request<Blob>(`/admin/export/${type}?format=${format}`, {
         responseType: 'blob',
-        skipErrorToast: true
+        skipErrorToast: true,
       });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
