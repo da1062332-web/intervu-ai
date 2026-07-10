@@ -62,7 +62,7 @@ export function QuestionPreviewDrawer({
             <div className="space-y-2">
               <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">Statement</h3>
               <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-md border text-sm whitespace-pre-wrap">
-                {question.statement}
+                {question.questionText}
               </div>
             </div>
 

@@ -52,7 +52,7 @@ export function GenerationDashboard() {
 
       if (generationType === 'single') {
         setProgress(50);
-        await generateSingle({ templateId: selectedTemplate, payload });
+        await generateSingle({ templateId: selectedTemplate, context: payload });
         setProgress(100);
         setStatus('success');
         // Route to review after slight delay
@@ -63,7 +63,7 @@ export function GenerationDashboard() {
           setProgress(p => Math.min(p + 15, 90));
         }, 500);
         
-        await generateBatch({ templateId: selectedTemplate, count: batchCount, payload });
+        await generateBatch({ templateId: selectedTemplate, count: batchCount, context: payload });
         
         clearInterval(interval);
         setProgress(100);

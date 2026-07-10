@@ -15,6 +15,7 @@ interface BasicInfoForm {
   questionType: string;
   status: string;
   tags: string;
+  generationStrategy: GenerationStrategy;
 }
 
 interface BasicInfoSectionProps {
@@ -37,9 +38,18 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
       difficulty: template?.difficultyLevel || template?.difficulty || 'MEDIUM',
       questionType: template?.questionType || 'coding',
       status: template?.isActive ? 'Active' : 'Draft',
-      tags: '', // Placeholder
+      tags: '',
+      generationStrategy: templateStrategy,
     },
   });
+
+  // Sync Zustand store when strategy field changes
+  const watchedStrategy = watch('generationStrategy');
+  React.useEffect(() => {
+    if (watchedStrategy && watchedStrategy !== currentStrategy) {
+      setStrategy(watchedStrategy as GenerationStrategy);
+    }
+  }, [watchedStrategy]);
 
   useEffect(() => {
     if (template) {
@@ -190,6 +200,47 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
                 {...register('tags')}
                 placeholder="e.g. frontend, react"
               />
+            </div>
+          </div>
+
+          {/* Generation Strategy */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-indigo-500" />
+              <Label htmlFor="generationStrategy" className="text-sm font-semibold">
+                Generation Strategy
+              </Label>
+            </div>
+            <p className="text-xs text-gray-500">
+              Determines how question instances are generated for this template.
+              Changing strategy will update the Strategy Configuration section.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {(['VARIABLE', 'DATASET', 'HYBRID'] as GenerationStrategy[]).map((s) => (
+                <label
+                  key={s}
+                  htmlFor={`strategy-${s}`}
+                  className={`flex flex-col gap-1 p-3 border rounded-lg cursor-pointer transition-colors ${
+                    watchedStrategy === s
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
+                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      id={`strategy-${s}`}
+                      type="radio"
+                      value={s}
+                      {...register('generationStrategy')}
+                      className="accent-indigo-600"
+                    />
+                    <span className="text-sm font-medium">{STRATEGY_LABELS[s]}</span>
+                  </div>
+                  <span className="text-xs text-gray-500 pl-5">
+                    {STRATEGY_DESCRIPTIONS[s]}
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
           

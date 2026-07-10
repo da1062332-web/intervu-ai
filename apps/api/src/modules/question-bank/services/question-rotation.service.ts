@@ -78,11 +78,13 @@ export class QuestionRotationService {
           topicId:
             topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
           OR: [
-            { reservations: null },
+            { reservations: { is: null } },
             {
               reservations: {
-                expiresAt: {
-                  lte: new Date(),
+                is: {
+                  expiresAt: {
+                    lte: new Date(),
+                  },
                 },
               },
             },

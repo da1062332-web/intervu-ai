@@ -10,6 +10,7 @@ export class ResponseValidatorService {
     question: GeneratedQuestionDto,
     requestedDifficulty: string,
     requestedTopic: string,
+    template?: any,
   ): void {
     // 1. Basic Existence Checks
     if (!question) {
@@ -94,6 +95,62 @@ export class ResponseValidatorService {
       throw new BadRequestException(
         `Topic alignment check failed: expected "${requestedTopic}" but got "${question.topic}"`,
       );
+    }
+
+    const strategy = template?.generationStrategy ||
+                     question.metadata?.generationStrategy ||
+                     ((question.metadata?.variables as any)?.generationStrategy) ||
+                     "VARIABLE";
+
+    switch (strategy.toUpperCase()) {
+      case "VARIABLE":
+        this.validateVariableStrategy(question, template);
+        break;
+      case "DATASET":
+        this.validateDatasetStrategy(question, template);
+        break;
+      case "HYBRID":
+        this.validateHybridStrategy(question, template);
+        break;
+    }
+  }
+
+  private validateVariableStrategy(question: GeneratedQuestionDto, template?: any): void {
+    // 1. Math/Formula correctness: Ensure the LLM's correct answer matches the pre-calculated one.
+    const variables = question.metadata?.variables;
+    if (variables) {
+      const computedAnswer = (variables as any).correctAnswer || (variables as any).answer;
+      if (computedAnswer !== undefined) {
+        const cleanComputed = String(computedAnswer).trim().toLowerCase();
+        const cleanLlmAnswer = String(question.correctAnswer || question.answer).trim().toLowerCase();
+        if (cleanLlmAnswer !== cleanComputed) {
+          throw new BadRequestException(
+            `Math validation failed: LLM generated answer "${cleanLlmAnswer}" does not match backend computed answer "${cleanComputed}"`
+          );
+        }
+      }
+    }
+  }
+
+  private validateDatasetStrategy(question: GeneratedQuestionDto, template?: any): void {
+    // 2. Dataset checks: Ensure the question contains no placeholder tokens
+    if (question.question.includes("{{") || question.question.includes("}}")) {
+      throw new BadRequestException("Dataset validation failed: Question text contains raw template placeholders.");
+    }
+  }
+
+  private validateHybridStrategy(question: GeneratedQuestionDto, template?: any): void {
+    // 3. Hybrid checks: Ensure the question text references all the graph entities to prevent logical hallucination.
+    const logicalGraph = question.metadata?.logicalGraph || (template as any)?.logicalGraph;
+    if (logicalGraph && Array.isArray(logicalGraph.entities)) {
+      for (const entity of logicalGraph.entities) {
+        const entityClean = String(entity).trim();
+        if (!question.question.includes(entityClean)) {
+          throw new BadRequestException(
+            `Logical reasoning validation failed: Question text does not reference entity "${entityClean}" from the relationship graph.`
+          );
+        }
+      }
     }
   }
 }

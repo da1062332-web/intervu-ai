@@ -1,0 +1,295 @@
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Inject,
+  forwardRef,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from "@nestjs/swagger";
+import { UserRole } from "@prisma/client";
+
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { GenerationStrategyResolver } from "../services/generation-strategy.resolver";
+import { GenerationRetryService } from "../../generation-ai/retry/generation-retry.service";
+import { ResponseValidatorService } from "../../generation-ai/validators/response-validator.service";
+
+@ApiTags("question-generation")
+@ApiBearerAuth("jwt-auth")
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.ADMIN)
+@Controller("question-generation")
+export class QuestionGenerationController {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly strategyResolver: GenerationStrategyResolver,
+    private readonly responseValidator: ResponseValidatorService,
+    @Inject(forwardRef(() => GenerationRetryService))
+    private readonly retryService: GenerationRetryService,
+  ) {}
+
+  @Post("generate")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary:
+      "Generate and save a question to the pool using SGE strategy context",
+  })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        templateId: { type: "string", example: "tpl_vocab" },
+        count: { type: "number", example: 1 },
+      },
+      required: ["templateId"],
+    },
+  })
+  async generateQuestion(
+    @Body("templateId") templateId: string,
+    @Body("count") count?: number,
+  ) {
+    const loopCount = count || 1;
+    const generated: any[] = [];
+
+    // 1. Load the template
+    const template = await this.prisma.template.findUnique({
+      where: { id: templateId },
+    });
+    if (!template) {
+      throw new NotFoundException(`Template with ID "${templateId}" not found`);
+    }
+
+    const topic = await this.prisma.topic.findFirst({
+      where: { code: template.conceptKey },
+    });
+    const topicId = topic?.id || "fallback-topic-id";
+
+    const sectionTopic = await this.prisma.sectionTopic.findFirst({
+      where: { topicId },
+    });
+    let sectionId = sectionTopic?.sectionId;
+    if (!sectionId) {
+      const fallbackSection = await this.prisma.examSection.findFirst();
+      sectionId = fallbackSection?.id || "fallback-section-id";
+    }
+
+    for (let i = 0; i < loopCount; i++) {
+      // 2. Resolve parameters, dataset items or relationship graphs
+      const context = await this.strategyResolver.resolve(templateId);
+
+      // 3. Trigger SGE AI prompt compilation and LLM generation
+      const templateData = {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        conceptKey: template.conceptKey,
+        difficultyLevel: template.difficultyLevel,
+        questionType: template.questionType,
+        structure: template.structure,
+        variableSchema: template.variableSchema,
+        constraints: template.constraints,
+        solutionSchema: template.solutionSchema,
+        generationStrategy: context.generationStrategy,
+      };
+
+      const result = await this.retryService.generateFromTemplate(
+        templateData,
+        context.variables,
+        3,
+        {
+          datasetItem: context.datasetItem,
+          logicalGraph: context.logicalGraph,
+        },
+      );
+
+      if (!result.success || !result.question) {
+        throw new BadRequestException(
+          `SGE AI generation failed: ${result.errors?.join("; ") || "Unknown error"}`,
+        );
+      }
+
+      // 4. Atomically persist SGE question details to pool
+      const q = await this.prisma.question.create({
+        data: {
+          questionText: result.question.question,
+          answer: result.question.correctAnswer || "",
+          explanation: result.question.explanation,
+          topicId,
+          sectionId,
+          difficulty: template.difficultyLevel,
+          source: "GENERATED",
+          templateId: template.id,
+          version: 1,
+          status: "ACTIVE",
+          metadata: {
+            options: result.question.options,
+            generationStrategy: context.generationStrategy,
+            variables: context.variables,
+            datasetItem: context.datasetItem,
+            logicalGraph: context.logicalGraph,
+          },
+        },
+      });
+
+      generated.push(q);
+    }
+
+    return {
+      success: true,
+      count: generated.length,
+      questions: generated,
+    };
+  }
+
+  @Post("preview")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      "Generate and return a preview question using SGE strategy context without saving",
+  })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        templateId: { type: "string", example: "tpl_vocab" },
+      },
+      required: ["templateId"],
+    },
+  })
+  async previewQuestion(@Body("templateId") templateId: string) {
+    const template = await this.prisma.template.findUnique({
+      where: { id: templateId },
+    });
+    if (!template) {
+      throw new NotFoundException(`Template with ID "${templateId}" not found`);
+    }
+
+    // 1. Resolve strategy context
+    const context = await this.strategyResolver.resolve(templateId);
+
+    // 2. Trigger SGE AI prompt builder and generation
+    const templateData = {
+      id: template.id,
+      name: template.name,
+      description: template.description,
+      conceptKey: template.conceptKey,
+      difficultyLevel: template.difficultyLevel,
+      questionType: template.questionType,
+      structure: template.structure,
+      variableSchema: template.variableSchema,
+      constraints: template.constraints,
+      solutionSchema: template.solutionSchema,
+      generationStrategy: context.generationStrategy,
+    };
+
+    const result = await this.retryService.generateFromTemplate(
+      templateData,
+      context.variables,
+      3,
+      {
+        datasetItem: context.datasetItem,
+        logicalGraph: context.logicalGraph,
+      },
+    );
+
+    if (!result.success || !result.question) {
+      throw new BadRequestException(
+        `SGE AI generation failed: ${result.errors?.join("; ") || "Unknown error"}`,
+      );
+    }
+
+    return {
+      success: true,
+      question: result.question,
+      context: {
+        generationStrategy: context.generationStrategy,
+        variables: context.variables,
+        datasetItem: context.datasetItem,
+        logicalGraph: context.logicalGraph,
+      },
+    };
+  }
+
+  @Post("validate")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Validate an existing pool question using strategy checks",
+  })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        questionId: { type: "string" },
+      },
+      required: ["questionId"],
+    },
+  })
+  async validateQuestion(@Body("questionId") questionId: string) {
+    const question = await this.prisma.question.findUnique({
+      where: { id: questionId },
+    });
+    if (!question) {
+      throw new NotFoundException(`Question with ID "${questionId}" not found`);
+    }
+
+    const template = question.templateId
+      ? await this.prisma.template.findUnique({
+          where: { id: question.templateId },
+        })
+      : null;
+
+    // Build generated question structure for validator
+    const metadata = (question.metadata as any) || {};
+    const validationQuestion = {
+      question: question.questionText,
+      options: metadata.options || [],
+      correctAnswer: question.answer,
+      answer: question.answer,
+      explanation: question.explanation,
+      difficulty: question.difficulty.toLowerCase(),
+      topic: "synonyms", // fallback topic check
+      metadata: {
+        generationStrategy: metadata.generationStrategy || "VARIABLE",
+        variables: metadata.variables || {},
+        datasetItem: metadata.datasetItem,
+        logicalGraph: metadata.logicalGraph,
+      },
+    };
+
+    let isValid = true;
+    let error: string | null = null;
+
+    try {
+      this.responseValidator.validate(
+        validationQuestion as any,
+        question.difficulty.toLowerCase(),
+        "synonyms",
+        template as any,
+      );
+    } catch (e: any) {
+      isValid = false;
+      error = e.message || String(e);
+    }
+
+    return {
+      success: true,
+      isValid,
+      error,
+    };
+  }
+}

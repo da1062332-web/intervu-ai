@@ -32,11 +32,14 @@ import { OptionGeneratorService } from "./generators/option-generator.service";
 import { ExplanationGeneratorService } from "./generators/explanation-generator.service";
 import { ResponseValidatorService } from "./validators/response-validator.service";
 
+import { GenerationModule } from "../generation/generation.module";
+
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
     QuestionBankModule,
+    forwardRef(() => GenerationModule),
     forwardRef(() => QuestionReviewModule),
   ],
   controllers: [PromptsController, GenerationAiController],
