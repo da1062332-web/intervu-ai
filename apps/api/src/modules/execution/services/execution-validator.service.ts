@@ -147,10 +147,17 @@ export class ExecutionValidatorService {
     // 3. Validate Attempt Status (Already Submitted Attempts)
     this.validateSubmissionState(testInstance);
 
-    // 4. Fetch associated TestConfig
-    const testConfig = await this.prisma.testConfig.findUnique({
-      where: { id: testInstance.testConfigId },
-    });
+    // 4. Fetch associated TestConfig or ExamConfig
+    let testConfig: any;
+    if ((testInstance as any).examConfigId) {
+      testConfig = await this.prisma.examConfig.findUnique({
+        where: { id: (testInstance as any).examConfigId },
+      });
+    } else if (testInstance.testConfigId) {
+      testConfig = await this.prisma.testConfig.findUnique({
+        where: { id: testInstance.testConfigId },
+      });
+    }
 
     if (!testConfig) {
       throw new NotFoundException({

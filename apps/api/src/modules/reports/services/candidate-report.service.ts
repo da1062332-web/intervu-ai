@@ -23,6 +23,8 @@ export class CandidateReportService {
       include: {
         user: true,
         testConfig: true,
+        // @ts-ignore
+        examConfig: true,
         candidateAnswers: true,
       },
     });
@@ -57,7 +59,9 @@ export class CandidateReportService {
     const allAttempts = await this.prisma.evaluationResult.findMany({
       where: {
         testInstance: {
-          testConfigId,
+          testConfigId: attempt.testConfigId,
+          // @ts-ignore
+          examConfigId: (attempt as any).examConfigId,
         },
       },
       select: {
@@ -103,16 +107,24 @@ export class CandidateReportService {
 
     return {
       candidate: {
-        fullName: attempt.user.fullName || "Candidate",
-        email: attempt.user.email,
+        fullName: (attempt as any).user?.fullName || "Candidate",
+        email: (attempt as any).user?.email,
       },
       attemptId: attempt.id,
-      assessmentName: attempt.testConfig.displayName,
+      assessmentName:
+        (attempt as any).testConfig?.displayName ||
+        (attempt as any).examConfig?.name ||
+        "Unknown Assessment",
       submittedAt: attempt.submittedAt || attempt.updatedAt,
       assessment: {
-        id: attempt.testConfigId,
-        title: attempt.testConfig.displayName,
-        totalDurationSeconds: attempt.testConfig.totalDurationSeconds,
+        id: attempt.testConfigId || (attempt as any).examConfigId || "",
+        title:
+          (attempt as any).testConfig?.displayName ||
+          (attempt as any).examConfig?.name ||
+          "Unknown Assessment",
+        totalDurationSeconds:
+          (attempt as any).testConfig?.totalDurationSeconds ||
+          ((attempt as any).examConfig ? (attempt as any).examConfig.durationMinutes * 60 : 0),
       },
       score,
       rank,
@@ -174,6 +186,8 @@ export class CandidateReportService {
       where: { id: attemptId },
       include: {
         testConfig: true,
+        // @ts-ignore
+        examConfig: true,
       },
     });
 
@@ -195,7 +209,9 @@ export class CandidateReportService {
     const allAttempts = await this.prisma.evaluationResult.findMany({
       where: {
         testInstance: {
-          testConfigId,
+          testConfigId: attempt.testConfigId,
+          // @ts-ignore
+          examConfigId: (attempt as any).examConfigId,
         },
       },
       select: {
@@ -218,8 +234,11 @@ export class CandidateReportService {
 
     return {
       assessment: {
-        id: attempt.testConfigId,
-        title: attempt.testConfig.displayName,
+        id: attempt.testConfigId || (attempt as any).examConfigId || "",
+        title:
+          (attempt as any).testConfig?.displayName ||
+          (attempt as any).examConfig?.name ||
+          "Unknown Assessment",
       },
       score,
       percentile,

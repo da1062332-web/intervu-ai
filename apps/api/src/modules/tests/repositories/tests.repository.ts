@@ -11,10 +11,19 @@ export class TestsRepository {
    */
 
   async findAllActiveConfigs(): Promise<any[]> {
-    return this.prisma.testConfig.findMany({
+    const testConfigs = await this.prisma.testConfig.findMany({
       where: { isActive: true },
       include: { sections: true },
       orderBy: { displayName: "asc" },
     });
+    const examConfigs = await this.prisma.examConfig.findMany({
+      where: { isActive: true },
+      include: { sections: true },
+    });
+    
+    return [
+      ...testConfigs.map((tc) => ({ ...tc, isExam: false })),
+      ...examConfigs.map((ec) => ({ ...ec, isExam: true })),
+    ];
   }
 }
