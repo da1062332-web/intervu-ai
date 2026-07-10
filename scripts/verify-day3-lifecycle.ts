@@ -31,23 +31,23 @@ async function run() {
           { name: "oldPrice", type: "integer", min: 100, max: 200 },
           { name: "margin", type: "integer", min: 10, max: 50 },
           { name: "newPrice", type: "formula", formula: "oldPrice + margin" },
-          { name: "currency", type: "static", value: "USD" }
-        ]
+          { name: "currency", type: "static", value: "USD" },
+        ],
       },
       constraints: {
-        constraints: [
-          { rule: "newPrice > oldPrice", severity: "critical" }
-        ]
+        constraints: [{ rule: "newPrice > oldPrice", severity: "critical" }],
       },
       structure: {
-        questionTemplate: "A product price increased from {{oldPrice}} to {{newPrice}} {{currency}}.",
-        optionsTemplate: ["{{oldPrice}}", "{{newPrice}}", "99", "120"]
+        questionTemplate:
+          "A product price increased from {{oldPrice}} to {{newPrice}} {{currency}}.",
+        optionsTemplate: ["{{oldPrice}}", "{{newPrice}}", "99", "120"],
       },
       solutionSchema: {
         formula: "newPrice",
-        explanationTemplate: "The new price is computed as {{oldPrice}} + {{margin}} = {{newPrice}}."
-      }
-    }
+        explanationTemplate:
+          "The new price is computed as {{oldPrice}} + {{margin}} = {{newPrice}}.",
+      },
+    },
   });
   console.log(`Template created: ${template.id}\n`);
 
@@ -60,29 +60,51 @@ async function run() {
     templateRepo,
     templateVarRepo,
     templateRuleRepo,
-    null
+    null,
   );
-  const controller = new QuestionsController(null, prisma as any, templateService, undefined);
+  const controller = new QuestionsController(
+    null,
+    prisma as any,
+    templateService,
+    undefined,
+  );
 
   // 2. Test Batch Generation (Task Group 1)
   console.log("1. Testing Batch Generation (10 Questions)...");
   try {
-    const single = await templateService.generateQuestionForTemplate(template.id);
+    const single = await templateService.generateQuestionForTemplate(
+      template.id,
+    );
     console.log("Single generation succeeded:", single.question.id);
   } catch (err: any) {
     console.error("Single generation failed with error:", err);
   }
-  const batchResult = await templateService.generateBatchForTemplate(template.id, 10, true);
-  console.log(`Batch Result: Generated: ${batchResult.generated}, Failed: ${batchResult.failed}`);
+  const batchResult = await templateService.generateBatchForTemplate(
+    template.id,
+    10,
+    true,
+  );
+  console.log(
+    `Batch Result: Generated: ${batchResult.generated}, Failed: ${batchResult.failed}`,
+  );
   if (batchResult.generated !== 10) {
-    throw new Error(`Batch generation failed. Expected 10 questions, got ${batchResult.generated}`);
+    throw new Error(
+      `Batch generation failed. Expected 10 questions, got ${batchResult.generated}`,
+    );
   }
   const qIds = batchResult.questionIds;
 
   // 3. Test Question Search and Filtering (Task Group 2 & 7)
   console.log("\n2. Testing Search and Filtering API...");
   const searchResult = await controller.search(
-    undefined, undefined, undefined, undefined, "nodejs_event_loop", template.id, "MEDIUM", "GENERATED"
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    "nodejs_event_loop",
+    template.id,
+    "MEDIUM",
+    "GENERATED",
   );
   console.log(`Search Result Count: ${searchResult.data.length}`);
   if (searchResult.data.length === 0) {
@@ -100,10 +122,12 @@ async function run() {
 
   // Verify approval state
   const approvedQuestion = await prisma.generatedQuestion.findUnique({
-    where: { id: qToApproveId }
+    where: { id: qToApproveId },
   });
   if ((approvedQuestion?.metadata as any)?.status !== "APPROVED") {
-    throw new Error("Approved status was not correctly persisted in metadata JSON.");
+    throw new Error(
+      "Approved status was not correctly persisted in metadata JSON.",
+    );
   }
 
   // 5. Test Reject (Task Group 3)
@@ -118,17 +142,24 @@ async function run() {
   // 6. Test Publish (Task Group 3)
   console.log("\n5. Testing Publish API...");
   const publishResult = await controller.publishQuestion(qToApproveId);
-  console.log(`Publish Result Status: ${publishResult.status}, Main Question ID: ${publishResult.mainQuestionId}`);
+  console.log(
+    `Publish Result Status: ${publishResult.status}, Main Question ID: ${publishResult.mainQuestionId}`,
+  );
   if (publishResult.status !== "PUBLISHED") {
     throw new Error("Publish action failed.");
   }
 
   // Verify it exists in main Question table
   const mainQuestion = await prisma.question.findUnique({
-    where: { id: publishResult.mainQuestionId }
+    where: { id: publishResult.mainQuestionId },
   });
-  if (!mainQuestion || mainQuestion.questionText !== approvedQuestion?.questionText) {
-    throw new Error("Published question not found or content mismatch in main Question pool.");
+  if (
+    !mainQuestion ||
+    mainQuestion.questionText !== approvedQuestion?.questionText
+  ) {
+    throw new Error(
+      "Published question not found or content mismatch in main Question pool.",
+    );
   }
 
   // 7. Test Editing (Task Group 5)
@@ -138,7 +169,7 @@ async function run() {
     questionText: "Edited Question Text?",
     options: ["Option A", "Option B", "Option C"],
     correctAnswer: "Option A",
-    explanation: "Edited Explanation text."
+    explanation: "Edited Explanation text.",
   });
   console.log(`Edit Result: ${editResult.success ? "SUCCESS" : "FAIL"}`);
   if (editResult.data.questionText !== "Edited Question Text?") {
@@ -148,24 +179,30 @@ async function run() {
   // 8. Test Regeneration (Task Group 4)
   console.log("\n7. Testing Regeneration API...");
   const regenResult = await controller.regenerateQuestion(qToRejectId);
-  console.log(`Regeneration Result: Status: ${regenResult.data.status}, Version: ${regenResult.data.version}`);
+  console.log(
+    `Regeneration Result: Status: ${regenResult.data.status}, Version: ${regenResult.data.version}`,
+  );
   if (regenResult.data.version !== 2) {
     throw new Error("Regeneration versioning failed.");
   }
 
   // Verify previous version snapshot
   const regeneratedQuestion = await prisma.generatedQuestion.findUnique({
-    where: { id: qToRejectId }
+    where: { id: qToRejectId },
   });
   const history = (regeneratedQuestion?.metadata as any)?.previousVersions;
   if (!history || history.length === 0 || history[0].version !== 1) {
-    throw new Error("History snapshot lineage not found for regenerated question.");
+    throw new Error(
+      "History snapshot lineage not found for regenerated question.",
+    );
   }
 
   // 9. Test Statistics API (Task Group 8)
   console.log("\n8. Testing Statistics API...");
   const stats = await controller.getStatistics();
-  console.log(`Stats: Generated: ${stats.generated}, Approved: ${stats.approved}, Published: ${stats.published}, Rejected: ${stats.rejected}`);
+  console.log(
+    `Stats: Generated: ${stats.generated}, Approved: ${stats.approved}, Published: ${stats.published}, Rejected: ${stats.rejected}`,
+  );
   if (stats.published === 0) {
     throw new Error("Statistics API failed to track published questions.");
   }
@@ -176,7 +213,7 @@ async function run() {
   const deleteResult = await controller.deleteQuestion(qToDeleteId);
   console.log(`Delete Result message: ${deleteResult.message}`);
   const deletedQ = await prisma.generatedQuestion.findUnique({
-    where: { id: qToDeleteId }
+    where: { id: qToDeleteId },
   });
   if (deletedQ) {
     throw new Error("Delete API failed to remove generated question record.");
@@ -186,14 +223,14 @@ async function run() {
   console.log("\nCleaning up test data...");
   // Clear main questions copied
   await prisma.question.deleteMany({
-    where: { templateId: template.id }
+    where: { templateId: template.id },
   });
   // Clear generated questions pool
   await prisma.generatedQuestion.deleteMany({
-    where: { templateId: template.id }
+    where: { templateId: template.id },
   });
   await prisma.template.delete({
-    where: { id: template.id }
+    where: { id: template.id },
   });
   console.log("Cleanup complete.");
 

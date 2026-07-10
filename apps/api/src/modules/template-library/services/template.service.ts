@@ -221,6 +221,15 @@ export class TemplateService {
       ...(validated.structure && {
         structure: validated.structure as Prisma.InputJsonValue,
       }),
+      ...(validated.variableSchema && {
+        variableSchema: validated.variableSchema as Prisma.InputJsonValue,
+      }),
+      ...(validated.solutionSchema && {
+        solutionSchema: validated.solutionSchema as Prisma.InputJsonValue,
+      }),
+      ...(validated.constraints && {
+        constraints: validated.constraints as Prisma.InputJsonValue,
+      }),
     };
     const template = await this.templateRepository.create(createInput);
 
@@ -277,6 +286,12 @@ export class TemplateService {
       updateInput.questionType = validated.questionType;
     if (validated.structure !== undefined)
       updateInput.structure = validated.structure as Prisma.InputJsonValue;
+    if (validated.variableSchema !== undefined)
+      updateInput.variableSchema = validated.variableSchema as Prisma.InputJsonValue;
+    if (validated.solutionSchema !== undefined)
+      updateInput.solutionSchema = validated.solutionSchema as Prisma.InputJsonValue;
+    if (validated.constraints !== undefined)
+      updateInput.constraints = validated.constraints as Prisma.InputJsonValue;
 
     const updated = await this.templateRepository.update(id, updateInput);
 
@@ -1001,7 +1016,9 @@ export class TemplateService {
       variablesDef = varSchema.variables;
     } else {
       // Fetch from repository relation
-      const dbVars = await this.templateVariableRepository.findAll({ templateId: id });
+      const dbVars = await this.templateVariableRepository.findAll({
+        templateId: id,
+      });
       variablesDef = dbVars.map((v) => ({
         name: v.variableName,
         type: v.variableType.toLowerCase(),
@@ -1018,7 +1035,9 @@ export class TemplateService {
       constraintsDef = consSchema.constraints;
     } else {
       // Fetch from repository relation
-      const dbRules = await this.templateRuleRepository.findAll({ templateId: id });
+      const dbRules = await this.templateRuleRepository.findAll({
+        templateId: id,
+      });
       constraintsDef = dbRules.map((r) => ({
         rule: (r.ruleConfig as any).pattern || (r.ruleConfig as any).rule || "",
         severity: "critical",
@@ -1027,7 +1046,8 @@ export class TemplateService {
 
     // 4. Resolve structure (questionTemplate, optionsTemplate, etc.)
     const structure = (template.structure as any) || {};
-    const questionTemplate = structure.questionTemplate || structure.prompt || "";
+    const questionTemplate =
+      structure.questionTemplate || structure.prompt || "";
     const optionsTemplate = structure.optionsTemplate || [];
 
     // 5. Resolve solution / explanation
@@ -1074,10 +1094,15 @@ export class TemplateService {
         questionText = hydrateString(questionTemplate, parameters);
 
         // Render explanation
-        explanation = hydrateString(explanationTemplate || solutionSchema.explanationTemplate || "", parameters);
+        explanation = hydrateString(
+          explanationTemplate || solutionSchema.explanationTemplate || "",
+          parameters,
+        );
 
         // Render options
-        options = optionsTemplate.map((opt: string) => hydrateString(opt, parameters));
+        options = optionsTemplate.map((opt: string) =>
+          hydrateString(opt, parameters),
+        );
 
         // Generate distractors if none provided
         if (options.length === 0) {
@@ -1090,19 +1115,27 @@ export class TemplateService {
           }
           const distractors = generateDistractors(ansVal);
           const isAnswerInt = Number.isInteger(ansVal);
-          const formattedAnswer = String(roundToPrecision(ansVal, isAnswerInt ? 1 : 0.01));
+          const formattedAnswer = String(
+            roundToPrecision(ansVal, isAnswerInt ? 1 : 0.01),
+          );
           options = prng.shuffle([formattedAnswer, ...distractors]);
         }
 
         // Generate Answer
         if (solutionSchema.formula) {
           try {
-            const ansVal = evaluateExpression(solutionSchema.formula, parameters);
+            const ansVal = evaluateExpression(
+              solutionSchema.formula,
+              parameters,
+            );
             correctAnswer = String(ansVal);
           } catch {
             correctAnswer = "0";
           }
-        } else if (solutionSchema.correctVariable && parameters.hasOwnProperty(solutionSchema.correctVariable)) {
+        } else if (
+          solutionSchema.correctVariable &&
+          parameters.hasOwnProperty(solutionSchema.correctVariable)
+        ) {
           correctAnswer = String(parameters[solutionSchema.correctVariable]);
         } else if (solutionSchema.correctOptionIndex !== undefined) {
           const idx = solutionSchema.correctOptionIndex;
@@ -1111,7 +1144,10 @@ export class TemplateService {
           }
         } else if (finalAnswerExpression) {
           try {
-            const ansVal = evaluateExpression(finalAnswerExpression, parameters);
+            const ansVal = evaluateExpression(
+              finalAnswerExpression,
+              parameters,
+            );
             correctAnswer = String(ansVal);
           } catch {
             correctAnswer = "0";
@@ -1121,7 +1157,10 @@ export class TemplateService {
         }
 
         // Option Validation (QGES Stage 7)
-        if (options.length === 0 || options.some((o) => !o || o.trim() === "")) {
+        if (
+          options.length === 0 ||
+          options.some((o) => !o || o.trim() === "")
+        ) {
           continue;
         }
         if (new Set(options).size !== options.length) {
@@ -1142,7 +1181,9 @@ export class TemplateService {
 
         // Hash generated question for duplicate checking
         questionHash = createHash("sha256")
-          .update(`${template.id}_${questionText}_${options.join(",")}_${correctAnswer}`)
+          .update(
+            `${template.id}_${questionText}_${options.join(",")}_${correctAnswer}`,
+          )
           .digest("hex");
 
         // Check if question exists in GeneratedQuestion table
@@ -1166,7 +1207,8 @@ export class TemplateService {
         success: false,
         error: {
           code: "CONSTRAINT_VIOLATION",
-          message: "Failed to generate variables satisfying constraints after 20 attempts",
+          message:
+            "Failed to generate variables satisfying constraints after 20 attempts",
         },
       });
     }
@@ -1264,33 +1306,62 @@ export class TemplateService {
     const errors: string[] = [];
 
     if (!question.questionText || question.questionText.trim() === "") {
-      errors.push("Question text exists validation failed: questionText is missing or empty");
+      errors.push(
+        "Question text exists validation failed: questionText is missing or empty",
+      );
     }
 
-    if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
-      errors.push("Options complete validation failed: options must be a non-empty array");
+    if (
+      !question.options ||
+      !Array.isArray(question.options) ||
+      question.options.length === 0
+    ) {
+      errors.push(
+        "Options complete validation failed: options must be a non-empty array",
+      );
     } else {
       if (question.options.some((o) => !o || String(o).trim() === "")) {
-        errors.push("Reject on empty option: options must not contain empty values");
+        errors.push(
+          "Reject on empty option: options must not contain empty values",
+        );
       }
       if (new Set(question.options).size !== question.options.length) {
         errors.push("Reject on duplicate options: options must be unique");
       }
     }
 
-    if (question.correctAnswer === undefined || question.correctAnswer === null || String(question.correctAnswer).trim() === "") {
-      errors.push("Reject on missing answer: correctAnswer is missing or empty");
-    } else if (question.options && Array.isArray(question.options) && !question.options.includes(String(question.correctAnswer))) {
-      errors.push("Exactly one correct answer validation failed: correctAnswer must match one of the options");
+    if (
+      question.correctAnswer === undefined ||
+      question.correctAnswer === null ||
+      String(question.correctAnswer).trim() === ""
+    ) {
+      errors.push(
+        "Reject on missing answer: correctAnswer is missing or empty",
+      );
+    } else if (
+      question.options &&
+      Array.isArray(question.options) &&
+      !question.options.includes(String(question.correctAnswer))
+    ) {
+      errors.push(
+        "Exactly one correct answer validation failed: correctAnswer must match one of the options",
+      );
     }
 
-    const explanationText = typeof question.solution === "string" ? question.solution : String(question.solution || "");
+    const explanationText =
+      typeof question.solution === "string"
+        ? question.solution
+        : String(question.solution || "");
     if (!question.solution || explanationText.trim() === "") {
-      errors.push("Explanation exists validation failed: solution/explanation is missing or empty");
+      errors.push(
+        "Explanation exists validation failed: solution/explanation is missing or empty",
+      );
     }
 
     if (!question.templateId || question.templateId.trim() === "") {
-      errors.push("Template reference exists validation failed: templateId is missing");
+      errors.push(
+        "Template reference exists validation failed: templateId is missing",
+      );
     }
 
     if (!question.conceptKey || question.conceptKey.trim() === "") {
@@ -1298,7 +1369,9 @@ export class TemplateService {
     }
 
     if (!question.difficultyLevel || question.difficultyLevel.trim() === "") {
-      errors.push("Difficulty assigned validation failed: difficultyLevel is missing");
+      errors.push(
+        "Difficulty assigned validation failed: difficultyLevel is missing",
+      );
     }
 
     return {
@@ -1308,6 +1381,8 @@ export class TemplateService {
   }
 
   private hasUnresolvedPlaceholders(text: string): boolean {
-    return /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/.test(text) || /\{([^}]+)\}/.test(text);
+    return (
+      /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/.test(text) || /\{([^}]+)\}/.test(text)
+    );
   }
 }

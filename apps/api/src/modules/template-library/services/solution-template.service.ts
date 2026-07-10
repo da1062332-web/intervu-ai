@@ -101,9 +101,10 @@ export class SolutionTemplateService {
     }
 
     const question = result.question;
-    const optionsText = question.options && question.options.length > 0
-      ? `\n\nOptions:\n${question.options.map((o, idx) => `${String.fromCharCode(65 + idx)}) ${o}`).join("\n")}`
-      : "";
+    const optionsText =
+      question.options && question.options.length > 0
+        ? `\n\nOptions:\n${question.options.map((o, idx) => `${String.fromCharCode(65 + idx)}) ${o}`).join("\n")}`
+        : "";
 
     const solutionText = `Question:\n${question.question}${optionsText}\n\nCorrect Answer: ${question.correctAnswer}\n\nExplanation:\n${question.explanation}`;
 

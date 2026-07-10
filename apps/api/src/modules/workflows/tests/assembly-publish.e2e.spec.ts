@@ -43,7 +43,13 @@ describe("Workflow E2E — Assembly Versioning & Rollback Safety Gates", () => {
         {
           provide: AssemblyPersistenceService,
           useValue: {
-            getAssembly: jest.fn().mockResolvedValue({ id: "asm-001", configId: "cfg-1", status: "PUBLISHED" }),
+            getAssembly: jest
+              .fn()
+              .mockResolvedValue({
+                id: "asm-001",
+                configId: "cfg-1",
+                status: "PUBLISHED",
+              }),
           },
         },
         {
@@ -62,36 +68,48 @@ describe("Workflow E2E — Assembly Versioning & Rollback Safety Gates", () => {
     versionService = module.get<AssemblyVersionService>(AssemblyVersionService);
 
     // Mock findById of Repository
-    jest.spyOn(module.get<AssemblyVersionRepository>(AssemblyVersionRepository), "findById").mockResolvedValue({
-      id: "ver-1",
-      assemblyId: "asm-001",
-      version: 1,
-      snapshot: {
-        sections: [
-          {
-            sectionKey: "sec-01",
-            displayName: "Coding",
-            durationSeconds: 1000,
-            questionCount: 1,
-            orderIndex: 0,
-            questions: [],
-          },
-        ],
-        totalDurationSeconds: 1000,
-        totalQuestions: 1,
-      },
-      createdAt: new Date(),
-    } as any);
+    jest
+      .spyOn(
+        module.get<AssemblyVersionRepository>(AssemblyVersionRepository),
+        "findById",
+      )
+      .mockResolvedValue({
+        id: "ver-1",
+        assemblyId: "asm-001",
+        version: 1,
+        snapshot: {
+          sections: [
+            {
+              sectionKey: "sec-01",
+              displayName: "Coding",
+              durationSeconds: 1000,
+              questionCount: 1,
+              orderIndex: 0,
+              questions: [],
+            },
+          ],
+          totalDurationSeconds: 1000,
+          totalQuestions: 1,
+        },
+        createdAt: new Date(),
+      } as any);
 
     // Mock replaceAssemblyWithTransaction
     jest
-      .spyOn(module.get<AssembledTestRepository>(AssembledTestRepository), "replaceAssemblyWithTransaction")
+      .spyOn(
+        module.get<AssembledTestRepository>(AssembledTestRepository),
+        "replaceAssemblyWithTransaction",
+      )
       .mockResolvedValue(undefined);
   });
 
   it("should fail rollback validation if the assembly is PUBLISHED and has active test instances running", async () => {
     // Attempt rollback to version 1
-    const callRestore = versionService.restoreVersion("asm-001", "ver-1", "admin-01");
+    const callRestore = versionService.restoreVersion(
+      "asm-001",
+      "ver-1",
+      "admin-01",
+    );
 
     await expect(callRestore).rejects.toThrow(BadRequestException);
     await expect(callRestore).rejects.toThrow(/active candidate sessions/);
@@ -101,7 +119,11 @@ describe("Workflow E2E — Assembly Versioning & Rollback Safety Gates", () => {
     // 1. Mock count to return 0 active sessions
     prismaMock.testInstance.count.mockResolvedValue(0);
 
-    const result = await versionService.restoreVersion("asm-001", "ver-1", "admin-01");
+    const result = await versionService.restoreVersion(
+      "asm-001",
+      "ver-1",
+      "admin-01",
+    );
 
     // Success returns the assembly snapshot
     expect(result).toBeDefined();

@@ -1,11 +1,13 @@
-import { Injectable, Inject, InternalServerErrorException } from "@nestjs/common";
+import {
+  Injectable,
+  Inject,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { LLMAdapter } from "../adapters/llm-adapter.interface";
 
 @Injectable()
 export class QuestionGeneratorService {
-  constructor(
-    @Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter,
-  ) {}
+  constructor(@Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter) {}
 
   /**
    * Generates a raw response string from the LLM adapter based on the built prompt.

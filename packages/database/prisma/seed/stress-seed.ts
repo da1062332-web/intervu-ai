@@ -11,7 +11,9 @@ async function main() {
   const section = await prisma.examSection.findFirst();
 
   if (!topic || !section) {
-    console.error("❌ Error: Please run the standard db seed first to create topics and sections.");
+    console.error(
+      "❌ Error: Please run the standard db seed first to create topics and sections.",
+    );
     process.exit(1);
   }
 
@@ -44,7 +46,12 @@ async function main() {
         const diff = difficulties[(i + j) % difficulties.length];
         const questionText = `Stress Test Question ${i + j}: What is the value of variable X in context of ${topic.name}?`;
         const answer = `Option A_${i + j}`;
-        const options = [`Option A_${i + j}`, `Option B_${i + j}`, `Option C_${i + j}`, `Option D_${i + j}`];
+        const options = [
+          `Option A_${i + j}`,
+          `Option B_${i + j}`,
+          `Option C_${i + j}`,
+          `Option D_${i + j}`,
+        ];
         const explanation = `This is a stress test explanation for question number ${i + j}.`;
 
         questionsData.push({
@@ -124,7 +131,9 @@ async function main() {
     take: 20,
   });
   const searchDuration = Date.now() - searchStart;
-  console.log(`⏱️ Search Latency: ${searchDuration}ms (Found ${searchResults.length} matches)`);
+  console.log(
+    `⏱️ Search Latency: ${searchDuration}ms (Found ${searchResults.length} matches)`,
+  );
 
   // Test 2: Filter Latency (Filter by Topic & Difficulty)
   const filterStart = Date.now();
@@ -137,7 +146,9 @@ async function main() {
     take: 50,
   });
   const filterDuration = Date.now() - filterStart;
-  console.log(`⏱️ Filter Latency: ${filterDuration}ms (Found ${filterResults.length} matches)`);
+  console.log(
+    `⏱️ Filter Latency: ${filterDuration}ms (Found ${filterResults.length} matches)`,
+  );
 
   // Test 3: Pagination Latency (Skip/Take over large offset)
   const pageStart = Date.now();
@@ -150,7 +161,9 @@ async function main() {
     orderBy: { createdAt: "desc" },
   });
   const pageDuration = Date.now() - pageStart;
-  console.log(`⏱️ Pagination Latency: ${pageDuration}ms (Loaded ${pageResults.length} records)`);
+  console.log(
+    `⏱️ Pagination Latency: ${pageDuration}ms (Loaded ${pageResults.length} records)`,
+  );
 
   console.log("\n--- Benchmarks Complete ---");
 
@@ -169,7 +182,7 @@ async function main() {
       search: searchDuration < 300 ? "PASSED" : "FAILED",
       filter: filterDuration < 500 ? "PASSED" : "FAILED",
       pagination: pageDuration < 200 ? "PASSED" : "FAILED",
-    }
+    },
   };
 
   console.log("Result JSON:", JSON.stringify(report, null, 2));

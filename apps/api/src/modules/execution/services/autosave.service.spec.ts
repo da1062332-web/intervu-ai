@@ -50,25 +50,45 @@ describe("AutosaveService", () => {
   });
 
   it("should return expired if timer validation fails", async () => {
-    cacheService.get.mockResolvedValueOnce({ id: "test-123", expiresAt: new Date(Date.now() + 10000) });
+    cacheService.get.mockResolvedValueOnce({
+      id: "test-123",
+      expiresAt: new Date(Date.now() + 10000),
+    });
     cacheService.get.mockResolvedValueOnce({ remainingTimeSeconds: 50 });
-    
-    validator.validateTimer.mockReturnValue({ isExpired: true, actualRemainingTime: -10 });
 
-    const result = await service.saveAnswer("test-123", "user-1", { questionId: "q1", answer: "A", timeSpentSeconds: 10 });
-    
+    validator.validateTimer.mockReturnValue({
+      isExpired: true,
+      actualRemainingTime: -10,
+    });
+
+    const result = await service.saveAnswer("test-123", "user-1", {
+      questionId: "q1",
+      answer: "A",
+      timeSpentSeconds: 10,
+    });
+
     expect(result.status).toBe("expired");
   });
 
   it("should save answer and return saved status", async () => {
-    cacheService.get.mockResolvedValueOnce({ id: "test-123", expiresAt: new Date(Date.now() + 10000) });
+    cacheService.get.mockResolvedValueOnce({
+      id: "test-123",
+      expiresAt: new Date(Date.now() + 10000),
+    });
     cacheService.get.mockResolvedValueOnce({ remainingTimeSeconds: 50 });
-    
-    validator.validateTimer.mockReturnValue({ isExpired: false, actualRemainingTime: 40 });
+
+    validator.validateTimer.mockReturnValue({
+      isExpired: false,
+      actualRemainingTime: 40,
+    });
     prisma.$transaction.mockResolvedValue(undefined);
 
-    const result = await service.saveAnswer("test-123", "user-1", { questionId: "q1", answer: "A", timeSpentSeconds: 10 });
-    
+    const result = await service.saveAnswer("test-123", "user-1", {
+      questionId: "q1",
+      answer: "A",
+      timeSpentSeconds: 10,
+    });
+
     expect(result.status).toBe("saved");
     expect(cacheService.set).toHaveBeenCalledTimes(2); // once for answer, once for state
     expect(prisma.$transaction).toHaveBeenCalled();

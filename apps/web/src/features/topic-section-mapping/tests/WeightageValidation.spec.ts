@@ -15,8 +15,8 @@ describe('WeightageValidation', () => {
   it('validates 0-100 total boundaries correctly', () => {
     act(() => {
       useTopicMappingStore.getState().setWeightages({
-        't1': 60,
-        't2': 40
+        t1: 60,
+        t2: 40,
       });
     });
 
@@ -28,7 +28,7 @@ describe('WeightageValidation', () => {
   it('calculates incomplete weightage correctly', () => {
     act(() => {
       useTopicMappingStore.getState().setWeightages({
-        't1': 60,
+        t1: 60,
       });
     });
 

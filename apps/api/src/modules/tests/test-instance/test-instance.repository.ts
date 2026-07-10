@@ -5,7 +5,8 @@ import { createId } from "@paralleldrive/cuid2";
 
 export type CreateTestInstanceData = {
   userId: string;
-  testConfigId: string;
+  testConfigId?: string;
+  examConfigId?: string;
   status: TestInstanceStatus;
   expiresAt: Date;
   sections: {
@@ -36,6 +37,7 @@ export class TestInstanceRepository {
           id: instanceId,
           userId: data.userId,
           testConfigId: data.testConfigId,
+          examConfigId: data.examConfigId,
           status: data.status,
           expiresAt: data.expiresAt,
         },
@@ -92,7 +94,10 @@ export class TestInstanceRepository {
     return this.prisma.testInstance.findFirst({
       where: {
         userId,
-        testConfigId,
+        OR: [
+          { testConfigId: testConfigId },
+          { examConfigId: testConfigId }
+        ],
         status: { in: ["CREATED", "IN_PROGRESS"] },
       },
     });
@@ -109,7 +114,10 @@ export class TestInstanceRepository {
     return this.prisma.testInstance.count({
       where: {
         userId,
-        testConfigId,
+        OR: [
+          { testConfigId: testConfigId },
+          { examConfigId: testConfigId }
+        ],
       },
     });
   }

@@ -31,7 +31,9 @@ describe("Workflow E2E — Generation to Review Queue", () => {
           templateId: "rust-var",
           version: 1,
           status: "DRAFT",
-          metadata: { options: ["let x = 5;", "var x = 5;", "int x = 5;", "x = 5;"] },
+          metadata: {
+            options: ["let x = 5;", "var x = 5;", "int x = 5;", "x = 5;"],
+          },
         }),
         findUnique: jest.fn(),
         update: jest.fn(),
@@ -69,7 +71,9 @@ describe("Workflow E2E — Generation to Review Queue", () => {
         {
           provide: QuestionValidationService,
           useValue: {
-            validateQuestion: jest.fn().mockResolvedValue({ isValid: true, errors: [] }),
+            validateQuestion: jest
+              .fn()
+              .mockResolvedValue({ isValid: true, errors: [] }),
           },
         },
         {
@@ -98,7 +102,9 @@ describe("Workflow E2E — Generation to Review Queue", () => {
               totalQuestions: 20,
               difficultyDistribution: { easy: 100, medium: 0, hard: 0 },
               topics: [{ id: "top-rust", name: "Rust Basics" }],
-              sections: [{ id: "sec-rust", code: "sec-rust", name: "Rust Basics" }],
+              sections: [
+                { id: "sec-rust", code: "sec-rust", name: "Rust Basics" },
+              ],
             }),
           },
         },
@@ -115,11 +121,17 @@ describe("Workflow E2E — Generation to Review Queue", () => {
       ],
     }).compile();
 
-    orchestrator = module.get<GenerationOrchestratorService>(GenerationOrchestratorService);
+    orchestrator = module.get<GenerationOrchestratorService>(
+      GenerationOrchestratorService,
+    );
   });
 
   it("should generate a question, save options to metadata, and create the version 1 snapshot", async () => {
-    const result = await orchestrator.generateQuestions("exam-rust", "sec-rust", 1);
+    const result = await orchestrator.generateQuestions(
+      "exam-rust",
+      "sec-rust",
+      1,
+    );
 
     expect(result.success).toBe(true);
     expect(result.generated).toBe(1);

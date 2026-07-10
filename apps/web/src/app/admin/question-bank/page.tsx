@@ -15,18 +15,20 @@ export default function QuestionBankPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  const poolQuestions = questions.filter(q => q.status === 'Approved' || q.status === 'Published');
-  const selectableQuestions = poolQuestions.filter(q => q.status === 'Approved');
+  const poolQuestions = questions.filter(
+    (q) => q.status === 'Approved' || q.status === 'Published',
+  );
+  const selectableQuestions = poolQuestions.filter((q) => q.status === 'Approved');
 
   const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const handleToggleSelectAll = () => {
     if (selectedIds.length === selectableQuestions.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(selectableQuestions.map(q => q.id));
+      setSelectedIds(selectableQuestions.map((q) => q.id));
     }
   };
 
@@ -47,28 +49,26 @@ export default function QuestionBankPage() {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2 mb-6">
+    <div className='flex-1 space-y-4 p-8 pt-6'>
+      <div className='flex items-center justify-between space-y-2 mb-6'>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Question Bank</h2>
-          <p className="text-muted-foreground mt-1">Browse, filter, and publish approved questions for use in assessments.</p>
+          <h2 className='text-3xl font-bold tracking-tight'>Question Bank</h2>
+          <p className='text-muted-foreground mt-1'>
+            Browse, filter, and publish approved questions for use in assessments.
+          </p>
         </div>
       </div>
 
-      <PoolFilters 
-        filters={filters}
-        setFilters={setFilters}
-        onClear={handleClearFilters}
-      />
+      <PoolFilters filters={filters} setFilters={setFilters} onClear={handleClearFilters} />
 
-      <div className="mt-6">
-        <PublishToolbar 
+      <div className='mt-6'>
+        <PublishToolbar
           selectedCount={selectedIds.length}
           onPublish={handlePublish}
           isProcessing={isPublishing}
         />
 
-        <QuestionPoolTable 
+        <QuestionPoolTable
           questions={questions}
           isLoading={isLoading}
           selectedIds={selectedIds}

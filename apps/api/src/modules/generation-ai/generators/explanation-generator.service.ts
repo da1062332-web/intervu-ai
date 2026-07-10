@@ -16,9 +16,12 @@ export class ExplanationGeneratorService {
 
     // Check presence of required sections
     const hasConcept = cleanExp.includes("concept");
-    const hasFormula = cleanExp.includes("formula") || cleanExp.includes("reasoning");
-    const hasSteps = cleanExp.includes("step-by-step") || cleanExp.includes("solution");
-    const hasFinalAnswer = cleanExp.includes("final answer") || cleanExp.includes("answer");
+    const hasFormula =
+      cleanExp.includes("formula") || cleanExp.includes("reasoning");
+    const hasSteps =
+      cleanExp.includes("step-by-step") || cleanExp.includes("solution");
+    const hasFinalAnswer =
+      cleanExp.includes("final answer") || cleanExp.includes("answer");
 
     const missingSections: string[] = [];
     if (!hasConcept) missingSections.push("Concept");

@@ -20,7 +20,10 @@ describe("Template Sub-resources Integration Tests", () => {
       controllers: [TemplateController],
       providers: [
         { provide: TemplateService, useValue: templateServiceMock },
-        { provide: SolutionTemplateService, useValue: solutionTemplateServiceMock },
+        {
+          provide: SolutionTemplateService,
+          useValue: solutionTemplateServiceMock,
+        },
       ],
     }).compile();
 

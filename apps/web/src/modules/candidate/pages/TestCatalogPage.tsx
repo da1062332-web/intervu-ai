@@ -119,6 +119,7 @@ export function TestCatalogPage() {
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
+          totalItems={pagination.total}
         />
       )}
     </div>

@@ -47,11 +47,21 @@ async function run() {
   });
   const generatedIds = generatedQs.map((q) => q.id);
   if (generatedIds.length > 0) {
-    await prisma.questionReservation.deleteMany({ where: { questionId: { in: generatedIds } } });
-    await prisma.questionUsage.deleteMany({ where: { questionId: { in: generatedIds } } });
-    await prisma.questionReview.deleteMany({ where: { questionId: { in: generatedIds } } });
-    await prisma.questionVersion.deleteMany({ where: { questionId: { in: generatedIds } } });
-    await prisma.reviewAuditLog.deleteMany({ where: { questionId: { in: generatedIds } } });
+    await prisma.questionReservation.deleteMany({
+      where: { questionId: { in: generatedIds } },
+    });
+    await prisma.questionUsage.deleteMany({
+      where: { questionId: { in: generatedIds } },
+    });
+    await prisma.questionReview.deleteMany({
+      where: { questionId: { in: generatedIds } },
+    });
+    await prisma.questionVersion.deleteMany({
+      where: { questionId: { in: generatedIds } },
+    });
+    await prisma.reviewAuditLog.deleteMany({
+      where: { questionId: { in: generatedIds } },
+    });
     await prisma.question.deleteMany({ where: { id: { in: generatedIds } } });
   }
 
@@ -76,7 +86,8 @@ async function run() {
 
   const avgQualityScore =
     auditLogs.length > 0
-      ? auditLogs.reduce((acc, log) => acc + Number(log.qualityScore), 0) / auditLogs.length
+      ? auditLogs.reduce((acc, log) => acc + Number(log.qualityScore), 0) /
+        auditLogs.length
       : 0;
 
   const duplicateCount = auditLogs.filter(
@@ -86,7 +97,9 @@ async function run() {
   ).length;
 
   console.log("\n--------------------------------------------------");
-  console.log(`⏱️ Completed in ${duration}ms (${(duration / 1000).toFixed(2)}s)`);
+  console.log(
+    `⏱️ Completed in ${duration}ms (${(duration / 1000).toFixed(2)}s)`,
+  );
   console.log(`✅ Success Count: ${totalGenerated}`);
   console.log(`❌ Failure Count: ${totalFailures}`);
   console.log(`📈 Success Rate: ${successRate.toFixed(1)}%`);
@@ -128,7 +141,10 @@ All successfully generated questions were validated against:
 The refactoring of option length checks, near-duplicate detection checks, and multi-criteria scoring has achieved a stable, production-ready question generation engine. Retries are fired and logged cleanly in the audit database.
 `;
 
-  const reportPath = path.join(__dirname, "../ai-generation-validation-report.md");
+  const reportPath = path.join(
+    __dirname,
+    "../ai-generation-validation-report.md",
+  );
   fs.writeFileSync(reportPath, reportContent);
   console.log(`\nReport successfully written to: ${reportPath}`);
 

@@ -18,19 +18,21 @@ export class PublicTestsService {
       search: query.search,
       skip,
       take: limit,
-      sortBy: query.sortBy || "displayName",
+      sortBy: query.sortBy === 'displayName' ? 'name' : (query.sortBy || "name"),
       sortOrder: query.sortOrder || "asc",
     });
 
     const totalPages = Math.ceil(result.total / limit);
 
     return {
-      tests: result.items.map((t) => ({
+      tests: result.items.map((t: any) => ({
         configId: t.id,
-        name: t.displayName,
-        company: t.companyName,
-        duration: t.totalDurationSeconds,
-        sections: t.sections.map((s: any) => s.displayName),
+        name: t.isExam ? t.name : t.displayName,
+        company: t.isExam ? "Intervu" : (t.companyName || "Unknown Company"),
+        duration: t.isExam ? t.durationMinutes * 60 : t.totalDurationSeconds,
+        sections: t.isExam 
+          ? t.sections?.map((s: any) => s.name) || [] 
+          : t.sections?.map((s: any) => s.displayName) || [],
       })),
       pagination: {
         page,

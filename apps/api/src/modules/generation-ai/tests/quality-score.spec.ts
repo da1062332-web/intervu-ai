@@ -26,7 +26,8 @@ describe("QuestionQualityService", () => {
     const q: GeneratedQuestionDto = {
       question: "This is a very long and clear question text.",
       answer: "Valid Answer",
-      explanation: "Concept\nMath.\n\nFormula / Reasoning\nRules.\n\nStep-by-Step Solution\n1. Solve.\n\nFinal Answer\nValid Answer",
+      explanation:
+        "Concept\nMath.\n\nFormula / Reasoning\nRules.\n\nStep-by-Step Solution\n1. Solve.\n\nFinal Answer\nValid Answer",
       difficulty: "Medium",
       topic: "Percentages",
     };
@@ -47,7 +48,8 @@ describe("QuestionQualityService", () => {
     const q: GeneratedQuestionDto = {
       question: "This is a valid question text.",
       answer: "Answer",
-      explanation: "Concept\nMath.\n\nFormula / Reasoning\nRules.\n\nStep-by-Step Solution\n1. Solve.\n\nFinal Answer\nAnswer",
+      explanation:
+        "Concept\nMath.\n\nFormula / Reasoning\nRules.\n\nStep-by-Step Solution\n1. Solve.\n\nFinal Answer\nAnswer",
       difficulty: "Easy",
       topic: "Probability",
     };

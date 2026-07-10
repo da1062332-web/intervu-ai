@@ -73,9 +73,6 @@ model Template {
   variableSchema             Json                         @default("{}")
   constraints                Json                         @default("{}")
   solutionSchema             Json                         @default("{}")
-  generationStrategy         GenerationStrategy           @default(VARIABLE)
-  datasetConfig              Json                         @default("{}")
-  hybridConfig               Json                         @default("{}")
   version                    Int                          @default(1)
   isActive                   Boolean                      @default(true)
   name                       String                       @default("Legacy Template")
@@ -87,7 +84,12 @@ model Template {
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
   deletedAt                  DateTime?
+  datasetConfig              Json                         @default("{}")
+  generationStrategy         GenerationStrategy           @default(VARIABLE)
+  hybridConfig               Json                         @default("{}")
   generatedQuestions         GeneratedQuestion[]
+  QuestionGenerationAuditLog QuestionGenerationAuditLog[]
+  QuestionGenerationJob      QuestionGenerationJob[]
   creator                    User?                        @relation(fields: [creatorId], references: [id])
   tests                      Test[]
   questions                  Question[]
@@ -95,8 +97,6 @@ model Template {
   previews                   TemplatePreview[]
   rules                      TemplateRule[]
   variables                  TemplateVariable[]
-  QuestionGenerationJob      QuestionGenerationJob[]
-  QuestionGenerationAuditLog QuestionGenerationAuditLog[]
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -243,18 +243,20 @@ model GeneratedQuestion {
 model TestInstance {
   id                  String                   @id @default(cuid())
   userId              String
-  testConfigId        String
+  testConfigId        String?
   status              TestInstanceStatus       @default(CREATED)
   startedAt           DateTime?
   expiresAt           DateTime?
   submittedAt         DateTime?
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
+  examConfigId        String?
   candidateAnswers    CandidateAnswer[]
   evaluationResult    EvaluationResult?
   executionState      ExecutionState?
   submission          Submission?
-  testConfig          TestConfig               @relation(fields: [testConfigId], references: [id])
+  examConfig          ExamConfig?              @relation(fields: [examConfigId], references: [id])
+  testConfig          TestConfig?              @relation(fields: [testConfigId], references: [id])
   user                User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions           TestInstanceQuestion[]
   sections            TestInstanceSection[]
@@ -462,8 +464,10 @@ model ExamConfig {
   versions               ExamConfigVersion[]
   sections               ExamSection[]
   ruleFlags              RuleFlags?
+  testInstances          TestInstance[]
   assembledTests         AssembledTest[]
   blueprint              Blueprint?
+  enrollments            CandidateEnrollment[]
   workflow               ExamWorkflow?
   readinessReports       ReadinessReport[]
 
@@ -1137,16 +1141,17 @@ model EvaluationReprocessLog {
 }
 
 model CandidateEnrollment {
-  id          String           @id @default(cuid())
-  candidateId String           @map("candidate_id")
-  testId      String           @map("test_id")
-  status      EnrollmentStatus @default(ENROLLED)
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-  user        User             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  testConfig  TestConfig       @relation(fields: [testId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  candidateId  String           @map("candidate_id")
+  testId       String?          @map("test_id")
+  status       EnrollmentStatus @default(ENROLLED)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  examConfigId String?          @map("exam_config_id")
+  user         User             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  examConfig   ExamConfig?      @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  testConfig   TestConfig?      @relation(fields: [testId], references: [id], onDelete: Cascade)
 
-  @@unique([candidateId, testId])
   @@index([candidateId])
   @@index([testId])
   @@index([status])
@@ -1240,6 +1245,77 @@ model AdminAlert {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("admin_alerts")
+}
+
+model Dataset {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?
+  type        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  items       DatasetItem[]
+}
+
+model DatasetItem {
+  id         String   @id @default(cuid())
+  datasetId  String
+  content    String
+  difficulty String
+  topic      String
+  tags       String[]
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  dataset    Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@index([datasetId])
+  @@index([difficulty])
+  @@index([topic])
+}
+
+model Scenario {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  entitySchema   Json     @default("{}")
+  relationSchema Json     @default("{}")
+  rules          Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model QuestionGenerationJob {
+  id           String                       @id @default(cuid())
+  templateId   String
+  status       QuestionGenerationJobStatus  @default(PENDING)
+  totalCount   Int
+  successCount Int                          @default(0)
+  failureCount Int                          @default(0)
+  strategy     GenerationStrategy
+  context      Json                         @default("{}")
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
+  auditLogs    QuestionGenerationAuditLog[]
+  template     Template                     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([status])
+}
+
+model QuestionGenerationAuditLog {
+  id         String                 @id @default(cuid())
+  jobId      String?
+  templateId String
+  level      String                 @default("INFO")
+  event      String
+  metadata   Json                   @default("{}")
+  createdAt  DateTime               @default(now())
+  job        QuestionGenerationJob? @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  template   Template               @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([templateId])
 }
 
 enum TopicStatus {
@@ -1356,82 +1432,9 @@ enum GenerationStrategy {
   HYBRID
 }
 
-model Dataset {
-  id          String        @id @default(cuid())
-  name        String        @unique
-  description String?
-  type        String // READING_PASSAGE, VOCABULARY, SENTENCE
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  items       DatasetItem[]
-}
-
-model DatasetItem {
-  id         String   @id @default(cuid())
-  datasetId  String
-  dataset    Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  content    String // The text, passage, or vocabulary word
-  difficulty String // EASY, MEDIUM, HARD
-  topic      String
-  tags       String[]
-  metadata   Json     @default("{}") // synonyms, distractors, length, reading time
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([datasetId])
-  @@index([difficulty])
-  @@index([topic])
-}
-
-model Scenario {
-  id             String   @id @default(cuid())
-  name           String
-  description    String?
-  entitySchema   Json     @default("{}")
-  relationSchema Json     @default("{}")
-  rules          Json     @default("{}")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
 enum QuestionGenerationJobStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
   FAILED
-}
-
-model QuestionGenerationJob {
-  id           String                      @id @default(cuid())
-  templateId   String
-  status       QuestionGenerationJobStatus @default(PENDING)
-  totalCount   Int
-  successCount Int                         @default(0)
-  failureCount Int                         @default(0)
-  strategy     GenerationStrategy
-  context      Json                        @default("{}")
-  createdAt    DateTime                    @default(now())
-  updatedAt    DateTime                    @updatedAt
-
-  template  Template                     @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  auditLogs QuestionGenerationAuditLog[]
-
-  @@index([templateId])
-  @@index([status])
-}
-
-model QuestionGenerationAuditLog {
-  id         String   @id @default(cuid())
-  jobId      String?
-  templateId String
-  level      String   @default("INFO") // INFO, WARN, ERROR
-  event      String // e.g., "VALIDATION_FAILED", "LLM_GENERATED"
-  metadata   Json     @default("{}")
-  createdAt  DateTime @default(now())
-
-  job      QuestionGenerationJob? @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  template Template               @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  @@index([jobId])
-  @@index([templateId])
 }

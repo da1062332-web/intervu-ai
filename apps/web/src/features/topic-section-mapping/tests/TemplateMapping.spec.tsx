@@ -36,7 +36,7 @@ describe('TemplateMappingModal', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <TemplateMappingModal isOpen={true} onClose={() => {}} concept={mockConcept as any} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText(/Assign Templates to Concept A/i)).toBeInTheDocument();
@@ -53,12 +53,12 @@ describe('TemplateMappingModal', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <TemplateMappingModal isOpen={true} onClose={() => {}} concept={mockConcept as any} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const checkbox = screen.getByRole('checkbox');
     fireEvent.click(checkbox);
-    
+
     const saveButton = screen.getByRole('button', { name: /Assign 1 Template/i });
     fireEvent.click(saveButton);
 

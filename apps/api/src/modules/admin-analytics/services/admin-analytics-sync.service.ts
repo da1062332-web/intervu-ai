@@ -232,7 +232,10 @@ export class AdminAnalyticsSyncService {
       take: 5,
     });
     for (const job of activeFailedJobs) {
-      const existing = findAlert("GENERATION_FAILURE", (meta) => meta.jobId === job.id);
+      const existing = findAlert(
+        "GENERATION_FAILURE",
+        (meta) => meta.jobId === job.id,
+      );
       if (!existing) {
         await this.prisma.adminAlert.create({
           data: {
@@ -252,7 +255,10 @@ export class AdminAnalyticsSyncService {
       take: 5,
     });
     for (const assembly of failedAssemblies) {
-      const existing = findAlert("ASSEMBLY_FAILURE", (meta) => meta.assemblyId === assembly.id);
+      const existing = findAlert(
+        "ASSEMBLY_FAILURE",
+        (meta) => meta.assemblyId === assembly.id,
+      );
       if (!existing) {
         await this.prisma.adminAlert.create({
           data: {

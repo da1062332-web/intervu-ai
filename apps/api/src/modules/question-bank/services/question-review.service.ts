@@ -64,7 +64,10 @@ export class QuestionReviewService {
       );
 
       // Create snapshot for audit trail
-      await this.versionService.createVersionSnapshot({ ...updated, options }, tx);
+      await this.versionService.createVersionSnapshot(
+        { ...updated, options },
+        tx,
+      );
 
       // Save review logs
       await this.reviewRepo.create(
@@ -129,7 +132,10 @@ export class QuestionReviewService {
       );
 
       // Create snapshot
-      await this.versionService.createVersionSnapshot({ ...updated, options }, tx);
+      await this.versionService.createVersionSnapshot(
+        { ...updated, options },
+        tx,
+      );
 
       // Save review logs
       await this.reviewRepo.create(
@@ -191,7 +197,10 @@ export class QuestionReviewService {
       );
 
       // Create snapshot
-      await this.versionService.createVersionSnapshot({ ...updated, options }, tx);
+      await this.versionService.createVersionSnapshot(
+        { ...updated, options },
+        tx,
+      );
 
       // Save review logs
       await this.reviewRepo.create(

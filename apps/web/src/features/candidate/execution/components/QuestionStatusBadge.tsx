@@ -16,11 +16,10 @@ export const QuestionStatusBadge = memo(function QuestionStatusBadge({
   onClick,
 }: QuestionStatusBadgeProps) {
   const styles: Record<QuestionStatus, string> = {
-    ANSWERED: 'bg-primary text-primary-foreground border-transparent',
-    UNANSWERED:
-      'bg-background text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground',
-    CURRENT: 'bg-primary/20 text-primary border-primary font-bold',
-    MARKED_FOR_REVIEW: 'bg-orange-500 text-white border-transparent',
+    ANSWERED: 'bg-green-600 text-white border-transparent',
+    UNANSWERED: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200',
+    CURRENT: 'bg-orange-500 text-white border-transparent font-bold',
+    MARKED_FOR_REVIEW: 'bg-purple-600 text-white border-transparent',
   };
 
   return (

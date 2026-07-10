@@ -21,12 +21,13 @@ export class EnrollmentRepository extends BaseRepository<
   }
 
   async findByUserAndTest(candidateId: string, testId: string) {
-    return this.db.candidateEnrollment.findUnique({
+    return this.db.candidateEnrollment.findFirst({
       where: {
-        candidateId_testId: {
-          candidateId,
-          testId,
-        },
+        candidateId,
+        OR: [
+          { testId },
+          { examConfigId: testId }
+        ]
       },
     });
   }
@@ -45,6 +46,13 @@ export class EnrollmentRepository extends BaseRepository<
             totalQuestions: true,
           },
         },
+        examConfig: {
+          select: {
+            name: true,
+            durationMinutes: true,
+            totalQuestions: true,
+          }
+        }
       },
       orderBy: {
         createdAt: "desc",

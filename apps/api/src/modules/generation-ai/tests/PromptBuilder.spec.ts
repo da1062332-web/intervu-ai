@@ -1,4 +1,7 @@
-import { PromptBuilderService, PromptBuilderInput } from "../prompts/prompt-builder.service";
+import {
+  PromptBuilderService,
+  PromptBuilderInput,
+} from "../prompts/prompt-builder.service";
 
 describe("PromptBuilderService", () => {
   let service: PromptBuilderService;

@@ -16,7 +16,10 @@ export const useGenerateAssessment = () => {
       toast.success('Assessment generation job enqueued successfully');
     },
     onError: (error: any) => {
-      const msg = error?.response?.data?.message || error?.message || 'Failed to enqueue assessment generation';
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to enqueue assessment generation';
       toast.error(msg);
     },
     retry: 2,

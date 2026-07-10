@@ -47,8 +47,10 @@ export function generateVariables(
       const randomIdx = prng.nextInt(0, options.length - 1);
       context[variable.name] = options[randomIdx];
     } else if (variable.type === "integer") {
-      const min = (variable as any).min !== undefined ? (variable as any).min : 0;
-      const max = (variable as any).max !== undefined ? (variable as any).max : 100;
+      const min =
+        (variable as any).min !== undefined ? (variable as any).min : 0;
+      const max =
+        (variable as any).max !== undefined ? (variable as any).max : 100;
       const step = (variable as any).step;
       if (step !== undefined && step > 0) {
         const stepsCount = Math.floor((max - min) / step);
@@ -58,10 +60,15 @@ export function generateVariables(
         context[variable.name] = prng.nextInt(min, max);
       }
     } else if (variable.type === "decimal") {
-      const min = (variable as any).min !== undefined ? (variable as any).min : 0.0;
-      const max = (variable as any).max !== undefined ? (variable as any).max : 1.0;
+      const min =
+        (variable as any).min !== undefined ? (variable as any).min : 0.0;
+      const max =
+        (variable as any).max !== undefined ? (variable as any).max : 1.0;
       const step = (variable as any).step;
-      const precision = (variable as any).precision !== undefined ? (variable as any).precision : 2;
+      const precision =
+        (variable as any).precision !== undefined
+          ? (variable as any).precision
+          : 2;
       let rawValue: number;
       if (step !== undefined && step > 0) {
         const stepsCount = Math.floor((max - min) / step);
@@ -72,7 +79,10 @@ export function generateVariables(
       }
       context[variable.name] = parseFloat(rawValue.toFixed(precision));
     } else if (variable.type === "static") {
-      context[variable.name] = (variable as any).value !== undefined ? (variable as any).value : (variable as any).defaultValue;
+      context[variable.name] =
+        (variable as any).value !== undefined
+          ? (variable as any).value
+          : (variable as any).defaultValue;
     } else if (variable.type === "boolean") {
       context[variable.name] = prng.next() < 0.5;
     }

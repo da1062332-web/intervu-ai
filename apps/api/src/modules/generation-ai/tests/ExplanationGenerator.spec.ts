@@ -45,7 +45,9 @@ describe("ExplanationGeneratorService", () => {
 
     expect(() =>
       service.validateExplanation(explanation, correctAnswer),
-    ).toThrow("Explanation is missing required section headings: Formula / Reasoning");
+    ).toThrow(
+      "Explanation is missing required section headings: Formula / Reasoning",
+    );
   });
 
   it("should throw error if correctAnswer is not referenced in explanation", () => {

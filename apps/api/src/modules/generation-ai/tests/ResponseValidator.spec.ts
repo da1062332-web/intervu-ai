@@ -29,42 +29,42 @@ describe("ResponseValidatorService", () => {
     const q = getValidMcq();
     q.question = "Short";
 
-    expect(() =>
-      service.validate(q, "easy", "addition"),
-    ).toThrow("Question text must be at least 10 characters long");
+    expect(() => service.validate(q, "easy", "addition")).toThrow(
+      "Question text must be at least 10 characters long",
+    );
   });
 
   it("should throw error if MCQ correct answer is missing from options", () => {
     const q = getValidMcq();
     q.correctAnswer = "99";
 
-    expect(() =>
-      service.validate(q, "easy", "addition"),
-    ).toThrow("Correct answer \"99\" is not present in options");
+    expect(() => service.validate(q, "easy", "addition")).toThrow(
+      'Correct answer "99" is not present in options',
+    );
   });
 
   it("should throw error if duplicate options exist", () => {
     const q = getValidMcq();
     q.options = ["12", "12", "18", "20"];
 
-    expect(() =>
-      service.validate(q, "easy", "addition"),
-    ).toThrow("MCQ options contain duplicate values");
+    expect(() => service.validate(q, "easy", "addition")).toThrow(
+      "MCQ options contain duplicate values",
+    );
   });
 
   it("should throw error if there are raw curly brace placeholder leakage in question", () => {
     const q = getValidMcq();
     q.question = "What is the sum of {a} and 7?";
 
-    expect(() =>
-      service.validate(q, "easy", "addition"),
-    ).toThrow("Question text contains unresolved template placeholder tokens");
+    expect(() => service.validate(q, "easy", "addition")).toThrow(
+      "Question text contains unresolved template placeholder tokens",
+    );
   });
 
   it("should throw error if there is difficulty mismatch", () => {
-    expect(() =>
-      service.validate(getValidMcq(), "hard", "addition"),
-    ).toThrow("Difficulty mismatch: requested \"hard\" but got \"easy\"");
+    expect(() => service.validate(getValidMcq(), "hard", "addition")).toThrow(
+      'Difficulty mismatch: requested "hard" but got "easy"',
+    );
   });
 
   it("should throw error if there is topic mismatch", () => {

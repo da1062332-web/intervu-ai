@@ -1,7 +1,10 @@
 import type { ExamConfig } from '@/services/exam-configs/types';
 import type { Assessment, ValidationResult } from '../types';
 
-export const validateAssessment = (blueprint: ExamConfig, assessment: Assessment): ValidationResult => {
+export const validateAssessment = (
+  blueprint: ExamConfig,
+  assessment: Assessment,
+): ValidationResult => {
   const errors: string[] = [];
   const warnings: string[] = [];
   const suggestions: string[] = [];
@@ -23,7 +26,10 @@ export const validateAssessment = (blueprint: ExamConfig, assessment: Assessment
   let actualQuestions = 0;
 
   if (assessment.sections) {
-    actualQuestions = assessment.sections.reduce((acc, sec) => acc + (sec.questions?.length || 0), 0);
+    actualQuestions = assessment.sections.reduce(
+      (acc, sec) => acc + (sec.questions?.length || 0),
+      0,
+    );
   } else if (assessment.questions) {
     actualQuestions = assessment.questions.length;
   }
@@ -37,10 +43,11 @@ export const validateAssessment = (blueprint: ExamConfig, assessment: Assessment
   // Duplicate detection
   const questionIds = new Set<string>();
   const duplicates = new Set<string>();
-  
-  const allQuestions = assessment.questions || (assessment.sections?.flatMap(s => s.questions || []) || []);
-  
-  allQuestions.forEach(q => {
+
+  const allQuestions =
+    assessment.questions || assessment.sections?.flatMap((s) => s.questions || []) || [];
+
+  allQuestions.forEach((q) => {
     if (questionIds.has(q.id)) {
       duplicates.add(q.id);
     } else {
@@ -55,15 +62,17 @@ export const validateAssessment = (blueprint: ExamConfig, assessment: Assessment
 
   // Validate Difficulty Distribution
   if (allQuestions.length > 5) {
-    const difficulties = new Set(allQuestions.map(q => q.difficulty));
+    const difficulties = new Set(allQuestions.map((q) => q.difficulty));
     if (difficulties.size === 1) {
-      warnings.push(`All questions are of difficulty ${Array.from(difficulties)[0]}. Is this intended?`);
+      warnings.push(
+        `All questions are of difficulty ${Array.from(difficulties)[0]}. Is this intended?`,
+      );
     }
   }
 
   // Section-wise distribution
   if (assessment.sections) {
-    assessment.sections.forEach(sec => {
+    assessment.sections.forEach((sec) => {
       if (!sec.questions || sec.questions.length === 0) {
         errors.push(`Section "${sec.name}" has no questions.`);
       }
@@ -71,21 +80,25 @@ export const validateAssessment = (blueprint: ExamConfig, assessment: Assessment
   }
 
   // Topic and Concept-wise distribution
-  const missingTopic = allQuestions.filter(q => !q.topicId);
+  const missingTopic = allQuestions.filter((q) => !q.topicId);
   if (missingTopic.length > 0) {
     warnings.push(`${missingTopic.length} questions are missing topic assignments.`);
   }
 
-  const missingConcept = allQuestions.filter(q => !q.conceptKey);
+  const missingConcept = allQuestions.filter((q) => !q.conceptKey);
   if (missingConcept.length > 0) {
     warnings.push(`${missingConcept.length} questions are missing concept assignments.`);
   }
 
   // Template usage and weightage (assuming if template is missing, it's a structural issue)
   // Check if at least some questions use advanced concepts or standard patterns
-  const standardQuestions = allQuestions.filter(q => q.conceptKey === 'standard' || !q.conceptKey);
+  const standardQuestions = allQuestions.filter(
+    (q) => q.conceptKey === 'standard' || !q.conceptKey,
+  );
   if (standardQuestions.length === allQuestions.length && allQuestions.length > 5) {
-    suggestions.push('Consider diversifying the concept weightage (e.g., using advanced templates).');
+    suggestions.push(
+      'Consider diversifying the concept weightage (e.g., using advanced templates).',
+    );
   }
 
   return {

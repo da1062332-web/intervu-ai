@@ -88,68 +88,77 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
     });
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
 
   return (
-    <div className='space-y-6 max-w-xl'>
-      <div>
-        <h3 className='text-lg font-medium'>Difficulty Distribution</h3>
-        <p className='text-sm text-muted-foreground'>
+    <div className='max-w-2xl mx-auto space-y-8 py-4'>
+      <div className='space-y-1'>
+        <h3 className='text-2xl font-semibold tracking-tight'>Difficulty Distribution</h3>
+        <p className='text-muted-foreground'>
           Configure the percentage distribution of Easy, Medium, and Hard questions. The total must
           equal 100%.
         </p>
       </div>
 
-      <div className='space-y-4'>
-        <div className='space-y-2'>
-          <Label htmlFor='easy-percentage'>Easy %</Label>
-          <Input
-            id='easy-percentage'
-            type='number'
-            min={0}
-            max={100}
-            value={easyPercentage}
-            onChange={(e) => handlePercentageChange(e.target.value, setEasyPercentage)}
-          />
+      <div className='grid gap-6 p-6 border rounded-xl bg-card shadow-sm'>
+        <div className='flex items-center gap-4'>
+          <Label htmlFor='easy-percentage' className='w-24 text-right font-medium'>Easy %</Label>
+          <div className='flex-1'>
+            <Input
+              id='easy-percentage'
+              type='number'
+              min={0}
+              max={100}
+              className='text-lg font-medium'
+              value={easyPercentage}
+              onChange={(e) => handlePercentageChange(e.target.value, setEasyPercentage)}
+            />
+          </div>
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='medium-percentage'>Medium %</Label>
-          <Input
-            id='medium-percentage'
-            type='number'
-            min={0}
-            max={100}
-            value={mediumPercentage}
-            onChange={(e) => handlePercentageChange(e.target.value, setMediumPercentage)}
-          />
+        <div className='flex items-center gap-4'>
+          <Label htmlFor='medium-percentage' className='w-24 text-right font-medium'>Medium %</Label>
+          <div className='flex-1'>
+            <Input
+              id='medium-percentage'
+              type='number'
+              min={0}
+              max={100}
+              className='text-lg font-medium'
+              value={mediumPercentage}
+              onChange={(e) => handlePercentageChange(e.target.value, setMediumPercentage)}
+            />
+          </div>
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='hard-percentage'>Hard %</Label>
-          <Input
-            id='hard-percentage'
-            type='number'
-            min={0}
-            max={100}
-            value={hardPercentage}
-            onChange={(e) => handlePercentageChange(e.target.value, setHardPercentage)}
-          />
+        <div className='flex items-center gap-4'>
+          <Label htmlFor='hard-percentage' className='w-24 text-right font-medium'>Hard %</Label>
+          <div className='flex-1'>
+            <Input
+              id='hard-percentage'
+              type='number'
+              min={0}
+              max={100}
+              className='text-lg font-medium'
+              value={hardPercentage}
+              onChange={(e) => handlePercentageChange(e.target.value, setHardPercentage)}
+            />
+          </div>
         </div>
       </div>
 
-      <div className='flex items-center justify-between pt-4 border-t'>
-        <div className='font-medium text-lg flex items-center space-x-2'>
-          <span>Total:</span>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-muted/30'>
+        <div className='font-medium text-lg flex items-center space-x-3'>
+          <span className='text-muted-foreground'>Total Distribution:</span>
           <span
-            className={
-              isValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-            }
+            className={`text-2xl font-bold ${
+              isValid ? 'text-green-600 dark:text-green-400' : 'text-destructive'
+            }`}
           >
             {totalPercentage}%
           </span>
           <span
-            className={`text-sm px-2.5 py-0.5 rounded-full font-medium ${
+            className={`text-sm px-3 py-1 rounded-full font-semibold shadow-sm ${
               isValid
                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                 : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
@@ -158,7 +167,7 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
             {isValid ? '✓ VALID' : '✗ INVALID'}
           </span>
         </div>
-        <Button onClick={handleSave} disabled={isPending}>
+        <Button onClick={handleSave} disabled={isPending || !isValid} size="lg" className='w-full sm:w-auto font-semibold shadow-sm'>
           {isPending ? 'Saving...' : 'Save Distribution'}
         </Button>
       </div>
