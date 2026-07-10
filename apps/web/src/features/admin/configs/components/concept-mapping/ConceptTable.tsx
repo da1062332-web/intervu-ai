@@ -21,7 +21,13 @@ interface ConceptTableProps {
   onMapTemplates?: (concept: ConceptMapping) => void;
 }
 
-export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate, onMapTemplates }: ConceptTableProps) {
+export function ConceptTable({
+  concepts,
+  isLoading,
+  onEdit,
+  onDeactivate,
+  onMapTemplates,
+}: ConceptTableProps) {
   if (isLoading) {
     return (
       <div className='space-y-4'>
@@ -80,9 +86,9 @@ export function ConceptTable({ concepts, isLoading, onEdit, onDeactivate, onMapT
                     variant='outline'
                     size='sm'
                     onClick={() => onMapTemplates?.(concept)}
-                    className="h-7 text-xs"
+                    className='h-7 text-xs'
                   >
-                    <Link className="h-3 w-3 mr-1" /> Map
+                    <Link className='h-3 w-3 mr-1' /> Map
                   </Button>
                 </TableCell>
                 <TableCell>

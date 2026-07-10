@@ -111,7 +111,7 @@ export class ConceptMappingService {
     try {
       return await this.repository.assignTemplates(conceptId, templateIds);
     } catch (e: any) {
-      if (e.message.includes('not found')) {
+      if (e.message.includes("not found")) {
         throw new NotFoundException(e.message);
       }
       throw e;

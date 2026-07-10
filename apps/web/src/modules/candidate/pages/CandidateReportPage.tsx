@@ -165,10 +165,13 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
   const handleExport = async (format: 'pdf' | 'json') => {
     try {
       setIsExporting(true);
-      const blob = await apiClient.request<Blob>(`/reports/export/${format}?attemptId=${attemptId}`, {
-        responseType: 'blob',
-        skipErrorToast: true
-      });
+      const blob = await apiClient.request<Blob>(
+        `/reports/export/${format}?attemptId=${attemptId}`,
+        {
+          responseType: 'blob',
+          skipErrorToast: true,
+        },
+      );
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

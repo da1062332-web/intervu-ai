@@ -22,7 +22,9 @@ export function evaluateConstraints(
       const ruleText = constraint.rule.trim();
 
       // Check if it's a Range rule: "varName Range min-max"
-      const rangeMatch = ruleText.match(/^(\w+)\s+Range\s+([-\d.]+)-([-\d.]+)$/i);
+      const rangeMatch = ruleText.match(
+        /^(\w+)\s+Range\s+([-\d.]+)-([-\d.]+)$/i,
+      );
       if (rangeMatch) {
         const [_, varName, minStr, maxStr] = rangeMatch;
         const val = context[varName];

@@ -11,7 +11,7 @@ export const useGeneratedQuestions = (filters?: QuestionFilters) => {
 
 export const useApproveQuestion = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => questionPoolApi.approveQuestion(id),
     onSuccess: () => {
@@ -22,7 +22,7 @@ export const useApproveQuestion = () => {
 
 export const useRejectQuestion = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => questionPoolApi.rejectQuestion(id),
     onSuccess: () => {
@@ -33,7 +33,7 @@ export const useRejectQuestion = () => {
 
 export const usePublishQuestion = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => questionPoolApi.publishQuestion(id),
     onSuccess: () => {
@@ -44,9 +44,9 @@ export const usePublishQuestion = () => {
 
 export const useUpdateQuestion = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<GeneratedQuestion> }) => 
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<GeneratedQuestion> }) =>
       questionPoolApi.updateQuestion(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['generated-questions'] });
@@ -56,7 +56,7 @@ export const useUpdateQuestion = () => {
 
 export const useRegenerateQuestion = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => questionPoolApi.regenerateQuestion(id),
     onSuccess: () => {

@@ -57,10 +57,16 @@ export class DuplicateDetectorService {
     });
 
     const candidateTemplateId = (generated.metadata as any)?.templateId || null;
-    const candidateVars = (generated.metadata as any)?.variables || generated.metadata || {};
+    const candidateVars =
+      (generated.metadata as any)?.variables || generated.metadata || {};
 
     const areVariableSetsEqual = (varsA: any, varsB: any): boolean => {
-      if (!varsA || !varsB || typeof varsA !== "object" || typeof varsB !== "object") {
+      if (
+        !varsA ||
+        !varsB ||
+        typeof varsA !== "object" ||
+        typeof varsB !== "object"
+      ) {
         return false;
       }
       const keysA = Object.keys(varsA).sort();
@@ -68,7 +74,10 @@ export class DuplicateDetectorService {
       if (keysA.length !== keysB.length) return false;
       return keysA.every((k, idx) => {
         if (keysB[idx] !== k) return false;
-        return String(varsA[k]).trim().toLowerCase() === String(varsB[k]).trim().toLowerCase();
+        return (
+          String(varsA[k]).trim().toLowerCase() ===
+          String(varsB[k]).trim().toLowerCase()
+        );
       });
     };
 

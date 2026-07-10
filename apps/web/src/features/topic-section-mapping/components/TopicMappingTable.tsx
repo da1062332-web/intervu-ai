@@ -105,10 +105,10 @@ export const TopicMappingTable = React.memo(
     if (topics.length === 0) {
       return (
         <div className='p-8'>
-          <EmptyState 
-            title="No Topics Assigned"
-            description="No topics have been mapped to this section yet."
-            icon={<BookX className="w-8 h-8 text-gray-400" />}
+          <EmptyState
+            title='No Topics Assigned'
+            description='No topics have been mapped to this section yet.'
+            icon={<BookX className='w-8 h-8 text-gray-400' />}
           />
         </div>
       );
@@ -120,11 +120,13 @@ export const TopicMappingTable = React.memo(
           <Table>
             <TableHeader>
               <ShadcnTableRow>
-                <TableHead scope="col">Topic Name</TableHead>
-                <TableHead scope="col">Topic Code</TableHead>
-                <TableHead scope="col">Weightage</TableHead>
-                <TableHead scope="col">Created At</TableHead>
-                <TableHead scope="col" className='text-right'>Actions</TableHead>
+                <TableHead scope='col'>Topic Name</TableHead>
+                <TableHead scope='col'>Topic Code</TableHead>
+                <TableHead scope='col'>Weightage</TableHead>
+                <TableHead scope='col'>Created At</TableHead>
+                <TableHead scope='col' className='text-right'>
+                  Actions
+                </TableHead>
               </ShadcnTableRow>
             </TableHeader>
             <TableBody>

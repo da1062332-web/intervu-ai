@@ -15,7 +15,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Search, Download, Play, Eye, ArrowUpDown, History } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Download,
+  Play,
+  Eye,
+  ArrowUpDown,
+  History,
+} from 'lucide-react';
 import Link from 'next/link';
 
 interface AttemptItem {
@@ -101,14 +110,17 @@ export function AttemptHistoryTable({
   const limit = showFilters ? 20 : defaultLimit;
   const { data, isLoading } = useAttemptHistory(page, limit);
 
-  const toggleSort = useCallback((field: keyof AttemptItem) => {
-    if (sortField === field) {
-      setSortAsc(!sortAsc);
-    } else {
-      setSortField(field);
-      setSortAsc(true);
-    }
-  }, [sortField, sortAsc]);
+  const toggleSort = useCallback(
+    (field: keyof AttemptItem) => {
+      if (sortField === field) {
+        setSortAsc(!sortAsc);
+      } else {
+        setSortField(field);
+        setSortAsc(true);
+      }
+    },
+    [sortField, sortAsc],
+  );
 
   const processedAttempts = useMemo(() => {
     if (!data?.attempts) return [];
@@ -143,10 +155,10 @@ export function AttemptHistoryTable({
     return (
       <Card>
         <CardContent className='py-8'>
-          <EmptyState 
-            title="No Attempt History"
-            description="No attempt history found."
-            icon={<History className="size-8 text-muted-foreground" />}
+          <EmptyState
+            title='No Attempt History'
+            description='No attempt history found.'
+            icon={<History className='size-8 text-muted-foreground' />}
           />
         </CardContent>
       </Card>
@@ -187,7 +199,7 @@ export function AttemptHistoryTable({
             <TableHeader>
               <ShadcnTableRow>
                 <TableHead
-                  scope="col"
+                  scope='col'
                   className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('assessmentName')}
                   aria-sort={
@@ -199,7 +211,7 @@ export function AttemptHistoryTable({
                   </div>
                 </TableHead>
                 <TableHead
-                  scope="col"
+                  scope='col'
                   className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('date')}
                   aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
@@ -209,7 +221,7 @@ export function AttemptHistoryTable({
                   </div>
                 </TableHead>
                 <TableHead
-                  scope="col"
+                  scope='col'
                   className='cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('status')}
                   aria-sort={
@@ -221,7 +233,7 @@ export function AttemptHistoryTable({
                   </div>
                 </TableHead>
                 <TableHead
-                  scope="col"
+                  scope='col'
                   className='text-right cursor-pointer hover:text-foreground'
                   onClick={() => toggleSort('score')}
                   aria-sort={
@@ -232,7 +244,9 @@ export function AttemptHistoryTable({
                     Score <ArrowUpDown className='size-3 opacity-50' />
                   </div>
                 </TableHead>
-                <TableHead scope="col" className='text-right'>Actions</TableHead>
+                <TableHead scope='col' className='text-right'>
+                  Actions
+                </TableHead>
               </ShadcnTableRow>
             </TableHeader>
             <TableBody>
@@ -243,10 +257,10 @@ export function AttemptHistoryTable({
               ) : (
                 <ShadcnTableRow>
                   <TableCell colSpan={5} className='p-8'>
-                    <EmptyState 
-                      title="No Results"
-                      description="No matching attempts found on this page."
-                      icon={<Search className="size-8 text-muted-foreground" />}
+                    <EmptyState
+                      title='No Results'
+                      description='No matching attempts found on this page.'
+                      icon={<Search className='size-8 text-muted-foreground' />}
                     />
                   </TableCell>
                 </ShadcnTableRow>

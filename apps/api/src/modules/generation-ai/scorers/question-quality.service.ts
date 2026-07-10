@@ -45,7 +45,9 @@ export class QuestionQualityService {
 
     // 2. Answer & Option Validity (20%)
     let validityScore = 100;
-    const cleanAnswer = String(generated.correctAnswer || generated.answer || "").trim();
+    const cleanAnswer = String(
+      generated.correctAnswer || generated.answer || "",
+    ).trim();
     if (!cleanAnswer || cleanAnswer.length === 0) {
       validityScore = 0;
       reasons.push("Correct answer is empty or missing.");
@@ -62,7 +64,9 @@ export class QuestionQualityService {
     if (isMcq) {
       if (options.length !== 4) {
         validityScore = 0;
-        reasons.push(`MCQ options must have exactly 4 items, got ${options.length}.`);
+        reasons.push(
+          `MCQ options must have exactly 4 items, got ${options.length}.`,
+        );
       } else {
         const unique = new Set(options.map((opt) => String(opt).trim()));
         if (unique.size !== options.length) {
@@ -89,9 +93,12 @@ export class QuestionQualityService {
 
     const cleanExp = explanation.toLowerCase();
     const hasConcept = cleanExp.includes("concept");
-    const hasFormula = cleanExp.includes("formula") || cleanExp.includes("reasoning");
-    const hasSteps = cleanExp.includes("step-by-step") || cleanExp.includes("solution");
-    const hasFinalAnswer = cleanExp.includes("final answer") || cleanExp.includes("answer");
+    const hasFormula =
+      cleanExp.includes("formula") || cleanExp.includes("reasoning");
+    const hasSteps =
+      cleanExp.includes("step-by-step") || cleanExp.includes("solution");
+    const hasFinalAnswer =
+      cleanExp.includes("final answer") || cleanExp.includes("answer");
 
     let missingCount = 0;
     if (!hasConcept) missingCount++;
@@ -114,7 +121,9 @@ export class QuestionQualityService {
       generated,
       requestedTopic,
     );
-    const complianceScore = topicResult.match ? 100 : topicResult.confidence * 100;
+    const complianceScore = topicResult.match
+      ? 100
+      : topicResult.confidence * 100;
     if (!topicResult.match) {
       reasons.push(
         `Topic mismatch: requested "${requestedTopic}", generated "${generated.topic || requestedTopic}"`,
@@ -140,16 +149,21 @@ export class QuestionQualityService {
       const lengths = cleanOptions.map((opt) => opt.length);
       const minLen = Math.min(...lengths);
       const maxLen = Math.max(...lengths);
-      const hasCodeSyntax = cleanOptions.some((opt) =>
-        opt.includes("`") ||
-        /({|}|\bconst\b|\bdef\b|=>|\bimport\b|\bfunction\b|\bpublic\s+class\b|<html>|<\/html>|\bconsole\.log\b|;|\[|\])/.test(opt)
+      const hasCodeSyntax = cleanOptions.some(
+        (opt) =>
+          opt.includes("`") ||
+          /({|}|\bconst\b|\bdef\b|=>|\bimport\b|\bfunction\b|\bpublic\s+class\b|<html>|<\/html>|\bconsole\.log\b|;|\[|\])/.test(
+            opt,
+          ),
       );
       const allShort = cleanOptions.every((opt) => opt.length < 15);
 
       if (!hasCodeSyntax && !allShort) {
         if (minLen === 0 || maxLen / minLen > 2.5) {
           parityScore = 0;
-          reasons.push("Option lengths are imbalanced (longest option is > 2.5x shortest option).");
+          reasons.push(
+            "Option lengths are imbalanced (longest option is > 2.5x shortest option).",
+          );
         }
       }
     }

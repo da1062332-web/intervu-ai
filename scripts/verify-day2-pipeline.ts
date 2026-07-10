@@ -36,24 +36,26 @@ async function run() {
           { name: "margin", type: "integer", min: 10, max: 50 },
           { name: "newPrice", type: "formula", formula: "oldPrice + margin" },
           { name: "currency", type: "static", value: "USD" },
-          { name: "isActive", type: "boolean" }
-        ]
+          { name: "isActive", type: "boolean" },
+        ],
       },
       constraints: {
         constraints: [
           { rule: "newPrice > oldPrice", severity: "critical" },
-          { rule: "newPrice Range 110-250", severity: "critical" }
-        ]
+          { rule: "newPrice Range 110-250", severity: "critical" },
+        ],
       },
       structure: {
-        questionTemplate: "A product price increased from {{oldPrice}} to {{newPrice}} {{currency}}.",
-        optionsTemplate: ["{{oldPrice}}", "{{newPrice}}", "99", "120"]
+        questionTemplate:
+          "A product price increased from {{oldPrice}} to {{newPrice}} {{currency}}.",
+        optionsTemplate: ["{{oldPrice}}", "{{newPrice}}", "99", "120"],
       },
       solutionSchema: {
         formula: "newPrice",
-        explanationTemplate: "The new price is computed as {{oldPrice}} + {{margin}} = {{newPrice}}."
-      }
-    }
+        explanationTemplate:
+          "The new price is computed as {{oldPrice}} + {{margin}} = {{newPrice}}.",
+      },
+    },
   });
   console.log(`Template created with ID: ${template.id}\n`);
 
@@ -66,8 +68,8 @@ async function run() {
       // Execute the generation pipeline logic
       const variablesDef = (template.variableSchema as any).variables;
       const constraintsDef = (template.constraints as any).constraints;
-      const structure = (template.structure as any);
-      const solutionSchema = (template.solutionSchema as any);
+      const structure = template.structure as any;
+      const solutionSchema = template.solutionSchema as any;
 
       const prngSeed = Math.floor(Math.random() * 1000000);
       const prng = new PRNG(prngSeed);
@@ -85,7 +87,9 @@ async function run() {
       const qText = hydrateString(structure.questionTemplate, vars);
 
       // 4. Render Options
-      const options = structure.optionsTemplate.map((opt: string) => hydrateString(opt, vars));
+      const options = structure.optionsTemplate.map((opt: string) =>
+        hydrateString(opt, vars),
+      );
 
       // 5. Render Answer & Explanation
       let ans = "";
@@ -94,11 +98,19 @@ async function run() {
       } else {
         ans = options[0];
       }
-      const explanation = hydrateString(solutionSchema.explanationTemplate, vars);
+      const explanation = hydrateString(
+        solutionSchema.explanationTemplate,
+        vars,
+      );
 
       // 6. Check unresolved placeholders
-      const hasUnresolved = (text: string) => /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/.test(text) || /\{([^}]+)\}/.test(text);
-      if (hasUnresolved(qText) || hasUnresolved(explanation) || options.some(hasUnresolved)) {
+      const hasUnresolved = (text: string) =>
+        /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/.test(text) || /\{([^}]+)\}/.test(text);
+      if (
+        hasUnresolved(qText) ||
+        hasUnresolved(explanation) ||
+        options.some(hasUnresolved)
+      ) {
         throw new Error("Rendered question contains unresolved placeholders.");
       }
 
@@ -128,12 +140,13 @@ async function run() {
       }
 
       // 9. Uniqueness check & persistence
-      const questionHash = crypto.createHash("sha256")
+      const questionHash = crypto
+        .createHash("sha256")
         .update(`${template.id}_${qText}_${options.join(",")}_${ans}`)
         .digest("hex");
 
       const existing = await prisma.generatedQuestion.findUnique({
-        where: { questionHash }
+        where: { questionHash },
       });
       if (existing) {
         throw new Error("Duplicate question hash detected.");
@@ -150,8 +163,8 @@ async function run() {
           options,
           correctAnswer: ans,
           solution: explanation,
-          metadata: vars
-        }
+          metadata: vars,
+        },
       });
 
       console.log("PASS");
@@ -164,17 +177,19 @@ async function run() {
   // Clean up
   console.log("\nCleaning up test data...");
   await prisma.generatedQuestion.deleteMany({
-    where: { templateId: template.id }
+    where: { templateId: template.id },
   });
   await prisma.template.delete({
-    where: { id: template.id }
+    where: { id: template.id },
   });
   console.log("Cleanup complete.");
 
   await disconnectPrisma();
 
   console.log("\n====================");
-  console.log(`Successfully generated and verified ${successCount}/${totalRuns} questions.`);
+  console.log(
+    `Successfully generated and verified ${successCount}/${totalRuns} questions.`,
+  );
   console.log("====================");
 
   if (successCount === totalRuns) {

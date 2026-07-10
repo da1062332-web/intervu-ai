@@ -65,7 +65,12 @@ describe("Workflow E2E — Question Bank to Assembly Builder", () => {
       },
     ];
 
-    const result = await repository.createAssemblyWithTransaction("config-1", sections, 1800, 2);
+    const result = await repository.createAssemblyWithTransaction(
+      "config-1",
+      sections,
+      1800,
+      2,
+    );
 
     expect(result).toBe("asm-001");
 

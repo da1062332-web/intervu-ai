@@ -33,7 +33,9 @@ describe("Workflow E2E — Review Queue to Question Bank", () => {
           templateId: "ts-basics",
           version: 1,
           status: "VALIDATED",
-          metadata: { options: ["Superset of JS", "Subset of JS", "Framework", "Library"] },
+          metadata: {
+            options: ["Superset of JS", "Subset of JS", "Framework", "Library"],
+          },
         }),
         findMany: jest.fn().mockResolvedValue([
           {
@@ -47,7 +49,14 @@ describe("Workflow E2E — Review Queue to Question Bank", () => {
             templateId: "ts-basics",
             version: 1,
             status: "VALIDATED",
-            metadata: { options: ["Superset of JS", "Subset of JS", "Framework", "Library"] },
+            metadata: {
+              options: [
+                "Superset of JS",
+                "Subset of JS",
+                "Framework",
+                "Library",
+              ],
+            },
             versions: [],
           },
         ]),
@@ -63,7 +72,14 @@ describe("Workflow E2E — Review Queue to Question Bank", () => {
             templateId: "ts-basics",
             version: 2,
             status: args.data.status,
-            metadata: { options: ["Superset of JS", "Subset of JS", "Framework", "Library"] },
+            metadata: {
+              options: [
+                "Superset of JS",
+                "Subset of JS",
+                "Framework",
+                "Library",
+              ],
+            },
           });
         }),
       },
@@ -148,7 +164,11 @@ describe("Workflow E2E — Review Queue to Question Bank", () => {
   });
 
   it("should reject a validated question, change status to ARCHIVED, increment version, and record log", async () => {
-    const result = await facade.rejectQuestion("q-review-1", "admin-001", "Poor wording");
+    const result = await facade.rejectQuestion(
+      "q-review-1",
+      "admin-001",
+      "Poor wording",
+    );
 
     expect(result.success).toBe(true);
 
@@ -185,7 +205,10 @@ describe("Workflow E2E — Review Queue to Question Bank", () => {
   });
 
   it("should support bulk approvals inside a transactional context", async () => {
-    const result = await facade.bulkApproveQuestions(["q-review-1"], "admin-001");
+    const result = await facade.bulkApproveQuestions(
+      ["q-review-1"],
+      "admin-001",
+    );
 
     expect(result.success).toBe(true);
     expect(result.count).toBe(1);

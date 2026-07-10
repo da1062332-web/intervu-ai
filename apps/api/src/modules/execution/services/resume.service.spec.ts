@@ -37,14 +37,22 @@ describe("ResumeService", () => {
   });
 
   it("should resume assessment and return state", async () => {
-    validator.validateAssessment.mockResolvedValue({ status: "IN_PROGRESS" } as any);
+    validator.validateAssessment.mockResolvedValue({
+      status: "IN_PROGRESS",
+    } as any);
     validator.validateOwnership.mockReturnValue(undefined);
     stateService.restoreProgress.mockResolvedValue({
       currentQuestionIndex: 2,
       remainingTimeSeconds: 1500,
     } as any);
     answerRepo.findAll.mockResolvedValue([
-      { questionId: "q1", answer: "A", timeSpentSeconds: 30, isMarkedForReview: false, savedAt: new Date() },
+      {
+        questionId: "q1",
+        answer: "A",
+        timeSpentSeconds: 30,
+        isMarkedForReview: false,
+        savedAt: new Date(),
+      },
     ] as any);
 
     const result = await service.resumeAssessment("test-123", "user-1");

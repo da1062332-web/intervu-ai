@@ -3,10 +3,25 @@
 import { useProgress } from '../hooks/useProgress';
 import dynamic from 'next/dynamic';
 
-const ScoreTrendChart = dynamic(() => import('../components/analytics/ScoreTrendChart').then(m => m.ScoreTrendChart), { ssr: false });
-const TopicAnalysis = dynamic(() => import('../components/analytics/TopicAnalysis').then(m => m.TopicAnalysis), { ssr: false });
-const PerformanceComparisonChart = dynamic(() => import('../components/analytics/PerformanceComparisonChart').then(m => m.PerformanceComparisonChart), { ssr: false });
-const DifficultyAnalysis = dynamic(() => import('../components/analytics/DifficultyAnalysis').then(m => m.DifficultyAnalysis), { ssr: false });
+const ScoreTrendChart = dynamic(
+  () => import('../components/analytics/ScoreTrendChart').then((m) => m.ScoreTrendChart),
+  { ssr: false },
+);
+const TopicAnalysis = dynamic(
+  () => import('../components/analytics/TopicAnalysis').then((m) => m.TopicAnalysis),
+  { ssr: false },
+);
+const PerformanceComparisonChart = dynamic(
+  () =>
+    import('../components/analytics/PerformanceComparisonChart').then(
+      (m) => m.PerformanceComparisonChart,
+    ),
+  { ssr: false },
+);
+const DifficultyAnalysis = dynamic(
+  () => import('../components/analytics/DifficultyAnalysis').then((m) => m.DifficultyAnalysis),
+  { ssr: false },
+);
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { TrendingUp, Target, Brain, Award, AlertCircle } from 'lucide-react';
 import React from 'react';
@@ -72,7 +87,11 @@ export function ProgressDashboard() {
 
   if (isLoading) {
     return (
-      <div className='space-y-6 animate-pulse' aria-busy='true' aria-label='Loading progress dashboard'>
+      <div
+        className='space-y-6 animate-pulse'
+        aria-busy='true'
+        aria-label='Loading progress dashboard'
+      >
         <div className='h-12 w-48 bg-muted rounded' />
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
           {[1, 2, 3, 4].map((i) => (

@@ -32,12 +32,16 @@ export class AssessmentVersionValidatorService {
     // 2. Validate schema layout
     const sections = snapshot?.sections as AllocatedSectionDto[];
     if (!sections || !Array.isArray(sections) || sections.length === 0) {
-      throw new BadRequestException("Rollback failed: Snapshot sections layout is missing or empty.");
+      throw new BadRequestException(
+        "Rollback failed: Snapshot sections layout is missing or empty.",
+      );
     }
 
     for (const section of sections) {
       if (!section.sectionKey || !section.displayName) {
-        throw new BadRequestException("Rollback failed: Section missing key or display name in snapshot.");
+        throw new BadRequestException(
+          "Rollback failed: Section missing key or display name in snapshot.",
+        );
       }
       if (!section.questions || !Array.isArray(section.questions)) {
         throw new BadRequestException(
@@ -51,7 +55,9 @@ export class AssessmentVersionValidatorService {
       where: { id: assemblyId },
     });
     if (!assembly) {
-      throw new BadRequestException(`Assembly with ID ${assemblyId} not found.`);
+      throw new BadRequestException(
+        `Assembly with ID ${assemblyId} not found.`,
+      );
     }
 
     // Block rollback if published and has active candidate sessions

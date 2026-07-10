@@ -7,7 +7,9 @@ export const assessmentGenerationApi = {
    * Triggers the assessment generation process.
    * If the backend returns a job or completes synchronously, it's mapped here.
    */
-  generateAssessment: async (payload: GenerationRequest): Promise<{ success: boolean; data: any; meta: any }> => {
+  generateAssessment: async (
+    payload: GenerationRequest,
+  ): Promise<{ success: boolean; data: any; meta: any }> => {
     return apiClient.request('/test-assemblies/questions/generate', {
       method: 'POST',
       body: payload,
@@ -17,7 +19,15 @@ export const assessmentGenerationApi = {
   /**
    * Fetches the status of a generation job.
    */
-  getGenerationJob: async (jobId: string): Promise<{ id: string; status: string; progress: number; result: any; failedReason: string | null }> => {
+  getGenerationJob: async (
+    jobId: string,
+  ): Promise<{
+    id: string;
+    status: string;
+    progress: number;
+    result: any;
+    failedReason: string | null;
+  }> => {
     return apiClient.request(`/test-assemblies/jobs/${jobId}`, {
       method: 'GET',
     });
@@ -40,5 +50,5 @@ export const assessmentGenerationApi = {
       method: 'GET',
       query: params,
     });
-  }
+  },
 };

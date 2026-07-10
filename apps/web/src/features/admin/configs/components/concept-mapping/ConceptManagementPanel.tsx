@@ -11,7 +11,12 @@ import { Plus, Search, RefreshCw, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function ConceptManagementPanel() {
-  const { data: topics = [], isLoading: isLoadingTopics, isError: isErrorTopics, refetch: refetchTopics } = useTopics();
+  const {
+    data: topics = [],
+    isLoading: isLoadingTopics,
+    isError: isErrorTopics,
+    refetch: refetchTopics,
+  } = useTopics();
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -28,7 +33,12 @@ export function ConceptManagementPanel() {
     }
   }, [topics, selectedTopicId]);
 
-  const { data: concepts, isLoading: isLoadingConcepts, isError: isErrorConcepts, refetch: refetchConcepts } = useConcepts(selectedTopicId);
+  const {
+    data: concepts,
+    isLoading: isLoadingConcepts,
+    isError: isErrorConcepts,
+    refetch: refetchConcepts,
+  } = useConcepts(selectedTopicId);
 
   const filteredConcepts = useMemo(() => {
     if (!concepts) return [];
@@ -127,7 +137,9 @@ export function ConceptManagementPanel() {
       {!selectedTopicId ? (
         <div className='text-center py-12 border rounded-lg bg-gray-50/50 dark:bg-gray-900/50'>
           <h3 className='text-lg font-medium mb-2'>No Topic Selected</h3>
-          <p className='text-muted-foreground'>Please select or create a topic to manage concepts.</p>
+          <p className='text-muted-foreground'>
+            Please select or create a topic to manage concepts.
+          </p>
         </div>
       ) : isErrorConcepts ? (
         <div className='text-center py-12 border rounded-lg bg-red-50/50 dark:bg-red-900/10'>

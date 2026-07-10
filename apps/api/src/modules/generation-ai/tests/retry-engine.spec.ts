@@ -55,11 +55,15 @@ describe("GenerationRetryService", () => {
     } as any;
 
     duplicateDetector = {
-      checkDuplicate: jest.fn().mockResolvedValue({ duplicate: false, similarity: 0.0 }),
+      checkDuplicate: jest
+        .fn()
+        .mockResolvedValue({ duplicate: false, similarity: 0.0 }),
     } as any;
 
     qualityScorer = {
-      score: jest.fn().mockResolvedValue({ score: 90, status: "PASS", reasons: [] }),
+      score: jest
+        .fn()
+        .mockResolvedValue({ score: 90, status: "PASS", reasons: [] }),
     } as any;
 
     service = new GenerationRetryService(

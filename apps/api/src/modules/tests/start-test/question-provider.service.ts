@@ -45,55 +45,56 @@ export class QuestionProviderService {
       try {
         const generationService = new GenerationService();
 
-      for (let i = 0; i < missingCount; i++) {
-        try {
-          const seedInput = `${req.conceptKey}_${req.difficultyLevel}_${Date.now()}_${i}`;
-          const result = await generationService.generateQuestion(
-            {
-              conceptKey: req.conceptKey,
-              difficultyLevel: req.difficultyLevel.toLowerCase() as
-                | "easy"
-                | "medium"
-                | "hard",
-              questionType: "mcq",
-            },
-            seedInput,
-          );
-
-          const templateId = (result.question as any).templateId;
-          const createInput: any = {
-            id: result.question.questionId,
-            questionHash: result.question.questionId,
-            conceptKey: result.question.conceptKey || req.conceptKey,
-            difficultyLevel: (result.question.difficultyLevel?.toUpperCase() ||
-              req.difficultyLevel) as any,
-            questionType: result.question.questionType || "mcq",
-            questionText: result.question.questionText,
-            options: (result.question.options as any) || [],
-            correctAnswer: result.question.correctAnswer || "",
-            solution: result.question.solution || "",
-            metadata: (result.question.metadata as any) || {},
-          };
-
-          if (templateId) {
-            createInput.template = { connect: { id: templateId } };
-          }
-
+        for (let i = 0; i < missingCount; i++) {
           try {
-            const savedQuestion =
-              await this.questionRepository.create(createInput);
-            results.push(savedQuestion);
-          } catch {
-            // Fallback: retry without template connection if template ID does not exist in DB
-            delete createInput.template;
-            const savedQuestion =
-              await this.questionRepository.create(createInput);
-            results.push(savedQuestion);
-          }
+            const seedInput = `${req.conceptKey}_${req.difficultyLevel}_${Date.now()}_${i}`;
+            const result = await generationService.generateQuestion(
+              {
+                conceptKey: req.conceptKey,
+                difficultyLevel: req.difficultyLevel.toLowerCase() as
+                  | "easy"
+                  | "medium"
+                  | "hard",
+                questionType: "mcq",
+              },
+              seedInput,
+            );
+
+            const templateId = (result.question as any).templateId;
+            const createInput: any = {
+              id: result.question.questionId,
+              questionHash: result.question.questionId,
+              conceptKey: result.question.conceptKey || req.conceptKey,
+              difficultyLevel:
+                (result.question.difficultyLevel?.toUpperCase() ||
+                  req.difficultyLevel) as any,
+              questionType: result.question.questionType || "mcq",
+              questionText: result.question.questionText,
+              options: (result.question.options as any) || [],
+              correctAnswer: result.question.correctAnswer || "",
+              solution: result.question.solution || "",
+              metadata: (result.question.metadata as any) || {},
+            };
+
+            if (templateId) {
+              createInput.template = { connect: { id: templateId } };
+            }
+
+            try {
+              const savedQuestion =
+                await this.questionRepository.create(createInput);
+              results.push(savedQuestion);
+            } catch {
+              // Fallback: retry without template connection if template ID does not exist in DB
+              delete createInput.template;
+              const savedQuestion =
+                await this.questionRepository.create(createInput);
+              results.push(savedQuestion);
+            }
           } catch (err) {
             console.warn(
               "Question generation iteration failed:",
-              err instanceof Error ? err.message : String(err)
+              err instanceof Error ? err.message : String(err),
             );
           }
         }

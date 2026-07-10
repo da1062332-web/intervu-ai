@@ -25,11 +25,11 @@ export function SolutionLogicSection() {
 
   return (
     <TemplateSection
-      title="Solution Logic & Explanation"
-      description="Define the correct solution mapping and the explanation to be shown to the candidate."
+      title='Solution Logic & Explanation'
+      description='Define the correct solution mapping and the explanation to be shown to the candidate.'
       actions={
         <Button onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
-          {saveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {saveMutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
           Save Logic
         </Button>
       }

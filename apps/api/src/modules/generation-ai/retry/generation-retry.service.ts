@@ -112,7 +112,11 @@ export class GenerationRetryService {
           variableSchema: { variables: [] },
           constraints: { constraints: [] },
           solutionSchema: {
-            steps: ["Step 1: Parse parameter values", "Step 2: Solve formula", "Step 3: State final answer"],
+            steps: [
+              "Step 1: Parse parameter values",
+              "Step 2: Solve formula",
+              "Step 3: State final answer",
+            ],
             finalAnswer: "Mock Answer",
           },
         };
@@ -189,7 +193,10 @@ export class GenerationRetryService {
         };
 
         // 3. Process & Shuffle options
-        if (template.questionType === "mcq" || template.questionType === "multiple_choice") {
+        if (
+          template.questionType === "mcq" ||
+          template.questionType === "multiple_choice"
+        ) {
           const processed = this.optionGenerator.processOptions(
             parsedQuestion.options || [],
             parsedQuestion.correctAnswer!,
@@ -212,18 +219,23 @@ export class GenerationRetryService {
         this.responseValidator.validate(parsedQuestion, difficulty, topic);
 
         // 5b. Run duplicate check (Task Group 5)
-        const dupResult = await this.duplicateDetector.checkDuplicate(parsedQuestion);
+        const dupResult =
+          await this.duplicateDetector.checkDuplicate(parsedQuestion);
         if (dupResult.duplicate) {
           throw new BadRequestException(
-            `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`
+            `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`,
           );
         }
 
         // 5c. Run quality scorer (Task Group 7)
-        const qScore = await this.qualityScorer.score(parsedQuestion, topic, difficulty);
+        const qScore = await this.qualityScorer.score(
+          parsedQuestion,
+          topic,
+          difficulty,
+        );
         if (qScore.status === "FAIL") {
           throw new BadRequestException(
-            `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`
+            `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`,
           );
         }
 
@@ -236,7 +248,11 @@ export class GenerationRetryService {
       let finalScore = 0.0;
       if (validationSuccess && parsedQuestion) {
         try {
-          const qScore = await this.qualityScorer.score(parsedQuestion, topic, difficulty);
+          const qScore = await this.qualityScorer.score(
+            parsedQuestion,
+            topic,
+            difficulty,
+          );
           finalScore = qScore.score;
         } catch {
           finalScore = 100.0;

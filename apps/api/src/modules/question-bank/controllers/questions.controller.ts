@@ -336,13 +336,25 @@ export class QuestionsController {
     }
 
     const updatedQuestion = {
-      questionText: body.questionText !== undefined ? body.questionText : question.questionText,
+      questionText:
+        body.questionText !== undefined
+          ? body.questionText
+          : question.questionText,
       options: body.options !== undefined ? body.options : question.options,
-      correctAnswer: body.correctAnswer !== undefined ? body.correctAnswer : (question.correctAnswer as string),
-      solution: body.explanation !== undefined ? body.explanation : (question.solution as string),
+      correctAnswer:
+        body.correctAnswer !== undefined
+          ? body.correctAnswer
+          : (question.correctAnswer as string),
+      solution:
+        body.explanation !== undefined
+          ? body.explanation
+          : (question.solution as string),
       templateId: question.templateId,
       conceptKey: question.conceptKey,
-      difficultyLevel: body.difficultyLevel !== undefined ? body.difficultyLevel : question.difficultyLevel,
+      difficultyLevel:
+        body.difficultyLevel !== undefined
+          ? body.difficultyLevel
+          : question.difficultyLevel,
     };
 
     const validationResult = this.validateQuestion(updatedQuestion);
@@ -427,7 +439,9 @@ export class QuestionsController {
     const currentStatus = currentMeta.status || "GENERATED";
 
     if (currentStatus !== "GENERATED" && currentStatus !== "REJECTED") {
-      throw new BadRequestException(`Invalid status transition from ${currentStatus} to APPROVED`);
+      throw new BadRequestException(
+        `Invalid status transition from ${currentStatus} to APPROVED`,
+      );
     }
 
     const validationCheck = this.validateQuestion({
@@ -486,7 +500,9 @@ export class QuestionsController {
     const currentStatus = currentMeta.status || "GENERATED";
 
     if (currentStatus !== "GENERATED") {
-      throw new BadRequestException(`Invalid status transition from ${currentStatus} to REJECTED`);
+      throw new BadRequestException(
+        `Invalid status transition from ${currentStatus} to REJECTED`,
+      );
     }
 
     const updatedMeta = {
@@ -527,15 +543,20 @@ export class QuestionsController {
     const currentStatus = currentMeta.status || "GENERATED";
 
     if (currentStatus !== "APPROVED") {
-      throw new BadRequestException(`Invalid status transition from ${currentStatus} to PUBLISHED. Question must be APPROVED first.`);
+      throw new BadRequestException(
+        `Invalid status transition from ${currentStatus} to PUBLISHED. Question must be APPROVED first.`,
+      );
     }
 
     const concept = await this.prisma.concept.findFirst({
       where: { code: { equals: question.conceptKey, mode: "insensitive" } },
     });
-    const topicId = concept?.topicId || (await this.prisma.topic.findFirst())?.id;
+    const topicId =
+      concept?.topicId || (await this.prisma.topic.findFirst())?.id;
     if (!topicId) {
-      throw new BadRequestException("No topic found to associate with the question");
+      throw new BadRequestException(
+        "No topic found to associate with the question",
+      );
     }
 
     let section = await this.prisma.examSection.findFirst({
@@ -627,9 +648,13 @@ export class QuestionsController {
 
     const currentMeta = (question.metadata as any) || {};
 
-    const genResult = await this.templateService.generateQuestionForTemplate(question.templateId);
+    const genResult = await this.templateService.generateQuestionForTemplate(
+      question.templateId,
+    );
     if (!genResult || !genResult.success) {
-      throw new BadRequestException("Failed to generate a new question from template");
+      throw new BadRequestException(
+        "Failed to generate a new question from template",
+      );
     }
 
     const currentVersion = currentMeta.version || 1;
@@ -710,33 +735,62 @@ export class QuestionsController {
     const errors: string[] = [];
 
     if (!question.questionText || question.questionText.trim() === "") {
-      errors.push("Question text exists validation failed: questionText is missing or empty");
+      errors.push(
+        "Question text exists validation failed: questionText is missing or empty",
+      );
     }
 
-    if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
-      errors.push("Options complete validation failed: options must be a non-empty array");
+    if (
+      !question.options ||
+      !Array.isArray(question.options) ||
+      question.options.length === 0
+    ) {
+      errors.push(
+        "Options complete validation failed: options must be a non-empty array",
+      );
     } else {
       if (question.options.some((o) => !o || String(o).trim() === "")) {
-        errors.push("Reject on empty option: options must not contain empty values");
+        errors.push(
+          "Reject on empty option: options must not contain empty values",
+        );
       }
       if (new Set(question.options).size !== question.options.length) {
         errors.push("Reject on duplicate options: options must be unique");
       }
     }
 
-    if (question.correctAnswer === undefined || question.correctAnswer === null || String(question.correctAnswer).trim() === "") {
-      errors.push("Reject on missing answer: correctAnswer is missing or empty");
-    } else if (question.options && Array.isArray(question.options) && !question.options.includes(String(question.correctAnswer))) {
-      errors.push("Exactly one correct answer validation failed: correctAnswer must match one of the options");
+    if (
+      question.correctAnswer === undefined ||
+      question.correctAnswer === null ||
+      String(question.correctAnswer).trim() === ""
+    ) {
+      errors.push(
+        "Reject on missing answer: correctAnswer is missing or empty",
+      );
+    } else if (
+      question.options &&
+      Array.isArray(question.options) &&
+      !question.options.includes(String(question.correctAnswer))
+    ) {
+      errors.push(
+        "Exactly one correct answer validation failed: correctAnswer must match one of the options",
+      );
     }
 
-    const explanationText = typeof question.solution === "string" ? question.solution : String(question.solution || "");
+    const explanationText =
+      typeof question.solution === "string"
+        ? question.solution
+        : String(question.solution || "");
     if (!question.solution || explanationText.trim() === "") {
-      errors.push("Explanation exists validation failed: solution/explanation is missing or empty");
+      errors.push(
+        "Explanation exists validation failed: solution/explanation is missing or empty",
+      );
     }
 
     if (!question.templateId || question.templateId.trim() === "") {
-      errors.push("Template reference exists validation failed: templateId is missing");
+      errors.push(
+        "Template reference exists validation failed: templateId is missing",
+      );
     }
 
     if (!question.conceptKey || question.conceptKey.trim() === "") {
@@ -744,7 +798,9 @@ export class QuestionsController {
     }
 
     if (!question.difficultyLevel || question.difficultyLevel.trim() === "") {
-      errors.push("Difficulty assigned validation failed: difficultyLevel is missing");
+      errors.push(
+        "Difficulty assigned validation failed: difficultyLevel is missing",
+      );
     }
 
     return {

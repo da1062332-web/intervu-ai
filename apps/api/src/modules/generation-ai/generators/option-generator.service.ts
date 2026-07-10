@@ -45,7 +45,9 @@ export class OptionGeneratorService {
     // Check duplicates
     const uniqueOptions = new Set(cleanOptions);
     if (uniqueOptions.size !== cleanOptions.length) {
-      throw new BadRequestException("MCQ options must not contain duplicate entries");
+      throw new BadRequestException(
+        "MCQ options must not contain duplicate entries",
+      );
     }
 
     // Verify correct answer exists in options
@@ -59,16 +61,19 @@ export class OptionGeneratorService {
     const lengths = cleanOptions.map((opt) => opt.length);
     const minLen = Math.min(...lengths);
     const maxLen = Math.max(...lengths);
-    const hasCodeSyntax = cleanOptions.some((opt) =>
-      opt.includes("`") ||
-      /({|}|\bconst\b|\bdef\b|=>|\bimport\b|\bfunction\b|\bpublic\s+class\b|<html>|<\/html>|\bconsole\.log\b|;|\[|\])/.test(opt)
+    const hasCodeSyntax = cleanOptions.some(
+      (opt) =>
+        opt.includes("`") ||
+        /({|}|\bconst\b|\bdef\b|=>|\bimport\b|\bfunction\b|\bpublic\s+class\b|<html>|<\/html>|\bconsole\.log\b|;|\[|\])/.test(
+          opt,
+        ),
     );
     const allShort = cleanOptions.every((opt) => opt.length < 15);
 
     if (!hasCodeSyntax && !allShort) {
       if (minLen === 0 || maxLen / minLen > 2.5) {
         throw new BadRequestException(
-          `Option length mismatch: the options are not of balanced lengths (longest option is more than 2.5x the length of the shortest option). Longest: ${maxLen} chars, Shortest: ${minLen} chars.`
+          `Option length mismatch: the options are not of balanced lengths (longest option is more than 2.5x the length of the shortest option). Longest: ${maxLen} chars, Shortest: ${minLen} chars.`,
         );
       }
     }

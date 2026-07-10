@@ -4,9 +4,9 @@ import { GeneratedQuestion, GenerationHistoryEntry } from './types';
 
 export const useGenerateQuestion = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) => 
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
       questionGenerationApi.generateQuestion(templateId, payload),
     onSuccess: () => {
       // Invalidate generated questions list so review table updates
@@ -17,10 +17,17 @@ export const useGenerateQuestion = () => {
 
 export const useGenerateBatch = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ templateId, count, payload }: { templateId: string; count: number; payload: any }) => 
-      questionGenerationApi.generateBatch(templateId, count, payload),
+    mutationFn: ({
+      templateId,
+      count,
+      payload,
+    }: {
+      templateId: string;
+      count: number;
+      payload: any;
+    }) => questionGenerationApi.generateBatch(templateId, count, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['generated-questions'] });
       queryClient.invalidateQueries({ queryKey: ['generation-history'] });

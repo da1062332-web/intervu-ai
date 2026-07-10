@@ -39,9 +39,13 @@ export const questionGenerationApi = {
   },
 
   // TODO: Replace with backend API (POST /api/v1/templates/:id/generate-batch)
-  generateBatch: async (templateId: string, count: number, payload: any): Promise<{ success: boolean; count: number }> => {
+  generateBatch: async (
+    templateId: string,
+    count: number,
+    payload: any,
+  ): Promise<{ success: boolean; count: number }> => {
     await delay(3000); // Simulate longer processing time
-    
+
     const newQuestions: GeneratedQuestion[] = Array.from({ length: count }).map((_, i) => ({
       id: `q-${Date.now()}-${i}`,
       templateId,
@@ -58,17 +62,20 @@ export const questionGenerationApi = {
     }));
 
     mockGeneratedQuestions = [...newQuestions, ...mockGeneratedQuestions];
-    
+
     // Add to history
-    mockHistory = [{
-      id: `hist-${Date.now()}`,
-      templateId,
-      batchSize: count,
-      successCount: count,
-      failureCount: 0,
-      status: 'Completed',
-      createdAt: new Date().toISOString(),
-    }, ...mockHistory];
+    mockHistory = [
+      {
+        id: `hist-${Date.now()}`,
+        templateId,
+        batchSize: count,
+        successCount: count,
+        failureCount: 0,
+        status: 'Completed',
+        createdAt: new Date().toISOString(),
+      },
+      ...mockHistory,
+    ];
 
     return { success: true, count };
   },
@@ -77,12 +84,14 @@ export const questionGenerationApi = {
   getHistory: async (templateId?: string): Promise<GenerationHistoryEntry[]> => {
     await delay(500);
     if (templateId) {
-      return mockHistory.filter(h => h.templateId === templateId);
+      return mockHistory.filter((h) => h.templateId === templateId);
     }
     return mockHistory;
   },
 
   // Helper for cross-module mocking: Allow question-pool to access/update this store
   _getMockQuestions: () => mockGeneratedQuestions,
-  _setMockQuestions: (q: GeneratedQuestion[]) => { mockGeneratedQuestions = q; }
+  _setMockQuestions: (q: GeneratedQuestion[]) => {
+    mockGeneratedQuestions = q;
+  },
 };

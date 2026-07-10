@@ -237,7 +237,9 @@ export class TemplateController {
 
   @Post(":id/generate")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Generate one question from a template and store it in the pool" })
+  @ApiOperation({
+    summary: "Generate one question from a template and store it in the pool",
+  })
   @ApiParam({ name: "id", description: "Template ID" })
   async generateQuestion(@Param("id") id: string) {
     return this.templateService.generateQuestionForTemplate(id);
@@ -245,7 +247,9 @@ export class TemplateController {
 
   @Post(":id/generate-batch")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Generate questions in batch from a template and store in pool" })
+  @ApiOperation({
+    summary: "Generate questions in batch from a template and store in pool",
+  })
   @ApiParam({ name: "id", description: "Template ID" })
   async generateQuestionBatch(
     @Param("id") id: string,

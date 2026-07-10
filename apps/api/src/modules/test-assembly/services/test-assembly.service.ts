@@ -53,7 +53,10 @@ export class TestAssemblyService {
 
   async getJobStatus(jobId: string) {
     const job = await this.queueService.getJob("GENERATION" as any, jobId);
-    const state = await this.queueService.getJobState("GENERATION" as any, jobId);
+    const state = await this.queueService.getJobState(
+      "GENERATION" as any,
+      jobId,
+    );
 
     if (!job) {
       return { status: "unknown", progress: 0 };

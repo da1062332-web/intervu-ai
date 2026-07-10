@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsArray, IsOptional, IsObject } from "class-validator";
+import {
+  IsNotEmpty,
+  IsString,
+  IsArray,
+  IsOptional,
+  IsObject,
+} from "class-validator";
 
 export class GeneratedQuestionDto {
   @IsString()
