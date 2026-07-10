@@ -58,10 +58,10 @@ export default function TemplatePage() {
   const renderSection = () => {
     switch (activeSection) {
       case 'basic': return <BasicInfoSection template={template} />;
-      case 'question': return <QuestionDefinitionSection />;
+      case 'question': return <QuestionDefinitionSection template={template} />;
       case 'variables': return <VariableBuilderSection />;
       case 'constraints': return <ConstraintBuilderSection />;
-      case 'options': return <OptionStrategySection />;
+      case 'options': return <OptionStrategySection template={template} />;
       case 'solution': return <SolutionLogicSection />;
       case 'preview': return <PreviewSection />;
       case 'media':

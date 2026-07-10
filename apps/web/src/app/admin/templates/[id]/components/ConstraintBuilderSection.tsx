@@ -4,8 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
+import { useParams } from 'next/navigation';
+import { 
+  useTemplateRules, 
+  useTemplateVariables,
+  useCreateRule, 
+  useUpdateRule, 
+  useDeleteRule 
+} from '@/services/templates/hooks';
 
 interface Constraint {
   id: string;
@@ -15,12 +23,27 @@ interface Constraint {
 }
 
 export function ConstraintBuilderSection() {
-  // Temporary local state
-  // TODO: Replace with Constraint CRUD APIs (POST, PATCH, DELETE)
-  const [constraints, setConstraints] = useState<Constraint[]>([
-    { id: '1', variableName: 'newPrice', operator: '>', value: 'oldPrice' },
-  ]);
+  const { id: templateId } = useParams() as { id: string };
 
+  const { data: rulesResponse, isLoading: isLoadingRules } = useTemplateRules(templateId);
+  const { data: variablesResponse } = useTemplateVariables(templateId);
+  
+  const rawVariables = Array.isArray(variablesResponse) ? variablesResponse : (variablesResponse?.data || []);
+  const availableVariables = rawVariables;
+
+  const rawRules = Array.isArray(rulesResponse) ? rulesResponse : (rulesResponse?.data || []);
+  const constraints: Constraint[] = rawRules.map((r: any) => {
+    return {
+      id: r.id,
+      variableName: r.ruleConfig?.variableName || '',
+      operator: r.ruleConfig?.operator || '>',
+      value: r.ruleConfig?.value || ''
+    };
+  });
+
+  const { mutate: createRule, isPending: isCreating } = useCreateRule();
+  const { mutate: updateRule, isPending: isUpdating } = useUpdateRule();
+  const { mutate: deleteRule, isPending: isDeleting } = useDeleteRule();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<Constraint, 'id'>>({
@@ -60,21 +83,84 @@ export function ConstraintBuilderSection() {
       setError('Value is required');
       return;
     }
+    const getRuleType = (op: string) => {
+      if (op === 'Regex') return 'REGEX';
+      if (op === 'Formula' || op === 'Custom') return 'DIFFICULTY'; // Fallback
+      return 'RANGE';
+    };
+
+    const ruleType = getRuleType(formData.operator);
+    const ruleConfig: any = {
+      variableName: formData.variableName,
+      operator: formData.operator,
+      value: formData.value
+    };
+
+    if (ruleType === 'RANGE') {
+      const numVal = Number(formData.value);
+      if (!isNaN(numVal)) {
+        if (formData.operator === '>') {
+          ruleConfig.min = numVal;
+          ruleConfig.max = Number.MAX_SAFE_INTEGER;
+        } else if (formData.operator === '>=') {
+          ruleConfig.min = numVal;
+          ruleConfig.max = Number.MAX_SAFE_INTEGER;
+        } else if (formData.operator === '<') {
+          ruleConfig.min = Number.MIN_SAFE_INTEGER;
+          ruleConfig.max = numVal;
+        } else if (formData.operator === '<=') {
+          ruleConfig.min = Number.MIN_SAFE_INTEGER;
+          ruleConfig.max = numVal;
+        } else if (formData.operator === '=') {
+          ruleConfig.min = numVal;
+          ruleConfig.max = numVal;
+        } else {
+          ruleConfig.min = Number.MIN_SAFE_INTEGER;
+          ruleConfig.max = Number.MAX_SAFE_INTEGER;
+        }
+      } else {
+        ruleConfig.min = Number.MIN_SAFE_INTEGER;
+        ruleConfig.max = Number.MAX_SAFE_INTEGER;
+      }
+    } else if (ruleType === 'REGEX') {
+      ruleConfig.pattern = formData.value;
+    }
+
+    const payload = {
+      ruleType,
+      ruleConfig
+    };
+
+    const extractError = (err: any, fallback: string) => {
+      const msg = err?.response?.data?.message || err?.message;
+      if (Array.isArray(msg)) return msg.join(', ');
+      return msg || fallback;
+    };
 
     if (editingId) {
-      // TODO: Replace with PATCH /templates/:id/rules/:ruleId
-      setConstraints(prev => prev.map(c => c.id === editingId ? { ...formData, id: editingId } : c));
+      updateRule({
+        templateId,
+        ruleId: editingId,
+        payload,
+      }, {
+        onSuccess: () => setIsModalOpen(false),
+        onError: (err: any) => setError(extractError(err, 'Failed to update constraint'))
+      });
     } else {
-      // TODO: Replace with POST /templates/:id/rules
-      const newConstraint: Constraint = { ...formData, id: Math.random().toString(36).substr(2, 9) };
-      setConstraints(prev => [...prev, newConstraint]);
+      createRule({
+        templateId,
+        payload,
+      }, {
+        onSuccess: () => setIsModalOpen(false),
+        onError: (err: any) => setError(extractError(err, 'Failed to create constraint'))
+      });
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    // TODO: Replace with DELETE /templates/:id/rules/:ruleId
-    setConstraints(prev => prev.filter(c => c.id !== id));
+  const handleDelete = (ruleId: string) => {
+    if (confirm('Are you sure you want to delete this constraint?')) {
+      deleteRule({ templateId, ruleId });
+    }
   };
 
   return (
@@ -99,7 +185,13 @@ export function ConstraintBuilderSection() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {constraints.length === 0 ? (
+            {isLoadingRules ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
+                </TableCell>
+              </TableRow>
+            ) : constraints.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No constraints defined. Click "Add Constraint" to create one.
@@ -118,10 +210,10 @@ export function ConstraintBuilderSection() {
                   </TableCell>
                   <TableCell className="font-mono text-sm">{c.value}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => openModal(c)} aria-label={`Edit constraint for ${c.variableName}`}>
+                    <Button variant="ghost" size="sm" onClick={() => openModal(c)} aria-label={`Edit constraint for ${c.variableName}`} disabled={isDeleting}>
                       <Edit2 className="w-4 h-4 text-gray-500 hover:text-indigo-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} aria-label={`Delete constraint for ${c.variableName}`}>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} aria-label={`Delete constraint for ${c.variableName}`} disabled={isDeleting}>
                       <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
                     </Button>
                   </TableCell>
@@ -145,13 +237,17 @@ export function ConstraintBuilderSection() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="constraintVarName">Variable Name *</Label>
-              <Input
+              <select
                 id="constraintVarName"
                 value={formData.variableName}
                 onChange={e => setFormData({ ...formData, variableName: e.target.value })}
-                placeholder="e.g. newPrice"
-                aria-invalid={error && error.includes('Variable') ? 'true' : 'false'}
-              />
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="" disabled>Select a variable</option>
+                {availableVariables.map((v: any) => (
+                  <option key={v.id} value={v.variableName}>{v.variableName}</option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
@@ -190,7 +286,8 @@ export function ConstraintBuilderSection() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isCreating || isUpdating}>
+              {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editingId ? 'Save Changes' : 'Create Constraint'}
             </Button>
           </div>

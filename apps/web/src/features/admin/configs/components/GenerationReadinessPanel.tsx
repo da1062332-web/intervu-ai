@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useConfigurationValidation } from '../hooks/useConfigurationValidation';
+import { useConfigWizardStore } from './wizard-store';
 import { ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,6 +14,7 @@ interface GenerationReadinessPanelProps {
 
 export function GenerationReadinessPanel({ configId, onTabChange }: GenerationReadinessPanelProps) {
   const { data: validation, isLoading, isError, refetch } = useConfigurationValidation(configId);
+  const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
 
   if (isLoading) {
     return (
@@ -78,6 +80,48 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
         </div>
 
         <div className='p-6 space-y-6'>
+          {/* Checklist Section */}
+          {validation.checklist && (
+            <div className="space-y-4 mb-8">
+              <h5 className="font-semibold text-foreground flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                Readiness Checklist
+              </h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  { label: 'General Information', valid: validation.checklist.generalInformation, action: 'Update Info', actionTab: 'general' },
+                  { label: 'Sections Created', valid: validation.checklist.sectionsCreated, action: 'Create Section', actionTab: 'sections' },
+                  { label: 'Topics Assigned', valid: validation.checklist.topicsAssigned, action: 'Assign Topic', actionTab: 'topics' },
+                  { label: 'Concepts Available', valid: validation.checklist.conceptsAvailable, action: 'Add Concept', actionTab: 'concepts-templates' },
+                  { label: 'Templates Created', valid: validation.checklist.templatesCreated, action: 'Create Template', actionTab: 'concepts-templates' },
+                  { label: 'Difficulty Configured', valid: validation.checklist.difficultyConfigured, action: 'Configure', actionTab: 'difficulty' },
+                  { label: 'Rules Configured', valid: validation.checklist.rulesConfigured, action: 'Configure', actionTab: 'rules' },
+                  { label: 'Roles Configured', valid: validation.checklist.rolesConfigured, action: 'Configure', actionTab: 'roles' },
+                  { label: 'Blueprint Complete', valid: !!selectedBlueprintId || validation.checklist.blueprintComplete, action: 'Select Blueprint', actionTab: 'blueprint' },
+                  { label: 'Total Questions Match', valid: validation.checklist.totalQuestionsMatch, action: 'Fix Counts', actionTab: 'sections' },
+                ].map((item, i) => (
+                  <div key={i} className={`flex items-center justify-between p-3 rounded-md border ${item.valid ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'}`}>
+                    <div className="flex items-center gap-3">
+                      {item.valid ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                      )}
+                      <span className={`text-sm font-medium ${item.valid ? 'text-green-800' : 'text-red-700'}`}>
+                        {item.label}
+                      </span>
+                    </div>
+                    {!item.valid && item.action && (
+                      <Button variant="outline" size="sm" onClick={() => onTabChange?.(item.actionTab!)} className="h-7 text-xs">
+                        {item.action}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Errors Section */}
           {errors.length > 0 ? (
             <div className="space-y-3">

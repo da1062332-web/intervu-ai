@@ -25,7 +25,7 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
 }
 
 function createQueryClient(): QueryClient {
-  return new QueryClient({
+  const client = new QueryClient({
     queryCache: new QueryCache({
       onError: (error) => {
         notifyApiError(error);
@@ -35,6 +35,9 @@ function createQueryClient(): QueryClient {
       onError: (error) => {
         notifyApiError(error);
       },
+      onSuccess: () => {
+        client.invalidateQueries({ queryKey: ['config-validation'] });
+      }
     }),
     defaultOptions: {
       queries: {
@@ -51,6 +54,7 @@ function createQueryClient(): QueryClient {
       },
     },
   });
+  return client;
 }
 
 export function QueryProvider({ children }: { children: ReactNode }) {

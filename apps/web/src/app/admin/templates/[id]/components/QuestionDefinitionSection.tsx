@@ -5,17 +5,33 @@ import { Label } from '@/components/ui/label';
 import { Loader2, AlertCircle } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useParams } from 'next/navigation';
-import { useTemplateVariables } from '@/services/templates/hooks';
+import { useTemplateVariables, useUpdateTemplate } from '@/services/templates/hooks';
 
-export function QuestionDefinitionSection() {
+interface QuestionDefinitionSectionProps {
+  template: any;
+}
+
+export function QuestionDefinitionSection({ template }: QuestionDefinitionSectionProps) {
   const { id } = useParams() as { id: string };
   const [statement, setStatement] = useState('The price increased from {{oldPrice}} to {{newPrice}}.');
   const [instructions, setInstructions] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  
+  const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
+
+  useEffect(() => {
+    if (template?.structure) {
+      if (template.structure.questionStatement !== undefined) {
+        setStatement(template.structure.questionStatement);
+      }
+      if (template.structure.instructions !== undefined) {
+        setInstructions(template.structure.instructions);
+      }
+    }
+  }, [template]);
 
   // Fetch variables for validation
   const { data: variablesResponse } = useTemplateVariables(id);
-  const fetchedVariables = variablesResponse?.data || [];
+  const fetchedVariables = Array.isArray(variablesResponse) ? variablesResponse : (variablesResponse?.data || []);
   
   const knownVariables = useMemo(() => {
     return [
@@ -37,13 +53,18 @@ export function QuestionDefinitionSection() {
   const undefinedVariables = usedVariables.filter(v => !knownVariables.includes(v));
 
   const handleSave = () => {
-    setIsSaving(true);
-    // TODO: Replace with backend API to POST/PATCH question definition
-    console.log('Mock saving question definition:', { statement, instructions });
+    if (!template?.id) return;
     
-    setTimeout(() => {
-      setIsSaving(false);
-    }, 800);
+    updateTemplate({
+      templateId: template.id,
+      payload: {
+        structure: {
+          ...(template.structure || {}),
+          questionStatement: statement,
+          instructions: instructions
+        }
+      }
+    });
   };
 
   return (

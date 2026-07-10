@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { useUpdateTemplate } from '@/services/templates/hooks';
 
 interface BasicInfoForm {
   name: string;
@@ -21,11 +22,12 @@ interface BasicInfoSectionProps {
 }
 
 export function BasicInfoSection({ template }: BasicInfoSectionProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<BasicInfoForm>({
     defaultValues: {
@@ -39,15 +41,34 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
     },
   });
 
-  const onSubmit = async (data: BasicInfoForm) => {
-    setIsSaving(true);
-    // TODO: Replace with backend API to PATCH basic information
-    console.log('Mock saving template basic info:', data);
+  useEffect(() => {
+    if (template) {
+      reset({
+        name: template.name || '',
+        description: template.description || '',
+        conceptKey: template.conceptKey || '',
+        difficulty: template.difficultyLevel || template.difficulty || 'MEDIUM',
+        questionType: template.questionType || 'coding',
+        status: template.isActive ? 'Active' : 'Draft',
+        tags: '',
+      });
+    }
+  }, [template, reset]);
+
+  const onSubmit = (data: BasicInfoForm) => {
+    if (!template?.id) return;
     
-    // Simulate API delay
-    setTimeout(() => {
-      setIsSaving(false);
-    }, 800);
+    updateTemplate({
+      templateId: template.id,
+      payload: {
+        name: data.name,
+        description: data.description,
+        conceptKey: data.conceptKey,
+        difficulty: data.difficulty,
+        questionType: data.questionType,
+        isActive: data.status === 'Active',
+      }
+    });
   };
 
   return (

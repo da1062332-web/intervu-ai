@@ -42,7 +42,7 @@ export function AdminOverviewDashboard() {
         const data = await apiClient.request<DashboardKPIs>('/admin/dashboard');
         setStats(data);
       } catch (error) {
-        console.error('Failed to load KPIs', error);
+        console.error('Failed to load KPIs:', error instanceof Error ? error.message : 'Unknown error');
       } finally {
         setLoading(false);
       }

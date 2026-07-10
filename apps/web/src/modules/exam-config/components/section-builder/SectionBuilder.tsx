@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SectionCard } from './SectionCard';
 import { SectionFormModal } from './SectionFormModal';
 import { DeleteSectionDialog } from './DeleteSectionDialog';
+import { TopicMappingModal } from './TopicMappingModal';
 import {
   useSections,
   useCreateSection,
@@ -26,6 +27,7 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<ExamSection | null>(null);
 
   const handleOpenCreateModal = () => {
@@ -41,6 +43,11 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
   const handleOpenDeleteDialog = (section: ExamSection) => {
     setSelectedSection(section);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleOpenTopicModal = (section: ExamSection) => {
+    setSelectedSection(section);
+    setIsTopicModalOpen(true);
   };
 
   const handleFormSubmit = (payload: CreateSectionPayload) => {
@@ -128,6 +135,7 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
               section={section}
               onEdit={handleOpenEditModal}
               onDelete={handleOpenDeleteDialog}
+              onManageTopics={handleOpenTopicModal}
             />
           ))}
         </div>
@@ -153,6 +161,12 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
         isLoading={deleteSection.isPending}
+      />
+
+      <TopicMappingModal
+        isOpen={isTopicModalOpen}
+        onClose={() => setIsTopicModalOpen(false)}
+        section={selectedSection}
       />
     </div>
   );

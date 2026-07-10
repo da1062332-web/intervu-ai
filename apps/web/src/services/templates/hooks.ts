@@ -108,3 +108,81 @@ export const useTemplateRules = (templateId: string) => {
     enabled: !!templateId,
   });
 };
+
+export const useUpdateTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
+      templateApi.updateTemplate(templateId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+    },
+  });
+};
+
+export const useCreateVariable = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
+      templateApi.createVariable(templateId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templateVariables', variables.templateId] });
+    },
+  });
+};
+
+export const useUpdateVariable = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ variableId, payload, templateId }: { variableId: string; payload: any; templateId: string }) =>
+      templateApi.updateVariable(variableId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templateVariables', variables.templateId] });
+    },
+  });
+};
+
+export const useDeleteVariable = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ variableId, templateId }: { variableId: string; templateId: string }) =>
+      templateApi.deleteVariable(variableId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templateVariables', variables.templateId] });
+    },
+  });
+};
+
+export const useCreateRule = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
+      templateApi.createRule(templateId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templateRules', variables.templateId] });
+    },
+  });
+};
+
+export const useUpdateRule = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ruleId, payload, templateId }: { ruleId: string; payload: any; templateId: string }) =>
+      templateApi.updateRule(ruleId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templateRules', variables.templateId] });
+    },
+  });
+};
+
+export const useDeleteRule = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ruleId, templateId }: { ruleId: string; templateId: string }) =>
+      templateApi.deleteRule(ruleId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['templateRules', variables.templateId] });
+    },
+  });
+};

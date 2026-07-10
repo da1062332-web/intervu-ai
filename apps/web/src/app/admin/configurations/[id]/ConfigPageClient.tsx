@@ -9,10 +9,9 @@ import { DifficultyDistributionTab } from '@/features/admin/configs/components/d
 import { ValidationWidget } from '@/features/admin/configs/components/validation-widget';
 import { ConfigPreviewTab } from '@/features/admin/configs/components/config-preview-tab';
 import { GeneralSettingsTab } from '@/features/admin/configs/components/general-settings-tab';
-import { ConceptManagementPanel } from '@/features/admin/configs/components/concept-mapping';
+import { ConceptsAndTemplatesTab } from '@/features/admin/configs/components/concepts-templates-tab';
 import { BlueprintSelectionTab } from '@/features/admin/configs/components/blueprint-selection-tab';
 import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-summary-tab';
-import { TemplatesSummaryTab } from '@/features/admin/configs/components/templates-summary-tab';
 import { RolesSummaryTab } from '@/features/admin/configs/components/roles-summary-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
 import { GenerationReadinessPanel } from '@/features/admin/configs/components/GenerationReadinessPanel';
@@ -33,8 +32,7 @@ const WIZARD_TABS = [
   { id: 'general', label: 'General' },
   { id: 'sections', label: 'Sections' },
   { id: 'topics', label: 'Topics' },
-  { id: 'concepts', label: 'Concept Mapping' },
-  { id: 'templates', label: 'Templates' },
+  { id: 'concepts-templates', label: 'Concepts & Templates' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
   { id: 'roles', label: 'Roles' },
@@ -193,12 +191,15 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     w.includes('No templates found'),
   );
 
+  const hasConcepts = preview ? (preview.conceptCodes?.length ?? 0) > 0 : false;
+  const hasTemplates = preview ? preview.totalTemplates > 0 : false;
+
   const healthChecks = [
     { label: 'Configuration Saved', passed: !!config.id },
     { label: 'Sections Configured', passed: hasSections },
     { label: 'Topics Available', passed: hasTopics },
-    { label: 'Concepts Linked', passed: hasTopics }, // Adjust mapping if specific concept logic exists
-    { label: 'Templates Ready', passed: autoValidation ? !hasTemplatesWarn : false },
+    { label: 'Concepts Linked', passed: hasConcepts },
+    { label: 'Templates Ready', passed: hasTemplates },
     { label: 'Difficulty = 100%', passed: isDifficultyValid },
     { label: 'Rules Configured', passed: true }, // Rules are optional and apply default values
     { label: 'Roles Configured', passed: true }, // Placeholder for roles
@@ -282,14 +283,9 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
             <TopicsSummaryTab configId={configId} />
           </div>
         )}
-        {activeTabId === 'concepts' && (
+        {activeTabId === 'concepts-templates' && (
           <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <ConceptManagementPanel />
-          </div>
-        )}
-        {activeTabId === 'templates' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <TemplatesSummaryTab configId={configId} />
+            <ConceptsAndTemplatesTab configId={configId} />
           </div>
         )}
         {activeTabId === 'difficulty' && (

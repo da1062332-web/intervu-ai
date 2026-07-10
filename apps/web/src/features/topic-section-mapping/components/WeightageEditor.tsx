@@ -27,6 +27,15 @@ export function WeightageEditor({ sectionId, topics, onValidityChange }: Weighta
   
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const totalWeightage = Object.values(weightages).reduce((sum, val) => sum + (val || 0), 0);
+  const is100 = totalWeightage === 100;
+  const hasValidationErrors = Object.keys(errors).length > 0;
+  const isValid = is100 && !hasValidationErrors;
+
+  useEffect(() => {
+    onValidityChange?.(isValid);
+  }, [isValid, onValidityChange]);
+
   if (isLoading) {
     return (
       <div className='space-y-4 border rounded-lg p-4'>
@@ -97,15 +106,6 @@ export function WeightageEditor({ sectionId, topics, onValidityChange }: Weighta
       });
     }
   };
-
-  const totalWeightage = Object.values(weightages).reduce((sum, val) => sum + (val || 0), 0);
-  const is100 = totalWeightage === 100;
-  const hasValidationErrors = Object.keys(errors).length > 0;
-  const isValid = is100 && !hasValidationErrors;
-
-  useEffect(() => {
-    onValidityChange?.(isValid);
-  }, [isValid, onValidityChange]);
 
   return (
     <div className='space-y-4'>

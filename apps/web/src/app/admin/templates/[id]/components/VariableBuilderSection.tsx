@@ -4,29 +4,51 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
+import { useParams } from 'next/navigation';
+import { 
+  useTemplateVariables, 
+  useCreateVariable, 
+  useUpdateVariable, 
+  useDeleteVariable 
+} from '@/services/templates/hooks';
 
 interface Variable {
   id: string;
-  name: string;
+  variableName: string;
   dataType: string;
   generationRule: string;
   valueRange: string;
 }
 
 export function VariableBuilderSection() {
-  // Temporary local state
-  // TODO: Replace with Variable CRUD APIs (POST, PATCH, DELETE)
-  const [variables, setVariables] = useState<Variable[]>([
-    { id: '1', name: 'oldPrice', dataType: 'Integer', generationRule: 'Random', valueRange: '100-500' },
-    { id: '2', name: 'newPrice', dataType: 'Integer', generationRule: 'Formula', valueRange: 'oldPrice * 1.2' },
-  ]);
+  const { id: templateId } = useParams() as { id: string };
+  
+  const { data: variablesResponse, isLoading: isLoadingVariables } = useTemplateVariables(templateId);
+  const rawVariables = Array.isArray(variablesResponse) ? variablesResponse : (variablesResponse?.data || []);
+  const variables: Variable[] = rawVariables.map((v: any) => {
+    let dataType = 'Text';
+    if (v.variableType === 'NUMBER') dataType = 'Integer';
+    if (v.variableType === 'BOOLEAN') dataType = 'Boolean';
 
+    return {
+      id: v.id,
+      variableName: v.variableName,
+      dataType,
+      generationRule: 'Static',
+      valueRange: String(v.defaultValue || '')
+    };
+  });
+
+  const { mutate: createVar, isPending: isCreating } = useCreateVariable();
+  const { mutate: updateVar, isPending: isUpdating } = useUpdateVariable();
+  const { mutate: deleteVar, isPending: isDeleting } = useDeleteVariable();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<Variable, 'id'>>({
-    name: '',
+    variableName: '',
     dataType: 'Integer',
     generationRule: 'Random',
     valueRange: '',
@@ -38,7 +60,7 @@ export function VariableBuilderSection() {
     if (variable) {
       setEditingId(variable.id);
       setFormData({
-        name: variable.name,
+        variableName: variable.variableName,
         dataType: variable.dataType,
         generationRule: variable.generationRule,
         valueRange: variable.valueRange,
@@ -46,7 +68,7 @@ export function VariableBuilderSection() {
     } else {
       setEditingId(null);
       setFormData({
-        name: '',
+        variableName: '',
         dataType: 'Integer',
         generationRule: 'Random',
         valueRange: '',
@@ -57,7 +79,7 @@ export function VariableBuilderSection() {
 
   const handleSave = () => {
     setError(null);
-    if (!formData.name.trim()) {
+    if (!formData.variableName.trim()) {
       setError('Variable Name is required');
       return;
     }
@@ -66,26 +88,69 @@ export function VariableBuilderSection() {
       return;
     }
     
-    const duplicate = variables.find(v => v.name === formData.name && v.id !== editingId);
+    const duplicate = variables.find(v => v.variableName === formData.variableName && v.id !== editingId);
     if (duplicate) {
       setError('A variable with this name already exists');
       return;
     }
 
-    if (editingId) {
-      // TODO: Replace with PATCH /templates/:id/variables/:varId
-      setVariables(prev => prev.map(v => v.id === editingId ? { ...formData, id: editingId } : v));
-    } else {
-      // TODO: Replace with POST /templates/:id/variables
-      const newVar: Variable = { ...formData, id: Math.random().toString(36).substr(2, 9) };
-      setVariables(prev => [...prev, newVar]);
+    const getVariableType = (uiType: string) => {
+      if (uiType === 'Integer' || uiType === 'Decimal') return 'NUMBER';
+      if (uiType === 'Boolean') return 'BOOLEAN';
+      return 'STRING';
+    };
+
+    const varType = getVariableType(formData.dataType);
+    let finalDefaultValue: any = null;
+    
+    if (formData.valueRange !== '') {
+      if (varType === 'NUMBER') {
+        const num = Number(formData.valueRange);
+        finalDefaultValue = isNaN(num) ? formData.valueRange : num;
+      } else if (varType === 'BOOLEAN') {
+        finalDefaultValue = formData.valueRange === 'true' || formData.valueRange === '1';
+      } else {
+        finalDefaultValue = formData.valueRange;
+      }
     }
-    setIsModalOpen(false);
+
+    const payload = {
+      variableName: formData.variableName,
+      variableType: varType,
+      required: false,
+      defaultValue: finalDefaultValue
+    };
+
+    const extractError = (err: any, fallback: string) => {
+      const msg = err?.response?.data?.message || err?.message;
+      if (Array.isArray(msg)) return msg.join(', ');
+      return msg || fallback;
+    };
+
+    if (editingId) {
+      updateVar({
+        templateId,
+        variableId: editingId,
+        payload,
+      }, {
+        onSuccess: () => setIsModalOpen(false),
+        onError: (err: any) => setError(extractError(err, 'Failed to update variable'))
+      });
+    } else {
+      createVar({
+        templateId,
+        payload,
+      }, {
+        onSuccess: () => setIsModalOpen(false),
+        onError: (err: any) => setError(extractError(err, 'Failed to create variable'))
+      });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    // TODO: Replace with DELETE /templates/:id/variables/:varId
-    setVariables(prev => prev.filter(v => v.id !== id));
+  const handleDelete = (varId: string) => {
+    if (confirm('Are you sure you want to delete this variable?')) {
+      deleteVar({ templateId, variableId: varId });
+    }
   };
 
   return (
@@ -111,7 +176,13 @@ export function VariableBuilderSection() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {variables.length === 0 ? (
+            {isLoadingVariables ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
+                </TableCell>
+              </TableRow>
+            ) : variables.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No variables defined. Click "Add Variable" to create one.
@@ -120,7 +191,7 @@ export function VariableBuilderSection() {
             ) : (
               variables.map(v => (
                 <TableRow key={v.id}>
-                  <TableCell className="font-mono text-sm">{v.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{v.variableName}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                       {v.dataType}
@@ -129,10 +200,10 @@ export function VariableBuilderSection() {
                   <TableCell>{v.generationRule}</TableCell>
                   <TableCell className="font-mono text-xs">{v.valueRange}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => openModal(v)} aria-label={`Edit ${v.name}`}>
+                    <Button variant="ghost" size="sm" onClick={() => openModal(v)} aria-label={`Edit ${v.variableName}`} disabled={isDeleting}>
                       <Edit2 className="w-4 h-4 text-gray-500 hover:text-indigo-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} aria-label={`Delete ${v.name}`}>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} aria-label={`Delete ${v.variableName}`} disabled={isDeleting}>
                       <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
                     </Button>
                   </TableCell>
@@ -158,8 +229,8 @@ export function VariableBuilderSection() {
               <Label htmlFor="varName">Variable Name *</Label>
               <Input
                 id="varName"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                value={formData.variableName}
+                onChange={e => setFormData({ ...formData, variableName: e.target.value })}
                 placeholder="e.g. oldPrice"
                 aria-invalid={error && error.includes('Name') ? 'true' : 'false'}
               />
@@ -210,7 +281,8 @@ export function VariableBuilderSection() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isCreating || isUpdating}>
+              {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editingId ? 'Save Changes' : 'Create Variable'}
             </Button>
           </div>

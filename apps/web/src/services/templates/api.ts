@@ -72,3 +72,46 @@ export const getVariables = async (templateId: string): Promise<any> => {
 export const getRules = async (templateId: string): Promise<any> => {
   return await apiClient.request<any>(`/templates/${templateId}/rules`, { method: 'GET' });
 };
+
+export const updateTemplate = async (templateId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}`, {
+    method: 'PATCH',
+    body: payload,
+  });
+};
+
+export const createVariable = async (templateId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/variables`, {
+    method: 'POST',
+    body: payload,
+  });
+};
+
+export const updateVariable = async (variableId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/variables/${variableId}`, {
+    method: 'PATCH',
+    body: payload,
+  });
+};
+
+export const deleteVariable = async (variableId: string): Promise<any> => {
+  return await apiClient.request<any>(`/variables/${variableId}`, { method: 'DELETE' });
+};
+
+export const createRule = async (templateId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/rules`, {
+    method: 'POST',
+    body: payload,
+  });
+};
+
+export const updateRule = async (ruleId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/rules/${ruleId}`, {
+    method: 'PATCH',
+    body: payload,
+  });
+};
+
+export const deleteRule = async (ruleId: string): Promise<any> => {
+  return await apiClient.request<any>(`/rules/${ruleId}`, { method: 'DELETE' });
+};

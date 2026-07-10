@@ -1,34 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
-import { Info } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import { useUpdateTemplate } from '@/services/templates/hooks';
 
-export function OptionStrategySection() {
+interface OptionStrategySectionProps {
+  template: any;
+}
+
+export function OptionStrategySection({ template }: OptionStrategySectionProps) {
   const [strategy, setStrategy] = useState('static');
+  const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
+
+  useEffect(() => {
+    if (template?.config?.optionStrategy) {
+      setStrategy(template.config.optionStrategy);
+    }
+  }, [template]);
+
+  const handleSave = () => {
+    if (!template?.id) return;
+    updateTemplate({
+      templateId: template.id,
+      payload: {
+        config: {
+          ...(template.config || {}),
+          optionStrategy: strategy
+        }
+      }
+    });
+  };
 
   return (
     <TemplateSection
       title="Option Strategy"
       description="Configure how multiple-choice options and distractors are generated for this template."
       actions={
-        <Button disabled>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Save Strategy
         </Button>
       }
     >
       <div className="space-y-6">
-        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800">
-          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-sm">Backend Integration Pending</p>
-            <p className="text-sm mt-1 opacity-90">
-              Option Strategy will be fully available after the backend integration is completed.
-              You can preview the strategy types below, but saving is currently disabled.
-            </p>
-          </div>
-        </div>
 
         <div className="space-y-4">
           <Label className="text-base font-semibold">Generation Strategy</Label>

@@ -7,16 +7,17 @@ import { useConcepts, ConceptMapping } from '@/services/concept-mapping';
 import { ConceptTable } from './concept-mapping/ConceptTable';
 import { ConceptFormModal } from './concept-mapping/ConceptFormModal';
 import { DeactivateConceptDialog } from './concept-mapping/DeactivateConceptDialog';
+import { TemplateMappingModal } from './concept-mapping/TemplateMappingModal';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChevronRight, Plus } from 'lucide-react';
 
-interface TopicsSummaryTabProps {
+interface ConceptsAndTemplatesTabProps {
   configId: string;
 }
 
-export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
+export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabProps) {
   const { data: sections = [], isLoading: isLoadingSections } = useSections(configId);
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   
@@ -45,6 +46,7 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
+  const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
   const [selectedConcept, setSelectedConcept] = useState<ConceptMapping | null>(null);
 
   const handleAddClick = () => {
@@ -60,6 +62,11 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
   const handleDeactivateClick = (concept: ConceptMapping) => {
     setSelectedConcept(concept);
     setIsDeactivateDialogOpen(true);
+  };
+
+  const handleMapTemplates = (concept: ConceptMapping) => {
+    setSelectedConcept(concept);
+    setIsMappingModalOpen(true);
   };
 
   if (isLoadingSections) {
@@ -124,7 +131,7 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
       {/* Concepts Main Area */}
       <div className='flex-1 flex flex-col min-w-0'>
         <div className='flex items-center justify-between mb-4'>
-          <h3 className='font-semibold text-lg'>Concepts</h3>
+          <h3 className='font-semibold text-lg'>Concepts & Templates</h3>
           {selectedTopicId && (
             <Button onClick={handleAddClick} size='sm'>
               <Plus className='w-4 h-4 mr-2' />
@@ -145,7 +152,8 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
               concepts={concepts || []}
               onEdit={handleEditClick}
               onDeactivate={handleDeactivateClick}
-              hideTemplatesButton={true}
+              onMapTemplates={handleMapTemplates}
+              hideTemplatesButton={false}
             />
           </div>
         )}
@@ -163,6 +171,14 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
           isOpen={isDeactivateDialogOpen}
           onClose={() => setIsDeactivateDialogOpen(false)}
           topicId={selectedTopicId}
+          concept={selectedConcept}
+        />
+      )}
+
+      {selectedConcept && (
+        <TemplateMappingModal
+          isOpen={isMappingModalOpen}
+          onClose={() => setIsMappingModalOpen(false)}
           concept={selectedConcept}
         />
       )}
