@@ -115,10 +115,15 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
   }
 
   return (
-    <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <h2 className='text-xl font-semibold'>Sections</h2>
-        <Button onClick={handleOpenCreateModal}>Add Section</Button>
+    <div className='max-w-6xl mx-auto space-y-8 py-4'>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+        <div className='space-y-1'>
+          <h3 className='text-2xl font-semibold tracking-tight'>Exam Sections</h3>
+          <p className='text-muted-foreground'>
+            Create and manage the sections that will make up your examination structure.
+          </p>
+        </div>
+        <Button onClick={handleOpenCreateModal} className='shadow-sm shrink-0'>+ Add Section</Button>
       </div>
 
       {isLoading ? (

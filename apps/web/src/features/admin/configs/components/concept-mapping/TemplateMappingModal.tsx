@@ -3,7 +3,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
-import { useTemplates } from '@/services/templates/hooks';
+import { useTemplates, useTemplatesByConcept } from '@/services/templates/hooks';
 import { type ConceptMapping } from '@/services/concept-mapping';
 import { conceptMappingApi } from '@/services/concept-mapping/api';
 import { toast } from 'sonner';
@@ -17,11 +17,26 @@ interface TemplateMappingModalProps {
 export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappingModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<Set<string>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // We fetch page 1, large limit for now to support search/filter until API supports proper search
+  // Fetch all templates to allow mapping
   const { data, isLoading, isError } = useTemplates(1, 100);
-  const templates = data?.data || data || []; // Adjust based on actual API response structure
+  const templates = data?.items || data?.data || (Array.isArray(data) ? data : []);
+
+  // Fetch already assigned templates for this concept
+  const { data: assignedData, isLoading: isAssignedLoading } = useTemplatesByConcept(
+    concept?.code || concept?.conceptCode || '',
+    1,
+    100
+  );
+
+  // Initialize selectedTemplateIds with assigned templates when they load
+  React.useEffect(() => {
+    if (isOpen && assignedData?.items) {
+      const assignedIds = assignedData.items.map((t: any) => t.id || t.templateKey);
+      setSelectedTemplateIds(new Set(assignedIds));
+    }
+  }, [assignedData, isOpen]);
 
   const filteredTemplates = useMemo(() => {
     if (!templates || !Array.isArray(templates)) return [];
@@ -35,36 +50,31 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
     );
   }, [templates, searchQuery]);
 
-  // Saving the assignment
-  const handleSave = async () => {
+  const handleToggleMapping = async (templateId: string, isMapped: boolean) => {
     if (!concept) return;
-    setIsSaving(true);
+    
+    setProcessingId(templateId);
+    const newMappedIds = Array.from(selectedTemplateIds);
+    if (isMapped) {
+      // Remove template
+      const index = newMappedIds.indexOf(templateId);
+      if (index > -1) newMappedIds.splice(index, 1);
+    } else {
+      // Add template
+      if (!newMappedIds.includes(templateId)) {
+        newMappedIds.push(templateId);
+      }
+    }
 
     try {
-      await conceptMappingApi.assignTemplates(concept.id, Array.from(selectedTemplateIds));
-      toast.success(
-        `Assigned ${selectedTemplateIds.size} templates to ${concept.name || concept.conceptName}`,
-      );
-
-      // Update local storage for demo purposes if needed, but for now we just show success
-      onClose();
+      await conceptMappingApi.assignTemplates(concept.id, newMappedIds);
+      setSelectedTemplateIds(new Set(newMappedIds));
+      toast.success(isMapped ? 'Template unmapped successfully' : 'Template mapped successfully');
     } catch (error) {
-      toast.error('Failed to assign templates');
+      toast.error(isMapped ? 'Failed to unmap template' : 'Failed to map template');
     } finally {
-      setIsSaving(false);
+      setProcessingId(null);
     }
-  };
-
-  const toggleSelection = (templateId: string) => {
-    setSelectedTemplateIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(templateId)) {
-        newSet.delete(templateId);
-      } else {
-        newSet.add(templateId);
-      }
-      return newSet;
-    });
   };
 
   if (!concept) return null;
@@ -107,10 +117,10 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
             <table className='w-full text-sm text-left'>
               <thead className='text-xs text-muted-foreground bg-muted/50 sticky top-0'>
                 <tr>
-                  <th className='px-4 py-3 w-12'>{/* Select All Checkbox could go here */}</th>
                   <th className='px-4 py-3'>Template Name</th>
                   <th className='px-4 py-3'>Key / ID</th>
                   <th className='px-4 py-3'>Status</th>
+                  <th className='px-4 py-3 text-right'>Action</th>
                 </tr>
               </thead>
               <tbody className='divide-y'>
@@ -120,17 +130,8 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
                   return (
                     <tr
                       key={id}
-                      className={`hover:bg-muted/30 cursor-pointer ${isSelected ? 'bg-primary/5' : ''}`}
-                      onClick={() => toggleSelection(id)}
+                      className={`hover:bg-muted/30 transition-colors ${isSelected ? 'bg-primary/5' : ''}`}
                     >
-                      <td className='px-4 py-3'>
-                        <input
-                          type='checkbox'
-                          className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary'
-                          checked={isSelected}
-                          readOnly
-                        />
-                      </td>
                       <td className='px-4 py-3 font-medium'>
                         {template.name || 'Unnamed Template'}
                       </td>
@@ -138,7 +139,29 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
                         {template.templateKey || '-'}
                       </td>
                       <td className='px-4 py-3'>
-                        {template.isActive !== false ? 'Active' : 'Inactive'}
+                        {isSelected ? (
+                          <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                            Already Mapped
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                            Available
+                          </span>
+                        )}
+                      </td>
+                      <td className='px-4 py-3 text-right'>
+                        <Button 
+                          variant={isSelected ? "destructive" : "default"}
+                          size="sm"
+                          disabled={processingId === id}
+                          onClick={() => handleToggleMapping(id, isSelected)}
+                        >
+                          {processingId === id && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                          {processingId === id 
+                            ? (isSelected ? 'Unmapping...' : 'Mapping...') 
+                            : (isSelected ? 'Unmap' : 'Map')
+                          }
+                        </Button>
                       </td>
                     </tr>
                   );
@@ -150,15 +173,11 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
 
         <div className='flex justify-between items-center'>
           <div className='text-sm text-muted-foreground'>
-            {selectedTemplateIds.size} templates selected
+            {selectedTemplateIds.size} templates mapped to this concept
           </div>
           <div className='flex gap-2'>
-            <Button variant='outline' onClick={onClose} disabled={isSaving}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-              Save Assignments
+            <Button variant='outline' onClick={onClose}>
+              Close
             </Button>
           </div>
         </div>

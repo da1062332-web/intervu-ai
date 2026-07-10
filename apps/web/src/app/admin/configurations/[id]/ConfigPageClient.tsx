@@ -12,7 +12,6 @@ import { GeneralSettingsTab } from '@/features/admin/configs/components/general-
 import { ConceptsAndTemplatesTab } from '@/features/admin/configs/components/concepts-templates-tab';
 import { BlueprintSelectionTab } from '@/features/admin/configs/components/blueprint-selection-tab';
 import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-summary-tab';
-import { RolesSummaryTab } from '@/features/admin/configs/components/roles-summary-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
 import { GenerationReadinessPanel } from '@/features/admin/configs/components/GenerationReadinessPanel';
 
@@ -35,7 +34,6 @@ const WIZARD_TABS = [
   { id: 'concepts-templates', label: 'Concepts & Templates' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
-  { id: 'roles', label: 'Roles' },
   { id: 'blueprint', label: 'Blueprint' },
   { id: 'readiness', label: 'Readiness' },
   { id: 'preview', label: 'Preview' },
@@ -98,10 +96,9 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
       if (!window.confirm('You have unsaved changes. Leave this tab without saving?')) return;
       markClean();
     }
-    // Strict block if no blueprint and trying to skip past it
-    if (!selectedBlueprintId && index > 8) {
+    if (!selectedBlueprintId && index > 7) {
       toast.error('Please select a blueprint first.');
-      setActiveTabIndex(8); // Force them to blueprint tab
+      setActiveTabIndex(7); // Force them to blueprint tab
       return;
     }
     setActiveTabIndex(index);
@@ -202,7 +199,6 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     { label: 'Templates Ready', passed: hasTemplates },
     { label: 'Difficulty = 100%', passed: isDifficultyValid },
     { label: 'Rules Configured', passed: true }, // Rules are optional and apply default values
-    { label: 'Roles Configured', passed: true }, // Placeholder for roles
     { label: 'Blueprint Selected', passed: !!selectedBlueprintId },
     { label: 'Validation Passed', passed: !!generationReadiness?.valid },
   ];
@@ -212,8 +208,8 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
-      <div className='flex flex-col md:flex-row md:items-start justify-between gap-6'>
-        <div className='flex-1'>
+      <div className='flex flex-col gap-6'>
+        <div>
           <h1 className='text-3xl font-bold tracking-tight'>{config.name}</h1>
           <p className='text-muted-foreground mt-2'>
             Follow the guided workflow to complete this exam configuration.
@@ -221,27 +217,29 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         </div>
 
         {/* Configuration Health Panel */}
-        <div className='w-full md:w-80 border rounded-lg p-4 bg-muted/20 shadow-sm'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='font-semibold text-sm'>Configuration Health</h3>
-            <span className='text-sm font-medium text-primary'>{progressPercent}%</span>
+        <div className='w-full border rounded-xl p-5 bg-card shadow-sm'>
+          <div className='flex items-center justify-between mb-4 pb-4 border-b'>
+            <h3 className='font-semibold text-sm text-foreground uppercase tracking-wider'>Configuration Health</h3>
+            <div className='flex items-center gap-4'>
+               <div className="w-32 md:w-64 bg-muted rounded-full h-2 hidden sm:block">
+                 <div className="bg-primary h-2 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+               </div>
+               <span className='text-sm font-medium text-primary'>{progressPercent}%</span>
+            </div>
           </div>
-          <div className='space-y-2 mb-4'>
+          <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-4 gap-x-4'>
             {healthChecks.map((check, i) => (
-              <div key={i} className='flex items-center gap-2 text-xs'>
+              <div key={i} className='flex items-center gap-2 text-sm'>
                 {check.passed ? (
-                  <CheckCircle2 className='w-4 h-4 text-green-500' />
+                  <CheckCircle2 className='w-4 h-4 text-green-500 shrink-0' />
                 ) : (
-                  <Circle className='w-4 h-4 text-muted-foreground' />
+                  <Circle className='w-4 h-4 text-muted-foreground shrink-0' />
                 )}
-                <span className={check.passed ? 'text-foreground' : 'text-muted-foreground'}>
+                <span className={`truncate ${check.passed ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                   {check.label}
                 </span>
               </div>
             ))}
-          </div>
-          <div className='text-xs font-medium text-muted-foreground text-right'>
-            Progress: {passedCount} / {healthChecks.length}
           </div>
         </div>
       </div>
@@ -272,58 +270,23 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
       </div>
 
       <div className='mt-8 min-h-[400px]'>
-        {activeTabId === 'general' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <GeneralSettingsTab configId={configId} />
-          </div>
-        )}
+        {activeTabId === 'general' && <GeneralSettingsTab configId={configId} />}
         {activeTabId === 'sections' && <SectionBuilder configId={configId} />}
-        {activeTabId === 'topics' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <TopicsSummaryTab configId={configId} />
-          </div>
-        )}
-        {activeTabId === 'concepts-templates' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <ConceptsAndTemplatesTab configId={configId} />
-          </div>
-        )}
-        {activeTabId === 'difficulty' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <DifficultyDistributionTab configId={configId} />
-          </div>
-        )}
-        {activeTabId === 'rules' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <RuleFlagsTab configId={configId} onNext={handleNext} />
-          </div>
-        )}
-        {activeTabId === 'roles' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <RolesSummaryTab configId={configId} />
-          </div>
-        )}
-        {activeTabId === 'blueprint' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <BlueprintSelectionTab configId={configId} />
-          </div>
-        )}
+        {activeTabId === 'topics' && <TopicsSummaryTab configId={configId} />}
+        {activeTabId === 'concepts-templates' && <ConceptsAndTemplatesTab configId={configId} />}
+        {activeTabId === 'difficulty' && <DifficultyDistributionTab configId={configId} />}
+        {activeTabId === 'rules' && <RuleFlagsTab configId={configId} onNext={handleNext} />}
+        {activeTabId === 'blueprint' && <BlueprintSelectionTab configId={configId} />}
         {activeTabId === 'readiness' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <GenerationReadinessPanel
-              configId={configId}
-              onTabChange={(id: string) => {
-                const idx = WIZARD_TABS.findIndex((t) => t.id === id);
-                if (idx !== -1) setActiveTabIndex(idx);
-              }}
-            />
-          </div>
+          <GenerationReadinessPanel
+            configId={configId}
+            onTabChange={(id: string) => {
+              const idx = WIZARD_TABS.findIndex((t) => t.id === id);
+              if (idx !== -1) setActiveTabIndex(idx);
+            }}
+          />
         )}
-        {activeTabId === 'preview' && (
-          <div className='p-6 border rounded-lg bg-background shadow-sm'>
-            <ConfigPreviewTab configId={configId} />
-          </div>
-        )}
+        {activeTabId === 'preview' && <ConfigPreviewTab configId={configId} />}
       </div>
 
       {/* Bottom Action Bar */}

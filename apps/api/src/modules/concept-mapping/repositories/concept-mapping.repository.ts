@@ -48,14 +48,28 @@ export class ConceptMappingRepository extends BaseRepository<
       throw new Error(`Concept with ID ${conceptId} not found`);
     }
 
-    return this.prisma.template.updateMany({
+    // 1. Unassign templates that are currently mapped to this concept but not in the new list
+    await this.prisma.template.updateMany({
       where: {
-        id: { in: templateIds },
+        conceptKey: concept.code,
+        id: { notIn: templateIds },
       },
       data: {
-        conceptKey: concept.code,
+        conceptKey: null,
       },
     });
+
+    // 2. Assign the new ones
+    if (templateIds.length > 0) {
+      return this.prisma.template.updateMany({
+        where: {
+          id: { in: templateIds },
+        },
+        data: {
+          conceptKey: concept.code,
+        },
+      });
+    }
   }
 
   // Override delete to set status: INACTIVE

@@ -19,9 +19,8 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
 
   if (isLoading) {
     return (
-      <div className='space-y-6 max-w-2xl'>
-        <Skeleton className='h-12 w-full' />
-        <Skeleton className='h-32 w-full' />
+      <div className="flex items-center justify-center h-48">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -29,19 +28,19 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
   const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
 
   return (
-    <div className='space-y-6 max-w-3xl'>
-      <div>
-        <h3 className='text-lg font-medium'>Blueprint Selection</h3>
-        <p className='text-sm text-muted-foreground'>
+    <div className='max-w-4xl mx-auto space-y-8 py-4'>
+      <div className='space-y-1'>
+        <h3 className='text-2xl font-semibold tracking-tight'>Blueprint Selection</h3>
+        <p className='text-muted-foreground'>
           Select a blueprint to define the structure, topics, and templates for this configuration.
         </p>
       </div>
 
-      <div className='space-y-4 mt-6'>
+      <div className='p-6 border rounded-xl bg-card shadow-sm space-y-6'>
         <div className='flex flex-col space-y-2'>
           <label className='text-sm font-medium text-foreground'>Blueprint</label>
           <select
-            className='h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
+            className='h-12 rounded-lg border border-input bg-background px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
             value={selectedBlueprintId || ''}
             onChange={(e) => setBlueprintId(configId, e.target.value)}
           >
@@ -57,20 +56,19 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
         </div>
 
         {selectedBlueprint && (
-          <div className='bg-muted/30 border rounded-lg p-6 space-y-6'>
+          <div className='bg-muted/10 border rounded-lg p-6 space-y-4'>
             <div>
-              <h4 className='text-base font-semibold text-foreground'>Selected Blueprint</h4>
-              <p className='text-sm text-muted-foreground mt-1'>{selectedBlueprint.name}</p>
+              <h4 className='text-lg font-semibold text-foreground'>{selectedBlueprint.name}</h4>
               {selectedBlueprint.description && (
                 <p className='text-sm text-muted-foreground mt-1'>
                   {selectedBlueprint.description}
                 </p>
               )}
             </div>
-            <div className='flex gap-4'>
-              <Button asChild variant='outline'>
+            <div className='pt-2'>
+              <Button asChild variant='outline' className='shadow-sm'>
                 <Link href={`/admin/blueprints/${selectedBlueprint.id}`} target='_blank'>
-                  View Blueprint Configuration <ExternalLink className='ml-2 h-4 w-4' />
+                  View Blueprint Details <ExternalLink className='ml-2 h-4 w-4' />
                 </Link>
               </Button>
             </div>

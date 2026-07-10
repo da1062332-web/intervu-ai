@@ -3,14 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSections } from '@/services/exam-sections/hooks';
 import { useSectionTopics } from '@/features/topic-section-mapping/api/queries';
-import { useConcepts, ConceptMapping } from '@/services/concept-mapping';
-import { ConceptTable } from './concept-mapping/ConceptTable';
-import { ConceptFormModal } from './concept-mapping/ConceptFormModal';
-import { DeactivateConceptDialog } from './concept-mapping/DeactivateConceptDialog';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { ChevronRight, Plus } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface TopicsSummaryTabProps {
   configId: string;
@@ -41,27 +36,6 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
     }
   }, [topics, selectedTopicId]);
 
-  const { data: concepts, isLoading: isLoadingConcepts, refetch: refetchConcepts } = useConcepts(selectedTopicId);
-
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
-  const [selectedConcept, setSelectedConcept] = useState<ConceptMapping | null>(null);
-
-  const handleAddClick = () => {
-    setSelectedConcept(null);
-    setIsFormModalOpen(true);
-  };
-
-  const handleEditClick = (concept: ConceptMapping) => {
-    setSelectedConcept(concept);
-    setIsFormModalOpen(true);
-  };
-
-  const handleDeactivateClick = (concept: ConceptMapping) => {
-    setSelectedConcept(concept);
-    setIsDeactivateDialogOpen(true);
-  };
-
   if (isLoadingSections) {
     return <Skeleton className="w-full h-64" />;
   }
@@ -76,96 +50,67 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
   }
 
   return (
-    <div className='flex flex-col md:flex-row gap-6 min-h-[500px]'>
-      {/* Sections Sidebar */}
-      <div className='w-full md:w-48 flex flex-col gap-2 border-r pr-4 shrink-0'>
-        <h3 className='font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wider'>Sections</h3>
-        {sections.map(section => (
-          <button
-            key={section.id}
-            onClick={() => { setSelectedSectionId(section.id); setSelectedTopicId(''); }}
-            className={`flex items-center justify-between p-3 rounded-md text-left transition-colors text-sm ${
-              selectedSectionId === section.id
-                ? 'bg-primary text-primary-foreground font-medium'
-                : 'hover:bg-muted text-foreground'
-            }`}
-          >
-            <span className='truncate'>{section.name}</span>
-            {selectedSectionId === section.id && <ChevronRight className='w-4 h-4 shrink-0' />}
-          </button>
-        ))}
+    <div className='max-w-4xl mx-auto space-y-8 py-4'>
+      <div className='space-y-1'>
+        <h3 className='text-2xl font-semibold tracking-tight'>Topics Summary</h3>
+        <p className='text-muted-foreground'>
+          Review the topic distribution assigned to your sections.
+        </p>
       </div>
 
-      {/* Topics Sidebar */}
-      <div className='w-full md:w-56 flex flex-col gap-2 border-r pr-4 shrink-0'>
-        <h3 className='font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wider'>Topics</h3>
-        {isLoadingTopics ? (
-          <Skeleton className='w-full h-10' />
-        ) : topics.length === 0 ? (
-          <p className='text-sm text-muted-foreground italic'>No topics assigned.</p>
-        ) : (
-          topics.map((topic: any) => (
+      <div className='flex flex-col md:flex-row border rounded-xl bg-card shadow-sm overflow-hidden min-h-[400px]'>
+        {/* Sections Sidebar */}
+        <div className='w-full md:w-64 bg-muted/10 border-r p-4 flex flex-col gap-2'>
+          <h3 className='font-semibold mb-3 text-xs text-muted-foreground uppercase tracking-wider'>
+            Sections
+          </h3>
+          {sections.map(section => (
             <button
-              key={topic.topicId}
-              onClick={() => setSelectedTopicId(topic.topicId)}
-              className={`flex items-center justify-between p-3 rounded-md text-left transition-colors text-sm ${
-                selectedTopicId === topic.topicId
-                  ? 'bg-secondary text-secondary-foreground font-medium'
+              key={section.id}
+              onClick={() => setSelectedSectionId(section.id)}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors text-sm ${
+                selectedSectionId === section.id
+                  ? 'bg-primary text-primary-foreground font-medium shadow-sm'
                   : 'hover:bg-muted text-foreground'
               }`}
             >
-              <span className='truncate'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</span>
-              {selectedTopicId === topic.topicId && <ChevronRight className='w-4 h-4 shrink-0' />}
+              <span className='truncate'>{section.name}</span>
+              {selectedSectionId === section.id && <ChevronRight className='w-4 h-4 shrink-0' />}
             </button>
-          ))
-        )}
-      </div>
-
-      {/* Concepts Main Area */}
-      <div className='flex-1 flex flex-col min-w-0'>
-        <div className='flex items-center justify-between mb-4'>
-          <h3 className='font-semibold text-lg'>Concepts</h3>
-          {selectedTopicId && (
-            <Button onClick={handleAddClick} size='sm'>
-              <Plus className='w-4 h-4 mr-2' />
-              Add Concept
-            </Button>
-          )}
+          ))}
         </div>
 
-        {!selectedTopicId ? (
-          <div className='flex-1 flex items-center justify-center border rounded-md border-dashed bg-muted/10'>
-            <p className='text-muted-foreground'>Select a topic to manage its concepts</p>
+        {/* Topics Main Area */}
+        <div className='flex-1 p-6 flex flex-col'>
+          <div className='flex items-center justify-between mb-6'>
+            <h3 className='font-semibold text-lg'>Assigned Topics</h3>
           </div>
-        ) : isLoadingConcepts ? (
-          <Skeleton className='w-full h-48' />
-        ) : (
-          <div className='bg-card border rounded-lg overflow-hidden flex-1'>
-            <ConceptTable
-              concepts={concepts || []}
-              onEdit={handleEditClick}
-              onDeactivate={handleDeactivateClick}
-              hideTemplatesButton={true}
-            />
-          </div>
-        )}
+
+          {isLoadingTopics ? (
+            <div className='space-y-3'>
+              <Skeleton className='w-full h-12 rounded-lg' />
+              <Skeleton className='w-full h-12 rounded-lg' />
+              <Skeleton className='w-full h-12 rounded-lg' />
+            </div>
+          ) : topics.length === 0 ? (
+            <div className='flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg bg-muted/5 p-8 text-center'>
+              <p className='text-muted-foreground font-medium'>No topics mapped to this section.</p>
+              <p className='text-sm text-muted-foreground mt-1'>Topics must be assigned in the Blueprint tab.</p>
+            </div>
+          ) : (
+            <div className='grid gap-3'>
+              {topics.map((topic: any) => (
+                <div key={topic.topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
+                  <div>
+                    <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
+                    <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {topic.weightage || 0}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
-      <ConceptFormModal
-        isOpen={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        concept={selectedConcept}
-        topicId={selectedTopicId}
-      />
-
-      {selectedConcept && (
-        <DeactivateConceptDialog
-          isOpen={isDeactivateDialogOpen}
-          onClose={() => setIsDeactivateDialogOpen(false)}
-          topicId={selectedTopicId}
-          concept={selectedConcept}
-        />
-      )}
     </div>
   );
 }
