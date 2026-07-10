@@ -57,13 +57,16 @@ export class CandidateRankingService {
     };
 
     // 2. Organization (Same companyName in TestConfig)
-    const orgWhere = {
-      attempt: {
-        testConfig: {
-          companyName: testConfig.companyName,
+    let orgWhere: any = {};
+    if (testConfig) {
+      orgWhere = {
+        attempt: {
+          testConfig: {
+            companyName: testConfig.companyName,
+          },
         },
-      },
-    };
+      };
+    }
 
     // 3. Batch (Same testConfigId and submitted within the same calendar month)
     const startOfMonth = new Date(

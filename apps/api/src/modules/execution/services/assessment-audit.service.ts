@@ -34,7 +34,7 @@ export class AssessmentAuditService {
       data: {
         attemptId,
         candidateId: attempt.userId,
-        assessmentId: attempt.testConfigId,
+        assessmentId: attempt.testConfigId || (attempt as any).examConfigId || "unknown",
         eventType,
         metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
       },

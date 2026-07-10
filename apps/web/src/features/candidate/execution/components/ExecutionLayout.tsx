@@ -48,16 +48,13 @@ export function ExecutionLayout() {
       <ResumeBanner />
       <ExecutionHeader />
 
-      <main className='flex-1 container max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8'>
-        <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 h-full items-start'>
-          {/* Left Column - Question & Navigation */}
+      <main className='flex-1 container max-w-[1600px] mx-auto px-4 md:px-8 py-4 md:py-6 pb-24'>
+        <div className='grid grid-cols-1 lg:grid-cols-10 gap-6 h-full items-start'>
+          {/* Left + Center Columns - Question & Resources */}
           <div className='lg:col-span-8 flex flex-col min-h-[500px]'>
             <SectionTabs />
-            <div className='flex-1'>
+            <div className='flex-1 mt-4'>
               <QuestionRenderer />
-            </div>
-            <div className='mt-6 md:mt-8'>
-              <NavigationControls onSubmitClick={handleSubmit} />
             </div>
           </div>
 
@@ -86,15 +83,22 @@ export function ExecutionLayout() {
           </div>
 
           {/* Right Column - Palette & Progress (Desktop Only) */}
-          <div className='hidden lg:flex lg:col-span-4 flex-col gap-6 lg:sticky lg:top-[88px]'>
+          <div className='hidden lg:flex lg:col-span-2 flex-col gap-6 lg:sticky lg:top-[88px]'>
             <QuestionPalette />
 
-            <div className='border rounded-xl p-6 md:shadow-sm'>
+            <div className='border rounded-xl p-4 md:shadow-sm bg-white'>
               <ProgressTracker />
             </div>
           </div>
         </div>
       </main>
+
+      {/* Sticky Footer for Navigation */}
+      <footer className='fixed bottom-0 left-0 right-0 z-40 bg-white border-t shadow-lg p-4'>
+        <div className='container max-w-[1600px] mx-auto flex justify-between items-center'>
+          <NavigationControls onSubmitClick={handleSubmit} />
+        </div>
+      </footer>
 
       {testInstance && (
         <SubmissionModal

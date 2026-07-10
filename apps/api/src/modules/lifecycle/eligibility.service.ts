@@ -2,12 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { UserRepository } from "../users/repositories/user.repository";
 import { TestConfigRepository } from "../tests/repositories/test-config.repository";
 import { TestInstanceRepository } from "../tests/test-instance/test-instance.repository";
+import { PrismaService } from "../../prisma/prisma.service";
 
 export interface EligibilityResult {
   eligible: boolean;
   errorCode?: string;
   reason?: string;
   activeTestId?: string;
+  isExamConfig?: boolean;
 }
 
 @Injectable()
@@ -16,6 +18,7 @@ export class EligibilityService {
     private readonly userRepository: UserRepository,
     private readonly testConfigRepository: TestConfigRepository,
     private readonly testInstanceRepository: TestInstanceRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async validateEligibility(
@@ -34,7 +37,13 @@ export class EligibilityService {
     }
 
     // Validate Config Exists and is Active
-    const config = await this.testConfigRepository.findById(testConfigId);
+    let config: any = await this.testConfigRepository.findById(testConfigId);
+    let isExamConfig = false;
+
+    if (!config) {
+      config = await this.prisma.examConfig.findUnique({ where: { id: testConfigId } });
+      isExamConfig = true;
+    }
 
     if (!config) {
       return {
@@ -53,10 +62,14 @@ export class EligibilityService {
     }
 
     // Validate Active Test Limit (User shouldn't have an ongoing test for the same config)
-    const activeTest = await this.testInstanceRepository.findActiveByUser(
-      userId,
-      testConfigId,
-    );
+    const activeTest = isExamConfig
+      ? await this.prisma.testInstance.findFirst({
+          where: { userId, examConfigId: testConfigId, status: "IN_PROGRESS" },
+        })
+      : await this.testInstanceRepository.findActiveByUser(
+          userId,
+          testConfigId,
+        );
 
     if (activeTest) {
       return {
@@ -81,7 +94,6 @@ export class EligibilityService {
         reason: "Maximum attempts reached for this test",
       };
     }
-
-    return { eligible: true };
+    return { eligible: true, isExamConfig };
   }
 }

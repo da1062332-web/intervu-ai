@@ -28,13 +28,13 @@ export class TestsService {
     const configs: AvailableConfigDto[] = testConfigs.map((tc) => {
       return {
         configId: tc.id,
-        company: tc.companyName,
-        name: tc.displayName,
+        company: tc.isExam ? "Intervu" : tc.companyName,
+        name: tc.isExam ? tc.name : tc.displayName,
         difficulty: "MEDIUM",
-        duration: tc.totalDurationSeconds,
-        sections: tc.sections.map(
-          (s: { displayName: string }) => s.displayName,
-        ),
+        duration: tc.isExam ? tc.durationMinutes * 60 : tc.totalDurationSeconds,
+        sections: tc.isExam 
+          ? tc.sections.map((s: { name: string }) => s.name)
+          : tc.sections.map((s: { displayName: string }) => s.displayName),
       };
     });
 

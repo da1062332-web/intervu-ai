@@ -27,44 +27,62 @@ export class PublicTestsRepository {
       sortOrder,
     } = params;
 
-    const where: Prisma.TestConfigWhereInput = {};
+    const examWhere: Prisma.ExamConfigWhereInput = {};
+    const testWhere: Prisma.TestConfigWhereInput = {};
 
     if (company) {
-      where.companyName = { contains: company, mode: "insensitive" };
+      testWhere.companyName = { contains: company, mode: "insensitive" };
     }
 
     if (status === "active") {
-      where.isActive = true;
+      examWhere.isActive = true;
+      testWhere.isActive = true;
     } else if (status === "inactive") {
-      where.isActive = false;
+      examWhere.isActive = false;
+      testWhere.isActive = false;
     }
-
-    // Since difficulty is in the TestConfig rule, we would ideally filter on it, but
-    // it's part of the opaque Template.config conceptually. If it was a dedicated column,
-    // we'd add it here. The previous codebase stores it in rule.difficulty or similar.
-    // For MVP, we ignore difficulty filter unless it's a first-class column, but the DTO accepts it.
 
     if (search) {
-      where.OR = [
-        { displayName: { contains: search, mode: "insensitive" } },
-        { companyName: { contains: search, mode: "insensitive" } },
-      ];
+      examWhere.OR = [{ name: { contains: search, mode: "insensitive" } }];
+      testWhere.OR = [{ displayName: { contains: search, mode: "insensitive" } }];
     }
 
-    const [total, items] = await Promise.all([
-      this.prisma.testConfig.count({ where }),
+    const [totalExams, totalTests, exams, tests] = await Promise.all([
+      this.prisma.examConfig.count({ where: examWhere }),
+      this.prisma.testConfig.count({ where: testWhere }),
+      this.prisma.examConfig.findMany({
+        where: examWhere,
+        include: { sections: { select: { name: true } } },
+      }),
       this.prisma.testConfig.findMany({
-        where,
-        skip,
-        take,
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          sections: {
-            select: { displayName: true },
-          },
-        },
+        where: testWhere,
+        include: { sections: { select: { displayName: true } } },
       }),
     ]);
+
+    const total = totalExams + totalTests;
+
+    let combined = [
+      ...exams.map(e => ({ ...e, isExam: true })),
+      ...tests.map(t => ({ ...t, isExam: false }))
+    ];
+
+    combined.sort((a: any, b: any) => {
+      let valA = a[sortBy];
+      let valB = b[sortBy];
+      
+      // Handle the case where they have different field names for name
+      if (sortBy === 'name') {
+        valA = a.isExam ? a.name : a.displayName;
+        valB = b.isExam ? b.name : b.displayName;
+      }
+      
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    const items = combined.slice(skip, skip + take);
 
     return { total, items };
   }

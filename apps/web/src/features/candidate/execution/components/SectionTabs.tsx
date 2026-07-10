@@ -34,10 +34,10 @@ export function SectionTabs() {
             key={section.id}
             onClick={() => jumpToQuestion(sectionStartIndices[section.id])}
             className={cn(
-              'px-4 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap',
+              'px-6 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap border-t border-x',
               isActive
-                ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                ? 'bg-primary text-white border-primary'
+                : 'bg-white text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground',
             )}
           >
             {section.title}

@@ -6,6 +6,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
+import { EmbeddedCompiler } from './EmbeddedCompiler';
+
 export function QuestionRenderer() {
   const { currentQuestion, currentQuestionIndex, answers, saveAnswer, toggleReview, testInstance } =
     useExecutionStore();
@@ -14,6 +16,7 @@ export function QuestionRenderer() {
 
   const currentAnswer = answers[currentQuestion.id];
   const isMarkedForReview = currentAnswer?.status === 'MARKED_FOR_REVIEW';
+  const isCoding = currentQuestion.type === 'CODING';
 
   const renderMCQ = () => {
     const selectedOptionId = currentAnswer?.selectedOptionId;
@@ -22,7 +25,7 @@ export function QuestionRenderer() {
       <RadioGroup
         value={selectedOptionId || ''}
         onValueChange={(val: string) => saveAnswer(currentQuestion.id, { selectedOptionId: val })}
-        className='space-y-4 mt-8'
+        className='space-y-4'
         aria-label='Select an option'
       >
         {currentQuestion.options.map((option, index) => {
@@ -35,11 +38,11 @@ export function QuestionRenderer() {
               key={optId}
               htmlFor={optId}
               className={`
-                flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2
+                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
                 ${
                   isSelected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                    : 'border-border hover:border-primary/50 hover:bg-accent/50 bg-white'
                 }
               `}
             >
@@ -54,7 +57,7 @@ export function QuestionRenderer() {
                 flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium shrink-0
                 ${
                   isSelected
-                    ? 'bg-primary border-primary text-primary-foreground'
+                    ? 'bg-primary border-primary text-white'
                     : 'bg-background border-muted-foreground/30 text-muted-foreground'
                 }
               `}
@@ -84,7 +87,7 @@ export function QuestionRenderer() {
     };
 
     return (
-      <div className='space-y-4 mt-8' role='group' aria-label='Select multiple options'>
+      <div className='space-y-4' role='group' aria-label='Select multiple options'>
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index);
           const optId = option.id || index.toString();
@@ -94,11 +97,11 @@ export function QuestionRenderer() {
             <Label
               key={optId}
               className={`
-                flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2
+                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
                 ${
                   isSelected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                    : 'border-border hover:border-primary/50 hover:bg-accent/50 bg-white'
                 }
               `}
             >
@@ -114,7 +117,7 @@ export function QuestionRenderer() {
                 flex items-center justify-center w-8 h-8 rounded border mr-4 text-sm font-medium shrink-0
                 ${
                   isSelected
-                    ? 'bg-primary border-primary text-primary-foreground'
+                    ? 'bg-primary border-primary text-white'
                     : 'bg-background border-muted-foreground/30 text-muted-foreground'
                 }
               `}
@@ -136,28 +139,13 @@ export function QuestionRenderer() {
     const textResponse = currentAnswer?.textResponse || '';
 
     return (
-      <div className='mt-8'>
+      <div className='bg-white p-6 rounded-xl border shadow-sm'>
         <Input
           type='number'
           placeholder='Enter your numeric answer'
           value={textResponse}
           onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
           className='max-w-xs'
-        />
-      </div>
-    );
-  };
-
-  const renderCoding = () => {
-    const textResponse = currentAnswer?.textResponse || '';
-
-    return (
-      <div className='mt-8'>
-        <textarea
-          className='w-full max-w-full h-64 p-4 font-mono text-sm border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary overflow-auto'
-          placeholder='// Write your code here...'
-          value={textResponse}
-          onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
         />
       </div>
     );
@@ -172,61 +160,39 @@ export function QuestionRenderer() {
       case 'NUMERIC':
         return renderNumeric();
       case 'CODING':
-        return renderCoding();
+        return <EmbeddedCompiler />;
       default:
         return renderMCQ();
     }
   };
 
   return (
-    <Card className='w-full h-full border-none shadow-none md:border-solid md:shadow-sm'>
-      <CardHeader className='pb-4 border-b'>
-        <div className='flex items-center justify-between'>
-          <CardTitle className='text-xl font-bold'>Question {currentQuestionIndex + 1}</CardTitle>
-          <span className='text-sm text-muted-foreground bg-muted px-2 py-1 rounded-md'>
-            {currentQuestion.type}
-          </span>
-        </div>
-      </CardHeader>
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-start'>
+      {/* Left Panel: Resources & Question Statement */}
+      <Card className='w-full h-full min-h-[500px] border-solid shadow-sm flex flex-col bg-white overflow-hidden'>
+        <CardHeader className='pb-4 border-b bg-muted/20'>
+          <div className='flex items-center justify-between'>
+            <CardTitle className='text-xl font-bold'>Question {currentQuestionIndex + 1}</CardTitle>
+            <span className='text-sm text-primary bg-primary/10 px-3 py-1 rounded-full font-medium'>
+              {currentQuestion.type}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className='pt-6 md:pt-8 px-6 md:px-8 flex-1 overflow-y-auto custom-scrollbar'>
+          <div className='prose prose-slate max-w-none dark:prose-invert break-words'>
+            <p className='text-[17px] leading-relaxed text-foreground'>
+              {currentQuestion.text}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-      <CardContent className='pt-6 md:pt-8 px-6 md:px-10'>
-        <div className='prose prose-slate max-w-none mb-10 dark:prose-invert break-words'>
-          <p className='text-xl leading-relaxed text-foreground font-medium'>
-            {currentQuestion.text}
-          </p>
+      {/* Center Panel: Interactive Area */}
+      <div className='w-full h-full flex flex-col'>
+        <div className='flex-1'>
+          {renderQuestionContent()}
         </div>
-
-        {renderQuestionContent()}
-
-        <div className='flex justify-between items-center mt-6 pt-6 border-t'>
-          <label className='flex items-center space-x-2 cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors focus-within:ring-2 focus-within:ring-orange-500 focus-within:ring-offset-2 rounded'>
-            <input
-              type='checkbox'
-              className='w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-0 cursor-pointer sr-only'
-              checked={isMarkedForReview}
-              onChange={() => toggleReview(currentQuestion.id)}
-              aria-label='Mark question for review'
-            />
-            <div
-              className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${isMarkedForReview ? 'bg-orange-600 border-orange-600 text-white' : 'border-orange-300'}`}
-              aria-hidden='true'
-            >
-              {isMarkedForReview && (
-                <svg viewBox='0 0 14 14' fill='none' className='w-3 h-3'>
-                  <path
-                    d='M3 7.5L5.5 10L11 4.5'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                </svg>
-              )}
-            </div>
-            <span>Mark for Review (Alt + M)</span>
-          </label>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

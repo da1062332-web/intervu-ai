@@ -10,6 +10,7 @@ import { TestConfigRepository } from "../repositories/test-config.repository";
 import { QuestionProviderService } from "./question-provider.service";
 import { TestInstanceService } from "../test-instance/test-instance.service";
 import { TestInstanceStatus, Prisma } from "@prisma/client";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class StartTestService {
@@ -20,6 +21,7 @@ export class StartTestService {
     private readonly testConfigRepository: TestConfigRepository,
     private readonly questionProvider: QuestionProviderService,
     private readonly testInstanceService: TestInstanceService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async startTest(userId: string, input: StartTestDto) {
@@ -35,14 +37,22 @@ export class StartTestService {
         eligibility.activeTestId
       ) {
         // Return existing active instance for idempotency
-        const config = await this.testConfigRepository.findById(
-          input.testConfigId,
-        );
+        let durationSeconds = 3600;
+        if (eligibility.isExamConfig) {
+          const config = await this.prisma.examConfig.findUnique({ where: { id: input.testConfigId } });
+          if (config) durationSeconds = config.durationMinutes * 60;
+        } else {
+          const config = await this.testConfigRepository.findById(
+            input.testConfigId,
+          );
+          if (config) durationSeconds = config.totalDurationSeconds;
+        }
+
         return {
           testInstanceId: eligibility.activeTestId,
           status: TestInstanceStatus.IN_PROGRESS,
           instructionsUrl: `/test/${eligibility.activeTestId}/instructions`,
-          durationSeconds: config?.totalDurationSeconds || 3600,
+          durationSeconds,
         };
       }
       throw new BadRequestException({
@@ -51,9 +61,27 @@ export class StartTestService {
       });
     }
 
-    const config = await this.testConfigRepository.findByIdWithSections(
-      input.testConfigId,
-    );
+    let config: any;
+    if (eligibility.isExamConfig) {
+      config = await this.prisma.examConfig.findUnique({
+        where: { id: input.testConfigId },
+        include: { sections: true }
+      });
+      if (config) {
+        config.totalDurationSeconds = config.durationMinutes * 60;
+        config.sections = config.sections.map((s: any) => ({
+          ...s,
+          displayName: s.name,
+          sectionKey: s.name.toLowerCase().replace(/ /g, '_'),
+          durationSeconds: config.durationMinutes * 60 / config.sections.length,
+          orderIndex: 0
+        }));
+      }
+    } else {
+      config = await this.testConfigRepository.findByIdWithSections(
+        input.testConfigId,
+      );
+    }
 
     if (!config) {
       throw new BadRequestException({
@@ -121,7 +149,8 @@ export class StartTestService {
 
     const testInstance = await this.testInstanceService.createTestInstance({
       userId,
-      testConfigId: config.id,
+      testConfigId: eligibility.isExamConfig ? undefined : config.id,
+      examConfigId: eligibility.isExamConfig ? config.id : undefined,
       status: TestInstanceStatus.CREATED,
       expiresAt,
       sections: sectionsData,
