@@ -6,6 +6,7 @@ import { seedExamConfig } from "./exam-config.seed";
 import { seedTestConfigs } from "./test-config.seed";
 import { seedTopics } from "./topics.seed";
 import { seedModule1QA } from "../seeds/module1/seed";
+import { seedDatasets } from "./datasets.seed";
 
 const prisma = new PrismaClient();
 
@@ -20,6 +21,7 @@ async function main() {
   await seedTemplates(prisma);
   await seedEvaluations(prisma);
   await seedModule1QA(prisma);
+  await seedDatasets(prisma);
 
   console.log("--- Database Seeding Completed ---");
 }

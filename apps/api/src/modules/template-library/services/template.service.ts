@@ -221,6 +221,15 @@ export class TemplateService {
       ...(validated.structure && {
         structure: validated.structure as Prisma.InputJsonValue,
       }),
+      ...(validated.variableSchema && {
+        variableSchema: validated.variableSchema as Prisma.InputJsonValue,
+      }),
+      ...(validated.solutionSchema && {
+        solutionSchema: validated.solutionSchema as Prisma.InputJsonValue,
+      }),
+      ...(validated.constraints && {
+        constraints: validated.constraints as Prisma.InputJsonValue,
+      }),
     };
     const template = await this.templateRepository.create(createInput);
 
@@ -277,6 +286,12 @@ export class TemplateService {
       updateInput.questionType = validated.questionType;
     if (validated.structure !== undefined)
       updateInput.structure = validated.structure as Prisma.InputJsonValue;
+    if (validated.variableSchema !== undefined)
+      updateInput.variableSchema = validated.variableSchema as Prisma.InputJsonValue;
+    if (validated.solutionSchema !== undefined)
+      updateInput.solutionSchema = validated.solutionSchema as Prisma.InputJsonValue;
+    if (validated.constraints !== undefined)
+      updateInput.constraints = validated.constraints as Prisma.InputJsonValue;
 
     const updated = await this.templateRepository.update(id, updateInput);
 

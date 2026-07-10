@@ -73,6 +73,9 @@ model Template {
   variableSchema     Json                @default("{}")
   constraints        Json                @default("{}")
   solutionSchema     Json                @default("{}")
+  generationStrategy GenerationStrategy  @default(VARIABLE)
+  datasetConfig      Json                @default("{}")
+  hybridConfig       Json                @default("{}")
   version            Int                 @default(1)
   isActive           Boolean             @default(true)
   name               String              @default("Legacy Template")
@@ -1343,4 +1346,48 @@ enum WorkflowStatus {
   IN_PROGRESS
   COMPLETED
   FAILED
+}
+
+enum GenerationStrategy {
+  VARIABLE
+  DATASET
+  HYBRID
+}
+
+model Dataset {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?
+  type        String        // READING_PASSAGE, VOCABULARY, SENTENCE
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  items       DatasetItem[]
+}
+
+model DatasetItem {
+  id          String   @id @default(cuid())
+  datasetId   String
+  dataset     Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  content     String   // The text, passage, or vocabulary word
+  difficulty  String   // EASY, MEDIUM, HARD
+  topic       String
+  tags        String[]
+  metadata    Json     @default("{}") // synonyms, distractors, length, reading time
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([datasetId])
+  @@index([difficulty])
+  @@index([topic])
+}
+
+model Scenario {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  entitySchema   Json     @default("{}")
+  relationSchema Json     @default("{}")
+  rules          Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

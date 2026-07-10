@@ -6,6 +6,7 @@ import { WorkflowTransitionGuard } from "../guards/workflow-transition.guard";
 import { WorkflowEventPublisher } from "../services/workflow-event-publisher";
 import { GenerationOrchestratorService } from "../../generation/services/generation-orchestrator.service";
 import { AssemblyService } from "../../assembly/services/test-assembly.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class ExamWorkflowOrchestrator {
@@ -18,6 +19,7 @@ export class ExamWorkflowOrchestrator {
     private readonly eventPublisher: WorkflowEventPublisher,
     private readonly generationOrchestrator: GenerationOrchestratorService,
     private readonly assemblyService: AssemblyService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async advance(examId: string, userId: string = "system"): Promise<void> {
@@ -108,8 +110,62 @@ export class ExamWorkflowOrchestrator {
     const workflow = await this.workflowService.getWorkflow(examId);
     this.transitionGuard.canPublish(workflow.currentStep, workflow.status);
 
-    // Usually calls AssemblyPublisherService.publishAssembly(examId, userId)
-    // Here we just mark workflow as complete
+    // Fetch the ExamConfig along with its sections
+    const examConfig = await this.prisma.examConfig.findUnique({
+      where: { id: examId },
+      include: { sections: true },
+    });
+
+    if (examConfig) {
+      // Synchronize candidate-facing TestConfig
+      const existingTestConfig = await this.prisma.testConfig.findUnique({
+        where: { id: examId },
+      });
+
+      if (!existingTestConfig) {
+        await this.prisma.testConfig.create({
+          data: {
+            id: examId,
+            configKey: `test_config_${examId}`,
+            companyName: "E2E Verify Inc",
+            displayName: examConfig.name,
+            totalDurationSeconds: examConfig.durationMinutes * 60,
+            totalQuestions: examConfig.totalQuestions,
+            isActive: true,
+            sections: {
+              create: examConfig.sections.map((s, idx) => ({
+                sectionKey: s.code,
+                displayName: s.name,
+                durationSeconds: s.sectionDurationMinutes * 60,
+                questionCount: s.questionCount,
+                orderIndex: idx,
+              })),
+            },
+            rule: {
+              create: {
+                negativeMarking: false,
+                sectionLocking: true,
+                shuffleQuestions: true,
+                allowNavigation: true,
+              },
+            },
+          },
+        });
+      } else {
+        await this.prisma.testConfig.update({
+          where: { id: examId },
+          data: {
+            isActive: true,
+            displayName: examConfig.name,
+            totalDurationSeconds: examConfig.durationMinutes * 60,
+            totalQuestions: examConfig.totalQuestions,
+          },
+        });
+      }
+      this.logger.log(`Automatically synchronized TestConfig for published exam: ${examConfig.name}`);
+    }
+
+    // Complete workflow status
     await this.workflowService.complete(examId, userId);
     this.eventPublisher.emitPublishingCompleted(examId);
     this.eventPublisher.emitWorkflowCompleted(examId);

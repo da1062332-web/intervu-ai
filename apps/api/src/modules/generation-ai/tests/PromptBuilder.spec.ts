@@ -44,7 +44,7 @@ describe("PromptBuilderService", () => {
     expect(prompt).toContain("EASY");
     expect(prompt).toContain("a = 5");
     expect(prompt).toContain("b = 7");
-    expect(prompt).toContain("What is the sum of {a} and {b}?");
+    expect(prompt).toContain("What is the sum of 5 and 7?");
     expect(prompt).toContain("Concept");
     expect(prompt).toContain("Formula / Reasoning");
     expect(prompt).toContain("Step-by-Step Solution");

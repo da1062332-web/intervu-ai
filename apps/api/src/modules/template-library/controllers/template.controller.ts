@@ -20,6 +20,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiProperty,
 } from "@nestjs/swagger";
 import { DifficultyLevel, UserRole } from "@prisma/client";
 
@@ -48,6 +49,22 @@ import { TemplateService } from "../services/template.service";
 import { SolutionTemplateService } from "../services/solution-template.service";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
+
+class SaveQuestionDefinitionDto {
+  @ApiProperty({
+    example: "A product is priced at {{price}} USD. The tax is {{tax}} USD. What is the total price?",
+    description: "Question template definition with placeholders",
+  })
+  questionTemplate!: string;
+}
+
+class SaveOptionStrategyDto {
+  @ApiProperty({
+    example: ["{{C}}", "{{opt1}}", "{{opt2}}"],
+    description: "Option templates array with placeholders",
+  })
+  optionsTemplate!: string[];
+}
 
 @ApiTags("templates")
 @ApiBearerAuth("jwt-auth")
@@ -278,7 +295,7 @@ export class TemplateController {
   @ApiParam({ name: "id", description: "Template ID" })
   async saveQuestionDefinition(
     @Param("id") id: string,
-    @Body() body: { questionTemplate: string },
+    @Body() body: SaveQuestionDefinitionDto,
   ) {
     const template = await this.templateService.findById(id);
     const structure = (template.structure as any) || {};
@@ -297,7 +314,7 @@ export class TemplateController {
   @ApiParam({ name: "id", description: "Template ID" })
   async patchQuestionDefinition(
     @Param("id") id: string,
-    @Body() body: { questionTemplate: string },
+    @Body() body: SaveQuestionDefinitionDto,
   ) {
     return this.saveQuestionDefinition(id, body);
   }
@@ -320,7 +337,7 @@ export class TemplateController {
   @ApiParam({ name: "id", description: "Template ID" })
   async saveOptionStrategy(
     @Param("id") id: string,
-    @Body() body: { optionsTemplate: string[] },
+    @Body() body: SaveOptionStrategyDto,
   ) {
     const template = await this.templateService.findById(id);
     const structure = (template.structure as any) || {};
@@ -339,7 +356,7 @@ export class TemplateController {
   @ApiParam({ name: "id", description: "Template ID" })
   async patchOptionStrategy(
     @Param("id") id: string,
-    @Body() body: { optionsTemplate: string[] },
+    @Body() body: SaveOptionStrategyDto,
   ) {
     return this.saveOptionStrategy(id, body);
   }
