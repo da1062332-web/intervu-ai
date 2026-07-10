@@ -34,7 +34,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Configs', route: '/admin/configurations', icon: FileCog },
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
-        { label: 'Templates', route: '/admin/templates', icon: FileText },
+
         { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
       ],
     },

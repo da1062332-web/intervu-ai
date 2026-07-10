@@ -4,8 +4,11 @@ import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
 import { useUpdateTemplate } from '@/services/templates/hooks';
+import type { GenerationStrategy } from '@/services/question-generation/types';
+import { useStrategyConfigStore } from '@/store/strategy-config.store';
+import { STRATEGY_LABELS, STRATEGY_DESCRIPTIONS } from '../registry/strategy-panel.registry';
 
 interface BasicInfoForm {
   name: string;
@@ -24,11 +27,13 @@ interface BasicInfoSectionProps {
 
 export function BasicInfoSection({ template }: BasicInfoSectionProps) {
   const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
+  const { currentStrategy, setStrategy } = useStrategyConfigStore();
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<BasicInfoForm>({
     defaultValues: {
@@ -39,7 +44,7 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
       questionType: template?.questionType || 'coding',
       status: template?.isActive ? 'Active' : 'Draft',
       tags: '',
-      generationStrategy: templateStrategy,
+      generationStrategy: template?.generationStrategy || 'VARIABLE',
     },
   });
 
@@ -61,6 +66,7 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
         questionType: template.questionType || 'coding',
         status: template.isActive ? 'Active' : 'Draft',
         tags: '',
+        generationStrategy: template.generationStrategy || 'VARIABLE',
       });
     }
   }, [template, reset]);
@@ -77,6 +83,7 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
         difficulty: data.difficulty,
         questionType: data.questionType,
         isActive: data.status === 'Active',
+        generationStrategy: data.generationStrategy,
       }
     });
   };
