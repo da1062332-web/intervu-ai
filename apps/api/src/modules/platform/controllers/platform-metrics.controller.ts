@@ -17,6 +17,7 @@ import { EvaluationRepository } from "../../results/repositories/evaluation.repo
 import { PerformanceRepository } from "../../results/repositories/performance.repository";
 
 @ApiTags("platform")
+@ApiBearerAuth("jwt-auth")
 @Controller("platform")
 export class PlatformMetricsController {
   constructor(
@@ -41,7 +42,6 @@ export class PlatformMetricsController {
 
   @Get("uat-status")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Get dynamic platform UAT readiness status" })
   async getUatStatus() {
     return this.uatService.getPlatformUatStatus();
@@ -49,7 +49,6 @@ export class PlatformMetricsController {
 
   @Get("metrics")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Get global platform metrics" })
   async getMetrics() {
     const [
@@ -78,7 +77,6 @@ export class PlatformMetricsController {
 
   @Get("audit")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Get aggregated system audit logs" })
   async getAuditLogs(@Query() query: GetAuditLogsDto) {
     return this.auditService.getAuditLogs(query);
@@ -87,7 +85,6 @@ export class PlatformMetricsController {
   // Module Health Endpoints module1 -> module6
   @Get("health/module1")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Module 1: Exam Config Health" })
   async getModule1Health() {
     const start = Date.now();
@@ -106,7 +103,6 @@ export class PlatformMetricsController {
 
   @Get("health/module2")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Module 2: Test Generation Health" })
   async getModule2Health() {
     const start = Date.now();
@@ -128,7 +124,6 @@ export class PlatformMetricsController {
 
   @Get("health/module3")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Module 3: Test Assembly Health" })
   async getModule3Health() {
     const start = Date.now();
@@ -147,7 +142,6 @@ export class PlatformMetricsController {
 
   @Get("health/module4")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Module 4: Execution Engine Health" })
   async getModule4Health() {
     const start = Date.now();
@@ -163,7 +157,6 @@ export class PlatformMetricsController {
 
   @Get("health/module5")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Module 5: Evaluation Health" })
   async getModule5Health() {
     const start = Date.now();
@@ -179,7 +172,6 @@ export class PlatformMetricsController {
 
   @Get("health/module6")
   @Roles("ADMIN")
-  @ApiBearerAuth()
   @ApiOperation({ summary: "Module 6: Analytics Health" })
   async getModule6Health() {
     const start = Date.now();

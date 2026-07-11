@@ -12,7 +12,7 @@ import {
 } from "@nestjs/swagger";
 
 @ApiTags("Admin Reports")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @Controller("admin/reports")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles("ADMIN")

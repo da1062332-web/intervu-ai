@@ -33,7 +33,7 @@ import { ResultQueryService } from "../services/result-query.service";
 import { ResultExportService } from "../services/result-export.service";
 
 @ApiTags("Results")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ResponseInterceptor)
 @Roles(UserRole.ADMIN, UserRole.CANDIDATE)

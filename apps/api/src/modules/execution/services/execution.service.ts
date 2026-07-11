@@ -77,11 +77,15 @@ export class ExecutionService {
           sectionKey: section.sectionKey,
           sectionName: section.sectionName,
           durationSeconds: section.durationSeconds,
-          questions: section.questions.map((q) => ({
-            questionId: q.questionId,
-            questionOrder: q.questionOrder,
-            snapshot: q.questionSnapshot,
-          })),
+          questions: section.questions.map((q) => {
+            const rawSnapshot = (q.questionSnapshot || {}) as any;
+            const { correctAnswer, solution, ...candidateSafeSnapshot } = rawSnapshot;
+            return {
+              questionId: q.questionId,
+              questionOrder: q.questionOrder,
+              snapshot: candidateSafeSnapshot,
+            };
+          }),
         }),
       ),
     };

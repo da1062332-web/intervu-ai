@@ -23,7 +23,7 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
 @ApiTags("Performance")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ResponseInterceptor)
 @Roles(UserRole.ADMIN, UserRole.CANDIDATE)

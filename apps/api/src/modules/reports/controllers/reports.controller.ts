@@ -29,7 +29,7 @@ import {
 } from "@nestjs/swagger";
 
 @ApiTags("Reports")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @Controller("reports")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ReportsController {

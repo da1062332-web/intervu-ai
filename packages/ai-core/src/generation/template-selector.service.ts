@@ -26,16 +26,34 @@ export class TemplateSelectorService {
       conceptKey,
       dbDifficulty,
     );
+    templates = templates.filter(
+      (t) =>
+        t.structure &&
+        typeof t.structure === "object" &&
+        Object.keys(t.structure).length > 0,
+    );
 
     if (templates.length === 0) {
       templates = await this.templateRepository.findByConceptAndDifficulty(
         "default_concept",
         dbDifficulty,
       );
+      templates = templates.filter(
+        (t) =>
+          t.structure &&
+          typeof t.structure === "object" &&
+          Object.keys(t.structure).length > 0,
+      );
     }
 
     if (templates.length === 0) {
       templates = await this.templateRepository.findByDifficulty(dbDifficulty);
+      templates = templates.filter(
+        (t) =>
+          t.structure &&
+          typeof t.structure === "object" &&
+          Object.keys(t.structure).length > 0,
+      );
     }
 
     // Filter by question type (case-insensitive)

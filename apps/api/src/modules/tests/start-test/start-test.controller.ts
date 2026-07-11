@@ -21,7 +21,7 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
 @ApiTags("tests")
-@ApiBearerAuth()
+@ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @Roles(UserRole.CANDIDATE)
 @Controller({ path: "tests", version: "1" })
