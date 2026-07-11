@@ -37,25 +37,25 @@ export class AiWorkerService {
 
   private async mockAiCall(request: LegacyGenerationRequest): Promise<unknown> {
     const count = request.count || 10;
-    
+
     // Check if topic is a math topic
     let isMathTopic = false;
     let topicName = request.topic;
-    
+
     try {
-      const { PrismaClient } = require("@prisma/client");
+      const { PrismaClient } = await import("@prisma/client");
       const prisma = new PrismaClient();
       const topicRecord = await prisma.topic.findFirst({
         where: {
-          OR: [
-            { id: request.topic },
-            { code: request.topic }
-          ]
-        }
+          OR: [{ id: request.topic }, { code: request.topic }],
+        },
       });
       if (topicRecord) {
         topicName = topicRecord.name;
-        if (topicRecord.code.includes("MATH") || topicRecord.name.toLowerCase().includes("math")) {
+        if (
+          topicRecord.code.includes("MATH") ||
+          topicRecord.name.toLowerCase().includes("math")
+        ) {
           isMathTopic = true;
         }
       }
@@ -71,7 +71,7 @@ export class AiWorkerService {
         const a = 10 + Math.floor(Math.random() * 9) * 10; // 10, 20, ..., 90
         const b = 100 + Math.floor(Math.random() * 10) * 100; // 100, 200, ..., 1000
         const ans = Math.round((a / 100) * b);
-        
+
         return {
           text: `What is ${a}% of ${b}?`,
           options: [
@@ -86,7 +86,7 @@ export class AiWorkerService {
           tags: [topicName],
         };
       }
-      
+
       return {
         text: `Sample ${topicName} question ${i + 1}`,
         options: ["Option A", "Option B", "Option C", "Option D"],

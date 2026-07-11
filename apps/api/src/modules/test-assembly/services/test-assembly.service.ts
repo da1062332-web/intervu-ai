@@ -21,11 +21,11 @@ export class TestAssemblyService {
   async generateQuestions(body: GenerationRequest) {
     const jobId = randomUUID();
     const correlationId = randomUUID(); // Ideally comes from Request Scope Context
-    
+
     let topicId = body.topicId;
     if (topicId === "default-topic" || !topicId) {
       try {
-        const { PrismaClient } = require("@prisma/client");
+        const { PrismaClient } = await import("@prisma/client");
         const prisma = new PrismaClient();
         const blueprint = await prisma.blueprint.findFirst({
           where: { configId: body.blueprintId },
@@ -41,7 +41,10 @@ export class TestAssemblyService {
         }
         await prisma.$disconnect();
       } catch (err) {
-        this.logger.error("Failed to resolve topicId from blueprint", err as Error);
+        this.logger.error(
+          "Failed to resolve topicId from blueprint",
+          err as Error,
+        );
       }
     }
 
@@ -98,7 +101,7 @@ export class TestAssemblyService {
         difficulty: (q.difficulty || "MEDIUM").toUpperCase(),
         conceptKey: q.conceptKey || "standard",
         topicId: q.topic || q.topicId || "default-topic",
-        sectionId: q.sectionId || "default-section"
+        sectionId: q.sectionId || "default-section",
       }));
 
       mappedResult = {
@@ -107,7 +110,7 @@ export class TestAssemblyService {
         companyId: "system",
         examConfigId: null,
         status: "COMPLETED",
-        questions: mappedQuestions
+        questions: mappedQuestions,
       };
     }
 
