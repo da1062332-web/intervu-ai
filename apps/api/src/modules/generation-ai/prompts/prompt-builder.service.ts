@@ -24,6 +24,12 @@ export interface PromptBuilderInput {
     entities: string[];
     relations: { source: string; target: string; type: string }[];
   };
+  promptConfig?: {
+    systemPrompt: string;
+    userPrompt: string;
+    instructions: string;
+    outputRules?: string | null;
+  };
 }
 
 @Injectable()
@@ -167,7 +173,7 @@ JSON Schema:
   }
 
   private buildDatasetPrompt(input: PromptBuilderInput): string {
-    const { template } = input;
+    const { template, promptConfig } = input;
     const name = template.name || "Unnamed Template";
     const description = template.description || "No description provided.";
     const conceptKey = template.conceptKey;
@@ -176,7 +182,7 @@ JSON Schema:
 
     const datasetContent = input.datasetItem?.content || "";
 
-    const systemPrompt = `You are an expert AI Assessment Question Generator. Your task is to generate verbal, grammar, or reading comprehension questions based on a provided static content asset.`;
+    const systemPrompt = promptConfig?.systemPrompt || `You are an expert AI Assessment Question Generator. Your task is to generate verbal, grammar, or reading comprehension questions based on a provided static content asset.`;
 
     const templateContext = `
 [TEMPLATE CONTEXT]
@@ -196,7 +202,15 @@ ${datasetContent}
 """
 `;
 
-    const questionInstructions = `
+    let userPromptText = "";
+    if (promptConfig?.userPrompt) {
+      userPromptText = `
+[USER PROMPT]
+${this.interpolate(promptConfig.userPrompt, { content: datasetContent })}
+`;
+    }
+
+    const questionInstructions = promptConfig?.instructions || `
 [QUESTION INSTRUCTIONS]
 Generate a high-quality ${questionType} question of ${difficulty} difficulty that tests comprehension, syntax, or vocabulary based on the content asset above.
 - The question stem must refer directly to the content asset.
@@ -231,6 +245,11 @@ Final Answer
 <State the final answer clearly, explicitly referencing the correct option>
 `;
 
+    const customOutputRules = promptConfig?.outputRules ? `
+[CUSTOM OUTPUT RULES]
+${promptConfig.outputRules}
+` : "";
+
     const outputFormat = `
 [OUTPUT FORMAT]
 Respond with a single JSON object without markdown blocks.
@@ -249,7 +268,7 @@ JSON Schema:
 }
 `;
 
-    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
+    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
   }
 
   private buildHybridPrompt(input: PromptBuilderInput): string {

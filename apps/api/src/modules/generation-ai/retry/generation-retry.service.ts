@@ -208,6 +208,14 @@ export class GenerationRetryService {
     let attempts = 0;
     const errors: string[] = [];
 
+    // Fetch custom prompt configuration if strategy is DATASET
+    let promptConfig: any = undefined;
+    if (template.id && (template.generationStrategy === "DATASET" || (template as any).strategy === "DATASET")) {
+      promptConfig = await this.prisma.templatePromptConfig.findUnique({
+        where: { templateId: template.id },
+      });
+    }
+
     // Compile dynamic structured prompt
     const prompt = this.promptBuilder.buildPrompt({
       template,
@@ -215,6 +223,7 @@ export class GenerationRetryService {
       correctAnswer: options?.correctAnswer,
       datasetItem: options?.datasetItem,
       logicalGraph: options?.logicalGraph,
+      promptConfig: promptConfig || undefined,
     });
 
     const difficulty = template.difficultyLevel.toLowerCase();

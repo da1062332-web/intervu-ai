@@ -11,3 +11,4 @@ export * from "./exam-section.schema";
 export * from "./concept-mapping.schema";
 export * from "./topic.schema";
 export * from "./solution-template.schema";
+export * from "./template-configs.schema";

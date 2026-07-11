@@ -26,6 +26,7 @@ export const CreateTemplateSchema = z.object({
   variableSchema: z.record(z.unknown()).optional(),
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
+  generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).default("VARIABLE"),
 });
 
 export const UpdateTemplateSchema = z.object({
@@ -40,6 +41,7 @@ export const UpdateTemplateSchema = z.object({
   variableSchema: z.record(z.unknown()).optional(),
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
+  generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).optional(),
 });
 
 // ─── DTO Classes ───────────────────────────────────────────────────────────────
@@ -118,6 +120,13 @@ export class CreateTemplateDto {
   })
   constraints?: Record<string, unknown>;
 
+  @ApiPropertyOptional({
+    enum: ["VARIABLE", "DATASET", "HYBRID"],
+    example: "VARIABLE",
+    description: "Template generation strategy",
+  })
+  generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID";
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, CreateTemplateDto> {
@@ -195,6 +204,13 @@ export class UpdateTemplateDto {
   })
   constraints?: Record<string, unknown>;
 
+  @ApiPropertyOptional({
+    enum: ["VARIABLE", "DATASET", "HYBRID"],
+    example: "VARIABLE",
+    description: "Template generation strategy",
+  })
+  generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID";
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, UpdateTemplateDto> {
@@ -221,3 +237,101 @@ export class TemplateVersionDto {
   })
   name!: string;
 }
+
+// ─── Template Dataset Config DTOs ──────────────────────────────────────────────────
+
+export const TemplateDatasetConfigSchema = z.object({
+  datasetId: z.string().min(1, "Dataset ID is required"),
+  selectionMethod: z.string().default("RANDOM"),
+  difficultyOverride: z.string().optional().nullable(),
+  topicOverride: z.string().optional().nullable(),
+  tags: z.array(z.string()).default([]),
+});
+
+export const UpdateTemplateDatasetConfigSchema = TemplateDatasetConfigSchema.partial();
+
+export class UpdateTemplateDatasetConfigDto {
+  @ApiProperty({
+    example: "dataset-cuid-123",
+    description: "ID of the dataset to pull from",
+  })
+  datasetId!: string;
+
+  @ApiPropertyOptional({
+    example: "RANDOM",
+    description: "Method to select items: RANDOM | SEQUENTIAL",
+  })
+  selectionMethod?: string;
+
+  @ApiPropertyOptional({
+    example: "MEDIUM",
+    description: "Optional difficulty level to override",
+  })
+  difficultyOverride?: string;
+
+  @ApiPropertyOptional({
+    example: "array-traversal",
+    description: "Optional topic key to override",
+  })
+  topicOverride?: string;
+
+  @ApiPropertyOptional({
+    example: ["binary-tree", "dfs"],
+    description: "Optional tag filters",
+  })
+  tags?: string[];
+
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, UpdateTemplateDatasetConfigDto> {
+    return UpdateTemplateDatasetConfigSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, UpdateTemplateDatasetConfigDto>;
+  }
+}
+
+// ─── Template Prompt Config DTOs ───────────────────────────────────────────────────
+
+export const TemplatePromptConfigSchema = z.object({
+  systemPrompt: z.string().min(1, "System prompt is required"),
+  userPrompt: z.string().min(1, "User prompt is required"),
+  instructions: z.string().min(1, "Instructions are required"),
+  outputRules: z.string().optional().nullable(),
+});
+
+export const UpdateTemplatePromptConfigSchema = TemplatePromptConfigSchema.partial();
+
+export class UpdateTemplatePromptConfigDto {
+  @ApiProperty({
+    example: "You are an AI assistant that generates reading comprehension questions.",
+    description: "System instructions for the LLM",
+  })
+  systemPrompt!: string;
+
+  @ApiProperty({
+    example: "Based on the passage: {{content}}, generate a question.",
+    description: "User template prompt for the LLM",
+  })
+  userPrompt!: string;
+
+  @ApiProperty({
+    example: "Ensure output is a valid JSON with options and correct answer.",
+    description: "Specific task instructions for the LLM",
+  })
+  instructions!: string;
+
+  @ApiPropertyOptional({
+    example: "Return format must be exactly matching the schema.",
+    description: "Additional output constraints",
+  })
+  outputRules?: string;
+
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, UpdateTemplatePromptConfigDto> {
+    return UpdateTemplatePromptConfigSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, UpdateTemplatePromptConfigDto>;
+  }
+}
+

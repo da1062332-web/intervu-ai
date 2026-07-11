@@ -9,24 +9,40 @@ export class DatasetLoaderService {
    * Loads a random item from a specified dataset matching difficulty, topic, and tag rules.
    */
   async loadDatasetItem(template: {
+    id: string;
     difficultyLevel: string;
     conceptKey: string;
     datasetConfig?: any;
   }): Promise<{ content: string; metadata: any }> {
-    const config = template.datasetConfig || {};
-    const datasetName = config.datasetName || "Vocabulary Synonym List";
-    const tags = config.filters?.tags || [];
-
-    // 1. Locate dataset
-    const dataset = await this.prismaService.dataset.findFirst({
-      where: {
-        OR: [{ name: datasetName }, { type: config.datasetType }],
-      },
+    // 1. Fetch relational configuration
+    const config = await this.prismaService.templateDatasetConfig.findUnique({
+      where: { templateId: template.id },
     });
+
+    let dataset: any = null;
+    let tags: string[] = [];
+
+    if (config) {
+      dataset = await this.prismaService.dataset.findUnique({
+        where: { id: config.datasetId },
+      });
+      tags = config.tags || [];
+    } else {
+      // Fallback to legacy JSON config for backward compatibility
+      const legacyConfig = template.datasetConfig || {};
+      const datasetName = legacyConfig.datasetName || "Vocabulary Synonym List";
+      tags = legacyConfig.filters?.tags || [];
+
+      dataset = await this.prismaService.dataset.findFirst({
+        where: {
+          OR: [{ name: datasetName }, { type: legacyConfig.datasetType }],
+        },
+      });
+    }
 
     if (!dataset) {
       throw new NotFoundException(
-        `Dataset with name/type "${datasetName}" not found`,
+        `Dataset configuration not found or inactive for template ID "${template.id}"`,
       );
     }
 

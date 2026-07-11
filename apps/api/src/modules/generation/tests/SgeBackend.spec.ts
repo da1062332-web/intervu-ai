@@ -16,6 +16,9 @@ describe("SGE Backend Pipeline", () => {
     template: {
       findUnique: jest.fn(),
     },
+    templateDatasetConfig: {
+      findUnique: jest.fn(),
+    },
     dataset: {
       findFirst: jest.fn(),
     },

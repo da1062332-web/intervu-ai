@@ -19,29 +19,47 @@ export class DatasetGenerationStrategy implements IQuestionGenerationStrategy {
   constructor(private readonly prisma: PrismaService) {}
 
   async generate(template: Template): Promise<GenerationContext> {
-    const config = (template.datasetConfig as Record<string, unknown>) ?? {};
+    // 1. Fetch relational configuration
+    const config = await this.prisma.templateDatasetConfig.findUnique({
+      where: { templateId: template.id },
+    });
 
-    const datasetType = (config.datasetType as string) || undefined;
-    const topic = (config.topic as string) || undefined;
-    const difficulty = (config.difficulty as string) || undefined;
-    const tags = (config.tags as string[]) || [];
+    let dataset: any = null;
+    let difficulty: string | undefined = undefined;
+    let topic: string | undefined = undefined;
+    let tags: string[] = [];
+
+    if (config) {
+      dataset = await this.prisma.dataset.findUnique({
+        where: { id: config.datasetId },
+      });
+      difficulty = config.difficultyOverride || undefined;
+      topic = config.topicOverride || undefined;
+      tags = config.tags || [];
+    } else {
+      // Fallback to legacy JSON config for backward compatibility
+      const legacyConfig = (template.datasetConfig as Record<string, unknown>) ?? {};
+      const datasetType = (legacyConfig.datasetType as string) || undefined;
+      topic = (legacyConfig.topic as string) || undefined;
+      difficulty = (legacyConfig.difficulty as string) || undefined;
+      tags = (legacyConfig.tags as string[]) || [];
+
+      dataset = datasetType
+        ? await this.prisma.dataset.findFirst({ where: { type: datasetType } })
+        : await this.prisma.dataset.findFirst();
+    }
+
+    if (!dataset) {
+      throw new NotFoundException(
+        `Dataset configuration not found for template ID: ${template.id}`,
+      );
+    }
 
     // Build filter for DatasetItem
     const where: Record<string, unknown> = {};
     if (topic) where["topic"] = topic;
     if (difficulty) where["difficulty"] = difficulty;
     if (tags.length > 0) where["tags"] = { hasSome: tags };
-
-    // Find dataset of the right type first
-    const dataset = datasetType
-      ? await this.prisma.dataset.findFirst({ where: { type: datasetType } })
-      : await this.prisma.dataset.findFirst();
-
-    if (!dataset) {
-      throw new NotFoundException(
-        `No dataset found for type: ${datasetType ?? "any"}`,
-      );
-    }
 
     // Find a matching item — pick a random one
     const items = await this.prisma.datasetItem.findMany({

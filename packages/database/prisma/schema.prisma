@@ -97,6 +97,8 @@ model Template {
   previews                   TemplatePreview[]
   rules                      TemplateRule[]
   variables                  TemplateVariable[]
+  datasetConfigRelation      TemplateDatasetConfig?
+  promptConfig               TemplatePromptConfig?
 
   @@index([templateKey])
   @@index([conceptKey])
@@ -744,6 +746,37 @@ model TemplatePreview {
 
   @@index([templateId])
   @@map("template_previews")
+}
+
+model TemplateDatasetConfig {
+  id                 String   @id @default(cuid())
+  templateId         String   @unique @map("template_id")
+  datasetId          String   @map("dataset_id")
+  selectionMethod    String   @default("RANDOM") @map("selection_method")
+  difficultyOverride String?  @map("difficulty_override")
+  topicOverride      String?  @map("topic_override")
+  tags               String[] @default([])
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  template           Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("template_dataset_configs")
+}
+
+model TemplatePromptConfig {
+  id           String   @id @default(cuid())
+  templateId   String   @unique @map("template_id")
+  systemPrompt String   @map("system_prompt") @db.Text
+  userPrompt   String   @map("user_prompt") @db.Text
+  instructions String   @map("instructions") @db.Text
+  outputRules  String?  @map("output_rules") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  template     Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("template_prompt_configs")
 }
 
 model ReadinessReport {

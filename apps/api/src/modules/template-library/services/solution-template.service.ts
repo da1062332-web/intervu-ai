@@ -86,11 +86,57 @@ export class SolutionTemplateService {
       throw new NotFoundException("Template not found");
     }
 
+    const options: any = {};
+    if (template.generationStrategy === "DATASET") {
+      const config = await this.prisma.templateDatasetConfig.findUnique({
+        where: { templateId: template.id },
+      });
+      if (!config) {
+        throw new BadRequestException("Dataset configuration not found for this template");
+      }
+
+      // Fetch a dataset item
+      const whereConditions: any = { datasetId: config.datasetId };
+      if (config.difficultyOverride) {
+        whereConditions.difficulty = config.difficultyOverride;
+      }
+      if (config.topicOverride) {
+        whereConditions.topic = config.topicOverride;
+      }
+      if (config.tags && config.tags.length > 0) {
+        whereConditions.tags = { hasSome: config.tags };
+      }
+
+      let items = await this.prisma.datasetItem.findMany({
+        where: whereConditions,
+        take: 20,
+      });
+
+      if (items.length === 0) {
+        // Fallback to any items in the dataset
+        items = await this.prisma.datasetItem.findMany({
+          where: { datasetId: config.datasetId },
+          take: 20,
+        });
+      }
+
+      if (items.length === 0) {
+        throw new BadRequestException(`No items found in selected dataset: ${config.datasetId}`);
+      }
+
+      const item = items[Math.floor(Math.random() * items.length)];
+      options.datasetItem = {
+        content: item.content,
+        metadata: item.metadata || {},
+      };
+    }
+
     // Run preview generation through the AI Question Generation Pipeline
     const result = await this.retryService.generateFromTemplate(
       template,
-      dto.previewPayload,
+      dto.previewPayload || {},
       3,
+      options,
     );
 
     if (!result.success || !result.question) {

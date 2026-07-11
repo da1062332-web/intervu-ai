@@ -230,6 +230,9 @@ export class TemplateService {
       ...(validated.constraints && {
         constraints: validated.constraints as Prisma.InputJsonValue,
       }),
+      ...(validated.generationStrategy && {
+        generationStrategy: validated.generationStrategy,
+      }),
     };
     const template = await this.templateRepository.create(createInput);
 
@@ -292,6 +295,8 @@ export class TemplateService {
       updateInput.solutionSchema = validated.solutionSchema as Prisma.InputJsonValue;
     if (validated.constraints !== undefined)
       updateInput.constraints = validated.constraints as Prisma.InputJsonValue;
+    if (validated.generationStrategy !== undefined)
+      updateInput.generationStrategy = validated.generationStrategy;
 
     const updated = await this.templateRepository.update(id, updateInput);
 

@@ -13,12 +13,21 @@ import { TemplateRendererService } from "./services/template-renderer.service";
 import { PlaceholderValidatorService } from "./services/placeholder-validator.service";
 import { SolutionTemplateService } from "./services/solution-template.service";
 
+import { TemplateDatasetRepository } from "./repositories/template-dataset.repository";
+import { TemplatePromptRepository } from "./repositories/template-prompt.repository";
+import { TemplateDatasetService } from "./services/template-dataset.service";
+import { TemplatePromptService } from "./services/template-prompt.service";
+import { TemplateDatasetController } from "./controllers/template-dataset.controller";
+import { TemplatePromptController } from "./controllers/template-prompt.controller";
+
 @Module({
   imports: [forwardRef(() => GenerationAiModule)],
   controllers: [
     TemplateController,
     TemplateVariableController,
     TemplateRuleController,
+    TemplateDatasetController,
+    TemplatePromptController,
   ],
   providers: [
     TemplateRepository,
@@ -26,9 +35,13 @@ import { SolutionTemplateService } from "./services/solution-template.service";
     TemplateRuleRepository,
     SolutionTemplateRepository,
     TemplatePreviewRepository,
+    TemplateDatasetRepository,
+    TemplatePromptRepository,
     TemplateRendererService,
     PlaceholderValidatorService,
     SolutionTemplateService,
+    TemplateDatasetService,
+    TemplatePromptService,
     TemplateService,
   ],
   exports: [
@@ -37,9 +50,13 @@ import { SolutionTemplateService } from "./services/solution-template.service";
     TemplateRuleRepository,
     SolutionTemplateRepository,
     TemplatePreviewRepository,
+    TemplateDatasetRepository,
+    TemplatePromptRepository,
     TemplateRendererService,
     PlaceholderValidatorService,
     SolutionTemplateService,
+    TemplateDatasetService,
+    TemplatePromptService,
     TemplateService,
   ],
 })
