@@ -4,6 +4,7 @@ import { memo } from 'react';
 
 export interface QuestionStatusBadgeProps {
   index: number;
+  displayIndex?: number;
   status: QuestionStatus;
   isAnswered: boolean;
   onClick: (index: number) => void;
@@ -11,6 +12,7 @@ export interface QuestionStatusBadgeProps {
 
 export const QuestionStatusBadge = memo(function QuestionStatusBadge({
   index,
+  displayIndex,
   status,
   isAnswered,
   onClick,
@@ -22,16 +24,18 @@ export const QuestionStatusBadge = memo(function QuestionStatusBadge({
     MARKED_FOR_REVIEW: 'bg-purple-600 text-white border-transparent',
   };
 
+  const renderedNumber = displayIndex !== undefined ? displayIndex : index + 1;
+
   return (
     <button
       onClick={() => onClick(index)}
       className={cn(
-        'relative flex items-center justify-center w-10 h-10 rounded-md text-sm font-medium transition-colors border',
+        'relative flex items-center justify-center w-full aspect-square rounded-md text-sm font-medium transition-colors border',
         styles[status],
       )}
-      aria-label={`Question ${index + 1}, Status: ${status.toLowerCase()}`}
+      aria-label={`Question ${renderedNumber}, Status: ${status.toLowerCase()}`}
     >
-      {index + 1}
+      {renderedNumber}
       {isAnswered && status !== 'ANSWERED' && (
         <span className='absolute -top-1 -right-1 flex h-3 w-3' aria-hidden='true'>
           <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75'></span>

@@ -56,8 +56,8 @@ export class GenerationService {
       baseSeed,
     );
 
-    // 3. Create a unique numeric seed derived from templateKey + difficulty
-    const derivedSeedInput = `${template.templateKey}_${template.difficultyLevel}`;
+    // 3. Create a unique numeric seed derived from templateKey + difficulty + baseSeed
+    const derivedSeedInput = `${template.templateKey}_${template.difficultyLevel}_${baseSeed}`;
     const derivedSeed = generateSeedFromString(derivedSeedInput);
     const prng = new PRNG(derivedSeed);
 

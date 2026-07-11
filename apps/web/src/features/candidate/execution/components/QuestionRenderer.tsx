@@ -169,7 +169,7 @@ export function QuestionRenderer() {
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-start'>
       {/* Left Panel: Resources & Question Statement */}
-      <Card className='w-full h-full min-h-[500px] border-solid shadow-sm flex flex-col bg-white overflow-hidden'>
+      <Card className='w-full h-full border-solid shadow-sm flex flex-col bg-white overflow-hidden'>
         <CardHeader className='pb-4 border-b bg-muted/20'>
           <div className='flex items-center justify-between'>
             <CardTitle className='text-xl font-bold'>Question {currentQuestionIndex + 1}</CardTitle>

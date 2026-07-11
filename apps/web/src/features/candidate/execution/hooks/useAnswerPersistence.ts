@@ -50,8 +50,12 @@ export function useAnswerPersistence(testId: string) {
 
       executionService
         .saveAnswer(testId, payload)
-        .then(() => {
+        .then((response) => {
           setAutosaveStatus('SAVED');
+          if (response?.status === 'EXPIRED_AND_SUBMITTED') {
+            useExecutionStore.getState().setSubmissionStatus('SUBMITTING');
+            window.location.href = `/candidate/tests/${testId}/summary`; // Redirect to summary immediately
+          }
         })
         .catch(() => {
           setAutosaveStatus('FAILED');
