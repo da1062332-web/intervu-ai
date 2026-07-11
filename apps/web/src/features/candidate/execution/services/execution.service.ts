@@ -45,18 +45,30 @@ export const executionService = {
               questionHash: q.snapshot?.questionHash || '',
               type: q.snapshot?.questionType || 'MCQ',
               text: q.snapshot?.questionText || '',
-              options: q.snapshot?.options || [],
+              options: q.snapshot?.options?.map((opt: any) => {
+                if (typeof opt === 'string') {
+                  return { id: opt, text: opt };
+                }
+                return opt;
+              }) || [],
             })) || [],
         })) || [],
     } as TestInstance;
   },
 
   resumeAssessment: async (id: string): Promise<any> => {
-    return apiClient.request<any>(`/tests/${id}/resume`);
+    return apiClient.request<any>(`/assessment-sessions/${id}/resume`);
   },
 
-  saveAnswer: async (testId: string, payload: CandidateAnswerPayload): Promise<void> => {
+  saveAnswer: async (testId: string, payload: CandidateAnswerPayload): Promise<{ status?: string }> => {
     return apiClient.request(`/tests/${testId}/answer`, {
+      method: 'POST',
+      body: payload,
+    });
+  },
+
+  checkpoint: async (id: string, payload: any): Promise<void> => {
+    return apiClient.request(`/assessment-sessions/${id}/checkpoint`, {
       method: 'POST',
       body: payload,
     });
@@ -68,7 +80,7 @@ export const executionService = {
   ): Promise<void> => {
     return apiClient.request(`/tests/${testId}/submit`, {
       method: 'POST',
-      query: options as Record<string, string | number | boolean>,
+      query: { allowPartial: true, ...options } as Record<string, string | number | boolean>,
     });
   },
 };
