@@ -40,9 +40,8 @@ export function UpcomingTests() {
       </Card>
     );
   }
-
-  const tests = data.availableTests;
-
+  const completedTestIds = new Set(data.completedAttempts?.map((c) => c.testId) || []);
+  const tests = data.availableTests?.filter((t) => t.status !== 'ENROLLED' && !completedTestIds.has(t.id)) || [];
   if (tests.length === 0) {
     return (
       <Card className='h-full flex flex-col glass-card'>
@@ -116,13 +115,15 @@ export function UpcomingTests() {
                 </span>
               </div>
             </div>
-            <Button
-              className='w-full sm:w-auto shrink-0 group shadow-sm hover:shadow-md transition-shadow'
-              onClick={() => router.push(`/candidate/tests/${test.id}/instructions`)}
-            >
-              Start Assessment
-              <PlayCircle className='ml-2 size-4 group-hover:scale-110 transition-transform' />
-            </Button>
+            <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0'>
+              <Button
+                variant='outline'
+                className='w-full sm:w-auto group shadow-sm hover:shadow-md transition-shadow'
+                onClick={() => router.push(`/candidate/tests/${test.id}`)}
+              >
+                View Details
+              </Button>
+            </div>
           </div>
         ))}
       </CardContent>

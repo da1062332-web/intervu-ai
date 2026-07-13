@@ -43,6 +43,13 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
             In Progress
           </div>
         );
+      case 'COMPLETED':
+        return (
+          <div className='flex items-center text-green-600 text-sm font-medium'>
+            <CheckCircle2 className='size-4 mr-2' />
+            Completed
+          </div>
+        );
       default:
         return null;
     }
@@ -71,6 +78,12 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
               Start Assessment
               <PlayCircle className='ml-2 size-4' />
             </Link>
+          </Button>
+        )}
+        {status === 'COMPLETED' && (
+          <Button className='w-full' variant='secondary' disabled>
+            Already Submitted
+            <CheckCircle2 className='ml-2 size-4' />
           </Button>
         )}
       </CardFooter>

@@ -36,7 +36,7 @@ describe("PublicTestsService", () => {
       ],
     });
 
-    const result = await service.getPublicTests({
+    const result = await service.getPublicTests("test-user-id", {
       search: "React",
       page: 1,
       limit: 10,

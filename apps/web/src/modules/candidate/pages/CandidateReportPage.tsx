@@ -166,7 +166,7 @@ export function CandidateReportPage({ attemptId }: CandidateReportPageProps) {
     try {
       setIsExporting(true);
       const blob = await apiClient.request<Blob>(
-        `/reports/export/${format}?attemptId=${attemptId}`,
+        `/reports/export/${format}/${attemptId}`,
         {
           responseType: 'blob',
           skipErrorToast: true,

@@ -8,6 +8,7 @@ import { TestCardGrid } from '../components/TestCardGrid';
 import { EmptyState } from '../components/EmptyState';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { Layers } from 'lucide-react';
+import { useLayoutStore } from '@/store/layout.store';
 
 interface TestItem {
   id: string;
@@ -125,3 +126,4 @@ export function TestCatalogPage() {
     </div>
   );
 }
+

@@ -6,12 +6,13 @@ import { PublicTestsQueryDto } from "../dto/public-tests-query.dto";
 export class PublicTestsService {
   constructor(private readonly publicTestsRepository: PublicTestsRepository) {}
 
-  async getPublicTests(query: PublicTestsQueryDto) {
+  async getPublicTests(userId: string, query: PublicTestsQueryDto) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const result = await this.publicTestsRepository.findPublicTests({
+      userId,
       company: query.company,
       difficulty: query.difficulty,
       status: query.status,
@@ -30,6 +31,7 @@ export class PublicTestsService {
         name: t.isExam ? t.name : t.displayName,
         company: t.isExam ? "Intervu" : (t.companyName || "Unknown Company"),
         duration: t.isExam ? t.durationMinutes * 60 : t.totalDurationSeconds,
+        questionCount: t.sections?.reduce((sum: number, s: any) => sum + (s.questionCount || 0), 0) || 0,
         sections: t.isExam 
           ? t.sections?.map((s: any) => s.name) || [] 
           : t.sections?.map((s: any) => s.displayName) || [],

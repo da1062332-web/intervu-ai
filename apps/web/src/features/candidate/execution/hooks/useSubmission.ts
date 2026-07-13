@@ -33,6 +33,11 @@ export function useSubmission(testId: string) {
 
       setSubmissionStatus('SUCCESS');
 
+      // Exit fullscreen if active
+      if (typeof document !== 'undefined' && document.fullscreenElement) {
+        document.exitFullscreen().catch(console.error);
+      }
+
       // Redirect to the new Assessment Completion Page
       router.push(`/assessment/submitted?testId=${testId}`);
     } catch {

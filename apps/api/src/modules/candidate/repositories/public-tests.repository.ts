@@ -7,6 +7,7 @@ export class PublicTestsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findPublicTests(params: {
+    userId: string;
     company?: string;
     difficulty?: string;
     status?: string;
@@ -17,6 +18,7 @@ export class PublicTestsRepository {
     sortOrder: "asc" | "desc";
   }) {
     const {
+      userId,
       company,
       difficulty,
       status,
@@ -27,8 +29,16 @@ export class PublicTestsRepository {
       sortOrder,
     } = params;
 
-    const examWhere: Prisma.ExamConfigWhereInput = {};
-    const testWhere: Prisma.TestConfigWhereInput = {};
+    const examWhere: Prisma.ExamConfigWhereInput = {
+      testInstances: {
+        none: { userId },
+      },
+    };
+    const testWhere: Prisma.TestConfigWhereInput = {
+      testInstances: {
+        none: { userId },
+      },
+    };
 
     if (company) {
       testWhere.companyName = { contains: company, mode: "insensitive" };
@@ -52,11 +62,11 @@ export class PublicTestsRepository {
       this.prisma.testConfig.count({ where: testWhere }),
       this.prisma.examConfig.findMany({
         where: examWhere,
-        include: { sections: { select: { name: true } } },
+        include: { sections: { select: { name: true, questionCount: true } } },
       }),
       this.prisma.testConfig.findMany({
         where: testWhere,
-        include: { sections: { select: { displayName: true } } },
+        include: { sections: { select: { displayName: true, questionCount: true } } },
       }),
     ]);
 

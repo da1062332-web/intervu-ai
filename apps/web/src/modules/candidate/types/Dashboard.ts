@@ -3,11 +3,13 @@ export interface AvailableTest {
   title: string;
   durationMinutes: number;
   sections: string[];
-  status: 'AVAILABLE' | 'EXPIRING_SOON';
+  status: 'AVAILABLE' | 'EXPIRING_SOON' | 'ENROLLED';
 }
 
 export interface ActiveTest {
   id: string;
+  testId?: string;
+  instanceId?: string;
   title: string;
   remainingMinutes: number;
   status: 'IN_PROGRESS';
@@ -15,6 +17,7 @@ export interface ActiveTest {
 
 export interface AttemptHistory {
   id: string;
+  testId: string;
   assessmentName: string;
   score: number;
   completedDate: string; // ISO string

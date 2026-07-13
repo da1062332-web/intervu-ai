@@ -6,7 +6,7 @@ export class CandidateDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboardData(userId: string) {
-    const [activeAttempts, completedTests, enrollments, examConfigs, testConfigs] =
+    const [activeAttempts, completedTests, enrollments, examConfigs, testConfigs, allCompletedInstances] =
       await Promise.all([
         // Active attempts (IN_PROGRESS)
         this.prisma.testInstance.findMany({
@@ -90,13 +90,32 @@ export class CandidateDashboardRepository {
             },
           },
         }),
+        // All completed test instances to filter enrollments
+        this.prisma.testInstance.findMany({
+          where: {
+            userId,
+            status: { in: ["COMPLETED", "SUBMITTED"] },
+          },
+          select: {
+            examConfigId: true,
+            testConfigId: true,
+          }
+        })
       ]);
 
     const upcomingTests = [
       ...examConfigs.map(ec => ({ ...ec, isExam: true })),
       ...testConfigs.map(tc => ({ ...tc, isExam: false }))
     ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5);
+    
+    const completedConfigIds = new Set(
+      allCompletedInstances.flatMap(i => [i.examConfigId, i.testConfigId]).filter(Boolean)
+    );
+    const filteredEnrollments = enrollments.filter(e => {
+      const id = e.examConfigId || e.testId;
+      return id && !completedConfigIds.has(id);
+    });
 
-    return { activeAttempts, completedTests, enrollments, upcomingTests };
+    return { activeAttempts, completedTests, enrollments: filteredEnrollments, upcomingTests };
   }
 }

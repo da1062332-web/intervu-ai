@@ -24,8 +24,10 @@ export function AssessmentStatusPanel() {
     return <div className='h-40 animate-pulse bg-muted rounded-xl' />;
   }
 
-  const inProgressTests = data?.activeTests || [];
-  const enrolledTests = data?.availableTests?.filter((t: any) => t.status === 'ENROLLED') || [];
+  const completedTestIds = new Set(data?.completedAttempts?.map((c) => c.testId) || []);
+
+  const inProgressTests = data?.activeTests?.filter(t => t.testId && !completedTestIds.has(t.testId)) || [];
+  const enrolledTests = data?.availableTests?.filter((t: any) => t.status === 'ENROLLED' && !completedTestIds.has(t.id)) || [];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -41,32 +43,13 @@ export function AssessmentStatusPanel() {
   };
 
   return (
-    <div className='space-y-8'>
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader className='pb-3'>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent className='flex flex-wrap gap-4'>
-          <Button variant='outline' asChild>
-            <Link href='/candidate/tests'>Browse Catalog</Link>
-          </Button>
-          <Button variant='outline' asChild>
-            <Link href='/candidate/history'>View History</Link>
-          </Button>
-          <Button variant='outline' asChild>
-            <Link href='/candidate/profile'>My Profile</Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Active / Continue Assessments */}
-      {(inProgressTests.length > 0 || enrolledTests.length > 0) && (
-        <Card>
+    <div className='h-full'>
+      {inProgressTests.length > 0 || enrolledTests.length > 0 ? (
+        <Card className='h-full flex flex-col'>
           <CardHeader>
             <CardTitle>Active Assessments</CardTitle>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='space-y-4 flex-1'>
             {inProgressTests.map((test: ActiveTestItem) => (
               <div
                 key={test.instanceId || test.testId}
@@ -99,14 +82,30 @@ export function AssessmentStatusPanel() {
                     Enrolled
                   </div>
                 </div>
-                <Link
-                  href={`/candidate/tests/${test.id}`}
-                  className='text-sm text-primary hover:underline font-medium'
+                <Button
+                  asChild
+                  className='w-full sm:w-auto shrink-0 group shadow-sm hover:shadow-md transition-shadow'
                 >
-                  Start Test
-                </Link>
+                  <Link href={`/candidate/tests/${test.id}/instructions`}>
+                    Start Assessment
+                    <PlayCircle className='ml-2 size-4 group-hover:scale-110 transition-transform' />
+                  </Link>
+                </Button>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className='h-full flex flex-col glass-card'>
+          <CardHeader>
+            <CardTitle>Active Assessments</CardTitle>
+          </CardHeader>
+          <CardContent className='flex-1 flex flex-col items-center justify-center text-muted-foreground p-6 text-center'>
+            <div className='bg-muted/50 p-4 rounded-full mb-3'>
+              <CheckCircle2 className='size-8 opacity-50' />
+            </div>
+            <p className='font-medium'>No active assessments</p>
+            <p className='text-sm mt-1'>You don't have any assessments in progress.</p>
           </CardContent>
         </Card>
       )}

@@ -24,7 +24,7 @@ export class ResultQueryService {
 
     return {
       attemptId: result.attemptId,
-      assessmentName: result.attempt?.testConfig?.displayName || "Assessment",
+      assessmentName: result.attempt?.testConfig?.displayName || result.attempt?.examConfig?.name || "Assessment",
       score: result.score,
       percentage: result.percentage,
       accuracy: 0, // We need to calculate this from evaluation
@@ -53,7 +53,7 @@ export class ResultQueryService {
         candidateId: res.candidateId,
         score: res.score,
         percentage: res.percentage,
-        assessmentName: res.attempt?.testConfig?.displayName || "Assessment",
+        assessmentName: res.attempt?.testConfig?.displayName || res.attempt?.examConfig?.name || "Assessment",
         createdAt: res.createdAt,
       })),
       meta: {
@@ -77,7 +77,7 @@ export class ResultQueryService {
       attemptId: result.attemptId,
       score: result.score,
       percentage: result.percentage,
-      assessmentName: result.attempt?.testConfig?.displayName || "Assessment",
+      assessmentName: result.attempt?.testConfig?.displayName || result.attempt?.examConfig?.name || "Assessment",
       createdAt: result.createdAt,
     };
   }
@@ -131,9 +131,13 @@ export class ResultQueryService {
     const recommendations =
       await this.candidateResultRepo.findRecommendations(attemptId);
     if (!recommendations || recommendations.length === 0) {
-      throw new NotFoundException(
-        `Recommendations not found for attempt ${attemptId}`,
-      );
+      return {
+        practiceSuggestions: ["General Review"],
+        focusTopics: ["Core Concepts"],
+        improvementPlan: ["Review foundational topics and practice regularly."],
+        estimatedPracticeHours: 2,
+        priority: "Medium",
+      };
     }
     // Return aggregated payload
     return {

@@ -78,7 +78,7 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
         </div>
         <div className='flex flex-col items-center justify-center text-center p-1.5 rounded bg-card/40 border border-border/10'>
           <HelpCircle className='size-4 text-violet-500 mb-1' />
-          <span className='text-[11px] font-bold text-foreground'>N/A</span>
+          <span className='text-[11px] font-bold text-foreground'>{test.questionCount || 'N/A'}</span>
           <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider'>
             Questions
           </span>

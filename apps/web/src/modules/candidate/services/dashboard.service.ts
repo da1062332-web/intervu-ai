@@ -32,6 +32,7 @@ export const dashboardService = {
         completedAttempts:
           data.completedTests?.map((t: any) => ({
             id: t.instanceId,
+            testId: t.configId,
             assessmentName: t.name,
             score: t.score,
             completedDate: t.submittedAt || new Date().toISOString(),
@@ -79,6 +80,7 @@ export const dashboardService = {
         title: t.name,
         company: t.company,
         durationMinutes: t.duration ? Math.floor(t.duration / 60) : 0,
+        questionCount: t.questionCount || 0,
         sections: t.sections || [],
         difficulty: t.difficulty || 'Medium',
       }));

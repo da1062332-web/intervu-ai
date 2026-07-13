@@ -43,7 +43,7 @@ export function TestCardGrid({
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {paginatedTests.map((test, idx) => (
           <TestCard
-            key={test.id || (test as any).configId || `test-${idx}`}
+            key={`${test.id || (test as any).configId || 'test'}-${idx}`}
             test={test}
             isBookmarked={bookmarkedIds.includes(test.id)}
             onToggleBookmark={() => onToggleBookmark(test.id)}

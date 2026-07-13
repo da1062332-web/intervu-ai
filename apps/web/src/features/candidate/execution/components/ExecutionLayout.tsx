@@ -8,6 +8,9 @@ import { NavigationControls } from './NavigationControls';
 import { ResumeBanner } from './ResumeBanner';
 import { SubmissionModal } from './SubmissionModal';
 import { SectionTabs } from './SectionTabs';
+import { FullscreenOverlay } from './FullscreenOverlay';
+import { TabWarningModal } from './TabWarningModal';
+import { SectionChangeModal } from './SectionChangeModal';
 import { useExecutionStore } from '../stores/execution.store';
 import { useAutosave } from '../hooks/useAutosave';
 import { useConnectionMonitor } from '../hooks/useConnectionMonitor';
@@ -15,7 +18,7 @@ import { useResume } from '../hooks/useResume';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -45,12 +48,24 @@ export function ExecutionLayout() {
     onSubmit: handleSubmit,
   });
 
+  // Prevent copy, cut, paste
+  const handleCopyPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+  };
+
   return (
-    <div className='min-h-screen bg-background flex flex-col relative'>
+    <div 
+      className='min-h-screen bg-background flex flex-col relative select-none'
+      onCopy={handleCopyPaste}
+      onCut={handleCopyPaste}
+      onPaste={handleCopyPaste}
+    >
+      <FullscreenOverlay />
+      <TabWarningModal />
       <ResumeBanner />
       <ExecutionHeader />
 
-      <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-24'>
+      <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-24 select-text'>
         <div className='grid grid-cols-1 lg:grid-cols-10 gap-6 h-full items-start'>
           {/* Left + Center Columns - Question & Resources */}
           <div className='lg:col-span-8 flex flex-col'>
@@ -96,11 +111,14 @@ export function ExecutionLayout() {
       </footer>
 
       {testInstance && (
-        <SubmissionModal
-          isOpen={isSubmitModalOpen}
-          onClose={() => setIsSubmitModalOpen(false)}
-          testId={testInstance.id}
-        />
+        <>
+          <SubmissionModal
+            isOpen={isSubmitModalOpen}
+            onClose={() => setIsSubmitModalOpen(false)}
+            testId={testInstance.id}
+          />
+          <SectionChangeModal />
+        </>
       )}
     </div>
   );

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTestDetails } from '../hooks/useTestDetails';
+import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
 import { TestOverview } from '../components/TestOverview';
 import { SyllabusBreakdown } from '../components/SyllabusBreakdown';
 import { SectionBreakdown } from '../components/SectionBreakdown';
@@ -24,8 +25,12 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
   const { data: test, isLoading, error, refetch } = useTestDetails(testId);
   const { data: enrollmentsData } = useEnrollments();
 
+  const { data: dashboardData } = useCandidateDashboard();
+
   const enrollment = enrollmentsData?.enrollments?.find((e: any) => e.testId === testId);
-  const enrollmentStatus = enrollment ? enrollment.status : 'AVAILABLE';
+  const isCompleted = dashboardData?.completedAttempts?.some((c) => c.testId === testId);
+  
+  const enrollmentStatus = isCompleted ? 'COMPLETED' : enrollment ? enrollment.status : 'AVAILABLE';
 
   if (isLoading) {
     return (
