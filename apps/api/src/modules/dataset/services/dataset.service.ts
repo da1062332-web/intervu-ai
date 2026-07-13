@@ -104,4 +104,22 @@ export class DatasetService {
       where: { id: itemId },
     });
   }
+
+  async findDatasetItemById(itemId: string) {
+    const item = await this.prismaService.datasetItem.findUnique({
+      where: { id: itemId },
+    });
+    if (!item) {
+      throw new NotFoundException(`DatasetItem with ID "${itemId}" not found`);
+    }
+    return item;
+  }
+
+  async updateDatasetItem(itemId: string, dto: any) {
+    await this.findDatasetItemById(itemId); // ensure exists
+    return this.prismaService.datasetItem.update({
+      where: { id: itemId },
+      data: dto,
+    });
+  }
 }

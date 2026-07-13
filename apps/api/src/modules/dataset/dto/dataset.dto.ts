@@ -79,3 +79,38 @@ export class CreateDatasetItemDto {
   @IsOptional()
   metadata?: Record<string, any>;
 }
+
+export class UpdateDatasetItemDto {
+  @ApiPropertyOptional({
+    description: "Passage, vocabulary word, or sentence content",
+    example: "abundant",
+  })
+  @IsString()
+  @IsOptional()
+  content?: string;
+
+  @ApiPropertyOptional({ description: "Difficulty level", example: "EASY" })
+  @IsString()
+  @IsOptional()
+  difficulty?: string;
+
+  @ApiPropertyOptional({ description: "Associated topic", example: "synonyms" })
+  @IsString()
+  @IsOptional()
+  topic?: string;
+
+  @ApiPropertyOptional({ description: "Filter tags", example: ["english", "synonyms"] })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
+
+  @ApiPropertyOptional({
+    description: "Additional metadata (e.g., synonyms, distractors)",
+    example: { synonym: "plentiful" },
+  })
+  @IsObject()
+  @IsOptional()
+  metadata?: Record<string, any>;
+}
+
