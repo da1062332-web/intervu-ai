@@ -21,6 +21,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiProperty,
+  ApiPropertyOptional,
 } from "@nestjs/swagger";
 import { DifficultyLevel, UserRole } from "@prisma/client";
 
@@ -64,6 +65,25 @@ class SaveOptionStrategyDto {
     description: "Option templates array with placeholders",
   })
   optionsTemplate!: string[];
+
+  @ApiPropertyOptional({
+    enum: ["VARIABLE", "DATASET", "HYBRID"],
+    example: "DATASET",
+    description: "Template generation strategy",
+  })
+  strategy?: "VARIABLE" | "DATASET" | "HYBRID";
+
+  @ApiPropertyOptional({
+    example: "dataset-cuid-123",
+    description: "Associated dataset library ID",
+  })
+  datasetId?: string;
+
+  @ApiPropertyOptional({
+    example: "scenario-cuid-123",
+    description: "Associated scenario config ID",
+  })
+  scenarioId?: string;
 }
 
 @ApiTags("templates")
@@ -325,9 +345,21 @@ export class TemplateController {
   async getOptionStrategy(@Param("id") id: string) {
     const template = await this.templateService.findById(id);
     const structure = (template.structure as any) || {};
+
+    let datasetId: string | null = null;
+    if (template.generationStrategy === "DATASET") {
+      const dbConfig = await this.templateService.findDatasetConfig(template.id);
+      if (dbConfig) {
+        datasetId = dbConfig.datasetId;
+      }
+    }
+
     return {
       templateId: template.id,
       optionsTemplate: structure.optionsTemplate || [],
+      strategy: template.generationStrategy || "VARIABLE",
+      datasetId: datasetId,
+      scenarioId: null,
     };
   }
 
@@ -345,9 +377,22 @@ export class TemplateController {
       ...structure,
       optionsTemplate: body.optionsTemplate,
     };
-    return this.templateService.update(id, {
+
+    const updatePayload: any = {
       structure: updatedStructure as any,
-    });
+    };
+
+    if (body.strategy) {
+      updatePayload.generationStrategy = body.strategy;
+    }
+
+    const updatedTemplate = await this.templateService.update(id, updatePayload);
+
+    if (body.strategy === "DATASET" && body.datasetId) {
+      await this.templateService.upsertDatasetConfig(id, body.datasetId);
+    }
+
+    return updatedTemplate;
   }
 
   @Patch(":id/options")

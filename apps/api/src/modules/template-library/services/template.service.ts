@@ -1390,4 +1390,28 @@ export class TemplateService {
       /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/.test(text) || /\{([^}]+)\}/.test(text)
     );
   }
+
+  async findDatasetConfig(templateId: string) {
+    return this.prisma.templateDatasetConfig.findUnique({
+      where: { templateId },
+    });
+  }
+
+  async upsertDatasetConfig(templateId: string, datasetId: string) {
+    const existing = await this.findDatasetConfig(templateId);
+    if (existing) {
+      return this.prisma.templateDatasetConfig.update({
+        where: { templateId },
+        data: { datasetId },
+      });
+    }
+    return this.prisma.templateDatasetConfig.create({
+      data: {
+        templateId,
+        datasetId,
+        selectionMethod: "RANDOM",
+        tags: [],
+      },
+    });
+  }
 }
