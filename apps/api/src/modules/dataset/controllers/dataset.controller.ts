@@ -28,6 +28,7 @@ import {
   CreateDatasetDto,
   UpdateDatasetDto,
   CreateDatasetItemDto,
+  UpdateDatasetItemDto,
 } from "../dto/dataset.dto";
 
 @ApiTags("datasets")
@@ -108,5 +109,25 @@ export class DatasetController {
   @ApiOkResponse({ description: "Item removed successfully" })
   async removeItem(@Param("itemId") itemId: string) {
     return this.datasetService.deleteDatasetItem(itemId);
+  }
+
+  @Get("items/:itemId")
+  @ApiOperation({ summary: "Get details of a single dataset item" })
+  @ApiParam({ name: "itemId", description: "Dataset Item ID" })
+  @ApiOkResponse({ description: "Dataset item details" })
+  async findItem(@Param("itemId") itemId: string) {
+    return this.datasetService.findDatasetItemById(itemId);
+  }
+
+  @Patch("items/:itemId")
+  @ApiOperation({ summary: "Update specific properties of a dataset item" })
+  @ApiParam({ name: "itemId", description: "Dataset Item ID" })
+  @ApiBody({ type: UpdateDatasetItemDto })
+  @ApiOkResponse({ description: "Item updated successfully" })
+  async updateItem(
+    @Param("itemId") itemId: string,
+    @Body() dto: UpdateDatasetItemDto,
+  ) {
+    return this.datasetService.updateDatasetItem(itemId, dto);
   }
 }

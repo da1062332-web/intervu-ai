@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { QueueService } from "../../../queue/queue.service";
+import { QueueService, QueueType } from "../../../queue";
 import { TestRepository } from "../repositories/test.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { GenerationRequest } from "@intervu-ai/contracts";
@@ -78,9 +78,9 @@ export class TestAssemblyService {
   }
 
   async getJobStatus(jobId: string) {
-    const job = await this.queueService.getJob("GENERATION" as any, jobId);
+    const job = await this.queueService.getJob(QueueType.GENERATION, jobId);
     const state = await this.queueService.getJobState(
-      "GENERATION" as any,
+      QueueType.GENERATION,
       jobId,
     );
 
