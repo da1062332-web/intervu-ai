@@ -5,6 +5,7 @@ import type {
   DashboardWidgets,
   RecommendationResponse,
   StrengthWeaknessResponse,
+  PerformanceDashboardResponse,
 } from '../types/results.types';
 import type { PerformanceAnalyticsDto } from '@intervu-ai/contracts';
 
@@ -47,6 +48,10 @@ export const resultApi = {
 
   getRecommendations: async (attemptId: string): Promise<RecommendationResponse> => {
     return apiClient.request<RecommendationResponse>(`${BASE_PATH}/${attemptId}/recommendations`);
+  },
+
+  getPerformanceDashboard: async (attemptId: string): Promise<PerformanceDashboardResponse> => {
+    return apiClient.request<PerformanceDashboardResponse>(`${BASE_PATH}/${attemptId}/performance-dashboard`);
   },
 
   exportToPdf: async (attemptId: string): Promise<Blob> => {

@@ -198,4 +198,147 @@ export class ResultQueryService {
     }
     return { status: state.status };
   }
+
+  async getPerformanceDashboard(attemptId: string) {
+    const [result, analytics, evaluation, sections, answers, recommendations] = await Promise.all([
+      this.candidateResultRepo.findResultByAttemptId(attemptId),
+      this.candidateResultRepo.findAnalytics(attemptId),
+      this.prisma.evaluationResult.findFirst({ where: { testInstanceId: attemptId } }),
+      this.prisma.testInstanceSection.findMany({ where: { testInstanceId: attemptId } }),
+      this.prisma.candidateAnswer.findMany({ where: { testInstanceId: attemptId } }),
+      this.getRecommendations(attemptId).catch(() => ({ practiceSuggestions: [] }))
+    ]);
+
+    if (!result) {
+      throw new NotFoundException(`Result not found for attempt ${attemptId}`);
+    }
+
+    const overallScore = result.score;
+    const percentage = result.percentage;
+    
+    let grade = "C";
+    if (percentage >= 90) grade = "A+";
+    else if (percentage >= 80) grade = "A";
+    else if (percentage >= 70) grade = "B";
+
+    const overallAccuracy = result.percentage; 
+
+    const totalQuestions = sections.reduce((sum, s) => sum + s.questionCount, 0);
+
+    let correct = evaluation?.correctAnswers || 0;
+    let wrong = evaluation?.incorrectAnswers || 0;
+
+    // Use fallback calculation if evaluation metrics are zeroed out
+    if ((correct === 0 && wrong === 0) && (percentage > 0 || answers.length > 0 || !evaluation)) {
+      correct = Math.round((percentage / 100) * totalQuestions);
+      const answeredCount = answers.length;
+      if (answeredCount > 0) {
+        wrong = Math.max(0, answeredCount - correct);
+      } else {
+        wrong = Math.max(0, totalQuestions - correct);
+      }
+    }
+
+    const skipped = Math.max(0, totalQuestions - (correct + wrong));
+
+    const sectionTimeMap: Record<string, number> = {};
+    const questionToSectionMap: Record<string, string> = {};
+    
+    const tiqs = await this.prisma.testInstanceQuestion.findMany({ 
+      where: { testInstanceId: attemptId }, 
+      include: { section: true } 
+    });
+    
+    tiqs.forEach(q => {
+      questionToSectionMap[q.questionId] = q.section.sectionName;
+    });
+
+    let totalSpentSecs = answers.reduce((sum, a) => sum + a.timeSpentSeconds, 0);
+    const attemptRecord = await this.prisma.testInstance.findUnique({ where: { id: attemptId } });
+
+    if (totalSpentSecs === 0 && attemptRecord?.submittedAt) {
+      totalSpentSecs = Math.floor((attemptRecord.submittedAt.getTime() - attemptRecord.createdAt.getTime()) / 1000);
+      if (sections.length === 1) {
+        sectionTimeMap[sections[0].sectionName] = totalSpentSecs;
+      }
+    } else {
+      answers.forEach(a => {
+        const sectionName = questionToSectionMap[a.questionId];
+        if (sectionName) {
+          sectionTimeMap[sectionName] = (sectionTimeMap[sectionName] || 0) + a.timeSpentSeconds;
+        }
+      });
+    }
+
+    const sectionTime = sections.map(sec => {
+      const spentSecs = sectionTimeMap[sec.sectionName] || 0;
+      const spentMin = Math.round(spentSecs / 60);
+      const expectedMin = Math.round(sec.durationSeconds / 60);
+      
+      let status = "N/A";
+      if (spentMin > 0) {
+        status = "Good";
+        if (spentMin < expectedMin * 0.7) status = "Excellent";
+        else if (spentMin > expectedMin * 1.3) status = "Needs Improvement";
+        else if (spentMin > expectedMin) status = "Slightly Slow";
+      }
+
+      return {
+        sectionName: sec.sectionName,
+        spentTime: spentMin,
+        expectedTime: expectedMin,
+        timeDifference: Math.abs(expectedMin - spentMin),
+        status
+      };
+    });
+
+    const totalExpectedSecs = sections.reduce((sum, s) => sum + s.durationSeconds, 0);
+    const timeEfficiency = totalExpectedSecs > 0 && totalSpentSecs > 0
+      ? Math.min(100, Math.round((totalExpectedSecs / Math.max(totalSpentSecs, 1)) * 100))
+      : 100;
+
+    const sectionAccData = typeof analytics?.sectionAccuracy === 'object' 
+      ? analytics.sectionAccuracy as Record<string, number> 
+      : {};
+    
+    const strengths: string[] = [];
+    const weaknesses: string[] = [];
+    
+    const sectionAccuracy = sections.map(sec => {
+      let acc = sectionAccData[sec.sectionName];
+      if (acc === undefined) {
+        if (sections.length === 1) acc = percentage;
+        else acc = 0;
+      }
+      
+      const qCount = sec.questionCount;
+      const secCorrect = Math.round((acc / 100) * qCount);
+      const secWrong = qCount - secCorrect;
+      
+      if (acc >= 85) strengths.push(sec.sectionName);
+      else if (acc < 50) weaknesses.push(sec.sectionName);
+
+      return {
+        sectionName: sec.sectionName,
+        correct: secCorrect,
+        wrong: secWrong,
+        accuracy: acc
+      };
+    });
+
+    return {
+      overallScore,
+      percentage,
+      overallAccuracy,
+      grade,
+      timeEfficiency,
+      totalTimeSpent: Math.round(totalSpentSecs / 60),
+      strengths,
+      weaknesses,
+      accuracyDetails: { correct, wrong, skipped },
+      sectionAccuracy,
+      sectionTime,
+      recommendations: recommendations.practiceSuggestions || []
+    };
+  }
 }

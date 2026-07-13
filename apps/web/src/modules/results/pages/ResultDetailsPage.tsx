@@ -16,6 +16,7 @@ import { StrengthWeaknessPanel } from '../components/StrengthWeaknessPanel';
 import { RecommendationPanel } from '../components/RecommendationPanel';
 import { ShareableResultCard } from '../components/ShareableResultCard';
 import { Target, PlayCircle } from 'lucide-react';
+import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsDashboard';
 
 export const ResultDetailsPage = () => {
   const params = useParams();
@@ -112,132 +113,14 @@ export const ResultDetailsPage = () => {
 
       <ResultStatusTracker attemptId={attemptId!} onComplete={refetch} />
 
-      <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4'>
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm font-medium text-gray-500'>Overall Score</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='text-3xl font-bold'>{result.score}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm font-medium text-gray-500'>Percentage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='text-3xl font-bold'>{result.percentage}%</div>
-            <Progress value={result.percentage} className='mt-2 h-2' />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm font-medium text-gray-500'>Accuracy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='text-3xl font-bold'>{result.accuracy ?? 0}%</div>
-            <Progress value={result.accuracy ?? 0} className='mt-2 h-2 bg-slate-200' />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm font-medium text-gray-500'>Completion</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='text-3xl font-bold'>{result.completion}%</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm font-medium text-gray-500'>Rank</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='text-3xl font-bold'>{result.rank > 0 ? `#${result.rank}` : 'N/A'}</div>
-          </CardContent>
-        </Card>
+      <div className="pt-4">
+        <PerformanceInsightsDashboard attemptId={attemptId!} />
       </div>
 
-      {analyticsLoading ? (
-        <div className='pt-8 flex justify-center'>
-          <Loading />
-        </div>
-      ) : analytics ? (
-        <div className='pt-8 space-y-8'>
-          <h2 className='text-2xl font-bold tracking-tight text-gray-900'>Performance Analytics</h2>
-
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-            <Card>
-              <CardContent className='p-4 flex items-center gap-4'>
-                <div className='bg-indigo-100 p-3 rounded-full'>
-                  <PlayCircle className='text-indigo-600 w-6 h-6' />
-                </div>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Attempt Rate</p>
-                  <h3 className='text-2xl font-bold'>{analytics.attemptRate ?? 0}%</h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className='p-4 flex items-center gap-4'>
-                <div className='bg-green-100 p-3 rounded-full'>
-                  <Target className='text-green-600 w-6 h-6' />
-                </div>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Completion Rate</p>
-                  <h3 className='text-2xl font-bold'>{analytics.completionRate ?? 0}%</h3>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-            <Card className='lg:col-span-1'>
-              <CardHeader>
-                <CardTitle>Topic Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RadarChart data={analytics.topicAccuracy as Record<string, number>} />
-              </CardContent>
-            </Card>
-
-            <Card className='lg:col-span-1'>
-              <CardHeader>
-                <CardTitle>Difficulty Accuracy</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SectionAccuracyChart
-                  data={analytics.difficultyAccuracy as Record<string, number>}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className='lg:col-span-1'>
-              <CardHeader>
-                <CardTitle>Section Accuracy</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SectionAccuracyChart data={analytics.sectionAccuracy as Record<string, number>} />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <h2 className='text-xl font-bold text-gray-900 mb-4'>Strengths & Weaknesses</h2>
-            <StrengthWeaknessPanel attemptId={attemptId!} />
-          </div>
-
-          <div>
-            <h2 className='text-xl font-bold text-gray-900 mb-4'>Improvement Recommendations</h2>
-            <RecommendationPanel attemptId={attemptId!} />
-          </div>
-
-          <ShareableResultCard attemptId={attemptId!} />
-        </div>
-      ) : null}
+      {/* Preserve the Shareable Result Card at the bottom */}
+      <div className="pt-8 border-t mt-8">
+        <ShareableResultCard attemptId={attemptId!} />
+      </div>
     </div>
   );
 };

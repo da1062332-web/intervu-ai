@@ -133,6 +133,13 @@ export class ResultsController {
     return this.resultQueryService.getRecommendations(attemptId);
   }
 
+  @Get(":attemptId/performance-dashboard")
+  @ApiOperation({ summary: "Get aggregated performance dashboard metrics" })
+  @ApiParam({ name: "attemptId", required: true })
+  async getPerformanceDashboard(@Param("attemptId") attemptId: string) {
+    return this.resultQueryService.getPerformanceDashboard(attemptId);
+  }
+
   @Get(":attemptId/export/pdf")
   @ApiOperation({ summary: "Export result to PDF" })
   @ApiParam({ name: "attemptId", required: true })
