@@ -32,6 +32,7 @@ export function TemplateListPageClient() {
     conceptKey: '',
     questionType: 'coding',
     difficulty: 'MEDIUM',
+    generationStrategy: 'VARIABLE',
   });
 
   const handleCreateTemplate = () => {
@@ -43,6 +44,7 @@ export function TemplateListPageClient() {
         conceptKey: formData.conceptKey || undefined,
         questionType: formData.questionType || undefined,
         difficulty: formData.difficulty as any,
+        generationStrategy: formData.generationStrategy as any,
         config: { topics: [], timeLimit: 3600 },
         isSystem: false,
       },
@@ -127,6 +129,7 @@ export function TemplateListPageClient() {
                   <TableHead>Name</TableHead>
                   <TableHead>Concept Key</TableHead>
                   <TableHead>Difficulty</TableHead>
+                  <TableHead>Strategy</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className='text-right'>Actions</TableHead>
                 </TableRow>
@@ -146,6 +149,11 @@ export function TemplateListPageClient() {
                     <TableCell>
                       <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'>
                         {tpl.difficultyLevel ?? tpl.difficulty ?? '-'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'>
+                        {tpl.generationStrategy ?? 'VARIABLE'}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -228,6 +236,18 @@ export function TemplateListPageClient() {
               <option value='EASY'>EASY</option>
               <option value='MEDIUM'>MEDIUM</option>
               <option value='HARD'>HARD</option>
+            </select>
+          </div>
+          <div>
+            <Label>Generation Strategy</Label>
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              value={formData.generationStrategy}
+              onChange={(e) => setFormData({ ...formData, generationStrategy: e.target.value })}
+            >
+              <option value='VARIABLE'>Variable Generation</option>
+              <option value='DATASET'>Dataset-backed</option>
+              <option value='HYBRID'>Hybrid (Dataset + Variables)</option>
             </select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>

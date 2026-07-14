@@ -5,6 +5,7 @@ import type { GenerationStrategy } from '@/services/question-generation/types';
 
 export interface StrategyPanelProps {
   templateId: string;
+  template?: any;
 }
 
 // Lazy-loaded strategy panels — avoids loading all panels on initial render

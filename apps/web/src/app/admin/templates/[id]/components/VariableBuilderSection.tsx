@@ -8,10 +8,8 @@ import { Plus, Trash2, Edit2, Check, X, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { useParams } from 'next/navigation';
 import { 
-  useTemplateVariables, 
-  useCreateVariable, 
-  useUpdateVariable, 
-  useDeleteVariable 
+  useTemplate, 
+  useUpdateTemplate 
 } from '@/services/templates/hooks';
 
 interface Variable {
@@ -25,25 +23,35 @@ interface Variable {
 export function VariableBuilderSection() {
   const { id: templateId } = useParams() as { id: string };
   
-  const { data: variablesResponse, isLoading: isLoadingVariables } = useTemplateVariables(templateId);
-  const rawVariables = Array.isArray(variablesResponse) ? variablesResponse : (variablesResponse?.data || []);
+  const { data: templateResponse, isLoading: isLoadingTemplate } = useTemplate(templateId);
+  const template = templateResponse?.data || templateResponse;
+  
+  const rawVariables = template?.variableSchema?.variables || [];
   const variables: Variable[] = rawVariables.map((v: any) => {
     let dataType = 'Text';
-    if (v.variableType === 'NUMBER') dataType = 'Integer';
-    if (v.variableType === 'BOOLEAN') dataType = 'Boolean';
+    if (v.type === 'integer') dataType = 'Integer';
+    if (v.type === 'decimal') dataType = 'Decimal';
+    if (v.type === 'boolean') dataType = 'Boolean';
+
+    let valueRange = '';
+    if (v.min !== undefined && v.max !== undefined && v.min !== v.max) {
+      valueRange = `${v.min}-${v.max}`;
+    } else if (v.min !== undefined && v.min === v.max) {
+      valueRange = `${v.min}`;
+    } else if (v.defaultValue !== undefined) {
+      valueRange = String(v.defaultValue);
+    }
 
     return {
-      id: v.id,
-      variableName: v.variableName,
+      id: v.name, // Use name as ID since it's unique in the array
+      variableName: v.name,
       dataType,
-      generationRule: 'Static',
-      valueRange: String(v.defaultValue || '')
+      generationRule: v.min !== undefined && v.min !== v.max ? 'Random' : 'Static',
+      valueRange
     };
   });
 
-  const { mutate: createVar, isPending: isCreating } = useCreateVariable();
-  const { mutate: updateVar, isPending: isUpdating } = useUpdateVariable();
-  const { mutate: deleteVar, isPending: isDeleting } = useDeleteVariable();
+  const { mutate: updateTemplate, isPending: isUpdatingTemplate } = useUpdateTemplate();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -95,31 +103,57 @@ export function VariableBuilderSection() {
     }
 
     const getVariableType = (uiType: string) => {
-      if (uiType === 'Integer' || uiType === 'Decimal') return 'NUMBER';
-      if (uiType === 'Boolean') return 'BOOLEAN';
-      return 'STRING';
+      if (uiType === 'Integer') return 'integer';
+      if (uiType === 'Decimal') return 'decimal';
+      if (uiType === 'Boolean') return 'boolean';
+      return 'string';
     };
 
     const varType = getVariableType(formData.dataType);
-    let finalDefaultValue: any = null;
     
-    if (formData.valueRange !== '') {
-      if (varType === 'NUMBER') {
-        const num = Number(formData.valueRange);
-        finalDefaultValue = isNaN(num) ? formData.valueRange : num;
-      } else if (varType === 'BOOLEAN') {
-        finalDefaultValue = formData.valueRange === 'true' || formData.valueRange === '1';
+    let min, max, defaultValue;
+    if (formData.valueRange) {
+      if (formData.valueRange.includes('-') && (varType === 'integer' || varType === 'decimal')) {
+        const parts = formData.valueRange.split('-');
+        min = Number(parts[0]);
+        max = Number(parts[1]);
       } else {
-        finalDefaultValue = formData.valueRange;
+        if (varType === 'integer' || varType === 'decimal') {
+          const num = Number(formData.valueRange);
+          if (!isNaN(num)) {
+            min = num;
+            max = num;
+            defaultValue = num;
+          } else {
+            defaultValue = formData.valueRange;
+          }
+        } else if (varType === 'boolean') {
+          defaultValue = formData.valueRange === 'true' || formData.valueRange === '1';
+        } else {
+          defaultValue = formData.valueRange;
+        }
       }
     }
 
-    const payload = {
-      variableName: formData.variableName,
-      variableType: varType,
+    const newVariable: any = {
+      name: formData.variableName,
+      type: varType,
       required: false,
-      defaultValue: finalDefaultValue
     };
+
+    if (min !== undefined) newVariable.min = min;
+    if (max !== undefined) newVariable.max = max;
+    if (defaultValue !== undefined) newVariable.defaultValue = defaultValue;
+
+    const currentSchema = template?.variableSchema || { variables: [] };
+    const currentVars = currentSchema.variables || [];
+    
+    let newVars;
+    if (editingId) {
+      newVars = currentVars.map((v: any) => v.name === editingId ? newVariable : v);
+    } else {
+      newVars = [...currentVars, newVariable];
+    }
 
     const extractError = (err: any, fallback: string) => {
       const msg = err?.response?.data?.message || err?.message;
@@ -127,29 +161,35 @@ export function VariableBuilderSection() {
       return msg || fallback;
     };
 
-    if (editingId) {
-      updateVar({
-        templateId,
-        variableId: editingId,
-        payload,
-      }, {
-        onSuccess: () => setIsModalOpen(false),
-        onError: (err: any) => setError(extractError(err, 'Failed to update variable'))
-      });
-    } else {
-      createVar({
-        templateId,
-        payload,
-      }, {
-        onSuccess: () => setIsModalOpen(false),
-        onError: (err: any) => setError(extractError(err, 'Failed to create variable'))
-      });
-    }
+    updateTemplate({
+      templateId,
+      payload: {
+        variableSchema: {
+          ...currentSchema,
+          variables: newVars
+        }
+      }
+    }, {
+      onSuccess: () => setIsModalOpen(false),
+      onError: (err: any) => setError(extractError(err, 'Failed to update variables'))
+    });
   };
 
   const handleDelete = (varId: string) => {
     if (confirm('Are you sure you want to delete this variable?')) {
-      deleteVar({ templateId, variableId: varId });
+      const currentSchema = template?.variableSchema || { variables: [] };
+      const currentVars = currentSchema.variables || [];
+      const newVars = currentVars.filter((v: any) => v.name !== varId);
+      
+      updateTemplate({
+        templateId,
+        payload: {
+          variableSchema: {
+            ...currentSchema,
+            variables: newVars
+          }
+        }
+      });
     }
   };
 
@@ -176,7 +216,7 @@ export function VariableBuilderSection() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoadingVariables ? (
+            {isLoadingTemplate ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
@@ -200,10 +240,10 @@ export function VariableBuilderSection() {
                   <TableCell>{v.generationRule}</TableCell>
                   <TableCell className="font-mono text-xs">{v.valueRange}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => openModal(v)} aria-label={`Edit ${v.variableName}`} disabled={isDeleting}>
+                    <Button variant="ghost" size="sm" onClick={() => openModal(v)} aria-label={`Edit ${v.variableName}`} disabled={isUpdatingTemplate}>
                       <Edit2 className="w-4 h-4 text-gray-500 hover:text-indigo-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} aria-label={`Delete ${v.variableName}`} disabled={isDeleting}>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} aria-label={`Delete ${v.variableName}`} disabled={isUpdatingTemplate}>
                       <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
                     </Button>
                   </TableCell>
@@ -281,8 +321,8 @@ export function VariableBuilderSection() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isCreating || isUpdating}>
-              {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleSave} disabled={isUpdatingTemplate}>
+              {isUpdatingTemplate && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editingId ? 'Save Changes' : 'Create Variable'}
             </Button>
           </div>

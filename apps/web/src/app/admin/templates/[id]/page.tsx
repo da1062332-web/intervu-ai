@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { ArrowLeft, ClipboardList, ArrowRight, FileText, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useTemplates } from '@/services/templates/hooks';
+import { useTemplate } from '@/services/templates/hooks';
 
 // Sections
 import { BasicInfoSection } from './components/BasicInfoSection';
@@ -14,7 +14,7 @@ import { VariableBuilderSection } from './components/VariableBuilderSection';
 import { ConstraintBuilderSection } from './components/ConstraintBuilderSection';
 import { OptionStrategySection } from './components/OptionStrategySection';
 import { SolutionLogicSection } from './components/SolutionLogicSection';
-import { StrategyConfigSection } from './components/StrategyConfigSection';
+import { DatasetConfigurationSection } from './components/DatasetConfigurationSection';
 import { PreviewSection } from './components/PreviewSection';
 
 type SectionType = 
@@ -36,20 +36,31 @@ export default function TemplatePage() {
   const id = params.id as string;
   const [activeSection, setActiveSection] = useState<SectionType>('basic');
 
-  // Fetch the template list to find the matching template details
-  const { data: response } = useTemplates(1, 100);
-  const template = response?.items?.find((t: any) => t.id === id);
+  // Fetch the full template details
+  const { data: response } = useTemplate(id);
+  const template = response?.data || response;
 
-  const sections = [
+  const strategy = template?.generationStrategy || 'VARIABLE';
+
+  const sections: { id: SectionType; label: string }[] = [
     { id: 'basic', label: 'Basic Information' },
     { id: 'question', label: 'Question Definition' },
-    { id: 'variables', label: 'Variable Builder' },
-    { id: 'constraints', label: 'Constraint Builder' },
+  ];
+
+  if (strategy === 'DATASET' || strategy === 'HYBRID') {
+    sections.push({ id: 'dataset-config' as SectionType, label: 'Dataset Configuration' });
+  }
+
+  if (strategy === 'VARIABLE' || strategy === 'HYBRID') {
+    sections.push({ id: 'variables', label: 'Variable Builder' });
+    sections.push({ id: 'constraints', label: 'Constraint Builder' });
+  }
+
+  sections.push(
     { id: 'options', label: 'Option Strategy' },
     { id: 'solution', label: 'Solution & Explanation' },
-    { id: 'strategy', label: 'Strategy Configuration' },
-    { id: 'preview', label: 'Preview' },
-  ];
+    { id: 'preview', label: 'Preview' }
+  );
 
   const futureSections = [
     { id: 'media', label: 'Media Designer (Coming Soon)' },
@@ -62,11 +73,11 @@ export default function TemplatePage() {
     switch (activeSection) {
       case 'basic': return <BasicInfoSection template={template} />;
       case 'question': return <QuestionDefinitionSection template={template} />;
-      case 'variables': return <VariableBuilderSection />;
-      case 'constraints': return <ConstraintBuilderSection />;
+      case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
+      case 'variables': return <VariableBuilderSection template={template} />;
+      case 'constraints': return <ConstraintBuilderSection template={template} />;
       case 'options': return <OptionStrategySection template={template} />;
-      case 'solution': return <SolutionLogicSection />;
-      case 'strategy': return <StrategyConfigSection />;
+      case 'solution': return <SolutionLogicSection template={template} />;
       case 'preview': return <PreviewSection />;
       case 'media':
       case 'validation':

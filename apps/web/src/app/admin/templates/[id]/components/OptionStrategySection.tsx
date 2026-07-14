@@ -12,13 +12,22 @@ interface OptionStrategySectionProps {
 
 export function OptionStrategySection({ template }: OptionStrategySectionProps) {
   const [strategy, setStrategy] = useState('static');
+  const [staticOptions, setStaticOptions] = useState<string[]>(['', '', '', '']);
+  const [formulas, setFormulas] = useState<string[]>(['', '', '', '']);
+  
   const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
 
   useEffect(() => {
     if (template?.config?.optionStrategy) {
       setStrategy(template.config.optionStrategy);
     }
-  }, [template?.id, template?.config?.optionStrategy]);
+    if (template?.config?.staticOptions) {
+      setStaticOptions(template.config.staticOptions);
+    }
+    if (template?.config?.formulas) {
+      setFormulas(template.config.formulas);
+    }
+  }, [template?.id, template?.config]);
 
   const handleSave = () => {
     if (!template?.id) return;
@@ -27,7 +36,9 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
       payload: {
         config: {
           ...(template.config || {}),
-          optionStrategy: strategy
+          optionStrategy: strategy,
+          ...(strategy === 'static' ? { staticOptions } : {}),
+          ...(strategy === 'formula' ? { formulas } : {})
         }
       }
     });
@@ -118,6 +129,84 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
             </div>
           </RadioGroup>
         </div>
+
+        {/* Dynamic Config Sections */}
+        {strategy === 'static' && (
+          <div className="space-y-4 p-5 border rounded-lg bg-gray-50/50 dark:bg-gray-900/50 animate-in fade-in slide-in-from-top-2">
+            <div>
+              <Label className="text-base font-semibold">Static Options Configuration</Label>
+              <p className="text-sm text-muted-foreground mt-1">Provide exactly 4 fixed options. (e.g. for simple non-variable templates)</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[0, 1, 2, 3].map((index) => (
+                <div key={index} className="space-y-2">
+                  <Label>Option {String.fromCharCode(65 + index)} {index === 0 && <span className="text-emerald-600 dark:text-emerald-400 font-medium">(Correct)</span>}</Label>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      value={staticOptions[index]}
+                      placeholder={index === 0 ? "Correct Answer" : "Distractor"}
+                      onChange={(e) => {
+                        const newOps = [...staticOptions];
+                        newOps[index] = e.target.value;
+                        setStaticOptions(newOps);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {strategy === 'formula' && (
+          <div className="space-y-4 p-5 border rounded-lg bg-gray-50/50 dark:bg-gray-900/50 animate-in fade-in slide-in-from-top-2">
+            <div>
+              <Label className="text-base font-semibold">Formula Based Configuration</Label>
+              <p className="text-sm text-muted-foreground mt-1">Define mathematical formulas to generate options using variables (e.g. <code>answer + 10</code>, <code>answer * 2</code>)</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              {[0, 1, 2, 3].map((index) => (
+                <div key={index} className="space-y-2">
+                  <Label>Option {String.fromCharCode(65 + index)} {index === 0 && <span className="text-emerald-600 dark:text-emerald-400 font-medium">(Correct)</span>}</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-md border text-muted-foreground">ƒ(x) = </span>
+                    <input 
+                      type="text" 
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring font-mono"
+                      value={formulas[index]}
+                      placeholder={index === 0 ? "answer" : "answer + (variable * 2)"}
+                      onChange={(e) => {
+                        const newForms = [...formulas];
+                        newForms[index] = e.target.value;
+                        setFormulas(newForms);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {strategy === 'dynamic' && (
+          <div className="p-5 border rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-800 dark:text-indigo-200 animate-in fade-in slide-in-from-top-2">
+            <h4 className="font-semibold text-sm mb-2">Dynamic Range Generation</h4>
+            <p className="text-sm opacity-90">
+              The engine will automatically generate distractors based on the statistical range and constraints of the defined variables. Ensure you have properly set up <strong>min/max boundaries</strong> in the Variable Builder.
+            </p>
+          </div>
+        )}
+
+        {strategy === 'ai' && (
+          <div className="p-5 border rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-200 animate-in fade-in slide-in-from-top-2">
+            <h4 className="font-semibold text-sm mb-2">AI Generative Mode</h4>
+            <p className="text-sm opacity-90">
+              The AI will parse the template concept, difficulty, and question context to creatively hallucinate plausible distractors. This is ideal for qualitative or reading comprehension questions.
+            </p>
+          </div>
+        )}
       </div>
     </TemplateSection>
   );

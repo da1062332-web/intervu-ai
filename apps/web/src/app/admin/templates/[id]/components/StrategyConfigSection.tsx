@@ -26,7 +26,11 @@ function PanelFallback() {
  *   1. Create the panel component
  *   2. Register it in strategy-panel.registry.ts
  */
-export function StrategyConfigSection() {
+interface StrategyConfigSectionProps {
+  template?: any;
+}
+
+export function StrategyConfigSection({ template }: StrategyConfigSectionProps) {
   const { id: templateId } = useParams() as { id: string };
   const { currentStrategy } = useStrategyConfigStore();
 
@@ -52,7 +56,7 @@ export function StrategyConfigSection() {
 
       {/* Panel rendered from registry — no switch/if */}
       <Suspense fallback={<PanelFallback />}>
-        <Panel templateId={templateId} />
+        <Panel templateId={templateId} template={template} />
       </Suspense>
     </div>
   );

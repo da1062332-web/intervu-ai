@@ -9,6 +9,7 @@ import { Loader2, Database, Search, Tag } from 'lucide-react';
 import { useDatasets } from '@/services/datasets/hooks';
 import { useStrategyConfigStore } from '@/store/strategy-config.store';
 import { validateStrategyConfig } from '../../registry/strategy-validation.registry';
+import { useEffect } from 'react';
 import type { StrategyPanelProps } from '../../registry/strategy-panel.registry';
 import type { Dataset } from '@/services/datasets/api';
 
@@ -18,12 +19,25 @@ import type { Dataset } from '@/services/datasets/api';
  * Displays dataset type, topic, difficulty, tag filters, and a dataset browser.
  * Config is saved to Zustand store and validated with datasetStrategySchema.
  */
-export function DatasetStrategyPanel({ templateId: _ }: StrategyPanelProps) {
+export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelProps) {
   const { updateConfig, configs } = useStrategyConfigStore();
   const config = (configs['DATASET'] ?? {}) as Record<string, string | string[]>;
 
   const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (template?.config && !hydrated) {
+      if (template.generationStrategy === 'DATASET') {
+        updateConfig(template.config);
+        if (template.config.datasetId) {
+          setSelectedDatasetId(template.config.datasetId as string);
+        }
+      }
+      setHydrated(true);
+    }
+  }, [template, hydrated, updateConfig]);
 
   const { data: datasets, isLoading } = useDatasets();
 

@@ -23,6 +23,10 @@ export const TemplateSchema = z.object({
   isSystem: z.boolean().optional(),
   version: z.number().optional(),
   isActive: z.boolean().optional(),
+  variableSchema: z.unknown().optional(),
+  solutionSchema: z.unknown().optional(),
+  constraints: z.unknown().optional(),
+  generationStrategy: z.string().optional(),
   createdAt: z.union([z.date(), z.string()]).optional(),
   updatedAt: z.union([z.date(), z.string()]).optional(),
 });

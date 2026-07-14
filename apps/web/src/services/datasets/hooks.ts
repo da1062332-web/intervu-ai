@@ -47,3 +47,23 @@ export const useAddDatasetItem = () => {
       qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] }),
   });
 };
+
+export const useBulkAddDatasetItems = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ datasetId, payload }: { datasetId: string; payload: CreateDatasetItemPayload[] }) =>
+      datasetsApi.bulkAddItems(datasetId, payload),
+    onSuccess: (_, { datasetId }) =>
+      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] }),
+  });
+};
+
+export const useDeleteDatasetItem = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, datasetId }: { itemId: string; datasetId: string }) => 
+      datasetsApi.deleteItem(itemId),
+    onSuccess: (_, { datasetId }) =>
+      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] }),
+  });
+};
