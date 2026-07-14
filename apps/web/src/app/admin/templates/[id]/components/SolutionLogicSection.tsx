@@ -2,7 +2,7 @@ import React from 'react';
 import { TemplateSection } from './TemplateSection';
 import { SolutionTemplateEditor } from './SolutionTemplateEditor';
 import { Button } from '@/components/ui/button';
-import { useSaveSolutionTemplate } from '@/services/templates/hooks';
+import { useSaveSolutionTemplate, useSolutionTemplate } from '@/services/templates/hooks';
 import { useTemplatePreviewStore } from '@/store/template-preview.store';
 import { useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -15,6 +15,7 @@ interface SolutionLogicSectionProps {
 export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
   const params = useParams();
   const templateId = params.id as string;
+  const { data: existingData } = useSolutionTemplate(templateId);
   const saveMutation = useSaveSolutionTemplate();
   const { solutionTemplate, explanationTemplate, setSolutionTemplate, setExplanationTemplate, isDirty, setDirty } = useTemplatePreviewStore();
 
@@ -33,7 +34,7 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
     saveMutation.mutate({
       templateId,
       payload: { solutionTemplate, explanationTemplate },
-      isUpdate: true,
+      isUpdate: !!existingData,
     });
     setDirty(false);
   };
