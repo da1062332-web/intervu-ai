@@ -307,6 +307,8 @@ export class TemplateService {
     await this.cacheService.invalidateTemplate(id);
     if (updated.isSystem) {
       await this.cacheService.invalidateSystemTemplates();
+    } else {
+      await this.cacheService.clear("template:list:*");
     }
     return updated;
   }
