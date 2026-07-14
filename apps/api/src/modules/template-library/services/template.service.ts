@@ -11,6 +11,7 @@ import {
   TemplateRule,
   VariableType,
   RuleType,
+  GenerationStrategy,
 } from "@prisma/client";
 import { createHash } from "crypto";
 import {
@@ -75,6 +76,7 @@ export class TemplateService {
     page = 1,
     limit = 10,
     difficulty?: DifficultyLevel,
+    strategy?: GenerationStrategy,
   ): Promise<PaginatedTemplates> {
     // 1. validate()
     if (page < 1 || limit < 1 || limit > 100) {
@@ -89,16 +91,16 @@ export class TemplateService {
 
     // 2. fetchDependencies() — check cache first
     const filterHash = createHash("md5")
-      .update(`p${page}l${limit}d${difficulty ?? "all"}`)
+      .update(`p${page}l${limit}d${difficulty ?? "all"}s${strategy ?? "all"}`)
       .digest("hex");
     const cached =
       await this.cacheService.getTemplateList<PaginatedTemplates>(filterHash);
     if (cached) return cached;
 
     // 3. coreLogic() — fetch from DB
-    const whereClause: Record<string, unknown> = difficulty
-      ? { difficulty }
-      : {};
+    const whereClause: Record<string, unknown> = {};
+    if (difficulty) whereClause.difficulty = difficulty;
+    if (strategy) whereClause.generationStrategy = strategy;
     const result = await this.templateRepository.findPaginated(
       { page, limit },
       whereClause,

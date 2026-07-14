@@ -23,7 +23,7 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from "@nestjs/swagger";
-import { DifficultyLevel, UserRole } from "@prisma/client";
+import { DifficultyLevel, UserRole, GenerationStrategy } from "@prisma/client";
 
 import {
   CreateTemplateDto,
@@ -103,16 +103,19 @@ export class TemplateController {
   @ApiQuery({ name: "page", required: false, example: 1 })
   @ApiQuery({ name: "limit", required: false, example: 10 })
   @ApiQuery({ name: "difficulty", required: false, enum: DifficultyLevel })
+  @ApiQuery({ name: "strategy", required: false, enum: GenerationStrategy })
   @ApiOkResponse({ description: "Paginated list of templates" })
   async findAll(
     @Query("page") page?: string,
     @Query("limit") limit?: string,
     @Query("difficulty") difficulty?: DifficultyLevel,
+    @Query("strategy") strategy?: GenerationStrategy,
   ) {
     return this.templateService.findAll(
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 10,
       difficulty,
+      strategy,
     );
   }
 
