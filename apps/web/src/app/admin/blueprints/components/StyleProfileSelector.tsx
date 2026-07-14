@@ -11,6 +11,8 @@ interface StyleProfileSelectorProps {
 export function StyleProfileSelector({ value, onChange }: StyleProfileSelectorProps) {
   const { data: profiles, isLoading, isError } = useStyleProfiles();
 
+  const activeProfiles = profiles?.filter((p: any) => p.active || p.id === value);
+
   return (
     <div className='space-y-2'>
       <Label>Style Profile</Label>
@@ -20,7 +22,7 @@ export function StyleProfileSelector({ value, onChange }: StyleProfileSelectorPr
         className='w-full px-3 py-2 border rounded-md bg-background'
       >
         <option value=''>-- Select Style Profile --</option>
-        {profiles?.map((p: any) => (
+        {activeProfiles?.map((p: any) => (
           <option key={p.id} value={p.id}>
             {p.name}
           </option>

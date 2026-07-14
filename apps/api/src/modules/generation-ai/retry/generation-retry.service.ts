@@ -216,6 +216,14 @@ export class GenerationRetryService {
       });
     }
 
+    // Resolve styleProfile from options or load default
+    let styleProfile = (options as any)?.styleProfile;
+    if (!styleProfile) {
+      styleProfile = await this.prisma.styleProfile.findFirst({
+        where: { isDefault: true, active: true },
+      });
+    }
+
     // Compile dynamic structured prompt
     const prompt = this.promptBuilder.buildPrompt({
       template,
@@ -224,6 +232,7 @@ export class GenerationRetryService {
       datasetItem: options?.datasetItem,
       logicalGraph: options?.logicalGraph,
       promptConfig: promptConfig || undefined,
+      styleProfile,
     });
 
     const difficulty = template.difficultyLevel.toLowerCase();

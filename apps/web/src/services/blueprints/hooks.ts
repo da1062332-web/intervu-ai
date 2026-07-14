@@ -12,7 +12,7 @@ export const blueprintKeys = {
   detail: (id: string) => ['blueprint', id] as const,
 };
 
-// Legacy Style Profiles (keeping if needed elsewhere)
+// Style Profiles
 export function useStyleProfiles() {
   return useQuery({
     queryKey: ['style-profiles'],
@@ -20,10 +20,49 @@ export function useStyleProfiles() {
   });
 }
 
+export function useStyleProfile(id: string) {
+  return useQuery({
+    queryKey: ['style-profile', id],
+    queryFn: () => blueprintsApi.getStyleProfile(id),
+    enabled: !!id,
+  });
+}
+
 export function useCreateStyleProfile() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: any) => blueprintsApi.createStyleProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['style-profiles'] });
+    },
+  });
+}
+
+export function useUpdateStyleProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      blueprintsApi.updateStyleProfile(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['style-profiles'] });
+    },
+  });
+}
+
+export function useDeleteStyleProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => blueprintsApi.deleteStyleProfile(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['style-profiles'] });
+    },
+  });
+}
+
+export function useDuplicateStyleProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => blueprintsApi.duplicateStyleProfile(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['style-profiles'] });
     },

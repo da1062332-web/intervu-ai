@@ -32,6 +32,7 @@ import { PromptBuilderService } from "./prompt/prompt-builder.service";
 import { QuestionAssemblerService } from "./assembler/question-assembler.service";
 import { QuestionRepository } from "./repository/question.repository";
 import { GenerationTrackingService } from "./services/generation-tracking.service";
+import { StyleValidationService } from "./services/style-validation.service";
 
 const PROVIDERS = [
   // Registries
@@ -55,6 +56,7 @@ const PROVIDERS = [
   QuestionAssemblerService,
   QuestionRepository,
   GenerationTrackingService,
+  StyleValidationService,
 ];
 
 @Module({

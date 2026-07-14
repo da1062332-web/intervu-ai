@@ -30,6 +30,7 @@ export interface PromptBuilderInput {
     instructions: string;
     outputRules?: string | null;
   };
+  styleProfile?: any;
 }
 
 @Injectable()
@@ -55,17 +56,33 @@ export class PromptBuilderService {
    */
   buildPrompt(input: PromptBuilderInput): string {
     const strategy = input.template.generationStrategy || "VARIABLE";
+    let prompt = "";
 
     switch (strategy.toUpperCase()) {
       case "VARIABLE":
-        return this.buildVariablePrompt(input);
+        prompt = this.buildVariablePrompt(input);
+        break;
       case "DATASET":
-        return this.buildDatasetPrompt(input);
+        prompt = this.buildDatasetPrompt(input);
+        break;
       case "HYBRID":
-        return this.buildHybridPrompt(input);
+        prompt = this.buildHybridPrompt(input);
+        break;
       default:
-        return this.buildVariablePrompt(input);
+        prompt = this.buildVariablePrompt(input);
+        break;
     }
+
+    if (input.styleProfile) {
+      const difficulty = input.template.difficultyLevel || "medium";
+      const styleInstructions = this.compileStyleProfileInstructions(
+        input.styleProfile,
+        difficulty,
+      );
+      prompt = `${prompt}\n\n${styleInstructions}`;
+    }
+
+    return prompt;
   }
 
   private buildVariablePrompt(input: PromptBuilderInput): string {
@@ -355,5 +372,88 @@ JSON Schema:
 `;
 
     return `${systemPrompt}\n\n${templateContext}\n\n${graphSection}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
+  }
+
+  private compileStyleProfileInstructions(
+    styleProfile: any,
+    difficulty: string,
+  ): string {
+    if (!styleProfile) return "";
+
+    const language = styleProfile.languageStyle?.language || "English";
+    const sentenceLength = styleProfile.languageStyle?.sentenceLength || "medium";
+    const vocabularyLevel =
+      styleProfile.languageStyle?.vocabularyLevel || "intermediate";
+    const grammarStyle = styleProfile.languageStyle?.grammarStyle || "formal";
+
+    const preferredContexts = styleProfile.contextStyle?.preferredContexts || [];
+    const contextText =
+      preferredContexts.length > 0
+        ? `- Preferred Context: Prefer real-world contexts such as: ${preferredContexts.join(", ")}.`
+        : "";
+
+    const diffRules =
+      styleProfile.difficultyStyle?.[difficulty.toLowerCase()] || [];
+    const difficultyText =
+      diffRules.length > 0
+        ? `- Difficulty Wording Guidelines: ${diffRules.join(", ")}.`
+        : "";
+
+    const distractorRules = [];
+    if (styleProfile.distractorRules?.exactlyFourOptions)
+      distractorRules.push("exactly 4 options");
+    if (styleProfile.distractorRules?.oneCorrectAnswer)
+      distractorRules.push("exactly 1 correct answer (labeled A, B, C, or D)");
+    if (styleProfile.distractorRules?.plausibleIncorrectOptions)
+      distractorRules.push("plausible incorrect options");
+    if (styleProfile.distractorRules?.avoidObviouslyWrongOptions)
+      distractorRules.push("avoid obviously wrong options");
+    if (styleProfile.distractorRules?.avoidHumorousOptions)
+      distractorRules.push("avoid humorous options");
+    if (styleProfile.distractorRules?.representCommonStudentMistakes)
+      distractorRules.push(
+        "distractors that represent common student mistakes",
+      );
+    const optionText =
+      distractorRules.length > 0
+        ? `- Option Rules: Options must have ${distractorRules.join(", ")}.`
+        : "";
+
+    const explanationRules = [];
+    if (styleProfile.explanationStyle?.formulaFirst)
+      explanationRules.push("start the explanation with the formula first");
+    if (styleProfile.explanationStyle?.stepWiseSolution)
+      explanationRules.push("show a step-wise solution");
+    if (styleProfile.explanationStyle?.maxSteps)
+      explanationRules.push(
+        `limit explanation steps to at most ${styleProfile.explanationStyle.maxSteps}`,
+      );
+    if (styleProfile.explanationStyle?.explanationLength)
+      explanationRules.push(
+        `explanation length should be ${styleProfile.explanationStyle.explanationLength}`,
+      );
+    if (styleProfile.explanationStyle?.highlightFinalAnswer)
+      explanationRules.push("highlight the final answer clearly");
+    const explanationText =
+      explanationRules.length > 0
+        ? `- Explanation Rules: Explanations must ${explanationRules.join(", ")}.`
+        : "";
+
+    const aiInstructionsText = styleProfile.aiInstructions
+      ? `- Additional System Rules: ${styleProfile.aiInstructions}`
+      : "";
+
+    return `
+[STYLE PROFILE CONSTRAINTS]
+- Language: ${language}
+- Sentence Length: ${sentenceLength}
+- Vocabulary Level: ${vocabularyLevel}
+- Grammar Style: ${grammarStyle}
+${contextText}
+${difficultyText}
+${optionText}
+${explanationText}
+${aiInstructionsText}
+`.trim();
   }
 }

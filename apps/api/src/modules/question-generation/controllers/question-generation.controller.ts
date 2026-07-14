@@ -26,6 +26,8 @@ import { PromptBuilderService } from "../prompt/prompt-builder.service";
 import { QuestionAssemblerService } from "../assembler/question-assembler.service";
 import { QuestionRepository } from "../repository/question.repository";
 import { GenerationTrackingService } from "../services/generation-tracking.service";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { StyleValidationService } from "../services/style-validation.service";
 import {
   QuestionGenerationRequestDto,
   ValidateQuestionRequestDto,
@@ -46,7 +48,38 @@ export class QuestionGenerationController {
     private readonly assembler: QuestionAssemblerService,
     private readonly questionRepository: QuestionRepository,
     private readonly trackingService: GenerationTrackingService,
+    private readonly prisma: PrismaService,
+    private readonly styleValidator: StyleValidationService,
   ) {}
+
+  private async resolveStyleProfile(dto: QuestionGenerationRequestDto) {
+    let styleProfile: any = null;
+    const styleProfileId = dto.options?.styleProfileId as string;
+    const blueprintId = dto.options?.blueprintId as string;
+
+    if (styleProfileId) {
+      styleProfile = await this.prisma.styleProfile.findUnique({
+        where: { id: styleProfileId },
+      });
+    } else if (blueprintId) {
+      const blueprint = await this.prisma.blueprint.findUnique({
+        where: { id: blueprintId },
+      });
+      if (blueprint?.styleProfileId) {
+        styleProfile = await this.prisma.styleProfile.findUnique({
+          where: { id: blueprint.styleProfileId },
+        });
+      }
+    }
+
+    if (!styleProfile) {
+      styleProfile = await this.prisma.styleProfile.findFirst({
+        where: { isDefault: true, active: true },
+      });
+    }
+
+    return styleProfile;
+  }
 
   /**
    * POST /api/v1/question-generation/generate
@@ -69,6 +102,13 @@ export class QuestionGenerationController {
     // 1. Resolve context — StrategyRegistry dispatches to the correct strategy
     const context = await this.resolver.resolve(dto.templateId);
 
+    // Resolve and attach Style Profile to metadata
+    const styleProfile = await this.resolveStyleProfile(dto);
+    context.metadata = {
+      ...(context.metadata || {}),
+      styleProfile,
+    };
+
     // 2. Build prompt from PromptTemplateRegistry and call LLM
     const rawQuestion = await this.promptBuilder.buildAndExecute(context);
 
@@ -76,12 +116,39 @@ export class QuestionGenerationController {
     const validator = this.validationRegistry.resolve(context.strategy);
     const validationReport = await validator.validate(context, rawQuestion);
 
+    // Style Validation
+    const difficulty = (context.metadata?.difficulty as string) || "medium";
+    const styleReport = await this.styleValidator.validate(
+      styleProfile,
+      rawQuestion,
+      difficulty,
+    );
+    if (!styleReport.valid) {
+      validationReport.valid = false;
+      validationReport.errors = [
+        ...(validationReport.errors || []),
+        ...styleReport.errors,
+      ];
+    }
+    validationReport.warnings = [
+      ...(validationReport.warnings || []),
+      ...styleReport.warnings,
+    ];
+
     // 4. Assemble unified Question object (strategy-agnostic)
     const assembled = this.assembler.assemble(
       context,
       rawQuestion,
       dto.templateId,
     );
+
+    // Snapshot the style profile inside question metadata for reproducibility
+    if (styleProfile) {
+      assembled.metadata = {
+        ...(assembled.metadata || {}),
+        styleProfileSnapshot: styleProfile,
+      };
+    }
 
     // 5. Persist via QuestionRepository (only service that writes to DB)
     const savedQuestion = await this.questionRepository.save(assembled);
@@ -113,6 +180,13 @@ export class QuestionGenerationController {
   async preview(@Body() dto: QuestionGenerationRequestDto) {
     // 1. Resolve context
     const context = await this.resolver.resolve(dto.templateId);
+
+    // Resolve and attach Style Profile to metadata
+    const styleProfile = await this.resolveStyleProfile(dto);
+    context.metadata = {
+      ...(context.metadata || {}),
+      styleProfile,
+    };
 
     // 2. Build and execute prompt (LLM call) — no validation, no persistence
     const rawQuestion = await this.promptBuilder.buildAndExecute(context);
@@ -148,6 +222,13 @@ export class QuestionGenerationController {
     // 1. Resolve context to get the strategy
     const context = await this.resolver.resolve(dto.templateId);
 
+    // Resolve and attach Style Profile to metadata
+    const styleProfile = await this.resolveStyleProfile(dto);
+    context.metadata = {
+      ...(context.metadata || {}),
+      styleProfile,
+    };
+
     // 2. Use the provided question or generate one if not supplied
     let rawQuestion: RawQuestion;
     if (dto.question) {
@@ -159,6 +240,25 @@ export class QuestionGenerationController {
     // 3. Resolve validator from registry — no switch/if
     const validator = this.validationRegistry.resolve(context.strategy);
     const validationReport = await validator.validate(context, rawQuestion);
+
+    // Style Validation
+    const difficulty = (context.metadata?.difficulty as string) || "medium";
+    const styleReport = await this.styleValidator.validate(
+      styleProfile,
+      rawQuestion,
+      difficulty,
+    );
+    if (!styleReport.valid) {
+      validationReport.valid = false;
+      validationReport.errors = [
+        ...(validationReport.errors || []),
+        ...styleReport.errors,
+      ];
+    }
+    validationReport.warnings = [
+      ...(validationReport.warnings || []),
+      ...styleReport.warnings,
+    ];
 
     return {
       validationReport,
@@ -174,17 +274,17 @@ export class QuestionGenerationController {
   @ApiOkResponse({ description: "Batch generation job created" })
   async batchGenerate(@Body() dto: BatchGenerationRequestDto) {
     const context = await this.resolver.resolve(dto.templateId);
-    
+
     // Create Job
     const job = await this.trackingService.createJob(
       dto.templateId,
       dto.count,
       context.strategy,
-      context.metadata || {}
+      context.metadata || {},
     );
 
     // Fire and forget actual generation loop
-    this._processBatchInBackground(job.id, dto, context).catch(err => {
+    this._processBatchInBackground(job.id, dto, context).catch((err) => {
       console.error(`Batch generation failed for job ${job.id}`, err);
     });
 
@@ -204,12 +304,24 @@ export class QuestionGenerationController {
   }
 
   private async _processBatchInBackground(
-    jobId: string, 
-    dto: BatchGenerationRequestDto, 
-    context: any
+    jobId: string,
+    dto: BatchGenerationRequestDto,
+    context: any,
   ) {
-    await this.trackingService.logEvent(dto.templateId, "INFO", "BATCH_STARTED", { count: dto.count }, jobId);
-    
+    await this.trackingService.logEvent(
+      dto.templateId,
+      "INFO",
+      "BATCH_STARTED",
+      { count: dto.count },
+      jobId,
+    );
+
+    const styleProfile = await this.resolveStyleProfile(dto);
+    context.metadata = {
+      ...(context.metadata || {}),
+      styleProfile,
+    };
+
     let failures = false;
     for (let i = 0; i < dto.count; i++) {
       try {
@@ -217,22 +329,63 @@ export class QuestionGenerationController {
         const validator = this.validationRegistry.resolve(context.strategy);
         const report = await validator.validate(context, rawQuestion);
 
-        if (!report.valid) {
-          throw new Error("Validation failed: " + JSON.stringify(report.errors));
+        const difficulty = (context.metadata?.difficulty as string) || "medium";
+        const styleReport = await this.styleValidator.validate(
+          styleProfile,
+          rawQuestion,
+          difficulty,
+        );
+        if (!styleReport.valid) {
+          report.valid = false;
+          report.errors = [...(report.errors || []), ...styleReport.errors];
         }
 
-        const assembled = this.assembler.assemble(context, rawQuestion, dto.templateId);
+        if (!report.valid) {
+          throw new Error(
+            "Validation failed: " + JSON.stringify(report.errors),
+          );
+        }
+
+        const assembled = this.assembler.assemble(
+          context,
+          rawQuestion,
+          dto.templateId,
+        );
+        if (styleProfile) {
+          assembled.metadata = {
+            ...(assembled.metadata || {}),
+            styleProfileSnapshot: styleProfile,
+          };
+        }
         await this.questionRepository.save(assembled);
         await this.trackingService.updateJobProgress(jobId, true);
-        await this.trackingService.logEvent(dto.templateId, "INFO", "QUESTION_GENERATED", { iteration: i }, jobId);
+        await this.trackingService.logEvent(
+          dto.templateId,
+          "INFO",
+          "QUESTION_GENERATED",
+          { iteration: i },
+          jobId,
+        );
       } catch (err: any) {
         failures = true;
         await this.trackingService.updateJobProgress(jobId, false);
-        await this.trackingService.logEvent(dto.templateId, "ERROR", "GENERATION_FAILED", { iteration: i, error: err.message }, jobId);
+        await this.trackingService.logEvent(
+          dto.templateId,
+          "ERROR",
+          "GENERATION_FAILED",
+          { iteration: i, error: err.message },
+          jobId,
+        );
       }
     }
 
     await this.trackingService.completeJob(jobId, failures);
-    await this.trackingService.logEvent(dto.templateId, "INFO", "BATCH_COMPLETED", { hasFailures: failures }, jobId);
+    await this.trackingService.logEvent(
+      dto.templateId,
+      "INFO",
+      "BATCH_COMPLETED",
+      { hasFailures: failures },
+      jobId,
+    );
   }
 }

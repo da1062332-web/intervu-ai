@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { TopicRegistryLoader } from "../../concept-mapping/services/topic-registry-loader.service";
 import { TemplateRepository } from "../../template-library/repositories/template.repository";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { CreateBlueprintDto, UpdateBlueprintDto } from "@intervu/shared";
 import {
   DifficultyLevel,
@@ -28,10 +29,38 @@ export class BlueprintService {
     private readonly repository: BlueprintRepository,
     private readonly topicRegistryLoader: TopicRegistryLoader,
     private readonly templateRepository: TemplateRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async create(dto: CreateBlueprintDto) {
     const { configId, styleProfileId, sections } = dto;
+
+    if (!styleProfileId) {
+      throw new BadRequestException("No Style Profile selected. Please assign a Style Profile before saving the Blueprint.");
+    }
+    const styleProfile = await this.prisma.styleProfile.findUnique({
+      where: { id: styleProfileId },
+    });
+    if (!styleProfile) {
+      throw new BadRequestException("Selected Style Profile does not exist.");
+    }
+    if (!styleProfile.active || styleProfile.status !== "ACTIVE") {
+      throw new BadRequestException("Selected Style Profile is inactive.");
+    }
+
+    const tempBlueprint = {
+      configId,
+      styleProfileId,
+      sections: sections as any,
+    } as Blueprint;
+    const validationSummary = await this.validateBlueprintObject(tempBlueprint);
+    if (!validationSummary.valid) {
+      throw new BadRequestException({
+        message: "Blueprint validation failed",
+        errors: validationSummary.errors,
+        details: validationSummary.errors,
+      });
+    }
 
     // Check if blueprint already exists for this config
     const existing = await this.repository.findByConfigId(configId);
@@ -69,7 +98,46 @@ export class BlueprintService {
   }
 
   async update(id: string, dto: UpdateBlueprintDto) {
-    await this.findOne(id);
+    const existing = await this.repository.findByIdWithRelations(id);
+    if (!existing) {
+      throw new NotFoundException(`Blueprint with ID ${id} not found`);
+    }
+
+    const styleProfileId =
+      dto.styleProfileId !== undefined ? dto.styleProfileId : existing.styleProfileId;
+    const sections =
+      dto.sections !== undefined ? dto.sections : existing.sections;
+
+    if (!styleProfileId) {
+      throw new BadRequestException(
+        "No Style Profile selected. Please assign a Style Profile before saving the Blueprint.",
+      );
+    }
+    const styleProfile = await this.prisma.styleProfile.findUnique({
+      where: { id: styleProfileId },
+    });
+    if (!styleProfile) {
+      throw new BadRequestException("Selected Style Profile does not exist.");
+    }
+    if (!styleProfile.active || styleProfile.status !== "ACTIVE") {
+      throw new BadRequestException("Selected Style Profile is inactive.");
+    }
+
+    const tempBlueprint = {
+      id,
+      configId: existing.configId,
+      styleProfileId,
+      sections: sections as any,
+    } as Blueprint;
+    const validationSummary = await this.validateBlueprintObject(tempBlueprint);
+    if (!validationSummary.valid) {
+      throw new BadRequestException({
+        message: "Blueprint validation failed",
+        errors: validationSummary.errors,
+        details: validationSummary.errors,
+      });
+    }
+
     const updateData: Prisma.BlueprintUpdateInput = {};
     if (dto.styleProfileId) {
       updateData.styleProfile = { connect: { id: dto.styleProfileId } };
@@ -163,10 +231,27 @@ export class BlueprintService {
     blueprint: Blueprint,
   ): Promise<BlueprintValidationResult> {
     const errors: string[] = [];
+
+    // Style Profile Checks
+    if (!blueprint.styleProfileId) {
+      errors.push(
+        "No Style Profile selected. Please assign a Style Profile before saving the Blueprint.",
+      );
+    } else {
+      const styleProfile = await this.prisma.styleProfile.findUnique({
+        where: { id: blueprint.styleProfileId },
+      });
+      if (!styleProfile) {
+        errors.push("Selected Style Profile does not exist.");
+      } else if (!styleProfile.active || styleProfile.status !== "ACTIVE") {
+        errors.push("Selected Style Profile is inactive.");
+      }
+    }
+
     const sections = blueprint.sections as unknown as BlueprintSection[];
     if (!sections || sections.length === 0) {
       errors.push("Blueprint must contain at least one section");
-      return { valid: false, errors };
+      return { valid: errors.length === 0, errors };
     }
 
     // Load active templates from template library to verify availability

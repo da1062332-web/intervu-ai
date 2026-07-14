@@ -2,16 +2,22 @@ import {
   Injectable,
   OnModuleInit,
   NotFoundException,
+  BadRequestException,
   Logger,
 } from "@nestjs/common";
 import { StyleProfileRepository } from "../repositories/style-profile.repository";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { CreateStyleProfileDto, UpdateStyleProfileDto } from "@intervu/shared";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class StyleProfileService implements OnModuleInit {
   private readonly logger = new Logger(StyleProfileService.name);
 
-  constructor(private readonly repository: StyleProfileRepository) {}
+  constructor(
+    private readonly repository: StyleProfileRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async onModuleInit() {
     await this.seedWithRetries(5, 1000);
@@ -45,6 +51,39 @@ export class StyleProfileService implements OnModuleInit {
         name: "Campus Placement",
         description: "Standard entry-level assessment for college placement",
         profileType: "campus" as const,
+        active: true,
+        status: "ACTIVE" as const,
+        isDefault: true,
+        languageStyle: {
+          language: "English",
+          sentenceLength: "short",
+          vocabularyLevel: "basic",
+          grammarStyle: "formal",
+        },
+        contextStyle: {
+          preferredContexts: ["Daily Life", "Education"],
+        },
+        difficultyStyle: {
+          easy: ["Short", "Direct", "Single-step"],
+          medium: ["Moderate wording", "Two-step reasoning"],
+          hard: ["Interpretive context", "Multi-step reasoning"],
+        },
+        distractorRules: {
+          exactlyFourOptions: true,
+          oneCorrectAnswer: true,
+          plausibleIncorrectOptions: true,
+          avoidObviouslyWrongOptions: true,
+          avoidHumorousOptions: true,
+          representCommonStudentMistakes: true,
+        },
+        explanationStyle: {
+          formulaFirst: true,
+          stepWiseSolution: true,
+          maxSteps: 4,
+          explanationLength: "short",
+          highlightFinalAnswer: true,
+        },
+        aiInstructions: "Keep language simple and direct. Avoid verbose phrasing.",
         characteristics: [
           { name: "questionLength", value: "short" },
           { name: "complexity", value: "low" },
@@ -59,6 +98,39 @@ export class StyleProfileService implements OnModuleInit {
         name: "Experienced Hiring",
         description: "Lateral assessment for senior or lead engineers",
         profileType: "lateral" as const,
+        active: true,
+        status: "ACTIVE" as const,
+        isDefault: false,
+        languageStyle: {
+          language: "English",
+          sentenceLength: "medium",
+          vocabularyLevel: "intermediate",
+          grammarStyle: "formal",
+        },
+        contextStyle: {
+          preferredContexts: ["Business", "Banking", "Employees"],
+        },
+        difficultyStyle: {
+          easy: ["Direct"],
+          medium: ["Moderate wording", "Two-step reasoning"],
+          hard: ["Interpretive context", "Multi-step reasoning"],
+        },
+        distractorRules: {
+          exactlyFourOptions: true,
+          oneCorrectAnswer: true,
+          plausibleIncorrectOptions: true,
+          avoidObviouslyWrongOptions: true,
+          avoidHumorousOptions: true,
+          representCommonStudentMistakes: true,
+        },
+        explanationStyle: {
+          formulaFirst: true,
+          stepWiseSolution: true,
+          maxSteps: 6,
+          explanationLength: "medium",
+          highlightFinalAnswer: true,
+        },
+        aiInstructions: "Provide deep technical explanations. Use realistic real-world engineering contexts.",
         characteristics: [
           { name: "questionLength", value: "long" },
           { name: "complexity", value: "high" },
@@ -73,6 +145,39 @@ export class StyleProfileService implements OnModuleInit {
         name: "Leadership Hiring",
         description: "Assessment for managers, directors, or architects",
         profileType: "executive" as const,
+        active: true,
+        status: "ACTIVE" as const,
+        isDefault: false,
+        languageStyle: {
+          language: "English",
+          sentenceLength: "long",
+          vocabularyLevel: "advanced",
+          grammarStyle: "formal",
+        },
+        contextStyle: {
+          preferredContexts: ["Business", "Education", "Daily Life"],
+        },
+        difficultyStyle: {
+          easy: ["Direct"],
+          medium: ["Moderate wording", "Two-step reasoning"],
+          hard: ["Interpretive context", "Multi-step reasoning"],
+        },
+        distractorRules: {
+          exactlyFourOptions: true,
+          oneCorrectAnswer: true,
+          plausibleIncorrectOptions: true,
+          avoidObviouslyWrongOptions: true,
+          avoidHumorousOptions: true,
+          representCommonStudentMistakes: true,
+        },
+        explanationStyle: {
+          formulaFirst: true,
+          stepWiseSolution: true,
+          maxSteps: 8,
+          explanationLength: "long",
+          highlightFinalAnswer: true,
+        },
+        aiInstructions: "Focus on architectural decisions, team leadership, and strategic execution trade-offs.",
         characteristics: [
           { name: "questionLength", value: "long" },
           { name: "complexity", value: "high" },
@@ -87,6 +192,39 @@ export class StyleProfileService implements OnModuleInit {
         name: "Certification Exam",
         description: "Standardized certification testing profiles",
         profileType: "certification" as const,
+        active: true,
+        status: "ACTIVE" as const,
+        isDefault: false,
+        languageStyle: {
+          language: "English",
+          sentenceLength: "medium",
+          vocabularyLevel: "intermediate",
+          grammarStyle: "formal",
+        },
+        contextStyle: {
+          preferredContexts: ["Business", "Banking", "Travel"],
+        },
+        difficultyStyle: {
+          easy: ["Short", "Direct"],
+          medium: ["Moderate wording", "Two-step reasoning"],
+          hard: ["Interpretive context", "Multi-step reasoning"],
+        },
+        distractorRules: {
+          exactlyFourOptions: true,
+          oneCorrectAnswer: true,
+          plausibleIncorrectOptions: true,
+          avoidObviouslyWrongOptions: true,
+          avoidHumorousOptions: true,
+          representCommonStudentMistakes: true,
+        },
+        explanationStyle: {
+          formulaFirst: true,
+          stepWiseSolution: true,
+          maxSteps: 5,
+          explanationLength: "medium",
+          highlightFinalAnswer: true,
+        },
+        aiInstructions: "Adhere closely to certification study guide terms. Ensure options are completely unambiguous.",
         characteristics: [
           { name: "questionLength", value: "medium" },
           { name: "complexity", value: "medium" },
@@ -103,15 +241,34 @@ export class StyleProfileService implements OnModuleInit {
       const existing = await this.repository.findByName(profile.name);
       if (!existing) {
         const { characteristics, ...data } = profile;
-        await this.repository.createWithCharacteristics(data, characteristics);
+        await this.repository.createWithCharacteristics(
+          data as unknown as Prisma.StyleProfileCreateWithoutCharacteristicsInput,
+          characteristics,
+        );
         console.log(`Seeded Style Profile: ${profile.name}`);
       }
     }
   }
 
+  private async handleDefaultProfileReset(isDefault?: boolean, idToSkip?: string) {
+    if (isDefault) {
+      await this.prisma.styleProfile.updateMany({
+        where: {
+          isDefault: true,
+          id: idToSkip ? { not: idToSkip } : undefined,
+        },
+        data: { isDefault: false },
+      });
+    }
+  }
+
   async create(dto: CreateStyleProfileDto) {
+    await this.handleDefaultProfileReset(dto.isDefault);
     const { characteristics, ...data } = dto;
-    return this.repository.createWithCharacteristics(data, characteristics);
+    return this.repository.createWithCharacteristics(
+      data as unknown as Prisma.StyleProfileCreateWithoutCharacteristicsInput,
+      characteristics || [],
+    );
   }
 
   async findAll() {
@@ -128,7 +285,54 @@ export class StyleProfileService implements OnModuleInit {
 
   async update(id: string, dto: UpdateStyleProfileDto) {
     await this.findOne(id);
+    await this.handleDefaultProfileReset(dto.isDefault, id);
     const { characteristics, ...data } = dto;
-    return this.repository.updateWithCharacteristics(id, data, characteristics);
+    return this.repository.updateWithCharacteristics(
+      id,
+      data as unknown as Prisma.StyleProfileUpdateWithoutCharacteristicsInput,
+      characteristics,
+    );
+  }
+
+  async delete(id: string) {
+    await this.findOne(id);
+    const isReferenced = await this.prisma.blueprint.findFirst({
+      where: { styleProfileId: id },
+    });
+    if (isReferenced) {
+      throw new BadRequestException("STYLE_PROFILE_REFERENCED_BY_BLUEPRINT");
+    }
+    return this.repository.delete(id);
+  }
+
+  async duplicate(id: string) {
+    const original = await this.findOne(id);
+    const newName = `${original.name} (Copy)`;
+    const existing = await this.repository.findByName(newName);
+    if (existing) {
+      throw new BadRequestException("DUPLICATE_NAME_EXISTS");
+    }
+
+    const {
+      id: _,
+      createdAt: _c,
+      updatedAt: _u,
+      name,
+      characteristics,
+      ...rest
+    } = original;
+
+    return this.repository.createWithCharacteristics(
+      {
+        ...rest,
+        name: newName,
+        isDefault: false, // Duplicates are never default by default
+      } as unknown as Prisma.StyleProfileCreateWithoutCharacteristicsInput,
+      (characteristics || []).map((c) => ({
+        name: c.characteristicName,
+        value: c.characteristicValue,
+      })),
+    );
   }
 }
+

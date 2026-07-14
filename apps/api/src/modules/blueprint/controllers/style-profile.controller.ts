@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Patch,
+  Delete,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -24,11 +25,11 @@ import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
-@ApiTags("style-profiles")
+@ApiTags("admin-style-profiles")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
 @Roles(UserRole.ADMIN)
-@Controller("style-profiles")
+@Controller("admin/style-profiles")
 export class StyleProfileController {
   constructor(private readonly service: StyleProfileService) {}
 
@@ -81,6 +82,36 @@ export class StyleProfileController {
   @ApiOkResponse({ description: "Style profile updated successfully" })
   async update(@Param("id") id: string, @Body() dto: UpdateStyleProfileDto) {
     const profile = await this.service.update(id, dto);
+    return {
+      success: true,
+      data: profile,
+      error: null,
+      meta: {},
+    };
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete a style profile" })
+  @ApiParam({ name: "id", description: "Style profile ID" })
+  @ApiOkResponse({ description: "Style profile deleted successfully" })
+  async delete(@Param("id") id: string) {
+    await this.service.delete(id);
+    return {
+      success: true,
+      data: { id },
+      error: null,
+      meta: {},
+    };
+  }
+
+  @Post(":id/duplicate")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Duplicate a style profile" })
+  @ApiParam({ name: "id", description: "Style profile ID to duplicate" })
+  @ApiCreatedResponse({ description: "Style profile duplicated successfully" })
+  async duplicate(@Param("id") id: string) {
+    const profile = await this.service.duplicate(id);
     return {
       success: true,
       data: profile,

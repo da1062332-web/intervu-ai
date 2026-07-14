@@ -145,6 +145,38 @@ export async function seedModule1QA(prisma: PrismaClient) {
         description: "Lateral assessment style profile",
         profileType: "lateral",
         active: true,
+        status: "ACTIVE",
+        isDefault: false,
+        languageStyle: {
+          language: "English",
+          sentenceLength: "medium",
+          vocabularyLevel: "intermediate",
+          grammarStyle: "formal",
+        },
+        contextStyle: {
+          preferredContexts: ["Business", "Banking", "Employees"],
+        },
+        difficultyStyle: {
+          easy: ["Direct"],
+          medium: ["Moderate wording", "Two-step reasoning"],
+          hard: ["Interpretive context", "Multi-step reasoning"],
+        },
+        distractorRules: {
+          exactlyFourOptions: true,
+          oneCorrectAnswer: true,
+          plausibleIncorrectOptions: true,
+          avoidObviouslyWrongOptions: true,
+          avoidHumorousOptions: true,
+          representCommonStudentMistakes: true,
+        },
+        explanationStyle: {
+          formulaFirst: true,
+          stepWiseSolution: true,
+          maxSteps: 6,
+          explanationLength: "medium",
+          highlightFinalAnswer: true,
+        },
+        aiInstructions: "Provide deep technical explanations. Use realistic real-world engineering contexts.",
       },
     });
     // Characteristics
