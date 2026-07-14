@@ -12,8 +12,7 @@ describe("CandidateProgressService", () => {
 
   beforeEach(async () => {
     prisma = {
-      evaluationResult: { findMany: jest.fn() },
-      candidateAnswer: { findMany: jest.fn() },
+      testInstance: { findMany: jest.fn() },
     };
     cacheService = {
       get: jest.fn(),
@@ -37,8 +36,7 @@ describe("CandidateProgressService", () => {
   });
 
   it("should return empty progress if no evaluations", async () => {
-    prisma.evaluationResult.findMany.mockResolvedValue([]);
-    prisma.candidateAnswer.findMany.mockResolvedValue([]);
+    prisma.testInstance.findMany.mockResolvedValue([]);
 
     const result = await service.getCandidateProgress("user-1");
     expect(result.overview.totalAssessments).toBe(0);
@@ -48,21 +46,34 @@ describe("CandidateProgressService", () => {
   });
 
   it("should compile progress report accurately", async () => {
-    prisma.evaluationResult.findMany.mockResolvedValue([
+    prisma.testInstance.findMany.mockResolvedValue([
       {
-        overallScore: 80,
-        evaluatedAt: new Date(),
-        testInstanceId: "ti-1",
-        testInstance: { testConfig: { displayName: "Assessment 1" } },
+        id: "ti-1",
+        candidateResult: {
+          createdAt: new Date(),
+          percentage: 80,
+        },
+        evaluationAnalytics: {
+          completionRate: 100,
+          topicAccuracy: { "Coding": 80 },
+          difficultyAccuracy: { "medium": 80 },
+        },
+        testConfig: { displayName: "Assessment 1" },
       },
       {
-        overallScore: 90,
-        evaluatedAt: new Date(),
-        testInstanceId: "ti-2",
-        testInstance: { testConfig: { displayName: "Assessment 2" } },
+        id: "ti-2",
+        candidateResult: {
+          createdAt: new Date(),
+          percentage: 90,
+        },
+        evaluationAnalytics: {
+          completionRate: 100,
+          topicAccuracy: { "Coding": 90 },
+          difficultyAccuracy: { "medium": 90 },
+        },
+        testConfig: { displayName: "Assessment 2" },
       },
     ]);
-    prisma.candidateAnswer.findMany.mockResolvedValue([]);
 
     const result = await service.getCandidateProgress("user-1");
     expect(result.overview.totalAssessments).toBe(2);
@@ -70,7 +81,7 @@ describe("CandidateProgressService", () => {
     expect(result.overview.topPercentileScore).toBe(90);
     expect(result.trend.length).toBe(2);
     // Explicit aliases check
-    expect(result.attemptsOverTime).toBeDefined();
+    expect(result.trend).toBeDefined();
     expect(result.bestScore).toBe(90);
   });
 });
