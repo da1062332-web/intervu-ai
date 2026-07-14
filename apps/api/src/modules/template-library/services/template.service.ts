@@ -11,6 +11,7 @@ import {
   TemplateRule,
   VariableType,
   RuleType,
+  GenerationStrategy,
 } from "@prisma/client";
 import { createHash } from "crypto";
 import {
@@ -75,6 +76,7 @@ export class TemplateService {
     page = 1,
     limit = 10,
     difficulty?: DifficultyLevel,
+    strategy?: GenerationStrategy,
     generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID",
   ): Promise<PaginatedTemplates> {
     // 1. validate()
@@ -90,6 +92,7 @@ export class TemplateService {
 
     // 2. fetchDependencies() — check cache first
     const filterHash = createHash("md5")
+      .update(`p${page}l${limit}d${difficulty ?? "all"}s${strategy ?? "all"}`)
       .update(`p${page}l${limit}d${difficulty ?? "all"}g${generationStrategy ?? "all"}`)
       .digest("hex");
     const cached =
@@ -97,6 +100,9 @@ export class TemplateService {
     if (cached) return cached;
 
     // 3. coreLogic() — fetch from DB
+    const whereClause: Record<string, unknown> = {};
+    if (difficulty) whereClause.difficulty = difficulty;
+    if (strategy) whereClause.generationStrategy = strategy;
     const whereClause: Record<string, unknown> = {};
     if (difficulty) whereClause.difficulty = difficulty;
     if (generationStrategy) whereClause.generationStrategy = generationStrategy;

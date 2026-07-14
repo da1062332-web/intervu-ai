@@ -89,6 +89,9 @@ describe("Template Sub-resources Integration Tests", () => {
       expect(result).toEqual({
         templateId: "tpl-1",
         optionsTemplate: ["opt1", "opt2"],
+        strategy: "VARIABLE",
+        datasetId: null,
+        scenarioId: null,
       });
     });
 
