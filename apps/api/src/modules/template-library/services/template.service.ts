@@ -77,7 +77,6 @@ export class TemplateService {
     limit = 10,
     difficulty?: DifficultyLevel,
     strategy?: GenerationStrategy,
-    generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID",
   ): Promise<PaginatedTemplates> {
     // 1. validate()
     if (page < 1 || limit < 1 || limit > 100) {
@@ -93,7 +92,6 @@ export class TemplateService {
     // 2. fetchDependencies() — check cache first
     const filterHash = createHash("md5")
       .update(`p${page}l${limit}d${difficulty ?? "all"}s${strategy ?? "all"}`)
-      .update(`p${page}l${limit}d${difficulty ?? "all"}g${generationStrategy ?? "all"}`)
       .digest("hex");
     const cached =
       await this.cacheService.getTemplateList<PaginatedTemplates>(filterHash);
@@ -103,9 +101,6 @@ export class TemplateService {
     const whereClause: Record<string, unknown> = {};
     if (difficulty) whereClause.difficulty = difficulty;
     if (strategy) whereClause.generationStrategy = strategy;
-    const whereClause: Record<string, unknown> = {};
-    if (difficulty) whereClause.difficulty = difficulty;
-    if (generationStrategy) whereClause.generationStrategy = generationStrategy;
     
     const result = await this.templateRepository.findPaginated(
       { page, limit },

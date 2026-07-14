@@ -35,10 +35,10 @@ export function VariableStrategyPanel({ templateId, template }: StrategyPanelPro
       <QuestionDefinitionSection template={template} />
 
       {/* Variable Builder — define variables, types, and generation rules */}
-      <VariableBuilderSection template={template} />
+      <VariableBuilderSection />
 
       {/* Constraint Builder — define rules variables must satisfy */}
-      <ConstraintBuilderSection template={template} />
+      <ConstraintBuilderSection />
 
       {/* Option Strategy — how distractors are generated */}
       <OptionStrategySection template={template} />

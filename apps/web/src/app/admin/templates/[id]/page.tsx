@@ -74,8 +74,8 @@ export default function TemplatePage() {
       case 'basic': return <BasicInfoSection template={template} />;
       case 'question': return <QuestionDefinitionSection template={template} />;
       case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
-      case 'variables': return <VariableBuilderSection template={template} />;
-      case 'constraints': return <ConstraintBuilderSection template={template} />;
+      case 'variables': return <VariableBuilderSection />;
+      case 'constraints': return <ConstraintBuilderSection />;
       case 'options': return <OptionStrategySection template={template} />;
       case 'solution': return <SolutionLogicSection template={template} />;
       case 'preview': return <PreviewSection />;
