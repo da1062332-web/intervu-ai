@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
+import { usePathname } from 'next/navigation';
 import { Navbar } from './navbar';
 import { Sidebar } from './sidebar';
 import { MobileNav } from './mobile-nav';
@@ -12,6 +13,11 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const pathname = usePathname();
+  
+  if (pathname.includes('/execution')) {
+    return <div className='min-h-screen bg-background'>{children}</div>;
+  }
   return (
     <div className='flex min-h-screen bg-background'>
       {/* ── Desktop Sidebar ── */}

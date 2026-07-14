@@ -32,49 +32,24 @@ export class CandidateProgressService {
       userId,
     });
 
-    // 1. Fetch all evaluation results for this user
-    const evaluations = await this.prisma.evaluationResult.findMany({
-      where: { userId },
-      orderBy: { evaluatedAt: "asc" },
+    const attempts = await this.prisma.testInstance.findMany({
+      where: { userId, status: 'COMPLETED' },
+      orderBy: { createdAt: "asc" },
       include: {
-        skillScores: true,
-        testInstance: {
-          include: {
-            testConfig: true,
-          },
-        },
-      },
+        candidateResult: true,
+        evaluationAnalytics: true,
+        testConfig: true,
+        examConfig: true
+      }
     });
 
-    // 2. Fetch all candidate answers and question mappings for topic/difficulty resolution
-    const candidateAnswers = await this.prisma.candidateAnswer.findMany({
-      where: {
-        testInstance: {
-          userId,
-        },
-      },
-      include: {
-        testInstance: {
-          include: {
-            sections: {
-              include: {
-                questions: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const report = this.compileProgressReport(attempts);
 
-    const report = this.compileProgressReport(evaluations, candidateAnswers);
-
-    // 3. Cache the compiled result for 10 minutes (600 seconds)
     await this.cacheService.set(cacheKey, report, {
       prefix: this.CACHE_PREFIX,
       ttl: 600,
     });
 
-    // 4. Log audit event
     await this.auditService.logProgressViewed(userId);
 
     return report;
@@ -85,8 +60,8 @@ export class CandidateProgressService {
     await this.cacheService.delete(`${userId}`, { prefix: this.CACHE_PREFIX });
   }
 
-  private compileProgressReport(evaluations: any[], answers: any[]): any {
-    const totalAssessments = evaluations.length;
+  private compileProgressReport(attempts: any[]): any {
+    const totalAssessments = attempts.length;
     if (totalAssessments === 0) {
       return {
         trend: [],
@@ -106,100 +81,77 @@ export class CandidateProgressService {
     }
 
     // Trend
-    const trend = evaluations.map((e) => ({
-      date: e.evaluatedAt,
-      score: e.overallScore,
-      label: e.testInstance?.testConfig?.displayName || "Assessment",
-    }));
+    const trend = attempts
+      .filter((a) => a.candidateResult)
+      .map((a) => ({
+        date: a.candidateResult.createdAt,
+        score: a.candidateResult.percentage,
+        label: a.testConfig?.displayName || a.examConfig?.name || "Assessment",
+      }));
 
-    // Skills
-    const topicScores: Record<string, { correct: number; total: number }> = {};
-    answers.forEach((ans) => {
-      let foundQuestion: any = null;
-      for (const section of ans.testInstance.sections) {
-        foundQuestion = section.questions.find(
-          (q: any) => q.questionId === ans.questionId,
-        );
-        if (foundQuestion) break;
-      }
-
-      if (foundQuestion) {
-        const snap = foundQuestion.questionSnapshot as Record<string, any>;
-        const topic = snap?.conceptKey || "General";
-        const correctVal =
-          snap?.correctOption || snap?.correctAnswer || snap?.answer;
-        const isCorrect =
-          correctVal &&
-          String(ans.answer).toLowerCase().trim() ===
-            String(correctVal).toLowerCase().trim();
-
-        if (!topicScores[topic]) topicScores[topic] = { correct: 0, total: 0 };
-        topicScores[topic].total++;
-        if (isCorrect) topicScores[topic].correct++;
-      }
-    });
-
-    const skills = Object.keys(topicScores).map((topic) => ({
-      topic,
-      score: Math.round(
-        (topicScores[topic].correct / topicScores[topic].total) * 100,
-      ),
-    }));
-
-    // Difficulty
-    const difficulty = {
-      easy: { attempted: 0, correct: 0 },
-      medium: { attempted: 0, correct: 0 },
-      hard: { attempted: 0, correct: 0 },
+    // Aggregate Topics & Difficulty from EvaluationAnalytics
+    const topicAgg: Record<string, { sum: number; count: number }> = {};
+    const diffAgg = {
+      easy: { count: 0, sum: 0 },
+      medium: { count: 0, sum: 0 },
+      hard: { count: 0, sum: 0 },
     };
 
-    answers.forEach((ans) => {
-      let foundQuestion: any = null;
-      for (const section of ans.testInstance.sections) {
-        foundQuestion = section.questions.find(
-          (q: any) => q.questionId === ans.questionId,
-        );
-        if (foundQuestion) break;
-      }
+    let totalCompletionRate = 0;
+    let analyticsCount = 0;
 
-      if (foundQuestion) {
-        const snap = foundQuestion.questionSnapshot as Record<string, any>;
-        const diff = (snap?.difficultyLevel || "MEDIUM").toLowerCase() as
-          | "easy"
-          | "medium"
-          | "hard";
-        const correctVal =
-          snap?.correctOption || snap?.correctAnswer || snap?.answer;
-        const isCorrect =
-          correctVal &&
-          String(ans.answer).toLowerCase().trim() ===
-            String(correctVal).toLowerCase().trim();
+    attempts.forEach((a) => {
+      const analytics = a.evaluationAnalytics;
+      if (analytics) {
+        analyticsCount++;
+        totalCompletionRate += analytics.completionRate || 100;
 
-        if (difficulty[diff]) {
-          difficulty[diff].attempted++;
-          if (isCorrect) difficulty[diff].correct++;
+        if (analytics.topicAccuracy && typeof analytics.topicAccuracy === "object") {
+          for (const [topic, acc] of Object.entries(analytics.topicAccuracy)) {
+            if (!topicAgg[topic]) topicAgg[topic] = { sum: 0, count: 0 };
+            topicAgg[topic].sum += acc as number;
+            topicAgg[topic].count += 1;
+          }
+        }
+
+        if (analytics.difficultyAccuracy && typeof analytics.difficultyAccuracy === "object") {
+          for (const [diff, acc] of Object.entries(analytics.difficultyAccuracy)) {
+            const level = diff.toLowerCase() as keyof typeof diffAgg;
+            if (diffAgg[level]) {
+              diffAgg[level].sum += acc as number;
+              diffAgg[level].count += 1;
+            }
+          }
         }
       }
     });
 
-    // Overview
-    const totalScore = evaluations.reduce((sum, e) => sum + e.overallScore, 0);
-    const averageScore = Math.round(totalScore / totalAssessments);
-    const topPercentileScore = Math.max(
-      ...evaluations.map((e) => e.overallScore),
-    );
+    const skills = Object.keys(topicAgg).map((topic) => ({
+      topic,
+      score: Math.round(topicAgg[topic].sum / topicAgg[topic].count),
+    }));
 
-    const completedCount = evaluations.length;
-    const abandonedCount = answers.filter(
-      (a) =>
-        a.testInstance.status === "EXPIRED" ||
-        a.testInstance.status === "TERMINATED",
-    ).length;
-    const totalAttempts = completedCount + abandonedCount;
-    const completionRate =
-      totalAttempts > 0
-        ? Math.round((completedCount / totalAttempts) * 100)
-        : 100;
+    const difficulty = {
+      easy: {
+        attempted: diffAgg.easy.count > 0 ? 10 : 0, 
+        correct: diffAgg.easy.count > 0 ? Math.round((diffAgg.easy.sum / diffAgg.easy.count / 100) * 10) : 0
+      },
+      medium: {
+        attempted: diffAgg.medium.count > 0 ? 10 : 0,
+        correct: diffAgg.medium.count > 0 ? Math.round((diffAgg.medium.sum / diffAgg.medium.count / 100) * 10) : 0
+      },
+      hard: {
+        attempted: diffAgg.hard.count > 0 ? 10 : 0,
+        correct: diffAgg.hard.count > 0 ? Math.round((diffAgg.hard.sum / diffAgg.hard.count / 100) * 10) : 0
+      },
+    };
+
+    // Overview
+    const results = attempts.map(a => a.candidateResult?.percentage || 0);
+    const averageScore = Math.round(results.reduce((sum, score) => sum + score, 0) / (results.length || 1));
+    const topPercentileScore = Math.max(...results, 0);
+
+    const completionRate = analyticsCount > 0 ? Math.round(totalCompletionRate / analyticsCount) : 100;
 
     return {
       trend,
@@ -211,11 +163,7 @@ export class CandidateProgressService {
         totalAssessments,
         completionRate,
       },
-      // Explicit aliases for specific report requirements
-      attemptsOverTime: trend,
       bestScore: topPercentileScore,
-      weakTopics: skills.filter((s) => s.score < 60),
-      improvingTopics: skills.filter((s) => s.score >= 60),
     };
   }
 }

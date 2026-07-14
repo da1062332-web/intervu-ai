@@ -10,7 +10,7 @@ export const useEnrollment = () => {
     mutationFn: (testId: string) => dashboardService.enroll(testId),
     onSuccess: (data, testId) => {
       // Invalidate relevant queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
       queryClient.invalidateQueries({ queryKey: ['candidate-enrollments'] });
       queryClient.invalidateQueries({ queryKey: ['public-tests'] });
       

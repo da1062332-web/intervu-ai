@@ -27,6 +27,7 @@ export class CandidateResultRepository extends BaseRepository<
         attempt: {
           include: {
             testConfig: true,
+            examConfig: true,
           },
         },
       },
@@ -49,7 +50,7 @@ export class CandidateResultRepository extends BaseRepository<
         skip,
         include: {
           attempt: {
-            include: { testConfig: true },
+            include: { testConfig: true, examConfig: true },
           },
         },
       }),
@@ -65,7 +66,7 @@ export class CandidateResultRepository extends BaseRepository<
       orderBy: { createdAt: "desc" },
       include: {
         attempt: {
-          include: { testConfig: true },
+          include: { testConfig: true, examConfig: true },
         },
       },
     });

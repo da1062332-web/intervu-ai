@@ -44,3 +44,33 @@ export type StrengthWeaknessResponse = {
   strengths: { topic: string; score: number; remarks: string }[];
   weaknesses: { topic: string; score: number; remarks: string }[];
 };
+
+export type PerformanceDashboardResponse = {
+  overallScore: number;
+  percentage: number;
+  overallAccuracy: number;
+  grade: string;
+  timeEfficiency: number;
+  totalTimeSpent: number;
+  strengths: string[];
+  weaknesses: string[];
+  accuracyDetails: {
+    correct: number;
+    wrong: number;
+    skipped: number;
+  };
+  sectionAccuracy: {
+    sectionName: string;
+    correct: number;
+    wrong: number;
+    accuracy: number;
+  }[];
+  sectionTime: {
+    sectionName: string;
+    spentTime: number;
+    expectedTime: number;
+    timeDifference: number;
+    status: string;
+  }[];
+  recommendations: string[];
+};

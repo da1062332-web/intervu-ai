@@ -11,6 +11,8 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 import { PublicTestsService } from "../services/public-tests.service";
 import { PublicTestsQueryDto } from "../dto/public-tests-query.dto";
+import { CurrentUser } from "@/modules/auth";
+import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
 
 @ApiTags("tests")
 @ApiBearerAuth("jwt-auth")
@@ -22,7 +24,10 @@ export class PublicTestsController {
 
   @Get()
   @ApiOperation({ summary: "Get paginated, filterable public test catalog" })
-  async getPublicTests(@Query() query: PublicTestsQueryDto) {
-    return this.publicTestsService.getPublicTests(query);
+  async getPublicTests(
+    @CurrentUser() user: AuthUser,
+    @Query() query: PublicTestsQueryDto,
+  ) {
+    return this.publicTestsService.getPublicTests(user.id, query);
   }
 }

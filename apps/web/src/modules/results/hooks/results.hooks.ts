@@ -13,6 +13,8 @@ export const resultKeys = {
   analysis: (attemptId: string) => [...resultKeys.all, 'analysis', attemptId] as const,
   recommendations: (attemptId: string) =>
     [...resultKeys.all, 'recommendations', attemptId] as const,
+  performanceDashboard: (attemptId: string) =>
+    [...resultKeys.all, 'performanceDashboard', attemptId] as const,
 };
 
 export function useDashboardWidgets() {
@@ -80,6 +82,14 @@ export function useResultRecommendations(attemptId: string) {
   return useQuery({
     queryKey: resultKeys.recommendations(attemptId),
     queryFn: () => resultApi.getRecommendations(attemptId),
+    enabled: !!attemptId,
+  });
+}
+
+export function usePerformanceDashboard(attemptId: string) {
+  return useQuery({
+    queryKey: resultKeys.performanceDashboard(attemptId),
+    queryFn: () => resultApi.getPerformanceDashboard(attemptId),
     enabled: !!attemptId,
   });
 }

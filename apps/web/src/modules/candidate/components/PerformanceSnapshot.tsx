@@ -1,8 +1,7 @@
 'use client';
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { BarChart3 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Trophy, Target, FileText } from 'lucide-react';
 
 import { useDashboardWidgets } from '@/modules/results/hooks/results.hooks';
 
@@ -11,74 +10,65 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
 
   if (isLoading) {
     return (
-      <Card className='h-full glass-card'>
-        <CardHeader>
-          <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-            <BarChart3 className='size-5 text-indigo-500' />
-            Performance Snapshot
-          </CardTitle>
-          <CardDescription>Overall performance metrics</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className='space-y-4'>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className='space-y-2'>
-                <div className='flex justify-between'>
-                  <div className='h-4 w-20 bg-muted animate-pulse rounded'></div>
-                  <div className='h-4 w-8 bg-muted animate-pulse rounded'></div>
-                </div>
-                <div className='h-2 bg-muted animate-pulse rounded'></div>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className='glass-card'>
+            <CardContent className='p-6 flex items-center justify-between'>
+              <div className='space-y-2'>
+                <div className='h-4 w-20 bg-muted animate-pulse rounded'></div>
+                <div className='h-8 w-12 bg-muted animate-pulse rounded'></div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className='size-10 bg-muted animate-pulse rounded-full'></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     );
   }
 
   if (error || !data) {
-    return (
-      <Card className='h-full glass-card'>
-        <CardContent className='flex-1 flex items-center justify-center text-destructive'>
-          Failed to load performance metrics.
-        </CardContent>
-      </Card>
-    );
+    return null; // Or a gentle error state, but null keeps the dashboard clean if metrics fail
   }
 
   return (
-    <Card className='h-full glass-card'>
-      <CardHeader>
-        <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-          <BarChart3 className='size-5 text-indigo-500' />
-          Performance Snapshot
-        </CardTitle>
-        <CardDescription>Overall performance metrics</CardDescription>
-      </CardHeader>
-      <CardContent className='space-y-5'>
-        <div className='space-y-2'>
-          <div className='flex items-center justify-between text-sm'>
-            <span className='font-medium text-foreground'>Best Score</span>
-            <span className='font-semibold text-muted-foreground'>{data.bestScore ?? 0}%</span>
+    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+      <Card className='glass-card border-l-4 border-l-indigo-500'>
+        <CardContent className='p-6 flex items-center justify-between'>
+          <div>
+            <p className='text-sm font-medium text-muted-foreground'>Best Score</p>
+            <p className='text-3xl font-bold mt-1 text-foreground'>{data.bestScore ?? 0}%</p>
           </div>
-          <Progress value={data.bestScore ?? 0} className='h-2 bg-indigo-100' />
-        </div>
-        <div className='space-y-2'>
-          <div className='flex items-center justify-between text-sm'>
-            <span className='font-medium text-foreground'>Average Accuracy</span>
-            <span className='font-semibold text-muted-foreground'>
+          <div className='size-12 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-600'>
+            <Trophy className='size-6' />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className='glass-card border-l-4 border-l-blue-500'>
+        <CardContent className='p-6 flex items-center justify-between'>
+          <div>
+            <p className='text-sm font-medium text-muted-foreground'>Average Accuracy</p>
+            <p className='text-3xl font-bold mt-1 text-foreground'>
               {data.averageAccuracy ? Math.round(data.averageAccuracy) : 0}%
-            </span>
+            </p>
           </div>
-          <Progress value={data.averageAccuracy ?? 0} className='h-2 bg-blue-100' />
-        </div>
-        <div className='space-y-2'>
-          <div className='flex items-center justify-between text-sm'>
-            <span className='font-medium text-foreground'>Assessments Completed</span>
-            <span className='font-semibold text-muted-foreground'>{data.attemptCount}</span>
+          <div className='size-12 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-600'>
+            <Target className='size-6' />
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Card className='glass-card border-l-4 border-l-green-500'>
+        <CardContent className='p-6 flex items-center justify-between'>
+          <div>
+            <p className='text-sm font-medium text-muted-foreground'>Assessments Completed</p>
+            <p className='text-3xl font-bold mt-1 text-foreground'>{data.attemptCount ?? 0}</p>
+          </div>
+          <div className='size-12 bg-green-500/10 rounded-full flex items-center justify-center text-green-600'>
+            <FileText className='size-6' />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 });

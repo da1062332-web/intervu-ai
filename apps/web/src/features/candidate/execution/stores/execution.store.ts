@@ -34,9 +34,14 @@ interface ExecutionState {
   hasAttemptedResume: boolean;
   hasUnsavedChanges: boolean;
 
+  // Section Change State
+  pendingSectionChangeTarget: number | null;
+
   // Actions
   initializeTest: (testInstance: TestInstance) => void;
   jumpToQuestion: (index: number) => void;
+  confirmSectionChange: () => void;
+  cancelSectionChange: () => void;
   saveAnswer: (
     questionId: string,
     answerData: { selectedOptionId?: string; selectedOptionIds?: string[]; textResponse?: string },
@@ -77,6 +82,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   remainingTime: 0,
   loading: true,
   error: null,
+  pendingSectionChangeTarget: null,
 
   // Day 4 State
   autosaveStatus: 'IDLE',
@@ -142,6 +148,29 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     const state = get();
     if (index < 0 || index >= state.questions.length) return;
 
+    // Determine current section index
+    const getSectionIndex = (qIndex: number) => {
+      let runningCount = 0;
+      if (!state.testInstance) return -1;
+      for (let i = 0; i < state.testInstance.sections.length; i++) {
+        const section = state.testInstance.sections[i];
+        if (qIndex >= runningCount && qIndex < runningCount + section.questions.length) {
+          return i;
+        }
+        runningCount += section.questions.length;
+      }
+      return -1;
+    };
+
+    const currentSectionIdx = getSectionIndex(state.currentQuestionIndex);
+    const targetSectionIdx = getSectionIndex(index);
+
+    // If changing sections, intercept the jump
+    if (currentSectionIdx !== -1 && targetSectionIdx !== -1 && currentSectionIdx !== targetSectionIdx) {
+      set({ pendingSectionChangeTarget: index });
+      return;
+    }
+
     set((state) => {
       const newPalette = [...state.palette];
 
@@ -168,8 +197,56 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         currentQuestion: state.questions[index],
         palette: newPalette,
         hasUnsavedChanges: true,
+        pendingSectionChangeTarget: null,
       };
     });
+  },
+
+  confirmSectionChange: () => {
+    const state = get();
+    const targetIndex = state.pendingSectionChangeTarget;
+    if (targetIndex !== null) {
+      // Temporarily clear the pending target to allow jumpToQuestion to proceed
+      set({ pendingSectionChangeTarget: null });
+      // Call a private/internal jump that bypasses the check, or just do the state update here.
+      // Wait, if we call jumpToQuestion(targetIndex), it will re-evaluate getSectionIndex and see a mismatch, 
+      // intercepting it again! We must bypass it.
+      // Easiest is to just do the set directly here.
+      
+      set((state) => {
+        const newPalette = [...state.palette];
+  
+        const prevIndex = state.currentQuestionIndex;
+        const prevQuestion = state.questions[prevIndex];
+        if (prevQuestion) {
+          const answer = state.answers[prevQuestion.id];
+          if (answer?.status === 'MARKED_FOR_REVIEW') {
+            newPalette[prevIndex] = 'MARKED_FOR_REVIEW';
+          } else {
+            const hasAnswer = !!(
+              answer?.selectedOptionId ||
+              (answer?.selectedOptionIds && answer.selectedOptionIds.length > 0) ||
+              answer?.textResponse
+            );
+            newPalette[prevIndex] = hasAnswer ? 'ANSWERED' : 'UNANSWERED';
+          }
+        }
+  
+        newPalette[targetIndex] = 'CURRENT';
+  
+        return {
+          currentQuestionIndex: targetIndex,
+          currentQuestion: state.questions[targetIndex],
+          palette: newPalette,
+          hasUnsavedChanges: true,
+          pendingSectionChangeTarget: null,
+        };
+      });
+    }
+  },
+
+  cancelSectionChange: () => {
+    set({ pendingSectionChangeTarget: null });
   },
 
   saveAnswer: (questionId, answerData) => {

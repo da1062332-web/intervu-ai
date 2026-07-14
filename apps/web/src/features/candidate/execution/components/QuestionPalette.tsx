@@ -20,7 +20,7 @@ export const QuestionPalette = memo(function QuestionPalette() {
   const { startIndex, endIndex } = useMemo(() => {
     let start = 0;
     let end = questions.length;
-    
+
     if (testInstance?.sections) {
       let runningCount = 0;
       for (const section of testInstance.sections) {

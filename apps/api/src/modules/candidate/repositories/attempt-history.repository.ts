@@ -32,6 +32,11 @@ export class AttemptHistoryRepository {
               displayName: true,
             },
           },
+          examConfig: {
+            select: {
+              name: true,
+            },
+          },
           evaluationResult: {
             select: {
               overallScore: true,

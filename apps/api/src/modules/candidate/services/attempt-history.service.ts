@@ -28,8 +28,8 @@ export class AttemptHistoryService {
         instanceId: t.id,
         attemptId: t.id,
         testConfigId: t.testConfigId,
-        testName: t.testConfig?.displayName || "Unknown Assessment",
-        assessmentName: t.testConfig?.displayName || "Unknown Assessment",
+        testName: t.testConfig?.displayName || t.examConfig?.name || "Unknown Assessment",
+        assessmentName: t.testConfig?.displayName || t.examConfig?.name || "Unknown Assessment",
         date: t.createdAt.toISOString(),
         submittedAt: t.submittedAt
           ? t.submittedAt.toISOString()

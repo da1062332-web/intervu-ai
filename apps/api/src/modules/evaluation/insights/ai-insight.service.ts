@@ -46,8 +46,10 @@ export class AiInsightService {
       >) || {};
     const completionRate = attempt.evaluationAnalytics.completionRate || 0;
 
-    try {
-      const prompt = `
+    let lastError: any;
+    for (let attemptCount = 1; attemptCount <= 3; attemptCount++) {
+      try {
+        const prompt = `
 You are an expert AI assessment evaluator. Generate a list of 3-5 short, qualitative, bulleted performance insights for a candidate based on their assessment results.
 Candidate Results:
 - Overall Score: ${score}%
@@ -66,54 +68,64 @@ Return a JSON object matching this schema:
 }
 
 CRITICAL INSTRUCTIONS:
-1. Ensure the output contains only valid JSON. Do not include markdown tags like \`\`\`json.
+1. Ensure the output contains ONLY valid JSON. Do not include markdown tags like \`\`\`json.
 2. Ensure there are NO duplicate insights.
 3. Ensure there are NO contradictions (e.g., do not say a topic requires improvement if accuracy is high, and do not say a candidate excels in a topic if they performed poorly).
 4. Each insight must be distinct and specific.
 `;
 
-      const response = await this.llmAdapter.generate(prompt);
-      let cleaned = response.trim();
-      if (cleaned.startsWith("```")) {
-        cleaned = cleaned
-          .replace(/^```(?:json)?/gi, "")
-          .replace(/```$/gi, "")
-          .trim();
+        const response = await this.llmAdapter.generate(prompt);
+        let cleaned = response.trim();
+        if (cleaned.startsWith("```")) {
+          cleaned = cleaned
+            .replace(/^```(?:json)?/gi, "")
+            .replace(/```$/gi, "")
+            .trim();
+        }
+        const parsed = JSON.parse(cleaned);
+
+        if (
+          parsed &&
+          Array.isArray(parsed.insights) &&
+          parsed.insights.length > 0
+        ) {
+          const filtered = this.filterInsights(parsed.insights);
+          // Save generated insights to the database
+          await this.saveInsights(attemptId, filtered);
+          return filtered;
+        }
+
+        throw new Error("Invalid format returned by LLM");
+      } catch (error) {
+        lastError = error;
+        this.logger.warn(
+          `LLM insights generation failed on attempt ${attemptCount}. Retrying...`,
+          {
+            attemptId,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
       }
-      const parsed = JSON.parse(cleaned);
-
-      if (
-        parsed &&
-        Array.isArray(parsed.insights) &&
-        parsed.insights.length > 0
-      ) {
-        const filtered = this.filterInsights(parsed.insights);
-        // Save generated insights to the database
-        await this.saveInsights(attemptId, filtered);
-        return filtered;
-      }
-
-      throw new Error("Invalid format returned by LLM");
-    } catch (error) {
-      this.logger.warn(
-        "LLM insights generation failed or returned mock. Falling back to rule-based insights.",
-        {
-          attemptId,
-          error: error instanceof Error ? error.message : String(error),
-        },
-      );
-
-      const fallbackInsights = this.generateFallbackInsights(
-        score,
-        topicAccuracy,
-        difficultyAccuracy,
-        completionRate,
-      );
-
-      const filteredFallback = this.filterInsights(fallbackInsights);
-      await this.saveInsights(attemptId, filteredFallback);
-      return filteredFallback;
     }
+
+    this.logger.warn(
+      "LLM insights generation completely failed. Falling back to rule-based insights.",
+      {
+        attemptId,
+        error: lastError instanceof Error ? lastError.message : String(lastError),
+      },
+    );
+
+    const fallbackInsights = this.generateFallbackInsights(
+      score,
+      topicAccuracy,
+      difficultyAccuracy,
+      completionRate,
+    );
+
+    const filteredFallback = this.filterInsights(fallbackInsights);
+    await this.saveInsights(attemptId, filteredFallback);
+    return filteredFallback;
   }
 
   /**
@@ -191,19 +203,28 @@ CRITICAL INSTRUCTIONS:
   /**
    * Saves the generated insights to the evaluation_insights table.
    */
-  async saveInsights(attemptId: string, insights: string[]): Promise<void> {
-    await this.prisma.evaluationInsight.upsert({
-      where: { attemptId },
-      update: {
-        insights,
-        createdAt: new Date(),
-      },
-      create: {
-        attemptId,
-        insights,
-        createdAt: new Date(),
-      },
-    });
+  async saveInsights(attemptId: string, insights: string[], retryCount = 0): Promise<void> {
+    try {
+      await this.prisma.evaluationInsight.upsert({
+        where: { attemptId },
+        update: {
+          insights,
+          createdAt: new Date(),
+        },
+        create: {
+          attemptId,
+          insights,
+          createdAt: new Date(),
+        },
+      });
+    } catch (error) {
+      if (retryCount < 2) {
+        this.logger.warn("Database connection error during saveInsights, retrying...", { attemptId, retryCount });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return this.saveInsights(attemptId, insights, retryCount + 1);
+      }
+      throw error;
+    }
   }
 
   /**

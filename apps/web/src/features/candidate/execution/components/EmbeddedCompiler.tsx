@@ -14,7 +14,6 @@ export function EmbeddedCompiler() {
           height='100%'
           frameBorder='0'
           title='OneCompiler'
-          allow='clipboard-read; clipboard-write'
           className='absolute inset-0'
           style={{
             border: 'none',

@@ -59,8 +59,10 @@ export class ImprovementPlanService {
       performanceLevel = "WEAK";
     }
 
-    try {
-      const prompt = `
+    let lastError: any;
+    for (let attemptCount = 1; attemptCount <= 3; attemptCount++) {
+      try {
+        const prompt = `
 You are an expert tutor. Create three distinct, structured study plans (7-day, 14-day, and 30-day timelines) for a candidate based on their performance level: ${performanceLevel} and their weakest topics: ${JSON.stringify(weakTopics)}.
 
 INSTRUCTIONS:
@@ -87,46 +89,56 @@ Return a JSON object matching this schema:
     "Week 4: Focus on timed section practices and revision of incorrect answers."
   ]
 }
-Ensure the output is valid JSON. Do not include markdown tags like \`\`\`json.
+Ensure the output is ONLY valid JSON. Do not include markdown tags like \`\`\`json.
 `;
 
-      const response = await this.llmAdapter.generate(prompt);
-      let cleaned = response.trim();
-      if (cleaned.startsWith("```")) {
-        cleaned = cleaned
-          .replace(/^```(?:json)?/gi, "")
-          .replace(/```$/gi, "")
-          .trim();
+        const response = await this.llmAdapter.generate(prompt);
+        let cleaned = response.trim();
+        if (cleaned.startsWith("```")) {
+          cleaned = cleaned
+            .replace(/^```(?:json)?/gi, "")
+            .replace(/```$/gi, "")
+            .trim();
+        }
+        const parsed = JSON.parse(cleaned);
+
+        if (
+          parsed &&
+          Array.isArray(parsed.plan7Day) &&
+          Array.isArray(parsed.plan14Day) &&
+          Array.isArray(parsed.plan30Day)
+        ) {
+          await this.savePlans(attemptId, parsed);
+          return parsed;
+        }
+
+        throw new Error("Invalid format returned by LLM");
+      } catch (error) {
+        lastError = error;
+        this.logger.warn(
+          `LLM plans generation failed on attempt ${attemptCount}. Retrying...`,
+          {
+            attemptId,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
       }
-      const parsed = JSON.parse(cleaned);
-
-      if (
-        parsed &&
-        Array.isArray(parsed.plan7Day) &&
-        Array.isArray(parsed.plan14Day) &&
-        Array.isArray(parsed.plan30Day)
-      ) {
-        await this.savePlans(attemptId, parsed);
-        return parsed;
-      }
-
-      throw new Error("Invalid format returned by LLM");
-    } catch (error) {
-      this.logger.warn(
-        "LLM plans generation failed or returned mock. Falling back to rule-based plans.",
-        {
-          attemptId,
-          error: error instanceof Error ? error.message : String(error),
-        },
-      );
-
-      const fallbackPlans = this.generateFallbackPlans(
-        weakTopics,
-        performanceLevel,
-      );
-      await this.savePlans(attemptId, fallbackPlans);
-      return fallbackPlans;
     }
+
+    this.logger.warn(
+      "LLM plans generation completely failed. Falling back to rule-based plans.",
+      {
+        attemptId,
+        error: lastError instanceof Error ? lastError.message : String(lastError),
+      },
+    );
+
+    const fallbackPlans = this.generateFallbackPlans(
+      weakTopics,
+      performanceLevel,
+    );
+    await this.savePlans(attemptId, fallbackPlans);
+    return fallbackPlans;
   }
 
   /**
@@ -135,23 +147,33 @@ Ensure the output is valid JSON. Do not include markdown tags like \`\`\`json.
   async savePlans(
     attemptId: string,
     plans: ImprovementPlansResponse,
+    retryCount = 0,
   ): Promise<void> {
-    await this.prisma.improvementPlan.upsert({
-      where: { attemptId },
-      update: {
-        plan7Day: plans.plan7Day,
-        plan14Day: plans.plan14Day,
-        plan30Day: plans.plan30Day,
-        createdAt: new Date(),
-      },
-      create: {
-        attemptId,
-        plan7Day: plans.plan7Day,
-        plan14Day: plans.plan14Day,
-        plan30Day: plans.plan30Day,
-        createdAt: new Date(),
-      },
-    });
+    try {
+      await this.prisma.improvementPlan.upsert({
+        where: { attemptId },
+        update: {
+          plan7Day: plans.plan7Day,
+          plan14Day: plans.plan14Day,
+          plan30Day: plans.plan30Day,
+          createdAt: new Date(),
+        },
+        create: {
+          attemptId,
+          plan7Day: plans.plan7Day,
+          plan14Day: plans.plan14Day,
+          plan30Day: plans.plan30Day,
+          createdAt: new Date(),
+        },
+      });
+    } catch (error) {
+      if (retryCount < 2) {
+        this.logger.warn("Database connection error during savePlans, retrying...", { attemptId, retryCount });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return this.savePlans(attemptId, plans, retryCount + 1);
+      }
+      throw error;
+    }
   }
 
   /**

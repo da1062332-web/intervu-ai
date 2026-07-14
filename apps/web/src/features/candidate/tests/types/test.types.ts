@@ -23,5 +23,6 @@ export interface TestConfig {
   title: string;
   difficulty: string;
   durationMinutes: number | null;
+  questionCount?: number;
   sections: string[];
 }
