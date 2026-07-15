@@ -91,35 +91,19 @@ export class SolutionTemplateService {
       const config = await this.prisma.templateDatasetConfig.findUnique({
         where: { templateId: template.id },
       });
-
-      let datasetId = config?.datasetId;
-
-      if (!datasetId) {
-        // Fallback: search for any dataset that has items
-        const fallbackDataset = await this.prisma.dataset.findFirst({
-          where: { items: { some: {} } },
-          select: { id: true },
-        });
-        if (fallbackDataset) {
-          datasetId = fallbackDataset.id;
-        }
-      }
-
-      if (!datasetId) {
-        throw new BadRequestException(
-          "Dataset configuration not found. Please create a Dataset and add items to it first.",
-        );
+      if (!config) {
+        throw new BadRequestException("Dataset configuration not found for this template");
       }
 
       // Fetch a dataset item
-      const whereConditions: any = { datasetId };
-      if (config?.difficultyOverride) {
+      const whereConditions: any = { datasetId: config.datasetId };
+      if (config.difficultyOverride) {
         whereConditions.difficulty = config.difficultyOverride;
       }
-      if (config?.topicOverride) {
+      if (config.topicOverride) {
         whereConditions.topic = config.topicOverride;
       }
-      if (config?.tags && config.tags.length > 0) {
+      if (config.tags && config.tags.length > 0) {
         whereConditions.tags = { hasSome: config.tags };
       }
 
@@ -131,13 +115,13 @@ export class SolutionTemplateService {
       if (items.length === 0) {
         // Fallback to any items in the dataset
         items = await this.prisma.datasetItem.findMany({
-          where: { datasetId },
+          where: { datasetId: config.datasetId },
           take: 20,
         });
       }
 
       if (items.length === 0) {
-        throw new BadRequestException(`No items found in selected dataset: ${datasetId}`);
+        throw new BadRequestException(`No items found in selected dataset: ${config.datasetId}`);
       }
 
       const item = items[Math.floor(Math.random() * items.length)];
