@@ -24,7 +24,7 @@ import { UserRole } from "@prisma/client";
 @ApiTags("execution")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("jwt-auth")
-@Roles(UserRole.CANDIDATE)
+@Roles(UserRole.CANDIDATE, UserRole.ADMIN)
 @Controller("tests")
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}

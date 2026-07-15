@@ -44,6 +44,15 @@ export function useResultDetails(attemptId: string) {
     queryKey: resultKeys.detail(attemptId),
     queryFn: () => resultApi.getResultDetails(attemptId),
     enabled: !!attemptId,
+    // Keep retrying every 5 seconds while result is not yet generated (404/500)
+    retry: true,
+    retryDelay: 5000,
+    refetchInterval: (query) => {
+      // Stop polling once we have data
+      if (query.state?.data) return false;
+      // Keep polling if still erroring (result not generated yet)
+      return 5000;
+    },
   });
 }
 

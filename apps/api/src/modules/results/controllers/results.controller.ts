@@ -266,7 +266,14 @@ export class ResultsController {
       try {
         return await this.resultsService.getCandidateResult(id);
       } catch {
-        return this.resultsService.getResultDetails(user.id, id);
+        try {
+          return await this.resultsService.getResultDetails(user.id, id);
+        } catch (error: any) {
+          if (error?.name === 'ResultNotFoundError' || error?.constructor?.name === 'ResultNotFoundError') {
+            throw new NotFoundException(`Result not found for id ${id}`);
+          }
+          throw error;
+        }
       }
     }
   }

@@ -71,16 +71,31 @@ export const ResultDetailsPage = () => {
     }
   };
 
-  if (detailsLoading) return <Loading />;
-
-  if (isError || !result) {
+  if (detailsLoading || isError || !result) {
     return (
-      <EmptyState
-        title='Result Not Found'
-        description="We couldn't load the details for this assessment attempt."
-        actionLabel='Go Back'
-        onAction={() => navigate('/candidate/results')}
-      />
+      <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50 px-4'>
+        <div className='bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center max-w-md w-full text-center'>
+          {/* Animated spinner */}
+          <div className='relative mb-6'>
+            <div className='w-20 h-20 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-spin' />
+            <div className='absolute inset-0 flex items-center justify-center'>
+              <Target className='size-8 text-indigo-400' />
+            </div>
+          </div>
+
+          <h2 className='text-2xl font-bold text-gray-900 mb-2'>Generating Your Results</h2>
+          <p className='text-gray-500 text-sm leading-relaxed mb-6'>
+            Your assessment has been submitted. We are evaluating your answers and computing your score.
+            This may take up to a minute — please stay on this page.
+          </p>
+
+          {/* Animated progress bar */}
+          <div className='w-full bg-gray-100 rounded-full h-2 overflow-hidden'>
+            <div className='h-2 bg-indigo-500 rounded-full animate-pulse w-3/4' />
+          </div>
+          <p className='text-xs text-gray-400 mt-3'>Checking every 5 seconds…</p>
+        </div>
+      </div>
     );
   }
 

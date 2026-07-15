@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
+import { MediaPreview } from './MediaPreview';
 
 interface SystemCheckProps {
   onStatusChange: (isReady: boolean) => void;
@@ -46,6 +47,8 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   ]);
 
   const [triggerCount, setTriggerCount] = useState(0);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [micActive, setMicActive] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -110,9 +113,7 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           // Immediately release media stream tracks
           stream.getTracks().forEach((track) => track.stop());
-          if (active) {
-            updateCheckStatus('media', 'success');
-          }
+          // Note: we leave status as 'checking' and wait for MediaPreview to confirm face and mic
         } else {
           throw new Error('Media capture APIs not supported in this environment.');
         }
@@ -141,6 +142,16 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
     onStatusChange(allSuccessful);
   }, [checks, onStatusChange]);
 
+  // Monitor Face and Mic to complete media check
+  useEffect(() => {
+    const mediaCheck = checks.find((c) => c.id === 'media');
+    if (mediaCheck?.status === 'checking') {
+      if (faceDetected && micActive) {
+        updateCheckStatus('media', 'success');
+      }
+    }
+  }, [faceDetected, micActive, checks]);
+
   function updateCheckStatus(id: string, status: CheckItem['status'], errorDetails?: string) {
     setChecks((prev) =>
       prev.map((item) => (item.id === id ? { ...item, status, errorDetails } : item)),
@@ -152,6 +163,8 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   }
 
   function handleRetry() {
+    setFaceDetected(false);
+    setMicActive(false);
     setChecks((prev) =>
       prev.map((item) => ({ ...item, status: 'pending', errorDetails: undefined })),
     );
@@ -210,6 +223,13 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
             </div>
           </div>
         ))}
+        
+        <div className="pt-4 mt-2 border-t border-border/40">
+          <MediaPreview 
+            onFaceDetected={setFaceDetected} 
+            onMicActive={setMicActive} 
+          />
+        </div>
       </CardContent>
     </Card>
   );
