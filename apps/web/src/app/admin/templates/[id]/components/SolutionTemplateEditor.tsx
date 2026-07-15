@@ -1,12 +1,20 @@
-import { useTemplatePreviewStore } from '@/store/template-preview.store';
 import { Label } from '@/components/ui/label';
 import React from 'react';
 import Editor from '@monaco-editor/react';
 
-export function SolutionTemplateEditor() {
-  const { solutionTemplate, explanationTemplate, setSolutionTemplate, setExplanationTemplate } =
-    useTemplatePreviewStore();
+interface SolutionTemplateEditorProps {
+  solutionTemplate: string;
+  explanationTemplate: string;
+  setSolutionTemplate: (val: string) => void;
+  setExplanationTemplate: (val: string) => void;
+}
 
+export function SolutionTemplateEditor({
+  solutionTemplate,
+  explanationTemplate,
+  setSolutionTemplate,
+  setExplanationTemplate
+}: SolutionTemplateEditorProps) {
   return (
     <div className='space-y-4'>
       <div className='space-y-2'>

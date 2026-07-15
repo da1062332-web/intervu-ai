@@ -391,7 +391,7 @@ export class TemplateController {
 
     const updatedTemplate = await this.templateService.update(id, updatePayload);
 
-    if (body.strategy === "DATASET" && body.datasetId) {
+    if (body.datasetId) {
       await this.templateService.upsertDatasetConfig(id, body.datasetId);
     }
 

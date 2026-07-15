@@ -48,7 +48,6 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount — independent of model state
 
   // ─── Phase 2: Load the model (dynamic import to avoid SSR issues) ─────────
@@ -66,7 +65,9 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
         })
         .catch((err: unknown) => console.error('[FaceTracker] Model load error', err));
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ─── Phase 3: Detection loop starts only after model is ready ────────────
@@ -80,8 +81,8 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
       faceapiModule = faceapi;
 
       const options = new faceapi.TinyFaceDetectorOptions({
-        inputSize: 416,       // Increased for much better multi-face and distance detection
-        scoreThreshold: 0.4,  // Adjusted for higher resolution to avoid false positives
+        inputSize: 416, // Increased for much better multi-face and distance detection
+        scoreThreshold: 0.4, // Adjusted for higher resolution to avoid false positives
       });
 
       intervalId = setInterval(async () => {
@@ -140,7 +141,6 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
             ctx.strokeStyle = '#22cc22';
             ctx.lineWidth = 2;
             ctx.strokeRect(x * scaleX, y * scaleY, width * scaleX, height * scaleY);
-
           } else if (detections.length === 0) {
             // ❌ No face
             multiFaceSecondsRef.current = 0;
@@ -162,12 +162,13 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
                 onSubmit();
               }
             }
-
           } else {
             // ⚠️ Multiple faces
             noFaceSecondsRef.current = 0;
             multiFaceSecondsRef.current += 1;
-            console.log(`[FaceTracker] Multiple faces: ${detections.length}, tick ${multiFaceSecondsRef.current}s`);
+            console.log(
+              `[FaceTracker] Multiple faces: ${detections.length}, tick ${multiFaceSecondsRef.current}s`,
+            );
 
             // Draw orange boxes on all faces
             detections.forEach((det) => {
@@ -204,5 +205,12 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     };
   }, [isModelLoaded, videoRef, canvasRef, onSubmit]);
 
-  return { isModelLoaded, violations, maxViolations, isFaceDetected, isMultipleFaces, hasCameraError };
+  return {
+    isModelLoaded,
+    violations,
+    maxViolations,
+    isFaceDetected,
+    isMultipleFaces,
+    hasCameraError,
+  };
 }

@@ -3,174 +3,35 @@
 import React, { useState } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
-import { Loader2, Eye, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { useStrategyConfigStore } from '@/store/strategy-config.store';
-import { usePreviewQuestion } from '@/services/question-generation/hooks';
-import type { QuestionPreviewResult, GenerationStrategy, ValidationReport } from '@/services/question-generation/types';
+import { useGeneratePreview } from '@/services/templates/hooks';
 
-const STRATEGY_BADGE_COLORS: Record<GenerationStrategy, string> = {
-  VARIABLE: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
-  DATASET: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  HYBRID: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-};
-
-// ─── Unified Preview Result Panel ─────────────────────────────────────────────
-
-function UnifiedPreviewResultPanel({
-  result,
-  strategy,
-}: {
-  result: QuestionPreviewResult;
-  strategy: GenerationStrategy;
-}) {
-  return (
-    <div className="space-y-4 mt-2">
-      {/* Strategy Badge */}
-      <div className="flex items-center gap-2">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STRATEGY_BADGE_COLORS[strategy]}`}>
-          {strategy} Strategy
-        </span>
-        <span className="text-xs text-gray-500">
-          {(result.context?.metadata as any)?.contextSummary ?? ''}
-        </span>
-      </div>
-
-      {/* Question Text */}
-      <div className="border rounded-md overflow-hidden">
-        <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
-          Question
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed">
-          {result.previewText}
-        </div>
-      </div>
-
-      {/* Options */}
-      {result.options && result.options.length > 0 && (
-        <div className="border rounded-md overflow-hidden">
-          <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
-            Options
-          </div>
-          <div className="p-4 bg-white dark:bg-gray-950 space-y-2">
-            {result.options.map((opt, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md ${
-                  opt.startsWith(result.correctAnswer + '.')
-                    ? 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-300 font-medium'
-                    : 'text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {opt.startsWith(result.correctAnswer + '.') && (
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                )}
-                {opt}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Correct Answer */}
-      {result.correctAnswer && (
-        <div className="flex items-center gap-2 text-sm px-4 py-2 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-md">
-          <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-          <span className="font-medium text-green-800 dark:text-green-300">
-            Correct Answer: {result.correctAnswer}
-          </span>
-        </div>
-      )}
-
-      {/* Explanation */}
-      {result.explanation && (
-        <div className="border rounded-md overflow-hidden">
-          <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
-            Explanation
-          </div>
-          <div className="p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed">
-            {result.explanation}
-          </div>
-        </div>
-      )}
-
-      {/* Context Summary / Metadata */}
-      {result.context && (
-        <div className="border rounded-md overflow-hidden">
-          <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
-            Context Summary
-          </div>
-          <div className="p-4 bg-gray-50 dark:bg-gray-900 font-mono text-xs text-gray-700 dark:text-gray-300">
-            <pre className="whitespace-pre-wrap">{JSON.stringify(result.context.metadata, null, 2)}</pre>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Validation Report Widget ──────────────────────────────────────────────────
-
-function ValidationReportWidget({ report }: { report: ValidationReport }) {
-  if (report.valid && report.warnings.length === 0) return null;
-
-  return (
-    <div className={`p-3 rounded-md border text-sm space-y-2 ${
-      report.valid
-        ? 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
-        : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'
-    }`}>
-      {report.errors.map((err, i) => (
-        <div key={i} className="flex items-start gap-2 text-red-700 dark:text-red-400">
-          <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
-          {err}
-        </div>
-      ))}
-      {report.warnings.map((warn, i) => (
-        <div key={i} className="flex items-start gap-2 text-yellow-700 dark:text-yellow-400">
-          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-          {warn}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── PreviewSection ────────────────────────────────────────────────────────────
-
-/**
- * PreviewSection
- *
- * Strategy-aware: determines the correct context to include in the preview
- * request based on currentStrategy (from Zustand store).
- * Uses a single unified PreviewResultPanel regardless of strategy.
- * NEVER persists — only calls /question-generation/preview.
- */
-export function PreviewSection() {
+export function PreviewSection({ template }: { template?: any }) {
   const { id: templateId } = useParams() as { id: string };
-  const { currentStrategy, configs } = useStrategyConfigStore();
-  const previewMutation = usePreviewQuestion();
-  const [result, setResult] = useState<QuestionPreviewResult | null>(null);
+  const { mutateAsync: generatePreview, isPending } = useGeneratePreview();
+  const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handlePreview = async () => {
     setError(null);
     try {
-      const strategyConfig = configs[currentStrategy as GenerationStrategy] ?? {};
-      const res = await previewMutation.mutateAsync({
+      const res = await generatePreview({
         templateId,
-        context: { strategyConfig },
+        payload: {} as any, // Everything is loaded from the backend template state
       });
-      setResult(res);
+      setResult(res.data || res); // Depending on how axios unwraps
     } catch (e: any) {
-      setError(e?.message ?? 'Preview failed. Please try again.');
+      setError(e?.response?.data?.message || e?.message || 'Preview failed. Please try again.');
     }
   };
+
+  const currentStrategy = template?.generationStrategy || 'VARIABLE';
 
   return (
     <TemplateSection
       title="Question Preview"
-      description="Generate a live preview of how this template produces a question — no data is saved."
+      description="Generate a live preview of how this template produces a question using the latest saved template state."
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Instructions + Trigger */}
@@ -178,7 +39,7 @@ export function PreviewSection() {
           <div className="bg-gray-50 dark:bg-gray-900 border rounded-md p-4 text-sm text-gray-600 dark:text-gray-400 space-y-2">
             <p>
               <strong>Strategy:</strong>{' '}
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STRATEGY_BADGE_COLORS[currentStrategy as GenerationStrategy]}`}>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300`}>
                 {currentStrategy}
               </span>
             </p>
@@ -191,21 +52,21 @@ export function PreviewSection() {
                 'A relationship graph will be generated from your entity/relationship schema.'}
             </p>
             <p className="text-xs text-gray-400 italic">
-              Preview never persists. Click Generate to save to the question pool.
+              Preview never persists. Click Generate to test your configuration.
             </p>
           </div>
 
           <Button
             onClick={handlePreview}
-            disabled={previewMutation.isPending}
+            disabled={isPending}
             className="w-full gap-2"
           >
-            {previewMutation.isPending ? (
+            {isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Eye className="w-4 h-4" />
             )}
-            {previewMutation.isPending ? 'Generating Preview...' : 'Preview Question'}
+            {isPending ? 'Generating Preview...' : 'Generate Preview'}
           </Button>
 
           {error && (
@@ -219,12 +80,114 @@ export function PreviewSection() {
         {/* Right: Unified Result Panel */}
         <div>
           {result ? (
-            <UnifiedPreviewResultPanel
-              result={result}
-              strategy={currentStrategy as GenerationStrategy}
-            />
+            <div className="space-y-4 mt-2">
+              
+              {/* Dataset Record Used */}
+              {result.context?.datasetRecord && (
+                <div className="border rounded-md overflow-hidden border-indigo-200 dark:border-indigo-900">
+                  <div className="bg-indigo-50 dark:bg-indigo-950/50 px-4 py-2 border-b border-indigo-200 dark:border-indigo-900 font-medium text-sm text-indigo-800 dark:text-indigo-300">
+                    Dataset Record Used
+                  </div>
+                  <div className="p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed whitespace-pre-wrap font-mono text-gray-600 dark:text-gray-400">
+                    {typeof result.context.datasetRecord === 'string' 
+                      ? result.context.datasetRecord 
+                      : JSON.stringify(result.context.datasetRecord, null, 2)}
+                  </div>
+                </div>
+              )}
+
+              {/* Question Text */}
+              <div className="border rounded-md overflow-hidden">
+                <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Generated Question
+                </div>
+                <div className="p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed whitespace-pre-wrap">
+                  {result.previewText || result.questionText}
+                </div>
+              </div>
+
+              {/* Options */}
+              {result.options && result.options.length > 0 && (
+                <div className="border rounded-md overflow-hidden">
+                  <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
+                    Options
+                  </div>
+                  <div className="p-4 bg-white dark:bg-gray-950 space-y-2">
+                    {result.options.map((opt: string, i: number) => {
+                      // Some backends return the correct answer as the exact string in the array
+                      const isCorrect = opt === result.correctAnswer || opt.startsWith(result.correctAnswer + '.');
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md ${
+                            isCorrect
+                              ? 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-300 font-medium'
+                              : 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50'
+                          }`}
+                        >
+                          {isCorrect && <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600 dark:text-green-400" />}
+                          {!isCorrect && <span className="w-4 inline-block font-medium text-gray-400">{String.fromCharCode(65 + i)}.</span>}
+                          {opt}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Correct Answer */}
+              {result.correctAnswer && (
+                <div className="flex items-center gap-2 text-sm px-4 py-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-md">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div>
+                    <span className="font-semibold text-green-800 dark:text-green-300 block text-xs uppercase tracking-wider mb-0.5">Correct Answer</span>
+                    <span className="font-medium text-green-900 dark:text-green-100">{result.correctAnswer}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Explanation */}
+              {result.explanation && (
+                <div className="border rounded-md overflow-hidden">
+                  <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
+                    Explanation
+                  </div>
+                  <div className="p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed whitespace-pre-wrap">
+                    {result.explanation}
+                  </div>
+                </div>
+              )}
+
+              {/* Metadata */}
+              <div className="border rounded-md overflow-hidden">
+                <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Metadata
+                </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 text-xs text-gray-600 dark:text-gray-400 space-y-2 font-mono">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="font-semibold text-gray-500">Strategy:</span> {currentStrategy}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-500">Difficulty:</span> {template?.difficulty || 'N/A'}
+                    </div>
+                    {result.context?.datasetId && (
+                      <div className="col-span-2">
+                        <span className="font-semibold text-gray-500">Dataset Used:</span> {result.context.datasetId}
+                      </div>
+                    )}
+                    {result.context?.itemsUsed && (
+                      <div className="col-span-2">
+                        <span className="font-semibold text-gray-500">Items Used:</span> {result.context.itemsUsed}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+            </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-48 border border-dashed rounded-lg text-gray-400 text-sm">
+            <div className="flex flex-col items-center justify-center h-48 border border-dashed rounded-lg text-gray-400 text-sm bg-gray-50/50 dark:bg-gray-900/20">
               <Eye className="w-8 h-8 mb-2 opacity-40" />
               Preview will appear here
             </div>
