@@ -38,8 +38,19 @@ export class QuestionBankService {
           explanation: dto.explanation || "",
           topicId: dto.topicId,
           sectionId: dto.sectionId,
+          conceptId: dto.conceptId || null,
           difficulty: dto.difficulty,
           source: dto.source || "MANUAL",
+          questionSource: (dto.questionSource as any) || "MANUAL",
+          questionType: dto.questionType || "MCQ",
+          estimatedTime: dto.estimatedTime || null,
+          questionTitle: dto.questionTitle || null,
+          questionStatement: dto.questionStatement || null,
+          instructions: dto.instructions || null,
+          questionImage: dto.questionImage || null,
+          attachments: dto.attachments || null,
+          mcqData: dto.mcqData || null,
+          codingData: dto.codingData || null,
           templateId: dto.templateId || null,
           version: 1,
           status: QuestionStatus.DRAFT,
@@ -230,6 +241,7 @@ export class QuestionBankService {
 
       const updateData: Prisma.QuestionUpdateInput = {
         ...dto,
+        questionSource: dto.questionSource ? (dto.questionSource as any) : undefined,
         version: { increment: 1 },
       };
 
@@ -277,6 +289,50 @@ export class QuestionBankService {
    */
   async restoreQuestion(id: string): Promise<Question> {
     return this.reviewService.restoreQuestion(id);
+  }
+
+  /**
+   * Retrieves status metrics and counts.
+   */
+  /**
+   * Retrieves random active questions for a given concept, difficulty, and count.
+   */
+  async getRandomQuestions(params: {
+    conceptId: string;
+    difficulty?: string;
+    count?: number;
+    excludeIds?: string[];
+  }): Promise<Question[]> {
+    const { conceptId, difficulty, count = 1, excludeIds = [] } = params;
+
+    // Check if conceptId is UUID or conceptCode
+    const conceptFilter: Prisma.ConceptWhereInput =
+      conceptId.length === 36 || conceptId.includes("-")
+        ? { id: conceptId }
+        : { code: conceptId.toUpperCase() };
+
+    const where: Prisma.QuestionWhereInput = {
+      status: QuestionStatus.ACTIVE,
+      concept: conceptFilter,
+      id: excludeIds.length > 0 ? { notIn: excludeIds } : undefined,
+    };
+
+    if (difficulty) {
+      where.difficulty = difficulty.toUpperCase();
+    }
+
+    const questions = await this.prisma.question.findMany({
+      where,
+      include: {
+        concept: true,
+        topic: true,
+        section: true,
+      },
+    });
+
+    // In-memory shuffle for random selection
+    const shuffled = questions.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
   }
 
   /**

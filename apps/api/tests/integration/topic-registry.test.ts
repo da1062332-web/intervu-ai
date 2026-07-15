@@ -110,6 +110,7 @@ describe("Topic & Concept Registry Integration Tests", () => {
       code: "MICROSERVICES",
       description: "Distributed system modular patterns",
       status: ConceptStatus.ACTIVE,
+      questionSources: ["VARIABLE_TEMPLATE"],
       createdAt: new Date(),
       updatedAt: new Date(),
     };

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigStatus, TemplateVariable } from "@prisma/client";
+import { ConfigStatus, TemplateVariable, QuestionStatus } from "@prisma/client";
 import { ExamConfigRepository } from "../../admin-config/repositories/exam-config.repository";
 import { ExamSectionRepository } from "../../admin-config/repositories/exam-section.repository";
 import { TopicRepository } from "../../concept-mapping/repositories/topic.repository";
@@ -361,44 +361,101 @@ export class ReadinessEngineService {
     // --- LAYER 3: TEMPLATE LAYER ---
     // 6. Templates Present
     let templatesPresentPass = true;
+    let manualPoolPass = true;
     const templateIdsToCheck = new Set<string>();
 
-    if (allAssignedConcepts.length > 0) {
-      for (const concept of allAssignedConcepts) {
-        const templates = await this.templateRepository.findAll();
-        const matchingTemplates = templates.filter(
-          (t) => t.isActive && t.conceptKey === concept.code,
-        );
+    const hasVariableConcepts = allAssignedConcepts.some(
+      (c) => c.questionSources?.includes("VARIABLE_TEMPLATE") || !c.questionSources?.includes("MANUAL")
+    );
 
-        if (matchingTemplates.length === 0) {
-          templatesPresentPass = false;
-          checks.push({
-            name: "Templates Present",
-            status: "FAIL",
-            message: `No active templates found for Concept '${concept.name}' (${concept.code})`,
+    if (allAssignedConcepts.length > 0 && sections.length > 0) {
+      for (const section of sections) {
+        const mappings = await this.topicSectionMappingRepository.findMappingsBySection(section.id);
+        const sectionQuestions = section.questionCount;
+
+        for (const mapping of mappings) {
+          const weightage = await this.prisma.topicWeightage.findUnique({
+            where: {
+              sectionId_topicId: {
+                sectionId: section.id,
+                topicId: mapping.topicId,
+              },
+            },
           });
-          reportData.fixes.push({
-            type: "templates",
-            message: `No active templates found for Concept '${concept.name}'`,
-            link: "/admin/topics",
-          });
-        } else {
-          matchingTemplates.forEach((t) => templateIdsToCheck.add(t.id));
+          const weight = weightage?.weightagePercentage ?? 0;
+          const topicRequired = Math.round((weight / 100) * sectionQuestions);
+
+          const concepts = await this.conceptMappingRepository.findManyByTopicId(
+            mapping.topicId,
+            true,
+          );
+
+          if (concepts.length > 0) {
+            const conceptRequired = Math.ceil(topicRequired / concepts.length);
+
+            for (const concept of concepts) {
+              const isManual = concept.questionSources?.includes("MANUAL");
+              const isVariable = concept.questionSources?.includes("VARIABLE_TEMPLATE") || !isManual;
+
+              if (isManual) {
+                const availableManualCount = await this.prisma.question.count({
+                  where: {
+                    status: QuestionStatus.ACTIVE,
+                    conceptId: concept.id,
+                  },
+                });
+
+                if (availableManualCount < conceptRequired) {
+                  manualPoolPass = false;
+                  checks.push({
+                    name: "Manual Questions Pool",
+                    status: "FAIL",
+                    message: `Section: ${section.name}, Concept: ${concept.name}, Required Questions: ${conceptRequired}, Available Manual Questions: ${availableManualCount}`,
+                  });
+                  reportData.fixes.push({
+                    type: "manual_pool",
+                    message: `Concept '${concept.name}' under Section '${section.name}' has only ${availableManualCount} manual questions, needs at least ${conceptRequired}. Please add at least ${conceptRequired - availableManualCount} more questions or reduce blueprint requirement.`,
+                    link: "/admin/questions",
+                  });
+                }
+              }
+
+              if (isVariable) {
+                const templates = await this.templateRepository.findAll();
+                const matchingTemplates = templates.filter(
+                  (t) => t.isActive && t.conceptKey === concept.code,
+                );
+
+                if (matchingTemplates.length === 0) {
+                  templatesPresentPass = false;
+                  checks.push({
+                    name: "Templates Present",
+                    status: "FAIL",
+                    message: `No active templates found for Concept '${concept.name}' (${concept.code})`,
+                  });
+                  reportData.fixes.push({
+                    type: "templates",
+                    message: `No active templates found for Concept '${concept.name}'`,
+                    link: "/admin/topics",
+                  });
+                } else {
+                  matchingTemplates.forEach((t) => templateIdsToCheck.add(t.id));
+                }
+              }
+            }
+          }
         }
       }
     } else {
       templatesPresentPass = false;
     }
 
-    if (templatesPresentPass && allAssignedConcepts.length > 0) {
+    if (templatesPresentPass && manualPoolPass && allAssignedConcepts.length > 0) {
       checks.push({
         name: "Templates Present",
         status: "PASS",
       });
-    } else if (
-      allAssignedConcepts.length > 0 &&
-      templatesPresentPass === false
-    ) {
+    } else if (allAssignedConcepts.length > 0 && (templatesPresentPass === false || manualPoolPass === false)) {
       // Handled
     } else {
       checks.push({
@@ -462,15 +519,17 @@ export class ReadinessEngineService {
         }
       }
     } else {
-      variablesValidPass = false;
+      if (hasVariableConcepts) {
+        variablesValidPass = false;
+      }
     }
 
-    if (variablesValidPass && templateIdsArray.length > 0) {
+    if (variablesValidPass && (!hasVariableConcepts || templateIdsArray.length > 0)) {
       checks.push({
         name: "Variables Valid",
         status: "PASS",
       });
-    } else if (templateIdsArray.length > 0 && variablesValidPass === false) {
+    } else if (hasVariableConcepts && variablesValidPass === false) {
       // Handled
     } else {
       checks.push({
@@ -512,15 +571,17 @@ export class ReadinessEngineService {
         }
       }
     } else {
-      rulesValidPass = false;
+      if (hasVariableConcepts) {
+        rulesValidPass = false;
+      }
     }
 
-    if (rulesValidPass && templateIdsArray.length > 0) {
+    if (rulesValidPass && (!hasVariableConcepts || templateIdsArray.length > 0)) {
       checks.push({
         name: "Rules Valid",
         status: "PASS",
       });
-    } else if (templateIdsArray.length > 0 && rulesValidPass === false) {
+    } else if (hasVariableConcepts && rulesValidPass === false) {
       // Handled
     } else {
       checks.push({

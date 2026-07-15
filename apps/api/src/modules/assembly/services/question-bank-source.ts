@@ -1,9 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { IQuestionSource, QuestionFilters } from "./question-source.interface";
 import { QuestionRotationService } from "../../question-bank/services/question-rotation.service";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { GeneratedQuestion } from "@prisma/client";
 import { AssemblyProviderRequest } from "@intervu-ai/contracts";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 /**
  * QuestionBankSource — Production question source adapter.
@@ -27,9 +28,62 @@ export class QuestionBankSource implements IQuestionSource {
   constructor(
     private readonly rotationService: QuestionRotationService,
     private readonly legacyPool: QuestionPoolRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
+    const conceptCode = filters.conceptKey || "";
+
+    // 1. Check if this is a manual concept
+    const concept = await this.prisma.concept.findFirst({
+      where: { code: conceptCode.toUpperCase() },
+    });
+
+    const isManual = concept?.questionSources?.includes("MANUAL");
+
+    if (isManual) {
+      const difficulty = (filters.difficultyLevel ?? "MEDIUM") as
+        | "EASY"
+        | "MEDIUM"
+        | "HARD";
+      const limit = filters.limit ?? 10;
+      const excludeIds = filters.excludeIds ?? [];
+
+      const diffCount = limit;
+      const topicId = concept?.topicId || "";
+
+      const request: AssemblyProviderRequest = {
+        examId: "assembly-source",
+        sectionId: topicId, // using topicId as sectionId approximation
+        count: diffCount,
+        difficultyDistribution: {
+          EASY: difficulty === "EASY" ? diffCount : 0,
+          MEDIUM: difficulty === "MEDIUM" ? diffCount : 0,
+          HARD: difficulty === "HARD" ? diffCount : 0,
+        },
+        topicIds: topicId ? [topicId] : undefined,
+      };
+
+      // Check availability first. If pool is insufficient, throw exception (do NOT fall back!)
+      const availability = await this.rotationService.checkAvailability(request);
+      if (
+        availability.status === "INSUFFICIENT_POOL" ||
+        availability.available < limit
+      ) {
+        throw new BadRequestException({
+          message: `Insufficient manual question pool for concept ${conceptCode} at difficulty ${difficulty}. Required: ${limit}, Available: ${availability.available}.`,
+          details: availability.details,
+        });
+      }
+
+      // Reserve and retrieve questions from the real bank
+      const response = await this.rotationService.retrieveAndReserve(request);
+      return response.questions.map((q) =>
+        this.mapToGeneratedQuestion(q, difficulty),
+      );
+    }
+
+    // Default: VARIABLE_TEMPLATE (using legacy templates / GeneratedQuestion pool)
     if (!this.useRealBank) {
       this.logger.warn(
         "Real question bank disabled. Using legacy GeneratedQuestion pool.",
@@ -45,10 +99,6 @@ export class QuestionBankSource implements IQuestionSource {
     const limit = filters.limit ?? 10;
     const excludeIds = filters.excludeIds ?? [];
 
-    // Build the AssemblyProviderRequest for QuestionRotationService
-    // We use a dummy sectionId because the QuestionRotationService filters by sectionId,
-    // but our IQuestionSource contract only exposes conceptKey (topicId).
-    // We fetch by topicId filter only — sectionId filtering is handled at blueprint level.
     const diffCount = limit;
     const request: AssemblyProviderRequest = {
       examId: "assembly-source",
