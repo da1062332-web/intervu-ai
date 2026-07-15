@@ -85,9 +85,13 @@ export class ResultQueryService {
   async getAnalytics(attemptId: string) {
     const analytics = await this.candidateResultRepo.findAnalytics(attemptId);
     if (!analytics) {
-      throw new NotFoundException(
-        `Analytics not found for attempt ${attemptId}`,
-      );
+      return {
+        topicAccuracy: {},
+        difficultyAccuracy: {},
+        sectionAccuracy: {},
+        completionRate: 0,
+        attemptRate: 0,
+      };
     }
     return {
       topicAccuracy:

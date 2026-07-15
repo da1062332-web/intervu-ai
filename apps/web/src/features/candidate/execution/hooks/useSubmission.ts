@@ -38,8 +38,8 @@ export function useSubmission(testId: string) {
         document.exitFullscreen().catch(console.error);
       }
 
-      // Redirect to the new Assessment Completion Page
-      router.push(`/assessment/submitted?testId=${testId}`);
+      // Redirect to the Results Page
+      router.push(`/candidate/results/${testId}`);
     } catch {
       setSubmissionStatus('FAILED');
     }

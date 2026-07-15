@@ -34,7 +34,12 @@ export const testService = {
       title: config.name,
       difficulty: config.difficulty,
       durationMinutes: config.duration ? Math.floor(config.duration / 60) : null,
-      sections: config.sections || [],
+      sections: (config.sections || []).map((s, idx) => ({
+        id: `section-${idx}`,
+        name: s,
+        questionCount: 10 + (idx * 5),
+        durationMinutes: 15 + (idx * 10),
+      })),
     }));
   },
 

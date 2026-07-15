@@ -11,7 +11,9 @@ import { SectionTabs } from './SectionTabs';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SectionChangeModal } from './SectionChangeModal';
+import { FaceTracker } from './FaceTracker';
 import { useExecutionStore } from '../stores/execution.store';
+import { useSubmission } from '../hooks/useSubmission';
 import { useAutosave } from '../hooks/useAutosave';
 import { useConnectionMonitor } from '../hooks/useConnectionMonitor';
 import { useResume } from '../hooks/useResume';
@@ -40,6 +42,8 @@ export function ExecutionLayout() {
   useAutosave(testInstance?.id || 'unknown');
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');
+
+  const { submitAssessment } = useSubmission(testInstance?.id || '');
 
   const handleSubmit = useCallback(() => setIsSubmitModalOpen(true), []);
 
@@ -97,7 +101,8 @@ export function ExecutionLayout() {
           </div>
 
           {/* Right Column - Palette & Progress (Desktop Only) */}
-          <div className='hidden lg:flex lg:col-span-2 flex-col gap-6 lg:sticky lg:top-[88px]'>
+          <div className='hidden lg:flex lg:col-span-2 flex-col gap-3 lg:sticky lg:top-[88px]'>
+            <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
             <QuestionPalette />
           </div>
         </div>
