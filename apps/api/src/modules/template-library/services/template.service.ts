@@ -303,6 +303,10 @@ export class TemplateService {
 
     const updated = await this.templateRepository.update(id, updateInput);
 
+    if (validated.datasetId) {
+      await this.upsertDatasetConfig(id, validated.datasetId);
+    }
+
     // 4. formatResponse() — invalidate stale caches, return updated template
     await this.cacheService.invalidateTemplate(id);
     if (updated.isSystem) {
