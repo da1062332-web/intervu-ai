@@ -241,7 +241,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                               <div>
                                 <div>{ds.name}</div>
                                 <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
-                                  <span className="uppercase text-[10px] tracking-wider px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{ds.datasetType || 'GENERAL'}</span>
+                                  <span className="uppercase text-[10px] tracking-wider px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{ds.type || 'GENERAL'}</span>
                                   <span>{ds._count?.items ?? 0} Items</span>
                                 </div>
                               </div>
@@ -272,7 +272,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                       <div className="font-medium text-gray-900 dark:text-gray-100">{datasetDetails.name}</div>
                       
                       <div className="text-gray-500">Type</div>
-                      <div>{datasetDetails.datasetType || 'Reading Passage'}</div>
+                      <div>{datasetDetails.type || 'Reading Passage'}</div>
                       
                       <div className="text-gray-500">Records</div>
                       <div>{(datasetDetails.items?.length || 0).toLocaleString()}</div>
