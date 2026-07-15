@@ -31,6 +31,7 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
   }, [template, setSolutionTemplate, setExplanationTemplate]);
 
   const handleSave = () => {
+    // Dynamically choose between POST (create) and PATCH (update) depending on existing solution presence
     saveMutation.mutate({
       templateId,
       payload: { solutionTemplate, explanationTemplate },
