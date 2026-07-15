@@ -175,16 +175,20 @@ export default function EditBlueprintPage() {
             <div className='border rounded-lg p-6 bg-white dark:bg-gray-900 shadow-sm space-y-6'>
               <h2 className='text-xl font-semibold border-b pb-4'>3. Allocations</h2>
 
-              {sections.map((section: BlueprintSectionPayload) => (
-                <div key={section.sectionId} className='space-y-6 pt-4'>
-                  <h3 className='font-medium text-lg text-indigo-600 dark:text-indigo-400'>
-                    Section ID: {section.sectionId}
-                  </h3>
-                  <TopicAllocator sectionId={section.sectionId} />
-                  <DifficultyAllocator sectionId={section.sectionId} />
-                  <hr className='my-4 border-gray-200 dark:border-gray-800' />
-                </div>
-              ))}
+              {sections.map((section: BlueprintSectionPayload) => {
+                const sectionName = configSections?.find((s) => s.id === section.sectionId)?.name || section.sectionId;
+
+                return (
+                  <div key={section.sectionId} className='space-y-6 pt-4'>
+                    <h3 className='font-semibold text-lg text-indigo-600 dark:text-indigo-400'>
+                      Section: {sectionName}
+                    </h3>
+                    <TopicAllocator sectionId={section.sectionId} />
+                    <DifficultyAllocator sectionId={section.sectionId} />
+                    <hr className='my-4 border-gray-200 dark:border-gray-800' />
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
