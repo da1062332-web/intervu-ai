@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { BlueprintSectionPayload } from '@/services/blueprints/types';
+import toast from 'react-hot-toast';
 
 export default function CreateBlueprintPage() {
   const router = useRouter();
@@ -39,9 +40,17 @@ export default function CreateBlueprintPage() {
         styleProfileId: selectedStyleProfileId,
         sections: sections,
       });
+      toast.success('Blueprint created successfully');
       router.push('/admin/blueprints');
-    } catch (error) {
-      // toast is handled in mutation hook
+    } catch (error: any) {
+      const details = error?.response?.data?.error?.details;
+      const detailsMsg = Array.isArray(details) ? details.join(', ') : '';
+      const errorMsg =
+        detailsMsg ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        'Failed to create blueprint';
+      toast.error(errorMsg);
     }
   };
 

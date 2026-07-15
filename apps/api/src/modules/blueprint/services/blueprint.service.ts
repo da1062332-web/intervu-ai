@@ -315,8 +315,20 @@ export class BlueprintService {
             );
 
             if (matchingTemplates.length === 0) {
+              // Find what other difficulties have templates for this topic
+              const availableDifficulties = Array.from(
+                new Set(
+                  templates
+                    .filter((t) => t.isActive && topic.concepts.includes(t.conceptKey))
+                    .map((t) => t.difficultyLevel)
+                )
+              );
+              const diffText = availableDifficulties.length > 0
+                ? `Available difficulties with active templates for this topic: [${availableDifficulties.join(", ")}]`
+                : "No active templates exist for this topic at any difficulty level.";
+
               errors.push(
-                `Section "${sectionName}": No active templates found for topic "${topic.topic}" at difficulty level "${level}"`,
+                `Section "${sectionName}": No active templates found for topic "${topic.topic}" at difficulty level "${level}". ${diffText}`,
               );
             }
           }

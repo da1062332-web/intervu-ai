@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { BlueprintSectionPayload } from '@/services/blueprints/types';
+import toast from 'react-hot-toast';
 
 export default function EditBlueprintPage() {
   const params = useParams();
@@ -85,9 +86,17 @@ export default function EditBlueprintPage() {
           sections: sections,
         },
       });
+      toast.success('Blueprint updated successfully');
       router.push(`/admin/blueprints/${id}`);
-    } catch (error) {
-      // toast is handled in mutation hook
+    } catch (error: any) {
+      const details = error?.response?.data?.error?.details;
+      const detailsMsg = Array.isArray(details) ? details.join(', ') : '';
+      const errorMsg =
+        detailsMsg ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        'Failed to update blueprint';
+      toast.error(errorMsg);
     }
   };
 
