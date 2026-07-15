@@ -1,43 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { SolutionTemplateEditor } from './SolutionTemplateEditor';
 import { Button } from '@/components/ui/button';
 import { useSaveSolutionTemplate, useSolutionTemplate } from '@/services/templates/hooks';
-import { useTemplatePreviewStore } from '@/store/template-preview.store';
-import { useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface SolutionLogicSectionProps {
   template?: any;
 }
 
 export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
-  const params = useParams();
-  const templateId = params.id as string;
-  const { data: existingData } = useSolutionTemplate(templateId);
-  const saveMutation = useSaveSolutionTemplate();
-  const { solutionTemplate, explanationTemplate, setSolutionTemplate, setExplanationTemplate, isDirty, setDirty } = useTemplatePreviewStore();
+  // `useSolutionTemplate` from hooks already gets fetched data from the server.
+  // But wait, user says "Every section reads from the same template (Master Template Object)".
+  // Let's rely on `template` if possible, but the backend stores solution logic separately?
+  // No, `GET /templates/{id}/solution` fetches the solution template.
+  // Actually, wait, let me just initialize from the master template if it is there, 
+  // or just use `useSolutionTemplate` and save with `useSaveSolutionTemplate` which invalidates `template` anyway.
+  // We'll initialize from `template.solutionSchema` if available, otherwise from `useSolutionTemplate`.
+
+  const { data: existingData } = useSolutionTemplate(template?.id || '');
+  const { mutate: saveSolution, isPending: isSaving } = useSaveSolutionTemplate();
+
+  const [solutionTemplateStr, setSolutionTemplateStr] = useState('');
+  const [explanationTemplateStr, setExplanationTemplateStr] = useState('');
 
   useEffect(() => {
-    if (template?.solutionSchema) {
-      if (template.solutionSchema.solutionTemplate !== undefined) {
-        setSolutionTemplate(template.solutionSchema.solutionTemplate);
-      }
-      if (template.solutionSchema.explanationTemplate !== undefined) {
-        setExplanationTemplate(template.solutionSchema.explanationTemplate);
-      }
+    // Try to load from master template first, fallback to existingData
+    let initialSolution = '';
+    let initialExplanation = '';
+
+    if (template?.solutionSchema?.solutionTemplate !== undefined) {
+      initialSolution = template.solutionSchema.solutionTemplate;
+    } else if (existingData?.solutionTemplate) {
+      initialSolution = existingData.solutionTemplate;
     }
-  }, [template, setSolutionTemplate, setExplanationTemplate]);
+
+    if (template?.solutionSchema?.explanationTemplate !== undefined) {
+      initialExplanation = template.solutionSchema.explanationTemplate;
+    } else if (existingData?.explanationTemplate) {
+      initialExplanation = existingData.explanationTemplate;
+    }
+
+    setSolutionTemplateStr(initialSolution);
+    setExplanationTemplateStr(initialExplanation);
+  }, [template, existingData]);
 
   const handleSave = () => {
-    // Dynamically choose between POST (create) and PATCH (update) depending on existing solution presence
-    saveMutation.mutate({
-      templateId,
-      payload: { solutionTemplate, explanationTemplate },
-      isUpdate: !!existingData,
+    if (!template?.id) return;
+    
+    saveSolution({
+      templateId: template.id,
+      payload: { 
+        solutionTemplate: solutionTemplateStr, 
+        explanationTemplate: explanationTemplateStr 
+      },
+      isUpdate: !!(template?.solutionSchema || existingData),
+    }, {
+      onSuccess: () => {
+        toast.success("Solution logic saved successfully");
+      },
+      onError: () => {
+        toast.error("Failed to save solution logic");
+      }
     });
-    setDirty(false);
   };
 
   return (
@@ -45,13 +71,18 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
       title='Solution Logic & Explanation'
       description='Define the correct solution mapping and the explanation to be shown to the candidate.'
       actions={
-        <Button onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
-          {saveMutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
           Save Logic
         </Button>
       }
     >
-      <SolutionTemplateEditor />
+      <SolutionTemplateEditor
+        solutionTemplate={solutionTemplateStr}
+        explanationTemplate={explanationTemplateStr}
+        setSolutionTemplate={setSolutionTemplateStr}
+        setExplanationTemplate={setExplanationTemplateStr}
+      />
     </TemplateSection>
   );
 }
