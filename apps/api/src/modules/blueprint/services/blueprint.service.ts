@@ -323,12 +323,12 @@ export class BlueprintService {
                     .map((t) => t.difficultyLevel)
                 )
               );
-              const diffText = availableDifficulties.length > 0
-                ? `Available difficulties with active templates for this topic: [${availableDifficulties.join(", ")}]`
-                : "No active templates exist for this topic at any difficulty level.";
+              const suggestion = availableDifficulties.length > 0
+                ? `Please assign weight to: [${availableDifficulties.join(", ")}].`
+                : "Please create active templates for this topic first.";
 
               errors.push(
-                `Section "${sectionName}": No active templates found for topic "${topic.topic}" at difficulty level "${level}". ${diffText}`,
+                `Topic "${topic.topic}" does not have any active "${level}" templates. ${suggestion}`,
               );
             }
           }
