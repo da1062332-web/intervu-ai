@@ -10,6 +10,7 @@ import { useTemplate } from '@/services/templates/hooks';
 // Sections
 import { BasicInfoSection } from './components/BasicInfoSection';
 import { QuestionDefinitionSection } from './components/QuestionDefinitionSection';
+import { DatasetQuestionDefinitionSection } from './components/DatasetQuestionDefinitionSection';
 import { VariableBuilderSection } from './components/VariableBuilderSection';
 import { ConstraintBuilderSection } from './components/ConstraintBuilderSection';
 import { OptionStrategySection } from './components/OptionStrategySection';
@@ -72,7 +73,12 @@ export default function TemplatePage() {
   const renderSection = () => {
     switch (activeSection) {
       case 'basic': return <BasicInfoSection template={template} />;
-      case 'question': return <QuestionDefinitionSection template={template} />;
+      case 'question': 
+        return strategy === 'DATASET' ? (
+          <DatasetQuestionDefinitionSection template={template} />
+        ) : (
+          <QuestionDefinitionSection template={template} />
+        );
       case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
       case 'variables': return <VariableBuilderSection />;
       case 'constraints': return <ConstraintBuilderSection />;
