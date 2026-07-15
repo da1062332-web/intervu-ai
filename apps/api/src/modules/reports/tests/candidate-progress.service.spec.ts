@@ -11,10 +11,7 @@ describe("CandidateProgressService", () => {
   let auditService: ReportAuditService;
 
   const mockPrisma = {
-    evaluationResult: {
-      findMany: jest.fn(),
-    },
-    candidateAnswer: {
+    testInstance: {
       findMany: jest.fn(),
     },
   };
@@ -64,27 +61,29 @@ describe("CandidateProgressService", () => {
       prefix: "progress:candidate",
     });
     expect(mockAuditService.logProgressViewed).toHaveBeenCalledWith("user-1");
-    expect(mockPrisma.evaluationResult.findMany).not.toHaveBeenCalled();
+    expect(mockPrisma.testInstance.findMany).not.toHaveBeenCalled();
   });
 
   it("should calculate progress and set cache if miss", async () => {
     mockCacheService.get.mockResolvedValue(null);
 
-    const mockEvals = [
+    const mockAttempts = [
       {
-        overallScore: 80,
-        evaluatedAt: new Date(),
-        totalQuestions: 10,
-        correctAnswers: 8,
-        skillScores: [{ skill: "Coding", score: 80 }],
-        testInstance: {
-          testConfig: { displayName: "JS Code", difficultyLevel: "MEDIUM" },
+        id: "ti-1",
+        candidateResult: {
+          createdAt: new Date(),
+          percentage: 80,
         },
-      },
+        evaluationAnalytics: {
+          completionRate: 100,
+          topicAccuracy: { "Coding": 80 },
+          difficultyAccuracy: { "medium": 80 },
+        },
+        testConfig: { displayName: "JS Code", difficultyLevel: "MEDIUM" },
+      }
     ];
 
-    mockPrisma.evaluationResult.findMany.mockResolvedValue(mockEvals);
-    mockPrisma.candidateAnswer.findMany.mockResolvedValue([]);
+    mockPrisma.testInstance.findMany.mockResolvedValue(mockAttempts);
 
     const result = await service.getCandidateProgress("user-1");
 

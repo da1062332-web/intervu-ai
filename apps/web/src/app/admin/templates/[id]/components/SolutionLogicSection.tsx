@@ -6,13 +6,29 @@ import { useSaveSolutionTemplate, useSolutionTemplate } from '@/services/templat
 import { useTemplatePreviewStore } from '@/store/template-preview.store';
 import { useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
-export function SolutionLogicSection() {
+interface SolutionLogicSectionProps {
+  template?: any;
+}
+
+export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
   const params = useParams();
   const templateId = params.id as string;
   const { data: existingData } = useSolutionTemplate(templateId);
   const saveMutation = useSaveSolutionTemplate();
-  const { solutionTemplate, explanationTemplate, isDirty, setDirty } = useTemplatePreviewStore();
+  const { solutionTemplate, explanationTemplate, setSolutionTemplate, setExplanationTemplate, isDirty, setDirty } = useTemplatePreviewStore();
+
+  useEffect(() => {
+    if (template?.solutionSchema) {
+      if (template.solutionSchema.solutionTemplate !== undefined) {
+        setSolutionTemplate(template.solutionSchema.solutionTemplate);
+      }
+      if (template.solutionSchema.explanationTemplate !== undefined) {
+        setExplanationTemplate(template.solutionSchema.explanationTemplate);
+      }
+    }
+  }, [template, setSolutionTemplate, setExplanationTemplate]);
 
   const handleSave = () => {
     saveMutation.mutate({

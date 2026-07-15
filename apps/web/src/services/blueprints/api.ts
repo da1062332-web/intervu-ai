@@ -13,22 +13,38 @@ import type {
 } from './types';
 
 export const blueprintsApi = {
-  // Legacy Style Profiles (keeping if needed elsewhere)
+  // Style Profiles
   getStyleProfiles: () => {
-    return apiClient.request<StyleProfile[]>('/style-profiles');
+    return apiClient.request<StyleProfile[]>('/admin/style-profiles');
+  },
+
+  getStyleProfile: (id: string) => {
+    return apiClient.request<StyleProfile>(`/admin/style-profiles/${id}`);
   },
 
   createStyleProfile: (payload: any) => {
-    return apiClient.request<StyleProfile>('/style-profiles', {
+    return apiClient.request<StyleProfile>('/admin/style-profiles', {
       method: 'POST',
       body: payload,
     });
   },
 
   updateStyleProfile: (id: string, payload: any) => {
-    return apiClient.request<StyleProfile>(`/style-profiles/${id}`, {
+    return apiClient.request<StyleProfile>(`/admin/style-profiles/${id}`, {
       method: 'PATCH',
       body: payload,
+    });
+  },
+
+  deleteStyleProfile: (id: string) => {
+    return apiClient.request<{ id: string }>(`/admin/style-profiles/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  duplicateStyleProfile: (id: string) => {
+    return apiClient.request<StyleProfile>(`/admin/style-profiles/${id}/duplicate`, {
+      method: 'POST',
     });
   },
 

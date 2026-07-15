@@ -8,11 +8,8 @@ import { Plus, Trash2, Edit2, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { useParams } from 'next/navigation';
 import { 
-  useTemplateRules, 
-  useTemplateVariables,
-  useCreateRule, 
-  useUpdateRule, 
-  useDeleteRule 
+  useTemplate, 
+  useUpdateTemplate 
 } from '@/services/templates/hooks';
 
 interface Constraint {
@@ -25,25 +22,41 @@ interface Constraint {
 export function ConstraintBuilderSection() {
   const { id: templateId } = useParams() as { id: string };
 
-  const { data: rulesResponse, isLoading: isLoadingRules } = useTemplateRules(templateId);
-  const { data: variablesResponse } = useTemplateVariables(templateId);
-  
-  const rawVariables = Array.isArray(variablesResponse) ? variablesResponse : (variablesResponse?.data || []);
+  const { data: templateResponse, isLoading: isLoadingTemplate } = useTemplate(templateId);
+  const template = templateResponse?.data || templateResponse;
+
+  const rawVariables = template?.variableSchema?.variables || [];
   const availableVariables = rawVariables;
 
-  const rawRules = Array.isArray(rulesResponse) ? rulesResponse : (rulesResponse?.data || []);
-  const constraints: Constraint[] = rawRules.map((r: any) => {
+  const rawConstraints = template?.constraints?.constraints || [];
+  const constraints: Constraint[] = rawConstraints.map((c: any) => {
+    let variableName = '';
+    let operator = '';
+    let value = '';
+    
+    if (c.rule) {
+       // Match pattern like "var_name >= value"
+       const match = c.rule.match(/^([\w_]+)\s*(>=|<=|!=|==|=|>|<|Regex)\s*(.*)$/);
+       if (match) {
+          variableName = match[1];
+          operator = match[2];
+          value = match[3];
+       } else {
+          variableName = 'Custom';
+          operator = 'Formula';
+          value = c.rule;
+       }
+    }
+
     return {
-      id: r.id,
-      variableName: r.ruleConfig?.variableName || '',
-      operator: r.ruleConfig?.operator || '>',
-      value: r.ruleConfig?.value || ''
+      id: c.rule, // use rule as id since it must be unique
+      variableName,
+      operator,
+      value
     };
   });
 
-  const { mutate: createRule, isPending: isCreating } = useCreateRule();
-  const { mutate: updateRule, isPending: isUpdating } = useUpdateRule();
-  const { mutate: deleteRule, isPending: isDeleting } = useDeleteRule();
+  const { mutate: updateTemplate, isPending: isUpdatingTemplate } = useUpdateTemplate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<Constraint, 'id'>>({
@@ -83,53 +96,24 @@ export function ConstraintBuilderSection() {
       setError('Value is required');
       return;
     }
-    const getRuleType = (op: string) => {
-      if (op === 'Regex') return 'REGEX';
-      if (op === 'Formula' || op === 'Custom') return 'DIFFICULTY'; // Fallback
-      return 'RANGE';
+    const ruleString = formData.operator === 'Formula' || formData.operator === 'Custom'
+       ? formData.value
+       : `${formData.variableName} ${formData.operator} ${formData.value}`;
+
+    const newConstraint = {
+      rule: ruleString,
+      severity: "critical"
     };
 
-    const ruleType = getRuleType(formData.operator);
-    const ruleConfig: any = {
-      variableName: formData.variableName,
-      operator: formData.operator,
-      value: formData.value
-    };
-
-    if (ruleType === 'RANGE') {
-      const numVal = Number(formData.value);
-      if (!isNaN(numVal)) {
-        if (formData.operator === '>') {
-          ruleConfig.min = numVal;
-          ruleConfig.max = Number.MAX_SAFE_INTEGER;
-        } else if (formData.operator === '>=') {
-          ruleConfig.min = numVal;
-          ruleConfig.max = Number.MAX_SAFE_INTEGER;
-        } else if (formData.operator === '<') {
-          ruleConfig.min = Number.MIN_SAFE_INTEGER;
-          ruleConfig.max = numVal;
-        } else if (formData.operator === '<=') {
-          ruleConfig.min = Number.MIN_SAFE_INTEGER;
-          ruleConfig.max = numVal;
-        } else if (formData.operator === '=') {
-          ruleConfig.min = numVal;
-          ruleConfig.max = numVal;
-        } else {
-          ruleConfig.min = Number.MIN_SAFE_INTEGER;
-          ruleConfig.max = Number.MAX_SAFE_INTEGER;
-        }
-      } else {
-        ruleConfig.min = Number.MIN_SAFE_INTEGER;
-        ruleConfig.max = Number.MAX_SAFE_INTEGER;
-      }
-    } else if (ruleType === 'REGEX') {
-      ruleConfig.pattern = formData.value;
+    const currentConstraintsSchema = template?.constraints || { constraints: [] };
+    const currentConstraints = currentConstraintsSchema.constraints || [];
+    
+    let newConstraintsArr;
+    if (editingId) {
+       newConstraintsArr = currentConstraints.map((c: any) => c.rule === editingId ? newConstraint : c);
+    } else {
+       newConstraintsArr = [...currentConstraints, newConstraint];
     }
-
-    const payload = {
-      ruleType,
-      ruleConfig
-    };
 
     const extractError = (err: any, fallback: string) => {
       const msg = err?.response?.data?.message || err?.message;
@@ -137,29 +121,35 @@ export function ConstraintBuilderSection() {
       return msg || fallback;
     };
 
-    if (editingId) {
-      updateRule({
-        templateId,
-        ruleId: editingId,
-        payload,
-      }, {
-        onSuccess: () => setIsModalOpen(false),
-        onError: (err: any) => setError(extractError(err, 'Failed to update constraint'))
-      });
-    } else {
-      createRule({
-        templateId,
-        payload,
-      }, {
-        onSuccess: () => setIsModalOpen(false),
-        onError: (err: any) => setError(extractError(err, 'Failed to create constraint'))
-      });
-    }
+    updateTemplate({
+      templateId,
+      payload: {
+        constraints: {
+          ...currentConstraintsSchema,
+          constraints: newConstraintsArr
+        }
+      }
+    }, {
+      onSuccess: () => setIsModalOpen(false),
+      onError: (err: any) => setError(extractError(err, 'Failed to update constraints'))
+    });
   };
 
   const handleDelete = (ruleId: string) => {
     if (confirm('Are you sure you want to delete this constraint?')) {
-      deleteRule({ templateId, ruleId });
+       const currentConstraintsSchema = template?.constraints || { constraints: [] };
+       const currentConstraints = currentConstraintsSchema.constraints || [];
+       const newConstraintsArr = currentConstraints.filter((c: any) => c.rule !== ruleId);
+       
+       updateTemplate({
+         templateId,
+         payload: {
+           constraints: {
+             ...currentConstraintsSchema,
+             constraints: newConstraintsArr
+           }
+         }
+       });
     }
   };
 
@@ -185,7 +175,7 @@ export function ConstraintBuilderSection() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoadingRules ? (
+            {isLoadingTemplate ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
@@ -210,10 +200,10 @@ export function ConstraintBuilderSection() {
                   </TableCell>
                   <TableCell className="font-mono text-sm">{c.value}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => openModal(c)} aria-label={`Edit constraint for ${c.variableName}`} disabled={isDeleting}>
+                    <Button variant="ghost" size="sm" onClick={() => openModal(c)} aria-label={`Edit constraint for ${c.variableName}`} disabled={isUpdatingTemplate}>
                       <Edit2 className="w-4 h-4 text-gray-500 hover:text-indigo-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} aria-label={`Delete constraint for ${c.variableName}`} disabled={isDeleting}>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} aria-label={`Delete constraint for ${c.variableName}`} disabled={isUpdatingTemplate}>
                       <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
                     </Button>
                   </TableCell>
@@ -245,7 +235,7 @@ export function ConstraintBuilderSection() {
               >
                 <option value="" disabled>Select a variable</option>
                 {availableVariables.map((v: any) => (
-                  <option key={v.id} value={v.variableName}>{v.variableName}</option>
+                  <option key={v.name} value={v.name}>{v.name}</option>
                 ))}
               </select>
             </div>
@@ -286,8 +276,8 @@ export function ConstraintBuilderSection() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isCreating || isUpdating}>
-              {(isCreating || isUpdating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleSave} disabled={isUpdatingTemplate}>
+              {isUpdatingTemplate && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editingId ? 'Save Changes' : 'Create Constraint'}
             </Button>
           </div>

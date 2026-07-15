@@ -38,6 +38,14 @@ export const useCreateTemplate = () => {
   });
 };
 
+export const useTemplate = (templateId: string) => {
+  return useQuery({
+    queryKey: ['template', templateId],
+    queryFn: () => templateApi.getTemplate(templateId),
+    enabled: !!templateId,
+  });
+};
+
 export const useSolutionTemplate = (templateId: string) => {
   return useQuery({
     queryKey: ['solutionTemplate', templateId],

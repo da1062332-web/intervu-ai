@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { ConceptMappingRepository } from "../repositories/concept-mapping.repository";
 import { TopicRegistryLoader } from "./topic-registry-loader.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import {
   CreateConceptMappingDto,
   UpdateConceptMappingDto,
@@ -17,6 +18,7 @@ export class ConceptMappingService {
   constructor(
     private readonly repository: ConceptMappingRepository,
     private readonly topicRegistryLoader: TopicRegistryLoader,
+    private readonly prisma: PrismaService,
   ) {}
 
   async createConcept(topicId: string, dto: CreateConceptMappingDto) {
@@ -98,6 +100,47 @@ export class ConceptMappingService {
     const concept = await this.repository.findById(conceptId);
     if (!concept) {
       throw new NotFoundException(`Concept with ID ${conceptId} not found`);
+    }
+
+    // 1. Check if any templates are currently active/exist under this concept
+    const linkedTemplates = await this.prisma.template.findMany({
+      where: {
+        conceptKey: concept.code,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    if (linkedTemplates.length > 0) {
+      throw new BadRequestException({
+        success: false,
+        error: {
+          code: "CONCEPT_LINKED_TO_TEMPLATES",
+          message: `Cannot deactivate concept "${concept.name}" because it is linked to ${linkedTemplates.length} template(s).`,
+          details: linkedTemplates.map((t) => ({ id: t.id, name: t.name })),
+        },
+      });
+    }
+
+    // 2. Check if any generated questions exist under this concept key
+    const linkedQuestions = await this.prisma.generatedQuestion.findMany({
+      where: {
+        conceptKey: concept.code,
+      },
+      take: 1,
+    });
+
+    if (linkedQuestions.length > 0) {
+      throw new BadRequestException({
+        success: false,
+        error: {
+          code: "CONCEPT_LINKED_TO_QUESTIONS",
+          message: `Cannot deactivate concept "${concept.name}" because it has generated questions associated with it.`,
+        },
+      });
     }
 
     return this.repository.delete(conceptId);

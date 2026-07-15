@@ -7,6 +7,7 @@ import { Loader2, GitBranch } from 'lucide-react';
 import { useScenarios } from '@/services/scenarios/hooks';
 import { useStrategyConfigStore } from '@/store/strategy-config.store';
 import { validateStrategyConfig } from '../../registry/strategy-validation.registry';
+import { useEffect } from 'react';
 import type { StrategyPanelProps } from '../../registry/strategy-panel.registry';
 import type { Scenario } from '@/services/scenarios/api';
 
@@ -57,9 +58,24 @@ const JsonEditor = ({
  * Entity schema, relationship schema, constraint rules, and scenario selector.
  * Config saved to Zustand store and validated with hybridStrategySchema.
  */
-export function HybridStrategyPanel({ templateId: _ }: StrategyPanelProps) {
+export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelProps) {
   const { updateConfig, configs } = useStrategyConfigStore();
   const config = (configs['HYBRID'] ?? {}) as Record<string, unknown>;
+
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (template?.config && !hydrated) {
+      if (template.generationStrategy === 'HYBRID') {
+        updateConfig(template.config);
+        if (template.config.entitySchema) setEntitySchemaStr(JSON.stringify(template.config.entitySchema, null, 2));
+        if (template.config.relationshipSchema) setRelationshipSchemaStr(JSON.stringify(template.config.relationshipSchema, null, 2));
+        if (template.config.constraintSchema) setConstraintSchemaStr(JSON.stringify(template.config.constraintSchema, null, 2));
+        if (template.config.scenarioId) setSelectedScenarioId(template.config.scenarioId as string);
+      }
+      setHydrated(true);
+    }
+  }, [template, hydrated, updateConfig]);
 
   const [entitySchemaStr, setEntitySchemaStr] = useState<string>(
     config.entitySchema ? JSON.stringify(config.entitySchema, null, 2) : '',

@@ -570,15 +570,23 @@ model Concept {
 }
 
 model StyleProfile {
-  id              String                       @id @default(uuid())
-  name            String
-  profileType     String                       @map("profile_type")
-  description     String?
-  active          Boolean                      @default(true)
-  createdAt       DateTime                     @default(now()) @map("created_at")
-  updatedAt       DateTime                     @updatedAt @map("updated_at")
-  blueprints      Blueprint[]
-  characteristics StyleProfileCharacteristic[]
+  id               String                       @id @default(uuid())
+  name             String
+  profileType      String                       @map("profile_type")
+  description      String?
+  active           Boolean                      @default(true)
+  status           String                       @default("ACTIVE")
+  isDefault        Boolean                      @default(false) @map("is_default")
+  languageStyle    Json                         @default("{}") @map("language_style")
+  contextStyle     Json                         @default("{}") @map("context_style")
+  difficultyStyle  Json                         @default("{}") @map("difficulty_style")
+  distractorRules  Json                         @default("{}") @map("distractor_rules")
+  explanationStyle Json                         @default("{}") @map("explanation_style")
+  aiInstructions   String                       @default("") @map("ai_instructions")
+  createdAt        DateTime                     @default(now()) @map("created_at")
+  updatedAt        DateTime                     @updatedAt @map("updated_at")
+  blueprints       Blueprint[]
+  characteristics  StyleProfileCharacteristic[]
 
   @@index([profileType])
   @@index([active])

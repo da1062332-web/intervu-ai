@@ -8,7 +8,6 @@ import { OptionStrategySection } from '../OptionStrategySection';
 import { QuestionDefinitionSection } from '../QuestionDefinitionSection';
 import { SolutionLogicSection } from '../SolutionLogicSection';
 import type { StrategyPanelProps } from '../../registry/strategy-panel.registry';
-import { useTemplates } from '@/services/templates/hooks';
 
 /**
  * VariableStrategyPanel
@@ -16,10 +15,7 @@ import { useTemplates } from '@/services/templates/hooks';
  * Renders all variable-strategy specific sections by composing existing
  * components — no duplication of existing UI.
  */
-export function VariableStrategyPanel({ templateId }: StrategyPanelProps) {
-  const { data: response } = useTemplates(1, 100);
-  const template = response?.items?.find((t: any) => t.id === templateId);
-
+export function VariableStrategyPanel({ templateId, template }: StrategyPanelProps) {
   return (
     <div className="space-y-6">
       <TemplateSection
@@ -48,7 +44,7 @@ export function VariableStrategyPanel({ templateId }: StrategyPanelProps) {
       <OptionStrategySection template={template} />
 
       {/* Solution & Explanation — template for the answer */}
-      <SolutionLogicSection />
+      <SolutionLogicSection template={template} />
     </div>
   );
 }

@@ -20,6 +20,10 @@ export const createTemplate = async (payload: any): Promise<any> => {
   });
 };
 
+export const getTemplate = async (templateId: string): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}`, { method: 'GET' });
+};
+
 export const getSolutionTemplate = async (
   templateId: string,
 ): Promise<SolutionTemplateResponse> => {

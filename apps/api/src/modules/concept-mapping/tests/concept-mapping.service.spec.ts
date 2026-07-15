@@ -9,10 +9,13 @@ import {
 } from "@nestjs/common";
 import { Concept, ConceptStatus } from "@prisma/client";
 
+import { PrismaService } from "../../../prisma/prisma.service";
+
 describe("ConceptMappingService", () => {
   let service: ConceptMappingService;
   let repository: jest.Mocked<ConceptMappingRepository>;
   let registryLoader: jest.Mocked<TopicRegistryLoader>;
+  let prisma: any;
 
   const mockTopicItem = {
     id: "se-ds-001",
@@ -51,17 +54,28 @@ describe("ConceptMappingService", () => {
       getAllTopics: jest.fn(),
     };
 
+    const mockPrisma = {
+      template: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      generatedQuestion: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ConceptMappingService,
         { provide: ConceptMappingRepository, useValue: mockRepo },
         { provide: TopicRegistryLoader, useValue: mockLoader },
+        { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
 
     service = module.get<ConceptMappingService>(ConceptMappingService);
     repository = module.get(ConceptMappingRepository);
     registryLoader = module.get(TopicRegistryLoader);
+    prisma = module.get(PrismaService);
   });
 
   describe("createConcept", () => {
@@ -196,8 +210,10 @@ describe("ConceptMappingService", () => {
   });
 
   describe("deleteConcept", () => {
-    it("should call delete in repository", async () => {
+    it("should call delete in repository if not linked to templates or questions", async () => {
       repository.findById.mockResolvedValue(mockConcept);
+      prisma.template.findMany.mockResolvedValue([]);
+      prisma.generatedQuestion.findMany.mockResolvedValue([]);
       repository.delete.mockResolvedValue({
         ...mockConcept,
         status: ConceptStatus.INACTIVE,
@@ -206,8 +222,32 @@ describe("ConceptMappingService", () => {
       const result = await service.deleteConcept("concept-123");
 
       expect(repository.findById).toHaveBeenCalledWith("concept-123");
+      expect(prisma.template.findMany).toHaveBeenCalled();
+      expect(prisma.generatedQuestion.findMany).toHaveBeenCalled();
       expect(repository.delete).toHaveBeenCalledWith("concept-123");
       expect(result.status).toBe(ConceptStatus.INACTIVE);
+    });
+
+    it("should throw BadRequestException if concept to delete is linked to active templates", async () => {
+      repository.findById.mockResolvedValue(mockConcept);
+      prisma.template.findMany.mockResolvedValue([
+        { id: "template-1", name: "Linked Template" },
+      ]);
+      prisma.generatedQuestion.findMany.mockResolvedValue([]);
+
+      await expect(service.deleteConcept("concept-123")).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should throw BadRequestException if concept to delete is linked to generated questions", async () => {
+      repository.findById.mockResolvedValue(mockConcept);
+      prisma.template.findMany.mockResolvedValue([]);
+      prisma.generatedQuestion.findMany.mockResolvedValue([{ id: "question-1" }]);
+
+      await expect(service.deleteConcept("concept-123")).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it("should throw NotFoundException if concept to delete is not found", async () => {

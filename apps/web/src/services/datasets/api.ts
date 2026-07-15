@@ -67,4 +67,13 @@ export const datasetsApi = {
       method: 'POST',
       body: payload,
     }),
+
+  bulkAddItems: (datasetId: string, payload: CreateDatasetItemPayload[]): Promise<DatasetItem[]> =>
+    apiClient.request<DatasetItem[]>(`/datasets/${datasetId}/items/bulk`, {
+      method: 'POST',
+      body: payload,
+    }),
+
+  deleteItem: (itemId: string): Promise<void> =>
+    apiClient.request<void>(`/datasets/items/${itemId}`, { method: 'DELETE' }),
 };
