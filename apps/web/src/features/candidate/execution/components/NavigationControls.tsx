@@ -20,13 +20,26 @@ export const NavigationControls = memo(function NavigationControls({
     currentQuestion,
     answers,
     saveAnswer,
-    toggleReview
+    toggleReview,
+    testInstance,
+    sectionTimingEnabled,
+    currentSectionIndex,
   } = useExecutionStore();
 
   const isFirst = currentQuestionIndex === 0;
   const isLast = currentQuestionIndex === questions.length - 1;
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : null;
   const isMarkedForReview = currentAnswer?.status === 'MARKED_FOR_REVIEW';
+
+  let currentSectionStartIndex = 0;
+  if (testInstance && currentSectionIndex > 0) {
+    let count = 0;
+    for (let i = 0; i < currentSectionIndex; i++) {
+      count += testInstance.sections[i].questions.length;
+    }
+    currentSectionStartIndex = count;
+  }
+  const isPreviousDisabled = isFirst || (sectionTimingEnabled && currentQuestionIndex === currentSectionStartIndex);
 
   const handleClearResponse = () => {
     if (!currentQuestion) return;
@@ -57,7 +70,7 @@ export const NavigationControls = memo(function NavigationControls({
         <Button
           variant='outline'
           onClick={goPrevious}
-          disabled={isFirst}
+          disabled={isPreviousDisabled}
           className='w-full sm:w-32 h-10 border-gray-300'
         >
           <ChevronLeft className='w-4 h-4 mr-2' />

@@ -6,25 +6,27 @@ export class CandidateDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboardData(userId: string) {
-    const [activeAttempts, completedTests, enrollments, examConfigs, testConfigs, allCompletedInstances] =
+    const [activeAttempts, completedTests, enrollments, examConfigs, testConfigs] =
       await Promise.all([
-        // Active attempts (IN_PROGRESS)
+        // Active attempts (IN_PROGRESS or CREATED)
         this.prisma.testInstance.findMany({
           where: {
             userId,
-            status: "IN_PROGRESS",
+            status: { in: ["IN_PROGRESS", "CREATED"] },
+            expiresAt: { gt: new Date() },
           },
           include: {
             testConfig: {
-              select: { displayName: true },
+              select: { displayName: true, totalDurationSeconds: true, totalQuestions: true },
             },
             examConfig: {
-              select: { name: true },
-            }
+              select: { name: true, durationMinutes: true, totalQuestions: true },
+            },
           },
+          orderBy: { createdAt: "desc" },
         }),
 
-        // Completed tests (COMPLETED/SUBMITTED)
+        // Completed/submitted tests – keep ALL, including multiple attempts
         this.prisma.testInstance.findMany({
           where: {
             userId,
@@ -35,24 +37,22 @@ export class CandidateDashboardRepository {
               select: { displayName: true },
             },
             examConfig: {
-              select: { name: true },
+              select: { name: true, durationMinutes: true, totalQuestions: true },
             },
             evaluationResult: {
               select: { overallScore: true },
             },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 5,
+          orderBy: { createdAt: "desc" },
         }),
 
-        // User's enrollments to map status
+        // User's enrollments
         this.prisma.candidateEnrollment.findMany({
           where: { candidateId: userId },
           include: {
             testConfig: {
               select: {
+                id: true,
                 displayName: true,
                 companyName: true,
                 totalDurationSeconds: true,
@@ -61,61 +61,61 @@ export class CandidateDashboardRepository {
             },
             examConfig: {
               select: {
+                id: true,
                 name: true,
                 durationMinutes: true,
                 totalQuestions: true,
-              }
-            }
-          },
-        }),
-
-        // Recommended / available tests (limit 5 for dashboard)
-        this.prisma.examConfig.findMany({
-          where: { isActive: true },
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          include: {
-            sections: {
-              select: { name: true },
+                sections: { select: { name: true } },
+                ruleFlags: { select: { id: true } },
+              },
             },
           },
         }),
+
+        // Recommended / available exam configs (limit 10 for dashboard)
+        this.prisma.examConfig.findMany({
+          where: { isActive: true },
+          take: 10,
+          orderBy: { createdAt: "desc" },
+          include: {
+            sections: { select: { name: true } },
+            ruleFlags: { select: { id: true } },
+          },
+        }),
+
+        // Legacy test configs
         this.prisma.testConfig.findMany({
           where: { isActive: true },
           take: 5,
           orderBy: { createdAt: "desc" },
           include: {
-            sections: {
-              select: { displayName: true },
-            },
+            sections: { select: { displayName: true } },
           },
         }),
-        // All completed test instances to filter enrollments
-        this.prisma.testInstance.findMany({
-          where: {
-            userId,
-            status: { in: ["COMPLETED", "SUBMITTED"] },
-          },
-          select: {
-            examConfigId: true,
-            testConfigId: true,
-          }
-        })
       ]);
 
-    const upcomingTests = [
-      ...examConfigs.map(ec => ({ ...ec, isExam: true })),
-      ...testConfigs.map(tc => ({ ...tc, isExam: false }))
-    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5);
-    
-    const completedConfigIds = new Set(
-      allCompletedInstances.flatMap(i => [i.examConfigId, i.testConfigId]).filter(Boolean)
-    );
-    const filteredEnrollments = enrollments.filter(e => {
-      const id = e.examConfigId || e.testId;
-      return id && !completedConfigIds.has(id);
+    // Build per-config attempt counts for the current user
+    const attemptsByConfig = new Map<string, number>();
+    completedTests.forEach((t: any) => {
+      const configId = t.examConfigId || t.testConfigId;
+      if (configId) {
+        attemptsByConfig.set(configId, (attemptsByConfig.get(configId) || 0) + 1);
+      }
     });
 
-    return { activeAttempts, completedTests, enrollments: filteredEnrollments, upcomingTests };
+    const upcomingTests = [
+      ...examConfigs.map((ec) => ({ ...ec, isExam: true })),
+      ...testConfigs.map((tc) => ({ ...tc, isExam: false })),
+    ]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, 8);
+
+    return {
+      activeAttempts,
+      completedTests,
+      enrollments, // all enrollments, not filtered
+      upcomingTests,
+      attemptsByConfig: Object.fromEntries(attemptsByConfig),
+    };
   }
 }

@@ -286,6 +286,8 @@ model TestInstanceSection {
   durationSeconds Int
   questionCount   Int
   orderIndex      Int
+  status          String                 @default("UPCOMING") @map("status")
+  startedAt       DateTime?              @map("started_at")
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
   questions       TestInstanceQuestion[]
@@ -293,6 +295,7 @@ model TestInstanceSection {
 
   @@unique([testInstanceId, orderIndex])
   @@index([testInstanceId])
+  @@index([status])
 }
 
 model TestInstanceQuestion {
@@ -339,6 +342,9 @@ model ExecutionState {
   updatedAt              DateTime     @updatedAt
   currentQuestionId      String?      @map("current_question_id")
   currentSectionKey      String?      @map("current_section_key")
+  currentSectionIndex    Int?         @default(0) @map("current_section_index")
+  sectionStartedAt       DateTime?    @map("section_started_at")
+  lockedSectionKeys      Json?        @map("locked_section_keys")
   markedQuestions        Json?        @map("marked_questions")
   networkStatusTimestamp DateTime?    @map("network_status_timestamp")
   visitedQuestions       Json?        @map("visited_questions")
@@ -533,6 +539,8 @@ model RuleFlags {
   shuffleQuestionsEnabled   Boolean    @default(false)
   shuffleOptionsEnabled     Boolean    @default(false)
   allowSectionNavigation    Boolean    @default(false)
+  sectionTimingEnabled      Boolean    @default(false) @map("section_timing_enabled")
+  maxAttempts               Int        @default(3) @map("max_attempts")
   createdAt                 DateTime   @default(now())
   updatedAt                 DateTime   @updatedAt
   examConfig                ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)

@@ -65,10 +65,16 @@ export class StartTestService {
     if (eligibility.isExamConfig) {
       config = await this.prisma.examConfig.findUnique({
         where: { id: input.testConfigId },
-        include: { sections: { orderBy: { sectionOrder: 'asc' } }, blueprint: true }
+        include: {
+          sections: { orderBy: { sectionOrder: 'asc' } },
+          blueprint: true,
+          ruleFlags: true,
+        },
       });
       if (config) {
         config.totalDurationSeconds = config.durationMinutes * 60;
+        config.sectionTimingEnabled = config.ruleFlags?.sectionTimingEnabled ?? false;
+        const numSections = config.sections.length || 1;
         config.sections = config.sections.map((s: any, index: number) => {
           let conceptKey = s.name.toLowerCase().replace(/ /g, '_');
           if (config.blueprint && Array.isArray(config.blueprint.sections)) {
@@ -77,12 +83,16 @@ export class StartTestService {
               conceptKey = bpSection.topicAllocations[0].concepts[0].conceptName.replace(/\s+/g, '_').toUpperCase();
             }
           }
+          // Use the explicitly defined section duration if available, otherwise divide total duration evenly.
+          const sectionDurationSeconds = s.sectionDurationMinutes
+            ? s.sectionDurationMinutes * 60
+            : Math.floor(config.totalDurationSeconds / numSections);
           return {
             ...s,
             displayName: s.name,
             sectionKey: conceptKey,
-            durationSeconds: Math.floor((config.durationMinutes * 60) / config.sections.length),
-            orderIndex: s.sectionOrder ?? index
+            durationSeconds: sectionDurationSeconds,
+            orderIndex: s.sectionOrder ?? index,
           };
         });
       }

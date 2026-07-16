@@ -89,7 +89,6 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Dashboard', route: '/candidate/dashboard', icon: LayoutDashboard },
         { label: 'Assessments', route: '/candidate/tests', icon: Briefcase },
-        { label: 'Interviews', route: '/candidate/interviews', icon: PlayCircle },
         { label: 'Results', route: '/candidate/results', icon: BarChart3 },
         { label: 'Progress', route: '/candidate/progress', icon: LineChart },
       ],
@@ -101,6 +100,7 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
   ],
   secondary: [{ label: 'Settings', route: '/candidate/settings', icon: Settings }],
 };
+
 
 export const NAV_CONFIG = ADMIN_NAV_CONFIG; // For backwards compatibility if any other place imports it
 

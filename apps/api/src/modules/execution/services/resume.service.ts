@@ -40,6 +40,8 @@ export class ResumeService {
         ? {
             currentQuestionIndex: executionState.currentQuestionIndex,
             remainingTimeSeconds: executionState.remainingTimeSeconds,
+            currentSectionIndex: executionState.currentSectionIndex ?? 0,
+            lockedSectionKeys: executionState.lockedSectionKeys ?? [],
           }
         : null,
       answers: answers.map((a) => ({

@@ -13,6 +13,7 @@ const UpdateRuleFlagsSchema = z.object({
   shuffleQuestionsEnabled: z.boolean(),
   shuffleOptionsEnabled: z.boolean(),
   allowSectionNavigation: z.boolean(),
+  maxAttempts: z.number().int().min(1).max(10).optional(),
 });
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -34,6 +35,7 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
   const [shuffleQuestionsEnabled, setShuffleQuestionsEnabled] = useState(false);
   const [shuffleOptionsEnabled, setShuffleOptionsEnabled] = useState(false);
   const [allowSectionNavigation, setAllowSectionNavigation] = useState(false);
+  const [maxAttempts, setMaxAttempts] = useState<number>(3);
 
   const { setRules, setDirty } = useConfigRulesStore();
 
@@ -45,6 +47,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       setShuffleQuestionsEnabled(ruleFlags.shuffleQuestionsEnabled);
       setShuffleOptionsEnabled(ruleFlags.shuffleOptionsEnabled);
       setAllowSectionNavigation(ruleFlags.allowSectionNavigation);
+      if (ruleFlags.maxAttempts !== undefined) {
+        setMaxAttempts(ruleFlags.maxAttempts);
+      }
     }
   }, [ruleFlags]);
 
@@ -57,6 +62,7 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       shuffleQuestionsEnabled,
       shuffleOptionsEnabled,
       allowSectionNavigation,
+      maxAttempts,
     });
   }, [
     negativeMarkingEnabled,
@@ -65,6 +71,7 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
     shuffleQuestionsEnabled,
     shuffleOptionsEnabled,
     allowSectionNavigation,
+    maxAttempts,
     setRules,
   ]);
 
@@ -81,6 +88,7 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       shuffleQuestionsEnabled,
       shuffleOptionsEnabled,
       allowSectionNavigation,
+      maxAttempts,
     };
 
     const validation = UpdateRuleFlagsSchema.safeParse(payload);
@@ -186,6 +194,32 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
             checked={allowSectionNavigation}
             onCheckedChange={(val: boolean) => handleToggle(setAllowSectionNavigation, val)}
           />
+        </div>
+
+        <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors md:col-span-2'>
+          <div className='space-y-0.5 pr-4'>
+            <Label htmlFor='max-attempts' className='text-base'>Maximum Attempts</Label>
+            <p className='text-sm text-muted-foreground'>
+              Maximum number of times a candidate can attempt this exam (1-10).
+            </p>
+          </div>
+          <div className='flex items-center gap-2'>
+            <input
+              id='max-attempts'
+              type='number'
+              min={1}
+              max={10}
+              value={maxAttempts}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val)) {
+                  setMaxAttempts(val);
+                  setDirty(true);
+                }
+              }}
+              className='flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+            />
+          </div>
         </div>
       </div>
 

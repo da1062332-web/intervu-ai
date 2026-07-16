@@ -12,29 +12,13 @@ export class CandidateDashboardService {
     userId: string,
   ): Promise<CandidateDashboardResponseDto> {
     const data = await this.dashboardRepository.getDashboardData(userId);
+    const attemptsByConfig: Record<string, number> = (data as any).attemptsByConfig || {};
 
-    const upcomingTests = data.enrollments
-      .filter((e: any) => e.status === "ENROLLED")
-      .map((e: any) => ({
-        configId: e.examConfigId || e.testId,
-        name: e.examConfig?.name || e.testConfig?.displayName || "Unknown Test",
-        company: e.testConfig?.companyName || "Unknown Company",
-        durationSeconds: e.examConfig ? (e.examConfig.durationMinutes * 60) : (e.testConfig?.totalDurationSeconds || 0),
-        questionCount: e.examConfig?.totalQuestions || e.testConfig?.totalQuestions || 0,
-        sections: [], // Would fetch sections if needed
-        enrollmentStatus: e.status,
-      }));
-
-    const completedTests = data.completedTests.map((t: any) => ({
-      instanceId: t.id,
-      configId: t.examConfigId || t.testConfigId,
-      name: t.examConfig?.name || t.testConfig?.displayName || "Unknown Test",
-      score: t.evaluationResult?.overallScore || 0,
-      submittedAt: t.updatedAt?.toISOString() || null,
-    }));
-
+    // Active / in-progress tests
     const activeAttempts = data.activeAttempts.map((t: any) => {
-      const totalDuration = t.examConfig ? (t.examConfig.durationMinutes * 60) : (t.testConfig?.totalDurationSeconds || 3600);
+      const totalDuration = t.examConfig
+        ? t.examConfig.durationMinutes * 60
+        : t.testConfig?.totalDurationSeconds || 3600;
       const elapsed = Math.floor((Date.now() - t.createdAt.getTime()) / 1000);
       const remaining = Math.max(0, totalDuration - elapsed);
       return {
@@ -46,17 +30,64 @@ export class CandidateDashboardService {
       };
     });
 
-    const recommendedTests = data.upcomingTests.map((t: any) => ({
-      configId: t.id,
-      name: t.isExam ? t.name : t.displayName,
-      company: t.isExam ? "Intervu" : t.companyName,
-      durationSeconds: t.isExam ? t.durationMinutes * 60 : t.totalDurationSeconds,
-      questionCount: t.totalQuestions,
-      sections: t.isExam ? t.sections?.map((s: any) => s.name) || [] : t.sections?.map((s: any) => s.displayName) || [],
-      enrollmentStatus:
-        data.enrollments.find((e: any) => e.examConfigId === t.id || e.testId === t.id)?.status ||
-        "AVAILABLE",
+    // Completed tests – every attempt, newest first
+    const completedTests = data.completedTests.map((t: any) => ({
+      instanceId: t.id,
+      configId: t.examConfigId || t.testConfigId,
+      name: t.examConfig?.name || t.testConfig?.displayName || "Unknown Test",
+      score: t.evaluationResult?.overallScore || 0,
+      submittedAt: t.updatedAt?.toISOString() || null,
     }));
+
+    // Enrollments → "upcoming" (not started or re-attemptable)
+    const upcomingTests = data.enrollments.map((e: any) => {
+      const configId = e.examConfigId || e.testId;
+      const attemptCount = attemptsByConfig[configId] || 0;
+      const maxAttempts = e.examConfig?.ruleFlags?.maxAttempts ?? 3;
+      const canReattempt = attemptCount < maxAttempts;
+      const hasActiveAttempt = data.activeAttempts.some(
+        (a: any) => a.examConfigId === configId || a.testConfigId === configId,
+      );
+
+      return {
+        configId,
+        name: e.examConfig?.name || e.testConfig?.displayName || "Unknown Test",
+        company: e.testConfig?.companyName || "Unknown Company",
+        durationSeconds: e.examConfig
+          ? e.examConfig.durationMinutes * 60
+          : e.testConfig?.totalDurationSeconds || 0,
+        questionCount: e.examConfig?.totalQuestions || e.testConfig?.totalQuestions || 0,
+        sections: e.examConfig?.sections?.map((s: any) => s.name) || [],
+        enrollmentStatus: e.status,
+        attemptCount,
+        maxAttempts,
+        canReattempt,
+        hasActiveAttempt,
+      };
+    });
+
+    // Recommended tests (from all active configs not yet enrolled in)
+    const enrolledConfigIds = new Set(
+      data.enrollments.map((e: any) => e.examConfigId || e.testId),
+    );
+
+    const recommendedTests = data.upcomingTests
+      .filter((t: any) => !enrolledConfigIds.has(t.id))
+      .map((t: any) => ({
+        configId: t.id,
+        name: t.isExam ? t.name : t.displayName,
+        company: t.isExam ? "Intervu" : t.companyName,
+        durationSeconds: t.isExam ? t.durationMinutes * 60 : t.totalDurationSeconds,
+        questionCount: t.totalQuestions,
+        sections: t.isExam
+          ? t.sections?.map((s: any) => s.name) || []
+          : t.sections?.map((s: any) => s.displayName) || [],
+        enrollmentStatus: "AVAILABLE",
+        attemptCount: 0,
+        maxAttempts: t.ruleFlags?.maxAttempts ?? 3,
+        canReattempt: true,
+        hasActiveAttempt: false,
+      }));
 
     return {
       upcomingTests,

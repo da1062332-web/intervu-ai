@@ -13,6 +13,7 @@ interface AvailableConfigDto {
   difficulty: string;
   duration: number;
   sections: string[];
+  questionCount?: number;
 }
 
 interface StartTestResponse {
@@ -34,6 +35,7 @@ export const testService = {
       title: config.name,
       difficulty: config.difficulty,
       durationMinutes: config.duration ? Math.floor(config.duration / 60) : null,
+      questionCount: config.questionCount,
       sections: (config.sections || []).map((s, idx) => ({
         id: `section-${idx}`,
         name: s,

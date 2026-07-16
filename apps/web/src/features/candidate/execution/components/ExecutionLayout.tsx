@@ -20,6 +20,7 @@ import { useResume } from '../hooks/useResume';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
+import { useSectionTimer } from '../hooks/useSectionTimer';
 import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,17 +32,20 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function ExecutionLayout() {
-  const { testInstance } = useExecutionStore();
+  const { testInstance, currentSectionIndex } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   // Initialize day 4 hooks
   useConnectionMonitor();
-  useResume(testInstance?.id);
+  // Removed useResume to always start from beginning
   useAutosave(testInstance?.id || 'unknown');
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');
+  // Section timer (Feature 6 & 8) – auto-advances section when timer expires
+  useSectionTimer(testInstance?.id);
 
   const { submitAssessment } = useSubmission(testInstance?.id || '');
 
@@ -58,7 +62,7 @@ export function ExecutionLayout() {
   };
 
   return (
-    <div 
+    <div
       className='min-h-screen bg-background flex flex-col relative select-none'
       onCopy={handleCopyPaste}
       onCut={handleCopyPaste}
@@ -66,7 +70,6 @@ export function ExecutionLayout() {
     >
       <FullscreenOverlay />
       <TabWarningModal />
-      <ResumeBanner />
       <ExecutionHeader />
 
       <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-24 select-text'>
@@ -74,8 +77,19 @@ export function ExecutionLayout() {
           {/* Left + Center Columns - Question & Resources */}
           <div className='lg:col-span-8 flex flex-col'>
             <SectionTabs />
-            <div className='flex-1 mt-4'>
-              <QuestionRenderer />
+            <div className='flex-1 mt-4 relative overflow-hidden'>
+              <AnimatePresence mode='wait'>
+                <motion.div
+                  key={currentSectionIndex}
+                  initial={{ opacity: 0, x: 15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -15 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className='h-full'
+                >
+                  <QuestionRenderer />
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
 

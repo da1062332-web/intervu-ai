@@ -28,6 +28,7 @@ describe("CandidateDashboardService", () => {
     const mockDate = new Date();
 
     jest.spyOn(repository, "getDashboardData").mockResolvedValue({
+      attemptsByConfig: {},
       activeAttempts: [
         {
           id: "attempt1",

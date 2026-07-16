@@ -53,6 +53,13 @@ export class AvailableConfigDto implements IAvailableTestDto {
       "Sections from Template.config.sections — empty array when not configured",
   })
   sections!: string[];
+
+  @ApiProperty({
+    example: 45,
+    description: "Total number of questions in the test",
+    required: false,
+  })
+  questionCount?: number;
 }
 
 /**

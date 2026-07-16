@@ -41,7 +41,7 @@ export function ActiveTestCard({ tests }: ActiveTestCardProps) {
               </div>
             </div>
             <Button className='w-full sm:w-auto shrink-0 group'>
-              Resume Assessment
+              Start Assessment
               <ArrowRightCircle className='ml-2 size-4 group-hover:translate-x-1 transition-transform' />
             </Button>
           </div>

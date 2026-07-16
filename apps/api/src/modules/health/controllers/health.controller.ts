@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Logger } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiOkResponse } from "@nestjs/swagger";
 import { ValidateResponse, HealthResponseSchema } from "@intervu/shared";
 import {
@@ -24,6 +24,8 @@ export class HealthController {
     private readonly prisma: PrismaService,
   ) {}
 
+  private readonly logger = new Logger(HealthController.name);
+
   @Get()
   @Public()
   @ValidateResponse(HealthResponseSchema)
@@ -34,6 +36,7 @@ export class HealthController {
   })
   @ApiOkResponse({ description: "Service is alive" })
   checkLiveness() {
+    this.logger.log("Health API hit - Keep-alive successful");
     return {
       status: "ok",
       service: "intervu-api",

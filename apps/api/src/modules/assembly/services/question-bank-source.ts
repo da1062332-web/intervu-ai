@@ -32,12 +32,22 @@ export class QuestionBankSource implements IQuestionSource {
   ) {}
 
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
-    const conceptCode = filters.conceptKey || "";
+    const inputConceptKey = filters.conceptKey || "";
 
-    // 1. Check if this is a manual concept
-    const concept = await this.prisma.concept.findFirst({
-      where: { code: conceptCode.toUpperCase() },
+    // 1. Resolve UUID to Code if necessary
+    let resolvedCode = inputConceptKey;
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: inputConceptKey },
     });
+    if (topic) {
+      resolvedCode = topic.code;
+    }
+
+    const concept = await this.prisma.concept.findFirst({
+      where: { code: resolvedCode.toUpperCase() },
+    });
+
+    const resolvedFilters = { ...filters, conceptKey: resolvedCode };
 
     const isManual = concept?.questionSources?.includes("MANUAL");
 
@@ -71,7 +81,7 @@ export class QuestionBankSource implements IQuestionSource {
         availability.available < limit
       ) {
         throw new BadRequestException({
-          message: `Insufficient manual question pool for concept ${conceptCode} at difficulty ${difficulty}. Required: ${limit}, Available: ${availability.available}.`,
+          message: `Insufficient manual question pool for concept ${resolvedCode} at difficulty ${difficulty}. Required: ${limit}, Available: ${availability.available}.`,
           details: availability.details,
         });
       }
@@ -88,10 +98,10 @@ export class QuestionBankSource implements IQuestionSource {
       this.logger.warn(
         "Real question bank disabled. Using legacy GeneratedQuestion pool.",
       );
-      return this.legacyPool.fetchQuestions(filters);
+      return this.legacyPool.fetchQuestions(resolvedFilters);
     }
 
-    const topicId = filters.conceptKey ?? "";
+    const topicId = resolvedCode;
     const difficulty = (filters.difficultyLevel ?? "MEDIUM") as
       | "EASY"
       | "MEDIUM"
@@ -126,7 +136,7 @@ export class QuestionBankSource implements IQuestionSource {
             `(required=${limit}, available=${availability.available}). ` +
             `Falling back to legacy GeneratedQuestion pool.`,
         );
-        return this.fetchFromLegacyPool(filters, excludeIds);
+        return this.fetchFromLegacyPool(resolvedFilters, excludeIds);
       }
 
       // Retrieve and reserve questions from the real bank
@@ -149,7 +159,7 @@ export class QuestionBankSource implements IQuestionSource {
         `QuestionBankSource real-bank retrieval failed (${message}). ` +
           `Falling back to legacy pool.`,
       );
-      return this.fetchFromLegacyPool(filters, excludeIds);
+      return this.fetchFromLegacyPool(resolvedFilters, excludeIds);
     }
   }
 
@@ -160,7 +170,7 @@ export class QuestionBankSource implements IQuestionSource {
     filters: QuestionFilters,
     excludeIds: string[],
   ): Promise<GeneratedQuestion[]> {
-    return this.legacyPool.fetchQuestions({ ...filters, excludeIds });
+    return this.legacyPool.fetchQuestions({ ...filters, conceptKey: filters.conceptKey, excludeIds });
   }
 
   /**
