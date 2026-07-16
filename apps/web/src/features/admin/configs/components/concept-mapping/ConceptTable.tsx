@@ -60,7 +60,7 @@ export function ConceptTable({
             <TableRow>
               <TableHead>Concept Name</TableHead>
               <TableHead>Concept Code</TableHead>
-              {!hideTemplatesButton && <TableHead>Templates</TableHead>}
+              {!hideTemplatesButton && <TableHead>Source / Templates</TableHead>}
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className='text-right'>Actions</TableHead>
@@ -85,14 +85,18 @@ export function ConceptTable({
                 </TableCell>
                 {!hideTemplatesButton && (
                   <TableCell>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => onMapTemplates?.(concept)}
-                      className="h-7 text-xs"
-                    >
-                      <Link className="h-3 w-3 mr-1" /> Map
-                    </Button>
+                    {concept.questionSources?.includes('MANUAL') ? (
+                      <Badge variant="outline" className="text-xs font-normal">Manual</Badge>
+                    ) : (
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => onMapTemplates?.(concept)}
+                        className="h-7 text-xs"
+                      >
+                        <Link className="h-3 w-3 mr-1" /> Map
+                      </Button>
+                    )}
                   </TableCell>
                 )}
                 <TableCell>

@@ -14,7 +14,14 @@ describe('SolutionTemplateEditor', () => {
       setExplanationTemplate: vi.fn(),
     });
 
-    render(<SolutionTemplateEditor />);
+    render(
+      <SolutionTemplateEditor
+        solutionTemplate=""
+        explanationTemplate=""
+        setSolutionTemplate={vi.fn()}
+        setExplanationTemplate={vi.fn()}
+      />
+    );
 
     expect(screen.getByText(/Solution Template/i)).toBeInTheDocument();
     expect(screen.getByText(/Explanation Template/i)).toBeInTheDocument();

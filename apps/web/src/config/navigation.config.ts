@@ -43,6 +43,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     {
       heading: 'Content Engine',
       items: [
+        { label: 'Manual Questions', route: '/admin/manual-questions', icon: FileText },
         { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Datasets', route: '/admin/datasets', icon: Database },
         { label: 'Scenarios', route: '/admin/scenarios', icon: GitBranch },
