@@ -38,6 +38,12 @@ export class TemplateDatasetService {
         difficultyOverride: dto.difficultyOverride,
         topicOverride: dto.topicOverride,
         tags: dto.tags,
+        variableMapping: dto.variableMapping,
+        sampleSize: dto.sampleSize,
+        shuffle: dto.shuffle,
+        allowReuse: dto.allowReuse,
+        specificItemId: dto.specificItemId,
+        fallbackPolicy: dto.fallbackPolicy,
       });
     }
 
@@ -47,6 +53,12 @@ export class TemplateDatasetService {
       difficultyOverride: dto.difficultyOverride,
       topicOverride: dto.topicOverride,
       tags: dto.tags || [],
+      variableMapping: dto.variableMapping || {},
+      sampleSize: dto.sampleSize || 1,
+      shuffle: dto.shuffle !== undefined ? dto.shuffle : true,
+      allowReuse: dto.allowReuse !== undefined ? dto.allowReuse : true,
+      specificItemId: dto.specificItemId,
+      fallbackPolicy: dto.fallbackPolicy || "RELAX_FILTERS",
       template: { connect: { id: templateId } },
     });
   }

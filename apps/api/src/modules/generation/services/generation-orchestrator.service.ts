@@ -157,7 +157,7 @@ export class GenerationOrchestratorService {
     const startTime = Date.now();
     const result = await this.generateSingleQuestionWithRetry({
       examId: "REGENERATION",
-      sectionId: existing.sectionId,
+      sectionId: existing.sectionId ?? "",
       topicId: existing.topicId,
       difficulty: existing.difficulty,
       MAX_RETRIES: 3,

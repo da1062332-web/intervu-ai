@@ -6,6 +6,7 @@ import {
   GenerationContext,
   DatasetPayload,
 } from "../../interfaces/generation-context.interface";
+import { DatasetLoaderService } from "../../../generation/services/dataset-loader.service";
 
 /**
  * DatasetGenerationStrategy
@@ -55,34 +56,32 @@ export class DatasetGenerationStrategy implements IQuestionGenerationStrategy {
       );
     }
 
-    // Build filter for DatasetItem
-    const where: Record<string, unknown> = {};
-    if (topic) where["topic"] = topic;
-    if (difficulty) where["difficulty"] = difficulty;
-    if (tags.length > 0) where["tags"] = { hasSome: tags };
-
-    // Find a matching item — pick a random one
-    const items = await this.prisma.datasetItem.findMany({
-      where: { datasetId: dataset.id, ...where },
-      take: 20,
+    // 2. Load dataset item using our advanced DatasetLoaderService
+    const datasetLoader = new DatasetLoaderService(this.prisma);
+    const item = await datasetLoader.loadDatasetItem({
+      id: template.id,
+      difficultyLevel: template.difficultyLevel,
+      conceptKey: template.conceptKey,
+      datasetConfig: template.datasetConfig,
     });
 
-    if (items.length === 0) {
-      throw new NotFoundException(
-        `No dataset items found matching filters: ${JSON.stringify(where)}`,
-      );
-    }
+    // 3. Resolve Custom Variables from Mapping config
+    const resolvedVariables: Record<string, any> = {};
+    const mapping = config?.variableMapping as Record<string, string> || {};
+    const itemMetadata = item.metadata as Record<string, any> || {};
 
-    const item = items[Math.floor(Math.random() * items.length)];
+    for (const [tplVar, dsField] of Object.entries(mapping)) {
+      resolvedVariables[tplVar] = itemMetadata[dsField] ?? null;
+    }
 
     const payload: DatasetPayload = {
       passage: item.content,
       datasetMetadata: {
         datasetId: dataset.id,
         itemId: item.id,
-        topic: item.topic,
-        difficulty: item.difficulty,
-        tags: item.tags,
+        topic: itemMetadata.topic || "",
+        difficulty: itemMetadata.difficulty || "",
+        tags: itemMetadata.tags || [],
       },
     };
 
@@ -94,6 +93,16 @@ export class DatasetGenerationStrategy implements IQuestionGenerationStrategy {
         datasetName: dataset.name,
         datasetType: dataset.type,
         generatedAt: new Date().toISOString(),
+        variables: resolvedVariables,
+        lineage: {
+          datasetId: dataset.id,
+          datasetItemId: item.id,
+          templateId: template.id,
+          templateVersion: template.version,
+          variablesUsed: resolvedVariables,
+          mappingUsed: mapping,
+          promptVersion: 1,
+        },
       },
     };
   }

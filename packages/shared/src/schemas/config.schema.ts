@@ -27,6 +27,7 @@ export const TemplateSchema = z.object({
   solutionSchema: z.unknown().optional(),
   constraints: z.unknown().optional(),
   generationStrategy: z.string().optional(),
+  datasetId: z.string().nullable().optional(),
   createdAt: z.union([z.date(), z.string()]).optional(),
   updatedAt: z.union([z.date(), z.string()]).optional(),
 });
