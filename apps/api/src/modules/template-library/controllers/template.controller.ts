@@ -150,7 +150,12 @@ export class TemplateController {
   })
   @ApiOkResponse({ description: "Template record" })
   async findOne(@Param("id") id: string) {
-    return this.templateService.findById(id);
+    const template = await this.templateService.findById(id);
+    const datasetId = (template as any).datasetConfigRelation?.datasetId || null;
+    return {
+      ...template,
+      datasetId,
+    };
   }
 
   @Get(":id/version")

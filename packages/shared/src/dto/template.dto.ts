@@ -246,6 +246,12 @@ export const TemplateDatasetConfigSchema = z.object({
   difficultyOverride: z.string().optional().nullable(),
   topicOverride: z.string().optional().nullable(),
   tags: z.array(z.string()).default([]),
+  variableMapping: z.record(z.string(), z.string()).default({}),
+  sampleSize: z.number().int().default(1),
+  shuffle: z.boolean().default(true),
+  allowReuse: z.boolean().default(true),
+  specificItemId: z.string().optional().nullable(),
+  fallbackPolicy: z.string().default("RELAX_FILTERS"),
 });
 
 export const UpdateTemplateDatasetConfigSchema = TemplateDatasetConfigSchema.partial();
@@ -259,7 +265,7 @@ export class UpdateTemplateDatasetConfigDto {
 
   @ApiPropertyOptional({
     example: "RANDOM",
-    description: "Method to select items: RANDOM | SEQUENTIAL",
+    description: "Method to select items: RANDOM | SEQUENTIAL | SPECIFIC",
   })
   selectionMethod?: string;
 
@@ -280,6 +286,42 @@ export class UpdateTemplateDatasetConfigDto {
     description: "Optional tag filters",
   })
   tags?: string[];
+
+  @ApiPropertyOptional({
+    example: { company_name: "companyName" },
+    description: "Map template variables to dataset metadata fields",
+  })
+  variableMapping?: Record<string, string>;
+
+  @ApiPropertyOptional({
+    example: 1,
+    description: "Number of records to select",
+  })
+  sampleSize?: number;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: "Whether to shuffle records",
+  })
+  shuffle?: boolean;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: "Whether to allow record reuse",
+  })
+  allowReuse?: boolean;
+
+  @ApiPropertyOptional({
+    example: "dataset-item-id-123",
+    description: "Select a specific record ID",
+  })
+  specificItemId?: string;
+
+  @ApiPropertyOptional({
+    example: "RELAX_FILTERS",
+    description: "Fallback strategy when no records match filters",
+  })
+  fallbackPolicy?: string;
 
   static validate(
     data: unknown,

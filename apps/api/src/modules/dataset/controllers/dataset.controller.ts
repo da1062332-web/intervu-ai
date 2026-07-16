@@ -130,4 +130,12 @@ export class DatasetController {
   ) {
     return this.datasetService.updateDatasetItem(itemId, dto);
   }
+
+  @Get(":id/schema")
+  @ApiOperation({ summary: "Get inferred schema properties of a dataset" })
+  @ApiParam({ name: "id", description: "Dataset ID" })
+  @ApiOkResponse({ description: "Dataset schema representation" })
+  async getSchema(@Param("id") id: string) {
+    return this.datasetService.getDatasetSchema(id);
+  }
 }

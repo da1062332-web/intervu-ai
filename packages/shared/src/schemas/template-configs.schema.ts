@@ -11,12 +11,15 @@ export const TemplateDatasetConfigBaseSchema = z.object({
   tags: z.array(z.string()),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
+  variableMapping: z.record(z.string(), z.string()).optional().nullable(),
+  sampleSize: z.number().int().optional().nullable(),
+  shuffle: z.boolean().optional().nullable(),
+  allowReuse: z.boolean().optional().nullable(),
+  specificItemId: z.string().optional().nullable(),
+  fallbackPolicy: z.string().optional().nullable(),
 });
 
-export const TemplateDatasetConfigResponseSchema =
-  ApiSuccessResponseSchema.extend({
-    data: TemplateDatasetConfigBaseSchema.nullable(),
-  });
+export const TemplateDatasetConfigResponseSchema = TemplateDatasetConfigBaseSchema.nullable();
 
 export const TemplatePromptConfigBaseSchema = z.object({
   id: z.string(),
@@ -29,7 +32,4 @@ export const TemplatePromptConfigBaseSchema = z.object({
   updatedAt: z.date().or(z.string()),
 });
 
-export const TemplatePromptConfigResponseSchema =
-  ApiSuccessResponseSchema.extend({
-    data: TemplatePromptConfigBaseSchema.nullable(),
-  });
+export const TemplatePromptConfigResponseSchema = TemplatePromptConfigBaseSchema.nullable();

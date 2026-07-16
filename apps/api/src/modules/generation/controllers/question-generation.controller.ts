@@ -28,6 +28,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { GenerationStrategyResolver } from "../services/generation-strategy.resolver";
 import { GenerationRetryService } from "../../generation-ai/retry/generation-retry.service";
 import { ResponseValidatorService } from "../../generation-ai/validators/response-validator.service";
+import { PromptBuilderService } from "../../generation-ai/prompts/prompt-builder.service";
 
 @ApiTags("question-generation")
 @ApiBearerAuth("jwt-auth")
@@ -73,6 +74,10 @@ export class QuestionGenerationController {
     if (!template) {
       throw new NotFoundException(`Template with ID "${templateId}" not found`);
     }
+
+    const config = await this.prisma.templateDatasetConfig.findUnique({
+      where: { templateId: template.id },
+    });
 
     const topic = await this.prisma.topic.findFirst({
       where: { code: template.conceptKey },
@@ -142,6 +147,15 @@ export class QuestionGenerationController {
             variables: context.variables,
             datasetItem: context.datasetItem,
             logicalGraph: context.logicalGraph,
+            lineage: {
+              datasetId: config?.datasetId || null,
+              datasetItemId: context.datasetItem?.id || null,
+              templateId: template.id,
+              templateVersion: template.version,
+              variablesUsed: context.variables,
+              mappingUsed: config?.variableMapping || {},
+              promptVersion: 1,
+            },
           },
         },
       });
@@ -222,6 +236,77 @@ export class QuestionGenerationController {
         datasetItem: context.datasetItem,
         logicalGraph: context.logicalGraph,
       },
+    };
+  }
+
+  @Post("dataset-preview")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Preview how dataset values populate template variables and prompts before generation",
+  })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        templateId: { type: "string" },
+      },
+      required: ["templateId"],
+    },
+  })
+  async previewDataset(@Body("templateId") templateId: string) {
+    const template = await this.prisma.template.findUnique({
+      where: { id: templateId },
+    });
+    if (!template) {
+      throw new NotFoundException(`Template with ID "${templateId}" not found`);
+    }
+
+    const context = await this.strategyResolver.resolve(templateId);
+
+    const promptConfig = await this.prisma.templatePromptConfig.findUnique({
+      where: { templateId: template.id },
+    });
+
+    const promptBuilder = new PromptBuilderService();
+    const mockInput = {
+      template: {
+        ...template,
+        generationStrategy: context.generationStrategy,
+      },
+      variableValues: context.variables,
+      datasetItem: context.datasetItem,
+      styleProfile: undefined,
+    };
+    const compiledPrompt = promptBuilder.buildPrompt(mockInput as any);
+
+    let parsedStructure: any = {};
+    try {
+      parsedStructure = typeof template.structure === "string" 
+        ? JSON.parse(template.structure) 
+        : (template.structure || {});
+    } catch (e) {
+      parsedStructure = {};
+    }
+
+    const stemTemplate = parsedStructure.questionTemplate?.stem || "";
+    const interpolatedStem = promptBuilder.interpolate(stemTemplate, context.variables);
+
+    const interpolatedUserPrompt = promptConfig?.userPrompt
+      ? promptBuilder.interpolate(promptConfig.userPrompt, { content: context.datasetItem?.content || "", ...context.variables })
+      : "";
+
+    const interpolatedInstructions = promptConfig?.instructions
+      ? promptBuilder.interpolate(promptConfig.instructions, context.variables)
+      : "";
+
+    return {
+      success: true,
+      variables: context.variables,
+      datasetItem: context.datasetItem,
+      interpolatedStem,
+      interpolatedUserPrompt,
+      interpolatedInstructions,
+      compiledPrompt,
     };
   }
 
