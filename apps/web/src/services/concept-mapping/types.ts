@@ -5,6 +5,8 @@ export interface ConceptMapping {
   code: string;
   description?: string | null;
   status: 'ACTIVE' | 'INACTIVE';
+  questionSources?: string[];
+  sectionId?: string;
   createdAt: string;
   updatedAt: string;
 
@@ -19,6 +21,7 @@ export interface CreateConceptPayload {
   code?: string;
   description?: string;
   status?: 'ACTIVE' | 'INACTIVE';
+  questionSources?: string[];
 
   // Legacy compatibility fields
   conceptName?: string;
@@ -30,6 +33,7 @@ export interface UpdateConceptPayload {
   code?: string;
   description?: string;
   status?: 'ACTIVE' | 'INACTIVE';
+  questionSources?: string[];
 
   // Legacy compatibility fields
   conceptName?: string;
