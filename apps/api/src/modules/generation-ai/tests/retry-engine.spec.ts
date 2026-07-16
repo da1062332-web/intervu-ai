@@ -42,6 +42,14 @@ describe("GenerationRetryService", () => {
       generationAuditLog: {
         create: jest.fn().mockResolvedValue({ id: "log-1" }),
       },
+      styleProfile: {
+        findFirst: jest.fn().mockResolvedValue({
+          id: "style-1",
+          name: "Default Style",
+          isDefault: true,
+          active: true,
+        }),
+      },
     };
 
     mockAdapter = new MockAdapter();

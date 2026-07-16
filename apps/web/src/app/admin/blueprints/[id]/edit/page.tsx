@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { BlueprintSectionPayload } from '@/services/blueprints/types';
+import toast from 'react-hot-toast';
 
 export default function EditBlueprintPage() {
   const params = useParams();
@@ -85,9 +86,17 @@ export default function EditBlueprintPage() {
           sections: sections,
         },
       });
+      toast.success('Blueprint updated successfully');
       router.push(`/admin/blueprints/${id}`);
-    } catch (error) {
-      // toast is handled in mutation hook
+    } catch (error: any) {
+      const details = error?.response?.data?.error?.details;
+      const detailsMsg = Array.isArray(details) ? details.join(', ') : '';
+      const errorMsg =
+        detailsMsg ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        'Failed to update blueprint';
+      toast.error(errorMsg);
     }
   };
 
@@ -166,16 +175,20 @@ export default function EditBlueprintPage() {
             <div className='border rounded-lg p-6 bg-white dark:bg-gray-900 shadow-sm space-y-6'>
               <h2 className='text-xl font-semibold border-b pb-4'>3. Allocations</h2>
 
-              {sections.map((section: BlueprintSectionPayload) => (
-                <div key={section.sectionId} className='space-y-6 pt-4'>
-                  <h3 className='font-medium text-lg text-indigo-600 dark:text-indigo-400'>
-                    Section ID: {section.sectionId}
-                  </h3>
-                  <TopicAllocator sectionId={section.sectionId} />
-                  <DifficultyAllocator sectionId={section.sectionId} />
-                  <hr className='my-4 border-gray-200 dark:border-gray-800' />
-                </div>
-              ))}
+              {sections.map((section: BlueprintSectionPayload) => {
+                const sectionName = configSections?.find((s) => s.id === section.sectionId)?.name || section.sectionId;
+
+                return (
+                  <div key={section.sectionId} className='space-y-6 pt-4'>
+                    <h3 className='font-semibold text-lg text-indigo-600 dark:text-indigo-400'>
+                      Section: {sectionName}
+                    </h3>
+                    <TopicAllocator sectionId={section.sectionId} />
+                    <DifficultyAllocator sectionId={section.sectionId} />
+                    <hr className='my-4 border-gray-200 dark:border-gray-800' />
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

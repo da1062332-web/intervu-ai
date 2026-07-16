@@ -16,6 +16,7 @@ import { OptionStrategySection } from './components/OptionStrategySection';
 import { SolutionLogicSection } from './components/SolutionLogicSection';
 import { DatasetConfigurationSection } from './components/DatasetConfigurationSection';
 import { PreviewSection } from './components/PreviewSection';
+import { DatasetQuestionDefinitionSection } from './components/DatasetQuestionDefinitionSection';
 
 type SectionType = 
   | 'basic' 
@@ -72,13 +73,18 @@ export default function TemplatePage() {
   const renderSection = () => {
     switch (activeSection) {
       case 'basic': return <BasicInfoSection template={template} />;
-      case 'question': return <QuestionDefinitionSection template={template} />;
+      case 'question': 
+        return strategy === 'DATASET' ? (
+          <DatasetQuestionDefinitionSection template={template} />
+        ) : (
+          <QuestionDefinitionSection template={template} />
+        );
       case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
       case 'variables': return <VariableBuilderSection />;
       case 'constraints': return <ConstraintBuilderSection />;
       case 'options': return <OptionStrategySection template={template} />;
       case 'solution': return <SolutionLogicSection template={template} />;
-      case 'preview': return <PreviewSection />;
+      case 'preview': return <PreviewSection template={template} />;
       case 'media':
       case 'validation':
       case 'publishing':

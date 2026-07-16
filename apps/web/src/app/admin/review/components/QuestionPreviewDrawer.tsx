@@ -80,7 +80,12 @@ export function QuestionPreviewDrawer({
               <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">Solution & Validation</h3>
               {/* Read-only solution editor */}
               <div className="opacity-80 pointer-events-none">
-                 <SolutionTemplateEditor />
+                 <SolutionTemplateEditor
+                   solutionTemplate={question.correctAnswer ? JSON.stringify(question.correctAnswer, null, 2) : ''}
+                   explanationTemplate={question.explanation || ''}
+                   setSolutionTemplate={() => {}}
+                   setExplanationTemplate={() => {}}
+                 />
               </div>
               <div className="mt-4">
                 <ValidationWidget />

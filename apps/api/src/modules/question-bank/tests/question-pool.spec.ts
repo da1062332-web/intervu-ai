@@ -6,6 +6,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
   let prismaMock: any;
   let searchServiceMock: any;
   let templateServiceMock: any;
+  let bankServiceMock: any;
 
   beforeEach(() => {
     prismaMock = {
@@ -45,11 +46,18 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
       generateQuestionForTemplate: jest.fn(),
     };
 
+    bankServiceMock = {
+      createQuestion: jest.fn(),
+      updateQuestion: jest.fn(),
+      archiveQuestion: jest.fn(),
+      getRandomQuestions: jest.fn(),
+    };
+
     controller = new QuestionsController(
       searchServiceMock,
       prismaMock,
       templateServiceMock,
-      undefined,
+      bankServiceMock as any,
     );
   });
 

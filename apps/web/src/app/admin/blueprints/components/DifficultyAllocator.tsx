@@ -1,15 +1,26 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useBlueprintBuilderStore } from '@/store/blueprint-builder.store';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import type { BlueprintSectionPayload } from '@/services/blueprints/types';
+import { useQuery } from '@tanstack/react-query';
+import { examConfigsApi } from '@/services/exam-configs/api';
 
 interface DifficultyAllocatorProps {
   sectionId: string;
 }
 
 export function DifficultyAllocator({ sectionId }: DifficultyAllocatorProps) {
+  const selectedConfigId = useBlueprintBuilderStore((state) => state.selectedConfigId);
+
+  const { data: configPreview } = useQuery({
+    queryKey: ['config-preview', selectedConfigId],
+    queryFn: () => examConfigsApi.previewConfig(selectedConfigId),
+    enabled: !!selectedConfigId,
+  });
+
   const sectionsState = useBlueprintBuilderStore((state) => state.sections);
   const updateSection = useBlueprintBuilderStore((state) => state.updateSection);
 
@@ -18,6 +29,22 @@ export function DifficultyAllocator({ sectionId }: DifficultyAllocatorProps) {
     | undefined;
 
   const difficulty = sectionState?.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
+
+  useEffect(() => {
+    // If config preview is loaded and difficulty allocation isn't initialized yet, pre-populate it
+    if (configPreview && configPreview.difficulty) {
+      const currentSum = (difficulty.easy || 0) + (difficulty.medium || 0) + (difficulty.hard || 0);
+      if (currentSum === 0) {
+        updateSection(sectionId, {
+          difficultyAllocation: {
+            easy: configPreview.difficulty.easy,
+            medium: configPreview.difficulty.medium,
+            hard: configPreview.difficulty.hard,
+          },
+        });
+      }
+    }
+  }, [configPreview, difficulty, sectionId, updateSection]);
 
   const totalAllocated = (difficulty.easy || 0) + (difficulty.medium || 0) + (difficulty.hard || 0);
   const isValid = totalAllocated === 100;

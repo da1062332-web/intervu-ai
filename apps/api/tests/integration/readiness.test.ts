@@ -30,7 +30,14 @@ describe("Readiness Engine Integration Tests", () => {
   let app: INestApplication;
 
   // Mock repositories and services
-  const mockPrismaService = {};
+  const mockPrismaService = {
+    topicWeightage: {
+      findUnique: vi.fn(),
+    },
+    question: {
+      count: vi.fn().mockResolvedValue(0),
+    },
+  };
   const mockConfigRepo = { findById: vi.fn() };
   const mockSectionRepo = { findManyByConfigId: vi.fn() };
   const mockTopicRepo = { findById: vi.fn() };
@@ -208,6 +215,96 @@ describe("Readiness Engine Integration Tests", () => {
       expect(res.body.data.checks.every((c: any) => c.status === "PASS")).toBe(
         true,
       );
+    });
+
+    it("should return FAIL for Manual Questions Pool when concept is MANUAL and available questions are insufficient", async () => {
+      const configId = "config-e2e-123";
+
+      // 1. Mock config exists
+      mockConfigRepo.findById.mockResolvedValue({
+        id: configId,
+        name: "Backend Developer Assessment",
+        code: "BACKEND_DEV",
+        role: "Software Engineer",
+        totalQuestions: 10,
+        durationMinutes: 30,
+        isArchived: false,
+        status: "DRAFT",
+      });
+
+      // 2. Mock section configured
+      mockSectionRepo.findManyByConfigId.mockResolvedValue([
+        {
+          id: "section-e2e-1",
+          name: "NodeJS",
+          questionCount: 10,
+        },
+      ]);
+
+      // 3. Mock topics assigned
+      mockTopicSectionMappingRepo.findMappingsBySection.mockResolvedValue([
+        { topicId: "topic-e2e-1" },
+      ]);
+
+      // 4. Mock topic details
+      mockTopicRepo.findById.mockResolvedValue({
+        id: "topic-e2e-1",
+        name: "Event Loop",
+      });
+
+      // 5. Mock concepts present with MANUAL source
+      mockConceptRepo.findManyByTopicId.mockResolvedValue([
+        {
+          id: "concept-e2e-1",
+          code: "EVENT_LOOP_BASICS",
+          name: "Event Loop Basics",
+          questionSources: ["MANUAL"],
+        },
+      ]);
+
+      // 6. Mock weightages sum to 100
+      mockTopicWeightageRepo.sumWeightagesBySection.mockResolvedValue(100);
+
+      // Mock topicWeightage database findUnique call: weightage is 100%
+      mockPrismaService.topicWeightage.findUnique.mockResolvedValue({
+        weightagePercentage: 100,
+      });
+
+      // Mock question count call: return 2 manual questions (needs 10 questions)
+      mockPrismaService.question.count.mockResolvedValue(2);
+
+      // 11. Mock blueprint valid
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
+
+      // 12. Mock report database operations
+      mockReadinessReportRepo.findLatestByConfigId.mockResolvedValue(null);
+      mockReadinessReportRepo.create.mockImplementation((dto: any) =>
+        Promise.resolve({
+          id: "report-e2e-2",
+          configId: dto.examConfig.connect.id,
+          score: dto.score,
+          status: dto.status,
+          report: dto.report,
+        }),
+      );
+
+      const res = await request(app.getHttpServer())
+        .post(`/configs/${configId}/readiness`)
+        .send();
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+
+      // Since manual pool is insufficient, score should be less than 100
+      expect(res.body.data.score).toBeLessThan(100);
+      const manualCheck = res.body.data.checks.find(
+        (c: any) => c.name === "Manual Questions Pool",
+      );
+      expect(manualCheck).toBeDefined();
+      expect(manualCheck.status).toBe("FAIL");
     });
   });
 });

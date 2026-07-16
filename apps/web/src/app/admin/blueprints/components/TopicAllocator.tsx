@@ -8,12 +8,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import type { BlueprintSectionPayload } from '@/services/blueprints/types';
 
+import { useQuery } from '@tanstack/react-query';
+import { topicWeightagesApi } from '@/services/topic-weightages/api';
+
 interface TopicAllocatorProps {
   sectionId: string;
 }
 
 export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
-  const { data: topics, isLoading, isError } = useSectionTopics(sectionId);
+  const { data: topics, isLoading: isTopicsLoading, isError } = useSectionTopics(sectionId);
+  const { data: weightages, isLoading: isWeightagesLoading } = useQuery({
+    queryKey: ['topic-weightages', sectionId],
+    queryFn: () => topicWeightagesApi.getWeightages(sectionId),
+    enabled: !!sectionId,
+  });
+
   const sectionsState = useBlueprintBuilderStore((state) => state.sections);
   const updateSection = useBlueprintBuilderStore((state) => state.updateSection);
 
@@ -23,15 +32,24 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
   const allocations = sectionState?.topicAllocations || [];
 
   useEffect(() => {
-    // If topics are loaded but allocations aren't initialized yet, set them to 0 or an even split
-    if (topics && topics.length > 0 && allocations.length === 0) {
-      const initialAllocations = topics.map((t) => ({
-        topicId: t.topicId,
-        percentage: 0,
-      }));
-      updateSection(sectionId, { topicAllocations: initialAllocations });
+    // If topics and default weightages are loaded, and allocations aren't initialized yet, pre-populate them
+    if (topics && topics.length > 0 && weightages) {
+      const initialAllocations = topics.map((t) => {
+        const matchingWeight = weightages.find((w) => w.topicId === t.topicId);
+        return {
+          topicId: t.topicId,
+          percentage: matchingWeight ? matchingWeight.weightagePercentage : 0,
+        };
+      });
+
+      const currentSum = allocations.reduce((sum, a) => sum + (a.percentage || 0), 0);
+      if (currentSum === 0) {
+        updateSection(sectionId, { topicAllocations: initialAllocations });
+      }
     }
-  }, [topics, allocations.length, sectionId, updateSection]);
+  }, [topics, weightages, allocations.length, sectionId, updateSection]);
+
+  const isLoading = isTopicsLoading || isWeightagesLoading;
 
   if (isLoading) {
     return <Skeleton className='h-20 w-full' />;

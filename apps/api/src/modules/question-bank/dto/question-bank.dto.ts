@@ -69,6 +69,57 @@ export class CreateQuestionDto {
 
   @IsOptional()
   metadata?: any;
+
+  @ApiProperty({ example: "concept-123", required: false })
+  @IsString()
+  @IsOptional()
+  conceptId?: string;
+
+  @ApiProperty({ example: "MANUAL", required: false })
+  @IsString()
+  @IsOptional()
+  questionSource?: string;
+
+  @ApiProperty({ example: "MCQ", required: false })
+  @IsString()
+  @IsOptional()
+  questionType?: string;
+
+
+
+  @ApiProperty({ example: 120, required: false })
+  @IsNumber()
+  @IsOptional()
+  estimatedTime?: number;
+
+  @ApiProperty({ example: "Primary Key vs Foreign Key", required: false })
+  @IsString()
+  @IsOptional()
+  questionTitle?: string;
+
+  @ApiProperty({ example: "Explain the difference...", required: false })
+  @IsString()
+  @IsOptional()
+  questionStatement?: string;
+
+  @ApiProperty({ example: "Write clean code", required: false })
+  @IsString()
+  @IsOptional()
+  instructions?: string;
+
+  @ApiProperty({ example: "image.png", required: false })
+  @IsString()
+  @IsOptional()
+  questionImage?: string;
+
+  @IsOptional()
+  attachments?: any;
+
+  @IsOptional()
+  mcqData?: any;
+
+  @IsOptional()
+  codingData?: any;
 }
 
 export class UpdateQuestionDto {
@@ -117,6 +168,67 @@ export class UpdateQuestionDto {
   @IsEnum(QuestionStatus)
   @IsOptional()
   status?: QuestionStatus;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  conceptId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  questionSource?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  questionType?: string;
+
+
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
+  estimatedTime?: number;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  questionTitle?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  questionStatement?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  instructions?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  questionImage?: string;
+
+  @IsOptional()
+  attachments?: any;
+
+  @IsOptional()
+  mcqData?: any;
+
+  @IsOptional()
+  codingData?: any;
+
+  @ApiProperty({ required: false })
+  @IsArray()
+  @IsOptional()
+  options?: string[];
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  correctAnswer?: string;
 }
 
 export class BulkUploadDto {

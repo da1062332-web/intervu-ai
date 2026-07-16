@@ -47,6 +47,7 @@ async function runBenchmark() {
   const questionSource = new QuestionBankSource(
     mockRotationService as unknown as import("../../question-bank/services/question-rotation.service").QuestionRotationService,
     mockLogger as unknown as import("../repositories/question-pool.repository").QuestionPoolRepository,
+    {} as any,
   );
   const allocationService = new IntelligentAllocationService(questionSource);
   const duplicateService = new DuplicateDetectionService();

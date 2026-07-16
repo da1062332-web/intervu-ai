@@ -34,6 +34,7 @@ describe("ConceptMappingService", () => {
     code: "PREFIX_SUM",
     description: "Prefix Sum array operations",
     status: ConceptStatus.ACTIVE,
+    questionSources: ["VARIABLE_TEMPLATE"],
     createdAt: new Date(),
     updatedAt: new Date(),
   };

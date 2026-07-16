@@ -17,6 +17,7 @@ import { TopicRepository } from "../../src/modules/concept-mapping/repositories/
 import { ConceptMappingRepository } from "../../src/modules/concept-mapping/repositories/concept-mapping.repository";
 import { TopicRegistryLoader } from "../../src/modules/concept-mapping/services/topic-registry-loader.service";
 import { JwtAuthGuard } from "../../src/modules/auth/guards/jwt-auth.guard";
+import { PrismaService } from "../../src/prisma/prisma.service";
 import { Topic, Concept, TopicStatus, ConceptStatus } from "@prisma/client";
 
 describe("Topic & Concept Registry Integration Tests", () => {
@@ -55,6 +56,7 @@ describe("Topic & Concept Registry Integration Tests", () => {
       providers: [
         TopicService,
         ConceptMappingService,
+        { provide: PrismaService, useValue: { template: { findMany: vi.fn().mockResolvedValue([]) }, generatedQuestion: { findMany: vi.fn().mockResolvedValue([]) } } },
         { provide: TopicRepository, useValue: topicRepoMock },
         { provide: ConceptMappingRepository, useValue: conceptRepoMock },
         { provide: TopicRegistryLoader, useValue: registryLoaderMock },
@@ -110,6 +112,7 @@ describe("Topic & Concept Registry Integration Tests", () => {
       code: "MICROSERVICES",
       description: "Distributed system modular patterns",
       status: ConceptStatus.ACTIVE,
+      questionSources: ["VARIABLE_TEMPLATE"],
       createdAt: new Date(),
       updatedAt: new Date(),
     };

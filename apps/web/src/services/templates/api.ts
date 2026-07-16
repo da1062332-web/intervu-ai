@@ -1,32 +1,52 @@
-import { apiClient } from '@/services/api/client';
-import type {
-  CreateSolutionTemplateRequest,
-  UpdateSolutionTemplateRequest,
-  GenerateTemplatePreviewRequest,
-  SolutionTemplateResponse,
-  TemplatePreviewResponse,
-} from '@intervu/shared';
-
-export const getTemplates = async (page = 1, limit = 10, conceptKey?: string): Promise<any> => {
-  let url = `/templates?page=${page}&limit=${limit}`;
-  if (conceptKey) url += `&conceptKey=${conceptKey}`;
-  return await apiClient.request<any>(url, { method: 'GET' });
+import { apiClient } from '../api/client';
+export interface TemplateListResponse {
+  data?: any;
+  items: any[];
+  [key: string]: any;
+}
+export interface TemplateResponse {
+  data?: any;
+  [key: string]: any;
+}
+export interface SolutionTemplateResponse {
+  data?: any;
+  [key: string]: any;
+}
+export interface CreateSolutionTemplateRequest {
+  [key: string]: any;
+}
+export interface UpdateSolutionTemplateRequest {
+  [key: string]: any;
+}
+export interface TemplatePreviewResponse {
+  data?: any;
+  [key: string]: any;
+}
+export interface GenerateTemplatePreviewRequest {
+  [key: string]: any;
+}
+export const getTemplates = async (page = 1, limit = 10, conceptKey?: string): Promise<TemplateListResponse> => {
+  const url = conceptKey 
+    ? `/templates?conceptKey=${conceptKey}&page=${page}&limit=${limit}`
+    : `/templates?page=${page}&limit=${limit}`;
+  const data = await apiClient.request<any>(url, { method: 'GET' });
+  return data;
 };
 
-export const createTemplate = async (payload: any): Promise<any> => {
-  return await apiClient.request<any>(`/templates`, {
+export const createTemplate = async (payload: any): Promise<TemplateResponse> => {
+  const data = await apiClient.request<any>('/templates', {
     method: 'POST',
     body: payload,
   });
+  return data;
 };
 
-export const getTemplate = async (templateId: string): Promise<any> => {
-  return await apiClient.request<any>(`/templates/${templateId}`, { method: 'GET' });
+export const getTemplate = async (id: string): Promise<TemplateResponse> => {
+  const data = await apiClient.request<any>(`/templates/${id}`, { method: 'GET' });
+  return data;
 };
 
-export const getSolutionTemplate = async (
-  templateId: string,
-): Promise<SolutionTemplateResponse> => {
+export const getSolutionTemplate = async (templateId: string): Promise<SolutionTemplateResponse> => {
   const data = await apiClient.request<any>(`/templates/${templateId}/solution`, { method: 'GET' });
   return data;
 };
@@ -79,6 +99,20 @@ export const getRules = async (templateId: string): Promise<any> => {
 
 export const updateTemplate = async (templateId: string, payload: any): Promise<any> => {
   return await apiClient.request<any>(`/templates/${templateId}`, {
+    method: 'PATCH',
+    body: payload,
+  });
+};
+
+export const updateQuestionTemplate = async (templateId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/question`, {
+    method: 'PATCH',
+    body: payload,
+  });
+};
+
+export const updateOptionsTemplate = async (templateId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/options`, {
     method: 'PATCH',
     body: payload,
   });

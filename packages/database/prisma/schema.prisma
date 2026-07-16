@@ -555,15 +555,17 @@ model Topic {
 }
 
 model Concept {
-  id          String        @id @default(uuid())
-  topicId     String
-  name        String
-  code        String
-  description String?
-  status      ConceptStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  topic       Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  id              String               @id @default(uuid())
+  topicId         String
+  name            String
+  code            String
+  description     String?
+  status          ConceptStatus        @default(ACTIVE)
+  questionSources QuestionSourceType[] @default([VARIABLE_TEMPLATE]) @map("question_sources")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  topic           Topic                @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questions       Question[]
 
   @@unique([topicId, code])
   @@index([topicId])
@@ -802,36 +804,49 @@ model ReadinessReport {
 }
 
 model Question {
-  id              String               @id @default(cuid())
-  questionText    String               @map("question_text")
-  answer          String
-  explanation     String
-  topicId         String               @map("topic_id")
-  sectionId       String               @map("section_id")
-  difficulty      String
-  difficultyScore Float?               @map("difficulty_score")
-  source          String
-  templateId      String?              @map("template_id")
-  version         Int                  @default(1)
-  status          QuestionStatus       @default(DRAFT)
-  timesUsed       Int                  @default(0) @map("times_used")
-  lastUsed        DateTime?            @map("last_used")
-  createdAt       DateTime             @default(now()) @map("created_at")
-  updatedAt       DateTime             @updatedAt @map("updated_at")
-  metadata        Json?                @default("{}")
-  reservations    QuestionReservation?
-  reviews         QuestionReview[]
-  usage           QuestionUsage?
-  versions        QuestionVersion[]
-  section         ExamSection          @relation(fields: [sectionId], references: [id])
-  template        Template?            @relation(fields: [templateId], references: [id])
-  topic           Topic                @relation(fields: [topicId], references: [id])
-  reviewAuditLogs ReviewAuditLog[]
+  id                String               @id @default(cuid())
+  questionText      String               @map("question_text")
+  answer            String
+  explanation       String
+  topicId           String               @map("topic_id")
+  sectionId         String               @map("section_id")
+  conceptId         String?              @map("concept_id")
+  difficulty        String
+  difficultyScore   Float?               @map("difficulty_score")
+  source            String
+  questionSource    QuestionSourceType   @default(MANUAL) @map("question_source")
+  questionType      String               @default("MCQ") @map("question_type")
+  estimatedTime     Int?                 @map("estimated_time")
+  questionTitle     String?              @map("question_title")
+  questionStatement String?              @map("question_statement")
+  instructions      String?
+  questionImage     String?              @map("question_image")
+  attachments       Json?
+  mcqData           Json?                @map("mcq_data")
+  codingData        Json?                @map("coding_data")
+  templateId        String?              @map("template_id")
+  version           Int                  @default(1)
+  status            QuestionStatus       @default(DRAFT)
+  timesUsed         Int                  @default(0) @map("times_used")
+  lastUsed          DateTime?            @map("last_used")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  metadata          Json?                @default("{}")
+  reservations      QuestionReservation?
+  reviews           QuestionReview[]
+  usage             QuestionUsage?
+  versions          QuestionVersion[]
+  section           ExamSection          @relation(fields: [sectionId], references: [id])
+  template          Template?            @relation(fields: [templateId], references: [id])
+  topic             Topic                @relation(fields: [topicId], references: [id])
+  concept           Concept?             @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+  reviewAuditLogs   ReviewAuditLog[]
 
   @@index([topicId])
   @@index([difficulty])
   @@index([templateId])
   @@index([status])
+  @@index([conceptId])
   @@map("questions")
 }
 
@@ -1442,6 +1457,11 @@ enum QuestionStatus {
   VALIDATED
   ACTIVE
   ARCHIVED
+}
+
+enum QuestionSourceType {
+  VARIABLE_TEMPLATE
+  MANUAL
 }
 
 enum AssemblyStatus {

@@ -25,6 +25,7 @@ import { TopicRegistryLoader } from "../../src/modules/concept-mapping/services/
 import { TemplateRepository } from "../../src/modules/template-library/repositories/template.repository";
 import { RolesGuard } from "../../src/modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "../../src/modules/auth/guards/jwt-auth.guard";
+import { PrismaService } from "../../src/prisma/prisma.service";
 import { UserRole } from "@prisma/client";
 
 // Mock Auth Guard that reads the role from custom header to mock JWT context dynamically
@@ -135,6 +136,25 @@ describe("Style Profile & Blueprint Integration Tests", () => {
       providers: [
         StyleProfileService,
         BlueprintService,
+        {
+          provide: PrismaService,
+          useValue: {
+            styleProfile: {
+              findFirst: vi.fn().mockResolvedValue({
+                id: "profile-1",
+                name: "Campus Placement",
+                active: true,
+                status: "ACTIVE",
+              }),
+              findUnique: vi.fn().mockResolvedValue({
+                id: "profile-1",
+                name: "Campus Placement",
+                active: true,
+                status: "ACTIVE",
+              }),
+            },
+          },
+        },
         { provide: BlueprintCompilerService, useValue: {} },
         { provide: StyleProfileRepository, useValue: styleProfileRepoMock },
         { provide: BlueprintRepository, useValue: blueprintRepoMock },
@@ -176,7 +196,7 @@ describe("Style Profile & Blueprint Integration Tests", () => {
       styleProfileRepoMock.findAllWithCharacteristics.mockResolvedValueOnce([]);
 
       const res = await request(app.getHttpServer())
-        .get("/style-profiles")
+        .get("/admin/style-profiles")
         .set("x-test-role", "ADMIN");
 
       if (res.status !== 200) {
@@ -189,7 +209,7 @@ describe("Style Profile & Blueprint Integration Tests", () => {
 
     it("should block CANDIDATE from listing style profiles", async () => {
       const res = await request(app.getHttpServer())
-        .get("/style-profiles")
+        .get("/admin/style-profiles")
         .set("x-test-role", "CANDIDATE");
 
       expect(res.status).toBe(403);
@@ -217,7 +237,7 @@ describe("Style Profile & Blueprint Integration Tests", () => {
       );
 
       const res = await request(app.getHttpServer())
-        .post("/style-profiles")
+        .post("/admin/style-profiles")
         .set("x-test-role", "ADMIN")
         .send({
           name: "Campus Profile",

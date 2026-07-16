@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { useUpdateTemplate } from '@/services/templates/hooks';
+import { useSaveOptionStrategy } from '@/services/templates/hooks';
+import toast from 'react-hot-toast';
 
 interface OptionStrategySectionProps {
   template: any;
@@ -12,40 +13,68 @@ interface OptionStrategySectionProps {
 
 export function OptionStrategySection({ template }: OptionStrategySectionProps) {
   const [strategy, setStrategy] = useState('static');
-  const [staticOptions, setStaticOptions] = useState<string[]>(['', '', '', '']);
-  const [formulas, setFormulas] = useState<string[]>(['', '', '', '']);
+  const [options, setOptions] = useState<string[]>(['', '', '', '']);
   
-  const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
+  const { mutate: saveOptionStrategy, isPending: isSaving } = useSaveOptionStrategy();
 
   useEffect(() => {
-    if (template?.config?.optionStrategy) {
-      setStrategy(template.config.optionStrategy);
+    try {
+      const optionsTemplate = template?.structure?.optionsTemplate;
+      if (optionsTemplate && Array.isArray(optionsTemplate) && optionsTemplate.length > 0) {
+        // Check if it was serialized as JSON in the first element (technical debt approach)
+        if (optionsTemplate.length === 1 && optionsTemplate[0].startsWith('{')) {
+          const parsed = JSON.parse(optionsTemplate[0]);
+          if (parsed.strategy) setStrategy(parsed.strategy);
+          if (parsed.options) setOptions(parsed.options);
+        } else {
+          // It's just a regular array of options
+          setOptions(optionsTemplate.length === 4 ? optionsTemplate : [...optionsTemplate, '', '', '', ''].slice(0, 4));
+          // Infer strategy based on existing config or default to static
+          setStrategy(template?.config?.optionStrategy || 'static');
+        }
+      } else {
+        // Fallback to config if structure is empty
+        if (template?.config?.optionStrategy) {
+          setStrategy(template.config.optionStrategy);
+        }
+        if (template?.config?.staticOptions && template.config.optionStrategy === 'static') {
+          setOptions(template.config.staticOptions);
+        }
+        if (template?.config?.formulas && template.config.optionStrategy === 'formula') {
+          setOptions(template.config.formulas);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse options template", e);
     }
-    if (template?.config?.staticOptions) {
-      setStaticOptions(template.config.staticOptions);
-    }
-    if (template?.config?.formulas) {
-      setFormulas(template.config.formulas);
-    }
-  }, [template?.id, template?.config]);
+  }, [template]);
 
   const handleSave = () => {
     if (!template?.id) return;
-    updateTemplate({
+    
+    // We stringify into the first element of the array to preserve both strategy and options 
+    // within the string[] constraint of SaveOptionStrategyDto
+    const payloadStr = JSON.stringify({
+      strategy,
+      options
+    });
+
+    saveOptionStrategy({
       templateId: template.id,
       payload: {
-        config: {
-          ...(template.config || {}),
-          optionStrategy: strategy,
-          ...(strategy === 'static' ? { staticOptions } : {}),
-          ...(strategy === 'formula' ? { formulas } : {})
-        }
+        optionsTemplate: [payloadStr]
+      }
+    }, {
+      onSuccess: () => {
+        toast.success("Option strategy saved successfully");
+      },
+      onError: () => {
+        toast.error("Failed to save option strategy");
       }
     });
   };
 
   const handleSelect = (val: string) => {
-    console.log("Setting strategy to:", val);
     setStrategy(val);
   };
 
@@ -145,12 +174,12 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
                     <input 
                       type="text" 
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      value={staticOptions[index]}
+                      value={options[index] || ''}
                       placeholder={index === 0 ? "Correct Answer" : "Distractor"}
                       onChange={(e) => {
-                        const newOps = [...staticOptions];
+                        const newOps = [...options];
                         newOps[index] = e.target.value;
-                        setStaticOptions(newOps);
+                        setOptions(newOps);
                       }}
                     />
                   </div>
@@ -175,12 +204,12 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
                     <input 
                       type="text" 
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring font-mono"
-                      value={formulas[index]}
+                      value={options[index] || ''}
                       placeholder={index === 0 ? "answer" : "answer + (variable * 2)"}
                       onChange={(e) => {
-                        const newForms = [...formulas];
+                        const newForms = [...options];
                         newForms[index] = e.target.value;
-                        setFormulas(newForms);
+                        setOptions(newForms);
                       }}
                     />
                   </div>

@@ -72,6 +72,7 @@ export const useSaveSolutionTemplate = () => {
         : templateApi.createSolutionTemplate(templateId, payload as CreateSolutionTemplateRequest),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['solutionTemplate', variables.templateId] });
+      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
     },
   });
 };
@@ -136,6 +137,28 @@ export const useCreateVariable = () => {
       templateApi.createVariable(templateId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['templateVariables', variables.templateId] });
+    },
+  });
+};
+
+export const useSaveQuestionDefinition = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
+      templateApi.updateQuestionTemplate(templateId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
+    },
+  });
+};
+
+export const useSaveOptionStrategy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
+      templateApi.updateOptionsTemplate(templateId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
     },
   });
 };
