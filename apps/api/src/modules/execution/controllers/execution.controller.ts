@@ -55,7 +55,7 @@ export class ExecutionController {
     return this.executionService.loadAssessment(id, user.id);
   }
 
-  @Post("assessment-sessions/:id/checkpoint")
+  @Post("assessment-sessions/:id/sync-state")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Create recovery checkpoint snapshot" })
   async createCheckpoint(

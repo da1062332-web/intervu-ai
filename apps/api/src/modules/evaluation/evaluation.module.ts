@@ -5,8 +5,10 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 import { EvaluationController } from "./controllers/evaluation.controller";
 import { EvaluationService } from "./services/evaluation.service";
 import { ObjectiveEvaluatorService } from "./objective/objective-evaluator.service";
+import { CodingEvaluatorService } from "./objective/coding-evaluator.service";
 import { SectionScoringService } from "./scoring/section-scoring.service";
 import { OverallScoreService } from "./scoring/overall-score.service";
+import { TcsClassificationService } from "./scoring/tcs-classification.service";
 import { PerformanceAnalyticsService } from "./analytics/performance-analytics.service";
 import { StrengthWeaknessService } from "./analytics/strength-weakness.service";
 import { RecommendationService } from "./recommendations/recommendation.service";
@@ -35,8 +37,10 @@ import { EvaluationValidationService } from "./validation/services/evaluation-va
     EvaluationService,
     EvaluationQueueService,
     ObjectiveEvaluatorService,
+    CodingEvaluatorService,
     SectionScoringService,
     OverallScoreService,
+    TcsClassificationService,
     PerformanceAnalyticsService,
     StrengthWeaknessService,
     RecommendationService,
@@ -59,8 +63,10 @@ import { EvaluationValidationService } from "./validation/services/evaluation-va
     EvaluationService,
     EvaluationQueueService,
     ObjectiveEvaluatorService,
+    CodingEvaluatorService,
     SectionScoringService,
     OverallScoreService,
+    TcsClassificationService,
     PerformanceAnalyticsService,
     StrengthWeaknessService,
     RecommendationService,

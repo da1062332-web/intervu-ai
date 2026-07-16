@@ -160,8 +160,8 @@ export class BlueprintService {
 
   mapBlueprintToDto(blueprint: BlueprintWithRelations) {
     if (!blueprint) return null;
-    const sections =
-      (blueprint.sections as unknown as BlueprintSection[]) || [];
+    const rawSections = blueprint.sections;
+    const sections = Array.isArray(rawSections) ? (rawSections as unknown as BlueprintSection[]) : [];
     const topics: Array<{
       topicName: string;
       sectionName: string;
@@ -248,8 +248,9 @@ export class BlueprintService {
       }
     }
 
-    const sections = blueprint.sections as unknown as BlueprintSection[];
-    if (!sections || sections.length === 0) {
+    const rawSections = blueprint.sections;
+    const sections = Array.isArray(rawSections) ? (rawSections as unknown as BlueprintSection[]) : [];
+    if (sections.length === 0) {
       errors.push("Blueprint must contain at least one section");
       return { valid: errors.length === 0, errors };
     }
@@ -336,7 +337,8 @@ export class BlueprintService {
 
   async preview(id: string) {
     const blueprint = await this.findOne(id);
-    const sections = blueprint.sections as unknown as BlueprintSection[];
+    const rawSections = blueprint.sections;
+    const sections = Array.isArray(rawSections) ? (rawSections as unknown as BlueprintSection[]) : [];
 
     const previewSections = sections.map((section: BlueprintSection) => {
       const qCount = section.questionCount || 0;

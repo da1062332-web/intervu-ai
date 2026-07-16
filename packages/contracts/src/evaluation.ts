@@ -93,6 +93,8 @@ export const CandidateResultDtoSchema = z.object({
   weaknesses: z.array(z.string()).optional(),
   recommendations: z.array(RecommendationDtoSchema).optional(),
   explanations: EvaluationExplanationSchema.optional(),
+  predictedProfile: z.string().optional(),
+  profileDetails: z.record(z.string(), z.any()).optional(),
 });
 
 export type CandidateResultDto = z.infer<typeof CandidateResultDtoSchema>;

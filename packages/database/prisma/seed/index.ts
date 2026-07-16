@@ -7,6 +7,7 @@ import { seedTestConfigs } from "./test-config.seed";
 import { seedTopics } from "./topics.seed";
 import { seedModule1QA } from "../seeds/module1/seed";
 import { seedDatasets } from "./datasets.seed";
+import { seedBlueprints } from "./blueprints.seed";
 
 const prisma = new PrismaClient();
 

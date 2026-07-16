@@ -11,9 +11,10 @@ export class TestInstanceService {
   async createTestInstance(data: CreateTestInstanceData) {
     try {
       return await this.repository.create(data);
-    } catch {
+    } catch (err: any) {
+      console.error("TEST_INSTANCE_CREATION_ERROR:", err);
       throw new InternalServerErrorException(
-        "TEST_CREATION_FAILED: Failed to create test instance",
+        "TEST_CREATION_FAILED: Failed to create test instance. " + err.message,
       );
     }
   }

@@ -152,7 +152,7 @@ export function QuestionRenderer() {
   };
 
   const renderQuestionContent = () => {
-    switch (currentQuestion.type) {
+    switch (currentQuestion.type?.toUpperCase()) {
       case 'MCQ':
         return renderMCQ();
       case 'MSQ':
@@ -160,7 +160,11 @@ export function QuestionRenderer() {
       case 'NUMERIC':
         return renderNumeric();
       case 'CODING':
-        return <EmbeddedCompiler />;
+        return (
+          <EmbeddedCompiler 
+            onChange={(data) => saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })} 
+          />
+        );
       default:
         return renderMCQ();
     }

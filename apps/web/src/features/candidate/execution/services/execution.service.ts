@@ -68,7 +68,7 @@ export const executionService = {
   },
 
   checkpoint: async (id: string, payload: any): Promise<void> => {
-    return apiClient.request(`/assessment-sessions/${id}/checkpoint`, {
+    return apiClient.request(`/assessment-sessions/${id}/sync-state`, {
       method: 'POST',
       body: payload,
     });

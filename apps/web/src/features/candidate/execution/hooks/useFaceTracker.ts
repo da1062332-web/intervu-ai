@@ -22,6 +22,11 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
   const multiFaceSecondsRef = useRef(0);
   const inNoFaceViolationRef = useRef(false);
   const inMultiFaceViolationRef = useRef(false);
+  
+  const onSubmitRef = useRef(onSubmit);
+  useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
 
   // ─── Phase 1: Start camera immediately (no need to wait for model) ────────
   useEffect(() => {
@@ -104,6 +109,10 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
           const vw = video.videoWidth;
           const vh = video.videoHeight;
 
+          // Sync video HTML attributes so face-api doesn't fail
+          if (video.width !== vw) video.width = vw;
+          if (video.height !== vh) video.height = vh;
+
           // Sync canvas pixel size to video native size
           if (canvas.width !== vw) canvas.width = vw;
           if (canvas.height !== vh) canvas.height = vh;
@@ -159,7 +168,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
               if (next >= maxViolations) {
                 isSubmittedRef.current = true;
                 clearInterval(intervalId);
-                onSubmit();
+                onSubmitRef.current();
               }
             }
 
@@ -189,7 +198,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
               if (next >= maxViolations) {
                 isSubmittedRef.current = true;
                 clearInterval(intervalId);
-                onSubmit();
+                onSubmitRef.current();
               }
             }
           }
@@ -202,7 +211,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isModelLoaded, videoRef, canvasRef, onSubmit]);
+  }, [isModelLoaded, videoRef, canvasRef]); // removed onSubmit from deps to prevent interval reset
 
   return { isModelLoaded, violations, maxViolations, isFaceDetected, isMultipleFaces, hasCameraError };
 }

@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ObjectiveEvaluatorService } from "../objective/objective-evaluator.service";
+import { CodingEvaluatorService } from "../objective/coding-evaluator.service";
 import { SectionScoringService } from "../scoring/section-scoring.service";
 import { OverallScoreService } from "../scoring/overall-score.service";
+import { TcsClassificationService } from "../scoring/tcs-classification.service";
 import { PerformanceAnalyticsService } from "../analytics/performance-analytics.service";
 import { StrengthWeaknessService } from "../analytics/strength-weakness.service";
 import { RecommendationService } from "../recommendations/recommendation.service";
@@ -18,8 +20,10 @@ export class ResultGeneratorService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly evaluator: ObjectiveEvaluatorService,
+    private readonly codingEvaluator: CodingEvaluatorService,
     private readonly sectionScoring: SectionScoringService,
     private readonly overallScoring: OverallScoreService,
+    private readonly tcsClassification: TcsClassificationService,
     private readonly analytics: PerformanceAnalyticsService,
     private readonly strengthWeakness: StrengthWeaknessService,
     private readonly recommendation: RecommendationService,
@@ -117,11 +121,21 @@ export class ResultGeneratorService {
       timeSpentSeconds: a.timeSpentSeconds || 0,
     }));
 
-    // 4. Run Objective Evaluator
-    const evalResults = this.evaluator.evaluateAnswers(
+    // 4. Run Evaluators
+    const objectiveQuestions = questionsList.filter(q => q.questionType.toUpperCase() !== "CODING");
+    const codingQuestions = questionsList.filter(q => q.questionType.toUpperCase() === "CODING");
+
+    const objectiveEvalResults = this.evaluator.evaluateAnswers(
       submissionAnswers,
-      questionsList,
+      objectiveQuestions,
     );
+
+    const codingEvalResults = await this.codingEvaluator.evaluateAnswers(
+      submissionAnswers,
+      codingQuestions,
+    );
+
+    const evalResults = [...objectiveEvalResults, ...codingEvalResults];
 
     // 5. Run Section Scoring
     const sectionScores = this.sectionScoring.calculateSectionScores(
@@ -149,7 +163,13 @@ export class ResultGeneratorService {
     const recommendationsList =
       this.recommendation.generateRecommendations(performanceAnalytics);
 
-    // 10. Assemble and return final CandidateResultDto
+    // 10. Run TCS Classification
+    const classification = await this.tcsClassification.classifyProfile(
+      sectionScores,
+      codingEvalResults,
+    );
+
+    // 11. Assemble and return final CandidateResultDto
     return {
       id: `res_${randomUUID()}`,
       candidateId: testInstance.userId,
@@ -162,6 +182,10 @@ export class ResultGeneratorService {
       strengths,
       weaknesses,
       recommendations: recommendationsList,
+      ...(classification ? {
+        predictedProfile: classification.predictedProfile,
+        profileDetails: classification.profileDetails,
+      } : {}),
     };
   }
 }
