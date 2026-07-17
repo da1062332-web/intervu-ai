@@ -306,5 +306,100 @@ describe("Readiness Engine Integration Tests", () => {
       expect(manualCheck).toBeDefined();
       expect(manualCheck.status).toBe("FAIL");
     });
+
+    it("should pass templates check when no templates exist but active manual questions exist", async () => {
+      const configId = "config-e2e-456";
+
+      // 1. Mock config exists
+      mockConfigRepo.findById.mockResolvedValue({
+        id: configId,
+        name: "Backend Developer Assessment",
+        code: "BACKEND_DEV",
+        role: "Software Engineer",
+        totalQuestions: 10,
+        durationMinutes: 30,
+        isArchived: false,
+        status: "DRAFT",
+      });
+
+      // 2. Mock section configured
+      mockSectionRepo.findManyByConfigId.mockResolvedValue([
+        {
+          id: "section-e2e-1",
+          name: "NodeJS",
+          questionCount: 10,
+        },
+      ]);
+
+      // 3. Mock topics assigned
+      mockTopicSectionMappingRepo.findMappingsBySection.mockResolvedValue([
+        { topicId: "topic-e2e-1" },
+      ]);
+
+      // 4. Mock topic details
+      mockTopicRepo.findById.mockResolvedValue({
+        id: "topic-e2e-1",
+        name: "Event Loop",
+      });
+
+      // 5. Mock concepts present (defaulting to templates)
+      mockConceptRepo.findManyByTopicId.mockResolvedValue([
+        {
+          id: "concept-e2e-1",
+          code: "EVENT_LOOP_BASICS",
+          name: "Event Loop Basics",
+          questionSources: ["VARIABLE_TEMPLATE"],
+        },
+      ]);
+
+      // 6. Mock weightages sum to 100
+      mockTopicWeightageRepo.sumWeightagesBySection.mockResolvedValue(100);
+
+      // 7. Mock no templates found
+      mockTemplateRepo.findAll.mockResolvedValue([]);
+
+      // 8. Mock manual questions exist
+      mockPrismaService.question.count.mockResolvedValue(5);
+
+      // 9. Mock valid variables & rules
+      mockTemplateVarRepo.findAll.mockResolvedValue([]);
+      mockTemplateRuleRepo.findAll.mockResolvedValue([]);
+
+      // 10. Mock blueprint valid
+      mockBlueprintRepo.findByConfigId.mockResolvedValue({
+        id: "blueprint-e2e-1",
+      });
+      mockBlueprintService.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+      });
+
+      // 11. Mock report database operations
+      mockReadinessReportRepo.findLatestByConfigId.mockResolvedValue(null);
+      mockReadinessReportRepo.create.mockImplementation((dto: any) =>
+        Promise.resolve({
+          id: "report-e2e-3",
+          configId: dto.examConfig.connect.id,
+          score: dto.score,
+          status: dto.status,
+          report: dto.report,
+        }),
+      );
+
+      const res = await request(app.getHttpServer())
+        .post(`/configs/${configId}/readiness`)
+        .send();
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.score).toBe(100);
+      expect(res.body.data.status).toBe("READY");
+
+      const templatesCheck = res.body.data.checks.find(
+        (c: any) => c.name === "Templates Present",
+      );
+      expect(templatesCheck).toBeDefined();
+      expect(templatesCheck.status).toBe("PASS");
+    });
   });
 });

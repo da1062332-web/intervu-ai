@@ -364,8 +364,10 @@ export class ReadinessEngineService {
     let manualPoolPass = true;
     const templateIdsToCheck = new Set<string>();
 
+    const templates = await this.templateRepository.findAll();
     const hasVariableConcepts = allAssignedConcepts.some(
-      (c) => c.questionSources?.includes("VARIABLE_TEMPLATE") || !c.questionSources?.includes("MANUAL")
+      (c) => (c.questionSources?.includes("VARIABLE_TEMPLATE") || !c.questionSources?.includes("MANUAL")) &&
+             templates.some((t) => t.isActive && t.conceptKey === c.code)
     );
 
     if (allAssignedConcepts.length > 0 && sections.length > 0) {
@@ -395,52 +397,53 @@ export class ReadinessEngineService {
 
             for (const concept of concepts) {
               const isManual = concept.questionSources?.includes("MANUAL");
-              const isVariable = concept.questionSources?.includes("VARIABLE_TEMPLATE") || !isManual;
 
-              if (isManual) {
-                const availableManualCount = await this.prisma.question.count({
-                  where: {
-                    status: QuestionStatus.ACTIVE,
-                    conceptId: concept.id,
-                  },
+              // Filter templates and fetch manual questions
+              const matchingTemplates = templates.filter(
+                (t) => t.isActive && t.conceptKey === concept.code,
+              );
+              const hasTemplates = matchingTemplates.length > 0;
+
+              const availableManualCount = await this.prisma.question.count({
+                where: {
+                  status: QuestionStatus.ACTIVE,
+                  conceptId: concept.id,
+                },
+              });
+              const hasManualQuestions = availableManualCount > 0;
+
+              // Validate template or manual question presence
+              if (!hasTemplates && !hasManualQuestions) {
+                templatesPresentPass = false;
+                checks.push({
+                  name: "Templates or Manual Questions Present",
+                  status: "FAIL",
+                  message: `No active templates or manual questions found for Concept '${concept.name}' (${concept.code})`,
                 });
-
-                if (availableManualCount < conceptRequired) {
-                  manualPoolPass = false;
-                  checks.push({
-                    name: "Manual Questions Pool",
-                    status: "FAIL",
-                    message: `Section: ${section.name}, Concept: ${concept.name}, Required Questions: ${conceptRequired}, Available Manual Questions: ${availableManualCount}`,
-                  });
-                  reportData.fixes.push({
-                    type: "manual_pool",
-                    message: `Concept '${concept.name}' under Section '${section.name}' has only ${availableManualCount} manual questions, needs at least ${conceptRequired}. Please add at least ${conceptRequired - availableManualCount} more questions or reduce blueprint requirement.`,
-                    link: "/admin/questions",
-                  });
+                reportData.fixes.push({
+                  type: "templates",
+                  message: `No active templates or manual questions found for Concept '${concept.name}'`,
+                  link: "/admin/topics",
+                });
+              } else {
+                if (hasTemplates) {
+                  matchingTemplates.forEach((t) => templateIdsToCheck.add(t.id));
                 }
               }
 
-              if (isVariable) {
-                const templates = await this.templateRepository.findAll();
-                const matchingTemplates = templates.filter(
-                  (t) => t.isActive && t.conceptKey === concept.code,
-                );
-
-                if (matchingTemplates.length === 0) {
-                  templatesPresentPass = false;
-                  checks.push({
-                    name: "Templates Present",
-                    status: "FAIL",
-                    message: `No active templates found for Concept '${concept.name}' (${concept.code})`,
-                  });
-                  reportData.fixes.push({
-                    type: "templates",
-                    message: `No active templates found for Concept '${concept.name}'`,
-                    link: "/admin/topics",
-                  });
-                } else {
-                  matchingTemplates.forEach((t) => templateIdsToCheck.add(t.id));
-                }
+              // Validate manual question pool sufficiency if configured to use MANUAL source
+              if (isManual && availableManualCount < conceptRequired) {
+                manualPoolPass = false;
+                checks.push({
+                  name: "Manual Questions Pool",
+                  status: "FAIL",
+                  message: `Section: ${section.name}, Concept: ${concept.name}, Required Questions: ${conceptRequired}, Available Manual Questions: ${availableManualCount}`,
+                });
+                reportData.fixes.push({
+                  type: "manual_pool",
+                  message: `Concept '${concept.name}' under Section '${section.name}' has only ${availableManualCount} manual questions, needs at least ${conceptRequired}. Please add at least ${conceptRequired - availableManualCount} more questions or reduce blueprint requirement.`,
+                  link: "/admin/questions",
+                });
               }
             }
           }
