@@ -45,3 +45,7 @@ export interface UserSession {
   expiresAt?: string;
   isCurrent?: boolean;
 }
+
+export interface GoogleLoginRequest {
+  idToken: string;
+}
