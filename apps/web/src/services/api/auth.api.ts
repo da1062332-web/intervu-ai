@@ -7,6 +7,7 @@ import type {
   LoginRequest,
   RefreshTokenRequest,
   SignupRequest,
+  GoogleLoginRequest,
 } from '@/types/auth.types';
 
 const AUTH_BASE_PATH = '/auth';
@@ -132,6 +133,22 @@ export const authApi = {
 
     try {
       const response = await apiClient.request<AuthApiPayload>(`${AUTH_BASE_PATH}/signup`, {
+        method: 'POST',
+        body: payload,
+        skipAuth: true,
+      });
+
+      return applySessionPayload(response);
+    } finally {
+      useAuthStore.getState().setLoading(false);
+    }
+  },
+
+  async googleLogin(payload: GoogleLoginRequest): Promise<AuthResponseData> {
+    useAuthStore.getState().setLoading(true);
+
+    try {
+      const response = await apiClient.request<AuthApiPayload>(`${AUTH_BASE_PATH}/google`, {
         method: 'POST',
         body: payload,
         skipAuth: true,

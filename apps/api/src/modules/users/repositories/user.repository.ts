@@ -30,4 +30,14 @@ export class UserRepository extends BaseRepository<
     }
     return user;
   }
+
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    const user = await this.db.user.findUnique({
+      where: { googleId },
+    });
+    if (user && this.options.softDelete && user.deletedAt !== null) {
+      return null;
+    }
+    return user;
+  }
 }

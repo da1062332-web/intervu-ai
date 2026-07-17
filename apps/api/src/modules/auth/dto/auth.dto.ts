@@ -4,6 +4,7 @@ import {
   AuthLoginSchema,
   AuthSignupSchema,
   RefreshTokenSchema,
+  GoogleLoginSchema,
 } from "@intervu/shared";
 
 export class SignupDto {
@@ -67,5 +68,21 @@ export class RefreshTokenDto {
     return RefreshTokenSchema.safeParse(
       data,
     ) as unknown as z.SafeParseReturnType<unknown, RefreshTokenDto>;
+  }
+}
+
+export class GoogleLoginDto {
+  @ApiProperty({
+    example: "eyJhbGciOiJSUzI1NiIsImtpZCI6...",
+    description: "Google OAuth2 ID Token received from client side",
+  })
+  idToken!: string;
+
+  static validate(
+    data: unknown,
+  ): z.SafeParseReturnType<unknown, GoogleLoginDto> {
+    return GoogleLoginSchema.safeParse(
+      data,
+    ) as unknown as z.SafeParseReturnType<unknown, GoogleLoginDto>;
   }
 }

@@ -31,3 +31,7 @@ export const AuthResponseSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
 });
+
+export const GoogleLoginSchema = z.object({
+  idToken: z.string().min(1),
+});

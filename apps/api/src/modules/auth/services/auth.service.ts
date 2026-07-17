@@ -6,11 +6,13 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
 import { randomUUID } from "crypto";
+import { OAuth2Client } from "google-auth-library";
 
 import { AppConfigService } from "../../../config";
 import { UserRepository } from "../../users/repositories/user.repository";
 import { SessionRepository } from "../../users/repositories/session.repository";
 import { LoginDto, SignupDto } from "@intervu/shared";
+import { GoogleLoginDto } from "../dto/auth.dto";
 import { AuthUserRole } from "../interfaces/auth-user.interface";
 import { JwtTokenData } from "../interfaces/jwt-payload.interface";
 
@@ -62,9 +64,64 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(email);
 
     const isValid =
-      user != null && (await argon2.verify(user.passwordHash, dto.password));
+      user != null &&
+      user.passwordHash != null &&
+      (await argon2.verify(user.passwordHash, dto.password));
     if (!isValid || !user) {
       throw new UnauthorizedException("Invalid email or password");
+    }
+
+    return this.buildAuthResponse(user, meta);
+  }
+
+  async loginWithGoogle(dto: GoogleLoginDto, meta?: AuthMeta): Promise<AuthResponse> {
+    const clientId = this.configService.googleClientId;
+    if (!clientId) {
+      throw new UnauthorizedException("Google login is not configured on the server");
+    }
+
+    const client = new OAuth2Client(clientId);
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: dto.idToken,
+        audience: clientId,
+      });
+    } catch {
+      throw new UnauthorizedException("Invalid Google ID Token");
+    }
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      throw new UnauthorizedException("Invalid Google token payload");
+    }
+
+    const email = payload.email.trim().toLowerCase();
+    const googleId = payload.sub;
+    const fullName = payload.name ?? null;
+
+    // 1. Search by googleId
+    let user = await this.userRepository.findByGoogleId(googleId);
+
+    if (!user) {
+      // 2. Search by email
+      user = await this.userRepository.findByEmail(email);
+
+      if (user) {
+        // Link googleId to existing user
+        user = await this.userRepository.update(user.id, {
+          googleId,
+        });
+      } else {
+        // 3. Register a new user
+        user = await this.userRepository.create({
+          email,
+          googleId,
+          passwordHash: null,
+          fullName,
+          role: "CANDIDATE",
+        });
+      }
     }
 
     return this.buildAuthResponse(user, meta);

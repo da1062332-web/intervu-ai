@@ -18,6 +18,8 @@ export const envSchema = z.object({
   SUBMISSION_TTL: z.coerce.number().default(60000), // 60s
   DEFAULT_LIMIT: z.coerce.number().default(100),
   DEFAULT_TTL: z.coerce.number().default(60000), // 60s
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
