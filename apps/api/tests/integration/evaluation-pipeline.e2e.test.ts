@@ -8,6 +8,8 @@ import { PerformanceAnalyticsService } from "../../src/modules/evaluation/analyt
 import { RecommendationService } from "../../src/modules/evaluation/recommendations/recommendation.service";
 import { TopicMasteryService } from "../../src/modules/evaluation/analytics/topic-mastery.service";
 import { StrengthWeaknessService } from "../../src/modules/evaluation/analytics/strength-weakness.service";
+import { CodingEvaluatorService } from "../../src/modules/evaluation/objective/coding-evaluator.service";
+import { TcsClassificationService } from "../../src/modules/evaluation/scoring/tcs-classification.service";
 import { ResultStorageService } from "../../src/modules/evaluation/services/result-storage.service";
 import { PrismaService } from "../../src/prisma/prisma.service";
 
@@ -98,6 +100,14 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
         RecommendationService,
         TopicMasteryService,
         StrengthWeaknessService,
+        {
+          provide: CodingEvaluatorService,
+          useValue: { evaluateAnswers: vi.fn().mockResolvedValue([]) },
+        },
+        {
+          provide: TcsClassificationService,
+          useValue: { classifyProfile: vi.fn().mockResolvedValue({}) },
+        },
         {
           provide: ResultStorageService,
           useValue: { saveResult: vi.fn().mockResolvedValue({}) },

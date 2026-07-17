@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import {
+  INestApplication,
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+} from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { StyleProfileController } from "../../src/modules/blueprint/controllers/style-profile.controller";
 import { BlueprintController } from "../../src/modules/blueprint/controllers/blueprint.controller";
@@ -11,6 +16,8 @@ import { BlueprintService } from "../../src/modules/blueprint/services/blueprint
 import { StyleValidationService } from "../../src/modules/question-generation/services/style-validation.service";
 import { PromptBuilderService } from "../../src/modules/generation-ai/prompts/prompt-builder.service";
 import { GenerationStrategyResolver } from "../../src/modules/generation/services/generation-strategy.resolver";
+import { ResponseValidatorService } from "../../src/modules/generation-ai/validators/response-validator.service";
+import { GenerationRetryService } from "../../src/modules/generation-ai/retry/generation-retry.service";
 import { ValidationRegistry } from "../../src/modules/question-generation/registry/validation.registry";
 import { QuestionAssemblerService } from "../../src/modules/question-generation/assembler/question-assembler.service";
 import { QuestionRepository } from "../../src/modules/question-generation/repository/question.repository";
@@ -120,6 +127,54 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
         create: vi.fn().mockResolvedValue(mockBlueprint),
         update: vi.fn().mockResolvedValue(mockBlueprint),
       },
+      template: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "template-e2e-id",
+          name: "E2E Template",
+          description: "E2E template description",
+          conceptKey: "Concept 1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+          structure: {},
+          variableSchema: {},
+          constraints: {},
+          solutionSchema: {},
+          generationStrategy: GenerationStrategy.VARIABLE,
+          version: 1,
+        }),
+      },
+      templateDatasetConfig: {
+        findUnique: vi.fn().mockResolvedValue({
+          datasetId: "dataset-e2e-id",
+          templateId: "template-e2e-id",
+          variableMapping: {},
+        }),
+      },
+      topic: {
+        findFirst: vi.fn().mockResolvedValue({ id: "topic-1", code: "Concept 1" }),
+      },
+      sectionTopic: {
+        findFirst: vi.fn().mockResolvedValue({ sectionId: "E2E_QA_SECTION" }),
+      },
+      examSection: {
+        findFirst: vi.fn().mockResolvedValue({ id: "E2E_QA_SECTION" }),
+      },
+      question: {
+        create: vi.fn().mockResolvedValue({
+          id: "q-saved-id",
+          metadata: { styleProfileSnapshot: mockStyleProfile },
+          questionText: "What is 10% of 100?",
+          answer: "10",
+          explanation: "Explanation",
+          topicId: "topic-1",
+          sectionId: "E2E_QA_SECTION",
+          difficulty: "EASY",
+          source: "GENERATED",
+          templateId: "template-e2e-id",
+          version: 1,
+          status: "ACTIVE",
+        }),
+      },
     };
 
     mockStrategyResolver = {
@@ -139,12 +194,18 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
 
     mockValidationRegistry = {
       resolve: vi.fn().mockReturnValue({
-        validate: vi.fn().mockResolvedValue({ valid: true, errors: [], warnings: [] }),
+        validate: vi
+          .fn()
+          .mockResolvedValue({ valid: true, errors: [], warnings: [] }),
       }),
     };
 
     mockQuestionRepo = {
-      save: vi.fn().mockImplementation((question) => Promise.resolve({ id: "q-saved-id", ...question })),
+      save: vi
+        .fn()
+        .mockImplementation((question) =>
+          Promise.resolve({ id: "q-saved-id", ...question }),
+        ),
     };
 
     mockTrackingService = {
@@ -162,13 +223,27 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
 
     mockTemplateRepository = {
       findAll: vi.fn().mockResolvedValue([
-        { id: "template-e2e-id", isActive: true, difficultyLevel: "EASY", conceptKey: "Concept 1" },
-        { id: "template-e2e-medium-id", isActive: true, difficultyLevel: "MEDIUM", conceptKey: "Concept 1" },
+        {
+          id: "template-e2e-id",
+          isActive: true,
+          difficultyLevel: "EASY",
+          conceptKey: "Concept 1",
+        },
+        {
+          id: "template-e2e-medium-id",
+          isActive: true,
+          difficultyLevel: "MEDIUM",
+          conceptKey: "Concept 1",
+        },
       ]),
     };
 
     const mockPromptTemplateRegistry = {
-      resolve: vi.fn().mockReturnValue("You are an expert. {{variables}} {{hydratedQuestion}}"),
+      resolve: vi
+        .fn()
+        .mockReturnValue(
+          "You are an expert. {{variables}} {{hydratedQuestion}}",
+        ),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -186,9 +261,32 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
         StyleProfileRepository,
         BlueprintRepository,
         { provide: BlueprintCompilerService, useValue: {} },
-        { provide: PromptTemplateRegistry, useValue: mockPromptTemplateRegistry },
+        {
+          provide: PromptTemplateRegistry,
+          useValue: mockPromptTemplateRegistry,
+        },
         { provide: PrismaService, useValue: mockPrisma },
         { provide: GenerationStrategyResolver, useValue: mockStrategyResolver },
+        {
+          provide: ResponseValidatorService,
+          useValue: { validate: vi.fn().mockReturnValue(undefined) },
+        },
+        {
+          provide: GenerationRetryService,
+          useValue: {
+            generateFromTemplate: vi.fn().mockResolvedValue({
+              success: true,
+              question: {
+                question: "What is 10% of 100?",
+                correctAnswer: "10",
+                explanation:
+                  "Concept: Percentages. Formula / Reasoning: 10% of 100 = 10. Step-by-Step Solution: Multiply 100 by 0.10. Final Answer: 10.",
+                options: ["10", "20", "30", "40"],
+              },
+              errors: [],
+            }),
+          },
+        },
         { provide: ValidationRegistry, useValue: mockValidationRegistry },
         { provide: QuestionRepository, useValue: mockQuestionRepo },
         { provide: GenerationTrackingService, useValue: mockTrackingService },
@@ -228,7 +326,10 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
       });
 
     if (styleProfileRes.status !== 201) {
-      console.log("Create Style Profile failed:", JSON.stringify(styleProfileRes.body, null, 2));
+      console.log(
+        "Create Style Profile failed:",
+        JSON.stringify(styleProfileRes.body, null, 2),
+      );
     }
     expect(styleProfileRes.status).toBe(201);
     expect(styleProfileRes.body.success).toBe(true);
@@ -250,7 +351,10 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
       });
 
     if (blueprintRes.status !== 201) {
-      console.log("Create Blueprint failed:", JSON.stringify(blueprintRes.body, null, 2));
+      console.log(
+        "Create Blueprint failed:",
+        JSON.stringify(blueprintRes.body, null, 2),
+      );
     }
     expect(blueprintRes.status).toBe(201);
     expect(blueprintRes.body.success).toBe(true);
@@ -266,12 +370,16 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
       });
 
     expect(generationRes.status).toBe(201);
-    expect(generationRes.body.question).toBeDefined();
-    
+    expect(generationRes.body.questions).toBeDefined();
+    expect(Array.isArray(generationRes.body.questions)).toBe(true);
+    expect(generationRes.body.questions.length).toBeGreaterThan(0);
+
     // Verify style profile snapshot was saved in question metadata
-    const question = generationRes.body.question;
+    const question = generationRes.body.questions[0];
     expect(question.metadata.styleProfileSnapshot).toBeDefined();
-    expect(question.metadata.styleProfileSnapshot.name).toBe("E2E Assessment Profile");
+    expect(question.metadata.styleProfileSnapshot.name).toBe(
+      "E2E Assessment Profile",
+    );
 
     // Verify E2E style validation passed
     expect(generationRes.body.validationReport.valid).toBe(true);
