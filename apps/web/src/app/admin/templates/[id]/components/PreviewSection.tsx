@@ -18,9 +18,10 @@ export function PreviewSection({ template }: { template?: any }) {
     try {
       const res = await generatePreview({
         templateId,
-        payload: {} as any, // Everything is loaded from the backend template state
+        payload: { previewPayload: {} },
       });
-      setResult(res.data || res); // Depending on how axios unwraps
+      const previewData = (res as any).previewResult || res;
+      setResult(previewData);
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'Preview failed. Please try again.');
     }
@@ -102,7 +103,7 @@ export function PreviewSection({ template }: { template?: any }) {
                   Generated Question
                 </div>
                 <div className="p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed whitespace-pre-wrap">
-                  {result.previewText || result.questionText}
+                  {result.questionText || result.previewText || result.solution}
                 </div>
               </div>
 

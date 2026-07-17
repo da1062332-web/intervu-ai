@@ -101,7 +101,7 @@ export class QuestionBankSource implements IQuestionSource {
       return this.legacyPool.fetchQuestions(resolvedFilters);
     }
 
-    const topicId = resolvedCode;
+    const topicId = topic?.id || resolvedCode;
     const difficulty = (filters.difficultyLevel ?? "MEDIUM") as
       | "EASY"
       | "MEDIUM"
@@ -136,7 +136,7 @@ export class QuestionBankSource implements IQuestionSource {
             `(required=${limit}, available=${availability.available}). ` +
             `Falling back to legacy GeneratedQuestion pool.`,
         );
-        return this.fetchFromLegacyPool(resolvedFilters, excludeIds);
+        return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
       }
 
       // Retrieve and reserve questions from the real bank
@@ -159,7 +159,7 @@ export class QuestionBankSource implements IQuestionSource {
         `QuestionBankSource real-bank retrieval failed (${message}). ` +
           `Falling back to legacy pool.`,
       );
-      return this.fetchFromLegacyPool(resolvedFilters, excludeIds);
+      return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
     }
   }
 
@@ -169,8 +169,25 @@ export class QuestionBankSource implements IQuestionSource {
   private async fetchFromLegacyPool(
     filters: QuestionFilters,
     excludeIds: string[],
+    topicId: string,
   ): Promise<GeneratedQuestion[]> {
-    return this.legacyPool.fetchQuestions({ ...filters, conceptKey: filters.conceptKey, excludeIds });
+    const questions = await this.legacyPool.fetchQuestions({
+      ...filters,
+      conceptKey: filters.conceptKey,
+      excludeIds,
+    });
+
+    return this.normalizeLegacyConceptKeys(questions, topicId);
+  }
+
+  private async normalizeLegacyConceptKeys(
+    questions: GeneratedQuestion[],
+    topicId: string,
+  ): Promise<GeneratedQuestion[]> {
+    return questions.map((question) => ({
+      ...question,
+      conceptKey: topicId,
+    }));
   }
 
   /**
