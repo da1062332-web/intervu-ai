@@ -31,7 +31,7 @@ const WIZARD_TABS = [
   { id: 'general', label: 'General' },
   { id: 'sections', label: 'Sections' },
   { id: 'topics', label: 'Topics' },
-  { id: 'concepts-templates', label: 'Concepts & Templates' },
+  { id: 'concepts-templates', label: 'Concepts & Content' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
   { id: 'blueprint', label: 'Blueprint' },
@@ -196,7 +196,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     { label: 'Sections Configured', passed: hasSections },
     { label: 'Topics Available', passed: hasTopics },
     { label: 'Concepts Linked', passed: hasConcepts },
-    { label: 'Templates Ready', passed: hasTemplates },
+    { label: 'Template / Manual Qs Ready', passed: hasTemplates },
     { label: 'Difficulty = 100%', passed: isDifficultyValid },
     { label: 'Rules Configured', passed: true }, // Rules are optional and apply default values
     { label: 'Blueprint Selected', passed: !!selectedBlueprintId },

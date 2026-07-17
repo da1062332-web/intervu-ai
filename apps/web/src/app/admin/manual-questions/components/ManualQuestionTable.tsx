@@ -13,6 +13,29 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2 } from 'lucide-react';
 import { useDeleteManualQuestion } from '@/services/manual-questions/hooks';
+import { useConcepts } from '@/services/concept-mapping/hooks';
+
+function ConceptNameCell({ topicId, conceptId }: { topicId?: string; conceptId?: string }) {
+  const { data: concepts, isLoading } = useConcepts(topicId || '', false);
+  
+  if (!conceptId) return <span className="text-muted-foreground">N/A</span>;
+  if (isLoading) return <Skeleton className="h-4 w-20" />;
+  
+  const conceptsArray = Array.isArray(concepts) 
+    ? concepts 
+    : (concepts as any)?.data 
+      ? (concepts as any).data 
+      : (concepts as any)?.items 
+        ? (concepts as any).items 
+        : [];
+
+  const concept = conceptsArray.find((c: any) => c.id === conceptId);
+  return (
+    <span title={concept?.name || conceptId}>
+      {concept?.name || conceptId}
+    </span>
+  );
+}
 
 interface ManualQuestionTableProps {
   questions: ManualQuestion[];
@@ -103,8 +126,8 @@ export function ManualQuestionTable({
                     {question.status}
                   </Badge>
                 </TableCell>
-                <TableCell className='font-mono text-xs text-muted-foreground'>
-                  {question.conceptId || 'N/A'}
+                <TableCell className='text-sm text-muted-foreground'>
+                  <ConceptNameCell topicId={question.topicId} conceptId={question.conceptId || undefined} />
                 </TableCell>
                 <TableCell className='text-right'>
                   <div className='flex justify-end gap-2'>

@@ -76,4 +76,7 @@ export const datasetsApi = {
 
   deleteItem: (itemId: string): Promise<void> =>
     apiClient.request<void>(`/datasets/items/${itemId}`, { method: 'DELETE' }),
+
+  getDatasetSchema: (datasetId: string): Promise<any> =>
+    apiClient.request<any>(`/datasets/${datasetId}/schema`, { method: 'GET' }),
 };

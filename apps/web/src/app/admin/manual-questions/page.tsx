@@ -14,7 +14,7 @@ export default function ManualQuestionsPage() {
   const router = useRouter();
   const [filters, setFilters] = useState<FilterType>({});
   const { data, isLoading } = useManualQuestions(filters);
-  const questions = data?.items || [];
+  const questions = Array.isArray(data) ? data : (data as any)?.data || (data as any)?.items || [];
 
   const [editingQuestion, setEditingQuestion] = useState<ManualQuestion | null>(null);
 

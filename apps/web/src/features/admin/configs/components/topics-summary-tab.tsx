@@ -58,32 +58,27 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
         </p>
       </div>
 
-      <div className='flex flex-col md:flex-row border rounded-xl bg-card shadow-sm overflow-hidden min-h-[400px]'>
-        {/* Sections Sidebar */}
-        <div className='w-full md:w-64 bg-muted/10 border-r p-4 flex flex-col gap-2'>
-          <h3 className='font-semibold mb-3 text-xs text-muted-foreground uppercase tracking-wider'>
-            Sections
-          </h3>
-          {sections.map(section => (
-            <button
-              key={section.id}
-              onClick={() => setSelectedSectionId(section.id)}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors text-sm ${
-                selectedSectionId === section.id
-                  ? 'bg-primary text-primary-foreground font-medium shadow-sm'
-                  : 'hover:bg-muted text-foreground'
-              }`}
-            >
-              <span className='truncate'>{section.name}</span>
-              {selectedSectionId === section.id && <ChevronRight className='w-4 h-4 shrink-0' />}
-            </button>
-          ))}
-        </div>
-
+      <div className='flex flex-col border rounded-xl bg-card shadow-sm overflow-hidden min-h-[400px]'>
         {/* Topics Main Area */}
         <div className='flex-1 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-6'>
-            <h3 className='font-semibold text-lg'>Assigned Topics</h3>
+          <div className='flex items-center justify-between mb-6 gap-4 border-b pb-4'>
+            <h3 className='font-semibold text-lg whitespace-nowrap'>Assigned Topics</h3>
+            
+            {/* Section Filter Dropdown */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground font-medium">Section:</span>
+              <select
+                value={selectedSectionId}
+                onChange={(e) => setSelectedSectionId(e.target.value)}
+                className="flex h-9 min-w-[200px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {sections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {isLoadingTopics ? (

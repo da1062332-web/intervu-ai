@@ -13,6 +13,13 @@ export const useDataset = (id: string) =>
     enabled: !!id,
   });
 
+export const useDatasetSchema = (id: string) =>
+  useQuery({
+    queryKey: [QUERY_KEY, 'schema', id],
+    queryFn: () => datasetsApi.getDatasetSchema(id),
+    enabled: !!id,
+  });
+
 export const useCreateDataset = () => {
   const qc = useQueryClient();
   return useMutation({
