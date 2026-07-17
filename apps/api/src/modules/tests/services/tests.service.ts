@@ -35,6 +35,7 @@ export class TestsService {
         sections: tc.isExam 
           ? tc.sections.map((s: { name: string }) => s.name)
           : tc.sections.map((s: { displayName: string }) => s.displayName),
+        questionCount: tc.isExam ? tc.totalQuestions : 0,
       };
     });
 

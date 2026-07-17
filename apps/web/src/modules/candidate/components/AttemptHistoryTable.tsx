@@ -79,7 +79,7 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
             </>
           ) : attempt.status === 'IN_PROGRESS' ? (
             <Button size='sm' variant='default' asChild className='h-8 px-2'>
-              <Link href={`/candidate/tests/${attempt.testId || attempt.instanceId}/resume`}>
+              <Link href={`/candidate/tests/${attempt.instanceId}/execution`}>
                 <Play className='size-4 mr-1' /> Continue
               </Link>
             </Button>

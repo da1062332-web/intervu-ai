@@ -10,6 +10,7 @@ export interface StrategyResolvedContext {
   generationStrategy: string;
   variables: Record<string, any>;
   datasetItem?: {
+    id?: string;
     content: string;
     metadata: any;
   };
@@ -63,11 +64,35 @@ export class GenerationStrategyResolver {
         const datasetItem = await this.datasetLoader.loadDatasetItem(
           template as any,
         );
+
+        const variables: Record<string, any> = {};
+        const config = await this.prismaService.templateDatasetConfig.findUnique({
+          where: { templateId: template.id },
+        });
+
+        if (config && config.variableMapping) {
+          const mapping = (config.variableMapping as Record<string, string>) || {};
+          const metadata = datasetItem.metadata || {};
+
+          const templateVars = await this.prismaService.templateVariable.findMany({
+            where: { templateId: template.id },
+          });
+
+          for (const tVar of templateVars) {
+            const mappedField = mapping[tVar.variableName];
+            let val = mappedField ? metadata[mappedField] : undefined;
+            if (val === undefined || val === null) {
+              val = tVar.defaultValue || "";
+            }
+            variables[tVar.variableName] = val;
+          }
+        }
+
         return {
           templateId: template.id,
           conceptKey: template.conceptKey,
           generationStrategy: "DATASET",
-          variables: {},
+          variables,
           datasetItem,
         };
       }

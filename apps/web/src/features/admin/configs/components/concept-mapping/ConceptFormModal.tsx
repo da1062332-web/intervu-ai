@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Controller } from 'react-hook-form';
 
 const formSchema = z.object({
   conceptName: z
@@ -27,6 +29,9 @@ const formSchema = z.object({
       'Code must be uppercase and only contain letters, numbers, and underscores',
     ),
   description: z.string().optional(),
+  questionSource: z.enum(['VARIABLE_TEMPLATE', 'MANUAL'], {
+    required_error: 'Please select a question source.',
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -48,6 +53,7 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isDirty },
     setValue,
   } = useForm<FormValues>({
@@ -56,6 +62,7 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
       conceptName: '',
       conceptCode: '',
       description: '',
+      questionSource: 'VARIABLE_TEMPLATE',
     },
   });
 
@@ -66,12 +73,14 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
           conceptName: concept.name || concept.conceptName || '',
           conceptCode: concept.code || concept.conceptCode || '',
           description: concept.description || '',
+          questionSource: (concept.questionSources?.[0] as 'VARIABLE_TEMPLATE' | 'MANUAL') || 'VARIABLE_TEMPLATE',
         });
       } else {
         reset({
           conceptName: '',
           conceptCode: '',
           description: '',
+          questionSource: 'VARIABLE_TEMPLATE',
         });
       }
     }
@@ -80,9 +89,10 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
   const onSubmit = async (data: FormValues) => {
     try {
       const payload = {
-        ...data,
         name: data.conceptName,
         code: data.conceptCode,
+        description: data.description,
+        questionSources: [data.questionSource],
       };
 
       if (isEditing && concept) {
@@ -155,6 +165,36 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
               {...register('description')}
               disabled={isSubmitting}
             />
+          </div>
+
+          <div className='space-y-3'>
+            <Label>Question Source</Label>
+            <Controller
+              control={control}
+              name='questionSource'
+              render={({ field }) => (
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className='flex flex-col space-y-1'
+                  disabled={isSubmitting}
+                >
+                  <div className='flex items-center space-x-2'>
+                    <RadioGroupItem value='VARIABLE_TEMPLATE' id='r1' />
+                    <Label htmlFor='r1' className='font-normal cursor-pointer'>Variable Template</Label>
+                  </div>
+                  <div className='flex items-center space-x-2'>
+                    <RadioGroupItem value='MANUAL' id='r2' />
+                    <Label htmlFor='r2' className='font-normal cursor-pointer'>Manual Questions</Label>
+                  </div>
+                </RadioGroup>
+              )}
+            />
+            {errors.questionSource && (
+              <p className='text-sm text-destructive' role='alert'>
+                {errors.questionSource.message}
+              </p>
+            )}
           </div>
 
           <div className='pt-4 flex items-center justify-end space-x-2 border-t'>

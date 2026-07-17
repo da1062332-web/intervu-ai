@@ -286,6 +286,8 @@ model TestInstanceSection {
   durationSeconds Int
   questionCount   Int
   orderIndex      Int
+  status          String                 @default("UPCOMING") @map("status")
+  startedAt       DateTime?              @map("started_at")
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
   questions       TestInstanceQuestion[]
@@ -293,6 +295,7 @@ model TestInstanceSection {
 
   @@unique([testInstanceId, orderIndex])
   @@index([testInstanceId])
+  @@index([status])
 }
 
 model TestInstanceQuestion {
@@ -339,6 +342,9 @@ model ExecutionState {
   updatedAt              DateTime     @updatedAt
   currentQuestionId      String?      @map("current_question_id")
   currentSectionKey      String?      @map("current_section_key")
+  currentSectionIndex    Int?         @default(0) @map("current_section_index")
+  sectionStartedAt       DateTime?    @map("section_started_at")
+  lockedSectionKeys      Json?        @map("locked_section_keys")
   markedQuestions        Json?        @map("marked_questions")
   networkStatusTimestamp DateTime?    @map("network_status_timestamp")
   visitedQuestions       Json?        @map("visited_questions")
@@ -533,6 +539,8 @@ model RuleFlags {
   shuffleQuestionsEnabled   Boolean    @default(false)
   shuffleOptionsEnabled     Boolean    @default(false)
   allowSectionNavigation    Boolean    @default(false)
+  sectionTimingEnabled      Boolean    @default(false) @map("section_timing_enabled")
+  maxAttempts               Int        @default(3) @map("max_attempts")
   createdAt                 DateTime   @default(now())
   updatedAt                 DateTime   @updatedAt
   examConfig                ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
@@ -770,6 +778,14 @@ model TemplateDatasetConfig {
   updatedAt          DateTime @updatedAt @map("updated_at")
   template           Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
+  // New Fields
+  variableMapping    Json     @default("{}") @map("variable_mapping")
+  sampleSize         Int      @default(1) @map("sample_size")
+  shuffle            Boolean  @default(true)
+  allowReuse         Boolean  @default(true) @map("allow_reuse")
+  specificItemId     String?  @map("specific_item_id")
+  fallbackPolicy     String   @default("RELAX_FILTERS") @map("fallback_policy")
+
   @@index([templateId])
   @@map("template_dataset_configs")
 }
@@ -809,7 +825,7 @@ model Question {
   answer            String
   explanation       String
   topicId           String               @map("topic_id")
-  sectionId         String               @map("section_id")
+  sectionId         String?              @map("section_id")
   conceptId         String?              @map("concept_id")
   difficulty        String
   difficultyScore   Float?               @map("difficulty_score")
@@ -836,7 +852,7 @@ model Question {
   reviews           QuestionReview[]
   usage             QuestionUsage?
   versions          QuestionVersion[]
-  section           ExamSection          @relation(fields: [sectionId], references: [id])
+  section           ExamSection?         @relation(fields: [sectionId], references: [id])
   template          Template?            @relation(fields: [templateId], references: [id])
   topic             Topic                @relation(fields: [topicId], references: [id])
   concept           Concept?             @relation(fields: [conceptId], references: [id], onDelete: SetNull)

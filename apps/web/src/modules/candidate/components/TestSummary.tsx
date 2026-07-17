@@ -59,7 +59,9 @@ export function TestSummary({ test }: TestSummaryProps) {
               <p className='text-[10px] text-muted-foreground font-semibold uppercase tracking-wider'>
                 Questions
               </p>
-              <p className='text-sm font-bold text-foreground mt-0.5'>N/A</p>
+              <p className='text-sm font-bold text-foreground mt-0.5'>
+                {test.questionCount || 0}
+              </p>
             </div>
           </div>
         </div>
@@ -71,7 +73,7 @@ export function TestSummary({ test }: TestSummaryProps) {
               Sections
             </p>
             <p className='text-sm font-bold text-foreground mt-0.5'>
-              {test.sections?.length || 0} Parts ({test.sections?.join(', ') || ''})
+              {test.sections?.length || 0} Parts ({test.sections?.map(s => s.name).join(', ') || ''})
             </p>
           </div>
         </div>

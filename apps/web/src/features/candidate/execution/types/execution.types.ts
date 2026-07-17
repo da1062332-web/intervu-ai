@@ -4,6 +4,7 @@ export type QuestionType = 'MCQ' | 'MSQ' | 'NUMERIC' | 'CODING';
 export type AutosaveStatus = 'IDLE' | 'SAVING' | 'SAVED' | 'FAILED';
 export type ConnectionStatus = 'ONLINE' | 'OFFLINE' | 'RECONNECTING';
 export type SubmissionStatus = 'IDLE' | 'SUBMITTING' | 'SUCCESS' | 'FAILED';
+export type SectionStatus = 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'EXPIRED' | 'LOCKED';
 
 export interface QuestionOption {
   id: string;
@@ -20,10 +21,17 @@ export interface Question {
 }
 
 export interface Section {
+  sectionName: string;
   id: string;
   sectionKey: string;
   title: string;
   questions: Question[];
+  /** Duration for this section in seconds (used when sectionTimingEnabled = true) */
+  durationSeconds?: number;
+  /** Server-authoritative ISO timestamp of when this section was activated */
+  startedAt?: string | null;
+  /** Current lifecycle status of this section */
+  status?: SectionStatus;
 }
 
 export interface AnswerState {
@@ -43,4 +51,10 @@ export interface TestInstance {
   status: 'CREATED' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED';
   durationSeconds: number;
   sections: Section[];
+  /** Whether per-section timers are enforced */
+  sectionTimingEnabled?: boolean;
+  /** Index of the currently active section from the server */
+  currentSectionIndex?: number;
+  /** Server timestamp (ISO string) — used for clock-sync on section timers */
+  serverTime?: string;
 }

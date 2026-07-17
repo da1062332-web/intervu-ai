@@ -1,6 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { ScheduleModule } from "@nestjs/schedule";
 import { RateLimitGuard } from "./modules/platform/middleware/rate-limit.middleware";
 import { RolesGuard } from "./modules/auth/guards/roles.guard";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
@@ -58,6 +59,7 @@ import { QuestionGenerationModule } from "./modules/question-generation/question
     // Infrastructure — must be first (ConfigModule provides env vars)
     ConfigModule,
     PrismaModule,
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync(rateLimitConfig),
 
     // Global services — CacheModule and QueueModule are @Global(),

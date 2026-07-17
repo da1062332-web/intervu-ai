@@ -44,10 +44,12 @@ export class PromptBuilderService {
         .replace("{{hydratedQuestion}}", payload.hydratedQuestion ?? "");
     } else if (context.strategy === "DATASET") {
       const payload = context.payload as DatasetPayload;
+      const variables = (context.metadata?.variables as Record<string, any>) || {};
       filled = filled
         .replace("{{passage}}", payload.passage)
         .replace("{{topic}}", payload.datasetMetadata.topic)
         .replace("{{difficulty}}", payload.datasetMetadata.difficulty);
+      filled = this.interpolate(filled, { ...variables, passage: payload.passage });
     } else if (context.strategy === "HYBRID") {
       const payload = context.payload as HybridPayload;
       const graph = payload.relationshipGraph;
@@ -212,5 +214,15 @@ ${aiInstructionsText}
       correctAnswer: "C",
       explanation: `This is a mock explanation for the ${strategyLabel} strategy. Replace with actual LLM output.`,
     };
+  }
+
+  private interpolate(text: string, variables: Record<string, any>): string {
+    if (!text) return "";
+    let result = text;
+    for (const [key, value] of Object.entries(variables)) {
+      const strValue = typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
+      result = result.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), strValue);
+    }
+    return result;
   }
 }

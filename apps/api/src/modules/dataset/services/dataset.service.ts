@@ -122,4 +122,55 @@ export class DatasetService {
       data: dto,
     });
   }
+
+  async getDatasetSchema(datasetId: string) {
+    await this.findDatasetById(datasetId); // ensure exists
+    const items = await this.prismaService.datasetItem.findMany({
+      where: { datasetId },
+      take: 10,
+    });
+
+    if (items.length === 0) {
+      return { fields: [] };
+    }
+
+    const fieldMap = new Map<string, { types: Set<string>; count: number }>();
+
+    for (const item of items) {
+      const metadata = (item.metadata as Record<string, any>) || {};
+      for (const [key, value] of Object.entries(metadata)) {
+        if (!fieldMap.has(key)) {
+          fieldMap.set(key, { types: new Set<string>(), count: 0 });
+        }
+        const info = fieldMap.get(key)!;
+        info.count++;
+
+        if (value === null || value === undefined) {
+          info.types.add("NULL");
+        } else if (Array.isArray(value)) {
+          info.types.add("ARRAY");
+        } else if (typeof value === "string") {
+          info.types.add("STRING");
+        } else if (typeof value === "number") {
+          info.types.add("NUMBER");
+        } else if (typeof value === "boolean") {
+          info.types.add("BOOLEAN");
+        } else {
+          info.types.add("OBJECT");
+        }
+      }
+    }
+
+    const fields = Array.from(fieldMap.entries()).map(([name, info]) => {
+      const typeList = Array.from(info.types).filter((t) => t !== "NULL");
+      const determinedType = typeList.length > 0 ? typeList[0] : "STRING";
+      return {
+        name,
+        type: determinedType,
+        required: info.count === items.length,
+      };
+    });
+
+    return { fields };
+  }
 }

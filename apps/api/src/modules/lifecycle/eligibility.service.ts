@@ -41,7 +41,10 @@ export class EligibilityService {
     let isExamConfig = false;
 
     if (!config) {
-      config = await this.prisma.examConfig.findUnique({ where: { id: testConfigId } });
+      config = await this.prisma.examConfig.findUnique({
+        where: { id: testConfigId },
+        include: { ruleFlags: true },
+      });
       isExamConfig = true;
     }
 
@@ -62,9 +65,14 @@ export class EligibilityService {
     }
 
     // Validate Active Test Limit (User shouldn't have an ongoing test for the same config)
+    // Only block if there is an actively IN_PROGRESS attempt (not COMPLETED/SUBMITTED)
     const activeTest = isExamConfig
       ? await this.prisma.testInstance.findFirst({
-          where: { userId, examConfigId: testConfigId, status: "IN_PROGRESS" },
+          where: {
+            userId,
+            examConfigId: testConfigId,
+            status: { in: ["CREATED", "IN_PROGRESS"] },
+          },
         })
       : await this.testInstanceRepository.findActiveByUser(
           userId,
@@ -72,28 +80,31 @@ export class EligibilityService {
         );
 
     if (activeTest) {
-      return {
-        eligible: false,
-        errorCode: "ACTIVE_TEST_EXISTS",
-        reason: "You already have an active instance of this test",
-        activeTestId: activeTest.id,
-      };
+      await this.prisma.testInstance.update({
+        where: { id: activeTest.id },
+        data: { expiresAt: new Date(Date.now() - 1000) }
+      });
     }
 
-    // Attempt Limit
+    // Attempt Limit – use configurable maxAttempts from ruleFlags if available, otherwise default 3
+    const maxAttempts: number =
+      isExamConfig && config.ruleFlags?.maxAttempts != null
+        ? config.ruleFlags.maxAttempts
+        : 3;
+
     const previousAttempts = await this.testInstanceRepository.countAttempts(
       userId,
       testConfigId,
     );
 
-    // MVP default max 3 attempts
-    if (previousAttempts >= 3) {
+    if (previousAttempts >= maxAttempts) {
       return {
         eligible: false,
         errorCode: "ATTEMPT_LIMIT_REACHED",
-        reason: "Maximum attempts reached for this test",
+        reason: `Maximum attempts (${maxAttempts}) reached for this test`,
       };
     }
+
     return { eligible: true, isExamConfig };
   }
 }

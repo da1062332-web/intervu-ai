@@ -44,8 +44,10 @@ export function useResume(testId: string | undefined) {
 
           restoreStateFromStorage({
             answers: formattedAnswers,
-            currentQuestionIndex: sessionDto.currentQuestion || 0,
-            remainingTime: (sessionDto as any).remainingTime ?? testInstance.durationSeconds,
+            currentQuestionIndex: sessionDto.executionState?.currentQuestionIndex ?? sessionDto.currentQuestion ?? 0,
+            remainingTime: sessionDto.executionState?.remainingTimeSeconds ?? (sessionDto as any).remainingTime ?? testInstance.durationSeconds,
+            currentSectionIndex: sessionDto.executionState?.currentSectionIndex,
+            lockedSectionKeys: sessionDto.executionState?.lockedSectionKeys,
           });
           return;
         }

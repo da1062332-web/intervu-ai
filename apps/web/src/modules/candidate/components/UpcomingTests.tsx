@@ -40,8 +40,7 @@ export function UpcomingTests() {
       </Card>
     );
   }
-  const completedTestIds = new Set(data.completedAttempts?.map((c) => c.testId) || []);
-  const tests = data.availableTests?.filter((t) => t.status !== 'ENROLLED' && !completedTestIds.has(t.id)) || [];
+  const tests = data.availableTests?.filter((t) => t.status !== 'ENROLLED' && t.attemptCount === 0 && !t.hasActiveAttempt) || [];
   if (tests.length === 0) {
     return (
       <Card className='h-full flex flex-col glass-card'>
@@ -60,9 +59,6 @@ export function UpcomingTests() {
     );
   }
 
-  const displayTests = tests.slice(0, 3);
-  const hasMore = tests.length > 3;
-
   return (
     <Card className='h-full flex flex-col glass-card'>
       <CardHeader className='flex flex-row items-center justify-between pb-2'>
@@ -70,18 +66,9 @@ export function UpcomingTests() {
           <CardTitle className='text-xl font-semibold'>Available Assessments</CardTitle>
           <CardDescription>Assessments ready to be taken</CardDescription>
         </div>
-        {hasMore && (
-          <Button
-            variant='ghost'
-            className='text-sm text-primary hover:underline px-0'
-            onClick={() => router.push('/candidate/tests')}
-          >
-            View all
-          </Button>
-        )}
       </CardHeader>
-      <CardContent className='flex-1 space-y-4 pt-4'>
-        {displayTests.map((test) => (
+      <CardContent className='flex-1 space-y-4 pt-4 overflow-y-auto max-h-[450px] pr-2 custom-scrollbar'>
+        {tests.map((test) => (
           <div
             key={test.id}
             className='flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/30 transition-colors gap-4'

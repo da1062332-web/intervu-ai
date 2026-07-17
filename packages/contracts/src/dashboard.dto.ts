@@ -22,6 +22,8 @@ export interface AvailableTestDto {
   duration: number;
   /** Template.config.sections — empty array when not set */
   sections: string[];
+  /** Total number of questions */
+  questionCount?: number;
 }
 
 /** A test instance currently in progress for the authenticated candidate. */

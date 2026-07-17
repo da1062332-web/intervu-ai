@@ -13,6 +13,7 @@ interface RuleFlagsState {
   shuffleQuestionsEnabled: boolean;
   shuffleOptionsEnabled: boolean;
   allowSectionNavigation: boolean;
+  maxAttempts?: number;
 }
 
 interface ConfigRulesState {

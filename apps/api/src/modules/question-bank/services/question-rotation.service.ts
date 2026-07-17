@@ -156,7 +156,7 @@ export class QuestionRotationService {
         const lockedQuestions: { id: string }[] = await tx.$queryRaw`
           SELECT q.id FROM questions q
           WHERE q.status = 'ACTIVE'::"QuestionStatus"
-            AND q.section_id = ${sectionId}
+            AND (q.section_id = ${sectionId} OR q.section_id IS NULL)
             AND q.difficulty = ${diff}
             ${topicFilter}
             AND q.id NOT IN (
@@ -203,7 +203,7 @@ export class QuestionRotationService {
         explanation: q.explanation,
         difficulty: q.difficulty as "EASY" | "MEDIUM" | "HARD",
         topicId: q.topicId,
-        sectionId: q.sectionId,
+        sectionId: q.sectionId ?? "",
       }));
 
       return {

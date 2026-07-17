@@ -9,6 +9,14 @@ export interface CandidateAnswerPayload {
   isMarkedForReview?: boolean;
 }
 
+export interface SectionAdvanceResult {
+  nextSectionIndex: number | null;
+  nextSectionId: string | null;
+  serverTime: string;
+  isLastSection: boolean;
+  submitted: boolean;
+}
+
 export const executionService = {
   getTestInstance: async (id: string): Promise<TestInstance> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,11 +40,19 @@ export const executionService = {
       status: response.status,
       durationSeconds: response.durationSeconds || duration,
 
+      // Section timing fields (Feature 5, 6, 7, 8)
+      sectionTimingEnabled: true,
+      currentSectionIndex: response.currentSectionIndex ?? 0,
+      serverTime: response.serverTime ?? new Date().toISOString(),
+
       sections:
         response.sections?.map((section: any) => ({
           id: section.sectionId,
           sectionKey: section.sectionKey,
           title: section.sectionName,
+          durationSeconds: section.durationSeconds ?? 0,
+          startedAt: section.startedAt ?? null,
+          status: section.status ?? 'UPCOMING',
 
           questions:
             section.questions?.map((q: any) => ({
@@ -81,6 +97,16 @@ export const executionService = {
     return apiClient.request(`/tests/${testId}/submit`, {
       method: 'POST',
       query: { allowPartial: true, ...options } as Record<string, string | number | boolean>,
+    });
+  },
+
+  /**
+   * Advance to the next section (Feature 8).
+   * Locks the current section, activates the next, or triggers auto-submit if last.
+   */
+  advanceSection: async (testId: string): Promise<SectionAdvanceResult> => {
+    return apiClient.request<SectionAdvanceResult>(`/tests/${testId}/sections/advance`, {
+      method: 'POST',
     });
   },
 };

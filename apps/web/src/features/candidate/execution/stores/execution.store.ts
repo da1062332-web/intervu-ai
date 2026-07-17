@@ -37,6 +37,16 @@ interface ExecutionState {
   // Section Change State
   pendingSectionChangeTarget: number | null;
 
+  // Section Timing State (Feature 6, 7, 8)
+  /** Index of the currently active section */
+  currentSectionIndex: number;
+  /** Section keys of sections that are locked (cannot return to) */
+  lockedSectionKeys: string[];
+  /** Remaining time for the current section, in seconds */
+  sectionRemainingTime: number;
+  /** Whether section-wise timing is active for this assessment */
+  sectionTimingEnabled: boolean;
+
   // Actions
   initializeTest: (testInstance: TestInstance) => void;
   jumpToQuestion: (index: number) => void;
@@ -52,8 +62,12 @@ interface ExecutionState {
   goNext: () => void;
   goPrevious: () => void;
   setTimer: (time: number) => void;
+  setSectionTimer: (time: number) => void;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
+
+  // Section advance (Feature 7 & 8)
+  advanceSectionLocally: (nextSectionIndex: number, lockedKeys: string[], sectionStartedAt: string | null) => void;
 
   // Day 4 Actions
   setAutosaveStatus: (status: AutosaveStatus) => void;
@@ -66,8 +80,53 @@ interface ExecutionState {
     answers: Record<string, AnswerState>;
     currentQuestionIndex: number;
     remainingTime: number;
+    currentSectionIndex?: number;
+    lockedSectionKeys?: string[];
   }) => void;
 }
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getSectionIndex(testInstance: TestInstance | null, qIndex: number): number {
+  if (!testInstance) return -1;
+  let runningCount = 0;
+  for (let i = 0; i < testInstance.sections.length; i++) {
+    const section = testInstance.sections[i];
+    if (qIndex >= runningCount && qIndex < runningCount + section.questions.length) {
+      return i;
+    }
+    runningCount += section.questions.length;
+  }
+  return -1;
+}
+
+function applyPaletteUpdate(
+  palette: QuestionStatus[],
+  prevIndex: number,
+  targetIndex: number,
+  answers: Record<string, AnswerState>,
+  questions: Question[],
+): QuestionStatus[] {
+  const newPalette = [...palette];
+  const prevQuestion = questions[prevIndex];
+  if (prevQuestion) {
+    const answer = answers[prevQuestion.id];
+    if (answer?.status === 'MARKED_FOR_REVIEW') {
+      newPalette[prevIndex] = 'MARKED_FOR_REVIEW';
+    } else {
+      const hasAnswer = !!(
+        answer?.selectedOptionId ||
+        (answer?.selectedOptionIds && answer.selectedOptionIds.length > 0) ||
+        answer?.textResponse
+      );
+      newPalette[prevIndex] = hasAnswer ? 'ANSWERED' : 'UNANSWERED';
+    }
+  }
+  newPalette[targetIndex] = 'CURRENT';
+  return newPalette;
+}
+
+// ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useExecutionStore = create<ExecutionState>((set, get) => ({
   // Initial Data
@@ -84,6 +143,12 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   error: null,
   pendingSectionChangeTarget: null,
 
+  // Section Timing Initial State
+  currentSectionIndex: 0,
+  lockedSectionKeys: [],
+  sectionRemainingTime: 0,
+  sectionTimingEnabled: false,
+
   // Day 4 State
   autosaveStatus: 'IDLE',
   lastSavedAt: null,
@@ -95,13 +160,46 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
   initializeTest: (testInstance) => {
     const allQuestions = testInstance.sections.flatMap((s) => s.questions);
-    const initialPalette = allQuestions.map((_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED'));
+    const initialPalette = allQuestions.map((_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED') as QuestionStatus);
+
+    // Derive current section index from backend
+    const serverSectionIndex = testInstance.currentSectionIndex ?? 0;
+
+    // Derive locked sections: all sections before currentSectionIndex with status LOCKED or COMPLETED
+    const lockedKeys = testInstance.sections
+      .filter((s, idx) => idx < serverSectionIndex || s.status === 'LOCKED' || s.status === 'COMPLETED')
+      .map((s) => s.sectionKey);
+
+    // Compute initial section remaining time from server clock + startedAt
+    let sectionRemainingTime = 0;
+    if (testInstance.sectionTimingEnabled) {
+      const activeSection = testInstance.sections[serverSectionIndex];
+      if (activeSection?.startedAt && activeSection?.durationSeconds) {
+        const serverNow = testInstance.serverTime ? new Date(testInstance.serverTime).getTime() : Date.now();
+        const sectionStarted = new Date(activeSection.startedAt).getTime();
+        const elapsed = Math.floor((serverNow - sectionStarted) / 1000);
+        sectionRemainingTime = Math.max(0, activeSection.durationSeconds - elapsed);
+      } else if (testInstance.sections[serverSectionIndex]?.durationSeconds) {
+        sectionRemainingTime = testInstance.sections[serverSectionIndex].durationSeconds!;
+      }
+    }
+
+    // Figure out the starting question index (first question of active section)
+    let startingQuestionIndex = 0;
+    let runningCount = 0;
+    for (let i = 0; i < testInstance.sections.length; i++) {
+      if (i === serverSectionIndex) {
+        startingQuestionIndex = runningCount;
+        break;
+      }
+      runningCount += testInstance.sections[i].questions.length;
+    }
 
     set({
       testInstance,
       questions: allQuestions,
-      currentQuestionIndex: 0,
-      currentQuestion: allQuestions[0] || null,
+      currentQuestionIndex: startingQuestionIndex,
+      currentQuestion: allQuestions[startingQuestionIndex] || null,
       palette: initialPalette,
       remainingTime: testInstance.durationSeconds,
       answers: {},
@@ -109,6 +207,10 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       error: null,
       isRecovered: false,
       hasAttemptedResume: false,
+      currentSectionIndex: serverSectionIndex,
+      lockedSectionKeys: lockedKeys,
+      sectionRemainingTime,
+      sectionTimingEnabled: testInstance.sectionTimingEnabled ?? false,
     });
   },
 
@@ -118,18 +220,18 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
       const questions = state.questions;
       const initialPalette = questions.map((q, i) => {
-        if (i === savedState.currentQuestionIndex) return 'CURRENT';
+        if (i === savedState.currentQuestionIndex) return 'CURRENT' as QuestionStatus;
         const answer = savedState.answers[q.id];
         if (answer) {
-          if (answer.status === 'MARKED_FOR_REVIEW') return 'MARKED_FOR_REVIEW';
+          if (answer.status === 'MARKED_FOR_REVIEW') return 'MARKED_FOR_REVIEW' as QuestionStatus;
           if (
             answer.selectedOptionId ||
             (answer.selectedOptionIds && answer.selectedOptionIds.length > 0) ||
             answer.textResponse
           )
-            return 'ANSWERED';
+            return 'ANSWERED' as QuestionStatus;
         }
-        return 'UNANSWERED';
+        return 'UNANSWERED' as QuestionStatus;
       });
 
       return {
@@ -140,6 +242,8 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         palette: initialPalette,
         isRecovered: true,
         hasAttemptedResume: true,
+        currentSectionIndex: savedState.currentSectionIndex ?? state.currentSectionIndex,
+        lockedSectionKeys: savedState.lockedSectionKeys ?? state.lockedSectionKeys,
       };
     });
   },
@@ -148,105 +252,119 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     const state = get();
     if (index < 0 || index >= state.questions.length) return;
 
-    // Determine current section index
-    const getSectionIndex = (qIndex: number) => {
-      let runningCount = 0;
-      if (!state.testInstance) return -1;
-      for (let i = 0; i < state.testInstance.sections.length; i++) {
-        const section = state.testInstance.sections[i];
-        if (qIndex >= runningCount && qIndex < runningCount + section.questions.length) {
-          return i;
-        }
-        runningCount += section.questions.length;
+    const currentSectionIdx = getSectionIndex(state.testInstance, state.currentQuestionIndex);
+    const targetSectionIdx = getSectionIndex(state.testInstance, index);
+    const targetSectionKey = state.testInstance?.sections[targetSectionIdx]?.sectionKey;
+
+    // Feature 7: Prevent navigation to locked sections
+    if (targetSectionKey && state.lockedSectionKeys.includes(targetSectionKey)) {
+      // Section is locked – silently reject the navigation
+      return;
+    }
+
+    // If changing sections (forward direction), intercept with a confirmation modal
+    if (
+      currentSectionIdx !== -1 &&
+      targetSectionIdx !== -1 &&
+      currentSectionIdx !== targetSectionIdx
+    ) {
+      // Feature 7: Only block backward jumps when section timing is enabled
+      // For forward jumps, always show the confirmation modal
+      if (state.sectionTimingEnabled && targetSectionIdx < currentSectionIdx) {
+        // Backward to a non-locked section when timing is enabled is also blocked
+        return;
       }
-      return -1;
-    };
-
-    const currentSectionIdx = getSectionIndex(state.currentQuestionIndex);
-    const targetSectionIdx = getSectionIndex(index);
-
-    // If changing sections, intercept the jump
-    if (currentSectionIdx !== -1 && targetSectionIdx !== -1 && currentSectionIdx !== targetSectionIdx) {
       set({ pendingSectionChangeTarget: index });
       return;
     }
 
-    set((state) => {
-      const newPalette = [...state.palette];
-
-      const prevIndex = state.currentQuestionIndex;
-      const prevQuestion = state.questions[prevIndex];
-      if (prevQuestion) {
-        const answer = state.answers[prevQuestion.id];
-        if (answer?.status === 'MARKED_FOR_REVIEW') {
-          newPalette[prevIndex] = 'MARKED_FOR_REVIEW';
-        } else {
-          const hasAnswer = !!(
-            answer?.selectedOptionId ||
-            (answer?.selectedOptionIds && answer.selectedOptionIds.length > 0) ||
-            answer?.textResponse
-          );
-          newPalette[prevIndex] = hasAnswer ? 'ANSWERED' : 'UNANSWERED';
-        }
-      }
-
-      newPalette[index] = 'CURRENT';
-
-      return {
-        currentQuestionIndex: index,
-        currentQuestion: state.questions[index],
-        palette: newPalette,
-        hasUnsavedChanges: true,
-        pendingSectionChangeTarget: null,
-      };
-    });
+    set((state) => ({
+      ...applyPaletteUpdate(state.palette, state.currentQuestionIndex, index, state.answers, state.questions),
+      currentQuestionIndex: index,
+      currentQuestion: state.questions[index],
+      palette: applyPaletteUpdate(state.palette, state.currentQuestionIndex, index, state.answers, state.questions),
+      hasUnsavedChanges: true,
+      pendingSectionChangeTarget: null,
+    }));
   },
 
   confirmSectionChange: () => {
     const state = get();
     const targetIndex = state.pendingSectionChangeTarget;
-    if (targetIndex !== null) {
-      // Temporarily clear the pending target to allow jumpToQuestion to proceed
-      set({ pendingSectionChangeTarget: null });
-      // Call a private/internal jump that bypasses the check, or just do the state update here.
-      // Wait, if we call jumpToQuestion(targetIndex), it will re-evaluate getSectionIndex and see a mismatch, 
-      // intercepting it again! We must bypass it.
-      // Easiest is to just do the set directly here.
-      
-      set((state) => {
-        const newPalette = [...state.palette];
-  
-        const prevIndex = state.currentQuestionIndex;
-        const prevQuestion = state.questions[prevIndex];
-        if (prevQuestion) {
-          const answer = state.answers[prevQuestion.id];
-          if (answer?.status === 'MARKED_FOR_REVIEW') {
-            newPalette[prevIndex] = 'MARKED_FOR_REVIEW';
-          } else {
-            const hasAnswer = !!(
-              answer?.selectedOptionId ||
-              (answer?.selectedOptionIds && answer.selectedOptionIds.length > 0) ||
-              answer?.textResponse
-            );
-            newPalette[prevIndex] = hasAnswer ? 'ANSWERED' : 'UNANSWERED';
-          }
-        }
-  
-        newPalette[targetIndex] = 'CURRENT';
-  
-        return {
-          currentQuestionIndex: targetIndex,
-          currentQuestion: state.questions[targetIndex],
-          palette: newPalette,
-          hasUnsavedChanges: true,
-          pendingSectionChangeTarget: null,
-        };
-      });
-    }
+    if (targetIndex === null) return;
+
+    const newPalette = applyPaletteUpdate(
+      state.palette,
+      state.currentQuestionIndex,
+      targetIndex,
+      state.answers,
+      state.questions,
+    );
+
+    set({
+      currentQuestionIndex: targetIndex,
+      currentQuestion: state.questions[targetIndex],
+      palette: newPalette,
+      hasUnsavedChanges: true,
+      pendingSectionChangeTarget: null,
+    });
   },
 
   cancelSectionChange: () => {
     set({ pendingSectionChangeTarget: null });
+  },
+
+  /**
+   * Called after the backend confirms section advance.
+   * Locks previous sections in local state, updates active section index, and resets section timer.
+   */
+  advanceSectionLocally: (nextSectionIndex, lockedKeys, sectionStartedAt) => {
+    set((state) => {
+      if (!state.testInstance) return state;
+
+      // Calculate new section timer
+      let sectionRemainingTime = 0;
+      if (state.sectionTimingEnabled) {
+        const nextSection = state.testInstance.sections[nextSectionIndex];
+        if (nextSection?.durationSeconds) {
+          if (sectionStartedAt) {
+            const elapsed = Math.floor((Date.now() - new Date(sectionStartedAt).getTime()) / 1000);
+            sectionRemainingTime = Math.max(0, nextSection.durationSeconds - elapsed);
+          } else {
+            sectionRemainingTime = nextSection.durationSeconds;
+          }
+        }
+      }
+
+      // Find the first question of the next section
+      let startingQuestionIndex = 0;
+      let runningCount = 0;
+      for (let i = 0; i < state.testInstance.sections.length; i++) {
+        if (i === nextSectionIndex) {
+          startingQuestionIndex = runningCount;
+          break;
+        }
+        runningCount += state.testInstance.sections[i].questions.length;
+      }
+
+      const newPalette = applyPaletteUpdate(
+        state.palette,
+        state.currentQuestionIndex,
+        startingQuestionIndex,
+        state.answers,
+        state.questions,
+      );
+
+      return {
+        currentSectionIndex: nextSectionIndex,
+        lockedSectionKeys: lockedKeys,
+        sectionRemainingTime,
+        currentQuestionIndex: startingQuestionIndex,
+        currentQuestion: state.questions[startingQuestionIndex],
+        palette: newPalette,
+        pendingSectionChangeTarget: null,
+      };
+    });
   },
 
   saveAnswer: (questionId, answerData) => {
@@ -339,6 +457,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   },
 
   setTimer: (time: number) => set({ remainingTime: time }),
+  setSectionTimer: (time: number) => set({ sectionRemainingTime: time }),
   setError: (error) => set({ error }),
   setLoading: (loading) => set({ loading }),
 

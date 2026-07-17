@@ -5,7 +5,7 @@ import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function TimerWidget() {
-  const { formattedTime, isWarning } = useTestTimer();
+  const { formattedTime, isWarning, isSectionTimer } = useTestTimer();
 
   return (
     <div
@@ -17,8 +17,13 @@ export function TimerWidget() {
       )}
       aria-live='polite'
     >
-      <Clock className='w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0' />
-      <span>{formattedTime}</span>
+      <div className='flex flex-col items-end leading-none mr-1'>
+        <span className='text-[10px] uppercase tracking-wider opacity-70 mb-0.5'>{isSectionTimer ? 'Section' : 'Total'}</span>
+        <div className='flex items-center gap-1.5'>
+          <Clock className='w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0' />
+          <span>{formattedTime}</span>
+        </div>
+      </div>
     </div>
   );
 }

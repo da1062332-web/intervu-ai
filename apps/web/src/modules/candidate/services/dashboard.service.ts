@@ -1,46 +1,110 @@
 import { apiClient } from '@/services/api/client';
-import { CandidateDashboardData, CandidateRecommendations } from '../types/Dashboard';
 import { AuthUser } from '@/types/auth.types';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface DashboardTestItem {
+  id: string;
+  title: string;
+  company: string;
+  durationMinutes: number;
+  sections: string[];
+  status: string;
+  attemptCount: number;
+  maxAttempts: number;
+  canReattempt: boolean;
+  hasActiveAttempt: boolean;
+  questionCount: number;
+}
+
+export interface DashboardActiveTest {
+  id: string;
+  title: string;
+  remainingMinutes: number;
+  status: string;
+  testId: string;
+  testName: string;
+  instanceId: string;
+}
+
+export interface DashboardCompletedAttempt {
+  id: string;
+  testId: string;
+  assessmentName: string;
+  score: number | null;
+  completedDate: string;
+  status: string;
+  instanceId: string;
+}
+
+export interface CandidateDashboardData {
+  availableTests: DashboardTestItem[];
+  activeTests: DashboardActiveTest[];
+  completedAttempts: DashboardCompletedAttempt[];
+  recommendations: CandidateRecommendations | null;
+  skillProgress: never[];
+}
+
+export interface CandidateRecommendations {
+  overallScore: number;
+  confidenceScore: number;
+  recommendationSummary: string;
+}
+
+// ─── Service ──────────────────────────────────────────────────────────────────
 
 export const dashboardService = {
   getDashboard: async (): Promise<CandidateDashboardData> => {
     try {
       const data = await apiClient.request<any>('/candidate/dashboard');
 
+      // Merge upcomingTests (enrolled) + recommendedTests into available list
+      const allAvailable = [
+        ...(data.upcomingTests || []),
+        ...(data.recommendedTests || []),
+      ].filter((v: any, i: number, a: any[]) => a.findIndex((t) => t.configId === v.configId) === i);
+
+      const availableTests: DashboardTestItem[] = allAvailable.map((t: any) => ({
+        id: t.configId,
+        title: t.name,
+        company: t.company || 'Unknown',
+        durationMinutes: Math.floor((t.durationSeconds || 0) / 60),
+        sections: t.sections || [],
+        status: t.enrollmentStatus || 'AVAILABLE',
+        attemptCount: t.attemptCount ?? 0,
+        maxAttempts: t.maxAttempts ?? 3,
+        canReattempt: t.canReattempt ?? true,
+        hasActiveAttempt: t.hasActiveAttempt ?? false,
+        questionCount: t.questionCount ?? 0,
+      }));
+
+      const activeTests: DashboardActiveTest[] = (data.activeAttempts || []).map((a: any) => ({
+        id: a.instanceId,
+        title: a.name,
+        remainingMinutes: Math.floor((a.timeRemainingSeconds || 0) / 60),
+        status: 'IN_PROGRESS',
+        testId: a.configId,
+        testName: a.name,
+        instanceId: a.instanceId,
+      }));
+
+      const completedAttempts: DashboardCompletedAttempt[] = (data.completedTests || []).map(
+        (t: any) => ({
+          id: t.instanceId,
+          testId: t.configId,
+          assessmentName: t.name,
+          score: t.score,
+          completedDate: t.submittedAt || new Date().toISOString(),
+          status: 'COMPLETED',
+          instanceId: t.instanceId,
+        }),
+      );
+
       return {
-        availableTests: [...(data.upcomingTests || []), ...(data.recommendedTests || [])]
-          .filter((v, i, a) => a.findIndex((t: any) => t.configId === v.configId) === i)
-          .map((t: any) => ({
-            id: t.configId,
-            title: t.name,
-            durationMinutes: Math.floor((t.durationSeconds || 0) / 60),
-            sections: t.sections || [],
-            status: t.enrollmentStatus || 'AVAILABLE',
-          })),
-
-        activeTests:
-          data.activeAttempts?.map((a: any) => ({
-            id: a.instanceId,
-            title: a.name,
-            remainingMinutes: Math.floor((a.timeRemainingSeconds || 0) / 60),
-            status: 'IN_PROGRESS',
-            testId: a.configId,
-            testName: a.name,
-            instanceId: a.instanceId,
-          })) || [],
-
-        completedAttempts:
-          data.completedTests?.map((t: any) => ({
-            id: t.instanceId,
-            testId: t.configId,
-            assessmentName: t.name,
-            score: t.score,
-            completedDate: t.submittedAt || new Date().toISOString(),
-            status: 'Completed',
-          })) || [],
-
+        availableTests,
+        activeTests,
+        completedAttempts,
         recommendations: null,
-
         skillProgress: [],
       };
     } catch (error) {

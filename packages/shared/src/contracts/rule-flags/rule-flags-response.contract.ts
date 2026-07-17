@@ -9,6 +9,7 @@ export const RuleFlagsResponseSchema = z.object({
   shuffleQuestionsEnabled: z.boolean(),
   shuffleOptionsEnabled: z.boolean(),
   allowSectionNavigation: z.boolean(),
+  maxAttempts: z.number().int().min(1).max(10).default(3),
   createdAt: z.union([z.date(), z.string()]),
   updatedAt: z.union([z.date(), z.string()]),
 });

@@ -198,7 +198,11 @@ JSON Schema:
     const difficulty = template.difficultyLevel.toLowerCase();
     const questionType = template.questionType;
 
-    const datasetContent = input.datasetItem?.content || "";
+    const variableValues = input.variableValues || {};
+    let datasetContent = input.datasetItem?.content || "";
+    if (datasetContent) {
+      datasetContent = this.interpolate(datasetContent, variableValues);
+    }
 
     const systemPrompt = promptConfig?.systemPrompt || `You are an expert AI Assessment Question Generator. Your task is to generate verbal, grammar, or reading comprehension questions based on a provided static content asset.`;
 
@@ -224,17 +228,20 @@ ${datasetContent}
     if (promptConfig?.userPrompt) {
       userPromptText = `
 [USER PROMPT]
-${this.interpolate(promptConfig.userPrompt, { content: datasetContent })}
+${this.interpolate(promptConfig.userPrompt, { content: datasetContent, ...variableValues })}
 `;
     }
 
-    const questionInstructions = promptConfig?.instructions || `
+    let questionInstructions = promptConfig?.instructions || `
 [QUESTION INSTRUCTIONS]
 Generate a high-quality ${questionType} question of ${difficulty} difficulty that tests comprehension, syntax, or vocabulary based on the content asset above.
 - The question stem must refer directly to the content asset.
 - Keep the wording precise, unambiguous, and suitable for the target age or proficiency level.
 - Do not leak any variable placeholders (e.g. no curly braces).
 `;
+    if (promptConfig?.instructions) {
+      questionInstructions = this.interpolate(promptConfig.instructions, variableValues);
+    }
 
     let optionStrategyText = "";
     if (questionType === "mcq" || questionType === "multiple_choice") {

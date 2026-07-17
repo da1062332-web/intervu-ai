@@ -30,6 +30,7 @@ export class RuleFlagsService {
         shuffleQuestionsEnabled: false,
         shuffleOptionsEnabled: false,
         allowSectionNavigation: false,
+        maxAttempts: 3,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -61,6 +62,7 @@ export class RuleFlagsService {
       shuffleQuestionsEnabled: entity.shuffleQuestionsEnabled,
       shuffleOptionsEnabled: entity.shuffleOptionsEnabled,
       allowSectionNavigation: entity.allowSectionNavigation,
+      maxAttempts: entity.maxAttempts,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
     };

@@ -71,8 +71,26 @@ export class AnswerService {
         return { status: "expired" };
       }
 
+      // 6a. Validate that the question's section is not locked (Feature 7)
+      const questionSection = await tx.testInstanceQuestion.findFirst({
+        where: { testInstanceId, questionId: dto.questionId },
+        include: { section: true },
+      });
+      if (questionSection?.section?.status === "LOCKED" || questionSection?.section?.status === "COMPLETED" || questionSection?.section?.status === "EXPIRED") {
+        this.logger.warn("Answer rejected: section is locked", {
+          testInstanceId,
+          questionId: dto.questionId,
+          sectionStatus: questionSection?.section?.status,
+        });
+        throw new BadRequestException({
+          code: "SECTION_LOCKED",
+          message: "This section is locked and no longer accepts answers.",
+        });
+      }
+
       // 6. Validate question
       this.validator.validateQuestion(testInstanceId, dto.questionId);
+
 
       // 7. Persist Answer
       const repo = this.answerRepo.withTransaction(tx);

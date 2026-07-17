@@ -7,6 +7,7 @@ import {
   ResumeController,
   SubmissionController,
 } from "./controllers";
+import { SectionController } from "./controllers/section.controller";
 import {
   ExecutionService,
   ExecutionValidatorService,
@@ -19,6 +20,7 @@ import {
   SubmissionService,
   AssessmentResilienceTestService,
 } from "./services";
+import { SectionAdvanceService } from "./services/section-advance.service";
 import {
   TestInstanceRepository,
   ExecutionStateRepository,
@@ -35,6 +37,7 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
     AnswerController,
     ResumeController,
     SubmissionController,
+    SectionController,
   ],
   providers: [
     TestInstanceRepository,
@@ -50,6 +53,7 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
     ResumeService,
     SubmissionService,
     ExecutionService,
+    SectionAdvanceService,
     AssessmentResilienceTestService,
     {
       provide: EVALUATION_ADAPTER,

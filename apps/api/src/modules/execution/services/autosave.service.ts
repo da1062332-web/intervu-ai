@@ -86,6 +86,27 @@ export class AutosaveService {
       return { status: "expired" };
     }
 
+    // 4a. Validate that the question's section is not locked
+    const questionSection = await this.prisma.testInstanceQuestion.findFirst({
+      where: { testInstanceId, questionId: dto.questionId },
+      include: { section: true },
+    });
+    if (
+      questionSection?.section?.status === "LOCKED" ||
+      questionSection?.section?.status === "COMPLETED" ||
+      questionSection?.section?.status === "EXPIRED"
+    ) {
+      this.logger.warn("Autosave rejected: section is locked", {
+        testInstanceId,
+        questionId: dto.questionId,
+        sectionStatus: questionSection?.section?.status,
+      });
+      throw new BadRequestException({
+        code: "SECTION_LOCKED",
+        message: "This section is locked and no longer accepts answers.",
+      });
+    }
+
     // 5. Validate question
     this.validator.validateQuestion(testInstanceId, dto.questionId);
 

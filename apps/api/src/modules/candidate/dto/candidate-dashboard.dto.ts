@@ -24,6 +24,18 @@ export class DashboardTestItemDto {
 
   @ApiPropertyOptional({ example: "ENROLLED" })
   enrollmentStatus?: string;
+
+  @ApiProperty({ example: 2 })
+  attemptCount!: number;
+
+  @ApiProperty({ example: 3 })
+  maxAttempts!: number;
+
+  @ApiProperty({ example: true })
+  canReattempt!: boolean;
+
+  @ApiProperty({ example: false })
+  hasActiveAttempt!: boolean;
 }
 
 export class DashboardActiveAttemptDto {

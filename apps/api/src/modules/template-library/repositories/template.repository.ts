@@ -21,6 +21,19 @@ export class TemplateRepository extends BaseRepository<
     return new TemplateRepository(this.prisma, tx) as this;
   }
 
+  override async findById(id: string): Promise<Template | null> {
+    const where: Prisma.TemplateWhereInput = { id };
+    if (this.options.softDelete) {
+      where.deletedAt = null;
+    }
+    return this.db.template.findUnique({
+      where: where as Prisma.TemplateWhereUniqueInput,
+      include: {
+        datasetConfigRelation: true,
+      },
+    }) as Promise<Template | null>;
+  }
+
   async findSystemTemplates(): Promise<Template[]> {
     const where: Prisma.TemplateWhereInput = { isSystem: true };
     if (this.options.softDelete) {
