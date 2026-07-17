@@ -51,4 +51,30 @@ describe("PromptBuilderService", () => {
     expect(prompt).toContain("Final Answer");
     expect(prompt).toContain("JSON Schema");
   });
+
+  it("should instruct the model to avoid obviously wrong distractors", () => {
+    const input: PromptBuilderInput = {
+      template: {
+        id: "template_456",
+        name: "Verbal Reasoning",
+        description: "Distractor quality template",
+        conceptKey: "reasoning",
+        difficultyLevel: "MEDIUM",
+        questionType: "mcq",
+        structure: {
+          questionTemplate: "Choose the best explanation.",
+        },
+        variableSchema: { variables: [] },
+        constraints: { constraints: [] },
+        solutionSchema: {
+          steps: ["Reason through the options"],
+          finalAnswer: "Option B",
+        },
+      },
+      variableValues: {},
+    };
+
+    const prompt = service.buildPrompt(input);
+    expect(prompt.toLowerCase()).toContain("avoid obviously wrong options");
+  });
 });

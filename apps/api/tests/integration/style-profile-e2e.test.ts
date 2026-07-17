@@ -5,12 +5,12 @@ import { INestApplication, Injectable, CanActivate, ExecutionContext } from "@ne
 import { APP_GUARD } from "@nestjs/core";
 import { StyleProfileController } from "../../src/modules/blueprint/controllers/style-profile.controller";
 import { BlueprintController } from "../../src/modules/blueprint/controllers/blueprint.controller";
-import { QuestionGenerationController } from "../../src/modules/question-generation/controllers/question-generation.controller";
+import { QuestionGenerationController } from "../../src/modules/generation/controllers/question-generation.controller";
 import { StyleProfileService } from "../../src/modules/blueprint/services/style-profile.service";
 import { BlueprintService } from "../../src/modules/blueprint/services/blueprint.service";
 import { StyleValidationService } from "../../src/modules/question-generation/services/style-validation.service";
-import { PromptBuilderService } from "../../src/modules/question-generation/prompt/prompt-builder.service";
-import { GenerationStrategyResolver } from "../../src/modules/question-generation/services/generation-strategy-resolver.service";
+import { PromptBuilderService } from "../../src/modules/generation-ai/prompts/prompt-builder.service";
+import { GenerationStrategyResolver } from "../../src/modules/generation/services/generation-strategy.resolver";
 import { ValidationRegistry } from "../../src/modules/question-generation/registry/validation.registry";
 import { QuestionAssemblerService } from "../../src/modules/question-generation/assembler/question-assembler.service";
 import { QuestionRepository } from "../../src/modules/question-generation/repository/question.repository";

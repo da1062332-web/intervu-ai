@@ -59,6 +59,13 @@ export class ResponseValidatorService {
         throw new BadRequestException("MCQ options contain duplicate values");
       }
 
+      const obviousNonsense = /(lorem|todo|xyz|asdf|qwerty|nonsense)/i;
+      if (options.some((opt) => obviousNonsense.test(opt))) {
+        throw new BadRequestException(
+          "MCQ options contain obviously nonsensical distractors",
+        );
+      }
+
       // Check that correctAnswer exactly matches one of the options
       const cleanAnswer = String(correctAnswer).trim();
       const cleanOptions = options.map((o) => o.trim());
@@ -72,6 +79,25 @@ export class ResponseValidatorService {
     // 4. Explanation Existence
     if (!question.explanation || question.explanation.trim().length === 0) {
       throw new BadRequestException("Explanation text is empty or missing");
+    }
+
+    const explanation = String(question.explanation).trim();
+    const answerValue = String(correctAnswer).trim();
+    const hasConcept = /concept/i.test(explanation);
+    const hasFormula = /formula|reasoning/i.test(explanation);
+    const hasSteps = /step-by-step|solution/i.test(explanation);
+    const hasFinalAnswer = /final answer|answer/i.test(explanation);
+
+    if (!hasConcept || !hasFormula || !hasSteps || !hasFinalAnswer) {
+      throw new BadRequestException(
+        "Explanation must include Concept, Formula / Reasoning, Step-by-Step Solution, and Final Answer sections",
+      );
+    }
+
+    if (answerValue && !explanation.toLowerCase().includes(answerValue.toLowerCase())) {
+      throw new BadRequestException(
+        `Explanation alignment check failed: The correct answer "${answerValue}" is not referenced in the explanation body.`,
+      );
     }
 
     // 5. Placeholder Leakage Scan (curly brace detection)
