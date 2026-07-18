@@ -65,6 +65,7 @@ export class ExecutionController {
     body: {
       currentSection: string;
       currentQuestion: string;
+      currentQuestionIndex: number;
       remainingTime: number;
       markedQuestions: any;
       visitedQuestions: any;
@@ -77,6 +78,7 @@ export class ExecutionController {
       update: {
         currentSectionKey: body.currentSection,
         currentQuestionId: body.currentQuestion,
+        currentQuestionIndex: body.currentQuestionIndex,
         remainingTimeSeconds: body.remainingTime,
         markedQuestions: body.markedQuestions,
         visitedQuestions: body.visitedQuestions,
@@ -84,7 +86,7 @@ export class ExecutionController {
       },
       create: {
         testInstanceId: id,
-        currentQuestionIndex: 0,
+        currentQuestionIndex: body.currentQuestionIndex ?? 0,
         currentSectionKey: body.currentSection,
         currentQuestionId: body.currentQuestion,
         remainingTimeSeconds: body.remainingTime,

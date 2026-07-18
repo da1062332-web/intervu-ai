@@ -71,46 +71,31 @@ export function UpcomingTests() {
         {tests.map((test) => (
           <div
             key={test.id}
-            className='flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/30 transition-colors gap-4'
+            className='flex items-center justify-between p-4 border rounded-xl bg-card/50 hover:bg-muted/30 transition-colors shadow-sm gap-4'
           >
-            <div className='space-y-2 flex-1'>
-              <div className='flex items-center gap-2'>
-                <h3 className='font-semibold text-foreground'>{test.title}</h3>
+            <div className='min-w-0 flex-1 mr-3'>
+              <div className='font-medium truncate'>{test.title}</div>
+              <div className='flex items-center gap-2 text-sm text-muted-foreground mt-1'>
                 <Badge
                   variant='outline'
-                  className='bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
+                  className='bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20 text-[10px] h-4 leading-none py-0'
                 >
                   {test.status}
                 </Badge>
-              </div>
-              <div className='flex items-center gap-4 text-sm text-muted-foreground'>
                 <span className='flex items-center gap-1'>
-                  <Clock className='size-4' />
-                  {test.durationMinutes} Minutes
-                </span>
-                <span className='flex gap-1 flex-wrap'>
-                  {test.sections.slice(0, 2).map((sec: string) => (
-                    <Badge key={sec} variant='secondary' className='text-xs font-normal'>
-                      {sec}
-                    </Badge>
-                  ))}
-                  {test.sections.length > 2 && (
-                    <Badge variant='secondary' className='text-xs font-normal'>
-                      +{test.sections.length - 2} more
-                    </Badge>
-                  )}
+                  <Clock className='size-3.5' />
+                  {test.durationMinutes} Min
                 </span>
               </div>
             </div>
-            <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0'>
-              <Button
-                variant='outline'
-                className='w-full sm:w-auto group shadow-sm hover:shadow-md transition-shadow'
-                onClick={() => router.push(`/candidate/tests/${test.id}`)}
-              >
-                View Details
-              </Button>
-            </div>
+            <Button
+              variant='outline'
+              size='sm'
+              className='gap-2 shadow-sm shrink-0 group'
+              onClick={() => router.push(`/candidate/tests/${test.id}`)}
+            >
+              View Details
+            </Button>
           </div>
         ))}
       </CardContent>
