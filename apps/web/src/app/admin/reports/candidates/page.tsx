@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Eye, Search, Filter } from 'lucide-react';
+import { Eye, Search, Filter, Download } from 'lucide-react';
 import { apiClient } from '@/services/api/client';
 
 interface CandidateReport {
@@ -158,6 +158,38 @@ export default function AdminCandidateReportsPage() {
                           >
                             <Eye className='w-4 h-4 mr-2' />
                             View
+                          </Button>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='text-primary'
+                            onClick={async (e) => {
+                              const btn = e.currentTarget;
+                              const originalText = btn.innerHTML;
+                              try {
+                                btn.innerHTML = '<span class="animate-pulse">...</span>';
+                                btn.disabled = true;
+                                const blob = await apiClient.request<Blob>(`/reports/export/pdf/${report.id}`, {
+                                  responseType: 'blob'
+                                });
+                                const url = URL.createObjectURL(blob as any);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `Report-${report.id}.pdf`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                              } catch (err) {
+                                console.error(err);
+                              } finally {
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                              }
+                            }}
+                          >
+                            <Download className='w-4 h-4 mr-2' />
+                            Report
                           </Button>
                         </td>
                       </tr>

@@ -42,7 +42,11 @@ export function TestOverview({ test }: TestOverviewProps) {
       <CardContent className='flex items-center gap-6 pt-4 pb-6 border-t border-border/20 bg-muted/10'>
         <div className='flex items-center gap-2 text-muted-foreground font-medium text-sm'>
           <HelpCircle className='size-5 text-primary/70' />
-          <span>Questions count not available</span>
+          <span>
+            <strong className='text-foreground'>
+              {test.questionCount ?? test.sections?.reduce((sum, section) => sum + section.questionCount, 0) ?? 0}
+            </strong> Questions
+          </span>
         </div>
         {test.durationMinutes && (
           <div className='flex items-center gap-2 text-muted-foreground font-medium text-sm'>

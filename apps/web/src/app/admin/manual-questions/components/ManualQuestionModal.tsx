@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCreateManualQuestion, useUpdateManualQuestion } from '@/services/manual-questions/hooks';
+import { useCreateManualQuestion, useUpdateManualQuestion, useManualQuestion } from '@/services/manual-questions/hooks';
 import { ManualQuestion } from '@/services/manual-questions/types';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,9 @@ const formSchema = z.object({
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   questionType: z.enum(['MCQ', 'CODING', 'TRUE_FALSE']),
   topicId: z.string().min(1, 'Topic ID is required'),
-  sectionId: z.string().min(1, 'Section ID is required'),
+  sectionId: z.string().optional().nullable(),
   conceptId: z.string().optional(),
-  status: z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']),
+  status: z.enum(['DRAFT', 'VALIDATED', 'ACTIVE', 'ARCHIVED']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -28,13 +28,16 @@ interface ManualQuestionModalProps {
   isOpen: boolean;
   onClose: () => void;
   question?: ManualQuestion | null;
+  initialTopicId?: string;
+  initialConceptId?: string;
 }
 
-export function ManualQuestionModal({ isOpen, onClose, question }: ManualQuestionModalProps) {
+export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId, initialConceptId }: ManualQuestionModalProps) {
   const isEditing = !!question;
+  const { data: detailedQuestion, isLoading: isFetchingDetail } = useManualQuestion(question?.id || '');
   const { mutateAsync: createQuestion, isPending: isCreating } = useCreateManualQuestion();
   const { mutateAsync: updateQuestion, isPending: isUpdating } = useUpdateManualQuestion();
-  const isSubmitting = isCreating || isUpdating;
+  const isSubmitting = isCreating || isUpdating || isFetchingDetail;
 
   const {
     register,
@@ -64,17 +67,18 @@ export function ManualQuestionModal({ isOpen, onClose, question }: ManualQuestio
 
   useEffect(() => {
     if (isOpen) {
-      if (question) {
+      const targetQuestion = detailedQuestion || question;
+      if (targetQuestion) {
         reset({
-          questionText: question.questionText || '',
-          answer: question.answer || '',
-          explanation: question.explanation || '',
-          difficulty: question.difficulty || 'MEDIUM',
-          questionType: question.questionType || 'MCQ',
-          topicId: question.topicId || '',
-          sectionId: question.sectionId || '',
-          conceptId: question.conceptId || '',
-          status: question.status || 'DRAFT',
+          questionText: targetQuestion.questionText || '',
+          answer: targetQuestion.answer || '',
+          explanation: targetQuestion.explanation || '',
+          difficulty: targetQuestion.difficulty || 'MEDIUM',
+          questionType: targetQuestion.questionType || 'MCQ',
+          topicId: targetQuestion.topicId || '',
+          sectionId: targetQuestion.sectionId || '',
+          conceptId: targetQuestion.conceptId || '',
+          status: targetQuestion.status || 'DRAFT',
         });
       } else {
         reset({
@@ -83,21 +87,22 @@ export function ManualQuestionModal({ isOpen, onClose, question }: ManualQuestio
           explanation: '',
           difficulty: 'MEDIUM',
           questionType: 'MCQ',
-          topicId: '',
+          topicId: initialTopicId || '',
           sectionId: '',
-          conceptId: '',
-          status: 'DRAFT',
+          conceptId: initialConceptId || '',
+          status: 'ACTIVE',
         });
       }
     }
-  }, [isOpen, question, reset]);
+  }, [isOpen, question, detailedQuestion, initialTopicId, initialConceptId, reset]);
 
   const onSubmit = async (data: FormValues) => {
     try {
+      const payload = { ...data, sectionId: data.sectionId || null };
       if (isEditing && question) {
-        await updateQuestion({ id: question.id, payload: data });
+        await updateQuestion({ id: question.id, payload, currentStatus: question.status });
       } else {
-        await createQuestion(data);
+        await createQuestion(payload as any);
       }
       onClose();
     } catch {

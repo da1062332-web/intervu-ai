@@ -6,6 +6,7 @@ import {
   UseInterceptors,
   NotFoundException,
   Query,
+  Res,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -143,8 +144,17 @@ export class ResultsController {
   @Get(":attemptId/export/pdf")
   @ApiOperation({ summary: "Export result to PDF" })
   @ApiParam({ name: "attemptId", required: true })
-  async exportToPdf(@Param("attemptId") attemptId: string) {
-    return this.resultExportService.exportToPdf(attemptId);
+  async exportToPdf(
+    @Param("attemptId") attemptId: string,
+    @Res() res: import("express").Response,
+  ) {
+    const pdfBuffer = await this.resultExportService.exportToPdf(attemptId);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=report-${attemptId}.pdf`,
+    );
+    res.end(pdfBuffer);
   }
 
   @Get(":attemptId/export/json")
@@ -269,7 +279,10 @@ export class ResultsController {
         try {
           return await this.resultsService.getResultDetails(user.id, id);
         } catch (error: any) {
-          if (error?.name === 'ResultNotFoundError' || error?.constructor?.name === 'ResultNotFoundError') {
+          if (
+            error?.name === "ResultNotFoundError" ||
+            error?.constructor?.name === "ResultNotFoundError"
+          ) {
             throw new NotFoundException(`Result not found for id ${id}`);
           }
           throw error;

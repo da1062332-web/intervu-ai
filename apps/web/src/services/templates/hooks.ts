@@ -221,3 +221,20 @@ export const useDeleteRule = () => {
     },
   });
 };
+
+export const useSaveTemplateDatasetConfig = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
+      templateApi.saveTemplateDatasetConfig(templateId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
+    },
+  });
+};
+
+export const useTemplateDatasetPreview = () => {
+  return useMutation({
+    mutationFn: (templateId: string) => templateApi.getTemplateDatasetPreview(templateId),
+  });
+};

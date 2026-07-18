@@ -295,10 +295,17 @@ export class CrossModuleValidatorService {
         (t) => t.isActive && t.conceptKey === concept.code,
       );
 
-      // 1. Templates Exist
-      if (matchingTemplates.length === 0) {
+      // 1. Templates or Manual Questions Exist
+      const availableManualCount = await this.prisma.question.count({
+        where: {
+          status: "ACTIVE",
+          conceptId: concept.id,
+        },
+      });
+
+      if (matchingTemplates.length === 0 && availableManualCount === 0) {
         errors.push(
-          `No active templates found for Concept '${concept.name}' (${concept.code})`,
+          `No active templates or manual questions found for Concept '${concept.name}' (${concept.code})`,
         );
         continue;
       }

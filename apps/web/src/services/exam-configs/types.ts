@@ -53,6 +53,7 @@ export interface ConfigPreviewResponse {
   }>;
   totalTopics: number;
   totalTemplates: number;
+  totalManualQuestions?: number;
   conceptCodes: string[];
   isReadyToPublish: boolean;
 }
@@ -71,4 +72,26 @@ export interface PublishResult {
   version: string;
   publishedAt: string;
   validation: ConfigValidationResult;
+}
+
+export interface ReadinessCheck {
+  name: string;
+  status: 'PASS' | 'FAIL' | 'WARN';
+  message?: string;
+}
+
+export interface ReadinessFix {
+  link: string;
+  type: string;
+  message: string;
+}
+
+export interface ConfigReadinessResponse {
+  score: number;
+  status: 'READY' | 'PARTIALLY_READY' | 'NOT_READY';
+  checks: ReadinessCheck[];
+  report?: {
+    fixes?: ReadinessFix[];
+    layerBreakdown?: Record<string, string>;
+  };
 }

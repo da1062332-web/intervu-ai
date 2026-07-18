@@ -26,6 +26,7 @@ export const DashboardSectionAccuracy: React.FC<Props> = ({ data }) => {
               
               <div className="flex justify-between text-xs text-slate-500">
                 <span><strong className="text-green-600">{section.correct}</strong> Correct</span>
+                <span><strong className="text-slate-400">{section.skipped || 0}</strong> Skipped</span>
                 <span><strong className="text-red-600">{section.wrong}</strong> Wrong</span>
               </div>
             </div>

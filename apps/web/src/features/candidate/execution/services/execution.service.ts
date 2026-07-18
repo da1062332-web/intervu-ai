@@ -43,6 +43,7 @@ export const executionService = {
       // Section timing fields (Feature 5, 6, 7, 8)
       sectionTimingEnabled: true,
       currentSectionIndex: response.currentSectionIndex ?? 0,
+      currentQuestionIndex: response.currentQuestionIndex ?? 0,
       serverTime: response.serverTime ?? new Date().toISOString(),
 
       sections:

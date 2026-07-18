@@ -32,7 +32,7 @@ export class TestsService {
         name: tc.isExam ? tc.name : tc.displayName,
         difficulty: "MEDIUM",
         duration: tc.isExam ? tc.durationMinutes * 60 : tc.totalDurationSeconds,
-        sections: tc.isExam 
+        sections: tc.isExam
           ? tc.sections.map((s: { name: string }) => s.name)
           : tc.sections.map((s: { displayName: string }) => s.displayName),
         questionCount: tc.isExam ? tc.totalQuestions : 0,

@@ -17,7 +17,7 @@ export class CandidateDashboardRepository {
           },
           include: {
             testConfig: {
-              select: { displayName: true, totalDurationSeconds: true, totalQuestions: true },
+              select: { displayName: true, totalDurationSeconds: true },
             },
             examConfig: {
               select: { name: true, durationMinutes: true, totalQuestions: true },
@@ -56,7 +56,6 @@ export class CandidateDashboardRepository {
                 displayName: true,
                 companyName: true,
                 totalDurationSeconds: true,
-                totalQuestions: true,
               },
             },
             examConfig: {
@@ -66,7 +65,7 @@ export class CandidateDashboardRepository {
                 durationMinutes: true,
                 totalQuestions: true,
                 sections: { select: { name: true } },
-                ruleFlags: { select: { id: true } },
+                ruleFlags: { select: { id: true, maxAttempts: true } },
               },
             },
           },
@@ -79,7 +78,7 @@ export class CandidateDashboardRepository {
           orderBy: { createdAt: "desc" },
           include: {
             sections: { select: { name: true } },
-            ruleFlags: { select: { id: true } },
+            ruleFlags: { select: { id: true, maxAttempts: true } },
           },
         }),
 

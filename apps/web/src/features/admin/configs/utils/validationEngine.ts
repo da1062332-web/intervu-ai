@@ -82,10 +82,11 @@ export function validateConfiguration(state: ValidationState): ValidationResult 
 
   Object.entries(state.conceptsByTopic).forEach(([topicId, concepts]) => {
     concepts.forEach((concept) => {
-      // In this mocked environment, we might not have full template tracking globally yet,
-      // but the UI will supply templatesByConcept if loaded.
       const templates = state.templatesByConcept[concept.id];
+      const isManual = concept.questionSources?.includes('MANUAL');
       if (templates && templates.length > 0) {
+        anyConceptHasTemplate = true;
+      } else if (isManual) {
         anyConceptHasTemplate = true;
       } else if (concept.status === 'ACTIVE' || concept.isActive) {
         conceptsWithoutTemplates++;

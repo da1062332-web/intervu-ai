@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { SharedConfigHeader } from '../components/SharedConfigHeader';
 import { BatchQuestionList } from '../components/BatchQuestionList';
@@ -18,7 +18,7 @@ const questionSchema = z.object({
   questionType: z.enum(['MCQ', 'CODING', 'TRUE_FALSE']),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   questionTitle: z.string().optional(),
-  questionText: z.string().optional(), // optional because coding might only have problemStatement
+  questionText: z.string().optional(),
   options: z.array(z.string()).optional(),
   answer: z.string().optional(),
   explanation: z.string().optional(),
@@ -46,22 +46,34 @@ const questionSchema = z.object({
 const formSchema = z.object({
   topicId: z.string().min(1, 'Topic is required'),
   conceptId: z.string().min(1, 'Concept is required'),
-  sectionId: z.string().min(1, 'Section ID could not be resolved for this Concept. Please ensure the Concept has a valid Section mapped.'),
+  sectionId: z.string().optional().nullable(),
   questions: z.array(questionSchema).min(1, 'Add at least one question'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function BatchCreatePage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 flex items-center justify-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>}>
+      <BatchCreateContent />
+    </React.Suspense>
+  );
+}
+
+function BatchCreateContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const defaultTopicId = searchParams.get('topicId') || '';
+  const defaultConceptId = searchParams.get('conceptId') || '';
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topicId: '',
-      conceptId: '',
+      topicId: defaultTopicId,
+      conceptId: defaultConceptId,
       sectionId: '',
       questions: [
         {
@@ -102,7 +114,7 @@ export default function BatchCreatePage() {
         answer: answer,
         explanation: q.explanation || '',
         topicId: data.topicId,
-        sectionId: data.sectionId,
+        sectionId: data.sectionId || null,
         difficulty: q.difficulty,
         source: "MANUAL" as const,
         templateId: null,
@@ -139,8 +151,13 @@ export default function BatchCreatePage() {
 
       queryClient.invalidateQueries({ queryKey: ['manual-questions'] });
       
+      const returnTo = searchParams.get('returnTo');
       if (successCount > 0) {
-        router.push('/admin/manual-questions');
+        if (returnTo) {
+          router.push(returnTo);
+        } else {
+          router.push('/admin/manual-questions');
+        }
       }
     } catch (err) {
       toast.error('An error occurred while saving questions.');
@@ -150,7 +167,12 @@ export default function BatchCreatePage() {
   };
 
   const handleCancel = () => {
-    router.push('/admin/manual-questions');
+    const returnTo = searchParams.get('returnTo');
+    if (returnTo) {
+      router.push(returnTo);
+    } else {
+      router.push('/admin/manual-questions');
+    }
   };
 
   return (
@@ -179,9 +201,9 @@ export default function BatchCreatePage() {
             disabled={isSubmitting}
           />
 
-          {(errors.topicId || errors.conceptId || errors.sectionId) && (
+          {(errors.topicId || errors.conceptId) && (
             <div className="text-sm text-destructive">
-              {errors.sectionId?.message || 'Please select both a Topic and a Concept before proceeding.'}
+              Please select both a Topic and a Concept before proceeding.
             </div>
           )}
 

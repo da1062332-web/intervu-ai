@@ -89,8 +89,10 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
               <p className='font-semibold text-lg'>{previewData?.conceptCodes?.length || 0} <span className="text-sm font-normal text-muted-foreground">Mapped</span></p>
             </div>
             <div className='space-y-1'>
-              <p className='text-muted-foreground font-medium'>Templates</p>
-              <p className='font-semibold text-lg'>{previewData?.totalTemplates || 0} <span className="text-sm font-normal text-muted-foreground">Linked</span></p>
+              <p className='text-muted-foreground font-medium'>Templates / MQs</p>
+              <p className='font-semibold text-lg'>
+                {previewData?.totalTemplates || 0} <span className="text-sm font-normal text-muted-foreground">T</span> / {previewData?.totalManualQuestions || 0} <span className="text-sm font-normal text-muted-foreground">MQ</span>
+              </p>
             </div>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Sections</p>

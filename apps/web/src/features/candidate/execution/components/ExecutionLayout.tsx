@@ -40,7 +40,7 @@ export function ExecutionLayout() {
 
   // Initialize day 4 hooks
   useConnectionMonitor();
-  // Removed useResume to always start from beginning
+  useResume(testInstance?.id || '');
   useAutosave(testInstance?.id || 'unknown');
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');

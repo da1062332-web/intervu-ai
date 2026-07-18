@@ -107,10 +107,10 @@ export class QuestionProviderService {
         }
       }
 
-      if (results.length === 0) {
+      if (results.length < req.count) {
         throw new InternalServerErrorException({
           code: "QUESTION_POOL_EMPTY",
-          message: `Question pool empty for concept: '${req.conceptKey}' (${req.difficultyLevel})`,
+          message: `Question pool empty and generation failed for concept: '${req.conceptKey}' (${req.difficultyLevel}). Found ${results.length}, needed ${req.count}.`,
         });
       }
     }

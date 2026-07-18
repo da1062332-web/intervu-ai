@@ -12,6 +12,7 @@ export function useCheckpoint(testInstanceId: string) {
       const payload = {
         currentSection: 'default',
         currentQuestion: state.currentQuestion?.id || '',
+        currentQuestionIndex: state.currentQuestionIndex,
         remainingTime: state.remainingTime,
         markedQuestions: Object.values(state.answers)
           .filter(a => a.status === 'MARKED_FOR_REVIEW')

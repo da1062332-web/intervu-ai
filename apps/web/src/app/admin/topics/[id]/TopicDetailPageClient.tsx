@@ -9,6 +9,8 @@ import {
   useUpdateConcept,
   useDeactivateConcept,
 } from '@/services/concept-mapping';
+import { useManualQuestions } from '@/services/manual-questions/hooks';
+import { ManualQuestionModal } from '@/app/admin/manual-questions/components/ManualQuestionModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
@@ -35,6 +37,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
+  List,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ConceptMapping } from '@/services/concept-mapping/types';
@@ -147,6 +150,102 @@ function ConceptTemplatesRow({
   );
 }
 
+export function ConceptManualQuestionsRow({
+  concept,
+  onAddManualQuestion,
+  onEditManualQuestion,
+}: {
+  concept: ConceptMapping;
+  onAddManualQuestion: (c: ConceptMapping) => void;
+  onEditManualQuestion: (q: any) => void;
+}) {
+  const { data: response, isLoading, isError } = useManualQuestions({ conceptId: concept.id });
+  const allQuestions = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || [];
+  const questions = allQuestions.filter((q: any) => q.conceptId === concept.id);
+
+  if (isLoading) {
+    return (
+      <TableRow className='bg-muted/5'>
+        <TableCell colSpan={6} className='p-6'>
+          <Skeleton className='h-24 w-full' />
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  if (isError) {
+    return (
+      <TableRow className='bg-muted/5'>
+        <TableCell colSpan={6} className='p-6 text-center text-red-500'>
+          Error loading manual questions for this concept.
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return (
+    <TableRow className='bg-muted/5 hover:bg-muted/5 border-b-2'>
+      <TableCell colSpan={6} className='p-0'>
+        <div className='p-6 border-l-4 border-l-secondary m-4 rounded-r-lg bg-background shadow-inner space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h4 className='font-semibold text-sm flex items-center gap-2'>
+              <List className='w-4 h-4 text-muted-foreground' />
+              Manual Questions ({questions.length})
+            </h4>
+            <Button size='sm' variant='secondary' onClick={() => onAddManualQuestion(concept)}>
+              <Plus className='w-4 h-4 mr-2' /> Add Question
+            </Button>
+          </div>
+
+          {questions.length === 0 ? (
+            <div className='text-center py-8 border-2 border-dashed rounded-lg'>
+              <p className='text-muted-foreground text-sm mb-4'>
+                No manual questions created for this concept.
+              </p>
+              <Button variant='outline' size='sm' onClick={() => onAddManualQuestion(concept)}>
+                <Plus className='w-4 h-4 mr-2' /> Create First Question
+              </Button>
+            </div>
+          ) : (
+            <div className='border rounded-md divide-y'>
+              {questions.map((q: any) => (
+                <div
+                  key={q.id}
+                  className='flex items-center justify-between p-3 hover:bg-muted/20 transition-colors'
+                >
+                  <div>
+                    <div className='font-medium text-sm max-w-xl truncate' title={q.questionText}>
+                      {q.questionText}
+                    </div>
+                    <div className='flex items-center gap-2 mt-1'>
+                      <Badge variant='outline' className='text-[10px] uppercase'>
+                        {q.questionType}
+                      </Badge>
+                      <Badge variant='outline' className='text-[10px] uppercase'>
+                        {q.difficulty}
+                      </Badge>
+                      <span
+                        className={`text-[10px] font-medium ${q.status === 'ACTIVE' ? 'text-green-600' : 'text-muted-foreground'}`}
+                      >
+                        {q.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Button variant='ghost' size='sm' className='h-8' onClick={() => onEditManualQuestion(q)}>
+                      <Edit2 className='w-3.5 h-3.5 mr-1' /> Edit
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function TopicDetailPageClient({ topicId }: ClientProps) {
   const router = useRouter();
   const {
@@ -179,6 +278,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
 
   // Accordion state
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [expandedMqRows, setExpandedMqRows] = useState<Set<string>>(new Set());
 
   // Template creation modal state
   const createTemplateMutation = useCreateTemplate();
@@ -189,7 +289,13 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     name: 'New Template',
     questionType: 'coding',
     difficulty: 'MEDIUM',
+    generationStrategy: 'VARIABLE',
   });
+
+  // Manual Question modal state
+  const [isMqModalOpen, setIsMqModalOpen] = useState(false);
+  const [selectedConceptForMq, setSelectedConceptForMq] = useState<ConceptMapping | null>(null);
+  const [editingMq, setEditingMq] = useState<any | null>(null);
 
   const isLoading = topicLoading || conceptsLoading;
   const isError = topicError || conceptsError;
@@ -391,6 +497,44 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
       }
       return next;
     });
+    setExpandedMqRows((prev) => {
+      if (prev.has(conceptId)) {
+        const next = new Set(prev);
+        next.delete(conceptId);
+        return next;
+      }
+      return prev;
+    });
+  };
+
+  const toggleMqRow = (conceptId: string) => {
+    setExpandedMqRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(conceptId)) {
+        next.delete(conceptId);
+      } else {
+        next.add(conceptId);
+      }
+      return next;
+    });
+    setExpandedRows((prev) => {
+      if (prev.has(conceptId)) {
+        const next = new Set(prev);
+        next.delete(conceptId);
+        return next;
+      }
+      return prev;
+    });
+  };
+
+  const handleOpenAddManualQuestion = (concept: ConceptMapping) => {
+    const returnTo = encodeURIComponent(`/admin/topics/${topicId}`);
+    router.push(`/admin/manual-questions/create?topicId=${topicId}&conceptId=${concept.id}&returnTo=${returnTo}`);
+  };
+
+  const handleOpenEditManualQuestion = (question: any) => {
+    setEditingMq(question);
+    setIsMqModalOpen(true);
   };
 
   const handleOpenAddTemplate = (concept: ConceptMapping) => {
@@ -399,6 +543,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
       name: 'New Template',
       questionType: 'coding',
       difficulty: 'MEDIUM',
+      generationStrategy: 'VARIABLE',
     });
     setIsTemplateModalOpen(true);
   };
@@ -413,6 +558,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         conceptKey: selectedConceptForTemplate.code || selectedConceptForTemplate.conceptCode,
         questionType: templateFormData.questionType,
         difficulty: templateFormData.difficulty as any,
+        generationStrategy: templateFormData.generationStrategy as any,
         config: { topics: [], timeLimit: 3600 },
         isSystem: false,
       },
@@ -475,65 +621,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         </p>
       </div>
 
-      {/* Topic Readiness Panel */}
-      <div className='bg-muted/10 border rounded-xl p-6'>
-        <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4'>
-          <div>
-            <h3 className='text-lg font-bold'>Topic Readiness</h3>
-            <p className='text-sm text-muted-foreground mt-1'>
-              Only mark the Topic as Ready when every concept has at least one template.
-            </p>
-          </div>
-          <div className='flex flex-col items-end'>
-            <span className='text-sm font-medium text-muted-foreground mb-1'>Overall</span>
-            {concepts && concepts.length > 0 ? (
-              <Badge
-                variant={isTopicReady ? 'default' : 'secondary'}
-                className={`text-sm ${isTopicReady ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
-              >
-                {readyConceptsCount} / {concepts.length} Concepts Ready
-              </Badge>
-            ) : (
-              <Badge variant='outline'>0 Concepts</Badge>
-            )}
-          </div>
-        </div>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {concepts?.map((c, idx) => {
-            const cName = c.name || c.conceptName;
-            const query = templateQueries[idx];
-            const templateCount = query?.data?.items?.length || 0;
-            const isReady = templateCount > 0;
-            const isLoadingQuery = query?.isLoading;
 
-            return (
-              <div
-                key={c.id}
-                className={`flex items-center gap-3 text-sm bg-background border p-3 rounded-md shadow-sm transition-colors ${isReady ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}
-              >
-                {isLoadingQuery ? (
-                  <Skeleton className='w-5 h-5 rounded-full' />
-                ) : isReady ? (
-                  <CheckCircle className='w-5 h-5 text-green-600 shrink-0' />
-                ) : (
-                  <X className='w-5 h-5 text-red-500 shrink-0' />
-                )}
-                <span className='truncate flex-1 font-medium'>{cName}</span>
-                <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${isReady ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-                >
-                  {templateCount} {templateCount === 1 ? 'Template' : 'Templates'}
-                </span>
-              </div>
-            );
-          })}
-          {(!concepts || concepts.length === 0) && (
-            <div className='col-span-full text-sm text-muted-foreground italic text-center py-4'>
-              No concepts added yet. Topic is not ready.
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Concepts Registry Section */}
       <div className='space-y-6'>
@@ -588,7 +676,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                     <TableHead>Concept Name</TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Templates</TableHead>
+                    <TableHead>Content</TableHead>
                     <TableHead className='text-right'>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -598,7 +686,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                     const cCode = concept.code || concept.conceptCode;
                     const isAct =
                       (concept.status || (concept.isActive ? 'ACTIVE' : 'INACTIVE')) === 'ACTIVE';
-                    const isExpanded = expandedRows.has(concept.id);
+                    const isExpanded = expandedRows.has(concept.id) || expandedMqRows.has(concept.id);
 
                     return (
                       <React.Fragment key={concept.id}>
@@ -637,18 +725,32 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              className='h-8 text-xs font-medium text-muted-foreground hover:text-foreground'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleRow(concept.id);
-                              }}
-                            >
-                              <FileText className='w-3.5 h-3.5 mr-1.5' />
-                              Templates
-                            </Button>
+                            <div className='flex gap-2 items-center'>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                className={`h-8 text-xs font-medium hover:text-foreground ${expandedRows.has(concept.id) ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRow(concept.id);
+                                }}
+                              >
+                                <FileText className='w-3.5 h-3.5 mr-1.5' />
+                                Templates
+                              </Button>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                className={`h-8 text-xs font-medium hover:text-foreground ${expandedMqRows.has(concept.id) ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMqRow(concept.id);
+                                }}
+                              >
+                                <List className='w-3.5 h-3.5 mr-1.5' />
+                                Manual Questions
+                              </Button>
+                            </div>
                           </TableCell>
                           <TableCell className='text-right'>
                             <div className='inline-flex items-center gap-2'>
@@ -687,10 +789,17 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                             </div>
                           </TableCell>
                         </TableRow>
-                        {isExpanded && (
+                        {expandedRows.has(concept.id) && (
                           <ConceptTemplatesRow
                             concept={concept}
                             onAddTemplate={handleOpenAddTemplate}
+                          />
+                        )}
+                        {expandedMqRows.has(concept.id) && (
+                          <ConceptManualQuestionsRow
+                            concept={concept}
+                            onAddManualQuestion={handleOpenAddManualQuestion}
+                            onEditManualQuestion={handleOpenEditManualQuestion}
                           />
                         )}
                       </React.Fragment>
@@ -921,6 +1030,19 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
               <option value='HARD'>HARD</option>
             </select>
           </div>
+          <div>
+            <Label>Generation Strategy</Label>
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              value={templateFormData.generationStrategy}
+              onChange={(e) =>
+                setTemplateFormData({ ...templateFormData, generationStrategy: e.target.value })
+              }
+            >
+              <option value='VARIABLE'>Variable Generation</option>
+              <option value='DATASET'>Dataset-backed</option>
+            </select>
+          </div>
           <div className='flex justify-end space-x-2 mt-6'>
             <Button variant='outline' onClick={() => setIsTemplateModalOpen(false)}>
               Cancel
@@ -934,6 +1056,21 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           </div>
         </div>
       </Modal>
+
+      {/* Manual Question Modal */}
+      {isMqModalOpen && (
+        <ManualQuestionModal
+          isOpen={isMqModalOpen}
+          onClose={() => {
+            setIsMqModalOpen(false);
+            setEditingMq(null);
+            setSelectedConceptForMq(null);
+          }}
+          question={editingMq}
+          initialTopicId={topicId}
+          initialConceptId={selectedConceptForMq?.id}
+        />
+      )}
     </div>
   );
 }

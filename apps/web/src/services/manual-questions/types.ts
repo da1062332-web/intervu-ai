@@ -4,7 +4,7 @@ export interface ManualQuestion {
   answer: string;
   explanation?: string;
   topicId: string;
-  sectionId: string;
+  sectionId?: string | null;
   conceptId?: string;
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   source: string;
@@ -16,7 +16,7 @@ export interface ManualQuestion {
   instructions?: string;
   questionImage?: string;
   options?: string[];
-  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+  status: 'DRAFT' | 'VALIDATED' | 'ACTIVE' | 'ARCHIVED';
   createdAt: string;
   updatedAt: string;
 }

@@ -42,6 +42,29 @@ interface AttemptHistoryTableProps {
 }
 
 const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    try {
+      setDownloading(true);
+      const blob = await import('@/services/api/client').then(m => m.apiClient.request<Blob>(`/reports/export/pdf/${attempt.instanceId}`, {
+        responseType: 'blob'
+      }));
+      const url = URL.createObjectURL(blob as any);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Report-${attempt.instanceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <ShadcnTableRow className='hover:bg-muted/50 transition-colors'>
       <TableCell className='font-medium'>{attempt.assessmentName}</TableCell>
@@ -49,7 +72,7 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
       <TableCell>
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
-            attempt.status === 'COMPLETED'
+            attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED'
               ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
               : attempt.status === 'IN_PROGRESS'
                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
@@ -64,17 +87,22 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
       </TableCell>
       <TableCell className='text-right'>
         <div className='flex items-center justify-end gap-2'>
-          {attempt.status === 'COMPLETED' ? (
+          {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
             <>
               <Button size='sm' variant='ghost' asChild className='h-8 px-2'>
                 <Link href={`/candidate/results/${attempt.instanceId}`}>
                   <Eye className='size-4 mr-1' /> View
                 </Link>
               </Button>
-              <Button size='sm' variant='ghost' asChild className='h-8 px-2 text-primary'>
-                <Link href={`/candidate/reports/${attempt.instanceId}`}>
-                  <Download className='size-4 mr-1' /> Report
-                </Link>
+              <Button 
+                size='sm' 
+                variant='ghost' 
+                className='h-8 px-2 text-primary'
+                onClick={handleDownload}
+                disabled={downloading}
+              >
+                <Download className={`size-4 mr-1 ${downloading ? 'animate-pulse' : ''}`} /> 
+                {downloading ? '...' : 'Report'}
               </Button>
             </>
           ) : attempt.status === 'IN_PROGRESS' ? (
@@ -132,7 +160,11 @@ export function AttemptHistoryTable({
     }
 
     if (statusFilter !== 'ALL') {
-      result = result.filter((a) => a.status === statusFilter);
+      if (statusFilter === 'COMPLETED') {
+        result = result.filter((a) => a.status === 'COMPLETED' || a.status === 'SUBMITTED');
+      } else {
+        result = result.filter((a) => a.status === statusFilter);
+      }
     }
 
     result.sort((a, b) => {

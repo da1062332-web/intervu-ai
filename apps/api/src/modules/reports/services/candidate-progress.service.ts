@@ -3,16 +3,18 @@ import { PrismaService } from "@/prisma/prisma.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { ReportAuditService } from "./report-audit.service";
+import { ResultsService } from "../../results/services/results.service";
 
 @Injectable()
 export class CandidateProgressService {
   private readonly logger = new AppLogger({ name: "CandidateProgressService" });
-  private readonly CACHE_PREFIX = "progress:candidate";
+  private readonly CACHE_PREFIX = "progress:candidate:v4";
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheService: RedisCacheService,
     private readonly auditService: ReportAuditService,
+    private readonly resultsService: ResultsService,
   ) {}
 
   async getCandidateProgress(userId: string): Promise<any> {
@@ -33,17 +35,19 @@ export class CandidateProgressService {
     });
 
     const attempts = await this.prisma.testInstance.findMany({
-      where: { userId, status: 'COMPLETED' },
+      where: { 
+        userId, 
+        status: { in: ['COMPLETED', 'SUBMITTED'] } 
+      },
       orderBy: { createdAt: "asc" },
       include: {
-        candidateResult: true,
-        evaluationAnalytics: true,
+        evaluationResult: true,
         testConfig: true,
         examConfig: true
       }
     });
 
-    const report = this.compileProgressReport(attempts);
+    const report = await this.compileProgressReport(userId, attempts);
 
     await this.cacheService.set(cacheKey, report, {
       prefix: this.CACHE_PREFIX,
@@ -60,7 +64,7 @@ export class CandidateProgressService {
     await this.cacheService.delete(`${userId}`, { prefix: this.CACHE_PREFIX });
   }
 
-  private compileProgressReport(attempts: any[]): any {
+  private async compileProgressReport(userId: string, attempts: any[]): Promise<any> {
     const totalAssessments = attempts.length;
     if (totalAssessments === 0) {
       return {
@@ -80,16 +84,7 @@ export class CandidateProgressService {
       };
     }
 
-    // Trend
-    const trend = attempts
-      .filter((a) => a.candidateResult)
-      .map((a) => ({
-        date: a.candidateResult.createdAt,
-        score: a.candidateResult.percentage,
-        label: a.testConfig?.displayName || a.examConfig?.name || "Assessment",
-      }));
-
-    // Aggregate Topics & Difficulty from EvaluationAnalytics
+    const trend = [];
     const topicAgg: Record<string, { sum: number; count: number }> = {};
     const diffAgg = {
       easy: { count: 0, sum: 0 },
@@ -98,33 +93,45 @@ export class CandidateProgressService {
     };
 
     let totalCompletionRate = 0;
-    let analyticsCount = 0;
+    const results = [];
 
-    attempts.forEach((a) => {
-      const analytics = a.evaluationAnalytics;
-      if (analytics) {
-        analyticsCount++;
-        totalCompletionRate += analytics.completionRate || 100;
-
-        if (analytics.topicAccuracy && typeof analytics.topicAccuracy === "object") {
-          for (const [topic, acc] of Object.entries(analytics.topicAccuracy)) {
-            if (!topicAgg[topic]) topicAgg[topic] = { sum: 0, count: 0 };
-            topicAgg[topic].sum += acc as number;
-            topicAgg[topic].count += 1;
-          }
-        }
-
-        if (analytics.difficultyAccuracy && typeof analytics.difficultyAccuracy === "object") {
-          for (const [diff, acc] of Object.entries(analytics.difficultyAccuracy)) {
-            const level = diff.toLowerCase() as keyof typeof diffAgg;
-            if (diffAgg[level]) {
-              diffAgg[level].sum += acc as number;
-              diffAgg[level].count += 1;
-            }
-          }
-        }
+    for (const a of attempts) {
+      if (a.evaluationResult) {
+        trend.push({
+          date: a.evaluationResult.createdAt || a.createdAt,
+          score: a.evaluationResult.overallScore,
+          label: a.testConfig?.displayName || a.examConfig?.name || "Assessment",
+        });
+        results.push(a.evaluationResult.overallScore);
       }
-    });
+
+      try {
+        const details = await this.resultsService.getResultDetails(userId, a.id);
+        
+        totalCompletionRate += 100; // Assuming COMPLETED means 100% for now
+
+        if (details.topicScores) {
+          details.topicScores.forEach((t: any) => {
+            const topic = t.topic || 'General';
+            if (!topicAgg[topic]) topicAgg[topic] = { sum: 0, count: 0 };
+            topicAgg[topic].sum += t.score;
+            topicAgg[topic].count += 1;
+          });
+        }
+
+        if (details.difficultyScores) {
+          details.difficultyScores.forEach((d: any) => {
+            const diff = (d.difficulty || '').toLowerCase() as keyof typeof diffAgg;
+            if (diffAgg[diff]) {
+              diffAgg[diff].sum += d.score;
+              diffAgg[diff].count += 1;
+            }
+          });
+        }
+      } catch (err) {
+        this.logger.error(`Failed to get details for attempt ${a.id}`, err);
+      }
+    }
 
     const skills = Object.keys(topicAgg).map((topic) => ({
       topic,
@@ -146,12 +153,9 @@ export class CandidateProgressService {
       },
     };
 
-    // Overview
-    const results = attempts.map(a => a.candidateResult?.percentage || 0);
-    const averageScore = Math.round(results.reduce((sum, score) => sum + score, 0) / (results.length || 1));
-    const topPercentileScore = Math.max(...results, 0);
-
-    const completionRate = analyticsCount > 0 ? Math.round(totalCompletionRate / analyticsCount) : 100;
+    const averageScore = results.length > 0 ? Math.round(results.reduce((sum, score) => sum + score, 0) / results.length) : 0;
+    const topPercentileScore = results.length > 0 ? Math.max(...results) : 0;
+    const completionRate = attempts.length > 0 ? Math.round(totalCompletionRate / attempts.length) : 100;
 
     return {
       trend,

@@ -18,11 +18,17 @@ import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTopics } from '@/services/topics/hooks';
+import { useConcepts } from '@/services/concept-mapping/hooks';
 
 export function TemplateListPageClient() {
   const router = useRouter();
   const { data: response, isLoading, isError, refetch } = useTemplates(1, 100);
   const templates = response?.items || [];
+
+  const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
+  const [selectedTopicId, setSelectedTopicId] = useState('');
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(selectedTopicId, true);
 
   const createMutation = useCreateTemplate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -211,12 +217,45 @@ export function TemplateListPageClient() {
             />
           </div>
           <div>
-            <Label>Concept Key (optional)</Label>
-            <Input
+            <Label>Topic (optional)</Label>
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4'
+              value={selectedTopicId}
+              onChange={(e) => {
+                setSelectedTopicId(e.target.value);
+                setFormData({ ...formData, conceptKey: '' });
+              }}
+              disabled={isLoadingTopics}
+            >
+              <option value=''>{isLoadingTopics ? 'Loading topics...' : 'Select a topic...'}</option>
+              {topics.map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label>Concept (optional)</Label>
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
               value={formData.conceptKey}
               onChange={(e) => setFormData({ ...formData, conceptKey: e.target.value })}
-              placeholder='e.g. react_hooks'
-            />
+              disabled={!selectedTopicId || isLoadingConcepts}
+            >
+              <option value=''>
+                {!selectedTopicId
+                  ? 'Select a topic first'
+                  : isLoadingConcepts
+                    ? 'Loading concepts...'
+                    : 'Select a concept...'}
+              </option>
+              {concepts.map((concept) => (
+                <option key={concept.id} value={concept.code || concept.conceptCode}>
+                  {concept.name || concept.conceptName}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <Label>Question Type</Label>
@@ -247,7 +286,6 @@ export function TemplateListPageClient() {
             >
               <option value='VARIABLE'>Variable Generation</option>
               <option value='DATASET'>Dataset-backed</option>
-              <option value='HYBRID'>Hybrid (Dataset + Variables)</option>
             </select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>
