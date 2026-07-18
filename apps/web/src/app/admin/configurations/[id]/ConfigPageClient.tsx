@@ -176,35 +176,10 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     );
   }
 
-  // Derived Health State
-  const hasSections = preview ? preview.sections > 0 : false;
-  const isDifficultyValid = preview
-    ? preview.difficulty.easy + preview.difficulty.medium + preview.difficulty.hard === 100
-    : false;
-  const hasTopics = preview?.sectionBreakdown
-    ? preview.sections > 0 && preview.sectionBreakdown.every((s) => s.topicCount > 0)
-    : false;
-  const hasTemplatesWarn = autoValidation?.warnings?.some((w: string) =>
-    w.includes('No templates found'),
-  );
-
-  const hasConcepts = preview ? (preview.conceptCodes?.length ?? 0) > 0 : false;
-  const hasTemplates = preview ? (preview.totalTemplates > 0 || (preview.totalManualQuestions ?? 0) > 0) : false;
-
-  const healthChecks = [
-    { label: 'Configuration Saved', passed: !!config.id },
-    { label: 'Sections Configured', passed: hasSections },
-    { label: 'Topics Available', passed: hasTopics },
-    { label: 'Concepts Linked', passed: hasConcepts },
-    { label: 'Template / Manual Qs Ready', passed: hasTemplates },
-    { label: 'Difficulty = 100%', passed: isDifficultyValid },
-    { label: 'Rules Configured', passed: true }, // Rules are optional and apply default values
-    { label: 'Blueprint Selected', passed: !!selectedBlueprintId },
-    { label: 'Validation Passed', passed: !!generationReadiness?.valid },
-  ];
-  const passedCount = healthChecks.filter((c) => c.passed).length;
-  const progressPercent = Math.round((passedCount / healthChecks.length) * 100);
-  const isReady = passedCount === healthChecks.length;
+  // Use dynamic readiness data from the new backend API
+  const healthChecks = generationReadiness?.checks || [];
+  const progressPercent = generationReadiness?.score || 0;
+  const isReady = generationReadiness?.status === 'READY';
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
@@ -228,18 +203,21 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
             </div>
           </div>
           <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-4 gap-x-4'>
-            {healthChecks.map((check, i) => (
+            {healthChecks.map((check: any, i: number) => (
               <div key={i} className='flex items-center gap-2 text-sm'>
-                {check.passed ? (
+                {check.status === 'PASS' ? (
                   <CheckCircle2 className='w-4 h-4 text-green-500 shrink-0' />
                 ) : (
                   <Circle className='w-4 h-4 text-muted-foreground shrink-0' />
                 )}
-                <span className={`truncate ${check.passed ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                  {check.label}
+                <span className={`truncate ${check.status === 'PASS' ? 'text-foreground font-medium' : 'text-muted-foreground'}`} title={check.message}>
+                  {check.name}
                 </span>
               </div>
             ))}
+            {healthChecks.length === 0 && (
+              <div className="text-muted-foreground text-sm col-span-full">Loading health checks...</div>
+            )}
           </div>
         </div>
       </div>
@@ -318,15 +296,15 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
                   <p className='font-semibold mb-2'>Generate Assembly Disabled</p>
                   <p className='text-muted-foreground text-xs mb-2'>Missing requirements:</p>
                   <ul className='space-y-1'>
-                    {healthChecks.map((check, i) => (
+                    {healthChecks.map((check: any, i: number) => (
                       <li key={i} className='flex items-center gap-2 text-xs'>
-                        {check.passed ? (
+                        {check.status === 'PASS' ? (
                           <CheckCircle2 className='w-3 h-3 text-green-500' />
                         ) : (
                           <span className='w-3 h-3 border rounded-sm' />
                         )}
-                        <span className={check.passed ? 'line-through text-muted-foreground' : ''}>
-                          {check.label}
+                        <span className={check.status === 'PASS' ? 'line-through text-muted-foreground' : ''} title={check.message}>
+                          {check.name}
                         </span>
                       </li>
                     ))}

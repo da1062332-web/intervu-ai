@@ -73,3 +73,25 @@ export interface PublishResult {
   publishedAt: string;
   validation: ConfigValidationResult;
 }
+
+export interface ReadinessCheck {
+  name: string;
+  status: 'PASS' | 'FAIL' | 'WARN';
+  message?: string;
+}
+
+export interface ReadinessFix {
+  link: string;
+  type: string;
+  message: string;
+}
+
+export interface ConfigReadinessResponse {
+  score: number;
+  status: 'READY' | 'PARTIALLY_READY' | 'NOT_READY';
+  checks: ReadinessCheck[];
+  report?: {
+    fixes?: ReadinessFix[];
+    layerBreakdown?: Record<string, string>;
+  };
+}
