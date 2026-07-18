@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { type ConceptMapping } from '@/services/concept-mapping';
-import { useManualQuestions } from '@/services/manual-questions/hooks';
+import { useManualQuestions, useUpdateManualQuestion } from '@/services/manual-questions/hooks';
 
 interface ConceptManualQuestionsModalProps {
   isOpen: boolean;
@@ -17,9 +17,19 @@ export function ConceptManualQuestionsModal({ isOpen, onClose, concept }: Concep
     concept ? { conceptId: concept.id } : undefined
   );
   
+  const updateQuestion = useUpdateManualQuestion();
+
   // Filter locally as well to be safe
   const allQuestions = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || [];
   const questions = allQuestions.filter((q: any) => q.conceptId === concept?.id);
+
+  const handleActivate = (q: any) => {
+    updateQuestion.mutate({
+      id: q.id,
+      payload: { status: 'ACTIVE' },
+      currentStatus: q.status,
+    });
+  };
 
   if (!isOpen || !concept) return null;
 
@@ -50,15 +60,27 @@ export function ConceptManualQuestionsModal({ isOpen, onClose, concept }: Concep
         ) : (
           <div className="space-y-3">
             {questions.map((q: any) => (
-              <div key={q.id} className="border rounded-lg p-4 bg-card shadow-sm">
-                <div className="font-medium text-sm mb-2">{q.questionText}</div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="text-[10px] uppercase">{q.questionType}</Badge>
-                  <Badge variant="outline" className="text-[10px] uppercase">{q.difficulty}</Badge>
-                  <span className={`text-[10px] font-medium ${q.status === 'ACTIVE' ? 'text-green-600' : 'text-muted-foreground'}`}>
-                    {q.status}
-                  </span>
+              <div key={q.id} className="border rounded-lg p-4 bg-card shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-sm mb-2">{q.questionText}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary" className="text-[10px] uppercase">{q.questionType}</Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase">{q.difficulty}</Badge>
+                    <span className={`text-[10px] font-medium ${q.status === 'ACTIVE' ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {q.status}
+                    </span>
+                  </div>
                 </div>
+                {q.status !== 'ACTIVE' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleActivate(q)}
+                    disabled={updateQuestion.isPending}
+                  >
+                    Activate
+                  </Button>
+                )}
               </div>
             ))}
           </div>

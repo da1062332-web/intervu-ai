@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSections } from '@/services/exam-sections/hooks';
 import { useSectionTopics } from '@/features/topic-section-mapping/api/queries';
+import { useWeightages } from '@/services/topic-weightages/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChevronRight } from 'lucide-react';
@@ -25,6 +26,8 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
   const { data: topicsData, isLoading: isLoadingTopics } = useSectionTopics(selectedSectionId);
   const topics = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.data || [];
   
+  const { data: weightagesData = [] } = useWeightages(selectedSectionId);
+
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
 
   // Auto-select first topic
@@ -94,14 +97,19 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
             </div>
           ) : (
             <div className='grid gap-3'>
-              {topics.map((topic: any) => (
-                <div key={topic.topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
-                  <div>
-                    <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
-                    <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {topic.weightage || 0}%</p>
+              {topics.map((topic: any) => {
+                const weightageRecord = weightagesData.find((w: any) => w.topicId === topic.topicId);
+                const currentWeightage = weightageRecord ? weightageRecord.weightagePercentage : (topic.weightage || 0);
+
+                return (
+                  <div key={topic.topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
+                    <div>
+                      <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
+                      <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {currentWeightage}%</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

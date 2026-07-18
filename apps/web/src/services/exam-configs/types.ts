@@ -53,6 +53,7 @@ export interface ConfigPreviewResponse {
   }>;
   totalTopics: number;
   totalTemplates: number;
+  totalManualQuestions?: number;
   conceptCodes: string[];
   isReadyToPublish: boolean;
 }

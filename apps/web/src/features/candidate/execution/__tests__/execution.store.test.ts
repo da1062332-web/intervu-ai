@@ -15,6 +15,7 @@ const mockTest: TestInstance = {
       id: 'sec-1',
       sectionKey: 's1',
       title: 'Section 1',
+      sectionName: 'Section 1',
       questions: [
         { id: 'q1', type: 'MCQ', text: 'Q1', options: [], orderIndex: 0, questionHash: 'h1' },
         { id: 'q2', type: 'MSQ', text: 'Q2', options: [], orderIndex: 1, questionHash: 'h2' },

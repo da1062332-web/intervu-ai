@@ -8,7 +8,7 @@ import { useDashboardWidgets } from '@/modules/results/hooks/results.hooks';
 
 function AnimatedNumber({ value }: { value: number }) {
   const spring = useSpring(0, { bounce: 0, duration: 1500 });
-  const display = useTransform(spring, (current) => Math.round(current));
+  const display = useTransform(spring, (current: number) => Math.round(current));
   
   useEffect(() => {
     spring.set(value);

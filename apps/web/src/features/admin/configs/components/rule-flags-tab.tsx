@@ -47,8 +47,8 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       setShuffleQuestionsEnabled(ruleFlags.shuffleQuestionsEnabled);
       setShuffleOptionsEnabled(ruleFlags.shuffleOptionsEnabled);
       setAllowSectionNavigation(ruleFlags.allowSectionNavigation);
-      if (ruleFlags.maxAttempts !== undefined) {
-        setMaxAttempts(ruleFlags.maxAttempts);
+      if ((ruleFlags as any).maxAttempts !== undefined) {
+        setMaxAttempts((ruleFlags as any).maxAttempts);
       }
     }
   }, [ruleFlags]);
