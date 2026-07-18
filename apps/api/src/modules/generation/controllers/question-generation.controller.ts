@@ -299,6 +299,7 @@ export class QuestionGenerationController {
       },
       variableValues: context.variables,
       datasetItem: context.datasetItem,
+      promptConfig: promptConfig || undefined,
       styleProfile: undefined,
     };
     const compiledPrompt = promptBuilder.buildPrompt(mockInput as any);
