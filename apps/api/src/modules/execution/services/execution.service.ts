@@ -27,6 +27,7 @@ export interface AssessmentSnapshotResponse {
   expiresAt: Date | null;
   sectionTimingEnabled: boolean;
   currentSectionIndex: number;
+  currentQuestionIndex: number;
   serverTime: string;
   sections: SectionSnapshot[];
 }
@@ -78,7 +79,8 @@ export class ExecutionService {
     const executionState = await this.prisma.executionState.findUnique({
       where: { testInstanceId },
     });
-    const currentSectionIndex = executionState?.currentSectionIndex ?? 0;
+    const currentSectionIndex = (executionState as any)?.currentSectionIndex ?? 0;
+    const currentQuestionIndex = executionState?.currentQuestionIndex ?? 0;
 
     // 6. Build sections with status derived from TestInstanceSection.status
     const sectionsWithStatus = snapshot.sections.map(
@@ -125,6 +127,7 @@ export class ExecutionService {
       expiresAt: snapshot.expiresAt,
       sectionTimingEnabled,
       currentSectionIndex,
+      currentQuestionIndex,
       serverTime: new Date().toISOString(),
       sections: sectionsWithStatus,
     };

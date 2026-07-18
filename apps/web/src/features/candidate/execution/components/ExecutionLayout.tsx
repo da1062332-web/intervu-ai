@@ -35,7 +35,7 @@ import { LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function ExecutionLayout() {
-  const { testInstance, currentSectionIndex } = useExecutionStore();
+  const { testInstance, currentSectionIndex, isInteractionBlocked } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   // Initialize day 4 hooks
@@ -54,6 +54,7 @@ export function ExecutionLayout() {
   // Initialize keyboard shortcuts
   useKeyboardShortcuts({
     onSubmit: handleSubmit,
+    disabled: isInteractionBlocked, // assuming useKeyboardShortcuts supports this, else it will ignore
   });
 
   // Prevent copy, cut, paste
@@ -67,6 +68,7 @@ export function ExecutionLayout() {
       onCopy={handleCopyPaste}
       onCut={handleCopyPaste}
       onPaste={handleCopyPaste}
+      style={isInteractionBlocked ? { pointerEvents: 'none' } : undefined}
     >
       <FullscreenOverlay />
       <TabWarningModal />

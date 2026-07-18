@@ -55,6 +55,8 @@ export interface TestInstance {
   sectionTimingEnabled?: boolean;
   /** Index of the currently active section from the server */
   currentSectionIndex?: number;
+  /** Index of the currently active question overall from the server */
+  currentQuestionIndex?: number;
   /** Server timestamp (ISO string) — used for clock-sync on section timers */
   serverTime?: string;
 }

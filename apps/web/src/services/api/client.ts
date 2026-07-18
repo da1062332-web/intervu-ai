@@ -280,16 +280,28 @@ class ApiClient {
         !interceptedConfig.skipAuthRefresh &&
         !interceptedConfig._retry
       ) {
-        const refreshedToken = await this.refreshAccessToken();
+        try {
+          const refreshedToken = await this.refreshAccessToken();
 
-        if (refreshedToken) {
-          return this.dispatchRequest(path, {
-            ...config,
-            _retry: true,
-          });
+          if (refreshedToken) {
+            return this.dispatchRequest(path, {
+              ...config,
+              _retry: true,
+            });
+          }
+
+          // Refresh returned null (invalid token) — genuine unauthorized
+          apiAuthHooks.onUnauthorized?.();
+        } catch (refreshError) {
+          // Refresh failed due to network error — do NOT logout
+          // Just return the original response so the caller gets a network error
+          const normalized = normalizeApiError(refreshError);
+          if (normalized.code === 'NETWORK_ERROR' || normalized.status === 0) {
+            throw normalized;
+          }
+          // Non-network refresh failure — treat as unauthorized
+          apiAuthHooks.onUnauthorized?.();
         }
-
-        apiAuthHooks.onUnauthorized?.();
       }
 
       return interceptedResponse;

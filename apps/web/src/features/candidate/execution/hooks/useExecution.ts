@@ -39,6 +39,7 @@ export function useExecution(testId: string) {
           else if (err.status === 500) setError('SERVER_ERROR');
           else setError(err instanceof Error ? err.message : 'Failed to load assessment');
           setLoading(false);
+          useExecutionStore.getState().cleanupRuntime();
         }
       }
     };
@@ -52,8 +53,32 @@ export function useExecution(testId: string) {
 
     return () => {
       mounted = false;
+      useExecutionStore.getState().cleanupRuntime();
     };
   }, [testId, initializeTest, setLoading, setError, testInstance, router]);
+
+  useEffect(() => {
+    // Push a dummy state to trap the user from going back
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Whenever they press Back or Forward, immediately push the state again
+      window.history.pushState(null, '', window.location.href);
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ''; // Standard way to trigger the browser's "Leave site?" warning
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return { loading, error };
 }

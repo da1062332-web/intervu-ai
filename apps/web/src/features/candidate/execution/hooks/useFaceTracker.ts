@@ -50,7 +50,19 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
         setHasCameraError(true);
       });
 
+    const handleCleanup = () => {
+      console.log('[FaceTracker] Cleaning up runtime media tracks');
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('intervu-cleanup-runtime', handleCleanup);
+    }
+
     return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('intervu-cleanup-runtime', handleCleanup);
+      }
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, []); // run once on mount — independent of model state

@@ -199,9 +199,7 @@ export class CandidateReportService {
     });
 
     if (!evaluation) {
-      throw new NotFoundException(
-        `Evaluation for attempt ${attemptId} has not been completed yet`,
-      );
+      return { status: "PENDING" };
     }
 
     const testConfigId = attempt.testConfigId;

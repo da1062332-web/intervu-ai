@@ -36,6 +36,10 @@ interface ExecutionState {
 
   // Section Change State
   pendingSectionChangeTarget: number | null;
+  
+  // Fullscreen Block State
+  isInteractionBlocked: boolean;
+  setInteractionBlocked: (blocked: boolean) => void;
 
   // Section Timing State (Feature 6, 7, 8)
   /** Index of the currently active section */
@@ -83,6 +87,7 @@ interface ExecutionState {
     currentSectionIndex?: number;
     lockedSectionKeys?: string[];
   }) => void;
+  cleanupRuntime: () => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -142,6 +147,8 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   loading: true,
   error: null,
   pendingSectionChangeTarget: null,
+  isInteractionBlocked: false,
+  setInteractionBlocked: (blocked) => set({ isInteractionBlocked: blocked }),
 
   // Section Timing Initial State
   currentSectionIndex: 0,
@@ -184,15 +191,19 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       }
     }
 
-    // Figure out the starting question index (first question of active section)
-    let startingQuestionIndex = 0;
-    let runningCount = 0;
-    for (let i = 0; i < testInstance.sections.length; i++) {
-      if (i === serverSectionIndex) {
-        startingQuestionIndex = runningCount;
-        break;
+    // Figure out the starting question index (first question of active section, unless backend provided an index)
+    let startingQuestionIndex = testInstance.currentQuestionIndex ?? 0;
+    
+    // If backend didn't provide a valid question index for the current section, calculate the first question of the current section
+    if (startingQuestionIndex === 0) {
+      let runningCount = 0;
+      for (let i = 0; i < testInstance.sections.length; i++) {
+        if (i === serverSectionIndex) {
+          startingQuestionIndex = runningCount;
+          break;
+        }
+        runningCount += testInstance.sections[i].questions.length;
       }
-      runningCount += testInstance.sections[i].questions.length;
     }
 
     set({
@@ -247,6 +258,25 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       };
     });
   },
+
+  cleanupRuntime: () => {
+    try {
+      if (typeof document !== 'undefined' && document.fullscreenElement) {
+        document.exitFullscreen().catch(console.error);
+      }
+    } catch (e) {
+      console.error('Failed to exit fullscreen during cleanup:', e);
+    }
+    
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('intervu-cleanup-runtime'));
+      }
+    } catch (e) {
+      console.error('Failed to dispatch cleanup event:', e);
+    }
+  },
+
 
   jumpToQuestion: (index) => {
     const state = get();

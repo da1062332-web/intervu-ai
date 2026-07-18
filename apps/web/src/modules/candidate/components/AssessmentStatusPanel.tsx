@@ -96,9 +96,9 @@ export function AssessmentStatusPanel() {
           </motion.div>
         ))}
 
-        {/* ── ENROLLED / NOT STARTED ── */}
+        {/* ── ENROLLED / NOT STARTED OR RE-ATTEMPTABLE ── */}
         {enrolledTests
-          .filter((t) => !t.hasActiveAttempt)
+          .filter((t) => !t.hasActiveAttempt && t.canReattempt)
           .map((test, idx) => (
             <motion.div
               key={test.id}
@@ -112,12 +112,10 @@ export function AssessmentStatusPanel() {
                 <div className='font-medium truncate'>{test.title}</div>
                 <div className='text-sm text-muted-foreground flex items-center gap-1.5 mt-1'>
                   <AlertCircle className='size-3.5 text-orange-500' />
-                  Enrolled · Not started
-                  {test.attemptCount > 0 && (
-                    <Badge variant='outline' className='ml-1 text-[10px] h-4'>
-                      Attempt {test.attemptCount + 1}/{test.maxAttempts}
-                    </Badge>
-                  )}
+                  {test.attemptCount > 0 ? 'Enrolled · Re-attempt available' : 'Enrolled · Not started'}
+                  <Badge variant='outline' className='ml-1 text-[10px] h-4'>
+                    Attempts Used: {test.attemptCount}/{test.maxAttempts}
+                  </Badge>
                 </div>
               </div>
               <Button asChild size='sm' className='gap-2 shadow-sm shrink-0 group'>
@@ -155,17 +153,6 @@ export function AssessmentStatusPanel() {
                 <Button asChild size='sm' variant='outline' className='h-8 px-3 text-xs'>
                   <Link href={`/candidate/results/${attempt.instanceId}`}>View Result</Link>
                 </Button>
-                {matchingAvailable ? (
-                  <Button asChild size='sm' className='h-8 px-3 gap-1.5 text-xs'>
-                    <Link href={`/candidate/tests/${attempt.testId}/instructions`}>
-                      <RefreshCw className='size-3' /> Retry
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button size='sm' variant='ghost' className='h-8 px-2 text-xs' disabled>
-                    <Lock className='size-3 mr-1 opacity-50' /> Max Attempts
-                  </Button>
-                )}
               </div>
             </motion.div>
           );

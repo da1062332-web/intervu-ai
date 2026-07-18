@@ -26,12 +26,19 @@ export const ShareableResultCard = ({ attemptId }: { attemptId: string }) => {
       try {
         setLoading(true);
         // Using apiClient for API call
-        const data = await apiClient.request<ShareableReport>(`/reports/share/${attemptId}`, {
+        const data = await apiClient.request<any>(`/reports/share/${attemptId}`, {
           method: 'GET',
         });
+        
+        if (data && data.status === 'PENDING') {
+          return;
+        }
+        
         setReport(data);
-      } catch (e) {
-        console.error('Failed to load shareable report', e);
+      } catch (e: any) {
+        if (e?.status !== 404) {
+          console.error('Failed to load shareable report', e);
+        }
       } finally {
         setLoading(false);
       }
