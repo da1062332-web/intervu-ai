@@ -47,6 +47,9 @@ export function useConfigurationValidation(configId: string) {
         } else if (!preview.conceptCodes || preview.conceptCodes.length === 0) {
           warnings.push('No concepts have been mapped to topics.');
           readinessPoints -= 10;
+        } else if (preview.totalTemplates === 0 && (preview.totalManualQuestions ?? 0) === 0) {
+          warnings.push('No templates or manual questions have been assigned to any concepts. Generation will fallback to defaults or fail.');
+          readinessPoints -= 10;
         }
 
         const totalQuestionsMatch = 
@@ -60,7 +63,7 @@ export function useConfigurationValidation(configId: string) {
           sectionsCreated: preview.sections > 0,
           topicsAssigned: preview.totalTopics > 0,
           conceptsAvailable: (preview.conceptCodes?.length ?? 0) > 0,
-          templatesCreated: (preview.conceptCodes?.length ?? 0) > 0,
+          templatesCreated: preview.totalTemplates > 0 || (preview.totalManualQuestions ?? 0) > 0,
           difficultyConfigured: !errors.some(e => e.toLowerCase().includes('difficulty')),
           rulesConfigured: !errors.some(e => e.toLowerCase().includes('rules')),
           rolesConfigured: !errors.some(e => e.toLowerCase().includes('roles')),

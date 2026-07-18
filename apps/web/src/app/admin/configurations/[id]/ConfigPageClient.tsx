@@ -189,7 +189,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   );
 
   const hasConcepts = preview ? (preview.conceptCodes?.length ?? 0) > 0 : false;
-  const hasTemplates = generationReadiness?.checklist?.templatesCreated ?? false;
+  const hasTemplates = preview ? (preview.totalTemplates > 0 || (preview.totalManualQuestions ?? 0) > 0) : false;
 
   const healthChecks = [
     { label: 'Configuration Saved', passed: !!config.id },

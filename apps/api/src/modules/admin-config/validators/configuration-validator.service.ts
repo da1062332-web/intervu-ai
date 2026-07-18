@@ -108,9 +108,12 @@ export class ConfigurationValidatorService {
                 const templateCount = await this.prisma.template.count({
                   where: { conceptKey: concept.code, isActive: true, deletedAt: null }
                 });
-                if (templateCount === 0) {
+                const availableManualCount = await this.prisma.question.count({
+                  where: { conceptId: concept.id, status: "ACTIVE" }
+                });
+                if (templateCount === 0 && availableManualCount === 0) {
                   errors.push(
-                    `Concept "${concept.name}" has no active templates mapped in topic "${st.topic.name}"`
+                    `Concept "${concept.name}" has no active templates or manual questions mapped in topic "${st.topic.name}"`
                   );
                 }
               }

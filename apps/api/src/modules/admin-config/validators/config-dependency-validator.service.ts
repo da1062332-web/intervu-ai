@@ -71,7 +71,7 @@ export class ConfigDependencyValidatorService {
           const topicConcepts = st.topic.concepts || [];
           const conceptCodes = topicConcepts.map((c) => c.code);
 
-          // Check if templates exist specifically for this topic's concepts
+          // Check if templates or manual questions exist specifically for this topic's concepts
           const templateCount = await this.prisma.template.count({
             where: {
               isActive: true,
@@ -79,10 +79,17 @@ export class ConfigDependencyValidatorService {
               conceptKey: { in: conceptCodes },
             },
           });
+          const conceptIds = topicConcepts.map((c) => c.id);
+          const manualQuestionsCount = await this.prisma.question.count({
+            where: {
+              status: "ACTIVE",
+              conceptId: { in: conceptIds },
+            },
+          });
 
-          if (templateCount === 0) {
+          if (templateCount === 0 && manualQuestionsCount === 0) {
             warnings.push(
-              `DEPENDENCY_WARN: No templates found mapped to concepts of topic "${st.topic.name}" — question generation may fail`,
+              `DEPENDENCY_WARN: No templates or manual questions found mapped to concepts of topic "${st.topic.name}" — question generation may fail`,
             );
             // We do not break here because we want to warn for each topic
           }
