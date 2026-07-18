@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   useGeneratedQuestions,
   useApproveQuestion,
@@ -22,9 +23,33 @@ export default function QuestionReviewPage() {
   const [previewQuestion, setPreviewQuestion] = useState<GeneratedQuestion | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const searchParams = useSearchParams();
 
-  // Filter only Drafts for this view
-  const draftQuestions = questions.filter((q) => q.status === 'Draft');
+  // If navigated with ?focus=<id>, fetch that specific question and open preview
+  React.useEffect(() => {
+    const focusId = searchParams?.get?.('focus');
+    if (!focusId) return;
+
+    let mounted = true;
+    (async () => {
+      try {
+        // lazy import to avoid circular imports
+        const { questionPoolApi } = await import('@/services/question-pool/api');
+        const q = await questionPoolApi.getQuestion(focusId);
+        if (mounted) {
+          setPreviewQuestion(q);
+        }
+      } catch (err) {
+        // ignore – if question isn't found, the list will show available items
+        console.debug('Focused generated question not found', err);
+      }
+    })();
+
+    return () => { mounted = false; };
+  }, [searchParams]);
+
+  // Filter only generated (pending review) questions for this view
+  const draftQuestions = questions.filter((q) => q.status === 'GENERATED');
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { DifficultyLevel, GeneratedQuestion } from "@prisma/client";
+import { DifficultyLevel, GeneratedQuestion, Question } from "@prisma/client";
 
 import {
   QuestionFilters,
@@ -26,7 +26,27 @@ export class QuestionPoolRepository implements IQuestionSource {
     limit: number,
     excludeIds: string[] = [],
   ) {
-    const questions = await this.prisma.generatedQuestion.findMany({
+    const realQuestions = await this.prisma.question.findMany({
+      where: {
+        topicId: conceptKey,
+        difficulty,
+        source: "GENERATED",
+        id: {
+          notIn: excludeIds,
+        },
+      },
+      take: limit,
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (realQuestions.length >= limit) {
+      return realQuestions
+        .slice(0, limit)
+        .map((question) => this.mapQuestionToGeneratedQuestion(question));
+    }
+
+    const remaining = limit - realQuestions.length;
+    const legacyQuestions = await this.prisma.generatedQuestion.findMany({
       where: {
         conceptKey,
         difficultyLevel: difficulty,
@@ -34,38 +54,44 @@ export class QuestionPoolRepository implements IQuestionSource {
           notIn: excludeIds,
         },
       },
-      take: limit,
-      // Could order by random here, or simply take the first available. For performance:
+      take: remaining,
       orderBy: { createdAt: "asc" },
     });
 
-    // For Module 3 MVP: Auto-mock questions if the pool has insufficient questions
-    if (questions.length < limit) {
-      const needed = limit - questions.length;
-      for (let i = 0; i < needed; i++) {
-        questions.push({
-          id: `mock-q-${conceptKey}-${difficulty}-${Date.now()}-${i}`,
-          conceptKey,
-          difficultyLevel: difficulty,
-          questionHash: `mock-hash-${Date.now()}-${i}`,
-          questionType: "MULTIPLE_CHOICE",
-          questionText: `This is an auto-generated mock question for topic ${conceptKey} at ${difficulty} difficulty.`,
-          options: [
-            { id: "opt1", text: "Option A" },
-            { id: "opt2", text: "Option B" },
-            { id: "opt3", text: "Option C" },
-            { id: "opt4", text: "Option D" },
-          ],
-          correctAnswer: "opt1",
-          solution: "This is the mock solution.",
-          metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as unknown as GeneratedQuestion);
-      }
-    }
+    return [
+      ...realQuestions.map((question) =>
+        this.mapQuestionToGeneratedQuestion(question),
+      ),
+      ...legacyQuestions.map((question) => ({
+        ...question,
+        conceptKey: question.conceptKey || conceptKey,
+      })),
+    ];
+  }
 
-    return questions;
+  private mapQuestionToGeneratedQuestion(question: Question): GeneratedQuestion {
+    const metadata = (question.metadata as Record<string, unknown> | null) ?? {};
+
+    return {
+      id: question.id,
+      templateId: question.templateId ?? "",
+      questionHash: question.id,
+      conceptKey: question.topicId,
+      difficultyLevel: question.difficulty as DifficultyLevel,
+      questionType: question.questionType || "MULTIPLE_CHOICE",
+      questionText: question.questionText,
+      options: (metadata.options as GeneratedQuestion["options"]) ?? [
+        question.answer,
+      ],
+      correctAnswer: question.answer as GeneratedQuestion["correctAnswer"],
+      solution: question.explanation as GeneratedQuestion["solution"],
+      metadata: {
+        ...metadata,
+        source: "QUESTION_BANK",
+      },
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+    } as GeneratedQuestion;
   }
 
   async findRecentUsedQuestions(userId: string) {

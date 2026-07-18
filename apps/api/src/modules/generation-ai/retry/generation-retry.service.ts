@@ -224,20 +224,14 @@ export class GenerationRetryService {
       });
     }
 
-    // Compile dynamic structured prompt
-    const prompt = this.promptBuilder.buildPrompt({
-      template,
-      variableValues,
-      correctAnswer: options?.correctAnswer,
-      datasetItem: options?.datasetItem,
-      logicalGraph: options?.logicalGraph,
-      promptConfig: promptConfig || undefined,
-      styleProfile,
-    });
+    // NOTE: we will build the prompt inside the attempt loop because for VARIABLE
+    // strategy we want to regenerate variable values on each attempt to avoid
+    // producing identical outputs which would be flagged as duplicates.
 
     const difficulty = template.difficultyLevel.toLowerCase();
     const topic = template.conceptKey;
 
+    let promptStr = "";
     while (attempts < maxAttempts) {
       attempts++;
       let response = "";
@@ -246,8 +240,29 @@ export class GenerationRetryService {
       const attemptErrors: string[] = [];
 
       try {
+        // For VARIABLE strategy, regenerate parameter values for each attempt
+        let attemptVariables = variableValues;
+        if ((template as any)?.generationStrategy === "VARIABLE") {
+          try {
+            attemptVariables = this.parameterGenerator.generateParameters(template as any);
+          } catch {
+            attemptVariables = variableValues;
+          }
+        }
+
+        // Compile dynamic structured prompt for this attempt
+        promptStr = this.promptBuilder.buildPrompt({
+          template,
+          variableValues: attemptVariables,
+          correctAnswer: options?.correctAnswer,
+          datasetItem: options?.datasetItem,
+          logicalGraph: options?.logicalGraph,
+          promptConfig: promptConfig || undefined,
+          styleProfile,
+        });
+
         // 1. Generate LLM Output
-        response = await this.questionGenerator.generate(prompt);
+        response = await this.questionGenerator.generate(promptStr);
 
         // 2. Parse LLM JSON
         let cleaned = response.trim();
@@ -271,7 +286,7 @@ export class GenerationRetryService {
           metadata: {
             ...(parsed.metadata || {}),
             templateId: template.id,
-            variables: variableValues,
+            variables: (template as any)?.generationStrategy === "VARIABLE" ? attemptVariables : variableValues,
             generationStrategy: template.generationStrategy,
             datasetItem: options?.datasetItem,
             logicalGraph: options?.logicalGraph,
@@ -353,7 +368,7 @@ export class GenerationRetryService {
       // Save audit logs
       try {
         await this.auditService.log({
-          prompt,
+          prompt: promptStr,
           response: response || "ERROR",
           qualityScore: finalScore,
           validationResult: {

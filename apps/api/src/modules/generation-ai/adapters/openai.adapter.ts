@@ -29,12 +29,17 @@ export class OpenAIAdapter implements LLMAdapter {
             model,
             messages: [
               {
+                role: "system",
+                content:
+                  "You are an expert AI assessment question generator. Generate only the requested JSON object unless explicitly instructed otherwise.",
+              },
+              {
                 role: "user",
                 content: prompt,
               },
             ],
-            response_format: { type: "json_object" },
             temperature: 0.7,
+            max_tokens: 1500,
           }),
         },
       );

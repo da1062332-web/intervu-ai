@@ -77,4 +77,31 @@ describe("PromptBuilderService", () => {
     const prompt = service.buildPrompt(input);
     expect(prompt.toLowerCase()).toContain("avoid obviously wrong options");
   });
+
+  it("should require exact answer computation when correctAnswer is missing", () => {
+    const input: PromptBuilderInput = {
+      template: {
+        id: "template_789",
+        name: "Exact Answer Requirement",
+        description: "Ensure correct answer is computed from variables",
+        conceptKey: "math",
+        difficultyLevel: "HARD",
+        questionType: "mcq",
+        structure: {
+          questionTemplate: "Compute the result of {a} + {b}.",
+        },
+        variableSchema: { variables: [] },
+        constraints: { constraints: [] },
+        solutionSchema: {
+          steps: ["Add a and b to find the answer"],
+          finalAnswer: "a + b",
+        },
+      },
+      variableValues: { a: 3, b: 4 },
+    };
+
+    const prompt = service.buildPrompt(input);
+    expect(prompt).toContain("compute it exactly from the provided parameter values");
+    expect(prompt).not.toContain("do not perform any mathematical calculations unless");
+  });
 });

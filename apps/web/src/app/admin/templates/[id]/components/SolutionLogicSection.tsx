@@ -48,14 +48,16 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
 
   const handleSave = () => {
     if (!template?.id) return;
-    
+
+    const hasExistingSolutionTemplate = Boolean(existingData?.id);
+
     saveSolution({
       templateId: template.id,
-      payload: { 
-        solutionTemplate: solutionTemplateStr, 
-        explanationTemplate: explanationTemplateStr 
+      payload: {
+        solutionTemplate: solutionTemplateStr,
+        explanationTemplate: explanationTemplateStr,
       },
-      isUpdate: !!(template?.solutionSchema || existingData),
+      isUpdate: hasExistingSolutionTemplate,
     }, {
       onSuccess: () => {
         toast.success("Solution logic saved successfully");

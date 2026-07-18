@@ -6,6 +6,12 @@ interface VariableDefinition {
   type: "number" | "string" | "boolean" | "decimal" | string;
   min?: number;
   max?: number;
+  range?: {
+    min?: number;
+    max?: number;
+    step?: number;
+  };
+  step?: number;
   options?: any[];
   generator?: "even" | "odd" | "prime" | string;
   precision?: number;
@@ -70,9 +76,32 @@ export class ParameterGeneratorService {
 
       // 1. Generate base values for each variable
       for (const v of variables) {
-        if (v.type === "number" || v.type === "decimal") {
-          const min = v.min !== undefined ? v.min : 1;
-          const max = v.max !== undefined ? v.max : 100;
+        const type = String(v.type || "").toLowerCase();
+        const range = (v as any).range || {};
+        const min =
+          range.min !== undefined
+            ? range.min
+            : v.min !== undefined
+            ? v.min
+            : 1;
+        const max =
+          range.max !== undefined
+            ? range.max
+            : v.max !== undefined
+            ? v.max
+            : type === "decimal"
+            ? 1.0
+            : 100;
+        const step =
+          range.step !== undefined
+            ? range.step
+            : v.step !== undefined
+            ? v.step
+            : type === "decimal"
+            ? undefined
+            : 1;
+
+        if (type === "number" || type === "decimal" || type === "integer") {
           if (min > max) {
             throw new BadRequestException({
               success: false,
@@ -83,42 +112,54 @@ export class ParameterGeneratorService {
             });
           }
 
-          if (v.type === "decimal") {
-            const precision = v.precision !== undefined ? v.precision : 2;
-            const rawVal = Math.random() * (max - min) + min;
+          const precision =
+            v.precision !== undefined ? v.precision : type === "decimal" ? 2 : 0;
+          const generator = String(v.generator || "").toLowerCase();
+          const boundedRandom = () => {
+            if (step !== undefined && step > 0) {
+              const maxSteps = Math.floor((max - min) / step);
+              const stepIndex = Math.floor(Math.random() * (maxSteps + 1));
+              return min + stepIndex * step;
+            }
+            return min + Math.random() * (max - min);
+          };
+
+          if (type === "decimal") {
+            const rawVal = boundedRandom();
             params[v.name] = parseFloat(rawVal.toFixed(precision));
           } else {
-            // Integer strategy adjustments
-            if (v.generator === "prime") {
+            if (generator === "prime") {
               params[v.name] = getPrimeInRange(min, max);
-            } else if (v.generator === "even") {
-              const evens: number[] = [];
+            } else if (generator === "even") {
+              const candidates: number[] = [];
               for (let i = min; i <= max; i++) {
-                if (i % 2 === 0) evens.push(i);
+                if (i % 2 === 0) candidates.push(i);
               }
               params[v.name] =
-                evens.length > 0
-                  ? evens[Math.floor(Math.random() * evens.length)]
-                  : min;
-            } else if (v.generator === "odd") {
-              const odds: number[] = [];
+                candidates.length > 0
+                  ? candidates[Math.floor(Math.random() * candidates.length)]
+                  : Math.round(boundedRandom());
+            } else if (generator === "odd") {
+              const candidates: number[] = [];
               for (let i = min; i <= max; i++) {
-                if (i % 2 !== 0) odds.push(i);
+                if (i % 2 !== 0) candidates.push(i);
               }
               params[v.name] =
-                odds.length > 0
-                  ? odds[Math.floor(Math.random() * odds.length)]
-                  : min;
+                candidates.length > 0
+                  ? candidates[Math.floor(Math.random() * candidates.length)]
+                  : Math.round(boundedRandom());
             } else {
-              params[v.name] =
-                Math.floor(Math.random() * (max - min + 1)) + min;
+              params[v.name] = Math.round(boundedRandom());
             }
           }
-        } else if (v.type === "string" && v.options && v.options.length > 0) {
-          const index = Math.floor(Math.random() * v.options.length);
-          params[v.name] = v.options[index];
-        } else if (v.type === "boolean") {
+        } else if (type === "string" && Array.isArray((v as any).options) && (v as any).options.length > 0) {
+          const options = (v as any).options;
+          const index = Math.floor(Math.random() * options.length);
+          params[v.name] = options[index];
+        } else if (type === "boolean") {
           params[v.name] = Math.random() < 0.5;
+        } else if (type === "static") {
+          params[v.name] = (v as any).value ?? (v as any).defaultValue ?? 1;
         } else {
           params[v.name] = 1;
         }
@@ -128,10 +169,25 @@ export class ParameterGeneratorService {
       try {
         for (const formula of formulas) {
           if (typeof formula !== "string") continue;
-          math.evaluate(formula, params);
+          const normalized = formula.trim();
+          if (!normalized) continue;
+
+          if (normalized.includes("=")) {
+            const [lhs, rhs] = normalized.split("=").map((part) => part.trim());
+            if (lhs && rhs) {
+              const result = math.evaluate(rhs, params);
+              params[lhs] = this.normalizeMathValue(result);
+              continue;
+            }
+          }
+
+          const result = math.evaluate(normalized, params);
+          if (typeof result === "object" && result !== null) {
+            Object.assign(params, this.normalizeMathObject(result));
+          }
         }
       } catch (err) {
-        // If formula chain evaluation fails (e.g. division by zero), we retry
+        // If formula chain evaluation fails (e.g. division by zero), we retry with new parameters
         continue;
       }
 
@@ -140,11 +196,7 @@ export class ParameterGeneratorService {
         // Clean mathjs fractions/objects to standard JSON types
         const cleanedParams: Record<string, any> = {};
         for (const [key, val] of Object.entries(params)) {
-          if (typeof val === "object" && val !== null) {
-            cleanedParams[key] = math.number(val as any);
-          } else {
-            cleanedParams[key] = val;
-          }
+          cleanedParams[key] = this.normalizeMathValue(val);
         }
         return cleanedParams;
       }
@@ -193,5 +245,31 @@ export class ParameterGeneratorService {
     }
 
     return true;
+  }
+
+  private normalizeMathValue(value: any): any {
+    if (value === undefined || value === null) return value;
+    if (typeof value === "object") {
+      try {
+        return math.number(value as any);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  private normalizeMathObject(value: any): Record<string, any> {
+    const output: Record<string, any> = {};
+    try {
+      if (typeof value === "object" && value !== null) {
+        for (const [key, val] of Object.entries(value)) {
+          output[key] = this.normalizeMathValue(val);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return output;
   }
 }

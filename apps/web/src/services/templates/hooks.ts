@@ -18,11 +18,15 @@ export const useTemplatesByConcept = (conceptKey: string, page = 1, limit = 100)
     queryKey: ['templatesByConcept', conceptKey, page, limit],
     queryFn: async () => {
       const response = await templateApi.getTemplates(page, limit, conceptKey);
-      if (response && response.items) {
-        response.items = response.items.filter((t: any) => t.conceptKey === conceptKey);
-        response.totalCount = response.items.length;
-      }
-      return response;
+      const items = response?.items || response?.data || [];
+      const filtered = Array.isArray(items)
+        ? items.filter((t: any) => t.conceptKey === conceptKey)
+        : [];
+      return {
+        ...response,
+        items: filtered,
+        total: filtered.length,
+      };
     },
     enabled: !!conceptKey,
   });

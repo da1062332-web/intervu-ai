@@ -68,7 +68,16 @@ export class SolutionTemplateService {
     const existing =
       await this.solutionTemplateRepo.findByTemplateId(templateId);
     if (!existing) {
-      throw new NotFoundException("Solution template not found");
+      const template = await this.templateRepo.findById(templateId);
+      if (!template) {
+        throw new NotFoundException("Template not found");
+      }
+
+      return this.solutionTemplateRepo.create({
+        solutionTemplate: dto.solutionTemplate ?? "",
+        explanationTemplate: dto.explanationTemplate,
+        template: { connect: { id: templateId } },
+      });
     }
 
     return this.solutionTemplateRepo.update(existing.id, {
@@ -142,7 +151,7 @@ export class SolutionTemplateService {
     if (!result.success || !result.question) {
       throw new BadRequestException({
         message: "AI Generation failed during preview generation",
-        errors: result.errors,
+        details: result.errors || [],
       });
     }
 
