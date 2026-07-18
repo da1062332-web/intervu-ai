@@ -57,10 +57,11 @@ export interface QuestionPreviewResult {
 
 // ─── Generate Response ─────────────────────────────────────────────────────
 export interface GenerateQuestionResponse {
-  question: GeneratedQuestion;
-  generationStrategy: GenerationStrategy;
+  questions: GeneratedQuestion[];
+  question?: GeneratedQuestion;
+  generationStrategy?: GenerationStrategy;
   validationReport: ValidationReport;
-  contextSummary: string;
+  contextSummary?: string;
 }
 
 // ─── Validate Response ─────────────────────────────────────────────────────

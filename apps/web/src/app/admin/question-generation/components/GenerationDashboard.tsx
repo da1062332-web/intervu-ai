@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useGenerateQuestion, useGenerateBatch } from '@/services/question-generation/hooks';
 import { useTopics } from '@/services/topics/hooks';
 import { useConcepts } from '@/services/concept-mapping/hooks';
-import { useTemplates } from '@/services/templates/hooks';
+import { useTemplatesByConcept } from '@/services/templates/hooks';
 import { ConfigurationSelectors } from './ConfigurationSelectors';
 import { BatchProgressWidget } from './BatchProgressWidget';
 import { GenerationHistory } from './GenerationHistory';
@@ -31,9 +31,19 @@ export function GenerationDashboard() {
   const { data: topics = [] } = useTopics();
   const { data: conceptsData } = useConcepts(selectedTopic);
   const concepts = conceptsData || [];
-  // For now, load all templates (or a large page) since we don't have concept filtering in useTemplates
-  const { data: templatesData } = useTemplates(1, 100);
-  const templates = templatesData?.data || [];
+  const selectedConceptItem = concepts.find((concept) => concept.id === selectedConcept);
+  const selectedConceptKey = selectedConceptItem?.code || selectedConceptItem?.conceptCode || '';
+  const { data: templatesData } = useTemplatesByConcept(selectedConceptKey, 1, 100);
+  const templates = templatesData?.items || [];
+
+  useEffect(() => {
+    setSelectedConcept('');
+    setSelectedTemplate('');
+  }, [selectedTopic]);
+
+  useEffect(() => {
+    setSelectedTemplate('');
+  }, [selectedConcept]);
 
   const { mutateAsync: generateSingle } = useGenerateQuestion();
   const { mutateAsync: generateBatch } = useGenerateBatch();
@@ -52,11 +62,14 @@ export function GenerationDashboard() {
 
       if (generationType === 'single') {
         setProgress(50);
-        await generateSingle({ templateId: selectedTemplate, context: payload });
+        const res = await generateSingle({ templateId: selectedTemplate, context: payload });
         setProgress(100);
         setStatus('success');
+        // If the API returned the created question id, focus it on the review page
+        const generatedId = res?.question?.id ?? res?.questions?.[0]?.id;
+        const target = generatedId ? `/admin/review?focus=${generatedId}` : '/admin/review';
         // Route to review after slight delay
-        setTimeout(() => router.push('/admin/review'), 500);
+        setTimeout(() => router.push(target), 500);
       } else {
         // Mock a progress bar for batch
         const interval = setInterval(() => {
