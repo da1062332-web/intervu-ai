@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Maximize, AlertTriangle } from 'lucide-react';
+import { useExecutionStore } from '../stores/execution.store';
 
 export function FullscreenOverlay() {
   const [isFullscreen, setIsFullscreen] = useState(true);
@@ -12,11 +13,20 @@ export function FullscreenOverlay() {
     setIsMounted(true);
     
     const checkFullscreen = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFs = !!document.fullscreenElement;
+      setIsFullscreen(isFs);
+      useExecutionStore.getState().setInteractionBlocked(!isFs);
     };
 
     // Check initial state
     checkFullscreen();
+
+    // Attempt to automatically enter fullscreen (may be blocked by browser without user gesture)
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.warn('Auto-fullscreen blocked by browser:', err);
+      });
+    }
 
     document.addEventListener('fullscreenchange', checkFullscreen);
     document.addEventListener('mozfullscreenchange', checkFullscreen);
@@ -46,7 +56,10 @@ export function FullscreenOverlay() {
   }
 
   return (
-    <div className='fixed inset-0 z-[9999] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in duration-200'>
+    <div 
+      className='fixed inset-0 z-[9999] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in duration-200'
+      style={{ pointerEvents: 'auto' }}
+    >
       <div className='max-w-md w-full bg-card shadow-2xl rounded-2xl p-8 border border-border flex flex-col items-center text-center space-y-6'>
         <div className='w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center'>
           <AlertTriangle className='size-8 text-amber-500' />

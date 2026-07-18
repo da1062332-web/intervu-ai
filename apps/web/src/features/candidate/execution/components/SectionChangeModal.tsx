@@ -121,31 +121,33 @@ export function SectionChangeModal() {
                   Switch to {targetSectionName}?
                 </AlertDialogTitle>
 
-                <AlertDialogDescription className='space-y-4 pt-3 text-base text-slate-600 dark:text-slate-300'>
-                  <p>
-                    You are about to switch from{' '}
-                    <span className='font-semibold text-foreground'>{currentSectionName}</span> to{' '}
-                    <span className='font-semibold text-foreground'>{targetSectionName}</span>.
-                  </p>
+                <AlertDialogDescription asChild>
+                  <div className='space-y-4 pt-3 text-base text-slate-600 dark:text-slate-300'>
+                    <p>
+                      You are about to switch from{' '}
+                      <span className='font-semibold text-foreground'>{currentSectionName}</span> to{' '}
+                      <span className='font-semibold text-foreground'>{targetSectionName}</span>.
+                    </p>
 
-                  {showLockWarning && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className='flex items-start gap-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/50 text-amber-900 dark:text-amber-200 p-4 shadow-sm'
-                    >
-                      <ShieldAlert className='size-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5' />
-                      <div className='text-sm leading-relaxed'>
-                        <span className='font-bold text-amber-700 dark:text-amber-400'>
-                          Warning:{' '}
-                        </span>
-                        Once you proceed, the{' '}
-                        <span className='font-semibold'>{currentSectionName}</span> section will be{' '}
-                        <strong>permanently locked</strong>. You will not be able to return to it
-                        later.
-                      </div>
-                    </motion.div>
-                  )}
+                    {showLockWarning && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className='flex items-start gap-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/50 text-amber-900 dark:text-amber-200 p-4 shadow-sm'
+                      >
+                        <ShieldAlert className='size-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5' />
+                        <div className='text-sm leading-relaxed'>
+                          <span className='font-bold text-amber-700 dark:text-amber-400'>
+                            Warning:{' '}
+                          </span>
+                          Once you proceed, the{' '}
+                          <span className='font-semibold'>{currentSectionName}</span> section will be{' '}
+                          <strong>permanently locked</strong>. You will not be able to return to it
+                          later.
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
 

@@ -1,4 +1,5 @@
 import { apiClient, configureApiAuthHooks } from '@/services/api/client';
+import { normalizeApiError } from '@/services/api/error';
 import { useAuthStore } from '@/store/auth.store';
 import { useSessionStore } from '@/store/session.store';
 import type {
@@ -105,7 +106,11 @@ export async function refreshSession(): Promise<string | null> {
     }
 
     return payload.accessToken;
-  } catch {
+  } catch (error) {
+    const normalized = normalizeApiError(error);
+    if (normalized.code === 'NETWORK_ERROR' || normalized.status === 0) {
+      throw error;
+    }
     clearAuthData();
     return null;
   }

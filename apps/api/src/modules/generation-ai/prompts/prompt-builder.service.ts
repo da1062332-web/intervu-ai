@@ -128,7 +128,7 @@ IMPORTANT: Do not perform any mathematical calculations. The correct answer has 
 The pre-rendered question statement is:
 "${interpolatedQuestion}"
 
-You must output this exact question stem in the "question" field. Do not modify the variables or wording of this statement. Do not leak raw curly braces or placeholder tokens.
+You must write a unique, engaging, real-world scenario or word-problem story wrapping the pre-rendered question statement. Incorporate the resolved parameters naturally (e.g. create a story about selling goods, calculating distances, or allocating tasks). Do not modify the underlying numbers or formulas. Do not leak raw curly braces or placeholder tokens. Keep the question concise, unambiguous, and relevant to the requested concept and difficulty.
 `;
 
     let optionStrategyText = "";
@@ -138,6 +138,7 @@ You must output this exact question stem in the "question" field. Do not modify 
 You must generate exactly 4 options.
 - 1 Option must match the correct answer value: "${correctAnswerVal}".
 - 3 Options must be plausible distractors representing common calculation slipups or conceptual errors.
+- Avoid obviously wrong options such as trivial negatives or nonsense values.
 - Do not generate duplicate options.
 - All options must be of balanced characters and similar lengths.
 `;
@@ -235,6 +236,7 @@ ${this.interpolate(promptConfig.userPrompt, { content: datasetContent, ...variab
 [QUESTION INSTRUCTIONS]
 Generate a high-quality ${questionType} question of ${difficulty} difficulty that tests comprehension, syntax, or vocabulary based on the content asset above.
 - The question stem must refer directly to the content asset.
+- Keep the wording precise, unambiguous, and suitable for the target age or proficiency level.
 - Do not leak any variable placeholders (e.g. no curly braces).
 `;
     if (promptConfig?.instructions) {
@@ -248,7 +250,7 @@ Generate a high-quality ${questionType} question of ${difficulty} difficulty tha
 You must generate exactly 4 options:
 - 1 Option must be the correct answer.
 - 3 Options must be plausible distractors that represent realistic misinterpretations or grammatical errors.
-- Ensure all options are balanced in length and format.
+- Avoid obviously wrong options and ensure all options are balanced in length and format.
 `;
     }
 
@@ -330,6 +332,7 @@ ${graph.relations.map((r) => `  * ${r.source} is the ${r.type} of ${r.target}`).
 - Write a natural language puzzle incorporating all entities and relations from the logic graph.
 - The puzzle statement must reference all the specified entities: ${graph.entities.join(", ")}.
 - Do not introduce relations that contradict or alter the graph.
+- Keep the puzzle concise and unambiguous while still requiring reasoning.
 - Create a question asking the candidate to deduce a specific relation or arrangement.
 `;
 

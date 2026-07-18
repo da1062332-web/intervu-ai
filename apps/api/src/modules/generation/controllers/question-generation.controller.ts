@@ -66,6 +66,11 @@ export class QuestionGenerationController {
   ) {
     const loopCount = count || 1;
     const generated: any[] = [];
+    let validationReport = {
+      valid: true,
+      errors: [] as string[],
+      warnings: [] as string[],
+    };
 
     // 1. Load the template
     const template = await this.prisma.template.findUnique({
@@ -128,6 +133,23 @@ export class QuestionGenerationController {
         );
       }
 
+      try {
+        this.responseValidator.validate(
+          result.question,
+          template.difficultyLevel,
+          template.conceptKey,
+          template,
+        );
+      } catch (err) {
+        validationReport = {
+          valid: false,
+          errors: [
+            err instanceof Error ? err.message : "Question validation failed",
+          ],
+          warnings: [],
+        };
+      }
+
       // 4. Atomically persist SGE question details to pool
       const q = await this.prisma.question.create({
         data: {
@@ -167,6 +189,7 @@ export class QuestionGenerationController {
       success: true,
       count: generated.length,
       questions: generated,
+      validationReport,
     };
   }
 
@@ -242,7 +265,8 @@ export class QuestionGenerationController {
   @Post("dataset-preview")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: "Preview how dataset values populate template variables and prompts before generation",
+    summary:
+      "Preview how dataset values populate template variables and prompts before generation",
   })
   @ApiBody({
     schema: {
@@ -281,18 +305,25 @@ export class QuestionGenerationController {
 
     let parsedStructure: any = {};
     try {
-      parsedStructure = typeof template.structure === "string" 
-        ? JSON.parse(template.structure) 
-        : (template.structure || {});
+      parsedStructure =
+        typeof template.structure === "string"
+          ? JSON.parse(template.structure)
+          : template.structure || {};
     } catch (e) {
       parsedStructure = {};
     }
 
     const stemTemplate = parsedStructure.questionTemplate?.stem || "";
-    const interpolatedStem = promptBuilder.interpolate(stemTemplate, context.variables);
+    const interpolatedStem = promptBuilder.interpolate(
+      stemTemplate,
+      context.variables,
+    );
 
     const interpolatedUserPrompt = promptConfig?.userPrompt
-      ? promptBuilder.interpolate(promptConfig.userPrompt, { content: context.datasetItem?.content || "", ...context.variables })
+      ? promptBuilder.interpolate(promptConfig.userPrompt, {
+          content: context.datasetItem?.content || "",
+          ...context.variables,
+        })
       : "";
 
     const interpolatedInstructions = promptConfig?.instructions

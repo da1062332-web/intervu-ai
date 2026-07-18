@@ -24,11 +24,20 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
   }, [sections, selectedSectionId]);
 
   const { data: topicsData, isLoading: isLoadingTopics } = useSectionTopics(selectedSectionId);
+  const { data: weightages = [], isLoading: isLoadingWeightages } = useWeightages(selectedSectionId);
   const topics = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.data || [];
   
   const { data: weightagesData = [] } = useWeightages(selectedSectionId);
 
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
+
+  const weightageMap = weightages.reduce(
+    (map: Record<string, number>, weightage) => {
+      map[weightage.topicId] = weightage.weightagePercentage;
+      return map;
+    },
+    {},
+  );
 
   // Auto-select first topic
   useEffect(() => {
@@ -97,16 +106,11 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
             </div>
           ) : (
             <div className='grid gap-3'>
-              {topics.map((topic: any) => {
-                const weightageRecord = weightagesData.find((w: any) => w.topicId === topic.topicId);
-                const currentWeightage = weightageRecord ? weightageRecord.weightagePercentage : (topic.weightage || 0);
-
-                return (
-                  <div key={topic.topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
-                    <div>
-                      <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
-                      <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {currentWeightage}%</p>
-                    </div>
+              {topics.map((topic: any) => (
+                <div key={topic.topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
+                  <div>
+                    <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
+                    <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {weightageMap[topic.topicId] ?? 0}%</p>
                   </div>
                 );
               })}

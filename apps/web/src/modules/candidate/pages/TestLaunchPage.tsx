@@ -66,15 +66,6 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   const handleStartAssessment = async () => {
     try {
       setIsStarting(true);
-      // Attempt to enter fullscreen mode
-      if (document.documentElement.requestFullscreen) {
-        try {
-          await document.documentElement.requestFullscreen();
-        } catch (err) {
-          console.error('Error attempting to enable fullscreen:', err);
-        }
-      }
-      
       const { testInstanceId } = await testService.startTest(testId);
       router.push(`/candidate/tests/${testInstanceId}/execution`);
     } catch (err) {
