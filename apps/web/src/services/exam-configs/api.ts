@@ -44,10 +44,28 @@ export const examConfigsApi = {
 
   /**
    * Run multi-layer validation on the configuration.
-   * Marks the config as VALIDATED if all checks pass.
+   * Uses the new system validation endpoint.
    */
   validateConfig: (configId: string) => {
-    return apiClient.request<ConfigValidationResult>(`/admin/configs/${configId}/validate`, {
+    return apiClient.request<ConfigValidationResult>(`/system/validate-config/${configId}`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Get the readiness score and breakdown for a configuration.
+   */
+  getReadiness: (configId: string) => {
+    return apiClient.request<any>(`/configs/${configId}/readiness`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Re-evaluate the readiness score and breakdown for a configuration.
+   */
+  refreshReadiness: (configId: string) => {
+    return apiClient.request<any>(`/configs/${configId}/readiness`, {
       method: 'POST',
     });
   },

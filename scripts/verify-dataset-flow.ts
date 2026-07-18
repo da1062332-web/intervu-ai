@@ -19,7 +19,7 @@ const prisma = new PrismaClient();
 async function runVerification() {
   console.log("🚀 Starting End-to-End Dataset Flow Verification (question-generation)...");
 
-  const templateId = "cmrmaroxh0007uj8i4coz917c";
+  const templateId = "cmrpv0ibr0007jmbvmt775ff6";
   const datasetId = "cmrdb07ma005x94gqjnydv8em";
   const specificItemId = "cmrdb08ta005z94gqwcf53xof";
 
@@ -75,6 +75,10 @@ async function runVerification() {
 
   // 3. Verify Template-Dataset Relation Join
   console.log("\n3. Testing Template Repository relationship retrieval...");
+  await prisma.template.update({
+    where: { id: templateId },
+    data: { generationStrategy: "DATASET" }
+  });
   const template = await templateRepo.findById(templateId);
   if (!template || !(template as any).datasetConfigRelation) {
     console.error("❌ Template retrieval did not join datasetConfigRelation!");

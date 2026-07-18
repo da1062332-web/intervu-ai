@@ -22,6 +22,7 @@ export interface ConfigPreviewResponse {
   }>;
   totalTopics: number;
   totalTemplates: number;
+  totalManualQuestions?: number;
   conceptCodes: string[];
   isReadyToPublish: boolean;
 }
@@ -100,12 +101,27 @@ export class ConfigPreviewService {
     const totalTopics = uniqueTopics.size;
 
     let totalTemplates = 0;
+    let totalManualQuestions = 0;
     if (uniqueConceptCodes.size > 0) {
       totalTemplates = await this.prisma.template.count({
         where: {
           isActive: true,
           deletedAt: null,
           conceptKey: { in: Array.from(uniqueConceptCodes) },
+        },
+      });
+
+      const concepts = await this.prisma.concept.findMany({
+        where: {
+          code: { in: Array.from(uniqueConceptCodes) },
+        },
+      });
+      const conceptIds = concepts.map((c: any) => c.id);
+
+      totalManualQuestions = await this.prisma.question.count({
+        where: {
+          status: "ACTIVE",
+          conceptId: { in: conceptIds },
         },
       });
     }
@@ -121,6 +137,7 @@ export class ConfigPreviewService {
       sectionBreakdown,
       totalTopics,
       totalTemplates,
+      totalManualQuestions,
       conceptCodes: Array.from(uniqueConceptCodes),
       isReadyToPublish,
     };

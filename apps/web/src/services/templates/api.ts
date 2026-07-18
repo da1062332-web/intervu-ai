@@ -153,3 +153,17 @@ export const updateRule = async (ruleId: string, payload: any): Promise<any> => 
 export const deleteRule = async (ruleId: string): Promise<any> => {
   return await apiClient.request<any>(`/rules/${ruleId}`, { method: 'DELETE' });
 };
+
+export const saveTemplateDatasetConfig = async (templateId: string, payload: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/dataset`, {
+    method: 'PATCH',
+    body: payload
+  });
+};
+
+export const getTemplateDatasetPreview = async (templateId: string): Promise<any> => {
+  return await apiClient.request<any>(`/question-generation/dataset-preview`, {
+    method: 'POST',
+    body: { templateId }
+  });
+};

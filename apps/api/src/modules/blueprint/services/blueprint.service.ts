@@ -315,21 +315,46 @@ export class BlueprintService {
                 topic.concepts.includes(t.conceptKey),
             );
 
-            if (matchingTemplates.length === 0) {
-              // Find what other difficulties have templates for this topic
-              const availableDifficulties = Array.from(
-                new Set(
-                  templates
-                    .filter((t) => t.isActive && topic.concepts.includes(t.conceptKey))
-                    .map((t) => t.difficultyLevel)
-                )
-              );
-              const suggestion = availableDifficulties.length > 0
-                ? `Please assign weight to: [${availableDifficulties.join(", ")}].`
-                : "Please create active templates for this topic first.";
+            // Fetch DB concepts matching topic concept codes
+            const dbConcepts = await this.prisma.concept.findMany({
+              where: {
+                code: { in: topic.concepts },
+              },
+            });
+            const conceptIds = dbConcepts.map((c: any) => c.id);
+
+            // Count available manual questions matching concepts and required difficulty
+            const availableManualCount = await this.prisma.question.count({
+              where: {
+                conceptId: { in: conceptIds },
+                status: "ACTIVE",
+                difficulty: level,
+              },
+            });
+
+            if (matchingTemplates.length === 0 && availableManualCount === 0) {
+              // Find what other difficulties have templates or manual questions for this topic
+              const availableDifficulties = new Set<string>();
+
+              templates
+                .filter((t) => t.isActive && topic.concepts.includes(t.conceptKey))
+                .forEach((t) => availableDifficulties.add(t.difficultyLevel));
+
+              const questions = await this.prisma.question.findMany({
+                where: {
+                  conceptId: { in: conceptIds },
+                  status: "ACTIVE",
+                },
+                select: { difficulty: true },
+              });
+              questions.forEach((q: any) => availableDifficulties.add(q.difficulty));
+
+              const suggestion = availableDifficulties.size > 0
+                ? `Please assign weight to: [${Array.from(availableDifficulties).join(", ")}].`
+                : "Please create active templates or manual questions for this topic first.";
 
               errors.push(
-                `Topic "${topic.topic}" does not have any active "${level}" templates. ${suggestion}`,
+                `Topic "${topic.topic}" does not have any active "${level}" templates or manual questions. ${suggestion}`,
               );
             }
           }
