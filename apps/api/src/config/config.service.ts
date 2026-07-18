@@ -65,4 +65,12 @@ export class AppConfigService {
   get isProduction(): boolean {
     return this.nodeEnv === "production";
   }
+
+  get googleClientId(): string {
+    return this.configService.get<string>("GOOGLE_CLIENT_ID", "") || "";
+  }
+
+  get googleClientSecret(): string {
+    return this.configService.get<string>("GOOGLE_CLIENT_SECRET", "") || "";
+  }
 }

@@ -3,9 +3,6 @@ import { GenerationStrategy } from "@prisma/client";
 
 import { PrismaModule } from "../../prisma/prisma.module";
 
-// Controller
-import { QuestionGenerationController } from "./controllers/question-generation.controller";
-
 // Registries
 import { StrategyRegistry } from "./registry/strategy.registry";
 import { ValidationRegistry } from "./registry/validation.registry";
@@ -61,7 +58,7 @@ const PROVIDERS = [
 
 @Module({
   imports: [PrismaModule],
-  controllers: [QuestionGenerationController],
+  controllers: [],
   providers: PROVIDERS,
   exports: [GenerationStrategyResolver, StrategyRegistry, ValidationRegistry],
 })

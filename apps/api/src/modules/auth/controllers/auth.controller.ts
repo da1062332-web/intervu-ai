@@ -13,7 +13,7 @@ import {
   AuthUserSchema,
 } from "@intervu/shared";
 
-import { LoginDto, RefreshTokenDto, SignupDto } from "../dto/auth.dto";
+import { LoginDto, RefreshTokenDto, SignupDto, GoogleLoginDto } from "../dto/auth.dto";
 import { RateLimitCategory } from "../../../common";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { Public } from "../decorators/public.decorator";
@@ -65,6 +65,23 @@ export class AuthController {
     },
   ): Promise<AuthResponse> {
     return this.authService.login(dto, this.getMeta(req));
+  }
+
+  @Public()
+  @Post("google")
+  @ValidateResponse(AuthResponseSchema)
+  @ApiOperation({ summary: "Login or register using Google ID Token" })
+  @ApiBody({ type: GoogleLoginDto, description: "Google Login token payload" })
+  @ApiOkResponse({ description: "User authenticated successfully" })
+  async googleLogin(
+    @Body() dto: GoogleLoginDto,
+    @Req()
+    req: {
+      ip?: string;
+      headers: Record<string, string | string[] | undefined>;
+    },
+  ): Promise<AuthResponse> {
+    return this.authService.loginWithGoogle(dto, this.getMeta(req));
   }
 
   @Public()
