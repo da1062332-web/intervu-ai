@@ -289,6 +289,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     name: 'New Template',
     questionType: 'coding',
     difficulty: 'MEDIUM',
+    generationStrategy: 'VARIABLE',
   });
 
   // Manual Question modal state
@@ -542,6 +543,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
       name: 'New Template',
       questionType: 'coding',
       difficulty: 'MEDIUM',
+      generationStrategy: 'VARIABLE',
     });
     setIsTemplateModalOpen(true);
   };
@@ -556,6 +558,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         conceptKey: selectedConceptForTemplate.code || selectedConceptForTemplate.conceptCode,
         questionType: templateFormData.questionType,
         difficulty: templateFormData.difficulty as any,
+        generationStrategy: templateFormData.generationStrategy as any,
         config: { topics: [], timeLimit: 3600 },
         isSystem: false,
       },
@@ -618,65 +621,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         </p>
       </div>
 
-      {/* Topic Readiness Panel */}
-      <div className='bg-muted/10 border rounded-xl p-6'>
-        <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4'>
-          <div>
-            <h3 className='text-lg font-bold'>Topic Readiness</h3>
-            <p className='text-sm text-muted-foreground mt-1'>
-              Only mark the Topic as Ready when every concept has at least one template.
-            </p>
-          </div>
-          <div className='flex flex-col items-end'>
-            <span className='text-sm font-medium text-muted-foreground mb-1'>Overall</span>
-            {concepts && concepts.length > 0 ? (
-              <Badge
-                variant={isTopicReady ? 'default' : 'secondary'}
-                className={`text-sm ${isTopicReady ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
-              >
-                {readyConceptsCount} / {concepts.length} Concepts Ready
-              </Badge>
-            ) : (
-              <Badge variant='outline'>0 Concepts</Badge>
-            )}
-          </div>
-        </div>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {concepts?.map((c, idx) => {
-            const cName = c.name || c.conceptName;
-            const query = templateQueries[idx];
-            const templateCount = query?.data?.items?.length || 0;
-            const isReady = templateCount > 0;
-            const isLoadingQuery = query?.isLoading;
 
-            return (
-              <div
-                key={c.id}
-                className={`flex items-center gap-3 text-sm bg-background border p-3 rounded-md shadow-sm transition-colors ${isReady ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}
-              >
-                {isLoadingQuery ? (
-                  <Skeleton className='w-5 h-5 rounded-full' />
-                ) : isReady ? (
-                  <CheckCircle className='w-5 h-5 text-green-600 shrink-0' />
-                ) : (
-                  <X className='w-5 h-5 text-red-500 shrink-0' />
-                )}
-                <span className='truncate flex-1 font-medium'>{cName}</span>
-                <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${isReady ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-                >
-                  {templateCount} {templateCount === 1 ? 'Template' : 'Templates'}
-                </span>
-              </div>
-            );
-          })}
-          {(!concepts || concepts.length === 0) && (
-            <div className='col-span-full text-sm text-muted-foreground italic text-center py-4'>
-              No concepts added yet. Topic is not ready.
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Concepts Registry Section */}
       <div className='space-y-6'>
@@ -1083,6 +1028,19 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
               <option value='EASY'>EASY</option>
               <option value='MEDIUM'>MEDIUM</option>
               <option value='HARD'>HARD</option>
+            </select>
+          </div>
+          <div>
+            <Label>Generation Strategy</Label>
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+              value={templateFormData.generationStrategy}
+              onChange={(e) =>
+                setTemplateFormData({ ...templateFormData, generationStrategy: e.target.value })
+              }
+            >
+              <option value='VARIABLE'>Variable Generation</option>
+              <option value='DATASET'>Dataset-backed</option>
             </select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>

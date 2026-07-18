@@ -112,8 +112,8 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
                     <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
                     <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {weightageMap[topic.topicId] ?? 0}%</p>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>

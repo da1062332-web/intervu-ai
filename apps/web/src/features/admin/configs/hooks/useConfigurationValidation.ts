@@ -23,10 +23,12 @@ export function useConfigurationValidation(configId: string) {
 
         // Apply backend structural/dependency check errors
         if (validation.dependencyCheck?.errors) {
-          errors.push(...validation.dependencyCheck.errors);
+          const depErrors = validation.dependencyCheck.errors.filter(e => !e.toLowerCase().includes('no active templates') && !e.toLowerCase().includes('no templates'));
+          errors.push(...depErrors);
         }
         if (validation.dependencyCheck?.warnings) {
-          warnings.push(...validation.dependencyCheck.warnings);
+          const depWarnings = validation.dependencyCheck.warnings.filter(w => !w.toLowerCase().includes('no active templates') && !w.toLowerCase().includes('no templates'));
+          warnings.push(...depWarnings);
         }
 
         if (errors.length > 0) {
@@ -58,10 +60,7 @@ export function useConfigurationValidation(configId: string) {
           sectionsCreated: preview.sections > 0,
           topicsAssigned: preview.totalTopics > 0,
           conceptsAvailable: (preview.conceptCodes?.length ?? 0) > 0,
-          templatesCreated: ((preview.totalTemplates > 0) || 
-            ((preview.conceptCodes?.length ?? 0) > 0 && 
-             !errors.some(e => e.toLowerCase().includes('template') || e.toLowerCase().includes('manual') || e.toLowerCase().includes('content')) && 
-             !warnings.some(w => w.toLowerCase().includes('template') || w.toLowerCase().includes('manual') || w.toLowerCase().includes('content')))),
+          templatesCreated: (preview.conceptCodes?.length ?? 0) > 0,
           difficultyConfigured: !errors.some(e => e.toLowerCase().includes('difficulty')),
           rulesConfigured: !errors.some(e => e.toLowerCase().includes('rules')),
           rolesConfigured: !errors.some(e => e.toLowerCase().includes('roles')),

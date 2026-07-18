@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,9 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
   const isSaving = isSavingConfig || isSavingDataset;
 
   const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
-  const [initialDatasetId, setInitialDatasetId] = useState<string | null>(null);
+  
+  // Track the baseline of what was successfully saved
+  const [savedConfig, setSavedConfig] = useState<any>({});
   
   // Generation Settings
   const [selectionMethod, setSelectionMethod] = useState<'RANDOM' | 'SEQUENTIAL' | 'SPECIFIC'>('RANDOM');
@@ -48,10 +50,11 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
 
   // Initialize from template config
   useEffect(() => {
+    let initialId = '';
+    let configSnapshot: any = {};
     if (template?.datasetId || template?.config?.datasetId) {
-      const id = template.datasetId || template.config.datasetId;
-      setSelectedDatasetId(id);
-      setInitialDatasetId(id);
+      initialId = template.datasetId || template.config.datasetId;
+      setSelectedDatasetId(initialId);
     }
     const dsConfig = template?.config?.datasetConfig;
     if (dsConfig) {
@@ -61,18 +64,32 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
       if (dsConfig.allowReuse !== undefined) setAllowReuse(dsConfig.allowReuse);
       if (dsConfig.specificItemId) setSpecificItemId(dsConfig.specificItemId);
       if (dsConfig.variableMapping) setVariableMapping(dsConfig.variableMapping);
+      
+      configSnapshot = {
+        datasetId: initialId,
+        selectionMethod: dsConfig.selectionMethod || 'RANDOM',
+        sampleSize: dsConfig.sampleSize || 1,
+        shuffle: dsConfig.shuffle ?? true,
+        allowReuse: dsConfig.allowReuse ?? false,
+        specificItemId: dsConfig.specificItemId || '',
+        variableMapping: dsConfig.variableMapping || {}
+      };
+    } else {
+      configSnapshot = { datasetId: initialId };
     }
+    setSavedConfig(configSnapshot);
   }, [template]);
 
   // Handle Dataset Change Reset
   useEffect(() => {
-    if (selectedDatasetId && initialDatasetId && selectedDatasetId !== initialDatasetId) {
+    if (selectedDatasetId && savedConfig.datasetId && selectedDatasetId !== savedConfig.datasetId) {
       setVariableMapping({});
       setSpecificItemId('');
       setPreviewResult(null);
       setGeneratedQuestion(null);
+      // We intentionally do not update savedConfig here so `hasUnsavedChanges` becomes true
     }
-  }, [selectedDatasetId, initialDatasetId]);
+  }, [selectedDatasetId, savedConfig.datasetId]);
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -102,16 +119,40 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     return [];
   })();
 
-  const templateVariables = (() => {
-    if (!templateVarsData) return [];
-    if (Array.isArray(templateVarsData)) return templateVarsData;
-    if (templateVarsData.items && Array.isArray(templateVarsData.items)) return templateVarsData.items;
-    return [];
-  })();
+  const templateVariables = useMemo(() => {
+    // 1. Try to use variableSchema if available
+    const schemaVars = template?.variableSchema;
+    if (schemaVars && Array.isArray(schemaVars) && schemaVars.length > 0) {
+      return schemaVars.map((v: any) => v.key || v.name || v);
+    }
+    
+    // 2. Try the shared hook output
+    if (templateVarsData) {
+      if (Array.isArray(templateVarsData) && templateVarsData.length > 0) return templateVarsData.map((v: any) => v.key || v.name || v);
+      if (templateVarsData.items && Array.isArray(templateVarsData.items) && templateVarsData.items.length > 0) return templateVarsData.items.map((v: any) => v.key || v.name || v);
+    }
+    
+    // 3. Fallback to parsing from promptTemplate
+    const templatePrompt = template?.structure?.promptTemplate || "";
+    const placeholderRegex = /{{\s*([a-zA-Z0-9_-]+)\s*}}/g;
+    const variables = [...templatePrompt.matchAll(placeholderRegex)].map(match => match[1]).filter(Boolean);
+    
+    return Array.from(new Set(variables));
+  }, [template?.variableSchema, template?.structure?.promptTemplate, templateVarsData]);
 
-  const isMappingComplete = templateVariables.length > 0 && templateVariables.every((v: any) => !!variableMapping[v.key || v.name || v]);
+  const isMappingComplete = templateVariables.length === 0 || templateVariables.every((v: any) => !!variableMapping[v]);
   const isSpecificValid = selectionMethod === 'SPECIFIC' ? !!specificItemId : true;
   const canSave = selectedDatasetId && sampleSize > 0 && isMappingComplete && isSpecificValid;
+
+  // Track if we have unsaved changes comparing current state to savedConfig
+  const hasUnsavedChanges = 
+    selectedDatasetId !== savedConfig.datasetId ||
+    selectionMethod !== (savedConfig.selectionMethod || 'RANDOM') ||
+    sampleSize !== (savedConfig.sampleSize || 1) ||
+    shuffle !== (savedConfig.shuffle ?? true) ||
+    allowReuse !== (savedConfig.allowReuse ?? false) ||
+    (selectionMethod === 'SPECIFIC' ? specificItemId : null) !== (savedConfig.specificItemId || null) ||
+    JSON.stringify(templateVariables.length === 0 ? {} : variableMapping) !== JSON.stringify(savedConfig.variableMapping || {});
 
   const handleSave = async () => {
     if (!template?.id || !canSave) return;
@@ -126,6 +167,8 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
         }
       });
 
+      const finalMapping = templateVariables.length === 0 ? {} : variableMapping;
+
       saveDatasetConfig({
         templateId: template.id,
         payload: {
@@ -135,12 +178,20 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
           shuffle,
           allowReuse,
           specificItemId: selectionMethod === 'SPECIFIC' ? specificItemId : null,
-          variableMapping
+          variableMapping: finalMapping
         }
       }, {
         onSuccess: () => {
           toast.success("Dataset configuration saved successfully");
-          setInitialDatasetId(selectedDatasetId); // update baseline
+          setSavedConfig({
+            datasetId: selectedDatasetId,
+            selectionMethod,
+            sampleSize,
+            shuffle,
+            allowReuse,
+            specificItemId: selectionMethod === 'SPECIFIC' ? specificItemId : null,
+            variableMapping: finalMapping
+          });
         },
         onError: () => {
           toast.error("Failed to save dataset configuration");
@@ -152,7 +203,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
   };
 
   const handleGeneratePreview = () => {
-    if (!template?.id) return;
+    if (!template?.id || hasUnsavedChanges) return;
     getPreview(template.id, {
       onSuccess: (data: any) => {
         setPreviewResult(data?.data || data);
@@ -165,7 +216,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
   };
 
   const handleGenerate = () => {
-    if (!template?.id) return;
+    if (!template?.id || hasUnsavedChanges) return;
     generateQuestion({ templateId: template.id, count: 1 } as any, {
       onSuccess: (data: any) => {
         setGeneratedQuestion(data?.data || data);
@@ -190,7 +241,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
       description="Connect a dataset to this template and map variables to dataset columns."
       actions={
         <div className="flex gap-2">
-          <Button onClick={handleSave} disabled={isSaving || !canSave} className="min-w-[120px]">
+          <Button onClick={handleSave} disabled={isSaving || !canSave || !hasUnsavedChanges} className="min-w-[120px]">
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Configuration
           </Button>
@@ -409,27 +460,33 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
         </div>
 
         {selectedDatasetId && hasRecords && (
-          <Tabs defaultValue="mapping" className="mt-6 w-full">
+          <Tabs defaultValue={templateVariables.length > 0 ? "mapping" : "preview"} className="mt-6 w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="mapping" className="flex gap-2"><Link className="w-4 h-4"/> Variable Mapping</TabsTrigger>
-              <TabsTrigger value="preview" className="flex gap-2"><Eye className="w-4 h-4"/> Live Preview</TabsTrigger>
-              <TabsTrigger value="generate" className="flex gap-2"><Play className="w-4 h-4"/> Generate Question</TabsTrigger>
+              <TabsTrigger value="mapping" disabled={templateVariables.length === 0} className="flex gap-2">
+                <Link className="w-4 h-4"/> Variable Mapping
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="flex gap-2">
+                <Eye className="w-4 h-4"/> Live Preview
+                {hasUnsavedChanges && <Badge variant="outline" className="ml-2 text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">Unsaved</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="generate" className="flex gap-2">
+                <Play className="w-4 h-4"/> Generate Question
+                {hasUnsavedChanges && <Badge variant="outline" className="ml-2 text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">Unsaved</Badge>}
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="mapping" className="mt-4">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    Variable Mapping
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {templateVariables.length === 0 ? (
-                    <div className="text-sm text-gray-500 text-center py-4">No template variables found to map.</div>
-                  ) : (
+            {templateVariables.length > 0 && (
+              <TabsContent value="mapping" className="mt-4">
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      Variable Mapping
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
                     <div className="space-y-4">
                       {templateVariables.map((v: any, i: number) => {
-                        const varKey = v.key || v.name || v;
+                        const varKey = v;
                         const isMapped = !!variableMapping[varKey];
                         return (
                           <div key={i} className="flex items-center gap-4">
@@ -462,10 +519,10 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                         </div>
                       )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
             
             <TabsContent value="preview" className="mt-4">
               <Card className="shadow-sm">
@@ -473,13 +530,17 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                   <CardTitle className="text-base flex items-center gap-2">
                     Preview Generation Logic
                   </CardTitle>
-                  <Button size="sm" onClick={handleGeneratePreview} disabled={isGeneratingPreview || !canSave}>
+                  <Button size="sm" onClick={handleGeneratePreview} disabled={isGeneratingPreview || hasUnsavedChanges || !selectedDatasetId}>
                     {isGeneratingPreview ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Eye className="w-4 h-4 mr-2"/>}
                     Generate Preview
                   </Button>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  {!previewResult ? (
+                  {hasUnsavedChanges ? (
+                    <div className="text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-md flex items-center justify-center font-medium border border-amber-200 dark:border-amber-900">
+                      Save configuration to enable preview generation.
+                    </div>
+                  ) : !previewResult ? (
                     <div className="text-sm text-gray-500 text-center py-4">Click generate to preview the compiled prompt and dataset variables.</div>
                   ) : (
                     <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
@@ -519,13 +580,17 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                   <CardTitle className="text-base flex items-center gap-2">
                     Test Generation
                   </CardTitle>
-                  <Button size="sm" onClick={handleGenerate} disabled={isGenerating || !canSave}>
+                  <Button size="sm" onClick={handleGenerate} disabled={isGenerating || hasUnsavedChanges || !selectedDatasetId}>
                     {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Play className="w-4 h-4 mr-2"/>}
                     Generate Question
                   </Button>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  {!generatedQuestion ? (
+                  {hasUnsavedChanges ? (
+                    <div className="text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-md flex items-center justify-center font-medium border border-amber-200 dark:border-amber-900">
+                      Save configuration to enable question generation.
+                    </div>
+                  ) : !generatedQuestion ? (
                     <div className="text-sm text-gray-500 text-center py-4">Click generate to test the full pipeline and run a live generation.</div>
                   ) : (
                     <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
