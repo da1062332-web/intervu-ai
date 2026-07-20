@@ -31,7 +31,8 @@ export interface GeneratedQuestion {
   id: string;
   questionText: string;
   options: string[];
-  correctAnswer: string;
+  answer?: string;
+  correctAnswer?: string;
   explanation: string;
   difficulty: string;
   generationStrategy: GenerationStrategy;
