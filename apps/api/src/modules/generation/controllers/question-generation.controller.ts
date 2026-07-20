@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
   Controller,
   Post,
@@ -84,11 +85,16 @@ export class QuestionGenerationController {
       where: { templateId: template.id },
     });
 
-    const topic = await this.prisma.topic.findFirst({
+    const concept = await this.prisma.concept.findFirst({
       where: { code: template.conceptKey },
     });
-    const topicId = topic?.id || "fallback-topic-id";
+    if (!concept) {
+      throw new BadRequestException(
+        `Unable to resolve concept for template conceptKey "${template.conceptKey}"`,
+      );
+    }
 
+    const topicId = concept.topicId;
     const sectionTopic = await this.prisma.sectionTopic.findFirst({
       where: { topicId },
     });
@@ -151,20 +157,19 @@ export class QuestionGenerationController {
       }
 
       // 4. Atomically persist SGE question details to pool
-      const q = await this.prisma.question.create({
+      const q = await this.prisma.generatedQuestion.create({
         data: {
           questionText: result.question.question,
-          answer: result.question.correctAnswer || "",
-          explanation: result.question.explanation,
-          topicId,
-          sectionId,
-          difficulty: template.difficultyLevel,
-          source: "GENERATED",
+          questionHash: randomUUID(),
           templateId: template.id,
-          version: 1,
-          status: "ACTIVE",
+          conceptKey: concept.code,
+          difficultyLevel: template.difficultyLevel,
+          questionType: template.questionType,
+          options: result.question.options as any,
+          correctAnswer: result.question.correctAnswer || result.question.answer || "",
+          solution: result.question.explanation,
           metadata: {
-            options: result.question.options,
+            status: "GENERATED",
             generationStrategy: context.generationStrategy,
             variables: context.variables,
             datasetItem: context.datasetItem,
@@ -189,8 +194,31 @@ export class QuestionGenerationController {
       success: true,
       count: generated.length,
       questions: generated,
+      question: generated.length === 1 ? generated[0] : undefined,
       validationReport,
     };
+  }
+
+  @Post("batch")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: "Generate a batch of questions using SGE strategy context",
+  })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        templateId: { type: "string", example: "tpl_vocab" },
+        count: { type: "number", example: 10 },
+      },
+      required: ["templateId", "count"],
+    },
+  })
+  async generateQuestionBatch(
+    @Body("templateId") templateId: string,
+    @Body("count") count: number,
+  ) {
+    return this.generateQuestion(templateId, count);
   }
 
   @Post("preview")

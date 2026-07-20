@@ -36,7 +36,7 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
             Enrolled
           </div>
         );
-      case 'IN_PROGRESS':
+      case 'STARTED':
         return (
           <div className='flex items-center text-blue-600 text-sm font-medium'>
             <Clock className='size-4 mr-2' />
@@ -76,6 +76,14 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
           <Button className='w-full' asChild>
             <Link href={`/candidate/tests/${testId}/instructions`}>
               Start Assessment
+              <PlayCircle className='ml-2 size-4' />
+            </Link>
+          </Button>
+        )}
+        {status === 'STARTED' && (
+          <Button className='w-full bg-blue-600 hover:bg-blue-700 text-white' asChild>
+            <Link href={`/candidate/tests/${testId}/instructions`}>
+              Resume Assessment
               <PlayCircle className='ml-2 size-4' />
             </Link>
           </Button>

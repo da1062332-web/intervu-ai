@@ -155,6 +155,7 @@ export class PdfReportService {
         tableY += 25;
 
         reportData.sectionBreakdown.forEach((sec: any) => {
+          if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
           doc.fillColor("#0F172A");
           doc.text(sec.section || sec.sectionKey || "General", 60, tableY);
           doc.text(`${sec.score}%`, 250, tableY);
@@ -163,6 +164,72 @@ export class PdfReportService {
           doc.text(`${sMins}m`, 470, tableY);
           tableY += 25;
         });
+
+        // Topic Mastery Table
+        tableY += 15;
+        if (tableY > 650) { doc.addPage({ margin: 50 }); tableY = 50; }
+        doc.fontSize(16).fillColor("#0F172A").text("Topic Mastery", 50, tableY);
+        tableY += 20;
+        doc.moveTo(50, tableY).lineTo(545, tableY).strokeColor("#E2E8F0").stroke();
+        tableY += 15;
+        
+        doc.fontSize(11).fillColor("#64748B");
+        doc.text("TOPIC", 60, tableY);
+        doc.text("SCORE", 250, tableY);
+        doc.text("CORRECT / TOTAL", 350, tableY);
+        doc.text("TIME SPENT", 470, tableY);
+        
+        doc.moveTo(50, tableY + 15).lineTo(545, tableY + 15).strokeColor("#E2E8F0").stroke();
+        tableY += 25;
+        
+        if (reportData.topicBreakdown && reportData.topicBreakdown.length > 0) {
+          reportData.topicBreakdown.forEach((topic: any) => {
+            if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
+            doc.fillColor("#0F172A");
+            doc.text(topic.topic || "Unknown", 60, tableY);
+            doc.text(`${topic.score}%`, 250, tableY);
+            doc.text(`${topic.correct} / ${topic.total}`, 350, tableY);
+            const tMins = Math.floor(topic.timeSpent / 60);
+            doc.text(`${tMins}m`, 470, tableY);
+            tableY += 25;
+          });
+        } else {
+          doc.fillColor("#64748B").text("No topic data available.", 60, tableY);
+          tableY += 25;
+        }
+
+        // Difficulty Performance Table
+        tableY += 15;
+        if (tableY > 650) { doc.addPage({ margin: 50 }); tableY = 50; }
+        doc.fontSize(16).fillColor("#0F172A").text("Difficulty Performance", 50, tableY);
+        tableY += 20;
+        doc.moveTo(50, tableY).lineTo(545, tableY).strokeColor("#E2E8F0").stroke();
+        tableY += 15;
+        
+        doc.fontSize(11).fillColor("#64748B");
+        doc.text("DIFFICULTY", 60, tableY);
+        doc.text("SCORE", 250, tableY);
+        doc.text("CORRECT / TOTAL", 350, tableY);
+        doc.text("TIME SPENT", 470, tableY);
+        
+        doc.moveTo(50, tableY + 15).lineTo(545, tableY + 15).strokeColor("#E2E8F0").stroke();
+        tableY += 25;
+        
+        if (reportData.difficultyBreakdown && reportData.difficultyBreakdown.length > 0) {
+          reportData.difficultyBreakdown.forEach((diff: any) => {
+            if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
+            doc.fillColor("#0F172A");
+            doc.text(diff.difficulty || "Unknown", 60, tableY);
+            doc.text(`${diff.score}%`, 250, tableY);
+            doc.text(`${diff.correct} / ${diff.total}`, 350, tableY);
+            const dMins = Math.floor(diff.timeSpent / 60);
+            doc.text(`${dMins}m`, 470, tableY);
+            tableY += 25;
+          });
+        } else {
+          doc.fillColor("#64748B").text("No difficulty data available.", 60, tableY);
+          tableY += 25;
+        }
 
         // ─── 3. ANALYTICS & RECOMMENDATIONS ────────────────────────────────
         doc.addPage({ margin: 50, size: "A4" });

@@ -15,9 +15,13 @@ export function CandidateDashboard() {
       <CandidateDashboardHeader />
 
       <Tabs defaultValue='overview' className='w-full space-y-8'>
-        <TabsList className='bg-muted/50 p-1 rounded-xl'>
-          <TabsTrigger value='overview' className='rounded-lg px-6'>Overview</TabsTrigger>
-          <TabsTrigger value='history' className='rounded-lg px-6'>History & Reports</TabsTrigger>
+        <TabsList className='bg-transparent border-b border-border w-full flex justify-start p-0 h-auto rounded-none space-x-8'>
+          <TabsTrigger value='overview' className='rounded-none px-0 py-3 text-[15px] data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary border-b-2 border-transparent data-[state=active]:border-primary text-muted-foreground hover:text-foreground transition-colors' style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontWeight: 500 }}>
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value='history' className='rounded-none px-0 py-3 text-[15px] data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary border-b-2 border-transparent data-[state=active]:border-primary text-muted-foreground hover:text-foreground transition-colors' style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontWeight: 500 }}>
+            History & Reports
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value='overview' className='space-y-8'>

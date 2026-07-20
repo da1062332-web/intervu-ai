@@ -63,6 +63,7 @@ export type PerformanceDashboardResponse = {
     sectionName: string;
     correct: number;
     wrong: number;
+    skipped: number;
     accuracy: number;
   }[];
   sectionTime: {

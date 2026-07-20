@@ -21,10 +21,10 @@ export function QuestionPoolTable({
   onToggleSelectAll
 }: QuestionPoolTableProps) {
   // We only show Approved and Published in the Bank
-  const poolQuestions = questions.filter(q => q.status === 'Approved' || q.status === 'Published');
+  const poolQuestions = questions.filter(q => q.status === 'APPROVED' || q.status === 'PUBLISHED');
   
   // Exclude Published from selection for Publishing
-  const selectableQuestions = poolQuestions.filter(q => q.status === 'Approved');
+  const selectableQuestions = poolQuestions.filter(q => q.status === 'APPROVED');
   
   const allSelected = selectableQuestions.length > 0 && 
                       selectedIds.length === selectableQuestions.length;
@@ -70,7 +70,7 @@ export function QuestionPoolTable({
             poolQuestions.map((q) => (
               <TableRow key={q.id}>
                 <TableCell>
-                  {q.status === 'Approved' && (
+                  {q.status === 'APPROVED' && (
                     <Checkbox 
                       checked={selectedIds.includes(q.id)}
                       onCheckedChange={() => onToggleSelect(q.id)}
@@ -89,7 +89,7 @@ export function QuestionPoolTable({
                   {q.templateId}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={q.status === 'Published' ? 'default' : 'secondary'}>
+                  <Badge variant={q.status === 'PUBLISHED' ? 'default' : 'secondary'}>
                     {q.status}
                   </Badge>
                 </TableCell>

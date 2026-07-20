@@ -112,10 +112,7 @@ export function AssessmentStatusPanel() {
                 <div className='font-medium truncate'>{test.title}</div>
                 <div className='text-sm text-muted-foreground flex items-center gap-1.5 mt-1'>
                   <AlertCircle className='size-3.5 text-orange-500' />
-                  {test.attemptCount > 0 ? 'Enrolled · Re-attempt available' : 'Enrolled · Not started'}
-                  <Badge variant='outline' className='ml-1 text-[10px] h-4'>
-                    Attempts Used: {test.attemptCount}/{test.maxAttempts}
-                  </Badge>
+                  Enrolled
                 </div>
               </div>
               <Button asChild size='sm' className='gap-2 shadow-sm shrink-0 group'>

@@ -34,13 +34,14 @@ export function QuestionPreviewDrawer({
 
   useEffect(() => {
     if (isOpen && question) {
+      const answerValue = question.correctAnswer ?? question.answer;
       // Hydrate the store so existing template components can render it correctly
       setPreviewResult({
-        solution: question.correctAnswer ? JSON.stringify(question.correctAnswer) : 'Solution not provided.',
+        solution: answerValue ? JSON.stringify(answerValue) : 'Solution not provided.',
         explanation: question.explanation || 'No explanation generated.',
         resolvedVariables: question.resolvedVariables || {},
       });
-      setSolutionTemplate(question.correctAnswer ? JSON.stringify(question.correctAnswer, null, 2) : '');
+      setSolutionTemplate(answerValue ? JSON.stringify(answerValue, null, 2) : '');
       setExplanationTemplate(question.explanation || '');
     } else {
       reset();
@@ -115,7 +116,7 @@ export function QuestionPreviewDrawer({
           </Button>
           <Button 
             onClick={() => question && onApprove(question.id)}
-            disabled={isApproving || question?.status === 'Approved'}
+            disabled={isApproving || question?.status === 'APPROVED'}
           >
             {isApproving ? 'Approving...' : 'Approve'}
           </Button>

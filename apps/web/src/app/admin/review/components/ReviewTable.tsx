@@ -36,7 +36,7 @@ export function ReviewTable({
   const [search, setSearch] = useState('');
 
   const filtered = questions.filter(q => 
-    q.status === 'Draft' && 
+    q.status === 'GENERATED' && 
     (q.questionText.toLowerCase().includes(search.toLowerCase()) || q.id.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -45,8 +45,8 @@ export function ReviewTable({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Input 
-          placeholder="Search draft questions..." 
+          <Input 
+            placeholder="Search generated questions..." 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-sm"
@@ -89,7 +89,7 @@ export function ReviewTable({
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  No draft questions pending review.
+                  No generated questions pending review.
                 </TableCell>
               </TableRow>
             ) : (

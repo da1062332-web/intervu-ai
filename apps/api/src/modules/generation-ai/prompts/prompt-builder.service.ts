@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { evaluate } from "mathjs";
 
 export interface PromptBuilderInput {
   template: {
@@ -110,7 +111,22 @@ export class PromptBuilderService {
 `;
 
     // Try to get pre-calculated correctAnswer
-    const correctAnswerVal = input.correctAnswer || variableValues.correctAnswer || (variableValues as any).answer || "";
+    const resolvedCorrectAnswer = this.resolveCorrectAnswer(template, variableValues);
+    const correctAnswerVal =
+      input.correctAnswer ||
+      variableValues.correctAnswer ||
+      (variableValues as any).answer ||
+      resolvedCorrectAnswer ||
+      "";
+
+    const hasCorrectAnswer =
+      resolvedCorrectAnswer !== undefined &&
+      resolvedCorrectAnswer !== null &&
+      String(resolvedCorrectAnswer).trim().length > 0;
+
+    const correctAnswerHint = hasCorrectAnswer
+      ? `- Correct Answer Value = ${correctAnswerVal}`
+      : `- Correct Answer Value = [Compute the exact answer from the provided variables and return it in the JSON output]`;
 
     const variableValuesText = `
 [RESOLVED PARAMETERS]
@@ -118,9 +134,9 @@ The math problem has already been solved by the backend. Use the following exact
 ${Object.entries(variableValues)
   .map(([key, val]) => `- ${key} = ${val}`)
   .join("\n")}
-- Correct Answer Value = ${correctAnswerVal}
+${correctAnswerHint}
 
-IMPORTANT: Do not perform any mathematical calculations. The correct answer has been computed as: "${correctAnswerVal}". You must structure your options and explanation around this exact answer.
+IMPORTANT: If the correct answer is not already supplied, compute it exactly from the provided parameter values. If a correct answer is supplied, verify that it matches the variables. Do not guess or invent an answer.
 `;
 
     const questionInstructions = `
@@ -128,7 +144,7 @@ IMPORTANT: Do not perform any mathematical calculations. The correct answer has 
 The pre-rendered question statement is:
 "${interpolatedQuestion}"
 
-You must write a unique, engaging, real-world scenario or word-problem story wrapping the pre-rendered question statement. Incorporate the resolved parameters naturally (e.g. create a story about selling goods, calculating distances, or allocating tasks). Do not modify the underlying numbers or formulas. Do not leak raw curly braces or placeholder tokens. Keep the question concise, unambiguous, and relevant to the requested concept and difficulty.
+You must write a unique, engaging, real-world scenario or word-problem story wrapping the pre-rendered question statement. Incorporate the resolved parameters naturally (e.g. create a story about selling goods, calculating distances, or allocating tasks). Do not modify the underlying numbers or formulas. Do not leak raw curly braces or placeholder tokens. Keep the wording concise, unambiguous, and mathematically equivalent to the original statement.
 `;
 
     let optionStrategyText = "";
@@ -188,6 +204,33 @@ JSON Schema:
 `;
 
     return `${systemPrompt}\n\n${templateContext}\n\n${variableValuesText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
+  }
+
+  private resolveCorrectAnswer(
+    template: PromptBuilderInput["template"],
+    variableValues: Record<string, unknown>,
+  ): string | undefined {
+    const solutionSchema = template.solutionSchema || {};
+
+    if (
+      solutionSchema.correctVariable &&
+      variableValues.hasOwnProperty(solutionSchema.correctVariable)
+    ) {
+      return String(variableValues[solutionSchema.correctVariable as string]);
+    }
+
+    const finalAnswerExpression =
+      solutionSchema.finalAnswer || solutionSchema.formula;
+    if (typeof finalAnswerExpression === "string" && finalAnswerExpression.trim()) {
+      try {
+        const resolved = evaluate(finalAnswerExpression, variableValues as any);
+        return resolved !== undefined ? String(resolved) : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+
+    return undefined;
   }
 
   private buildDatasetPrompt(input: PromptBuilderInput): string {

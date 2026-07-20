@@ -23,7 +23,19 @@ export function PreviewSection({ template }: { template?: any }) {
       const previewData = (res as any).previewResult || res;
       setResult(previewData);
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'Preview failed. Please try again.');
+      const backendMessage = e?.response?.data?.message;
+      const backendDetails = e?.response?.data?.details;
+      const detailsText = Array.isArray(backendDetails)
+        ? backendDetails.join(' | ')
+        : backendDetails
+        ? String(backendDetails)
+        : null;
+
+      setError(
+        backendMessage
+          ? `${backendMessage}${detailsText ? `: ${detailsText}` : ''}`
+          : e?.message || 'Preview failed. Please try again.',
+      );
     }
   };
 

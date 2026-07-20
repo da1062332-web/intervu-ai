@@ -7,6 +7,7 @@ import {
   Res,
   ForbiddenException,
   NotFoundException,
+  StreamableFile,
 } from "@nestjs/common";
 import { Response } from "express";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -124,7 +125,7 @@ export class ReportsController {
       "Content-Disposition",
       `attachment; filename=report-${attemptId}.pdf`,
     );
-    res.send(pdfBuffer);
+    res.end(pdfBuffer);
   }
 
   @Get("export/json/:attemptId")

@@ -33,6 +33,16 @@ export const ResultDetailsPage = () => {
 
   const [isExportingPdf, setIsExportingPdf] = React.useState(false);
   const [isExportingJson, setIsExportingJson] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+
+  React.useEffect(() => {
+    if (detailsLoading || !result) {
+      const interval = setInterval(() => {
+        setProgress((prev: number) => (prev >= 90 ? prev : prev + Math.random() * 10));
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [detailsLoading, result]);
 
   const handleExportPdf = async () => {
     try {
@@ -91,9 +101,18 @@ export const ResultDetailsPage = () => {
 
           {/* Animated progress bar */}
           <div className='w-full bg-gray-100 rounded-full h-2 overflow-hidden'>
-            <div className='h-2 bg-indigo-500 rounded-full animate-pulse w-3/4' />
+            <div 
+              className='h-2 bg-indigo-500 rounded-full transition-all duration-500 ease-out relative overflow-hidden' 
+              style={{ width: `${Math.min(progress, 95)}%` }}
+            >
+              <div className='absolute inset-0 bg-white/20 w-full animate-shimmer' style={{ transform: 'translateX(-100%)' }} />
+            </div>
           </div>
-          <p className='text-xs text-gray-400 mt-3'>Checking every 5 seconds…</p>
+          <p className='text-xs text-gray-400 mt-3 flex items-center justify-center gap-1'>
+            <span>{Math.min(Math.round(progress), 95)}%</span>
+            <span>-</span>
+            <span>Checking every 5 seconds…</span>
+          </p>
         </div>
       </div>
     );

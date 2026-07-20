@@ -55,7 +55,7 @@ export const resultApi = {
   },
 
   exportToPdf: async (attemptId: string): Promise<Blob> => {
-    return apiClient.request<Blob>(`${BASE_PATH}/${attemptId}/export/pdf`, {
+    return apiClient.request<Blob>(`/reports/export/pdf/${attemptId}`, {
       responseType: 'blob',
     });
   },

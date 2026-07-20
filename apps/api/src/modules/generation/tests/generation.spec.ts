@@ -253,6 +253,38 @@ describe("Test Generation Core (Module 2)", () => {
       expect(params.B).toBeLessThanOrEqual(20);
       expect(params.A).not.toEqual(params.B);
     });
+
+    it("should generate variables from range-based schemas and compute derived formulas", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            {
+              name: "cost_price",
+              type: "number",
+              range: { min: 100, max: 200, step: 10 },
+            },
+            {
+              name: "selling_price",
+              type: "number",
+              range: { min: 110, max: 250, step: 10 },
+            },
+          ],
+          formulas: ["profit_percent = ((selling_price - cost_price) / cost_price) * 100"],
+        },
+        constraints: {
+          rules: ["selling_price != cost_price"],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.cost_price).toBeGreaterThanOrEqual(100);
+      expect(params.cost_price).toBeLessThanOrEqual(200);
+      expect(params.selling_price).toBeGreaterThanOrEqual(110);
+      expect(params.selling_price).toBeLessThanOrEqual(250);
+      expect(params.selling_price).not.toEqual(params.cost_price);
+      expect(params.profit_percent).toBeDefined();
+      expect(typeof params.profit_percent).toBe("number");
+    });
   });
 
   describe("4. QuestionInstantiatorService", () => {

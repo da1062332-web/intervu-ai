@@ -55,4 +55,33 @@ describe("SolutionTemplateService", () => {
   it("should be defined", () => {
     expect(service).toBeDefined();
   });
+
+  it("should create a solution template when no existing record is found during update", async () => {
+    mockSolutionRepo.findByTemplateId.mockResolvedValueOnce(null);
+    mockTemplateRepo.findById.mockResolvedValue({ id: "template-1" });
+    mockSolutionRepo.create.mockResolvedValue({
+      id: "new-solution-template-id",
+      solutionTemplate: "return value;",
+      explanationTemplate: "Returns the value.",
+    });
+
+    await expect(
+      service.updateSolutionTemplate("template-1", {
+        solutionTemplate: "return value;",
+        explanationTemplate: "Returns the value.",
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        id: "new-solution-template-id",
+      }),
+    );
+
+    expect(mockSolutionRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        solutionTemplate: "return value;",
+        explanationTemplate: "Returns the value.",
+        template: { connect: { id: "template-1" } },
+      }),
+    );
+  });
 });

@@ -31,7 +31,8 @@ export interface GeneratedQuestion {
   id: string;
   questionText: string;
   options: string[];
-  correctAnswer: string;
+  answer?: string;
+  correctAnswer?: string;
   explanation: string;
   difficulty: string;
   generationStrategy: GenerationStrategy;
@@ -57,10 +58,11 @@ export interface QuestionPreviewResult {
 
 // ─── Generate Response ─────────────────────────────────────────────────────
 export interface GenerateQuestionResponse {
-  question: GeneratedQuestion;
-  generationStrategy: GenerationStrategy;
+  questions: GeneratedQuestion[];
+  question?: GeneratedQuestion;
+  generationStrategy?: GenerationStrategy;
   validationReport: ValidationReport;
-  contextSummary: string;
+  contextSummary?: string;
 }
 
 // ─── Validate Response ─────────────────────────────────────────────────────

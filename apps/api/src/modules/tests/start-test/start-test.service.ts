@@ -76,7 +76,7 @@ export class StartTestService {
         config.sectionTimingEnabled = config.ruleFlags?.sectionTimingEnabled ?? false;
         const numSections = config.sections.length || 1;
         config.sections = config.sections.map((s: any, index: number) => {
-          let conceptKey = s.name.toLowerCase().replace(/ /g, '_');
+          let conceptKey = s.code ? `CONCEPT_${s.code}` : s.name.toLowerCase().replace(/ /g, '_');
           if (config.blueprint && Array.isArray(config.blueprint.sections)) {
             const bpSection = config.blueprint.sections.find((bs: any) => bs.sectionId === s.id);
             if (bpSection && bpSection.topicAllocations?.[0]?.concepts?.[0]?.conceptName) {
@@ -112,13 +112,8 @@ export class StartTestService {
     // 2. coreLogic(data) -> Assembly
     const sectionsData = [];
 
-    // DISABLE CODING SECTION FOR NOW
-    const filteredSections = config.sections.filter((s: any) => 
-      !(s.name || s.displayName || s.sectionName || s.sectionKey || "").toLowerCase().includes("coding")
-    );
-
     try {
-      for (const section of filteredSections) {
+      for (const section of config.sections) {
         const questions = await this.questionProvider.fetchOrGenerateQuestions([
           {
             conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey

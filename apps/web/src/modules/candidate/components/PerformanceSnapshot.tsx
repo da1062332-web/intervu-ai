@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Trophy, Target, FileText } from 'lucide-react';
 import { motion, useSpring, useTransform } from 'framer-motion';
@@ -14,42 +14,7 @@ function AnimatedNumber({ value }: { value: number }) {
     spring.set(value);
   }, [value, spring]);
 
-  return <motion.span>{display}</motion.span>;
-}
-
-function RadialProgress({ value, colorClass }: { value: number; colorClass: string }) {
-  const radius = 30;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className='relative size-16 flex items-center justify-center'>
-      <svg className='rotate-[-90deg] size-16 transform' viewBox='0 0 80 80'>
-        <circle
-          cx='40'
-          cy='40'
-          r={radius}
-          className='stroke-muted/30 fill-none'
-          strokeWidth='6'
-        />
-        <motion.circle
-          cx='40'
-          cy='40'
-          r={radius}
-          className={`fill-none ${colorClass}`}
-          strokeWidth='6'
-          strokeLinecap='round'
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset }}
-          transition={{ duration: 1.5, ease: 'easeOut' }}
-          style={{ strokeDasharray: circumference }}
-        />
-      </svg>
-      <div className='absolute inset-0 flex items-center justify-center text-sm font-bold'>
-        <AnimatedNumber value={value} />%
-      </div>
-    </div>
-  );
+  return <motion.span className='font-sans'>{display}</motion.span>;
 }
 
 export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
@@ -57,15 +22,15 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
 
   if (isLoading) {
     return (
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
         {[1, 2, 3].map((i) => (
-          <Card key={i} className='glass-card'>
-            <CardContent className='p-6 flex items-center justify-between'>
-              <div className='space-y-2'>
-                <div className='h-4 w-20 bg-muted animate-pulse rounded'></div>
-                <div className='h-8 w-12 bg-muted animate-pulse rounded'></div>
+          <Card key={i} className='rounded-2xl border border-border/50 bg-card'>
+            <CardContent className='p-6 flex flex-col justify-between h-32'>
+              <div className='flex justify-between items-center'>
+                <div className='h-4 w-24 bg-muted animate-pulse rounded'></div>
+                <div className='size-10 bg-muted animate-pulse rounded-xl'></div>
               </div>
-              <div className='size-10 bg-muted animate-pulse rounded-full'></div>
+              <div className='h-10 w-20 bg-muted animate-pulse rounded'></div>
             </CardContent>
           </Card>
         ))}
@@ -74,7 +39,7 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
   }
 
   if (error || !data) {
-    return null; // Or a gentle error state, but null keeps the dashboard clean if metrics fail
+    return null; // Or a gentle error state
   }
 
   const bestScore = data.bestScore ?? 0;
@@ -83,58 +48,109 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+      
+      {/* Best Score Card */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card className='glass-card border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden'>
-          <div className='absolute left-0 top-0 bottom-0 w-1 bg-indigo-500'></div>
-          <CardContent className='p-6 flex items-center justify-between'>
-            <div>
-              <p className='text-sm font-medium text-muted-foreground flex items-center gap-1.5'>
-                <Trophy className='size-4 text-indigo-500' /> Best Score
+        <Card className='relative overflow-hidden border border-border/50 bg-gradient-to-br from-card to-indigo-500/5 shadow-sm hover:shadow-md transition-all group rounded-xl'>
+          <div className='absolute -right-6 -top-6 size-16 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all duration-500'></div>
+          <CardContent className='p-3 relative z-10 flex flex-col justify-between'>
+            
+            <div className='flex items-center justify-between'>
+              <p className='text-[10px] font-sans font-bold uppercase tracking-widest text-muted-foreground'>
+                Best Score
               </p>
-              <p className='text-3xl font-bold mt-2 text-foreground'>
-                <AnimatedNumber value={bestScore} />%
-              </p>
+              <div className='p-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-sm'>
+                <Trophy className='size-3' />
+              </div>
             </div>
-            <RadialProgress value={bestScore} colorClass='stroke-indigo-500' />
+            
+            <div className='mt-1'>
+              <div className='flex items-baseline gap-1'>
+                <p className='text-2xl font-extrabold font-sans tracking-tight text-foreground'>
+                  <AnimatedNumber value={bestScore} />
+                </p>
+                <span className='text-sm font-bold font-sans text-muted-foreground'>%</span>
+              </div>
+              
+              <div className='mt-1 h-1 w-full bg-indigo-500/10 rounded-full overflow-hidden'>
+                 <motion.div 
+                   className='h-full bg-indigo-500'
+                   initial={{ width: 0 }}
+                   animate={{ width: `${bestScore}%` }}
+                   transition={{ duration: 1.5, ease: 'easeOut' }}
+                 />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
 
+      {/* Avg Accuracy Card */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card className='glass-card border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden'>
-          <div className='absolute left-0 top-0 bottom-0 w-1 bg-blue-500'></div>
-          <CardContent className='p-6 flex items-center justify-between'>
-            <div>
-              <p className='text-sm font-medium text-muted-foreground flex items-center gap-1.5'>
-                <Target className='size-4 text-blue-500' /> Avg Accuracy
+        <Card className='relative overflow-hidden border border-border/50 bg-gradient-to-br from-card to-blue-500/5 shadow-sm hover:shadow-md transition-all group rounded-xl'>
+          <div className='absolute -right-6 -top-6 size-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all duration-500'></div>
+          <CardContent className='p-3 relative z-10 flex flex-col justify-between'>
+            
+            <div className='flex items-center justify-between'>
+              <p className='text-[10px] font-sans font-bold uppercase tracking-widest text-muted-foreground'>
+                Avg Accuracy
               </p>
-              <p className='text-3xl font-bold mt-2 text-foreground'>
-                <AnimatedNumber value={avgAccuracy} />%
-              </p>
+              <div className='p-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm'>
+                <Target className='size-3' />
+              </div>
             </div>
-            <RadialProgress value={avgAccuracy} colorClass='stroke-blue-500' />
+            
+            <div className='mt-1'>
+              <div className='flex items-baseline gap-1'>
+                <p className='text-2xl font-extrabold font-sans tracking-tight text-foreground'>
+                  <AnimatedNumber value={avgAccuracy} />
+                </p>
+                <span className='text-sm font-bold font-sans text-muted-foreground'>%</span>
+              </div>
+              
+              <div className='mt-1 h-1 w-full bg-blue-500/10 rounded-full overflow-hidden'>
+                 <motion.div 
+                   className='h-full bg-blue-500'
+                   initial={{ width: 0 }}
+                   animate={{ width: `${avgAccuracy}%` }}
+                   transition={{ duration: 1.5, ease: 'easeOut' }}
+                 />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
 
+      {/* Completed Card */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <Card className='glass-card border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden'>
-          <div className='absolute left-0 top-0 bottom-0 w-1 bg-emerald-500'></div>
-          <CardContent className='p-6 flex items-center justify-between'>
-            <div>
-              <p className='text-sm font-medium text-muted-foreground flex items-center gap-1.5'>
-                <FileText className='size-4 text-emerald-500' /> Completed
+        <Card className='relative overflow-hidden border border-border/50 bg-gradient-to-br from-card to-emerald-500/5 shadow-sm hover:shadow-md transition-all group rounded-xl'>
+          <div className='absolute -right-6 -top-6 size-16 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all duration-500'></div>
+          <CardContent className='p-3 relative z-10 flex flex-col justify-between'>
+            
+            <div className='flex items-center justify-between'>
+              <p className='text-[10px] font-sans font-bold uppercase tracking-widest text-muted-foreground'>
+                Completed
               </p>
-              <p className='text-3xl font-bold mt-2 text-foreground'>
-                <AnimatedNumber value={attempts} />
-              </p>
+              <div className='p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm'>
+                <FileText className='size-3' />
+              </div>
             </div>
-            <div className='size-16 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-600 ring-4 ring-emerald-500/20'>
-              <FileText className='size-8' />
+            
+            <div className='mt-1'>
+              <div className='flex items-baseline gap-1'>
+                <p className='text-2xl font-extrabold font-sans tracking-tight text-foreground'>
+                  <AnimatedNumber value={attempts} />
+                </p>
+              </div>
+              
+              <div className='mt-1 h-1 w-full bg-transparent rounded-full'>
+                 {/* Invisible spacer to match heights exactly */}
+              </div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
+
     </div>
   );
 });

@@ -116,4 +116,4 @@ bootstrap().catch((err) => {
   process.exit(1);
 });
 
-// Trigger restart
+// Trigger restart to flush stale Prisma connections

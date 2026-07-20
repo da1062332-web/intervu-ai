@@ -13,16 +13,28 @@ export class AdminReportService {
       assessmentId,
     });
 
-    const assessment = await this.prisma.testConfig.findUnique({
+    let assessment: any = await this.prisma.testConfig.findUnique({
       where: { id: assessmentId },
     });
+    let isExam = false;
 
     if (!assessment) {
-      throw new NotFoundException(`Assessment ${assessmentId} not found`);
+      assessment = await this.prisma.examConfig.findUnique({
+        where: { id: assessmentId },
+      });
+      if (assessment) {
+        isExam = true;
+      } else {
+        throw new NotFoundException(`Assessment ${assessmentId} not found`);
+      }
     }
 
     const attempts = await this.prisma.evaluationResult.findMany({
-      where: { testInstance: { testConfigId: assessmentId } },
+      where: {
+        testInstance: isExam
+          ? { examConfigId: assessmentId }
+          : { testConfigId: assessmentId },
+      },
       include: {
         testInstance: {
           select: {
@@ -38,7 +50,7 @@ export class AdminReportService {
       return {
         assessment: {
           id: assessment.id,
-          title: assessment.displayName,
+          title: assessment.displayName || assessment.name || "Unknown Assessment",
         },
         averageScore: 0,
         highestScore: 0,
@@ -98,7 +110,7 @@ export class AdminReportService {
     return {
       assessment: {
         id: assessment.id,
-        title: assessment.displayName,
+        title: assessment.displayName || assessment.name || "Unknown Assessment",
       },
       averageScore,
       highestScore,
@@ -112,26 +124,29 @@ export class AdminReportService {
   async getCandidateReports(filters: any) {
     this.logger.debug("Fetching candidate reports with filters", { filters });
 
-    const whereClause: any = {};
-    if (filters.assessmentId) {
-      whereClause.testConfigId = filters.assessmentId;
-    }
+    const andConditions: any[] = [{ evaluationResult: { isNot: null } }];
 
-    whereClause.evaluationResult = { isNot: null };
+    if (filters.assessmentId) {
+      andConditions.push({
+        OR: [
+          { testConfigId: filters.assessmentId },
+          { examConfigId: filters.assessmentId },
+        ],
+      });
+    }
 
     if (filters.search) {
-      whereClause.OR = [
-        {
-          user: { fullName: { contains: filters.search, mode: "insensitive" } },
-        },
-        { user: { email: { contains: filters.search, mode: "insensitive" } } },
-        {
-          testConfig: {
-            displayName: { contains: filters.search, mode: "insensitive" },
-          },
-        },
-      ];
+      andConditions.push({
+        OR: [
+          { user: { fullName: { contains: filters.search, mode: "insensitive" } } },
+          { user: { email: { contains: filters.search, mode: "insensitive" } } },
+          { testConfig: { displayName: { contains: filters.search, mode: "insensitive" } } },
+          { examConfig: { name: { contains: filters.search, mode: "insensitive" } } },
+        ],
+      });
     }
+
+    const whereClause: any = { AND: andConditions };
 
     let orderBy: any = { createdAt: "desc" };
     if (filters.sortBy) {
@@ -152,6 +167,7 @@ export class AdminReportService {
       include: {
         user: { select: { id: true, fullName: true, email: true } },
         testConfig: { select: { id: true, displayName: true } },
+        examConfig: { select: { id: true, name: true } },
         evaluationResult: true,
       },
       orderBy,
@@ -161,10 +177,13 @@ export class AdminReportService {
 
     const results = attempts.map((attempt) => {
       const score = attempt.evaluationResult?.overallScore || 0;
+      const assessmentName = attempt.testConfig?.displayName || attempt.examConfig?.name || 'Unknown Assessment';
+      const assessmentId = attempt.testConfig?.id || attempt.examConfig?.id || 'unknown';
+      
       return {
         id: attempt.id,
         candidate: attempt.user,
-        assessment: attempt.testConfig,
+        assessment: { id: assessmentId, displayName: assessmentName },
         score,
         completedAt: attempt.submittedAt || attempt.updatedAt,
       };

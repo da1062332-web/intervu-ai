@@ -111,13 +111,13 @@ export class AuthService {
         // Link googleId to existing user
         user = await this.userRepository.update(user.id, {
           googleId,
-        });
+        } as any);
       } else {
         // 3. Register a new user
         user = await this.userRepository.create({
           email,
           googleId,
-          passwordHash: null,
+          passwordHash: null as any,
           fullName,
           role: "CANDIDATE",
         });
@@ -139,16 +139,11 @@ export class AuthService {
       throw new UnauthorizedException("Refresh token is not active");
     }
 
-    // Revoke the old refresh token
-    await this.sessionRepository.revokeRefreshToken(refreshToken);
-
-    // Also terminate the old session (cascade will clean up refresh token link if needed)
+    // Extend the session expiry to keep it alive
     if (stored.sessionId) {
-      try {
-        await this.sessionRepository.delete(stored.sessionId);
-      } catch {
-        // Ignore if already deleted
-      }
+      await this.sessionRepository.update(stored.sessionId, {
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // Extend session by 7 days
+      });
     }
 
     const user = await this.userRepository.findById(payload.sub);
@@ -156,10 +151,24 @@ export class AuthService {
       throw new UnauthorizedException("User not found");
     }
 
-    const tokens = await this.issueTokens(user, meta);
+    // Issue a new access token for the same session
+    const accessToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        type: "access",
+        sessionId: stored.sessionId,
+      },
+      {
+        jwtid: require("crypto").randomUUID(),
+        expiresIn: "15m",
+      },
+    );
+
     return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      accessToken,
+      refreshToken, // Reuse the same refresh token
     };
   }
 

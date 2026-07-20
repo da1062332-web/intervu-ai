@@ -16,9 +16,9 @@ export default function QuestionBankPage() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   const poolQuestions = questions.filter(
-    (q) => q.status === 'Approved' || q.status === 'Published',
+    (q) => q.status === 'APPROVED' || q.status === 'PUBLISHED',
   );
-  const selectableQuestions = poolQuestions.filter((q) => q.status === 'Approved');
+  const selectableQuestions = poolQuestions.filter((q) => q.status === 'APPROVED');
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));

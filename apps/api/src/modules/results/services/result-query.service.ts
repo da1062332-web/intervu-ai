@@ -257,25 +257,49 @@ export class ResultQueryService {
       questionToSectionMap[q.questionId] = q.section.sectionName;
     });
 
-    let totalSpentSecs = answers.reduce((sum, a) => sum + a.timeSpentSeconds, 0);
+    let totalSpentSecs = 0;
     const attemptRecord = await this.prisma.testInstance.findUnique({ where: { id: attemptId } });
+    const sectionRecords = await this.prisma.testInstanceSection.findMany({ where: { testInstanceId: attemptId } });
 
-    if (totalSpentSecs === 0 && attemptRecord?.submittedAt) {
-      totalSpentSecs = Math.floor((attemptRecord.submittedAt.getTime() - attemptRecord.createdAt.getTime()) / 1000);
-      if (sections.length === 1) {
-        sectionTimeMap[sections[0].sectionName] = totalSpentSecs;
-      }
-    } else {
-      answers.forEach(a => {
-        const sectionName = questionToSectionMap[a.questionId];
-        if (sectionName) {
-          sectionTimeMap[sectionName] = (sectionTimeMap[sectionName] || 0) + a.timeSpentSeconds;
+    let hasSectionTime = false;
+    sectionRecords.forEach(secRecord => {
+      if (secRecord.startedAt) {
+        let spentSecs = 0;
+        if (secRecord.status === 'COMPLETED' || secRecord.status === 'LOCKED') {
+           spentSecs = Math.floor((secRecord.updatedAt.getTime() - secRecord.startedAt.getTime()) / 1000);
+        } else if (secRecord.status === 'ACTIVE') {
+           if (attemptRecord?.submittedAt) {
+              spentSecs = Math.floor((attemptRecord.submittedAt.getTime() - secRecord.startedAt.getTime()) / 1000);
+           }
         }
-      });
+        if (spentSecs > 0) {
+           sectionTimeMap[secRecord.sectionKey] = Math.max(0, spentSecs);
+           sectionTimeMap[secRecord.sectionName] = Math.max(0, spentSecs);
+           totalSpentSecs += Math.max(0, spentSecs);
+           hasSectionTime = true;
+        }
+      }
+    });
+
+    if (!hasSectionTime) {
+      totalSpentSecs = answers.reduce((sum, a) => sum + a.timeSpentSeconds, 0);
+      if (totalSpentSecs === 0 && attemptRecord?.submittedAt) {
+        totalSpentSecs = Math.floor((attemptRecord.submittedAt.getTime() - attemptRecord.createdAt.getTime()) / 1000);
+        if (sections.length === 1) {
+          sectionTimeMap[sections[0].sectionName] = totalSpentSecs;
+        }
+      } else {
+        answers.forEach(a => {
+          const sectionName = questionToSectionMap[a.questionId];
+          if (sectionName) {
+            sectionTimeMap[sectionName] = (sectionTimeMap[sectionName] || 0) + a.timeSpentSeconds;
+          }
+        });
+      }
     }
 
     const sectionTime = sections.map(sec => {
-      const spentSecs = sectionTimeMap[sec.sectionName] || 0;
+      const spentSecs = sectionTimeMap[sec.sectionKey] || sectionTimeMap[sec.sectionName] || 0;
       const spentMin = Math.round(spentSecs / 60);
       const expectedMin = Math.round(sec.durationSeconds / 60);
       
@@ -309,15 +333,28 @@ export class ResultQueryService {
     const weaknesses: string[] = [];
     
     const sectionAccuracy = sections.map(sec => {
-      let acc = sectionAccData[sec.sectionName];
+      let acc = sectionAccData[sec.sectionKey];
+      if (acc === undefined) acc = sectionAccData[sec.sectionName];
       if (acc === undefined) {
         if (sections.length === 1) acc = percentage;
         else acc = 0;
       }
       
       const qCount = sec.questionCount;
-      const secCorrect = Math.round((acc / 100) * qCount);
-      const secWrong = qCount - secCorrect;
+      const attemptedInSection = answers.filter(a => {
+        const mappedSec = questionToSectionMap[a.questionId];
+        return mappedSec === sec.sectionName || mappedSec === sec.sectionKey;
+      }).length;
+      
+      const secSkipped = Math.max(0, qCount - attemptedInSection);
+      
+      let secCorrect = 0;
+      let secWrong = 0;
+      
+      if (attemptedInSection > 0) {
+        secCorrect = Math.round((acc / 100) * attemptedInSection);
+        secWrong = attemptedInSection - secCorrect;
+      }
       
       if (acc >= 85) strengths.push(sec.sectionName);
       else if (acc < 50) weaknesses.push(sec.sectionName);
@@ -326,6 +363,7 @@ export class ResultQueryService {
         sectionName: sec.sectionName,
         correct: secCorrect,
         wrong: secWrong,
+        skipped: secSkipped,
         accuracy: acc
       };
     });
