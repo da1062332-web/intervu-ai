@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { DifficultyLevel, GeneratedQuestion, Question, QuestionStatus } from "@prisma/client";
+import { DifficultyLevel, GeneratedQuestion, Question } from "@prisma/client";
 
 import {
   QuestionFilters,
@@ -26,12 +26,21 @@ export class QuestionPoolRepository implements IQuestionSource {
     limit: number,
     excludeIds: string[] = [],
   ) {
+    let topicIdsToMatch = [conceptKey];
+    if (conceptKey) {
+      const topicObj = await this.prisma.topic.findFirst({
+        where: { OR: [{ code: conceptKey }, { id: conceptKey }] },
+      });
+      if (topicObj) {
+        topicIdsToMatch = Array.from(new Set([conceptKey, topicObj.id, topicObj.code]));
+      }
+    }
+
     const realQuestions = await this.prisma.question.findMany({
       where: {
-        topicId: conceptKey,
+        topicId: { in: topicIdsToMatch },
         difficulty,
-        source: "GENERATED",
-        status: QuestionStatus.ACTIVE,
+        status: "ACTIVE",
         id: {
           notIn: excludeIds,
         },
