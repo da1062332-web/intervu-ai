@@ -556,11 +556,29 @@ export class QuestionsController {
       );
     }
 
+    // First check if conceptKey is directly a topicId (UUID format)
+    let topicId: string | undefined;
+    
+    // Try as a concept code first
     const concept = await this.prisma.concept.findFirst({
       where: { code: { equals: question.conceptKey, mode: "insensitive" } },
     });
-    const topicId =
-      concept?.topicId || (await this.prisma.topic.findFirst())?.id;
+    
+    if (concept?.topicId) {
+      topicId = concept.topicId;
+    } else {
+      // If no concept found, try treating conceptKey as a topicId directly
+      const topicCheck = await this.prisma.topic.findUnique({
+        where: { id: question.conceptKey },
+      });
+      if (topicCheck?.id) {
+        topicId = topicCheck.id;
+      } else {
+        // Last resort: use first topic
+        topicId = (await this.prisma.topic.findFirst())?.id;
+      }
+    }
+    
     if (!topicId) {
       throw new BadRequestException(
         "No topic found to associate with the question",

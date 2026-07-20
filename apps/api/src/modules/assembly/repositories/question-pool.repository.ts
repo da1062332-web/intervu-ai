@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { DifficultyLevel, GeneratedQuestion, Question } from "@prisma/client";
+import { DifficultyLevel, GeneratedQuestion, Question, QuestionStatus } from "@prisma/client";
 
 import {
   QuestionFilters,
@@ -31,6 +31,7 @@ export class QuestionPoolRepository implements IQuestionSource {
         topicId: conceptKey,
         difficulty,
         source: "GENERATED",
+        status: QuestionStatus.ACTIVE,
         id: {
           notIn: excludeIds,
         },
