@@ -166,7 +166,7 @@ export class QuestionGenerationController {
           difficultyLevel: template.difficultyLevel,
           questionType: template.questionType,
           options: result.question.options as any,
-          correctAnswer: result.question.correctAnswer || "",
+          correctAnswer: result.question.correctAnswer || result.question.answer || "",
           solution: result.question.explanation,
           metadata: {
             status: "GENERATED",
