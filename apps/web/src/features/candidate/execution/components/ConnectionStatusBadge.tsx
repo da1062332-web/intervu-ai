@@ -1,12 +1,12 @@
 'use client';
 
 import { useExecutionStore } from '../stores/execution.store';
-import { WifiOff, Wifi } from 'lucide-react';
+import { WifiOff, Wifi, Activity } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 
 export function ConnectionStatusBadge() {
-  const { connectionStatus } = useExecutionStore();
+  const { connectionStatus, ping } = useExecutionStore();
   const [showRestored, setShowRestored] = useState(false);
   const [wasOffline, setWasOffline] = useState(false);
 
@@ -22,7 +22,27 @@ export function ConnectionStatusBadge() {
     }
   }, [connectionStatus, wasOffline]);
 
-  if (connectionStatus === 'ONLINE' && !showRestored) return null;
+  // If online, ping is available, and we are not showing the "restored" badge, show the ping badge.
+  if (connectionStatus === 'ONLINE' && !showRestored) {
+    if (ping !== null) {
+      // Color code based on ping
+      const isSlow = ping > 500;
+      return (
+        <Badge
+          variant="outline"
+          className={`flex items-center gap-1 font-medium shadow-sm border-gray-200 text-gray-600 bg-white`}
+        >
+          {isSlow ? (
+            <Activity className="w-3.5 h-3.5 text-yellow-500" />
+          ) : (
+            <Wifi className="w-3.5 h-3.5 text-green-500" />
+          )}
+          <span>{ping}ms</span>
+        </Badge>
+      );
+    }
+    return null;
+  }
 
   return (
     <Badge

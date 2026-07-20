@@ -29,6 +29,7 @@ interface ExecutionState {
   autosaveStatus: AutosaveStatus;
   lastSavedAt: Date | null;
   connectionStatus: ConnectionStatus;
+  ping: number | null;
   submissionStatus: SubmissionStatus;
   isRecovered: boolean;
   hasAttemptedResume: boolean;
@@ -79,6 +80,7 @@ interface ExecutionState {
   setAttemptedResume: (attempted: boolean) => void;
   setSubmissionStatus: (status: SubmissionStatus) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
+  setPing: (ping: number | null) => void;
   setUnsavedChanges: (unsaved: boolean) => void;
   restoreStateFromStorage: (savedState: {
     answers: Record<string, AnswerState>;
@@ -160,6 +162,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   autosaveStatus: 'IDLE',
   lastSavedAt: null,
   connectionStatus: 'ONLINE',
+  ping: null,
   submissionStatus: 'IDLE',
   isRecovered: false,
   hasAttemptedResume: false,
@@ -498,5 +501,6 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   setAttemptedResume: (attempted) => set({ hasAttemptedResume: attempted }),
   setSubmissionStatus: (status) => set({ submissionStatus: status }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
+  setPing: (ping) => set({ ping }),
   setUnsavedChanges: (unsaved) => set({ hasUnsavedChanges: unsaved }),
 }));

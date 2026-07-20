@@ -4,6 +4,9 @@ import { useExecutionStore } from '../stores/execution.store';
 const AUTOSAVE_INTERVAL = 15000;
 const STORAGE_KEY = 'intervu_execution_autosave';
 
+// FE-001: Max consecutive local storage failures before giving up on localStorage
+const MAX_LOCAL_STORAGE_FAILURES = 3;
+
 export function useAutosave(testId: string) {
   const {
     answers,
@@ -16,9 +19,18 @@ export function useAutosave(testId: string) {
   } = useExecutionStore();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // FE-001: Track consecutive localStorage failures to break the retry loop
+  const localStorageFailureCountRef = useRef(0);
+  const localStorageDisabledRef = useRef(false);
 
   const performSave = async () => {
-    // Save to LocalStorage as a fallback (Network sync handled by useAnswerPersistence)
+    // FE-001: If localStorage is permanently unavailable, skip silently
+    if (localStorageDisabledRef.current) {
+      // Still clear unsaved changes since network autosave (useAnswerPersistence) handles this
+      setUnsavedChanges(false);
+      return;
+    }
+
     try {
       const stateToSave = {
         answers,
@@ -28,13 +40,38 @@ export function useAutosave(testId: string) {
       };
       localStorage.setItem(`${STORAGE_KEY}_${testId}`, JSON.stringify(stateToSave));
 
-      // If we are online and this isn't failing, we can assume the persistence layer is handling the network sync.
-      // The status will be driven by the useAnswerPersistence mostly, but we can set to SAVED locally if needed.
-      // However, we just clear the unsaved changes flag since the local snapshot is updated.
+      // Reset failure counter on success
+      localStorageFailureCountRef.current = 0;
+
+      // If we are online, the persistence layer handles the network sync.
       setUnsavedChanges(false);
-    } catch {
-      // Local storage might fail on quota exceeded
-      console.warn('Failed to save assessment to local storage fallback');
+    } catch (error: any) {
+      // FE-001: Count failures and disable localStorage after too many failures
+      localStorageFailureCountRef.current += 1;
+
+      if (
+        error?.name === 'QuotaExceededError' ||
+        localStorageFailureCountRef.current >= MAX_LOCAL_STORAGE_FAILURES
+      ) {
+        // FE-001: Permanently disable localStorage autosave to break the retry loop
+        localStorageDisabledRef.current = true;
+        console.warn(
+          '[Autosave] FE-001: localStorage unavailable or full. Offline snapshot disabled. ' +
+          'Network autosave (useAnswerPersistence) remains active.',
+          error,
+        );
+        // FE-001: Still clear the unsaved flag so we don't loop infinitely
+        // The backend autosave (useAnswerPersistence) is the source of truth
+        setUnsavedChanges(false);
+      } else {
+        console.warn(
+          `[Autosave] FE-001: localStorage save failed (attempt ${localStorageFailureCountRef.current}/${MAX_LOCAL_STORAGE_FAILURES})`,
+          error,
+        );
+        // FE-001: On transient failure, still clear unsaved changes to break the loop
+        // The network autosave handles data safety; local snapshot is only a convenience
+        setUnsavedChanges(false);
+      }
     }
   };
 

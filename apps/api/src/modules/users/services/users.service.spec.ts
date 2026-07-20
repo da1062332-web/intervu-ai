@@ -24,11 +24,6 @@ describe("UsersService", () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: null as Date | null,
-    bio: null as string | null,
-    linkedinUrl: null as string | null,
-    emailInvites: true as boolean,
-    emailReminders: true as boolean,
-    emailMarketing: false as boolean,
   };
 
   const mockSession = {

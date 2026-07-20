@@ -31,8 +31,14 @@ export function notifyApiError(
     return;
   }
 
-  const validationSummary = formatValidationSummary(normalized.validationErrors);
   const message = normalized.message || fallbackMessage;
+
+  // Suppress redundant token warnings since the auth provider handles session expiration toasts
+  if (message === 'Invalid or missing access token') {
+    return;
+  }
+
+  const validationSummary = formatValidationSummary(normalized.validationErrors);
   const renderedMessage = validationSummary ? `${message} (${validationSummary})` : message;
 
   useUIStore.getState().setError(renderedMessage);

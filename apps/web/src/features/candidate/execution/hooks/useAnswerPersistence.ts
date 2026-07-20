@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
+import { useOfflineRecovery } from './useOfflineRecovery';
 
 export function useAnswerPersistence(testId: string) {
   const { answers, connectionStatus, setAutosaveStatus } = useExecutionStore();
+  const { queueOperation } = useOfflineRecovery();
   const prevAnswersRef = useRef(answers);
 
   useEffect(() => {
@@ -38,9 +40,9 @@ export function useAnswerPersistence(testId: string) {
     }
 
     const payload = {
+      testId,
       questionId: changedQuestionId,
       answer: answerString,
-      // Defaulting timeSpent to 0 if not tracked natively yet
       timeSpentSeconds: 0,
       isMarkedForReview: current.status === 'MARKED_FOR_REVIEW',
     };
@@ -49,18 +51,33 @@ export function useAnswerPersistence(testId: string) {
       setAutosaveStatus('SAVING');
 
       executionService
-        .saveAnswer(testId, payload)
+        .saveAnswer(testId, {
+          questionId: payload.questionId,
+          answer: payload.answer,
+          timeSpentSeconds: payload.timeSpentSeconds,
+          isMarkedForReview: payload.isMarkedForReview,
+        })
         .then((response) => {
           setAutosaveStatus('SAVED');
           if (response?.status === 'EXPIRED_AND_SUBMITTED') {
             useExecutionStore.getState().setSubmissionStatus('SUBMITTING');
-            window.location.href = `/candidate/tests/${testId}/summary`; // Redirect to summary immediately
+            window.location.href = `/candidate/tests/${testId}/summary`;
           }
         })
         .catch(() => {
           setAutosaveStatus('FAILED');
-          // OfflineRecovery will catch this through its own listener or we queue it here
+          // DATA-001: When online save fails, queue to IndexedDB for replay on reconnect
+          queueOperation('SAVE_ANSWER', payload).catch((err) => {
+            console.error('[AnswerPersistence] Failed to queue failed answer to offline store', err);
+          });
         });
+    } else {
+      // DATA-001: Offline — queue the answer to IndexedDB immediately
+      // It will be replayed and confirmed when connectivity is restored
+      setAutosaveStatus('FAILED');
+      queueOperation('SAVE_ANSWER', payload).catch((err) => {
+        console.error('[AnswerPersistence] Failed to queue offline answer', err);
+      });
     }
-  }, [answers, testId, connectionStatus, setAutosaveStatus]);
+  }, [answers, testId, connectionStatus, setAutosaveStatus, queueOperation]);
 }

@@ -1,9 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class CandidateDashboardRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cacheService: RedisCacheService
+  ) {}
 
   async getDashboardData(userId: string) {
     const [activeAttempts, completedTests, enrollments, examConfigs, testConfigs] =
@@ -26,7 +30,7 @@ export class CandidateDashboardRepository {
           orderBy: { createdAt: "desc" },
         }),
 
-        // Completed/submitted tests – keep ALL, including multiple attempts
+        // Completed/submitted tests – PERF-001: limit to 50 most recent to avoid unbounded query
         this.prisma.testInstance.findMany({
           where: {
             userId,
@@ -44,9 +48,10 @@ export class CandidateDashboardRepository {
             },
           },
           orderBy: { createdAt: "desc" },
+          take: 50, // PERF-001: Dashboard only needs recent history; full history is paginated elsewhere
         }),
 
-        // User's enrollments
+        // User's enrollments – PERF-001: limit to 20 most recent
         this.prisma.candidateEnrollment.findMany({
           where: { candidateId: userId },
           include: {
@@ -69,28 +74,12 @@ export class CandidateDashboardRepository {
               },
             },
           },
+          orderBy: { createdAt: "desc" },
+          take: 20, // PERF-001: Dashboard enrollment list is capped
         }),
 
-        // Recommended / available exam configs (limit 10 for dashboard)
-        this.prisma.examConfig.findMany({
-          where: { isActive: true },
-          take: 10,
-          orderBy: { createdAt: "desc" },
-          include: {
-            sections: { select: { name: true } },
-            ruleFlags: { select: { id: true, maxAttempts: true } },
-          },
-        }),
-
-        // Legacy test configs
-        this.prisma.testConfig.findMany({
-          where: { isActive: true },
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          include: {
-            sections: { select: { displayName: true } },
-          },
-        }),
+        this.getCachedExamConfigs(),
+        this.getCachedTestConfigs(),
       ]);
 
     // Build per-config attempt counts for the current user
@@ -103,8 +92,8 @@ export class CandidateDashboardRepository {
     });
 
     const upcomingTests = [
-      ...examConfigs.map((ec) => ({ ...ec, isExam: true })),
-      ...testConfigs.map((tc) => ({ ...tc, isExam: false })),
+      ...examConfigs.map((ec: any) => ({ ...ec, isExam: true, createdAt: new Date(ec.createdAt) })),
+      ...testConfigs.map((tc: any) => ({ ...tc, isExam: false, createdAt: new Date(tc.createdAt) })),
     ]
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, 8);
@@ -116,5 +105,51 @@ export class CandidateDashboardRepository {
       upcomingTests,
       attemptsByConfig: Object.fromEntries(attemptsByConfig),
     };
+  }
+
+  private async getCachedExamConfigs() {
+    const key = "dashboard:examConfigs:available";
+    let data = await this.cacheService.get<any>(key);
+    if (!data) {
+      data = await this.prisma.examConfig.findMany({
+        where: { isActive: true },
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          durationMinutes: true,
+          totalQuestions: true,
+          sections: { select: { name: true } },
+          ruleFlags: { select: { id: true, maxAttempts: true } },
+          createdAt: true,
+        },
+      });
+      await this.cacheService.set(key, data, { ttl: 300 });
+    }
+    return data;
+  }
+
+  private async getCachedTestConfigs() {
+    const key = "dashboard:testConfigs:available";
+    let data = await this.cacheService.get<any>(key);
+    if (!data) {
+      data = await this.prisma.testConfig.findMany({
+        where: { isActive: true },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          displayName: true,
+          companyName: true,
+          totalDurationSeconds: true,
+          totalQuestions: true,
+          sections: { select: { displayName: true } },
+          createdAt: true,
+        },
+      });
+      await this.cacheService.set(key, data, { ttl: 300 });
+    }
+    return data;
   }
 }
