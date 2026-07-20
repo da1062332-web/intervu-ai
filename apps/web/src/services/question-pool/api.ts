@@ -12,10 +12,25 @@ export const questionPoolApi = {
     if (filters?.status) query.status = filters.status;
     if (filters?.topicId) query.topicId = filters.topicId;
 
-    return apiClient.request<GeneratedQuestion[]>('/questions', {
+    const res = await apiClient.request<any>('/questions', {
       method: 'GET',
       query,
     });
+
+    const items = Array.isArray(res) ? res : res?.data || [];
+    return items.map((q: any) => ({
+      ...q,
+      status:
+        q.status === 'GENERATED'
+          ? 'Draft'
+          : q.status === 'APPROVED'
+          ? 'Approved'
+          : q.status === 'REJECTED'
+          ? 'Rejected'
+          : q.status === 'PUBLISHED'
+          ? 'Published'
+          : q.status,
+    }));
   },
 
   approveQuestion: async (id: string): Promise<GeneratedQuestion> => {

@@ -73,20 +73,26 @@ export class QuestionRotationService {
       const availableCount = await this.prisma.question.count({
         where: {
           status: QuestionStatus.ACTIVE,
-          sectionId,
           difficulty: diff,
           topicId:
             topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
-          OR: [
-            { reservations: { is: null } },
+          AND: [
             {
-              reservations: {
-                is: {
-                  expiresAt: {
-                    lte: new Date(),
+              OR: [{ sectionId }, { sectionId: null }],
+            },
+            {
+              OR: [
+                { reservations: { is: null } },
+                {
+                  reservations: {
+                    is: {
+                      expiresAt: {
+                        lte: new Date(),
+                      },
+                    },
                   },
                 },
-              },
+              ],
             },
           ],
         },

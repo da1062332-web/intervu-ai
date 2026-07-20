@@ -150,6 +150,7 @@ export class QuestionsController {
         variables: q.metadata,
         options: q.options,
         answer: q.correctAnswer,
+        correctAnswer: q.correctAnswer,
         explanation: q.solution,
         status: (q.metadata as any)?.status || "GENERATED",
         createdAt: q.createdAt,
@@ -277,6 +278,7 @@ export class QuestionsController {
         variables: q.metadata,
         options: q.options,
         answer: q.correctAnswer,
+        correctAnswer: q.correctAnswer,
         explanation: q.solution,
         createdAt: q.createdAt,
       })),
@@ -307,7 +309,9 @@ export class QuestionsController {
         variables: question.metadata,
         options: question.options,
         answer: question.correctAnswer,
+        correctAnswer: question.correctAnswer,
         explanation: question.solution,
+        questionType: question.questionType,
         status: (question.metadata as any)?.status || "GENERATED",
         createdAt: question.createdAt,
       },
@@ -355,6 +359,7 @@ export class QuestionsController {
         body.difficultyLevel !== undefined
           ? body.difficultyLevel
           : question.difficultyLevel,
+      questionType: question.questionType,
     };
 
     const validationResult = this.validateQuestion(updatedQuestion);
@@ -396,8 +401,10 @@ export class QuestionsController {
         questionText: saved.questionText,
         options: saved.options,
         answer: saved.correctAnswer,
+        correctAnswer: saved.correctAnswer,
         explanation: saved.solution,
         difficulty: saved.difficultyLevel,
+        questionType: saved.questionType,
         status: (saved.metadata as any)?.status || "GENERATED",
       },
     };
@@ -452,6 +459,7 @@ export class QuestionsController {
       templateId: question.templateId,
       conceptKey: question.conceptKey,
       difficultyLevel: question.difficultyLevel,
+      questionType: question.questionType,
     });
 
     if (!validationCheck.isValid) {
@@ -731,8 +739,15 @@ export class QuestionsController {
     templateId?: string;
     conceptKey?: string;
     difficultyLevel?: string;
+    questionType?: string;
   }): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
+
+    const isMcq =
+      typeof question.questionType === "string" &&
+      ["MCQ", "MULTIPLE_CHOICE", "MCQS", "MSQ"].includes(
+        question.questionType.toUpperCase(),
+      );
 
     if (!question.questionText || question.questionText.trim() === "") {
       errors.push(
@@ -740,15 +755,26 @@ export class QuestionsController {
       );
     }
 
-    if (
-      !question.options ||
-      !Array.isArray(question.options) ||
-      question.options.length === 0
-    ) {
-      errors.push(
-        "Options complete validation failed: options must be a non-empty array",
-      );
-    } else {
+    if (isMcq) {
+      if (
+        !question.options ||
+        !Array.isArray(question.options) ||
+        question.options.length === 0
+      ) {
+        errors.push(
+          "Options complete validation failed: options must be a non-empty array",
+        );
+      } else {
+        if (question.options.some((o) => !o || String(o).trim() === "")) {
+          errors.push(
+            "Reject on empty option: options must not contain empty values",
+          );
+        }
+        if (new Set(question.options).size !== question.options.length) {
+          errors.push("Reject on duplicate options: options must be unique");
+        }
+      }
+    } else if (question.options && Array.isArray(question.options)) {
       if (question.options.some((o) => !o || String(o).trim() === "")) {
         errors.push(
           "Reject on empty option: options must not contain empty values",
@@ -768,6 +794,7 @@ export class QuestionsController {
         "Reject on missing answer: correctAnswer is missing or empty",
       );
     } else if (
+      isMcq &&
       question.options &&
       Array.isArray(question.options) &&
       !question.options.includes(String(question.correctAnswer))
