@@ -32,9 +32,16 @@ export const AssessmentSummaryDashboard: React.FC<AssessmentSummaryDashboardProp
         <Card>
           <CardContent className='p-4 flex flex-col justify-center'>
             <span className='text-sm text-muted-foreground mb-1'>Status</span>
-            <Badge variant='default' className='w-fit'>
-              {assessment.status}
-            </Badge>
+            <div className='flex items-center gap-2'>
+              <Badge variant='default' className='w-fit'>
+                {assessment.status}
+              </Badge>
+              {assessment.status === 'PUBLISHED' && (
+                <Badge variant='secondary' className='w-fit'>
+                  Published Snapshot
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card>

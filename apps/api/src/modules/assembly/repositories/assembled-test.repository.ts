@@ -142,6 +142,23 @@ export class AssembledTestRepository {
     });
   }
 
+  async findByConfigId(configId: string) {
+    return this.prisma.assembledTest.findFirst({
+      where: { configId, status: 'PUBLISHED' },
+      include: {
+        sections: {
+          include: {
+            questions: {
+              orderBy: { questionOrder: 'asc' },
+            },
+          },
+          orderBy: { orderIndex: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async updateStatus(id: string, status: AssemblyStatus) {
     return this.prisma.assembledTest.update({
       where: { id },

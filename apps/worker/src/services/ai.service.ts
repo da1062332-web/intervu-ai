@@ -59,6 +59,45 @@ export class AiWorkerService {
           isMathTopic = true;
         }
       }
+      // Attempt to find published questions for this topic first
+      const difficultyMap: Record<string, string> = {
+        beginner: "EASY",
+        intermediate: "MEDIUM",
+        advanced: "HARD",
+        expert: "HARD",
+      };
+
+      const dbDifficulty = difficultyMap[request.difficulty] || "MEDIUM";
+
+      const bankQuestions = await prisma.question.findMany({
+        where: {
+          topicId: request.topic,
+          status: "ACTIVE",
+          difficulty: dbDifficulty as any,
+        },
+        take: count,
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (bankQuestions && bankQuestions.length > 0) {
+        const questions = bankQuestions.map((q) => ({
+          text: q.questionText,
+          options: (q.metadata && (q.metadata as any).options) || [q.answer],
+          correctAnswer: q.answer,
+          explanation: q.explanation || "No explanation provided.",
+          difficulty: request.difficulty,
+          topic: topicName,
+          tags: [topicName],
+        }));
+
+        await prisma.$disconnect();
+
+        return {
+          questions,
+          metadata: { source: "QUESTION_BANK", returnedFrom: "DB", count: questions.length },
+        };
+      }
+
       await prisma.$disconnect();
     } catch {
       if (request.topic.toLowerCase().includes("math")) {

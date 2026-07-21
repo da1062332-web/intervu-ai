@@ -83,6 +83,7 @@ import { AssessmentVersionValidatorService } from "./services/assessment-version
     AssemblyService,
     AssemblyPublisherService,
     AssessmentVersionValidatorService,
+    AssembledTestRepository,
     // Export new services for Module 4 / other consumers
     TestPackageService,
     PublishReadinessService,

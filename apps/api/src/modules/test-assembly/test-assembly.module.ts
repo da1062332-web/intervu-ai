@@ -4,9 +4,10 @@ import { AssessmentsController } from "./controllers/assessments.controller";
 import { TestRepository } from "./repositories/test.repository";
 import { TestAssemblyService } from "./services/test-assembly.service";
 import { QueueModule } from "../../queue";
+import { AssemblyModule } from "../assembly/assembly.module";
 
 @Module({
-  imports: [QueueModule],
+  imports: [QueueModule, AssemblyModule],
   controllers: [TestAssemblyController, AssessmentsController],
   providers: [TestRepository, TestAssemblyService],
   exports: [TestRepository, TestAssemblyService],

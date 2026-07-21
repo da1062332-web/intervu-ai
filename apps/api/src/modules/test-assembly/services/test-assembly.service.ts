@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { QueueService, QueueType } from "../../../queue";
 import { TestRepository } from "../repositories/test.repository";
+import { AssembledTestRepository } from "../../assembly/repositories/assembled-test.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { GenerationRequest } from "@intervu-ai/contracts";
 import { randomUUID } from "crypto";
@@ -12,6 +13,7 @@ export class TestAssemblyService {
   constructor(
     private readonly queueService: QueueService,
     private readonly testRepository: TestRepository,
+    private readonly assembledRepo: AssembledTestRepository,
   ) {}
 
   async getTest(id: string) {
@@ -19,6 +21,63 @@ export class TestAssemblyService {
   }
 
   async generateQuestions(body: GenerationRequest) {
+    // If a published/created assembled test exists for this blueprint, return it directly
+    try {
+      if (body.blueprintId) {
+        const existing = await this.assembledRepo.findByConfigId(body.blueprintId);
+        if (existing) {
+          // Map assembledTest -> Assessment-like result used by frontend
+          const questions: any[] = [];
+          for (const s of existing.sections || []) {
+            for (const q of s.questions || []) {
+              const snap = (q.questionSnapshot as any) || {};
+              questions.push({
+                id: q.questionId,
+                questionText: snap.questionText || snap.text || '',
+                options: snap.options || [],
+                answer: snap.correctAnswer || snap.correct_answer || null,
+                explanation: snap.solution || snap.explanation || '',
+                difficulty: (snap.difficultyLevel || snap.difficulty || 'MEDIUM').toUpperCase(),
+                conceptKey: snap.conceptKey || null,
+                topicId: snap.conceptKey || null,
+              });
+            }
+          }
+
+          const result = {
+            testId: existing.id,
+            title: existing.configId || 'Published Assessment',
+            companyId: 'system',
+            examConfigId: existing.configId,
+            status: existing.status || 'PUBLISHED',
+            sections:
+              existing.sections?.map((s: any) => {
+                return {
+                  id: s.id,
+                  name: s.sectionName,
+                  questions: s.questions.map((q: any) => {
+                    const snap = (q.questionSnapshot as any) || {};
+                    return {
+                      id: q.questionId,
+                      questionText: snap.questionText || '',
+                      options: snap.options || [],
+                      answer: snap.correctAnswer || null,
+                      explanation: snap.solution || '',
+                    };
+                  }),
+                };
+              }) || [],
+            questions,
+          };
+
+          return result;
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn('Failed to lookup existing assembled test', { error: message });
+    }
+
     const jobId = randomUUID();
     const correlationId = randomUUID(); // Ideally comes from Request Scope Context
 
