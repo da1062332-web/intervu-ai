@@ -8,17 +8,13 @@ import {
   FileText,
   Calendar,
   Users,
-  TrendingUp,
-  AlertOctagon,
   Layers,
-  ArrowRight,
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { StatCard } from '@/components/admin/dashboard/stat-card';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { OperationalAlertsPanel } from '../components/OperationalAlertsPanel';
 import { ExportControls } from '../components/ExportControls';
 import { apiClient } from '@/services/api/client';
@@ -58,12 +54,6 @@ export function AdminOverviewDashboard() {
         subtitle='Real-time intelligence and execution control across our entire assessment generation and review lifecycle.'
         action={
           <div className='flex gap-3'>
-            <Button asChild variant='outline' className='gap-2'>
-              <Link href='/admin/generation/failures'>
-                <AlertOctagon className='size-4 text-red-500' />
-                Failures Center
-              </Link>
-            </Button>
             <Button asChild className='gap-2'>
               <Link href='/admin/assembly'>
                 <Layers className='size-4' />
@@ -80,140 +70,47 @@ export function AdminOverviewDashboard() {
           <Loader2 className='size-8 animate-spin text-muted-foreground' />
         </div>
       ) : (
-        <section className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
+        <section className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
           <StatCard
             label='Total Questions'
             value={stats?.totalQuestions ?? 0}
-            trend='neutral'
-            trendLabel='No change'
             icon={<Database className='size-5' />}
             color='primary'
           />
           <StatCard
             label='Approved'
             value={stats?.approvedQuestions ?? 0}
-            trend='neutral'
-            trendLabel='No change'
             icon={<CheckCircle className='size-5' />}
             color='emerald'
           />
           <StatCard
             label='Pending Reviews'
             value={stats?.pendingReviews ?? 0}
-            trend='neutral'
-            trendLabel='No change'
             icon={<Clock className='size-5' />}
             color='amber'
           />
           <StatCard
             label='Assessments'
             value={stats?.publishedAssessments ?? 0}
-            trend='neutral'
-            trendLabel='No change'
             icon={<FileText className='size-5' />}
             color='blue'
           />
           <StatCard
             label='Gen This Week'
             value={stats?.generatedThisWeek ?? 0}
-            trend='neutral'
-            trendLabel='No change'
             icon={<Calendar className='size-5' />}
             color='primary'
           />
           <StatCard
             label='Active Candidates'
             value={stats?.activeCandidates ?? 0}
-            trend='neutral'
-            trendLabel='No change'
             icon={<Users className='size-5' />}
             color='emerald'
           />
         </section>
       )}
 
-      {/* Main Operations Links Grid */}
-      <section className='grid gap-6 md:grid-cols-2 lg:grid-cols-4'>
-        <Card className='glass hover:shadow-md transition-all group duration-200'>
-          <CardHeader>
-            <CardTitle className='text-md font-heading font-semibold text-foreground flex items-center gap-2'>
-              <TrendingUp className='size-5 text-indigo-500' />
-              Gen Analytics
-            </CardTitle>
-            <CardDescription>
-              Monitor AI generation success rates, failures, average speeds, and topic balances.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <Link
-              href='/admin/analytics/generation'
-              className='text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform'
-            >
-              Analyze Generation Pipeline <ArrowRight className='size-3.5' />
-            </Link>
-          </CardContent>
-        </Card>
 
-        <Card className='glass hover:shadow-md transition-all group duration-200'>
-          <CardHeader>
-            <CardTitle className='text-md font-heading font-semibold text-foreground flex items-center gap-2'>
-              <Clock className='size-5 text-amber-500' />
-              Review Operations
-            </CardTitle>
-            <CardDescription>
-              Analyze peer-review queue sizes, reviewer loads, and decision frequencies.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <Link
-              href='/admin/review'
-              className='text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform'
-            >
-              Manage Review Backlogs <ArrowRight className='size-3.5' />
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className='glass hover:shadow-md transition-all group duration-200'>
-          <CardHeader>
-            <CardTitle className='text-md font-heading font-semibold text-foreground flex items-center gap-2'>
-              <Database className='size-5 text-emerald-500' />
-              Question Bank
-            </CardTitle>
-            <CardDescription>
-              Observe topic content volumes, difficulty distributions, and coverage indices.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <Link
-              href='/admin/question-bank'
-              className='text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform'
-            >
-              Inspect Bank Inventory <ArrowRight className='size-3.5' />
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className='glass hover:shadow-md transition-all group duration-200'>
-          <CardHeader>
-            <CardTitle className='text-md font-heading font-semibold text-foreground flex items-center gap-2'>
-              <Layers className='size-5 text-blue-500' />
-              Assembly Monitor
-            </CardTitle>
-            <CardDescription>
-              View live test instance builds, assembly durations, errors, and releases.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <Link
-              href='/admin/assembly/monitoring'
-              className='text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform'
-            >
-              Observe Test Assembly <ArrowRight className='size-3.5' />
-            </Link>
-          </CardContent>
-        </Card>
-      </section>
 
       {/* Alerts & Exports Section */}
       <section className='grid gap-6 md:grid-cols-2'>
