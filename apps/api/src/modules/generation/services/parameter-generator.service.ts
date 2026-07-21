@@ -17,6 +17,28 @@ interface VariableDefinition {
   precision?: number;
 }
 
+interface DerivedVariableDefinition {
+  name: string;
+  expression: string;
+}
+
+interface StrategyConstraintDefinition {
+  rule?: string;
+  expression?: string;
+  target?: string;
+  operator?: string;
+  value?: unknown;
+  [key: string]: any;
+}
+
+interface GenerationStrategyConfig {
+  variables?: VariableDefinition[];
+  derivedVariables?: DerivedVariableDefinition[];
+  constraints?: StrategyConstraintDefinition[];
+  formulas?: string[];
+  [key: string]: any;
+}
+
 interface TemplateMetadata {
   variableSchema?: {
     variables?: VariableDefinition[];
@@ -26,10 +48,12 @@ interface TemplateMetadata {
   };
   constraints?: {
     rules?: string[];
+    constraints?: StrategyConstraintDefinition[];
     excludeDuplicates?: boolean;
     customConstraints?: any;
     [key: string]: any;
   };
+  generationStrategyConfig?: GenerationStrategyConfig;
   formulas?: string[];
   [key: string]: any;
 }
@@ -62,10 +86,10 @@ export class ParameterGeneratorService {
    * Generates parameters according to variable schemas, formulas, and constraints.
    */
   generateParameters(metadata: TemplateMetadata): Record<string, any> {
-    const variableSchema = metadata.variableSchema || {};
-    const constraints = metadata.constraints || {};
-    const variables = variableSchema.variables || [];
-    const formulas = metadata.formulas || variableSchema.formulas || [];
+    const resolved = this.resolveStrategyDefinition(metadata);
+    const variables = resolved.variables;
+    const formulas = resolved.formulas;
+    const constraints = resolved.constraints;
 
     const MAX_INTERNAL_ATTEMPTS = 50;
     let attempts = 0;
@@ -212,6 +236,60 @@ export class ParameterGeneratorService {
     });
   }
 
+  private resolveStrategyDefinition(metadata: TemplateMetadata): {
+    variables: VariableDefinition[];
+    formulas: string[];
+    constraints: any;
+  } {
+    const variableSchema = metadata.variableSchema || {};
+    const strategyConfig = metadata.generationStrategyConfig || {};
+
+    const variables =
+      strategyConfig.variables || variableSchema.variables || [];
+
+    const derivedVariables = Array.isArray(strategyConfig.derivedVariables)
+      ? strategyConfig.derivedVariables
+      : [];
+
+    const formulasFromDerived = derivedVariables
+      .filter((entry) => entry && typeof entry.expression === "string")
+      .map((entry) => `${entry.name} = ${entry.expression}`);
+
+    const formulas = [
+      ...(metadata.formulas || []),
+      ...(variableSchema.formulas || []),
+      ...formulasFromDerived,
+    ];
+
+    const constraintSource =
+      strategyConfig.constraints && Array.isArray(strategyConfig.constraints)
+        ? { constraints: strategyConfig.constraints }
+        : metadata.constraints || {};
+
+    const constraints = {
+      ...(constraintSource || {}),
+      rules: this.normalizeConstraintRules(constraintSource),
+    };
+
+    return { variables, formulas, constraints };
+  }
+
+  private normalizeConstraintRules(constraintSource: any): Array<string | StrategyConstraintDefinition> {
+    if (!constraintSource) {
+      return [];
+    }
+
+    if (Array.isArray(constraintSource.rules)) {
+      return constraintSource.rules;
+    }
+
+    if (Array.isArray(constraintSource.constraints)) {
+      return constraintSource.constraints;
+    }
+
+    return [];
+  }
+
   /**
    * Validates generated parameters against constraints rules.
    */
@@ -232,9 +310,11 @@ export class ParameterGeneratorService {
 
     // Evaluate complex mathematical constraint rules using mathjs
     for (const rule of rules) {
-      if (typeof rule !== "string") continue;
+      const expression = this.buildConstraintExpression(rule);
+      if (!expression) continue;
+
       try {
-        const isValid = math.evaluate(rule, params);
+        const isValid = math.evaluate(expression, params);
         if (isValid === false) {
           return false;
         }
@@ -245,6 +325,53 @@ export class ParameterGeneratorService {
     }
 
     return true;
+  }
+
+  private buildConstraintExpression(rule: string | StrategyConstraintDefinition): string {
+    if (typeof rule === "string") {
+      return rule;
+    }
+
+    if (!rule || typeof rule !== "object") {
+      return "";
+    }
+
+    if (typeof rule.rule === "string" && rule.rule.trim()) {
+      return rule.rule;
+    }
+
+    if (typeof rule.expression === "string" && rule.expression.trim()) {
+      return rule.expression;
+    }
+
+    if (typeof rule.target === "string" && rule.target.trim()) {
+      const target = rule.target.trim();
+      const operator = typeof rule.operator === "string" ? rule.operator : "==";
+      const value = this.formatConstraintValue(rule.value);
+      return `${target} ${operator} ${value}`;
+    }
+
+    return "";
+  }
+
+  private formatConstraintValue(value: unknown): string {
+    if (typeof value === "number") {
+      return String(value);
+    }
+
+    if (typeof value === "string") {
+      if (/^-?\d+(\.\d+)?$/.test(value)) {
+        return value;
+      }
+
+      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(value)) {
+        return value;
+      }
+
+      return `'${value.replace(/'/g, "\\'")}'`;
+    }
+
+    return String(value);
   }
 
   private normalizeMathValue(value: any): any {
