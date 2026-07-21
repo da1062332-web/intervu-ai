@@ -21,6 +21,7 @@ import {
   AssessmentResilienceTestService,
 } from "./services";
 import { SectionAdvanceService } from "./services/section-advance.service";
+import { ZombieAssessmentReconcilerService } from "./services/zombie-assessment-reconciler.service";
 import {
   TestInstanceRepository,
   ExecutionStateRepository,
@@ -55,6 +56,7 @@ import { ExecutionEvaluationIntegration } from "../evaluation/integrations/execu
     ExecutionService,
     SectionAdvanceService,
     AssessmentResilienceTestService,
+    ZombieAssessmentReconcilerService,
     {
       provide: EVALUATION_ADAPTER,
       useClass: ExecutionEvaluationIntegration,

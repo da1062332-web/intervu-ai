@@ -31,39 +31,60 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
   // ─── Phase 1: Start camera immediately (no need to wait for model) ────────
   useEffect(() => {
     let stream: MediaStream | null = null;
+    // PRIV-001: Track mounted state to handle the case where the component
+    // unmounts before getUserMedia resolves (race condition)
+    let mounted = true;
+
+    const stopStream = () => {
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+      }
+      // PRIV-001: Clear the video srcObject so the browser stops the camera indicator
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = null;
+      }
+    };
 
     navigator.mediaDevices
       .getUserMedia({ video: { width: 640, height: 480 }, audio: false })
       .then((s) => {
+        // PRIV-001: If component unmounted before the promise resolved, stop immediately
+        if (!mounted) {
+          s.getTracks().forEach((t) => t.stop());
+          return;
+        }
         stream = s;
         const video = videoRef.current;
         if (video) {
           video.srcObject = s;
-          // force play
           video.play().catch(() => {});
         }
         setHasCameraError(false);
-        console.log('[FaceTracker] Camera started');
       })
       .catch((err) => {
+        if (!mounted) return;
         console.error('[FaceTracker] Camera error', err);
         setHasCameraError(true);
       });
 
     const handleCleanup = () => {
       console.log('[FaceTracker] Cleaning up runtime media tracks');
-      stream?.getTracks().forEach((t) => t.stop());
+      stopStream();
     };
-    
+
     if (typeof window !== 'undefined') {
       window.addEventListener('intervu-cleanup-runtime', handleCleanup);
     }
 
     return () => {
+      // PRIV-001: Cleanup on unmount
+      mounted = false;
       if (typeof window !== 'undefined') {
         window.removeEventListener('intervu-cleanup-runtime', handleCleanup);
       }
-      stream?.getTracks().forEach((t) => t.stop());
+      stopStream();
     };
   }, []); // run once on mount — independent of model state
 

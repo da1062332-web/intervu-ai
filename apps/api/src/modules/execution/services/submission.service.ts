@@ -188,6 +188,12 @@ export class SubmissionService {
         },
       );
 
+      // CON-003: Invalidate cached test instance state so autosave cannot use
+      // stale IN_PROGRESS status and write answers after submission
+      await Promise.allSettled([
+        this.cacheService.delete(`test-instance:meta:${testInstanceId}`),
+        this.cacheService.delete(`execution-state:${testInstanceId}`),
+      ]);
       // 8. Convert answers array to map for the queue
       const answersMap: Record<string, string> = {};
       executionResult.answers.forEach((ans) => {

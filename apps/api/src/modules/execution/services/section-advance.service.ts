@@ -83,6 +83,31 @@ export class SectionAdvanceService {
 
     const now = new Date();
 
+    // CON-002: Idempotency check — if the section was already advanced by another
+    // concurrent request that completed between our Redis lock acquisition and now,
+    // return the current state without double-advancing.
+    // This is detected when the current section is already COMPLETED or LOCKED
+    // and the next section already exists.
+    if (
+      currentSection.status === "COMPLETED" ||
+      currentSection.status === "LOCKED"
+    ) {
+      const nextSectionIndex = currentSectionIndex + 1;
+      const nextSection = sections[nextSectionIndex];
+      this.logger.warn("CON-002: Section advance already completed, returning idempotent result", {
+        testInstanceId,
+        currentSectionIndex,
+        currentSectionStatus: currentSection.status,
+      });
+      return {
+        nextSectionIndex: nextSection ? nextSectionIndex : null,
+        nextSectionId: nextSection ? nextSection.id : null,
+        serverTime: now.toISOString(),
+        isLastSection: !nextSection,
+        submitted: !nextSection,
+      };
+    }
+
     // 4. Mark current section as COMPLETED
     await this.prisma.testInstanceSection.update({
       where: { id: currentSection.id },

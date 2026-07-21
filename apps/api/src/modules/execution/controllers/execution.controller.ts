@@ -7,6 +7,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -22,6 +24,7 @@ import { ExecutionService } from "../services/execution.service";
 import { ExecutionValidatorService } from "../services/execution-validator.service";
 import { AssessmentAuditService } from "../services/assessment-audit.service";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
@@ -32,12 +35,38 @@ import { UserRole } from "@prisma/client";
 @Roles(UserRole.CANDIDATE, UserRole.ADMIN)
 @Controller()
 export class ExecutionController {
+  private readonly logger = new AppLogger({ name: "ExecutionController" });
+
   constructor(
     private readonly executionService: ExecutionService,
     private readonly validator: ExecutionValidatorService,
     private readonly auditService: AssessmentAuditService,
     private readonly prisma: PrismaService,
   ) {}
+
+  /**
+   * SEC-002: Shared ownership guard for execution sessions.
+   * Ensures the authenticated user owns the TestInstance.
+   */
+  private async assertExecutionOwnership(id: string, user: AuthUser) {
+    const instance = await this.prisma.testInstance.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+    if (!instance) {
+      throw new NotFoundException(`Assessment session ${id} not found`);
+    }
+    if (instance.userId !== user.id) {
+      this.logger.warn("SEC-002: Unauthorized execution access attempt", {
+        testInstanceId: id,
+        requestingUserId: user.id,
+        ownerUserId: instance.userId,
+      });
+      throw new ForbiddenException(
+        "You do not have permission to access this assessment session",
+      );
+    }
+  }
 
   @Get("tests/:id")
   @HttpCode(HttpStatus.OK)
@@ -73,6 +102,9 @@ export class ExecutionController {
       networkStatusTimestamp: string;
     },
   ) {
+    // SEC-002: Verify the candidate owns this session before writing state
+    await this.assertExecutionOwnership(id, user);
+
     await this.prisma.executionState.upsert({
       where: { testInstanceId: id },
       update: {
@@ -107,6 +139,9 @@ export class ExecutionController {
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
   ) {
+    // SEC-002: Verify the candidate owns this session before returning any answers
+    await this.assertExecutionOwnership(id, user);
+
     const state = await this.prisma.executionState.findUnique({
       where: { testInstanceId: id },
     });
@@ -156,6 +191,9 @@ export class ExecutionController {
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
   ) {
+    // SEC-002: Verify ownership before allowing termination
+    await this.assertExecutionOwnership(id, user);
+
     await this.prisma.testInstance.update({
       where: { id },
       data: {
@@ -181,7 +219,12 @@ export class ExecutionController {
   @Get("assessment-audit/:id")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Retrieve audit trail of assessment actions" })
-  async getAuditTrail(@Param("id") id: string) {
+  async getAuditTrail(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    // SEC-002: Verify ownership before exposing audit trail
+    await this.assertExecutionOwnership(id, user);
     return this.auditService.getAuditTrail(id);
   }
 }

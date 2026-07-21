@@ -40,11 +40,6 @@ describe("AuthService - Google Login", () => {
     college: null,
     graduationYear: null,
     phone: null,
-    bio: null,
-    linkedinUrl: null,
-    emailInvites: true,
-    emailReminders: true,
-    emailMarketing: false,
   };
 
   const mockSession = {

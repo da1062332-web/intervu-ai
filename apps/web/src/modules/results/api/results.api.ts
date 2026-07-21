@@ -31,7 +31,9 @@ export const resultApi = {
   },
 
   getResultDetails: async (attemptId: string): Promise<ResultDetails> => {
-    return apiClient.request<ResultDetails>(`${BASE_PATH}/${attemptId}`);
+    return apiClient.request<ResultDetails>(`${BASE_PATH}/${attemptId}`, {
+      skipErrorToast: true,
+    });
   },
 
   getStatus: async (attemptId: string): Promise<{ status: string }> => {

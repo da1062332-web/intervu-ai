@@ -1,19 +1,75 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface EmbeddedCompilerProps {
   onChange?: (data: any) => void;
 }
 
+// SEC-003: Trusted origins for the embedded compiler
+const TRUSTED_COMPILER_ORIGIN = 'https://onecompiler.com';
+
+// SEC-003: Expected message types from OneCompiler
+const VALID_MESSAGE_TYPES = new Set([
+  'codeChange',
+  'languageChange',
+  'run',
+  'output',
+  'error',
+]);
+
+/**
+ * SEC-003: Validate a message received from the embedded compiler iframe.
+ * Returns the validated data or null if the message should be rejected.
+ */
+function validateCompilerMessage(event: MessageEvent): any | null {
+  // 1. Validate origin — reject anything not from the trusted compiler domain
+  if (event.origin !== TRUSTED_COMPILER_ORIGIN) {
+    return null; // Silently reject — could be ads, other iframes, or malicious origin
+  }
+
+  // 2. Validate that the message has expected structure
+  if (!event.data || typeof event.data !== 'object') {
+    return null;
+  }
+
+  const data = event.data;
+
+  // 3. Validate message type (OneCompiler sends a `type` or identifiable field)
+  //    OneCompiler typically sends objects with a `language` field for code change events
+  //    and `type` for other events. Accept both patterns.
+  const hasLanguage = typeof data.language === 'string' && data.language.length > 0;
+  const hasValidType = typeof data.type === 'string' && VALID_MESSAGE_TYPES.has(data.type);
+
+  if (!hasLanguage && !hasValidType) {
+    return null;
+  }
+
+  // 4. Validate payload fields — no XSS vectors via injected strings beyond reasonable length
+  if (data.code && typeof data.code !== 'string') {
+    return null;
+  }
+  if (data.language && data.language.length > 100) {
+    return null;
+  }
+
+  return data;
+}
+
 export function EmbeddedCompiler({ onChange }: EmbeddedCompilerProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
   useEffect(() => {
-    const handleMessage = (e: MessageEvent) => {
-      if (e.data && e.data.language) {
-        console.log('[OneCompiler]', e.data);
-        if (onChange) {
-          onChange(e.data);
-        }
+    const handleMessage = (event: MessageEvent) => {
+      // SEC-003: Validate origin and payload before processing
+      const validatedData = validateCompilerMessage(event);
+      if (!validatedData) {
+        // Reject untrusted or malformed messages without logging sensitive info
+        return;
+      }
+
+      if (onChange) {
+        onChange(validatedData);
       }
     };
 
@@ -39,6 +95,7 @@ export function EmbeddedCompiler({ onChange }: EmbeddedCompilerProps) {
       </div>
       <div className='flex-1 relative w-full h-full min-h-[650px]'>
         <iframe
+          ref={iframeRef}
           id="oc-editor"
           src={`${baseUrl}?${queryParams.toString()}`}
           width='100%'
@@ -46,6 +103,7 @@ export function EmbeddedCompiler({ onChange }: EmbeddedCompilerProps) {
           frameBorder='0'
           title='OneCompiler'
           className='absolute inset-0'
+          sandbox='allow-scripts allow-same-origin allow-popups allow-forms'
           style={{
             border: 'none',
             overflow: 'hidden',

@@ -93,6 +93,23 @@ export class TcsClassificationService {
     };
   }
 
+  private sanitizeForPrompt(input: string): string {
+    if (!input || typeof input !== 'string') return '(no submission)';
+    // AI Risk: Truncate to prevent very large inputs from exceeding context or hiding injections
+    const maxLength = 3000;
+    let sanitized = input.slice(0, maxLength);
+    if (input.length > maxLength) {
+      sanitized += '\n...(truncated)';
+    }
+    // AI Risk: Strip common prompt injection patterns
+    // These patterns attempt to override the system role or inject new instructions
+    sanitized = sanitized
+      .replace(/ignore (all |previous |above |prior )?instructions?/gi, '[REDACTED]')
+      .replace(/you are (now |a |an )?/gi, '[REDACTED]')
+      .replace(/system:|assistant:|user:|human:|prompt:/gi, '[REDACTED]');
+    return sanitized;
+  }
+
   private async evaluateOverallCodingPerformance(
     codingEvaluations: QuestionEvaluationResult[]
   ): Promise<{ codingLevel: string, codingFeedback: string }> {
@@ -103,13 +120,14 @@ export class TcsClassificationService {
     const submissionsStr = codingEvaluations.map((evalObj, idx) => `
 --- Coding Question ${idx + 1} ---
 Expected Solution / Logic:
-${evalObj.correctAnswer}
+${this.sanitizeForPrompt(evalObj.correctAnswer)}
 
 Candidate's Submission & Execution Output (JSON or Raw):
-${evalObj.candidateAnswer}
+${this.sanitizeForPrompt(evalObj.candidateAnswer)}
 
-Individual Assigned Score (0.0 to 1.0): ${evalObj.score}
+Individual Assigned Score (0.0 to 1.0): ${typeof evalObj.score === 'number' ? evalObj.score.toFixed(2) : '0.00'}
 `).join("\n");
+
 
     const prompt = `
 You are an expert technical recruiter assessing a candidate's overall coding capability across a set of coding questions.

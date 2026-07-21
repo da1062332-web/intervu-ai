@@ -61,7 +61,13 @@ describe('useOfflineRecovery', () => {
     const { result } = renderHook(() => useOfflineRecovery());
 
     await act(async () => {
-      await result.current.queueOperation('SAVE_ANSWER', { q1: 'opt1' });
+      await result.current.queueOperation('SAVE_ANSWER', {
+        testId: 'test-1',
+        questionId: 'q1',
+        answer: 'opt1',
+        timeSpentSeconds: 0,
+        isMarkedForReview: false,
+      });
     });
 
     expect(global.indexedDB.open).toHaveBeenCalledWith('IntervuOfflineDB', 1);
