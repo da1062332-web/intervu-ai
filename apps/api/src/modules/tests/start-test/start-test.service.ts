@@ -8,6 +8,7 @@ import { StartTestDto } from "./dto/start-test.dto";
 import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { TestConfigRepository } from "../repositories/test-config.repository";
 import { QuestionProviderService } from "./question-provider.service";
+import { AssembledTestRepository } from "../../assembly/repositories/assembled-test.repository";
 import { TestInstanceService } from "../test-instance/test-instance.service";
 import { TestInstanceStatus, Prisma } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
@@ -20,6 +21,7 @@ export class StartTestService {
     private readonly eligibilityService: EligibilityService,
     private readonly testConfigRepository: TestConfigRepository,
     private readonly questionProvider: QuestionProviderService,
+    private readonly assembledTestRepository: AssembledTestRepository,
     private readonly testInstanceService: TestInstanceService,
     private readonly prisma: PrismaService,
   ) {}
@@ -110,30 +112,58 @@ export class StartTestService {
     }
 
     // 2. coreLogic(data) -> Assembly
-    const sectionsData = [];
+    // Prefer a published AssembledTest snapshot for this configId if available.
+    let sectionsData = [];
 
     try {
-      for (const section of config.sections) {
-        const questions = await this.questionProvider.fetchOrGenerateQuestions([
-          {
-            conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
-            difficultyLevel: "MEDIUM",
-            count: section.questionCount,
-          },
-        ]);
+      const assembly = await this.assembledTestRepository.findByConfigId(
+        input.testConfigId,
+      );
 
-        sectionsData.push({
-          sectionKey: section.sectionKey,
-          sectionName: section.displayName,
-          durationSeconds: section.durationSeconds,
-          questionCount: section.questionCount,
-          orderIndex: section.orderIndex,
-          questions: questions.map((q, index) => ({
-            questionId: q.id,
-            questionOrder: index,
-            questionSnapshot: q as unknown as Prisma.InputJsonValue,
-          })),
-        });
+      if (assembly) {
+        // Use persisted snapshot directly
+        for (const section of assembly.sections || []) {
+          const questions = (section.questions || [])
+            .sort((a, b) => a.questionOrder - b.questionOrder)
+            .map((q) => ({
+              questionId: q.questionId,
+              questionOrder: q.questionOrder,
+              questionSnapshot: q.questionSnapshot as unknown as Prisma.InputJsonValue,
+            }));
+
+          sectionsData.push({
+            sectionKey: section.sectionKey,
+            sectionName: section.sectionName,
+            durationSeconds: section.durationSeconds,
+            questionCount: section.questionCount,
+            orderIndex: section.orderIndex,
+            questions,
+          });
+        }
+      } else {
+        // No published snapshot — fall back to live generation
+        for (const section of config.sections) {
+          const questions = await this.questionProvider.fetchOrGenerateQuestions([
+            {
+              conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
+              difficultyLevel: "MEDIUM",
+              count: section.questionCount,
+            },
+          ]);
+
+          sectionsData.push({
+            sectionKey: section.sectionKey,
+            sectionName: section.displayName,
+            durationSeconds: section.durationSeconds,
+            questionCount: section.questionCount,
+            orderIndex: section.orderIndex,
+            questions: questions.map((q, index) => ({
+              questionId: q.id,
+              questionOrder: index,
+              questionSnapshot: q as unknown as Prisma.InputJsonValue,
+            })),
+          });
+        }
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
