@@ -10,6 +10,8 @@ import {
   useDeactivateConcept,
 } from '@/services/concept-mapping';
 import { useManualQuestions } from '@/services/manual-questions/hooks';
+import { useTemplatesByConcept, useCreateTemplate, useDeleteTemplate } from '@/services/templates/hooks';
+import { toast } from 'sonner';
 import { ManualQuestionModal } from '@/app/admin/manual-questions/components/ManualQuestionModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,9 +41,7 @@ import {
   FileText,
   List,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import type { ConceptMapping } from '@/services/concept-mapping/types';
-import { useTemplatesByConcept, useCreateTemplate } from '@/services/templates/hooks';
 import { Label } from '@/components/ui/label';
 import { useQueries } from '@tanstack/react-query';
 import * as templateApi from '@/services/templates/api';
@@ -62,6 +62,17 @@ function ConceptTemplatesRow({
   const conceptKey = concept.code || concept.conceptCode;
   const { data: response, isLoading, isError } = useTemplatesByConcept(conceptKey);
   const templates = response?.items || [];
+  const deleteMutation = useDeleteTemplate();
+
+  const handleDeleteTemplate = async (templateId: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete template "${name}"?`)) return;
+    try {
+      await deleteMutation.mutateAsync(templateId);
+      toast.success(`Template "${name}" deleted successfully!`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to delete template.');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -136,6 +147,8 @@ function ConceptTemplatesRow({
                       variant='ghost'
                       size='sm'
                       className='h-8 text-red-500 hover:text-red-600'
+                      disabled={deleteMutation.isPending}
+                      onClick={() => handleDeleteTemplate(tpl.id, tpl.name || 'Untitled Template')}
                     >
                       <Trash2 className='w-3.5 h-3.5 mr-1' /> Delete
                     </Button>

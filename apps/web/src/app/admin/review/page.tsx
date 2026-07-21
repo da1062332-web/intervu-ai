@@ -14,7 +14,7 @@ import { BulkActionToolbar } from './components/BulkActionToolbar';
 import { GeneratedQuestion } from '@/services/question-generation/types';
 
 export default function QuestionReviewPage() {
-  const { data: questions = [], isLoading } = useGeneratedQuestions();
+  const { data: questions = [], isLoading } = useGeneratedQuestions({ status: 'GENERATED' });
   const { mutateAsync: approve } = useApproveQuestion();
   const { mutateAsync: reject } = useRejectQuestion();
   const { mutateAsync: regenerate } = useRegenerateQuestion();
@@ -49,7 +49,14 @@ export default function QuestionReviewPage() {
   }, [searchParams]);
 
   // Filter only generated (pending review) questions for this view
-  const draftQuestions = questions.filter((q) => q.status === 'GENERATED');
+  const draftQuestions = questions.filter(
+    (q: any) =>
+      q.status === 'Draft' ||
+      q.status === 'GENERATED' ||
+      q.status === 'DRAFT' ||
+      q.rawStatus === 'GENERATED' ||
+      q.rawStatus === 'DRAFT'
+  );
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));

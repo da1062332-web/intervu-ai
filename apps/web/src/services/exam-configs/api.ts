@@ -56,7 +56,7 @@ export const examConfigsApi = {
    * Get the readiness score and breakdown for a configuration.
    */
   getReadiness: (configId: string) => {
-    return apiClient.request<any>(`/configs/${configId}/readiness`, {
+    return apiClient.request<any>(`/admin/configs/${configId}/readiness`, {
       method: 'GET',
     });
   },
@@ -65,8 +65,8 @@ export const examConfigsApi = {
    * Re-evaluate the readiness score and breakdown for a configuration.
    */
   refreshReadiness: (configId: string) => {
-    return apiClient.request<any>(`/configs/${configId}/readiness`, {
-      method: 'POST',
+    return apiClient.request<any>(`/admin/configs/${configId}/readiness`, {
+      method: 'GET',
     });
   },
 

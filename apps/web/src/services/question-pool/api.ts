@@ -18,19 +18,25 @@ export const questionPoolApi = {
     });
 
     const items = Array.isArray(res) ? res : res?.data || [];
-    return items.map((q: any) => ({
-      ...q,
-      status:
-        q.status === 'GENERATED'
+    return items.map((q: any) => {
+      const rawStatus = (q.status || q.metadata?.status || 'GENERATED').toString().toUpperCase();
+      const status =
+        rawStatus === 'GENERATED' || rawStatus === 'DRAFT'
           ? 'Draft'
-          : q.status === 'APPROVED'
+          : rawStatus === 'APPROVED'
           ? 'Approved'
-          : q.status === 'REJECTED'
+          : rawStatus === 'REJECTED'
           ? 'Rejected'
-          : q.status === 'PUBLISHED'
+          : rawStatus === 'PUBLISHED'
           ? 'Published'
-          : q.status,
-    }));
+          : rawStatus;
+
+      return {
+        ...q,
+        status,
+        rawStatus,
+      };
+    });
   },
 
   approveQuestion: async (id: string): Promise<GeneratedQuestion> => {

@@ -21,10 +21,23 @@ export function QuestionPoolTable({
   onToggleSelectAll
 }: QuestionPoolTableProps) {
   // We only show Approved and Published in the Bank
-  const poolQuestions = questions.filter(q => q.status === 'APPROVED' || q.status === 'PUBLISHED');
+  const poolQuestions = questions.filter(
+    (q: any) =>
+      q.status === 'APPROVED' ||
+      q.status === 'Approved' ||
+      q.status === 'PUBLISHED' ||
+      q.status === 'Published' ||
+      q.rawStatus === 'APPROVED' ||
+      q.rawStatus === 'PUBLISHED'
+  );
   
   // Exclude Published from selection for Publishing
-  const selectableQuestions = poolQuestions.filter(q => q.status === 'APPROVED');
+  const selectableQuestions = poolQuestions.filter(
+    (q: any) =>
+      q.status === 'APPROVED' ||
+      q.status === 'Approved' ||
+      q.rawStatus === 'APPROVED'
+  );
   
   const allSelected = selectableQuestions.length > 0 && 
                       selectedIds.length === selectableQuestions.length;

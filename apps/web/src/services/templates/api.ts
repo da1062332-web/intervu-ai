@@ -167,3 +167,7 @@ export const getTemplateDatasetPreview = async (templateId: string): Promise<any
     body: { templateId }
   });
 };
+
+export const deleteTemplate = async (id: string): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${id}`, { method: 'DELETE' });
+};

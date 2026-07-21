@@ -8,9 +8,10 @@ import { TopicWeightageRepository } from "./repositories/topic-weightage.reposit
 import { ConceptMappingModule } from "../concept-mapping/concept-mapping.module";
 import { AdminConfigModule } from "../admin-config/admin-config.module";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { QuestionBankModule } from "../question-bank/question-bank.module";
 
 @Module({
-  imports: [PrismaModule, ConceptMappingModule, AdminConfigModule],
+  imports: [PrismaModule, ConceptMappingModule, AdminConfigModule, QuestionBankModule],
   controllers: [TopicSectionMappingController, TopicWeightageController],
   providers: [
     TopicSectionMappingService,

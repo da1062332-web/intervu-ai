@@ -78,6 +78,7 @@ export interface ReadinessCheck {
   name: string;
   status: 'PASS' | 'FAIL' | 'WARN';
   message?: string;
+  details?: Record<string, any>;
 }
 
 export interface ReadinessFix {
