@@ -88,7 +88,14 @@ export class ResponseValidatorService {
     const hasSteps = /step-by-step|solution/i.test(explanation);
     const hasFinalAnswer = /final answer|answer/i.test(explanation);
 
-    if (!hasConcept || !hasFormula || !hasSteps || !hasFinalAnswer) {
+    // Allow short explanations that directly state the final answer (common for simple MCQs),
+    // but enforce the full heading structure for longer explanations.
+    const minimalExplanationOk =
+      explanation.length < 120 &&
+      answerValue &&
+      explanation.toLowerCase().includes(answerValue.toLowerCase());
+
+    if (!((hasConcept && hasFormula && hasSteps && hasFinalAnswer) || minimalExplanationOk)) {
       throw new BadRequestException(
         "Explanation must include Concept, Formula / Reasoning, Step-by-Step Solution, and Final Answer sections",
       );

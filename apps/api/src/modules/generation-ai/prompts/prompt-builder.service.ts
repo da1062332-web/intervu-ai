@@ -114,15 +114,13 @@ export class PromptBuilderService {
     const resolvedCorrectAnswer = this.resolveCorrectAnswer(template, variableValues);
     const correctAnswerVal =
       input.correctAnswer ||
-      variableValues.correctAnswer ||
+      (variableValues as any).correctAnswer ||
       (variableValues as any).answer ||
       resolvedCorrectAnswer ||
       "";
 
-    const hasCorrectAnswer =
-      resolvedCorrectAnswer !== undefined &&
-      resolvedCorrectAnswer !== null &&
-      String(resolvedCorrectAnswer).trim().length > 0;
+    // Consider any supplied or computed correct answer as valid.
+    const hasCorrectAnswer = String(correctAnswerVal).trim().length > 0;
 
     const correctAnswerHint = hasCorrectAnswer
       ? `- Correct Answer Value = ${correctAnswerVal}`
