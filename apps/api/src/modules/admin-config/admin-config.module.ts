@@ -10,10 +10,12 @@ import { ConfigDependencyValidatorService } from "./validators/config-dependency
 import { ConfigPreviewService } from "./services/config-preview.service";
 import { ConfigVersionService } from "./versioning/config-version.service";
 import { ConfigPublisherService } from "./publishing/config-publisher.service";
+import { ExamConfigReadinessService } from "./services/exam-config-readiness.service";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { QuestionBankModule } from "../question-bank/question-bank.module";
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, QuestionBankModule],
   controllers: [ExamConfigController, ExamSectionController],
   providers: [
     // Core CRUD
@@ -26,6 +28,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
     ConfigDependencyValidatorService,
     // Service Layer
     ConfigPreviewService,
+    ExamConfigReadinessService,
     // Versioning
     ConfigVersionService,
     // Publishing
@@ -39,6 +42,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
     ConfigurationValidatorService,
     ConfigDependencyValidatorService,
     ConfigPreviewService,
+    ExamConfigReadinessService,
     ConfigVersionService,
     ConfigPublisherService,
   ],

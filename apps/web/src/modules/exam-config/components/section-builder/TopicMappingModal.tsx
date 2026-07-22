@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Modal } from '@/components/ui/modal';
 import { useSectionTopics, useAdminTopics, useAssignTopic, useRemoveTopic } from '@/features/topic-section-mapping/api/queries';
 import { WeightageEditor } from '@/features/topic-section-mapping/components/WeightageEditor';
@@ -66,15 +67,39 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
         promises.push(removeTopic.mutateAsync(id));
       }
 
-      await Promise.allSettled(promises);
+      const results = await Promise.allSettled(promises);
       
+      // Check for errors
+      const rejected = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+      if (rejected.length > 0) {
+        for (const r of rejected) {
+          const errData = r.reason?.response?.data || r.reason?.data || r.reason;
+          const msg = errData?.message || r.reason?.message || 'Failed to assign topic.';
+          const shortcutUrl = errData?.details?.shortcutUrl;
+
+          toast.error(msg, {
+            duration: 8000,
+            action: shortcutUrl ? {
+              label: '⚡ Generate Questions',
+              onClick: () => window.location.href = shortcutUrl,
+            } : undefined,
+          });
+        }
+      } else {
+        toast.success('Topic mappings updated successfully!');
+      }
+
       // Invalidate configuration and readiness queries to ensure UI updates across the board
       await queryClient.invalidateQueries({ queryKey: ['config-validation'] });
+      await queryClient.invalidateQueries({ queryKey: ['config-readiness'] });
       await queryClient.invalidateQueries({ queryKey: ['exam-configs'] });
+      await refetch();
       
-      onClose();
-    } catch (error) {
-      console.error('Failed to save topic mappings', error);
+      if (rejected.length === 0) {
+        onClose();
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save topic mappings.');
     } finally {
       setIsSaving(false);
     }

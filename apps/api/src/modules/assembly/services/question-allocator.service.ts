@@ -31,6 +31,7 @@ export class QuestionAllocatorService {
     allocatedQuestionIds: Set<string>,
     historyIds: string[],
     fallbackConfig: AllocationConfig,
+    examId?: string,
   ): Promise<AllocatedQuestionDto[]> {
     const totalQuestions = section.questionCount;
     if (totalQuestions <= 0) return [];
@@ -67,6 +68,7 @@ export class QuestionAllocatorService {
           difficultyLevel: diff.level,
           limit: topicCount * 5,
           excludeIds: Array.from(allocatedQuestionIds),
+          examId,
         });
 
         const filteredQuestions = await this.antiRepetitionService.filterPool(
@@ -105,6 +107,7 @@ export class QuestionAllocatorService {
           difficultyLevel: diff.level,
           limit: remainingDiffCount * 5,
           excludeIds: Array.from(allocatedQuestionIds),
+          examId,
         });
         const filteredExtra = await this.antiRepetitionService.filterPool(
           extraQuestions,

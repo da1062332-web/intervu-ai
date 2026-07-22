@@ -7,6 +7,7 @@ export interface QuestionFilters {
   difficultyLevel?: string;
   excludeIds?: string[];
   limit?: number;
+  examId?: string;
 }
 
 export interface IQuestionSource {

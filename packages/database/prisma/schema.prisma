@@ -479,6 +479,7 @@ model ExamConfig {
   enrollments            CandidateEnrollment[]
   workflow               ExamWorkflow?
   readinessReports       ReadinessReport[]
+  questionUsages         ExamConfigQuestionUsage[]
 
   @@index([createdAt])
   @@index([role])
@@ -858,6 +859,9 @@ model Question {
   topic             Topic                @relation(fields: [topicId], references: [id])
   concept           Concept?             @relation(fields: [conceptId], references: [id], onDelete: SetNull)
   reviewAuditLogs   ReviewAuditLog[]
+  batchId           String?              @map("batch_id")
+  batch             QuestionBatch?       @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  configUsages      ExamConfigQuestionUsage[]
 
   @@index([topicId])
   @@index([difficulty])
@@ -1516,3 +1520,86 @@ enum QuestionGenerationJobStatus {
   COMPLETED
   FAILED
 }
+
+enum BatchState {
+  PENDING
+  GENERATING
+  VALIDATING
+  ACTIVE
+  PARTIAL_ACTIVE
+  FAILED
+  ARCHIVED
+}
+
+model QuestionBatch {
+  id            String               @id @default(cuid())
+  batchNumber   Int                  @map("batch_number")
+  topicId       String               @map("topic_id")
+  conceptId     String?              @map("concept_id")
+  sourceType    String               @map("source_type")
+  state         BatchState           @default(PENDING)
+  totalCount    Int                  @map("total_count")
+  validCount    Int                  @default(0) @map("valid_count")
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+
+  questions     Question[]
+  errors        QuestionBatchError[]
+
+  @@index([topicId, state])
+  @@map("question_batches")
+}
+
+model QuestionBatchError {
+  id            String        @id @default(cuid())
+  batchId       String        @map("batch_id")
+  rawText       String?       @map("raw_text")
+  reason        String
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  batch         QuestionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@map("question_batch_errors")
+}
+
+model ExamConfigQuestionUsage {
+  id            String     @id @default(cuid())
+  configId      String     @map("config_id")
+  questionId    String     @map("question_id")
+  timesUsed     Int        @default(1) @map("times_used")
+  lastUsedAt    DateTime   @default(now()) @map("last_used_at")
+
+  examConfig    ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  question      Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([configId, questionId])
+  @@index([configId])
+  @@index([questionId])
+  @@map("exam_config_question_usages")
+}
+
+model ConfigReadinessStats {
+  configId                 String   @id @map("config_id")
+  readinessScore           Int      @default(0) @map("readiness_score")
+  status                   String   @default("PENDING")
+  totalRequiredQuestions   Int      @default(0) @map("total_required_questions")
+  availableUnusedCapacity  Int      @default(0) @map("available_unused_capacity")
+  detailsJson              Json     @map("details_json")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  @@map("config_readiness_stats")
+}
+
+model TransactionalOutbox {
+  id            String   @id @default(cuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  processed     Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([processed, createdAt])
+  @@map("transactional_outbox")
+}
+

@@ -95,20 +95,57 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {checks.map((item, i) => (
-                  <div key={i} className={`flex items-center justify-between p-4 rounded-lg border shadow-sm transition-colors ${item.status === 'PASS' ? 'bg-green-50/30 border-green-200' : 'bg-red-50/30 border-red-200 hover:bg-red-50/50'}`}>
-                    <div className="flex flex-col gap-1 w-full">
+                  <div
+                    key={i}
+                    className={`flex items-start justify-between p-4 rounded-lg border shadow-sm transition-colors ${
+                      item.status === 'PASS'
+                        ? 'bg-green-50/30 border-green-200'
+                        : item.status === 'WARN'
+                        ? 'bg-amber-50/50 border-amber-300'
+                        : 'bg-red-50/30 border-red-200'
+                    }`}
+                  >
+                    <div className="flex flex-col gap-2 w-full">
                       <div className="flex items-center gap-3">
                         {item.status === 'PASS' ? (
                           <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                        ) : item.status === 'WARN' ? (
+                          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
                         ) : (
                           <XCircle className="w-5 h-5 text-red-500 shrink-0" />
                         )}
-                        <span className={`text-sm font-medium ${item.status === 'PASS' ? 'text-green-800' : 'text-red-700'}`}>
+                        <span
+                          className={`text-sm font-semibold ${
+                            item.status === 'PASS'
+                              ? 'text-green-800'
+                              : item.status === 'WARN'
+                              ? 'text-amber-900'
+                              : 'text-red-700'
+                          }`}
+                        >
                           {item.name}
                         </span>
                       </div>
+
                       {item.message && item.status !== 'PASS' && (
-                        <span className="text-xs text-red-600 ml-8">{item.message}</span>
+                        <p className="text-xs font-medium text-amber-900 dark:text-amber-300 ml-8 leading-relaxed">
+                          {item.message}
+                        </p>
+                      )}
+
+                      {item.details && (item.details as any).shortcutUrl && (
+                        <div className="ml-8 mt-1">
+                          <Button
+                            size="sm"
+                            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-sm gap-1.5"
+                            asChild
+                          >
+                            <Link href={(item.details as any).shortcutUrl}>
+                              ⚡ Generate Questions for Topic
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>

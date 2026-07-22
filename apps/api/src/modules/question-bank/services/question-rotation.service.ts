@@ -76,6 +76,15 @@ export class QuestionRotationService {
           difficulty: diff,
           topicId:
             topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
+          configUsages: request.examId
+            ? {
+                none: {
+                  configId: {
+                    not: request.examId,
+                  },
+                },
+              }
+            : undefined,
           AND: [
             {
               OR: [{ sectionId }, { sectionId: null }],
@@ -158,6 +167,10 @@ export class QuestionRotationService {
       for (const [diff, required] of Object.entries(difficultyDistribution)) {
         if (!required || required === 0) continue;
 
+        const configFilter = request.examId
+          ? Prisma.sql`AND NOT EXISTS (SELECT 1 FROM exam_config_question_usages u WHERE u.question_id = q.id AND u.config_id != ${request.examId})`
+          : Prisma.empty;
+
         // Perform raw PostgreSQL query with SKIP LOCKED
         const lockedQuestions: { id: string }[] = await tx.$queryRaw`
           SELECT q.id FROM questions q
@@ -165,6 +178,7 @@ export class QuestionRotationService {
             AND (q.section_id = ${sectionId} OR q.section_id IS NULL)
             AND q.difficulty = ${diff}
             ${topicFilter}
+            ${configFilter}
             AND q.id NOT IN (
               SELECT qr.question_id FROM question_reservations qr WHERE qr.expires_at > NOW()
             )
@@ -200,6 +214,30 @@ export class QuestionRotationService {
         assemblyId,
         expiresAt,
       );
+
+      // 5. Record config question usage if examId is provided
+      if (request.examId) {
+        for (const qId of selectedQuestionIds) {
+          await tx.examConfigQuestionUsage.upsert({
+            where: {
+              configId_questionId: {
+                configId: request.examId,
+                questionId: qId,
+              },
+            },
+            create: {
+              configId: request.examId,
+              questionId: qId,
+              timesUsed: 1,
+              lastUsedAt: new Date(),
+            },
+            update: {
+              timesUsed: { increment: 1 },
+              lastUsedAt: new Date(),
+            },
+          });
+        }
+      }
 
       // Map back to response interface
       const providerQuestions = questions.map((q) => ({

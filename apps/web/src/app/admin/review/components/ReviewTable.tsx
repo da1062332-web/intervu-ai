@@ -35,10 +35,22 @@ export function ReviewTable({
 }: ReviewTableProps) {
   const [search, setSearch] = useState('');
 
-  const filtered = questions.filter(q => 
-    q.status === 'GENERATED' && 
-    (q.questionText.toLowerCase().includes(search.toLowerCase()) || q.id.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = questions.filter((q: any) => {
+    const isPending =
+      q.status === 'GENERATED' ||
+      q.status === 'Draft' ||
+      q.status === 'DRAFT' ||
+      q.rawStatus === 'GENERATED' ||
+      q.rawStatus === 'DRAFT' ||
+      !q.status;
+
+    const matchesSearch =
+      !search ||
+      (q.questionText && q.questionText.toLowerCase().includes(search.toLowerCase())) ||
+      (q.id && q.id.toLowerCase().includes(search.toLowerCase()));
+
+    return isPending && matchesSearch;
+  });
 
   const allSelected = filtered.length > 0 && selectedIds.length === filtered.length;
 

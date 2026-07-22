@@ -20,6 +20,7 @@ import {
   ApiOkResponse,
   ApiCreatedResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
@@ -51,6 +52,16 @@ export class QuestionsController {
     summary: "List and search generated questions with query filters",
   })
   @ApiOkResponse({ description: "Generated questions retrieved successfully" })
+  @ApiQuery({ name: "page", required: false, type: String })
+  @ApiQuery({ name: "limit", required: false, type: String })
+  @ApiQuery({ name: "q", required: false, type: String })
+  @ApiQuery({ name: "topicId", required: false, type: String })
+  @ApiQuery({ name: "conceptKey", required: false, type: String })
+  @ApiQuery({ name: "templateId", required: false, type: String })
+  @ApiQuery({ name: "difficulty", required: false, type: String })
+  @ApiQuery({ name: "status", required: false, type: String })
+  @ApiQuery({ name: "sortBy", required: false, type: String })
+  @ApiQuery({ name: "sortOrder", required: false, type: String })
   async search(
     @Query("page") pageStr?: string,
     @Query("limit") limitStr?: string,
@@ -250,6 +261,9 @@ export class QuestionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "View generated question pool" })
   @ApiOkResponse({ description: "Generated questions retrieved successfully" })
+  @ApiQuery({ name: "conceptKey", required: false, type: String })
+  @ApiQuery({ name: "difficulty", required: false, type: String })
+  @ApiQuery({ name: "limit", required: false, type: String })
   async getGeneratedQuestions(
     @Query("conceptKey") conceptKey?: string,
     @Query("difficulty") difficulty?: string,

@@ -53,6 +53,7 @@ export class AssemblyService {
         allocatedQuestionIds,
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
+        configId,
       );
 
       const section = this.sectionBuilder.buildSection(
@@ -94,6 +95,7 @@ export class AssemblyService {
         allocatedQuestionIds,
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
+        configId,
       );
 
       const section = this.sectionBuilder.buildSection(
@@ -132,6 +134,7 @@ export class AssemblyService {
         allocatedQuestionIds,
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
+        configId,
       );
 
       const section = this.sectionBuilder.buildSection(

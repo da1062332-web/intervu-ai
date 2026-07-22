@@ -15,8 +15,13 @@ import { ConfigurationSelectors } from './ConfigurationSelectors';
 import { BatchProgressWidget } from './BatchProgressWidget';
 import { GenerationHistory } from './GenerationHistory';
 
+import { useSearchParams } from 'next/navigation';
+
 export function GenerationDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoTopicId = searchParams?.get('topicId');
+
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedConcept, setSelectedConcept] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
@@ -35,6 +40,12 @@ export function GenerationDashboard() {
   const selectedConceptKey = selectedConceptItem?.code || selectedConceptItem?.conceptCode || '';
   const { data: templatesData } = useTemplatesByConcept(selectedConceptKey, 1, 100);
   const templates = templatesData?.items || [];
+
+  useEffect(() => {
+    if (autoTopicId && topics.length > 0) {
+      setSelectedTopic(autoTopicId);
+    }
+  }, [autoTopicId, topics]);
 
   useEffect(() => {
     setSelectedConcept('');
