@@ -9,8 +9,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { SectionHeader } from '@/components/ui/section-header';
 import {
   Sparkles,
   Save,
@@ -233,23 +235,20 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button type="button" variant="outline" size="icon" onClick={() => router.push('/admin/style-profiles')}>
-            <ArrowLeft className="h-4 w-4" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <SectionHeader
+          title={isEdit ? 'Edit Style Profile' : 'New Style Profile'}
+          description="Customize the formatting and quality constraints used for AI question generation."
+          className="!mb-0"
+        />
+        <div className="flex items-center gap-3 shrink-0">
+          <Button type="button" variant="outline" onClick={() => router.push('/admin/style-profiles')}>
+            Cancel
           </Button>
-          <div>
-            <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-              {isEdit ? 'Edit Style Profile' : 'New Style Profile'}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Customize the formatting and quality constraints used for AI question generation.
-            </p>
-          </div>
+          <Button type="submit" isLoading={updateMutation.isPending || createMutation.isPending}>
+            <Save className="h-4 w-4 mr-2" /> {isEdit ? 'Save Changes' : 'Create Profile'}
+          </Button>
         </div>
-        <Button type="submit" className="shadow-md bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 gap-2">
-          <Save className="h-4 w-4" /> {isEdit ? 'Save Changes' : 'Create Profile'}
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -262,7 +261,7 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${
                 activeTab === tab.id
-                  ? 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 shadow-sm border-l-4 border-violet-600'
+                  ? 'bg-primary/10 text-primary shadow-sm border-l-4 border-primary'
                   : 'hover:bg-muted/10 text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -273,7 +272,7 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
         </div>
 
         {/* Tab Contents */}
-        <Card className="lg:col-span-3 border rounded-xl shadow-sm bg-card overflow-hidden">
+        <Card className="lg:col-span-3">
           <CardContent className="p-6">
             {activeTab === 'general' && (
               <div className="space-y-6">
@@ -305,12 +304,12 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <textarea
+                  <Textarea
                     id="description"
                     placeholder="Provide a short summary explaining when this profile should be assigned."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full min-h-[100px] p-3 border rounded-md bg-background text-sm shadow-sm"
+                    className="min-h-[100px]"
                   />
                 </div>
 
@@ -409,10 +408,10 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
                   {preferredContexts.map((ctx, index) => (
                     <span
                       key={index}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-100"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20"
                     >
                       {ctx}
-                      <button type="button" onClick={() => removeContext(index)} className="hover:text-destructive text-violet-500 font-bold">
+                      <button type="button" onClick={() => removeContext(index)} className="hover:text-destructive text-primary/70 font-bold">
                         ×
                       </button>
                     </span>
@@ -427,7 +426,7 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
             {activeTab === 'difficulty' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-foreground border-b pb-2">Difficulty-Specific Presentation Rules</h3>
-                <div className="bg-muted/10 border rounded-lg p-4 space-y-4">
+                <div className="bg-muted/30 border rounded-lg p-4 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Difficulty Level</Label>
@@ -624,11 +623,11 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
                 <p className="text-sm text-muted-foreground">
                   Provide custom prompts, vocabulary lists, or style guidelines that will be directly appended to the system prompts.
                 </p>
-                <textarea
+                <Textarea
                   placeholder="e.g. Prefer Metric units. Do not refer to gender-specific names in word problems. Use variables x, y, z only."
                   value={aiInstructions}
                   onChange={(e) => setAiInstructions(e.target.value)}
-                  className="w-full min-h-[200px] p-3 border rounded-md bg-background text-sm shadow-sm"
+                  className="min-h-[200px]"
                 />
               </div>
             )}

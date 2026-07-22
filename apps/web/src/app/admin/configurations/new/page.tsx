@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { ConfigHeader } from '@/components/admin/config/config-header';
 import { ConfigForm } from '@/components/admin/config/config-form';
+import { Card } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'Create Exam Configuration | Admin',
@@ -14,9 +15,9 @@ export default function NewConfigPage() {
         title='Create Configuration'
         description='Set up a new exam configuration with duration, role, and questions.'
       />
-      <div className='mt-8 bg-card p-6 rounded-lg border shadow-sm'>
+      <Card className='mt-8 p-6'>
         <ConfigForm />
-      </div>
+      </Card>
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import { Inbox } from 'lucide-react';
+import { Inbox, SearchX, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { EmptyStateProps } from '@/types/dashboard.types';
 
-interface EmptyStateExtended extends EmptyStateProps {
+export interface EmptyStateExtended extends Omit<EmptyStateProps, 'icon'> {
   className?: string;
+  variant?: 'default' | 'no-data' | 'no-results' | 'error';
+  icon?: React.ReactNode;
 }
 
 /**
@@ -20,8 +22,21 @@ export function EmptyState({
   onAction,
   actionHref,
   compact = false,
+  variant = 'default',
   className,
 }: EmptyStateExtended) {
+  let DefaultIcon = Inbox;
+  let iconColor = 'text-muted-foreground';
+  
+  if (variant === 'no-results') {
+    DefaultIcon = SearchX;
+  } else if (variant === 'error') {
+    DefaultIcon = AlertCircle;
+    iconColor = 'text-destructive';
+  } else if (variant === 'no-data') {
+    DefaultIcon = Inbox;
+  }
+
   return (
     <div
       className={cn(
@@ -36,11 +51,12 @@ export function EmptyState({
       <div
         className={cn(
           'flex items-center justify-center rounded-2xl bg-muted',
+          variant === 'error' && 'bg-destructive/10',
           compact ? 'size-12 mb-3' : 'size-16 mb-5',
         )}
         aria-hidden='true'
       >
-        {icon ?? <Inbox className={cn('text-muted-foreground', compact ? 'size-5' : 'size-7')} />}
+        {icon ?? <DefaultIcon className={cn(iconColor, compact ? 'size-5' : 'size-7')} />}
       </div>
 
       {/* Text */}
@@ -76,7 +92,7 @@ export function EmptyState({
 
 // ─── Card-wrapped variant ─────────────────────────────────────────────────────
 
-interface EmptyStateCardProps extends EmptyStateExtended {
+export interface EmptyStateCardProps extends EmptyStateExtended {
   cardClassName?: string;
 }
 

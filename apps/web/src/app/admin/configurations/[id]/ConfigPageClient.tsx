@@ -18,10 +18,13 @@ import { GenerationReadinessPanel } from '@/features/admin/configs/components/Ge
 import { cn } from '@/lib/utils';
 import { useConfig, useConfigPreview, useAutoValidateConfig } from '@/services/exam-configs';
 import { useConfigurationValidation } from '@/features/admin/configs/hooks/useConfigurationValidation';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Loader2, Play, CheckCircle2, Circle } from 'lucide-react';
 import { apiClient } from '@/services/api/client';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SectionHeader } from '@/components/ui/section-header';
+import { Card } from '@/components/ui/card';
 
 interface ConfigPageClientProps {
   configId: string;
@@ -154,24 +157,21 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
   if (isLoading) {
     return (
-      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
-        <Skeleton className='h-10 w-1/3' />
-        <Skeleton className='h-6 w-1/4 mt-2' />
-        <Skeleton className='h-12 w-full mt-8' />
-        <Skeleton className='h-64 w-full mt-8' />
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[60vh]'>
+        <AnimatedLoader variant='page' />
       </div>
     );
   }
 
   if (isError || !config) {
     return (
-      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
-        <div className='text-center py-12 border rounded-md'>
-          <h3 className='text-lg font-medium text-red-600 mb-2'>Configuration Not Found</h3>
-          <p className='text-muted-foreground'>
-            The exam configuration you are looking for does not exist or has been deleted.
-          </p>
-        </div>
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[60vh]'>
+        <EmptyState
+          variant='error'
+          title='Configuration Not Found'
+          description='The exam configuration you are looking for does not exist or has been deleted.'
+          className='border rounded-md'
+        />
       </div>
     );
   }
@@ -184,20 +184,19 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
       <div className='flex flex-col gap-6'>
-        <div>
-          <h1 className='text-3xl font-bold tracking-tight'>{config.name}</h1>
-          <p className='text-muted-foreground mt-2'>
-            Follow the guided workflow to complete this exam configuration.
-          </p>
-        </div>
+        <SectionHeader
+          title={config.name}
+          description='Follow the guided workflow to complete this exam configuration.'
+          className='!mb-0'
+        />
 
         {/* Configuration Health Panel */}
-        <div className='w-full border rounded-xl p-5 bg-card shadow-sm'>
+        <Card className='p-5'>
           <div className='flex items-center justify-between mb-4 pb-4 border-b'>
             <h3 className='font-semibold text-sm text-foreground uppercase tracking-wider'>Configuration Health</h3>
             <div className='flex items-center gap-4'>
-               <div className="w-32 md:w-64 bg-muted rounded-full h-2 hidden sm:block">
-                 <div className="bg-primary h-2 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+               <div className="w-32 md:w-64 bg-muted rounded-full h-2 hidden sm:block overflow-hidden">
+                 <div className="bg-primary h-full rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
                </div>
                <span className='text-sm font-medium text-primary'>{progressPercent}%</span>
             </div>
@@ -219,7 +218,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
               <div className="text-muted-foreground text-sm col-span-full">Loading health checks...</div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Top Workflow Navigation */}

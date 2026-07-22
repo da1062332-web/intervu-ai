@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { User, Mail, Shield, Calendar } from 'lucide-react';
 import { AuthUser } from '@/types/auth.types';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { SectionHeader } from '@/components/ui/section-header';
 import { EditProfileModal } from './EditProfileModal';
 
 interface ProfileDetailsCardProps {
@@ -28,23 +30,19 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
 
   return (
     <>
-      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6'>
-        <div>
-          <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
-            My Profile
-          </h1>
-          <p className='text-muted-foreground mt-1'>
-            Manage your personal information and account details.
-          </p>
-        </div>
-        <Button onClick={() => setIsEditModalOpen(true)} size='sm' className='shrink-0'>
-          Edit Profile
-        </Button>
-      </div>
+      <SectionHeader
+        title='My Profile'
+        description='Manage your personal information and account details.'
+        actions={
+          <Button onClick={() => setIsEditModalOpen(true)} size='sm'>
+            Edit Profile
+          </Button>
+        }
+      />
 
       <div className='space-y-6'>
         {/* Avatar + name card */}
-        <div className='rounded-2xl border border-border bg-card p-6 shadow-sm'>
+        <Card className='p-6'>
           <div className='flex items-center gap-5'>
             <div className='flex size-20 items-center justify-center rounded-2xl bg-primary/10 text-primary text-3xl font-bold border border-primary/20 shrink-0'>
               {userInitial}
@@ -58,10 +56,10 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
               </span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Info cards */}
-        <div className='rounded-2xl border border-border bg-card shadow-sm divide-y divide-border'>
+        <Card className='divide-y divide-border overflow-hidden'>
           {[
             { icon: User, label: 'Full Name', value: userName },
             { icon: Mail, label: 'Email Address', value: userEmail },
@@ -83,7 +81,7 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
               </div>
             </div>
           ))}
-        </div>
+        </Card>
       </div>
 
       <EditProfileModal

@@ -7,7 +7,9 @@ import { useSystemValidationStore } from '@/store/system-validation.store';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SectionHeader } from '@/components/ui/section-header';
 import {
   ShieldCheck,
   ChevronDown,
@@ -84,15 +86,13 @@ export default function SystemValidationPage() {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
       {/* Page Header */}
-      <div className='flex flex-col gap-2 border-b border-border pb-5'>
-        <h1 className='font-heading font-bold text-3xl tracking-tight text-foreground flex items-center gap-3'>
-          <ShieldCheck className='w-8 h-8 text-primary' />
-          Cross-Module System Validation
-        </h1>
-        <p className='text-muted-foreground text-sm max-w-2xl'>
-          Verify configuration chain integrity from Exam Config and Sections to Topics, Templates,
-          Blueprints, and Readiness status before dispatching to generation modules.
-        </p>
+      <div className='border-b border-border pb-5'>
+        <SectionHeader
+          title="Cross-Module System Validation"
+          description="Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules."
+          icon={ShieldCheck}
+          className="!mb-0"
+        />
       </div>
 
       {/* Configuration Selection Control */}
@@ -107,7 +107,7 @@ export default function SystemValidationPage() {
               Select Exam Configuration
             </label>
             {isConfigsLoading ? (
-              <Skeleton className='h-10 w-full rounded-md' />
+              <AnimatedLoader variant="table" />
             ) : isConfigsError ? (
               <div className='text-rose-500 text-sm'>Failed to load exam configurations.</div>
             ) : (
@@ -236,14 +236,18 @@ export default function SystemValidationPage() {
 
             {isLoading ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className='h-28 w-full rounded-xl' />
-                ))}
+                <AnimatedLoader variant="table" />
+                <AnimatedLoader variant="table" />
+                <AnimatedLoader variant="table" />
+                <AnimatedLoader variant="table" />
               </div>
             ) : !validationResult ? (
-              <div className='border border-dashed rounded-xl py-16 text-center text-muted-foreground text-sm backdrop-blur-md bg-white/40 dark:bg-gray-950/40'>
-                No active validation results. Select a config above and click validate.
-              </div>
+              <EmptyState
+                icon={<ShieldCheck className="w-7 h-7 text-muted-foreground" />}
+                title="No active validation results"
+                description="Select a config above and click validate."
+                className="backdrop-blur-md bg-white/40 dark:bg-gray-950/40"
+              />
             ) : (
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 {/* 1. Configuration Layer */}
