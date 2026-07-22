@@ -238,3 +238,16 @@ export const useTemplateDatasetPreview = () => {
     mutationFn: (templateId: string) => templateApi.getTemplateDatasetPreview(templateId),
   });
 };
+
+export const useDeleteTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => templateApi.deleteTemplate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['templatesByConcept'] });
+      queryClient.invalidateQueries({ queryKey: ['conceptMappings'] });
+      queryClient.invalidateQueries({ queryKey: ['topics'] });
+    },
+  });
+};

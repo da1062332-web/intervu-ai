@@ -15,6 +15,10 @@ import { QuestionVersionRepository } from "./repositories/question-version.repos
 import { QuestionReviewRepository } from "./repositories/question-review.repository";
 import { TemplateLibraryModule } from "../template-library/template-library.module";
 
+import { TransactionalOutboxService } from "./services/transactional-outbox.service";
+import { QuestionBatchService } from "./services/question-batch.service";
+import { ExamConfigUsageService } from "./services/exam-config-usage.service";
+
 @Module({
   imports: [forwardRef(() => TemplateLibraryModule)],
   controllers: [QuestionBankController, QuestionsController, ManualQuestionsController],
@@ -27,6 +31,9 @@ import { TemplateLibraryModule } from "../template-library/template-library.modu
     QuestionReservationService,
     QuestionRotationService,
     QuestionUsageService,
+    TransactionalOutboxService,
+    QuestionBatchService,
+    ExamConfigUsageService,
     QuestionRepository,
     QuestionVersionRepository,
     QuestionReviewRepository,
@@ -40,6 +47,9 @@ import { TemplateLibraryModule } from "../template-library/template-library.modu
     QuestionReservationService,
     QuestionRotationService,
     QuestionUsageService,
+    TransactionalOutboxService,
+    QuestionBatchService,
+    ExamConfigUsageService,
     QuestionRepository,
     QuestionVersionRepository,
     QuestionReviewRepository,

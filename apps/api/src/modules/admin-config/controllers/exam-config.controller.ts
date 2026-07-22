@@ -36,6 +36,8 @@ import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
+import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
+
 @ApiTags("admin-configs")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
@@ -47,6 +49,7 @@ export class ExamConfigController {
     private readonly configPublisher: ConfigPublisherService,
     private readonly configVersionService: ConfigVersionService,
     private readonly configPreviewService: ConfigPreviewService,
+    private readonly readinessService: ExamConfigReadinessService,
   ) {}
 
   // ─── CRUD ──────────────────────────────────────────────────────────────────
@@ -151,6 +154,18 @@ export class ExamConfigController {
   })
   async preview(@Param("id") id: string) {
     return this.configPreviewService.getPreview(id);
+  }
+
+  /**
+   * GET /admin/configs/:id/readiness
+   * Returns readiness report: unused question pool capacity, topic conflicts, and health checks.
+   */
+  @Get(":id/readiness")
+  @ApiOperation({ summary: "Check exam configuration generation readiness & question pool health" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiOkResponse({ description: "Readiness score, conflict alerts, and health check details" })
+  async getReadiness(@Param("id") id: string) {
+    return this.readinessService.checkReadiness(id);
   }
 
   // ─── Versioning ────────────────────────────────────────────────────────────

@@ -13,6 +13,8 @@ import {
   SectionNotFoundError,
 } from "@intervu/shared";
 
+import { ExamConfigUsageService } from "../../question-bank/services/exam-config-usage.service";
+
 @Injectable()
 export class TopicSectionMappingService {
   private readonly logger = new Logger(TopicSectionMappingService.name);
@@ -23,6 +25,7 @@ export class TopicSectionMappingService {
     private readonly topicRepo: TopicRepository,
     private readonly sectionRepo: ExamSectionRepository,
     private readonly configRepo: ExamConfigRepository,
+    private readonly usageService: ExamConfigUsageService,
   ) {}
 
   async validateSectionExists(sectionId: string): Promise<ExamSection> {
@@ -81,7 +84,7 @@ export class TopicSectionMappingService {
   }
 
   async assignTopic(sectionId: string, topicId: string): Promise<void> {
-    await this.validateSectionExists(sectionId);
+    const section = await this.validateSectionExists(sectionId);
 
     const topic = await this.topicRepo.findById(topicId);
     if (!topic || topic.status !== TopicStatus.ACTIVE) {
@@ -91,6 +94,46 @@ export class TopicSectionMappingService {
     const exists = await this.repository.exists(sectionId, topicId);
     if (exists) {
       throw new TopicAlreadyMappedError();
+    }
+
+    // CHECK UNUSED QUESTION POOL CAPACITY FOR THIS TOPIC & EXAM CONFIG
+    const unusedCount = await this.usageService.getUnusedPoolCount(
+      section.examConfigId,
+      topicId,
+      undefined,
+    );
+
+    if (unusedCount <= 0) {
+      const conflictingConfigs =
+        await this.usageService.findConflictingConfigsForTopic(
+          section.examConfigId,
+          topicId,
+        );
+
+      if (conflictingConfigs.length > 0) {
+        throw new BadRequestException({
+          code: "TOPIC_QUESTIONS_EXHAUSTED",
+          error: "TOPIC_QUESTIONS_EXHAUSTED",
+          message: `Cannot assign topic '${topic.name}' to this section. All questions for topic '${topic.name}' are already assigned to Exam Configuration(s): '${conflictingConfigs.join(", ")}'. Please generate a new batch of questions for topic '${topic.name}' before assigning it to this section.`,
+          details: {
+            topicId,
+            topicName: topic.name,
+            conflictingConfigs,
+            shortcutUrl: `/admin/question-generation?topicId=${topicId}`,
+          },
+        });
+      } else {
+        throw new BadRequestException({
+          code: "TOPIC_QUESTIONS_EMPTY",
+          error: "TOPIC_QUESTIONS_EMPTY",
+          message: `Cannot assign topic '${topic.name}' to this section. Topic '${topic.name}' has 0 active questions in the Question Bank. Please generate questions for topic '${topic.name}' before assigning it to this section.`,
+          details: {
+            topicId,
+            topicName: topic.name,
+            shortcutUrl: `/admin/question-generation?topicId=${topicId}`,
+          },
+        });
+      }
     }
 
     await this.repository.createMapping(sectionId, topicId);
