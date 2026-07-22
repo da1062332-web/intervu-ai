@@ -78,13 +78,29 @@ export class GenerationStrategyResolver {
             where: { templateId: template.id },
           });
 
+          const getMappedValue = (field: string) => {
+            if (!field) return undefined;
+            if (field === 'content') return datasetItem.content;
+            if (field === 'id') return datasetItem.id;
+            return metadata[field];
+          };
+
+          // First try to load from explicitly defined template variables
           for (const tVar of templateVars) {
             const mappedField = mapping[tVar.variableName];
-            let val = mappedField ? metadata[mappedField] : undefined;
+            let val = mappedField ? getMappedValue(mappedField) : undefined;
             if (val === undefined || val === null) {
               val = tVar.defaultValue || "";
             }
             variables[tVar.variableName] = val;
+          }
+
+          // Fallback: If variable mapping exists but templateVars wasn't populated,
+          // inject mapped values directly.
+          for (const [varName, mappedField] of Object.entries(mapping)) {
+            if (variables[varName] === undefined) {
+              variables[varName] = getMappedValue(mappedField as string) || "";
+            }
           }
         }
 

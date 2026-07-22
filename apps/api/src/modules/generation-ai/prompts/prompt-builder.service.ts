@@ -267,11 +267,28 @@ ${datasetContent}
 """
 `;
 
+    let parsedStructure: any = {};
+    if (template.structure) {
+      try {
+        parsedStructure = typeof template.structure === "string" ? JSON.parse(template.structure) : template.structure;
+      } catch (e) {}
+    }
+
+    let questionTemplateObj = parsedStructure?.questionTemplate;
+    if (typeof questionTemplateObj === "string") {
+      try {
+        questionTemplateObj = JSON.parse(questionTemplateObj);
+      } catch (e) {}
+    }
+
+    const generationPrompt = questionTemplateObj?.generationPrompt;
+    const finalUserPrompt = generationPrompt || promptConfig?.userPrompt;
+
     let userPromptText = "";
-    if (promptConfig?.userPrompt) {
+    if (finalUserPrompt) {
       userPromptText = `
 [USER PROMPT]
-${this.interpolate(promptConfig.userPrompt, { content: datasetContent, ...variableValues })}
+${this.interpolate(finalUserPrompt, { content: datasetContent, ...variableValues })}
 `;
     }
 
