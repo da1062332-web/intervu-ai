@@ -164,6 +164,9 @@ export function ConstraintBuilderSection() {
         </Button>
       }
     >
+      <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-100">
+        Note: For advanced generation control, preferred use the <strong>Generation Strategy</strong> tab instead of the legacy Constraint Builder. This sidebar is temporarily shown for review and can be removed in the next phase.
+      </div>
       <div className="border rounded-md overflow-x-auto shadow-sm">
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-gray-900">

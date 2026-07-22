@@ -204,6 +204,9 @@ export function VariableBuilderSection() {
         </Button>
       }
     >
+      <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-100">
+        Note: For advanced generation control, use the <strong>Generation Strategy</strong> tab to define detailed base variables, derived variables, and constraints. This legacy Variable Builder is visible temporarily for compatibility and review.
+      </div>
       <div className="border rounded-md overflow-x-auto shadow-sm">
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-gray-900">
