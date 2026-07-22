@@ -4,6 +4,7 @@ import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { TestConfigRepository } from "../repositories/test-config.repository";
 import { QuestionProviderService } from "./question-provider.service";
 import { TestInstanceService } from "../test-instance/test-instance.service";
+import { AssembledTestRepository } from "../../assembly/repositories/assembled-test.repository";
 import { GeneratedQuestion } from "@prisma/client";
 import {
   BadRequestException,
@@ -18,6 +19,7 @@ describe("StartTestService", () => {
   let testConfigRepository: { findByIdWithSections: jest.Mock };
   let questionProvider: jest.Mocked<QuestionProviderService>;
   let testInstanceService: jest.Mocked<TestInstanceService>;
+  let assembledTestRepository: { findByConfigId: jest.Mock };
 
   beforeEach(async () => {
     const eligibilityMock = {
@@ -32,6 +34,9 @@ describe("StartTestService", () => {
     const testInstanceMock = {
       createTestInstance: jest.fn(),
     };
+    const assembledTestRepositoryMock = {
+      findByConfigId: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,6 +44,7 @@ describe("StartTestService", () => {
         { provide: EligibilityService, useValue: eligibilityMock },
         { provide: TestConfigRepository, useValue: testConfigRepositoryMock },
         { provide: QuestionProviderService, useValue: questionProviderMock },
+        { provide: AssembledTestRepository, useValue: assembledTestRepositoryMock },
         { provide: TestInstanceService, useValue: testInstanceMock },
         { provide: PrismaService, useValue: {} },
       ],
@@ -49,6 +55,7 @@ describe("StartTestService", () => {
     testConfigRepository = module.get(TestConfigRepository);
     questionProvider = module.get(QuestionProviderService);
     testInstanceService = module.get(TestInstanceService);
+    assembledTestRepository = module.get(AssembledTestRepository);
   });
 
   const validUserId = "user-1";
@@ -141,6 +148,48 @@ describe("StartTestService", () => {
     await expect(
       service.startTest(validUserId, { testConfigId: validConfigId }),
     ).rejects.toThrow();
+  });
+
+  it("START-008 Published Snapshot Reuse", async () => {
+    eligibilityService.validateEligibility.mockResolvedValue({
+      eligible: true,
+    });
+    testConfigRepository.findByIdWithSections.mockResolvedValue({
+      id: validConfigId,
+      totalDurationSeconds: 1200,
+      sections: [{ sectionKey: 'js-basics', questionCount: 2 }],
+    });
+
+    // Mock a published assembled test with sections and questions
+    assembledTestRepository.findByConfigId.mockResolvedValue({
+      id: 'assembly-1',
+      configId: validConfigId,
+      sections: [
+        {
+          id: 's1',
+          sectionKey: 'js-basics',
+          sectionName: 'JS Basics',
+          durationSeconds: 600,
+          questionCount: 2,
+          orderIndex: 0,
+          questions: [
+            { questionId: 'q1', questionOrder: 0, questionSnapshot: { questionText: 'Q1' } },
+            { questionId: 'q2', questionOrder: 1, questionSnapshot: { questionText: 'Q2' } },
+          ],
+        },
+      ],
+    });
+
+    testInstanceService.createTestInstance.mockResolvedValue({
+      id: 'test-inst-2',
+      status: TestInstanceStatus.CREATED,
+    } as any);
+
+    const result = await service.startTest(validUserId, { testConfigId: validConfigId });
+
+    expect(result.testInstanceId).toBe('test-inst-2');
+    // Ensure live generation was NOT called when published snapshot exists.
+    expect(questionProvider.fetchOrGenerateQuestions).not.toHaveBeenCalled();
   });
 
   it("START-007 Duplicate Active Test", async () => {

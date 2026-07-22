@@ -259,13 +259,19 @@ export default function LoginPage() {
       </div>
 
       {/* Right side: Abstract visual */}
-      <div className='hidden lg:flex flex-1 relative bg-indigo-50 dark:bg-slate-950 overflow-hidden transition-colors duration-500'>
-        <div className='absolute inset-0 bg-gradient-to-br from-indigo-200/60 to-violet-300/60 dark:from-indigo-600/40 dark:to-violet-900/40 mix-blend-multiply transition-colors duration-500' />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-10 dark:opacity-30 mix-blend-overlay transition-opacity duration-500" />
+      <div className='hidden lg:flex flex-1 relative bg-background overflow-hidden transition-colors duration-500'>
+        {/* Base Image */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-40 dark:opacity-50 transition-opacity duration-500" />
+        
+        {/* Theme-aware overlay for text contrast */}
+        <div className='absolute inset-0 bg-white/85 dark:bg-slate-950/85 transition-colors duration-500' />
+        
+        {/* Gradient tint */}
+        <div className='absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-violet-500/10 dark:from-indigo-600/20 dark:to-violet-900/20 mix-blend-multiply transition-colors duration-500' />
 
         {/* Glowing orbs */}
-        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-primary/30 dark:bg-primary/40 rounded-full blur-[100px] mix-blend-screen animate-pulse duration-1000' />
-        <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-400/40 dark:bg-violet-500/40 rounded-full blur-[100px] mix-blend-screen' />
+        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 dark:bg-primary/30 rounded-full blur-[100px] mix-blend-screen animate-pulse duration-1000' />
+        <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-400/20 dark:bg-violet-500/30 rounded-full blur-[100px] mix-blend-screen' />
 
         <div className='relative z-10 flex flex-col justify-center items-start p-16 xl:p-24 h-full max-w-2xl text-foreground dark:text-white transition-colors duration-500'>
           <div className='glass-panel p-4 rounded-2xl mb-8 shadow-2xl'>
@@ -274,7 +280,7 @@ export default function LoginPage() {
           <h2 className='text-5xl xl:text-6xl font-heading font-bold leading-[1.1] mb-6'>
             Streamline your hiring process with AI.
           </h2>
-          <p className='text-lg xl:text-xl text-muted-foreground dark:text-indigo-100/80 max-w-lg leading-relaxed'>
+          <p className='text-lg xl:text-xl text-muted-foreground dark:text-indigo-100/90 max-w-lg leading-relaxed font-medium'>
             InterVu AI provides intelligent assessments to help you find the perfect candidate,
             faster than ever before.
           </p>

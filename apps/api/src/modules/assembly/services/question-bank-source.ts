@@ -63,7 +63,7 @@ export class QuestionBankSource implements IQuestionSource {
       const topicId = concept?.topicId || "";
 
       const request: AssemblyProviderRequest = {
-        examId: "assembly-source",
+        examId: filters.examId || "assembly-source",
         sectionId: topicId, // using topicId as sectionId approximation
         count: diffCount,
         difficultyDistribution: {

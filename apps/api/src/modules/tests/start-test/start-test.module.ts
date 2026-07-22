@@ -8,9 +8,10 @@ import { LifecycleModule } from "../../lifecycle/lifecycle.module";
 import { PrismaModule } from "../../../prisma/prisma.module";
 import { TestConfigRepository } from "../repositories/test-config.repository";
 import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
+import { AssemblyModule } from "../../assembly/assembly.module";
 
 @Module({
-  imports: [LifecycleModule, PrismaModule],
+  imports: [LifecycleModule, PrismaModule, AssemblyModule],
   controllers: [StartTestController],
   providers: [
     StartTestService,

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,10 @@ import { useConcepts } from '@/services/concept-mapping/hooks';
 
 export function TemplateListPageClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoTopicId = searchParams?.get('topicId');
+  const autoOpen = searchParams?.get('autoOpen');
+
   const { data: response, isLoading, isError, refetch } = useTemplates(1, 100);
   const templates = response?.items || [];
 
@@ -32,6 +37,15 @@ export function TemplateListPageClient() {
 
   const createMutation = useCreateTemplate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoTopicId) {
+      setSelectedTopicId(autoTopicId);
+    }
+    if (autoOpen === 'true') {
+      setIsModalOpen(true);
+    }
+  }, [autoTopicId, autoOpen]);
   const [formData, setFormData] = useState({
     name: 'New Template',
     templateKey: '',

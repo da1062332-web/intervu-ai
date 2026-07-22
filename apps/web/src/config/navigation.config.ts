@@ -27,60 +27,62 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
   primary: [
     {
       heading: 'Overview',
-      items: [{ label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard }],
+      items: [
+        { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Analytics', route: '/admin/analytics/generation', icon: TrendingUp },
+        { label: 'Reports', route: '/admin/reports/candidates', icon: FileText },
+      ],
     },
     {
-      heading: 'Exam Setup',
+      heading: 'Configuration',
       items: [
         { label: 'Configs', route: '/admin/configurations', icon: FileCog },
-        { label: 'Topics', route: '/admin/topics', icon: BookOpen },
-        { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Style Profiles', route: '/admin/style-profiles', icon: Settings },
-
-        { label: 'Validation', route: '/admin/system-validation', icon: ShieldCheck },
+        { label: 'Validation Rules', route: '/admin/system-validation', icon: ShieldCheck },
       ],
     },
     {
-      heading: 'Content Engine',
+      heading: 'Content Creation',
       items: [
-        { label: 'Manual Questions', route: '/admin/manual-questions', icon: FileText },
+        { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Templates', route: '/admin/templates', icon: FileText },
+        { label: 'Manual Questions', route: '/admin/manual-questions', icon: FileText },
         { label: 'Datasets', route: '/admin/datasets', icon: Database },
         { label: 'Scenarios', route: '/admin/scenarios', icon: GitBranch },
-        { label: 'Question Gen', route: '/admin/question-generation', icon: Sparkles },
       ],
     },
     {
-      heading: 'Operations',
+      heading: 'Assessment Builder',
       items: [
-        { label: 'Workflows', route: '/admin/workflows', icon: Layers },
+        { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
-        {
-          label: 'Assessment Builder',
-          route: '/admin/assessment-builder',
-          icon: FileCog,
-          badge: 'New',
-        },
+        { label: 'Assessments', route: '/admin/assessment-builder', icon: FileCog, badge: 'New' },
+      ],
+    },
+    {
+      heading: 'Question Generation',
+      items: [
+        { label: 'Question Generator', route: '/admin/question-generation', icon: Sparkles },
+        { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
+        { label: 'Generation Failures', route: '/admin/generation/failures', icon: Archive },
+      ],
+    },
+    {
+      heading: 'Execution & Review',
+      items: [
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
-        { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
-        { label: 'Gen Failures', route: '/admin/generation/failures', icon: Archive },
-        { label: 'Gen Analytics', route: '/admin/analytics/generation', icon: TrendingUp },
-        { label: 'Reports', route: '/admin/reports/candidates', icon: FileText },
-        { label: 'Exports', route: '/admin/exports', icon: Download },
       ],
     },
     {
-      heading: 'Coming Soon',
-      items: [],
-    },
-
-    {
       heading: 'Account',
-      items: [{ label: 'Profile', route: '/admin/profile', icon: User }],
+      items: [
+        { label: 'Profile', route: '/admin/profile', icon: User },
+        { label: 'Settings', route: '/admin/settings', icon: Settings },
+      ],
     },
   ],
-  secondary: [{ label: 'Settings', route: '/admin/settings', icon: Settings }],
+  secondary: [],
 };
 
 export const CANDIDATE_NAV_CONFIG: NavConfig = {
