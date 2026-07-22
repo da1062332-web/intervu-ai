@@ -239,7 +239,10 @@ JSON Schema:
     const difficulty = template.difficultyLevel.toLowerCase();
     const questionType = template.questionType;
 
-    const variableValues = input.variableValues || {};
+    const variableValues = {
+      ...(input.variableValues || {}),
+      ...(input.datasetItem?.metadata || {})
+    };
     let datasetContent = input.datasetItem?.content || "";
     if (datasetContent) {
       datasetContent = this.interpolate(datasetContent, variableValues);

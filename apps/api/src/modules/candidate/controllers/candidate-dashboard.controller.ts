@@ -12,7 +12,7 @@ import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { CandidateDashboardService } from "../services/candidate-dashboard.service";
-import { CandidateDashboardResponseDto } from "../dto/candidate-dashboard.dto";
+import { CandidateDashboardResponseDto, CandidateDashboardMetricsResponseDto } from "../dto/candidate-dashboard.dto";
 
 @ApiTags("candidate-dashboard")
 @ApiBearerAuth("jwt-auth")
@@ -29,5 +29,14 @@ export class CandidateDashboardController {
     @CurrentUser() user: AuthUser,
   ): Promise<CandidateDashboardResponseDto> {
     return this.dashboardService.getDashboardData(user.id);
+  }
+
+  @Get("metrics")
+  @ApiOperation({ summary: "Get candidate dashboard performance metrics" })
+  @ApiOkResponse({ type: CandidateDashboardMetricsResponseDto })
+  async getDashboardMetrics(
+    @CurrentUser() user: AuthUser,
+  ): Promise<CandidateDashboardMetricsResponseDto> {
+    return this.dashboardService.getDashboardMetrics(user.id);
   }
 }

@@ -10,10 +10,17 @@ interface TestOverviewProps {
 }
 
 export function TestOverview({ test }: TestOverviewProps) {
-  const difficultyColors: Record<string, string> = {
-    Easy: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
-    Medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
-    Hard: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+  const getDifficultyVariant = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return 'success';
+      case 'medium':
+        return 'warning';
+      case 'hard':
+        return 'destructive';
+      default:
+        return 'default';
+    }
   };
 
   return (
@@ -32,8 +39,8 @@ export function TestOverview({ test }: TestOverviewProps) {
             </CardTitle>
           </div>
           <Badge
-            variant='outline'
-            className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 ${difficultyColors[test.difficulty] || ''}`}
+            variant={getDifficultyVariant(test.difficulty)}
+            className='text-[10px] uppercase font-bold tracking-wider px-2.5 py-1'
           >
             {test.difficulty}
           </Badge>
