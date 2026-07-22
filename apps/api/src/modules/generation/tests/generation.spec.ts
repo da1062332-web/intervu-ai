@@ -285,6 +285,33 @@ describe("Test Generation Core (Module 2)", () => {
       expect(params.profit_percent).toBeDefined();
       expect(typeof params.profit_percent).toBe("number");
     });
+
+    it("should support structured generation strategy payloads with derived variables and object constraints", () => {
+      const metadata = {
+        generationStrategyConfig: {
+          variables: [
+            { name: "cost_price", type: "number", range: { min: 100, max: 200, step: 10 } },
+            { name: "selling_price", type: "number", range: { min: 110, max: 250, step: 10 } },
+          ],
+          derivedVariables: [
+            { name: "profit_percent", expression: "((selling_price - cost_price) / cost_price) * 100" },
+          ],
+          constraints: [
+            { target: "selling_price", operator: ">", value: "cost_price" },
+            { target: "profit_percent", operator: ">", value: "0" },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.cost_price).toBeGreaterThanOrEqual(100);
+      expect(params.cost_price).toBeLessThanOrEqual(200);
+      expect(params.selling_price).toBeGreaterThanOrEqual(110);
+      expect(params.selling_price).toBeLessThanOrEqual(250);
+      expect(params.selling_price).toBeGreaterThan(params.cost_price);
+      expect(params.profit_percent).toBeDefined();
+      expect(params.profit_percent).toBeGreaterThan(0);
+    });
   });
 
   describe("4. QuestionInstantiatorService", () => {

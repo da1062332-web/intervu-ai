@@ -342,14 +342,24 @@ export class QuestionGenerationController {
       parsedStructure = {};
     }
 
-    const stemTemplate = parsedStructure.questionTemplate?.stem || "";
+    let questionTemplateObj = parsedStructure.questionTemplate;
+    if (typeof questionTemplateObj === "string") {
+      try {
+        questionTemplateObj = JSON.parse(questionTemplateObj);
+      } catch (e) {}
+    }
+
+    const stemTemplate = questionTemplateObj?.stem || "";
     const interpolatedStem = promptBuilder.interpolate(
       stemTemplate,
       context.variables,
     );
 
-    const interpolatedUserPrompt = promptConfig?.userPrompt
-      ? promptBuilder.interpolate(promptConfig.userPrompt, {
+    const generationPrompt = questionTemplateObj?.generationPrompt;
+    const finalUserPrompt = generationPrompt || promptConfig?.userPrompt;
+
+    const interpolatedUserPrompt = finalUserPrompt
+      ? promptBuilder.interpolate(finalUserPrompt, {
           content: context.datasetItem?.content || "",
           ...context.variables,
         })

@@ -114,15 +114,13 @@ export class PromptBuilderService {
     const resolvedCorrectAnswer = this.resolveCorrectAnswer(template, variableValues);
     const correctAnswerVal =
       input.correctAnswer ||
-      variableValues.correctAnswer ||
+      (variableValues as any).correctAnswer ||
       (variableValues as any).answer ||
       resolvedCorrectAnswer ||
       "";
 
-    const hasCorrectAnswer =
-      resolvedCorrectAnswer !== undefined &&
-      resolvedCorrectAnswer !== null &&
-      String(resolvedCorrectAnswer).trim().length > 0;
+    // Consider any supplied or computed correct answer as valid.
+    const hasCorrectAnswer = String(correctAnswerVal).trim().length > 0;
 
     const correctAnswerHint = hasCorrectAnswer
       ? `- Correct Answer Value = ${correctAnswerVal}`
@@ -241,7 +239,10 @@ JSON Schema:
     const difficulty = template.difficultyLevel.toLowerCase();
     const questionType = template.questionType;
 
-    const variableValues = input.variableValues || {};
+    const variableValues = {
+      ...(input.variableValues || {}),
+      ...(input.datasetItem?.metadata || {})
+    };
     let datasetContent = input.datasetItem?.content || "";
     if (datasetContent) {
       datasetContent = this.interpolate(datasetContent, variableValues);
@@ -267,11 +268,28 @@ ${datasetContent}
 """
 `;
 
+    let parsedStructure: any = {};
+    if (template.structure) {
+      try {
+        parsedStructure = typeof template.structure === "string" ? JSON.parse(template.structure) : template.structure;
+      } catch (e) {}
+    }
+
+    let questionTemplateObj = parsedStructure?.questionTemplate;
+    if (typeof questionTemplateObj === "string") {
+      try {
+        questionTemplateObj = JSON.parse(questionTemplateObj);
+      } catch (e) {}
+    }
+
+    const generationPrompt = questionTemplateObj?.generationPrompt;
+    const finalUserPrompt = generationPrompt || promptConfig?.userPrompt;
+
     let userPromptText = "";
-    if (promptConfig?.userPrompt) {
+    if (finalUserPrompt) {
       userPromptText = `
 [USER PROMPT]
-${this.interpolate(promptConfig.userPrompt, { content: datasetContent, ...variableValues })}
+${this.interpolate(finalUserPrompt, { content: datasetContent, ...variableValues })}
 `;
     }
 

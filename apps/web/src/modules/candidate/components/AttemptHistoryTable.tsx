@@ -3,17 +3,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAttemptHistory } from '../hooks/useAttemptHistory';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow as ShadcnTableRow,
-} from '@/components/ui/table';
+import { DataTable, ColumnDef } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import {
   ChevronLeft,
@@ -41,7 +35,7 @@ interface AttemptHistoryTableProps {
   defaultLimit?: number;
 }
 
-const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
+const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -66,62 +60,39 @@ const TableRow = React.memo(({ attempt }: { attempt: AttemptItem }) => {
   };
 
   return (
-    <ShadcnTableRow className='hover:bg-muted/50 transition-colors'>
-      <TableCell className='font-medium'>{attempt.assessmentName}</TableCell>
-      <TableCell>{format(new Date(attempt.date), 'MMM d, yyyy')}</TableCell>
-      <TableCell>
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED'
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : attempt.status === 'IN_PROGRESS'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-          }`}
-        >
-          {attempt.status.replace('_', ' ')}
-        </span>
-      </TableCell>
-      <TableCell className='text-right font-medium'>
-        {attempt.score !== null ? `${attempt.score}%` : '-'}
-      </TableCell>
-      <TableCell className='text-right'>
-        <div className='flex items-center justify-end gap-2'>
-          {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
-            <>
-              <Button size='sm' variant='ghost' asChild className='h-8 px-2'>
-                <Link href={`/candidate/results/${attempt.instanceId}`}>
-                  <Eye className='size-4 mr-1' /> View
-                </Link>
-              </Button>
-              <Button 
-                size='sm' 
-                variant='ghost' 
-                className='h-8 px-2 text-primary'
-                onClick={handleDownload}
-                disabled={downloading}
-              >
-                <Download className={`size-4 mr-1 ${downloading ? 'animate-pulse' : ''}`} /> 
-                {downloading ? '...' : 'Report'}
-              </Button>
-            </>
-          ) : attempt.status === 'IN_PROGRESS' ? (
-            <Button size='sm' variant='default' asChild className='h-8 px-2'>
-              <Link href={`/candidate/tests/${attempt.instanceId}/execution`}>
-                <Play className='size-4 mr-1' /> Continue
-              </Link>
-            </Button>
-          ) : (
-            <Button size='sm' variant='ghost' disabled className='h-8 px-2'>
-              <Download className='size-4 mr-1' /> Report
-            </Button>
-          )}
-        </div>
-      </TableCell>
-    </ShadcnTableRow>
+    <div className='flex items-center justify-end gap-2'>
+      {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
+        <>
+          <Button size='sm' variant='ghost' asChild className='h-8 px-2'>
+            <Link href={`/candidate/results/${attempt.instanceId}`}>
+              <Eye className='size-4 mr-1' /> View
+            </Link>
+          </Button>
+          <Button 
+            size='sm' 
+            variant='ghost' 
+            className='h-8 px-2 text-primary'
+            onClick={handleDownload}
+            isLoading={downloading}
+            leftIcon={!downloading ? <Download className='size-4' /> : undefined}
+          >
+            Report
+          </Button>
+        </>
+      ) : attempt.status === 'IN_PROGRESS' ? (
+        <Button size='sm' variant='default' asChild className='h-8 px-2'>
+          <Link href={`/candidate/tests/${attempt.instanceId}/execution`}>
+            <Play className='size-4 mr-1' /> Continue
+          </Link>
+        </Button>
+      ) : (
+        <Button size='sm' variant='ghost' disabled className='h-8 px-2'>
+          <Download className='size-4 mr-1' /> Report
+        </Button>
+      )}
+    </div>
   );
-});
-TableRow.displayName = 'TableRow';
+};
 
 export function AttemptHistoryTable({
   showFilters = false,
@@ -133,8 +104,6 @@ export function AttemptHistoryTable({
   const [sortField, setSortField] = useState<keyof AttemptItem>('date');
   const [sortAsc, setSortAsc] = useState(false);
 
-  // If we show filters, we might want to fetch more items or we just filter the current page as requested
-  // "Implement client-side search, sorting, and filtering only on the currently loaded page."
   const limit = showFilters ? 20 : defaultLimit;
   const { data, isLoading } = useAttemptHistory(page, limit);
 
@@ -179,153 +148,143 @@ export function AttemptHistoryTable({
     return result;
   }, [data?.attempts, search, statusFilter, sortField, sortAsc]);
 
-  if (isLoading) {
-    return <div className='h-64 animate-pulse bg-muted rounded-xl' />;
-  }
-
-  if (!data?.attempts || data.attempts.length === 0) {
-    return (
-      <Card>
-        <CardContent className='py-8'>
-          <EmptyState
-            title='No Attempt History'
-            description='No attempt history found.'
-            icon={<History className='size-8 text-muted-foreground' />}
-          />
-        </CardContent>
-      </Card>
-    );
-  }
+  const columns: ColumnDef<AttemptItem>[] = [
+    {
+      id: 'assessmentName',
+      header: (
+        <div 
+          className='flex items-center gap-1 cursor-pointer hover:text-foreground'
+          onClick={() => toggleSort('assessmentName')}
+        >
+          Assessment <ArrowUpDown className='size-3 opacity-50' />
+        </div>
+      ),
+      cell: (row) => <span className='font-medium'>{row.assessmentName}</span>,
+    },
+    {
+      id: 'date',
+      header: (
+        <div 
+          className='flex items-center gap-1 cursor-pointer hover:text-foreground'
+          onClick={() => toggleSort('date')}
+        >
+          Date <ArrowUpDown className='size-3 opacity-50' />
+        </div>
+      ),
+      cell: (row) => format(new Date(row.date), 'MMM d, yyyy'),
+    },
+    {
+      id: 'status',
+      header: (
+        <div 
+          className='flex items-center gap-1 cursor-pointer hover:text-foreground'
+          onClick={() => toggleSort('status')}
+        >
+          Status <ArrowUpDown className='size-3 opacity-50' />
+        </div>
+      ),
+      cell: (row) => {
+        let variant: 'default' | 'success' | 'warning' | 'destructive' | 'outline' = 'default';
+        if (row.status === 'COMPLETED' || row.status === 'SUBMITTED') variant = 'success';
+        else if (row.status === 'IN_PROGRESS') variant = 'default';
+        else variant = 'outline';
+        
+        return (
+          <Badge variant={variant} className="rounded-full px-2 py-0.5">
+            {row.status.replace('_', ' ')}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'score',
+      className: 'text-right',
+      header: (
+        <div 
+          className='flex items-center justify-end gap-1 cursor-pointer hover:text-foreground'
+          onClick={() => toggleSort('score')}
+        >
+          Score <ArrowUpDown className='size-3 opacity-50' />
+        </div>
+      ),
+      cell: (row) => <span className='font-medium'>{row.score !== null ? `${row.score}%` : '-'}</span>,
+    },
+    {
+      id: 'actions',
+      className: 'text-right',
+      header: 'Actions',
+      cell: (row) => <ActionsCell attempt={row} />,
+    },
+  ];
 
   return (
     <Card className='flex flex-col h-full'>
       <CardHeader className='flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-4'>
         <CardTitle>Attempt History</CardTitle>
-        {showFilters && (
-          <div className='flex flex-wrap items-center gap-2'>
-            <div className='relative'>
-              <Search className='absolute left-2.5 top-2.5 size-4 text-muted-foreground' />
+      </CardHeader>
+      <CardContent className='flex-1 flex flex-col'>
+        <DataTable
+          columns={columns}
+          data={processedAttempts}
+          isLoading={isLoading}
+          rowKey={(row) => row.instanceId}
+          search={showFilters && (
+            <div className='flex flex-wrap items-center gap-2 mb-4'>
               <Input
                 placeholder='Search assessments...'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className='pl-9 h-9 w-[180px] sm:w-[220px] text-sm'
+                className='w-[180px] sm:w-[220px] text-sm'
+                startIcon={<Search className='size-4' />}
               />
-            </div>
-            <select
-              className='h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value='ALL'>All Status</option>
-              <option value='COMPLETED'>Completed</option>
-              <option value='IN_PROGRESS'>In Progress</option>
-              <option value='EVALUATING'>Evaluating</option>
-            </select>
-          </div>
-        )}
-      </CardHeader>
-      <CardContent className='flex-1 flex flex-col'>
-        <div className='rounded-md border overflow-x-auto'>
-          <Table>
-            <TableHeader>
-              <ShadcnTableRow>
-                <TableHead
-                  scope='col'
-                  className='cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('assessmentName')}
-                  aria-sort={
-                    sortField === 'assessmentName' ? (sortAsc ? 'ascending' : 'descending') : 'none'
-                  }
-                >
-                  <div className='flex items-center gap-1'>
-                    Assessment <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </TableHead>
-                <TableHead
-                  scope='col'
-                  className='cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('date')}
-                  aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
-                >
-                  <div className='flex items-center gap-1'>
-                    Date <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </TableHead>
-                <TableHead
-                  scope='col'
-                  className='cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('status')}
-                  aria-sort={
-                    sortField === 'status' ? (sortAsc ? 'ascending' : 'descending') : 'none'
-                  }
-                >
-                  <div className='flex items-center gap-1'>
-                    Status <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </TableHead>
-                <TableHead
-                  scope='col'
-                  className='text-right cursor-pointer hover:text-foreground'
-                  onClick={() => toggleSort('score')}
-                  aria-sort={
-                    sortField === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'
-                  }
-                >
-                  <div className='flex items-center justify-end gap-1'>
-                    Score <ArrowUpDown className='size-3 opacity-50' />
-                  </div>
-                </TableHead>
-                <TableHead scope='col' className='text-right'>
-                  Actions
-                </TableHead>
-              </ShadcnTableRow>
-            </TableHeader>
-            <TableBody>
-              {processedAttempts.length > 0 ? (
-                processedAttempts.map((attempt) => (
-                  <TableRow key={attempt.instanceId} attempt={attempt} />
-                ))
-              ) : (
-                <ShadcnTableRow>
-                  <TableCell colSpan={5} className='p-8'>
-                    <EmptyState
-                      title='No Results'
-                      description='No matching attempts found on this page.'
-                      icon={<Search className='size-8 text-muted-foreground' />}
-                    />
-                  </TableCell>
-                </ShadcnTableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {data.pagination.totalPages > 1 && (
-          <div className='flex items-center justify-between mt-auto pt-4'>
-            <div className='text-sm text-muted-foreground'>
-              Showing page {page} of {data.pagination.totalPages}
-            </div>
-            <div className='flex items-center space-x-2'>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
+              <select
+                className='h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <ChevronLeft className='size-4 mr-1' /> Previous
-              </Button>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                disabled={page === data.pagination.totalPages}
-              >
-                Next <ChevronRight className='size-4 ml-1' />
-              </Button>
+                <option value='ALL'>All Status</option>
+                <option value='COMPLETED'>Completed</option>
+                <option value='IN_PROGRESS'>In Progress</option>
+                <option value='EVALUATING'>Evaluating</option>
+              </select>
             </div>
-          </div>
-        )}
+          )}
+          emptyState={
+            <EmptyState
+              title={!data?.attempts || data.attempts.length === 0 ? 'No Attempt History' : 'No Results'}
+              description={!data?.attempts || data.attempts.length === 0 ? 'No attempt history found.' : 'No matching attempts found on this page.'}
+              icon={!data?.attempts || data.attempts.length === 0 ? <History className='size-8 text-muted-foreground' /> : <Search className='size-8 text-muted-foreground' />}
+              variant='no-data'
+            />
+          }
+          pagination={
+            data && data.pagination.totalPages > 1 && (
+              <div className='flex items-center space-x-2 mt-4'>
+                <div className='text-sm text-muted-foreground mr-4'>
+                  Showing page {page} of {data.pagination.totalPages}
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  leftIcon={<ChevronLeft className='size-4' />}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
+                  disabled={page === data.pagination.totalPages}
+                  rightIcon={<ChevronRight className='size-4' />}
+                >
+                  Next
+                </Button>
+              </div>
+            )
+          }
+        />
       </CardContent>
     </Card>
   );

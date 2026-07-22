@@ -113,6 +113,15 @@ export const dashboardService = {
     }
   },
 
+  getDashboardMetrics: async () => {
+    try {
+      return await apiClient.request<any>('/candidate/dashboard/metrics');
+    } catch (error) {
+      console.error('Failed to fetch dashboard metrics', error);
+      throw error;
+    }
+  },
+
   getRecommendations: async (): Promise<CandidateRecommendations | null> => {
     try {
       const performanceSummary = await apiClient.request<any>('/users/me/performance-summary');

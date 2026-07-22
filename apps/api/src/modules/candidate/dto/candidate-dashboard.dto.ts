@@ -85,3 +85,14 @@ export class CandidateDashboardResponseDto {
   @ApiProperty({ type: [DashboardTestItemDto] })
   recommendedTests!: DashboardTestItemDto[];
 }
+
+export class CandidateDashboardMetricsResponseDto {
+  @ApiProperty({ example: 95 })
+  bestScore!: number;
+
+  @ApiProperty({ example: 87.5 })
+  averageAccuracy!: number;
+
+  @ApiProperty({ example: 4 })
+  attemptCount!: number;
+}

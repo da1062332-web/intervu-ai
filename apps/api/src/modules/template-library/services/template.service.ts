@@ -216,6 +216,8 @@ export class TemplateService {
       description: validated.description,
       difficulty:
         (validated.difficulty as DifficultyLevel) ?? DifficultyLevel.MEDIUM,
+      difficultyLevel:
+        (validated.difficulty as DifficultyLevel) ?? DifficultyLevel.MEDIUM,
       config: (validated.config as Prisma.InputJsonValue) ?? {},
       isSystem: validated.isSystem ?? false,
       ...(validated.templateKey && { templateKey: validated.templateKey }),
@@ -280,8 +282,10 @@ export class TemplateService {
     if (validated.name !== undefined) updateInput.name = validated.name;
     if (validated.description !== undefined)
       updateInput.description = validated.description;
-    if (validated.difficulty !== undefined)
+    if (validated.difficulty !== undefined) {
       updateInput.difficulty = validated.difficulty as DifficultyLevel;
+      updateInput.difficultyLevel = validated.difficulty as DifficultyLevel;
+    }
     if (validated.config !== undefined)
       updateInput.config = validated.config as Prisma.InputJsonValue;
     if (validated.templateKey !== undefined)

@@ -96,4 +96,27 @@ export class CandidateDashboardService {
       recommendedTests,
     };
   }
+
+  async getDashboardMetrics(userId: string) {
+    const data = await this.dashboardRepository.getDashboardData(userId);
+    
+    // completedTests maps to data.completedTests
+    const completedTests = data.completedTests.map((t: any) => ({
+      score: t.evaluationResult?.overallScore || 0,
+    }));
+
+    const bestScore = completedTests.length > 0 
+      ? Math.max(...completedTests.map((t: any) => t.score)) 
+      : 0;
+      
+    const averageAccuracy = completedTests.length > 0
+      ? completedTests.reduce((sum: number, t: any) => sum + t.score, 0) / completedTests.length
+      : 0;
+
+    return {
+      bestScore,
+      averageAccuracy,
+      attemptCount: completedTests.length,
+    };
+  }
 }

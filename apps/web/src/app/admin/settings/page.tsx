@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import SettingsDangerZone from '@/components/admin/settings/SettingsDangerZone';
 import { Bell, Shield, Palette, Globe, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
