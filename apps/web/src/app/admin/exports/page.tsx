@@ -71,7 +71,7 @@ export default function ExportCenterPage() {
   };
 
   return (
-    <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-6'>
+    <div className='container mx-auto space-y-6'>
       <div>
         <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Export Center</h1>
         <p className='text-sm text-gray-500'>Download system data, reports, and analytics</p>

@@ -11,10 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2, Plus, FileText, Settings, Play, ArrowLeft, Info } from 'lucide-react';
+import { Plus, FileText, Play, ArrowLeft, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
 import Link from 'next/link';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
 
 export default function AssemblyDashboardPage() {
   const router = useRouter();
@@ -73,17 +77,12 @@ export default function AssemblyDashboardPage() {
   };
 
   return (
-    <div className='p-6 space-y-6 max-w-7xl mx-auto'>
-      {/* Page Header */}
-      <div className='flex justify-between items-start'>
-        <div>
-          <h1 className='text-3xl font-bold tracking-tight'>Test Assembly</h1>
-          <p className='text-muted-foreground mt-1'>
-            Generate full test instances from your exam configurations. Each assembly contains
-            sections, questions, and analytics.
-          </p>
-        </div>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
+      <PageHeader
+        title='Test Assembly'
+        subtitle='Generate full test instances from your exam configurations. Each assembly contains sections, questions, and analytics.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Assembly' }]}
+      />
 
       {/* Workflow Guide */}
       <div className='flex items-start gap-3 rounded-lg border border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30 p-4'>
@@ -113,52 +112,26 @@ export default function AssemblyDashboardPage() {
       </div>
 
       {loading ? (
-        <div className='flex justify-center py-12'>
-          <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
-        </div>
+        <AnimatedLoader variant='section' />
       ) : configs.length === 0 ? (
-        <Card className='border-dashed'>
-          <CardContent className='flex flex-col items-center justify-center py-12 gap-4'>
-            <Settings className='h-12 w-12 text-muted-foreground' />
-            <div className='text-center'>
-              <h2 className='text-xl font-semibold'>No Exam Configurations Found</h2>
-              <p className='text-muted-foreground mt-2 max-w-md text-center'>
-                An <strong>Exam Configuration</strong> defines the test structure (sections,
-                question counts, duration). You need at least one before generating an assembly.
-              </p>
-            </div>
-            <div className='flex gap-3'>
-              <Link href='/admin/configurations'>
-                <Button>
-                  <Plus className='h-4 w-4 mr-2' />
-                  Create Exam Config
-                </Button>
-              </Link>
-              <Link href='/admin/templates'>
-                <Button variant='outline'>View Templates</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          title='No Exam Configurations Found'
+          description='An Exam Configuration defines the test structure (sections, question counts, duration). You need at least one before generating an assembly.'
+          actionLabel='Create Exam Config'
+          onAction={() => router.push('/admin/configurations/new')}
+          className='py-12 border border-dashed'
+        />
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           {configs.map((config) => (
             <Card key={config.id} className='flex flex-col hover:shadow-md transition-shadow'>
               <CardHeader>
-                <div className='flex items-center gap-2 text-primary mb-2'>
-                  <FileText className='h-5 w-5' />
-                  <span className='text-sm font-medium'>Config: {config.code || 'N/A'}</span>
-                </div>
-                <CardTitle className='line-clamp-1'>{config.name || 'Untitled'}</CardTitle>
-                <CardDescription>
-                  {config.totalQuestions} Questions • {config.durationMinutes} Mins
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='flex-1'>
-                <div className='space-y-2 text-sm text-muted-foreground'>
-                  <p>Role: {config.role || 'N/A'}</p>
-                  <p>
-                    Status:{' '}
+                <div className='flex justify-between items-start mb-2'>
+                  <div className='flex items-center gap-2 text-primary'>
+                    <FileText className='h-5 w-5' />
+                    <span className='text-sm font-medium'>Config: {config.code || 'N/A'}</span>
+                  </div>
+                  <Badge variant={config.status === 'PUBLISHED' || config.status === 'ACTIVE' ? 'default' : 'secondary'} className={config.status === 'PUBLISHED' || config.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : ''}>
                     {config.status === 'ACTIVE'
                       ? 'Active'
                       : config.status === 'DRAFT'
@@ -168,7 +141,16 @@ export default function AssemblyDashboardPage() {
                           : config.status === 'PUBLISHED'
                             ? 'Published'
                             : 'Archived'}
-                  </p>
+                  </Badge>
+                </div>
+                <CardTitle className='line-clamp-1'>{config.name || 'Untitled'}</CardTitle>
+                <CardDescription>
+                  {config.totalQuestions} Questions • {config.durationMinutes} Mins
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='flex-1'>
+                <div className='space-y-2 text-sm text-muted-foreground'>
+                  <p>Role: {config.role || 'N/A'}</p>
                 </div>
               </CardContent>
               <CardFooter className='pt-4 border-t bg-muted/20'>
@@ -176,12 +158,9 @@ export default function AssemblyDashboardPage() {
                   className='w-full gap-2'
                   onClick={() => generateAssembly(config.id)}
                   disabled={generating === config.id}
+                  isLoading={generating === config.id}
                 >
-                  {generating === config.id ? (
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                  ) : (
-                    <Play className='h-4 w-4' />
-                  )}
+                  {generating !== config.id && <Play className='h-4 w-4' />}
                   {generating === config.id ? 'Assembling...' : 'Generate Test Assembly'}
                 </Button>
               </CardFooter>

@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
-import { ConfigHeader } from '@/components/admin/config/config-header';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { ConfigsPageClient } from './ConfigsPageClient';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Exam Configurations | Admin',
@@ -10,11 +13,18 @@ export const metadata: Metadata = {
 export default function ConfigsPage() {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
-      <ConfigHeader
+      <PageHeader
         title='Exam Configurations'
-        description='Manage and create exam configurations for assessments.'
-        actionHref='/admin/configurations/new'
-        actionLabel='Create Config'
+        subtitle='Manage and create exam configurations for assessments.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations' }]}
+        action={
+          <Button asChild>
+            <Link href="/admin/configurations/new">
+              <Plus className='w-4 h-4 mr-2' />
+              Create Config
+            </Link>
+          </Button>
+        }
       />
       <ConfigsPageClient />
     </div>

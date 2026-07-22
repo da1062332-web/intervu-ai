@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Users, FileText, CheckCircle2, TrendingUp, Download } from 'lucide-react';
-import { AnalyticsSectionHeader } from '@/components/admin/analytics/AnalyticsSectionHeader';
-import { StatCard } from '@/components/admin/analytics/StatCard';
+import { SectionHeader } from '@/components/ui/section-header';
+import { StatCard } from '@/components/ui/stat-card';
 import { TrendCard } from '@/components/admin/analytics/TrendCard';
 import { ProgressIndicator } from '@/components/admin/analytics/ProgressIndicator';
-import { EmptyAnalyticsState } from '@/components/admin/analytics/EmptyAnalyticsState';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { useDashboardStats } from '@/modules/dashboard/hooks/use-dashboard-stats';
@@ -91,7 +91,8 @@ export default function AnalyticsDashboardPage() {
   if (isError) {
     return (
       <div className='p-6'>
-        <EmptyAnalyticsState
+        <EmptyState
+          variant="error"
           title='Failed to load analytics'
           description='There was an error loading the dashboard data. Please try again later.'
         />
@@ -100,11 +101,12 @@ export default function AnalyticsDashboardPage() {
   }
 
   return (
-    <div className='space-y-8 animate-fade-in-up pb-8'>
-      <AnalyticsSectionHeader
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up'>
+      <SectionHeader
         title='Analytics Overview'
         description='Key performance indicators and insights for your assessments.'
-        action={
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Analytics' }]}
+        actions={
           <button className='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2'>
             <Download className='mr-2 size-4' />
             Export Report
@@ -119,8 +121,8 @@ export default function AnalyticsDashboardPage() {
             key={idx}
             title={stat.title}
             value={isLoadingStats ? '-' : stat.value}
-            trend={stat.trend}
             icon={getIconForStat(stat.title)}
+            isLoading={isLoadingStats}
           />
         ))}
       </div>
@@ -167,9 +169,11 @@ export default function AnalyticsDashboardPage() {
                 />
               ))
             ) : (
-              <EmptyAnalyticsState
+              <EmptyState
+                variant="no-data"
                 title='No skills tracked'
                 description='Performance metrics will appear here once candidates complete tests.'
+                compact
               />
             )}
           </CardContent>
@@ -177,7 +181,7 @@ export default function AnalyticsDashboardPage() {
       </div>
 
       {/* Activity Feed Section */}
-      <AnalyticsSectionHeader
+      <SectionHeader
         title='Recent Activity'
         description='Latest events and updates from your interview campaigns.'
       />
@@ -229,10 +233,12 @@ export default function AnalyticsDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className='p-6'>
-              <EmptyAnalyticsState
+            <div className='p-6 flex justify-center items-center h-48'>
+              <EmptyState
+                variant="no-data"
                 title='No recent activity'
                 description='Activity will appear here once candidates take interviews.'
+                compact
               />
             </div>
           )}

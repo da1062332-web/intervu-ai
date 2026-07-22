@@ -1,18 +1,20 @@
 'use client';
-
 import { useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
+import { Badge } from '@/components/ui/badge';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Edit2, ClipboardList, ArrowRight, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -79,8 +81,99 @@ export function TemplateListPageClient() {
     );
   };
 
+  const columns: ColumnDef<any>[] = [
+    {
+      header: 'Name',
+      cell: (row) => (
+        <div>
+          <div className='font-medium'>{row.name}</div>
+          {row.templateKey && (
+            <div className='text-xs text-muted-foreground font-mono'>
+              {row.templateKey}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Concept Key',
+      className: 'text-muted-foreground',
+      cell: (row) => row.conceptKey ?? '-',
+    },
+    {
+      header: 'Difficulty',
+      cell: (row) => {
+        const diff = (row.difficultyLevel ?? row.difficulty ?? 'MEDIUM').toUpperCase();
+        return (
+          <Badge
+            variant={diff === 'EASY' ? 'secondary' : diff === 'HARD' ? 'destructive' : 'outline'}
+            className='bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800'
+          >
+            {diff}
+          </Badge>
+        );
+      },
+    },
+    {
+      header: 'Strategy',
+      cell: (row) => (
+        <Badge
+          variant='outline'
+          className='bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800 uppercase'
+        >
+          {row.generationStrategy ?? 'VARIABLE'}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <Badge
+          variant={row.isActive ? 'outline' : 'secondary'}
+          className={
+            row.isActive
+              ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize shadow-sm'
+              : 'capitalize shadow-sm'
+          }
+        >
+          {row.isActive ? 'Active' : 'Inactive'}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className='inline-flex items-center gap-2 justify-end'>
+          <Button asChild variant='ghost' size='sm' className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'>
+            <Link href={`/admin/templates/${row.id}`}>
+              <Edit2 className='w-4 h-4 mr-1' /> Edit
+            </Link>
+          </Button>
+          <Button asChild variant='ghost' size='sm' className='text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400'>
+            <Link href='/admin/assembly'>
+              <ClipboardList className='w-4 h-4 mr-1' /> Assemble
+            </Link>
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className='container mx-auto py-6 space-y-6 max-w-7xl'>
+    <div className='container mx-auto space-y-6 max-w-7xl'>
+      <PageHeader
+        title='Templates'
+        subtitle='Manage generation templates and solutions.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Templates' }]}
+        action={
+          <Button onClick={() => setIsModalOpen(true)}>
+            <Plus className='w-4 h-4 mr-2' />
+            Create Template
+          </Button>
+        }
+      />
+
       {/* Workflow Guide Banner */}
       <div className='flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4'>
         <Info className='w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0' />
@@ -101,113 +194,35 @@ export function TemplateListPageClient() {
         </Link>
       </div>
 
-      <div className='flex justify-between items-center'>
-        <div>
-          <h1 className='text-2xl font-bold tracking-tight'>Templates</h1>
-          <p className='text-muted-foreground'>Manage generation templates and solutions.</p>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className='w-4 h-4 mr-2' />
-          Create Template
-        </Button>
-      </div>
-
-      <div className='border rounded-lg bg-white dark:bg-gray-900 shadow-sm overflow-hidden'>
-        {isLoading && (
-          <div className='p-6 space-y-4'>
-            <Skeleton className='h-10 w-full rounded-md' />
-            <Skeleton className='h-12 w-full rounded-md' />
-            <Skeleton className='h-12 w-full rounded-md' />
-          </div>
-        )}
-
+      <div className='border rounded-xl bg-card shadow-sm'>
+        {isLoading && <AnimatedLoader variant='table' className='my-8' />}
+        
         {isError && (
-          <div className='p-12 text-center'>
-            <h3 className='text-lg font-medium text-red-600 mb-2'>Unable to load templates.</h3>
-            <Button onClick={() => refetch()} variant='outline'>
-              Retry
-            </Button>
-          </div>
+          <EmptyState
+            variant='error'
+            title='Unable to load templates'
+            description='There was a problem fetching the templates. Please try again.'
+            actionLabel='Retry'
+            onAction={() => refetch()}
+            className='py-12'
+          />
         )}
 
-        {!isLoading && !isError && (!templates || templates.length === 0) && (
-          <div className='p-12 text-center border-dashed border-2 m-6 rounded-lg border-gray-200 dark:border-gray-800'>
-            <h3 className='text-lg font-medium mb-2'>No Templates Found</h3>
-            <p className='text-muted-foreground mb-6'>Create your first template to get started.</p>
-            <Button onClick={handleCreateTemplate} disabled={createMutation.isPending}>
-              <Plus className='w-4 h-4 mr-2' />
-              {createMutation.isPending ? 'Creating...' : 'Create Template'}
-            </Button>
-          </div>
-        )}
-
-        {!isLoading && !isError && templates && templates.length > 0 && (
-          <div className='overflow-x-auto'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Concept Key</TableHead>
-                  <TableHead>Difficulty</TableHead>
-                  <TableHead>Strategy</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className='text-right'>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {templates.map((tpl: any) => (
-                  <TableRow key={tpl.id}>
-                    <TableCell className='font-medium'>
-                      <div>{tpl.name}</div>
-                      {tpl.templateKey && (
-                        <div className='text-xs text-muted-foreground font-mono'>
-                          {tpl.templateKey}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className='text-muted-foreground'>{tpl.conceptKey ?? '-'}</TableCell>
-                    <TableCell>
-                      <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'>
-                        {tpl.difficultyLevel ?? tpl.difficulty ?? '-'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'>
-                        {tpl.generationStrategy ?? 'VARIABLE'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tpl.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}
-                      >
-                        {tpl.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </TableCell>
-                    <TableCell className='text-right space-x-2'>
-                      <Link href={`/admin/templates/${tpl.id}`}>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'
-                        >
-                          <Edit2 className='w-4 h-4 mr-1' /> Edit
-                        </Button>
-                      </Link>
-                      <Link href='/admin/assembly'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400'
-                        >
-                          <ClipboardList className='w-4 h-4 mr-1' /> Assemble
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        {!isLoading && !isError && (
+          <DataTable
+            columns={columns}
+            data={templates}
+            rowKey={(row) => row.id}
+            emptyState={
+              <EmptyState
+                title='No Templates Found'
+                description='Create your first template to get started.'
+                actionLabel='Create Template'
+                onAction={() => setIsModalOpen(true)}
+                className='py-12 border-0'
+              />
+            }
+          />
         )}
       </div>
 
@@ -232,44 +247,44 @@ export function TemplateListPageClient() {
           </div>
           <div>
             <Label>Topic (optional)</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4'
+            <Select
+              disabled={isLoadingTopics}
               value={selectedTopicId}
-              onChange={(e) => {
-                setSelectedTopicId(e.target.value);
+              onValueChange={(val: string) => {
+                setSelectedTopicId(val);
                 setFormData({ ...formData, conceptKey: '' });
               }}
-              disabled={isLoadingTopics}
             >
-              <option value=''>{isLoadingTopics ? 'Loading topics...' : 'Select a topic...'}</option>
-              {topics.map((topic) => (
-                <option key={topic.id} value={topic.id}>
-                  {topic.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder={isLoadingTopics ? 'Loading topics...' : 'Select a topic...'} />
+              </SelectTrigger>
+              <SelectContent>
+                {topics.map((topic) => (
+                  <SelectItem key={topic.id} value={topic.id}>
+                    {topic.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Concept (optional)</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
-              value={formData.conceptKey}
-              onChange={(e) => setFormData({ ...formData, conceptKey: e.target.value })}
+            <Select
               disabled={!selectedTopicId || isLoadingConcepts}
+              value={formData.conceptKey}
+              onValueChange={(val: string) => setFormData({ ...formData, conceptKey: val })}
             >
-              <option value=''>
-                {!selectedTopicId
-                  ? 'Select a topic first'
-                  : isLoadingConcepts
-                    ? 'Loading concepts...'
-                    : 'Select a concept...'}
-              </option>
-              {concepts.map((concept) => (
-                <option key={concept.id} value={concept.code || concept.conceptCode}>
-                  {concept.name || concept.conceptName}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder={!selectedTopicId ? 'Select a topic first' : isLoadingConcepts ? 'Loading concepts...' : 'Select a concept...'} />
+              </SelectTrigger>
+              <SelectContent>
+                {concepts.map((concept) => (
+                  <SelectItem key={concept.id} value={concept.code || concept.conceptCode}>
+                    {concept.name || concept.conceptName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Question Type</Label>
@@ -281,26 +296,34 @@ export function TemplateListPageClient() {
           </div>
           <div>
             <Label>Difficulty</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            <Select
               value={formData.difficulty}
-              onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+              onValueChange={(val: string) => setFormData({ ...formData, difficulty: val })}
             >
-              <option value='EASY'>EASY</option>
-              <option value='MEDIUM'>MEDIUM</option>
-              <option value='HARD'>HARD</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder='Select difficulty' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='EASY'>EASY</SelectItem>
+                <SelectItem value='MEDIUM'>MEDIUM</SelectItem>
+                <SelectItem value='HARD'>HARD</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Generation Strategy</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            <Select
               value={formData.generationStrategy}
-              onChange={(e) => setFormData({ ...formData, generationStrategy: e.target.value })}
+              onValueChange={(val: string) => setFormData({ ...formData, generationStrategy: val })}
             >
-              <option value='VARIABLE'>Variable Generation</option>
-              <option value='DATASET'>Dataset-backed</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder='Select strategy' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='VARIABLE'>Variable Generation</SelectItem>
+                <SelectItem value='DATASET'>Dataset-backed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>
             <Button variant='outline' onClick={() => setIsModalOpen(false)}>

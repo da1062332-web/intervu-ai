@@ -12,13 +12,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const hasIcon = !!startIcon || !!endIcon || isLoading;
 
     const baseInputStyles = cn(
-      'w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900',
-      'placeholder-gray-500 transition-colors',
-      'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-      'dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
-      'dark:focus:ring-blue-400',
-      'disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900',
-      'aria-invalid:border-red-500 aria-invalid:focus:ring-red-500 dark:aria-invalid:border-red-500 dark:aria-invalid:focus:ring-red-500'
+      'flex w-full px-4 py-2.5 bg-background border border-input rounded-md text-foreground shadow-sm',
+      'transition-all duration-300 ease-out',
+      'placeholder:text-muted-foreground/70',
+      'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary',
+      'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/50',
+      'hover:border-input-hover hover:shadow-md',
+      'aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/20 aria-invalid:focus-visible:border-destructive'
     );
 
     if (!hasIcon) {

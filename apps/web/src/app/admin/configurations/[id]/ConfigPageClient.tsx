@@ -187,6 +187,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         <SectionHeader
           title={config.name}
           description='Follow the guided workflow to complete this exam configuration.'
+          breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations', href: '/admin/configurations' }, { label: config.name }]}
           className='!mb-0'
         />
 

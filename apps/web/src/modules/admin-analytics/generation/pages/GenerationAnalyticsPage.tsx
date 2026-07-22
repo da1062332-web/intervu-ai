@@ -12,7 +12,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { apiClient } from '@/services/api/client';
@@ -64,12 +64,13 @@ export function GenerationAnalyticsPage() {
       : 1;
 
   return (
-    <div className='space-y-8 animate-fade-in-up pb-8'>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
       {/* Page Header */}
-      <PageHeader
+      <SectionHeader
         title='Generation Analytics'
-        subtitle='Observe the health, speed, volume, and success rates of our automated AI question generation pipelines.'
-        action={
+        description='Observe the health, speed, volume, and success rates of our automated AI question generation pipelines.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Analytics', href: '/admin/analytics' }, { label: 'Generation' }]}
+        actions={
           <div className='flex gap-3'>
             <Button asChild variant='outline'>
               <Link href='/admin/dashboard'>
@@ -173,32 +174,39 @@ export function GenerationAnalyticsPage() {
                   Daily count of successful and failed generation runs.
                 </CardDescription>
               </CardHeader>
-              <CardContent className='h-[300px] flex items-end gap-4 pt-6 border-t border-border/40'>
+              <CardContent className='h-[300px] flex items-end gap-3 pt-6 border-t border-border/40'>
                 {data?.trendData.map((t, idx) => {
                   const successPct = (t.success / maxTrendVal) * 100;
                   const failurePct = (t.failure / maxTrendVal) * 100;
                   return (
                     <div
                       key={idx}
-                      className='flex-1 flex flex-col items-center gap-2 h-full justify-end'
+                      className='flex-1 flex flex-col items-center gap-2 h-full'
                     >
-                      <div className='w-full relative flex-1 flex flex-col justify-end gap-1 min-h-[120px]'>
-                        {t.failure > 0 && (
-                          <div
-                            className='w-full bg-red-500/70 hover:bg-red-500 rounded-t-sm transition-all duration-300'
-                            style={{ height: `${failurePct}%` }}
-                            title={`Failed: ${t.failure}`}
-                          />
-                        )}
-                        {t.success > 0 && (
-                          <div
-                            className='w-full bg-primary/70 hover:bg-primary rounded-t-sm transition-all duration-300'
-                            style={{ height: `${successPct}%` }}
-                            title={`Successful: ${t.success}`}
-                          />
-                        )}
+                      {/* Track */}
+                      <div className='w-full max-w-[48px] bg-muted/40 rounded-t-md relative flex-1 overflow-hidden group'>
+                        {/* Tooltip on hover (simplistic) */}
+                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm text-[10px] font-medium text-center p-1">
+                          <span className="text-emerald-500">{t.success} OK</span>
+                          <span className="text-red-500">{t.failure} ERR</span>
+                        </div>
+                        {/* Stack Container */}
+                        <div className='absolute bottom-0 w-full flex flex-col justify-end h-full'>
+                          {t.failure > 0 && (
+                            <div
+                              className='w-full bg-red-500/80 transition-all duration-500'
+                              style={{ height: `${failurePct}%` }}
+                            />
+                          )}
+                          {t.success > 0 && (
+                            <div
+                              className='w-full bg-emerald-500/80 transition-all duration-500'
+                              style={{ height: `${successPct}%` }}
+                            />
+                          )}
+                        </div>
                       </div>
-                      <span className='text-[10px] text-muted-foreground whitespace-nowrap'>
+                      <span className='text-xs text-muted-foreground whitespace-nowrap font-medium'>
                         {t.date}
                       </span>
                     </div>

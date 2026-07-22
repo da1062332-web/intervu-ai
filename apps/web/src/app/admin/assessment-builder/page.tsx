@@ -15,7 +15,8 @@ import type { ExamConfig } from '@/services/exam-configs/types';
 import type { Assessment, ValidationResult } from '@/features/assessment-builder/types';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
-import { useUIStore } from '@/store/ui.store';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { CustomFormCard } from '@/components/ui/custom-form-card';
 
 export default function AssessmentBuilderPage() {
   const [step, setStep] = useState<'SELECT_CONFIG' | 'PREVIEW_BLUEPRINT' | 'GENERATING' | 'RESULT'>(
@@ -101,44 +102,53 @@ export default function AssessmentBuilderPage() {
   };
 
   return (
-    <div className='container mx-auto py-8 max-w-6xl space-y-8'>
-      <div className='flex flex-col gap-2'>
-        <h1 className='text-3xl font-bold tracking-tight'>Assessment Generator</h1>
-        <p className='text-muted-foreground'>
-          Transform your validated blueprints into complete, ready-to-use assessments powered by AI.
-        </p>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in'>
+      <PageHeader
+        title='Assessment Generator'
+        subtitle='Transform your validated blueprints into complete, ready-to-use assessments powered by AI.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Assessment Generator' }]}
+      />
 
       {step === 'SELECT_CONFIG' && (
         <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
-          <div className='flex justify-between items-center border-b pb-4'>
-            <h2 className='text-xl font-semibold'>1. Select Configuration</h2>
-            <Button disabled={!selectedConfig} onClick={handleContinueToPreview} className='gap-2'>
-              Continue to Preview <ChevronRight className='w-4 h-4' />
-            </Button>
-          </div>
-          <ConfigurationSelection onSelect={handleConfigSelect} selectedId={selectedConfig?.id} />
+          <CustomFormCard
+            title='1. Select Configuration'
+            description='Choose the exam configuration to build your assessment from.'
+            footer={
+              <div className='flex w-full justify-end'>
+                <Button disabled={!selectedConfig} onClick={handleContinueToPreview} className='gap-2'>
+                  Continue to Preview <ChevronRight className='w-4 h-4' />
+                </Button>
+              </div>
+            }
+          >
+            <ConfigurationSelection onSelect={handleConfigSelect} selectedId={selectedConfig?.id} />
+          </CustomFormCard>
         </div>
       )}
 
       {step === 'PREVIEW_BLUEPRINT' && selectedConfig && (
         <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
-          <div className='flex justify-between items-center border-b pb-4'>
-            <div className='flex items-center gap-4'>
-              <Button variant='outline' size='icon' onClick={() => setStep('SELECT_CONFIG')}>
-                <ArrowLeft className='w-4 h-4' />
-              </Button>
-              <h2 className='text-xl font-semibold'>2. Review Blueprint: {selectedConfig.name}</h2>
-            </div>
-            <Button
-              disabled={isGenerating}
-              onClick={handleGenerate}
-              className='gap-2 bg-indigo-600 hover:bg-indigo-700 text-white'
-            >
-              {isGenerating ? 'Generating...' : 'Generate Assessment'}
-            </Button>
-          </div>
-          <BlueprintPreview config={selectedConfig} />
+          <CustomFormCard
+            title={`2. Review Blueprint: ${selectedConfig.name}`}
+            description='Review the blueprint requirements before generating the assessment.'
+            footer={
+              <div className='flex gap-2 w-full justify-between items-center'>
+                <Button variant='outline' size='icon' onClick={() => setStep('SELECT_CONFIG')}>
+                  <ArrowLeft className='w-4 h-4' />
+                </Button>
+                <Button
+                  disabled={isGenerating}
+                  onClick={handleGenerate}
+                  className='gap-2 bg-indigo-600 hover:bg-indigo-700 text-white'
+                >
+                  {isGenerating ? 'Generating...' : 'Generate Assessment'}
+                </Button>
+              </div>
+            }
+          >
+            <BlueprintPreview config={selectedConfig} />
+          </CustomFormCard>
         </div>
       )}
 
@@ -163,22 +173,27 @@ export default function AssessmentBuilderPage() {
 
       {step === 'RESULT' && generatedAssessment && (
         <div className='space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700'>
-          <div className='flex justify-between items-center border-b pb-4'>
-            <h2 className='text-xl font-semibold'>3. Assessment Result</h2>
-            <Button variant='outline' onClick={() => setStep('SELECT_CONFIG')}>
-              Generate Another
-            </Button>
-          </div>
+          <CustomFormCard
+            title='3. Assessment Result'
+            description='Review the generated assessment and its validation results.'
+            footer={
+              <div className='flex w-full justify-end'>
+                <Button variant='outline' onClick={() => setStep('SELECT_CONFIG')}>
+                  Generate Another
+                </Button>
+              </div>
+            }
+          >
+            <AssessmentSummaryDashboard
+              assessment={generatedAssessment}
+              validation={validationResult}
+            />
 
-          <AssessmentSummaryDashboard
-            assessment={generatedAssessment}
-            validation={validationResult}
-          />
-
-          <div className='pt-6 border-t'>
-            <h3 className='text-lg font-semibold mb-6'>Preview Questions</h3>
-            <AssessmentPreview assessment={generatedAssessment} />
-          </div>
+            <div className='pt-6 border-t mt-6'>
+              <h3 className='text-lg font-semibold mb-6'>Preview Questions</h3>
+              <AssessmentPreview assessment={generatedAssessment} />
+            </div>
+          </CustomFormCard>
         </div>
       )}
     </div>

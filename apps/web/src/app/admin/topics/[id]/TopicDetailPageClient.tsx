@@ -27,6 +27,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EmptyStateCard } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
 import {
   ArrowLeft,
   Search,
@@ -97,7 +100,7 @@ function ConceptTemplatesRow({
   return (
     <TableRow className='bg-muted/5 hover:bg-muted/5 border-b-2'>
       <TableCell colSpan={5} className='p-0'>
-        <div className='p-6 border-l-4 border-l-primary/60 m-4 rounded-r-lg bg-background shadow-inner space-y-4'>
+        <div className='border-l-4 border-l-primary/60 m-4 rounded-r-lg bg-background shadow-inner space-y-4'>
           <div className='flex items-center justify-between'>
             <h4 className='font-semibold text-sm flex items-center gap-2'>
               <FileText className='w-4 h-4 text-muted-foreground' />
@@ -143,15 +146,30 @@ function ConceptTemplatesRow({
                         <Edit2 className='w-3.5 h-3.5 mr-1' /> Edit
                       </Link>
                     </Button>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      className='h-8 text-red-500 hover:text-red-600'
-                      disabled={deleteMutation.isPending}
-                      onClick={() => handleDeleteTemplate(tpl.id, tpl.name || 'Untitled Template')}
-                    >
-                      <Trash2 className='w-3.5 h-3.5 mr-1' /> Delete
-                    </Button>
+                    <ConfirmationDialog
+                      title='Delete Template'
+                      description={`Are you sure you want to delete "${tpl.name || 'Untitled Template'}"?`}
+                      confirmLabel='Delete'
+                      destructive
+                      onConfirm={async () => {
+                        try {
+                          await deleteMutation.mutateAsync(tpl.id);
+                          toast.success(`Template "${tpl.name || 'Untitled Template'}" deleted successfully!`);
+                        } catch (err: any) {
+                          toast.error(err?.message || 'Failed to delete template.');
+                        }
+                      }}
+                      trigger={
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='h-8 text-red-500 hover:text-red-600'
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className='w-3.5 h-3.5 mr-1' /> Delete
+                        </Button>
+                      }
+                    />
                   </div>
                 </div>
               ))}
@@ -338,24 +356,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
   const isTopicReady = concepts && concepts.length > 0 && readyConceptsCount === concepts.length;
 
   if (isLoading) {
-    return (
-      <div className='space-y-8 mt-8'>
-        <div className='flex items-center gap-4'>
-          <Skeleton className='h-8 w-8 rounded-full' />
-          <Skeleton className='h-10 w-64' />
-        </div>
-        <Skeleton className='h-48 w-full rounded-xl' />
-        <div className='space-y-4'>
-          <div className='flex justify-between'>
-            <Skeleton className='h-8 w-32' />
-            <Skeleton className='h-8 w-24' />
-          </div>
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className='h-16 w-full rounded-lg' />
-          ))}
-        </div>
-      </div>
-    );
+    return <AnimatedLoader variant='table' className='mt-8' />;
   }
 
   if (isError || !topic) {
@@ -588,51 +589,33 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
 
   return (
     <div className='space-y-8 animate-fade-in'>
-      {/* Navigation Breadcrumb */}
-      <div>
-        <Button
-          asChild
-          variant='ghost'
-          className='pl-0 text-muted-foreground hover:text-foreground'
-        >
-          <Link href='/admin/topics'>
-            <ArrowLeft className='w-4 h-4 mr-2' />
-            Back to Topics
-          </Link>
-        </Button>
-      </div>
-
-      {/* Topic Metadata Card with Rich Styling */}
-      <div className='relative overflow-hidden rounded-2xl border bg-card p-6 md:p-8 shadow-md transition-all duration-300 hover:shadow-lg'>
-        <div className='absolute top-0 right-0 h-32 w-32 bg-primary/5 rounded-bl-full pointer-events-none' />
-        <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4 mb-4'>
-          <div>
-            <h2 className='text-3xl font-bold tracking-tight text-foreground'>{topic.name}</h2>
-            <div className='flex flex-wrap items-center gap-2 mt-2'>
-              <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
-                {topic.code}
-              </Badge>
-              <Badge
-                variant={topic.status === 'ACTIVE' ? 'outline' : 'secondary'}
-                className={
-                  topic.status === 'ACTIVE'
-                    ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize'
-                    : 'capitalize'
-                }
-              >
-                {topic.status.toLowerCase()}
-              </Badge>
-            </div>
+      {/* Page Header */}
+      <PageHeader
+        title={topic ? topic.name : 'Topic Details'}
+        subtitle='Manage your topic configuration and its hierarchical dependencies.'
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Topics', href: '/admin/topics' },
+          { label: topic.name },
+        ]}
+        action={
+          <div className='flex gap-2 items-center'>
+            <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
+              {topic.code}
+            </Badge>
+            <Badge
+              variant={topic.status === 'ACTIVE' ? 'outline' : 'secondary'}
+              className={
+                topic.status === 'ACTIVE'
+                  ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize'
+                  : 'capitalize'
+              }
+            >
+              {topic.status.toLowerCase()}
+            </Badge>
           </div>
-        </div>
-        <p className='text-muted-foreground text-base max-w-3xl leading-relaxed'>
-          {topic.description || (
-            <span className='italic text-muted-foreground/50'>
-              No description provided for this topic.
-            </span>
-          )}
-        </p>
-      </div>
+        }
+      />
 
 
 
@@ -779,26 +762,41 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                               >
                                 <Edit2 className='w-4 h-4' />
                               </Button>
-                              <Button
-                                variant='ghost'
-                                size='icon'
+                              <ConfirmationDialog
                                 title={isAct ? 'Deactivate Concept' : 'Activate Concept'}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleDeactivate(concept);
+                                description={isAct ? `Are you sure you want to deactivate "${cName}"?` : `Are you sure you want to activate "${cName}"?`}
+                                confirmLabel={isAct ? 'Deactivate' : 'Activate'}
+                                destructive={isAct}
+                                onConfirm={() => {
+                                  if (isAct) {
+                                    deactivateMutation.mutate(concept.id, { onSuccess: () => refetchConcepts() });
+                                  } else {
+                                    updateMutation.mutate(
+                                      { conceptId: concept.id, payload: { status: 'ACTIVE', isActive: true } },
+                                      { onSuccess: () => refetchConcepts() }
+                                    );
+                                  }
                                 }}
-                                className={`h-8 w-8 ${
-                                  isAct
-                                    ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20'
-                                    : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
-                                }`}
-                              >
-                                {isAct ? (
-                                  <Trash2 className='w-4 h-4' />
-                                ) : (
-                                  <CheckCircle className='w-4 h-4' />
-                                )}
-                              </Button>
+                                trigger={
+                                  <Button
+                                    variant='ghost'
+                                    size='icon'
+                                    title={isAct ? 'Deactivate Concept' : 'Activate Concept'}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`h-8 w-8 ${
+                                      isAct
+                                        ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20'
+                                        : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
+                                    }`}
+                                  >
+                                    {isAct ? (
+                                      <Trash2 className='w-4 h-4' />
+                                    ) : (
+                                      <CheckCircle className='w-4 h-4' />
+                                    )}
+                                  </Button>
+                                }
+                              />
                             </div>
                           </TableCell>
                         </TableRow>

@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
-import { SectionHeader } from '@/components/ui/section-header';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import {
   ShieldCheck,
   ChevronDown,
@@ -84,16 +84,13 @@ export default function SystemValidationPage() {
   };
 
   return (
-    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
+    <div className='container mx-auto max-w-7xl space-y-8'>
       {/* Page Header */}
-      <div className='border-b border-border pb-5'>
-        <SectionHeader
-          title="Cross-Module System Validation"
-          description="Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules."
-          icon={ShieldCheck}
-          className="!mb-0"
-        />
-      </div>
+      <PageHeader
+        title="Cross-Module System Validation"
+        subtitle="Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules."
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'System Validation' }]}
+      />
 
       {/* Configuration Selection Control */}
       <Card className='backdrop-blur-md bg-white/60 dark:bg-gray-950/60 border border-white/20 dark:border-white/10 shadow-sm rounded-xl'>

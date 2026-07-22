@@ -13,8 +13,6 @@ interface ProfileDetailsCardProps {
 }
 
 export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const userName = user.name || user.fullName || 'Not set';
   const userInitial = (userName !== 'Not set' ? userName : user.email)[0].toUpperCase();
   const userEmail = user.email || 'Not set';
@@ -29,18 +27,7 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
     : '—';
 
   return (
-    <>
-      <SectionHeader
-        title='My Profile'
-        description='Manage your personal information and account details.'
-        actions={
-          <Button onClick={() => setIsEditModalOpen(true)} size='sm'>
-            Edit Profile
-          </Button>
-        }
-      />
-
-      <div className='space-y-6'>
+    <div className='space-y-6'>
         {/* Avatar + name card */}
         <Card className='p-6'>
           <div className='flex items-center gap-5'>
@@ -83,12 +70,5 @@ export function ProfileDetailsCard({ user }: ProfileDetailsCardProps) {
           ))}
         </Card>
       </div>
-
-      <EditProfileModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        user={user}
-      />
-    </>
   );
 }

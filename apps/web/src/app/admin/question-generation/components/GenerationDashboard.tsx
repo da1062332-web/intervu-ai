@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { CustomFormCard } from '@/components/ui/custom-form-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -116,12 +116,22 @@ export function GenerationDashboard() {
         templates={templates}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Generation Settings</CardTitle>
-          <CardDescription>Choose how you want to generate questions from the selected template.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <CustomFormCard
+        title="Generation Settings"
+        description="Choose how you want to generate questions from the selected template."
+        footer={
+          <div className="flex justify-end gap-2 w-full">
+            <Button 
+              onClick={handleGenerate} 
+              disabled={!isFormValid || status === 'generating'}
+              className="w-32"
+            >
+              {status === 'generating' ? 'Generating...' : 'Generate'}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
           <div className="space-y-4">
             <Label className="text-base">Generation Type</Label>
             <RadioGroup 
@@ -158,17 +168,8 @@ export function GenerationDashboard() {
               />
             </div>
           )}
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2 border-t pt-4">
-          <Button 
-            onClick={handleGenerate} 
-            disabled={!isFormValid || status === 'generating'}
-            className="w-32"
-          >
-            {status === 'generating' ? 'Generating...' : 'Generate'}
-          </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      </CustomFormCard>
 
       <BatchProgressWidget 
         status={status} 

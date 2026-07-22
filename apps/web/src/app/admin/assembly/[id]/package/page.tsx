@@ -13,7 +13,7 @@ export default function AssemblyPackagePage() {
   if (!id) return null;
 
   return (
-    <div className='p-6 space-y-6 max-w-7xl mx-auto pb-24'>
+    <div className='space-y-6 max-w-7xl mx-auto'>
       <div className='flex items-center gap-4'>
         <Button variant='ghost' size='icon' onClick={() => router.push(`/admin/assembly/${id}`)}>
           <ArrowLeft className='h-5 w-5' />

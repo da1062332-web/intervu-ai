@@ -176,7 +176,7 @@ function BatchCreateContent() {
   };
 
   return (
-    <div className='flex-1 space-y-4 p-8 pt-6 max-w-5xl mx-auto w-full'>
+    <div className='flex-1 space-y-4 max-w-5xl mx-auto w-full'>
       <div className='flex items-center space-x-4 mb-6'>
         <Button variant='ghost' size='icon' onClick={handleCancel} disabled={isSubmitting}>
           <ArrowLeft className='w-5 h-5' />

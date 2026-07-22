@@ -1,8 +1,9 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
 import { GeneratedQuestion } from '@/services/question-generation/types';
 
 export interface QuestionPoolTableProps {
@@ -42,75 +43,79 @@ export function QuestionPoolTable({
   const allSelected = selectableQuestions.length > 0 && 
                       selectedIds.length === selectableQuestions.length;
 
+  const columns: ColumnDef<any>[] = [
+    {
+      id: 'select',
+      header: (
+        <Checkbox 
+          checked={allSelected}
+          onCheckedChange={onToggleSelectAll}
+          aria-label="Select all approved"
+        />
+      ),
+      cell: ({ row }) => (
+        row.original.status === 'APPROVED' ? (
+          <Checkbox 
+            checked={selectedIds.includes(row.original.id)}
+            onCheckedChange={() => onToggleSelect(row.original.id)}
+            aria-label={`Select ${row.original.id}`}
+          />
+        ) : null
+      ),
+      
+      
+    },
+    {
+      id: 'id',
+      header: 'ID',
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.id}</span>,
+    },
+    {
+      id: 'questionText',
+      header: 'Question Statement',
+      cell: ({ row }) => (
+        <span className="max-w-[300px] truncate block" title={row.original.questionText}>
+          {row.original.questionText}
+        </span>
+      ),
+    },
+    {
+      id: 'difficulty',
+      header: 'Difficulty',
+      cell: ({ row }) => <Badge variant="outline">{row.original.difficulty}</Badge>,
+    },
+    {
+      id: 'templateId',
+      header: 'Template',
+      cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.templateId}</span>,
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <Badge variant={row.original.status === 'PUBLISHED' ? 'default' : 'secondary'}>
+          {row.original.status}
+        </Badge>
+      ),
+    },
+  ];
+
   return (
-    <div className="border rounded-md mt-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[50px]">
-              <Checkbox 
-                checked={allSelected}
-                onCheckedChange={onToggleSelectAll}
-                aria-label="Select all approved"
-              />
-            </TableHead>
-            <TableHead>ID</TableHead>
-            <TableHead>Question Statement</TableHead>
-            <TableHead>Difficulty</TableHead>
-            <TableHead>Template</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={i}>
-                <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-              </TableRow>
-            ))
-          ) : poolQuestions.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                No approved or published questions found.
-              </TableCell>
-            </TableRow>
-          ) : (
-            poolQuestions.map((q) => (
-              <TableRow key={q.id}>
-                <TableCell>
-                  {q.status === 'APPROVED' && (
-                    <Checkbox 
-                      checked={selectedIds.includes(q.id)}
-                      onCheckedChange={() => onToggleSelect(q.id)}
-                      aria-label={`Select ${q.id}`}
-                    />
-                  )}
-                </TableCell>
-                <TableCell className="font-mono text-xs">{q.id}</TableCell>
-                <TableCell className="max-w-[300px] truncate" title={q.questionText}>
-                  {q.questionText}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{q.difficulty}</Badge>
-                </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">
-                  {q.templateId}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={q.status === 'PUBLISHED' ? 'default' : 'secondary'}>
-                    {q.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+    <div className="border rounded-xl bg-card shadow-sm mt-4">
+      {isLoading && <AnimatedLoader variant="table" className="my-8" />}
+      {!isLoading && (
+        <DataTable
+          columns={columns}
+          data={poolQuestions || []}
+          emptyState={
+            <EmptyState
+              title="No Questions Found"
+              description="No approved or published questions found."
+              className="py-12 border-0"
+            />
+          }
+        />
+      )}
     </div>
   );
 }

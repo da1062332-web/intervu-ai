@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
-import { ConfigHeader } from '@/components/admin/config/config-header';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { BlueprintListPageClient } from './BlueprintListPageClient';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Exam Blueprints | Admin',
@@ -10,9 +13,18 @@ export const metadata: Metadata = {
 export default function BlueprintsPage() {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
-      <ConfigHeader
+      <PageHeader
         title='Exam Blueprints'
-        description='Design blueprints, allocate topic percentages, and select style profiles.'
+        subtitle='Design blueprints, allocate topic percentages, and select style profiles.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Blueprints' }]}
+        action={
+          <Button asChild>
+            <Link href="/admin/blueprints/new">
+              <Plus className='w-4 h-4 mr-2' />
+              Create Blueprint
+            </Link>
+          </Button>
+        }
       />
       <BlueprintListPageClient />
     </div>

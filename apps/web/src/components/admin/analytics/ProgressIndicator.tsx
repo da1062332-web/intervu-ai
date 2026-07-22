@@ -13,13 +13,13 @@ export function ProgressIndicator({ label, progress, color, className }: Progres
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <div className='flex justify-between items-center text-sm font-medium'>
+      <div className='flex justify-between items-center text-sm font-semibold'>
         <span>{label}</span>
         <span className='text-muted-foreground'>{normalizedProgress}%</span>
       </div>
-      <div className='h-2 w-full bg-muted rounded-full overflow-hidden'>
+      <div className='h-2.5 w-full bg-muted/60 rounded-full overflow-hidden'>
         <div
-          className={cn('h-full rounded-full transition-all duration-500', color || 'bg-primary')}
+          className={cn('h-full rounded-full transition-all duration-700 ease-out shadow-sm', color || 'bg-primary')}
           style={{ width: `${normalizedProgress}%` }}
         />
       </div>

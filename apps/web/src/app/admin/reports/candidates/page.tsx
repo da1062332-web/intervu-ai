@@ -1,11 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loading } from '@/components/ui/loading';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
+import { SectionHeader } from '@/components/ui/section-header';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Eye, Search, Filter, Download } from 'lucide-react';
 import { apiClient } from '@/services/api/client';
 
@@ -62,14 +64,90 @@ export default function AdminCandidateReportsPage() {
     }
   };
 
+  const columns: ColumnDef<CandidateReport>[] = [
+    {
+      id: 'candidate',
+      header: 'Candidate',
+      cell: (row) => (
+        <div>
+          <p className='font-medium text-gray-900'>{row.candidate.fullName || 'Candidate'}</p>
+          <p className='text-xs text-gray-500'>{row.candidate.email}</p>
+        </div>
+      ),
+    },
+    {
+      id: 'assessment',
+      header: 'Assessment',
+      cell: (row) => <span className='text-gray-700'>{row.assessment.displayName}</span>,
+    },
+    {
+      id: 'score',
+      header: 'Score',
+      cell: (row) => <span className='font-semibold text-indigo-600'>{row.score}</span>,
+    },
+    {
+      id: 'completedAt',
+      header: 'Completed Date',
+      cell: (row) => <span className='text-gray-700'>{new Date(row.completedAt).toLocaleDateString()}</span>,
+    },
+    {
+      id: 'actions',
+      header: <div className="text-right">Action</div>,
+      className: "text-right",
+      cell: (row) => (
+        <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => router.push(`/admin/results/${row.id}`)}
+          >
+            <Eye className='w-4 h-4 mr-2' />
+            View
+          </Button>
+          <Button
+            variant='ghost'
+            size='sm'
+            className='text-primary'
+            onClick={async (e) => {
+              const btn = e.currentTarget;
+              const originalText = btn.innerHTML;
+              try {
+                btn.innerHTML = '<span class="animate-pulse">...</span>';
+                btn.disabled = true;
+                const blob = await apiClient.request<Blob>(`/reports/export/pdf/${row.id}`, {
+                  responseType: 'blob'
+                });
+                const url = URL.createObjectURL(blob as any);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Report-${row.id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              } catch (err) {
+                console.error(err);
+              } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+              }
+            }}
+          >
+            <Download className='w-4 h-4 mr-2' />
+            Report
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
-          Candidate Reports Explorer
-        </h1>
-        <p className='text-sm text-gray-500'>View and filter candidate assessment results</p>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
+      <SectionHeader
+        title='Candidate Reports Explorer'
+        description='View and filter candidate assessment results'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Reports' }, { label: 'Candidates' }]}
+      />
 
       <Card>
         <CardHeader className='pb-3 border-b'>
@@ -91,124 +169,20 @@ export default function AdminCandidateReportsPage() {
           </div>
         </CardHeader>
         <CardContent className='p-0'>
-          {loading ? (
-            <div className='p-8 flex justify-center'>
-              <Loading />
-            </div>
-          ) : (
-            <div className='overflow-x-auto w-full'>
-              <table className='w-full text-sm text-left'>
-                <thead className='bg-gray-50 border-b border-gray-200'>
-                  <tr>
-                    <th
-                      scope='col'
-                      className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
-                      onClick={() => toggleSort('candidate')}
-                    >
-                      Candidate {sortBy === 'candidate' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </th>
-                    <th
-                      scope='col'
-                      className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
-                      onClick={() => toggleSort('assessment')}
-                    >
-                      Assessment {sortBy === 'assessment' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </th>
-                    <th
-                      scope='col'
-                      className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
-                      onClick={() => toggleSort('score')}
-                    >
-                      Score {sortBy === 'score' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </th>
-                    <th
-                      scope='col'
-                      className='px-6 py-3 font-medium text-gray-500 cursor-pointer hover:bg-gray-100'
-                      onClick={() => toggleSort('completedAt')}
-                    >
-                      Completed Date {sortBy === 'completedAt' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </th>
-                    <th scope='col' className='px-6 py-3 font-medium text-gray-500 text-right'>
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className='divide-y divide-gray-200'>
-                  {reports.length > 0 ? (
-                    reports.map((report) => (
-                      <tr key={report.id} className='bg-white hover:bg-gray-50 transition-colors'>
-                        <td className='px-6 py-4'>
-                          <p className='font-medium text-gray-900'>
-                            {report.candidate.fullName || 'Candidate'}
-                          </p>
-                          <p className='text-xs text-gray-500'>{report.candidate.email}</p>
-                        </td>
-                        <td className='px-6 py-4 text-gray-700'>{report.assessment.displayName}</td>
-                        <td className='px-6 py-4'>
-                          <span className='font-semibold text-indigo-600'>{report.score}</span>
-                        </td>
-                        <td className='px-6 py-4 text-gray-700'>
-                          {new Date(report.completedAt).toLocaleDateString()}
-                        </td>
-                        <td className='px-6 py-4 text-right'>
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            onClick={() => router.push(`/admin/results/${report.id}`)}
-                          >
-                            <Eye className='w-4 h-4 mr-2' />
-                            View
-                          </Button>
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            className='text-primary'
-                            onClick={async (e) => {
-                              const btn = e.currentTarget;
-                              const originalText = btn.innerHTML;
-                              try {
-                                btn.innerHTML = '<span class="animate-pulse">...</span>';
-                                btn.disabled = true;
-                                const blob = await apiClient.request<Blob>(`/reports/export/pdf/${report.id}`, {
-                                  responseType: 'blob'
-                                });
-                                const url = URL.createObjectURL(blob as any);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `Report-${report.id}.pdf`;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                              } catch (err) {
-                                console.error(err);
-                              } finally {
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-                              }
-                            }}
-                          >
-                            <Download className='w-4 h-4 mr-2' />
-                            Report
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className='p-8'>
-                        <EmptyState
-                          title='No Reports Found'
-                          description='No candidate reports matched your search criteria.'
-                          icon={<Search className='w-8 h-8 text-gray-400' />}
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <DataTable
+            columns={columns}
+            data={reports}
+            isLoading={loading}
+            rowKey={(row) => row.id}
+            containerClassName="border-0 rounded-none"
+            emptyState={
+              <EmptyState
+                variant="no-data"
+                title='No Reports Found'
+                description='No candidate reports matched your search criteria.'
+              />
+            }
+          />
         </CardContent>
       </Card>
     </div>

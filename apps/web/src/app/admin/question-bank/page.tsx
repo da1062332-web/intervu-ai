@@ -7,6 +7,8 @@ import { PoolFilters } from './components/PoolFilters';
 import { PublishToolbar } from './components/PublishToolbar';
 import { QuestionPoolTable } from './components/QuestionPoolTable';
 
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+
 export default function QuestionBankPage() {
   const [filters, setFilters] = useState<FilterType>({});
   const { data: questions = [], isLoading } = useGeneratedQuestions(filters);
@@ -55,15 +57,12 @@ export default function QuestionBankPage() {
   };
 
   return (
-    <div className='flex-1 space-y-4 p-8 pt-6'>
-      <div className='flex items-center justify-between space-y-2 mb-6'>
-        <div>
-          <h2 className='text-3xl font-bold tracking-tight'>Question Bank</h2>
-          <p className='text-muted-foreground mt-1'>
-            Browse, filter, and publish approved questions for use in assessments.
-          </p>
-        </div>
-      </div>
+    <div className='flex-1 space-y-8 animate-fade-in'>
+      <PageHeader
+        title="Question Bank"
+        subtitle="Browse, filter, and publish approved questions for use in assessments."
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Question Bank' }]}
+      />
 
       <PoolFilters filters={filters} setFilters={setFilters} onClear={handleClearFilters} />
 

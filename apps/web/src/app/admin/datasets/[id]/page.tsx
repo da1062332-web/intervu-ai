@@ -16,6 +16,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Tab = 'basic' | 'items';
 
@@ -111,36 +125,81 @@ export default function DatasetDetailPage() {
     }
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      deleteItem({ itemId, datasetId: id });
-    }
-  };
+  const itemColumns: ColumnDef<any>[] = [
+    {
+      header: 'ID',
+      cell: (row) => <span className="font-mono text-xs text-muted-foreground">{row.id.slice(0, 8)}...</span>,
+    },
+    {
+      header: 'Content',
+      cell: (row) => <span className="max-w-[300px] truncate block text-foreground">{row.content}</span>,
+    },
+    {
+      header: 'Topic',
+      id: 'topic', cell: (row: any) => row.topic,
+    },
+    {
+      header: 'Difficulty',
+      className: 'text-center',
+      cell: (row) => (
+        <Badge variant={row.difficulty === 'HARD' ? 'destructive' : row.difficulty === 'MEDIUM' ? 'default' : 'secondary'}>
+          {row.difficulty}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Created At',
+      cell: (row) => <span className="text-muted-foreground">{format(new Date(row.createdAt), 'MMM d, yyyy')}</span>,
+    },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className='flex justify-end'>
+          <ConfirmationDialog
+            title="Delete Item"
+            description="Are you sure you want to delete this dataset item?"
+            confirmLabel="Delete"
+            destructive
+            onConfirm={() => deleteItem({ itemId: row.id, datasetId: id })}
+            trigger={
+              <Button variant="ghost" size="icon" title="Delete Item">
+                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+              </Button>
+            }
+          />
+        </div>
+      ),
+    },
+  ];
 
   if (isLoading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-gray-500" /></div>;
+    return (
+      <div className="flex-1">
+        <AnimatedLoader variant="table" />
+      </div>
+    );
   }
 
   if (!dataset) {
-    return <div className="p-8 text-center text-gray-500">Dataset not found.</div>;
+    return (
+      <div className="flex-1 p-8">
+        <EmptyState title="Dataset Not Found" description="The dataset you're looking for does not exist." />
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-6 max-w-[1200px] space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/datasets" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <Database className="w-5 h-5 text-indigo-500" />
-              <h1 className="text-2xl font-bold tracking-tight">{dataset.name}</h1>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">Manage dataset details and items.</p>
-          </div>
-        </div>
-      </div>
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <PageHeader
+        title={dataset.name}
+        subtitle="Manage dataset details and items."
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Datasets', href: '/admin/datasets' },
+          { label: dataset.name },
+        ]}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-3">
@@ -188,22 +247,23 @@ export default function DatasetDetailPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Description</Label>
-                  <textarea 
-                    className="w-full flex min-h-[100px] rounded-md border border-gray-300 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  <Textarea 
+                    className="min-h-[100px]"
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Type</Label>
-                  <select 
-                    className="w-full flex h-10 rounded-md border border-gray-300 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={type}
-                    onChange={e => setType(e.target.value)}
-                  >
-                    <option value="STANDARD">Standard</option>
-                    <option value="SCENARIO">Scenario-based</option>
-                  </select>
+                  <Select value={type} onValueChange={setType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STANDARD">Standard</SelectItem>
+                      <SelectItem value="SCENARIO">Scenario-based</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button onClick={handleUpdate} disabled={isUpdating || !name}>
                   {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
@@ -230,51 +290,18 @@ export default function DatasetDetailPage() {
                 </div>
               </div>
               
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50 dark:bg-gray-800/50">
-                    <tr>
-                      <th className="px-6 py-3 font-medium text-gray-500">ID</th>
-                      <th className="px-6 py-3 font-medium text-gray-500">Content</th>
-                      <th className="px-6 py-3 font-medium text-gray-500">Topic</th>
-                      <th className="px-6 py-3 font-medium text-gray-500 text-center">Difficulty</th>
-                      <th className="px-6 py-3 font-medium text-gray-500">Created</th>
-                      <th className="px-6 py-3 font-medium text-gray-500 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {dataset.items?.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                          No items in this dataset. Add one or use bulk upload.
-                        </td>
-                      </tr>
-                    ) : (
-                      dataset.items?.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                          <td className="px-6 py-4 font-mono text-xs text-gray-400">{item.id.slice(0, 8)}...</td>
-                          <td className="px-6 py-4 max-w-[300px] truncate text-gray-700 dark:text-gray-300">
-                            {item.content}
-                          </td>
-                          <td className="px-6 py-4">{item.topic}</td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-gray-800">
-                              {item.difficulty}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-gray-500">
-                            {format(new Date(item.createdAt), 'MMM d, yyyy')}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteItem(item.id)} className="text-red-500 hover:text-red-700">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="p-0 border-t">
+                <DataTable
+                  columns={itemColumns}
+                  data={dataset.items || []}
+                  emptyState={
+                    <EmptyState
+                      title="No Dataset Items"
+                      description="No items in this dataset. Add one or use bulk upload."
+                      className="py-12 border-0"
+                    />
+                  }
+                />
               </div>
             </div>
           )}
@@ -297,20 +324,21 @@ export default function DatasetDetailPage() {
           </div>
           <div className="space-y-2">
             <Label>Difficulty</Label>
-            <select 
-              className="w-full flex h-10 rounded-md border border-gray-300 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={newItem.difficulty}
-              onChange={e => setNewItem({...newItem, difficulty: e.target.value})}
-            >
-              <option value="EASY">Easy</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HARD">Hard</option>
-            </select>
+            <Select value={newItem.difficulty} onValueChange={(val: string) => setNewItem({...newItem, difficulty: val})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EASY">Easy</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HARD">Hard</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Content</Label>
-            <textarea 
-              className="w-full flex min-h-[100px] rounded-md border border-gray-300 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <Textarea 
+              className="min-h-[100px]"
               value={newItem.content}
               onChange={e => setNewItem({...newItem, content: e.target.value})}
               placeholder="The actual data content..."
@@ -356,8 +384,8 @@ export default function DatasetDetailPage() {
           {bulkError && <div className="text-red-500 text-sm font-medium">{bulkError}</div>}
           <div className="space-y-2">
             <Label>JSON Data</Label>
-            <textarea 
-              className="w-full flex min-h-[250px] font-mono rounded-md border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <Textarea 
+              className="min-h-[250px] font-mono"
               value={bulkJson}
               onChange={e => setBulkJson(e.target.value)}
               placeholder="[\n  { ... }\n]"

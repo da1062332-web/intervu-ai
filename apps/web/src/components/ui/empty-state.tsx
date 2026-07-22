@@ -50,13 +50,13 @@ export function EmptyState({
       {/* Icon */}
       <div
         className={cn(
-          'flex items-center justify-center rounded-2xl bg-muted',
-          variant === 'error' && 'bg-destructive/10',
-          compact ? 'size-12 mb-3' : 'size-16 mb-5',
+          'flex items-center justify-center rounded-full bg-muted/50 border border-muted ring-[6px] ring-muted/20',
+          variant === 'error' && 'bg-destructive/10 border-destructive/20 ring-destructive/10',
+          compact ? 'size-12 mb-4' : 'size-16 mb-6',
         )}
         aria-hidden='true'
       >
-        {icon ?? <DefaultIcon className={cn(iconColor, compact ? 'size-5' : 'size-7')} />}
+        {icon ?? <DefaultIcon className={cn(iconColor, compact ? 'size-5' : 'size-7', variant === 'error' && 'text-destructive')} />}
       </div>
 
       {/* Text */}

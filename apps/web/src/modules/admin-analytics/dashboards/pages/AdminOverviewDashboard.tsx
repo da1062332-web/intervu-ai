@@ -1,62 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
   Database,
   CheckCircle,
-  Clock,
-  FileText,
-  Calendar,
   Users,
-  Layers,
-  Loader2,
+  FileText,
+  Activity,
+  Library,
 } from 'lucide-react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
-import { StatCard } from '@/components/admin/dashboard/stat-card';
+import { SectionHeader } from '@/components/ui/section-header';
+import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
-import { OperationalAlertsPanel } from '../components/OperationalAlertsPanel';
-import { ExportControls } from '../components/ExportControls';
-import { apiClient } from '@/services/api/client';
-
-export interface DashboardKPIs {
-  totalQuestions: number;
-  approvedQuestions: number;
-  pendingReviews: number;
-  publishedAssessments: number;
-  generatedThisWeek: number;
-  activeCandidates: number;
-}
+import { useDashboardKPIs } from '../../hooks/useDashboardKPIs';
+import { AssessmentCompletionWidget } from '../components/AssessmentCompletionWidget';
+import { RecentActivitiesTimeline } from '../components/RecentActivitiesTimeline';
+import { RecentAssessmentsTable } from '../components/RecentAssessmentsTable';
+import { RecentTestAttemptsTable } from '../components/RecentTestAttemptsTable';
 
 export function AdminOverviewDashboard() {
-  const [stats, setStats] = useState<DashboardKPIs | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchKPIs = async () => {
-      try {
-        const data = await apiClient.request<DashboardKPIs>('/admin/dashboard');
-        setStats(data);
-      } catch (error) {
-        console.error('Failed to load KPIs:', error instanceof Error ? error.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchKPIs();
-  }, []);
+  const { data, isLoading, isError } = useDashboardKPIs();
 
   return (
-    <div className='space-y-8 animate-fade-in-up pb-8'>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
       {/* Page Header */}
-      <PageHeader
+      <SectionHeader
         title='Operations Control Center'
-        subtitle='Real-time intelligence and execution control across our entire assessment generation and review lifecycle.'
-        action={
+        description='Real-time intelligence and execution control across our entire assessment generation and review lifecycle.'
+        breadcrumbs={[{ label: 'Dashboard' }]}
+        actions={
           <div className='flex gap-3'>
             <Button asChild className='gap-2'>
               <Link href='/admin/assembly'>
-                <Layers className='size-4' />
+                <Activity className='size-4' />
                 Test Assembly
               </Link>
             </Button>
@@ -65,57 +41,59 @@ export function AdminOverviewDashboard() {
       />
 
       {/* KPI Cards Grid */}
-      {loading ? (
-        <div className='flex justify-center items-center py-12'>
-          <Loader2 className='size-8 animate-spin text-muted-foreground' />
+      <section className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
+        <StatCard
+          title='Total Assessments'
+          value={data.totalAssessments ?? 0}
+          icon={<FileText className='size-5' />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title='Active Assessments'
+          value={data.activeAssessments ?? 0}
+          icon={<CheckCircle className='size-5' />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title='Total Candidates'
+          value={data.totalCandidates ?? 0}
+          icon={<Users className='size-5' />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title='Completed Tests'
+          value={data.completedTests ?? 0}
+          icon={<CheckCircle className='size-5' />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title='Average Score'
+          value={data.averageScore ? `${data.averageScore}%` : '0%'}
+          icon={<Activity className='size-5' />}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title='Question Bank Count'
+          value={data.questionBankCount ?? 0}
+          icon={<Library className='size-5' />}
+          isLoading={isLoading}
+        />
+      </section>
+
+      {/* Grid: Completion Widget + Recent Activities */}
+      <section className='grid gap-6 md:grid-cols-1 lg:grid-cols-5'>
+        <div className="lg:col-span-2">
+          <AssessmentCompletionWidget />
         </div>
-      ) : (
-        <section className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
-          <StatCard
-            label='Total Questions'
-            value={stats?.totalQuestions ?? 0}
-            icon={<Database className='size-5' />}
-            color='primary'
-          />
-          <StatCard
-            label='Approved'
-            value={stats?.approvedQuestions ?? 0}
-            icon={<CheckCircle className='size-5' />}
-            color='emerald'
-          />
-          <StatCard
-            label='Pending Reviews'
-            value={stats?.pendingReviews ?? 0}
-            icon={<Clock className='size-5' />}
-            color='amber'
-          />
-          <StatCard
-            label='Assessments'
-            value={stats?.publishedAssessments ?? 0}
-            icon={<FileText className='size-5' />}
-            color='blue'
-          />
-          <StatCard
-            label='Gen This Week'
-            value={stats?.generatedThisWeek ?? 0}
-            icon={<Calendar className='size-5' />}
-            color='primary'
-          />
-          <StatCard
-            label='Active Candidates'
-            value={stats?.activeCandidates ?? 0}
-            icon={<Users className='size-5' />}
-            color='emerald'
-          />
-        </section>
-      )}
+        <div className="lg:col-span-3">
+          <RecentActivitiesTimeline />
+        </div>
+      </section>
 
-
-
-      {/* Alerts & Exports Section */}
-      <section className='grid gap-6 md:grid-cols-2'>
-        <OperationalAlertsPanel />
-        <ExportControls />
+      {/* Tables Section */}
+      <section className='space-y-8'>
+        <RecentAssessmentsTable />
+        <RecentTestAttemptsTable />
       </section>
     </div>
   );

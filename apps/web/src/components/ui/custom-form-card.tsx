@@ -12,16 +12,16 @@ export interface CustomFormCardProps extends React.HTMLAttributes<HTMLDivElement
 export const CustomFormCard = React.forwardRef<HTMLDivElement, CustomFormCardProps>(
   ({ title, description, children, footer, className, ...props }, ref) => {
     return (
-      <Card ref={ref} className={cn('w-full', className)} {...props}>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          {description && <CardDescription>{description}</CardDescription>}
+      <Card ref={ref} className={cn('w-full shadow-sm overflow-hidden !p-0', className)} {...props}>
+        <CardHeader className="bg-muted/30 border-b p-6 pb-5">
+          <CardTitle className="text-xl font-semibold tracking-tight">{title}</CardTitle>
+          {description && <CardDescription className="text-[0.9rem] mt-1.5">{description}</CardDescription>}
         </CardHeader>
-        <CardContent className={cn('space-y-6', footer && 'mb-0')}>
+        <CardContent className={cn('space-y-6 p-6', footer && 'mb-0')}>
           {children}
         </CardContent>
         {footer && (
-          <div className="border-t border-gray-200 dark:border-gray-800 px-6 py-4 mt-6 flex items-center justify-end rounded-b-lg bg-gray-50 dark:bg-gray-900/50">
+          <div className="border-t px-6 py-4 flex items-center justify-end bg-muted/30">
             {footer}
           </div>
         )}

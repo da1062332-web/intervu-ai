@@ -8,6 +8,7 @@ import { ManualQuestionTable } from './components/ManualQuestionTable';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { ManualQuestionModal } from './components/ManualQuestionModal';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { useRouter } from 'next/navigation';
 
 export default function ManualQuestionsPage() {
@@ -27,20 +28,17 @@ export default function ManualQuestionsPage() {
   };
 
   return (
-    <div className='flex-1 space-y-4 p-8 pt-6'>
-      <div className='flex items-center justify-between space-y-2 mb-6'>
-        <div>
-          <h2 className='text-3xl font-bold tracking-tight'>Manual Questions</h2>
-          <p className='text-muted-foreground mt-1'>
-            Manage manual questions that can be mapped directly to concepts.
-          </p>
-        </div>
-        <div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-4'>
+      <PageHeader
+        title='Manual Questions'
+        subtitle='Manage manual questions that can be mapped directly to concepts.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Manual Questions' }]}
+        action={
           <Button onClick={() => router.push('/admin/manual-questions/create')}>
             <Plus className="mr-2 h-4 w-4" /> Add Questions (Batch)
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <ManualPoolFilters filters={filters} setFilters={setFilters} onClear={handleClearFilters} />
 

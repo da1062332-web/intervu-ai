@@ -71,7 +71,7 @@ export default function CreateBlueprintPage() {
   };
 
   return (
-    <div className='container mx-auto py-6 space-y-8 max-w-5xl'>
+    <div className='container mx-auto space-y-8 max-w-5xl'>
       <div className='flex items-center gap-4'>
         <Link
           href='/admin/blueprints'

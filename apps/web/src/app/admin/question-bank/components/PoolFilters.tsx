@@ -2,6 +2,13 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { QuestionFilters } from '@/services/question-pool/types';
 
 export interface PoolFiltersProps {
@@ -31,29 +38,37 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
 
         <div className='space-y-2'>
           <Label>Status</Label>
-          <select
-            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-            value={filters.status || ''}
-            onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+          <Select 
+            value={filters.status || 'all'} 
+            onValueChange={(val: string) => setFilters((prev) => ({ ...prev, status: val === 'all' ? undefined : val }))}
           >
-            <option value=''>All Statuses</option>
-            <option value='Approved'>Approved</option>
-            <option value='Published'>Published</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value='Approved'>Approved</SelectItem>
+              <SelectItem value='Published'>Published</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className='space-y-2'>
           <Label>Difficulty</Label>
-          <select
-            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-            value={filters.difficulty || ''}
-            onChange={(e) => setFilters((prev) => ({ ...prev, difficulty: e.target.value }))}
+          <Select 
+            value={filters.difficulty || 'all'} 
+            onValueChange={(val: string) => setFilters((prev) => ({ ...prev, difficulty: val === 'all' ? undefined : val }))}
           >
-            <option value=''>All Difficulties</option>
-            <option value='Easy'>Easy</option>
-            <option value='Medium'>Medium</option>
-            <option value='Hard'>Hard</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="All Difficulties" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Difficulties</SelectItem>
+              <SelectItem value='Easy'>Easy</SelectItem>
+              <SelectItem value='Medium'>Medium</SelectItem>
+              <SelectItem value='Hard'>Hard</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

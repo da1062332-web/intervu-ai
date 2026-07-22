@@ -9,18 +9,18 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', isLoading, children, ...props }, ref) => {
     const variants = {
-      default: 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm hover:shadow-md dark:hover:shadow-lg transition-shadow',
-      outline: 'border-gray-200 bg-transparent dark:border-gray-700',
-      muted: 'border-transparent bg-gray-100 dark:bg-gray-800',
+      default: 'border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-300 ease-out',
+      outline: 'border-border bg-transparent hover:border-input-hover transition-colors',
+      muted: 'border-transparent bg-muted/30',
     };
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-lg border p-6',
+          'rounded-xl border p-6',
           variants[variant],
-          isLoading && 'animate-pulse pointer-events-none select-none',
+          isLoading && 'animate-pulse pointer-events-none select-none opacity-70',
           className
         )}
         {...props}

@@ -9,6 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const formSchema = z.object({
   questionText: z.string().min(1, 'Question text is required'),
@@ -123,9 +131,9 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4' noValidate>
           <div className='space-y-2'>
             <Label htmlFor='questionText'>Question Text</Label>
-            <textarea
+            <Textarea
               id='questionText'
-              className='flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+              className='min-h-[100px]'
               placeholder='Enter the question text here...'
               {...register('questionText')}
               disabled={isSubmitting}
@@ -136,39 +144,45 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
               <Label>Type</Label>
-              <select
-                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+              <Select
                 value={questionType}
-                onChange={(e) => setValue('questionType', e.target.value as any)}
+                onValueChange={(val: string) => setValue('questionType', val as any)}
                 disabled={isSubmitting}
               >
-                <option value='' disabled>Select Type</option>
-                <option value='MCQ'>Multiple Choice</option>
-                <option value='TRUE_FALSE'>True / False</option>
-                <option value='CODING'>Coding</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select Type' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='MCQ'>Multiple Choice</SelectItem>
+                  <SelectItem value='TRUE_FALSE'>True / False</SelectItem>
+                  <SelectItem value='CODING'>Coding</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className='space-y-2'>
               <Label>Difficulty</Label>
-              <select
-                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+              <Select
                 value={difficulty}
-                onChange={(e) => setValue('difficulty', e.target.value as any)}
+                onValueChange={(val: string) => setValue('difficulty', val as any)}
                 disabled={isSubmitting}
               >
-                <option value='' disabled>Select Difficulty</option>
-                <option value='EASY'>Easy</option>
-                <option value='MEDIUM'>Medium</option>
-                <option value='HARD'>Hard</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select Difficulty' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='EASY'>Easy</SelectItem>
+                  <SelectItem value='MEDIUM'>Medium</SelectItem>
+                  <SelectItem value='HARD'>Hard</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className='space-y-2'>
             <Label htmlFor='answer'>Answer / Correct Option</Label>
-            <textarea
+            <Textarea
               id='answer'
-              className='flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+              className='min-h-[60px]'
               placeholder='e.g. Option A, or the solution code...'
               {...register('answer')}
               disabled={isSubmitting}
@@ -178,9 +192,9 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
 
           <div className='space-y-2'>
             <Label htmlFor='explanation'>Explanation (Optional)</Label>
-            <textarea
+            <Textarea
               id='explanation'
-              className='flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+              className='min-h-[60px]'
               placeholder='Explain the answer...'
               {...register('explanation')}
               disabled={isSubmitting}
@@ -222,17 +236,20 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
             </div>
             <div className='space-y-2'>
               <Label>Status</Label>
-              <select
-                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+              <Select
                 value={status}
-                onChange={(e) => setValue('status', e.target.value as any)}
+                onValueChange={(val: string) => setValue('status', val as any)}
                 disabled={isSubmitting}
               >
-                <option value='' disabled>Select Status</option>
-                <option value='DRAFT'>Draft</option>
-                <option value='ACTIVE'>Active</option>
-                <option value='ARCHIVED'>Archived</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select Status' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='DRAFT'>Draft</SelectItem>
+                  <SelectItem value='ACTIVE'>Active</SelectItem>
+                  <SelectItem value='ARCHIVED'>Archived</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

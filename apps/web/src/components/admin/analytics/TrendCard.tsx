@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkeletonChart } from './SkeletonChart';
-import { EmptyAnalyticsState } from './EmptyAnalyticsState';
+import { EmptyState } from '@/components/ui/empty-state';
 export interface ChartData {
   name: string;
   value: number;
@@ -28,7 +28,7 @@ export const TrendCard = memo(function TrendCard({
         <CardHeader>
           <CardTitle className='text-lg font-semibold'>{title}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className='flex items-center justify-center h-full'>
           <SkeletonChart />
         </CardContent>
       </Card>
@@ -38,10 +38,12 @@ export const TrendCard = memo(function TrendCard({
   if (isError) {
     return (
       <Card>
-        <CardContent className='pt-6'>
-          <EmptyAnalyticsState
+        <CardContent className='pt-6 flex flex-col items-center justify-center h-full'>
+          <EmptyState
+            variant="error"
             title='Failed to load analytics'
             description="We couldn't fetch the trend data."
+            compact
           />
         </CardContent>
       </Card>
@@ -51,10 +53,12 @@ export const TrendCard = memo(function TrendCard({
   if (!data || data.length === 0) {
     return (
       <Card>
-        <CardContent className='pt-6'>
-          <EmptyAnalyticsState
+        <CardContent className='pt-6 flex flex-col items-center justify-center h-full'>
+          <EmptyState
+            variant="no-data"
             title='No analytics available yet'
             description='Check back later for trend insights.'
+            compact
           />
         </CardContent>
       </Card>

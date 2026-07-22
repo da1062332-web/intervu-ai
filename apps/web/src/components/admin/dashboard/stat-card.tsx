@@ -82,14 +82,14 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl bg-card border border-border p-6 shadow-sm',
-        'hover:shadow-md transition-all duration-300',
+        'group relative flex flex-col justify-between overflow-hidden rounded-xl bg-card border border-border p-5 shadow-sm h-full',
+        'hover:shadow-md hover:border-primary/20 transition-all duration-200',
         className,
       )}
     >
       {/* Subtle background gradient */}
       <div
-        className='absolute inset-0 bg-gradient-to-br from-transparent to-muted/20 pointer-events-none'
+        className='absolute inset-0 bg-gradient-to-br from-transparent to-muted/10 pointer-events-none transition-opacity group-hover:opacity-100 opacity-50'
         aria-hidden='true'
       />
 
@@ -97,7 +97,7 @@ export function StatCard({
         {/* Left: Metrics */}
         <div className='flex-1 min-w-0'>
           <p className='text-sm font-medium text-muted-foreground truncate'>{label}</p>
-          <p className='mt-2 text-3xl font-heading font-bold tracking-tight text-foreground'>
+          <p className='mt-1.5 text-3xl font-heading font-bold tracking-tight text-foreground transition-colors group-hover:text-primary'>
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
           {trendLabel && (
@@ -119,8 +119,8 @@ export function StatCard({
         {/* Right: Icon */}
         <div
           className={cn(
-            'flex size-12 shrink-0 items-center justify-center rounded-xl',
-            'transition-transform duration-300 group-hover:scale-110',
+            'flex size-10 shrink-0 items-center justify-center rounded-lg',
+            'transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3',
             colorMap[color],
           )}
           aria-hidden='true'

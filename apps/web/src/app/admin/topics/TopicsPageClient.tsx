@@ -7,17 +7,12 @@ import { useTopics, useCreateTopic, useUpdateTopic, useDeactivateTopic } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { EmptyStateCard } from '@/components/ui/empty-state';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Search, Plus, Eye, Trash2, RefreshCcw, Edit2, X, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Topic } from '@/services/topics/types';
@@ -41,36 +36,19 @@ export function TopicsPageClient() {
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
   if (isLoading) {
-    return (
-      <div className='space-y-6 mt-8'>
-        <div className='flex justify-between items-center'>
-          <Skeleton className='h-10 w-48' />
-          <Skeleton className='h-10 w-32' />
-        </div>
-        <div className='flex gap-4'>
-          <Skeleton className='h-10 w-96' />
-        </div>
-        <div className='space-y-3 mt-4'>
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className='h-16 w-full rounded-lg' />
-          ))}
-        </div>
-      </div>
-    );
+    return <AnimatedLoader variant='table' className='mt-8' />;
   }
 
   if (isError) {
     return (
-      <div className='mt-8 text-center py-16 border border-dashed rounded-xl bg-card text-card-foreground shadow-sm'>
-        <h3 className='text-xl font-semibold text-red-600 mb-2'>Error Loading Topics</h3>
-        <p className='text-muted-foreground mb-6 max-w-sm mx-auto'>
-          We encountered an error while loading the topics registry. Please try again.
-        </p>
-        <Button onClick={() => refetch()} variant='outline'>
-          <RefreshCcw className='w-4 h-4 mr-2 animate-spin' />
-          Try Again
-        </Button>
-      </div>
+      <EmptyState
+        variant='error'
+        title='Error Loading Topics'
+        description='We encountered an error while loading the topics registry. Please try again.'
+        actionLabel='Try Again'
+        onAction={() => refetch()}
+        className='mt-8 border rounded-xl bg-card'
+      />
     );
   }
 
@@ -151,167 +129,143 @@ export function TopicsPageClient() {
     );
   };
 
-  const handleToggleDeactivate = (topic: Topic) => {
-    if (topic.status === 'ACTIVE') {
-      if (!window.confirm(`Are you sure you want to deactivate the topic "${topic.name}"?`)) {
-        return;
-      }
-      deactivateMutation.mutate(topic.id, {
-        onSuccess: () => refetch(),
-      });
-    } else {
-      updateMutation.mutate(
-        {
-          id: topic.id,
-          payload: { status: 'ACTIVE' },
-        },
-        {
-          onSuccess: () => refetch(),
-        },
-      );
-    }
-  };
+  const columns: ColumnDef<Topic>[] = [
+    {
+      header: 'Topic Info',
+      cell: (row) => (
+        <span className='font-medium text-foreground group-hover:text-primary transition-colors'>{row.name}</span>
+      ),
+    },
+    {
+      header: 'Code',
+      cell: (row) => (
+        <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
+          {row.code}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Description',
+      cell: (row) => (
+        <span className='text-muted-foreground max-w-xs truncate block'>
+          {row.description || <span className='text-muted-foreground/40 italic'>No description</span>}
+        </span>
+      ),
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <Badge
+          variant={row.status === 'ACTIVE' ? 'outline' : 'secondary'}
+          className={
+            row.status === 'ACTIVE'
+              ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize shadow-sm'
+              : 'capitalize shadow-sm'
+          }
+        >
+          {row.status.toLowerCase()}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className='inline-flex items-center gap-2 justify-end w-full' onClick={(e) => e.stopPropagation()}>
+          <Button asChild variant='ghost' size='icon' title='View Details' className='h-8 w-8 text-muted-foreground hover:text-primary'>
+            <Link href={`/admin/topics/${row.id}`}>
+              <Eye className='w-4 h-4' />
+            </Link>
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            title='Edit Topic'
+            onClick={() => handleOpenEdit(row)}
+            className='h-8 w-8 text-muted-foreground hover:text-primary'
+          >
+            <Edit2 className='w-4 h-4' />
+          </Button>
+          <ConfirmationDialog
+            title={row.status === 'ACTIVE' ? 'Deactivate Topic' : 'Activate Topic'}
+            description={row.status === 'ACTIVE' ? `Are you sure you want to deactivate "${row.name}"?` : `Are you sure you want to activate "${row.name}"?`}
+            confirmLabel={row.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+            destructive={row.status === 'ACTIVE'}
+            onConfirm={() => {
+              if (row.status === 'ACTIVE') {
+                deactivateMutation.mutate(row.id, { onSuccess: () => refetch() });
+              } else {
+                updateMutation.mutate({ id: row.id, payload: { status: 'ACTIVE' } }, { onSuccess: () => refetch() });
+              }
+            }}
+            trigger={
+              <Button
+                variant='ghost'
+                size='icon'
+                title={row.status === 'ACTIVE' ? 'Deactivate Topic' : 'Activate Topic'}
+                className={`h-8 w-8 ${
+                  row.status === 'ACTIVE'
+                    ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20'
+                    : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
+                }`}
+              >
+                {row.status === 'ACTIVE' ? <Trash2 className='w-4 h-4' /> : <CheckCircle className='w-4 h-4' />}
+              </Button>
+            }
+          />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className='space-y-8 animate-fade-in'>
-      {/* Header section with rich aesthetics */}
-      <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6'>
-        <div>
-          <h1 className='text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent'>
-            Topic Registry
-          </h1>
-          <p className='text-muted-foreground mt-2 text-lg'>
-            Configure globally unique topics and manage nested modular concept nodes.
-          </p>
-        </div>
-        <Button
-          onClick={handleOpenCreate}
-          className='self-start md:self-auto shadow-md hover:shadow-lg transition-all duration-200'
-        >
-          <Plus className='w-4 h-4 mr-2' />
-          Add Topic
-        </Button>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className='flex items-center gap-4 max-w-md bg-card p-1 rounded-xl shadow-sm border'>
-        <div className='relative flex-1'>
-          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-          <Input
-            placeholder='Search topics by name or code...'
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className='pl-9 border-none bg-transparent focus-visible:ring-0 shadow-none'
-          />
-        </div>
-      </div>
+      <PageHeader
+        title='Topic Registry'
+        subtitle='Configure globally unique topics and manage nested modular concept nodes.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Topics' }]}
+        action={
+          <Button
+            onClick={handleOpenCreate}
+            className='shadow-md hover:shadow-lg transition-all duration-200'
+          >
+            <Plus className='w-4 h-4 mr-2' />
+            Add Topic
+          </Button>
+        }
+      />
 
       {/* Main List Table */}
-      {filteredTopics.length === 0 ? (
-        <EmptyStateCard
-          title='No Topics Found'
-          description={
-            searchQuery
-              ? 'No topics matched your search query. Try filtering with a different keyword.'
-              : 'The topic registry is currently empty. Get started by creating your first topic.'
-          }
-          actionLabel={searchQuery ? 'Clear Search' : 'Add Topic'}
-          onAction={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
-          cardClassName='py-20 border border-dashed rounded-xl'
-        />
-      ) : (
-        <div className='overflow-hidden rounded-xl border border-border bg-card shadow-md transition-all duration-300 hover:shadow-lg'>
-          <div className='overflow-x-auto'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Topic Info</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className='text-right'>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTopics.map((topic) => (
-                  <TableRow
-                    key={topic.id}
-                    className='group hover:bg-muted/30 transition-all duration-200 cursor-pointer'
-                    onClick={() => router.push(`/admin/topics/${topic.id}`)}
-                  >
-                    <TableCell className='font-medium text-foreground group-hover:text-primary transition-colors'>
-                      {topic.name}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
-                        {topic.code}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='text-muted-foreground max-w-xs truncate'>
-                      {topic.description || (
-                        <span className='text-muted-foreground/40 italic'>No description</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={topic.status === 'ACTIVE' ? 'outline' : 'secondary'}
-                        className={
-                          topic.status === 'ACTIVE'
-                            ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-950/30 dark:bg-green-950/20 dark:text-green-400 capitalize shadow-sm'
-                            : 'capitalize shadow-sm'
-                        }
-                      >
-                        {topic.status.toLowerCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='text-right' onClick={(e) => e.stopPropagation()}>
-                      <div className='inline-flex items-center gap-2'>
-                        <Button
-                          asChild
-                          variant='ghost'
-                          size='icon'
-                          title='View Details'
-                          className='h-8 w-8 text-muted-foreground hover:text-primary'
-                        >
-                          <Link href={`/admin/topics/${topic.id}`}>
-                            <Eye className='w-4 h-4' />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          title='Edit Topic'
-                          onClick={() => handleOpenEdit(topic)}
-                          className='h-8 w-8 text-muted-foreground hover:text-primary'
-                        >
-                          <Edit2 className='w-4 h-4' />
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          title={topic.status === 'ACTIVE' ? 'Deactivate Topic' : 'Activate Topic'}
-                          onClick={() => handleToggleDeactivate(topic)}
-                          className={`h-8 w-8 ${
-                            topic.status === 'ACTIVE'
-                              ? 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20'
-                              : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
-                          }`}
-                        >
-                          {topic.status === 'ACTIVE' ? (
-                            <Trash2 className='w-4 h-4' />
-                          ) : (
-                            <CheckCircle className='w-4 h-4' />
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+      <DataTable
+        columns={columns}
+        data={filteredTopics}
+        search={
+          <div className='relative max-w-md w-full'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+            <Input
+              placeholder='Search topics by name or code...'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className='pl-9 bg-card'
+            />
           </div>
-        </div>
-      )}
+        }
+        emptyState={
+          <EmptyState
+            title='No Topics Found'
+            description={
+              searchQuery
+                ? 'No topics match your search criteria. Try a different search term.'
+                : 'Get started by creating your first global topic.'
+            }
+            actionLabel={searchQuery ? 'Clear Search' : 'Add Topic'}
+            onAction={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
+            className='py-20 border border-dashed rounded-xl'
+          />
+        }
+        rowKey={(row) => row.id}
+        containerClassName="bg-card border rounded-xl shadow-sm"
+      />
 
       {/* Create Topic Modal */}
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} className='max-w-md'>

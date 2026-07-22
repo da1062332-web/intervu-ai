@@ -116,7 +116,7 @@ export default function EditBlueprintPage() {
 
   if (isBlueprintLoading || isSectionsLoading) {
     return (
-      <div className='container mx-auto py-6 space-y-8 max-w-5xl'>
+      <div className='container mx-auto space-y-8 max-w-5xl'>
         <Skeleton className='h-12 w-1/3' />
         <Skeleton className='h-64 w-full' />
       </div>

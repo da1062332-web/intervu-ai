@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { ConfigHeader } from '@/components/admin/config/config-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { ConfigForm } from '@/components/admin/config/config-form';
 import { Card } from '@/components/ui/card';
 
@@ -10,10 +10,11 @@ export const metadata: Metadata = {
 
 export default function NewConfigPage() {
   return (
-    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-4xl'>
-      <ConfigHeader
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
+      <SectionHeader
         title='Create Configuration'
         description='Set up a new exam configuration with duration, role, and questions.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations', href: '/admin/configurations' }, { label: 'New' }]}
       />
       <Card className='mt-8 p-6'>
         <ConfigForm />

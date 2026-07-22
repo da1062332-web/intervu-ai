@@ -25,6 +25,7 @@ export interface DataTableProps<T> {
   pagination?: React.ReactNode;
   search?: React.ReactNode;
   rowKey?: (row: T) => string | number;
+  containerClassName?: string;
 }
 
 export function DataTable<T>({
@@ -35,17 +36,18 @@ export function DataTable<T>({
   pagination,
   search,
   rowKey,
+  containerClassName,
 }: DataTableProps<T>) {
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-4 w-full flex flex-col h-full">
       {search && <div className="flex items-center justify-between">{search}</div>}
       
-      <div className="rounded-md border bg-white dark:bg-gray-900 overflow-hidden">
+      <div className={cn("overflow-auto relative", containerClassName)}>
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="sticky top-0 bg-muted/40 z-10 backdrop-blur-md">
+            <TableRow className="hover:bg-transparent border-b border-border/60">
               {columns.map((col, index) => (
-                <TableHead key={col.id || index} className={col.className}>
+                <TableHead key={col.id || index} className={cn("text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11", col.className)}>
                   {col.header}
                 </TableHead>
               ))}
@@ -55,10 +57,10 @@ export function DataTable<T>({
             {isLoading ? (
               // Loading state
               Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`loading-${i}`}>
+                <TableRow key={`loading-${i}`} className="border-b border-border/40">
                   {columns.map((col, j) => (
                     <TableCell key={col.id || j} className={col.className}>
-                      <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-5 w-full animate-pulse rounded-md bg-muted" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -77,9 +79,9 @@ export function DataTable<T>({
               </TableRow>
             ) : (
               data.map((row, i) => (
-                <TableRow key={rowKey ? rowKey(row) : i}>
+                <TableRow key={rowKey ? rowKey(row) : i} className="group transition-colors hover:bg-muted/40 border-b border-border/40">
                   {columns.map((col, j) => (
-                    <TableCell key={col.id || j} className={col.className}>
+                    <TableCell key={col.id || j} className={cn("py-3.5 text-sm", col.className)}>
                       {col.cell(row, i)}
                     </TableCell>
                   ))}

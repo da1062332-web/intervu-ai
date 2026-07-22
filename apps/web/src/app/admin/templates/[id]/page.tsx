@@ -6,6 +6,8 @@ import { ArrowLeft, ClipboardList, ArrowRight, FileText, Info } from 'lucide-rea
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useTemplate } from '@/services/templates/hooks';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { Badge } from '@/components/ui/badge';
 
 // Sections
 import { BasicInfoSection } from './components/BasicInfoSection';
@@ -85,32 +87,25 @@ export default function TemplatePage() {
   };
 
   return (
-    <div className='container mx-auto py-6 space-y-6 max-w-[1400px]'>
-      {/* Header */}
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-4'>
-          <Link
-            href='/admin/templates'
-            className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors'
-          >
-            <ArrowLeft className='w-5 h-5' />
+    <div className='container mx-auto space-y-6 max-w-[1400px]'>
+      <PageHeader
+        title='Template Editor'
+        subtitle='Manage your template configuration across multiple domains.'
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Templates', href: '/admin/templates' },
+          { label: 'Editor', /* active: true */ },
+        ]}
+        action={
+          <Link href='/admin/assembly'>
+            <Button className='gap-2 bg-emerald-600 hover:bg-emerald-700 text-white'>
+              <ClipboardList className='w-4 h-4' />
+              Generate Test Assembly
+              <ArrowRight className='w-4 h-4' />
+            </Button>
           </Link>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight'>Template Editor</h1>
-            <p className='text-muted-foreground'>
-              Manage your template configuration across multiple domains.
-            </p>
-          </div>
-        </div>
-        {/* Primary CTA: Go to Assembly */}
-        <Link href='/admin/assembly'>
-          <Button className='gap-2 bg-emerald-600 hover:bg-emerald-700 text-white'>
-            <ClipboardList className='w-4 h-4' />
-            Generate Test Assembly
-            <ArrowRight className='w-4 h-4' />
-          </Button>
-        </Link>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
@@ -134,12 +129,12 @@ export default function TemplatePage() {
                     </div>
                   )}
                   <div className="flex gap-2 mt-1">
-                    <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'>
+                    <Badge variant='outline' className='text-[10px] uppercase bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'>
                       {template.difficultyLevel ?? template.difficulty ?? 'MEDIUM'}
-                    </span>
-                    <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'>
+                    </Badge>
+                    <Badge variant={template.isActive ? 'outline' : 'secondary'} className='text-[10px] uppercase'>
                       {template.isActive ? 'Active' : 'Draft'}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               </div>

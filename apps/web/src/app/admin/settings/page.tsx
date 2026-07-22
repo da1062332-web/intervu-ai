@@ -74,7 +74,7 @@ export default function SettingsPage() {
       <PageHeader
         title='Settings'
         subtitle='Configure your account preferences and application settings.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }]}
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Settings' }]}
       />
 
       <SettingsGroup
@@ -167,6 +167,7 @@ export default function SettingsPage() {
               confirmLabel='Delete Account'
               destructive
               onConfirm={async () => {
+                'use server';
                 // Handle delete logic here
                 await new Promise(resolve => setTimeout(resolve, 1000));
               }}

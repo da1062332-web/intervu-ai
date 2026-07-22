@@ -78,7 +78,7 @@ export default function BlueprintCompilePage() {
 
   if (isLoading) {
     return (
-      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-6xl space-y-8 animate-pulse'>
+      <div className='container mx-auto max-w-6xl space-y-8 animate-pulse'>
         <Skeleton className='h-8 w-1/4' />
         <Skeleton className='h-32 w-full mt-6' />
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-6'>

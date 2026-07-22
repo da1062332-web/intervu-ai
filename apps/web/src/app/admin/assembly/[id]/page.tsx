@@ -14,7 +14,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
-  ArrowLeft,
   CheckCircle2,
   Clock,
   Layers,
@@ -23,7 +22,6 @@ import {
   PlayCircle,
   AlertCircle,
   Save,
-  CheckSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
@@ -31,6 +29,12 @@ import { TopicDistributionChart } from '@/components/assembly/TopicDistributionC
 import { DifficultyDistributionChart } from '@/components/assembly/DifficultyDistributionChart';
 import { CoverageChart } from '@/components/assembly/CoverageChart';
 import { AssemblyHealthCard } from '@/components/assembly/AssemblyHealthCard';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { CustomFormCard } from '@/components/ui/custom-form-card';
+import Link from 'next/link';
 
 export default function AssemblyPreviewPage() {
   const router = useRouter();
@@ -60,7 +64,6 @@ export default function AssemblyPreviewPage() {
       setAssembly(assemblyData);
       if (analyticsData) setAnalytics(analyticsData);
 
-      // Sort versions descending by creation date if not already sorted
       const sortedVersions = (versionsData || []).sort(
         (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
@@ -84,7 +87,6 @@ export default function AssemblyPreviewPage() {
 
     setIsPublishing(true);
     try {
-      // Pre-publish readiness check
       const readiness = await apiClient.request<any>(`/assembly/${params.id}/readiness`, {
         method: 'POST',
       });
@@ -136,10 +138,58 @@ export default function AssemblyPreviewPage() {
     }
   };
 
+  const questionColumns: ColumnDef<any>[] = [
+    {
+      header: 'Order',
+      cell: (row) => <span className='font-mono'>Q{row.questionOrder}</span>,
+    },
+    {
+      header: 'Question Text',
+      cell: (row) => {
+        const snap = row.questionSnapshot || {};
+        return (
+          <span className='line-clamp-2 max-w-md'>
+            {snap.questionText || 'Question text not available in snapshot'}
+          </span>
+        );
+      },
+    },
+    {
+      header: 'Difficulty',
+      cell: (row) => {
+        const snap = row.questionSnapshot || {};
+        const diff = snap.difficultyLevel || 'UNKNOWN';
+        return (
+          <Badge variant={diff === 'HARD' ? 'destructive' : diff === 'MEDIUM' ? 'default' : 'secondary'}>
+            {diff}
+          </Badge>
+        );
+      },
+    },
+    {
+      header: 'Concept',
+      cell: (row) => {
+        const snap = row.questionSnapshot || {};
+        return (
+          <Badge variant='outline' className='bg-blue-50 text-blue-700'>
+            {snap.conceptKey || 'General'}
+          </Badge>
+        );
+      },
+    },
+    {
+      header: 'Type',
+      cell: (row) => {
+        const snap = row.questionSnapshot || {};
+        return <Badge variant='outline'>{snap.questionType || 'Standard'}</Badge>;
+      },
+    },
+  ];
+
   if (loading) {
     return (
-      <div className='flex justify-center items-center min-h-[50vh]'>
-        <Loader2 className='h-8 w-8 animate-spin text-primary' />
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
+        <AnimatedLoader variant='table' />
       </div>
     );
   }
@@ -152,186 +202,180 @@ export default function AssemblyPreviewPage() {
   const isPublished = assembly.status === 'PUBLISHED';
 
   return (
-    <div className='p-6 space-y-6 max-w-7xl mx-auto pb-24'>
-      <div className='flex items-center gap-4'>
-        <Button variant='ghost' size='icon' onClick={() => router.push('/admin/assembly')}>
-          <ArrowLeft className='h-5 w-5' />
-        </Button>
-        <div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
+      <PageHeader
+        title='Test Assembly Preview'
+        subtitle={`Instance ID: ${assembly.id}`}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Assembly', href: '/admin/assembly' },
+          { label: 'Preview' }
+        ]}
+        action={
           <div className='flex items-center gap-3'>
-            <h1 className='text-3xl font-bold tracking-tight'>Test Assembly Preview</h1>
-            <Badge variant='outline' className='bg-green-50 text-green-700 border-green-200 gap-1'>
-              <CheckCircle2 className='h-3 w-3' />
+            <Badge variant='outline' className={isPublished ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}>
+              <CheckCircle2 className='h-3 w-3 mr-1' />
               {assembly.status}
             </Badge>
+            <Button
+              variant='outline'
+              onClick={() => router.push(`/admin/assembly/${params.id}/package`)}
+            >
+              <Package className='h-4 w-4 mr-2' />
+              Preview Package
+            </Button>
+            <Button variant='outline' onClick={() => router.push(`/admin/runtime/${params.id}`)}>
+              <PlayCircle className='h-4 w-4 mr-2' />
+              Runtime Preview
+            </Button>
           </div>
-          <p className='text-muted-foreground mt-1'>Instance ID: {assembly.id}</p>
-        </div>
-
-        <div className='ml-auto flex gap-2'>
-          <Button
-            variant='outline'
-            onClick={() => router.push(`/admin/assembly/${params.id}/package`)}
-          >
-            <Package className='h-4 w-4 mr-2' />
-            Preview Package
-          </Button>
-          <Button variant='outline' onClick={() => router.push(`/admin/runtime/${params.id}`)}>
-            <PlayCircle className='h-4 w-4 mr-2' />
-            Runtime Preview
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
         {/* Readiness and Version Card */}
-        <Card className='md:col-span-3 border-2 border-primary/20 bg-primary/5 shadow-sm'>
-          <CardHeader className='pb-3 border-b border-primary/10 bg-background/50 rounded-t-lg'>
-            <CardTitle className='text-lg flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <Save className='h-5 w-5 text-primary' />
-                Version &amp; Readiness
-              </div>
-              <div className='flex gap-2 items-center'>
-                <Button
-                  variant='outline'
-                  onClick={handleCreateVersion}
-                  disabled={isSavingVersion || isPublished}
-                >
-                  {isSavingVersion && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
-                  Save Version Snapshot
-                </Button>
+        <CustomFormCard
+          title='Version & Readiness'
+          description='Manage version snapshots and readiness for publishing.'
+          className='md:col-span-3 border-2 border-primary/20 bg-primary/5'
+        >
+          <div className='flex justify-end gap-2 mb-4'>
+            <Button
+              variant='outline'
+              onClick={handleCreateVersion}
+              disabled={isSavingVersion || isPublished}
+            >
+              {isSavingVersion && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
+              Save Version Snapshot
+            </Button>
 
-                <div className='relative group'>
-                  <Button
-                    onClick={handlePublish}
-                    disabled={!hasVersionSnapshot || isPublished || isPublishing}
-                    className='min-w-[140px]'
-                  >
-                    {isPublishing && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
-                    {isPublished ? 'Published' : 'Publish Assembly'}
-                  </Button>
+            <div className='relative group'>
+              <Button
+                onClick={handlePublish}
+                disabled={!hasVersionSnapshot || isPublished || isPublishing}
+                className='min-w-[140px]'
+              >
+                {isPublishing && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
+                {isPublished ? 'Published' : 'Publish Assembly'}
+              </Button>
 
-                  {!hasVersionSnapshot && !isPublished && (
-                    <div className='absolute bottom-full mb-2 right-0 hidden group-hover:block bg-popover text-popover-foreground border p-3 rounded-md shadow-lg text-sm w-56 z-50'>
-                      <p className='font-semibold mb-2 flex items-center gap-1.5 text-amber-500'>
-                        <AlertCircle className='h-4 w-4' /> Publish blocked
-                      </p>
-                      <p className='text-muted-foreground text-xs mb-2'>Missing requirements:</p>
-                      <ul className='space-y-1 text-xs'>
-                        <li className='flex items-center gap-2'>
-                          <span className='w-3 h-3 border border-muted-foreground rounded-sm shrink-0' />
-                          <span>Version Snapshot</span>
-                        </li>
-                      </ul>
-                    </div>
-                  )}
+              {!hasVersionSnapshot && !isPublished && (
+                <div className='absolute bottom-full mb-2 right-0 hidden group-hover:block bg-popover text-popover-foreground border p-3 rounded-md shadow-lg text-sm w-56 z-50'>
+                  <p className='font-semibold mb-2 flex items-center gap-1.5 text-amber-500'>
+                    <AlertCircle className='h-4 w-4' /> Publish blocked
+                  </p>
+                  <p className='text-muted-foreground text-xs mb-2'>Missing requirements:</p>
+                  <ul className='space-y-1 text-xs'>
+                    <li className='flex items-center gap-2'>
+                      <span className='w-3 h-3 border border-muted-foreground rounded-sm shrink-0' />
+                      <span>Version Snapshot</span>
+                    </li>
+                  </ul>
                 </div>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='pt-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-              {/* Latest Version Info */}
-              <div>
-                <h4 className='text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3'>
-                  Current Snapshot
-                </h4>
-                {hasVersionSnapshot && latestVersion ? (
-                  <div className='bg-background p-4 rounded-lg border shadow-sm'>
-                    <div className='flex justify-between items-start mb-2'>
-                      <div>
-                        <p className='font-bold text-lg'>Version {latestVersion.version}</p>
-                        <p className='text-xs text-muted-foreground'>ID: {latestVersion.id}</p>
-                      </div>
-                      <Badge variant='secondary'>{isPublished ? 'Published' : 'Draft'}</Badge>
+              )}
+            </div>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            {/* Latest Version Info */}
+            <div>
+              <h4 className='text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3'>
+                Current Snapshot
+              </h4>
+              {hasVersionSnapshot && latestVersion ? (
+                <div className='bg-background p-4 rounded-lg border shadow-sm'>
+                  <div className='flex justify-between items-start mb-2'>
+                    <div>
+                      <p className='font-bold text-lg'>Version {latestVersion.version}</p>
+                      <p className='text-xs text-muted-foreground'>ID: {latestVersion.id}</p>
                     </div>
-                    <div className='grid grid-cols-2 gap-2 mt-4 text-sm'>
-                      <div>
-                        <p className='text-muted-foreground text-xs'>Created</p>
-                        <p className='font-medium'>
-                          {new Date(latestVersion.createdAt).toLocaleString()}
-                        </p>
-                      </div>
+                    <Badge variant='secondary'>{isPublished ? 'Published' : 'Draft'}</Badge>
+                  </div>
+                  <div className='grid grid-cols-2 gap-2 mt-4 text-sm'>
+                    <div>
+                      <p className='text-muted-foreground text-xs'>Created</p>
+                      <p className='font-medium'>
+                        {new Date(latestVersion.createdAt).toLocaleString()}
+                      </p>
                     </div>
                   </div>
-                ) : (
-                  <div className='bg-background p-6 rounded-lg border border-dashed border-amber-300 flex flex-col items-center justify-center text-center space-y-2 h-[120px]'>
-                    <AlertCircle className='h-6 w-6 text-amber-500' />
-                    <div>
-                      <p className='font-semibold text-amber-700'>No Version Snapshot</p>
-                      <p className='text-xs text-amber-600/80'>
-                        Create a version before publishing.
-                      </p>
-                    </div>
+                </div>
+              ) : (
+                <div className='bg-background p-6 rounded-lg border border-dashed border-amber-300 flex flex-col items-center justify-center text-center space-y-2 h-[120px]'>
+                  <AlertCircle className='h-6 w-6 text-amber-500' />
+                  <div>
+                    <p className='font-semibold text-amber-700'>No Version Snapshot</p>
+                    <p className='text-xs text-amber-600/80'>
+                      Create a version before publishing.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Readiness Checks */}
+            <div>
+              <h4 className='text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3'>
+                Readiness Checks
+              </h4>
+              <div className='space-y-3 bg-background p-4 rounded-lg border shadow-sm'>
+                <div className='flex justify-between items-center text-sm'>
+                  <span className='flex items-center gap-2'>
+                    {hasVersionSnapshot ? (
+                      <CheckCircle2 className='h-4 w-4 text-green-500' />
+                    ) : (
+                      <AlertCircle className='h-4 w-4 text-red-500' />
+                    )}
+                    Version Snapshot Exists
+                  </span>
+                  <Badge
+                    variant={hasVersionSnapshot ? 'default' : 'destructive'}
+                    className={hasVersionSnapshot ? 'bg-green-100 text-green-800' : ''}
+                  >
+                    {hasVersionSnapshot ? 'Passed' : 'Missing'}
+                  </Badge>
+                </div>
+                <div className='flex justify-between items-center text-sm'>
+                  <span className='flex items-center gap-2'>
+                    <CheckCircle2 className='h-4 w-4 text-green-500' />
+                    Assembly Generated
+                  </span>
+                  <Badge variant='default' className='bg-green-100 text-green-800'>
+                    Passed
+                  </Badge>
+                </div>
+                {analytics && (
+                  <div className='flex justify-between items-center text-sm'>
+                    <span className='flex items-center gap-2'>
+                      {analytics.coverageDistribution?.overallCoverage === 100 ? (
+                        <CheckCircle2 className='h-4 w-4 text-green-500' />
+                      ) : (
+                        <AlertCircle className='h-4 w-4 text-amber-500' />
+                      )}
+                      Coverage at 100%
+                    </span>
+                    <Badge
+                      variant={
+                        analytics.coverageDistribution?.overallCoverage === 100
+                          ? 'default'
+                          : 'secondary'
+                      }
+                      className={
+                        analytics.coverageDistribution?.overallCoverage === 100
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }
+                    >
+                      {analytics.coverageDistribution?.overallCoverage === 100
+                        ? 'Passed'
+                        : 'Warning'}
+                    </Badge>
                   </div>
                 )}
               </div>
-
-              {/* Readiness Checks */}
-              <div>
-                <h4 className='text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3'>
-                  Readiness Checks
-                </h4>
-                <div className='space-y-3 bg-background p-4 rounded-lg border shadow-sm'>
-                  <div className='flex justify-between items-center text-sm'>
-                    <span className='flex items-center gap-2'>
-                      {hasVersionSnapshot ? (
-                        <CheckCircle2 className='h-4 w-4 text-green-500' />
-                      ) : (
-                        <AlertCircle className='h-4 w-4 text-red-500' />
-                      )}
-                      Version Snapshot Exists
-                    </span>
-                    <Badge
-                      variant={hasVersionSnapshot ? 'default' : 'destructive'}
-                      className={hasVersionSnapshot ? 'bg-green-100 text-green-800' : ''}
-                    >
-                      {hasVersionSnapshot ? 'Passed' : 'Missing'}
-                    </Badge>
-                  </div>
-                  <div className='flex justify-between items-center text-sm'>
-                    <span className='flex items-center gap-2'>
-                      <CheckCircle2 className='h-4 w-4 text-green-500' />
-                      Assembly Generated
-                    </span>
-                    <Badge variant='default' className='bg-green-100 text-green-800'>
-                      Passed
-                    </Badge>
-                  </div>
-                  {analytics && (
-                    <div className='flex justify-between items-center text-sm'>
-                      <span className='flex items-center gap-2'>
-                        {analytics.coverageDistribution?.overallCoverage === 100 ? (
-                          <CheckCircle2 className='h-4 w-4 text-green-500' />
-                        ) : (
-                          <AlertCircle className='h-4 w-4 text-amber-500' />
-                        )}
-                        Coverage at 100%
-                      </span>
-                      <Badge
-                        variant={
-                          analytics.coverageDistribution?.overallCoverage === 100
-                            ? 'default'
-                            : 'secondary'
-                        }
-                        className={
-                          analytics.coverageDistribution?.overallCoverage === 100
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }
-                      >
-                        {analytics.coverageDistribution?.overallCoverage === 100
-                          ? 'Passed'
-                          : 'Warning'}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CustomFormCard>
 
         {/* Existing summary cards */}
         <Card>
@@ -463,50 +507,16 @@ export default function AssemblyPreviewPage() {
               </div>
             </CardHeader>
             <CardContent className='p-0'>
-              <div className='divide-y'>
-                {section.questions?.map((q: any, qIndex: number) => {
-                  const snap = q.questionSnapshot || {};
-                  return (
-                    <div
-                      key={q.id || q.questionId || qIndex}
-                      className='p-4 hover:bg-muted/20 transition-colors flex flex-col md:flex-row gap-4'
-                    >
-                      <div className='flex-shrink-0 w-12 h-12 bg-muted rounded-md flex items-center justify-center font-bold text-muted-foreground'>
-                        Q{q.questionOrder}
-                      </div>
-                      <div className='flex-1 space-y-2'>
-                        <div className='flex justify-between items-start gap-4'>
-                          <p className='font-medium line-clamp-2'>
-                            {snap.questionText || 'Question text not available in snapshot'}
-                          </p>
-                        </div>
-                        <div className='flex flex-wrap gap-2 pt-1'>
-                          <Badge
-                            variant={
-                              snap.difficultyLevel === 'HARD'
-                                ? 'destructive'
-                                : snap.difficultyLevel === 'MEDIUM'
-                                  ? 'default'
-                                  : 'secondary'
-                            }
-                          >
-                            {snap.difficultyLevel || 'UNKNOWN'}
-                          </Badge>
-                          <Badge variant='outline' className='bg-blue-50 text-blue-700'>
-                            {snap.conceptKey || 'General'}
-                          </Badge>
-                          <Badge variant='outline'>Type: {snap.questionType || 'Standard'}</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {(!section.questions || section.questions.length === 0) && (
-                  <div className='p-8 text-center text-muted-foreground'>
-                    No questions allocated to this section.
-                  </div>
-                )}
-              </div>
+              <DataTable
+                columns={questionColumns}
+                data={section.questions || []}
+                emptyState={
+                  <EmptyState
+                    title='No Questions'
+                    description='No questions allocated to this section.'
+                  />
+                }
+              />
             </CardContent>
           </Card>
         ))}

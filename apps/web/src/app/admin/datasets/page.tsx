@@ -7,14 +7,22 @@ import { Database, Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from 'lucid
 import { useDatasets, useCreateDataset, useDeleteDataset } from '@/services/datasets/hooks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/modal';
 import { Label } from '@/components/ui/label';
+import { DataTable, type ColumnDef } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Dataset } from '@/services/datasets/api';
 
 export default function DatasetsPage() {
@@ -41,108 +49,122 @@ export default function DatasetsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this dataset? This action cannot be undone.')) {
-      deleteDataset(id);
-    }
+    deleteDataset(id);
   };
 
-  return (
-    <div className="container mx-auto py-6 max-w-7xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Datasets</h1>
-          <p className="text-muted-foreground">
-            Manage your datasets and question items.
-          </p>
+  const columns: ColumnDef<Dataset>[] = [
+    {
+      header: 'Name',
+      cell: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 rounded-md">
+            <Database className="w-4 h-4" />
+          </div>
+          <Link href={`/admin/datasets/${row.id}`} className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+            {row.name}
+          </Link>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Create Dataset
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-4 bg-white dark:bg-gray-950 p-4 rounded-lg border shadow-sm">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input 
-            placeholder="Search datasets..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+      ),
+    },
+    {
+      header: 'Description',
+      cell: (row) => (
+        <span className="text-muted-foreground max-w-[300px] truncate block">
+          {row.description || '-'}
+        </span>
+      ),
+    },
+    {
+      header: 'Items',
+      className: 'text-center',
+      cell: (row) => (
+        <Badge variant="secondary">
+          {row._count?.items ?? 0}
+        </Badge>
+      ),
+    },
+    {
+      header: 'Created At',
+      cell: (row) => (
+        <span className="text-muted-foreground">
+          {format(new Date(row.createdAt), 'MMM d, yyyy')}
+        </span>
+      ),
+    },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      cell: (row) => (
+        <div className='flex justify-end gap-2'>
+          <Link href={`/admin/datasets/${row.id}`}>
+            <Button variant="ghost" size="icon" title="View Details">
+              <Eye className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+            </Button>
+          </Link>
+          <ConfirmationDialog
+            title="Delete Dataset"
+            description="Are you sure you want to delete this dataset? This action cannot be undone."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={() => handleDelete(row.id)}
+            trigger={
+              <Button variant="ghost" size="icon" title="Delete Dataset">
+                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+              </Button>
+            }
           />
         </div>
-      </div>
+      ),
+    },
+  ];
 
-      <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-950 shadow-sm">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 dark:bg-gray-900 border-b">
-            <tr>
-              <th className="px-6 py-3 font-medium text-gray-500">Name</th>
-              <th className="px-6 py-3 font-medium text-gray-500">Description</th>
-              <th className="px-6 py-3 font-medium text-gray-500 text-center">Items</th>
-              <th className="px-6 py-3 font-medium text-gray-500">Created At</th>
-              <th className="px-6 py-3 font-medium text-gray-500 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {isLoading ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading datasets...</td>
-              </tr>
-            ) : filteredDatasets?.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No datasets found.</td>
-              </tr>
-            ) : (
-              filteredDatasets?.map((ds: Dataset) => (
-                <tr key={ds.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 rounded-md">
-                        <Database className="w-4 h-4" />
-                      </div>
-                      <Link href={`/admin/datasets/${ds.id}`} className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-                        {ds.name}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-[300px] truncate">
-                    {ds.description || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                      {ds._count?.items ?? 0}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {format(new Date(ds.createdAt), 'MMM d, yyyy')}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/admin/datasets/${ds.id}`} className="flex items-center cursor-pointer">
-                            <Eye className="w-4 h-4 mr-2 text-gray-500" />
-                            View Details
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(ds.id)} className="text-red-600 cursor-pointer">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+  return (
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <PageHeader
+        title="Datasets"
+        subtitle="Manage your datasets and question items."
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Datasets' }]}
+        action={
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-md hover:shadow-lg transition-all duration-200">
+            <Plus className="w-4 h-4" />
+            Create Dataset
+          </Button>
+        }
+      />
+
+      <div className="border rounded-xl bg-card shadow-sm">
+        {isLoading && <AnimatedLoader variant="table" className="my-8" />}
+        {!isLoading && (
+          <DataTable
+            columns={columns}
+            data={filteredDatasets || []}
+            rowKey={(row) => row.id}
+            search={
+              <div className="relative max-w-md w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search datasets..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-card"
+                />
+              </div>
+            }
+            emptyState={
+              <EmptyState
+                title="No Datasets Found"
+                description={
+                  searchTerm
+                    ? 'No datasets matched your search.'
+                    : 'Get started by creating your first dataset.'
+                }
+                actionLabel={searchTerm ? 'Clear Search' : 'Create Dataset'}
+                onAction={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
+                className="py-12 border-0"
+              />
+            }
+          />
+        )}
       </div>
 
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)}>
@@ -160,8 +182,8 @@ export default function DatasetsPage() {
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <textarea 
-              className="w-full flex min-h-[80px] rounded-md border border-gray-300 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <Textarea 
+              className="min-h-[80px]"
               value={newDataset.description}
               onChange={(e) => setNewDataset({...newDataset, description: e.target.value})}
               placeholder="Brief description..."
@@ -169,14 +191,18 @@ export default function DatasetsPage() {
           </div>
           <div className="space-y-2">
             <Label>Type</Label>
-            <select 
-              className="w-full flex h-10 rounded-md border border-gray-300 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <Select 
               value={newDataset.type}
-              onChange={(e) => setNewDataset({...newDataset, type: e.target.value})}
+              onValueChange={(val: string) => setNewDataset({...newDataset, type: val})}
             >
-              <option value="STANDARD">Standard</option>
-              <option value="SCENARIO">Scenario-based</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="STANDARD">Standard</SelectItem>
+                <SelectItem value="SCENARIO">Scenario-based</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">

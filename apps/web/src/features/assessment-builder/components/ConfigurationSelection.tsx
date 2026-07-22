@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { ExamConfig } from '@/services/exam-configs/types';
 
@@ -27,18 +27,8 @@ export const ConfigurationSelection: React.FC<ConfigurationSelectionProps> = ({
 
   if (isLoading) {
     return (
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-        {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className='h-6 w-3/4' />
-              <Skeleton className='h-4 w-1/2' />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className='h-20 w-full' />
-            </CardContent>
-          </Card>
-        ))}
+      <div className='py-8'>
+        <AnimatedLoader variant='section' />
       </div>
     );
   }

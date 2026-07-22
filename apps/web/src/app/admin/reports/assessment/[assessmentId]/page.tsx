@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loading } from '@/components/ui/loading';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
+import { SectionHeader } from '@/components/ui/section-header';
+import { StatCard } from '@/components/ui/stat-card';
 import { ChevronLeft, BarChart3, Users, Target, Activity } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { apiClient } from '@/services/api/client';
@@ -46,7 +48,7 @@ export default function AdminAssessmentOutcomePage() {
     if (assessmentId) fetchOutcome();
   }, [assessmentId]);
 
-  if (loading) return <Loading />;
+  if (loading) return <AnimatedLoader variant="page" />;
   if (!outcome) {
     return (
       <EmptyState
@@ -59,69 +61,40 @@ export default function AdminAssessmentOutcomePage() {
   }
 
   return (
-    <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-8'>
-      <div className='flex items-center gap-4 border-b pb-4'>
-        <Button variant='ghost' size='icon' onClick={() => router.back()}>
-          <ChevronLeft className='w-5 h-5' />
-        </Button>
-        <div>
-          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
-            Assessment Outcome Report
-          </h1>
-          <p className='text-sm text-gray-500'>{outcome.assessment.title}</p>
-        </div>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up'>
+      <SectionHeader
+        title='Assessment Outcome Report'
+        description={outcome.assessment.title}
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Reports' }, { label: 'Assessment' }, { label: outcome.assessment.title }]}
+        actions={
+          <Button variant='outline' onClick={() => router.back()}>
+            <ChevronLeft className='w-4 h-4 mr-2' />
+            Back
+          </Button>
+        }
+      />
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-        <Card>
-          <CardContent className='p-6 flex items-center gap-4'>
-            <div className='bg-indigo-100 p-3 rounded-xl text-indigo-600'>
-              <BarChart3 className='size-6' />
-            </div>
-            <div>
-              <p className='text-sm text-gray-500 font-medium'>Average Score</p>
-              <h3 className='text-2xl font-bold'>{Math.round(outcome.averageScore)}</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className='p-6 flex items-center gap-4'>
-            <div className='bg-green-100 p-3 rounded-xl text-green-600'>
-              <Target className='size-6' />
-            </div>
-            <div>
-              <p className='text-sm text-gray-500 font-medium'>Pass Rate</p>
-              <h3 className='text-2xl font-bold'>{Math.round(outcome.passRate)}%</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className='p-6 flex items-center gap-4'>
-            <div className='bg-blue-100 p-3 rounded-xl text-blue-600'>
-              <Users className='size-6' />
-            </div>
-            <div>
-              <p className='text-sm text-gray-500 font-medium'>Completion Rate</p>
-              <h3 className='text-2xl font-bold'>{Math.round(outcome.completionRate)}%</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className='p-6 flex items-center gap-4'>
-            <div className='bg-purple-100 p-3 rounded-xl text-purple-600'>
-              <Activity className='size-6' />
-            </div>
-            <div>
-              <p className='text-sm text-gray-500 font-medium'>Highest / Lowest</p>
-              <h3 className='text-xl font-bold'>
-                {Math.round(outcome.highestScore)} / {Math.round(outcome.lowestScore)}
-              </h3>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Average Score"
+          value={Math.round(outcome.averageScore)}
+          icon={<BarChart3 className="size-5" />}
+        />
+        <StatCard
+          title="Pass Rate"
+          value={`${Math.round(outcome.passRate)}%`}
+          icon={<Target className="size-5" />}
+        />
+        <StatCard
+          title="Completion Rate"
+          value={`${Math.round(outcome.completionRate)}%`}
+          icon={<Users className="size-5" />}
+        />
+        <StatCard
+          title="Highest / Lowest"
+          value={`${Math.round(outcome.highestScore)} / ${Math.round(outcome.lowestScore)}`}
+          icon={<Activity className="size-5" />}
+        />
       </div>
 
       <Card>
