@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { Bell, Shield, Palette, Globe, ChevronRight } from 'lucide-react';
-
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { SectionHeader } from '@/components/ui/section-header';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 export const metadata: Metadata = {
   title: 'Settings — InterVu AI',
@@ -21,7 +23,7 @@ function SettingItem({ label, description, id }: SettingItemProps) {
   return (
     <button
       id={id}
-      className='flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
+      className='flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset border-b border-border last:border-0'
       type='button'
     >
       <div className='flex-1 min-w-0'>
@@ -55,11 +57,11 @@ function SettingsGroup({ icon: Icon, title, items }: SettingsGroupProps) {
           {title}
         </h2>
       </div>
-      <div className='rounded-2xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border'>
+      <Card className='overflow-hidden'>
         {items.map((item) => (
           <SettingItem key={item.id} {...item} />
         ))}
-      </div>
+      </Card>
     </section>
   );
 }
@@ -150,12 +152,8 @@ export default function SettingsPage() {
 
       {/* Danger zone */}
       <section aria-labelledby='danger-zone-heading'>
-        <div className='flex items-center gap-2.5 mb-3'>
-          <h2 id='danger-zone-heading' className='text-sm font-semibold text-destructive'>
-            Danger Zone
-          </h2>
-        </div>
-        <div className='rounded-2xl border border-destructive/30 bg-card shadow-sm p-6'>
+        <SectionHeader title='Danger Zone' className='text-destructive !mb-3 text-sm font-semibold' />
+        <Card className='border-destructive/30 p-6'>
           <div className='flex items-center justify-between gap-4'>
             <div>
               <p className='text-sm font-medium text-foreground'>Delete Account</p>
@@ -163,11 +161,23 @@ export default function SettingsPage() {
                 Permanently delete your account and all associated data. This cannot be undone.
               </p>
             </div>
-            <Button variant='destructive' size='sm' id='delete-account-btn' className='shrink-0'>
-              Delete Account
-            </Button>
+            <ConfirmationDialog
+              title='Delete Account'
+              description='Are you absolutely sure you want to delete your account? This action cannot be undone and all data will be lost.'
+              confirmLabel='Delete Account'
+              destructive
+              onConfirm={async () => {
+                // Handle delete logic here
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }}
+              trigger={
+                <Button variant='destructive' size='sm' id='delete-account-btn' className='shrink-0'>
+                  Delete Account
+                </Button>
+              }
+            />
           </div>
-        </div>
+        </Card>
       </section>
     </div>
   );

@@ -48,7 +48,6 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Templates', route: '/admin/templates', icon: FileText },
         { label: 'Manual Questions', route: '/admin/manual-questions', icon: FileText },
         { label: 'Datasets', route: '/admin/datasets', icon: Database },
-        { label: 'Scenarios', route: '/admin/scenarios', icon: GitBranch },
       ],
     },
     {

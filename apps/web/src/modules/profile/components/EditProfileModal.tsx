@@ -1,11 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { CustomFormField } from '@/components/ui/custom-form-field';
+import { Input } from '@/components/ui/input';
+
 import { useUpdateProfile } from '@/hooks/use-update-profile';
 import { AuthUser } from '@/types/auth.types';
 import { notifySuccess, notifyApiError } from '@/services/notifications/toast';
+
+const profileSchema = z.object({
+  name: z.string().min(1, 'Full Name is required'),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -14,21 +28,26 @@ interface EditProfileModalProps {
 }
 
 export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProps) {
-  const [name, setName] = useState(user.name || user.fullName || '');
   const updateProfile = useUpdateProfile();
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: user.name || user.fullName || '',
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {
-      setName(user.name || user.fullName || '');
+      form.reset({ name: user.name || user.fullName || '' });
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, form]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
+  const handleSubmit = (values: ProfileFormValues) => {
+    if (!values.name.trim()) return;
 
     updateProfile.mutate(
-      { name: name.trim() },
+      { name: values.name.trim() },
       {
         onSuccess: () => {
           notifySuccess('Profile updated successfully');
@@ -49,37 +68,40 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
           <p className='text-sm text-muted-foreground'>Update your personal information.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-          <div className='space-y-2'>
-            <label htmlFor='name' className='text-sm font-medium text-foreground'>
-              Full Name
-            </label>
-            <input
-              id='name'
-              type='text'
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className='flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-              placeholder='Enter your full name'
-              disabled={updateProfile.isPending}
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4 py-2'>
+            <CustomFormField
+              control={form.control}
+              name="name"
+              label="Full Name"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  placeholder='Enter your full name'
+                  disabled={updateProfile.isPending}
+                />
+              )}
             />
-          </div>
 
-          <div className='flex justify-end space-x-2 pt-4'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={onClose}
-              disabled={updateProfile.isPending}
-            >
-              Cancel
-            </Button>
-            <Button type='submit' disabled={updateProfile.isPending || !name.trim()}>
-              {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
+            <div className='flex justify-end space-x-2 pt-4'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={onClose}
+                disabled={updateProfile.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type='submit' 
+                isLoading={updateProfile.isPending}
+                disabled={!form.formState.isValid}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
     </Modal>
   );

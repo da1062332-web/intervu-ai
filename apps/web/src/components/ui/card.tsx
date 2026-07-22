@@ -1,59 +1,94 @@
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-type CardProps = React.HTMLAttributes<HTMLDivElement>;
-
-export function Card({ children, className, ...props }: CardProps) {
-  return (
-    <div
-      className={cn(
-        'rounded-lg border border-gray-200 bg-white p-6 shadow-sm',
-        'dark:border-gray-700 dark:bg-gray-900 dark:shadow-md',
-        'transition-shadow hover:shadow-md dark:hover:shadow-lg',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'outline' | 'muted';
+  isLoading?: boolean;
 }
 
-export function CardHeader({ children, className, ...props }: CardProps) {
-  return (
-    <div className={cn('mb-4', className)} {...props}>
-      {children}
-    </div>
-  );
-}
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant = 'default', isLoading, children, ...props }, ref) => {
+    const variants = {
+      default: 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm hover:shadow-md dark:hover:shadow-lg transition-shadow',
+      outline: 'border-gray-200 bg-transparent dark:border-gray-700',
+      muted: 'border-transparent bg-gray-100 dark:bg-gray-800',
+    };
 
-export function CardTitle({ children, className, ...props }: CardProps) {
-  return (
-    <h3 className={cn('text-lg font-semibold text-gray-900 dark:text-white', className)} {...props}>
-      {children}
-    </h3>
-  );
-}
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'rounded-lg border p-6',
+          variants[variant],
+          isLoading && 'animate-pulse pointer-events-none select-none',
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+Card.displayName = 'Card';
 
-export function CardDescription({ children, className, ...props }: CardProps) {
-  return (
-    <p className={cn('text-sm text-gray-600 dark:text-gray-400', className)} {...props}>
-      {children}
-    </p>
-  );
-}
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex flex-col space-y-1.5 mb-4', className)}
+    {...props}
+  />
+));
+CardHeader.displayName = 'CardHeader';
 
-export function CardContent({ children, className, ...props }: CardProps) {
-  return (
-    <div className={cn('mb-4', className)} {...props}>
-      {children}
-    </div>
-  );
-}
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      'text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white',
+      className
+    )}
+    {...props}
+  />
+));
+CardTitle.displayName = 'CardTitle';
 
-export function CardFooter({ children, className, ...props }: CardProps) {
-  return (
-    <div className={cn('flex items-center justify-between pt-4', className)} {...props}>
-      {children}
-    </div>
-  );
-}
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn('text-sm text-gray-600 dark:text-gray-400', className)}
+    {...props}
+  />
+));
+CardDescription.displayName = 'CardDescription';
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('mb-4', className)} {...props} />
+));
+CardContent.displayName = 'CardContent';
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex items-center justify-between pt-4', className)}
+    {...props}
+  />
+));
+CardFooter.displayName = 'CardFooter';
+
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter };

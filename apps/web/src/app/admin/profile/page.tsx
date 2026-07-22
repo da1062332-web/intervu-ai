@@ -4,17 +4,13 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { ProfileDetailsCard } from '@/modules/profile/components/ProfileDetailsCard';
 import { ActiveSessionsCard } from '@/modules/profile/components/ActiveSessionsCard';
-import { Loading } from '@/components/ui/loading';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
 
 export default function ProfilePage() {
   const { data: user, isLoading, error } = useCurrentUser();
 
   if (isLoading) {
-    return (
-      <div className='flex items-center justify-center h-[50vh]'>
-        <Loading size='md' />
-      </div>
-    );
+    return <AnimatedLoader variant='page' />;
   }
 
   if (error || !user) {

@@ -3,36 +3,29 @@
 import { useState } from 'react';
 import { ConfigTable } from '@/components/admin/config/config-table';
 import { useConfigs } from '@/services/exam-configs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { RefreshCcw } from 'lucide-react';
+import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export function ConfigsPageClient() {
   const { data: configs, isLoading, isError, refetch } = useConfigs();
   const [searchQuery, setSearchQuery] = useState('');
 
   if (isLoading) {
-    return (
-      <div className='space-y-4 mt-8'>
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className='h-16 w-full rounded-md' />
-        ))}
-      </div>
-    );
+    return <AnimatedLoader variant='table' className='mt-8' />;
   }
 
   if (isError) {
     return (
-      <div className='mt-8 text-center py-12 border rounded-md'>
-        <h3 className='text-lg font-medium text-red-600 mb-2'>Error loading configurations</h3>
-        <p className='text-muted-foreground mb-4'>We could not load the exam configurations.</p>
-        <Button onClick={() => refetch()} variant='outline'>
-          <RefreshCcw className='w-4 h-4 mr-2' />
-          Try again
-        </Button>
-      </div>
+      <EmptyState
+        variant='error'
+        title='Error loading configurations'
+        description='We could not load the exam configurations.'
+        actionLabel='Try again'
+        onAction={() => refetch()}
+        className='mt-8 border rounded-md'
+      />
     );
   }
 
