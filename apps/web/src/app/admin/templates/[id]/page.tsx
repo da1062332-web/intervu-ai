@@ -12,6 +12,7 @@ import { BasicInfoSection } from './components/BasicInfoSection';
 import { QuestionDefinitionSection } from './components/QuestionDefinitionSection';
 import { VariableBuilderSection } from './components/VariableBuilderSection';
 import { ConstraintBuilderSection } from './components/ConstraintBuilderSection';
+import { GenerationStrategySection } from './components/GenerationStrategySection';
 import { OptionStrategySection } from './components/OptionStrategySection';
 import { SolutionLogicSection } from './components/SolutionLogicSection';
 import { DatasetConfigurationSection } from './components/DatasetConfigurationSection';
@@ -23,6 +24,7 @@ type SectionType =
   | 'question' 
   | 'variables' 
   | 'constraints' 
+  | 'generation-strategy' 
   | 'options' 
   | 'solution' 
   | 'strategy'
@@ -53,6 +55,7 @@ export default function TemplatePage() {
   }
 
   if (strategy === 'VARIABLE' || strategy === 'HYBRID') {
+    sections.push({ id: 'generation-strategy', label: 'Generation Strategy' });
     sections.push({ id: 'variables', label: 'Variable Builder' });
     sections.push({ id: 'constraints', label: 'Constraint Builder' });
   }
@@ -75,6 +78,7 @@ export default function TemplatePage() {
           <QuestionDefinitionSection template={template} />
         );
       case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
+      case 'generation-strategy': return <GenerationStrategySection />;
       case 'variables': return <VariableBuilderSection />;
       case 'constraints': return <ConstraintBuilderSection />;
       case 'options': return <OptionStrategySection template={template} />;
