@@ -24,6 +24,9 @@ import {
 } from '@/components/ui/select';
 import type { Dataset } from '@/services/datasets/api';
 
+import { useTopics } from '@/services/topics/hooks';
+import { useConcepts } from '@/services/concept-mapping/hooks';
+
 export default function DatasetsPage() {
   const { data: datasets, isLoading } = useDatasets();
   const { mutate: createDataset, isPending: isCreating } = useCreateDataset();
@@ -31,7 +34,10 @@ export default function DatasetsPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newDataset, setNewDataset] = useState({ name: '', description: '', type: 'STANDARD' });
+  const [newDataset, setNewDataset] = useState({ name: '', description: '', type: 'STANDARD', topicId: '', conceptId: '' });
+
+  const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(newDataset.topicId, true);
 
   const filteredDatasets = datasets?.filter((ds: Dataset) => 
     ds.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -39,10 +45,16 @@ export default function DatasetsPage() {
   );
 
   const handleCreate = () => {
-    createDataset(newDataset, {
+    createDataset({
+      name: newDataset.name,
+      description: newDataset.description,
+      type: newDataset.type,
+      topicId: newDataset.topicId || undefined,
+      conceptId: newDataset.conceptId || undefined,
+    }, {
       onSuccess: () => {
         setIsCreateOpen(false);
-        setNewDataset({ name: '', description: '', type: 'STANDARD' });
+        setNewDataset({ name: '', description: '', type: 'STANDARD', topicId: '', conceptId: '' });
       }
     });
   };
@@ -200,6 +212,46 @@ export default function DatasetsPage() {
                 <SelectItem value="SCENARIO">Scenario-based</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Topic (Optional)</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={newDataset.topicId}
+                onChange={(e) => setNewDataset({ ...newDataset, topicId: e.target.value, conceptId: '' })}
+                disabled={isLoadingTopics}
+              >
+                <option value="">{isLoadingTopics ? 'Loading topics...' : 'Select Topic...'}</option>
+                {topics.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Concept (Optional)</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={newDataset.conceptId}
+                onChange={(e) => setNewDataset({ ...newDataset, conceptId: e.target.value })}
+                disabled={!newDataset.topicId || isLoadingConcepts}
+              >
+                <option value="">
+                  {!newDataset.topicId
+                    ? 'Select a topic first'
+                    : isLoadingConcepts
+                      ? 'Loading concepts...'
+                      : 'Select Concept...'}
+                </option>
+                {concepts.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name || c.conceptName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">

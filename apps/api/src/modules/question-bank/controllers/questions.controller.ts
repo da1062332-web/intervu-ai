@@ -151,21 +151,49 @@ export class QuestionsController {
       this.prisma.generatedQuestion.count({ where }),
     ]);
 
+    // Batch resolve concept and topic IDs for response mapping
+    const conceptKeys = Array.from(
+      new Set(questions.map((q) => q.conceptKey).filter(Boolean)),
+    );
+    const matchedConcepts = conceptKeys.length > 0
+      ? await this.prisma.concept.findMany({
+          where: {
+            OR: [
+              { code: { in: conceptKeys } },
+              { id: { in: conceptKeys } },
+            ],
+          },
+          select: { id: true, code: true, topicId: true, name: true },
+        })
+      : [];
+
+    const conceptMap = new Map<string, { id: string; topicId: string; name: string }>();
+    for (const c of matchedConcepts) {
+      conceptMap.set(c.code, c);
+      conceptMap.set(c.id, c);
+    }
+
     return {
       success: true,
-      data: questions.map((q) => ({
-        id: q.id,
-        templateId: q.templateId,
-        conceptKey: q.conceptKey,
-        questionText: q.questionText,
-        variables: q.metadata,
-        options: q.options,
-        answer: q.correctAnswer,
-        correctAnswer: q.correctAnswer,
-        explanation: q.solution,
-        status: (q.metadata as any)?.status || "GENERATED",
-        createdAt: q.createdAt,
-      })),
+      data: questions.map((q) => {
+        const c = conceptMap.get(q.conceptKey);
+        return {
+          id: q.id,
+          templateId: q.templateId,
+          conceptKey: q.conceptKey,
+          conceptId: c?.id || q.conceptKey,
+          topicId: c?.topicId,
+          questionText: q.questionText,
+          variables: q.metadata,
+          options: q.options,
+          answer: q.correctAnswer,
+          correctAnswer: q.correctAnswer,
+          explanation: q.solution,
+          difficulty: q.difficultyLevel,
+          status: (q.metadata as any)?.status || "GENERATED",
+          createdAt: q.createdAt,
+        };
+      }),
       meta: {
         total,
         page,

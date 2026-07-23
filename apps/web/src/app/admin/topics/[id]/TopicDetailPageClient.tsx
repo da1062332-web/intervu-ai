@@ -192,7 +192,7 @@ export function ConceptManualQuestionsRow({
 }) {
   const { data: response, isLoading, isError } = useManualQuestions({ conceptId: concept.id });
   const allQuestions = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || [];
-  const questions = allQuestions.filter((q: any) => q.conceptId === concept.id);
+  const questions = allQuestions.filter((q: any) => q.conceptId === concept.id || q.conceptId === concept.code);
 
   if (isLoading) {
     return (
