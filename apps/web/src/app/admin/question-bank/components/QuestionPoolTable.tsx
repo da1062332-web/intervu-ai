@@ -52,60 +52,62 @@ export function QuestionPoolTable({
           aria-label="Select all approved"
         />
       ),
-      cell: (row) => (
-        row.status === 'APPROVED' ? (
+      cell: (item: any) => {
+        const isApproved = item.status === 'Approved' || item.status === 'APPROVED' || item.rawStatus === 'APPROVED';
+        return isApproved ? (
           <Checkbox 
-            checked={selectedIds.includes(row.id)}
-            onCheckedChange={() => onToggleSelect(row.id)}
-            aria-label={`Select ${row.id}`}
+            checked={selectedIds.includes(item.id)}
+            onCheckedChange={() => onToggleSelect(item.id)}
+            aria-label={`Select ${item.id}`}
           />
-        ) : null
-      ),
-      
-      
+        ) : null;
+      },
     },
     {
       id: 'id',
       header: 'ID',
-      cell: (row) => <span className="font-mono text-xs">{row.id}</span>,
+      cell: (item: any) => <span className="font-mono text-xs">{item.id}</span>,
     },
     {
       id: 'questionText',
       header: 'Question Statement',
-      cell: (row) => (
-        <span className="max-w-[300px] truncate block" title={row.questionText}>
-          {row.questionText}
+      cell: (item: any) => (
+        <span className="max-w-[300px] truncate block" title={item.questionText || item.content}>
+          {item.questionText || item.content}
         </span>
       ),
     },
     {
       id: 'difficulty',
       header: 'Difficulty',
-      cell: (row) => (
-        <Badge 
-          variant={
-            (row.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD' 
-              ? 'destructive' 
-              : (row.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM' 
-                ? 'default' 
-                : 'secondary'
-          }
-        >
-          {row.difficulty || 'Medium'}
-        </Badge>
-      ),
+      cell: (item: any) => {
+        const diff = (item.difficulty || item.difficultyLevel || 'MEDIUM').toUpperCase();
+        return (
+          <Badge 
+            variant={
+              diff === 'HARD' 
+                ? 'destructive' 
+                : diff === 'MEDIUM' 
+                  ? 'default' 
+                  : 'secondary'
+            }
+          >
+            {item.difficulty || item.difficultyLevel || 'Medium'}
+          </Badge>
+        );
+      },
     },
     {
       id: 'templateId',
       header: 'Template',
-      cell: (row) => <span className="font-mono text-xs text-muted-foreground">{row.templateId}</span>,
+      cell: (item: any) => <span className="font-mono text-xs text-muted-foreground">{item.templateId}</span>,
     },
     {
       id: 'status',
       header: 'Status',
-      cell: (row) => (
-        <Badge variant={row.status === 'PUBLISHED' ? 'default' : 'secondary'}>
-          {row.status}
+      cell: (item: any) => (
+        <Badge variant={item.status === 'Published' || item.status === 'PUBLISHED' || item.rawStatus === 'PUBLISHED' ? 'default' : 'secondary'}>
+          {item.status}
         </Badge>
       ),
     },
@@ -113,18 +115,18 @@ export function QuestionPoolTable({
 
   return (
     <div className="border rounded-xl bg-card shadow-sm mt-4">
-        <DataTable
-          columns={columns}
-          data={poolQuestions || []}
-          isLoading={isLoading}
-          emptyState={
-            <EmptyState
-              title="No Questions Found"
-              description="No approved or published questions found."
-              className="py-12 border-0"
-            />
-          }
-        />
+      <DataTable
+        columns={columns}
+        data={poolQuestions || []}
+        isLoading={isLoading}
+        emptyState={
+          <EmptyState
+            title="No Questions Found"
+            description="No approved or published questions found."
+            className="py-12 border-0"
+          />
+        }
+      />
     </div>
   );
 }

@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { QuestionFilters } from '@/services/question-pool/types';
+import { useTopics } from '@/services/topics/hooks';
+import { useConcepts } from '@/services/concept-mapping/hooks';
+import { X, Filter } from 'lucide-react';
 
 export interface PoolFiltersProps {
   filters: QuestionFilters;
@@ -18,31 +21,102 @@ export interface PoolFiltersProps {
 }
 
 export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) {
+  const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(filters.topicId || '', true);
+
+  const hasActiveFilters = Boolean(
+    filters.search || filters.topicId || filters.conceptId || filters.status || filters.difficulty
+  );
+
   return (
-    <div className='bg-gray-50 dark:bg-gray-900 border rounded-md p-4 space-y-4'>
-      <div className='flex justify-between items-center'>
-        <h3 className='font-semibold text-sm'>Filters</h3>
-        <Button variant='ghost' size='sm' onClick={onClear} className='h-8 text-xs'>
-          Clear All
-        </Button>
+    <div className='bg-white dark:bg-gray-900 border rounded-xl p-5 shadow-sm space-y-4'>
+      <div className='flex justify-between items-center border-b pb-3'>
+        <div className="flex items-center gap-2 font-semibold text-sm">
+          <Filter className="w-4 h-4 text-indigo-500" />
+          Filter Questions
+        </div>
+        {hasActiveFilters && (
+          <Button variant='outline' size='sm' onClick={onClear} className='h-8 text-xs text-muted-foreground hover:text-foreground'>
+            <X className="w-3.5 h-3.5 mr-1" /> Clear Filters
+          </Button>
+        )}
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-        <div className='space-y-2'>
-          <Label>Search</Label>
+
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4'>
+        {/* Search Input */}
+        <div className='space-y-1.5'>
+          <Label className="text-xs text-muted-foreground">Search Statement</Label>
           <Input
-            placeholder='Search questions...'
+            placeholder='Search text...'
+            className="h-9 text-sm"
             value={filters.search || ''}
             onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
           />
         </div>
 
-        <div className='space-y-2'>
-          <Label>Status</Label>
+        {/* Topic Selector */}
+        <div className='space-y-1.5'>
+          <Label className="text-xs text-muted-foreground">Topic</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            value={filters.topicId || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFilters((prev) => ({
+                ...prev,
+                topicId: val || undefined,
+                conceptId: undefined, // reset concept on topic change
+              }));
+            }}
+            disabled={isLoadingTopics}
+          >
+            <option value="">{isLoadingTopics ? 'Loading topics...' : 'All Topics'}</option>
+            {topics.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Concept Selector */}
+        <div className='space-y-1.5'>
+          <Label className="text-xs text-muted-foreground">Concept / Section</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            value={filters.conceptId || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFilters((prev) => ({
+                ...prev,
+                conceptId: val || undefined,
+              }));
+            }}
+            disabled={!filters.topicId || isLoadingConcepts}
+          >
+            <option value="">
+              {!filters.topicId
+                ? 'Select a topic first'
+                : isLoadingConcepts
+                  ? 'Loading concepts...'
+                  : 'All Concepts'}
+            </option>
+            {concepts.map((c) => (
+              <option key={c.id} value={c.code || c.id}>
+                {c.name || c.conceptName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status Selector */}
+        <div className='space-y-1.5'>
+          <Label className="text-xs text-muted-foreground">Status</Label>
           <Select 
             value={filters.status || 'all'} 
             onValueChange={(val: string) => setFilters((prev) => ({ ...prev, status: val === 'all' ? undefined : val }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-9 text-sm">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -53,13 +127,14 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
           </Select>
         </div>
 
-        <div className='space-y-2'>
-          <Label>Difficulty</Label>
+        {/* Difficulty Selector */}
+        <div className='space-y-1.5'>
+          <Label className="text-xs text-muted-foreground">Difficulty</Label>
           <Select 
             value={filters.difficulty || 'all'} 
             onValueChange={(val: string) => setFilters((prev) => ({ ...prev, difficulty: val === 'all' ? undefined : val }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-9 text-sm">
               <SelectValue placeholder="All Difficulties" />
             </SelectTrigger>
             <SelectContent>

@@ -46,6 +46,7 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    mode: 'onTouched',
     defaultValues: {
       name: initialData?.name || '',
       code: initialData?.code || '',
@@ -92,7 +93,7 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
           control={form.control}
           name="name"
           label="Config Name"
-          render={({ field }) => (
+          render={(field) => (
             <Input
               {...field}
               placeholder='e.g. Software Engineer Screening'
@@ -105,15 +106,12 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
           control={form.control}
           name="code"
           label="Config Code"
-          render={({ field }) => (
+          render={(field) => (
             <Input
               {...field}
               placeholder='e.g. SWE_SCREENING'
               onChange={(e) => {
-                form.setValue('code', e.target.value.toUpperCase(), {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
+                field.onChange(e.target.value.toUpperCase());
               }}
               disabled={isSubmitting}
             />
@@ -124,7 +122,7 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
           control={form.control}
           name="role"
           label="Role"
-          render={({ field }) => (
+          render={(field) => (
             <Input
               {...field}
               placeholder='e.g. Software Engineer'
@@ -138,11 +136,13 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
             control={form.control}
             name="durationMinutes"
             label="Duration (minutes)"
-            render={({ field }) => (
+            render={(field) => (
               <Input
                 {...field}
+                value={field.value ?? ''}
                 type='number'
                 placeholder='60'
+                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={isSubmitting}
               />
             )}
@@ -152,11 +152,13 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
             control={form.control}
             name="totalQuestions"
             label="Total Questions"
-            render={({ field }) => (
+            render={(field) => (
               <Input
                 {...field}
+                value={field.value ?? ''}
                 type='number'
                 placeholder='30'
+                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
                 disabled={isSubmitting}
               />
             )}
