@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { ProfileDetailsCard } from '@/modules/profile/components/ProfileDetailsCard';
 import { ActiveSessionsCard } from '@/modules/profile/components/ActiveSessionsCard';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { DetailPageSkeleton } from '@/components/ui/skeletons';
 import { Button } from '@/components/ui/button';
 import { EditProfileModal } from '@/modules/profile/components/EditProfileModal';
 
@@ -14,7 +14,11 @@ export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   if (isLoading) {
-    return <AnimatedLoader variant='page' />;
+    return (
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
+        <DetailPageSkeleton />
+      </div>
+    );
   }
 
   if (error || !user) {
@@ -26,12 +30,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className='space-y-6 max-w-4xl mx-auto'>
-      <PageHeader
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
+      <SectionHeader
         title='Profile'
-        subtitle='Manage your personal information and account details.'
+        description='Manage your personal information and account details.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Profile' }]}
-        action={
+        actions={
           <Button onClick={() => setIsEditModalOpen(true)}>
             Edit Profile
           </Button>

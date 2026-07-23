@@ -2,7 +2,6 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import { GeneratedQuestion } from '@/services/question-generation/types';
 
@@ -53,12 +52,12 @@ export function QuestionPoolTable({
           aria-label="Select all approved"
         />
       ),
-      cell: ({ row }) => (
-        row.original.status === 'APPROVED' ? (
+      cell: (row) => (
+        row.status === 'APPROVED' ? (
           <Checkbox 
-            checked={selectedIds.includes(row.original.id)}
-            onCheckedChange={() => onToggleSelect(row.original.id)}
-            aria-label={`Select ${row.original.id}`}
+            checked={selectedIds.includes(row.id)}
+            onCheckedChange={() => onToggleSelect(row.id)}
+            aria-label={`Select ${row.id}`}
           />
         ) : null
       ),
@@ -68,33 +67,45 @@ export function QuestionPoolTable({
     {
       id: 'id',
       header: 'ID',
-      cell: ({ row }) => <span className="font-mono text-xs">{row.original.id}</span>,
+      cell: (row) => <span className="font-mono text-xs">{row.id}</span>,
     },
     {
       id: 'questionText',
       header: 'Question Statement',
-      cell: ({ row }) => (
-        <span className="max-w-[300px] truncate block" title={row.original.questionText}>
-          {row.original.questionText}
+      cell: (row) => (
+        <span className="max-w-[300px] truncate block" title={row.questionText}>
+          {row.questionText}
         </span>
       ),
     },
     {
       id: 'difficulty',
       header: 'Difficulty',
-      cell: ({ row }) => <Badge variant="outline">{row.original.difficulty}</Badge>,
+      cell: (row) => (
+        <Badge 
+          variant={
+            (row.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD' 
+              ? 'destructive' 
+              : (row.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM' 
+                ? 'default' 
+                : 'secondary'
+          }
+        >
+          {row.difficulty || 'Medium'}
+        </Badge>
+      ),
     },
     {
       id: 'templateId',
       header: 'Template',
-      cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.templateId}</span>,
+      cell: (row) => <span className="font-mono text-xs text-muted-foreground">{row.templateId}</span>,
     },
     {
       id: 'status',
       header: 'Status',
-      cell: ({ row }) => (
-        <Badge variant={row.original.status === 'PUBLISHED' ? 'default' : 'secondary'}>
-          {row.original.status}
+      cell: (row) => (
+        <Badge variant={row.status === 'PUBLISHED' ? 'default' : 'secondary'}>
+          {row.status}
         </Badge>
       ),
     },
@@ -102,11 +113,10 @@ export function QuestionPoolTable({
 
   return (
     <div className="border rounded-xl bg-card shadow-sm mt-4">
-      {isLoading && <AnimatedLoader variant="table" className="my-8" />}
-      {!isLoading && (
         <DataTable
           columns={columns}
           data={poolQuestions || []}
+          isLoading={isLoading}
           emptyState={
             <EmptyState
               title="No Questions Found"
@@ -115,7 +125,6 @@ export function QuestionPoolTable({
             />
           }
         />
-      )}
     </div>
   );
 }

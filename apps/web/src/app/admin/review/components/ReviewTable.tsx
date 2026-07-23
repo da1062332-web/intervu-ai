@@ -119,7 +119,17 @@ export function ReviewTable({
                     {q.questionText}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{q.difficulty}</Badge>
+                    <Badge 
+                      variant={
+                        (q.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD' 
+                          ? 'destructive' 
+                          : (q.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM' 
+                            ? 'default' 
+                            : 'secondary'
+                      }
+                    >
+                      {q.difficulty || 'Medium'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {q.templateId}

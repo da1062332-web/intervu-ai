@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import SettingsDangerZone from '@/components/admin/settings/SettingsDangerZone';
 import { Bell, Shield, Palette, Globe, ChevronRight } from 'lucide-react';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SectionHeader } from '@/components/ui/section-header';
@@ -71,10 +70,10 @@ function SettingsGroup({ icon: Icon, title, items }: SettingsGroupProps) {
 
 export default function SettingsPage() {
   return (
-    <div className='space-y-8 max-w-2xl'>
-      <PageHeader
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
+      <SectionHeader
         title='Settings'
-        subtitle='Configure your account preferences and application settings.'
+        description='Configure your account preferences and application settings.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Settings' }]}
       />
 

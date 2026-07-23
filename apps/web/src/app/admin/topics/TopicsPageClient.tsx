@@ -10,9 +10,8 @@ import { Modal } from '@/components/ui/modal';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { Search, Plus, Eye, Trash2, RefreshCcw, Edit2, X, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Topic } from '@/services/topics/types';
@@ -35,9 +34,6 @@ export function TopicsPageClient() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
-  if (isLoading) {
-    return <AnimatedLoader variant='table' className='mt-8' />;
-  }
 
   if (isError) {
     return (
@@ -46,7 +42,7 @@ export function TopicsPageClient() {
         title='Error Loading Topics'
         description='We encountered an error while loading the topics registry. Please try again.'
         actionLabel='Try Again'
-        onAction={() => refetch()}
+        onactions={() => refetch()}
         className='mt-8 border rounded-xl bg-card'
       />
     );
@@ -220,11 +216,11 @@ export function TopicsPageClient() {
 
   return (
     <div className='space-y-8 animate-fade-in'>
-      <PageHeader
+      <SectionHeader
         title='Topic Registry'
-        subtitle='Configure globally unique topics and manage nested modular concept nodes.'
+        description='Configure globally unique topics and manage nested modular concept nodes.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Topics' }]}
-        action={
+        actions={
           <Button
             onClick={handleOpenCreate}
             className='shadow-md hover:shadow-lg transition-all duration-200'
@@ -235,10 +231,10 @@ export function TopicsPageClient() {
         }
       />
 
-      {/* Main List Table */}
       <DataTable
         columns={columns}
         data={filteredTopics}
+        isLoading={isLoading}
         search={
           <div className='relative max-w-md w-full'>
             <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
@@ -259,7 +255,7 @@ export function TopicsPageClient() {
                 : 'Get started by creating your first global topic.'
             }
             actionLabel={searchQuery ? 'Clear Search' : 'Add Topic'}
-            onAction={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
+            onactions={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
             className='py-20 border border-dashed rounded-xl'
           />
         }

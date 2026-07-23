@@ -8,7 +8,7 @@ import { ManualQuestionTable } from './components/ManualQuestionTable';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { ManualQuestionModal } from './components/ManualQuestionModal';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { useRouter } from 'next/navigation';
 
 export default function ManualQuestionsPage() {
@@ -29,11 +29,11 @@ export default function ManualQuestionsPage() {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-4'>
-      <PageHeader
+      <SectionHeader
         title='Manual Questions'
-        subtitle='Manage manual questions that can be mapped directly to concepts.'
+        description='Manage manual questions that can be mapped directly to concepts.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Manual Questions' }]}
-        action={
+        actions={
           <Button onClick={() => router.push('/admin/manual-questions/create')}>
             <Plus className="mr-2 h-4 w-4" /> Add Questions (Batch)
           </Button>

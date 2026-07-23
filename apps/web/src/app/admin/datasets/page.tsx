@@ -10,9 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Label } from '@/components/ui/label';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -120,11 +119,11 @@ export default function DatasetsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <PageHeader
+      <SectionHeader
         title="Datasets"
-        subtitle="Manage your datasets and question items."
+        description="Manage your datasets and question items."
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Datasets' }]}
-        action={
+        actions={
           <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-md hover:shadow-lg transition-all duration-200">
             <Plus className="w-4 h-4" />
             Create Dataset
@@ -133,11 +132,10 @@ export default function DatasetsPage() {
       />
 
       <div className="border rounded-xl bg-card shadow-sm">
-        {isLoading && <AnimatedLoader variant="table" className="my-8" />}
-        {!isLoading && (
           <DataTable
             columns={columns}
             data={filteredDatasets || []}
+            isLoading={isLoading}
             rowKey={(row) => row.id}
             search={
               <div className="relative max-w-md w-full">
@@ -159,12 +157,11 @@ export default function DatasetsPage() {
                     : 'Get started by creating your first dataset.'
                 }
                 actionLabel={searchTerm ? 'Clear Search' : 'Create Dataset'}
-                onAction={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
+                onactions={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
                 className="py-12 border-0"
               />
             }
           />
-        )}
       </div>
 
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)}>

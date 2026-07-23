@@ -54,8 +54,8 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       heading: 'Assessment Builder',
       items: [
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
-        { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList, badge: 'Go' },
-        { label: 'Assessments', route: '/admin/assessment-builder', icon: FileCog, badge: 'New' },
+        { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList },
+        { label: 'Assessments', route: '/admin/assessment-builder', icon: FileCog },
       ],
     },
     {

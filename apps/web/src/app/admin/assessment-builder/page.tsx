@@ -15,7 +15,7 @@ import type { ExamConfig } from '@/services/exam-configs/types';
 import type { Assessment, ValidationResult } from '@/features/assessment-builder/types';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { CustomFormCard } from '@/components/ui/custom-form-card';
 
 export default function AssessmentBuilderPage() {
@@ -103,9 +103,9 @@ export default function AssessmentBuilderPage() {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in'>
-      <PageHeader
+      <SectionHeader
         title='Assessment Generator'
-        subtitle='Transform your validated blueprints into complete, ready-to-use assessments powered by AI.'
+        description='Transform your validated blueprints into complete, ready-to-use assessments powered by AI.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Assessment Generator' }]}
       />
 

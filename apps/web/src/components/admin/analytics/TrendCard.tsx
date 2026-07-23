@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SkeletonChart } from './SkeletonChart';
+import { ChartSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 export interface ChartData {
   name: string;
@@ -23,16 +23,7 @@ export const TrendCard = memo(function TrendCard({
   isError,
 }: TrendCardProps) {
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className='text-lg font-semibold'>{title}</CardTitle>
-        </CardHeader>
-        <CardContent className='flex items-center justify-center h-full'>
-          <SkeletonChart />
-        </CardContent>
-      </Card>
-    );
+    return <ChartSkeleton />;
   }
 
   if (isError) {

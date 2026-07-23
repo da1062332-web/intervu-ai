@@ -1,7 +1,7 @@
 import { useRecentActivities } from '../../hooks/useRecentActivities';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { TimelineSkeleton } from '@/components/ui/skeletons';
 import { Button } from '@/components/ui/button';
 import { Activity, Edit3, FileText, Settings, User, ChevronRight } from 'lucide-react';
 import type { ActivityTimelineItem } from '../../services/dashboard.service';
@@ -27,11 +27,7 @@ export function RecentActivitiesTimeline() {
   const { data, isLoading, isError, refetch } = useRecentActivities();
 
   if (isLoading) {
-    return (
-      <Card className="h-full min-h-[300px] flex items-center justify-center rounded-xl shadow-sm">
-        <AnimatedLoader variant="section" className="border-none bg-transparent" />
-      </Card>
-    );
+    return <TimelineSkeleton className="h-full min-h-[300px]" />;
   }
 
   if (isError) {

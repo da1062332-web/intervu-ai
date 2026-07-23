@@ -5,9 +5,8 @@ import { useState, useEffect } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import {
   Select,
   SelectContent,
@@ -162,11 +161,11 @@ export function TemplateListPageClient() {
 
   return (
     <div className='container mx-auto space-y-6 max-w-7xl'>
-      <PageHeader
+      <SectionHeader
         title='Templates'
-        subtitle='Manage generation templates and solutions.'
+        description='Manage generation templates and solutions.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Templates' }]}
-        action={
+        actions={
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className='w-4 h-4 mr-2' />
             Create Template
@@ -195,30 +194,27 @@ export function TemplateListPageClient() {
       </div>
 
       <div className='border rounded-xl bg-card shadow-sm'>
-        {isLoading && <AnimatedLoader variant='table' className='my-8' />}
-        
-        {isError && (
+        {isError ? (
           <EmptyState
             variant='error'
             title='Unable to load templates'
             description='There was a problem fetching the templates. Please try again.'
             actionLabel='Retry'
-            onAction={() => refetch()}
+            onactions={() => refetch()}
             className='py-12'
           />
-        )}
-
-        {!isLoading && !isError && (
+        ) : (
           <DataTable
             columns={columns}
             data={templates}
+            isLoading={isLoading}
             rowKey={(row) => row.id}
             emptyState={
               <EmptyState
                 title='No Templates Found'
                 description='Create your first template to get started.'
                 actionLabel='Create Template'
-                onAction={() => setIsModalOpen(true)}
+                onactions={() => setIsModalOpen(true)}
                 className='py-12 border-0'
               />
             }

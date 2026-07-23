@@ -17,9 +17,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { DetailPageSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -175,8 +175,8 @@ export default function DatasetDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1">
-        <AnimatedLoader variant="table" />
+      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+        <DetailPageSkeleton />
       </div>
     );
   }
@@ -191,9 +191,9 @@ export default function DatasetDetailPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <PageHeader
+      <SectionHeader
         title={dataset.name}
-        subtitle="Manage dataset details and items."
+        description="Manage dataset details and items."
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Datasets', href: '/admin/datasets' },

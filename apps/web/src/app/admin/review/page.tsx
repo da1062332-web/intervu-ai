@@ -12,6 +12,7 @@ import { ReviewTable } from './components/ReviewTable';
 import { QuestionPreviewDrawer } from './components/QuestionPreviewDrawer';
 import { BulkActionToolbar } from './components/BulkActionToolbar';
 import { GeneratedQuestion } from '@/services/question-generation/types';
+import { SectionHeader } from '@/components/ui/section-header';
 
 export default function QuestionReviewPage() {
   const { data: questions = [], isLoading } = useGeneratedQuestions({ status: 'GENERATED' });
@@ -125,15 +126,12 @@ export default function QuestionReviewPage() {
   };
 
   return (
-    <div className='flex-1 space-y-4'>
-      <div className='flex items-center justify-between space-y-2 mb-6'>
-        <div>
-          <h2 className='text-3xl font-bold tracking-tight'>Question Review</h2>
-          <p className='text-muted-foreground mt-1'>
-            Review, approve, or reject generated questions before they enter the Question Bank.
-          </p>
-        </div>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
+      <SectionHeader
+        title="Question Review"
+        description="Review, approve, or reject generated questions before they enter the Question Bank."
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Question Review' }]}
+      />
 
       <BulkActionToolbar
         selectedCount={selectedIds.length}

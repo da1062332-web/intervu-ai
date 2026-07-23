@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { DownloadCloud, FileText, FileJson, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
+import { SectionHeader } from '@/components/ui/section-header';
 
 export default function ExportCenterPage() {
   const [exporting, setExporting] = useState<string | null>(null);
@@ -71,11 +72,12 @@ export default function ExportCenterPage() {
   };
 
   return (
-    <div className='container mx-auto space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Export Center</h1>
-        <p className='text-sm text-gray-500'>Download system data, reports, and analytics</p>
-      </div>
+    <div className='container mx-auto space-y-6 animate-fade-in-up pb-8'>
+      <SectionHeader 
+        title='Export Center'
+        description='Download system data, reports, and analytics'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Exports' }]}
+      />
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {exportOptions.map((opt) => (

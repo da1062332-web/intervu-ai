@@ -29,7 +29,7 @@ import { TopicDistributionChart } from '@/components/assembly/TopicDistributionC
 import { DifficultyDistributionChart } from '@/components/assembly/DifficultyDistributionChart';
 import { CoverageChart } from '@/components/assembly/CoverageChart';
 import { AssemblyHealthCard } from '@/components/assembly/AssemblyHealthCard';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -203,15 +203,15 @@ export default function AssemblyPreviewPage() {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
-      <PageHeader
+      <SectionHeader
         title='Test Assembly Preview'
-        subtitle={`Instance ID: ${assembly.id}`}
+        description={`Instance ID: ${assembly.id}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Assembly', href: '/admin/assembly' },
           { label: 'Preview' }
         ]}
-        action={
+        actions={
           <div className='flex items-center gap-3'>
             <Badge variant='outline' className={isPublished ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}>
               <CheckCircle2 className='h-3 w-3 mr-1' />

@@ -75,6 +75,7 @@ export function RecentTestAttemptsTable() {
           columns={columns}
           data={data ?? []}
           isLoading={isLoading}
+          disablePagination
           rowKey={(row) => `${row.candidateName}-${row.submittedAt}`}
           containerClassName="h-full border-0 rounded-none"
           emptyState={
