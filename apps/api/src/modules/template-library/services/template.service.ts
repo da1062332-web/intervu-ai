@@ -1491,6 +1491,18 @@ export class TemplateService {
   private buildUpdatePayloadFromDraft(draft: any): Prisma.TemplateUpdateInput {
     const payload: Prisma.TemplateUpdateInput = {};
 
+    const normalizedConstraints = (draft.constraints || []).map((item: any) => {
+      const rule = typeof item?.rule === "string" ? item.rule.trim() : "";
+      const severity = item?.severity === "warning" ? "warning" : "critical";
+      const parsed = this.parseConstraintRule(rule);
+
+      return {
+        rule,
+        severity,
+        ...(parsed || {}),
+      };
+    });
+
     // Build variableSchema in the format expected by the generator
     const variableSchema = {
       variables: draft.variables || [],
@@ -1501,7 +1513,7 @@ export class TemplateService {
       generationStrategyConfig: {
         variables: draft.variables || [],
         derivedVariables: draft.derivedVariables || [],
-        constraints: draft.constraints || [],
+        constraints: normalizedConstraints,
       },
     };
 
@@ -1509,16 +1521,37 @@ export class TemplateService {
 
     // Build constraints schema
     const constraintsSchema = {
-      constraints: draft.constraints || [],
+      constraints: normalizedConstraints,
       generationStrategyConfig: {
         variables: draft.variables || [],
         derivedVariables: draft.derivedVariables || [],
-        constraints: draft.constraints || [],
+        constraints: normalizedConstraints,
       },
     };
 
     payload.constraints = constraintsSchema as Prisma.InputJsonValue;
 
     return payload;
+  }
+
+  private parseConstraintRule(rule: string): {
+    target?: string;
+    operator?: string;
+    value?: string;
+  } | null {
+    if (!rule) {
+      return null;
+    }
+
+    const match = rule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      target: match[1],
+      operator: match[2],
+      value: match[3].trim(),
+    };
   }
 }

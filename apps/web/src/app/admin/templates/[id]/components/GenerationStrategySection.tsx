@@ -115,12 +115,16 @@ export function GenerationStrategySection() {
         return { id: `${item}-${index}`, target: item, operator: '==', value: '', rule: item };
       }
 
+      const parsedRule = typeof item?.rule === 'string'
+        ? item.rule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/)
+        : null;
+
       const rule = item.rule || `${item.target || ''} ${item.operator || '=='} ${item.value || ''}`;
       return {
-        id: `${item.target || 'constraint'}-${index}`,
-        target: item.target || '',
-        operator: item.operator || '==',
-        value: item.value || '',
+        id: `${item.target || item.rule || 'constraint'}-${index}`,
+        target: parsedRule?.[1] || item.target || '',
+        operator: parsedRule?.[2] || item.operator || '==',
+        value: parsedRule?.[3]?.trim() || item.value || '',
         rule,
       };
     });
@@ -418,13 +422,15 @@ export function GenerationStrategySection() {
       { templateId, prompt: aiPrompt },
       {
         onSuccess: (response: any) => {
-          if (response.success && response.data) {
-            setDraftedStrategy(response.data);
-            setValidationWarnings(response.validationWarnings || []);
+          const draft = response?.data ?? response;
+
+          if (draft?.variables || draft?.derivedVariables || draft?.constraints) {
+            setDraftedStrategy(draft);
+            setValidationWarnings(response?.validationWarnings || []);
             toast.success('Strategy drafted successfully!');
             setShowAiSection(false);
           } else {
-            toast.error(response.error || 'Failed to generate draft');
+            toast.error('Failed to generate draft');
           }
         },
         onError: (error: any) => {
@@ -445,13 +451,14 @@ export function GenerationStrategySection() {
       { templateId, draft: draftedStrategy },
       {
         onSuccess: (response: any) => {
-          if (response.success) {
+          if (response?.success || response?.updated || response?.templateId) {
             toast.success('Strategy applied successfully!');
             setDraftedStrategy(null);
             setAiPrompt('');
+            setValidationWarnings([]);
             setShowAiSection(true);
           } else {
-            toast.error(response.error || 'Failed to apply strategy');
+            toast.error('Failed to apply strategy');
           }
         },
         onError: (error: any) => {
@@ -559,6 +566,12 @@ export function GenerationStrategySection() {
       }
     >
       <div className="space-y-6">
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* A. Quick Start Section - AI Assisted */}
         {showAiSection && !draftedStrategy && (
           <div className="space-y-4 rounded-lg border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-6 dark:border-indigo-800 dark:from-indigo-950/30 dark:to-transparent">
@@ -709,6 +722,39 @@ export function GenerationStrategySection() {
               </div>
             </div>
 
+            {/* Drafted Derived Variables Preview */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-base font-semibold">Derived Variables ({draftedStrategy.derivedVariables.length})</h4>
+              </div>
+              <div className="overflow-hidden rounded-md border">
+                <Table>
+                  <TableHeader className="bg-gray-50 dark:bg-gray-900">
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Expression</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {draftedStrategy.derivedVariables.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={2} className="py-8 text-center text-muted-foreground">
+                          No derived variables in draft.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      draftedStrategy.derivedVariables.map((d: any, idx: number) => (
+                        <TableRow key={`${d.name}-${idx}`}>
+                          <TableCell className="font-mono text-sm">{d.name}</TableCell>
+                          <TableCell className="font-mono text-xs">{d.expression}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
             {/* Drafted Constraints Preview */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -781,36 +827,26 @@ export function GenerationStrategySection() {
           </div>
         )}
 
-        {/* B. Manual Editor Toggle - Always available */}
-        {!draftedStrategy && (
-          <Button
-            variant="outline"
-            onClick={() => setShowAiSection(!showAiSection)}
-            className="w-full justify-between"
-          >
-            <span>Manual Editor</span>
-            {showAiSection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-        )}
-
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Show manual editor sections when not in drafted state, or always show for adding more items */}
+        {/* B. Manual Editor Sections - Always available */}
         {!draftedStrategy && (
           <>
+            <Button
+              variant="outline"
+              onClick={() => setShowAiSection(!showAiSection)}
+              className="w-full justify-between"
+            >
+              <span>AI-Assisted Strategy Builder</span>
+              {showAiSection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
 
-        <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-indigo-50 to-white p-4 dark:border-gray-800 dark:from-indigo-950/30 dark:to-transparent">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">What this editor controls</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            The generation engine uses these values to resolve independent variables, compute derived values, and enforce deterministic constraints before the question is rendered.
-          </p>
-        </div>
+            <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-indigo-50 to-white p-4 dark:border-gray-800 dark:from-indigo-950/30 dark:to-transparent">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Manual Editor</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Create and manage variables, derived variables, and constraints manually.
+              </p>
+            </div>
 
-        <div className="space-y-3">
+            <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold">Variables</h3>
@@ -920,56 +956,56 @@ export function GenerationStrategySection() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-semibold">Constraints</h3>
-              <p className="text-sm text-muted-foreground">Define the numeric or logical conditions that the generated values must satisfy.</p>
-            </div>
-            <Button variant="outline" onClick={() => openConstraintModal()} size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Constraint
-            </Button>
-          </div>
-          <div className="overflow-hidden rounded-md border">
-            <Table>
-              <TableHeader className="bg-gray-50 dark:bg-gray-900">
-                <TableRow>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Operator</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {constraints.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                      No constraints yet.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  constraints.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono text-sm">{item.target}</TableCell>
-                      <TableCell className="font-mono text-xs">{item.operator}</TableCell>
-                      <TableCell className="font-mono text-xs">{item.value}</TableCell>
-                      <TableCell className="space-x-2 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => openConstraintModal(item)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteConstraint(item.target)}>
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </TableCell>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-semibold">Constraints</h3>
+                  <p className="text-sm text-muted-foreground">Define the numeric or logical conditions that the generated values must satisfy.</p>
+                </div>
+                <Button variant="outline" onClick={() => openConstraintModal()} size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Constraint
+                </Button>
+              </div>
+              <div className="overflow-hidden rounded-md border">
+                <Table>
+                  <TableHeader className="bg-gray-50 dark:bg-gray-900">
+                    <TableRow>
+                      <TableHead>Target</TableHead>
+                      <TableHead>Operator</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-        </>
+                  </TableHeader>
+                  <TableBody>
+                    {constraints.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                          No constraints yet.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      constraints.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-mono text-sm">{item.target}</TableCell>
+                          <TableCell className="font-mono text-xs">{item.operator}</TableCell>
+                          <TableCell className="font-mono text-xs">{item.value}</TableCell>
+                          <TableCell className="space-x-2 text-right">
+                            <Button variant="ghost" size="sm" onClick={() => openConstraintModal(item)}>
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteConstraint(item.target)}>
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
