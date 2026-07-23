@@ -31,7 +31,7 @@ export class QuestionRepository {
 
   async update(
     id: string,
-    data: Prisma.QuestionUpdateInput,
+    data: Prisma.QuestionUpdateInput | Prisma.QuestionUncheckedUpdateInput,
     tx?: Prisma.TransactionClient,
   ): Promise<Question> {
     const client = tx || this.prisma;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TemplateSection } from '../TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,8 @@ import { Loader2, Database, Search, Tag } from 'lucide-react';
 import { useDatasets } from '@/services/datasets/hooks';
 import { useStrategyConfigStore } from '@/store/strategy-config.store';
 import { validateStrategyConfig } from '../../registry/strategy-validation.registry';
-import { useEffect } from 'react';
+import { useUpdateTemplate, useSaveOptionStrategy } from '@/services/templates/hooks';
+import toast from 'react-hot-toast';
 import type { StrategyPanelProps } from '../../registry/strategy-panel.registry';
 import type { Dataset } from '@/services/datasets/api';
 
@@ -17,7 +18,7 @@ import type { Dataset } from '@/services/datasets/api';
  * DatasetStrategyPanel
  *
  * Displays dataset type, topic, difficulty, tag filters, and a dataset browser.
- * Config is saved to Zustand store and validated with datasetStrategySchema.
+ * Config is saved to Zustand store and persisted to the backend API.
  */
 export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelProps) {
   const { updateConfig, configs } = useStrategyConfigStore();
@@ -26,6 +27,10 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
   const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
+
+  const { mutate: updateTemplate, isPending: isUpdatingTemplate } = useUpdateTemplate();
+  const { mutate: saveOptionStrategy, isPending: isSavingOptionStrategy } = useSaveOptionStrategy();
+  const isSaving = isUpdatingTemplate || isSavingOptionStrategy;
 
   useEffect(() => {
     if (template?.config && !hydrated) {
@@ -47,6 +52,8 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
   };
 
   const handleSave = () => {
+    if (!template?.id) return;
+
     const result = validateStrategyConfig('DATASET', {
       ...config,
       selectedDatasetId,
@@ -58,6 +65,34 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
     }
     updateConfig({ datasetId: selectedDatasetId });
     setValidationErrors([]);
+
+    const updatedConfig = { ...config, datasetId: selectedDatasetId };
+
+    updateTemplate({
+      templateId: template.id,
+      payload: {
+        config: updatedConfig,
+        generationStrategy: 'DATASET',
+      },
+    });
+
+    saveOptionStrategy(
+      {
+        templateId: template.id,
+        payload: {
+          strategy: 'DATASET',
+          datasetId: selectedDatasetId,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Dataset strategy configuration saved successfully');
+        },
+        onError: () => {
+          toast.error('Failed to save dataset strategy configuration');
+        },
+      },
+    );
   };
 
   return (
@@ -66,7 +101,8 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
         title="Dataset Strategy Configuration"
         description="Select a dataset and configure filters that determine which passages or items are used to generate questions."
         actions={
-          <Button onClick={handleSave} size="sm">
+          <Button onClick={handleSave} size="sm" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Configuration
           </Button>
         }

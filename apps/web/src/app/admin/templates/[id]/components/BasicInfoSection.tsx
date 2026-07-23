@@ -171,13 +171,16 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
               <Label htmlFor="questionType" className={errors.questionType ? "text-red-500" : ""}>
                 Question Type *
               </Label>
-              <Input
+              <select
                 id="questionType"
                 {...register('questionType', { required: 'Question Type is required' })}
-                aria-invalid={errors.questionType ? "true" : "false"}
-                className={errors.questionType ? "border-red-500" : ""}
-                placeholder="e.g. coding"
-              />
+                className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="MULTIPLE_CHOICE">Multiple Choice (MCQ)</option>
+                <option value="CODING">Coding Problem</option>
+                <option value="NUMERIC">Numeric Entry</option>
+                <option value="TRUE_FALSE">True / False</option>
+              </select>
               {errors.questionType && (
                 <p className="text-sm text-red-500">{errors.questionType.message}</p>
               )}

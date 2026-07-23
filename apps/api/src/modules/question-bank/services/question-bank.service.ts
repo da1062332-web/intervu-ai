@@ -30,6 +30,8 @@ export class QuestionBankService {
    */
   async createQuestion(dto: CreateQuestionDto): Promise<Question> {
     return this.prisma.$transaction(async (tx) => {
+      const mcqData = dto.mcqData || (dto.options && dto.options.length > 0 ? { options: dto.options } : null);
+
       // 1. Create the question record (starts as DRAFT)
       const question = await this.questionRepo.create(
         {
@@ -49,7 +51,7 @@ export class QuestionBankService {
           instructions: dto.instructions || null,
           questionImage: dto.questionImage || null,
           attachments: dto.attachments || null,
-          mcqData: dto.mcqData || null,
+          mcqData: mcqData,
           codingData: dto.codingData || null,
           templateId: dto.templateId || null,
           version: 1,
@@ -239,13 +241,28 @@ export class QuestionBankService {
         }
       }
 
-      const updateData: Prisma.QuestionUpdateInput = {
-        ...dto,
+      const mcqData = dto.mcqData || (dto.options && dto.options.length > 0 ? { options: dto.options } : undefined);
+      const cleanDto: any = { ...dto };
+      delete cleanDto.options;
+
+      if (cleanDto.conceptId === "" || cleanDto.conceptId === undefined) {
+        delete cleanDto.conceptId;
+      }
+      if (cleanDto.sectionId === "" || cleanDto.sectionId === undefined) {
+        delete cleanDto.sectionId;
+      }
+      if (cleanDto.topicId === "" || cleanDto.topicId === undefined) {
+        delete cleanDto.topicId;
+      }
+
+      const updateData: Prisma.QuestionUncheckedUpdateInput = {
+        ...cleanDto,
+        ...(mcqData !== undefined ? { mcqData } : {}),
         questionSource: dto.questionSource ? (dto.questionSource as any) : undefined,
         version: { increment: 1 },
       };
 
-      const updated = await this.questionRepo.update(id, updateData, tx);
+      const updated = await this.questionRepo.update(id, updateData as any, tx);
 
       // Save snapshot of updated question state
       await this.versionService.createVersionSnapshot(updated, tx);

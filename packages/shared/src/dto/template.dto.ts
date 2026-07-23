@@ -42,6 +42,7 @@ export const UpdateTemplateSchema = z.object({
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
   generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).optional(),
+  isActive: z.boolean().optional(),
 });
 
 // ─── DTO Classes ───────────────────────────────────────────────────────────────
@@ -210,6 +211,12 @@ export class UpdateTemplateDto {
     description: "Template generation strategy",
   })
   generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID";
+
+  @ApiPropertyOptional({
+    example: true,
+    description: "Template active status",
+  })
+  isActive?: boolean;
 
   static validate(
     data: unknown,
