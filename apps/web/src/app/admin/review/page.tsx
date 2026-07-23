@@ -62,11 +62,17 @@ export default function QuestionReviewPage() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  const handleToggleSelectAll = () => {
-    if (selectedIds.length === draftQuestions.length) {
-      setSelectedIds([]);
+  const handleToggleSelectAll = (visibleIds?: string[]) => {
+    const targetIds = visibleIds && visibleIds.length > 0 
+      ? visibleIds 
+      : draftQuestions.map((q) => q.id);
+
+    const allVisibleSelected = targetIds.length > 0 && targetIds.every((id) => selectedIds.includes(id));
+
+    if (allVisibleSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !targetIds.includes(id)));
     } else {
-      setSelectedIds(draftQuestions.map((q) => q.id));
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...targetIds])));
     }
   };
 

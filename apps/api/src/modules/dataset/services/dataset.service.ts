@@ -66,13 +66,28 @@ export class DatasetService {
 
   async addDatasetItem(datasetId: string, dto: CreateDatasetItemDto) {
     await this.findDatasetById(datasetId); // ensure exists
+    const questionText = dto.questionText || dto.content || '';
+    const content = dto.content || dto.questionText || '';
+
+    if (dto.options && dto.options.length > 0 && dto.answer) {
+      const match = dto.options.some((o) => o.trim().toLowerCase() === dto.answer?.trim().toLowerCase());
+      if (!match) {
+        throw new BadRequestException(
+          `Correct answer "${dto.answer}" must match one of the provided options: [${dto.options.join(', ')}]`,
+        );
+      }
+    }
+
     return this.prismaService.datasetItem.create({
       data: {
         datasetId,
-        content: dto.content,
-        difficulty: dto.difficulty,
-        topic: dto.topic,
-        tags: dto.tags,
+        questionText,
+        content,
+        options: dto.options || [],
+        answer: dto.answer || null,
+        explanation: dto.explanation || null,
+        difficulty: dto.difficulty || 'MEDIUM',
+        tags: dto.tags || [],
         metadata: dto.metadata || {},
       },
     });
@@ -80,14 +95,31 @@ export class DatasetService {
 
   async addDatasetItemsBulk(datasetId: string, dtos: CreateDatasetItemDto[]) {
     await this.findDatasetById(datasetId); // ensure exists
-    const data = dtos.map((dto) => ({
-      datasetId,
-      content: dto.content,
-      difficulty: dto.difficulty,
-      topic: dto.topic,
-      tags: dto.tags,
-      metadata: dto.metadata || {},
-    }));
+    const data = dtos.map((dto, idx) => {
+      const questionText = dto.questionText || dto.content || '';
+      const content = dto.content || dto.questionText || '';
+
+      if (dto.options && dto.options.length > 0 && dto.answer) {
+        const match = dto.options.some((o) => o.trim().toLowerCase() === dto.answer?.trim().toLowerCase());
+        if (!match) {
+          throw new BadRequestException(
+            `Item ${idx + 1}: Correct answer "${dto.answer}" must match one of the provided options: [${dto.options.join(', ')}]`,
+          );
+        }
+      }
+
+      return {
+        datasetId,
+        questionText,
+        content,
+        options: dto.options || [],
+        answer: dto.answer || null,
+        explanation: dto.explanation || null,
+        difficulty: dto.difficulty || 'MEDIUM',
+        tags: dto.tags || [],
+        metadata: dto.metadata || {},
+      };
+    });
     return this.prismaService.datasetItem.createMany({
       data,
     });

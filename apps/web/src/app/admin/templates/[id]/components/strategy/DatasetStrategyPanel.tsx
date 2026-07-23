@@ -216,27 +216,48 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {datasets.map((dataset: Dataset) => (
-                <div
-                  key={dataset.id}
-                  onClick={() => setSelectedDatasetId(dataset.id)}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedDatasetId === dataset.id
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
-                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-medium text-sm">{dataset.name}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Type: {dataset.type} · Items: {dataset._count?.items ?? 0}
-                  </div>
-                  {dataset.description && (
-                    <div className="text-xs text-gray-400 mt-1 line-clamp-2">
-                      {dataset.description}
+              {datasets
+                .slice()
+                .sort((a, b) => {
+                  const aMatch = (template?.topicId && a.topicId === template.topicId) || (template?.conceptKey && a.conceptId === template.conceptKey);
+                  const bMatch = (template?.topicId && b.topicId === template.topicId) || (template?.conceptKey && b.conceptId === template.conceptKey);
+                  if (aMatch && !bMatch) return -1;
+                  if (!aMatch && bMatch) return 1;
+                  return 0;
+                })
+                .map((dataset: Dataset) => {
+                  const isMatchingTopic = (template?.topicId && dataset.topicId === template.topicId) || (template?.conceptKey && dataset.conceptId === template.conceptKey);
+                  return (
+                    <div
+                      key={dataset.id}
+                      onClick={() => setSelectedDatasetId(dataset.id)}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors relative ${
+                        selectedDatasetId === dataset.id
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30 ring-1 ring-indigo-500'
+                          : isMatchingTopic
+                            ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20 hover:border-emerald-400'
+                            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-sm">{dataset.name}</div>
+                        {isMatchingTopic && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold shrink-0">
+                            Topic Match
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Type: {dataset.type} · Items: {dataset._count?.items ?? 0}
+                      </div>
+                      {dataset.description && (
+                        <div className="text-xs text-gray-400 mt-1 line-clamp-2">
+                          {dataset.description}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </div>

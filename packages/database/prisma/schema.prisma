@@ -562,6 +562,7 @@ model Topic {
   sectionTopics         SectionTopic[]
   blueprintTopicConfigs BlueprintTopicConfig[]
   questions             Question[]
+  datasets              Dataset[]
 }
 
 model Concept {
@@ -576,6 +577,7 @@ model Concept {
   updatedAt       DateTime             @updatedAt
   topic           Topic                @relation(fields: [topicId], references: [id], onDelete: Cascade)
   questions       Question[]
+  datasets        Dataset[]
 
   @@unique([topicId, code])
   @@index([topicId])
@@ -1329,26 +1331,35 @@ model Dataset {
   name        String        @unique
   description String?
   type        String
+  topicId     String?
+  conceptId   String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   items       DatasetItem[]
+  topic       Topic?        @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  concept     Concept?      @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+
+  @@index([topicId])
+  @@index([conceptId])
 }
 
 model DatasetItem {
-  id         String   @id @default(cuid())
-  datasetId  String
-  content    String
-  difficulty String
-  topic      String
-  tags       String[]
-  metadata   Json     @default("{}")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  dataset    Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  datasetId    String
+  questionText String?
+  content      String
+  options      String[] @default([])
+  answer       String?
+  explanation  String?
+  difficulty   String
+  tags         String[]
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  dataset      Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
   @@index([datasetId])
   @@index([difficulty])
-  @@index([topic])
 }
 
 model Scenario {
