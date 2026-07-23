@@ -12,6 +12,7 @@ import { TemplatePreviewRepository } from "./repositories/template-preview.repos
 import { TemplateRendererService } from "./services/template-renderer.service";
 import { PlaceholderValidatorService } from "./services/placeholder-validator.service";
 import { SolutionTemplateService } from "./services/solution-template.service";
+import { StrategyDraftingService } from "./services/strategy-drafting.service";
 
 import { TemplateDatasetRepository } from "./repositories/template-dataset.repository";
 import { TemplatePromptRepository } from "./repositories/template-prompt.repository";
@@ -40,6 +41,7 @@ import { TemplatePromptController } from "./controllers/template-prompt.controll
     TemplateRendererService,
     PlaceholderValidatorService,
     SolutionTemplateService,
+    StrategyDraftingService,
     TemplateDatasetService,
     TemplatePromptService,
     TemplateService,
@@ -55,6 +57,7 @@ import { TemplatePromptController } from "./controllers/template-prompt.controll
     TemplateRendererService,
     PlaceholderValidatorService,
     SolutionTemplateService,
+    StrategyDraftingService,
     TemplateDatasetService,
     TemplatePromptService,
     TemplateService,

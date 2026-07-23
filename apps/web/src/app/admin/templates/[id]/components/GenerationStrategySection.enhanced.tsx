@@ -17,7 +17,12 @@ import {
 import { Modal } from '@/components/ui/modal';
 import { Textarea } from '@/components/ui/textarea';
 import { TemplateSection } from './TemplateSection';
-import { useTemplate, useUpdateTemplate, useDraftStrategy, useApplyStrategy } from '@/services/templates/hooks';
+import { 
+  useTemplate, 
+  useUpdateTemplate,
+  useDraftStrategy,
+  useApplyStrategy,
+} from '@/services/templates/hooks';
 import toast from 'react-hot-toast';
 
 interface VariableDefinition {
@@ -126,6 +131,13 @@ export function GenerationStrategySection() {
     });
   }, [constraintSchema.constraints]);
 
+  // AI Assistant State
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [draftedStrategy, setDraftedStrategy] = useState<DraftedStrategy | null>(null);
+  const [showAiSection, setShowAiSection] = useState(true);
+  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+
+  // Manual Editor States
   const [variableModalOpen, setVariableModalOpen] = useState(false);
   const [constraintModalOpen, setConstraintModalOpen] = useState(false);
   const [derivedModalOpen, setDerivedModalOpen] = useState(false);
@@ -144,270 +156,6 @@ export function GenerationStrategySection() {
   const [constraintForm, setConstraintForm] = useState({ target: '', operator: '>', value: '' });
   const [error, setError] = useState<string | null>(null);
 
-  // AI Assistant State
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [draftedStrategy, setDraftedStrategy] = useState<DraftedStrategy | null>(null);
-  const [showAiSection, setShowAiSection] = useState(true);
-  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
-
-  const resetVariableForm = () => {
-    setVariableForm({ name: '', type: 'number', min: '', max: '', defaultValue: '', generator: 'random' });
-  };
-
-  const resetDerivedForm = () => {
-    setDerivedForm({ name: '', expression: '' });
-  };
-
-  const resetConstraintForm = () => {
-    setConstraintForm({ target: '', operator: '>', value: '' });
-  };
-
-  const openVariableModal = (item?: VariableDefinition) => {
-    setError(null);
-    if (item) {
-      setEditingVariable(item);
-      setVariableForm({
-        name: item.name,
-        type: item.type,
-        min: item.min !== undefined ? String(item.min) : '',
-        max: item.max !== undefined ? String(item.max) : '',
-        defaultValue: item.defaultValue !== undefined ? String(item.defaultValue) : '',
-        generator: item.generator || 'random',
-      });
-    } else {
-      setEditingVariable(null);
-      resetVariableForm();
-    }
-    setVariableModalOpen(true);
-  };
-
-  const openDerivedModal = (item?: DerivedVariableDefinition) => {
-    setError(null);
-    if (item) {
-      setEditingDerived(item);
-      setDerivedForm({ name: item.name, expression: item.expression });
-    } else {
-      setEditingDerived(null);
-      resetDerivedForm();
-    }
-    setDerivedModalOpen(true);
-  };
-
-  const openConstraintModal = (item?: ConstraintDefinition) => {
-    setError(null);
-    if (item) {
-      setEditingConstraint(item);
-      setConstraintForm({ target: item.target, operator: item.operator, value: item.value });
-    } else {
-      setEditingConstraint(null);
-      resetConstraintForm();
-    }
-    setConstraintModalOpen(true);
-  };
-
-  const handleSaveVariable = () => {
-    setError(null);
-    if (!variableForm.name.trim()) {
-      setError('Variable name is required');
-      return;
-    }
-
-    const nextVariables = [...variables];
-    const normalized: VariableDefinition = {
-      name: variableForm.name.trim(),
-      type: variableForm.type,
-      generator: variableForm.generator,
-    };
-
-    if (variableForm.type === 'number' || variableForm.type === 'integer' || variableForm.type === 'decimal') {
-      const min = variableForm.min === '' ? undefined : Number(variableForm.min);
-      const max = variableForm.max === '' ? undefined : Number(variableForm.max);
-      if (min !== undefined) normalized.min = min;
-      if (max !== undefined) normalized.max = max;
-      if (variableForm.defaultValue !== '') {
-        normalized.defaultValue = Number(variableForm.defaultValue);
-      }
-    } else if (variableForm.type === 'boolean') {
-      normalized.defaultValue = variableForm.defaultValue === 'true';
-    } else if (variableForm.defaultValue !== '') {
-      normalized.defaultValue = variableForm.defaultValue;
-    }
-
-    const exists = nextVariables.findIndex((item) => item.name === editingVariable?.name);
-    if (editingVariable && exists >= 0) {
-      nextVariables[exists] = normalized;
-    } else {
-      nextVariables.push(normalized);
-    }
-
-    const nextDerived = derivedVariables;
-    const nextConstraints = constraints;
-
-    const payload = {
-      variableSchema: {
-        ...(variableSchema || {}),
-        variables: nextVariables,
-        derivedVariables: nextDerived,
-        formulas: nextDerived.map((item) => `${item.name} = ${item.expression}`),
-        generationStrategyConfig: {
-          variables: nextVariables,
-          derivedVariables: nextDerived,
-          constraints: nextConstraints.map((item) => ({
-            target: item.target,
-            operator: item.operator,
-            value: item.value,
-            rule: `${item.target} ${item.operator} ${item.value}`,
-          })),
-        },
-      },
-      constraints: {
-        ...(constraintSchema || {}),
-        constraints: nextConstraints.map((item) => ({
-          target: item.target,
-          operator: item.operator,
-          value: item.value,
-          rule: `${item.target} ${item.operator} ${item.value}`,
-        })),
-        generationStrategyConfig: {
-          variables: nextVariables,
-          derivedVariables: nextDerived,
-          constraints: nextConstraints.map((item) => ({
-            target: item.target,
-            operator: item.operator,
-            value: item.value,
-            rule: `${item.target} ${item.operator} ${item.value}`,
-          })),
-        },
-      },
-    };
-
-    updateTemplate({ templateId, payload }, { onSuccess: () => setVariableModalOpen(false) });
-  };
-
-  const handleSaveDerived = () => {
-    setError(null);
-    if (!derivedForm.name.trim() || !derivedForm.expression.trim()) {
-      setError('Both derived variable name and expression are required');
-      return;
-    }
-
-    const nextDerived = [...derivedVariables];
-    const normalized = {
-      name: derivedForm.name.trim(),
-      expression: derivedForm.expression.trim(),
-    };
-
-    const exists = nextDerived.findIndex((item) => item.name === editingDerived?.name);
-    if (editingDerived && exists >= 0) {
-      nextDerived[exists] = normalized;
-    } else {
-      nextDerived.push(normalized);
-    }
-
-    const payload = {
-      variableSchema: {
-        ...(variableSchema || {}),
-        variables,
-        derivedVariables: nextDerived,
-        formulas: nextDerived.map((item) => `${item.name} = ${item.expression}`),
-        generationStrategyConfig: {
-          variables,
-          derivedVariables: nextDerived,
-          constraints: constraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
-        },
-      },
-    };
-
-    updateTemplate({ templateId, payload }, { onSuccess: () => setDerivedModalOpen(false) });
-  };
-
-  const handleSaveConstraint = () => {
-    setError(null);
-    if (!constraintForm.target.trim() || !constraintForm.value.trim()) {
-      setError('Target and value are required');
-      return;
-    }
-
-    const nextConstraints = [...constraints];
-    const normalized = {
-      id: `${constraintForm.target}-${constraintForm.operator}-${constraintForm.value}`,
-      target: constraintForm.target.trim(),
-      operator: constraintForm.operator,
-      value: constraintForm.value.trim(),
-      rule: `${constraintForm.target.trim()} ${constraintForm.operator} ${constraintForm.value.trim()}`,
-    };
-
-    const exists = nextConstraints.findIndex((item) => item.target === editingConstraint?.target && item.operator === editingConstraint?.operator);
-    if (editingConstraint && exists >= 0) {
-      nextConstraints[exists] = normalized;
-    } else {
-      nextConstraints.push(normalized);
-    }
-
-    const payload = {
-      variableSchema: {
-        ...(variableSchema || {}),
-        variables,
-        derivedVariables,
-        formulas: derivedVariables.map((item) => `${item.name} = ${item.expression}`),
-        generationStrategyConfig: {
-          variables,
-          derivedVariables,
-          constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
-        },
-      },
-      constraints: {
-        ...(constraintSchema || {}),
-        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
-        generationStrategyConfig: {
-          variables,
-          derivedVariables,
-          constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
-        },
-      },
-    };
-
-    updateTemplate({ templateId, payload }, { onSuccess: () => setConstraintModalOpen(false) });
-  };
-
-  const handleDeleteVariable = (name: string) => {
-    const nextVariables = variables.filter((item) => item.name !== name);
-    const payload = {
-      variableSchema: {
-        ...(variableSchema || {}),
-        variables: nextVariables,
-        derivedVariables,
-        formulas: derivedVariables.map((item) => `${item.name} = ${item.expression}`),
-      },
-    };
-    updateTemplate({ templateId, payload });
-  };
-
-  const handleDeleteDerived = (name: string) => {
-    const nextDerived = derivedVariables.filter((item) => item.name !== name);
-    const payload = {
-      variableSchema: {
-        ...(variableSchema || {}),
-        variables,
-        derivedVariables: nextDerived,
-        formulas: nextDerived.map((item) => `${item.name} = ${item.expression}`),
-      },
-    };
-    updateTemplate({ templateId, payload });
-  };
-
-  const handleDeleteConstraint = (target: string) => {
-    const nextConstraints = constraints.filter((item) => item.target !== target);
-    const payload = {
-      constraints: {
-        ...(constraintSchema || {}),
-        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
-      },
-    };
-    updateTemplate({ templateId, payload });
-  };
-
-  // AI Handler Functions
   const handleGenerateDraft = () => {
     if (!aiPrompt.trim()) {
       toast.error('Please enter a description');
@@ -547,6 +295,186 @@ export function GenerationStrategySection() {
     toast.success('Constraint removed');
   };
 
+  const resetVariableForm = () => {
+    setVariableForm({ name: '', type: 'number', min: '', max: '', defaultValue: '', generator: 'random' });
+  };
+
+  const resetConstraintForm = () => {
+    setConstraintForm({ target: '', operator: '>', value: '' });
+  };
+
+  const openVariableModal = (item?: VariableDefinition) => {
+    setError(null);
+    if (item) {
+      setEditingVariable(item);
+      setVariableForm({
+        name: item.name,
+        type: item.type,
+        min: item.min !== undefined ? String(item.min) : '',
+        max: item.max !== undefined ? String(item.max) : '',
+        defaultValue: item.defaultValue !== undefined ? String(item.defaultValue) : '',
+        generator: item.generator || 'random',
+      });
+    } else {
+      setEditingVariable(null);
+      resetVariableForm();
+    }
+    setVariableModalOpen(true);
+  };
+
+  const openConstraintModal = (item?: ConstraintDefinition) => {
+    setError(null);
+    if (item) {
+      setEditingConstraint(item);
+      setConstraintForm({ target: item.target, operator: item.operator, value: item.value });
+    } else {
+      setEditingConstraint(null);
+      resetConstraintForm();
+    }
+    setConstraintModalOpen(true);
+  };
+
+  const handleSaveVariable = () => {
+    setError(null);
+    if (!variableForm.name.trim()) {
+      setError('Variable name is required');
+      return;
+    }
+
+    const nextVariables = [...variables];
+    const normalized: VariableDefinition = {
+      name: variableForm.name.trim(),
+      type: variableForm.type,
+      generator: variableForm.generator,
+    };
+
+    if (variableForm.type === 'number' || variableForm.type === 'integer' || variableForm.type === 'decimal') {
+      const min = variableForm.min === '' ? undefined : Number(variableForm.min);
+      const max = variableForm.max === '' ? undefined : Number(variableForm.max);
+      if (min !== undefined) normalized.min = min;
+      if (max !== undefined) normalized.max = max;
+      if (variableForm.defaultValue !== '') {
+        normalized.defaultValue = Number(variableForm.defaultValue);
+      }
+    } else if (variableForm.type === 'boolean') {
+      normalized.defaultValue = variableForm.defaultValue === 'true';
+    } else if (variableForm.defaultValue !== '') {
+      normalized.defaultValue = variableForm.defaultValue;
+    }
+
+    const exists = nextVariables.findIndex((item) => item.name === editingVariable?.name);
+    if (editingVariable && exists >= 0) {
+      nextVariables[exists] = normalized;
+    } else {
+      nextVariables.push(normalized);
+    }
+
+    const nextDerived = derivedVariables;
+    const nextConstraints = constraints;
+
+    const payload = {
+      variableSchema: {
+        ...(variableSchema || {}),
+        variables: nextVariables,
+        derivedVariables: nextDerived,
+        formulas: nextDerived.map((item) => `${item.name} = ${item.expression}`),
+        generationStrategyConfig: {
+          variables: nextVariables,
+          derivedVariables: nextDerived,
+          constraints: nextConstraints.map((item) => ({
+            target: item.target,
+            operator: item.operator,
+            value: item.value,
+            rule: `${item.target} ${item.operator} ${item.value}`,
+          })),
+        },
+      },
+      constraints: {
+        ...(constraintSchema || {}),
+        constraints: nextConstraints.map((item) => ({
+          target: item.target,
+          operator: item.operator,
+          value: item.value,
+          rule: `${item.target} ${item.operator} ${item.value}`,
+        })),
+        generationStrategyConfig: {
+          variables: nextVariables,
+          derivedVariables: nextDerived,
+          constraints: nextConstraints.map((item) => ({
+            target: item.target,
+            operator: item.operator,
+            value: item.value,
+            rule: `${item.target} ${item.operator} ${item.value}`,
+          })),
+        },
+      },
+    };
+
+    updateTemplate({ templateId, payload }, { onSuccess: () => setVariableModalOpen(false) });
+  };
+
+  const handleDeleteVariable = (name: string) => {
+    const nextVariables = variables.filter((item) => item.name !== name);
+    const payload = {
+      variableSchema: {
+        ...(variableSchema || {}),
+        variables: nextVariables,
+        derivedVariables,
+        formulas: derivedVariables.map((item) => `${item.name} = ${item.expression}`),
+      },
+    };
+    updateTemplate({ templateId, payload });
+  };
+
+  const handleSaveConstraint = () => {
+    setError(null);
+    if (!constraintForm.target.trim() || !constraintForm.value.trim()) {
+      setError('Target and value are required');
+      return;
+    }
+
+    const nextConstraints = [...constraints];
+    const normalized = {
+      id: `${constraintForm.target}-${constraintForm.operator}-${constraintForm.value}`,
+      target: constraintForm.target.trim(),
+      operator: constraintForm.operator,
+      value: constraintForm.value.trim(),
+      rule: `${constraintForm.target.trim()} ${constraintForm.operator} ${constraintForm.value.trim()}`,
+    };
+
+    const exists = nextConstraints.findIndex((item) => item.target === editingConstraint?.target && item.operator === editingConstraint?.operator);
+    if (editingConstraint && exists >= 0) {
+      nextConstraints[exists] = normalized;
+    } else {
+      nextConstraints.push(normalized);
+    }
+
+    const payload = {
+      constraints: {
+        ...(constraintSchema || {}),
+        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+        generationStrategyConfig: {
+          variables,
+          derivedVariables,
+          constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+        },
+      },
+    };
+
+    updateTemplate({ templateId, payload }, { onSuccess: () => setConstraintModalOpen(false) });
+  };
+
+  const handleDeleteConstraint = (target: string) => {
+    const nextConstraints = constraints.filter((item) => item.target !== target);
+    const payload = {
+      constraints: {
+        ...(constraintSchema || {}),
+        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+      },
+    };
+    updateTemplate({ templateId, payload });
+  };
+
   return (
     <TemplateSection
       title="Generation Strategy"
@@ -559,6 +487,12 @@ export function GenerationStrategySection() {
       }
     >
       <div className="space-y-6">
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* A. Quick Start Section - AI Assisted */}
         {showAiSection && !draftedStrategy && (
           <div className="space-y-4 rounded-lg border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-6 dark:border-indigo-800 dark:from-indigo-950/30 dark:to-transparent">
@@ -781,32 +715,22 @@ export function GenerationStrategySection() {
           </div>
         )}
 
-        {/* B. Manual Editor Toggle - Always available */}
+        {/* B. Manual Editor Sections - Always available */}
         {!draftedStrategy && (
           <Button
             variant="outline"
             onClick={() => setShowAiSection(!showAiSection)}
             className="w-full justify-between"
           >
-            <span>Manual Editor</span>
+            <span>AI-Assisted Strategy Builder</span>
             {showAiSection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         )}
 
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Show manual editor sections when not in drafted state, or always show for adding more items */}
-        {!draftedStrategy && (
-          <>
-
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-indigo-50 to-white p-4 dark:border-gray-800 dark:from-indigo-950/30 dark:to-transparent">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">What this editor controls</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Manual Editor</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            The generation engine uses these values to resolve independent variables, compute derived values, and enforce deterministic constraints before the question is rendered.
+            Create and manage variables, derived variables, and constraints manually.
           </p>
         </div>
 
@@ -875,54 +799,6 @@ export function GenerationStrategySection() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold">Derived Variables</h3>
-              <p className="text-sm text-muted-foreground">Create formula-based values that depend on base variables.</p>
-            </div>
-            <Button variant="outline" onClick={() => openDerivedModal()} size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Derived Variable
-            </Button>
-          </div>
-          <div className="overflow-hidden rounded-md border">
-            <Table>
-              <TableHeader className="bg-gray-50 dark:bg-gray-900">
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Expression</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {derivedVariables.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
-                      No derived variables yet.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  derivedVariables.map((item) => (
-                    <TableRow key={item.name}>
-                      <TableCell className="font-mono text-sm">{item.name}</TableCell>
-                      <TableCell className="font-mono text-xs">{item.expression}</TableCell>
-                      <TableCell className="space-x-2 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => openDerivedModal(item)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteDerived(item.name)}>
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
               <h3 className="text-base font-semibold">Constraints</h3>
               <p className="text-sm text-muted-foreground">Define the numeric or logical conditions that the generated values must satisfy.</p>
             </div>
@@ -969,20 +845,20 @@ export function GenerationStrategySection() {
             </Table>
           </div>
         </div>
-        </>
-        )}
       </div>
 
+      {/* Variable Modal */}
       <Modal isOpen={variableModalOpen} onClose={() => setVariableModalOpen(false)}>
         <div className="w-full max-w-md space-y-4">
           <h2 className="text-xl font-semibold">{editingVariable ? 'Edit Variable' : 'Add Variable'}</h2>
+          {error && <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
           <div className="space-y-2">
-            <Label htmlFor="strategyVarName">Variable Name</Label>
-            <Input id="strategyVarName" value={variableForm.name} onChange={(event) => setVariableForm({ ...variableForm, name: event.target.value })} />
+            <Label htmlFor="varName">Variable Name</Label>
+            <Input id="varName" value={variableForm.name} onChange={(e) => setVariableForm({ ...variableForm, name: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="strategyVarType">Type</Label>
-            <select id="strategyVarType" value={variableForm.type} onChange={(event) => setVariableForm({ ...variableForm, type: event.target.value })} className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-800 dark:bg-gray-950">
+            <Label htmlFor="varType">Type</Label>
+            <select id="varType" value={variableForm.type} onChange={(e) => setVariableForm({ ...variableForm, type: e.target.value })} className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-800 dark:bg-gray-950">
               <option value="number">Number</option>
               <option value="integer">Integer</option>
               <option value="decimal">Decimal</option>
@@ -990,87 +866,56 @@ export function GenerationStrategySection() {
               <option value="string">String</option>
             </select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="strategyVarGenerator">Generation Mode</Label>
-            <select id="strategyVarGenerator" value={variableForm.generator} onChange={(event) => setVariableForm({ ...variableForm, generator: event.target.value })} className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-800 dark:bg-gray-950">
-              <option value="random">Random</option>
-              <option value="even">Even</option>
-              <option value="odd">Odd</option>
-              <option value="prime">Prime</option>
-              <option value="static">Static</option>
-            </select>
-          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="strategyMin">Min</Label>
-              <Input id="strategyMin" value={variableForm.min} onChange={(event) => setVariableForm({ ...variableForm, min: event.target.value })} />
+              <Label htmlFor="varMin">Min</Label>
+              <Input id="varMin" value={variableForm.min} onChange={(e) => setVariableForm({ ...variableForm, min: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="strategyMax">Max</Label>
-              <Input id="strategyMax" value={variableForm.max} onChange={(event) => setVariableForm({ ...variableForm, max: event.target.value })} />
+              <Label htmlFor="varMax">Max</Label>
+              <Input id="varMax" value={variableForm.max} onChange={(e) => setVariableForm({ ...variableForm, max: e.target.value })} />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="strategyDefault">Default / Static Value</Label>
-            <Input id="strategyDefault" value={variableForm.defaultValue} onChange={(event) => setVariableForm({ ...variableForm, defaultValue: event.target.value })} />
-          </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setVariableModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveVariable} disabled={isUpdatingTemplate}>
-              {isUpdatingTemplate && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button variant="outline" onClick={() => setVariableModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={draftedStrategy && editingVariable ? handleSaveDraftVariable : handleSaveVariable}>
               Save
             </Button>
           </div>
         </div>
       </Modal>
 
-      <Modal isOpen={derivedModalOpen} onClose={() => setDerivedModalOpen(false)}>
-        <div className="w-full max-w-md space-y-4">
-          <h2 className="text-xl font-semibold">{editingDerived ? 'Edit Derived Variable' : 'Add Derived Variable'}</h2>
-          <div className="space-y-2">
-            <Label htmlFor="derivedName">Name</Label>
-            <Input id="derivedName" value={derivedForm.name} onChange={(event) => setDerivedForm({ ...derivedForm, name: event.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="derivedExpression">Expression</Label>
-            <Input id="derivedExpression" value={derivedForm.expression} onChange={(event) => setDerivedForm({ ...derivedForm, expression: event.target.value })} placeholder="e.g. (selling_price - cost_price) / cost_price * 100" />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDerivedModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveDerived} disabled={isUpdatingTemplate}>
-              {isUpdatingTemplate && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
+      {/* Constraint Modal */}
       <Modal isOpen={constraintModalOpen} onClose={() => setConstraintModalOpen(false)}>
         <div className="w-full max-w-md space-y-4">
           <h2 className="text-xl font-semibold">{editingConstraint ? 'Edit Constraint' : 'Add Constraint'}</h2>
+          {error && <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
           <div className="space-y-2">
-            <Label htmlFor="constraintTarget">Target</Label>
-            <Input id="constraintTarget" value={constraintForm.target} onChange={(event) => setConstraintForm({ ...constraintForm, target: event.target.value })} placeholder="e.g. selling_price" />
+            <Label htmlFor="conTarget">Target Variable</Label>
+            <Input id="conTarget" value={constraintForm.target} onChange={(e) => setConstraintForm({ ...constraintForm, target: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="constraintOperator">Operator</Label>
-            <select id="constraintOperator" value={constraintForm.operator} onChange={(event) => setConstraintForm({ ...constraintForm, operator: event.target.value })} className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-800 dark:bg-gray-950">
+            <Label htmlFor="conOp">Operator</Label>
+            <select id="conOp" value={constraintForm.operator} onChange={(e) => setConstraintForm({ ...constraintForm, operator: e.target.value })} className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-mono dark:border-gray-800 dark:bg-gray-950">
               <option value=">">&gt;</option>
               <option value="<">&lt;</option>
               <option value=">=">&gt;=</option>
               <option value="<=">&lt;=</option>
-              <option value="==">==</option>
+              <option value="==">=</option>
               <option value="!=">!=</option>
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="constraintValue">Value</Label>
-            <Input id="constraintValue" value={constraintForm.value} onChange={(event) => setConstraintForm({ ...constraintForm, value: event.target.value })} placeholder="e.g. cost_price" />
+            <Label htmlFor="conValue">Value</Label>
+            <Input id="conValue" value={constraintForm.value} onChange={(e) => setConstraintForm({ ...constraintForm, value: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setConstraintModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveConstraint} disabled={isUpdatingTemplate}>
-              {isUpdatingTemplate && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button variant="outline" onClick={() => setConstraintModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={draftedStrategy && editingConstraint ? handleSaveDraftConstraint : handleSaveConstraint}>
               Save
             </Button>
           </div>

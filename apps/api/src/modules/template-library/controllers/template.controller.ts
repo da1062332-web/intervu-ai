@@ -46,7 +46,16 @@ import {
   NullableSolutionTemplateBaseSchema,
   NullableTemplatePreviewBaseSchema,
 } from "@intervu/shared";
+import {
+  DraftStrategyRequestDto,
+  DraftStrategyResponseDto,
+  ApplyStrategyRequestDto,
+  ApplyStrategyResponseDto,
+  PreviewStrategyRequestDto,
+  PreviewStrategyResponseDto,
+} from "../dto/strategy-drafting.dto";
 import { TemplateService } from "../services/template.service";
+import { StrategyDraftingService } from "../services/strategy-drafting.service";
 import { SolutionTemplateService } from "../services/solution-template.service";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
@@ -95,6 +104,7 @@ export class TemplateController {
   constructor(
     private readonly templateService: TemplateService,
     private readonly solutionTemplateService: SolutionTemplateService,
+    private readonly strategyDraftingService: StrategyDraftingService,
   ) {}
 
   @Get()
@@ -412,5 +422,80 @@ export class TemplateController {
     @Body() body: SaveOptionStrategyDto,
   ) {
     return this.saveOptionStrategy(id, body);
+  }
+
+  @Post(":id/ai/strategy/draft")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Draft a strategy from plain-English description",
+    description:
+      "AI-assisted drafting of variable and constraint strategies. Returns a structured draft ready for preview and application.",
+  })
+  @ApiParam({ name: "id", description: "Template ID (for reference only)" })
+  @ApiBody({ type: DraftStrategyRequestDto })
+  @ApiOkResponse({
+    description: "Strategy draft created successfully",
+    type: DraftStrategyResponseDto,
+  })
+  async draftStrategy(
+    @Param("id") id: string,
+    @Body() dto: DraftStrategyRequestDto,
+  ) {
+    return this.strategyDraftingService.draftStrategy(dto.prompt);
+  }
+
+  @Post(":id/ai/strategy/preview")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Preview a strategy before applying",
+    description:
+      "Validates a drafted strategy and shows it in structured form without making changes.",
+  })
+  @ApiParam({ name: "id", description: "Template ID (for reference only)" })
+  @ApiBody({ type: PreviewStrategyRequestDto })
+  @ApiOkResponse({
+    description: "Preview generated successfully",
+    type: PreviewStrategyResponseDto,
+  })
+  async previewStrategy(
+    @Param("id") id: string,
+    @Body() dto: PreviewStrategyRequestDto,
+  ) {
+    // Validate the draft structure
+    const warnings: string[] = [];
+
+    if (!dto.draft.variables || dto.draft.variables.length === 0) {
+      warnings.push("No variables detected. You may need to add them manually.");
+    }
+
+    if (!Array.isArray(dto.draft.variables)) {
+      throw new Error("Invalid draft: variables must be an array");
+    }
+
+    return {
+      success: true,
+      preview: dto.draft,
+      warnings,
+    };
+  }
+
+  @Post(":id/ai/strategy/apply")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Apply a drafted strategy to a template",
+    description:
+      "Applies the reviewed and potentially edited AI-drafted strategy to the template, persisting it to the database.",
+  })
+  @ApiParam({ name: "id", description: "Template ID" })
+  @ApiBody({ type: ApplyStrategyRequestDto })
+  @ApiOkResponse({
+    description: "Strategy applied successfully",
+    type: ApplyStrategyResponseDto,
+  })
+  async applyStrategy(
+    @Param("id") id: string,
+    @Body() dto: ApplyStrategyRequestDto,
+  ) {
+    return this.templateService.applyDraftedStrategy(id, dto.draft);
   }
 }

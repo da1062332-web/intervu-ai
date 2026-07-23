@@ -171,3 +171,25 @@ export const getTemplateDatasetPreview = async (templateId: string): Promise<any
 export const deleteTemplate = async (id: string): Promise<any> => {
   return await apiClient.request<any>(`/templates/${id}`, { method: 'DELETE' });
 };
+
+// AI Strategy Drafting APIs
+export const draftStrategy = async (templateId: string, prompt: string): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/ai/strategy/draft`, {
+    method: 'POST',
+    body: { prompt },
+  });
+};
+
+export const previewStrategy = async (templateId: string, draft: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/ai/strategy/preview`, {
+    method: 'POST',
+    body: { draft },
+  });
+};
+
+export const applyStrategy = async (templateId: string, draft: any): Promise<any> => {
+  return await apiClient.request<any>(`/templates/${templateId}/ai/strategy/apply`, {
+    method: 'POST',
+    body: { draft },
+  });
+};

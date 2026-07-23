@@ -1423,4 +1423,102 @@ export class TemplateService {
       },
     });
   }
+
+  /**
+   * Apply an AI-drafted strategy to a template.
+   *
+   * This method:
+   * 1. validates the draft structure
+   * 2. normalizes it into the template's JSON format
+   * 3. updates variableSchema and constraints fields
+   * 4. uses the existing update flow (no schema change)
+   *
+   * The draft must have already been validated by StrategyDraftingService.
+   */
+  async applyDraftedStrategy(
+    templateId: string,
+    draft: any,
+  ): Promise<{ success: boolean; templateId: string; updated: boolean }> {
+    // 1. Ensure template exists
+    const template = await this.templateRepository.findById(templateId);
+    if (!template) {
+      throw new NotFoundException(`Template ${templateId} not found`);
+    }
+
+    // 2. Validate draft structure
+    if (
+      !draft.variables ||
+      !Array.isArray(draft.variables) ||
+      !draft.derivedVariables ||
+      !Array.isArray(draft.derivedVariables) ||
+      !draft.constraints ||
+      !Array.isArray(draft.constraints)
+    ) {
+      throw new BadRequestException("Invalid draft structure");
+    }
+
+    // 3. Normalize and build update payload (uses existing format)
+    const updatePayload = this.buildUpdatePayloadFromDraft(draft);
+
+    // 4. Apply using the existing template update flow
+    const updated = await this.templateRepository.update(
+      templateId,
+      updatePayload,
+    );
+
+    this.logger.debug("Applied drafted strategy to template", {
+      templateId,
+      variableCount: draft.variables.length,
+      derivedCount: draft.derivedVariables.length,
+      constraintCount: draft.constraints.length,
+    });
+
+    // 5. Invalidate caches
+    await this.cacheService.invalidateTemplate(templateId);
+    await this.cacheService.clear("template:list:*");
+
+    return {
+      success: true,
+      templateId,
+      updated: true,
+    };
+  }
+
+  /**
+   * Build the update payload from a drafted strategy.
+   * Converts AI-generated structure into the template's expected JSON format.
+   */
+  private buildUpdatePayloadFromDraft(draft: any): Prisma.TemplateUpdateInput {
+    const payload: Prisma.TemplateUpdateInput = {};
+
+    // Build variableSchema in the format expected by the generator
+    const variableSchema = {
+      variables: draft.variables || [],
+      derivedVariables: draft.derivedVariables || [],
+      formulas: (draft.derivedVariables || []).map(
+        (d: any) => `${d.name} = ${d.expression}`,
+      ),
+      generationStrategyConfig: {
+        variables: draft.variables || [],
+        derivedVariables: draft.derivedVariables || [],
+        constraints: draft.constraints || [],
+      },
+    };
+
+    payload.variableSchema = variableSchema as Prisma.InputJsonValue;
+
+    // Build constraints schema
+    const constraintsSchema = {
+      constraints: draft.constraints || [],
+      generationStrategyConfig: {
+        variables: draft.variables || [],
+        derivedVariables: draft.derivedVariables || [],
+        constraints: draft.constraints || [],
+      },
+    };
+
+    payload.constraints = constraintsSchema as Prisma.InputJsonValue;
+
+    return payload;
+  }
 }
