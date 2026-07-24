@@ -28,7 +28,13 @@ export function ConstraintBuilderSection() {
   const rawVariables = template?.variableSchema?.variables || [];
   const availableVariables = rawVariables;
 
-  const rawConstraints = template?.constraints?.constraints || [];
+  const rawConstraints = (
+    template?.constraints?.constraints ||
+    template?.constraints?.generationStrategyConfig?.constraints ||
+    template?.variableSchema?.generationStrategyConfig?.constraints ||
+    []
+  );
+
   const constraints: Constraint[] = rawConstraints.map((c: any) => {
     let variableName = '';
     let operator = '';

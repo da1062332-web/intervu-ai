@@ -128,8 +128,14 @@ export const useUpdateTemplate = () => {
     mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
       templateApi.updateTemplate(templateId, payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
-      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({
+        queryKey: ['template', variables.templateId],
+        refetchType: 'active',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['templates'],
+        refetchType: 'active',
+      });
     },
   });
 };
@@ -248,6 +254,39 @@ export const useDeleteTemplate = () => {
       queryClient.invalidateQueries({ queryKey: ['templatesByConcept'] });
       queryClient.invalidateQueries({ queryKey: ['conceptMappings'] });
       queryClient.invalidateQueries({ queryKey: ['topics'] });
+    },
+  });
+};
+
+// AI Strategy Drafting Hooks
+export const useDraftStrategy = () => {
+  return useMutation({
+    mutationFn: ({ templateId, prompt }: { templateId: string; prompt: string }) =>
+      templateApi.draftStrategy(templateId, prompt),
+  });
+};
+
+export const usePreviewStrategy = () => {
+  return useMutation({
+    mutationFn: ({ templateId, draft }: { templateId: string; draft: any }) =>
+      templateApi.previewStrategy(templateId, draft),
+  });
+};
+
+export const useApplyStrategy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ templateId, draft }: { templateId: string; draft: any }) =>
+      templateApi.applyStrategy(templateId, draft),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['template', variables.templateId],
+        refetchType: 'active',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['templates'],
+        refetchType: 'active',
+      });
     },
   });
 };

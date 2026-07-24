@@ -83,23 +83,22 @@ export default function LoginPage() {
           auto_select: false,
         });
 
-        google.accounts.id.renderButton(
-          document.getElementById('google-login-btn'),
-          {
-            theme: 'outline',
-            size: 'large',
-            width: 400,
-            text: 'signin_with',
-            shape: 'rectangular',
-            logo_alignment: 'center',
-          }
-        );
+        google.accounts.id.renderButton(document.getElementById('google-login-btn'), {
+          theme: 'outline',
+          size: 'large',
+          width: 400,
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'center',
+        });
 
         google.accounts.id.prompt();
       }
     };
 
-    let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]') as HTMLScriptElement;
+    let script = document.querySelector(
+      'script[src="https://accounts.google.com/gsi/client"]',
+    ) as HTMLScriptElement;
     if (!script) {
       script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
@@ -133,16 +132,17 @@ export default function LoginPage() {
     <div className='min-h-screen w-full flex relative overflow-hidden bg-background'>
       {/* Background Image (Full width absolute on mobile, relative flex-1 on desktop) */}
       <div className='absolute inset-0 lg:relative lg:flex-1 lg:order-2 z-0 bg-zinc-950'>
-        <div className="absolute inset-0">
-          <Image 
-            src="/images/login-hero.jpg" 
-            alt="InterVu AI Platform" 
+        <div className='absolute inset-0'>
+          <Image
+            src='/images/login-hero.jpg'
+            alt='InterVu AI Platform'
             fill
-            className="object-cover object-center opacity-90 transition-transform duration-10000 hover:scale-105 ease-out"
+            sizes='(max-width: 1024px) 100vw, 50vw'
+            className='object-cover object-center opacity-90 transition-transform duration-10000 hover:scale-105 ease-out'
             priority
           />
         </div>
-        
+
         {/* Overlay gradient for contrast */}
         <div className='absolute inset-0 bg-black/60 lg:bg-gradient-to-t lg:from-black/90 lg:via-black/40 lg:to-transparent' />
         <div className='hidden lg:block absolute inset-0 bg-gradient-to-r from-background/90 via-background/20 to-transparent' />
@@ -151,15 +151,18 @@ export default function LoginPage() {
         <div className='hidden lg:flex relative z-10 flex-col justify-end p-20 h-full max-w-2xl text-white'>
           <div className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8 w-max animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both'>
             <Sparkles className='size-4 text-violet-300' />
-            <span className='text-sm font-semibold tracking-wide text-violet-50'>Next-Gen Hiring Platform</span>
+            <span className='text-sm font-semibold tracking-wide text-violet-50'>
+              Next-Gen Hiring Platform
+            </span>
           </div>
-          
+
           <h2 className='text-5xl xl:text-[3.5rem] font-heading font-bold leading-[1.1] mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-500 fill-mode-both'>
             Elevate your technical hiring process.
           </h2>
-          
+
           <p className='text-lg xl:text-xl text-white/80 max-w-lg leading-relaxed font-medium mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both'>
-            Automate assessments, analyze candidate performance, and make data-driven hiring decisions with our intelligent AI-powered platform.
+            Automate assessments, analyze candidate performance, and make data-driven hiring
+            decisions with our intelligent AI-powered platform.
           </p>
         </div>
       </div>
@@ -169,14 +172,18 @@ export default function LoginPage() {
         {/* Absolute Logo for Desktop */}
         <div className='hidden lg:flex absolute top-10 left-10 items-center gap-3'>
           <Logo className='size-9' />
-          <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>InterVu AI</span>
+          <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>
+            InterVu AI
+          </span>
         </div>
 
         <div className='w-full max-w-[420px] mx-auto bg-background/85 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none p-8 sm:p-10 lg:p-0 rounded-3xl lg:rounded-none shadow-2xl lg:shadow-none border border-border/40 lg:border-none animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out'>
           {/* Logo inside card for mobile */}
           <div className='flex lg:hidden items-center justify-center gap-3 mb-8'>
             <Logo className='size-9' />
-            <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>InterVu AI</span>
+            <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>
+              InterVu AI
+            </span>
           </div>
 
           <div className='text-center lg:text-left mb-10'>
@@ -191,17 +198,37 @@ export default function LoginPage() {
           <div className='flex justify-center w-full mb-6'>
             <div id='google-login-btn' className='flex justify-center w-full'>
               {!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-                <Button 
-                  type="button"
-                  variant="outline"
-                  className="w-full h-12 bg-card text-foreground hover:bg-muted font-semibold border-border shadow-sm rounded-xl transition-all"
-                  onClick={() => notifySuccess('Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env.local to enable Google Login')}
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='w-full h-12 bg-card text-foreground hover:bg-muted font-semibold border-border shadow-sm rounded-xl transition-all'
+                  onClick={() =>
+                    notifySuccess(
+                      'Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env.local to enable Google Login',
+                    )
+                  }
                 >
-                  <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  <svg
+                    className='w-5 h-5 mr-3'
+                    viewBox='0 0 24 24'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
+                      fill='#4285F4'
+                    />
+                    <path
+                      d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
+                      fill='#34A853'
+                    />
+                    <path
+                      d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
+                      fill='#FBBC05'
+                    />
+                    <path
+                      d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
+                      fill='#EA4335'
+                    />
                   </svg>
                   Sign in with Google
                 </Button>
@@ -220,7 +247,7 @@ export default function LoginPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
             {formError && (
               <div className='rounded-xl bg-destructive/10 p-4 text-sm text-destructive border border-destructive/20 font-semibold flex items-center gap-3'>
-                <div className="size-2 rounded-full bg-destructive animate-pulse" />
+                <div className='size-2 rounded-full bg-destructive animate-pulse' />
                 {formError}
               </div>
             )}
@@ -229,9 +256,9 @@ export default function LoginPage() {
               <Label htmlFor='email' className='font-bold text-foreground text-sm tracking-wide'>
                 Email Address
               </Label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
-                  <Mail className="h-5 w-5" />
+              <div className='relative group'>
+                <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10'>
+                  <Mail className='h-5 w-5' />
                 </div>
                 <Input
                   id='email'
@@ -250,7 +277,10 @@ export default function LoginPage() {
 
             <div className='space-y-2'>
               <div className='flex items-center justify-between'>
-                <Label htmlFor='password' className='font-bold text-foreground text-sm tracking-wide'>
+                <Label
+                  htmlFor='password'
+                  className='font-bold text-foreground text-sm tracking-wide'
+                >
                   Password
                 </Label>
                 <Link
@@ -260,9 +290,9 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
-                  <Lock className="h-5 w-5" />
+              <div className='relative group'>
+                <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10'>
+                  <Lock className='h-5 w-5' />
                 </div>
                 <Input
                   id='password'
@@ -272,11 +302,11 @@ export default function LoginPage() {
                   {...form.register('password')}
                 />
                 <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none z-10"
+                  type='button'
+                  className='absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none z-10'
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
                 </button>
               </div>
               {form.formState.errors.password && (
@@ -295,7 +325,8 @@ export default function LoginPage() {
                 'Signing in...'
               ) : (
                 <>
-                  Sign in <ArrowRight className='ml-2 size-5 transition-transform group-hover:translate-x-1' />
+                  Sign in{' '}
+                  <ArrowRight className='ml-2 size-5 transition-transform group-hover:translate-x-1' />
                 </>
               )}
             </Button>

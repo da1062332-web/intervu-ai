@@ -8,19 +8,19 @@ describe("OptionGeneratorService", () => {
   });
 
   it("should validate and shuffle options successfully for MCQ", () => {
-    const options = ["Option A", "Option B", "Option C", "Option D"];
-    const correctAnswer = "Option B";
+    const options = ["6", "8", "10", "12"];
+    const correctAnswer = "8";
 
     const result = service.processOptions(options, correctAnswer, "mcq");
 
     expect(result.shuffledOptions.length).toBe(4);
-    expect(result.shuffledOptions).toContain("Option B");
-    expect(result.normalizedCorrectAnswer).toBe("Option B");
+    expect(result.shuffledOptions).toContain("8");
+    expect(result.normalizedCorrectAnswer).toBe("8");
   });
 
   it("should throw error if options count is not 4 for MCQ", () => {
-    const options = ["Option A", "Option B", "Option C"];
-    const correctAnswer = "Option B";
+    const options = ["6", "8", "10"];
+    const correctAnswer = "8";
 
     expect(() => service.processOptions(options, correctAnswer, "mcq")).toThrow(
       "MCQ options list must contain exactly 4 options",
@@ -28,8 +28,8 @@ describe("OptionGeneratorService", () => {
   });
 
   it("should throw error if options contain empty strings", () => {
-    const options = ["Option A", "Option B", "", "Option D"];
-    const correctAnswer = "Option B";
+    const options = ["6", "8", "", "12"];
+    const correctAnswer = "8";
 
     expect(() => service.processOptions(options, correctAnswer, "mcq")).toThrow(
       "MCQ options cannot contain empty strings",
@@ -37,8 +37,8 @@ describe("OptionGeneratorService", () => {
   });
 
   it("should throw error if options contain duplicate values", () => {
-    const options = ["Option A", "Option B", "Option B", "Option D"];
-    const correctAnswer = "Option B";
+    const options = ["6", "8", "8", "12"];
+    const correctAnswer = "8";
 
     expect(() => service.processOptions(options, correctAnswer, "mcq")).toThrow(
       "MCQ options must not contain duplicate entries",
@@ -46,11 +46,11 @@ describe("OptionGeneratorService", () => {
   });
 
   it("should throw error if correctAnswer is not in options list", () => {
-    const options = ["Option A", "Option B", "Option C", "Option D"];
-    const correctAnswer = "Option E";
+    const options = ["6", "8", "10", "12"];
+    const correctAnswer = "14";
 
     expect(() => service.processOptions(options, correctAnswer, "mcq")).toThrow(
-      'correctAnswer "Option E" must be present in the options list',
+      'correctAnswer "14" must be present in the options list',
     );
   });
 

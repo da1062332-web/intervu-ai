@@ -1425,4 +1425,242 @@ export class TemplateService {
       },
     });
   }
+
+  /**
+   * Apply an AI-drafted strategy to a template.
+   *
+   * This method:
+   * 1. validates the draft structure
+   * 2. normalizes it into the template's JSON format
+   * 3. updates variableSchema and constraints fields
+   * 4. uses the existing update flow (no schema change)
+   *
+   * The draft must have already been validated by StrategyDraftingService.
+   */
+  async applyDraftedStrategy(
+    templateId: string,
+    draft: any,
+  ): Promise<{ success: boolean; templateId: string; updated: boolean }> {
+    // 1. Ensure template exists
+    const template = await this.templateRepository.findById(templateId);
+    if (!template) {
+      throw new NotFoundException(`Template ${templateId} not found`);
+    }
+
+    // 2. Validate draft structure
+    if (
+      !draft.variables ||
+      !Array.isArray(draft.variables) ||
+      !draft.derivedVariables ||
+      !Array.isArray(draft.derivedVariables) ||
+      !draft.constraints ||
+      !Array.isArray(draft.constraints)
+    ) {
+      throw new BadRequestException("Invalid draft structure");
+    }
+
+    // 3. Normalize and build update payload (uses existing format)
+    const updatePayload = this.buildUpdatePayloadFromDraft(draft, template);
+
+    // 4. Apply using the existing template update flow
+    const updated = await this.templateRepository.update(
+      templateId,
+      updatePayload,
+    );
+
+    this.logger.debug("Applied drafted strategy to template", {
+      templateId,
+      variableCount: draft.variables.length,
+      derivedCount: draft.derivedVariables.length,
+      constraintCount: draft.constraints.length,
+    });
+
+    // 5. Invalidate caches
+    await this.cacheService.invalidateTemplate(templateId);
+    await this.cacheService.clear("template:list:*");
+
+    return {
+      success: true,
+      templateId,
+      updated: true,
+    };
+  }
+
+  /**
+   * Build the update payload from a drafted strategy.
+   * Converts AI-generated structure into the template's expected JSON format
+   * while preserving the existing manual schema keys and values.
+   */
+  private buildUpdatePayloadFromDraft(
+    draft: any,
+    template?: {
+      variableSchema?: unknown;
+      constraints?: unknown;
+    },
+  ): Prisma.TemplateUpdateInput {
+    const payload: Prisma.TemplateUpdateInput = {};
+
+    const existingVariableSchema =
+      (template?.variableSchema as Record<string, any>) || {};
+    const existingConstraintsSchema =
+      (template?.constraints as Record<string, any>) || {};
+
+    const normalizedConstraints = (draft.constraints || []).map((item: any) => {
+      const rule = typeof item?.rule === "string" ? item.rule.trim() : "";
+      const severity = item?.severity === "warning" ? "warning" : "critical";
+      const parsed = this.parseConstraintRule(rule);
+
+      return {
+        rule,
+        severity,
+        ...(parsed || {}),
+      };
+    });
+
+    const normalizedRules = normalizedConstraints
+      .map((item: any) => item.rule)
+      .filter(
+        (rule: unknown): rule is string =>
+          typeof rule === "string" && rule.length > 0,
+      );
+
+    const rawVariables = Array.isArray(existingVariableSchema.variables)
+      ? existingVariableSchema.variables
+      : [];
+    const rawDerivedVariables = Array.isArray(existingVariableSchema.derivedVariables)
+      ? existingVariableSchema.derivedVariables
+      : [];
+    const rawFormulas = Array.isArray(existingVariableSchema.formulas)
+      ? existingVariableSchema.formulas
+      : [];
+
+    const draftVariables = draft.variables || [];
+    const draftDerivedVariables = draft.derivedVariables || [];
+    const draftFormulas = (draftDerivedVariables || []).map(
+      (d: any) => `${d.name} = ${d.expression}`,
+    );
+
+    const variables = this.mergeByName(rawVariables, draftVariables);
+    const derivedVariables = this.mergeByName(
+      rawDerivedVariables,
+      draftDerivedVariables,
+    );
+    const formulas = this.mergeUniqueStrings(rawFormulas, draftFormulas);
+
+    const existingConstraintItems = Array.isArray(existingConstraintsSchema.constraints)
+      ? existingConstraintsSchema.constraints
+      : [];
+    const mergedConstraints = this.mergeByRule(
+      existingConstraintItems,
+      normalizedConstraints,
+    );
+    const mergedRules = this.mergeUniqueStrings(
+      Array.isArray(existingConstraintsSchema.rules)
+        ? existingConstraintsSchema.rules
+        : [],
+      normalizedRules,
+    );
+
+    const variableSchema = {
+      ...existingVariableSchema,
+      variables,
+      derivedVariables,
+      formulas,
+      generationStrategyConfig: {
+        ...(existingVariableSchema.generationStrategyConfig || {}),
+        variables,
+        derivedVariables,
+        constraints: mergedConstraints,
+        formulas,
+      },
+    };
+
+    payload.variableSchema = variableSchema as Prisma.InputJsonValue;
+
+    const constraintsSchema = {
+      ...existingConstraintsSchema,
+      constraints: mergedConstraints,
+      rules: mergedRules,
+      generationStrategyConfig: {
+        ...(existingConstraintsSchema.generationStrategyConfig || {}),
+        variables,
+        derivedVariables,
+        constraints: mergedConstraints,
+        formulas,
+      },
+    };
+
+    payload.constraints = constraintsSchema as Prisma.InputJsonValue;
+
+    return payload;
+  }
+
+  private mergeByName<T extends { name: string }>(
+    existing: T[],
+    incoming: T[],
+  ): T[] {
+    const merged = [...existing, ...incoming];
+    const deduped = new Map<string, T>();
+
+    for (const entry of merged) {
+      if (!entry || typeof entry.name !== "string" || !entry.name.trim()) {
+        continue;
+      }
+      deduped.set(entry.name, entry);
+    }
+
+    return Array.from(deduped.values());
+  }
+
+  private mergeByRule<T extends { rule?: string }>(
+    existing: T[],
+    incoming: T[],
+  ): T[] {
+    const merged = [...existing, ...incoming];
+    const deduped = new Map<string, T>();
+
+    for (const entry of merged) {
+      if (!entry || typeof entry.rule !== "string" || !entry.rule.trim()) {
+        continue;
+      }
+      deduped.set(entry.rule.trim(), entry);
+    }
+
+    return Array.from(deduped.values());
+  }
+
+  private mergeUniqueStrings(existing: string[], incoming: string[]): string[] {
+    const merged = [...existing, ...incoming];
+    const deduped = new Map<string, string>();
+
+    for (const entry of merged) {
+      if (typeof entry !== "string" || !entry.trim()) {
+        continue;
+      }
+      deduped.set(entry.trim(), entry.trim());
+    }
+
+    return Array.from(deduped.values());
+  }
+
+  private parseConstraintRule(rule: string): {
+    target?: string;
+    operator?: string;
+    value?: string;
+  } | null {
+    if (!rule) {
+      return null;
+    }
+
+    const match = rule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      target: match[1],
+      operator: match[2],
+      value: match[3].trim(),
+    };
+  }
 }
