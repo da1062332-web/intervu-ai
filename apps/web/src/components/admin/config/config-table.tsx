@@ -21,9 +21,10 @@ export interface ExamConfig {
 
 interface ConfigTableProps {
   configs: ExamConfig[];
+  isLoading?: boolean;
 }
 
-export function ConfigTable({ configs }: ConfigTableProps) {
+export function ConfigTable({ configs, isLoading }: ConfigTableProps) {
   const [configToArchive, setConfigToArchive] = useState<ExamConfig | null>(null);
   const archiveMutation = useArchiveConfig(configToArchive?.id || '');
 
@@ -143,6 +144,7 @@ export function ConfigTable({ configs }: ConfigTableProps) {
       <DataTable 
         columns={columns} 
         data={configs} 
+        isLoading={isLoading}
         rowKey={(row) => row.id} 
       />
 

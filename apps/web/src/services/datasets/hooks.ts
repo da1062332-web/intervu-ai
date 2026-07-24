@@ -50,8 +50,10 @@ export const useAddDatasetItem = () => {
   return useMutation({
     mutationFn: ({ datasetId, payload }: { datasetId: string; payload: CreateDatasetItemPayload }) =>
       datasetsApi.addItem(datasetId, payload),
-    onSuccess: (_, { datasetId }) =>
-      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] }),
+    onSuccess: (_, { datasetId }) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
+      qc.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
   });
 };
 
@@ -60,8 +62,10 @@ export const useBulkAddDatasetItems = () => {
   return useMutation({
     mutationFn: ({ datasetId, payload }: { datasetId: string; payload: CreateDatasetItemPayload[] }) =>
       datasetsApi.bulkAddItems(datasetId, payload),
-    onSuccess: (_, { datasetId }) =>
-      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] }),
+    onSuccess: (_, { datasetId }) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
+      qc.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
   });
 };
 
@@ -70,7 +74,21 @@ export const useDeleteDatasetItem = () => {
   return useMutation({
     mutationFn: ({ itemId, datasetId }: { itemId: string; datasetId: string }) => 
       datasetsApi.deleteItem(itemId),
-    onSuccess: (_, { datasetId }) =>
-      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] }),
+    onSuccess: (_, { datasetId }) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
+      qc.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+};
+
+export const useUpdateDatasetItem = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, datasetId, payload }: { itemId: string; datasetId: string; payload: Partial<CreateDatasetItemPayload> }) =>
+      datasetsApi.updateItem(itemId, payload),
+    onSuccess: (_, { datasetId }) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
+      qc.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
   });
 };

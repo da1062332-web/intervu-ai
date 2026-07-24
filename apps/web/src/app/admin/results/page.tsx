@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Download } from 'lucide-react';
 
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { Button } from '@/components/ui/button';
 import { ResultsView } from '@/components/admin/results/ResultsView';
 
@@ -13,11 +13,11 @@ export const metadata: Metadata = {
 export default function ResultsPage() {
   return (
     <div className='space-y-6'>
-      <PageHeader
+      <SectionHeader
         title='Results'
-        subtitle='Review completed assessments and candidate performance data.'
+        description='Review completed assessments and candidate performance data.'
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Results' }]}
-        action={
+        actions={
           <Button variant='outline' size='sm' className='gap-2' id='export-results-btn'>
             <Download className='size-4' />
             Export

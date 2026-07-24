@@ -4,7 +4,7 @@ import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStyleProfile } from '@/services/blueprints/hooks';
 import { StyleProfileForm } from '@/features/style-profiles/components/StyleProfileForm';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { FormSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 
 export default function EditStyleProfilePage() {
@@ -16,7 +16,7 @@ export default function EditStyleProfilePage() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[50vh]">
-        <AnimatedLoader variant="page" />
+        <FormSkeleton />
       </div>
     );
   }

@@ -12,8 +12,8 @@ import { DifficultyAllocator } from '@/app/admin/blueprints/components/Difficult
 import { BlueprintHealthWidget } from '@/app/admin/blueprints/components/BlueprintHealthWidget';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
+import { SectionHeader } from '@/components/ui/section-header';
 import type { BlueprintSectionPayload } from '@/services/blueprints/types';
 import toast from 'react-hot-toast';
 
@@ -134,19 +134,12 @@ export default function EditBlueprintPage() {
   }
 
   return (
-    <div className='container mx-auto py-6 space-y-8 max-w-5xl'>
-      <div className='flex items-center gap-4'>
-        <Link
-          href={`/admin/blueprints/${id}`}
-          className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors'
-        >
-          <ArrowLeft className='w-5 h-5' />
-        </Link>
-        <div>
-          <h1 className='text-2xl font-bold tracking-tight'>Edit Blueprint: {blueprint.name}</h1>
-          <p className='text-muted-foreground'>Modify your blueprint allocations.</p>
-        </div>
-      </div>
+    <div className='container mx-auto py-6 space-y-8 max-w-5xl animate-fade-in-up pb-8'>
+      <SectionHeader 
+        title={`Edit Blueprint: ${blueprint.name}`}
+        description='Modify your blueprint allocations.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Blueprints', href: '/admin/blueprints' }, { label: blueprint.name, href: `/admin/blueprints/${id}` }, { label: 'Edit' }]}
+      />
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
         {/* Main Wizard Area */}

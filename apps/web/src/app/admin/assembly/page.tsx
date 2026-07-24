@@ -15,8 +15,9 @@ import { Plus, FileText, Play, ArrowLeft, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
 import Link from 'next/link';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { useTopics } from '@/services/topics/hooks';
+import { SectionHeader } from '@/components/ui/section-header';
+import { WidgetSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 
@@ -26,6 +27,9 @@ export default function AssemblyDashboardPage() {
   const [configs, setConfigs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState<string | null>(null);
+
+  // Fetch topics so we can resolve topic names in error messages
+  const { data: topics } = useTopics(false);
 
   useEffect(() => {
     fetchConfigs();
@@ -69,7 +73,14 @@ export default function AssemblyDashboardPage() {
           router.push(`/admin/configurations/${configId}/edit`);
         }, 1500);
       } else {
-        toast.error(errorMsg);
+        // Attempt to replace any UUIDs in the error message with actual topic names
+        let displayMsg = errorMsg;
+        const uuidRegex = /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
+        displayMsg = displayMsg.replace(uuidRegex, (match: string) => {
+          const foundTopic = topics?.find((t: any) => t.id === match);
+          return foundTopic ? `"${foundTopic.name}"` : match;
+        });
+        toast.error(displayMsg);
       }
     } finally {
       setGenerating(null);
@@ -78,9 +89,9 @@ export default function AssemblyDashboardPage() {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
-      <PageHeader
+      <SectionHeader
         title='Test Assembly'
-        subtitle='Generate full test instances from your exam configurations. Each assembly contains sections, questions, and analytics.'
+        description='Generate full test instances from your exam configurations. Each assembly contains sections, questions, and analytics.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Assembly' }]}
       />
 
@@ -112,13 +123,17 @@ export default function AssemblyDashboardPage() {
       </div>
 
       {loading ? (
-        <AnimatedLoader variant='section' />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <WidgetSkeleton />
+          <WidgetSkeleton />
+          <WidgetSkeleton />
+        </div>
       ) : configs.length === 0 ? (
         <EmptyState
           title='No Exam Configurations Found'
           description='An Exam Configuration defines the test structure (sections, question counts, duration). You need at least one before generating an assembly.'
           actionLabel='Create Exam Config'
-          onAction={() => router.push('/admin/configurations/new')}
+          onactions={() => router.push('/admin/configurations/new')}
           className='py-12 border border-dashed'
         />
       ) : (

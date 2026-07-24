@@ -27,9 +27,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EmptyStateCard } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { DetailPageSkeleton } from '@/components/ui/skeletons';
 import {
   ArrowLeft,
   Search,
@@ -192,7 +192,7 @@ export function ConceptManualQuestionsRow({
 }) {
   const { data: response, isLoading, isError } = useManualQuestions({ conceptId: concept.id });
   const allQuestions = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || [];
-  const questions = allQuestions.filter((q: any) => q.conceptId === concept.id);
+  const questions = allQuestions.filter((q: any) => q.conceptId === concept.id || q.conceptId === concept.code);
 
   if (isLoading) {
     return (
@@ -356,7 +356,11 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
   const isTopicReady = concepts && concepts.length > 0 && readyConceptsCount === concepts.length;
 
   if (isLoading) {
-    return <AnimatedLoader variant='table' className='mt-8' />;
+    return (
+      <div className='mt-8'>
+        <DetailPageSkeleton />
+      </div>
+    );
   }
 
   if (isError || !topic) {
@@ -590,15 +594,15 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
   return (
     <div className='space-y-8 animate-fade-in'>
       {/* Page Header */}
-      <PageHeader
+      <SectionHeader
         title={topic ? topic.name : 'Topic Details'}
-        subtitle='Manage your topic configuration and its hierarchical dependencies.'
+        description='Manage your topic configuration and its hierarchical dependencies.'
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Topics', href: '/admin/topics' },
           { label: topic.name },
         ]}
-        action={
+        actions={
           <div className='flex gap-2 items-center'>
             <Badge variant='outline' className='font-mono text-xs uppercase bg-muted/40'>
               {topic.code}
@@ -658,7 +662,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                 : 'There are no concepts registered under this topic yet.'
             }
             actionLabel={searchQuery ? 'Clear Search' : 'Add Concept'}
-            onAction={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
+            onactions={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
             cardClassName='py-16 border border-dashed rounded-xl'
             compact
           />

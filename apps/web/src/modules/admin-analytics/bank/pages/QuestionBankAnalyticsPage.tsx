@@ -12,7 +12,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { apiClient } from '@/services/api/client';
@@ -77,10 +77,10 @@ export function QuestionBankAnalyticsPage() {
   return (
     <div className='space-y-8 animate-fade-in-up pb-8'>
       {/* Page Header */}
-      <PageHeader
+      <SectionHeader
         title='Question Bank Register'
-        subtitle='Observe the scale and health of our question pools, difficulty balance, and coverage deficiencies.'
-        action={
+        description='Observe the scale and health of our question pools, difficulty balance, and coverage deficiencies.'
+        actions={
           <Button asChild variant='outline'>
             <Link href='/admin/dashboard'>
               <ArrowLeft className='size-4 mr-2' />

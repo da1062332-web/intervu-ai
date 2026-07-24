@@ -79,6 +79,7 @@ export function RecentAssessmentsTable() {
           columns={columns}
           data={data ?? []}
           isLoading={isLoading}
+          disablePagination
           rowKey={(row) => row.id}
           containerClassName="h-full border-0 rounded-none"
           emptyState={

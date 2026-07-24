@@ -13,6 +13,7 @@ import { SharedConfigHeader } from '../components/SharedConfigHeader';
 import { BatchQuestionList } from '../components/BatchQuestionList';
 import { manualQuestionsApi } from '@/services/manual-questions/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { SectionHeader } from '@/components/ui/section-header';
 
 const questionSchema = z.object({
   questionType: z.enum(['MCQ', 'CODING', 'TRUE_FALSE']),
@@ -176,18 +177,17 @@ function BatchCreateContent() {
   };
 
   return (
-    <div className='flex-1 space-y-4 max-w-5xl mx-auto w-full'>
-      <div className='flex items-center space-x-4 mb-6'>
-        <Button variant='ghost' size='icon' onClick={handleCancel} disabled={isSubmitting}>
-          <ArrowLeft className='w-5 h-5' />
-        </Button>
-        <div>
-          <h2 className='text-3xl font-bold tracking-tight'>Batch Question Builder</h2>
-          <p className='text-muted-foreground mt-1'>
-            Create multiple manual questions for a specific topic and concept.
-          </p>
-        </div>
-      </div>
+    <div className='flex-1 space-y-4 max-w-5xl mx-auto w-full animate-fade-in-up pb-8 pt-8'>
+      <SectionHeader 
+        title='Batch Question Builder'
+        description='Create multiple manual questions for a specific topic and concept.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Manual Questions', href: '/admin/manual-questions' }, { label: 'Create' }]}
+        actions={
+          <Button variant='ghost' size='icon' onClick={handleCancel} disabled={isSubmitting}>
+            <ArrowLeft className='w-5 h-5' />
+          </Button>
+        }
+      />
 
       <FormProvider {...methods}>
         <form className="space-y-8 pb-20" noValidate>

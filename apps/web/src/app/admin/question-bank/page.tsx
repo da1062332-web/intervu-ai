@@ -7,25 +7,29 @@ import { PoolFilters } from './components/PoolFilters';
 import { PublishToolbar } from './components/PublishToolbar';
 import { QuestionPoolTable } from './components/QuestionPoolTable';
 
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 
 export default function QuestionBankPage() {
   const [filters, setFilters] = useState<FilterType>({});
-  const { data: questions = [], isLoading } = useGeneratedQuestions(filters);
+  const { data: rawData = [], isLoading } = useGeneratedQuestions(filters);
   const { mutateAsync: publish } = usePublishQuestion();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
 
+  const questions = Array.isArray(rawData) ? rawData : (rawData as any)?.data || [];
+
   const poolQuestions = questions.filter(
-    (q) =>
+    (q: any) =>
       q.status === 'APPROVED' ||
       q.status === 'Approved' ||
       q.status === 'PUBLISHED' ||
-      q.status === 'Published',
+      q.status === 'Published' ||
+      q.rawStatus === 'APPROVED' ||
+      q.rawStatus === 'PUBLISHED',
   );
   const selectableQuestions = poolQuestions.filter(
-    (q) => q.status === 'APPROVED' || q.status === 'Approved',
+    (q: any) => q.status === 'APPROVED' || q.status === 'Approved',
   );
 
   const handleToggleSelect = (id: string) => {
@@ -36,7 +40,7 @@ export default function QuestionBankPage() {
     if (selectedIds.length === selectableQuestions.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(selectableQuestions.map((q) => q.id));
+      setSelectedIds(selectableQuestions.map((q: any) => q.id));
     }
   };
 
@@ -57,10 +61,10 @@ export default function QuestionBankPage() {
   };
 
   return (
-    <div className='flex-1 space-y-8 animate-fade-in'>
-      <PageHeader
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
+      <SectionHeader
         title="Question Bank"
-        subtitle="Browse, filter, and publish approved questions for use in assessments."
+        description="Browse, filter, and publish approved questions for use in assessments."
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Question Bank' }]}
       />
 

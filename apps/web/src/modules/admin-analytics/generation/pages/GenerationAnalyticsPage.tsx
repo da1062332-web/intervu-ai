@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { CardSkeleton, ChartSkeleton } from '@/components/ui/skeletons';
 import { apiClient } from '@/services/api/client';
 
 export interface GenerationAnalyticsData {
@@ -89,8 +90,17 @@ export function GenerationAnalyticsPage() {
       />
 
       {loading ? (
-        <div className='flex justify-center items-center py-12'>
-          <Clock className='size-8 animate-spin text-muted-foreground' />
+        <div className="space-y-8 w-full mt-8">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <CardSkeleton key={i} className="h-[104px]" />
+            ))}
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            <ChartSkeleton className="md:col-span-2 h-[400px]" />
+            <ChartSkeleton className="h-[400px]" />
+          </div>
+          <CardSkeleton className="h-[300px]" />
         </div>
       ) : (
         <>

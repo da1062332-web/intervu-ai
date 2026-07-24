@@ -7,8 +7,8 @@ import { PreviewScreen } from '@/app/admin/blueprints/components/PreviewScreen';
 import { Button } from '@/components/ui/button';
 import { Edit2, Workflow } from 'lucide-react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { SectionHeader } from '@/components/ui/section-header';
+import { DetailPageSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { CustomFormCard } from '@/components/ui/custom-form-card';
@@ -22,7 +22,7 @@ export default function BlueprintViewPage() {
   if (isLoading) {
     return (
       <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
-        <AnimatedLoader variant='table' className='my-8' />
+        <DetailPageSkeleton />
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function BlueprintViewPage() {
           title='Unable to load blueprint'
           description='There was a problem fetching the blueprint details. Please try again.'
           actionLabel='Retry'
-          onAction={() => refetch()}
+          onactions={() => refetch()}
           className='py-12'
         />
       </div>
@@ -44,15 +44,15 @@ export default function BlueprintViewPage() {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in'>
-      <PageHeader
+      <SectionHeader
         title='Blueprint Details'
-        subtitle='View validation and preview status.'
+        description='View validation and preview status.'
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Blueprints', href: '/admin/blueprints' },
           { label: blueprint.name || 'Details' }
         ]}
-        action={
+        actions={
           <div className='flex items-center gap-3'>
             <Link href={`/admin/blueprints/${id}/compile`}>
               <Button

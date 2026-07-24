@@ -1,7 +1,6 @@
 import React from 'react';
 import { ManualQuestion } from '@/services/manual-questions/types';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -125,12 +124,10 @@ export function ManualQuestionTable({
 
   return (
     <div className='border rounded-xl bg-card shadow-sm'>
-      {isLoading && <AnimatedLoader variant='table' className='my-8' />}
-
-      {!isLoading && (
-        <DataTable
-          columns={columns}
-          data={questions || []}
+      <DataTable
+        columns={columns}
+        data={questions || []}
+        isLoading={isLoading}
           rowKey={(row) => row.id}
           emptyState={
             <EmptyState
@@ -139,8 +136,7 @@ export function ManualQuestionTable({
               className='py-12 border-0'
             />
           }
-        />
-      )}
+      />
     </div>
   );
 }

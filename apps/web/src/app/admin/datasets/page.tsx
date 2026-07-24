@@ -10,9 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Label } from '@/components/ui/label';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +24,9 @@ import {
 } from '@/components/ui/select';
 import type { Dataset } from '@/services/datasets/api';
 
+import { useTopics } from '@/services/topics/hooks';
+import { useConcepts } from '@/services/concept-mapping/hooks';
+
 export default function DatasetsPage() {
   const { data: datasets, isLoading } = useDatasets();
   const { mutate: createDataset, isPending: isCreating } = useCreateDataset();
@@ -32,7 +34,10 @@ export default function DatasetsPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newDataset, setNewDataset] = useState({ name: '', description: '', type: 'STANDARD' });
+  const [newDataset, setNewDataset] = useState({ name: '', description: '', type: 'STANDARD', topicId: '', conceptId: '' });
+
+  const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(newDataset.topicId, true);
 
   const filteredDatasets = datasets?.filter((ds: Dataset) => 
     ds.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -40,10 +45,16 @@ export default function DatasetsPage() {
   );
 
   const handleCreate = () => {
-    createDataset(newDataset, {
+    createDataset({
+      name: newDataset.name,
+      description: newDataset.description,
+      type: newDataset.type,
+      topicId: newDataset.topicId || undefined,
+      conceptId: newDataset.conceptId || undefined,
+    }, {
       onSuccess: () => {
         setIsCreateOpen(false);
-        setNewDataset({ name: '', description: '', type: 'STANDARD' });
+        setNewDataset({ name: '', description: '', type: 'STANDARD', topicId: '', conceptId: '' });
       }
     });
   };
@@ -120,11 +131,11 @@ export default function DatasetsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <PageHeader
+      <SectionHeader
         title="Datasets"
-        subtitle="Manage your datasets and question items."
+        description="Manage your datasets and question items."
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Datasets' }]}
-        action={
+        actions={
           <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-md hover:shadow-lg transition-all duration-200">
             <Plus className="w-4 h-4" />
             Create Dataset
@@ -133,11 +144,10 @@ export default function DatasetsPage() {
       />
 
       <div className="border rounded-xl bg-card shadow-sm">
-        {isLoading && <AnimatedLoader variant="table" className="my-8" />}
-        {!isLoading && (
           <DataTable
             columns={columns}
             data={filteredDatasets || []}
+            isLoading={isLoading}
             rowKey={(row) => row.id}
             search={
               <div className="relative max-w-md w-full">
@@ -159,12 +169,11 @@ export default function DatasetsPage() {
                     : 'Get started by creating your first dataset.'
                 }
                 actionLabel={searchTerm ? 'Clear Search' : 'Create Dataset'}
-                onAction={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
+                onactions={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
                 className="py-12 border-0"
               />
             }
           />
-        )}
       </div>
 
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)}>
@@ -203,6 +212,46 @@ export default function DatasetsPage() {
                 <SelectItem value="SCENARIO">Scenario-based</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Topic (Optional)</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={newDataset.topicId}
+                onChange={(e) => setNewDataset({ ...newDataset, topicId: e.target.value, conceptId: '' })}
+                disabled={isLoadingTopics}
+              >
+                <option value="">{isLoadingTopics ? 'Loading topics...' : 'Select Topic...'}</option>
+                {topics.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Concept (Optional)</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={newDataset.conceptId}
+                onChange={(e) => setNewDataset({ ...newDataset, conceptId: e.target.value })}
+                disabled={!newDataset.topicId || isLoadingConcepts}
+              >
+                <option value="">
+                  {!newDataset.topicId
+                    ? 'Select a topic first'
+                    : isLoadingConcepts
+                      ? 'Loading concepts...'
+                      : 'Select Concept...'}
+                </option>
+                {concepts.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name || c.conceptName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
