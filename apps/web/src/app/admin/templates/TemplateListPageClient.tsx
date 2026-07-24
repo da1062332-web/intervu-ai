@@ -207,7 +207,7 @@ export function TemplateListPageClient() {
             title='Unable to load templates'
             description='There was a problem fetching the templates. Please try again.'
             actionLabel='Retry'
-            onactions={() => refetch()}
+            onAction={() => refetch()}
             className='py-12'
           />
         ) : (
@@ -221,7 +221,7 @@ export function TemplateListPageClient() {
                 title='No Templates Found'
                 description='Create your first template to get started.'
                 actionLabel='Create Template'
-                onactions={() => setIsModalOpen(true)}
+                onAction={() => setIsModalOpen(true)}
                 className='py-12 border-0'
               />
             }

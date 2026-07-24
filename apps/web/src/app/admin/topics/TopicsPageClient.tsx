@@ -42,7 +42,7 @@ export function TopicsPageClient() {
         title='Error Loading Topics'
         description='We encountered an error while loading the topics registry. Please try again.'
         actionLabel='Try Again'
-        onactions={() => refetch()}
+        onAction={() => refetch()}
         className='mt-8 border rounded-xl bg-card'
       />
     );
@@ -255,7 +255,7 @@ export function TopicsPageClient() {
                 : 'Get started by creating your first global topic.'
             }
             actionLabel={searchQuery ? 'Clear Search' : 'Add Topic'}
-            onactions={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
+            onAction={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
             className='py-20 border border-dashed rounded-xl'
           />
         }

@@ -662,7 +662,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                 : 'There are no concepts registered under this topic yet.'
             }
             actionLabel={searchQuery ? 'Clear Search' : 'Add Concept'}
-            onactions={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
+            onAction={searchQuery ? () => setSearchQuery('') : handleOpenCreate}
             cardClassName='py-16 border border-dashed rounded-xl'
             compact
           />

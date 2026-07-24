@@ -35,7 +35,7 @@ export default function BlueprintViewPage() {
           title='Unable to load blueprint'
           description='There was a problem fetching the blueprint details. Please try again.'
           actionLabel='Retry'
-          onactions={() => refetch()}
+          onAction={() => refetch()}
           className='py-12'
         />
       </div>

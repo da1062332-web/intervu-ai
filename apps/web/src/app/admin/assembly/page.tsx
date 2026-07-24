@@ -133,7 +133,7 @@ export default function AssemblyDashboardPage() {
           title='No Exam Configurations Found'
           description='An Exam Configuration defines the test structure (sections, question counts, duration). You need at least one before generating an assembly.'
           actionLabel='Create Exam Config'
-          onactions={() => router.push('/admin/configurations/new')}
+          onAction={() => router.push('/admin/configurations/new')}
           className='py-12 border border-dashed'
         />
       ) : (

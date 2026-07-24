@@ -169,7 +169,7 @@ export default function DatasetsPage() {
                     : 'Get started by creating your first dataset.'
                 }
                 actionLabel={searchTerm ? 'Clear Search' : 'Create Dataset'}
-                onactions={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
+                onAction={searchTerm ? () => setSearchTerm('') : () => setIsCreateOpen(true)}
                 className="py-12 border-0"
               />
             }
