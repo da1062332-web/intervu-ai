@@ -248,7 +248,7 @@ JSON Schema:
       datasetContent = this.interpolate(datasetContent, variableValues);
     }
 
-    const systemPrompt = promptConfig?.systemPrompt || `You are an expert AI Assessment Question Generator. Your task is to generate verbal, grammar, or reading comprehension questions based on a provided static content asset.`;
+    const systemPrompt = promptConfig?.systemPrompt || `You are an expert AI Assessment Question Generator. Your task is to generate assessment questions based on a provided static content asset.`;
 
     const templateContext = `
 [TEMPLATE CONTEXT]
@@ -293,9 +293,22 @@ ${this.interpolate(finalUserPrompt, { content: datasetContent, ...variableValues
 `;
     }
 
+    const questionStem = questionTemplateObj?.stem;
+    const candidateInstructions = questionTemplateObj?.instructions;
+    
+    let presentationContext = "";
+    if (questionStem || candidateInstructions) {
+      presentationContext = `
+[PRESENTATION CONTEXT]
+The following text will be shown to the candidate. Your generated question should logically follow these instructions without repeating them:
+${questionStem ? `Question Stem: "${questionStem}"` : ""}
+${candidateInstructions ? `Candidate Instructions: "${candidateInstructions}"` : ""}
+`;
+    }
+
     let questionInstructions = promptConfig?.instructions || `
 [QUESTION INSTRUCTIONS]
-Generate a high-quality ${questionType} question of ${difficulty} difficulty that tests comprehension, syntax, or vocabulary based on the content asset above.
+Generate a high-quality ${questionType} question of ${difficulty} difficulty that tests comprehension or analysis based on the content asset above.
 - The question stem must refer directly to the content asset.
 - Keep the wording precise, unambiguous, and suitable for the target age or proficiency level.
 - Do not leak any variable placeholders (e.g. no curly braces).
@@ -320,7 +333,7 @@ You must generate exactly 4 options:
 The explanation must follow this exact format:
 
 Concept
-<Summary of the grammar, lexical, or verbal concept being tested>
+<Summary of the concept being tested>
 
 Formula / Reasoning
 <The reasoning or rule applied to deduce the correct answer from the content>
@@ -355,7 +368,7 @@ JSON Schema:
 }
 `;
 
-    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
+    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${presentationContext}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
   }
 
   private buildHybridPrompt(input: PromptBuilderInput): string {
