@@ -9,6 +9,7 @@ import { PrismaModule } from "../../../prisma/prisma.module";
 import { TestConfigRepository } from "../repositories/test-config.repository";
 import { GeneratedQuestionRepository } from "../../question-pool/repositories/generated-question.repository";
 import { AssemblyModule } from "../../assembly/assembly.module";
+import { FinalShufflerService } from "./final-shuffler.service";
 
 @Module({
   imports: [LifecycleModule, PrismaModule, AssemblyModule],
@@ -20,6 +21,7 @@ import { AssemblyModule } from "../../assembly/assembly.module";
     TestInstanceRepository,
     TestConfigRepository,
     GeneratedQuestionRepository,
+    FinalShufflerService,
   ],
 })
 export class StartTestModule {}

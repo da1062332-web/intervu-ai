@@ -12,6 +12,7 @@ import {
   SectionNotFoundError,
 } from "@intervu/shared";
 import { BadRequestException } from "@nestjs/common";
+import { ExamConfigUsageService } from "../../question-bank/services/exam-config-usage.service";
 
 describe("TopicSectionMappingService", () => {
   let service: TopicSectionMappingService;
@@ -20,6 +21,7 @@ describe("TopicSectionMappingService", () => {
   let topicRepo: jest.Mocked<TopicRepository>;
   let sectionRepo: jest.Mocked<ExamSectionRepository>;
   let configRepo: jest.Mocked<ExamConfigRepository>;
+  let usageService: jest.Mocked<ExamConfigUsageService>;
 
   beforeEach(async () => {
     repository = {
@@ -47,6 +49,11 @@ describe("TopicSectionMappingService", () => {
       findById: jest.fn(),
     } as unknown as jest.Mocked<ExamConfigRepository>;
 
+    usageService = {
+      getUnusedPoolCount: jest.fn().mockResolvedValue(10),
+      findConflictingConfigsForTopic: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<ExamConfigUsageService>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TopicSectionMappingService,
@@ -55,6 +62,7 @@ describe("TopicSectionMappingService", () => {
         { provide: TopicRepository, useValue: topicRepo },
         { provide: ExamSectionRepository, useValue: sectionRepo },
         { provide: ExamConfigRepository, useValue: configRepo },
+        { provide: ExamConfigUsageService, useValue: usageService },
       ],
     }).compile();
 

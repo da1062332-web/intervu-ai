@@ -3,6 +3,7 @@ import { CandidateProgressService } from "../services/candidate-progress.service
 import { PrismaService } from "@/prisma/prisma.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { ReportAuditService } from "../services/report-audit.service";
+import { ResultsService } from "../../results/services/results.service";
 
 describe("CandidateProgressService", () => {
   let service: CandidateProgressService;
@@ -33,6 +34,15 @@ describe("CandidateProgressService", () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RedisCacheService, useValue: mockCacheService },
         { provide: ReportAuditService, useValue: mockAuditService },
+        { 
+          provide: ResultsService, 
+          useValue: {
+            getResultDetails: jest.fn().mockResolvedValue({
+              percentage: 80,
+              evaluationAnalytics: { completionRate: 100, topicAccuracy: { "Coding": 80 }, difficultyAccuracy: { "medium": 80 } }
+            })
+          } 
+        },
       ],
     }).compile();
 
@@ -58,7 +68,7 @@ describe("CandidateProgressService", () => {
 
     expect(result).toEqual(cachedData);
     expect(mockCacheService.get).toHaveBeenCalledWith("user-1", {
-      prefix: "progress:candidate",
+      prefix: "progress:candidate:v4",
     });
     expect(mockAuditService.logProgressViewed).toHaveBeenCalledWith("user-1");
     expect(mockPrisma.testInstance.findMany).not.toHaveBeenCalled();
@@ -70,9 +80,9 @@ describe("CandidateProgressService", () => {
     const mockAttempts = [
       {
         id: "ti-1",
-        candidateResult: {
+        evaluationResult: {
           createdAt: new Date(),
-          percentage: 80,
+          overallScore: 80,
         },
         evaluationAnalytics: {
           completionRate: 100,
@@ -93,7 +103,7 @@ describe("CandidateProgressService", () => {
       "user-1",
       expect.any(Object),
       {
-        prefix: "progress:candidate",
+        prefix: "progress:candidate:v4",
         ttl: 600,
       },
     );

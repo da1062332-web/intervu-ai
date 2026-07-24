@@ -8,10 +8,12 @@ import { ExamConfigService } from "./exam-config.service";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamConfigDto, UpdateExamConfigDto } from "@intervu/shared";
 import { ConfigStatus, ExamConfig } from "@prisma/client";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 describe("ExamConfigService", () => {
   let service: ExamConfigService;
   let repository: jest.Mocked<ExamConfigRepository>;
+  let redisCacheService: any;
 
   beforeEach(async () => {
     repository = {
@@ -22,10 +24,15 @@ describe("ExamConfigService", () => {
       update: jest.fn(),
     } as unknown as jest.Mocked<ExamConfigRepository>;
 
+    redisCacheService = {
+      invalidateBlueprint: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExamConfigService,
         { provide: ExamConfigRepository, useValue: repository },
+        { provide: RedisCacheService, useValue: redisCacheService },
       ],
     }).compile();
 
@@ -235,6 +242,7 @@ describe("ExamConfigService", () => {
       expect(repository.findById).toHaveBeenCalledWith(id);
       expect(repository.findByCode).toHaveBeenCalledWith(dto.code);
       expect(repository.update).toHaveBeenCalledWith(id, dto);
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(id);
       expect(result).toEqual(updatedConfig);
     });
 
@@ -344,6 +352,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ARCHIVED,
         isArchived: true,
       });
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(id);
       expect(result).toEqual(archivedConfig);
     });
 

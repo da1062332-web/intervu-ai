@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, BadRequestException } from "@nestjs/common";
 import { BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedQuestionDto } from "@intervu/shared";
 
@@ -63,77 +63,134 @@ export class QuestionAllocatorService {
         );
         if (topicCount <= 0) continue;
 
-        const questions = await this.questionSource.fetchQuestions({
-          conceptKey: topicAlloc.topicId,
-          difficultyLevel: diff.level,
-          limit: topicCount * 5,
-          excludeIds: Array.from(allocatedQuestionIds),
-          examId,
-        });
+        let attempts = 0;
+        const maxAttempts = 3;
+        const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
+        const selectedForTopic: AllocatedQuestionDto[] = [];
+        const requiredForTopic = topicCount;
 
-        const filteredQuestions = await this.antiRepetitionService.filterPool(
-          questions,
-          historyIds,
-          Array.from(allocatedQuestionIds),
-        );
+        while (selectedForTopic.length < requiredForTopic && attempts < maxAttempts) {
+          const shortage = requiredForTopic - selectedForTopic.length;
+          
+          const questions = await this.questionSource.fetchQuestions({
+            conceptKey: topicAlloc.topicId,
+            difficultyLevel: diff.level,
+            limit: shortage * 5,
+            excludeIds: Array.from(currentlyExcludedIds),
+            examId,
+          });
 
-        if (filteredQuestions.length < topicCount) {
-          throw new InternalServerErrorException(
-            `Insufficient questions for topic ${topicAlloc.topicId} at difficulty ${diff.level}. Required: ${topicCount}, Found: ${filteredQuestions.length}`,
+          for (const q of questions) {
+            currentlyExcludedIds.add(q.id);
+          }
+
+          const filteredQuestions = await this.antiRepetitionService.filterPool(
+            questions,
+            historyIds,
+            Array.from(allocatedQuestionIds),
           );
+
+          const toAddCount = Math.min(shortage, filteredQuestions.length);
+          const selected = filteredQuestions.slice(0, toAddCount);
+          
+          for (const q of selected) {
+            allocatedQuestionIds.add(q.id);
+            const allocatedQ = {
+              questionId: q.id,
+              questionHash: q.questionHash || "hash",
+              conceptKey: q.conceptKey,
+              difficultyLevel: q.difficultyLevel,
+              questionType: q.questionType,
+              questionOrder: orderCounter++,
+              questionSnapshot: q,
+            };
+            selectedForTopic.push(allocatedQ);
+            allocatedQuestions.push(allocatedQ);
+            remainingDiffCount--;
+          }
+          
+          attempts++;
         }
 
-        const selected = filteredQuestions.slice(0, topicCount);
-        for (const q of selected) {
-          allocatedQuestionIds.add(q.id);
-          allocatedQuestions.push({
-            questionId: q.id,
-            questionHash: q.questionHash || "hash",
-            conceptKey: q.conceptKey,
-            difficultyLevel: q.difficultyLevel,
-            questionType: q.questionType,
-            questionOrder: orderCounter++,
-            questionSnapshot: q,
+        if (selectedForTopic.length < requiredForTopic) {
+          throw new BadRequestException({
+            error: 'INSUFFICIENT_ELIGIBLE_QUESTIONS',
+            message: `Unable to assemble this assessment because there are not enough eligible questions for the ${topicAlloc.topicId} / ${diff.level} requirement.`,
+            details: {
+              section: (section as any).displayName || section.sectionKey || 'section',
+              topic: topicAlloc.topicId,
+              difficulty: diff.level,
+              required: requiredForTopic,
+              available: selectedForTopic.length
+            }
           });
-          remainingDiffCount--;
         }
       }
 
       // If rounding caused a shortfall in this difficulty bucket, grab extra from the first topic
       if (remainingDiffCount > 0 && section.topicAllocations.length > 0) {
         const extraTopic = section.topicAllocations[0];
-        const extraQuestions = await this.questionSource.fetchQuestions({
-          conceptKey: extraTopic.topicId,
-          difficultyLevel: diff.level,
-          limit: remainingDiffCount * 5,
-          excludeIds: Array.from(allocatedQuestionIds),
-          examId,
-        });
-        const filteredExtra = await this.antiRepetitionService.filterPool(
-          extraQuestions,
-          historyIds,
-          Array.from(allocatedQuestionIds),
-        );
+        let attempts = 0;
+        const maxAttempts = 3;
+        const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
+        const selectedForExtra: AllocatedQuestionDto[] = [];
+        const requiredForExtra = remainingDiffCount;
 
-        if (filteredExtra.length < remainingDiffCount) {
-          throw new InternalServerErrorException(
-            `Insufficient extra questions for difficulty ${diff.level}`,
+        while (selectedForExtra.length < requiredForExtra && attempts < maxAttempts) {
+          const shortage = requiredForExtra - selectedForExtra.length;
+          
+          const extraQuestions = await this.questionSource.fetchQuestions({
+            conceptKey: extraTopic.topicId,
+            difficultyLevel: diff.level,
+            limit: shortage * 5,
+            excludeIds: Array.from(currentlyExcludedIds),
+            examId,
+          });
+
+          for (const q of extraQuestions) {
+            currentlyExcludedIds.add(q.id);
+          }
+
+          const filteredExtra = await this.antiRepetitionService.filterPool(
+            extraQuestions,
+            historyIds,
+            Array.from(allocatedQuestionIds),
           );
+
+          const toAddCount = Math.min(shortage, filteredExtra.length);
+          const selectedExtra = filteredExtra.slice(0, toAddCount);
+          
+          for (const q of selectedExtra) {
+            allocatedQuestionIds.add(q.id);
+            const allocatedQ = {
+              questionId: q.id,
+              questionHash: q.questionHash || "hash",
+              conceptKey: q.conceptKey,
+              difficultyLevel: q.difficultyLevel,
+              questionType: q.questionType,
+              questionOrder: orderCounter++,
+              questionSnapshot: q,
+            };
+            selectedForExtra.push(allocatedQ);
+            allocatedQuestions.push(allocatedQ);
+            remainingDiffCount--;
+          }
+          
+          attempts++;
         }
 
-        const selectedExtra = filteredExtra.slice(0, remainingDiffCount);
-        for (const q of selectedExtra) {
-          allocatedQuestionIds.add(q.id);
-          allocatedQuestions.push({
-            questionId: q.id,
-            questionHash: q.questionHash || "hash",
-            conceptKey: q.conceptKey,
-            difficultyLevel: q.difficultyLevel,
-            questionType: q.questionType,
-            questionOrder: orderCounter++,
-            questionSnapshot: q,
+        if (selectedForExtra.length < requiredForExtra) {
+          throw new BadRequestException({
+            error: 'INSUFFICIENT_ELIGIBLE_QUESTIONS',
+            message: `Unable to assemble this assessment because there are not enough eligible questions for the extra ${extraTopic.topicId} / ${diff.level} requirement.`,
+            details: {
+              section: (section as any).displayName || section.sectionKey || 'section',
+              topic: extraTopic.topicId,
+              difficulty: diff.level,
+              required: requiredForExtra,
+              available: selectedForExtra.length
+            }
           });
-          remainingDiffCount--;
         }
       }
     }

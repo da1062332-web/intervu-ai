@@ -9,11 +9,13 @@ import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
 import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 describe("ExamSectionService", () => {
   let service: ExamSectionService;
   let sectionRepo: jest.Mocked<ExamSectionRepository>;
   let configRepo: jest.Mocked<ExamConfigRepository>;
+  let redisCacheService: any;
 
   beforeEach(async () => {
     sectionRepo = {
@@ -30,11 +32,16 @@ describe("ExamSectionService", () => {
       findById: jest.fn(),
     } as unknown as jest.Mocked<ExamConfigRepository>;
 
+    redisCacheService = {
+      invalidateBlueprint: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExamSectionService,
         { provide: ExamSectionRepository, useValue: sectionRepo },
         { provide: ExamConfigRepository, useValue: configRepo },
+        { provide: RedisCacheService, useValue: redisCacheService },
       ],
     }).compile();
 
@@ -102,6 +109,7 @@ describe("ExamSectionService", () => {
         configId,
         dto.sectionOrder,
       );
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(configId);
       expect(result).toEqual(expectedResult);
     });
 
@@ -278,6 +286,7 @@ describe("ExamSectionService", () => {
       const result = await service.updateSection(sectionId, dto);
 
       expect(sectionRepo.findById).toHaveBeenCalledWith(sectionId);
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith("config-uuid");
       expect(result).toEqual(expectedResult);
     });
 
@@ -430,6 +439,7 @@ describe("ExamSectionService", () => {
 
       expect(sectionRepo.findById).toHaveBeenCalledWith(sectionId);
       expect(sectionRepo.delete).toHaveBeenCalledWith(sectionId);
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith("config-uuid");
       expect(result).toEqual(existingSection);
     });
 
