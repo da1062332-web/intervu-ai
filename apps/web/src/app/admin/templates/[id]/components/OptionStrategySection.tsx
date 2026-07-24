@@ -52,17 +52,13 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
   const handleSave = () => {
     if (!template?.id) return;
     
-    // We stringify into the first element of the array to preserve both strategy and options 
-    // within the string[] constraint of SaveOptionStrategyDto
-    const payloadStr = JSON.stringify({
-      strategy,
-      options
-    });
+    const cleanOptions = options.filter(o => typeof o === 'string' && o.trim().length > 0);
 
     saveOptionStrategy({
       templateId: template.id,
       payload: {
-        optionsTemplate: [payloadStr]
+        strategy: strategy.toUpperCase() as any,
+        optionsTemplate: cleanOptions.length > 0 ? cleanOptions : options
       }
     }, {
       onSuccess: () => {

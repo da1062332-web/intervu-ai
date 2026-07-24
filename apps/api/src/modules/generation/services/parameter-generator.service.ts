@@ -180,10 +180,14 @@ export class ParameterGeneratorService {
           const options = (v as any).options;
           const index = Math.floor(Math.random() * options.length);
           params[v.name] = options[index];
+        } else if ((v as any).defaultValue !== undefined) {
+          params[v.name] = (v as any).defaultValue;
+        } else if ((v as any).value !== undefined) {
+          params[v.name] = (v as any).value;
+        } else if (type === "string") {
+          params[v.name] = v.name;
         } else if (type === "boolean") {
           params[v.name] = Math.random() < 0.5;
-        } else if (type === "static") {
-          params[v.name] = (v as any).value ?? (v as any).defaultValue ?? 1;
         } else {
           params[v.name] = 1;
         }

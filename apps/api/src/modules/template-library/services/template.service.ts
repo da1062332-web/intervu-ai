@@ -23,6 +23,7 @@ import {
   evaluateExpression,
   roundToPrecision,
 } from "@intervu-ai/generation";
+import { parseOptionsTemplate } from "../../generation/services/question-instantiator.service";
 
 import { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
@@ -1063,8 +1064,11 @@ export class TemplateService {
     // 4. Resolve structure (questionTemplate, optionsTemplate, etc.)
     const structure = (template.structure as any) || {};
     const questionTemplate =
-      structure.questionTemplate || structure.prompt || "";
-    const optionsTemplate = structure.optionsTemplate || [];
+      structure.questionTemplate ||
+      structure.questionStatement ||
+      structure.prompt ||
+      "";
+    const optionsTemplate = parseOptionsTemplate(structure.optionsTemplate);
 
     // 5. Resolve solution / explanation
     const solutionSchema = (template.solutionSchema as any) || {};
