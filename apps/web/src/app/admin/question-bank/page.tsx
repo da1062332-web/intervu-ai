@@ -11,21 +11,25 @@ import { SectionHeader } from '@/components/ui/section-header';
 
 export default function QuestionBankPage() {
   const [filters, setFilters] = useState<FilterType>({});
-  const { data: questions = [], isLoading } = useGeneratedQuestions(filters);
+  const { data: rawData = [], isLoading } = useGeneratedQuestions(filters);
   const { mutateAsync: publish } = usePublishQuestion();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
 
+  const questions = Array.isArray(rawData) ? rawData : (rawData as any)?.data || [];
+
   const poolQuestions = questions.filter(
-    (q) =>
+    (q: any) =>
       q.status === 'APPROVED' ||
       q.status === 'Approved' ||
       q.status === 'PUBLISHED' ||
-      q.status === 'Published',
+      q.status === 'Published' ||
+      q.rawStatus === 'APPROVED' ||
+      q.rawStatus === 'PUBLISHED',
   );
   const selectableQuestions = poolQuestions.filter(
-    (q) => q.status === 'APPROVED' || q.status === 'Approved',
+    (q: any) => q.status === 'APPROVED' || q.status === 'Approved',
   );
 
   const handleToggleSelect = (id: string) => {
@@ -36,7 +40,7 @@ export default function QuestionBankPage() {
     if (selectedIds.length === selectableQuestions.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(selectableQuestions.map((q) => q.id));
+      setSelectedIds(selectableQuestions.map((q: any) => q.id));
     }
   };
 

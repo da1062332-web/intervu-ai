@@ -12,6 +12,7 @@ import { AssembledTestRepository } from "../../assembly/repositories/assembled-t
 import { TestInstanceService } from "../test-instance/test-instance.service";
 import { TestInstanceStatus, Prisma } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { FinalShufflerService } from "./final-shuffler.service";
 
 @Injectable()
 export class StartTestService {
@@ -24,6 +25,7 @@ export class StartTestService {
     private readonly assembledTestRepository: AssembledTestRepository,
     private readonly testInstanceService: TestInstanceService,
     private readonly prisma: PrismaService,
+    private readonly finalShufflerService: FinalShufflerService,
   ) {}
 
   async startTest(userId: string, input: StartTestDto) {
@@ -192,9 +194,16 @@ export class StartTestService {
       });
     }
 
-    // 3. Create Test Instance
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + config.totalDurationSeconds);
+
+    // Final Shuffle
+    const shuffleFlags = {
+      shuffleQuestionsEnabled: config.ruleFlags?.shuffleQuestionsEnabled ?? false,
+      shuffleOptionsEnabled: config.ruleFlags?.shuffleOptionsEnabled ?? false,
+    };
+    
+    sectionsData = this.finalShufflerService.shuffleSections(sectionsData as any, shuffleFlags);
 
     const testInstance = await this.testInstanceService.createTestInstance({
       userId,

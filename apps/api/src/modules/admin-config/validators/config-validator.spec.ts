@@ -7,6 +7,9 @@ const mockPrisma = {
   template: {
     count: jest.fn(),
   },
+  question: {
+    count: jest.fn(),
+  },
 };
 
 const makeConfig = (
@@ -79,6 +82,7 @@ describe("ConfigurationValidatorService", () => {
     );
     jest.clearAllMocks();
     mockPrisma.template.count.mockResolvedValue(5);
+    mockPrisma.question.count.mockResolvedValue(10);
   });
 
   it("should be defined", () => {
@@ -202,6 +206,7 @@ describe("ConfigurationValidatorService", () => {
   describe("validate - WARNING cases", () => {
     it("should fail if no templates exist in the system for configured concepts", async () => {
       mockPrisma.template.count.mockResolvedValue(0);
+      mockPrisma.question.count.mockResolvedValue(0);
       const result = await service.validate(makeConfig());
       expect(result.valid).toBe(false);
       expect(result.errors).toEqual(

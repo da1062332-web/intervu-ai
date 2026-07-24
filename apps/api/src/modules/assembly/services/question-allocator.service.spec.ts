@@ -63,4 +63,81 @@ describe("QuestionAllocatorService", () => {
     expect(allocated[0].questionId).toBe("q1");
     expect(allocated[1].questionId).toBe("q2");
   });
+
+  it("should replenish questions if anti-repetition filters some out", async () => {
+    const section: BlueprintSectionDto = {
+      sectionKey: "sec-1",
+      displayName: "Section 1",
+      durationSeconds: 120,
+      questionCount: 2,
+      orderIndex: 0,
+      topicAllocations: [{ topicId: "top-1", percentage: 100 }],
+      difficultyDistribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
+    };
+
+    // First fetch returns q1, q2
+    // Second fetch (replenishment) returns q3, q4
+    sourceMock.fetchQuestions
+      .mockResolvedValueOnce([
+        { id: "q1", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+        { id: "q2", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+      ] as never)
+      .mockResolvedValueOnce([
+        { id: "q3", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+        { id: "q4", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+      ] as never);
+
+    // Filter mocks: first time q2 is rejected (e.g. duplicate)
+    antiRepRepo.filterPool
+      .mockResolvedValueOnce([
+        { id: "q1", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+      ] as never)
+      .mockResolvedValueOnce([
+        { id: "q3", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+      ] as never);
+
+    const fallbackConfig: AllocationConfig = {
+      distribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
+    };
+
+    const allocated = await service.allocateQuestions(
+      section,
+      new Set(),
+      [],
+      fallbackConfig,
+    );
+
+    expect(sourceMock.fetchQuestions).toHaveBeenCalledTimes(2);
+    expect(allocated).toHaveLength(2);
+    expect(allocated[0].questionId).toBe("q1");
+    expect(allocated[1].questionId).toBe("q3");
+  });
+
+  it("should throw BadRequestException if pool is exhausted after bounded attempts", async () => {
+    const section: BlueprintSectionDto = {
+      sectionKey: "sec-1",
+      displayName: "Section 1",
+      durationSeconds: 120,
+      questionCount: 2,
+      orderIndex: 0,
+      topicAllocations: [{ topicId: "top-1", percentage: 100 }],
+      difficultyDistribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
+    };
+
+    sourceMock.fetchQuestions.mockResolvedValue([]);
+    antiRepRepo.filterPool.mockResolvedValue([]);
+
+    const fallbackConfig: AllocationConfig = {
+      distribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
+    };
+
+    let error: any;
+    try {
+      await service.allocateQuestions(section, new Set(), [], fallbackConfig);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeDefined();
+    expect(error.response.error).toBe("INSUFFICIENT_ELIGIBLE_QUESTIONS");
+  });
 });

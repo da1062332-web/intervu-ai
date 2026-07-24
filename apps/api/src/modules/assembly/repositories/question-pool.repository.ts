@@ -105,9 +105,14 @@ export class QuestionPoolRepository implements IQuestionSource {
   }
 
   async findRecentUsedQuestions(userId: string) {
+    const historyLimitStr = process.env.ANTI_REPETITION_HISTORY_LIMIT;
+    const historyLimit = historyLimitStr ? parseInt(historyLimitStr, 10) : undefined;
+
     // Finds questions the candidate has recently seen
     const testInstances = await this.prisma.testInstance.findMany({
       where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: historyLimit && historyLimit > 0 ? historyLimit : undefined,
       select: {
         questions: {
           select: { questionId: true },
@@ -127,10 +132,19 @@ export class QuestionPoolRepository implements IQuestionSource {
 
   async getQuestionsByIds(ids: string[]) {
     if (ids.length === 0) return [];
-    return this.prisma.generatedQuestion.findMany({
-      where: {
-        id: { in: ids },
-      },
-    });
+    
+    const [generatedQuestions, realQuestions] = await Promise.all([
+      this.prisma.generatedQuestion.findMany({
+        where: { id: { in: ids } },
+      }),
+      this.prisma.question.findMany({
+        where: { id: { in: ids } },
+      })
+    ]);
+
+    return [
+      ...generatedQuestions,
+      ...realQuestions.map(q => this.mapQuestionToGeneratedQuestion(q))
+    ];
   }
 }

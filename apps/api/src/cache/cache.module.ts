@@ -1,6 +1,8 @@
 import { Global, Module } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { RedisCacheService } from "./redis-cache.service";
+import { ConfigModule } from "../config/config.module";
+import { AppConfigService } from "../config/config.service";
 
 /**
  * CacheModule — Global NestJS DI wrapper for RedisCacheService.
@@ -11,11 +13,13 @@ import { RedisCacheService } from "./redis-cache.service";
  */
 @Global()
 @Module({
+  imports: [ConfigModule],
   providers: [
     {
       provide: RedisCacheService,
-      useFactory: (): RedisCacheService => {
-        return new RedisCacheService(new AppLogger({ name: "CacheService" }));
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService): RedisCacheService => {
+        return new RedisCacheService(new AppLogger({ name: "CacheService" }), config);
       },
     },
   ],

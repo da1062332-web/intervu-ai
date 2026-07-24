@@ -30,6 +30,9 @@ describe("Question Bank Module - Day 3 Assembly Integration", () => {
         findUnique: jest.fn(),
         upsert: jest.fn(),
       },
+      examConfigQuestionUsage: {
+        upsert: jest.fn(),
+      },
       $transaction: jest.fn((callback) => callback(prismaMock)),
       $queryRaw: jest.fn(),
     };

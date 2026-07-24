@@ -17,7 +17,13 @@ export const questionPoolApi = {
       query,
     });
 
-    const items = Array.isArray(res) ? res : res?.data || [];
+    const items = Array.isArray(res) 
+      ? res 
+      : Array.isArray(res?.data) 
+        ? res.data 
+        : Array.isArray(res?.items) 
+          ? res.items 
+          : [];
     return items.map((q: any) => {
       const rawStatus = (q.status || q.metadata?.status || 'GENERATED').toString().toUpperCase();
       const status =

@@ -8,6 +8,8 @@ import { StrengthWeaknessService } from "../analytics/strength-weakness.service"
 import { RecommendationService } from "../recommendations/recommendation.service";
 import { ResultGeneratorService } from "../services/result-generator.service";
 import { ResultStorageService } from "../services/result-storage.service";
+import { CodingEvaluatorService } from "../objective/coding-evaluator.service";
+import { TcsClassificationService } from "../scoring/tcs-classification.service";
 import { ExecutionEvaluationIntegration } from "../integrations/execution-evaluation.integration";
 import { ExecutionResultDto } from "../../execution/dto/execution-result.dto";
 
@@ -84,6 +86,8 @@ describe("Evaluation Module Integration Tests", () => {
         PerformanceAnalyticsService,
         StrengthWeaknessService,
         RecommendationService,
+        { provide: CodingEvaluatorService, useValue: { evaluateAnswers: jest.fn().mockResolvedValue([]) } },
+        { provide: TcsClassificationService, useValue: { classifyProfile: jest.fn().mockReturnValue("Expert") } },
         ExecutionEvaluationIntegration,
         {
           provide: PrismaService,

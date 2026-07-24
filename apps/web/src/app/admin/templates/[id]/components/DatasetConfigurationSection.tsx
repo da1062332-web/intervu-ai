@@ -228,9 +228,36 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     });
   };
 
-  const filteredDatasets = datasets?.filter((ds: Dataset) => 
-    ds.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const templateTopicIds: string[] = [
+    template?.topicId,
+    template?.config?.topicId,
+    ...(Array.isArray(template?.config?.topics) ? template.config.topics : []),
+  ].filter(Boolean) as string[];
+
+  const templateConceptKeys: string[] = [
+    template?.conceptKey,
+    template?.conceptId,
+    template?.config?.conceptId,
+    template?.config?.conceptKey,
+  ].filter(Boolean) as string[];
+
+  const hasTopicOrConceptFilter = templateTopicIds.length > 0 || templateConceptKeys.length > 0;
+
+  const matchedDatasets = (datasets || []).filter((ds: Dataset) => {
+    const matchesSearch = ds.name.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (hasTopicOrConceptFilter) {
+      const matchesTopic = templateTopicIds.length > 0 && ds.topicId ? templateTopicIds.includes(ds.topicId) : false;
+      const matchesConcept = templateConceptKeys.length > 0 && ds.conceptId ? templateConceptKeys.includes(ds.conceptId) : false;
+      return matchesTopic || matchesConcept;
+    }
+    return true;
+  });
+
+  const filteredDatasets = matchedDatasets.length > 0 || !hasTopicOrConceptFilter
+    ? matchedDatasets
+    : (datasets || []).filter((ds: Dataset) => ds.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const selectedDataset = datasets?.find((ds: Dataset) => ds.id === selectedDatasetId);
   const hasRecords = datasetDetails?.items && datasetDetails.items.length > 0;
@@ -298,23 +325,40 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                           ) : filteredDatasets.length === 0 ? (
                             <div className="p-3 text-sm text-center text-gray-500">No datasets found.</div>
                           ) : (
-                            filteredDatasets.map((ds: Dataset) => (
-                              <div 
-                                key={ds.id}
-                                className={`flex items-center justify-between p-2 rounded-sm cursor-pointer text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors ${selectedDatasetId === ds.id ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
-                                onClick={() => {
-                                  setSelectedDatasetId(ds.id);
-                                  setIsDropdownOpen(false);
-                                  setSearchQuery('');
-                                }}
-                              >
-                                <div>
-                                  <div>{ds.name}</div>
-                                  <div className="text-xs text-gray-400 mt-0.5">{ds._count?.items ?? 0} Items</div>
+                            filteredDatasets.map((ds: Dataset) => {
+                              const isMatch = (templateTopicIds.length > 0 && ds.topicId ? templateTopicIds.includes(ds.topicId) : false) || 
+                                              (templateConceptKeys.length > 0 && ds.conceptId ? templateConceptKeys.includes(ds.conceptId) : false);
+                              return (
+                                <div 
+                                  key={ds.id}
+                                  className={`flex items-center justify-between p-2 rounded-sm cursor-pointer text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors ${
+                                    selectedDatasetId === ds.id 
+                                      ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-medium' 
+                                      : isMatch
+                                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20 text-gray-800 dark:text-gray-200'
+                                        : 'text-gray-700 dark:text-gray-300'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedDatasetId(ds.id);
+                                    setIsDropdownOpen(false);
+                                    setSearchQuery('');
+                                  }}
+                                >
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span>{ds.name}</span>
+                                      {isMatch && (
+                                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold">
+                                          Topic Match
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-400 mt-0.5">{ds._count?.items ?? 0} Items</div>
+                                  </div>
+                                  {selectedDatasetId === ds.id && <Check className="w-4 h-4" />}
                                 </div>
-                                {selectedDatasetId === ds.id && <Check className="w-4 h-4" />}
-                              </div>
-                            ))
+                              );
+                            })
                           )}
                         </div>
                       </div>

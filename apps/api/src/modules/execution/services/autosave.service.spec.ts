@@ -33,6 +33,9 @@ describe("AutosaveService", () => {
 
     prisma = {
       $transaction: jest.fn(),
+      testInstanceQuestion: {
+        findFirst: jest.fn().mockResolvedValue({ section: { status: "ACTIVE" } }),
+      }
     };
 
     const module: TestingModule = await Test.createTestingModule({

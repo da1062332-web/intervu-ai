@@ -71,6 +71,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         templateId: "template-1",
         conceptKey: "concept-1",
         difficultyLevel: "MEDIUM",
+        questionType: "MCQ",
       });
       expect(valid.isValid).toBe(true);
       expect(valid.errors.length).toBe(0);
@@ -84,6 +85,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         templateId: "t1",
         conceptKey: "c1",
         difficultyLevel: "MEDIUM",
+        questionType: "MCQ",
       });
       expect(invalid.isValid).toBe(false);
       expect(invalid.errors).toContain(
@@ -100,6 +102,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         templateId: "t1",
         conceptKey: "c1",
         difficultyLevel: "MEDIUM",
+        questionType: "MCQ",
       });
       expect(invalid.isValid).toBe(false);
       expect(invalid.errors).toContain(
@@ -116,6 +119,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
         templateId: "t1",
         conceptKey: "c1",
         difficultyLevel: "MEDIUM",
+        questionType: "MCQ",
       });
       expect(invalid.isValid).toBe(false);
       expect(invalid.errors).toContain(
