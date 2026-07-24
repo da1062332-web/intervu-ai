@@ -128,8 +128,14 @@ export const useUpdateTemplate = () => {
     mutationFn: ({ templateId, payload }: { templateId: string; payload: any }) =>
       templateApi.updateTemplate(templateId, payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
-      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({
+        queryKey: ['template', variables.templateId],
+        refetchType: 'active',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['templates'],
+        refetchType: 'active',
+      });
     },
   });
 };
@@ -273,8 +279,14 @@ export const useApplyStrategy = () => {
     mutationFn: ({ templateId, draft }: { templateId: string; draft: any }) =>
       templateApi.applyStrategy(templateId, draft),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['template', variables.templateId] });
-      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({
+        queryKey: ['template', variables.templateId],
+        refetchType: 'active',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['templates'],
+        refetchType: 'active',
+      });
     },
   });
 };

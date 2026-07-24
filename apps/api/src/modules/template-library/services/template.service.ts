@@ -1458,7 +1458,7 @@ export class TemplateService {
     }
 
     // 3. Normalize and build update payload (uses existing format)
-    const updatePayload = this.buildUpdatePayloadFromDraft(draft);
+    const updatePayload = this.buildUpdatePayloadFromDraft(draft, template);
 
     // 4. Apply using the existing template update flow
     const updated = await this.templateRepository.update(
@@ -1486,10 +1486,22 @@ export class TemplateService {
 
   /**
    * Build the update payload from a drafted strategy.
-   * Converts AI-generated structure into the template's expected JSON format.
+   * Converts AI-generated structure into the template's expected JSON format
+   * while preserving the existing manual schema keys and values.
    */
-  private buildUpdatePayloadFromDraft(draft: any): Prisma.TemplateUpdateInput {
+  private buildUpdatePayloadFromDraft(
+    draft: any,
+    template?: {
+      variableSchema?: unknown;
+      constraints?: unknown;
+    },
+  ): Prisma.TemplateUpdateInput {
     const payload: Prisma.TemplateUpdateInput = {};
+
+    const existingVariableSchema =
+      (template?.variableSchema as Record<string, any>) || {};
+    const existingConstraintsSchema =
+      (template?.constraints as Record<string, any>) || {};
 
     const normalizedConstraints = (draft.constraints || []).map((item: any) => {
       const rule = typeof item?.rule === "string" ? item.rule.trim() : "";
@@ -1503,35 +1515,130 @@ export class TemplateService {
       };
     });
 
-    // Build variableSchema in the format expected by the generator
+    const normalizedRules = normalizedConstraints
+      .map((item: any) => item.rule)
+      .filter(
+        (rule: unknown): rule is string =>
+          typeof rule === "string" && rule.length > 0,
+      );
+
+    const rawVariables = Array.isArray(existingVariableSchema.variables)
+      ? existingVariableSchema.variables
+      : [];
+    const rawDerivedVariables = Array.isArray(existingVariableSchema.derivedVariables)
+      ? existingVariableSchema.derivedVariables
+      : [];
+    const rawFormulas = Array.isArray(existingVariableSchema.formulas)
+      ? existingVariableSchema.formulas
+      : [];
+
+    const draftVariables = draft.variables || [];
+    const draftDerivedVariables = draft.derivedVariables || [];
+    const draftFormulas = (draftDerivedVariables || []).map(
+      (d: any) => `${d.name} = ${d.expression}`,
+    );
+
+    const variables = this.mergeByName(rawVariables, draftVariables);
+    const derivedVariables = this.mergeByName(
+      rawDerivedVariables,
+      draftDerivedVariables,
+    );
+    const formulas = this.mergeUniqueStrings(rawFormulas, draftFormulas);
+
+    const existingConstraintItems = Array.isArray(existingConstraintsSchema.constraints)
+      ? existingConstraintsSchema.constraints
+      : [];
+    const mergedConstraints = this.mergeByRule(
+      existingConstraintItems,
+      normalizedConstraints,
+    );
+    const mergedRules = this.mergeUniqueStrings(
+      Array.isArray(existingConstraintsSchema.rules)
+        ? existingConstraintsSchema.rules
+        : [],
+      normalizedRules,
+    );
+
     const variableSchema = {
-      variables: draft.variables || [],
-      derivedVariables: draft.derivedVariables || [],
-      formulas: (draft.derivedVariables || []).map(
-        (d: any) => `${d.name} = ${d.expression}`,
-      ),
+      ...existingVariableSchema,
+      variables,
+      derivedVariables,
+      formulas,
       generationStrategyConfig: {
-        variables: draft.variables || [],
-        derivedVariables: draft.derivedVariables || [],
-        constraints: normalizedConstraints,
+        ...(existingVariableSchema.generationStrategyConfig || {}),
+        variables,
+        derivedVariables,
+        constraints: mergedConstraints,
+        formulas,
       },
     };
 
     payload.variableSchema = variableSchema as Prisma.InputJsonValue;
 
-    // Build constraints schema
     const constraintsSchema = {
-      constraints: normalizedConstraints,
+      ...existingConstraintsSchema,
+      constraints: mergedConstraints,
+      rules: mergedRules,
       generationStrategyConfig: {
-        variables: draft.variables || [],
-        derivedVariables: draft.derivedVariables || [],
-        constraints: normalizedConstraints,
+        ...(existingConstraintsSchema.generationStrategyConfig || {}),
+        variables,
+        derivedVariables,
+        constraints: mergedConstraints,
+        formulas,
       },
     };
 
     payload.constraints = constraintsSchema as Prisma.InputJsonValue;
 
     return payload;
+  }
+
+  private mergeByName<T extends { name: string }>(
+    existing: T[],
+    incoming: T[],
+  ): T[] {
+    const merged = [...existing, ...incoming];
+    const deduped = new Map<string, T>();
+
+    for (const entry of merged) {
+      if (!entry || typeof entry.name !== "string" || !entry.name.trim()) {
+        continue;
+      }
+      deduped.set(entry.name, entry);
+    }
+
+    return Array.from(deduped.values());
+  }
+
+  private mergeByRule<T extends { rule?: string }>(
+    existing: T[],
+    incoming: T[],
+  ): T[] {
+    const merged = [...existing, ...incoming];
+    const deduped = new Map<string, T>();
+
+    for (const entry of merged) {
+      if (!entry || typeof entry.rule !== "string" || !entry.rule.trim()) {
+        continue;
+      }
+      deduped.set(entry.rule.trim(), entry);
+    }
+
+    return Array.from(deduped.values());
+  }
+
+  private mergeUniqueStrings(existing: string[], incoming: string[]): string[] {
+    const merged = [...existing, ...incoming];
+    const deduped = new Map<string, string>();
+
+    for (const entry of merged) {
+      if (typeof entry !== "string" || !entry.trim()) {
+        continue;
+      }
+      deduped.set(entry.trim(), entry.trim());
+    }
+
+    return Array.from(deduped.values());
   }
 
   private parseConstraintRule(rule: string): {

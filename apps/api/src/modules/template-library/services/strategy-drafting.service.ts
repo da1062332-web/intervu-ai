@@ -146,15 +146,18 @@ Analyze this and return a JSON object with this exact structure:
   "notes": ["any observations or assumptions you made"]
 }
 
-Guidelines:
-- Extract all independent variables mentioned (e.g., price, quantity)
-- Infer reasonable ranges if not specified (e.g., price 100-500)
-- Identify any derived/computed variables (e.g., totalCost = price * quantity)
-- Extract all constraints mentioned (e.g., total must be a multiple of 100)
-- Use simple, parseable expressions in rules
-- If the prompt is ambiguous, use sensible defaults and add a note
-- Do NOT include variables that are placeholders in the template text
-- Support only deterministic, arithmetic-based logic in this version`;
+Critical output rules:
+- Return ONLY valid JSON. No markdown. No comments. No trailing text.
+- The JSON keys must match the schema exactly: variables, derivedVariables, constraints, notes.
+- Variables must be base inputs only. Derived variables must be mathematically computed from those base variables.
+- Constraint rules must be simple parseable expressions that can be stored in the same manual schema format used by the template editor.
+- Use clean identifier names with no spaces (e.g. total_cost, price, quantity).
+- Infer reasonable numeric ranges when they are implied by the prompt.
+- Prefer simple arithmetic relations over long prose.
+- If a value is not explicitly given, choose a sensible default and mention it in notes.
+- Keep each constraint rule as one straightforward string expression.
+- Do NOT include placeholder-only terms or template boilerplate. Only variables that actually participate in the logic.
+- Support only deterministic, arithmetic-based logic in this version.`;
   }
 
   /**

@@ -189,7 +189,7 @@ You MUST respond with a single JSON object. Do not wrap the JSON in markdown blo
 JSON Schema:
 {
   "question": "${interpolatedQuestion}",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "options": ["${correctAnswerVal}", "placeholder1", "placeholder2", "placeholder3"],
   "correctAnswer": "${correctAnswerVal}",
   "explanation": "Concept\\n\\nFormula / Reasoning\\n\\nStep-by-Step Solution\\n\\nFinal Answer",
   "difficulty": "${difficulty}",
@@ -199,6 +199,12 @@ JSON Schema:
     "generationStrategy": "VARIABLE"
   }
 }
+
+CRITICAL: 
+- The "options" array must contain ACTUAL VALUES (numbers, formulas, or strings), NOT labels like "Option A"
+- The "correctAnswer" must be the EXACT VALUE from the options array that is correct
+- Do NOT use "Option A", "Option B" as values - those are only labels for display purposes
+- All 4 options must be distinct values
 `;
 
     return `${systemPrompt}\n\n${templateContext}\n\n${variableValuesText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
@@ -343,8 +349,8 @@ Respond with a single JSON object without markdown blocks.
 JSON Schema:
 {
   "question": "The question text generated based on the content",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
-  "correctAnswer": "The correct answer value",
+  "options": ["correctAnswerValue", "plausibleDistractor1", "plausibleDistractor2", "plausibleDistractor3"],
+  "correctAnswer": "The exact value that matches one of the options in the array above",
   "explanation": "Concept\\n\\nFormula / Reasoning\\n\\nStep-by-Step Solution\\n\\nFinal Answer",
   "difficulty": "${difficulty}",
   "metadata": {
@@ -353,6 +359,12 @@ JSON Schema:
     "datasetItem": ${JSON.stringify(input.datasetItem || {})}
   }
 }
+
+CRITICAL:
+- The "options" array must contain ACTUAL VALUES (text, numbers, or concepts), NOT labels
+- The "correctAnswer" must be the EXACT VALUE that appears in the options array
+- Do NOT use "Option A", "Option B" as values - these are only for display labeling
+- All 4 options must be distinct
 `;
 
     return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
@@ -430,8 +442,8 @@ Respond with a single JSON object without markdown blocks.
 JSON Schema:
 {
   "question": "The natural language word puzzle and question",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
-  "correctAnswer": "The correct option value",
+  "options": ["correctLogicalDeduction", "plausibleDistractor1", "plausibleDistractor2", "plausibleDistractor3"],
+  "correctAnswer": "The exact value that matches one of the options in the array above",
   "explanation": "Concept\\n\\nFormula / Reasoning\\n\\nStep-by-Step Solution\\n\\nFinal Answer",
   "difficulty": "${difficulty}",
   "metadata": {
@@ -440,6 +452,12 @@ JSON Schema:
     "logicalGraph": ${JSON.stringify(graph)}
   }
 }
+
+CRITICAL:
+- The "options" array must contain ACTUAL VALUES (text, logical conclusions), NOT labels
+- The "correctAnswer" must be the EXACT VALUE that appears in the options array
+- Do NOT use "Option A", "Option B" as values - these are only for display labeling
+- All 4 options must be distinct logical conclusions
 `;
 
     return `${systemPrompt}\n\n${templateContext}\n\n${graphSection}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();

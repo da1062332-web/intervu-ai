@@ -18,6 +18,7 @@ import { Modal } from '@/components/ui/modal';
 import { Textarea } from '@/components/ui/textarea';
 import { TemplateSection } from './TemplateSection';
 import { useTemplate, useUpdateTemplate, useDraftStrategy, useApplyStrategy } from '@/services/templates/hooks';
+import { buildConstraintRule, parseConstraintRule, toConstraintPayload } from './constraint-utils';
 import toast from 'react-hot-toast';
 
 interface VariableDefinition {
@@ -71,6 +72,27 @@ export function GenerationStrategySection() {
     return (template?.constraints as Record<string, any>) || {};
   }, [template?.constraints]);
 
+  const normalizedConstraintCollection = useMemo(() => {
+    const candidates = [
+      constraintSchema?.constraints,
+      constraintSchema?.rules,
+      constraintSchema?.generationStrategyConfig?.constraints,
+      variableSchema?.generationStrategyConfig?.constraints,
+      template?.constraints?.constraints,
+      template?.constraints?.rules,
+      template?.constraints?.generationStrategyConfig?.constraints,
+      template?.variableSchema?.generationStrategyConfig?.constraints,
+    ];
+
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) {
+        return candidate;
+      }
+    }
+
+    return [];
+  }, [constraintSchema, variableSchema, template?.constraints, template?.variableSchema]);
+
   const variables = useMemo<VariableDefinition[]>(() => {
     return Array.isArray(variableSchema.variables)
       ? variableSchema.variables.map((item: any) => ({
@@ -106,29 +128,17 @@ export function GenerationStrategySection() {
   }, [variableSchema.derivedVariables, variableSchema.formulas]);
 
   const constraints = useMemo<ConstraintDefinition[]>(() => {
-    const rawConstraints = Array.isArray(constraintSchema.constraints)
-      ? constraintSchema.constraints
-      : [];
-
-    return rawConstraints.map((item: any, index: number) => {
-      if (typeof item === 'string') {
-        return { id: `${item}-${index}`, target: item, operator: '==', value: '', rule: item };
-      }
-
-      const parsedRule = typeof item?.rule === 'string'
-        ? item.rule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/)
-        : null;
-
-      const rule = item.rule || `${item.target || ''} ${item.operator || '=='} ${item.value || ''}`;
+    return normalizedConstraintCollection.map((item: any, index: number) => {
+      const parsed = parseConstraintRule(item, index);
       return {
-        id: `${item.target || item.rule || 'constraint'}-${index}`,
-        target: parsedRule?.[1] || item.target || '',
-        operator: parsedRule?.[2] || item.operator || '==',
-        value: parsedRule?.[3]?.trim() || item.value || '',
-        rule,
+        id: parsed.id,
+        target: parsed.target,
+        operator: parsed.operator,
+        value: parsed.value,
+        rule: parsed.rule,
       };
     });
-  }, [constraintSchema.constraints]);
+  }, [normalizedConstraintCollection]);
 
   const [variableModalOpen, setVariableModalOpen] = useState(false);
   const [constraintModalOpen, setConstraintModalOpen] = useState(false);
@@ -201,7 +211,11 @@ export function GenerationStrategySection() {
     setError(null);
     if (item) {
       setEditingConstraint(item);
-      setConstraintForm({ target: item.target, operator: item.operator, value: item.value });
+      setConstraintForm({
+        target: item.target === 'Custom' ? '' : item.target,
+        operator: item.operator || '>',
+        value: item.operator === 'Formula' || item.operator === 'Custom' || item.operator === 'Regex' ? item.rule || item.value : item.value,
+      });
     } else {
       setEditingConstraint(null);
       resetConstraintForm();
@@ -317,7 +331,7 @@ export function GenerationStrategySection() {
         generationStrategyConfig: {
           variables,
           derivedVariables: nextDerived,
-          constraints: constraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+          constraints: constraints.map((item) => toConstraintPayload(item)),
         },
       },
     };
@@ -333,15 +347,24 @@ export function GenerationStrategySection() {
     }
 
     const nextConstraints = [...constraints];
-    const normalized = {
-      id: `${constraintForm.target}-${constraintForm.operator}-${constraintForm.value}`,
-      target: constraintForm.target.trim(),
+    const ruleText = buildConstraintRule({
+      target: constraintForm.target,
       operator: constraintForm.operator,
-      value: constraintForm.value.trim(),
-      rule: `${constraintForm.target.trim()} ${constraintForm.operator} ${constraintForm.value.trim()}`,
+      value: constraintForm.value,
+    });
+    const normalized = {
+      id: `${constraintForm.target || 'constraint'}-${constraintForm.operator}-${constraintForm.value}`,
+      target: constraintForm.operator === 'Formula' || constraintForm.operator === 'Custom' || constraintForm.operator === 'Regex'
+        ? 'Custom'
+        : constraintForm.target.trim(),
+      operator: constraintForm.operator,
+      value: constraintForm.operator === 'Formula' || constraintForm.operator === 'Custom' || constraintForm.operator === 'Regex'
+        ? constraintForm.value.trim()
+        : constraintForm.value.trim(),
+      rule: ruleText,
     };
 
-    const exists = nextConstraints.findIndex((item) => item.target === editingConstraint?.target && item.operator === editingConstraint?.operator);
+    const exists = nextConstraints.findIndex((item) => item.rule === editingConstraint?.rule || (item.target === editingConstraint?.target && item.operator === editingConstraint?.operator));
     if (editingConstraint && exists >= 0) {
       nextConstraints[exists] = normalized;
     } else {
@@ -357,16 +380,16 @@ export function GenerationStrategySection() {
         generationStrategyConfig: {
           variables,
           derivedVariables,
-          constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+          constraints: nextConstraints.map((item) => toConstraintPayload(item)),
         },
       },
       constraints: {
         ...(constraintSchema || {}),
-        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+        constraints: nextConstraints.map((item) => toConstraintPayload(item)),
         generationStrategyConfig: {
           variables,
           derivedVariables,
-          constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+          constraints: nextConstraints.map((item) => toConstraintPayload(item)),
         },
       },
     };
@@ -400,12 +423,12 @@ export function GenerationStrategySection() {
     updateTemplate({ templateId, payload });
   };
 
-  const handleDeleteConstraint = (target: string) => {
-    const nextConstraints = constraints.filter((item) => item.target !== target);
+  const handleDeleteConstraint = (rule: string) => {
+    const nextConstraints = constraints.filter((item) => item.rule !== rule);
     const payload = {
       constraints: {
         ...(constraintSchema || {}),
-        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: `${item.target} ${item.operator} ${item.value}` })),
+        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: item.rule || buildConstraintRule({ target: item.target, operator: item.operator, value: item.value }) })),
       },
     };
     updateTemplate({ templateId, payload });
@@ -994,7 +1017,7 @@ export function GenerationStrategySection() {
                             <Button variant="ghost" size="sm" onClick={() => openConstraintModal(item)}>
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteConstraint(item.target)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteConstraint(item.rule || item.target)}>
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
                           </TableCell>
@@ -1086,7 +1109,7 @@ export function GenerationStrategySection() {
           <h2 className="text-xl font-semibold">{editingConstraint ? 'Edit Constraint' : 'Add Constraint'}</h2>
           <div className="space-y-2">
             <Label htmlFor="constraintTarget">Target</Label>
-            <Input id="constraintTarget" value={constraintForm.target} onChange={(event) => setConstraintForm({ ...constraintForm, target: event.target.value })} placeholder="e.g. selling_price" />
+            <Input id="constraintTarget" value={constraintForm.target} onChange={(event) => setConstraintForm({ ...constraintForm, target: event.target.value })} placeholder={constraintForm.operator === 'Formula' || constraintForm.operator === 'Custom' || constraintForm.operator === 'Regex' ? 'Optional label' : 'e.g. selling_price'} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="constraintOperator">Operator</Label>
@@ -1097,11 +1120,14 @@ export function GenerationStrategySection() {
               <option value="<=">&lt;=</option>
               <option value="==">==</option>
               <option value="!=">!=</option>
+              <option value="Regex">Regex</option>
+              <option value="Formula">Formula</option>
+              <option value="Custom">Custom Logic</option>
             </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="constraintValue">Value</Label>
-            <Input id="constraintValue" value={constraintForm.value} onChange={(event) => setConstraintForm({ ...constraintForm, value: event.target.value })} placeholder="e.g. cost_price" />
+            <Input id="constraintValue" value={constraintForm.value} onChange={(event) => setConstraintForm({ ...constraintForm, value: event.target.value })} placeholder={constraintForm.operator === 'Regex' ? '^\\d+$' : constraintForm.operator === 'Formula' || constraintForm.operator === 'Custom' ? 'e.g. other_number % 1 = 0' : 'e.g. cost_price'} />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setConstraintModalOpen(false)}>Cancel</Button>
