@@ -3,6 +3,7 @@ import { CandidateProgressService } from "./candidate-progress.service";
 import { PrismaService } from "@/prisma/prisma.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { ReportAuditService } from "./report-audit.service";
+import { ResultsService } from "../../results/services/results.service";
 
 describe("CandidateProgressService", () => {
   let service: CandidateProgressService;
@@ -29,6 +30,25 @@ describe("CandidateProgressService", () => {
         { provide: PrismaService, useValue: prisma },
         { provide: RedisCacheService, useValue: cacheService },
         { provide: ReportAuditService, useValue: auditService },
+        { 
+          provide: ResultsService, 
+          useValue: {
+            getResultDetails: jest.fn().mockImplementation((attemptId: string) => {
+              if (attemptId === "ti-1") {
+                return Promise.resolve({
+                  percentage: 80,
+                  evaluationAnalytics: { completionRate: 100, topicAccuracy: { "Coding": 80 }, difficultyAccuracy: { "medium": 80 } }
+                });
+              } else if (attemptId === "ti-2") {
+                return Promise.resolve({
+                  percentage: 90,
+                  evaluationAnalytics: { completionRate: 100, topicAccuracy: { "Coding": 90 }, difficultyAccuracy: { "medium": 90 } }
+                });
+              }
+              return Promise.resolve({});
+            })
+          }
+        },
       ],
     }).compile();
 
@@ -49,9 +69,9 @@ describe("CandidateProgressService", () => {
     prisma.testInstance.findMany.mockResolvedValue([
       {
         id: "ti-1",
-        candidateResult: {
+        evaluationResult: {
           createdAt: new Date(),
-          percentage: 80,
+          overallScore: 80,
         },
         evaluationAnalytics: {
           completionRate: 100,
@@ -62,9 +82,9 @@ describe("CandidateProgressService", () => {
       },
       {
         id: "ti-2",
-        candidateResult: {
+        evaluationResult: {
           createdAt: new Date(),
-          percentage: 90,
+          overallScore: 90,
         },
         evaluationAnalytics: {
           completionRate: 100,

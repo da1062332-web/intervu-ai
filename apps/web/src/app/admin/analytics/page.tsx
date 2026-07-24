@@ -8,6 +8,7 @@ import { TrendCard } from '@/components/admin/analytics/TrendCard';
 import { ProgressIndicator } from '@/components/admin/analytics/ProgressIndicator';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { WidgetSkeleton, TimelineSkeleton } from '@/components/ui/skeletons';
 
 import { useDashboardStats } from '@/modules/dashboard/hooks/use-dashboard-stats';
 import { useAnalyticsSummary } from '@/modules/dashboard/hooks/use-analytics-summary';
@@ -145,14 +146,7 @@ export default function AnalyticsDashboardPage() {
           </CardHeader>
           <CardContent className='flex-1 flex flex-col justify-center space-y-6 pt-2'>
             {isLoadingSummary ? (
-              <div className='space-y-6'>
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className='flex flex-col gap-2'>
-                    <div className='h-4 bg-muted animate-pulse rounded w-1/3' />
-                    <div className='h-2 bg-muted animate-pulse rounded-full w-full' />
-                  </div>
-                ))}
-              </div>
+              <WidgetSkeleton className="border-0 shadow-none bg-transparent" />
             ) : hasSkills ? (
               performanceMetrics.map((metric, idx) => (
                 <ProgressIndicator
@@ -189,17 +183,7 @@ export default function AnalyticsDashboardPage() {
       <Card>
         <CardContent className='p-0'>
           {isLoadingActivity ? (
-            <div className='p-6 space-y-4'>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className='flex gap-4'>
-                  <div className='size-10 rounded-full bg-muted animate-pulse' />
-                  <div className='space-y-2 flex-1'>
-                    <div className='h-4 bg-muted animate-pulse rounded w-1/4' />
-                    <div className='h-3 bg-muted animate-pulse rounded w-1/2' />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TimelineSkeleton className="border-0 shadow-none bg-transparent" />
           ) : recentActivities.length > 0 ? (
             <div className='divide-y divide-border'>
               {recentActivities.map((activity) => (

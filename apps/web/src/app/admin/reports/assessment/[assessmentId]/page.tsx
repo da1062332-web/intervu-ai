@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { ReportSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatCard } from '@/components/ui/stat-card';
@@ -48,7 +48,7 @@ export default function AdminAssessmentOutcomePage() {
     if (assessmentId) fetchOutcome();
   }, [assessmentId]);
 
-  if (loading) return <AnimatedLoader variant="page" />;
+  if (loading) return <ReportSkeleton />;
   if (!outcome) {
     return (
       <EmptyState

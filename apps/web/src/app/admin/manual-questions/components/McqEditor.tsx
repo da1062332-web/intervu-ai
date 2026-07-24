@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useController } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 
 interface McqEditorProps {
@@ -8,29 +8,34 @@ interface McqEditorProps {
 }
 
 export function McqEditor({ index, disabled }: McqEditorProps) {
-  const { register, watch, setValue, formState: { errors } } = useFormContext();
+  const { register, watch, setValue } = useFormContext();
   
-  // Watch all options to keep the correct answer in sync if they just type the option text
-  // Actually, we'll store the literal string of the option in `answer` when the radio is selected.
-  // Wait, if they edit the option text after selecting it as correct, `answer` needs to update!
-  // To keep it simple and robust, let's just make the radio select an index `0, 1, 2, 3`, 
-  // and we store the actual option text in `answer` just before submitting, or we store the index in a transient field.
-  // A better way: The correct answer radio just stores "A", "B", "C", "D" in a local state or form state `correctOptionIndex`.
-  
-  const options = watch(`questions.${index}.options`) || ['', '', '', ''];
+  const { field: optionsField } = useController({
+    name: `questions.${index}.options`,
+    defaultValue: ['', '', '', ''],
+  });
+
+  const options: string[] = Array.isArray(optionsField.value) && optionsField.value.length > 0 
+    ? optionsField.value 
+    : ['', '', '', ''];
+
   const correctIndexStr = watch(`questions.${index}.mcqCorrectIndex`);
 
   const handleOptionChange = (optIdx: number, val: string) => {
-    setValue(`questions.${index}.options.${optIdx}`, val, { shouldValidate: true });
+    const updated = [...options];
+    while (updated.length < 4) updated.push('');
+    updated[optIdx] = val;
+    optionsField.onChange(updated);
+    
     // If this option is currently marked as correct, update the `answer` field
     if (String(optIdx) === String(correctIndexStr)) {
-      setValue(`questions.${index}.answer`, val, { shouldValidate: true });
+      setValue(`questions.${index}.answer`, val, { shouldValidate: true, shouldDirty: true });
     }
   };
 
   const handleCorrectChange = (optIdx: number) => {
-    setValue(`questions.${index}.mcqCorrectIndex`, String(optIdx), { shouldValidate: true });
-    setValue(`questions.${index}.answer`, options[optIdx] || '', { shouldValidate: true });
+    setValue(`questions.${index}.mcqCorrectIndex`, String(optIdx), { shouldValidate: true, shouldDirty: true });
+    setValue(`questions.${index}.answer`, options[optIdx] || '', { shouldValidate: true, shouldDirty: true });
   };
 
   return (
@@ -69,7 +74,7 @@ export function McqEditor({ index, disabled }: McqEditorProps) {
               <textarea
                 className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder={`Enter option ${String.fromCharCode(65 + optIdx)}...`}
-                value={options[optIdx]}
+                value={options[optIdx] || ''}
                 onChange={(e) => handleOptionChange(optIdx, e.target.value)}
                 disabled={disabled}
               />
@@ -78,9 +83,7 @@ export function McqEditor({ index, disabled }: McqEditorProps) {
         })}
       </div>
       
-      {/* Hidden field to register mcqCorrectIndex and options */}
       <input type="hidden" {...register(`questions.${index}.mcqCorrectIndex`)} />
-      {/* The `answer` field is updated dynamically, but we should register it */}
       <input type="hidden" {...register(`questions.${index}.answer`)} />
     </div>
   );

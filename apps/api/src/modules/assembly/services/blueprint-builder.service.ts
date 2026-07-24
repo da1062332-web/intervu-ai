@@ -1,12 +1,21 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { BlueprintDto, BlueprintSectionDto } from "@intervu/shared";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class BlueprintBuilderService {
-  constructor(private readonly blueprintRepository: BlueprintRepository) {}
+  constructor(
+    private readonly blueprintRepository: BlueprintRepository,
+    private readonly redisCacheService: RedisCacheService,
+  ) {}
 
   async generateBlueprint(configId: string): Promise<BlueprintDto> {
+    const cached = await this.redisCacheService.getBlueprint<BlueprintDto>(configId);
+    if (cached) {
+      return cached;
+    }
+
     const config =
       await this.blueprintRepository.getExamConfigForBlueprint(configId);
 
@@ -77,7 +86,7 @@ export class BlueprintBuilderService {
       },
     );
 
-    return {
+    const blueprint: BlueprintDto = {
       testConfigId: configId,
       totalQuestions,
       totalDurationSeconds,
@@ -90,5 +99,10 @@ export class BlueprintBuilderService {
         : undefined,
       sections,
     };
+
+    const ttl = parseInt(process.env.ASSEMBLY_BLUEPRINT_CACHE_TTL_SECONDS || '3600', 10);
+    await this.redisCacheService.setBlueprint(configId, blueprint, ttl);
+
+    return blueprint;
   }
 }

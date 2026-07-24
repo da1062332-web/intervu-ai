@@ -16,7 +16,7 @@ export const SectionHeader = React.forwardRef<HTMLDivElement, SectionHeaderProps
     return (
       <div
         ref={ref}
-        className={cn('flex flex-col gap-4 mb-8 pb-4 border-b border-border/40', className)}
+        className={cn('flex flex-col gap-4 mb-8 pb-4 border-b-2 border-border/60 dark:border-border/80', className)}
         {...props}
       >
         {/* Breadcrumbs */}

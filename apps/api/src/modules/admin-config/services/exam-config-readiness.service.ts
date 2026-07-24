@@ -138,6 +138,12 @@ export class ExamConfigReadinessService {
           targetDifficulty,
         );
 
+        const totalTopicCount = await this.usageService.getUnusedPoolCount(
+          configId,
+          st.topic.id,
+          undefined,
+        );
+
         availableUnusedCapacity += unusedCount;
 
         if (unusedCount >= questionsPerTopic) {
@@ -145,7 +151,7 @@ export class ExamConfigReadinessService {
           checks.push({
             name: `Question Pool (${st.topic.name})`,
             status: "PASS",
-            message: `${unusedCount} unused question(s) available for topic '${st.topic.name}'.`,
+            message: `${unusedCount} unused ${targetDifficulty} question(s) available for topic '${st.topic.name}' (${totalTopicCount} total active in pool).`,
           });
         } else {
           conflictingTopicsCount++;
@@ -155,21 +161,31 @@ export class ExamConfigReadinessService {
               st.topic.id,
             );
 
-          const conflictMsg =
-            conflictingConfigNames.length > 0
-              ? `(used by exam '${conflictingConfigNames.join(", ")}')`
-              : "(pool empty)";
+          let message = "";
+          if (totalTopicCount === 0) {
+            // Scenario A: No questions in pool at all
+            message = `Topic '${st.topic.name}' has no active questions in pool. Required: ${questionsPerTopic} ${targetDifficulty} question(s).`;
+          } else {
+            // Scenario B: Questions exist, but not enough of the required difficulty
+            const conflictMsg =
+              conflictingConfigNames.length > 0
+                ? ` (used by exam '${conflictingConfigNames.join(", ")}')`
+                : "";
+            message = `Topic '${st.topic.name}' has ${totalTopicCount} questions in pool, but only ${unusedCount} unused ${targetDifficulty} question(s) remaining${conflictMsg}. Required: ${questionsPerTopic} ${targetDifficulty} question(s).`;
+          }
 
           checks.push({
             name: `Question Pool (${st.topic.name})`,
             status: "WARN",
-            message: `Topic '${st.topic.name}' has ${unusedCount} unused questions remaining ${conflictMsg}. Required: ${questionsPerTopic}.`,
+            message,
             details: {
               topicId: st.topic.id,
               topicName: st.topic.name,
               topicCode: st.topic.code,
               requiredCount: questionsPerTopic,
               availableUnusedCount: unusedCount,
+              totalTopicCount,
+              targetDifficulty,
               conflictingConfigNames,
               shortcutUrl: `/admin/question-generation?topicId=${st.topic.id}`,
             },

@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { TestInstanceStatus } from "@prisma/client";
 import { PrismaService } from "@/prisma/prisma.service";
+import { FinalShufflerService } from "./final-shuffler.service";
 
 describe("StartTestService", () => {
   let service: StartTestService;
@@ -20,6 +21,7 @@ describe("StartTestService", () => {
   let questionProvider: jest.Mocked<QuestionProviderService>;
   let testInstanceService: jest.Mocked<TestInstanceService>;
   let assembledTestRepository: { findByConfigId: jest.Mock };
+  let finalShufflerService: { shuffleSections: jest.Mock };
 
   beforeEach(async () => {
     const eligibilityMock = {
@@ -37,6 +39,9 @@ describe("StartTestService", () => {
     const assembledTestRepositoryMock = {
       findByConfigId: jest.fn(),
     };
+    const finalShufflerMock = {
+      shuffleSections: jest.fn().mockImplementation((sections) => sections),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -47,6 +52,7 @@ describe("StartTestService", () => {
         { provide: AssembledTestRepository, useValue: assembledTestRepositoryMock },
         { provide: TestInstanceService, useValue: testInstanceMock },
         { provide: PrismaService, useValue: {} },
+        { provide: FinalShufflerService, useValue: finalShufflerMock },
       ],
     }).compile();
 
@@ -56,6 +62,7 @@ describe("StartTestService", () => {
     questionProvider = module.get(QuestionProviderService);
     testInstanceService = module.get(TestInstanceService);
     assembledTestRepository = module.get(AssembledTestRepository);
+    finalShufflerService = module.get(FinalShufflerService);
   });
 
   const validUserId = "user-1";

@@ -7,9 +7,9 @@ import { useSystemValidationStore } from '@/store/system-validation.store';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { WidgetSkeleton, FormSkeleton } from '@/components/ui/skeletons';
+import { SectionHeader } from '@/components/ui/section-header';
 import {
   ShieldCheck,
   ChevronDown,
@@ -84,11 +84,11 @@ export default function SystemValidationPage() {
   };
 
   return (
-    <div className='container mx-auto max-w-7xl space-y-8'>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
       {/* Page Header */}
-      <PageHeader
+      <SectionHeader
         title="Cross-Module System Validation"
-        subtitle="Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules."
+        description="Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules."
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'System Validation' }]}
       />
 
@@ -104,7 +104,7 @@ export default function SystemValidationPage() {
               Select Exam Configuration
             </label>
             {isConfigsLoading ? (
-              <AnimatedLoader variant="table" />
+              <FormSkeleton />
             ) : isConfigsError ? (
               <div className='text-rose-500 text-sm'>Failed to load exam configurations.</div>
             ) : (
@@ -233,10 +233,10 @@ export default function SystemValidationPage() {
 
             {isLoading ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <AnimatedLoader variant="table" />
-                <AnimatedLoader variant="table" />
-                <AnimatedLoader variant="table" />
-                <AnimatedLoader variant="table" />
+                <WidgetSkeleton className="h-[120px]" />
+                <WidgetSkeleton className="h-[120px]" />
+                <WidgetSkeleton className="h-[120px]" />
+                <WidgetSkeleton className="h-[120px]" />
               </div>
             ) : !validationResult ? (
               <EmptyState

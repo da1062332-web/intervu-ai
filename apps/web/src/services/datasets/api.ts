@@ -5,6 +5,8 @@ export interface Dataset {
   name: string;
   description?: string;
   type: string;
+  topicId?: string;
+  conceptId?: string;
   createdAt: string;
   updatedAt: string;
   _count?: { items: number };
@@ -13,9 +15,15 @@ export interface Dataset {
 export interface DatasetItem {
   id: string;
   datasetId: string;
+  questionText?: string;
   content: string;
+  options?: string[];
+  answer?: string;
+  explanation?: string;
   difficulty: string;
   topic: string;
+  topicId?: string;
+  conceptId?: string;
   tags: string[];
   metadata: Record<string, unknown>;
   createdAt: string;
@@ -30,19 +38,29 @@ export interface CreateDatasetPayload {
   name: string;
   description?: string;
   type: string;
+  topicId?: string;
+  conceptId?: string;
 }
 
 export interface UpdateDatasetPayload {
   name?: string;
   description?: string;
   type?: string;
+  topicId?: string;
+  conceptId?: string;
 }
 
 export interface CreateDatasetItemPayload {
-  content: string;
+  questionText?: string;
+  content?: string;
+  options?: string[];
+  answer?: string;
+  explanation?: string;
   difficulty: string;
-  topic: string;
-  tags: string[];
+  topic?: string;
+  topicId?: string;
+  conceptId?: string;
+  tags?: string[];
   metadata?: Record<string, unknown>;
 }
 
@@ -76,6 +94,12 @@ export const datasetsApi = {
 
   deleteItem: (itemId: string): Promise<void> =>
     apiClient.request<void>(`/datasets/items/${itemId}`, { method: 'DELETE' }),
+
+  updateItem: (itemId: string, payload: Partial<CreateDatasetItemPayload>): Promise<DatasetItem> =>
+    apiClient.request<DatasetItem>(`/datasets/items/${itemId}`, {
+      method: 'PATCH',
+      body: payload,
+    }),
 
   getDatasetSchema: (datasetId: string): Promise<any> =>
     apiClient.request<any>(`/datasets/${datasetId}/schema`, { method: 'GET' }),

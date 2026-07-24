@@ -3,7 +3,7 @@
 import { useConfig } from '@/services/exam-configs';
 import { ConfigForm } from '@/components/admin/config/config-form';
 import { ConfigHeader } from '@/components/admin/config/config-header';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { FormSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card } from '@/components/ui/card';
 
@@ -17,7 +17,7 @@ export function EditConfigClient({ configId }: EditConfigClientProps) {
   if (isLoading) {
     return (
       <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-4xl h-[50vh]'>
-        <AnimatedLoader variant='page' />
+        <FormSkeleton />
       </div>
     );
   }

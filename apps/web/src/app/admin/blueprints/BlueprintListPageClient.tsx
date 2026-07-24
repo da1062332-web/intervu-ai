@@ -4,7 +4,6 @@ import { useBlueprints } from '@/services/blueprints/hooks';
 import { Button } from '@/components/ui/button';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Eye, Edit2, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
@@ -69,8 +68,6 @@ export function BlueprintListPageClient() {
 
   return (
     <div className='mt-6 border rounded-lg bg-card shadow-sm'>
-      {isLoading && <AnimatedLoader variant='table' className='my-8' />}
-      
       {isError && !isLoading && (
         <EmptyState
           variant='error'
@@ -82,10 +79,11 @@ export function BlueprintListPageClient() {
         />
       )}
 
-      {!isLoading && !isError && (
+      {!isError && (
         <DataTable
           columns={columns}
           data={bpList}
+          isLoading={isLoading}
           rowKey={(row) => row.id}
           emptyState={
             <EmptyState

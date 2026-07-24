@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TemplateSection } from '../TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,8 @@ import { Loader2, Database, Search, Tag } from 'lucide-react';
 import { useDatasets } from '@/services/datasets/hooks';
 import { useStrategyConfigStore } from '@/store/strategy-config.store';
 import { validateStrategyConfig } from '../../registry/strategy-validation.registry';
-import { useEffect } from 'react';
+import { useUpdateTemplate, useSaveOptionStrategy } from '@/services/templates/hooks';
+import toast from 'react-hot-toast';
 import type { StrategyPanelProps } from '../../registry/strategy-panel.registry';
 import type { Dataset } from '@/services/datasets/api';
 
@@ -17,7 +18,7 @@ import type { Dataset } from '@/services/datasets/api';
  * DatasetStrategyPanel
  *
  * Displays dataset type, topic, difficulty, tag filters, and a dataset browser.
- * Config is saved to Zustand store and validated with datasetStrategySchema.
+ * Config is saved to Zustand store and persisted to the backend API.
  */
 export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelProps) {
   const { updateConfig, configs } = useStrategyConfigStore();
@@ -26,6 +27,10 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
   const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
+
+  const { mutate: updateTemplate, isPending: isUpdatingTemplate } = useUpdateTemplate();
+  const { mutate: saveOptionStrategy, isPending: isSavingOptionStrategy } = useSaveOptionStrategy();
+  const isSaving = isUpdatingTemplate || isSavingOptionStrategy;
 
   useEffect(() => {
     if (template?.config && !hydrated) {
@@ -41,12 +46,37 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
 
   const { data: datasets, isLoading } = useDatasets();
 
+  const templateTopicIds: string[] = [
+    template?.topicId,
+    template?.config?.topicId,
+    ...(Array.isArray(template?.config?.topics) ? template.config.topics : []),
+  ].filter(Boolean) as string[];
+
+  const templateConceptKeys: string[] = [
+    template?.conceptKey,
+    template?.conceptId,
+    template?.config?.conceptId,
+    template?.config?.conceptKey,
+  ].filter(Boolean) as string[];
+
+  const matchedDatasets = (datasets || []).filter((ds: Dataset) => {
+    const matchesTopic = templateTopicIds.length > 0 && ds.topicId ? templateTopicIds.includes(ds.topicId) : false;
+    const matchesConcept = templateConceptKeys.length > 0 && ds.conceptId ? templateConceptKeys.includes(ds.conceptId) : false;
+    return matchesTopic || matchesConcept;
+  });
+
+  const displayDatasets = (matchedDatasets.length > 0 || (templateTopicIds.length === 0 && templateConceptKeys.length === 0))
+    ? (matchedDatasets.length > 0 ? matchedDatasets : (datasets || []))
+    : (datasets || []);
+
   const handleFieldChange = (field: string, value: string | string[]) => {
     updateConfig({ [field]: value });
     setValidationErrors([]);
   };
 
   const handleSave = () => {
+    if (!template?.id) return;
+
     const result = validateStrategyConfig('DATASET', {
       ...config,
       selectedDatasetId,
@@ -58,6 +88,34 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
     }
     updateConfig({ datasetId: selectedDatasetId });
     setValidationErrors([]);
+
+    const updatedConfig = { ...config, datasetId: selectedDatasetId };
+
+    updateTemplate({
+      templateId: template.id,
+      payload: {
+        config: updatedConfig,
+        generationStrategy: 'DATASET',
+      },
+    });
+
+    saveOptionStrategy(
+      {
+        templateId: template.id,
+        payload: {
+          strategy: 'DATASET',
+          datasetId: selectedDatasetId,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Dataset strategy configuration saved successfully');
+        },
+        onError: () => {
+          toast.error('Failed to save dataset strategy configuration');
+        },
+      },
+    );
   };
 
   return (
@@ -66,7 +124,8 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
         title="Dataset Strategy Configuration"
         description="Select a dataset and configure filters that determine which passages or items are used to generate questions."
         actions={
-          <Button onClick={handleSave} size="sm">
+          <Button onClick={handleSave} size="sm" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Configuration
           </Button>
         }
@@ -180,27 +239,40 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {datasets.map((dataset: Dataset) => (
-                <div
-                  key={dataset.id}
-                  onClick={() => setSelectedDatasetId(dataset.id)}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedDatasetId === dataset.id
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
-                      : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-medium text-sm">{dataset.name}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Type: {dataset.type} · Items: {dataset._count?.items ?? 0}
-                  </div>
-                  {dataset.description && (
-                    <div className="text-xs text-gray-400 mt-1 line-clamp-2">
-                      {dataset.description}
+              {displayDatasets.map((dataset: Dataset) => {
+                const isMatchingTopic = (templateTopicIds.length > 0 && dataset.topicId ? templateTopicIds.includes(dataset.topicId) : false) ||
+                                        (templateConceptKeys.length > 0 && dataset.conceptId ? templateConceptKeys.includes(dataset.conceptId) : false);
+                return (
+                  <div
+                    key={dataset.id}
+                    onClick={() => setSelectedDatasetId(dataset.id)}
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors relative ${
+                      selectedDatasetId === dataset.id
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30 ring-1 ring-indigo-500'
+                        : isMatchingTopic
+                          ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20 hover:border-emerald-400'
+                          : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-sm">{dataset.name}</div>
+                      {isMatchingTopic && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold shrink-0">
+                          Topic Match
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                    <div className="text-xs text-gray-500 mt-1">
+                      Type: {dataset.type} · Items: {dataset._count?.items ?? 0}
+                    </div>
+                    {dataset.description && (
+                      <div className="text-xs text-gray-400 mt-1 line-clamp-2">
+                        {dataset.description}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

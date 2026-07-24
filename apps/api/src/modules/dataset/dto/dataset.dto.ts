@@ -28,6 +28,16 @@ export class CreateDatasetDto {
   @IsString()
   @IsNotEmpty()
   type!: string;
+
+  @ApiPropertyOptional({ description: "Associated topic ID" })
+  @IsString()
+  @IsOptional()
+  topicId?: string;
+
+  @ApiPropertyOptional({ description: "Associated concept ID" })
+  @IsString()
+  @IsOptional()
+  conceptId?: string;
 }
 
 export class UpdateDatasetDto {
@@ -45,31 +55,73 @@ export class UpdateDatasetDto {
   @IsString()
   @IsOptional()
   type?: string;
+
+  @ApiPropertyOptional({ description: "Associated topic ID" })
+  @IsString()
+  @IsOptional()
+  topicId?: string;
+
+  @ApiPropertyOptional({ description: "Associated concept ID" })
+  @IsString()
+  @IsOptional()
+  conceptId?: string;
 }
 
 export class CreateDatasetItemDto {
+  @ApiPropertyOptional({ description: "Question text prompt" })
+  @IsString()
+  @IsOptional()
+  questionText?: string;
+
   @ApiProperty({
     description: "Passage, vocabulary word, or sentence content",
     example: "abundant",
   })
   @IsString()
-  @IsNotEmpty()
-  content!: string;
+  @IsOptional()
+  content?: string;
+
+  @ApiPropertyOptional({ description: "MCQ Options array", example: ["A", "B", "C", "D"] })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  options?: string[];
+
+  @ApiPropertyOptional({ description: "Correct Answer" })
+  @IsString()
+  @IsOptional()
+  answer?: string;
+
+  @ApiPropertyOptional({ description: "Explanation" })
+  @IsString()
+  @IsOptional()
+  explanation?: string;
 
   @ApiProperty({ description: "Difficulty level", example: "EASY" })
   @IsString()
   @IsNotEmpty()
   difficulty!: string;
 
-  @ApiProperty({ description: "Associated topic", example: "synonyms" })
+  @ApiPropertyOptional({ description: "Associated topic string", example: "synonyms" })
   @IsString()
-  @IsNotEmpty()
-  topic!: string;
+  @IsOptional()
+  topic?: string;
 
-  @ApiProperty({ description: "Filter tags", example: ["english", "synonyms"] })
+  @ApiPropertyOptional({ description: "Associated topic ID" })
+  @IsString()
+  @IsOptional()
+  topicId?: string;
+
+  @ApiPropertyOptional({ description: "Associated concept ID" })
+  @IsString()
+  @IsOptional()
+  conceptId?: string;
+
+  @ApiPropertyOptional({ description: "Filter tags", example: ["english", "synonyms"] })
   @IsArray()
   @IsString({ each: true })
-  tags!: string[];
+  @IsOptional()
+  tags?: string[];
 
   @ApiPropertyOptional({
     description: "Additional metadata (e.g., synonyms, distractors)",
@@ -81,6 +133,11 @@ export class CreateDatasetItemDto {
 }
 
 export class UpdateDatasetItemDto {
+  @ApiPropertyOptional({ description: "Question text prompt" })
+  @IsString()
+  @IsOptional()
+  questionText?: string;
+
   @ApiPropertyOptional({
     description: "Passage, vocabulary word, or sentence content",
     example: "abundant",
@@ -89,15 +146,41 @@ export class UpdateDatasetItemDto {
   @IsOptional()
   content?: string;
 
+  @ApiPropertyOptional({ description: "MCQ Options array" })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  options?: string[];
+
+  @ApiPropertyOptional({ description: "Correct Answer" })
+  @IsString()
+  @IsOptional()
+  answer?: string;
+
+  @ApiPropertyOptional({ description: "Explanation" })
+  @IsString()
+  @IsOptional()
+  explanation?: string;
+
   @ApiPropertyOptional({ description: "Difficulty level", example: "EASY" })
   @IsString()
   @IsOptional()
   difficulty?: string;
 
-  @ApiPropertyOptional({ description: "Associated topic", example: "synonyms" })
+  @ApiPropertyOptional({ description: "Associated topic string", example: "synonyms" })
   @IsString()
   @IsOptional()
   topic?: string;
+
+  @ApiPropertyOptional({ description: "Associated topic ID" })
+  @IsString()
+  @IsOptional()
+  topicId?: string;
+
+  @ApiPropertyOptional({ description: "Associated concept ID" })
+  @IsString()
+  @IsOptional()
+  conceptId?: string;
 
   @ApiPropertyOptional({ description: "Filter tags", example: ["english", "synonyms"] })
   @IsArray()

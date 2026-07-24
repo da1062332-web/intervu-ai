@@ -1,6 +1,7 @@
 import { RedisCacheService } from "@/cache/redis-cache.service";
 import { RedisConnectionManager } from "@/cache/redis-connection.manager";
 import { AppLogger } from "@intervu-ai/shared-logger";
+import { AppConfigService } from "@/config/config.service";
 
 // Mock IORedis
 jest.mock("ioredis", () => {
@@ -80,6 +81,7 @@ describe("Redis Cache Service", () => {
   let redis: Redis;
   let cacheService: RedisCacheService;
   let logger: AppLogger;
+  let configMock: AppConfigService;
 
   beforeAll(async () => {
     logger = new AppLogger({
@@ -99,7 +101,11 @@ describe("Redis Cache Service", () => {
     );
     RedisConnectionManager.setLogger(logger);
 
-    cacheService = new RedisCacheService(logger);
+    configMock = {
+      nodeEnv: "test",
+    } as unknown as AppConfigService;
+
+    cacheService = new RedisCacheService(logger, configMock);
   });
 
   afterAll(async () => {
@@ -202,13 +208,14 @@ describe("Redis Cache Service", () => {
   describe("Domain-Specific Methods", () => {
     it("should use getQuestion/setQuestion", async () => {
       const questionId = "q-001";
+      const source = "manual";
       const questionData = {
         text: "Question text",
         options: ["A", "B", "C", "D"],
       };
 
-      await cacheService.setQuestion(questionId, questionData);
-      const retrieved = await cacheService.getQuestion(questionId);
+      await cacheService.setQuestion(source, questionId, questionData);
+      const retrieved = await cacheService.getQuestion(source, questionId);
 
       expect(retrieved).toEqual(questionData);
     });
@@ -234,6 +241,19 @@ describe("Redis Cache Service", () => {
       const retrieved = await cacheService.getAssembly(assemblyId);
 
       expect(retrieved).toEqual(assemblyData);
+    });
+
+    it("should use getBlueprint/setBlueprint/invalidateBlueprint", async () => {
+      const configId = "c-001";
+      const bpData = { testConfigId: configId, totalQuestions: 10 };
+
+      await cacheService.setBlueprint(configId, bpData);
+      let retrieved = await cacheService.getBlueprint(configId);
+      expect(retrieved).toEqual(bpData);
+
+      await cacheService.invalidateBlueprint(configId);
+      retrieved = await cacheService.getBlueprint(configId);
+      expect(retrieved).toBeNull();
     });
   });
 

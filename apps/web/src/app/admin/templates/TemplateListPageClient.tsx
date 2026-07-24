@@ -5,9 +5,8 @@ import { useState, useEffect } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import {
   Select,
   SelectContent,
@@ -52,12 +51,19 @@ export function TemplateListPageClient() {
     name: 'New Template',
     templateKey: '',
     conceptKey: '',
-    questionType: 'coding',
+    questionType: 'MULTIPLE_CHOICE',
     difficulty: 'MEDIUM',
     generationStrategy: 'VARIABLE',
   });
+  const [modalError, setModalError] = useState('');
 
   const handleCreateTemplate = () => {
+    setModalError('');
+    if (selectedTopicId && !formData.conceptKey) {
+      setModalError('Please select a Concept for the selected Topic before creating the template.');
+      return;
+    }
+
     createMutation.mutate(
       {
         name: formData.name,
@@ -67,7 +73,7 @@ export function TemplateListPageClient() {
         questionType: formData.questionType || undefined,
         difficulty: formData.difficulty as any,
         generationStrategy: formData.generationStrategy as any,
-        config: { topics: [], timeLimit: 3600 },
+        config: { topics: selectedTopicId ? [selectedTopicId] : [], timeLimit: 3600 },
         isSystem: false,
       },
       {
@@ -162,11 +168,11 @@ export function TemplateListPageClient() {
 
   return (
     <div className='container mx-auto space-y-6 max-w-7xl'>
-      <PageHeader
+      <SectionHeader
         title='Templates'
-        subtitle='Manage generation templates and solutions.'
+        description='Manage generation templates and solutions.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Templates' }]}
-        action={
+        actions={
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className='w-4 h-4 mr-2' />
             Create Template
@@ -195,9 +201,7 @@ export function TemplateListPageClient() {
       </div>
 
       <div className='border rounded-xl bg-card shadow-sm'>
-        {isLoading && <AnimatedLoader variant='table' className='my-8' />}
-        
-        {isError && (
+        {isError ? (
           <EmptyState
             variant='error'
             title='Unable to load templates'
@@ -206,12 +210,11 @@ export function TemplateListPageClient() {
             onAction={() => refetch()}
             className='py-12'
           />
-        )}
-
-        {!isLoading && !isError && (
+        ) : (
           <DataTable
             columns={columns}
             data={templates}
+            isLoading={isLoading}
             rowKey={(row) => row.id}
             emptyState={
               <EmptyState
@@ -226,8 +229,13 @@ export function TemplateListPageClient() {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setModalError(''); }}>
         <h2 className='text-xl font-semibold mb-4'>Create New Template</h2>
+        {modalError && (
+          <div className='p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md dark:bg-red-950/30 dark:border-red-800 dark:text-red-400'>
+            {modalError}
+          </div>
+        )}
         <div className='space-y-4'>
           <div>
             <Label>Name</Label>
@@ -253,6 +261,7 @@ export function TemplateListPageClient() {
               onValueChange={(val: string) => {
                 setSelectedTopicId(val);
                 setFormData({ ...formData, conceptKey: '' });
+                setModalError('');
               }}
             >
               <SelectTrigger>
@@ -268,11 +277,14 @@ export function TemplateListPageClient() {
             </Select>
           </div>
           <div>
-            <Label>Concept (optional)</Label>
+            <Label>Concept {selectedTopicId ? '*' : '(optional)'}</Label>
             <Select
               disabled={!selectedTopicId || isLoadingConcepts}
               value={formData.conceptKey}
-              onValueChange={(val: string) => setFormData({ ...formData, conceptKey: val })}
+              onValueChange={(val: string) => {
+                setFormData({ ...formData, conceptKey: val });
+                setModalError('');
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder={!selectedTopicId ? 'Select a topic first' : isLoadingConcepts ? 'Loading concepts...' : 'Select a concept...'} />
@@ -288,11 +300,16 @@ export function TemplateListPageClient() {
           </div>
           <div>
             <Label>Question Type</Label>
-            <Input
+            <select
+              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
               value={formData.questionType}
               onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
-              placeholder='e.g. coding'
-            />
+            >
+              <option value='MULTIPLE_CHOICE'>Multiple Choice (MCQ)</option>
+              <option value='CODING'>Coding Problem</option>
+              <option value='NUMERIC'>Numeric Entry</option>
+              <option value='TRUE_FALSE'>True / False</option>
+            </select>
           </div>
           <div>
             <Label>Difficulty</Label>

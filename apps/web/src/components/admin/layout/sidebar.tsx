@@ -143,7 +143,7 @@ export function Sidebar() {
       </div>
 
       {/* ── Nav Body ── */}
-      <div className='flex-1 overflow-y-auto overflow-x-hidden py-4'>
+      <div className='flex-1 overflow-y-auto overflow-x-hidden py-4 sidebar-scroll'>
         <nav className='space-y-6 px-3' aria-label='Sidebar navigation'>
           {navConfig.primary.map((group) => (
             <div key={group.heading} className='space-y-1'>

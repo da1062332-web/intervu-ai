@@ -3,23 +3,38 @@ import { ManualQuestion, ManualQuestionFilters } from './types';
 
 export const manualQuestionsApi = {
   getQuestions: async (filters?: ManualQuestionFilters) => {
-    return apiClient.request<ManualQuestion[]>('/manual-questions', {
+    const res = await apiClient.request<any>('/manual-questions', {
       method: 'GET',
       query: filters as any,
     });
+    const items = Array.isArray(res) ? res : (res?.data || res?.items || []);
+    return items.map((q: any) => ({
+      ...q,
+      options: q.options || q.mcqData?.options || [],
+    }));
   },
 
   searchQuestions: async (query?: any) => {
-    return apiClient.request<ManualQuestion[]>('/manual-questions/search', {
+    const res = await apiClient.request<any>('/manual-questions/search', {
       method: 'GET',
       query,
     });
+    const items = Array.isArray(res) ? res : (res?.data || res?.items || []);
+    return items.map((q: any) => ({
+      ...q,
+      options: q.options || q.mcqData?.options || [],
+    }));
   },
 
   getQuestionById: async (id: string) => {
-    return apiClient.request<ManualQuestion>(`/manual-questions/${id}`, {
+    const res = await apiClient.request<any>(`/manual-questions/${id}`, {
       method: 'GET',
     });
+    const item = res?.data || res;
+    return {
+      ...item,
+      options: item?.options || item?.mcqData?.options || [],
+    };
   },
 
   createQuestion: async (payload: Partial<ManualQuestion>) => {

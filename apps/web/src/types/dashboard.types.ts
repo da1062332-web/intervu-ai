@@ -33,12 +33,6 @@ export interface EmptyStateProps {
   compact?: boolean;
 }
 
-export interface PageHeaderProps {
-  title: string;
-  subtitle?: string;
-  breadcrumbs?: Array<{ label: string; href?: string }>;
-  action?: React.ReactNode;
-}
 
 export interface DashboardStats {
   testsTaken: number;

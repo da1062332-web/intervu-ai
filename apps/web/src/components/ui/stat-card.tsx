@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardSkeleton } from '@/components/ui/skeletons';
 import { cn } from '@/lib/utils';
 
 export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,8 +18,12 @@ export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   ({ title, value, description, icon, trend, isLoading, className, ...props }, ref) => {
+    if (isLoading) {
+      return <CardSkeleton className={className} />;
+    }
+
     return (
-      <Card ref={ref} className={cn('overflow-hidden p-5', className)} isLoading={isLoading} {...props}>
+      <Card ref={ref} className={cn('overflow-hidden p-5', className)} {...props}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 mb-3 pb-0">
           <CardTitle className="text-lg font-semibold text-muted-foreground">{title}</CardTitle>
           {icon && <div className="text-primary bg-primary/10 p-2.5 rounded-xl [&>svg]:size-6">{icon}</div>}

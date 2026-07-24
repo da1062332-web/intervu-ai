@@ -16,10 +16,17 @@ export const useGenerateAssessment = () => {
       toast.success('Assessment generation job enqueued successfully');
     },
     onError: (error: any) => {
-      const msg =
+      let msg =
         error?.response?.data?.message ||
         error?.message ||
         'Failed to enqueue assessment generation';
+        
+      // Make concept pool errors user-friendly
+      const poolMatch = msg.match(/Question pool empty and generation failed for concept: '.*?' \((.*?)\)\. Found (\d+), needed (\d+)/i);
+      if (poolMatch) {
+        msg = `Not enough ${poolMatch[1]} questions available for the required concepts (Needed ${poolMatch[3]}, found ${poolMatch[2]}).`;
+      }
+
       toast.error(msg);
     },
     retry: 2,

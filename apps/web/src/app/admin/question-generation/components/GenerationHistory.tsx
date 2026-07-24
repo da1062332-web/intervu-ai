@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { useGenerationHistory } from '@/services/question-generation/hooks';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 
 export function GenerationHistory() {
@@ -53,23 +52,18 @@ export function GenerationHistory() {
         <CardDescription>History of recent single and batch question generations.</CardDescription>
       </CardHeader>
       <CardContent className="p-0 border-t">
-        {isLoading ? (
-          <div className='p-8'>
-            <AnimatedLoader variant="table" />
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={history || []}
-            emptyState={
-              <EmptyState
-                title="No generation history found"
-                description="Your recent generations will appear here."
-                className="py-12 border-0"
-              />
-            }
-          />
-        )}
+        <DataTable
+          columns={columns}
+          data={history || []}
+          isLoading={isLoading}
+          emptyState={
+            <EmptyState
+              title="No generation history found"
+              description="Your recent generations will appear here."
+              className="py-12 border-0"
+            />
+          }
+        />
       </CardContent>
     </Card>
   );

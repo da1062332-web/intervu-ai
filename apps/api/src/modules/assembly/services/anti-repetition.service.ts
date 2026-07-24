@@ -58,7 +58,9 @@ export class AntiRepetitionService {
       };
     }
 
-    // Level 3: Semantic Similarity
+    // Level 3: Semantic Similarity (MVP Lexical)
+    // Note: The SemanticSimilarityProvider currently provides basic lexical similarity, 
+    // NOT true semantic duplicate detection. (Post-MVP enhancement)
     const getCandidateText = () =>
       candidateQuestion.text ||
       candidateQuestion.questionText ||

@@ -258,6 +258,11 @@ export class SearchFiltersDto {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
+  conceptId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
   @IsIn(["EASY", "MEDIUM", "HARD"])
   difficulty?: string;
 

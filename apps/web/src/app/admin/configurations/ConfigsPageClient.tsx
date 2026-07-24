@@ -5,16 +5,11 @@ import { ConfigTable } from '@/components/admin/config/config-table';
 import { useConfigs } from '@/services/exam-configs';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 
 export function ConfigsPageClient() {
   const { data: configs, isLoading, isError, refetch } = useConfigs();
   const [searchQuery, setSearchQuery] = useState('');
-
-  if (isLoading) {
-    return <AnimatedLoader variant='table' className='mt-8' />;
-  }
 
   if (isError) {
     return (
@@ -52,7 +47,7 @@ export function ConfigsPageClient() {
           />
         </div>
       </div>
-      <ConfigTable configs={filteredConfigs} />
+      <ConfigTable configs={filteredConfigs} isLoading={isLoading} />
     </div>
   );
 }

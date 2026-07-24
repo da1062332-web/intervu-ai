@@ -304,6 +304,8 @@ export class TemplateService {
       updateInput.constraints = validated.constraints as Prisma.InputJsonValue;
     if (validated.generationStrategy !== undefined)
       updateInput.generationStrategy = validated.generationStrategy;
+    if ((validated as any).isActive !== undefined)
+      updateInput.isActive = (validated as any).isActive;
 
     const updated = await this.templateRepository.update(id, updateInput);
 

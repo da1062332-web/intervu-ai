@@ -7,12 +7,14 @@ import {
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class ExamSectionService {
   constructor(
     private readonly sectionRepo: ExamSectionRepository,
     private readonly configRepo: ExamConfigRepository,
+    private readonly redisCacheService: RedisCacheService,
   ) {}
 
   async createSection(configId: string, dto: CreateExamSectionDto) {
@@ -64,7 +66,9 @@ export class ExamSectionService {
       },
     };
 
-    return this.sectionRepo.create(createData);
+    const created = await this.sectionRepo.create(createData);
+    await this.redisCacheService.invalidateBlueprint(configId);
+    return created;
   }
 
   async getSections(configId: string) {
@@ -119,7 +123,9 @@ export class ExamSectionService {
       }
     }
 
-    return this.sectionRepo.update(sectionId, dto);
+    const updated = await this.sectionRepo.update(sectionId, dto);
+    await this.redisCacheService.invalidateBlueprint(section.examConfigId);
+    return updated;
   }
 
   async deleteSection(sectionId: string) {
@@ -137,6 +143,8 @@ export class ExamSectionService {
       });
     }
 
-    return this.sectionRepo.delete(sectionId);
+    const deleted = await this.sectionRepo.delete(sectionId);
+    await this.redisCacheService.invalidateBlueprint(section.examConfigId);
+    return deleted;
   }
 }

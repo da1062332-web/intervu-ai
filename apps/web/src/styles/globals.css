@@ -3,11 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  .theme {
-    --font-sans: var(--font-inter);
-    --font-heading: var(--font-outfit);
-    --font-mono: var(--font-mono);
-  }
+
   :root {
     /* Soft, premium slate/blue-tinted off-white background */
     --background: oklch(0.98 0.005 260);
@@ -133,4 +129,26 @@
       transform: translateY(0);
     }
   }
+
+  /* Global Custom Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  *:hover {
+    scrollbar-color: theme('colors.border') transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background-color: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+  }
+  *:hover::-webkit-scrollbar-thumb {
+    background-color: theme('colors.border');
+  }
 }
+

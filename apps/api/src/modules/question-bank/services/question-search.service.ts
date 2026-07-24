@@ -32,6 +32,9 @@ export class QuestionSearchService {
     if (filters.topicId) {
       where.topicId = filters.topicId;
     }
+    if (filters.conceptId) {
+      where.conceptId = filters.conceptId;
+    }
     if (filters.difficulty) {
       where.difficulty = filters.difficulty;
     }

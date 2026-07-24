@@ -6,8 +6,10 @@ import { ArrowLeft, ClipboardList, ArrowRight, FileText, Info } from 'lucide-rea
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useTemplate } from '@/services/templates/hooks';
-import { PageHeader } from '@/components/admin/dashboard/page-header';
+import { SectionHeader } from '@/components/ui/section-header';
 import { Badge } from '@/components/ui/badge';
+import { DetailPageSkeleton } from '@/components/ui/skeletons';
+import { EmptyState } from '@/components/ui/empty-state';
 
 // Sections
 import { BasicInfoSection } from './components/BasicInfoSection';
@@ -42,10 +44,31 @@ export default function TemplatePage() {
   const [activeSection, setActiveSection] = useState<SectionType>('basic');
 
   // Fetch the full template details
-  const { data: response } = useTemplate(id);
+  const { data: response, isLoading, isError } = useTemplate(id);
   const template = response?.data || response;
 
   const strategy = template?.generationStrategy || 'VARIABLE';
+
+  if (isLoading) {
+    return (
+      <div className='mt-8'>
+        <DetailPageSkeleton />
+      </div>
+    );
+  }
+
+  if (isError || !template) {
+    return (
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[50vh]'>
+        <EmptyState
+          variant='error'
+          title='Error loading template'
+          description='We could not load the template details.'
+          className='border rounded-md'
+        />
+      </div>
+    );
+  }
 
   const sections: { id: SectionType; label: string }[] = [
     { id: 'basic', label: 'Basic Information' },
@@ -92,15 +115,15 @@ export default function TemplatePage() {
 
   return (
     <div className='container mx-auto space-y-6 max-w-[1400px]'>
-      <PageHeader
+      <SectionHeader
         title='Template Editor'
-        subtitle='Manage your template configuration across multiple domains.'
+        description='Manage your template configuration across multiple domains.'
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Templates', href: '/admin/templates' },
           { label: 'Editor', /* active: true */ },
         ]}
-        action={
+        actions={
           <Link href='/admin/assembly'>
             <Button className='gap-2 bg-emerald-600 hover:bg-emerald-700 text-white'>
               <ClipboardList className='w-4 h-4' />

@@ -5,12 +5,19 @@ describe("BlueprintBuilderService", () => {
   let service: BlueprintBuilderService;
   let repo: jest.Mocked<BlueprintRepository>;
 
+  let redisCacheService: any;
+
   beforeEach(() => {
     repo = {
       getExamConfigForBlueprint: jest.fn(),
     } as never;
 
-    service = new BlueprintBuilderService(repo);
+    redisCacheService = {
+      getBlueprint: jest.fn().mockResolvedValue(null),
+      setBlueprint: jest.fn().mockResolvedValue(true),
+    };
+
+    service = new BlueprintBuilderService(repo, redisCacheService);
   });
 
   it("should dynamically build a blueprint from ExamConfig", async () => {

@@ -7,10 +7,14 @@ import {
 import { ExamConfig } from "@prisma/client";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamConfigDto, UpdateExamConfigDto } from "@intervu/shared";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class ExamConfigService {
-  constructor(private readonly examConfigRepository: ExamConfigRepository) {}
+  constructor(
+    private readonly examConfigRepository: ExamConfigRepository,
+    private readonly redisCacheService: RedisCacheService,
+  ) {}
 
   async create(
     dto: CreateExamConfigDto,
@@ -67,7 +71,9 @@ export class ExamConfigService {
       }
     }
 
-    return this.examConfigRepository.update(id, dto);
+    const updated = await this.examConfigRepository.update(id, dto);
+    await this.redisCacheService.invalidateBlueprint(id);
+    return updated;
   }
 
   async archive(id: string): Promise<ExamConfig> {
@@ -76,9 +82,11 @@ export class ExamConfigService {
       throw new NotFoundException(`Exam config with ID "${id}" not found`);
     }
 
-    return this.examConfigRepository.update(id, {
+    const archived = await this.examConfigRepository.update(id, {
       isArchived: true,
       status: "ARCHIVED",
     });
+    await this.redisCacheService.invalidateBlueprint(id);
+    return archived;
   }
 }

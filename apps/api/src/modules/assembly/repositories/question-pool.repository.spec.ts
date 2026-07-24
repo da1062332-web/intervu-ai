@@ -5,12 +5,16 @@ describe("QuestionPoolRepository", () => {
   let prismaMock: {
     question: { findMany: jest.Mock };
     generatedQuestion: { findMany: jest.Mock };
+    topic: { findFirst: jest.Mock };
+    testInstance: { findMany: jest.Mock };
   };
 
   beforeEach(() => {
     prismaMock = {
       question: { findMany: jest.fn() },
       generatedQuestion: { findMany: jest.fn() },
+      topic: { findFirst: jest.fn() },
+      testInstance: { findMany: jest.fn() },
     };
 
     repository = new QuestionPoolRepository(prismaMock as any);

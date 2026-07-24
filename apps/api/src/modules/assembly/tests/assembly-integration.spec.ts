@@ -14,6 +14,7 @@ import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { AssemblyStatus } from "@prisma/client";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 // Mock Data
 
@@ -77,6 +78,13 @@ describe("Assembly Module Integration Layer - End to End", () => {
         { provide: QuestionPoolRepository, useValue: mockPoolRepo },
         { provide: BlueprintBuilderService, useValue: mockBlueprintBuilder },
         { provide: AppLogger, useValue: mockLogger },
+        { 
+          provide: PrismaService, 
+          useValue: {
+            topic: { findUnique: jest.fn().mockResolvedValue(null) },
+            concept: { findFirst: jest.fn().mockResolvedValue(null) }
+          }
+        },
       ],
     }).compile();
 

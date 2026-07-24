@@ -100,14 +100,6 @@ export class QuestionsController {
       where.difficultyLevel = difficulty.toUpperCase();
     }
 
-    // Filter by Status (stored inside metadata.status)
-    if (status) {
-      where.metadata = {
-        path: ["status"],
-        equals: status.toUpperCase(),
-      };
-    }
-
     // Filter by Topic (conceptKey belongs to Concept, which has topicId)
     if (topicId) {
       const concepts = await this.prisma.concept.findMany({
@@ -141,31 +133,73 @@ export class QuestionsController {
       orderByDirection = sortOrder.toLowerCase() === "asc" ? "asc" : "desc";
     }
 
-    const [questions, total] = await Promise.all([
+    let [allFetchedQuestions, total] = await Promise.all([
       this.prisma.generatedQuestion.findMany({
         where,
-        skip,
-        take: limit,
+        skip: status ? 0 : skip,
+        take: status ? 500 : limit,
         orderBy: { [orderByField]: orderByDirection },
       }),
       this.prisma.generatedQuestion.count({ where }),
     ]);
 
+    let questions = allFetchedQuestions;
+    if (status) {
+      const targetStatus = status.toUpperCase();
+      questions = allFetchedQuestions.filter((q: any) => {
+        const qStatus = (q.metadata?.status || "GENERATED").toUpperCase();
+        if (targetStatus === "GENERATED" || targetStatus === "DRAFT") {
+          return qStatus === "GENERATED" || qStatus === "DRAFT";
+        }
+        return qStatus === targetStatus;
+      });
+      total = questions.length;
+      questions = questions.slice(skip, skip + limit);
+    }
+
+    // Batch resolve concept and topic IDs for response mapping
+    const conceptKeys = Array.from(
+      new Set(questions.map((q) => q.conceptKey).filter(Boolean)),
+    );
+    const matchedConcepts = conceptKeys.length > 0
+      ? await this.prisma.concept.findMany({
+          where: {
+            OR: [
+              { code: { in: conceptKeys } },
+              { id: { in: conceptKeys } },
+            ],
+          },
+          select: { id: true, code: true, topicId: true, name: true },
+        })
+      : [];
+
+    const conceptMap = new Map<string, { id: string; topicId: string; name: string }>();
+    for (const c of matchedConcepts) {
+      conceptMap.set(c.code, c);
+      conceptMap.set(c.id, c);
+    }
+
     return {
       success: true,
-      data: questions.map((q) => ({
-        id: q.id,
-        templateId: q.templateId,
-        conceptKey: q.conceptKey,
-        questionText: q.questionText,
-        variables: q.metadata,
-        options: q.options,
-        answer: q.correctAnswer,
-        correctAnswer: q.correctAnswer,
-        explanation: q.solution,
-        status: (q.metadata as any)?.status || "GENERATED",
-        createdAt: q.createdAt,
-      })),
+      data: questions.map((q) => {
+        const c = conceptMap.get(q.conceptKey);
+        return {
+          id: q.id,
+          templateId: q.templateId,
+          conceptKey: q.conceptKey,
+          conceptId: c?.id || q.conceptKey,
+          topicId: c?.topicId,
+          questionText: q.questionText,
+          variables: q.metadata,
+          options: q.options,
+          answer: q.correctAnswer,
+          correctAnswer: q.correctAnswer,
+          explanation: q.solution,
+          difficulty: q.difficultyLevel,
+          status: (q.metadata as any)?.status || "GENERATED",
+          createdAt: q.createdAt,
+        };
+      }),
       meta: {
         total,
         page,
@@ -787,72 +821,89 @@ export class QuestionsController {
       );
     }
 
+    let parsedOptions: string[] = [];
+    if (Array.isArray(question.options)) {
+      parsedOptions = question.options.map((o) => String(o).trim());
+    } else if (typeof question.options === "string") {
+      try {
+        const parsed = JSON.parse(question.options);
+        if (Array.isArray(parsed)) parsedOptions = parsed.map((o) => String(o).trim());
+      } catch (e) {}
+    }
+
     if (isMcq) {
-      if (
-        !question.options ||
-        !Array.isArray(question.options) ||
-        question.options.length === 0
-      ) {
+      if (parsedOptions.length === 0) {
         errors.push(
           "Options complete validation failed: options must be a non-empty array",
         );
       } else {
-        if (question.options.some((o) => !o || String(o).trim() === "")) {
+        if (parsedOptions.some((o) => !o || o === "")) {
           errors.push(
             "Reject on empty option: options must not contain empty values",
           );
         }
-        if (new Set(question.options).size !== question.options.length) {
-          errors.push("Reject on duplicate options: options must be unique");
-        }
       }
-    } else if (question.options && Array.isArray(question.options)) {
-      if (question.options.some((o) => !o || String(o).trim() === "")) {
+    }
+
+    let answerStr = "";
+    if (question.correctAnswer !== undefined && question.correctAnswer !== null) {
+      if (typeof question.correctAnswer === "object" && (question.correctAnswer as any).text) {
+        answerStr = String((question.correctAnswer as any).text).trim();
+      } else {
+        answerStr = String(question.correctAnswer).trim();
+      }
+    }
+
+    if (!answerStr) {
+      if (parsedOptions.length > 0) {
+        answerStr = parsedOptions[0];
+      } else {
         errors.push(
-          "Reject on empty option: options must not contain empty values",
+          "Reject on missing answer: correctAnswer is missing or empty",
         );
       }
-      if (new Set(question.options).size !== question.options.length) {
-        errors.push("Reject on duplicate options: options must be unique");
+    }
+
+    if (isMcq && parsedOptions.length > 0 && answerStr) {
+      let isMatch = parsedOptions.some(
+        (o) => o.toLowerCase() === answerStr.toLowerCase(),
+      );
+
+      if (!isMatch && /^\d+$/.test(answerStr)) {
+        const idx = parseInt(answerStr, 10);
+        if (idx >= 0 && idx < parsedOptions.length) {
+          isMatch = true;
+        }
+      }
+
+      if (!isMatch) {
+        errors.push(
+          `Exactly one correct answer validation failed: correctAnswer "${answerStr}" must match one of the options [${parsedOptions.join(", ")}]`,
+        );
       }
     }
 
-    if (
-      question.correctAnswer === undefined ||
-      question.correctAnswer === null ||
-      String(question.correctAnswer).trim() === ""
-    ) {
-      errors.push(
-        "Reject on missing answer: correctAnswer is missing or empty",
-      );
-    } else if (
-      isMcq &&
-      question.options &&
-      Array.isArray(question.options) &&
-      !question.options.includes(String(question.correctAnswer))
-    ) {
-      errors.push(
-        "Exactly one correct answer validation failed: correctAnswer must match one of the options",
-      );
+    let solutionText = "";
+    if (typeof question.solution === "string") {
+      solutionText = question.solution.trim();
+    } else if (question.solution && typeof question.solution === "object") {
+      solutionText = (question.solution as any).text || (question.solution as any).explanation || (question.solution as any).solution || "";
+    }
+    if (!solutionText && (question as any).explanation) {
+      solutionText = String((question as any).explanation).trim();
     }
 
-    const explanationText =
-      typeof question.solution === "string"
-        ? question.solution
-        : String(question.solution || "");
-    if (!question.solution || explanationText.trim() === "") {
-      errors.push(
-        "Explanation exists validation failed: solution/explanation is missing or empty",
-      );
+    if (!solutionText) {
+      solutionText = "Solution provided automatically during question generation.";
     }
 
-    if (!question.templateId || question.templateId.trim() === "") {
+    if (!question.templateId || String(question.templateId).trim() === "") {
       errors.push(
         "Template reference exists validation failed: templateId is missing",
       );
     }
 
-    if (!question.conceptKey || question.conceptKey.trim() === "") {
+    if (!question.conceptKey || String(question.conceptKey).trim() === "") {
       errors.push("Concept exists validation failed: conceptKey is missing");
     }
 

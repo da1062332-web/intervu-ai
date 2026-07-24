@@ -18,10 +18,11 @@ import { GenerationReadinessPanel } from '@/features/admin/configs/components/Ge
 import { cn } from '@/lib/utils';
 import { useConfig, useConfigPreview, useAutoValidateConfig } from '@/services/exam-configs';
 import { useConfigurationValidation } from '@/features/admin/configs/hooks/useConfigurationValidation';
+import { useTopics } from '@/services/topics/hooks';
 import { Button } from '@/components/ui/button';
 import { Loader2, Play, CheckCircle2, Circle } from 'lucide-react';
 import { apiClient } from '@/services/api/client';
-import { AnimatedLoader } from '@/components/ui/animated-loader';
+import { ConfigurationSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Card } from '@/components/ui/card';
@@ -52,6 +53,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const { data: autoValidation } = useAutoValidateConfig(configId);
   const { data: generationReadiness } = useConfigurationValidation(configId);
   const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
+  const { data: topics } = useTopics(false);
 
   const activeTabId = WIZARD_TABS[activeTabIndex].id;
 
@@ -149,7 +151,14 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         throw new Error('Failed to generate assembly');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to generate assembly');
+      const errorMsg = error.message || 'Failed to generate assembly';
+      let displayMsg = errorMsg;
+      const uuidRegex = /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
+      displayMsg = displayMsg.replace(uuidRegex, (match: string) => {
+        const foundTopic = topics?.find((t: any) => t.id === match);
+        return foundTopic ? `"${foundTopic.name}"` : match;
+      });
+      toast.error(displayMsg);
     } finally {
       setGenerating(false);
     }
@@ -158,7 +167,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   if (isLoading) {
     return (
       <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[60vh]'>
-        <AnimatedLoader variant='page' />
+        <ConfigurationSkeleton />
       </div>
     );
   }

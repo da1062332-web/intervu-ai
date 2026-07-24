@@ -1,5 +1,6 @@
 import { RedisConnectionManager } from "./redis-connection.manager";
 import { AppLogger } from "@intervu-ai/shared-logger";
+import { AppConfigService } from "../config/config.service";
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds
@@ -18,15 +19,19 @@ const TTL = {
 
 export class RedisCacheService {
   private readonly logger: AppLogger;
+  private readonly config: AppConfigService;
 
-  constructor(logger: AppLogger) {
+  constructor(logger: AppLogger, config: AppConfigService) {
     this.logger = logger;
+    this.config = config;
   }
 
   // ─── Internal Helpers ────────────────────────────────────────────────────────
 
   private getKey(key: string, prefix?: string): string {
-    return prefix ? `${prefix}:${key}` : key;
+    const env = this.config.nodeEnv;
+    const namespace = `intervu-ai:${env}`;
+    return prefix ? `${namespace}:${prefix}:${key}` : `${namespace}:${key}`;
   }
 
   /**
@@ -51,7 +56,19 @@ export class RedisCacheService {
       const redis = RedisConnectionManager.getInstance();
       const fullKey = this.getKey(key, options?.prefix);
       const value = await redis.get(fullKey);
-      return value ? (JSON.parse(value) as T) : null;
+      if (value) {
+        this.logger.debug("Cache hit", { key: fullKey });
+        try {
+          return JSON.parse(value) as T;
+        } catch (parseError) {
+          this.logger.error("Cache corruption detected, ignoring", parseError, { key: fullKey });
+          // Optionally delete the corrupted key immediately
+          await redis.del(fullKey).catch(() => {});
+          return null;
+        }
+      }
+      this.logger.debug("Cache miss", { key: fullKey });
+      return null;
     } catch (error) {
       this.logger.error("Failed to get cache", error, { key });
       return null;
@@ -76,6 +93,7 @@ export class RedisCacheService {
       const ttl = options?.ttl ?? TTL.DEFAULT;
       const serialized = JSON.stringify(value);
       await redis.setex(fullKey, ttl, serialized);
+      this.logger.debug("Cache write success", { key: fullKey, ttl });
       return true;
     } catch (error) {
       this.logger.error("Failed to set cache", error, { key });
@@ -91,9 +109,10 @@ export class RedisCacheService {
       const redis = RedisConnectionManager.getInstance();
       const fullKey = this.getKey(key, options?.prefix);
       const result = await redis.del(fullKey);
+      this.logger.debug("Cache invalidated", { key: fullKey, deleted: result > 0 });
       return result > 0;
     } catch (error) {
-      this.logger.error("Failed to delete cache", error, { key });
+      this.logger.error("Failed to delete cache (invalidation error)", error, { key });
       return false;
     }
   }
@@ -152,7 +171,13 @@ export class RedisCacheService {
     }
     try {
       const redis = RedisConnectionManager.getInstance();
-      const scanPattern = pattern ?? "*";
+      const env = this.config.nodeEnv;
+      const namespace = `intervu-ai:${env}`;
+      let scanPattern = `${namespace}:*`;
+      if (pattern && pattern !== "*") {
+        scanPattern = `${namespace}:${pattern}`;
+      }
+
       let cursor = 0;
       let deletedCount = 0;
       do {
@@ -175,16 +200,17 @@ export class RedisCacheService {
 
   // ─── Domain: Question Cache ───────────────────────────────────────────────────
 
-  async getQuestion<T>(questionId: string): Promise<T | null> {
-    return this.get<T>(questionId, { prefix: "question" });
+  async getQuestion<T>(source: string, questionId: string): Promise<T | null> {
+    return this.get<T>(questionId, { prefix: `question:${source}` });
   }
 
   async setQuestion<T>(
+    source: string,
     questionId: string,
     data: T,
     ttl?: number,
   ): Promise<boolean> {
-    return this.set<T>(questionId, data, { prefix: "question", ttl });
+    return this.set<T>(questionId, data, { prefix: `question:${source}`, ttl });
   }
 
   // ─── Domain: Session Cache ────────────────────────────────────────────────────
@@ -201,7 +227,7 @@ export class RedisCacheService {
     return this.set<T>(sessionId, data, { prefix: "session", ttl });
   }
 
-  // ─── Domain: Assembly Cache ───────────────────────────────────────────────────
+  // ─── Domain: Assembly / Blueprint Cache ────────────────────────────────────────
 
   async getAssembly<T>(assemblyId: string): Promise<T | null> {
     return this.get<T>(assemblyId, { prefix: "assembly" });
@@ -213,6 +239,22 @@ export class RedisCacheService {
     ttl?: number,
   ): Promise<boolean> {
     return this.set<T>(assemblyId, data, { prefix: "assembly", ttl });
+  }
+
+  async getBlueprint<T>(configId: string): Promise<T | null> {
+    return this.get<T>(configId, { prefix: "blueprint" });
+  }
+
+  async setBlueprint<T>(
+    configId: string,
+    data: T,
+    ttl?: number,
+  ): Promise<boolean> {
+    return this.set<T>(configId, data, { prefix: "blueprint", ttl });
+  }
+
+  async invalidateBlueprint(configId: string): Promise<void> {
+    await this.delete(configId, { prefix: "blueprint" });
   }
 
   // ─── Domain: Template Cache ───────────────────────────────────────────────────

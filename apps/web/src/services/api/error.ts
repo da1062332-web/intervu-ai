@@ -38,7 +38,15 @@ function mapValidationErrors(details?: ApiErrorDetails): Record<string, string[]
 function buildNormalizedError(
   error: Partial<Omit<NormalizedApiError, 'name'>>,
 ): NormalizedApiError {
-  const normalized = new Error(error.message ?? FALLBACK_ERROR_MESSAGE) as NormalizedApiError;
+  let errorMessage = error.message ?? FALLBACK_ERROR_MESSAGE;
+
+  // Make concept pool errors user-friendly globally
+  const poolMatch = errorMessage.match(/Question pool empty and generation failed for concept/i);
+  if (poolMatch) {
+    errorMessage = 'This assessment cannot be started at the moment because it is missing some required questions. Please contact your administrator or support team.';
+  }
+
+  const normalized = new Error(errorMessage) as NormalizedApiError;
 
   normalized.name = 'ApiError';
   normalized.code = error.code ?? FALLBACK_ERROR_CODE;
