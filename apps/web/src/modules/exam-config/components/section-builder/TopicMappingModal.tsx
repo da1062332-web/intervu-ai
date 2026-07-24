@@ -131,15 +131,30 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
                   const id = topic.id || topic.topicId;
                   const name = topic.topicName || topic.topic || topic.name || 'Unnamed Topic';
                   return (
-                    <label key={id} className='flex items-center space-x-3 p-2 rounded hover:bg-muted cursor-pointer border border-transparent hover:border-border transition-colors'>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(id)}
-                        onChange={() => handleToggle(id)}
-                        className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
-                      />
-                      <span className='font-medium text-sm'>{name}</span>
-                    </label>
+                    <div key={id} className='flex items-center justify-between p-2 rounded hover:bg-muted border border-border transition-colors'>
+                      <label className='flex items-center space-x-3 cursor-pointer flex-1'>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(id)}
+                          onChange={() => handleToggle(id)}
+                          className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                        />
+                        <span className='font-medium text-sm'>{name}</span>
+                      </label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs text-yellow-600 border-yellow-200 hover:bg-yellow-50 ml-2 whitespace-nowrap"
+                        title="Generate Questions"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.location.href = `/admin/question-generation?topicId=${id}`;
+                        }}
+                      >
+                        ⚡ Generate
+                      </Button>
+                    </div>
                   );
                 })}
               </div>

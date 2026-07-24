@@ -513,7 +513,7 @@ export class QuestionsController {
     if (!validationCheck.isValid) {
       throw new BadRequestException({
         success: false,
-        message: "Cannot approve invalid question",
+        message: `Cannot approve invalid question. Errors: ${validationCheck.errors.join(" | ")}`,
         errors: validationCheck.errors,
       });
     }

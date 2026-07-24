@@ -26,7 +26,11 @@ export function generateVariables(
   // 1. Generate base (non-formula) variables
   for (const variable of variables) {
     if (variable.type === "number") {
-      const { min, max, step } = variable.range;
+      const range = (variable as any).range || {};
+      const min = range.min !== undefined ? range.min : ((variable as any).min !== undefined ? (variable as any).min : 0);
+      const max = range.max !== undefined ? range.max : ((variable as any).max !== undefined ? (variable as any).max : 10);
+      const step = range.step !== undefined ? range.step : (variable as any).step;
+      
       if (step !== undefined && step > 0) {
         const stepsCount = Math.floor((max - min) / step);
         const randomStepIdx = prng.nextInt(0, stepsCount);
@@ -38,10 +42,10 @@ export function generateVariables(
         context[variable.name] = rawValue;
       }
     } else if (variable.type === "string") {
-      const options = variable.options;
-      if (options.length === 0) {
+      const options = (variable as any).options;
+      if (!options || !Array.isArray(options) || options.length === 0) {
         throw new Error(
-          `Variable ${variable.name} of type string has no options`,
+          `Variable ${variable.name} of type string has no valid options array`,
         );
       }
       const randomIdx = prng.nextInt(0, options.length - 1);
