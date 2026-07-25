@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from "@nestjs/common";
-import { Inject } from "@nestjs/common";
+import { Injectable, BadRequestException, InternalServerErrorException, Inject } from "@nestjs/common";
+import { parse } from "mathjs";
 import { LLMAdapter } from "../../generation-ai/adapters/llm-adapter.interface";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
@@ -85,11 +85,12 @@ export class StrategyDraftingService {
 
       // 5. Normalize the output
       const normalized = this.normalizeStrategy(parsed);
+      const validationWarnings = this.validateDraft(normalized);
 
       return {
         success: true,
         data: normalized,
-        validationWarnings: this.collectWarnings(normalized),
+        validationWarnings,
       };
     } catch (error: any) {
       this.logger.error("Strategy drafting failed", {
@@ -209,52 +210,59 @@ Critical output rules:
       notes: Array.isArray(raw.notes) ? raw.notes.slice(0, 10) : [],
     };
 
-    // Normalize variables
+    const seenVariableNames = new Set<string>();
     if (Array.isArray(raw.variables)) {
       for (const v of raw.variables.slice(0, 50)) {
-        // limit to 50 variables
-        if (!v.name || typeof v.name !== "string") continue;
+        if (!v?.name || typeof v.name !== "string") continue;
 
-        const normalized_var: VariableDraft = {
-          name: v.name.trim().replace(/\s+/g, "_"),
-          type: this.normalizeVariableType(v.type),
+        const name = v.name.trim().replace(/\s+/g, "_");
+        if (!name || seenVariableNames.has(name.toLowerCase())) continue;
+        seenVariableNames.add(name.toLowerCase());
+
+        const type = this.normalizeVariableType(v.type);
+        const min = this.normalizeNumberValue(v.min);
+        const max = this.normalizeNumberValue(v.max);
+        const defaultValue = this.normalizeDefaultValue(v.defaultValue, type);
+
+        if (min !== undefined && max !== undefined && min > max) {
+          throw new BadRequestException(
+            `Variable "${name}" has invalid range: min (${min}) must be less than or equal to max (${max}).`,
+          );
+        }
+
+        const normalizedVar: VariableDraft = {
+          name,
+          type,
           generator: this.normalizeGenerator(v.generator),
         };
 
-        if (typeof v.min === "number") {
-          normalized_var.min = v.min;
-        }
+        if (min !== undefined) normalizedVar.min = min;
+        if (max !== undefined) normalizedVar.max = max;
+        if (defaultValue !== undefined) normalizedVar.defaultValue = defaultValue;
 
-        if (typeof v.max === "number") {
-          normalized_var.max = v.max;
-        }
-
-        if (v.defaultValue !== undefined && v.defaultValue !== null) {
-          normalized_var.defaultValue = v.defaultValue;
-        }
-
-        normalized.variables.push(normalized_var);
+        normalized.variables.push(normalizedVar);
       }
     }
 
-    // Normalize derived variables
+    const seenDerivedNames = new Set<string>();
     if (Array.isArray(raw.derivedVariables)) {
       for (const d of raw.derivedVariables.slice(0, 30)) {
-        // limit to 30 derived
-        if (!d.name || !d.expression) continue;
+        if (!d?.name || !d?.expression) continue;
+
+        const name = d.name.trim().replace(/\s+/g, "_");
+        if (!name || seenDerivedNames.has(name.toLowerCase())) continue;
+        seenDerivedNames.add(name.toLowerCase());
 
         normalized.derivedVariables.push({
-          name: d.name.trim().replace(/\s+/g, "_"),
+          name,
           expression: d.expression.trim(),
         });
       }
     }
 
-    // Normalize constraints
     if (Array.isArray(raw.constraints)) {
-      for (const c of raw.constraints.slice(0, 30)) {
-        // limit to 30 constraints
-        if (!c.rule) continue;
+      for (const c of raw.constraints.slice(0, 100)) {
+        if (!c?.rule || typeof c.rule !== "string") continue;
 
         normalized.constraints.push({
           rule: c.rule.trim(),
@@ -264,6 +272,260 @@ Critical output rules:
     }
 
     return normalized;
+  }
+
+  private normalizeNumberValue(value: unknown): number | undefined {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === "string" && value.trim() !== "") {
+      const parsed = Number(value.trim());
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+
+    return undefined;
+  }
+
+  private normalizeDefaultValue(
+    value: unknown,
+    type: "number" | "integer" | "decimal" | "boolean" | "string",
+  ): unknown {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+
+    if (type === "number" || type === "integer" || type === "decimal") {
+      const parsed = this.normalizeNumberValue(value);
+      return parsed !== undefined ? parsed : value;
+    }
+
+    if (type === "boolean") {
+      if (typeof value === "boolean") return value;
+      if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === "true") return true;
+        if (normalized === "false") return false;
+      }
+    }
+
+    return value;
+  }
+
+  private validateDraft(strategy: StrategyDraft): string[] {
+    const warnings: string[] = [];
+
+    if (strategy.variables.length === 0) {
+      warnings.push("No variables were detected. Manual editing may be needed.");
+    }
+
+    if (strategy.variables.length > 20) {
+      warnings.push(
+        `High number of variables (${strategy.variables.length}). Ensure question is not overly complex.`,
+      );
+    }
+
+    const baseVarNames = new Set(
+      strategy.variables.map((v) => v.name.toLowerCase()),
+    );
+    const derivedVarNames = new Set(
+      strategy.derivedVariables.map((d) => d.name.toLowerCase()),
+    );
+
+    for (const derived of strategy.derivedVariables) {
+      if (!derived.expression) {
+        warnings.push(`Derived variable "${derived.name}" has an empty expression.`);
+        continue;
+      }
+
+      this.validateExpressionSyntax(
+        derived.expression,
+        false,
+        `Derived variable "${derived.name}"`,
+      );
+
+      const mentioned = this.extractIdentifiers(derived.expression);
+      const orphaned = mentioned.filter(
+        (name) =>
+          !baseVarNames.has(name) && !derivedVarNames.has(name),
+      );
+      if (orphaned.length > 0) {
+        warnings.push(
+          `Derived variable "${derived.name}" references undefined variables: ${orphaned.join(", ")}`,
+        );
+      }
+    }
+
+    const cycle = this.findDerivedCycle(strategy.derivedVariables);
+    if (cycle) {
+      throw new BadRequestException(
+        `Circular derived variable dependency detected: ${cycle.join(" -> ")}`,
+      );
+    }
+
+    for (const constraint of strategy.constraints) {
+      if (!constraint.rule) {
+        warnings.push("One of the constraints is empty and was ignored.");
+        continue;
+      }
+
+      this.validateExpressionSyntax(
+        constraint.rule,
+        true,
+        `Constraint rule`,
+      );
+
+      const mentioned = this.extractIdentifiers(constraint.rule);
+      const undefinedVars = mentioned.filter(
+        (name) =>
+          !baseVarNames.has(name) && !derivedVarNames.has(name),
+      );
+      if (undefinedVars.length > 0) {
+        warnings.push(
+          `Constraint references undefined variables: ${undefinedVars.join(", ")}`,
+        );
+      }
+    }
+
+    for (const variable of strategy.variables) {
+      const generator = variable.generator || 'random';
+
+      if (
+        (variable.type === "string" || variable.type === "boolean") &&
+        ["prime", "even", "odd"].includes(generator)
+      ) {
+        warnings.push(
+          `Generator "${generator}" may not be compatible with variable type "${variable.type}" for variable "${variable.name}".`,
+        );
+      }
+
+      if (variable.type === "decimal" && ["prime", "even", "odd"].includes(generator)) {
+        warnings.push(
+          `Generator "${generator}" is only valid for integer variables. Variable "${variable.name}" is decimal.`,
+        );
+      }
+
+      if (variable.type === "integer") {
+        if (
+          variable.min !== undefined &&
+          !Number.isInteger(variable.min)
+        ) {
+          warnings.push(
+            `Variable "${variable.name}" is integer type but min is not an integer.`,
+          );
+        }
+
+        if (
+          variable.max !== undefined &&
+          !Number.isInteger(variable.max)
+        ) {
+          warnings.push(
+            `Variable "${variable.name}" is integer type but max is not an integer.`,
+          );
+        }
+
+        if (
+          typeof variable.defaultValue === "number" &&
+          !Number.isInteger(variable.defaultValue)
+        ) {
+          warnings.push(
+            `Variable "${variable.name}" is integer type but defaultValue is not an integer.`,
+          );
+        }
+      }
+    }
+
+    return warnings.slice(0, 5);
+  }
+
+  private validateExpressionSyntax(
+    expression: string,
+    isConstraint: boolean,
+    label: string,
+  ) {
+    if (!expression || typeof expression !== "string") {
+      throw new BadRequestException(`${label} must be a valid expression.`);
+    }
+
+    const source = isConstraint
+      ? this.normalizeConstraintRuleForParsing(expression)
+      : expression;
+
+    try {
+      parse(source);
+    } catch (error: any) {
+      throw new BadRequestException(
+        `${label} has invalid syntax: ${error?.message || error}`,
+      );
+    }
+  }
+
+  private normalizeConstraintRuleForParsing(rule: string): string {
+    return rule.replace(/(?<![=!<>])=(?!=)/g, "==");
+  }
+
+  private extractIdentifiers(expression: string): string[] {
+    return Array.from(
+      new Set(
+        (expression.match(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g) || []).map((token) =>
+          token.toLowerCase(),
+        ),
+      ),
+    );
+  }
+
+  private findDerivedCycle(
+    derivedVariables: DerivedVariableDraft[],
+  ): string[] | null {
+    const graph = new Map<string, string[]>();
+    const derivedNames = new Set(
+      derivedVariables.map((d) => d.name.toLowerCase()),
+    );
+
+    for (const derived of derivedVariables) {
+      const name = derived.name.toLowerCase();
+      const references = this.extractIdentifiers(derived.expression).filter(
+        (token) => derivedNames.has(token) && token !== name,
+      );
+      graph.set(name, references);
+    }
+
+    const visited = new Set<string>();
+    const stack = new Set<string>();
+    const path: string[] = [];
+
+    const dfs = (node: string): string[] | null => {
+      if (stack.has(node)) {
+        const cycleStart = path.indexOf(node);
+        return cycleStart >= 0 ? path.slice(cycleStart).concat(node) : [node];
+      }
+
+      if (visited.has(node)) {
+        return null;
+      }
+
+      visited.add(node);
+      stack.add(node);
+      path.push(node);
+
+      for (const neighbor of graph.get(node) || []) {
+        const cycle = dfs(neighbor);
+        if (cycle) return cycle;
+      }
+
+      stack.delete(node);
+      path.pop();
+      return null;
+    };
+
+    for (const node of graph.keys()) {
+      const cycle = dfs(node);
+      if (cycle) {
+        return cycle;
+      }
+    }
+
+    return null;
   }
 
   /**
