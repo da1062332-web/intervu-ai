@@ -10,7 +10,7 @@ describe('StrategyDraftingService', () => {
   beforeEach(async () => {
     // Mock LLM Adapter
     mockLLMAdapter = {
-      generateText: jest.fn(),
+      generate: jest.fn(),
     };
 
     // Mock Logger
@@ -54,7 +54,7 @@ describe('StrategyDraftingService', () => {
         notes: ['Derived total from price and quantity'],
       });
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy(
         'Create a question where price is between 100 and 500, quantity is 1-20, total = price * quantity'
@@ -68,30 +68,27 @@ describe('StrategyDraftingService', () => {
     });
 
     it('should reject empty prompts', async () => {
-      const result = await service.draftStrategy('');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('empty');
+      await expect(service.draftStrategy('')).rejects.toThrow(
+        'Prompt cannot be empty',
+      );
     });
 
     it('should reject prompts exceeding max length', async () => {
       const longPrompt = 'a'.repeat(2001);
 
-      const result = await service.draftStrategy(longPrompt);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('exceeds maximum');
+      await expect(service.draftStrategy(longPrompt)).rejects.toThrow(
+        'Prompt exceeds 2000 character limit',
+      );
     });
 
     it('should handle LLM API errors gracefully', async () => {
-      mockLLMAdapter.generateText.mockRejectedValue(
-        new Error('OpenAI API error')
+      mockLLMAdapter.generate.mockRejectedValue(
+        new Error('OpenAI API error'),
       );
 
-      const result = await service.draftStrategy('valid prompt');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Failed to generate strategy');
+      await expect(service.draftStrategy('valid prompt')).rejects.toThrow(
+        'Strategy drafting failed: OpenAI API error',
+      );
     });
 
     it('should parse JSON from LLM response with markdown code blocks', async () => {
@@ -112,7 +109,7 @@ describe('StrategyDraftingService', () => {
         This looks good!
       `;
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy('create a simple variable');
 
@@ -134,7 +131,7 @@ describe('StrategyDraftingService', () => {
         notes: [],
       });
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy('test prompt');
 
@@ -167,15 +164,18 @@ describe('StrategyDraftingService', () => {
       }).toThrow();
     });
 
-    it('should validate required fields', () => {
+    it('should treat missing optional arrays as empty', () => {
       const incompleteResponse = JSON.stringify({
         variables: [{ name: 'x', type: 'number' }],
-        // Missing derivedVariables, constraints, notes
       });
 
-      expect(() => {
-        service['parseAndValidateResponse'](incompleteResponse);
-      }).toThrow();
+      const result = service['parseAndValidateResponse'](incompleteResponse);
+
+      expect(result).toBeDefined();
+      expect(result.variables).toHaveLength(1);
+      expect(result.derivedVariables).toEqual([]);
+      expect(result.constraints).toEqual([]);
+      expect(result.notes).toEqual([]);
     });
   });
 
@@ -393,7 +393,7 @@ describe('StrategyDraftingService', () => {
         notes: [],
       });
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy('test');
 
@@ -412,7 +412,7 @@ describe('StrategyDraftingService', () => {
         notes: [],
       });
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy('test');
 
@@ -432,7 +432,7 @@ describe('StrategyDraftingService', () => {
         notes: [],
       });
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy('test');
 
@@ -453,7 +453,7 @@ describe('StrategyDraftingService', () => {
         notes: [],
       });
 
-      mockLLMAdapter.generateText.mockResolvedValue(mockLLMResponse);
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
 
       const result = await service.draftStrategy('test');
 
@@ -464,13 +464,11 @@ describe('StrategyDraftingService', () => {
     });
 
     it('should return error with message on failure', async () => {
-      mockLLMAdapter.generateText.mockRejectedValue(new Error('API Error'));
+      mockLLMAdapter.generate.mockRejectedValue(new Error('API Error'));
 
-      const result = await service.draftStrategy('test');
-
-      expect(result.success).toBe(false);
-      expect(result).toHaveProperty('error');
-      expect(result.error).toBeDefined();
+      await expect(service.draftStrategy('test')).rejects.toThrow(
+        'Strategy drafting failed: API Error',
+      );
     });
   });
 });

@@ -43,8 +43,8 @@ export class UserRepository extends BaseRepository<
 
   async findCandidatesWithSummary(params: {
     where: Prisma.UserWhereInput;
-    skip: number;
-    take: number;
+    skip?: number;
+    take?: number;
     orderBy: any;
   }) {
     const { where, skip, take, orderBy } = params;

@@ -234,7 +234,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
       {/* Top Workflow Navigation */}
       <div className='border-b border-gray-200 dark:border-gray-800 overflow-x-auto pb-1'>
-        <Tabs value={activeTabId} onValueChange={(id) => handleTabClick(WIZARD_TABS.findIndex((t) => t.id === id))} className='w-full'>
+        <Tabs value={activeTabId} onValueChange={(id: string) => handleTabClick(WIZARD_TABS.findIndex((t) => t.id === id))} className='w-full'>
           <TabsList className='flex w-full justify-start bg-transparent border-none h-auto p-0'>
             {WIZARD_TABS.map((tab, index) => (
               <TabsTrigger

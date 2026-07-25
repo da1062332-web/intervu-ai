@@ -341,30 +341,39 @@ export function GenerationStrategySection() {
 
   const handleSaveConstraint = () => {
     setError(null);
-    if (!constraintForm.target.trim() || !constraintForm.value.trim()) {
-      setError('Target and value are required');
+    const isCustomOperator =
+      constraintForm.operator === 'Formula' ||
+      constraintForm.operator === 'Custom' ||
+      constraintForm.operator === 'Regex';
+
+    if (!constraintForm.value.trim()) {
+      setError('Value is required');
+      return;
+    }
+
+    if (!isCustomOperator && !constraintForm.target.trim()) {
+      setError('Target is required');
       return;
     }
 
     const nextConstraints = [...constraints];
+    const normalizedTarget = isCustomOperator
+      ? constraintForm.target.trim() || 'Custom'
+      : constraintForm.target.trim();
     const ruleText = buildConstraintRule({
-      target: constraintForm.target,
+      target: normalizedTarget,
       operator: constraintForm.operator,
       value: constraintForm.value,
     });
     const normalized = {
-      id: `${constraintForm.target || 'constraint'}-${constraintForm.operator}-${constraintForm.value}`,
-      target: constraintForm.operator === 'Formula' || constraintForm.operator === 'Custom' || constraintForm.operator === 'Regex'
-        ? 'Custom'
-        : constraintForm.target.trim(),
+      id: `${normalizedTarget || 'constraint'}-${constraintForm.operator}-${constraintForm.value}`,
+      target: normalizedTarget,
       operator: constraintForm.operator,
-      value: constraintForm.operator === 'Formula' || constraintForm.operator === 'Custom' || constraintForm.operator === 'Regex'
-        ? constraintForm.value.trim()
-        : constraintForm.value.trim(),
+      value: constraintForm.value.trim(),
       rule: ruleText,
     };
 
-    const exists = nextConstraints.findIndex((item) => item.rule === editingConstraint?.rule || (item.target === editingConstraint?.target && item.operator === editingConstraint?.operator));
+    const exists = nextConstraints.findIndex((item) => item.id === editingConstraint?.id);
     if (editingConstraint && exists >= 0) {
       nextConstraints[exists] = normalized;
     } else {
@@ -423,12 +432,17 @@ export function GenerationStrategySection() {
     updateTemplate({ templateId, payload });
   };
 
-  const handleDeleteConstraint = (rule: string) => {
-    const nextConstraints = constraints.filter((item) => item.rule !== rule);
+  const handleDeleteConstraint = (id: string) => {
+    const nextConstraints = constraints.filter((item) => item.id !== id);
     const payload = {
       constraints: {
         ...(constraintSchema || {}),
-        constraints: nextConstraints.map((item) => ({ target: item.target, operator: item.operator, value: item.value, rule: item.rule || buildConstraintRule({ target: item.target, operator: item.operator, value: item.value }) })),
+        constraints: nextConstraints.map((item) => ({
+          target: item.target,
+          operator: item.operator,
+          value: item.value,
+          rule: item.rule || buildConstraintRule({ target: item.target, operator: item.operator, value: item.value }),
+        })),
       },
     };
     updateTemplate({ templateId, payload });
@@ -567,12 +581,12 @@ export function GenerationStrategySection() {
     toast.success('Constraint updated');
   };
 
-  const handleDeleteDraftConstraint = (rule: string) => {
+  const handleDeleteDraftConstraint = (id: string) => {
     if (!draftedStrategy) return;
 
     setDraftedStrategy({
       ...draftedStrategy,
-      constraints: draftedStrategy.constraints.filter((c: any) => c.rule !== rule),
+      constraints: draftedStrategy.constraints.filter((c: any) => c.id !== id),
     });
     toast.success('Constraint removed');
   };
@@ -814,7 +828,7 @@ export function GenerationStrategySection() {
                             <Button variant="ghost" size="sm" onClick={() => handleEditDraftConstraint(c)}>
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteDraftConstraint(c.rule)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteDraftConstraint(c.id)}>
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
                           </TableCell>
@@ -1017,7 +1031,7 @@ export function GenerationStrategySection() {
                             <Button variant="ghost" size="sm" onClick={() => openConstraintModal(item)}>
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteConstraint(item.rule || item.target)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteConstraint(item.id)}>
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
                           </TableCell>

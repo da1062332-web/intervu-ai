@@ -3,20 +3,6 @@ import { IsOptional, IsString, IsInt, Min, IsIn } from "class-validator";
 import { Type } from "class-transformer";
 
 export class CandidateListQueryDto {
-  @ApiPropertyOptional({ default: 1, description: "Page number" })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @ApiPropertyOptional({ default: 10, description: "Items per page" })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10;
-
   @ApiPropertyOptional({ description: "Search term for name or email" })
   @IsOptional()
   @IsString()
