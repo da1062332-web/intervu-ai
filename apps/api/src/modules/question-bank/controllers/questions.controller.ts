@@ -830,11 +830,11 @@ export class QuestionsController {
 
     let parsedOptions: string[] = [];
     if (Array.isArray(question.options)) {
-      parsedOptions = question.options.map((o) => String(o).trim());
+      parsedOptions = question.options.map((o) => String(o).trim().replace(/^"|"$/g, ''));
     } else if (typeof question.options === "string") {
       try {
         const parsed = JSON.parse(question.options);
-        if (Array.isArray(parsed)) parsedOptions = parsed.map((o) => String(o).trim());
+        if (Array.isArray(parsed)) parsedOptions = parsed.map((o) => String(o).trim().replace(/^"|"$/g, ''));
       } catch (e) {}
     }
 
@@ -855,9 +855,9 @@ export class QuestionsController {
     let answerStr = "";
     if (question.correctAnswer !== undefined && question.correctAnswer !== null) {
       if (typeof question.correctAnswer === "object" && (question.correctAnswer as any).text) {
-        answerStr = String((question.correctAnswer as any).text).trim();
+        answerStr = String((question.correctAnswer as any).text).trim().replace(/^"|"$/g, '');
       } else {
-        answerStr = String(question.correctAnswer).trim();
+        answerStr = String(question.correctAnswer).trim().replace(/^"|"$/g, '');
       }
     }
 

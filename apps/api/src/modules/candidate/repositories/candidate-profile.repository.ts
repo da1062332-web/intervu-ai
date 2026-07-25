@@ -17,6 +17,7 @@ export class CandidateProfileRepository {
         graduationYear: true,
         role: true,
         createdAt: true,
+        deletedAt: true,
       },
     });
   }

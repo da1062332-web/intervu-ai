@@ -46,6 +46,7 @@ import { ReportsModule } from "./modules/reports/reports.module";
 import { CandidateModule } from "./modules/candidate/candidate.module";
 import { RuntimeModule } from "./modules/runtime/runtime.module";
 import { AdminAnalyticsModule } from "./modules/admin-analytics/admin-analytics.module";
+import { AdminCandidatesModule } from "./modules/admin-candidates/admin-candidates.module";
 import { DatasetModule } from "./modules/dataset/dataset.module";
 import { ScenarioModule } from "./modules/scenario/scenario.module";
 import { QuestionGenerationModule } from "./modules/question-generation/question-generation.module";
@@ -101,6 +102,7 @@ import { QuestionGenerationModule } from "./modules/question-generation/question
     CandidateModule,
     RuntimeModule,
     AdminAnalyticsModule,
+    AdminCandidatesModule,
   ],
   providers: [
     {

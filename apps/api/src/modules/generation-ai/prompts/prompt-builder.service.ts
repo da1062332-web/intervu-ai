@@ -94,7 +94,12 @@ export class PromptBuilderService {
     const difficulty = template.difficultyLevel.toLowerCase();
     const questionType = template.questionType;
 
-    const rawQuestionTemplate = (template.structure && template.structure.questionTemplate) || "";
+    const rawQuestionTemplate =
+      (template.structure &&
+        (template.structure.questionTemplate ||
+          template.structure.questionStatement ||
+          template.structure.prompt)) ||
+      "";
     // Pre-interpolate question stem using direct variable substitution
     const interpolatedQuestion = this.interpolate(rawQuestionTemplate, variableValues);
 

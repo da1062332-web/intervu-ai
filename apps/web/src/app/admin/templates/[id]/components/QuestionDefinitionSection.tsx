@@ -20,8 +20,9 @@ export function QuestionDefinitionSection({ template }: QuestionDefinitionSectio
 
   useEffect(() => {
     if (template?.structure) {
-      if (template.structure.questionStatement !== undefined) {
-        setStatement(template.structure.questionStatement);
+      const existingStatement = template.structure.questionStatement ?? template.structure.questionTemplate;
+      if (existingStatement !== undefined) {
+        setStatement(existingStatement);
       }
       if (template.structure.instructions !== undefined) {
         setInstructions(template.structure.instructions);
@@ -61,6 +62,7 @@ export function QuestionDefinitionSection({ template }: QuestionDefinitionSectio
         structure: {
           ...(template.structure || {}),
           questionStatement: statement,
+          questionTemplate: statement,
           instructions: instructions
         }
       }
