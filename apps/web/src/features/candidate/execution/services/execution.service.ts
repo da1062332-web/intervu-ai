@@ -66,7 +66,9 @@ export const executionService = {
               candidateInstructions: q.snapshot?.instructions || '',
               options: (q.snapshot?.options || q.snapshot?.mcqData?.options)?.map((opt: any, index: number) => {
                 if (typeof opt === 'string') {
-                  return { id: String(index), text: opt };
+                  // Use the text as the ID so that it gets sent back to the backend
+                  // for correct evaluation (since backend expects the text value).
+                  return { id: opt, text: opt };
                 }
                 return opt;
               }) || [],

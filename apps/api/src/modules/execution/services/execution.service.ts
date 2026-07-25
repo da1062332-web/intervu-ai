@@ -86,11 +86,30 @@ export class ExecutionService {
 
     // 5a. Fetch templates to dynamically inject stem and instructions if toggled on
     const templateIds = new Set<string>();
+    const questionIds = new Set<string>();
     for (const section of snapshot.sections) {
       for (const q of section.questions) {
         const rawSnapshot = (q.questionSnapshot || {}) as any;
         if (rawSnapshot.templateId) {
           templateIds.add(rawSnapshot.templateId);
+        }
+        if (q.questionId) {
+          questionIds.add(q.questionId);
+        }
+      }
+    }
+
+    // Fallback to fetch templateId from Question model if missing in snapshot
+    const questionTemplateMap = new Map<string, string>();
+    if (questionIds.size > 0) {
+      const dbQuestions = await this.prisma.question.findMany({
+        where: { id: { in: Array.from(questionIds) } },
+        select: { id: true, templateId: true },
+      });
+      for (const q of dbQuestions) {
+        if (q.templateId) {
+          questionTemplateMap.set(q.id, q.templateId);
+          templateIds.add(q.templateId);
         }
       }
     }
@@ -134,18 +153,19 @@ export class ExecutionService {
             const rawSnapshot = (q.questionSnapshot || {}) as any;
             const { correctAnswer, solution, ...candidateSafeSnapshot } = rawSnapshot;
 
-            if (rawSnapshot.templateId && templateMap.has(rawSnapshot.templateId)) {
-              const structure = templateMap.get(rawSnapshot.templateId) as any;
+            const templateId = rawSnapshot.templateId || questionTemplateMap.get(q.questionId);
+            if (templateId && templateMap.has(templateId)) {
+              const structure = templateMap.get(templateId) as any;
               if (structure && structure.questionTemplate) {
                 try {
                   const qt =
                     typeof structure.questionTemplate === "string"
                       ? JSON.parse(structure.questionTemplate)
                       : structure.questionTemplate;
-                  if (qt.showStem && qt.stem) {
+                  if (qt.showStem !== false && qt.stem) {
                     candidateSafeSnapshot.questionStatement = qt.stem;
                   }
-                  if (qt.showInstructions && qt.instructions) {
+                  if (qt.showInstructions !== false && qt.instructions) {
                     candidateSafeSnapshot.instructions = qt.instructions;
                   }
                 } catch (e) {

@@ -33,10 +33,12 @@ export function QuestionRenderer() {
           const optId = option.id || index.toString();
           const isSelected = selectedOptionId === optId;
 
+          const htmlId = `opt-${currentQuestion.id}-${index}`;
+
           return (
             <Label
               key={optId}
-              htmlFor={optId}
+              htmlFor={htmlId}
               className={`
                 flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
                 ${
@@ -48,7 +50,7 @@ export function QuestionRenderer() {
             >
               <RadioGroupItem
                 value={optId}
-                id={optId}
+                id={htmlId}
                 className='sr-only'
                 aria-label={`Option ${letter}: ${option.text}`}
               />
@@ -93,9 +95,12 @@ export function QuestionRenderer() {
           const optId = option.id || index.toString();
           const isSelected = selectedOptionIds.includes(optId);
 
+          const htmlId = `opt-${currentQuestion.id}-${index}`;
+
           return (
             <Label
               key={optId}
+              htmlFor={htmlId}
               className={`
                 flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
                 ${
@@ -107,6 +112,7 @@ export function QuestionRenderer() {
             >
               <input
                 type='checkbox'
+                id={htmlId}
                 className='sr-only'
                 checked={isSelected}
                 onChange={() => handleToggle(optId)}
@@ -181,35 +187,35 @@ export function QuestionRenderer() {
               {currentQuestion.type}
             </span>
           </div>
+          {currentQuestion.stem && (
+            <div className='mt-4 bg-muted/30 p-4 rounded-lg border border-border/50'>
+              <p className='text-xs text-muted-foreground font-semibold mb-2 uppercase tracking-wider'>Context</p>
+              <p className='text-[16px] leading-relaxed text-foreground'>{currentQuestion.stem}</p>
+            </div>
+          )}
         </CardHeader>
         <CardContent className='pt-6 md:pt-8 px-6 md:px-8 flex-1 overflow-y-auto custom-scrollbar'>
           <div className='prose prose-slate max-w-none dark:prose-invert break-words space-y-6'>
-            {currentQuestion.stem && (
-              <div className='bg-muted/30 p-4 rounded-lg border border-border/50'>
-                <p className='text-xs text-muted-foreground font-semibold mb-2 uppercase tracking-wider'>Context</p>
-                <p className='text-[16px] leading-relaxed text-foreground'>{currentQuestion.stem}</p>
-              </div>
-            )}
+
             
             <div>
               <p className='text-[17px] leading-relaxed text-foreground font-medium'>
                 {currentQuestion.text}
               </p>
             </div>
-
-            {currentQuestion.candidateInstructions && (
-              <div className='bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900/30'>
-                <p className='text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wider'>Instructions</p>
-                <p className='text-[15px] leading-relaxed text-foreground/90'>{currentQuestion.candidateInstructions}</p>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Center Panel: Interactive Area */}
       <div className='w-full h-full flex flex-col'>
-        <div className='flex-1'>
+        <div className='flex-1 space-y-6'>
+          {currentQuestion.candidateInstructions && (
+            <div className='bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-sm'>
+              <p className='text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wider'>Instructions</p>
+              <p className='text-[15px] leading-relaxed text-foreground/90'>{currentQuestion.candidateInstructions}</p>
+            </div>
+          )}
           {renderQuestionContent()}
         </div>
       </div>

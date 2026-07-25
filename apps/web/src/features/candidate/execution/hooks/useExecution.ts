@@ -52,7 +52,7 @@ export function useExecution(testId: string) {
       mounted = false;
       useExecutionStore.getState().cleanupRuntime();
     };
-  }, [testId, initializeTest, setLoading, setError, testInstance, router]);
+  }, [testId, initializeTest, setLoading, setError, router]);
 
   useEffect(() => {
     // Push a dummy state to trap the user from going back
