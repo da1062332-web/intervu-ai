@@ -109,7 +109,14 @@ export class ConfigurationValidatorService {
                   where: { conceptKey: concept.code, isActive: true, deletedAt: null }
                 });
                 const availableManualCount = await this.prisma.question.count({
-                  where: { conceptId: concept.id, status: "ACTIVE" }
+                  where: {
+                    status: "ACTIVE",
+                    OR: [
+                      { conceptId: concept.id },
+                      { topicId: st.topic.id },
+                      { topicId: st.topic.code },
+                    ],
+                  },
                 });
                 if (templateCount === 0 && availableManualCount === 0) {
                   errors.push(

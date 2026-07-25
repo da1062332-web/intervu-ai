@@ -55,7 +55,7 @@ export class QuestionBankService {
           codingData: dto.codingData || null,
           templateId: dto.templateId || null,
           version: 1,
-          status: QuestionStatus.DRAFT,
+          status: dto.status || QuestionStatus.ACTIVE,
           metadata: dto.metadata || {},
         },
         tx,

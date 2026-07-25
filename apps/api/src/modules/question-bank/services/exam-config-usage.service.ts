@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { QuestionStatus } from "@prisma/client";
+import { QuestionStatus, Prisma } from "@prisma/client";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { TransactionalOutboxService } from "./transactional-outbox.service";
 
@@ -76,33 +76,38 @@ export class ExamConfigUsageService {
   ): Promise<number> {
     // Topic UUID vs Code matching
     let topicIdsToMatch = [topicId];
+    let conceptIdsToMatch: string[] = [];
+
     if (topicId) {
       const topicObj = await this.prisma.topic.findFirst({
         where: { OR: [{ code: topicId }, { id: topicId }] },
+        include: { concepts: true },
       });
       if (topicObj) {
         topicIdsToMatch = Array.from(new Set([topicId, topicObj.id, topicObj.code]));
+        conceptIdsToMatch = topicObj.concepts.map((c) => c.id);
       }
     }
 
+    const questionMatchFilter: Prisma.QuestionWhereInput = {
+      status: QuestionStatus.ACTIVE,
+      difficulty: difficulty || undefined,
+      OR: [
+        { topicId: { in: topicIdsToMatch } },
+        ...(conceptIdsToMatch.length > 0 ? [{ conceptId: { in: conceptIdsToMatch } }] : []),
+      ],
+    };
+
     // 1. Total active pool questions for this topic (and difficulty, if specified)
     const totalActiveCount = await this.prisma.question.count({
-      where: {
-        topicId: { in: topicIdsToMatch },
-        difficulty: difficulty || undefined,
-        status: QuestionStatus.ACTIVE,
-      },
+      where: questionMatchFilter,
     });
 
     // 2. Count distinct questions used in ExamConfigQuestionUsage by OTHER configs
     const allocatedToOtherConfigsCount = await this.prisma.examConfigQuestionUsage.count({
       where: {
         configId: { not: configId },
-        question: {
-          topicId: { in: topicIdsToMatch },
-          difficulty: difficulty || undefined,
-          status: QuestionStatus.ACTIVE,
-        },
+        question: questionMatchFilter,
       },
     });
 
@@ -139,11 +144,7 @@ export class ExamConfigUsageService {
       const alreadyAllocatedCount = await this.prisma.examConfigQuestionUsage.count({
         where: {
           configId: otherConfigId,
-          question: {
-            topicId: { in: topicIdsToMatch },
-            difficulty: difficulty || undefined,
-            status: QuestionStatus.ACTIVE,
-          },
+          question: questionMatchFilter,
         },
       });
 

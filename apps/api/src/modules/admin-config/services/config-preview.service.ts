@@ -121,7 +121,10 @@ export class ConfigPreviewService {
       totalManualQuestions = await this.prisma.question.count({
         where: {
           status: "ACTIVE",
-          conceptId: { in: conceptIds },
+          OR: [
+            { conceptId: { in: conceptIds } },
+            { topicId: { in: Array.from(uniqueTopics) } },
+          ],
         },
       });
     }

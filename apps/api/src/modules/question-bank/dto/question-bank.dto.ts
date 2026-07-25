@@ -85,6 +85,11 @@ export class CreateQuestionDto {
   @IsOptional()
   questionType?: string;
 
+  @ApiProperty({ example: "ACTIVE", enum: QuestionStatus, required: false })
+  @IsEnum(QuestionStatus)
+  @IsOptional()
+  status?: QuestionStatus;
+
 
 
   @ApiProperty({ example: 120, required: false })

@@ -83,7 +83,11 @@ export class ConfigDependencyValidatorService {
           const manualQuestionsCount = await this.prisma.question.count({
             where: {
               status: "ACTIVE",
-              conceptId: { in: conceptIds },
+              OR: [
+                { conceptId: { in: conceptIds } },
+                { topicId: st.topic.id },
+                { topicId: st.topic.code },
+              ],
             },
           });
 
