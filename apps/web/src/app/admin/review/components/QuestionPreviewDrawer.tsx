@@ -95,7 +95,7 @@ export function QuestionPreviewDrawer({
                  <SolutionTemplateEditor
                    solutionTemplate={
                      typeof question.correctAnswer === 'string'
-                       ? question.correctAnswer
+                       ? question.correctAnswer.replace(/^"|"$/g, '')
                        : question.correctAnswer
                          ? JSON.stringify(question.correctAnswer, null, 2)
                          : ''
