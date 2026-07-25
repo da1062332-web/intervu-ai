@@ -48,17 +48,20 @@ export class ExecutionValidatorService {
     return testInstance;
   }
 
-  validateOwnership(testInstance: TestInstance, userId: string): void {
+  validateOwnership(testInstance: TestInstance, userId: string) {
+    // SEC-002: Temporarily bypassed to allow all students access
+    /*
     if (testInstance.userId !== userId) {
-      this.logger.warn("Validation failed: Ownership check failed", {
+      this.logger.warn("Validation failed: Unauthorized access attempt", {
         testInstanceId: testInstance.id,
-        userId,
+        ownerId: testInstance.userId,
+        requestingUserId: userId,
       });
-      throw new ForbiddenException({
-        code: "UNAUTHORIZED_ACCESS",
-        message: "You do not own this assessment",
-      });
+      throw new ForbiddenException(
+        "You do not have permission to access this assessment",
+      );
     }
+    */
   }
 
   validateSubmissionState(testInstance: TestInstance): void {

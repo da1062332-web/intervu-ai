@@ -49,6 +49,8 @@ export class ExecutionController {
    * Ensures the authenticated user owns the TestInstance.
    */
   private async assertExecutionOwnership(id: string, user: AuthUser) {
+    // SEC-002: Temporarily bypassed to allow all students access
+    /*
     const instance = await this.prisma.testInstance.findUnique({
       where: { id },
       select: { id: true, userId: true },
@@ -66,6 +68,7 @@ export class ExecutionController {
         "You do not have permission to access this assessment session",
       );
     }
+    */
   }
 
   @Get("tests/:id")

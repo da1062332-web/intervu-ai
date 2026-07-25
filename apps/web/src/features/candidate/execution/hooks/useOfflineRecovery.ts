@@ -152,6 +152,14 @@ export function useOfflineRecovery() {
     }
   }, []);
 
+  // Listen to connectionStatus changes from the store (which is driven by useConnectionMonitor)
+  useEffect(() => {
+    if (connectionStatus === 'ONLINE') {
+      replayQueue();
+    }
+  }, [connectionStatus, replayQueue]);
+
+  // Keep native event listeners as a fallback
   useEffect(() => {
     const handleOnline = () => {
       setConnectionStatus('ONLINE');
@@ -166,7 +174,7 @@ export function useOfflineRecovery() {
     if (typeof window !== 'undefined') {
       if (navigator.onLine) {
         setConnectionStatus('ONLINE');
-        replayQueue();
+        // Initial replay is handled by the first useEffect since default state is ONLINE
       } else {
         setConnectionStatus('OFFLINE');
       }

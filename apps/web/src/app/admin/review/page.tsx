@@ -13,6 +13,7 @@ import { QuestionPreviewDrawer } from './components/QuestionPreviewDrawer';
 import { BulkActionToolbar } from './components/BulkActionToolbar';
 import { GeneratedQuestion } from '@/services/question-generation/types';
 import { SectionHeader } from '@/components/ui/section-header';
+import { toast } from 'sonner';
 
 export default function QuestionReviewPage() {
   const { data: questions = [], isLoading } = useGeneratedQuestions({ status: 'GENERATED' });
@@ -82,6 +83,9 @@ export default function QuestionReviewPage() {
     try {
       await approve(id);
       if (previewQuestion?.id === id) setPreviewQuestion(null);
+      toast.success('Question approved');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to approve question');
     } finally {
       setProcessingId(null);
     }
@@ -92,6 +96,9 @@ export default function QuestionReviewPage() {
     try {
       await reject(id);
       if (previewQuestion?.id === id) setPreviewQuestion(null);
+      toast.success('Question rejected');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reject question');
     } finally {
       setProcessingId(null);
     }
@@ -102,6 +109,9 @@ export default function QuestionReviewPage() {
     try {
       const updated = await regenerate(id);
       if (previewQuestion?.id === id) setPreviewQuestion(updated as any);
+      toast.success('Question regenerated');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to regenerate question');
     } finally {
       setProcessingId(null);
     }
@@ -109,11 +119,18 @@ export default function QuestionReviewPage() {
 
   const handleBulkApprove = async () => {
     setIsBulkProcessing(true);
+    let successCount = 0;
     try {
       for (const id of selectedIds) {
-        await approve(id);
+        try {
+          await approve(id);
+          successCount++;
+        } catch (err: any) {
+          toast.error(err.message || 'Failed to approve question');
+        }
       }
       setSelectedIds([]);
+      if (successCount > 0) toast.success(`Approved ${successCount} questions`);
     } finally {
       setIsBulkProcessing(false);
     }
@@ -121,11 +138,18 @@ export default function QuestionReviewPage() {
 
   const handleBulkReject = async () => {
     setIsBulkProcessing(true);
+    let successCount = 0;
     try {
       for (const id of selectedIds) {
-        await reject(id);
+        try {
+          await reject(id);
+          successCount++;
+        } catch (err: any) {
+          toast.error(err.message || 'Failed to reject question');
+        }
       }
       setSelectedIds([]);
+      if (successCount > 0) toast.success(`Rejected ${successCount} questions`);
     } finally {
       setIsBulkProcessing(false);
     }

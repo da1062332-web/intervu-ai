@@ -1,18 +1,19 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it, expect } from 'vitest';
 import { buildConstraintRule, parseConstraintRule } from './constraint-utils';
 
-test('parses complex formula constraints into a visible fallback shape', () => {
-  const parsed = parseConstraintRule({ rule: 'other_number % 1 = 0' });
+describe('constraint-utils', () => {
+  it('parses complex formula constraints into a visible fallback shape', () => {
+    const parsed = parseConstraintRule({ rule: 'other_number % 1 = 0' });
 
-  assert.equal(parsed.target, 'Custom');
-  assert.equal(parsed.operator, 'Formula');
-  assert.equal(parsed.value, 'other_number % 1 = 0');
-  assert.equal(parsed.rule, 'other_number % 1 = 0');
-});
+    expect(parsed.target).toBe('Custom');
+    expect(parsed.operator).toBe('Formula');
+    expect(parsed.value).toBe('other_number % 1 = 0');
+    expect(parsed.rule).toBe('other_number % 1 = 0');
+  });
 
-test('builds raw rule strings for custom operators', () => {
-  const rule = buildConstraintRule({ target: 'other_number', operator: 'Formula', value: 'other_number % 1 = 0' });
+  it('builds raw rule strings for custom operators', () => {
+    const rule = buildConstraintRule({ target: 'other_number', operator: 'Formula', value: 'other_number % 1 = 0' });
 
-  assert.equal(rule, 'other_number % 1 = 0');
+    expect(rule).toBe('other_number % 1 = 0');
+  });
 });

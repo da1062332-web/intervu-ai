@@ -14,6 +14,7 @@ import {
   GenerationStrategy,
 } from "@prisma/client";
 import { createHash } from "crypto";
+import * as math from "mathjs";
 import {
   PRNG,
   generateVariables,
@@ -305,6 +306,24 @@ export class TemplateService {
       updateInput.constraints = validated.constraints as Prisma.InputJsonValue;
     if (validated.generationStrategy !== undefined)
       updateInput.generationStrategy = validated.generationStrategy;
+
+    if (validated.variableSchema !== undefined || validated.constraints !== undefined) {
+      const validationErrors = this.validateStrategyPayload(
+        validated.variableSchema,
+        validated.constraints,
+      );
+      if (validationErrors.length > 0) {
+        throw new BadRequestException({
+          success: false,
+          error: {
+            code: "INVALID_STRATEGY_DEFINITION",
+            message:
+              "Template strategy contains invalid variables, derived variables, or constraints.",
+            details: validationErrors,
+          },
+        });
+      }
+    }
     if ((validated as any).isActive !== undefined)
       updateInput.isActive = (validated as any).isActive;
 
@@ -1101,11 +1120,27 @@ export class TemplateService {
         prngSeed = Math.floor(Math.random() * 1000000);
         const prng = new PRNG(prngSeed);
 
+        // Log seed and variable defs for reproducibility
+        this.logger.debug("Generation attempt starting", {
+          attempt: attempts,
+          prngSeed,
+          variableCount: variablesDef.length,
+        });
+
         // Generate values
         parameters = generateVariables(variablesDef, prng);
+        this.logger.debug("Generated parameters", {
+          prngSeed,
+          parameters,
+        });
 
         // Validate constraints
         const constraintCheck = evaluateConstraints(constraintsDef, parameters);
+        this.logger.debug("Constraint check result", {
+          prngSeed,
+          isValid: constraintCheck.isValid,
+          details: constraintCheck,
+        });
         if (!constraintCheck.isValid) {
           continue;
         }
@@ -1142,38 +1177,47 @@ export class TemplateService {
         }
 
         // Generate Answer
-        if (solutionSchema.formula) {
-          try {
-            const ansVal = evaluateExpression(
-              solutionSchema.formula,
-              parameters,
-            );
+        try {
+          if (solutionSchema.formula) {
+            this.logger.debug("Evaluating solutionSchema.formula", {
+              prngSeed,
+              formula: solutionSchema.formula,
+            });
+            const ansVal = evaluateExpression(solutionSchema.formula, parameters);
             correctAnswer = String(ansVal);
-          } catch {
-            correctAnswer = "0";
-          }
-        } else if (
-          solutionSchema.correctVariable &&
-          parameters.hasOwnProperty(solutionSchema.correctVariable)
-        ) {
-          correctAnswer = String(parameters[solutionSchema.correctVariable]);
-        } else if (solutionSchema.correctOptionIndex !== undefined) {
-          const idx = solutionSchema.correctOptionIndex;
-          if (idx >= 0 && idx < options.length) {
-            correctAnswer = options[idx];
-          }
-        } else if (finalAnswerExpression) {
-          try {
-            const ansVal = evaluateExpression(
+          } else if (
+            solutionSchema.correctVariable &&
+            parameters.hasOwnProperty(solutionSchema.correctVariable)
+          ) {
+            correctAnswer = String(parameters[solutionSchema.correctVariable]);
+          } else if (solutionSchema.correctOptionIndex !== undefined) {
+            const idx = solutionSchema.correctOptionIndex;
+            if (idx >= 0 && idx < options.length) {
+              correctAnswer = options[idx];
+            }
+          } else if (finalAnswerExpression) {
+            this.logger.debug("Evaluating finalAnswerExpression", {
+              prngSeed,
               finalAnswerExpression,
-              parameters,
-            );
+            });
+            const ansVal = evaluateExpression(finalAnswerExpression, parameters);
             correctAnswer = String(ansVal);
-          } catch {
-            correctAnswer = "0";
+          } else {
+            correctAnswer = options[0] || "0";
           }
-        } else {
-          correctAnswer = options[0] || "0";
+          this.logger.debug("Computed correct answer", {
+            prngSeed,
+            correctAnswer,
+          });
+        } catch (err) {
+          const error = err instanceof Error ? err : new Error(String(err));
+          this.logger.error("Error while computing answer", error.stack || error.message, {
+            prngSeed,
+            solutionSchema,
+            finalAnswerExpression,
+            parameters,
+          });
+          correctAnswer = "0";
         }
 
         // Option Validation (QGES Stage 7)
@@ -1464,7 +1508,7 @@ export class TemplateService {
       throw new NotFoundException(`Template ${templateId} not found`);
     }
 
-    // 2. Validate draft structure
+    // 2. Validate draft structure and strategy semantics
     if (
       !draft.variables ||
       !Array.isArray(draft.variables) ||
@@ -1474,6 +1518,18 @@ export class TemplateService {
       !Array.isArray(draft.constraints)
     ) {
       throw new BadRequestException("Invalid draft structure");
+    }
+
+    const validationErrors = this.validateDraftedStrategy(draft);
+    if (validationErrors.length > 0) {
+      throw new BadRequestException({
+        success: false,
+        error: {
+          code: "INVALID_STRATEGY_DRAFT",
+          message: "Drafted strategy contains invalid variable or constraint definitions.",
+          details: validationErrors,
+        },
+      });
     }
 
     // 3. Normalize and build update payload (uses existing format)
@@ -1679,5 +1735,181 @@ export class TemplateService {
       operator: match[2],
       value: match[3].trim(),
     };
+  }
+
+  private validateStrategyPayload(variableSchema: any, constraints: any): string[] {
+    const variables = Array.isArray(variableSchema?.variables) ? variableSchema.variables : [];
+    const derivedVariables = Array.isArray(variableSchema?.derivedVariables)
+      ? variableSchema.derivedVariables
+      : Array.isArray(variableSchema?.formulas)
+      ? variableSchema.formulas.map((formula: any, index: number) => {
+          if (typeof formula !== 'string') {
+            return { name: `formula_${index}`, expression: '' };
+          }
+          const [name, ...parts] = formula.split('=');
+          return {
+            name: name?.trim() || `formula_${index}`,
+            expression: parts.join('=').trim(),
+          };
+        })
+      : [];
+
+    return this.validateDraftedStrategy({
+      variables,
+      derivedVariables,
+      constraints: Array.isArray(constraints) ? constraints : [],
+    });
+  }
+
+  private validateDraftedStrategy(draft: any): string[] {
+    const errors: string[] = [];
+
+    const variableNames = new Set<string>();
+    const derivedNames = new Set<string>();
+
+    for (const variable of draft.variables) {
+      if (!variable?.name || typeof variable.name !== "string") {
+        errors.push("Each variable must have a valid name.");
+        continue;
+      }
+      if (variableNames.has(variable.name)) {
+        errors.push(`Duplicate variable name: ${variable.name}`);
+      }
+      variableNames.add(variable.name);
+
+      if (variable.type === "number" || variable.type === "integer" || variable.type === "decimal") {
+        if (variable.min !== undefined && variable.max !== undefined) {
+          if (typeof variable.min !== "number" || typeof variable.max !== "number") {
+            errors.push(`Variable ${variable.name} must have numeric min and max values.`);
+          } else if (variable.min > variable.max) {
+            errors.push(`Variable ${variable.name} has invalid range: min ${variable.min} cannot be greater than max ${variable.max}.`);
+          }
+        }
+
+        if (variable.generator) {
+          const generator = String(variable.generator).toLowerCase();
+          if (generator === "even" || generator === "odd" || generator === "prime") {
+            if (variable.type === "decimal") {
+              errors.push(`Generator '${generator}' is incompatible with decimal variable ${variable.name}.`);
+            }
+            if (generator === "prime" && (variable.min === undefined || variable.max === undefined)) {
+              errors.push(`Prime generator requires explicit min and max for variable ${variable.name}.`);
+            }
+          }
+        }
+      }
+    }
+
+    for (const derived of draft.derivedVariables) {
+      if (!derived?.name || typeof derived.name !== "string") {
+        errors.push("Each derived variable must have a valid name.");
+        continue;
+      }
+      if (derivedNames.has(derived.name)) {
+        errors.push(`Duplicate derived variable name: ${derived.name}`);
+      }
+      derivedNames.add(derived.name);
+      if (!derived.expression || typeof derived.expression !== "string") {
+        errors.push(`Derived variable ${derived.name} must have a valid expression.`);
+      }
+      if (variableNames.has(derived.name)) {
+        errors.push(`Derived variable name ${derived.name} conflicts with a base variable name.`);
+      }
+    }
+
+    const formulaMap = new Map<string, string>();
+    for (const derived of draft.derivedVariables) {
+      if (derived?.name && typeof derived.expression === "string") {
+        formulaMap.set(derived.name, derived.expression);
+      }
+    }
+
+    const formulaDeps = new Map<string, string[]>();
+    for (const [name, expression] of formulaMap.entries()) {
+      const deps = this.extractIdentifierNames(expression).filter(
+        (dep) => dep !== name,
+      );
+      formulaDeps.set(name, deps);
+    }
+
+    const cycle = this.detectCycle(formulaDeps);
+    if (cycle.length > 0) {
+      errors.push(`Circular dependency in derived variables: ${cycle.join(" -> ")}`);
+    }
+
+    const parameterNames = new Set<string>([...variableNames, ...derivedNames]);
+    for (const constraint of draft.constraints) {
+      if (!constraint?.rule || typeof constraint.rule !== "string") {
+        errors.push("Each constraint must include a rule string.");
+        continue;
+      }
+      try {
+        math.parse(constraint.rule);
+      } catch (err: any) {
+        errors.push(`Invalid constraint formula: ${constraint.rule} (${err.message})`);
+      }
+
+      const identifiers = this.extractIdentifierNames(constraint.rule);
+      for (const id of identifiers) {
+        if (!parameterNames.has(id)) {
+          errors.push(`Constraint references undefined variable or derived variable: ${id}`);
+        }
+      }
+    }
+
+    return errors;
+  }
+
+  private extractIdentifierNames(expression: string): string[] {
+    const nodes = math.parse(expression);
+    const identifiers = new Set<string>();
+
+    nodes.traverse((node: any) => {
+      if (node && node.isSymbolNode) {
+        identifiers.add(node.name);
+      }
+    });
+
+    return Array.from(identifiers);
+  }
+
+  private detectCycle(deps: Map<string, string[]>): string[] {
+    const visited = new Set<string>();
+    const stack = new Set<string>();
+    const path: string[] = [];
+    let cyclePath: string[] = [];
+
+    const dfs = (node: string): boolean => {
+      if (stack.has(node)) {
+        cyclePath = [...path.slice(path.indexOf(node)), node];
+        return true;
+      }
+      if (visited.has(node)) {
+        return false;
+      }
+
+      visited.add(node);
+      stack.add(node);
+      path.push(node);
+
+      const neighbors = deps.get(node) || [];
+      for (const neighbor of neighbors) {
+        if (dfs(neighbor)) {
+          return true;
+        }
+      }
+
+      stack.delete(node);
+      path.pop();
+      return false;
+    };
+
+    for (const node of deps.keys()) {
+      if (!visited.has(node) && dfs(node)) {
+        return cyclePath;
+      }
+    }
+
+    return [];
   }
 }

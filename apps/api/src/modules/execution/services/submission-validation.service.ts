@@ -123,7 +123,9 @@ export class SubmissionValidationService {
               }
             }
             if (
-              !parsed ||
+              parsed === null ||
+              parsed === undefined ||
+              parsed === "" ||
               (typeof parsed === "object" && Object.keys(parsed).length === 0)
             ) {
               missingQuestionIds.push(question.questionId);

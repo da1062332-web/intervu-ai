@@ -80,6 +80,60 @@ export class QuestionInstantiatorService {
     // 3. Resolve/Calculate the correct answer
     const answer = this.resolveAnswer(solutionSchema, parameters, options);
 
+    // 3.5 Generate distractors if options are missing for MCQs
+    const isMcq = ["MCQ", "MULTIPLE_CHOICE", "MCQS", "MSQ"].includes(String(template.questionType || "MULTIPLE_CHOICE").toUpperCase());
+    if (isMcq && options.length === 0 && answer && !isNaN(Number(answer))) {
+      const correctVal = Number(answer);
+      const isInt = Number.isInteger(correctVal);
+      const distractors = new Set<string>();
+      
+      const roundToPrecision = (val: number, step?: number) => {
+        if (step === undefined) return val;
+        const stepStr = step.toString();
+        const decimalIdx = stepStr.indexOf(".");
+        if (decimalIdx === -1) return Math.round(val);
+        const precision = stepStr.length - decimalIdx - 1;
+        return parseFloat(val.toFixed(precision));
+      };
+
+      const perturbations = [
+        (v: number) => v + (isInt ? 1 : 0.5),
+        (v: number) => v - (isInt ? 1 : 0.5),
+        (v: number) => v + (isInt ? 2 : 0.1),
+        (v: number) => v - (isInt ? 2 : 0.1),
+        (v: number) => v * 1.2,
+        (v: number) => v * 0.8,
+        (v: number) => v + (isInt ? 5 : 1.5),
+        (v: number) => v - (isInt ? 5 : 1.5),
+        (v: number) => v * 1.5,
+        (v: number) => v * 0.5,
+      ];
+
+      for (const perturb of perturbations) {
+        if (distractors.size >= 3) break;
+        const rawVal = perturb(correctVal);
+        const rounded = roundToPrecision(rawVal, isInt ? 1 : 0.01);
+        const strVal = String(rounded);
+        if (strVal !== String(correctVal) && rawVal > 0) {
+          distractors.add(strVal);
+        }
+      }
+      
+      let offset = 1;
+      while (distractors.size < 3) {
+        const rawVal = correctVal + offset;
+        const rounded = roundToPrecision(rawVal, isInt ? 1 : 0.01);
+        const strVal = String(rounded);
+        if (strVal !== String(correctVal)) {
+          distractors.add(strVal);
+        }
+        offset += 1;
+      }
+
+      options.push(String(correctVal), ...Array.from(distractors).slice(0, 3));
+      options.sort(() => Math.random() - 0.5);
+    }
+
     // 4. Calculate fine-grained difficulty score (lookahead requirement)
     const difficultyScore = this.calculateDifficultyScore(
       template.difficultyLevel,

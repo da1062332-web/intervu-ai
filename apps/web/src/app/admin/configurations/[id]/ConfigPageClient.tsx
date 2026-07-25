@@ -26,6 +26,9 @@ import { ConfigurationSkeleton } from '@/components/ui/skeletons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ConfigPageClientProps {
   configId: string;
@@ -205,9 +208,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
           <div className='flex items-center justify-between mb-4 pb-4 border-b'>
             <h3 className='font-semibold text-sm text-foreground uppercase tracking-wider'>Configuration Health</h3>
             <div className='flex items-center gap-4'>
-               <div className="w-32 md:w-64 bg-muted rounded-full h-2 hidden sm:block overflow-hidden">
-                 <div className="bg-primary h-full rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
-               </div>
+               <Progress value={progressPercent} className="w-32 md:w-64 hidden sm:block h-2" />
                <span className='text-sm font-medium text-primary'>{progressPercent}%</span>
             </div>
           </div>
@@ -233,27 +234,25 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
       {/* Top Workflow Navigation */}
       <div className='border-b border-gray-200 dark:border-gray-800 overflow-x-auto pb-1'>
-        <nav className='flex space-x-6' aria-label='Tabs'>
-          {WIZARD_TABS.map((tab, index) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabClick(index)}
-              className={cn(
-                activeTabIndex === index
-                  ? 'border-primary text-primary'
-                  : index < activeTabIndex
-                    ? 'border-transparent text-foreground hover:text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground',
-                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2',
-              )}
-            >
-              <span className='flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]'>
-                {index + 1}
-              </span>
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        <Tabs value={activeTabId} onValueChange={(id: string) => handleTabClick(WIZARD_TABS.findIndex((t) => t.id === id))} className='w-full'>
+          <TabsList className='flex w-full justify-start bg-transparent border-none h-auto p-0'>
+            {WIZARD_TABS.map((tab, index) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className={cn(
+                  'rounded-none border-b-2 border-transparent px-1 py-4 text-sm font-medium transition-colors hover:text-primary data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent gap-2',
+                  index < activeTabIndex ? 'text-foreground hover:text-primary' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className='flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]'>
+                  {index + 1}
+                </span>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className='mt-8 min-h-[400px]'>
@@ -287,40 +286,46 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
           </Button>
 
           {activeTabId === 'preview' ? (
-            <div className='relative group'>
-              <Button
-                className='gap-2'
-                onClick={generateAssembly}
-                disabled={generating || !isReady}
-              >
-                {generating ? (
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                ) : (
-                  <Play className='h-4 w-4' />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className='inline-block'>
+                    <Button
+                      className='gap-2'
+                      onClick={generateAssembly}
+                      disabled={generating || !isReady}
+                    >
+                      {generating ? (
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      ) : (
+                        <Play className='h-4 w-4' />
+                      )}
+                      {generating ? 'Assembling...' : 'Generate Test Assembly'}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!isReady && (
+                  <TooltipContent side='top' align='end' className='w-64 p-3'>
+                    <p className='font-semibold mb-2'>Generate Assembly Disabled</p>
+                    <p className='text-muted-foreground text-xs mb-2'>Missing requirements:</p>
+                    <ul className='space-y-1'>
+                      {healthChecks.map((check: any, i: number) => (
+                        <li key={i} className='flex items-center gap-2 text-xs'>
+                          {check.status === 'PASS' ? (
+                            <CheckCircle2 className='w-3 h-3 text-green-500' />
+                          ) : (
+                            <span className='w-3 h-3 border rounded-sm' />
+                          )}
+                          <span className={check.status === 'PASS' ? 'line-through text-muted-foreground' : ''} title={check.message}>
+                            {check.name}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </TooltipContent>
                 )}
-                {generating ? 'Assembling...' : 'Generate Test Assembly'}
-              </Button>
-              {!isReady && (
-                <div className='absolute bottom-full mb-2 right-0 hidden group-hover:block bg-popover text-popover-foreground border p-3 rounded-md shadow-lg text-sm w-64 z-50'>
-                  <p className='font-semibold mb-2'>Generate Assembly Disabled</p>
-                  <p className='text-muted-foreground text-xs mb-2'>Missing requirements:</p>
-                  <ul className='space-y-1'>
-                    {healthChecks.map((check: any, i: number) => (
-                      <li key={i} className='flex items-center gap-2 text-xs'>
-                        {check.status === 'PASS' ? (
-                          <CheckCircle2 className='w-3 h-3 text-green-500' />
-                        ) : (
-                          <span className='w-3 h-3 border rounded-sm' />
-                        )}
-                        <span className={check.status === 'PASS' ? 'line-through text-muted-foreground' : ''} title={check.message}>
-                          {check.name}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+              </Tooltip>
+            </TooltipProvider>
           ) : (
             <Button onClick={handleNext}>Continue</Button>
           )}

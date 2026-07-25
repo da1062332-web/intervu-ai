@@ -20,7 +20,7 @@ export interface SectionAdvanceResult {
 export const executionService = {
   getTestInstance: async (id: string): Promise<TestInstance> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await apiClient.request<any>(`/tests/${id}`);
+    const response = await apiClient.request<any>(`/tests/${id}`, { cache: 'no-store' });
 
     // Calculate remaining duration if expiresAt is provided
     let duration = 3600;
@@ -62,8 +62,12 @@ export const executionService = {
               questionHash: q.snapshot?.questionHash || '',
               type: q.snapshot?.questionType || 'MCQ',
               text: q.snapshot?.questionText || '',
-              options: q.snapshot?.options?.map((opt: any) => {
+              stem: q.snapshot?.questionStatement || '',
+              candidateInstructions: q.snapshot?.instructions || '',
+              options: (q.snapshot?.options || q.snapshot?.mcqData?.options)?.map((opt: any, index: number) => {
                 if (typeof opt === 'string') {
+                  // Use the text as the ID so that it gets sent back to the backend
+                  // for correct evaluation (since backend expects the text value).
                   return { id: opt, text: opt };
                 }
                 return opt;

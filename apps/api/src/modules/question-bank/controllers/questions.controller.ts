@@ -545,7 +545,7 @@ export class QuestionsController {
       questionType: question.questionType,
     });
 
-    if (!validationCheck.isValid) {
+    if (!validationCheck.isValid && !currentMeta.isDirectDatasetFetch && currentMeta.generationStrategy !== "DATASET") {
       throw new BadRequestException({
         success: false,
         message: `Cannot approve invalid question. Errors: ${validationCheck.errors.join(" | ")}`,
@@ -584,6 +584,13 @@ export class QuestionsController {
         ...(rawAnswer ? { correctAnswer: String(rawAnswer) } : {}),
       },
     });
+
+    // Auto-publish to Question Bank
+    try {
+      await this.publishQuestion(id);
+    } catch (err) {
+      console.error("Failed to auto-publish question after approval", err);
+    }
 
     return {
       success: true,
@@ -873,25 +880,26 @@ export class QuestionsController {
 
     let parsedOptions: string[] = [];
     if (Array.isArray(question.options)) {
-      parsedOptions = question.options.map((o) => String(o).trim());
+      parsedOptions = question.options.map((o) => String(o).trim().replace(/^"|"$/g, ''));
     } else if (typeof question.options === "string") {
       try {
         const parsed = JSON.parse(question.options);
         if (Array.isArray(parsed)) {
-          parsedOptions = parsed.map((o) => String(o).trim());
+          parsedOptions = parsed.map((o) => String(o).trim().replace(/^"|"$/g, ''));
         } else if (parsed && typeof parsed === "object" && Array.isArray((parsed as any).options)) {
-          parsedOptions = (parsed as any).options.map((o: any) => String(o).trim());
+          parsedOptions = (parsed as any).options.map((o: any) => String(o).trim().replace(/^"|"$/g, ''));
         }
       } catch (e) {
         if (question.options.includes(",")) {
-          parsedOptions = question.options.split(",").map((o) => o.trim());
+          parsedOptions = question.options.split(",").map((o) => o.trim().replace(/^"|"$/g, ''));
         }
       }
     } else if (question.options && typeof question.options === "object") {
       const opts = (question.options as any).options || (question.options as any).choices;
       if (Array.isArray(opts)) {
-        parsedOptions = opts.map((o: any) => String(o).trim());
+        parsedOptions = opts.map((o: any) => String(o).trim().replace(/^"|"$/g, ''));
       }
+    }
     }
 
     if (isMcq) {
@@ -914,9 +922,9 @@ export class QuestionsController {
     let answerStr = "";
     if (question.correctAnswer !== undefined && question.correctAnswer !== null) {
       if (typeof question.correctAnswer === "object" && (question.correctAnswer as any).text) {
-        answerStr = String((question.correctAnswer as any).text).trim();
+        answerStr = String((question.correctAnswer as any).text).trim().replace(/^"|"$/g, '');
       } else {
-        answerStr = String(question.correctAnswer).trim();
+        answerStr = String(question.correctAnswer).trim().replace(/^"|"$/g, '');
       }
     }
 

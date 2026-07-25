@@ -46,6 +46,10 @@ import { CandidateProfileController } from "./controllers/candidate-profile.cont
     PublicTestsService,
     AttemptHistoryService,
     CandidateProfileService,
+    CandidateDashboardRepository,
+    EnrollmentRepository,
+    AttemptHistoryRepository,
+    CandidateProfileRepository,
   ],
 })
 export class CandidateModule {}
