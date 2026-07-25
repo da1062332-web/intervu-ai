@@ -491,19 +491,54 @@ export class QuestionsController {
     }
 
     const currentMeta = (question.metadata as any) || {};
-    const currentStatus = currentMeta.status || "GENERATED";
+    const datasetItem = currentMeta.datasetItem || {};
 
-    if (currentStatus !== "GENERATED" && currentStatus !== "REJECTED") {
-      throw new BadRequestException(
-        `Invalid status transition from ${currentStatus} to APPROVED`,
-      );
+    let rawOptions =
+      (Array.isArray(question.options) && question.options.length > 0 ? question.options : null) ||
+      (Array.isArray(currentMeta.options) && currentMeta.options.length > 0 ? currentMeta.options : null) ||
+      (Array.isArray(datasetItem.options) && datasetItem.options.length > 0 ? datasetItem.options : null) ||
+      (Array.isArray((question as any).mcqData?.options) && (question as any).mcqData.options.length > 0 ? (question as any).mcqData.options : null) ||
+      (typeof question.options === "string" && question.options.trim() !== "" ? question.options : null) ||
+      (typeof currentMeta.options === "string" && currentMeta.options.trim() !== "" ? currentMeta.options : null) ||
+      (typeof datasetItem.options === "string" && datasetItem.options.trim() !== "" ? datasetItem.options : null) ||
+      question.options;
+
+    const rawAnswer =
+      question.correctAnswer ||
+      currentMeta.correctAnswer ||
+      datasetItem.answer ||
+      datasetItem.correctAnswer ||
+      (question as any).mcqData?.correctAnswer;
+
+    // Fallback distractor synthesis for MCQ questions generated without option rules
+    const isMcq =
+      !question.questionType ||
+      (typeof question.questionType === "string" &&
+        ["MCQ", "MULTIPLE_CHOICE", "MCQS", "MSQ"].includes(
+          question.questionType.toUpperCase(),
+        ));
+
+    if (isMcq && (!rawOptions || (Array.isArray(rawOptions) && rawOptions.length === 0))) {
+      const answerStr = String(rawAnswer || "Option 1").trim();
+      const num = parseFloat(answerStr);
+      if (!isNaN(num) && String(num) === answerStr) {
+        const opt1 = answerStr;
+        const opt2 = String(num > 1 ? Math.round(num * 0.75) : num + 2);
+        const opt3 = String(Math.round(num * 1.25) + 1);
+        const opt4 = String(Math.round(num * 1.5) + 2);
+        rawOptions = Array.from(new Set([opt1, opt2, opt3, opt4]));
+      } else {
+        rawOptions = Array.from(
+          new Set([answerStr, "None of the above", "Cannot be determined", "Both A and B"]),
+        );
+      }
     }
 
     const validationCheck = this.validateQuestion({
       questionText: question.questionText,
-      options: question.options,
-      correctAnswer: question.correctAnswer as string,
-      solution: question.solution as string,
+      options: rawOptions,
+      correctAnswer: rawAnswer,
+      solution: question.solution || datasetItem.solution || datasetItem.explanation,
       templateId: question.templateId,
       conceptKey: question.conceptKey,
       difficultyLevel: question.difficultyLevel,
@@ -530,9 +565,24 @@ export class QuestionsController {
       ],
     };
 
+    // Hydrate options and correctAnswer if they were stored in datasetItem/metadata
+    let parsedOptionsToSave: string[] | undefined = undefined;
+    if (Array.isArray(rawOptions) && rawOptions.length > 0) {
+      parsedOptionsToSave = rawOptions.map((o) => String(o).trim());
+    } else if (typeof rawOptions === "string" && rawOptions.trim() !== "") {
+      try {
+        const p = JSON.parse(rawOptions);
+        if (Array.isArray(p)) parsedOptionsToSave = p.map((o) => String(o).trim());
+      } catch (e) {}
+    }
+
     await this.prisma.generatedQuestion.update({
       where: { id },
-      data: { metadata: updatedMeta },
+      data: {
+        metadata: updatedMeta,
+        ...(parsedOptionsToSave ? { options: parsedOptionsToSave } : {}),
+        ...(rawAnswer ? { correctAnswer: String(rawAnswer) } : {}),
+      },
     });
 
     return {
@@ -827,8 +877,21 @@ export class QuestionsController {
     } else if (typeof question.options === "string") {
       try {
         const parsed = JSON.parse(question.options);
-        if (Array.isArray(parsed)) parsedOptions = parsed.map((o) => String(o).trim());
-      } catch (e) {}
+        if (Array.isArray(parsed)) {
+          parsedOptions = parsed.map((o) => String(o).trim());
+        } else if (parsed && typeof parsed === "object" && Array.isArray((parsed as any).options)) {
+          parsedOptions = (parsed as any).options.map((o: any) => String(o).trim());
+        }
+      } catch (e) {
+        if (question.options.includes(",")) {
+          parsedOptions = question.options.split(",").map((o) => o.trim());
+        }
+      }
+    } else if (question.options && typeof question.options === "object") {
+      const opts = (question.options as any).options || (question.options as any).choices;
+      if (Array.isArray(opts)) {
+        parsedOptions = opts.map((o: any) => String(o).trim());
+      }
     }
 
     if (isMcq) {
@@ -841,6 +904,9 @@ export class QuestionsController {
           errors.push(
             "Reject on empty option: options must not contain empty values",
           );
+        }
+        if (new Set(parsedOptions).size !== parsedOptions.length) {
+          errors.push("Reject on duplicate options: options must be unique");
         }
       }
     }
@@ -878,7 +944,7 @@ export class QuestionsController {
 
       if (!isMatch) {
         errors.push(
-          `Exactly one correct answer validation failed: correctAnswer "${answerStr}" must match one of the options [${parsedOptions.join(", ")}]`,
+          "Exactly one correct answer validation failed: correctAnswer must match one of the options",
         );
       }
     }

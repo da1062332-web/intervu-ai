@@ -8,16 +8,48 @@ import { DifficultyLevel } from "@prisma/client";
 
 @Injectable()
 export class TemplateSelectorService {
-  private readonly templateUsageCache = new Map<string, number>();
-
   constructor(private readonly prismaService: PrismaService) {}
 
   /**
-   * Selects a template based on topic, difficulty, version, status, and usage balancing.
+   * Fetches real-time, topic-scoped template usage counts directly from the database
+   * (ensures 100% correctness across multi-pod deployments without in-memory cache drift).
    */
-  async selectTemplate(
+  private async fetchTemplateUsageCounts(
+    templateIds: string[],
+  ): Promise<Map<string, number>> {
+    const usageMap = new Map<string, number>();
+    for (const id of templateIds) {
+      usageMap.set(id, 0);
+    }
+    if (templateIds.length === 0) return usageMap;
+
+    const counts = await this.prismaService.question.groupBy({
+      by: ["templateId"],
+      where: {
+        templateId: { in: templateIds },
+      },
+      _count: {
+        _all: true,
+      },
+    });
+
+    for (const entry of counts) {
+      if (entry.templateId) {
+        usageMap.set(entry.templateId, entry._count._all);
+      }
+    }
+    return usageMap;
+  }
+
+  /**
+   * Batch-selects top N templates for a topic based on difficulty match, DB usage balancing,
+   * version freshness, and exclusion of already-selected templates in the same test instance.
+   */
+  async selectBatch(
     request: TemplateSelectionRequest,
-  ): Promise<SelectedTemplate> {
+    count: number = 1,
+    excludeTemplateIds: string[] = [],
+  ): Promise<{ selected: SelectedTemplate[]; warnings: string[] }> {
     const { topicId, difficulty, questionType } = request;
     const targetDifficulty = difficulty.toUpperCase() as DifficultyLevel;
 
@@ -41,113 +73,122 @@ export class TemplateSelectorService {
 
     const conceptKeys = mappings.map((m: any) => m.code);
 
-    // 2. Fetch candidates matching resolved concepts
-    const templates = await this.prismaService.template.findMany({
+    // 2. Fetch candidate templates matching resolved concepts
+    const candidates = await this.prismaService.template.findMany({
       where: {
         conceptKey: { in: conceptKeys },
         isActive: true,
         deletedAt: null,
         ...(questionType ? { questionType } : {}),
+        ...(excludeTemplateIds.length > 0
+          ? { id: { notIn: excludeTemplateIds } }
+          : {}),
       },
     });
 
-    if (templates.length === 0) {
-      throw new NotFoundException({
-        success: false,
-        error: {
-          code: "TEMPLATE_MISSING",
-          message: `No active templates found for topic ID ${topicId}`,
-        },
-      });
-    }
-
-    // 3. Populate usage cache for candidate templates to avoid N+1 count queries at scale
-    const uncachedTemplateIds = templates
-      .filter((t) => !this.templateUsageCache.has(t.id))
-      .map((t) => t.id);
-
-    if (uncachedTemplateIds.length > 0) {
-      const counts = await this.prismaService.question.groupBy({
-        by: ["templateId"],
+    if (candidates.length === 0) {
+      // Fallback: If all candidates were excluded by excludeTemplateIds, query all active candidates
+      const fallbackCandidates = await this.prismaService.template.findMany({
         where: {
-          templateId: { in: uncachedTemplateIds },
-        },
-        _count: {
-          _all: true,
+          conceptKey: { in: conceptKeys },
+          isActive: true,
+          deletedAt: null,
+          ...(questionType ? { questionType } : {}),
         },
       });
 
-      // Initialize all uncached templates with 0 first
-      for (const id of uncachedTemplateIds) {
-        this.templateUsageCache.set(id, 0);
+      if (fallbackCandidates.length === 0) {
+        throw new NotFoundException({
+          success: false,
+          error: {
+            code: "TEMPLATE_MISSING",
+            message: `No active templates found for topic ID ${topicId}`,
+          },
+        });
       }
-
-      // Overwrite with actual DB counts
-      for (const entry of counts) {
-        if (entry.templateId) {
-          this.templateUsageCache.set(entry.templateId, entry._count._all);
-        }
-      }
+      candidates.push(...fallbackCandidates);
     }
 
-    // 4. Ranking Logic:
-    //    1. Active Template (already filtered in query)
-    //    2. Difficulty Match (exact match preferred)
-    //    3. Usage Balance (lower usage count preferred)
-    //    4. Latest Version (higher version number preferred)
-    templates.sort((a, b) => {
-      // 1. Difficulty Level match (Direct match comes first)
-      const aMatch = a.difficultyLevel === targetDifficulty ? 1 : 0;
-      const bMatch = b.difficultyLevel === targetDifficulty ? 1 : 0;
-      if (aMatch !== bMatch) {
-        return bMatch - aMatch;
-      }
+    // 3. Fetch DB-derived usage counts (topic-scoped, pod-safe)
+    const candidateIds = candidates.map((c) => c.id);
+    const dbUsageCounts = await this.fetchTemplateUsageCounts(candidateIds);
+    const localUsage = new Map(dbUsageCounts);
 
-      // 2. Usage Balancing (lower usage comes first)
-      const aUsage = this.templateUsageCache.get(a.id) || 0;
-      const bUsage = this.templateUsageCache.get(b.id) || 0;
-      if (aUsage !== bUsage) {
-        return aUsage - bUsage;
-      }
-
-      // 3. Version (Latest version first)
-      if (a.version !== b.version) {
-        return b.version - a.version;
-      }
-
-      return 0;
+    // 4. Score candidates (Weighted scoring: difficulty match * 1000 - usageCount * 10 + version)
+    const scored = candidates.map((t) => {
+      const match = t.difficultyLevel === targetDifficulty ? 1000 : 0;
+      const usage = localUsage.get(t.id) || 0;
+      const score = match - usage * 10 + (t.version || 1);
+      return { template: t, score };
     });
 
-    const bestTemplate = templates[0];
+    // Deterministic sort: score DESC, then templateKey ASC (deterministic tie-breaker replacing DB return order)
+    scored.sort((a, b) => {
+      if (a.score !== b.score) return b.score - a.score;
+      return (a.template.templateKey || a.template.id).localeCompare(
+        b.template.templateKey || b.template.id,
+      );
+    });
 
-    return {
-      templateId: bestTemplate.id,
-      version: bestTemplate.version,
-      metadata: {
-        conceptKey: bestTemplate.conceptKey,
-        difficultyLevel: bestTemplate.difficultyLevel,
-        questionType: bestTemplate.questionType,
-        structure: bestTemplate.structure,
-        variableSchema: bestTemplate.variableSchema,
-        constraints: bestTemplate.constraints,
-        solutionSchema: bestTemplate.solutionSchema,
-        name: bestTemplate.name,
-      },
-    };
+    const selected: SelectedTemplate[] = [];
+    const warnings: string[] = [];
+    const chosenIds = new Set<string>();
+
+    for (const item of scored) {
+      if (selected.length >= count) break;
+      const t = item.template;
+      if (chosenIds.has(t.id) && candidates.length >= count) continue;
+
+      chosenIds.add(t.id);
+      selected.push({
+        templateId: t.id,
+        version: t.version,
+        metadata: {
+          conceptKey: t.conceptKey,
+          difficultyLevel: t.difficultyLevel,
+          questionType: t.questionType,
+          structure: t.structure,
+          variableSchema: t.variableSchema,
+          constraints: t.constraints,
+          solutionSchema: t.solutionSchema,
+          name: t.name,
+        },
+      });
+
+      // Increment local batch usage so subsequent picks in the same batch favor under-used items
+      localUsage.set(t.id, (localUsage.get(t.id) || 0) + 1);
+    }
+
+    if (selected.length < count) {
+      warnings.push(
+        `Under-filled templates for topic ${topicId}: requested ${count}, available ${selected.length}`,
+      );
+    }
+
+    return { selected, warnings };
   }
 
   /**
-   * Increments the cached template usage count on successful save.
+   * Selects a single template (backward-compatible wrapper around selectBatch).
    */
-  incrementUsage(templateId: string): void {
-    const current = this.templateUsageCache.get(templateId) || 0;
-    this.templateUsageCache.set(templateId, current + 1);
+  async selectTemplate(
+    request: TemplateSelectionRequest,
+  ): Promise<SelectedTemplate> {
+    const { selected } = await this.selectBatch(request, 1);
+    return selected[0];
   }
 
   /**
-   * Resets the selector usage cache.
+   * Compatibility method — usage counts are now DB-derived.
+   */
+  incrementUsage(_templateId: string): void {
+    // DB-backed usage calculation eliminates the need for manual cache increments.
+  }
+
+  /**
+   * Compatibility method — usage counts are now DB-derived.
    */
   clearCache(): void {
-    this.templateUsageCache.clear();
+    // DB-backed usage calculation eliminates in-memory cache state.
   }
 }

@@ -1331,21 +1331,34 @@ export class TemplateService {
       );
     }
 
-    if (
-      !question.options ||
-      !Array.isArray(question.options) ||
-      question.options.length === 0
-    ) {
+    let parsedOptions: string[] = [];
+    if (Array.isArray(question.options)) {
+      parsedOptions = question.options.map((o) => String(o).trim());
+    } else if (typeof question.options === "string") {
+      try {
+        const parsed = JSON.parse(question.options);
+        if (Array.isArray(parsed)) {
+          parsedOptions = parsed.map((o) => String(o).trim());
+        }
+      } catch (e) {}
+    } else if (question.options && typeof question.options === "object") {
+      const opts = (question.options as any).options || (question.options as any).choices;
+      if (Array.isArray(opts)) {
+        parsedOptions = opts.map((o: any) => String(o).trim());
+      }
+    }
+
+    if (parsedOptions.length === 0) {
       errors.push(
         "Options complete validation failed: options must be a non-empty array",
       );
     } else {
-      if (question.options.some((o) => !o || String(o).trim() === "")) {
+      if (parsedOptions.some((o) => !o || String(o).trim() === "")) {
         errors.push(
           "Reject on empty option: options must not contain empty values",
         );
       }
-      if (new Set(question.options).size !== question.options.length) {
+      if (new Set(parsedOptions).size !== parsedOptions.length) {
         errors.push("Reject on duplicate options: options must be unique");
       }
     }

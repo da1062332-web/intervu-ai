@@ -67,6 +67,8 @@ export class GenerationOrchestratorService {
     let failedCount = 0;
 
     // 4. Generate questions sequentially
+    const batchSelectedTemplateIds: string[] = [];
+
     for (const dist of distributions) {
       const { sectionId: targetSecId, difficulty, count: targetCount } = dist;
 
@@ -83,16 +85,20 @@ export class GenerationOrchestratorService {
         // Pick topic (distribute evenly across section topics)
         const topic = sectionTopics[i % sectionTopics.length];
 
-        const success = await this.generateSingleQuestionWithRetry({
+        const result = await this.generateSingleQuestionWithRetry({
           examId,
           sectionId: targetSecId,
           topicId: topic.id,
           difficulty,
           MAX_RETRIES: 3,
+          excludeTemplateIds: batchSelectedTemplateIds,
         });
 
-        if (success) {
+        if (result.success) {
           generatedCount++;
+          if (result.templateId) {
+            batchSelectedTemplateIds.push(result.templateId);
+          }
         } else {
           failedCount++;
         }
@@ -194,8 +200,9 @@ export class GenerationOrchestratorService {
     topicId: string;
     difficulty: string;
     MAX_RETRIES: number;
-  }): Promise<boolean> {
-    const { examId, sectionId, topicId, difficulty, MAX_RETRIES } = params;
+    excludeTemplateIds?: string[];
+  }): Promise<{ success: boolean; templateId?: string }> {
+    const { examId, sectionId, topicId, difficulty, MAX_RETRIES, excludeTemplateIds = [] } = params;
     let retryCount = 0;
 
     while (retryCount < MAX_RETRIES) {
@@ -203,12 +210,17 @@ export class GenerationOrchestratorService {
       let selectedTemplate: any = null;
 
       try {
-        // 1. Template Selection
-        selectedTemplate = await this.templateSelectorService.selectTemplate({
-          topicId,
-          difficulty,
-          questionType: "multiple_choice",
-        });
+        // 1. Template Selection via selectBatch (with excludeTemplateIds deduplication)
+        const batchResult = await this.templateSelectorService.selectBatch(
+          {
+            topicId,
+            difficulty,
+            questionType: "multiple_choice",
+          },
+          1,
+          excludeTemplateIds,
+        );
+        selectedTemplate = batchResult.selected[0];
 
         // 2. Parameter Generation
         const generatedParams =
@@ -351,7 +363,7 @@ export class GenerationOrchestratorService {
             message: `Question generated successfully on attempt ${retryCount + 1}`,
           });
 
-          return true;
+          return { success: true, templateId: selectedTemplate.templateId };
         } else {
           // Increment retry counter since validation failed
           retryCount++;
@@ -372,7 +384,7 @@ export class GenerationOrchestratorService {
       }
     }
 
-    return false;
+    return { success: false };
   }
 
   /**
