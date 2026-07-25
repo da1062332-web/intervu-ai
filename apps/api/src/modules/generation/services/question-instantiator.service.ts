@@ -24,6 +24,34 @@ interface InstantiatedQuestion {
   metadata: any;
 }
 
+export function parseOptionsTemplate(raw: any): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    if (raw.length === 1 && typeof raw[0] === "string" && raw[0].trim().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(raw[0]);
+        if (parsed && Array.isArray(parsed.options)) {
+          return parsed.options.map((o: any) => String(o));
+        }
+      } catch (e) {
+        // Fall back to original array
+      }
+    }
+    return raw.map((o: any) => (typeof o === "string" ? o : String(o)));
+  }
+  if (typeof raw === "string" && raw.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.options)) {
+        return parsed.options.map((o: any) => String(o));
+      }
+    } catch (e) {
+      // Fall back
+    }
+  }
+  return [];
+}
+
 @Injectable()
 export class QuestionInstantiatorService {
   /**
@@ -34,10 +62,13 @@ export class QuestionInstantiatorService {
     const structure = template.structure || {};
     const solutionSchema = template.solutionSchema || {};
 
-    // 1. Get raw templates from structure
-    const questionTemplate = structure.questionTemplate || "";
+    const questionTemplate =
+      structure.questionTemplate ||
+      structure.questionStatement ||
+      structure.prompt ||
+      "";
     const explanationTemplate = structure.explanationTemplate || "";
-    const optionsTemplate = structure.optionsTemplate || [];
+    const optionsTemplate = parseOptionsTemplate(structure.optionsTemplate);
 
     // 2. Perform text interpolation
     const questionText = this.interpolate(questionTemplate, parameters);

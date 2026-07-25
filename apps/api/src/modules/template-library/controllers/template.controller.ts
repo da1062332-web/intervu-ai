@@ -323,7 +323,8 @@ export class TemplateController {
     const structure = (template.structure as any) || {};
     return {
       templateId: template.id,
-      questionTemplate: structure.questionTemplate || "",
+      questionTemplate:
+        structure.questionTemplate || structure.questionStatement || "",
     };
   }
 
@@ -340,6 +341,7 @@ export class TemplateController {
     const updatedStructure = {
       ...structure,
       questionTemplate: body.questionTemplate,
+      questionStatement: body.questionTemplate,
     };
     return this.templateService.update(id, {
       structure: updatedStructure as any,
