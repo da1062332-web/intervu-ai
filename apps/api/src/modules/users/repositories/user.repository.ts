@@ -40,4 +40,32 @@ export class UserRepository extends BaseRepository<
     }
     return user;
   }
+
+  async findCandidatesWithSummary(params: {
+    where: Prisma.UserWhereInput;
+    skip: number;
+    take: number;
+    orderBy: any;
+  }) {
+    const { where, skip, take, orderBy } = params;
+    const [items, total] = await Promise.all([
+      this.db.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        include: {
+          performanceSummary: true,
+          _count: {
+            select: {
+              enrollments: true,
+              testInstances: true,
+            },
+          },
+        },
+      }),
+      this.db.user.count({ where }),
+    ]);
+    return { items, total };
+  }
 }
