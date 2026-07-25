@@ -34,9 +34,7 @@ export class AdminCandidatesController {
   constructor(private readonly adminCandidatesService: AdminCandidatesService) {}
 
   @Get()
-  @ApiOperation({ summary: "Retrieve paginated list of candidates with summary stats" })
-  @ApiQuery({ name: "page", required: false, type: Number, description: "Page number (default: 1)" })
-  @ApiQuery({ name: "limit", required: false, type: Number, description: "Items per page (default: 10)" })
+  @ApiOperation({ summary: "Retrieve full list of candidates with summary stats (unpaginated)" })
   @ApiQuery({ name: "search", required: false, type: String, description: "Search by name or email" })
   @ApiQuery({ name: "status", required: false, enum: ["ACTIVE", "INACTIVE"], description: "Filter by account status" })
   @ApiQuery({ name: "sortBy", required: false, type: String, description: "Sort attribute (name, email, averageScore, bestScore, createdAt)" })

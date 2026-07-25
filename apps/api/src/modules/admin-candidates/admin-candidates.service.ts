@@ -29,9 +29,6 @@ export class AdminCandidatesService {
   async getCandidateList(
     query: CandidateListQueryDto,
   ): Promise<CandidateListResponseDto> {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 10;
-    const skip = (page - 1) * limit;
     const sortOrder = query.sortOrder === "asc" ? "asc" : "desc";
     const sortBy = query.sortBy || "createdAt";
 
@@ -64,8 +61,6 @@ export class AdminCandidatesService {
 
     const { items, total } = await this.userRepository.findCandidatesWithSummary({
       where,
-      skip,
-      take: limit,
       orderBy,
     });
 
@@ -105,10 +100,10 @@ export class AdminCandidatesService {
     return {
       items: formattedItems,
       pagination: {
-        page,
-        limit,
+        page: 1,
+        limit: total || formattedItems.length || 0,
         total,
-        totalPages: Math.ceil(total / limit) || 1,
+        totalPages: 1,
       },
     };
   }

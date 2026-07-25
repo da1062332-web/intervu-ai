@@ -19,6 +19,7 @@ import {
   LineChart,
   Sparkles,
   GitBranch,
+  Users,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -71,6 +72,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
+        { label: 'Candidates', route: '/admin/candidates', icon: Users },
       ],
     },
     {
