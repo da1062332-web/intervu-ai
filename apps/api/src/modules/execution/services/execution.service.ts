@@ -29,6 +29,8 @@ export interface AssessmentSnapshotResponse {
   currentSectionIndex: number;
   currentQuestionIndex: number;
   serverTime: string;
+  candidateName?: string;
+  assessmentName?: string;
   sections: SectionSnapshot[];
 }
 
@@ -82,6 +84,27 @@ export class ExecutionService {
     const currentSectionIndex = (executionState as any)?.currentSectionIndex ?? 0;
     const currentQuestionIndex = executionState?.currentQuestionIndex ?? 0;
 
+    // 5a. Fetch templates to dynamically inject stem and instructions if toggled on
+    const templateIds = new Set<string>();
+    for (const section of snapshot.sections) {
+      for (const q of section.questions) {
+        const rawSnapshot = (q.questionSnapshot || {}) as any;
+        if (rawSnapshot.templateId) {
+          templateIds.add(rawSnapshot.templateId);
+        }
+      }
+    }
+
+    const templates = await this.prisma.template.findMany({
+      where: { id: { in: Array.from(templateIds) } },
+      select: { id: true, structure: true },
+    });
+
+    const templateMap = new Map<string, any>();
+    for (const t of templates) {
+      templateMap.set(t.id, t.structure);
+    }
+
     // 6. Build sections with status derived from TestInstanceSection.status
     const sectionsWithStatus = snapshot.sections.map(
       (section: {
@@ -110,6 +133,27 @@ export class ExecutionService {
           questions: section.questions.map((q) => {
             const rawSnapshot = (q.questionSnapshot || {}) as any;
             const { correctAnswer, solution, ...candidateSafeSnapshot } = rawSnapshot;
+
+            if (rawSnapshot.templateId && templateMap.has(rawSnapshot.templateId)) {
+              const structure = templateMap.get(rawSnapshot.templateId) as any;
+              if (structure && structure.questionTemplate) {
+                try {
+                  const qt =
+                    typeof structure.questionTemplate === "string"
+                      ? JSON.parse(structure.questionTemplate)
+                      : structure.questionTemplate;
+                  if (qt.showStem && qt.stem) {
+                    candidateSafeSnapshot.questionStatement = qt.stem;
+                  }
+                  if (qt.showInstructions && qt.instructions) {
+                    candidateSafeSnapshot.instructions = qt.instructions;
+                  }
+                } catch (e) {
+                  // ignore parse error
+                }
+              }
+            }
+
             return {
               questionId: q.questionId,
               questionOrder: q.questionOrder,
@@ -129,6 +173,8 @@ export class ExecutionService {
       currentSectionIndex,
       currentQuestionIndex,
       serverTime: new Date().toISOString(),
+      candidateName: snapshot.user?.name || snapshot.user?.email || "Candidate",
+      assessmentName: snapshot.examConfig?.name || snapshot.testConfig?.name || "Candidate Assessment",
       sections: sectionsWithStatus,
     };
   }

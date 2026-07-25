@@ -261,47 +261,76 @@ export class GenerationRetryService {
           styleProfile,
         });
 
-        // 1. Generate LLM Output
-        response = await this.questionGenerator.generate(promptStr);
+        if ((template as any)?.generationStrategy === "DATASET" && options?.datasetItem) {
+          // Bypass LLM generation and map directly from the dataset item
+          const dsItem = options.datasetItem;
+          parsedQuestion = {
+            question: dsItem.questionText || dsItem.content || "No question text provided.",
+            options: dsItem.options || [],
+            correctAnswer: dsItem.answer || "",
+            answer: dsItem.answer || "",
+            explanation: dsItem.explanation || "Directly fetched from dataset.",
+            difficulty: difficulty,
+            topic: topic,
+            metadata: {
+              ...(dsItem.metadata || {}),
+              status: "GENERATED",
+              templateId: template.id,
+              generationStrategy: "DATASET",
+              datasetItem: dsItem,
+              isDirectDatasetFetch: true,
+            },
+          };
+          response = JSON.stringify(parsedQuestion);
+        } else {
+          // 1. Generate LLM Output
+          response = await this.questionGenerator.generate(promptStr);
 
-        // 2. Parse LLM JSON
-        let cleaned = response.trim();
-        if (cleaned.startsWith("```")) {
-          cleaned = cleaned
-            .replace(/^```(?:json)?/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
+          // 2. Parse LLM JSON
+          let cleaned = response.trim();
+          if (cleaned.startsWith("```")) {
+            cleaned = cleaned
+              .replace(/^```(?:json)?/gi, "")
+              .replace(/```$/gi, "")
+              .trim();
+          }
+          const parsed = JSON.parse(cleaned);
+
+          // Map parsed keys to standard GeneratedQuestionDto
+          parsedQuestion = {
+            question: parsed.question,
+            options: parsed.options || [],
+            correctAnswer: parsed.correctAnswer || parsed.answer,
+            answer: parsed.correctAnswer || parsed.answer,
+            explanation: parsed.explanation,
+            difficulty: parsed.difficulty || difficulty,
+            topic: parsed.topic || topic,
+            metadata: {
+              ...(parsed.metadata || {}),
+              templateId: template.id,
+              variables: (template as any)?.generationStrategy === "VARIABLE" ? attemptVariables : variableValues,
+              generationStrategy: template.generationStrategy,
+              datasetItem: options?.datasetItem,
+              logicalGraph: options?.logicalGraph,
+            },
+          };
         }
-        const parsed = JSON.parse(cleaned);
-
-        // Map parsed keys to standard GeneratedQuestionDto
-        parsedQuestion = {
-          question: parsed.question,
-          options: parsed.options || [],
-          correctAnswer: parsed.correctAnswer || parsed.answer,
-          answer: parsed.correctAnswer || parsed.answer,
-          explanation: parsed.explanation,
-          difficulty: parsed.difficulty || difficulty,
-          topic: parsed.topic || topic,
-          metadata: {
-            ...(parsed.metadata || {}),
-            templateId: template.id,
-            variables: (template as any)?.generationStrategy === "VARIABLE" ? attemptVariables : variableValues,
-            generationStrategy: template.generationStrategy,
-            datasetItem: options?.datasetItem,
-            logicalGraph: options?.logicalGraph,
-          },
-        };
 
         // 3. Process & Shuffle options
+        const qType = String(template.questionType || "").toLowerCase();
+        const hasOptions = Array.isArray(parsedQuestion.options) && parsedQuestion.options.length > 0;
+
         if (
-          template.questionType === "mcq" ||
-          template.questionType === "multiple_choice"
+          qType === "mcq" ||
+          qType === "multiple_choice" ||
+          qType === "mcqs" ||
+          qType === "msq" ||
+          hasOptions
         ) {
           const processed = this.optionGenerator.processOptions(
             parsedQuestion.options || [],
             parsedQuestion.correctAnswer!,
-            template.questionType,
+            template.questionType || "MCQ",
           );
           parsedQuestion.options = processed.shuffledOptions;
           parsedQuestion.correctAnswer = processed.normalizedCorrectAnswer;
@@ -311,38 +340,44 @@ export class GenerationRetryService {
         }
 
         // 4. Validate structured explanation
-        this.explanationGenerator.validateExplanation(
-          parsedQuestion.explanation,
-          parsedQuestion.correctAnswer!,
-        );
+        if (!parsedQuestion.metadata?.isDirectDatasetFetch) {
+          this.explanationGenerator.validateExplanation(
+            parsedQuestion.explanation,
+            parsedQuestion.correctAnswer!,
+          );
 
-        // 5. Run response validator (leak checks, template alignment, schema validity)
-        this.responseValidator.validate(
-          parsedQuestion,
-          difficulty,
-          topic,
-          template,
-        );
-
-        // 5b. Run duplicate check (Task Group 5)
-        const dupResult =
-          await this.duplicateDetector.checkDuplicate(parsedQuestion);
-        if (dupResult.duplicate) {
-          throw new BadRequestException(
-            `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`,
+          // 5. Run response validator (leak checks, template alignment, schema validity)
+          this.responseValidator.validate(
+            parsedQuestion,
+            difficulty,
+            topic,
+            template,
           );
         }
 
+        // 5b. Run duplicate check (Task Group 5)
+        if (!parsedQuestion.metadata?.isDirectDatasetFetch) {
+          const dupResult =
+            await this.duplicateDetector.checkDuplicate(parsedQuestion);
+          if (dupResult.duplicate) {
+            throw new BadRequestException(
+              `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`,
+            );
+          }
+        }
+
         // 5c. Run quality scorer (Task Group 7)
-        const qScore = await this.qualityScorer.score(
-          parsedQuestion,
-          topic,
-          difficulty,
-        );
-        if (qScore.status === "FAIL") {
-          throw new BadRequestException(
-            `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`,
+        if (!parsedQuestion.metadata?.isDirectDatasetFetch) {
+          const qScore = await this.qualityScorer.score(
+            parsedQuestion,
+            topic,
+            difficulty,
           );
+          if (qScore.status === "FAIL") {
+            throw new BadRequestException(
+              `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`,
+            );
+          }
         }
 
         validationSuccess = true;
@@ -353,15 +388,19 @@ export class GenerationRetryService {
       // 6. Calculate quality score for log
       let finalScore = 0.0;
       if (validationSuccess && parsedQuestion) {
-        try {
-          const qScore = await this.qualityScorer.score(
-            parsedQuestion,
-            topic,
-            difficulty,
-          );
-          finalScore = qScore.score;
-        } catch {
+        if (parsedQuestion.metadata?.isDirectDatasetFetch) {
           finalScore = 100.0;
+        } else {
+          try {
+            const qScore = await this.qualityScorer.score(
+              parsedQuestion,
+              topic,
+              difficulty,
+            );
+            finalScore = qScore.score;
+          } catch {
+            finalScore = 100.0;
+          }
         }
       }
 

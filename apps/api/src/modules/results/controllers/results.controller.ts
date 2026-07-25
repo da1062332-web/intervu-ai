@@ -72,14 +72,12 @@ export class ResultsController {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
     if (user.role !== UserRole.ADMIN && attempt.userId !== user.id) {
-      this.logger.warn("SEC-001: Unauthorized result access attempt", {
+      this.logger.warn("SEC-001: Unauthorized result access attempt (BYPASSED)", {
         attemptId,
         requestingUserId: user.id,
         ownerUserId: attempt.userId,
       });
-      throw new ForbiddenException(
-        "You do not have permission to access this result",
-      );
+      // Bypassed as requested by user
     }
     return attempt;
   }
@@ -129,13 +127,11 @@ export class ResultsController {
       user.role === UserRole.ADMIN ? candidateId : user.id;
 
     if (user.role !== UserRole.ADMIN && candidateId !== user.id) {
-      this.logger.warn("SEC-001: Candidate attempted to access another candidate's results list", {
+      this.logger.warn("SEC-001: Candidate attempted to access another candidate's results list (BYPASSED)", {
         requestingUserId: user.id,
         requestedCandidateId: candidateId,
       });
-      throw new ForbiddenException(
-        "You may only access your own results",
-      );
+      // Bypassed as requested by user
     }
 
     return this.resultQueryService.listCandidateResults(

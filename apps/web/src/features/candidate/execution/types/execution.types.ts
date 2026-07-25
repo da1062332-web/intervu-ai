@@ -18,6 +18,8 @@ export interface Question {
   text: string;
   options: QuestionOption[];
   orderIndex: number;
+  stem?: string;
+  candidateInstructions?: string;
 }
 
 export interface Section {

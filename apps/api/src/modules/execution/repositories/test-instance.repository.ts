@@ -25,6 +25,9 @@ export class TestInstanceRepository extends BaseRepository<
     return this.db.testInstance.findUnique({
       where: { id },
       include: {
+        user: true,
+        examConfig: true,
+        testConfig: true,
         sections: {
           include: {
             questions: {
