@@ -76,13 +76,30 @@ export function QuestionPreviewDrawer({
               </div>
             )}
 
+            {question.options && question.options.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">Options</h3>
+                <ul className="list-inside list-decimal space-y-1 bg-gray-50 dark:bg-gray-900 rounded-md border p-4 text-sm whitespace-pre-wrap">
+                  {question.options.map((opt, idx) => (
+                    <li key={idx} className={opt === question.correctAnswer ? 'font-bold text-green-600 dark:text-green-400' : ''}>{opt}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Reusing existing components */}
             <div className="pt-4 border-t">
               <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">Solution & Validation</h3>
               {/* Read-only solution editor */}
               <div className="opacity-80 pointer-events-none">
                  <SolutionTemplateEditor
-                   solutionTemplate={question.correctAnswer ? JSON.stringify(question.correctAnswer, null, 2) : ''}
+                   solutionTemplate={
+                     typeof question.correctAnswer === 'string'
+                       ? question.correctAnswer
+                       : question.correctAnswer
+                         ? JSON.stringify(question.correctAnswer, null, 2)
+                         : ''
+                   }
                    explanationTemplate={question.explanation || ''}
                    setSolutionTemplate={() => {}}
                    setExplanationTemplate={() => {}}

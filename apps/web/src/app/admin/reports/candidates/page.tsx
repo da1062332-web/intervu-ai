@@ -95,7 +95,7 @@ export default function AdminCandidateReportsPage() {
       header: <div className="text-right">Action</div>,
       className: "text-right",
       cell: (row) => (
-        <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex justify-end gap-1.5">
           <Button
             variant='ghost'
             size='sm'
