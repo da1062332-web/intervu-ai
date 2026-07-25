@@ -13,7 +13,7 @@ export class DatasetLoaderService {
     difficultyLevel: string;
     conceptKey: string;
     datasetConfig?: any;
-  }): Promise<{ id: string; content: string; metadata: any }> {
+  }): Promise<{ id: string; content: string; metadata: any; questionText?: string; options?: string[]; answer?: string; explanation?: string }> {
     // 1. Fetch relational configuration
     const config = await this.prismaService.templateDatasetConfig.findUnique({
       where: { templateId: template.id },
@@ -69,6 +69,10 @@ export class DatasetLoaderService {
         return {
           id: item.id,
           content: item.content,
+          questionText: item.questionText || undefined,
+          options: item.options || [],
+          answer: item.answer || undefined,
+          explanation: item.explanation || undefined,
           metadata: {
             ...(item.metadata as any),
             id: item.id,
@@ -177,6 +181,10 @@ export class DatasetLoaderService {
     return {
       id: selected.id,
       content: selected.content,
+      questionText: selected.questionText || undefined,
+      options: selected.options || [],
+      answer: selected.answer || undefined,
+      explanation: selected.explanation || undefined,
       metadata: {
         ...(selected.metadata as any),
         id: selected.id,

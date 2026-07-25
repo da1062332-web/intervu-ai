@@ -20,7 +20,7 @@ export function useExecution(testId: string) {
         if (!mounted) return;
 
         if (data.status === 'SUBMITTED' || data.status === 'COMPLETED') {
-          router.replace(`/candidate/tests/${testId}/summary`);
+          router.replace(`/candidate/results/${testId}`);
           return;
         }
 
@@ -44,10 +44,7 @@ export function useExecution(testId: string) {
       }
     };
 
-    if (testId && !testInstance) {
-      loadTest();
-    } else if (testInstance && testInstance.id !== testId) {
-      // If we somehow loaded a different test, reload
+    if (testId) {
       loadTest();
     }
 

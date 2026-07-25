@@ -183,10 +183,26 @@ export function QuestionRenderer() {
           </div>
         </CardHeader>
         <CardContent className='pt-6 md:pt-8 px-6 md:px-8 flex-1 overflow-y-auto custom-scrollbar'>
-          <div className='prose prose-slate max-w-none dark:prose-invert break-words'>
-            <p className='text-[17px] leading-relaxed text-foreground'>
-              {currentQuestion.text}
-            </p>
+          <div className='prose prose-slate max-w-none dark:prose-invert break-words space-y-6'>
+            {currentQuestion.stem && (
+              <div className='bg-muted/30 p-4 rounded-lg border border-border/50'>
+                <p className='text-xs text-muted-foreground font-semibold mb-2 uppercase tracking-wider'>Context</p>
+                <p className='text-[16px] leading-relaxed text-foreground'>{currentQuestion.stem}</p>
+              </div>
+            )}
+            
+            <div>
+              <p className='text-[17px] leading-relaxed text-foreground font-medium'>
+                {currentQuestion.text}
+              </p>
+            </div>
+
+            {currentQuestion.candidateInstructions && (
+              <div className='bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900/30'>
+                <p className='text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wider'>Instructions</p>
+                <p className='text-[15px] leading-relaxed text-foreground/90'>{currentQuestion.candidateInstructions}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

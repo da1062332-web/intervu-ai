@@ -136,6 +136,10 @@ export class SolutionTemplateService {
       const item = items[Math.floor(Math.random() * items.length)];
       options.datasetItem = {
         content: item.content,
+        questionText: item.questionText || undefined,
+        options: item.options || [],
+        answer: item.answer || undefined,
+        explanation: item.explanation || undefined,
         metadata: item.metadata || {},
       };
     }

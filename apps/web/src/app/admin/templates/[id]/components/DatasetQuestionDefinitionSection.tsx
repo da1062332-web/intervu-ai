@@ -3,6 +3,7 @@ import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import Editor from '@monaco-editor/react';
 import { useParams } from 'next/navigation';
 import { useSaveQuestionDefinition } from '@/services/templates/hooks';
@@ -18,6 +19,8 @@ export function DatasetQuestionDefinitionSection({ template }: DatasetQuestionDe
   const [stem, setStem] = useState('Read the following passage and answer the question.');
   const [instructions, setInstructions] = useState('Choose the correct answer.');
   const [generationPrompt, setGenerationPrompt] = useState('Generate one MCQ from this passage.');
+  const [showStem, setShowStem] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   const { mutate: saveQuestion, isPending: isSaving } = useSaveQuestionDefinition();
 
@@ -33,6 +36,8 @@ export function DatasetQuestionDefinitionSection({ template }: DatasetQuestionDe
         if (parsed.stem) setStem(parsed.stem);
         if (parsed.instructions) setInstructions(parsed.instructions);
         if (parsed.generationPrompt) setGenerationPrompt(parsed.generationPrompt);
+        if (parsed.showStem !== undefined) setShowStem(parsed.showStem);
+        if (parsed.showInstructions !== undefined) setShowInstructions(parsed.showInstructions);
       }
     } catch (e) {
       // If parsing fails, maybe it was just a plain string. 
@@ -48,7 +53,9 @@ export function DatasetQuestionDefinitionSection({ template }: DatasetQuestionDe
       stem,
       instructions,
       placeholder: '{{DATASET_ITEM}}',
-      generationPrompt
+      generationPrompt,
+      showStem,
+      showInstructions
     });
 
     saveQuestion({
@@ -81,7 +88,13 @@ export function DatasetQuestionDefinitionSection({ template }: DatasetQuestionDe
         
         {/* Section 1: Question Stem */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b pb-2">Question Stem</h3>
+          <div className="flex items-center justify-between border-b pb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Question Stem</h3>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="show-stem" className="text-sm text-muted-foreground font-normal">Show to candidate</Label>
+              <Switch id="show-stem" checked={showStem} onCheckedChange={setShowStem} />
+            </div>
+          </div>
           <p className="text-sm text-muted-foreground">The opening text shown to the candidate before the passage.</p>
           <div className="border rounded-md overflow-hidden h-[150px] shadow-sm">
             <Editor
@@ -96,7 +109,13 @@ export function DatasetQuestionDefinitionSection({ template }: DatasetQuestionDe
 
         {/* Section 2: Candidate Instructions */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b pb-2">Candidate Instructions</h3>
+          <div className="flex items-center justify-between border-b pb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Candidate Instructions</h3>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="show-instructions" className="text-sm text-muted-foreground font-normal">Show to candidate</Label>
+              <Switch id="show-instructions" checked={showInstructions} onCheckedChange={setShowInstructions} />
+            </div>
+          </div>
           <p className="text-sm text-muted-foreground">Instructions on how the candidate should answer.</p>
           <div className="border rounded-md overflow-hidden h-[100px] shadow-sm">
             <Editor

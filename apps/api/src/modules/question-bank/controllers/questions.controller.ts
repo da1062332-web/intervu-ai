@@ -510,7 +510,7 @@ export class QuestionsController {
       questionType: question.questionType,
     });
 
-    if (!validationCheck.isValid) {
+    if (!validationCheck.isValid && !currentMeta.isDirectDatasetFetch && currentMeta.generationStrategy !== "DATASET") {
       throw new BadRequestException({
         success: false,
         message: `Cannot approve invalid question. Errors: ${validationCheck.errors.join(" | ")}`,
@@ -534,6 +534,13 @@ export class QuestionsController {
       where: { id },
       data: { metadata: updatedMeta },
     });
+
+    // Auto-publish to Question Bank
+    try {
+      await this.publishQuestion(id);
+    } catch (err) {
+      console.error("Failed to auto-publish question after approval", err);
+    }
 
     return {
       success: true,

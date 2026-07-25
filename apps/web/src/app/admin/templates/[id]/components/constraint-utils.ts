@@ -22,10 +22,11 @@ export function parseConstraintRule(item: any, index = 0): ParsedConstraintRule 
     : `${item?.target || ''} ${item?.operator || '=='} ${item?.value || ''}`.trim();
 
   const parsedRule = rawRule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/);
+  const constraintId = item?.id || `${item?.target || item?.rule || 'constraint'}-${index}`;
 
   if (!parsedRule) {
     return {
-      id: `${item?.target || item?.rule || 'constraint'}-${index}`,
+      id: constraintId,
       target: 'Custom',
       operator: 'Formula',
       value: rawRule,
@@ -34,7 +35,7 @@ export function parseConstraintRule(item: any, index = 0): ParsedConstraintRule 
   }
 
   return {
-    id: `${item?.target || item?.rule || 'constraint'}-${index}`,
+    id: constraintId,
     target: parsedRule[1] || item?.target || '',
     operator: parsedRule[2] || item?.operator || '==',
     value: parsedRule[3]?.trim() || item?.value || '',
@@ -46,12 +47,16 @@ export function buildConstraintRule(input: { target: string; operator: string; v
   const normalizedTarget = input.target?.trim() || '';
   const normalizedValue = input.value?.trim() || '';
 
-  if (!normalizedTarget || !normalizedValue) {
+  if (!normalizedValue) {
     return '';
   }
 
   if (input.operator === 'Formula' || input.operator === 'Custom' || input.operator === 'Regex') {
     return normalizedValue;
+  }
+
+  if (!normalizedTarget) {
+    return '';
   }
 
   return `${normalizedTarget} ${input.operator} ${normalizedValue}`;

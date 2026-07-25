@@ -21,12 +21,6 @@ export function FullscreenOverlay() {
     // Check initial state
     checkFullscreen();
 
-    // Attempt to automatically enter fullscreen (may be blocked by browser without user gesture)
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.warn('Auto-fullscreen blocked by browser:', err);
-      });
-    }
 
     document.addEventListener('fullscreenchange', checkFullscreen);
     document.addEventListener('mozfullscreenchange', checkFullscreen);
