@@ -43,12 +43,12 @@ export function CandidateFilters({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-muted-foreground hidden sm:block" />
+        <Filter className="w-4 h-4 text-muted-foreground hidden sm:block shrink-0" />
         <Select
           value={status || 'ALL'}
           onValueChange={(val: string) => onStatusChange(val === 'ALL' ? '' : val)}
         >
-          <SelectTrigger className="w-[140px] bg-background">
+          <SelectTrigger className="w-[140px] sm:w-[150px] h-10 bg-background whitespace-nowrap">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -63,7 +63,7 @@ export function CandidateFilters({
 
       <div className="flex items-center gap-2">
         <Select value={currentSortKey} onValueChange={handleSortSelect}>
-          <SelectTrigger className="w-[200px] bg-background">
+          <SelectTrigger className="w-[160px] sm:w-[180px] h-10 bg-background whitespace-nowrap">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -82,7 +82,7 @@ export function CandidateFilters({
         onClick={onRefresh}
         disabled={isRefetching}
         title="Refresh data"
-        className="shrink-0"
+        className="h-10 w-10 shrink-0"
       >
         <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
         <span className="sr-only">Refresh</span>
