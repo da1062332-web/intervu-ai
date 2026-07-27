@@ -28,8 +28,11 @@ export class BlueprintBuilderService {
     if (config.difficultyDistribution) {
       const { easyPercentage, mediumPercentage, hardPercentage } =
         config.difficultyDistribution;
-      if (easyPercentage + mediumPercentage + hardPercentage !== 100) {
-        throw new BadRequestException(`Difficulty total != 100%`);
+      const total = easyPercentage + mediumPercentage + hardPercentage;
+      if (total !== 100 && total !== 0) {
+        throw new BadRequestException(
+          `Difficulty distribution total must equal 100% or 0% (Flexible Pool), got ${total}%`,
+        );
       }
     }
 

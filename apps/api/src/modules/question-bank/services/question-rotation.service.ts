@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionReservationService } from "./question-reservation.service";
-import { QuestionStatus, Prisma } from "@prisma/client";
+import { QuestionStatus, QuestionSourceType, Prisma } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
 import {
   AssemblyProviderRequest,
@@ -76,18 +76,25 @@ export class QuestionRotationService {
           difficulty: diff,
           topicId:
             topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
-          configUsages: request.examId
-            ? {
-                none: {
-                  configId: {
-                    not: request.examId,
-                  },
-                },
-              }
-            : undefined,
           AND: [
             {
               OR: [{ sectionId }, { sectionId: null }],
+            },
+            {
+              OR: [
+                { questionSource: QuestionSourceType.MANUAL },
+                request.examId
+                  ? {
+                      configUsages: {
+                        none: {
+                          configId: {
+                            not: request.examId,
+                          },
+                        },
+                      },
+                    }
+                  : {},
+              ],
             },
             {
               OR: [
@@ -168,7 +175,7 @@ export class QuestionRotationService {
         if (!required || required === 0) continue;
 
         const configFilter = request.examId
-          ? Prisma.sql`AND NOT EXISTS (SELECT 1 FROM exam_config_question_usages u WHERE u.question_id = q.id AND u.config_id != ${request.examId})`
+          ? Prisma.sql`AND (q.question_source = 'MANUAL'::"QuestionSourceType" OR NOT EXISTS (SELECT 1 FROM exam_config_question_usages u WHERE u.question_id = q.id AND u.config_id != ${request.examId}))`
           : Prisma.empty;
 
         // Perform raw PostgreSQL query with SKIP LOCKED

@@ -6,7 +6,8 @@ import { useSectionTopics } from '@/features/topic-section-mapping/api/queries';
 import { useWeightages } from '@/services/topic-weightages/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ChevronRight, ExternalLink } from 'lucide-react';
 
 interface TopicsSummaryTabProps {
   configId: string;
@@ -106,14 +107,28 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
             </div>
           ) : (
             <div className='grid gap-3'>
-              {topics.map((topic: any) => (
-                <div key={topic.topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
-                  <div>
-                    <p className='font-medium text-base'>{topic.topicName || topic.topic || topic.name || 'Unnamed'}</p>
-                    <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {weightageMap[topic.topicId] ?? 0}%</p>
+              {topics.map((topic: any) => {
+                const topicId = topic.topicId || topic.id;
+                const topicName = topic.topicName || topic.topic || topic.name || 'Unnamed Topic';
+
+                return (
+                  <div key={topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
+                    <div>
+                      <p className='font-medium text-base'>{topicName}</p>
+                      <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {weightageMap[topicId] ?? 0}%</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs font-medium text-primary border-primary/30 hover:bg-primary/5"
+                      onClick={() => window.open(`/admin/topics/${topicId}`, '_blank', 'noopener,noreferrer')}
+                    >
+                      <span>Topic Details</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

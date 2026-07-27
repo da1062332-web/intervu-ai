@@ -98,31 +98,38 @@ export class AssemblyValidatorService {
         blueprintSection.difficultyDistribution ||
         blueprint.difficultyDistribution;
       if (diffDistribution) {
-        const expectedEasy =
-          (diffDistribution.EASY / 100) * blueprintSection.questionCount;
-        const expectedMedium =
-          (diffDistribution.MEDIUM / 100) * blueprintSection.questionCount;
-        const expectedHard =
-          (diffDistribution.HARD / 100) * blueprintSection.questionCount;
+        const isFlexible =
+          diffDistribution.EASY === 0 &&
+          diffDistribution.MEDIUM === 0 &&
+          diffDistribution.HARD === 0;
 
-        const actualEasy = section.questions.filter(
-          (q) => q.difficultyLevel === "EASY",
-        ).length;
-        const actualMedium = section.questions.filter(
-          (q) => q.difficultyLevel === "MEDIUM",
-        ).length;
-        const actualHard = section.questions.filter(
-          (q) => q.difficultyLevel === "HARD",
-        ).length;
+        if (!isFlexible) {
+          const expectedEasy =
+            (diffDistribution.EASY / 100) * blueprintSection.questionCount;
+          const expectedMedium =
+            (diffDistribution.MEDIUM / 100) * blueprintSection.questionCount;
+          const expectedHard =
+            (diffDistribution.HARD / 100) * blueprintSection.questionCount;
 
-        if (
-          Math.abs(actualEasy - expectedEasy) > 1 ||
-          Math.abs(actualMedium - expectedMedium) > 1 ||
-          Math.abs(actualHard - expectedHard) > 1
-        ) {
-          errors.push(
-            `AVL-011: Difficulty distribution mismatch in section ${section.sectionKey}. Expected [E:${expectedEasy}, M:${expectedMedium}, H:${expectedHard}], Got [E:${actualEasy}, M:${actualMedium}, H:${actualHard}]`,
-          );
+          const actualEasy = section.questions.filter(
+            (q) => q.difficultyLevel === "EASY",
+          ).length;
+          const actualMedium = section.questions.filter(
+            (q) => q.difficultyLevel === "MEDIUM",
+          ).length;
+          const actualHard = section.questions.filter(
+            (q) => q.difficultyLevel === "HARD",
+          ).length;
+
+          if (
+            Math.abs(actualEasy - expectedEasy) > 1 ||
+            Math.abs(actualMedium - expectedMedium) > 1 ||
+            Math.abs(actualHard - expectedHard) > 1
+          ) {
+            errors.push(
+              `AVL-011: Difficulty distribution mismatch in section ${section.sectionKey}. Expected [E:${expectedEasy}, M:${expectedMedium}, H:${expectedHard}], Got [E:${actualEasy}, M:${actualMedium}, H:${actualHard}]`,
+            );
+          }
         }
       }
 

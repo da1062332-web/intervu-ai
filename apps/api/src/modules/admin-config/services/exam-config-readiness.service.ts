@@ -75,15 +75,51 @@ export class ExamConfigReadinessService {
       });
     }
 
-    // 2. Sections Check
+    // 2. Sections Check & Question/Duration Alignment
     totalChecksCount++;
     if (config.sections.length > 0) {
-      passedCount++;
-      checks.push({
-        name: "Exam Sections",
-        status: "PASS",
-        message: `${config.sections.length} section(s) defined.`,
-      });
+      const sectionTotalQuestions = config.sections.reduce(
+        (sum, s) => sum + (s.questionCount || 0),
+        0,
+      );
+      const isQuestionCountMatch = sectionTotalQuestions === config.totalQuestions;
+
+      if (isQuestionCountMatch) {
+        passedCount++;
+        checks.push({
+          name: "Exam Sections Question Alignment",
+          status: "PASS",
+          message: `${config.sections.length} section(s) defined. Section question count total (${sectionTotalQuestions}) matches exam total questions (${config.totalQuestions}).`,
+        });
+      } else {
+        checks.push({
+          name: "Exam Sections Question Alignment",
+          status: "WARN",
+          message: `${config.sections.length} section(s) defined, but sum of section questions (${sectionTotalQuestions}) does not match exam total questions (${config.totalQuestions}).`,
+        });
+      }
+
+      totalChecksCount++;
+      const sectionTotalDuration = config.sections.reduce(
+        (sum, s) => sum + (s.sectionDurationMinutes || 0),
+        0,
+      );
+      const isDurationMatch = sectionTotalDuration === config.durationMinutes;
+
+      if (isDurationMatch) {
+        passedCount++;
+        checks.push({
+          name: "Exam Duration Alignment",
+          status: "PASS",
+          message: `Section duration total (${sectionTotalDuration} mins) matches exam total duration (${config.durationMinutes} mins).`,
+        });
+      } else {
+        checks.push({
+          name: "Exam Duration Alignment",
+          status: "WARN",
+          message: `Sum of section durations (${sectionTotalDuration} mins) does not match exam total duration (${config.durationMinutes} mins).`,
+        });
+      }
     } else {
       checks.push({
         name: "Exam Sections",
@@ -106,14 +142,15 @@ export class ExamConfigReadinessService {
         message: `Distribution valid (Easy: ${easy}%, Medium: ${medium}%, Hard: ${hard}%).`,
       });
     } else {
+      passedCount++;
       checks.push({
         name: "Difficulty Distribution",
-        status: "FAIL",
-        message: "Difficulty distribution percentages must sum to 100%.",
+        status: "PASS",
+        message: "Flexible pool distribution (No rigid difficulty percentages enforced).",
       });
     }
 
-    // 4. Topic Unused Question Capacity Check (Cross-Exam Separation)
+    // 4. Topic Question Pool Capacity Check
     let totalRequired = 0;
     let availableUnusedCapacity = 0;
     let conflictingTopicsCount = 0;
@@ -124,7 +161,6 @@ export class ExamConfigReadinessService {
       if (topicCount === 0) continue;
 
       const questionsPerTopic = Math.ceil(section.questionCount / topicCount);
-      const targetDifficulty = medium > 0 ? "MEDIUM" : easy > 0 ? "EASY" : "HARD";
 
       for (const st of sectionTopics) {
         if (!st.topic) continue;
@@ -132,26 +168,20 @@ export class ExamConfigReadinessService {
         totalChecksCount++;
         totalRequired += questionsPerTopic;
 
-        const unusedCount = await this.usageService.getUnusedPoolCount(
-          configId,
-          st.topic.id,
-          targetDifficulty,
-        );
-
         const totalTopicCount = await this.usageService.getUnusedPoolCount(
           configId,
           st.topic.id,
           undefined,
         );
 
-        availableUnusedCapacity += unusedCount;
+        availableUnusedCapacity += totalTopicCount;
 
-        if (unusedCount >= questionsPerTopic) {
+        if (totalTopicCount >= questionsPerTopic) {
           passedCount++;
           checks.push({
             name: `Question Pool (${st.topic.name})`,
             status: "PASS",
-            message: `${unusedCount} unused ${targetDifficulty} question(s) available for topic '${st.topic.name}' (${totalTopicCount} total active in pool).`,
+            message: `${totalTopicCount} active question(s) available in pool for topic '${st.topic.name}' (Required: ${questionsPerTopic}).`,
           });
         } else {
           conflictingTopicsCount++;
@@ -163,15 +193,13 @@ export class ExamConfigReadinessService {
 
           let message = "";
           if (totalTopicCount === 0) {
-            // Scenario A: No questions in pool at all
-            message = `Topic '${st.topic.name}' has no active questions in pool. Required: ${questionsPerTopic} ${targetDifficulty} question(s).`;
+            message = `Topic '${st.topic.name}' has no active questions in pool. Required: ${questionsPerTopic} question(s).`;
           } else {
-            // Scenario B: Questions exist, but not enough of the required difficulty
             const conflictMsg =
               conflictingConfigNames.length > 0
                 ? ` (used by exam '${conflictingConfigNames.join(", ")}')`
                 : "";
-            message = `Topic '${st.topic.name}' has ${totalTopicCount} questions in pool, but only ${unusedCount} unused ${targetDifficulty} question(s) remaining${conflictMsg}. Required: ${questionsPerTopic} ${targetDifficulty} question(s).`;
+            message = `Topic '${st.topic.name}' has only ${totalTopicCount} question(s) in pool${conflictMsg}. Required: ${questionsPerTopic} question(s).`;
           }
 
           checks.push({
@@ -183,9 +211,8 @@ export class ExamConfigReadinessService {
               topicName: st.topic.name,
               topicCode: st.topic.code,
               requiredCount: questionsPerTopic,
-              availableUnusedCount: unusedCount,
+              availableUnusedCount: totalTopicCount,
               totalTopicCount,
-              targetDifficulty,
               conflictingConfigNames,
               shortcutUrl: `/admin/question-generation?topicId=${st.topic.id}`,
             },
@@ -216,5 +243,48 @@ export class ExamConfigReadinessService {
         conflictingTopicsCount,
       },
     };
+  }
+
+  private calculateDifficultyBreakdown(
+    totalQuestions: number,
+    easyPct: number,
+    mediumPct: number,
+    hardPct: number,
+  ): { reqEasy: number; reqMedium: number; reqHard: number } {
+    if (totalQuestions <= 0) {
+      return { reqEasy: 0, reqMedium: 0, reqHard: 0 };
+    }
+
+    const totalPct = easyPct + mediumPct + hardPct;
+    if (totalPct === 0) {
+      return { reqEasy: 0, reqMedium: totalQuestions, reqHard: 0 };
+    }
+
+    const rawEasy = (easyPct / totalPct) * totalQuestions;
+    const rawMedium = (mediumPct / totalPct) * totalQuestions;
+    const rawHard = (hardPct / totalPct) * totalQuestions;
+
+    let reqEasy = Math.floor(rawEasy);
+    let reqMedium = Math.floor(rawMedium);
+    let reqHard = Math.floor(rawHard);
+
+    let allocated = reqEasy + reqMedium + reqHard;
+    let remainder = totalQuestions - allocated;
+
+    const fractions = [
+      { tier: "EASY", frac: rawEasy - reqEasy, pct: easyPct },
+      { tier: "MEDIUM", frac: rawMedium - reqMedium, pct: mediumPct },
+      { tier: "HARD", frac: rawHard - reqHard, pct: hardPct },
+    ].filter((f) => f.pct > 0);
+
+    fractions.sort((a, b) => b.frac - a.frac);
+
+    for (let i = 0; i < remainder && i < fractions.length; i++) {
+      if (fractions[i].tier === "EASY") reqEasy++;
+      else if (fractions[i].tier === "MEDIUM") reqMedium++;
+      else if (fractions[i].tier === "HARD") reqHard++;
+    }
+
+    return { reqEasy, reqMedium, reqHard };
   }
 }

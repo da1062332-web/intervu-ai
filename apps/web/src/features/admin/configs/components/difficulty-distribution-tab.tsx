@@ -42,7 +42,7 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
   }, [distribution]);
 
   const totalPercentage = easyPercentage + mediumPercentage + hardPercentage;
-  const isValid = totalPercentage === 100;
+  const isValid = totalPercentage === 100 || totalPercentage === 0;
 
   const handlePercentageChange = (
     value: string,
@@ -50,6 +50,13 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
   ) => {
     const parsed = Math.max(0, Math.min(100, parseInt(value) || 0));
     setter(parsed);
+    setDirty(true);
+  };
+
+  const applyPreset = (easy: number, med: number, hard: number) => {
+    setEasyPercentage(easy);
+    setMediumPercentage(med);
+    setHardPercentage(hard);
     setDirty(true);
   };
 
@@ -62,9 +69,9 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
   }, [easyPercentage, mediumPercentage, hardPercentage, setDistribution]);
 
   const handleSave = () => {
-    if (totalPercentage !== 100) {
+    if (totalPercentage !== 100 && totalPercentage !== 0) {
       toast.error('Invalid Distribution', {
-        description: `Total percentage must equal 100%. Current: ${totalPercentage}%`,
+        description: `Total percentage must equal 100% or 0% (Flexible Pool). Current: ${totalPercentage}%`,
       });
       return;
     }
@@ -95,9 +102,22 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
       <div className='space-y-1'>
         <h3 className='text-2xl font-semibold tracking-tight'>Difficulty Distribution</h3>
         <p className='text-muted-foreground'>
-          Configure the percentage distribution of Easy, Medium, and Hard questions. The total must
-          equal 100%.
+          Configure difficulty percentages or select <strong>Flexible Pool</strong> to use any available questions automatically.
         </p>
+      </div>
+
+      <div className='flex items-center justify-between p-3 border rounded-lg bg-muted/20'>
+        <div className='text-sm text-muted-foreground'>
+          Quick Mode: Select <strong>Flexible Pool</strong> or enter percentages manually below.
+        </div>
+        <Button
+          type='button'
+          variant={totalPercentage === 0 ? 'default' : 'outline'}
+          size='sm'
+          onClick={() => applyPreset(0, 0, 0)}
+        >
+          ⚡ Flexible Pool (Auto)
+        </Button>
       </div>
 
       <div className='grid gap-6 p-6 border rounded-xl bg-card shadow-sm'>
@@ -155,7 +175,7 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
               isValid ? 'text-green-600 dark:text-green-400' : 'text-destructive'
             }`}
           >
-            {totalPercentage}%
+            {totalPercentage === 0 ? 'Flexible Pool' : `${totalPercentage}%`}
           </span>
           <span
             className={`text-sm px-3 py-1 rounded-full font-semibold shadow-sm ${

@@ -74,15 +74,27 @@ export class QuestionBankSource implements IQuestionSource {
         topicIds: topicId ? [topicId] : undefined,
       };
 
-      // Check availability first. If pool is insufficient, throw exception (do NOT fall back!)
+      // Check availability first. If pool is insufficient for specific difficulty, fallback to checking any difficulty (Flexible mode)
       const availability = await this.rotationService.checkAvailability(request);
       if (
         availability.status === "INSUFFICIENT_POOL" ||
         availability.available < limit
       ) {
+        const fallbackRequest: AssemblyProviderRequest = {
+          ...request,
+          difficultyDistribution: { EASY: 0, MEDIUM: 0, HARD: 0 },
+        };
+        const fallbackAvail = await this.rotationService.checkAvailability(fallbackRequest);
+        if (fallbackAvail.available >= limit) {
+          const response = await this.rotationService.retrieveAndReserve(fallbackRequest);
+          return response.questions.map((q) =>
+            this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
+          );
+        }
+
         throw new BadRequestException({
-          message: `Insufficient manual question pool for concept ${resolvedCode} at difficulty ${difficulty}. Required: ${limit}, Available: ${availability.available}.`,
-          details: availability.details,
+          message: `Insufficient manual question pool for concept ${resolvedCode}. Required: ${limit}, Available: ${fallbackAvail.available}.`,
+          details: fallbackAvail.details,
         });
       }
 
