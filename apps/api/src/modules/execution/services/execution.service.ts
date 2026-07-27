@@ -99,18 +99,24 @@ export class ExecutionService {
       }
     }
 
-    // Fallback to fetch templateId from Question model if missing in snapshot
+    // Fallback to fetch templateId and mcqData from Question model if missing in snapshot
     const questionTemplateMap = new Map<string, string>();
+    const questionMcqDataMap = new Map<string, any>();
+    const questionMetaMap = new Map<string, any>();
     if (questionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
         where: { id: { in: Array.from(questionIds) } },
-        select: { id: true, templateId: true },
+        select: { id: true, templateId: true, mcqData: true, metadata: true, questionStatement: true, instructions: true },
       });
       for (const q of dbQuestions) {
         if (q.templateId) {
           questionTemplateMap.set(q.id, q.templateId);
           templateIds.add(q.templateId);
         }
+        if (q.mcqData) {
+          questionMcqDataMap.set(q.id, q.mcqData);
+        }
+        questionMetaMap.set(q.id, { questionStatement: q.questionStatement, instructions: q.instructions });
       }
     }
 
@@ -152,6 +158,24 @@ export class ExecutionService {
           questions: section.questions.map((q) => {
             const rawSnapshot = (q.questionSnapshot || {}) as any;
             const { correctAnswer, solution, ...candidateSafeSnapshot } = rawSnapshot;
+
+            // Enrich options from mcqData if snapshot has empty options
+            const snapshotOptions = candidateSafeSnapshot.options;
+            const hasOptions = Array.isArray(snapshotOptions) && snapshotOptions.length > 0;
+            if (!hasOptions && questionMcqDataMap.has(q.questionId)) {
+              const mcqData = questionMcqDataMap.get(q.questionId) as any;
+              const mcqOptions = mcqData?.options;
+              if (Array.isArray(mcqOptions) && mcqOptions.length > 0) {
+                candidateSafeSnapshot.options = mcqOptions;
+              }
+            }
+
+            // Enrich questionStatement and instructions from Question table if missing
+            if (!candidateSafeSnapshot.questionStatement && questionMetaMap.has(q.questionId)) {
+              const meta = questionMetaMap.get(q.questionId);
+              if (meta?.questionStatement) candidateSafeSnapshot.questionStatement = meta.questionStatement;
+              if (meta?.instructions) candidateSafeSnapshot.instructions = meta.instructions;
+            }
 
             const templateId = rawSnapshot.templateId || questionTemplateMap.get(q.questionId);
             if (templateId && templateMap.has(templateId)) {

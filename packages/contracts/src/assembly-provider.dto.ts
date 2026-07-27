@@ -18,6 +18,12 @@ export interface AssemblyProviderQuestion {
   difficulty: "EASY" | "MEDIUM" | "HARD";
   topicId: string;
   sectionId: string;
+  mcqData?: any;
+  codingData?: any;
+  metadata?: any;
+  options?: any;
+  questionStatement?: string | null;
+  instructions?: string | null;
 }
 
 export interface AssemblyProviderResponse {

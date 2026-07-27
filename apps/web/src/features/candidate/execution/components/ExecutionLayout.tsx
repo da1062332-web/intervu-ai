@@ -74,7 +74,7 @@ export function ExecutionLayout() {
       <TabWarningModal />
       <ExecutionHeader />
 
-      <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-24 select-text'>
+      <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-[120px] select-text'>
         <div className='grid grid-cols-1 lg:grid-cols-10 gap-6 h-full items-start'>
           {/* Left + Center Columns - Question & Resources */}
           <div className='lg:col-span-8 flex flex-col'>

@@ -75,7 +75,8 @@ export class QuestionBankSource implements IQuestionSource {
       };
 
       // Check availability first. If pool is insufficient, throw exception (do NOT fall back!)
-      const availability = await this.rotationService.checkAvailability(request);
+      const availability =
+        await this.rotationService.checkAvailability(request);
       if (
         availability.status === "INSUFFICIENT_POOL" ||
         availability.available < limit
@@ -208,6 +209,8 @@ export class QuestionBankSource implements IQuestionSource {
       mcqData?: any;
       codingData?: any;
       options?: any;
+      questionStatement?: string | null;
+      instructions?: string | null;
     },
     difficulty: string,
   ): GeneratedQuestion {
@@ -234,9 +237,12 @@ export class QuestionBankSource implements IQuestionSource {
       options: rawOptions as unknown as GeneratedQuestion["options"],
       mcqData: q.mcqData,
       codingData: q.codingData,
+
       correctAnswer: q.answer as unknown as GeneratedQuestion["correctAnswer"],
       solution: q.explanation as unknown as GeneratedQuestion["solution"],
       expectedAnswer: null as unknown as string,
+      questionStatement: q.questionStatement as unknown as string,
+      instructions: q.instructions as unknown as string,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as GeneratedQuestion;

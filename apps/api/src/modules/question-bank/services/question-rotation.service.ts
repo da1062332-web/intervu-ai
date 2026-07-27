@@ -250,6 +250,10 @@ export class QuestionRotationService {
         sectionId: q.sectionId ?? "",
         mcqData: q.mcqData,
         codingData: q.codingData,
+        metadata: q.metadata,
+        options: (q.metadata as any)?.options || [],
+        questionStatement: q.questionStatement,
+        instructions: q.instructions,
       }));
 
       return {

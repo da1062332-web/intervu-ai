@@ -71,11 +71,11 @@ export const executionService = {
                 } else if (q.snapshot?.mcqData?.options && q.snapshot.mcqData.options.length > 0) {
                   rawOptions = q.snapshot.mcqData.options;
                 }
-                return rawOptions.map((opt: any) => {
+                return rawOptions.map((opt: any, idx: number) => {
                   if (typeof opt === 'string') {
-                    // Use the text as the ID so that it gets sent back to the backend
-                    // for correct evaluation (since backend expects the text value).
-                    return { id: opt, text: opt };
+                    // Use index-based ID to avoid duplicate key collisions.
+                    // The text value is stored separately for backend evaluation.
+                    return { id: `opt-${idx}`, text: opt };
                   }
                   return opt;
                 });

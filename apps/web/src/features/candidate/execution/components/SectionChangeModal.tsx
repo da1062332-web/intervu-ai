@@ -11,8 +11,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useExecutionStore } from '../stores/execution.store';
-import { useMemo } from 'react';
-import { AlertTriangle, Lock, ArrowRight, ShieldAlert } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { AlertTriangle, Lock, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function SectionChangeModal() {
@@ -27,6 +27,7 @@ export function SectionChangeModal() {
   } = useExecutionStore();
 
   const isOpen = pendingSectionChangeTarget !== null;
+  const [isLoading, setIsLoading] = useState(false);
 
   const { currentSectionName, targetSectionName, isForwardMove } = useMemo(() => {
     let currentName = 'Current Section';
@@ -76,6 +77,7 @@ export function SectionChangeModal() {
 
   const handleConfirm = async () => {
     if (showLockWarning && testInstance) {
+      setIsLoading(true);
       try {
         // We need to call backend to advance section, since it's locked
         const result = await import('../services/execution.service').then((m) =>
@@ -88,12 +90,19 @@ export function SectionChangeModal() {
             .map((s) => s.sectionKey);
 
           advanceSectionLocally(result.nextSectionIndex, newLockedKeys, result.serverTime);
+        } else {
+          cancelSectionChange();
         }
       } catch (err) {
         console.error('Failed to advance section via modal:', err);
+        cancelSectionChange();
+      } finally {
+        setIsLoading(false);
       }
     } else {
+      setIsLoading(true);
       confirmSectionChange();
+      setIsLoading(false);
     }
   };
 
@@ -154,20 +163,31 @@ export function SectionChangeModal() {
               <AlertDialogFooter className='mt-8 flex gap-3 sm:gap-0'>
                 <AlertDialogCancel
                   onClick={cancelSectionChange}
+                  disabled={isLoading}
                   className='mt-0 border-slate-200 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800'
                 >
                   Stay here
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleConfirm}
+                  disabled={isLoading}
                   className={`gap-2 text-white shadow-md transition-all ${
                     showLockWarning
                       ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500'
                       : 'bg-primary hover:bg-primary/90 focus:ring-primary'
                   }`}
                 >
-                  Proceed
-                  <ArrowRight className='size-4' />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className='size-4 animate-spin' />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Proceed
+                      <ArrowRight className='size-4' />
+                    </>
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </div>

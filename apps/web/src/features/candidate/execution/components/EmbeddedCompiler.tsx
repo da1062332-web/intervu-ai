@@ -83,11 +83,11 @@ export function EmbeddedCompiler({ onChange, initialData }: EmbeddedCompilerProp
   const queryParams = new URLSearchParams({
     theme: 'dark',
     fontSize: '12',
-    disableCopyPaste: 'true',
     listenToEvents: 'true',
     codeChangeEvent: 'true',
     language: 'python',
-    languages: 'python,java',
+    // NOTE: do NOT include `languages` param — it restricts the language dropdown.
+    // Omitting it allows the candidate to pick any language.
   });
 
   // If there is initial code, use it. Otherwise, pass a space to override previous cached code

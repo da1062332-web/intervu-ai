@@ -135,7 +135,6 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
           video.videoHeight === 0 ||
           video.paused
         ) {
-          console.log('[FaceTracker] Video not ready, skipping');
           return;
         }
 
@@ -156,7 +155,6 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
           ctx.clearRect(0, 0, vw, vh);
 
           const detections = await faceapiModule.detectAllFaces(video, options);
-          console.log(`[FaceTracker] Detected: ${detections.length} face(s)`);
 
           // Scale from model input-space → video native-space
           const imgW = detections[0]?.imageDims?.width || vw;
@@ -187,7 +185,6 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
             // ❌ No face
             multiFaceSecondsRef.current = 0;
             noFaceSecondsRef.current += 1;
-            console.log(`[FaceTracker] No face: ${noFaceSecondsRef.current}s`);
 
             if (noFaceSecondsRef.current >= 3 && !inNoFaceViolationRef.current) {
               inNoFaceViolationRef.current = true;
@@ -208,9 +205,6 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
             // ⚠️ Multiple faces
             noFaceSecondsRef.current = 0;
             multiFaceSecondsRef.current += 1;
-            console.log(
-              `[FaceTracker] Multiple faces: ${detections.length}, tick ${multiFaceSecondsRef.current}s`,
-            );
 
             // Draw orange boxes on all faces
             detections.forEach((det) => {

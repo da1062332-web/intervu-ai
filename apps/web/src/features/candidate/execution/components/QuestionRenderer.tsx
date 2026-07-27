@@ -30,14 +30,17 @@ export function QuestionRenderer() {
       >
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
-          const optId = option.id || index.toString();
-          const isSelected = selectedOptionId === optId;
+          // Always use index-based key to avoid duplicate key warnings
+          const optKey = `opt-${currentQuestion.id}-${index}`;
+          // Use option.text as the value submitted (for backend evaluation)
+          const optValue = option.text || option.id || index.toString();
+          const isSelected = selectedOptionId === optValue;
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
             <Label
-              key={optId}
+              key={optKey}
               htmlFor={htmlId}
               className={`
                 flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
@@ -49,7 +52,7 @@ export function QuestionRenderer() {
               `}
             >
               <RadioGroupItem
-                value={optId}
+                value={optValue}
                 id={htmlId}
                 className='sr-only'
                 aria-label={`Option ${letter}: ${option.text}`}
@@ -92,14 +95,15 @@ export function QuestionRenderer() {
       <div className='space-y-4' role='group' aria-label='Select multiple options'>
         {currentQuestion.options.map((option, index) => {
           const letter = String.fromCharCode(65 + index);
-          const optId = option.id || index.toString();
-          const isSelected = selectedOptionIds.includes(optId);
+          // Use text as the selection value (for backend evaluation)
+          const optValue = option.text || option.id || index.toString();
+          const isSelected = selectedOptionIds.includes(optValue);
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
             <Label
-              key={optId}
+              key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
                 flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
@@ -115,7 +119,7 @@ export function QuestionRenderer() {
                 id={htmlId}
                 className='sr-only'
                 checked={isSelected}
-                onChange={() => handleToggle(optId)}
+                onChange={() => handleToggle(optValue)}
                 aria-label={`Option ${letter}: ${option.text}`}
               />
               <div
