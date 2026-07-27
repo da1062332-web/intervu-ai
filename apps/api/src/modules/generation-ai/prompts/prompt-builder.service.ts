@@ -147,7 +147,9 @@ IMPORTANT: If the correct answer is not already supplied, compute it exactly fro
 The pre-rendered question statement is:
 "${interpolatedQuestion}"
 
-You must write a unique, engaging, real-world scenario or word-problem story wrapping the pre-rendered question statement. Incorporate the resolved parameters naturally (e.g. create a story about selling goods, calculating distances, or allocating tasks). Do not modify the underlying numbers or formulas. Do not leak raw curly braces or placeholder tokens. Keep the wording concise, unambiguous, and mathematically equivalent to the original statement.
+Use this statement as the canonical question text. Do not change the mathematical operation, target, or the meaning of the question.
+If you add any introductory context, keep it extremely brief and ensure the final question remains semantically equivalent to the original statement.
+Do not rewrite the question into a different story that changes the problem being asked.
 `;
 
     let optionStrategyText = "";
