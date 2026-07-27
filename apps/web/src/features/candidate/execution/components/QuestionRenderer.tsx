@@ -1,79 +1,57 @@
 'use client';
 
 import { useExecutionStore } from '../stores/execution.store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-
 import { EmbeddedCompiler } from './EmbeddedCompiler';
 
 export function QuestionRenderer() {
-  const { currentQuestion, currentQuestionIndex, answers, saveAnswer, toggleReview, testInstance } =
+  const { currentQuestion, currentQuestionIndex, answers, saveAnswer, testInstance } =
     useExecutionStore();
 
   if (!currentQuestion || !testInstance) return null;
 
   const currentAnswer = answers[currentQuestion.id];
-  const isMarkedForReview = currentAnswer?.status === 'MARKED_FOR_REVIEW';
-  const isCoding = currentQuestion.type === 'CODING';
 
   const renderMCQ = () => {
     const selectedOptionId = currentAnswer?.selectedOptionId;
 
     return (
-      <RadioGroup
-        value={selectedOptionId || ''}
-        onValueChange={(val: string) => saveAnswer(currentQuestion.id, { selectedOptionId: val })}
-        className='space-y-4'
-        aria-label='Select an option'
-      >
+      <div className='space-y-2 mt-4' role='radiogroup' aria-label='Select an option'>
         {currentQuestion.options.map((option, index) => {
-          const letter = String.fromCharCode(65 + index); // A, B, C, D...
+          const letter = String.fromCharCode(97 + index); // a, b, c, d...
           const optId = option.id || index.toString();
           const isSelected = selectedOptionId === optId;
-
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
-            <Label
+            <label
               key={optId}
               htmlFor={htmlId}
-              className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
-                ${
-                  isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/50 bg-white'
-                }
-              `}
+              onClick={() => saveAnswer(currentQuestion.id, { selectedOptionId: optId })}
+              className={`flex items-start gap-2.5 px-3 py-2.5 rounded-sm cursor-pointer select-none transition-colors border ${
+                isSelected
+                  ? 'bg-green-50/90 font-medium text-green-950 border-green-300 shadow-2xs'
+                  : 'hover:bg-gray-100/80 text-gray-800 font-normal border-transparent'
+              }`}
             >
-              <RadioGroupItem
-                value={optId}
-                id={htmlId}
-                className='sr-only'
-                aria-label={`Option ${letter}: ${option.text}`}
-              />
-              <div
-                className={`
-                flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium shrink-0
-                ${
-                  isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-background border-muted-foreground/30 text-muted-foreground'
-                }
-              `}
-                aria-hidden='true'
-              >
-                {letter}
+              <div className='mt-0.5 relative flex items-center justify-center shrink-0'>
+                <input
+                  type='radio'
+                  id={htmlId}
+                  name={`q-${currentQuestion.id}`}
+                  checked={isSelected}
+                  onChange={() => saveAnswer(currentQuestion.id, { selectedOptionId: optId })}
+                  className='size-4 text-[#26773e] focus:ring-0 cursor-pointer accent-[#26773e]'
+                />
               </div>
-              <span className='text-base font-normal leading-relaxed break-words'>
-                {option.text}
-              </span>
-            </Label>
+              <div className='text-[15px] sm:text-[16px] leading-snug'>
+                <span className='font-normal text-gray-700 mr-1.5'>{letter})</span>
+                <span>{option.text}</span>
+              </div>
+            </label>
           );
         })}
-      </RadioGroup>
+      </div>
     );
   };
 
@@ -89,52 +67,38 @@ export function QuestionRenderer() {
     };
 
     return (
-      <div className='space-y-4' role='group' aria-label='Select multiple options'>
+      <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
         {currentQuestion.options.map((option, index) => {
-          const letter = String.fromCharCode(65 + index);
+          const letter = String.fromCharCode(97 + index);
           const optId = option.id || index.toString();
           const isSelected = selectedOptionIds.includes(optId);
-
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
-            <Label
+            <label
               key={optId}
               htmlFor={htmlId}
-              className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
-                ${
-                  isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/50 bg-white'
-                }
-              `}
+              onClick={() => handleToggle(optId)}
+              className={`flex items-start gap-2.5 px-3 py-2.5 rounded-sm cursor-pointer select-none transition-colors border ${
+                isSelected
+                  ? 'bg-green-50/90 font-medium text-green-950 border-green-300 shadow-2xs'
+                  : 'hover:bg-gray-100/80 text-gray-800 font-normal border-transparent'
+              }`}
             >
-              <input
-                type='checkbox'
-                id={htmlId}
-                className='sr-only'
-                checked={isSelected}
-                onChange={() => handleToggle(optId)}
-                aria-label={`Option ${letter}: ${option.text}`}
-              />
-              <div
-                className={`
-                flex items-center justify-center w-8 h-8 rounded border mr-4 text-sm font-medium shrink-0
-                ${
-                  isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-background border-muted-foreground/30 text-muted-foreground'
-                }
-              `}
-                aria-hidden='true'
-              >
-                {letter}
+              <div className='mt-0.5 relative flex items-center justify-center shrink-0'>
+                <input
+                  type='checkbox'
+                  id={htmlId}
+                  checked={isSelected}
+                  onChange={() => handleToggle(optId)}
+                  className='size-4 rounded-sm text-[#26773e] focus:ring-0 cursor-pointer accent-[#26773e]'
+                />
               </div>
-              <span className='text-base font-normal leading-relaxed break-words'>
-                {option.text}
-              </span>
-            </Label>
+              <div className='text-[15px] sm:text-[16px] leading-snug'>
+                <span className='font-normal text-gray-700 mr-1.5'>{letter})</span>
+                <span>{option.text}</span>
+              </div>
+            </label>
           );
         })}
       </div>
@@ -145,13 +109,16 @@ export function QuestionRenderer() {
     const textResponse = currentAnswer?.textResponse || '';
 
     return (
-      <div className='bg-white p-6 rounded-xl border shadow-sm'>
+      <div className='mt-4 p-4 rounded-sm border border-gray-300 bg-gray-50/50 shadow-2xs max-w-sm'>
+        <label className='block text-xs font-bold text-gray-700 uppercase mb-2'>
+          Enter Numeric Value:
+        </label>
         <Input
           type='number'
-          placeholder='Enter your numeric answer'
+          placeholder='Type your numerical answer...'
           value={textResponse}
           onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
-          className='max-w-xs'
+          className='w-full border-gray-400 bg-white font-mono text-base font-semibold shadow-xs rounded-sm h-10 px-3 focus:ring-1 focus:ring-green-700'
         />
       </div>
     );
@@ -167,9 +134,11 @@ export function QuestionRenderer() {
         return renderNumeric();
       case 'CODING':
         return (
-          <EmbeddedCompiler 
-            onChange={(data) => saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })} 
-          />
+          <div className='mt-4 w-full flex-1'>
+            <EmbeddedCompiler
+              onChange={(data) => saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })}
+            />
+          </div>
         );
       default:
         return renderMCQ();
@@ -177,46 +146,60 @@ export function QuestionRenderer() {
   };
 
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-start'>
-      {/* Left Panel: Resources & Question Statement */}
-      <Card className='w-full h-full border-solid shadow-sm flex flex-col bg-white overflow-hidden'>
-        <CardHeader className='pb-4 border-b bg-muted/20'>
-          <div className='flex items-center justify-between'>
-            <CardTitle className='text-xl font-bold'>Question {currentQuestionIndex + 1}</CardTitle>
-            <span className='text-sm text-primary bg-primary/10 px-3 py-1 rounded-full font-medium'>
-              {currentQuestion.type}
-            </span>
-          </div>
-          {currentQuestion.stem && (
-            <div className='mt-4 bg-muted/30 p-4 rounded-lg border border-border/50'>
-              <p className='text-xs text-muted-foreground font-semibold mb-2 uppercase tracking-wider'>Context</p>
-              <p className='text-[16px] leading-relaxed text-foreground'>{currentQuestion.stem}</p>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent className='pt-6 md:pt-8 px-6 md:px-8 flex-1 overflow-y-auto custom-scrollbar'>
-          <div className='prose prose-slate max-w-none dark:prose-invert break-words space-y-6'>
+    <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
+      {/* Question Number Header Bar */}
+      <div className='bg-white px-4 py-3 border-b border-gray-300 flex items-center justify-between shrink-0'>
+        <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
+          Question No {currentQuestionIndex + 1}
+        </h2>
+        <span className='text-xs font-bold text-gray-600 bg-gray-100 border border-gray-300 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
+          {currentQuestion.type}
+        </span>
+      </div>
 
-            
-            <div>
-              <p className='text-[17px] leading-relaxed text-foreground font-medium'>
-                {currentQuestion.text}
-              </p>
+      {/* Two-Column Split Pane (Passage / Directions on Left, Question & Options on Right) */}
+      <div className='flex flex-1 w-full overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-300 min-h-[420px]'>
+        {/* Left Pane - Directions / Passage / Stem */}
+        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white shrink-0 custom-scrollbar select-text'>
+          <div className='max-w-2xl text-gray-800 space-y-4 font-sans'>
+            <h3 className='font-bold text-gray-900 text-sm md:text-[15px] leading-snug tracking-normal'>
+              Directions [Set of Questions]: Read the following passage or instructions carefully and answer the questions that follow.
+            </h3>
+
+            {currentQuestion.stem ? (
+              <div className='text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line pt-2'>
+                {currentQuestion.stem}
+              </div>
+            ) : (
+              <div className='text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify pt-2'>
+                <p>
+                  Analyze the given statement on the right panel and select the correct answer from the provided options.
+                </p>
+                {currentQuestion.candidateInstructions && (
+                  <div className='bg-blue-50/80 border-l-4 border-blue-600 p-3.5 my-3 text-sm text-gray-800 rounded-r-sm'>
+                    <span className='font-bold underline block mb-1 text-blue-950'>Candidate Notice:</span>
+                    {currentQuestion.candidateInstructions}
+                  </div>
+                )}
+                <p className='text-gray-600 text-sm pt-2'>
+                  Note: You may click <span className='font-bold text-gray-800'>Mark for Review & Next</span> if you wish to re-evaluate your response later before completing this section.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Pane - Question Statement & Options / Inputs */}
+        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white flex flex-col justify-between custom-scrollbar select-text'>
+          <div className='space-y-5'>
+            <div className='text-base sm:text-[16px] font-normal leading-relaxed text-gray-950 font-sans break-words'>
+              {currentQuestion.text}
+            </div>
+
+            <div className='pt-1'>
+              {renderQuestionContent()}
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Center Panel: Interactive Area */}
-      <div className='w-full h-full flex flex-col'>
-        <div className='flex-1 space-y-6'>
-          {currentQuestion.candidateInstructions && (
-            <div className='bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900/30 shadow-sm'>
-              <p className='text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wider'>Instructions</p>
-              <p className='text-[15px] leading-relaxed text-foreground/90'>{currentQuestion.candidateInstructions}</p>
-            </div>
-          )}
-          {renderQuestionContent()}
         </div>
       </div>
     </div>

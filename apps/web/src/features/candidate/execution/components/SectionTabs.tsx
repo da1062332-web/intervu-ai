@@ -2,9 +2,8 @@
 
 import { useExecutionStore } from '../stores/execution.store';
 import { cn } from '@/lib/utils';
-import { Lock, Clock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
-// Format seconds as MM:SS
 function formatTime(seconds: number): string {
   if (seconds <= 0) return '00:00';
   const m = Math.floor(seconds / 60);
@@ -25,9 +24,7 @@ export function SectionTabs() {
 
   if (!testInstance || !testInstance.sections || testInstance.sections.length === 0) return null;
 
-  const showTabs = testInstance.sections.length > 1;
-
-  // Map questions → section start indices
+  // In standard CBT exams like TCS NQT, we show the section buttons even if there is just 1 section
   let runningCount = 0;
   const sectionStartIndices: Record<string, number> = {};
 
@@ -50,90 +47,54 @@ export function SectionTabs() {
     runningCount += section.questions.length;
   }
 
-  // Calculate Progress
-  const { questions, answers } = useExecutionStore.getState();
-  const total = questions.length;
-  let answered = 0;
-  Object.values(answers).forEach((ans) => {
-    if (
-      ans.status !== 'MARKED_FOR_REVIEW' &&
-      (ans.selectedOptionId || (ans.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans.textResponse)
-    ) {
-      answered++;
-    }
-  });
-  const percentage = total > 0 ? Math.round((answered / total) * 100) : 0;
-
-  // Is section timer in warning zone (<= 60s)?
   const isTimerWarning = sectionTimingEnabled && sectionRemainingTime > 0 && sectionRemainingTime <= 60;
-  const isTimerCritical = sectionTimingEnabled && sectionRemainingTime > 0 && sectionRemainingTime <= 30;
 
   return (
-    <div className='flex justify-between items-end mb-4 border-b pb-2'>
-      <div className='flex gap-2 overflow-x-auto hide-scrollbar'>
-        {showTabs &&
-          testInstance.sections.map((section, idx) => {
-            const isActive = idx === activeSectionIndex;
-            const isLocked = lockedSectionKeys.includes(section.sectionKey) || (sectionTimingEnabled && idx < currentSectionIndex);
-            const isCompleted = section.status === 'COMPLETED' || section.status === 'LOCKED';
-            const isUpcoming = idx > currentSectionIndex && !isActive;
-            const isCurrentActive = idx === currentSectionIndex && sectionTimingEnabled;
+    <div className='relative border border-gray-300 rounded-sm pt-3 pb-2 px-3 bg-white shadow-xs w-full mb-2.5 shrink-0 select-none'>
+      <span className='absolute -top-2.5 left-4 bg-white px-1.5 font-bold text-xs text-gray-800 tracking-wide font-sans'>
+        Sections
+      </span>
+      
+      <div className='flex gap-2 overflow-x-auto hide-scrollbar items-center py-0.5'>
+        {testInstance.sections.map((section, idx) => {
+          const isActive = idx === activeSectionIndex;
+          const isLocked = lockedSectionKeys.includes(section.sectionKey) || (sectionTimingEnabled && idx < currentSectionIndex);
+          const isCurrentActive = idx === currentSectionIndex && sectionTimingEnabled;
 
-            return (
-              <button
-                key={section.id}
-                onClick={() => !isLocked ? jumpToQuestion(sectionStartIndices[section.id]) : undefined}
-                disabled={isLocked}
-                title={isLocked ? 'This section is locked and cannot be revisited' : section.title}
-                className={cn(
-                  'relative px-4 py-2 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap border-t border-x flex items-center gap-1.5',
-                  isActive
-                    ? 'bg-primary text-white border-primary'
-                    : isLocked
-                      ? 'bg-muted/40 text-muted-foreground/50 border-border/30 cursor-not-allowed'
-                      : isUpcoming
-                        ? 'bg-white text-muted-foreground/70 border-border/50 cursor-not-allowed opacity-70'
-                        : 'bg-white text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground',
-                )}
-              >
-                {isLocked ? (
-                  <Lock className='size-3 shrink-0 opacity-60' />
-                ) : isCompleted ? (
-                  <span className='size-2 rounded-full bg-green-500 shrink-0' />
-                ) : null}
+          return (
+            <button
+              key={section.id}
+              onClick={() => !isLocked ? jumpToQuestion(sectionStartIndices[section.id]) : undefined}
+              disabled={isLocked}
+              title={isLocked ? 'This section is locked' : section.title}
+              className={cn(
+                'px-6 py-1.5 text-sm font-bold rounded-sm transition-all whitespace-nowrap border shadow-xs flex items-center gap-2 tracking-wide shrink-0',
+                isActive
+                  ? 'bg-[#27783f] hover:bg-[#206333] text-white border-[#195027]'
+                  : isLocked
+                    ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed font-medium'
+                    : 'bg-[#d6eafb] hover:bg-[#c2e0f5] text-[#1c4068] border-[#93bae3] font-semibold cursor-pointer'
+              )}
+            >
+              {isLocked ? <Lock className='size-3.5 shrink-0 opacity-70' /> : null}
 
-                <span>{section.title}</span>
+              <span>{section.title || section.sectionName || `Section ${idx + 1}`}</span>
 
-                {/* Show section timer on the active section when sectionTimingEnabled */}
-                {isCurrentActive && isActive && sectionRemainingTime > 0 && (
-                  <span
-                    className={cn(
-                      'ml-1 text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded',
-                      isTimerCritical
-                        ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                        : isTimerWarning
-                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                          : 'bg-primary/10 text-primary',
-                    )}
-                  >
-                    {formatTime(sectionRemainingTime)}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-      </div>
-
-      {/* Progress Bar at Right Corner */}
-      <div className='hidden md:flex items-center gap-3 w-48 mb-2 mr-2 ml-auto'>
-        <span className='text-xs font-medium text-muted-foreground'>Progress</span>
-        <div className='flex-1 h-2 bg-muted rounded-full overflow-hidden'>
-          <div
-            className='h-full bg-primary transition-all duration-300 ease-in-out'
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-        <span className='text-xs font-medium'>{percentage}%</span>
+              {isCurrentActive && isActive && sectionRemainingTime > 0 && (
+                <span
+                  className={cn(
+                    'ml-1.5 text-xs font-mono font-black tabular-nums px-1.5 py-0.5 rounded border shadow-2xs',
+                    isTimerWarning
+                      ? 'bg-red-600 text-white border-red-700 animate-pulse'
+                      : 'bg-black/20 text-white border-white/20'
+                  )}
+                >
+                  {formatTime(sectionRemainingTime)}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

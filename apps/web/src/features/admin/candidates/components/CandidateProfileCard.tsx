@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { User, Mail, Phone, Calendar, Shield } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CandidateStatusBadge } from './CandidateStatusBadge';
 import { formatCandidateDate } from '../utils';
 import type { CandidateDetails } from '../types/candidate.types';
@@ -17,13 +18,13 @@ export function CandidateProfileCard({ candidate, isLoading = false }: Candidate
     return (
       <Card className="p-6">
         <CardHeader className="p-0 mb-4">
-          <div className="h-6 w-1/3 bg-muted animate-pulse rounded" />
+          <Skeleton className="h-6 w-1/3" />
         </CardHeader>
         <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="space-y-2">
-              <div className="h-4 w-20 bg-muted animate-pulse rounded" />
-              <div className="h-5 w-36 bg-muted animate-pulse rounded" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-36" />
             </div>
           ))}
         </CardContent>
