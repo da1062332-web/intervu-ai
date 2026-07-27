@@ -1,8 +1,6 @@
 'use client';
 
 import { useExecutionStore } from '../stores/execution.store';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, CheckCircle2, Bookmark, Eraser } from 'lucide-react';
 import { memo } from 'react';
 
 interface NavigationControlsProps {
@@ -12,10 +10,10 @@ interface NavigationControlsProps {
 export const NavigationControls = memo(function NavigationControls({
   onSubmitClick,
 }: NavigationControlsProps) {
-  const { 
-    currentQuestionIndex, 
-    questions, 
-    goNext, 
+  const {
+    currentQuestionIndex,
+    questions,
+    goNext,
     goPrevious,
     currentQuestion,
     answers,
@@ -28,8 +26,6 @@ export const NavigationControls = memo(function NavigationControls({
 
   const isFirst = currentQuestionIndex === 0;
   const isLast = currentQuestionIndex === questions.length - 1;
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : null;
-  const isMarkedForReview = currentAnswer?.status === 'MARKED_FOR_REVIEW';
 
   let currentSectionStartIndex = 0;
   if (testInstance && currentSectionIndex > 0) {
@@ -43,17 +39,17 @@ export const NavigationControls = memo(function NavigationControls({
 
   const handleClearResponse = () => {
     if (!currentQuestion) return;
-    saveAnswer(currentQuestion.id, { 
-      selectedOptionId: undefined, 
-      selectedOptionIds: [], 
-      textResponse: '' 
+    saveAnswer(currentQuestion.id, {
+      selectedOptionId: undefined,
+      selectedOptionIds: [],
+      textResponse: '',
     });
   };
 
   const handleMarkForReview = () => {
     if (!currentQuestion) return;
     toggleReview(currentQuestion.id);
-    goNext(); // Usually "Mark for Review & Next"
+    goNext();
   };
 
   const handleSaveAndNext = () => {
@@ -65,52 +61,40 @@ export const NavigationControls = memo(function NavigationControls({
   };
 
   return (
-    <div className='flex items-center justify-between w-full gap-4'>
-      <div className='flex items-center gap-3'>
-        <Button
-          variant='outline'
-          onClick={goPrevious}
-          disabled={isPreviousDisabled}
-          className='w-full sm:w-32 h-10 border-gray-300'
+    <div className='flex flex-wrap items-center justify-between w-full gap-3 select-none font-sans'>
+      {/* Left Button Group: Previous, Mark for Review & Next, Clear Response */}
+      <div className='flex items-center gap-3 overflow-x-auto hide-scrollbar flex-wrap sm:flex-nowrap'>
+        {!isPreviousDisabled && (
+          <button
+            onClick={goPrevious}
+            disabled={isPreviousDisabled}
+            className='bg-[#d6eafb] hover:bg-[#c2dff5] text-[#1c3e66] font-bold text-sm px-5 py-2.5 rounded-sm border border-[#96bae0] shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+          >
+            Previous
+          </button>
+        )}
+        <button
+          onClick={handleMarkForReview}
+          className='bg-[#d6eafb] hover:bg-[#c2dff5] text-[#1c3e66] font-bold text-sm px-6 py-2.5 rounded-sm border border-[#96bae0] shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer'
         >
-          <ChevronLeft className='w-4 h-4 mr-2' />
-          Previous
-        </Button>
+          Mark for Review & Next
+        </button>
+        <button
+          onClick={handleClearResponse}
+          className='bg-[#d6eafb] hover:bg-[#c2dff5] text-[#1c3e66] font-bold text-sm px-8 py-2.5 rounded-sm border border-[#96bae0] shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer'
+        >
+          Clear Response
+        </button>
       </div>
 
-      <div className='flex items-center gap-3 overflow-x-auto hide-scrollbar'>
-        <Button
-          variant='outline'
-          onClick={handleMarkForReview}
-          className={`h-10 whitespace-nowrap ${isMarkedForReview ? 'bg-purple-50 text-purple-600 border-purple-200' : 'border-gray-300'}`}
-        >
-          <Bookmark className={`w-4 h-4 mr-2 ${isMarkedForReview ? 'fill-current' : ''}`} />
-          Mark for Review & Next
-        </Button>
-        <Button
-          variant='outline'
-          onClick={handleClearResponse}
-          className='h-10 border-gray-300 whitespace-nowrap'
-        >
-          <Eraser className='w-4 h-4 mr-2' />
-          Clear Response
-        </Button>
-        <Button
+      {/* Right Button Group: Save & Next / Submit */}
+      <div className='flex items-center shrink-0 ml-auto'>
+        <button
           onClick={handleSaveAndNext}
-          className='px-8 h-10 bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap shadow-sm'
+          className='bg-[#27783f] hover:bg-[#1f6333] text-white font-bold text-sm px-12 py-2.5 rounded-sm border border-[#195028] shadow-md transition-all tracking-wide flex items-center justify-center shrink-0 cursor-pointer'
         >
-          {isLast ? (
-            <>
-              <CheckCircle2 className='w-4 h-4 mr-2' />
-              Submit Assessment
-            </>
-          ) : (
-            <>
-              Save & Next
-              <ChevronRight className='w-4 h-4 ml-2' />
-            </>
-          )}
-        </Button>
+          {isLast ? 'Submit Assessment' : 'Save & Next'}
+        </button>
       </div>
     </div>
   );

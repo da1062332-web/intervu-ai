@@ -248,6 +248,8 @@ export class QuestionRotationService {
         difficulty: q.difficulty as "EASY" | "MEDIUM" | "HARD",
         topicId: q.topicId,
         sectionId: q.sectionId ?? "",
+        mcqData: q.mcqData,
+        codingData: q.codingData,
       }));
 
       return {

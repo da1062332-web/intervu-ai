@@ -64,14 +64,22 @@ export const executionService = {
               text: q.snapshot?.questionText || '',
               stem: q.snapshot?.questionStatement || '',
               candidateInstructions: q.snapshot?.instructions || '',
-              options: (q.snapshot?.options || q.snapshot?.mcqData?.options)?.map((opt: any, index: number) => {
-                if (typeof opt === 'string') {
-                  // Use the text as the ID so that it gets sent back to the backend
-                  // for correct evaluation (since backend expects the text value).
-                  return { id: opt, text: opt };
+              options: (() => {
+                let rawOptions = [];
+                if (q.snapshot?.options && q.snapshot.options.length > 0) {
+                  rawOptions = q.snapshot.options;
+                } else if (q.snapshot?.mcqData?.options && q.snapshot.mcqData.options.length > 0) {
+                  rawOptions = q.snapshot.mcqData.options;
                 }
-                return opt;
-              }) || [],
+                return rawOptions.map((opt: any) => {
+                  if (typeof opt === 'string') {
+                    // Use the text as the ID so that it gets sent back to the backend
+                    // for correct evaluation (since backend expects the text value).
+                    return { id: opt, text: opt };
+                  }
+                  return opt;
+                });
+              })(),
             })) || [],
         })) || [],
     } as TestInstance;

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Users } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/section-header';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { useCandidates } from '@/features/admin/candidates/hooks/useCandidates';
 import { CandidateSearch } from '@/features/admin/candidates/components/CandidateSearch';
 import { CandidateFilters } from '@/features/admin/candidates/components/CandidateFilters';
@@ -79,41 +80,44 @@ export default function AdminCandidatesPage() {
         isLoading={isLoading && !isRefetching}
       />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-xs">
-        <CandidateSearch
-          value={search}
-          onChange={handleSearchChange}
-          placeholder="Search by candidate name or email..."
-        />
-        <CandidateFilters
-          status={status}
-          onStatusChange={handleStatusChange}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onSortChange={handleSortChange}
-          onRefresh={refetch}
-          isRefetching={isRefetching}
-        />
-      </div>
-
-      {error ? (
-        <CandidateEmptyState
-          error={error}
-          onRetry={refetch}
-        />
-      ) : !isLoading && candidates.length === 0 ? (
-        <CandidateEmptyState
-          isSearchOrFilterActive={isFilterOrSearchActive}
-          onResetFilters={handleResetFilters}
-        />
-      ) : (
-        <CandidateTable
-          candidates={candidates}
-          pagination={pagination}
-          onPageChange={(newPage) => setPage(newPage)}
-          isLoading={isLoading}
-        />
-      )}
+      <Card>
+        <CardHeader className="pb-3 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <CandidateSearch
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search by candidate name or email..."
+          />
+          <CandidateFilters
+            status={status}
+            onStatusChange={handleStatusChange}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            onRefresh={refetch}
+            isRefetching={isRefetching}
+          />
+        </CardHeader>
+        <CardContent className="p-0">
+          {error ? (
+            <CandidateEmptyState
+              error={error}
+              onRetry={refetch}
+            />
+          ) : !isLoading && candidates.length === 0 ? (
+            <CandidateEmptyState
+              isSearchOrFilterActive={isFilterOrSearchActive}
+              onResetFilters={handleResetFilters}
+            />
+          ) : (
+            <CandidateTable
+              candidates={candidates}
+              pagination={pagination}
+              onPageChange={(newPage) => setPage(newPage)}
+              isLoading={isLoading}
+            />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

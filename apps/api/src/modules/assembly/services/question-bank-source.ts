@@ -205,9 +205,13 @@ export class QuestionBankSource implements IQuestionSource {
       difficulty: "EASY" | "MEDIUM" | "HARD";
       topicId: string;
       sectionId: string;
+      mcqData?: any;
+      codingData?: any;
+      options?: any;
     },
     difficulty: string,
   ): GeneratedQuestion {
+    const rawOptions = q.mcqData?.options || q.options || [];
     return {
       id: q.id,
       // conceptKey maps from topicId — this is the bridge between the two schemas
@@ -227,7 +231,9 @@ export class QuestionBankSource implements IQuestionSource {
       } as unknown as GeneratedQuestion["metadata"],
       // Legacy required fields — safe defaults
       templateId: null as unknown as string,
-      options: [] as unknown as GeneratedQuestion["options"],
+      options: rawOptions as unknown as GeneratedQuestion["options"],
+      mcqData: q.mcqData,
+      codingData: q.codingData,
       correctAnswer: q.answer as unknown as GeneratedQuestion["correctAnswer"],
       solution: q.explanation as unknown as GeneratedQuestion["solution"],
       expectedAnswer: null as unknown as string,

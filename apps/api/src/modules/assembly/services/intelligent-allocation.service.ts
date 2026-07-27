@@ -266,8 +266,10 @@ export class IntelligentAllocationService {
         difficultyLevel: q.difficultyLevel,
         questionType: q.questionType,
         options: q.options ?? [],
-        correctAnswer: q.correctAnswer ?? null,
-        solution: q.solution ?? "",
+        mcqData: (q as any).mcqData ?? null,
+        codingData: (q as any).codingData ?? null,
+        correctAnswer: q.correctAnswer ?? (q as any).answer ?? null,
+        solution: q.solution ?? (q as any).explanation ?? "",
         metadata: q.metadata ?? {},
       },
     };
