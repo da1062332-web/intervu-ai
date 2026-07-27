@@ -69,13 +69,22 @@ describe("AI Generation Failure Recovery Spec", () => {
         {
           provide: TemplateSelectorService,
           useValue: {
-            selectTemplate: jest.fn().mockResolvedValue({
-              templateId: "t-1",
-              metadata: {
-                conceptKey: "loop",
-                difficultyLevel: "EASY",
-                questionType: "mcq",
-              },
+            selectBatch: jest.fn().mockResolvedValue({
+              selected: [
+                {
+                  templateId: "t-1",
+                  version: 1,
+                  metadata: {
+                    conceptKey: "loop",
+                    difficultyLevel: "EASY",
+                    questionType: "mcq",
+                    templateKey: "loop",
+                    structure: {},
+                    solutionSchema: {},
+                  },
+                },
+              ],
+              warnings: [],
             }),
             incrementUsage: jest.fn(),
           },

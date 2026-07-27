@@ -79,13 +79,22 @@ describe("Workflow E2E — Generation to Review Queue", () => {
         {
           provide: TemplateSelectorService,
           useValue: {
-            selectTemplate: jest.fn().mockResolvedValue({
-              templateId: "rust-var",
-              metadata: {
-                conceptKey: "rust_vars",
-                difficultyLevel: "EASY",
-                questionType: "mcq",
-              },
+            selectBatch: jest.fn().mockResolvedValue({
+              selected: [
+                {
+                  templateId: "rust-var",
+                  version: 1,
+                  metadata: {
+                    conceptKey: "rust_vars",
+                    difficultyLevel: "EASY",
+                    questionType: "mcq",
+                    templateKey: "rust_vars",
+                    structure: {},
+                    solutionSchema: {},
+                  },
+                },
+              ],
+              warnings: [],
             }),
             incrementUsage: jest.fn(),
           },
