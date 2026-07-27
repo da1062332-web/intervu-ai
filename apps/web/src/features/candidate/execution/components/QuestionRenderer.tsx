@@ -28,7 +28,7 @@ export function QuestionRenderer() {
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
-            <Label
+            <label
               key={optKey}
               htmlFor={htmlId}
               className={`
@@ -40,9 +40,13 @@ export function QuestionRenderer() {
                 }
               `}
             >
-              <RadioGroupItem
+              <input
+                type='radio'
+                name={`mcq-${currentQuestion.id}`}
                 value={optValue}
                 id={htmlId}
+                checked={isSelected}
+                onChange={() => saveAnswer(currentQuestion.id, { selectedOptionId: optValue })}
                 className='sr-only'
                 aria-label={`Option ${letter}: ${option.text}`}
               />
@@ -59,6 +63,9 @@ export function QuestionRenderer() {
               >
                 {letter}
               </div>
+              <span className='text-base font-normal leading-relaxed break-words'>
+                {option.text}
+              </span>
             </label>
           );
         })}
@@ -88,7 +95,7 @@ export function QuestionRenderer() {
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
-            <Label
+            <label
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
@@ -121,6 +128,9 @@ export function QuestionRenderer() {
               >
                 {letter}
               </div>
+              <span className='text-base font-normal leading-relaxed break-words'>
+                {option.text}
+              </span>
             </label>
           );
         })}
