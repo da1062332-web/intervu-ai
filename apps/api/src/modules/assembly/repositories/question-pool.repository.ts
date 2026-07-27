@@ -81,6 +81,13 @@ export class QuestionPoolRepository implements IQuestionSource {
 
   private mapQuestionToGeneratedQuestion(question: Question): GeneratedQuestion {
     const metadata = (question.metadata as Record<string, unknown> | null) ?? {};
+    const mcqData = (question.mcqData as any) ?? null;
+    const codingData = (question.codingData as any) ?? null;
+
+    let options = metadata.options as GeneratedQuestion["options"];
+    if ((!Array.isArray(options) || options.length === 0) && mcqData?.options && Array.isArray(mcqData.options)) {
+      options = mcqData.options;
+    }
 
     return {
       id: question.id,
@@ -90,9 +97,9 @@ export class QuestionPoolRepository implements IQuestionSource {
       difficultyLevel: question.difficulty as DifficultyLevel,
       questionType: question.questionType || "MULTIPLE_CHOICE",
       questionText: question.questionText,
-      options: (metadata.options as GeneratedQuestion["options"]) ?? [
-        question.answer,
-      ],
+      options: Array.isArray(options) && options.length > 0 ? options : [question.answer],
+      mcqData,
+      codingData,
       correctAnswer: question.answer as GeneratedQuestion["correctAnswer"],
       solution: question.explanation as GeneratedQuestion["solution"],
       metadata: {

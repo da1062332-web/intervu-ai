@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 interface EmbeddedCompilerProps {
   onChange?: (data: any) => void;
+  initialData?: any;
 }
 
 // SEC-003: Trusted origins for the embedded compiler
@@ -56,7 +57,7 @@ function validateCompilerMessage(event: MessageEvent): any | null {
   return data;
 }
 
-export function EmbeddedCompiler({ onChange }: EmbeddedCompilerProps) {
+export function EmbeddedCompiler({ onChange, initialData }: EmbeddedCompilerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -85,7 +86,19 @@ export function EmbeddedCompiler({ onChange }: EmbeddedCompilerProps) {
     disableCopyPaste: 'true',
     listenToEvents: 'true',
     codeChangeEvent: 'true',
+    language: 'python',
+    languages: 'python,java',
   });
+
+  // If there is initial code, use it. Otherwise, pass a space to override previous cached code
+  if (initialData?.code) {
+    queryParams.set('code', initialData.code);
+    if (initialData.language) {
+      queryParams.set('language', initialData.language);
+    }
+  } else {
+    queryParams.set('code', '\n');
+  }
 
   return (
     <div className='w-full h-full min-h-[700px] flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-border/50'>
