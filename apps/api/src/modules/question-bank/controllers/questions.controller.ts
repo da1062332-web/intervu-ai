@@ -900,7 +900,6 @@ export class QuestionsController {
         parsedOptions = opts.map((o: any) => String(o).trim().replace(/^"|"$/g, ''));
       }
     }
-    }
 
     if (isMcq) {
       if (parsedOptions.length === 0) {
