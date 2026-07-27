@@ -26,7 +26,7 @@ import {
 } from "@intervu-ai/generation";
 import { parseOptionsTemplate } from "../../generation/services/question-instantiator.service";
 
-import type { RedisCacheService } from "../../../cache";
+import { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
 import { TemplateVariableRepository } from "../repositories/template-variable.repository";
 import { TemplateRuleRepository } from "../repositories/template-rule.repository";
