@@ -118,6 +118,23 @@ describe('StrategyDraftingService', () => {
       expect(result.data?.variables[0].name).toBe('x');
     });
 
+    it('should parse JSON response even with extra surrounding text', async () => {
+      const mockLLMResponse = `
+        Here is the output:\n
+        Some commentary before the JSON.
+        {"variables":[{"name":"x","type":"number"}],"derivedVariables":[],"constraints":[],"notes":[]}
+        Some trailing text that should be ignored.
+      `;
+
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
+
+      const result = await service.draftStrategy('create a simple variable');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.variables).toHaveLength(1);
+      expect(result.data?.variables[0].name).toBe('x');
+    });
+
     it('should return validation warnings for inconsistent strategies', async () => {
       const mockLLMResponse = JSON.stringify({
         variables: [

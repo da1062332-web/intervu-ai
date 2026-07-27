@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
+import { evaluateExpression } from "@intervu-ai/generation";
 
 interface InstantiatorInput {
   template: {
@@ -217,7 +218,17 @@ export class QuestionInstantiatorService {
       try {
         const result = this.evaluateFormula(solutionSchema.formula, params);
         return String(result);
-      } catch (err) {
+      } catch {
+        // Fallback or bubble up
+      }
+    }
+
+    // If solutionSchema exposes a finalAnswer expression.
+    if (solutionSchema.finalAnswer) {
+      try {
+        const result = this.evaluateFormula(solutionSchema.finalAnswer, params);
+        return String(result);
+      } catch {
         // Fallback or bubble up
       }
     }
@@ -239,31 +250,13 @@ export class QuestionInstantiatorService {
   }
 
   /**
-   * Securely evaluates simple arithmetic formulas using parameter values.
+   * Evaluates arithmetic and variable expressions using the shared generation engine.
    */
   private evaluateFormula(
     formula: string,
     params: Record<string, any>,
-  ): number {
-    // Standard formulas: "A + B", "A * B", "A - B", "A / B"
-    let expression = formula;
-    for (const [varName, varVal] of Object.entries(params)) {
-      if (typeof varVal === "number") {
-        expression = expression.replace(
-          new RegExp(`\\b${varName}\\b`, "g"),
-          String(varVal),
-        );
-      }
-    }
-
-    // Sanitize the expression to ensure it only contains math characters, numbers, spaces
-    if (!/^[0-9+\-*/().\s%]+$/.test(expression)) {
-      throw new Error("Invalid formula expression");
-    }
-
-    // Safe mathematical evaluation (no eval)
-    // We construct a Function that does the math, but since we sanitized it strictly, it's secure
-    return new Function(`return (${expression});`)();
+  ): unknown {
+    return evaluateExpression(formula, params);
   }
 
   /**
