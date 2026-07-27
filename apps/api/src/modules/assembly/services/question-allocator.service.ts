@@ -113,6 +113,58 @@ export class QuestionAllocatorService {
         }
 
         if (selectedForTopic.length < requiredForTopic) {
+          const fallbackLevels: DifficultyLevel[] = [
+            DifficultyLevel.EASY,
+            DifficultyLevel.MEDIUM,
+            DifficultyLevel.HARD,
+          ].filter((lvl) => lvl !== diff.level);
+
+          for (const fallbackLevel of fallbackLevels) {
+            if (selectedForTopic.length >= requiredForTopic) break;
+            const shortage = requiredForTopic - selectedForTopic.length;
+
+            try {
+              const fallbackQuestions = await this.questionSource.fetchQuestions({
+                conceptKey: topicAlloc.topicId,
+                difficultyLevel: fallbackLevel,
+                limit: shortage * 5,
+                excludeIds: Array.from(currentlyExcludedIds),
+                examId,
+              });
+
+              for (const q of fallbackQuestions) {
+                currentlyExcludedIds.add(q.id);
+              }
+
+              const filtered = await this.antiRepetitionService.filterPool(
+                fallbackQuestions,
+                historyIds,
+                Array.from(allocatedQuestionIds),
+              );
+
+              const toAdd = filtered.slice(0, shortage);
+              for (const q of toAdd) {
+                allocatedQuestionIds.add(q.id);
+                const allocatedQ = {
+                  questionId: q.id,
+                  questionHash: q.questionHash || "hash",
+                  conceptKey: q.conceptKey,
+                  difficultyLevel: q.difficultyLevel,
+                  questionType: q.questionType,
+                  questionOrder: orderCounter++,
+                  questionSnapshot: q,
+                };
+                selectedForTopic.push(allocatedQ);
+                allocatedQuestions.push(allocatedQ);
+                remainingDiffCount--;
+              }
+            } catch (err) {
+              // ignore fallback error and try next difficulty level
+            }
+          }
+        }
+
+        if (selectedForTopic.length < requiredForTopic) {
           throw new BadRequestException({
             error: 'INSUFFICIENT_ELIGIBLE_QUESTIONS',
             message: `Unable to assemble this assessment because there are not enough eligible questions for the ${topicAlloc.topicId} / ${diff.level} requirement.`,
@@ -177,6 +229,58 @@ export class QuestionAllocatorService {
           }
           
           attempts++;
+        }
+
+        if (selectedForExtra.length < requiredForExtra) {
+          const fallbackLevels: DifficultyLevel[] = [
+            DifficultyLevel.EASY,
+            DifficultyLevel.MEDIUM,
+            DifficultyLevel.HARD,
+          ].filter((lvl) => lvl !== diff.level);
+
+          for (const fallbackLevel of fallbackLevels) {
+            if (selectedForExtra.length >= requiredForExtra) break;
+            const shortage = requiredForExtra - selectedForExtra.length;
+
+            try {
+              const fallbackExtra = await this.questionSource.fetchQuestions({
+                conceptKey: extraTopic.topicId,
+                difficultyLevel: fallbackLevel,
+                limit: shortage * 5,
+                excludeIds: Array.from(currentlyExcludedIds),
+                examId,
+              });
+
+              for (const q of fallbackExtra) {
+                currentlyExcludedIds.add(q.id);
+              }
+
+              const filteredExtra = await this.antiRepetitionService.filterPool(
+                fallbackExtra,
+                historyIds,
+                Array.from(allocatedQuestionIds),
+              );
+
+              const toAdd = filteredExtra.slice(0, shortage);
+              for (const q of toAdd) {
+                allocatedQuestionIds.add(q.id);
+                const allocatedQ = {
+                  questionId: q.id,
+                  questionHash: q.questionHash || "hash",
+                  conceptKey: q.conceptKey,
+                  difficultyLevel: q.difficultyLevel,
+                  questionType: q.questionType,
+                  questionOrder: orderCounter++,
+                  questionSnapshot: q,
+                };
+                selectedForExtra.push(allocatedQ);
+                allocatedQuestions.push(allocatedQ);
+                remainingDiffCount--;
+              }
+            } catch (err) {
+              // ignore fallback error
+            }
+          }
         }
 
         if (selectedForExtra.length < requiredForExtra) {

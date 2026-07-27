@@ -142,17 +142,13 @@ export class ConfigurationValidatorService {
     }
 
     // ─── Difficulty Layer ────────────────────────────────────────────────────
-    if (!config.difficultyDistribution) {
-      errors.push(
-        "Difficulty distribution must be configured before publishing",
-      );
-    } else {
+    if (config.difficultyDistribution) {
       const { easyPercentage, mediumPercentage, hardPercentage } =
         config.difficultyDistribution;
       const total = easyPercentage + mediumPercentage + hardPercentage;
-      if (total !== 100) {
+      if (total !== 100 && total !== 0) {
         errors.push(
-          `Difficulty distribution must total 100% (currently ${total}%: Easy ${easyPercentage}% + Medium ${mediumPercentage}% + Hard ${hardPercentage}%)`,
+          `Difficulty distribution must total 100% or 0% (currently ${total}%: Easy ${easyPercentage}% + Medium ${mediumPercentage}% + Hard ${hardPercentage}%)`,
         );
       }
     }

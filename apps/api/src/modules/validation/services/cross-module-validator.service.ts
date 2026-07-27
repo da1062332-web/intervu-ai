@@ -182,9 +182,9 @@ export class CrossModuleValidatorService {
         diffDist.easyPercentage +
         diffDist.mediumPercentage +
         diffDist.hardPercentage;
-      if (sum !== 100) {
+      if (sum !== 100 && sum !== 0) {
         errors.push(
-          `Difficulty distribution total is ${sum}%, must be exactly 100%`,
+          `Difficulty distribution total is ${sum}%, must equal 100% or 0% (Flexible Pool)`,
         );
       }
     }

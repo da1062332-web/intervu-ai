@@ -166,13 +166,16 @@ Critical output rules:
    */
   private parseAndValidateResponse(response: string): any {
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("No JSON object found in response");
+      const cleaned = response
+        .replace(/```(?:json)?/gi, '')
+        .trim();
+
+      const jsonText = this.extractFirstJsonObject(cleaned);
+      if (!jsonText) {
+        throw new Error('No JSON object found in response');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonText);
 
       // Validate top-level structure
       if (!parsed.variables || !Array.isArray(parsed.variables)) {
@@ -197,6 +200,52 @@ Critical output rules:
         `Failed to parse LLM response: ${error.message}`,
       );
     }
+  }
+
+  private extractFirstJsonObject(input: string): string | null {
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    let startIndex = -1;
+
+    for (let index = 0; index < input.length; index++) {
+      const char = input[index];
+
+      if (inString) {
+        if (escape) {
+          escape = false;
+        } else if (char === '\\') {
+          escape = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (char === '{') {
+        if (depth === 0) {
+          startIndex = index;
+        }
+        depth += 1;
+        continue;
+      }
+
+      if (char === '}') {
+        if (depth > 0) {
+          depth -= 1;
+          if (depth === 0 && startIndex >= 0) {
+            return input.slice(startIndex, index + 1);
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   /**

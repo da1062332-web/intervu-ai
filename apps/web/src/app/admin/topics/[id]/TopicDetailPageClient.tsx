@@ -16,6 +16,7 @@ import { ManualQuestionModal } from '@/app/admin/manual-questions/components/Man
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -318,7 +319,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     useState<ConceptMapping | null>(null);
   const [templateFormData, setTemplateFormData] = useState({
     name: 'New Template',
-    questionType: 'coding',
+    questionType: 'CODING',
     difficulty: 'MEDIUM',
     generationStrategy: 'VARIABLE',
   });
@@ -559,7 +560,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     setSelectedConceptForTemplate(concept);
     setTemplateFormData({
       name: 'New Template',
-      questionType: 'coding',
+      questionType: 'CODING',
       difficulty: 'MEDIUM',
       generationStrategy: 'VARIABLE',
     });
@@ -1023,13 +1024,22 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           </div>
           <div>
             <Label>Question Type</Label>
-            <Input
+            <Select
               value={templateFormData.questionType}
-              onChange={(e) =>
-                setTemplateFormData({ ...templateFormData, questionType: e.target.value })
+              onValueChange={(val: string) =>
+                setTemplateFormData({ ...templateFormData, questionType: val })
               }
-              placeholder='e.g. coding'
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder='Select a question type' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='MULTIPLE_CHOICE'>Multiple Choice (MCQ)</SelectItem>
+                <SelectItem value='CODING'>Coding Problem</SelectItem>
+                <SelectItem value='NUMERIC'>Numeric Entry</SelectItem>
+                <SelectItem value='TRUE_FALSE'>True / False</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Difficulty</Label>

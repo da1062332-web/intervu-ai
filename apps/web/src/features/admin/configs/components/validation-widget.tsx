@@ -23,7 +23,7 @@ export function ValidationWidget({ configId }: ValidationWidgetProps) {
   const mediumPercentage = distribution?.mediumPercentage ?? 0;
   const hardPercentage = distribution?.hardPercentage ?? 0;
   const totalPercentage = easyPercentage + mediumPercentage + hardPercentage;
-  const isValid = totalPercentage === 100;
+  const isValid = totalPercentage === 100 || totalPercentage === 0;
 
   return (
     <div
@@ -38,7 +38,7 @@ export function ValidationWidget({ configId }: ValidationWidgetProps) {
       </h4>
       <div className='flex items-center justify-between'>
         <div className='text-sm font-medium'>
-          Difficulty Total ={' '}
+          Difficulty ={' '}
           <span
             className={
               isValid
@@ -46,7 +46,7 @@ export function ValidationWidget({ configId }: ValidationWidgetProps) {
                 : 'text-red-600 dark:text-red-400 font-bold'
             }
           >
-            {totalPercentage}%
+            {totalPercentage === 0 ? 'Flexible Pool' : `${totalPercentage}%`}
           </span>
         </div>
         <div

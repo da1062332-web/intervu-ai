@@ -1,11 +1,6 @@
 'use client';
 
 import { useExecutionStore } from '../stores/execution.store';
-import { TimerWidget } from './TimerWidget';
-import { AutosaveIndicator } from './AutosaveIndicator';
-import { UnsavedChangesBanner } from './UnsavedChangesBanner';
-import { ConnectionStatusBadge } from './ConnectionStatusBadge';
-import { Badge } from '@/components/ui/badge';
 
 export function ExecutionHeader() {
   const { testInstance, currentQuestionIndex, questions } = useExecutionStore();
@@ -18,48 +13,24 @@ export function ExecutionHeader() {
   );
 
   return (
-    <header className='sticky top-0 z-50 w-full border-b bg-white shadow-sm'>
-      <div className='container flex items-center justify-between h-16 max-w-[1600px] px-4 md:px-8 mx-auto'>
-        {/* Left - Logo & Assessment Info */}
-        <div className='flex items-center gap-4 w-1/3'>
-          <div className='flex items-center gap-2'>
-            <div className='w-8 h-8 rounded bg-primary flex items-center justify-center'>
-              <span className='text-white font-bold text-lg'>V</span>
-            </div>
-            <span className='font-bold text-lg hidden sm:inline-block'>InterVu AI</span>
-          </div>
-          <div className='hidden md:flex flex-col border-l pl-4'>
-            <h1 className='text-sm font-semibold text-foreground truncate max-w-[200px] lg:max-w-[300px]'>
-              {testInstance.assessmentName}
-            </h1>
-            <span className='text-xs text-muted-foreground'>
-              Company Assessment
-            </span>
-          </div>
+    <header className='sticky top-0 z-50 w-full bg-[#26773e] border-b border-[#1c5a2e] shadow-sm select-none'>
+      <div className='flex items-center justify-between h-14 w-full px-4 md:px-6'>
+        {/* Left - Assessment Title & Section */}
+        <div className='flex items-center gap-3 overflow-hidden pr-4 flex-1'>
+          <h1 className='text-base sm:text-xl font-bold text-white tracking-wide truncate font-sans'>
+            {testInstance.assessmentName || 'Assessment'}
+            {currentSection ? ` : ${currentSection.title}` : ''}
+          </h1>
         </div>
 
-        {/* Center - Progress (or Status) */}
-        <div className='hidden md:flex flex-col items-center justify-center w-1/3'>
-           <div className='flex items-center gap-4'>
-              <ConnectionStatusBadge />
-              <AutosaveIndicator />
-              <UnsavedChangesBanner />
-           </div>
-        </div>
-
-        {/* Right - Timer & Candidate Info */}
-        <div className='flex items-center justify-end gap-6 w-1/3'>
-          <TimerWidget />
-          <div className='hidden md:flex items-center gap-3 border-l pl-6'>
-            <div className='flex flex-col items-end'>
-              <span className='text-sm font-medium text-foreground'>
-                {testInstance.candidateName}
-              </span>
-              <span className='text-xs text-muted-foreground'>Candidate</span>
-            </div>
-            <div className='w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm'>
-              {testInstance.candidateName.charAt(0).toUpperCase()}
-            </div>
+        {/* Right - Company Logo Emblem */}
+        <div className='flex items-center gap-2.5 shrink-0'>
+          <div className='w-8 h-8 rounded-sm bg-white text-[#26773e] font-black text-xl flex items-center justify-center shadow-xs border border-green-200'>
+            V
+          </div>
+          <div className='flex flex-col text-white leading-none'>
+            <span className='font-extrabold text-base tracking-wide uppercase font-sans'>InterVu AI</span>
+            <span className='text-[10px] font-semibold tracking-wider text-green-100 uppercase mt-0.5'>Skill Sandbox</span>
           </div>
         </div>
       </div>

@@ -340,6 +340,31 @@ describe("Test Generation Core (Module 2)", () => {
       expect(result.options).toContain("15");
       expect(result.answer).toBe("15");
     });
+
+    it("should calculate answer from solutionSchema.finalAnswer when formula is absent", () => {
+      const template = {
+        id: "temp-2",
+        templateKey: "key-2",
+        conceptKey: "concepts-1",
+        difficultyLevel: "MEDIUM",
+        questionType: "multiple_choice",
+        version: 1,
+        structure: {
+          questionTemplate: "What is {{A}} + {{B}}?",
+          explanationTemplate: "Adding yields {{A}} + {{B}}",
+          optionsTemplate: [],
+        },
+        solutionSchema: {
+          finalAnswer: "A + B",
+        },
+      };
+      const parameters = { A: 2, B: 3 };
+
+      const result = instantiator.instantiate({ template, parameters });
+      expect(result.questionText).toBe("What is 2 + 3?");
+      expect(result.answer).toBe("5");
+      expect(result.options).toContain("5");
+    });
   });
 
   describe("5. QuestionValidationService", () => {

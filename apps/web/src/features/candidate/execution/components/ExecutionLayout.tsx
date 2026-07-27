@@ -3,15 +3,17 @@
 import { ExecutionHeader } from './ExecutionHeader';
 import { QuestionRenderer } from './QuestionRenderer';
 import { QuestionPalette } from './QuestionPalette';
-import { ProgressTracker } from './ProgressTracker';
 import { NavigationControls } from './NavigationControls';
-import { ResumeBanner } from './ResumeBanner';
 import { SubmissionModal } from './SubmissionModal';
 import { SectionTabs } from './SectionTabs';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SectionChangeModal } from './SectionChangeModal';
 import { FaceTracker } from './FaceTracker';
+import { TimerWidget } from './TimerWidget';
+import { ConnectionStatusBadge } from './ConnectionStatusBadge';
+import { AutosaveIndicator } from './AutosaveIndicator';
+import { UnsavedChangesBanner } from './UnsavedChangesBanner';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
 import { useAutosave } from '../hooks/useAutosave';
@@ -21,21 +23,12 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
-import { useState, useCallback, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { useState, useCallback } from 'react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function ExecutionLayout() {
-  const { testInstance, currentSectionIndex, isInteractionBlocked } = useExecutionStore();
+  const { testInstance, isInteractionBlocked } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   // Initialize day 4 hooks
@@ -44,27 +37,24 @@ export function ExecutionLayout() {
   useAutosave(testInstance?.id || 'unknown');
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');
-  // Section timer (Feature 6 & 8) – auto-advances section when timer expires
   useSectionTimer(testInstance?.id);
 
   const { submitAssessment } = useSubmission(testInstance?.id || '');
 
   const handleSubmit = useCallback(() => setIsSubmitModalOpen(true), []);
 
-  // Initialize keyboard shortcuts
   useKeyboardShortcuts({
     onSubmit: handleSubmit,
-    disabled: isInteractionBlocked, // assuming useKeyboardShortcuts supports this, else it will ignore
+    disabled: isInteractionBlocked,
   });
 
-  // Prevent copy, cut, paste
   const handleCopyPaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
   };
 
   return (
     <div
-      className='min-h-screen bg-background flex flex-col relative select-none'
+      className='min-h-screen lg:h-screen bg-[#f1f5f9] lg:flex lg:flex-col lg:overflow-hidden relative select-none font-sans'
       onCopy={handleCopyPaste}
       onCut={handleCopyPaste}
       onPaste={handleCopyPaste}
@@ -72,6 +62,9 @@ export function ExecutionLayout() {
     >
       <FullscreenOverlay />
       <TabWarningModal />
+      <UnsavedChangesBanner />
+
+      {/* Green Header Banner */}
       <ExecutionHeader />
 
       <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-[120px] select-text'>
@@ -79,57 +72,89 @@ export function ExecutionLayout() {
           {/* Left + Center Columns - Question & Resources */}
           <div className='lg:col-span-8 flex flex-col'>
             <SectionTabs />
-            <div className='flex-1 mt-4 relative overflow-hidden'>
-              <AnimatePresence mode='wait'>
-                <motion.div
-                  key={currentSectionIndex}
-                  initial={{ opacity: 0, x: 15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -15 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                  className='h-full'
-                >
-                  <QuestionRenderer />
-                </motion.div>
-              </AnimatePresence>
+
+            {/* Main Question & Options Container with Fixed Layout Size */}
+            <div className='flex flex-1 flex-col overflow-hidden border border-gray-300 rounded-sm bg-white shadow-sm min-h-[460px]'>
+              <div className='flex-1 flex flex-col overflow-hidden min-h-0'>
+                <QuestionRenderer />
+              </div>
+
+              {/* Bottom Action Toolbar inside the Question Box */}
+              <div className='border-t border-gray-300 bg-white px-4 py-3 shrink-0 shadow-2xs'>
+                <NavigationControls onSubmitClick={handleSubmit} />
+              </div>
             </div>
           </div>
 
-          {/* Mobile Drawer Trigger (Only visible on < lg screens) */}
-          <div className='lg:hidden flex items-center justify-between mb-4 px-1'>
+          {/* Mobile Drawer Button (< lg screens) */}
+          <div className='lg:hidden flex items-center justify-between mx-3 my-2 shrink-0'>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant='outline' size='sm' className='w-full border-dashed'>
-                  <LayoutGrid className='mr-2 size-4' />
-                  Open Question Palette
-                </Button>
+                <button className='w-full bg-[#d6eafb] hover:bg-[#c2e0f5] text-[#1c3e66] border border-[#96bae0] font-bold text-sm py-2.5 px-4 rounded-sm shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer'>
+                  <LayoutGrid className='size-4' />
+                  Open Question Palette &amp; Test Info
+                </button>
               </SheetTrigger>
-              <SheetContent side='right' className='w-full sm:w-[400px] overflow-y-auto p-6'>
-                <SheetHeader className='mb-6 px-0'>
-                  <SheetTitle>Assessment Overview</SheetTitle>
-                  <SheetDescription>Track your progress and navigate questions.</SheetDescription>
-                </SheetHeader>
-                <div className='flex flex-col gap-6'>
-                  <QuestionPalette />
+              <SheetContent
+                side='right'
+                className='w-full sm:w-[380px] p-0 bg-[#e3f2fb] overflow-hidden flex flex-col z-[9999]'
+              >
+                <div className='p-3.5 bg-white border-b border-gray-300 flex items-center justify-between shrink-0'>
+                  <div className='flex flex-col items-center w-24 shrink-0'>
+                    <div className='w-20 h-20 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
+                      <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                    </div>
+                    <span className='text-[9px] text-gray-700 font-bold mt-1 truncate max-w-full text-center'>
+                      {testInstance?.candidateName || 'Your photo appears here'}
+                    </span>
+                  </div>
+                  <div className='flex flex-col items-end justify-center flex-1 pl-2 text-right'>
+                    <TimerWidget />
+                    <div className='flex items-center gap-2 mt-2'>
+                      <ConnectionStatusBadge />
+                      <AutosaveIndicator />
+                    </div>
+                  </div>
+                </div>
+                <div className='flex-1 flex flex-col overflow-hidden'>
+                  <QuestionPalette onSubmitClick={handleSubmit} />
                 </div>
               </SheetContent>
             </Sheet>
           </div>
 
-          {/* Right Column - Palette & Progress (Desktop Only) */}
-          <div className='hidden lg:flex lg:col-span-2 flex-col gap-3 lg:sticky lg:top-[88px]'>
-            <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
-            <QuestionPalette />
+          {/* Right Sidebar: Candidate Photo, Timer & Question Palette (>= lg screens) */}
+          <div className='hidden lg:flex flex-col w-[330px] xl:w-[350px] shrink-0 border-l border-gray-300 bg-[#e3f2fb] h-full overflow-hidden select-none z-20'>
+            {/* Top White Info Header: Candidate Silhouette & Timer */}
+            <div className='bg-white p-3.5 border-b border-gray-300 shrink-0 flex items-start justify-between gap-3'>
+              {/* Candidate Photo / Camera Box */}
+              <div className='flex flex-col items-center w-28 shrink-0'>
+                <div className='w-24 h-24 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
+                  <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                </div>
+                <span className='text-[10px] text-gray-700 font-bold mt-1.5 text-center truncate w-full tracking-tight'>
+                  {testInstance?.candidateName || 'Your photo appears here'}
+                </span>
+              </div>
+
+              {/* Timer Display & Indicators (no pause button, no alerts) */}
+              <div className='flex flex-col items-end justify-between flex-1 pl-1 text-right min-h-[76px]'>
+                <TimerWidget />
+
+                <div className='flex flex-wrap items-center justify-end gap-2 text-[10px] text-gray-500 mt-2'>
+                  <ConnectionStatusBadge />
+                  <AutosaveIndicator />
+                </div>
+              </div>
+            </div>
+
+            {/* Light Blue Question Palette Sidebar */}
+            <div className='flex-1 flex flex-col overflow-hidden'>
+              <QuestionPalette onSubmitClick={handleSubmit} />
+            </div>
           </div>
         </div>
       </main>
-
-      {/* Sticky Footer for Navigation */}
-      <footer className='fixed bottom-0 left-0 right-0 z-40 bg-white border-t shadow-lg p-4'>
-        <div className='container max-w-[1600px] mx-auto flex justify-between items-center'>
-          <NavigationControls onSubmitClick={handleSubmit} />
-        </div>
-      </footer>
 
       {testInstance && (
         <>

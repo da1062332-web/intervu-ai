@@ -58,10 +58,10 @@ export class DifficultyDistributionService {
 
     const total =
       dto.easyPercentage + dto.mediumPercentage + dto.hardPercentage;
-    if (total !== 100) {
+    if (total !== 100 && total !== 0) {
       throw new BaseError(
         "INVALID_DISTRIBUTION_TOTAL",
-        "Difficulty distribution total must be exactly 100%",
+        "Difficulty distribution total must equal 100% or 0% (Flexible Pool)",
       );
     }
 

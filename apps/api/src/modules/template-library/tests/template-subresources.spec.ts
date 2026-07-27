@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { TemplateController } from "../controllers/template.controller";
 import { TemplateService } from "../services/template.service";
+import { StrategyDraftingService } from "../services/strategy-drafting.service";
 import { SolutionTemplateService } from "../services/solution-template.service";
 
 describe("Template Sub-resources Integration Tests", () => {
@@ -20,6 +21,10 @@ describe("Template Sub-resources Integration Tests", () => {
       controllers: [TemplateController],
       providers: [
         { provide: TemplateService, useValue: templateServiceMock },
+        {
+          provide: StrategyDraftingService,
+          useValue: { draftStrategy: jest.fn() },
+        },
         {
           provide: SolutionTemplateService,
           useValue: solutionTemplateServiceMock,
@@ -70,6 +75,7 @@ describe("Template Sub-resources Integration Tests", () => {
       expect(templateServiceMock.update).toHaveBeenCalledWith("tpl-1", {
         structure: {
           questionTemplate: "New question text?",
+          questionStatement: "New question text?",
           optionsTemplate: ["a", "b"],
         },
       });

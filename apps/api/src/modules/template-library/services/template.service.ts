@@ -26,7 +26,7 @@ import {
 } from "@intervu-ai/generation";
 import { parseOptionsTemplate } from "../../generation/services/question-instantiator.service";
 
-import { RedisCacheService } from "../../../cache";
+import type { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
 import { TemplateVariableRepository } from "../repositories/template-variable.repository";
 import { TemplateRuleRepository } from "../repositories/template-rule.repository";
@@ -212,6 +212,43 @@ export class TemplateService {
 
     // 2. fetchDependencies() — none required for create
 
+    // 2.5. Validate strategy / solution definitions before persisting
+    if (validated.variableSchema !== undefined || validated.constraints !== undefined) {
+      const validationErrors = this.validateStrategyPayload(
+        validated.variableSchema,
+        validated.constraints,
+      );
+      if (validationErrors.length > 0) {
+        throw new BadRequestException({
+          success: false,
+          error: {
+            code: "INVALID_STRATEGY_DEFINITION",
+            message:
+              "Template strategy contains invalid variables, derived variables, or constraints.",
+            details: validationErrors,
+          },
+        });
+      }
+    }
+
+    if (validated.solutionSchema !== undefined) {
+      const solutionErrors = this.validateSolutionSchema(
+        validated.solutionSchema,
+        validated.variableSchema,
+      );
+      if (solutionErrors.length > 0) {
+        throw new BadRequestException({
+          success: false,
+          error: {
+            code: "INVALID_SOLUTION_SCHEMA",
+            message:
+              "Template solution schema contains invalid expression or invalid variable references.",
+            details: solutionErrors,
+          },
+        });
+      }
+    }
+
     // 3. coreLogic() — persist to DB
     const createInput: Prisma.TemplateCreateInput = {
       name: validated.name,
@@ -320,6 +357,33 @@ export class TemplateService {
             message:
               "Template strategy contains invalid variables, derived variables, or constraints.",
             details: validationErrors,
+          },
+        });
+      }
+    }
+
+    if (validated.solutionSchema !== undefined || validated.variableSchema !== undefined) {
+      const finalVariableSchema =
+        validated.variableSchema !== undefined
+          ? validated.variableSchema
+          : existing.variableSchema;
+      const finalSolutionSchema =
+        validated.solutionSchema !== undefined
+          ? validated.solutionSchema
+          : existing.solutionSchema;
+
+      const solutionErrors = this.validateSolutionSchema(
+        finalSolutionSchema,
+        finalVariableSchema,
+      );
+      if (solutionErrors.length > 0) {
+        throw new BadRequestException({
+          success: false,
+          error: {
+            code: "INVALID_SOLUTION_SCHEMA",
+            message:
+              "Template solution schema contains invalid expression or invalid variable references.",
+            details: solutionErrors,
           },
         });
       }
@@ -1178,23 +1242,18 @@ export class TemplateService {
 
         // Generate Answer
         try {
-          if (solutionSchema.formula) {
+          if (
+            solutionSchema.correctVariable &&
+            parameters.hasOwnProperty(solutionSchema.correctVariable)
+          ) {
+            correctAnswer = String(parameters[solutionSchema.correctVariable]);
+          } else if (solutionSchema.formula) {
             this.logger.debug("Evaluating solutionSchema.formula", {
               prngSeed,
               formula: solutionSchema.formula,
             });
             const ansVal = evaluateExpression(solutionSchema.formula, parameters);
             correctAnswer = String(ansVal);
-          } else if (
-            solutionSchema.correctVariable &&
-            parameters.hasOwnProperty(solutionSchema.correctVariable)
-          ) {
-            correctAnswer = String(parameters[solutionSchema.correctVariable]);
-          } else if (solutionSchema.correctOptionIndex !== undefined) {
-            const idx = solutionSchema.correctOptionIndex;
-            if (idx >= 0 && idx < options.length) {
-              correctAnswer = options[idx];
-            }
           } else if (finalAnswerExpression) {
             this.logger.debug("Evaluating finalAnswerExpression", {
               prngSeed,
@@ -1202,6 +1261,13 @@ export class TemplateService {
             });
             const ansVal = evaluateExpression(finalAnswerExpression, parameters);
             correctAnswer = String(ansVal);
+          } else if (solutionSchema.correctOptionIndex !== undefined) {
+            const idx = solutionSchema.correctOptionIndex;
+            if (idx >= 0 && idx < options.length) {
+              correctAnswer = options[idx];
+            }
+          } else if (solutionSchema.value !== undefined) {
+            correctAnswer = String(solutionSchema.value);
           } else {
             correctAnswer = options[0] || "0";
           }
@@ -1858,6 +1924,104 @@ export class TemplateService {
     }
 
     return errors;
+  }
+
+  private validateSolutionSchema(solutionSchema: any, variableSchema: any): string[] {
+    const errors: string[] = [];
+    if (!solutionSchema || typeof solutionSchema !== "object") {
+      return errors;
+    }
+
+    const variableNames = this.extractSolutionSchemaVariableNames(variableSchema);
+
+    if (solutionSchema.correctVariable) {
+      if (typeof solutionSchema.correctVariable !== "string") {
+        errors.push("solutionSchema.correctVariable must be a string reference to a defined variable.");
+      } else if (!variableNames.has(solutionSchema.correctVariable)) {
+        errors.push(
+          `solutionSchema.correctVariable references undefined variable: ${solutionSchema.correctVariable}`,
+        );
+      }
+    }
+
+    const expressions = [
+      { key: "finalAnswer", value: solutionSchema.finalAnswer },
+      { key: "formula", value: solutionSchema.formula },
+    ];
+
+    for (const { key, value } of expressions) {
+      if (value === undefined || value === null) continue;
+      if (typeof value !== "string") {
+        errors.push(`solutionSchema.${key} must be a string expression.`);
+        continue;
+      }
+      const expression = value.trim();
+      if (expression.length === 0) {
+        errors.push(`solutionSchema.${key} must not be empty.`);
+        continue;
+      }
+
+      try {
+        math.parse(expression);
+      } catch (err: any) {
+        errors.push(`Invalid solutionSchema.${key} expression: ${err.message}`);
+        continue;
+      }
+
+      const identifiers = this.extractIdentifierNames(expression);
+      for (const identifier of identifiers) {
+        if (!variableNames.has(identifier)) {
+          errors.push(
+            `solutionSchema.${key} references undefined variable or derived variable: ${identifier}`,
+          );
+        }
+      }
+
+      const sampleContext: Record<string, number> = {};
+      for (const identifier of identifiers) {
+        sampleContext[identifier] = 2;
+      }
+      if (Object.keys(sampleContext).length > 0) {
+        try {
+          evaluateExpression(expression, sampleContext);
+        } catch (err: any) {
+          errors.push(
+            `Unable to evaluate solutionSchema.${key} with sample values: ${err.message}`,
+          );
+        }
+      }
+    }
+
+    return errors;
+  }
+
+  private extractSolutionSchemaVariableNames(variableSchema: any): Set<string> {
+    const names = new Set<string>();
+    if (Array.isArray(variableSchema?.variables)) {
+      for (const variable of variableSchema.variables) {
+        if (variable && typeof variable.name === "string") {
+          names.add(variable.name);
+        }
+      }
+    }
+    if (Array.isArray(variableSchema?.derivedVariables)) {
+      for (const derived of variableSchema.derivedVariables) {
+        if (derived && typeof derived.name === "string") {
+          names.add(derived.name);
+        }
+      }
+    }
+    if (Array.isArray(variableSchema?.formulas)) {
+      for (const formula of variableSchema.formulas) {
+        if (typeof formula === "string") {
+          const [name] = formula.split("=");
+          if (name && name.trim()) {
+            names.add(name.trim());
+          }
+        }
+      }
+    }
+    return names;
   }
 
   private extractIdentifierNames(expression: string): string[] {

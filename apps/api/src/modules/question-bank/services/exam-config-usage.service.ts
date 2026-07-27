@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { QuestionStatus, Prisma } from "@prisma/client";
+import { QuestionStatus, QuestionSourceType, Prisma } from "@prisma/client";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { TransactionalOutboxService } from "./transactional-outbox.service";
 
@@ -89,7 +89,7 @@ export class ExamConfigUsageService {
       }
     }
 
-    const questionMatchFilter: Prisma.QuestionWhereInput = {
+    const baseQuestionFilter: Prisma.QuestionWhereInput = {
       status: QuestionStatus.ACTIVE,
       difficulty: difficulty || undefined,
       OR: [
@@ -98,20 +98,33 @@ export class ExamConfigUsageService {
       ],
     };
 
-    // 1. Total active pool questions for this topic (and difficulty, if specified)
-    const totalActiveCount = await this.prisma.question.count({
-      where: questionMatchFilter,
-    });
-
-    // 2. Count distinct questions used in ExamConfigQuestionUsage by OTHER configs
-    const allocatedToOtherConfigsCount = await this.prisma.examConfigQuestionUsage.count({
+    // 1. Total active MANUAL questions (reusable across configs without deduction)
+    const manualActiveCount = await this.prisma.question.count({
       where: {
-        configId: { not: configId },
-        question: questionMatchFilter,
+        ...baseQuestionFilter,
+        questionSource: QuestionSourceType.MANUAL,
       },
     });
 
-    // 3. Calculate claimed questions by OTHER active/validated exam configs mapping this topic
+    // 2. Filter for VARIABLE_TEMPLATE (or non-manual) questions
+    const templateQuestionFilter: Prisma.QuestionWhereInput = {
+      ...baseQuestionFilter,
+      questionSource: { not: QuestionSourceType.MANUAL },
+    };
+
+    const templateActiveCount = await this.prisma.question.count({
+      where: templateQuestionFilter,
+    });
+
+    // 3. Count template questions used by OTHER configs
+    const templateAllocatedToOtherConfigsCount = await this.prisma.examConfigQuestionUsage.count({
+      where: {
+        configId: { not: configId },
+        question: templateQuestionFilter,
+      },
+    });
+
+    // 4. Calculate template questions claimed by OTHER active/validated exam configs
     const otherMappedSections = await this.prisma.sectionTopic.findMany({
       where: {
         topicId: { in: topicIdsToMatch },
@@ -132,7 +145,7 @@ export class ExamConfigUsageService {
       },
     });
 
-    let claimedByOtherConfigs = 0;
+    let templateClaimedByOtherConfigs = 0;
     const processedOtherConfigIds = new Set<string>();
 
     for (const st of otherMappedSections) {
@@ -140,28 +153,30 @@ export class ExamConfigUsageService {
       if (processedOtherConfigIds.has(otherConfigId)) continue;
       processedOtherConfigIds.add(otherConfigId);
 
-      // Check how many questions otherConfig has ALREADY allocated for this topic
       const alreadyAllocatedCount = await this.prisma.examConfigQuestionUsage.count({
         where: {
           configId: otherConfigId,
-          question: questionMatchFilter,
+          question: templateQuestionFilter,
         },
       });
 
       const sectionTopicCount = st.section.sectionTopics.length || 1;
       const sectionRequiredForTopic = Math.ceil(st.section.questionCount / sectionTopicCount);
 
-      // Remaining claim = max(0, required - alreadyAllocated)
       const remainingClaim = Math.max(0, sectionRequiredForTopic - alreadyAllocatedCount);
-      claimedByOtherConfigs += remainingClaim;
+      templateClaimedByOtherConfigs += remainingClaim;
     }
 
-    const netAvailable = totalActiveCount - allocatedToOtherConfigsCount - claimedByOtherConfigs;
-    return Math.max(0, netAvailable);
+    const netTemplateAvailable = Math.max(
+      0,
+      templateActiveCount - templateAllocatedToOtherConfigsCount - templateClaimedByOtherConfigs,
+    );
+
+    return manualActiveCount + netTemplateAvailable;
   }
 
   /**
-   * Finds conflicting config names if questions for this topic were used or claimed by another config.
+   * Finds conflicting config names if template questions for this topic were used by another config.
    */
   async findConflictingConfigsForTopic(
     currentConfigId: string,
@@ -183,6 +198,7 @@ export class ExamConfigUsageService {
         question: {
           topicId: { in: topicIdsToMatch },
           status: QuestionStatus.ACTIVE,
+          questionSource: { not: QuestionSourceType.MANUAL },
         },
       },
       select: {
@@ -193,33 +209,10 @@ export class ExamConfigUsageService {
       take: 5,
     });
 
-    const mappings = await this.prisma.sectionTopic.findMany({
-      where: {
-        topicId: { in: topicIdsToMatch },
-        section: {
-          examConfig: {
-            id: { not: currentConfigId },
-            isArchived: false,
-            status: { not: "ARCHIVED" },
-          },
-        },
-      },
-      select: {
-        section: {
-          select: {
-            examConfig: {
-              select: { name: true },
-            },
-          },
-        },
-      },
-      take: 5,
-    });
+    const usageNames = usages
+      .map((u: any) => u.examConfig?.name)
+      .filter((name: string | undefined): name is string => Boolean(name));
 
-    const usageNames = usages.map((u: any) => u.examConfig.name);
-    const mappingNames = mappings.map((m: any) => m.section.examConfig.name);
-
-    const names: string[] = Array.from(new Set([...usageNames, ...mappingNames]));
-    return names;
+    return Array.from(new Set(usageNames));
   }
 }

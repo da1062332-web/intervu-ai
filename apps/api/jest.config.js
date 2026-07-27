@@ -12,5 +12,7 @@ module.exports = {
   passWithNoTests: true,
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
+    "^@intervu-ai/generation$": "<rootDir>/../../../generation/src/index.ts",
+    "^@intervu-ai/generation/(.*)$": "<rootDir>/../../../generation/src/$1",
   },
 };
