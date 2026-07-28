@@ -7,8 +7,8 @@ import { TestFilters } from '../components/TestFilters';
 import { TestCardGrid } from '../components/TestCardGrid';
 import { EmptyState } from '../components/EmptyState';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
-import { Layers } from 'lucide-react';
-import { useLayoutStore } from '@/store/layout.store';
+import { SectionHeader } from '@/components/ui/section-header';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TestItem {
   id: string;
@@ -50,18 +50,17 @@ export function TestCatalogPage() {
 
   if (isLoading) {
     return (
-      <div className='space-y-8 animate-fade-in-up'>
-        <div className='flex items-center gap-3'>
-          <Layers className='size-8 text-primary' />
-          <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
-            Available Assessments
-          </h1>
-        </div>
-        <div className='h-32 w-full bg-muted/30 rounded-2xl animate-pulse' />
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-          <div className='h-60 bg-muted/30 rounded-2xl animate-pulse' />
-          <div className='h-60 bg-muted/30 rounded-2xl animate-pulse' />
-          <div className='h-60 bg-muted/30 rounded-2xl animate-pulse' />
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+        <SectionHeader
+          title='Available Assessments'
+          description='Find and prepare for your assigned and recommended assessments.'
+          breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Assessments' }]}
+        />
+        <Skeleton className='h-40 w-full rounded-xl border border-border/40' />
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2'>
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <Skeleton key={idx} className='h-64 w-full rounded-xl border border-border/40' />
+          ))}
         </div>
       </div>
     );
@@ -82,32 +81,41 @@ export function TestCatalogPage() {
     return matchesBookmark;
   });
 
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    if (currentPage !== 1) setCurrentPage(1);
+  };
+
+  const handleDifficultyChange = (diff: 'All' | 'Easy' | 'Medium' | 'Hard') => {
+    setDifficultyFilter(diff);
+    if (currentPage !== 1) setCurrentPage(1);
+  };
+
+  const handleBookmarkFilterChange = (val: boolean) => {
+    setShowOnlyBookmarked(val);
+    if (currentPage !== 1) setCurrentPage(1);
+  };
+
   const handleReset = () => {
     resetFilters();
   };
 
   return (
-    <div className='space-y-8 animate-fade-in-up'>
-      <div className='flex items-center gap-3'>
-        <Layers className='size-8 text-primary' />
-        <div>
-          <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
-            Available Assessments
-          </h1>
-          <p className='text-muted-foreground mt-1'>
-            Find and prepare for your assigned and recommended tests
-          </p>
-        </div>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+      <SectionHeader
+        title='Available Assessments'
+        description='Find and prepare for your assigned and recommended assessments.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Assessments' }]}
+      />
 
       <TestFilters
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange}
         difficultyFilter={difficultyFilter}
-        onDifficultyChange={setDifficultyFilter}
+        onDifficultyChange={handleDifficultyChange}
         showOnlyBookmarked={showOnlyBookmarked}
-        onShowOnlyBookmarkedChange={setShowOnlyBookmarked}
-        totalResults={pagination.total}
+        onShowOnlyBookmarkedChange={handleBookmarkFilterChange}
+        totalResults={showOnlyBookmarked ? filteredTests.length : (pagination.total ?? filteredTests.length)}
       />
 
       {filteredTests.length === 0 ? (
@@ -120,7 +128,7 @@ export function TestCatalogPage() {
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
-          totalItems={pagination.total}
+          totalItems={showOnlyBookmarked ? undefined : pagination.total}
         />
       )}
     </div>

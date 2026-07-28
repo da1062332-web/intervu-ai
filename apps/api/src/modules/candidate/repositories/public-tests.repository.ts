@@ -2,6 +2,28 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
 
+function computeDifficulty(item: any, isExam: boolean): string {
+  if (isExam && item.difficultyDistribution) {
+    const { easyPercentage = 0, mediumPercentage = 0, hardPercentage = 0 } = item.difficultyDistribution;
+    if (easyPercentage > mediumPercentage && easyPercentage > hardPercentage) return "Easy";
+    if (hardPercentage > mediumPercentage && hardPercentage > easyPercentage) return "Hard";
+    return "Medium";
+  }
+  const text = ((isExam ? item.name : item.displayName) + " " + (item.role || item.companyName || "")).toLowerCase();
+  if (text.includes("easy") || text.includes("basic") || text.includes("junior") || text.includes("beginner") || text.includes("fundamental") || text.includes("intern")) {
+    return "Easy";
+  }
+  if (text.includes("hard") || text.includes("advanced") || text.includes("senior") || text.includes("architect") || text.includes("principal") || text.includes("expert") || text.includes("lead")) {
+    return "Hard";
+  }
+  const nameStr = String(isExam ? item.name : item.displayName || "");
+  const charSum = nameStr.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+  const mod = charSum % 3;
+  if (mod === 0) return "Easy";
+  if (mod === 2) return "Hard";
+  return "Medium";
+}
+
 @Injectable()
 export class PublicTestsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -53,16 +75,25 @@ export class PublicTestsRepository {
     }
 
     if (search) {
-      examWhere.OR = [{ name: { contains: search, mode: "insensitive" } }];
-      testWhere.OR = [{ displayName: { contains: search, mode: "insensitive" } }];
+      examWhere.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { role: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+      testWhere.OR = [
+        { displayName: { contains: search, mode: "insensitive" } },
+        { companyName: { contains: search, mode: "insensitive" } },
+        { configKey: { contains: search, mode: "insensitive" } },
+      ];
     }
 
-    const [totalExams, totalTests, exams, tests] = await Promise.all([
-      this.prisma.examConfig.count({ where: examWhere }),
-      this.prisma.testConfig.count({ where: testWhere }),
+    const [exams, tests] = await Promise.all([
       this.prisma.examConfig.findMany({
         where: examWhere,
-        include: { sections: { select: { name: true, questionCount: true } } },
+        include: {
+          sections: { select: { name: true, questionCount: true } },
+          difficultyDistribution: true,
+        },
       }),
       this.prisma.testConfig.findMany({
         where: testWhere,
@@ -70,12 +101,14 @@ export class PublicTestsRepository {
       }),
     ]);
 
-    const total = totalExams + totalTests;
-
     let combined = [
-      ...exams.map(e => ({ ...e, isExam: true })),
-      ...tests.map(t => ({ ...t, isExam: false }))
+      ...exams.map(e => ({ ...e, isExam: true, difficulty: computeDifficulty(e, true) })),
+      ...tests.map(t => ({ ...t, isExam: false, difficulty: computeDifficulty(t, false) }))
     ];
+
+    if (difficulty && difficulty.toLowerCase() !== "all") {
+      combined = combined.filter(item => item.difficulty.toLowerCase() === difficulty.toLowerCase());
+    }
 
     combined.sort((a: any, b: any) => {
       let valA = a[sortBy];
@@ -92,6 +125,7 @@ export class PublicTestsRepository {
       return 0;
     });
 
+    const total = combined.length;
     const items = combined.slice(skip, skip + take);
 
     return { total, items };

@@ -67,6 +67,10 @@ export class ResultGeneratorService {
       sectionKey: string;
     }> = [];
 
+    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const dbTopicMap = new Map<string, string>();
+    allTopics.forEach((t) => dbTopicMap.set(t.id, t.name));
+
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
         const snap = (q.questionSnapshot || {}) as any;
@@ -78,8 +82,16 @@ export class ResultGeneratorService {
         let topicName = "General";
         if (snap.topic && snap.topic.name) {
           topicName = snap.topic.name;
+        } else if (snap.topicName && dbTopicMap.get(snap.topicName)) {
+          topicName = dbTopicMap.get(snap.topicName)!;
         } else if (snap.topicName) {
           topicName = snap.topicName;
+        } else if (snap.topicId && dbTopicMap.get(snap.topicId)) {
+          topicName = dbTopicMap.get(snap.topicId)!;
+        } else if (typeof snap.topic === "string" && dbTopicMap.get(snap.topic)) {
+          topicName = dbTopicMap.get(snap.topic)!;
+        } else if (snap.conceptKey && dbTopicMap.get(snap.conceptKey)) {
+          topicName = dbTopicMap.get(snap.conceptKey)!;
         } else if (snap.conceptKey) {
           // Format concept keys like time_work -> Time and Work
           topicName = snap.conceptKey

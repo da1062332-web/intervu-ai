@@ -21,6 +21,7 @@ export interface TestConfig {
   id: string;
   company: string | null;
   title: string;
+  description?: string | null;
   difficulty: string;
   durationMinutes: number | null;
   questionCount?: number;

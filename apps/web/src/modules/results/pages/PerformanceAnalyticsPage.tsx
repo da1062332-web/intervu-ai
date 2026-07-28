@@ -2,7 +2,6 @@
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useResultAnalytics } from '../hooks/results.hooks';
-import { useTopics } from '@/services/topics/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
@@ -20,18 +19,6 @@ export const PerformanceAnalyticsPage = () => {
   const attemptId = params.attemptId;
 
   const { data: analytics, isLoading, isError } = useResultAnalytics(attemptId as string);
-  const { data: topicsList } = useTopics(false);
-
-  const mappedTopicAccuracy = React.useMemo(() => {
-    if (!analytics?.topicAccuracy) return {};
-    const topicMap = new Map<string, string>();
-    topicsList?.forEach((t) => topicMap.set(t.id, t.name));
-    const result: Record<string, number> = {};
-    Object.entries(analytics.topicAccuracy as Record<string, number>).forEach(([key, val]) => {
-      result[topicMap.get(key) || key] = val;
-    });
-    return result;
-  }, [analytics?.topicAccuracy, topicsList]);
 
   if (isLoading) return <Loading />;
 
@@ -91,8 +78,8 @@ export const PerformanceAnalyticsPage = () => {
             <CardTitle>Topic Mastery</CardTitle>
           </CardHeader>
           <CardContent>
-            {Object.keys(mappedTopicAccuracy).length > 0 ? (
-              <RadarChart data={mappedTopicAccuracy} />
+            {Object.keys(analytics.topicAccuracy || {}).length > 0 ? (
+              <RadarChart data={analytics.topicAccuracy as Record<string, number>} />
             ) : (
               <p className="text-gray-500 text-sm">Not enough topic data.</p>
             )}

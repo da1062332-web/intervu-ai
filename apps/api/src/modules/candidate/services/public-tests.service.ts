@@ -35,6 +35,8 @@ export class PublicTestsService {
         sections: t.isExam 
           ? t.sections?.map((s: any) => s.name) || [] 
           : t.sections?.map((s: any) => s.displayName) || [],
+        difficulty: t.difficulty || "Medium",
+        description: t.description || null,
       })),
       pagination: {
         page,

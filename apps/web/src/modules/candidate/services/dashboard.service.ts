@@ -151,7 +151,8 @@ export const dashboardService = {
       response.tests = response.tests.map((t: any) => ({
         id: t.configId,
         title: t.name,
-        company: t.company,
+        company: t.company || null,
+        description: t.description || t.summary || null,
         durationMinutes: t.duration ? Math.floor(t.duration / 60) : 0,
         questionCount: t.questionCount || 0,
         sections: t.sections || [],

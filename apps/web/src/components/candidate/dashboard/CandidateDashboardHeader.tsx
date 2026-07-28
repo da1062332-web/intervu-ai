@@ -1,4 +1,6 @@
 import { useAuthStore } from '@/store/auth.store';
+import { SectionHeader } from '@/components/ui/section-header';
+import { Calendar } from 'lucide-react';
 
 export function CandidateDashboardHeader() {
   const user = useAuthStore((state) => state.user);
@@ -13,16 +15,15 @@ export function CandidateDashboardHeader() {
   const displayName = user?.name || user?.fullName || 'Candidate';
 
   return (
-    <div className='flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 animate-fade-in-up'>
-      <div>
-        <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
-          Welcome back, {displayName} 👋
-        </h1>
-        <p className='text-xl text-muted-foreground mt-1'>Ready for your next assessment?</p>
-      </div>
-      <div className='text-sm font-medium text-muted-foreground bg-muted/50 px-4 py-2 rounded-full border border-border/50'>
-        {formattedDate}
-      </div>
-    </div>
+    <SectionHeader
+      title={`Welcome back, ${displayName} 👋`}
+      description='Here is an overview of your active evaluations, performance analytics, and recommended assessments.'
+      actions={
+        <div className='flex items-center gap-2 text-xs font-semibold text-muted-foreground bg-card/80 px-3.5 py-2 rounded-lg border border-border/60 shadow-2xs'>
+          <Calendar className='size-3.5 text-primary/80' />
+          <span>{formattedDate}</span>
+        </div>
+      }
+    />
   );
 }

@@ -1,13 +1,14 @@
 'use client';
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, CheckCircle2, PlayCircle, RefreshCw, ArrowRight, Lock } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { AlertCircle, Clock, CheckCircle2, PlayCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCandidateDashboard } from '../hooks/useCandidateDashboard';
 import type { DashboardTestItem, DashboardActiveTest, DashboardCompletedAttempt } from '../services/dashboard.service';
-
 import { motion } from 'framer-motion';
 
 export function AssessmentStatusPanel() {
@@ -15,11 +16,17 @@ export function AssessmentStatusPanel() {
 
   if (isLoading) {
     return (
-      <div className='space-y-3'>
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className='h-20 animate-pulse bg-muted rounded-xl' />
-        ))}
-      </div>
+      <Card className='bg-card/80 border border-border/60 shadow-xs h-full flex flex-col'>
+        <CardHeader className='pb-3 border-b border-border/40'>
+          <CardTitle className='text-base md:text-lg font-bold text-foreground'>My Assessment Queue</CardTitle>
+          <CardDescription className='text-xs text-muted-foreground font-medium'>Active evaluations and pending test assignments</CardDescription>
+        </CardHeader>
+        <CardContent className='p-4 space-y-3 flex-1'>
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className='h-18 w-full rounded-xl border border-border/60 bg-muted/50' />
+          ))}
+        </CardContent>
+      </Card>
     );
   }
 
@@ -29,7 +36,6 @@ export function AssessmentStatusPanel() {
   );
   const completedTests: DashboardCompletedAttempt[] = data?.completedAttempts || [];
 
-  // Tests that were completed AND can be re-attempted
   const reattemptableTests: DashboardTestItem[] = (data?.availableTests || []).filter(
     (t) => t.attemptCount > 0 && t.canReattempt && !t.hasActiveAttempt,
   );
@@ -41,54 +47,55 @@ export function AssessmentStatusPanel() {
 
   if (!hasContent) {
     return (
-      <Card className='h-full flex flex-col glass-card'>
-        <CardHeader>
-          <CardTitle>My Assessments</CardTitle>
+      <Card className='bg-card/80 border border-border/60 shadow-xs h-full flex flex-col'>
+        <CardHeader className='pb-3 border-b border-border/40'>
+          <CardTitle className='text-base md:text-lg font-bold text-foreground'>My Assessment Queue</CardTitle>
+          <CardDescription className='text-xs text-muted-foreground font-medium'>Active evaluations and pending test assignments</CardDescription>
         </CardHeader>
-        <CardContent className='flex-1 flex flex-col items-center justify-center text-muted-foreground p-6 text-center'>
-          <div className='bg-muted/50 p-4 rounded-full mb-3'>
-            <CheckCircle2 className='size-8 opacity-50' />
-          </div>
-          <p className='font-medium'>No active assessments</p>
-          <p className='text-sm mt-1'>You don&apos;t have any assessments in progress.</p>
+        <CardContent className='flex-1 flex items-center justify-center p-6'>
+          <EmptyState
+            title='No Active Assessments'
+            description="You don't have any assessments currently in progress or awaiting action."
+            icon={<CheckCircle2 className='size-8 text-muted-foreground/70' />}
+            variant='no-data'
+          />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className='h-full flex flex-col'>
-      <CardHeader>
-        <CardTitle>My Assessments</CardTitle>
+    <Card className='bg-card/80 border border-border/60 shadow-xs h-full flex flex-col'>
+      <CardHeader className='pb-3 border-b border-border/40'>
+        <CardTitle className='text-base md:text-lg font-bold text-foreground'>My Assessment Queue</CardTitle>
+        <CardDescription className='text-xs text-muted-foreground font-medium'>Active evaluations and pending test assignments</CardDescription>
       </CardHeader>
-      <CardContent className='space-y-3 flex-1 overflow-y-auto max-h-[450px] pr-2 custom-scrollbar'>
-
-        {/* ── IN PROGRESS (Quick Resume Banner) ── */}
+      <CardContent className='p-4 space-y-3 flex-1 overflow-y-auto max-h-[440px] custom-scrollbar'>
+        {/* IN PROGRESS */}
         {inProgressTests.map((test) => (
           <motion.div
             key={test.instanceId}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -2, scale: 1.01 }}
-            className='flex items-center justify-between p-4 border-2 rounded-xl bg-blue-500/10 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all'
+            className='flex items-center justify-between p-4 rounded-xl bg-primary/10 border-2 border-primary/30 shadow-xs transition-all gap-3'
           >
-            <div className='min-w-0 flex-1 mr-3'>
-              <div className='font-semibold text-foreground truncate'>{test.testName || test.title}</div>
-              <div className='text-sm text-blue-500 flex items-center gap-1.5 mt-1 font-medium'>
-                <Clock className='size-3.5' />
-                <span className='relative flex h-2 w-2 mr-1'>
-                  <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75'></span>
-                  <span className='relative inline-flex rounded-full h-2 w-2 bg-blue-500'></span>
+            <div className='min-w-0 flex-1'>
+              <div className='font-bold text-sm md:text-base text-foreground truncate'>{test.testName || test.title}</div>
+              <div className='text-xs text-primary flex items-center gap-1.5 mt-1 font-semibold'>
+                <Clock className='size-3.5 shrink-0' />
+                <span className='relative flex size-2 shrink-0'>
+                  <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75'></span>
+                  <span className='relative inline-flex rounded-full size-2 bg-primary'></span>
                 </span>
                 In Progress
                 {test.remainingMinutes > 0 && (
-                  <span className='text-muted-foreground font-normal ml-1'>
+                  <span className='text-muted-foreground font-medium ml-1'>
                     · {test.remainingMinutes}m remaining
                   </span>
                 )}
               </div>
             </div>
-            <Button asChild size='sm' className='gap-2 shadow-sm shrink-0 bg-blue-600 hover:bg-blue-700 text-white'>
+            <Button asChild size='sm' className='gap-1.5 font-semibold text-xs h-8 shrink-0'>
               <Link href={`/candidate/tests/${test.instanceId}/execution`}>
                 Resume <ArrowRight className='size-3.5' />
               </Link>
@@ -96,65 +103,59 @@ export function AssessmentStatusPanel() {
           </motion.div>
         ))}
 
-        {/* ── ENROLLED / NOT STARTED OR RE-ATTEMPTABLE ── */}
+        {/* ENROLLED */}
         {enrolledTests
           .filter((t) => !t.hasActiveAttempt && t.canReattempt)
           .map((test, idx) => (
             <motion.div
               key={test.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              whileHover={{ y: -2 }}
-              className='flex items-center justify-between p-4 border rounded-xl bg-card/50 hover:bg-muted/30 transition-colors shadow-sm'
+              transition={{ delay: idx * 0.04 }}
+              className='flex items-center justify-between p-3.5 border border-border/60 rounded-xl bg-background/50 hover:bg-muted/30 transition-colors shadow-2xs gap-3'
             >
-              <div className='min-w-0 flex-1 mr-3'>
-                <div className='font-medium truncate'>{test.title}</div>
-                <div className='text-sm text-muted-foreground flex items-center gap-1.5 mt-1'>
-                  <AlertCircle className='size-3.5 text-orange-500' />
-                  Enrolled
+              <div className='min-w-0 flex-1'>
+                <div className='font-semibold text-sm text-foreground truncate'>{test.title}</div>
+                <div className='text-xs text-amber-500 font-semibold flex items-center gap-1.5 mt-1'>
+                  <AlertCircle className='size-3.5' />
+                  <span>Enrolled & Ready</span>
                 </div>
               </div>
-              <Button asChild size='sm' className='gap-2 shadow-sm shrink-0 group'>
+              <Button asChild size='sm' variant='outline' className='gap-1.5 font-semibold text-xs h-8 shrink-0 border-border/60 hover:border-primary'>
                 <Link href={`/candidate/tests/${test.id}/instructions`}>
                   Start
-                  <PlayCircle className='size-3.5 group-hover:scale-110 transition-transform' />
+                  <PlayCircle className='size-3.5' />
                 </Link>
               </Button>
             </motion.div>
           ))}
 
-        {/* ── COMPLETED (recent, with re-attempt option) ── */}
+        {/* COMPLETED */}
         {completedTests.map((attempt, idx) => {
-          const matchingAvailable = reattemptableTests.find((t) => t.id === attempt.testId);
           return (
             <motion.div
               key={attempt.instanceId}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              whileHover={{ y: -2 }}
-              className='flex items-center justify-between p-4 border rounded-xl bg-green-500/5 border-green-500/20 hover:bg-green-500/10 transition-colors shadow-sm'
+              transition={{ delay: idx * 0.04 }}
+              className='flex items-center justify-between p-3.5 border border-emerald-500/20 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors shadow-2xs gap-3'
             >
-              <div className='min-w-0 flex-1 mr-3'>
-                <div className='font-medium truncate text-foreground'>{attempt.assessmentName}</div>
-                <div className='text-sm flex items-center gap-1.5 mt-1'>
-                  <CheckCircle2 className='size-3.5 text-green-500' />
-                  <span className='text-green-600 dark:text-green-400 font-medium'>Completed</span>
+              <div className='min-w-0 flex-1'>
+                <div className='font-semibold text-sm text-foreground truncate'>{attempt.assessmentName}</div>
+                <div className='text-xs flex items-center gap-1.5 mt-1 font-medium text-muted-foreground'>
+                  <CheckCircle2 className='size-3.5 text-emerald-500' />
+                  <span className='text-emerald-600 dark:text-emerald-400 font-semibold'>Completed</span>
                   {attempt.score != null && (
-                    <span className='text-muted-foreground'>· Score: {attempt.score}%</span>
+                    <span>· Score: <strong className='text-foreground font-bold'>{attempt.score}%</strong></span>
                   )}
                 </div>
               </div>
-              <div className='flex items-center gap-2 shrink-0'>
-                <Button asChild size='sm' variant='outline' className='h-8 px-3 text-xs'>
-                  <Link href={`/candidate/results/${attempt.instanceId}`}>View Result</Link>
-                </Button>
-              </div>
+              <Button asChild size='sm' variant='ghost' className='h-8 px-3 text-xs font-semibold hover:bg-background/80'>
+                <Link href={`/candidate/results/${attempt.instanceId}`}>View Report</Link>
+              </Button>
             </motion.div>
           );
         })}
-
       </CardContent>
     </Card>
   );

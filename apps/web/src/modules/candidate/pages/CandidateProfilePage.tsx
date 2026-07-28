@@ -17,7 +17,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Phone, GraduationCap, School } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SectionHeader } from '@/components/ui/section-header';
+import { User, Phone, GraduationCap, School, Check, Lock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 const profileSchema = z.object({
@@ -73,7 +75,14 @@ export function CandidateProfilePage() {
 
   if (isLoading) {
     return (
-      <div className='h-[400px] w-full max-w-2xl mx-auto bg-muted/30 animate-pulse rounded-xl mt-8' />
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-5xl space-y-6 animate-fade-in-up'>
+        <SectionHeader
+          title='My Profile'
+          description='Manage your personal identity, contact information, and academic background.'
+          breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Profile' }]}
+        />
+        <Skeleton className='h-96 w-full rounded-xl border border-border/60 bg-muted/40' />
+      </div>
     );
   }
 
@@ -110,97 +119,135 @@ export function CandidateProfilePage() {
   };
 
   return (
-    <div className='max-w-2xl mx-auto space-y-8 animate-fade-in-up mt-8'>
-      <div className='flex items-center gap-3'>
-        <User className='size-8 text-primary' />
-        <div>
-          <h1 className='text-3xl font-heading font-bold tracking-tight text-foreground'>
-            My Profile
-          </h1>
-          <p className='text-muted-foreground mt-1'>
-            Manage your personal and educational information
-          </p>
-        </div>
-      </div>
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-5xl space-y-6 animate-fade-in-up'>
+      <SectionHeader
+        title='My Profile'
+        description='Manage your personal identity, contact information, and academic background.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Profile' }]}
+      />
 
-      <Card>
+      <Card className='bg-card/80 border border-border/60 shadow-xs transition-all'>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>
-              This information will be visible to recruiters and companies you apply to.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='space-y-6'>
-            <div className='space-y-2'>
-              <Label htmlFor='email'>Email</Label>
-              <Input id='email' value={profile?.email || ''} disabled className='bg-muted' />
-              <p className='text-xs text-muted-foreground'>Email cannot be changed.</p>
-            </div>
-
-            <div className='space-y-2'>
-              <Label htmlFor='name'>Full Name</Label>
-              <div className='relative'>
-                <User className='absolute left-3 top-3 size-4 text-muted-foreground' />
-                <Input id='name' {...register('name')} className='pl-9' placeholder='John Doe' />
+          <CardHeader className='border-b border-border/40 pb-4'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <CardTitle className='text-lg font-bold text-foreground'>Personal & Educational Information</CardTitle>
+                <CardDescription className='text-xs text-muted-foreground font-medium mt-1'>
+                  This credentials summary will be shared with potential recruiters and organization evaluators during assessment verification.
+                </CardDescription>
               </div>
-              {errors.name && <p className='text-sm text-destructive'>{errors.name.message}</p>}
+              <div className='p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 hidden sm:block'>
+                <Sparkles className='size-5' />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='p-6 space-y-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='space-y-2'>
+                <Label htmlFor='email' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                  Account Email Address
+                </Label>
+                <div className='relative'>
+                  <Lock className='absolute left-3 top-2.5 size-4 text-muted-foreground/60' />
+                  <Input 
+                    id='email' 
+                    value={profile?.email || ''} 
+                    disabled 
+                    className='pl-9 bg-muted/50 border-border/60 text-muted-foreground font-medium h-9 text-xs sm:text-sm cursor-not-allowed' 
+                  />
+                </div>
+                <p className='text-[11px] text-muted-foreground/80 font-medium'>
+                  Your primary authentication email cannot be modified directly.
+                </p>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='name' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                  Full Name
+                </Label>
+                <div className='relative'>
+                  <User className='absolute left-3 top-2.5 size-4 text-muted-foreground/80' />
+                  <Input 
+                    id='name' 
+                    {...register('name')} 
+                    className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm font-medium' 
+                    placeholder='Enter your full name...' 
+                  />
+                </div>
+                {errors.name && <p className='text-xs text-destructive font-semibold mt-1'>{errors.name.message}</p>}
+              </div>
             </div>
 
-            <div className='space-y-2'>
-              <Label htmlFor='phone'>Phone Number</Label>
+            <div className='space-y-2 max-w-md'>
+              <Label htmlFor='phone' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                Contact Phone Number
+              </Label>
               <div className='relative'>
-                <Phone className='absolute left-3 top-3 size-4 text-muted-foreground' />
+                <Phone className='absolute left-3 top-2.5 size-4 text-muted-foreground/80' />
                 <Input
                   id='phone'
                   {...register('phone')}
-                  className='pl-9'
-                  placeholder='+91 9876543210'
+                  className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm font-medium'
+                  placeholder='e.g. +91 9876543210'
                 />
               </div>
-              {errors.phone && <p className='text-sm text-destructive'>{errors.phone.message}</p>}
+              {errors.phone && <p className='text-xs text-destructive font-semibold mt-1'>{errors.phone.message}</p>}
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-border/40'>
               <div className='space-y-2'>
-                <Label htmlFor='college'>College / University</Label>
+                <Label htmlFor='college' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                  College / University Institution
+                </Label>
                 <div className='relative'>
-                  <School className='absolute left-3 top-3 size-4 text-muted-foreground' />
+                  <School className='absolute left-3 top-2.5 size-4 text-muted-foreground/80' />
                   <Input
                     id='college'
                     {...register('college')}
-                    className='pl-9'
-                    placeholder='IIT Bombay'
+                    className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm font-medium'
+                    placeholder='e.g. IIT Bombay, NIT Warangal...'
                   />
                 </div>
                 {errors.college && (
-                  <p className='text-sm text-destructive'>{errors.college.message}</p>
+                  <p className='text-xs text-destructive font-semibold mt-1'>{errors.college.message}</p>
                 )}
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='graduationYear'>Graduation Year</Label>
+                <Label htmlFor='graduationYear' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                  Graduation Year
+                </Label>
                 <div className='relative'>
-                  <GraduationCap className='absolute left-3 top-3 size-4 text-muted-foreground' />
+                  <GraduationCap className='absolute left-3 top-2.5 size-4 text-muted-foreground/80' />
                   <Input
                     id='graduationYear'
                     type='number'
                     min='1990'
                     max='2040'
                     {...register('graduationYear')}
-                    className='pl-9'
-                    placeholder='2026'
+                    className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm font-medium'
+                    placeholder='e.g. 2026'
                   />
                 </div>
                 {errors.graduationYear && (
-                  <p className='text-sm text-destructive'>{errors.graduationYear.message}</p>
+                  <p className='text-xs text-destructive font-semibold mt-1'>{errors.graduationYear.message}</p>
                 )}
               </div>
             </div>
           </CardContent>
-          <CardFooter className='flex justify-end pt-6 border-t border-border/40'>
-            <Button type='submit' disabled={isPending || !isDirty}>
-              {isPending ? 'Saving...' : 'Save Changes'}
+          <CardFooter className='flex justify-between items-center px-6 py-4 bg-muted/20 border-t border-border/40'>
+            <span className='text-xs text-muted-foreground font-medium'>
+              {isDirty ? 'Unsaved modifications present' : 'All credentials up to date'}
+            </span>
+            <Button type='submit' size='sm' className='font-semibold h-9 px-5' disabled={isPending || !isDirty}>
+              {isPending ? (
+                'Saving...'
+              ) : (
+                <>
+                  <Check className='size-4 mr-1.5' />
+                  Save Changes
+                </>
+              )}
             </Button>
           </CardFooter>
         </form>

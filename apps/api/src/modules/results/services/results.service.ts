@@ -74,6 +74,10 @@ export class ResultsService {
 
     const sectionScores: Record<string, any> = {};
 
+    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const topicNameMap = new Map<string, string>();
+    allTopics.forEach((t) => topicNameMap.set(t.id, t.name));
+
     const topicScores: Record<string, any> = {};
 
     const difficultyScores: Record<string, any> = {};
@@ -115,7 +119,8 @@ export class ResultsService {
         }
 
         // Topic Aggregation
-        const topic = snap?.conceptKey || snap?.topicId || "General";
+        const rawTopic = snap?.topic?.name || snap?.topicName || snap?.conceptKey || snap?.topicId || "General";
+        const topic = topicNameMap.get(rawTopic) || rawTopic;
         if (!topicScores[topic]) {
           topicScores[topic] = { total: 0, correct: 0, timeSpent: 0 };
         }
