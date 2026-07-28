@@ -89,6 +89,18 @@ export class ResultGeneratorService {
       sectionKey: string;
     }> = [];
 
+    const codingQuestionsList: Array<{
+      id: string;
+      questionType: string;
+      problemStatement: string;
+      questionText: string;
+      constraints?: string;
+      testCases?: string;
+      difficulty: string;
+      topicName: string;
+      sectionKey: string;
+    }> = [];
+
     const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
     const dbTopicMap = new Map<string, string>();
     allTopics.forEach((t) => dbTopicMap.set(t.id, t.name));
