@@ -12,6 +12,22 @@ export function QuestionRenderer() {
 
   const currentAnswer = answers[currentQuestion.id];
 
+  let parsedInstructions: { constraints?: string; testCases?: string } | null = null;
+  let rawInstructions = '';
+
+  if (currentQuestion.candidateInstructions) {
+    try {
+      const parsed = JSON.parse(currentQuestion.candidateInstructions);
+      if (typeof parsed === 'object' && parsed !== null) {
+        parsedInstructions = parsed;
+      } else {
+        rawInstructions = currentQuestion.candidateInstructions;
+      }
+    } catch {
+      rawInstructions = currentQuestion.candidateInstructions;
+    }
+  }
+
   const renderMCQ = () => {
     const selectedOptionId = currentAnswer?.selectedOptionId;
 
@@ -208,10 +224,10 @@ export function QuestionRenderer() {
                 <p>
                   Analyze the given statement on the right panel and select the correct answer from the provided options.
                 </p>
-                {currentQuestion.candidateInstructions && (
+                {rawInstructions && (
                   <div className='bg-blue-50/80 border-l-4 border-blue-600 p-3.5 my-3 text-sm text-gray-800 rounded-r-sm'>
                     <span className='font-bold underline block mb-1 text-blue-950'>Candidate Notice:</span>
-                    {currentQuestion.candidateInstructions}
+                    {rawInstructions}
                   </div>
                 )}
                 <p className='text-gray-600 text-sm pt-2'>
@@ -228,6 +244,13 @@ export function QuestionRenderer() {
             <div className='text-base sm:text-[16px] font-normal leading-relaxed text-gray-950 font-sans break-words'>
               {currentQuestion.text}
             </div>
+
+            {parsedInstructions?.constraints && (
+              <div className='mt-4 p-4 rounded-md border border-amber-200 bg-amber-50/50 text-sm'>
+                <h4 className='font-semibold text-amber-900 mb-2'>Constraints</h4>
+                <div className='font-mono text-gray-800 whitespace-pre-wrap'>{parsedInstructions.constraints}</div>
+              </div>
+            )}
 
             <div className='pt-1'>
               {renderQuestionContent()}

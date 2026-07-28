@@ -147,24 +147,6 @@ export function QuestionCard({ index, onRemove, onDuplicate, disabled }: Questio
           <div className="space-y-6">
             <h5 className="font-medium text-muted-foreground uppercase text-xs tracking-wider border-b pb-2">Solution &amp; Explanation</h5>
             
-            {questionType === 'CODING' && (
-              <div className="space-y-2">
-                <Label>Reference Solution</Label>
-                <div className="border rounded-md overflow-hidden h-[200px] shadow-sm relative">
-                  <Editor
-                    height="100%"
-                    defaultLanguage="typescript"
-                    value={watch(`questions.${index}.codingData.referenceSolution`) || ''}
-                    onChange={(val: string | undefined) => {
-                      const current = watch(`questions.${index}.codingData`) || {};
-                      setValue(`questions.${index}.codingData`, { ...current, referenceSolution: val }, { shouldValidate: true });
-                    }}
-                    options={{ minimap: { enabled: false }, readOnly: disabled }}
-                  />
-                </div>
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label>Explanation / Solution Details</Label>
               <textarea

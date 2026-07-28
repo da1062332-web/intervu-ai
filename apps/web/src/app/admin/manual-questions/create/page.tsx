@@ -107,7 +107,7 @@ function BatchCreateContent() {
         ? (q.codingData?.problemStatement || 'Coding Challenge') 
         : (q.questionText || '');
       const answer = isCoding
-        ? (q.codingData?.referenceSolution || 'Code solution provided')
+        ? 'Code solution provided'
         : (q.answer || '');
 
       return {
@@ -127,7 +127,6 @@ function BatchCreateContent() {
         questionTitle: q.questionTitle || '',
         questionStatement: isCoding ? (q.codingData?.problemStatement || '') : '',
         instructions: isCoding ? JSON.stringify({
-          starterCode: q.codingData?.starterCode || '',
           constraints: q.codingData?.constraints || '',
           testCases: q.codingData?.testCases || ''
         }) : '',
