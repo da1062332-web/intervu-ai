@@ -35,19 +35,6 @@ export function CodingEditor({ index, disabled }: CodingEditorProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Starter Code</Label>
-        <div className="border rounded-md overflow-hidden h-[200px] shadow-sm relative">
-          <Editor
-            height="100%"
-            defaultLanguage="typescript"
-            value={codingData.starterCode || ''}
-            onChange={(val: string | undefined) => handleChange('starterCode', val)}
-            options={{ minimap: { enabled: false }, readOnly: disabled }}
-          />
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Constraints (Optional)</Label>

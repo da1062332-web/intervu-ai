@@ -48,6 +48,7 @@ export default function TemplatePage() {
   const template = response?.data || response;
 
   const strategy = template?.generationStrategy || 'VARIABLE';
+  const showLegacyBuilderPages = false; // hide old Variable Builder / Constraint Builder pages in the live editor
 
   if (isLoading) {
     return (
@@ -81,8 +82,10 @@ export default function TemplatePage() {
 
   if (strategy === 'VARIABLE' || strategy === 'HYBRID') {
     sections.push({ id: 'generation-strategy', label: 'Generation Strategy' });
-    sections.push({ id: 'variables', label: 'Variable Builder' });
-    sections.push({ id: 'constraints', label: 'Constraint Builder' });
+    if (showLegacyBuilderPages) {
+      sections.push({ id: 'variables', label: 'Variable Builder' });
+      sections.push({ id: 'constraints', label: 'Constraint Builder' });
+    }
   }
 
   if (strategy !== 'DATASET') {
@@ -104,8 +107,22 @@ export default function TemplatePage() {
         );
       case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
       case 'generation-strategy': return <GenerationStrategySection />;
-      case 'variables': return <VariableBuilderSection />;
-      case 'constraints': return <ConstraintBuilderSection />;
+      case 'variables':
+        return showLegacyBuilderPages ? (
+          <VariableBuilderSection />
+        ) : (
+          <div className='rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-sm text-yellow-900'>
+            Legacy Variable Builder is hidden. Use the Generation Strategy tab instead.
+          </div>
+        );
+      case 'constraints':
+        return showLegacyBuilderPages ? (
+          <ConstraintBuilderSection />
+        ) : (
+          <div className='rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-sm text-yellow-900'>
+            Legacy Constraint Builder is hidden. Use the Generation Strategy tab instead.
+          </div>
+        );
       case 'options': return <OptionStrategySection template={template} />;
       case 'solution': return <SolutionLogicSection template={template} />;
       case 'preview': return <PreviewSection template={template} />;
