@@ -27,8 +27,9 @@ export function SectionConfigurator({ configId }: SectionConfiguratorProps) {
   useEffect(() => {
     // Initialize sections if they don't exist in store yet
     if (sections && sections.length > 0) {
+      const currentSections = useBlueprintBuilderStore.getState().sections;
       sections.forEach((section) => {
-        const existing = sectionsState.find((s) => s.sectionId === section.id);
+        const existing = currentSections.find((s) => s.sectionId === section.id);
         if (!existing) {
           updateSection(section.id, {
             questionCount: section.questionCount || 20,
@@ -37,7 +38,7 @@ export function SectionConfigurator({ configId }: SectionConfiguratorProps) {
         }
       });
     }
-  }, [sections, sectionsState, updateSection]);
+  }, [sections, updateSection]);
 
   if (isLoading) {
     return (

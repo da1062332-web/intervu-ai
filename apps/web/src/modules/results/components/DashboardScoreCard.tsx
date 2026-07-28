@@ -7,6 +7,8 @@ interface Props {
   data: PerformanceDashboardResponse;
 }
 
+const formatScore = (val: number) => (Number.isInteger(val) ? val : val.toFixed(1));
+
 export const DashboardScoreCard: React.FC<Props> = ({ data }) => {
   return (
     <Card>
@@ -17,7 +19,7 @@ export const DashboardScoreCard: React.FC<Props> = ({ data }) => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
           <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
             <p className="text-sm text-gray-500 font-medium mb-1">Overall Score</p>
-            <p className="text-3xl font-bold text-gray-900">{data.overallScore.toFixed(1)} {data.maxMarks ? <span className="text-sm font-normal text-gray-400">/ {data.maxMarks}</span> : ''}</p>
+            <p className="text-3xl font-bold text-gray-900">{formatScore(data.overallScore)} {data.maxMarks ? <span className="text-sm font-normal text-gray-400">/ {data.maxMarks}</span> : ''}</p>
           </div>
           
           <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
@@ -45,12 +47,16 @@ export const DashboardScoreCard: React.FC<Props> = ({ data }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center pt-2">
             <div className="bg-indigo-50/50 p-4 rounded-lg shadow-sm border border-indigo-100 flex flex-col justify-center">
               <p className="text-sm text-indigo-600/80 font-medium mb-1">Objective Score</p>
-              <p className="text-2xl font-bold text-indigo-700">{data.objectiveScore.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-indigo-700">
+                {formatScore(data.objectiveScore)} {data.objectiveMaxMarks !== undefined ? <span className="text-sm font-normal text-indigo-400">/ {data.objectiveMaxMarks}</span> : ''}
+              </p>
             </div>
             
             <div className="bg-emerald-50/50 p-4 rounded-lg shadow-sm border border-emerald-100 flex flex-col justify-center">
               <p className="text-sm text-emerald-600/80 font-medium mb-1">Coding Score</p>
-              <p className="text-2xl font-bold text-emerald-700">{data.codingScore.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-emerald-700">
+                {formatScore(data.codingScore)} {data.codingMaxMarks !== undefined ? <span className="text-sm font-normal text-emerald-400">/ {data.codingMaxMarks}</span> : ''}
+              </p>
             </div>
             
             {data.passed !== undefined && (

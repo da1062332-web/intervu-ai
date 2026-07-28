@@ -78,5 +78,7 @@ export type PerformanceDashboardResponse = {
   maxMarks?: number;
   objectiveScore?: number;
   codingScore?: number;
+  objectiveMaxMarks?: number;
+  codingMaxMarks?: number;
   passed?: boolean;
 };

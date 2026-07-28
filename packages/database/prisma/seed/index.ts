@@ -12,19 +12,18 @@ import { seedBlueprints } from "./blueprints.seed";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("--- Database Seeding Started ---");
-  await prisma.$connect();
+  console.log("--- Database Seeding Skipped (No data configured to seed) ---");
+  // All seed functions commented out per user configuration
+  // await seedTopics(prisma);
+  // await seedExamConfig(prisma);
+  // await seedTestConfigs(prisma);
+  // await seedUsers(prisma);
+  // await seedTemplates(prisma);
+  // await seedEvaluations(prisma);
+  // await seedModule1QA(prisma);
+  // await seedDatasets(prisma);
 
-  await seedTopics(prisma);
-  await seedExamConfig(prisma);
-  await seedTestConfigs(prisma);
-  await seedUsers(prisma);
-  await seedTemplates(prisma);
-  await seedEvaluations(prisma);
-  await seedModule1QA(prisma);
-  await seedDatasets(prisma);
-
-  console.log("--- Database Seeding Completed ---");
+  console.log("--- Seeding Finished (0 records added) ---");
 }
 
 main()

@@ -29,11 +29,12 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
   const sectionState = sectionsState.find((s) => s.sectionId === sectionId) as
     | BlueprintSectionPayload
     | undefined;
+  const hasTopicAllocations = !!(sectionState?.topicAllocations && sectionState.topicAllocations.length > 0);
   const allocations = sectionState?.topicAllocations || [];
 
   useEffect(() => {
-    // If topics and default weightages are loaded, and allocations aren't initialized yet, pre-populate them
-    if (topics && topics.length > 0 && weightages) {
+    // Pre-populate topic allocations from default weightages ONLY if not initialized yet
+    if (topics && topics.length > 0 && weightages && !hasTopicAllocations) {
       const initialAllocations = topics.map((t) => {
         const matchingWeight = weightages.find((w) => w.topicId === t.topicId);
         return {
@@ -42,12 +43,9 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
         };
       });
 
-      const currentSum = allocations.reduce((sum, a) => sum + (a.percentage || 0), 0);
-      if (currentSum === 0) {
-        updateSection(sectionId, { topicAllocations: initialAllocations });
-      }
+      updateSection(sectionId, { topicAllocations: initialAllocations });
     }
-  }, [topics, weightages, allocations.length, sectionId, updateSection]);
+  }, [topics, weightages, hasTopicAllocations, sectionId, updateSection]);
 
   const isLoading = isTopicsLoading || isWeightagesLoading;
 

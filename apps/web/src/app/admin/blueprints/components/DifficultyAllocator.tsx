@@ -28,23 +28,20 @@ export function DifficultyAllocator({ sectionId }: DifficultyAllocatorProps) {
     | BlueprintSectionPayload
     | undefined;
 
+  const hasDifficultyAllocation = !!sectionState?.difficultyAllocation;
   const difficulty = sectionState?.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
 
   useEffect(() => {
-    // If config preview is loaded and difficulty allocation isn't initialized yet, pre-populate it
-    if (configPreview && configPreview.difficulty) {
-      const currentSum = (difficulty.easy || 0) + (difficulty.medium || 0) + (difficulty.hard || 0);
-      if (currentSum === 0) {
+    // Pre-populate difficulty allocation from config preview ONLY if not initialized yet
+    if (configPreview?.difficulty && !hasDifficultyAllocation) {
+      const { easy = 0, medium = 0, hard = 0 } = configPreview.difficulty;
+      if (easy > 0 || medium > 0 || hard > 0) {
         updateSection(sectionId, {
-          difficultyAllocation: {
-            easy: configPreview.difficulty.easy,
-            medium: configPreview.difficulty.medium,
-            hard: configPreview.difficulty.hard,
-          },
+          difficultyAllocation: { easy, medium, hard },
         });
       }
     }
-  }, [configPreview, difficulty, sectionId, updateSection]);
+  }, [configPreview, hasDifficultyAllocation, sectionId, updateSection]);
 
   const totalAllocated = (difficulty.easy || 0) + (difficulty.medium || 0) + (difficulty.hard || 0);
   const isValid = totalAllocated === 100;

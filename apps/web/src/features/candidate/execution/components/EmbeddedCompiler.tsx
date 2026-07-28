@@ -65,7 +65,6 @@ export function EmbeddedCompiler({ onChange, initialData }: EmbeddedCompilerProp
       // SEC-003: Validate origin and payload before processing
       const validatedData = validateCompilerMessage(event);
       if (!validatedData) {
-        // Reject untrusted or malformed messages without logging sensitive info
         return;
       }
 
@@ -78,33 +77,56 @@ export function EmbeddedCompiler({ onChange, initialData }: EmbeddedCompilerProp
     return () => window.removeEventListener('message', handleMessage);
   }, [onChange]);
 
-  // Construct the embed URL with all the requested query parameters
-  const baseUrl = 'https://onecompiler.com/embed';
+  const selectedLang = (initialData?.language || 'python').toLowerCase();
+  const baseUrl = `https://onecompiler.com/embed/${selectedLang}`;
+  
   const queryParams = new URLSearchParams({
     theme: 'dark',
-    fontSize: '12',
+    fontSize: '14',
     listenToEvents: 'true',
     codeChangeEvent: 'true',
-    language: 'python',
-    // NOTE: do NOT include `languages` param — it restricts the language dropdown.
-    // Omitting it allows the candidate to pick any language.
+    hideRun: 'false',
+    hideRunBtn: 'false',
+    hideHeader: 'false',
+    hideTitle: 'true',
   });
 
-  // If there is initial code, use it. Otherwise, pass a space to override previous cached code
   if (initialData?.code) {
     queryParams.set('code', initialData.code);
-    if (initialData.language) {
-      queryParams.set('language', initialData.language);
-    }
   } else {
     queryParams.set('code', '\n');
   }
 
+  const handleRunCode = () => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ action: 'run' }, '*');
+      iframeRef.current.contentWindow.postMessage({ event: 'run' }, '*');
+      iframeRef.current.contentWindow.postMessage({ type: 'run' }, '*');
+    }
+  };
+
   return (
     <div className='w-full h-full min-h-[700px] flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-border/50'>
-      <div className='bg-muted/30 px-4 py-3 border-b flex items-center justify-between'>
-        <span className='font-semibold text-sm'>Coding Environment</span>
-        <span className='text-xs text-muted-foreground'>Powered by OneCompiler</span>
+      <div className='bg-slate-900 text-white px-4 py-2.5 border-b flex items-center justify-between'>
+        <div className="flex items-center gap-3">
+          <span className='font-semibold text-sm tracking-wide text-slate-200'>Coding Environment</span>
+          <span className='text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700 font-mono uppercase'>
+            {selectedLang}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleRunCode}
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs px-3 py-1.5 rounded transition-colors shadow-xs active:scale-95"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Run / Test Code
+          </button>
+          <span className='text-xs text-slate-400 hidden sm:inline'>Powered by OneCompiler</span>
+        </div>
       </div>
       <div className='flex-1 relative w-full h-full min-h-[650px]'>
         <iframe

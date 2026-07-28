@@ -150,11 +150,6 @@ export const ResultDetailsPage = () => {
       <div className="pt-4">
         <PerformanceInsightsDashboard attemptId={attemptId!} />
       </div>
-
-      {/* Preserve the Shareable Result Card at the bottom */}
-      <div className="pt-8 border-t mt-8">
-        <ShareableResultCard attemptId={attemptId!} />
-      </div>
     </div>
   );
 };

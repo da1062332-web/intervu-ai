@@ -36,7 +36,9 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
           <div className="flex flex-col justify-center">
             <h3 className="text-sm font-semibold text-emerald-600/80 uppercase tracking-wider mb-2">Technical Score</h3>
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-black text-emerald-700">{data.codingScore.toFixed(1)}</span>
+              <span className="text-5xl font-black text-emerald-700">
+                {Number.isInteger(data.codingScore) ? data.codingScore : data.codingScore.toFixed(1)}
+              </span>
               {data.maxMarks && <span className="text-xl font-medium text-emerald-600/50">pts</span>}
             </div>
             <p className="text-sm text-gray-500 mt-3 max-w-sm">
