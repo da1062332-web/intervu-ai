@@ -22,7 +22,9 @@ export class ReEvaluationService {
   ) {}
 
   /**
-   * Triggers reprocessing for a specific test attempt, regenerating all scores, ranks, benchmarks, insights, and study plans.
+   * Triggers reprocessing for a specific test attempt.
+   * Critical path: generate result + save to DB.
+   * Post-processing (rankings, insights, plans, TCS) runs asynchronously after save.
    */
   async reprocess(attemptId: string, triggeredBy = "MANUAL"): Promise<any> {
     const startTime = Date.now();
@@ -54,67 +56,31 @@ export class ReEvaluationService {
         })),
       };
 
-      // 3. Generate candidate result DTO
-      const resultDto =
-        await this.resultGenerator.generateResult(executionResult);
+      // 3. Generate candidate result DTO (critical path)
+      const resultDto = await this.resultGenerator.generateResult(executionResult);
 
-      // 4. Save base results (transactional upsert of CandidateResult, EvaluationAnalytics)
+      // 4. Save base results — critical path ends here
       const durationMs = Date.now() - startTime;
       await this.resultStorage.saveResult(resultDto, durationMs);
 
-      // 5. Calculate and save rankings
-      const rankingDto = await this.rankingService.calculateRanking(resultDto);
-      await this.prisma.candidateRanking.upsert({
-        where: { attemptId },
-        update: {
-          assessmentRank: rankingDto.assessment.rank,
-          orgRank: rankingDto.organization.rank,
-          batchRank: rankingDto.batch.rank,
-          totalAssessmentCandidates: rankingDto.assessment.totalCandidates,
-          totalOrgCandidates: rankingDto.organization.totalCandidates,
-          totalBatchCandidates: rankingDto.batch.totalCandidates,
-          percentile: rankingDto.percentile,
-          createdAt: new Date(),
-        },
-        create: {
+      // 5. Fire-and-forget: run all post-processing tasks in parallel, non-blocking
+      this.runPostProcessingAsync(attemptId, resultDto, triggeredBy).catch((err) =>
+        this.logger.warn("Post-processing error (non-blocking, will not affect result)", {
           attemptId,
-          assessmentRank: rankingDto.assessment.rank,
-          orgRank: rankingDto.organization.rank,
-          batchRank: rankingDto.batch.rank,
-          totalAssessmentCandidates: rankingDto.assessment.totalCandidates,
-          totalOrgCandidates: rankingDto.organization.totalCandidates,
-          totalBatchCandidates: rankingDto.batch.totalCandidates,
-          percentile: rankingDto.percentile,
-          createdAt: new Date(),
-        },
-      });
-
-      // 6. Calculate and store percentile bands
-      await this.percentileService.calculateAndStorePercentile(
-        attemptId,
-        rankingDto.percentile,
+          error: err instanceof Error ? err.message : String(err),
+        }),
       );
 
-      // 7. Generate AI Insights and Study Plans
-      await this.aiInsightService.generateInsights(attemptId);
-      await this.improvementPlanService.generatePlans(attemptId);
-
-      // 8. Log success in reprocess log table
-      await this.prisma.evaluationReprocessLog.create({
-        data: {
-          attemptId,
-          status: "SUCCESS",
-          triggeredBy,
-          createdAt: new Date(),
-        },
-      });
-
+      // Return immediately without waiting for post-processing
       return {
         success: true,
         attemptId,
         score: resultDto.score,
         percentage: resultDto.percentage,
-        ranking: rankingDto,
+        passed: resultDto.passed ?? false,
+        objectiveScore: resultDto.objectiveScore ?? 0,
+        codingScore: resultDto.codingScore ?? 0,
+        maxMarks: resultDto.maxMarks ?? 0,
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -123,20 +89,99 @@ export class ReEvaluationService {
         error instanceof Error ? error.stack : undefined,
       );
 
-      // Log failure in reprocess log table
-      await this.prisma.evaluationReprocessLog.create({
-        data: {
-          attemptId,
-          status: "FAILED",
-          error: errorMsg,
-          triggeredBy,
-          createdAt: new Date(),
-        },
-      });
+      // Log failure
+      try {
+        await this.prisma.evaluationReprocessLog.create({
+          data: {
+            attemptId,
+            status: "FAILED",
+            error: errorMsg,
+            triggeredBy,
+            createdAt: new Date(),
+          },
+        });
+      } catch (logErr) {
+        this.logger.error("Failed to write reprocess failure log", logErr);
+      }
 
       throw error;
     }
   }
+
+  /**
+   * Runs all post-processing tasks in parallel after the base result is saved.
+   * This runs fire-and-forget — errors here do NOT affect the candidate's result.
+   */
+  private async runPostProcessingAsync(
+    attemptId: string,
+    resultDto: any,
+    triggeredBy: string,
+  ): Promise<void> {
+    this.logger.log(`Starting async post-processing for attempt: ${attemptId}`);
+
+    const tasks = await Promise.allSettled([
+      // Rankings
+      (async () => {
+        const rankingDto = await this.rankingService.calculateRanking(resultDto);
+        await this.prisma.candidateRanking.upsert({
+          where: { attemptId },
+          update: {
+            assessmentRank: rankingDto.assessment.rank,
+            orgRank: rankingDto.organization.rank,
+            batchRank: rankingDto.batch.rank,
+            totalAssessmentCandidates: rankingDto.assessment.totalCandidates,
+            totalOrgCandidates: rankingDto.organization.totalCandidates,
+            totalBatchCandidates: rankingDto.batch.totalCandidates,
+            percentile: rankingDto.percentile,
+            createdAt: new Date(),
+          },
+          create: {
+            attemptId,
+            assessmentRank: rankingDto.assessment.rank,
+            orgRank: rankingDto.organization.rank,
+            batchRank: rankingDto.batch.rank,
+            totalAssessmentCandidates: rankingDto.assessment.totalCandidates,
+            totalOrgCandidates: rankingDto.organization.totalCandidates,
+            totalBatchCandidates: rankingDto.batch.totalCandidates,
+            percentile: rankingDto.percentile,
+            createdAt: new Date(),
+          },
+        });
+        await this.percentileService.calculateAndStorePercentile(
+          attemptId,
+          rankingDto.percentile,
+        );
+      })(),
+      // AI Insights
+      this.aiInsightService.generateInsights(attemptId),
+      // Improvement Plans
+      this.improvementPlanService.generatePlans(attemptId),
+    ]);
+
+    // Log individual post-processing results
+    for (const [idx, result] of tasks.entries()) {
+      const taskNames = ["rankings+percentile", "ai-insights", "improvement-plans"];
+      if (result.status === "rejected") {
+        this.logger.warn(`Post-processing task [${taskNames[idx]}] failed`, {
+          attemptId,
+          error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+        });
+      }
+    }
+
+    // Log success in reprocess log table
+    await this.prisma.evaluationReprocessLog.create({
+      data: {
+        attemptId,
+        status: "SUCCESS",
+        triggeredBy,
+        createdAt: new Date(),
+      },
+    });
+
+    this.logger.log(`Async post-processing completed for attempt: ${attemptId}`);
+  }
+
 
   /**
    * Aggregates platform-wide evaluation metrics for admin dashboard.

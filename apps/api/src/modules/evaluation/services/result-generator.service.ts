@@ -4,7 +4,6 @@ import { ObjectiveEvaluatorService } from "../objective/objective-evaluator.serv
 import { CodingEvaluatorService } from "../objective/coding-evaluator.service";
 import { SectionScoringService } from "../scoring/section-scoring.service";
 import { OverallScoreService } from "../scoring/overall-score.service";
-import { TcsClassificationService } from "../scoring/tcs-classification.service";
 import { PerformanceAnalyticsService } from "../analytics/performance-analytics.service";
 import { StrengthWeaknessService } from "../analytics/strength-weakness.service";
 import { RecommendationService } from "../recommendations/recommendation.service";
@@ -23,7 +22,6 @@ export class ResultGeneratorService {
     private readonly codingEvaluator: CodingEvaluatorService,
     private readonly sectionScoring: SectionScoringService,
     private readonly overallScoring: OverallScoreService,
-    private readonly tcsClassification: TcsClassificationService,
     private readonly analytics: PerformanceAnalyticsService,
     private readonly strengthWeakness: StrengthWeaknessService,
     private readonly recommendation: RecommendationService,
@@ -31,6 +29,7 @@ export class ResultGeneratorService {
 
   /**
    * Generates a complete CandidateResultDto from execution answers and test snapshots.
+   * TCS classification is NOT run here — it runs async after result is saved.
    */
   async generateResult(
     executionResult: ExecutionResultDto,
@@ -38,7 +37,7 @@ export class ResultGeneratorService {
     const attemptId = executionResult.testId;
     this.logger.info("Generating candidate assessment results", { attemptId });
 
-    // 1. Fetch test instance with sections and questions
+    // 1. Single consolidated DB fetch — test instance + sections + questions in one query
     const testInstance = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
       include: {
@@ -57,11 +56,46 @@ export class ResultGeneratorService {
       throw new NotFoundException(`Test instance ${attemptId} not found`);
     }
 
-    // 2. Map questions snapshot data
-    const questionsList: Array<{
+    // 2. Collect all unique questionIds to batch-fetch metadata (instructions, questionStatement)
+    const questionIds = new Set<string>();
+    for (const section of testInstance.sections) {
+      for (const q of section.questions) {
+        if (q.questionId) questionIds.add(q.questionId);
+      }
+    }
+
+    // 3. Batch fetch question metadata (instructions, questionStatement) in one query
+    const dbQuestionsMap = new Map<string, { instructions: string | null; questionStatement: string | null }>();
+    if (questionIds.size > 0) {
+      const dbQuestions = await this.prisma.question.findMany({
+        where: { id: { in: Array.from(questionIds) } },
+        select: { id: true, instructions: true, questionStatement: true },
+      });
+      for (const q of dbQuestions) {
+        dbQuestionsMap.set(q.id, {
+          instructions: q.instructions,
+          questionStatement: q.questionStatement,
+        });
+      }
+    }
+
+    // 4. Build question lists by type
+    const objectiveQuestionsList: Array<{
       id: string;
       answer: string;
       questionType: string;
+      difficulty: string;
+      topicName: string;
+      sectionKey: string;
+    }> = [];
+
+    const codingQuestionsList: Array<{
+      id: string;
+      questionType: string;
+      problemStatement: string;
+      questionText: string;
+      constraints?: string;
+      testCases?: string;
       difficulty: string;
       topicName: string;
       sectionKey: string;
@@ -71,31 +105,60 @@ export class ResultGeneratorService {
       const sectionQuestions = section.questions.map((q) => {
         const snap = (q.questionSnapshot || {}) as any;
         const answer = snap.answer || snap.correctAnswer || "";
-        const questionType = snap.questionType || snap.type || "MCQ";
+        const questionType = (snap.questionType || snap.type || "MCQ").toUpperCase();
         const difficulty = snap.difficulty || snap.difficultyLevel || "MEDIUM";
 
-        // Resolve topic display name or concept display name
+        // Resolve topic display name
         let topicName = "General";
-        if (snap.topic && snap.topic.name) {
+        if (snap.topic?.name) {
           topicName = snap.topic.name;
         } else if (snap.topicName) {
           topicName = snap.topicName;
         } else if (snap.conceptKey) {
-          // Format concept keys like time_work -> Time and Work
           topicName = snap.conceptKey
             .split("_")
             .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
             .join(" ");
         }
 
-        questionsList.push({
-          id: q.questionId,
-          answer,
-          questionType,
-          difficulty,
-          topicName,
-          sectionKey: section.sectionKey,
-        });
+        const meta = dbQuestionsMap.get(q.questionId);
+
+        if (questionType === "CODING") {
+          // Parse instructions JSON to extract constraints and testCases
+          let constraints: string | undefined;
+          let testCases: string | undefined;
+
+          if (meta?.instructions) {
+            try {
+              const inst = JSON.parse(meta.instructions);
+              constraints = inst.constraints || undefined;
+              testCases = inst.testCases || undefined;
+            } catch {
+              // instructions is plain text — ignore
+            }
+          }
+
+          codingQuestionsList.push({
+            id: q.questionId,
+            questionType,
+            problemStatement: meta?.questionStatement || snap.questionStatement || snap.questionText || "",
+            questionText: snap.questionText || snap.text || "",
+            constraints,
+            testCases,
+            difficulty,
+            topicName,
+            sectionKey: section.sectionKey,
+          });
+        } else {
+          objectiveQuestionsList.push({
+            id: q.questionId,
+            answer,
+            questionType,
+            difficulty,
+            topicName,
+            sectionKey: section.sectionKey,
+          });
+        }
 
         return { questionId: q.questionId };
       });
@@ -108,7 +171,7 @@ export class ResultGeneratorService {
       };
     });
 
-    // 3. Map Candidate answers from ExecutionResult
+    // 5. Map candidate answers
     const submissionAnswers = executionResult.answers.map((a) => ({
       questionId: a.questionId,
       selectedOptionId: a.answer,
@@ -121,55 +184,70 @@ export class ResultGeneratorService {
       timeSpentSeconds: a.timeSpentSeconds || 0,
     }));
 
-    // 4. Run Evaluators
-    const objectiveQuestions = questionsList.filter(q => q.questionType.toUpperCase() !== "CODING");
-    const codingQuestions = questionsList.filter(q => q.questionType.toUpperCase() === "CODING");
-
+    // 6. Run evaluators — objective is synchronous, coding is parallel async
     const objectiveEvalResults = this.evaluator.evaluateAnswers(
       submissionAnswers,
-      objectiveQuestions,
+      objectiveQuestionsList,
     );
 
+    // Coding runs in parallel (Promise.all inside CodingEvaluatorService)
     const codingEvalResults = await this.codingEvaluator.evaluateAnswers(
       submissionAnswers,
-      codingQuestions,
+      codingQuestionsList,
     );
 
-    const evalResults = [...objectiveEvalResults, ...codingEvalResults];
+    const allEvalResults = [...objectiveEvalResults, ...codingEvalResults];
 
-    // 5. Run Section Scoring
+    // 7. Section scoring
     const sectionScores = this.sectionScoring.calculateSectionScores(
-      evalResults,
+      allEvalResults,
       parsedSections,
     );
 
-    // 6. Run Overall Scoring
-    const overallScore =
-      this.overallScoring.calculateOverallScore(sectionScores);
-
-    // 7. Run Analytics
-    const performanceAnalytics = this.analytics.calculateAnalytics(
-      evalResults,
-      questionsList,
-    );
-
-    // 8. Run Strength/Weakness
-    const { strengths, weaknesses } =
-      this.strengthWeakness.determineStrengthsAndWeaknesses(
-        performanceAnalytics,
-      );
-
-    // 9. Run Recommendations
-    const recommendationsList =
-      this.recommendation.generateRecommendations(performanceAnalytics);
-
-    // 10. Run TCS Classification
-    const classification = await this.tcsClassification.classifyProfile(
+    // 8. Overall scoring with split breakdown
+    const overallScore = this.overallScoring.calculateOverallScore(
       sectionScores,
+      objectiveEvalResults,
       codingEvalResults,
     );
 
-    // 11. Assemble and return final CandidateResultDto
+    // 9. Analytics
+    const allQuestions = [
+      ...objectiveQuestionsList.map((q) => ({
+        id: q.id,
+        topicName: q.topicName,
+        difficulty: q.difficulty,
+        sectionKey: q.sectionKey,
+      })),
+      ...codingQuestionsList.map((q) => ({
+        id: q.id,
+        topicName: q.topicName,
+        difficulty: q.difficulty,
+        sectionKey: q.sectionKey,
+      })),
+    ];
+
+    const performanceAnalytics = this.analytics.calculateAnalytics(
+      allEvalResults,
+      allQuestions,
+    );
+
+    // 10. Strengths & Weaknesses
+    const { strengths, weaknesses } =
+      this.strengthWeakness.determineStrengthsAndWeaknesses(performanceAnalytics);
+
+    // 11. Recommendations
+    const recommendationsList =
+      this.recommendation.generateRecommendations(performanceAnalytics);
+
+    // 12. Compute overall totals for enriched result
+    const totalCorrect = allEvalResults.filter((r) => r.isCorrect).length;
+    const totalAttempted = allEvalResults.filter(
+      (r) => r.candidateAnswer && r.candidateAnswer.trim() !== "",
+    ).length;
+    const totalIncorrect = totalAttempted - totalCorrect;
+
+    // 13. Assemble final result (TCS classification is NOT included — runs async later)
     return {
       id: `res_${randomUUID()}`,
       candidateId: testInstance.userId,
@@ -182,10 +260,14 @@ export class ResultGeneratorService {
       strengths,
       weaknesses,
       recommendations: recommendationsList,
-      ...(classification ? {
-        predictedProfile: classification.predictedProfile,
-        profileDetails: classification.profileDetails,
-      } : {}),
+      // Enriched fields
+      totalAttempted,
+      totalCorrect,
+      totalIncorrect,
+      maxMarks: overallScore.maxMarks,
+      objectiveScore: overallScore.objectiveScore,
+      codingScore: overallScore.codingScore,
+      passed: overallScore.passed,
     };
   }
 }

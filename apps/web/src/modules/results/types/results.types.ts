@@ -74,4 +74,9 @@ export type PerformanceDashboardResponse = {
     status: string;
   }[];
   recommendations: string[];
+  // Enriched fields
+  maxMarks?: number;
+  objectiveScore?: number;
+  codingScore?: number;
+  passed?: boolean;
 };

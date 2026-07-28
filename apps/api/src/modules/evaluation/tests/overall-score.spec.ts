@@ -17,7 +17,11 @@ describe("OverallScoreService Unit Tests", () => {
         incorrect: 1,
         skipped: 1,
         marks: 3,
-        accuracy: 60,
+        accuracy: 75,
+        totalQuestions: 5,
+        attempted: 4,
+        maxMarks: 5,
+        percentage: 60,
       },
       {
         sectionKey: "s2",
@@ -26,18 +30,29 @@ describe("OverallScoreService Unit Tests", () => {
         incorrect: 0,
         skipped: 1,
         marks: 4,
-        accuracy: 80,
+        accuracy: 100,
+        totalQuestions: 5,
+        attempted: 4,
+        maxMarks: 5,
+        percentage: 80,
       },
     ];
 
-    const overall = service.calculateOverallScore(sectionScores);
+    // 3 objective eval results, 0 coding eval results
+    const objectiveEvalResults = [
+      { questionId: "q1", isCorrect: true, score: 1, maxMarks: 1, candidateAnswer: "a", correctAnswer: "a", timeSpentSeconds: 10 },
+      { questionId: "q2", isCorrect: false, score: 0, maxMarks: 1, candidateAnswer: "b", correctAnswer: "a", timeSpentSeconds: 5 },
+      { questionId: "q3", isCorrect: true, score: 1, maxMarks: 1, candidateAnswer: "c", correctAnswer: "c", timeSpentSeconds: 8 },
+    ];
 
-    // Total questions: (3+1+1) + (4+0+1) = 10
-    // Correct: 3 + 4 = 7
-    // Attempted: 3+1 (4) + 4+0 (4) = 8
+    const overall = service.calculateOverallScore(sectionScores, objectiveEvalResults, []);
+
+    // Total marks: 3 + 4 = 7, maxMarks: 10
     expect(overall.totalMarks).toBe(7);
     expect(overall.percentage).toBe(70); // 7/10 -> 70%
-    expect(overall.accuracy).toBe(88); // 7/8 -> 87.5% rounded to 88%
     expect(overall.normalizedScore).toBe(70);
+    expect(overall.objectiveScore).toBe(2); // 2 correct of 3 objective
+    expect(overall.codingScore).toBe(0);
+    expect(overall.passed).toBe(true); // 70% >= 40%
   });
 });

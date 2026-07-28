@@ -5,8 +5,8 @@ import { QuestionEvaluationResult } from "../objective/objective-evaluator.servi
 @Injectable()
 export class SectionScoringService {
   /**
-   * Computes section-wise scores.
-   * Maps questions in each section to evaluate correct, incorrect, skipped, marks, and accuracy.
+   * Computes section-wise scores including enriched fields:
+   * totalQuestions, attempted, maxMarks, percentage, accuracy.
    */
   calculateSectionScores(
     evalResults: QuestionEvaluationResult[],
@@ -30,12 +30,14 @@ export class SectionScoringService {
       let correct = 0;
       let incorrect = 0;
       let skipped = 0;
-      let marks = 0;
+      let marksObtained = 0;
+      let maxMarks = 0;
 
       for (const result of sectionResults) {
+        maxMarks += result.maxMarks;
         if (result.isCorrect) {
           correct += 1;
-          marks += result.score;
+          marksObtained += result.score;
         } else if (
           !result.candidateAnswer ||
           result.candidateAnswer.trim() === ""
@@ -47,8 +49,11 @@ export class SectionScoringService {
       }
 
       const totalQuestions = sectionResults.length;
+      const attempted = correct + incorrect;
       const accuracy =
-        totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+        attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+      const percentage =
+        maxMarks > 0 ? Math.round((marksObtained / maxMarks) * 100) : 0;
 
       scores.push({
         sectionKey: section.sectionKey,
@@ -56,8 +61,13 @@ export class SectionScoringService {
         correct,
         incorrect,
         skipped,
-        marks,
+        marks: marksObtained,
         accuracy,
+        // Enriched fields
+        totalQuestions,
+        attempted,
+        maxMarks,
+        percentage,
       });
     }
 

@@ -380,7 +380,12 @@ export class ResultQueryService {
       accuracyDetails: { correct, wrong, skipped },
       sectionAccuracy,
       sectionTime,
-      recommendations: recommendations.practiceSuggestions || []
+      recommendations: recommendations.practiceSuggestions || [],
+      // Enriched fields from EvaluationResult
+      objectiveScore: evaluation?.communicationScore || 0,
+      codingScore: evaluation?.technicalScore || 0,
+      passed: evaluation?.overallRating === 1,
+      maxMarks: percentage > 0 ? Math.round((overallScore / percentage) * 100) : overallScore,
     };
   }
 }

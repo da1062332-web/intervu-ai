@@ -8,7 +8,7 @@ export class OpenAIAdapter implements LLMAdapter {
 
   async generate(prompt: string): Promise<string> {
     const apiKey = this.configService.openAiApiKey;
-    const model = process.env.OPENAI_MODEL || "gpt-4o";
+    const model = process.env.OPENAI_MODEL || "gpt-4o-mini"; // Switched to mini for much faster result generation
 
     if (!apiKey || apiKey === "sk-dummy-key-for-local-development") {
       throw new InternalServerErrorException(
