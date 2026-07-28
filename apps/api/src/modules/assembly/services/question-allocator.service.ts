@@ -38,9 +38,26 @@ export class QuestionAllocatorService {
 
     const diffConfig =
       section.difficultyDistribution || fallbackConfig.distribution;
-    const easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
-    const hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
-    const mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
+
+    const isFlexible =
+      !diffConfig ||
+      (diffConfig.EASY === 0 &&
+        diffConfig.MEDIUM === 0 &&
+        diffConfig.HARD === 0);
+
+    let easyCount = 0;
+    let mediumCount = 0;
+    let hardCount = 0;
+
+    if (isFlexible) {
+      easyCount = Math.round(totalQuestions / 3);
+      hardCount = Math.round(totalQuestions / 3);
+      mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
+    } else {
+      easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
+      hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
+      mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
+    }
 
     const difficulties = [
       { level: DifficultyLevel.EASY, count: easyCount },

@@ -8,7 +8,7 @@ import { ResultsService } from "../../results/services/results.service";
 @Injectable()
 export class CandidateProgressService {
   private readonly logger = new AppLogger({ name: "CandidateProgressService" });
-  private readonly CACHE_PREFIX = "progress:candidate:v4";
+  private readonly CACHE_PREFIX = "progress:candidate:v5";
 
   constructor(
     private readonly prisma: PrismaService,
@@ -133,9 +133,23 @@ export class CandidateProgressService {
       }
     }
 
-    const skills = Object.keys(topicAgg).map((topic) => ({
+    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const topicNameMap = new Map<string, string>();
+    allTopics.forEach((t) => topicNameMap.set(t.id, t.name));
+
+    const mergedSkills: Record<string, { sum: number; count: number }> = {};
+    Object.keys(topicAgg).forEach((topicKey) => {
+      const cleanName = topicNameMap.get(topicKey) || topicKey;
+      if (!mergedSkills[cleanName]) {
+        mergedSkills[cleanName] = { sum: 0, count: 0 };
+      }
+      mergedSkills[cleanName].sum += topicAgg[topicKey].sum;
+      mergedSkills[cleanName].count += topicAgg[topicKey].count;
+    });
+
+    const skills = Object.keys(mergedSkills).map((topic) => ({
       topic,
-      score: Math.round(topicAgg[topic].sum / topicAgg[topic].count),
+      score: Math.round(mergedSkills[topic].sum / mergedSkills[topic].count),
     }));
 
     const difficulty = {

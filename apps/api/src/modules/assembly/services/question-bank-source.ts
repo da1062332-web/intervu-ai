@@ -46,136 +46,122 @@ export class QuestionBankSource implements IQuestionSource {
     const concept = await this.prisma.concept.findFirst({
       where: { code: resolvedCode.toUpperCase() },
     });
-
     const resolvedFilters = { ...filters, conceptKey: resolvedCode };
-
-    const isManual = concept?.questionSources?.includes("MANUAL");
-
-    if (isManual) {
-      const difficulty = (filters.difficultyLevel ?? "MEDIUM") as
-        | "EASY"
-        | "MEDIUM"
-        | "HARD";
-      const limit = filters.limit ?? 10;
-      const excludeIds = filters.excludeIds ?? [];
-
-      const diffCount = limit;
-      const topicId = concept?.topicId || "";
-
-      const request: AssemblyProviderRequest = {
-        examId: filters.examId || "assembly-source",
-        sectionId: topicId, // using topicId as sectionId approximation
-        count: diffCount,
-        difficultyDistribution: {
-          EASY: difficulty === "EASY" ? diffCount : 0,
-          MEDIUM: difficulty === "MEDIUM" ? diffCount : 0,
-          HARD: difficulty === "HARD" ? diffCount : 0,
-        },
-        topicIds: topicId ? [topicId] : undefined,
-      };
-
-      // Check availability first. If pool is insufficient, throw exception (do NOT fall back!)
-      const availability =
-        await this.rotationService.checkAvailability(request);
-      if (
-        availability.status === "INSUFFICIENT_POOL" ||
-        availability.available < limit
-      ) {
-        const fallbackRequest: AssemblyProviderRequest = {
-          ...request,
-          difficultyDistribution: { EASY: 0, MEDIUM: 0, HARD: 0 },
-        };
-        const fallbackAvail =
-          await this.rotationService.checkAvailability(fallbackRequest);
-        if (fallbackAvail.available >= limit) {
-          const response =
-            await this.rotationService.retrieveAndReserve(fallbackRequest);
-          return response.questions.map((q) =>
-            this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
-          );
-        }
-
-        throw new BadRequestException({
-          message: `Insufficient manual question pool for concept ${resolvedCode}. Required: ${limit}, Available: ${fallbackAvail.available}.`,
-          details: fallbackAvail.details,
-        });
-      }
-
-      // Reserve and retrieve questions from the real bank
-      const response = await this.rotationService.retrieveAndReserve(request);
-      return response.questions.map((q) =>
-        this.mapToGeneratedQuestion(q, difficulty),
-      );
-    }
-
-    // Default: VARIABLE_TEMPLATE (using legacy templates / GeneratedQuestion pool)
-    if (!this.useRealBank) {
-      this.logger.warn(
-        "Real question bank disabled. Using legacy GeneratedQuestion pool.",
-      );
-      return this.legacyPool.fetchQuestions(resolvedFilters);
-    }
-
+    const limit = filters.limit ?? 10;
+    const excludeIds = filters.excludeIds ?? [];
     const topicId = topic?.id || resolvedCode;
     const difficulty = (filters.difficultyLevel ?? "MEDIUM") as
       | "EASY"
       | "MEDIUM"
       | "HARD";
-    const limit = filters.limit ?? 10;
-    const excludeIds = filters.excludeIds ?? [];
 
-    const diffCount = limit;
-    const request: AssemblyProviderRequest = {
-      examId: "assembly-source",
-      sectionId: topicId, // Using topicId as sectionId approximation for topic-based filtering
-      count: diffCount,
-      difficultyDistribution: {
-        EASY: difficulty === "EASY" ? diffCount : 0,
-        MEDIUM: difficulty === "MEDIUM" ? diffCount : 0,
-        HARD: difficulty === "HARD" ? diffCount : 0,
+    // 1. Calculate available active Manual questions count
+    const manualCount = await this.prisma.question.count({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { topicId: topicId },
+          { topicId: resolvedCode },
+          { concept: { topicId: topicId } },
+          { concept: { code: resolvedCode.toUpperCase() } },
+        ],
+        id: { notIn: excludeIds },
       },
-      topicIds: topicId ? [topicId] : undefined,
-    };
+    });
 
-    try {
-      // Check availability first without consuming reservations
-      const availability =
-        await this.rotationService.checkAvailability(request);
+    // 2. Calculate available active Templates count
+    const conceptCodes = (topic as any)?.concepts?.map((c: any) => c.code) || [];
+    const templateCount = await this.prisma.template.count({
+      where: {
+        isActive: true,
+        deletedAt: null,
+        OR: [
+          { conceptKey: { in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode] } },
+          { conceptKey: resolvedCode },
+          { conceptKey: topicId },
+        ],
+      },
+    });
 
-      if (
-        availability.status === "INSUFFICIENT_POOL" ||
-        availability.available === 0
-      ) {
-        this.logger.warn(
-          `Question bank insufficient for topic=${topicId} difficulty=${difficulty} ` +
-            `(required=${limit}, available=${availability.available}). ` +
-            `Falling back to legacy GeneratedQuestion pool.`,
-        );
-        return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
-      }
+    const totalPool = manualCount + templateCount;
 
-      // Retrieve and reserve questions from the real bank
-      const response = await this.rotationService.retrieveAndReserve(request);
-
-      this.logger.debug(
-        `QuestionBankSource: fetched ${response.questions.length} questions ` +
-          `for topic=${topicId} difficulty=${difficulty} (assembly=${response.assemblyId})`,
-      );
-
-      // Map Question → GeneratedQuestion-shaped object
-      // Only the fields consumed downstream by QuestionAllocatorService are mapped:
-      //   id, conceptKey, difficultyLevel, questionType, questionText, questionHash, metadata
-      return response.questions.map((q) =>
-        this.mapToGeneratedQuestion(q, difficulty),
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+    // Default: Fallback to legacy template pool if zero pool available
+    if (totalPool === 0 || !this.useRealBank) {
       this.logger.warn(
-        `QuestionBankSource real-bank retrieval failed (${message}). ` +
-          `Falling back to legacy pool.`,
+        `Pool count 0 or real bank disabled for topic=${topicId}. Using legacy template pool.`,
       );
       return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
     }
+
+    // 3. Calculate Proportional Natural Ratios (Manual vs Template)
+    const manualShare = manualCount / totalPool;
+    let targetManual = Math.round(limit * manualShare);
+    if (targetManual > manualCount) targetManual = manualCount;
+    let targetTemplate = limit - targetManual;
+    if (targetTemplate > templateCount && manualCount > targetManual) {
+      const extraManualNeeded = Math.min(
+        manualCount - targetManual,
+        targetTemplate - templateCount,
+      );
+      targetManual += extraManualNeeded;
+      targetTemplate = limit - targetManual;
+    }
+
+    const assembledResults: GeneratedQuestion[] = [];
+
+    // 4. Fetch Manual Questions according to targetManual
+    if (targetManual > 0) {
+      const request: AssemblyProviderRequest = {
+        examId: filters.examId || "assembly-source",
+        sectionId: topicId,
+        count: targetManual,
+        difficultyDistribution: {
+          EASY: difficulty === "EASY" ? targetManual : 0,
+          MEDIUM: difficulty === "MEDIUM" ? targetManual : 0,
+          HARD: difficulty === "HARD" ? targetManual : 0,
+        },
+        topicIds: topicId ? [topicId] : undefined,
+      };
+
+      try {
+        const availability = await this.rotationService.checkAvailability(request);
+        let actualReq = request;
+        if (
+          availability.status === "INSUFFICIENT_POOL" ||
+          availability.available < targetManual
+        ) {
+          actualReq = {
+            ...request,
+            difficultyDistribution: { EASY: 0, MEDIUM: 0, HARD: 0 },
+          };
+        }
+
+        const response = await this.rotationService.retrieveAndReserve(actualReq);
+        const mapped = response.questions.map((q) =>
+          this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
+        );
+        assembledResults.push(...mapped);
+      } catch (err) {
+        this.logger.warn(`Manual question retrieval notice (${err}). Shifting to templates.`);
+      }
+    }
+
+    // 5. Fetch Template Questions according to remaining target
+    const remainingNeeded = limit - assembledResults.length;
+    if (remainingNeeded > 0) {
+      try {
+        const templateQs = await this.fetchFromLegacyPool(
+          { ...resolvedFilters, limit: remainingNeeded },
+          [...excludeIds, ...assembledResults.map((q) => q.id)],
+          topicId,
+        );
+        assembledResults.push(...templateQs);
+      } catch (err) {
+        this.logger.warn(`Template pool fetch notice (${err}).`);
+      }
+    }
+
+    return assembledResults;
   }
 
   /**

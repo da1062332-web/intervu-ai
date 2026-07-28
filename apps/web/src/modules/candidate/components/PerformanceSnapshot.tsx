@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { StatCard } from '@/components/ui/stat-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Target, FileText } from 'lucide-react';
 
 import { useCandidateDashboardMetrics } from '../hooks/useCandidateDashboard';
@@ -10,21 +11,16 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
 
   if (isLoading) {
     return (
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5'>
         {[1, 2, 3].map((i) => (
-          <StatCard
-            key={i}
-            title='Loading...'
-            value='-'
-            isLoading={true}
-          />
+          <Skeleton key={i} className='h-24 w-full rounded-xl border border-border/60 bg-muted/50' />
         ))}
       </div>
     );
   }
 
   if (error || !data) {
-    return null; // Or a gentle error state
+    return null;
   }
 
   const bestScore = data.bestScore ?? 0;
@@ -32,26 +28,26 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
   const attempts = data.attemptCount ?? 0;
 
   return (
-    <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5'>
       <StatCard
         title='BEST SCORE'
         value={`${bestScore}%`}
-        icon={<Trophy className='size-4' />}
-        className='border-indigo-500/20'
+        icon={<Trophy className='size-4 text-indigo-500' />}
+        className='bg-card/80 border border-border/60 shadow-xs hover:bg-card transition-all'
       />
 
       <StatCard
         title='AVG ACCURACY'
         value={`${avgAccuracy}%`}
-        icon={<Target className='size-4' />}
-        className='border-blue-500/20'
+        icon={<Target className='size-4 text-blue-500' />}
+        className='bg-card/80 border border-border/60 shadow-xs hover:bg-card transition-all'
       />
 
       <StatCard
-        title='COMPLETED'
+        title='COMPLETED ATTEMPTS'
         value={attempts}
-        icon={<FileText className='size-4' />}
-        className='border-emerald-500/20'
+        icon={<FileText className='size-4 text-emerald-500' />}
+        className='bg-card/80 border border-border/60 shadow-xs hover:bg-card transition-all'
       />
     </div>
   );

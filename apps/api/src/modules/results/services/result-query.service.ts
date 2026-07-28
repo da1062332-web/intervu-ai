@@ -91,6 +91,13 @@ export class ResultQueryService {
     };
   }
 
+  private async getTopicNameMap(): Promise<Map<string, string>> {
+    const topics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const map = new Map<string, string>();
+    topics.forEach((t) => map.set(t.id, t.name));
+    return map;
+  }
+
   async getAnalytics(attemptId: string) {
     const analytics = await this.candidateResultRepo.findAnalytics(attemptId);
     if (!analytics) {
@@ -102,11 +109,20 @@ export class ResultQueryService {
         attemptRate: 0,
       };
     }
+
+    const topicNameMap = await this.getTopicNameMap();
+    const rawTopicAccuracy =
+      typeof analytics.topicAccuracy === "object"
+        ? (analytics.topicAccuracy as Record<string, any>)
+        : {};
+    const mappedTopicAccuracy: Record<string, any> = {};
+    Object.entries(rawTopicAccuracy).forEach(([key, value]) => {
+      const cleanName = topicNameMap.get(key) || key;
+      mappedTopicAccuracy[cleanName] = value;
+    });
+
     return {
-      topicAccuracy:
-        typeof analytics.topicAccuracy === "object"
-          ? analytics.topicAccuracy
-          : {},
+      topicAccuracy: mappedTopicAccuracy,
       difficultyAccuracy:
         typeof analytics.difficultyAccuracy === "object"
           ? analytics.difficultyAccuracy
@@ -130,13 +146,14 @@ export class ResultQueryService {
     }
     // Transform insights to match the requested format
     const rawInsights = (insight.insights as any[]) || [];
+    const topicNameMap = await this.getTopicNameMap();
     return {
       strengths: rawInsights
         .filter((i) => i.type === "strength")
-        .map((i) => ({ topic: i.topic, score: i.score, remarks: i.remarks })),
+        .map((i) => ({ topic: topicNameMap.get(i.topic) || i.topic, score: i.score, remarks: i.remarks })),
       weaknesses: rawInsights
         .filter((i) => i.type === "weakness")
-        .map((i) => ({ topic: i.topic, score: i.score, remarks: i.remarks })),
+        .map((i) => ({ topic: topicNameMap.get(i.topic) || i.topic, score: i.score, remarks: i.remarks })),
     };
   }
 
@@ -152,10 +169,11 @@ export class ResultQueryService {
         priority: "Medium",
       };
     }
+    const topicNameMap = await this.getTopicNameMap();
     // Return aggregated payload
     return {
       practiceSuggestions: recommendations.map((r) => r.title),
-      focusTopics: recommendations.map((r) => r.skill),
+      focusTopics: recommendations.map((r) => topicNameMap.get(r.skill) || r.skill),
       improvementPlan: recommendations.map((r) => r.description),
       estimatedPracticeHours: recommendations.length * 2,
       priority: recommendations[0]?.priority || "Medium",

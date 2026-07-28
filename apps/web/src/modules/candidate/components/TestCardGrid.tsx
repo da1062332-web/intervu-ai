@@ -53,7 +53,7 @@ export function TestCardGrid({
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className='flex items-center justify-between border-t border-border/40 pt-6 mt-8'>
+        <div className='flex items-center justify-between border-t border-border/60 pt-6 mt-8'>
           <div className='text-sm text-muted-foreground font-medium'>
             Showing <span className='text-foreground font-semibold'>{startIndex + 1}</span> to{' '}
             <span className='text-foreground font-semibold'>
@@ -61,7 +61,7 @@ export function TestCardGrid({
             </span>{' '}
             of <span className='text-foreground font-semibold'>{actualTotal}</span> assessments
           </div>
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-1.5'>
             <Button
               variant='outline'
               size='icon'
@@ -75,7 +75,6 @@ export function TestCardGrid({
 
             {Array.from({ length: totalPages }).map((_, idx) => {
               const pageNum = idx + 1;
-              // Show pages close to the current page to avoid clutter
               if (pageNum === 1 || pageNum === totalPages || Math.abs(pageNum - currentPage) <= 1) {
                 return (
                   <Button
@@ -96,7 +95,7 @@ export function TestCardGrid({
                 return (
                   <span
                     key={`ellipsis-${pageNum}`}
-                    className='px-1.5 text-muted-foreground/60 text-sm font-semibold select-none'
+                    className='px-2 text-muted-foreground/60 text-sm font-semibold select-none'
                   >
                     ...
                   </span>
