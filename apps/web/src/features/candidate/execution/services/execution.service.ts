@@ -17,8 +17,16 @@ export interface SectionAdvanceResult {
   submitted: boolean;
 }
 
+function isDemoId(id?: string): boolean {
+  return !id || id.startsWith('demo-') || id.includes('sandbox');
+}
+
 export const executionService = {
   getTestInstance: async (id: string): Promise<TestInstance> => {
+    if (isDemoId(id)) {
+      throw new Error('Demo mode instances are initialized directly by the demo store.');
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await apiClient.request<any>(`/tests/${id}`, { cache: 'no-store' });
 
@@ -86,10 +94,16 @@ export const executionService = {
   },
 
   resumeAssessment: async (id: string): Promise<any> => {
+    if (isDemoId(id)) {
+      return { success: true, status: 'IN_PROGRESS', resumedAt: new Date().toISOString() };
+    }
     return apiClient.request<any>(`/assessment-sessions/${id}/resume`);
   },
 
   saveAnswer: async (testId: string, payload: CandidateAnswerPayload): Promise<{ status?: string }> => {
+    if (isDemoId(testId)) {
+      return { status: 'SAVED' };
+    }
     return apiClient.request(`/tests/${testId}/answer`, {
       method: 'POST',
       body: payload,
@@ -97,6 +111,9 @@ export const executionService = {
   },
 
   checkpoint: async (id: string, payload: any): Promise<void> => {
+    if (isDemoId(id)) {
+      return;
+    }
     return apiClient.request(`/assessment-sessions/${id}/sync-state`, {
       method: 'POST',
       body: payload,
@@ -107,6 +124,10 @@ export const executionService = {
     testId: string,
     options?: { autoSubmit?: boolean; allowPartial?: boolean },
   ): Promise<void> => {
+    if (isDemoId(testId)) {
+      console.log('[Demo Mode] Assessment submission simulated successfully:', { testId, options });
+      return;
+    }
     return apiClient.request(`/tests/${testId}/submit`, {
       method: 'POST',
       query: { allowPartial: true, ...options } as Record<string, string | number | boolean>,
@@ -118,6 +139,15 @@ export const executionService = {
    * Locks the current section, activates the next, or triggers auto-submit if last.
    */
   advanceSection: async (testId: string): Promise<SectionAdvanceResult> => {
+    if (isDemoId(testId)) {
+      return {
+        nextSectionIndex: 1,
+        nextSectionId: 'demo-sec-next',
+        serverTime: new Date().toISOString(),
+        isLastSection: false,
+        submitted: false,
+      };
+    }
     return apiClient.request<SectionAdvanceResult>(`/tests/${testId}/sections/advance`, {
       method: 'POST',
     });

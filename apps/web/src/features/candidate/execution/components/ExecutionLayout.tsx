@@ -11,8 +11,6 @@ import { TabWarningModal } from './TabWarningModal';
 import { SectionChangeModal } from './SectionChangeModal';
 import { FaceTracker } from './FaceTracker';
 import { TimerWidget } from './TimerWidget';
-import { ConnectionStatusBadge } from './ConnectionStatusBadge';
-import { AutosaveIndicator } from './AutosaveIndicator';
 import { UnsavedChangesBanner } from './UnsavedChangesBanner';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
@@ -24,7 +22,11 @@ import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
 import { useState, useCallback } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
 
 export function ExecutionLayout() {
@@ -63,14 +65,17 @@ export function ExecutionLayout() {
       <FullscreenOverlay />
       <TabWarningModal />
       <UnsavedChangesBanner />
-
-      {/* Green Header Banner */}
+      
+      {/* Green Header Banner (with integrated sync/offline warning) */}
       <ExecutionHeader />
 
-      <main className='flex-1 container max-w-[1600px] mx-auto px-0 md:px-0 py-6 md:py-6 pb-[120px] select-text'>
-        <div className='grid grid-cols-1 lg:grid-cols-10 gap-6 h-full items-start'>
-          {/* Left + Center Columns - Question & Resources */}
-          <div className='lg:col-span-8 flex flex-col'>
+      {/* Main Viewport Container */}
+      <main className='flex flex-1 lg:h-[calc(100vh-3.5rem)] overflow-hidden bg-[#f3f7fb] w-full select-text'>
+        <div className='flex flex-col lg:flex-row w-full h-full overflow-y-auto lg:overflow-hidden'>
+          
+          {/* Left Column: Sections Box & Main Question Area */}
+          <div className='flex-1 flex flex-col h-full lg:overflow-hidden p-2.5 sm:p-3 min-w-0 bg-[#f3f7fb]'>
+            {/* Sections Border Fieldset */}
             <SectionTabs />
 
             {/* Main Question & Options Container with Fixed Layout Size */}
@@ -95,10 +100,7 @@ export function ExecutionLayout() {
                   Open Question Palette &amp; Test Info
                 </button>
               </SheetTrigger>
-              <SheetContent
-                side='right'
-                className='w-full sm:w-[380px] p-0 bg-[#e3f2fb] overflow-hidden flex flex-col z-[9999]'
-              >
+              <SheetContent side='right' className='w-full sm:w-[380px] p-0 bg-[#e3f2fb] overflow-hidden flex flex-col z-[9999]'>
                 <div className='p-3.5 bg-white border-b border-gray-300 flex items-center justify-between shrink-0'>
                   <div className='flex flex-col items-center w-24 shrink-0'>
                     <div className='w-20 h-20 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
@@ -110,14 +112,10 @@ export function ExecutionLayout() {
                   </div>
                   <div className='flex flex-col items-end justify-center flex-1 pl-2 text-right'>
                     <TimerWidget />
-                    <div className='flex items-center gap-2 mt-2'>
-                      <ConnectionStatusBadge />
-                      <AutosaveIndicator />
-                    </div>
                   </div>
                 </div>
                 <div className='flex-1 flex flex-col overflow-hidden'>
-                  <QuestionPalette onSubmitClick={handleSubmit} />
+                  <QuestionPalette />
                 </div>
               </SheetContent>
             </Sheet>
@@ -126,7 +124,7 @@ export function ExecutionLayout() {
           {/* Right Sidebar: Candidate Photo, Timer & Question Palette (>= lg screens) */}
           <div className='hidden lg:flex flex-col w-[330px] xl:w-[350px] shrink-0 border-l border-gray-300 bg-[#e3f2fb] h-full overflow-hidden select-none z-20'>
             {/* Top White Info Header: Candidate Silhouette & Timer */}
-            <div className='bg-white p-3.5 border-b border-gray-300 shrink-0 flex items-start justify-between gap-3'>
+            <div className='bg-white p-3.5 border-b border-gray-300 shrink-0 flex items-center justify-between gap-3 min-h-[110px]'>
               {/* Candidate Photo / Camera Box */}
               <div className='flex flex-col items-center w-28 shrink-0'>
                 <div className='w-24 h-24 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
@@ -137,20 +135,15 @@ export function ExecutionLayout() {
                 </span>
               </div>
 
-              {/* Timer Display & Indicators (no pause button, no alerts) */}
-              <div className='flex flex-col items-end justify-between flex-1 pl-1 text-right min-h-[76px]'>
+              {/* Timer Display */}
+              <div className='flex flex-col items-end justify-center flex-1 pl-1 text-right'>
                 <TimerWidget />
-
-                <div className='flex flex-wrap items-center justify-end gap-2 text-[10px] text-gray-500 mt-2'>
-                  <ConnectionStatusBadge />
-                  <AutosaveIndicator />
-                </div>
               </div>
             </div>
 
             {/* Light Blue Question Palette Sidebar */}
             <div className='flex-1 flex flex-col overflow-hidden'>
-              <QuestionPalette onSubmitClick={handleSubmit} />
+              <QuestionPalette />
             </div>
           </div>
         </div>

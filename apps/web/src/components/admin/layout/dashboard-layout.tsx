@@ -14,8 +14,13 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
-  
-  if (pathname.includes('/execution')) {
+
+  if (
+    pathname.includes('/execution') ||
+    pathname.includes('/demo-sandbox') ||
+    pathname.includes('/sandbox') ||
+    pathname.includes('/mock-exam')
+  ) {
     return <div className='min-h-screen bg-background'>{children}</div>;
   }
   return (

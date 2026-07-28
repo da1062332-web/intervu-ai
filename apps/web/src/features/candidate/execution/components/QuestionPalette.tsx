@@ -5,14 +5,8 @@ import { QuestionStatusBadge } from './QuestionStatusBadge';
 import { InstructionsModal } from './InstructionsModal';
 import { useCallback, memo, useMemo, useState } from 'react';
 
-interface QuestionPaletteProps {
-  onSubmitClick?: () => void;
-}
-
-export const QuestionPalette = memo(function QuestionPalette({
-  onSubmitClick,
-}: QuestionPaletteProps) {
-  const { palette, jumpToQuestion, answers, questions, testInstance, currentQuestionIndex, currentSectionIndex } =
+export const QuestionPalette = memo(function QuestionPalette() {
+  const { palette, jumpToQuestion, answers, questions, testInstance, currentQuestionIndex } =
     useExecutionStore();
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
@@ -23,15 +17,17 @@ export const QuestionPalette = memo(function QuestionPalette({
     [jumpToQuestion],
   );
 
-  // Compute boundaries for the active section
-  const { startIndex, endIndex, currentSectionTitle } = useMemo(() => {
+  // Compute boundaries and active section index for the current question
+  const { startIndex, endIndex, currentSectionTitle, activeSectionIdx } = useMemo(() => {
     let start = 0;
     let end = questions.length;
     let title = 'General';
+    let secIdx = 0;
 
     if (testInstance?.sections) {
       let runningCount = 0;
-      for (const section of testInstance.sections) {
+      for (let i = 0; i < testInstance.sections.length; i++) {
+        const section = testInstance.sections[i];
         const sectionLength = section.questions.length;
         if (
           currentQuestionIndex >= runningCount &&
@@ -40,12 +36,13 @@ export const QuestionPalette = memo(function QuestionPalette({
           start = runningCount;
           end = runningCount + sectionLength;
           title = section.title || section.sectionName || 'Section';
+          secIdx = i;
           break;
         }
         runningCount += sectionLength;
       }
     }
-    return { startIndex: start, endIndex: end, currentSectionTitle: title };
+    return { startIndex: start, endIndex: end, currentSectionTitle: title, activeSectionIdx: secIdx };
   }, [testInstance, currentQuestionIndex, questions.length]);
 
   const visiblePalette = palette.slice(startIndex, endIndex);
@@ -75,16 +72,23 @@ export const QuestionPalette = memo(function QuestionPalette({
 
   const notVisitedCount = Math.max(0, visiblePalette.length - answeredCount - markedCount - notAnsweredCount);
 
+  // Check if there is an actual subsequent section to navigate to
+  const hasNextSection = Boolean(
+    testInstance &&
+    testInstance.sections &&
+    activeSectionIdx + 1 < testInstance.sections.length
+  );
+
   const handleNextSectionClick = () => {
-    if (testInstance && testInstance.sections && currentSectionIndex + 1 < testInstance.sections.length) {
+    if (!testInstance || !testInstance.sections) return;
+    if (activeSectionIdx + 1 < testInstance.sections.length) {
       let runningCount = 0;
-      for (let i = 0; i <= currentSectionIndex; i++) {
+      for (let i = 0; i <= activeSectionIdx; i++) {
         runningCount += testInstance.sections[i].questions.length;
       }
       jumpToQuestion(runningCount);
-    } else {
-      if (onSubmitClick) onSubmitClick();
     }
+    // Note: NEVER submit assessment or open submission modal here!
   };
 
   return (
@@ -133,12 +137,7 @@ export const QuestionPalette = memo(function QuestionPalette({
 
           {/* Scrollable Question Grid */}
           <div className='relative flex flex-1 overflow-hidden mt-1'>
-            {/* Collapse chevron indicator on left border */}
-            <div className='flex items-center justify-center w-4 text-gray-500 hover:text-gray-800 pr-1 select-none pointer-events-none'>
-              <span className='text-xs font-bold text-gray-500'>&gt;&gt;</span>
-            </div>
-
-            <div className='flex-1 overflow-y-auto custom-scrollbar pr-1 max-h-full py-1'>
+            <div className='flex-1 overflow-y-auto custom-scrollbar max-h-full py-1'>
               <div className='grid grid-cols-4 gap-2.5 px-1 pb-4'>
                 {visiblePalette.map((status, relativeIndex) => {
                   const absoluteIndex = startIndex + relativeIndex;
@@ -191,7 +190,8 @@ export const QuestionPalette = memo(function QuestionPalette({
           </button>
           <button
             onClick={handleNextSectionClick}
-            className='bg-[#d6eafb] hover:bg-[#c1dff6] text-[#1c3e66] border border-[#96bae0] shadow-sm font-semibold text-xs py-2.5 px-2 rounded-sm transition-colors text-center truncate cursor-pointer flex items-center justify-center tracking-wide'
+            disabled={!hasNextSection}
+            className='bg-[#d6eafb] hover:bg-[#c1dff6] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:border-gray-300 disabled:text-gray-400 text-[#1c3e66] border border-[#96bae0] shadow-sm font-semibold text-xs py-2.5 px-2 rounded-sm transition-colors text-center truncate cursor-pointer flex items-center justify-center tracking-wide'
           >
             Next Section
           </button>

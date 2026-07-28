@@ -1,11 +1,19 @@
 import React from 'react';
 import { useResultAnalysis } from '../hooks/results.hooks';
+import { useTopics } from '@/services/topics/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loading } from '@/components/ui/loading';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
 export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
   const { data, isLoading, isError } = useResultAnalysis(attemptId);
+  const { data: topicsList } = useTopics(false);
+
+  const topicMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    topicsList?.forEach((t) => map.set(t.id, t.name));
+    return map;
+  }, [topicsList]);
 
   if (isLoading) return <Loading />;
   if (isError || !data) return null;
@@ -24,17 +32,22 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
             <p className='text-sm text-gray-500'>No specific strengths identified yet.</p>
           ) : (
             <ul className='space-y-4'>
-              {data.strengths.map((item, i) => (
-                <li key={i} className='flex flex-col border-b last:border-0 pb-3 last:pb-0'>
-                  <div className='flex justify-between items-center mb-1'>
-                    <span className='font-semibold text-gray-800'>{item.topic}</span>
-                    <span className='text-sm font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded-full'>
-                      {item.score}%
-                    </span>
-                  </div>
-                  <span className='text-sm text-gray-600'>{item.remarks}</span>
-                </li>
-              ))}
+              {data.strengths.map((item, i) => {
+                const displayName = topicMap.get(item.topic) || item.topic;
+                return (
+                  <li key={i} className='flex flex-col border-b last:border-0 pb-3 last:pb-0'>
+                    <div className='flex justify-between items-center mb-1'>
+                      <span className='font-semibold text-gray-800 truncate max-w-[80%]' title={displayName}>
+                        {displayName}
+                      </span>
+                      <span className='text-sm font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded-full'>
+                        {item.score}%
+                      </span>
+                    </div>
+                    <span className='text-sm text-gray-600'>{item.remarks}</span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>
@@ -52,17 +65,22 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
             <p className='text-sm text-gray-500'>No specific weaknesses identified yet.</p>
           ) : (
             <ul className='space-y-4'>
-              {data.weaknesses.map((item, i) => (
-                <li key={i} className='flex flex-col border-b last:border-0 pb-3 last:pb-0'>
-                  <div className='flex justify-between items-center mb-1'>
-                    <span className='font-semibold text-gray-800'>{item.topic}</span>
-                    <span className='text-sm font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded-full'>
-                      {item.score}%
-                    </span>
-                  </div>
-                  <span className='text-sm text-gray-600'>{item.remarks}</span>
-                </li>
-              ))}
+              {data.weaknesses.map((item, i) => {
+                const displayName = topicMap.get(item.topic) || item.topic;
+                return (
+                  <li key={i} className='flex flex-col border-b last:border-0 pb-3 last:pb-0'>
+                    <div className='flex justify-between items-center mb-1'>
+                      <span className='font-semibold text-gray-800 truncate max-w-[80%]' title={displayName}>
+                        {displayName}
+                      </span>
+                      <span className='text-sm font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded-full'>
+                        {item.score}%
+                      </span>
+                    </div>
+                    <span className='text-sm text-gray-600'>{item.remarks}</span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

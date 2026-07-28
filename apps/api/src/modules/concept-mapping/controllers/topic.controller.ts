@@ -48,6 +48,7 @@ export class TopicController {
   }
 
   @Get()
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ValidateResponse(TopicListResponseSchema)
   @ApiOperation({ summary: "List all active topics" })
   @ApiOkResponse({ description: "List of active topics" })
@@ -57,6 +58,7 @@ export class TopicController {
   }
 
   @Get(":id")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ValidateResponse(TopicResponseSchema)
   @ApiOperation({ summary: "Get a single topic by ID" })
   @ApiOkResponse({ description: "Topic details" })

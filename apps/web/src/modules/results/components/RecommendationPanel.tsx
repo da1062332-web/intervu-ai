@@ -1,5 +1,6 @@
 import React from 'react';
 import { useResultRecommendations } from '../hooks/results.hooks';
+import { useTopics } from '@/services/topics/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loading } from '@/components/ui/loading';
 import { Lightbulb, Target, Clock, ArrowUpRight } from 'lucide-react';
@@ -7,6 +8,13 @@ import { Badge } from '@/components/ui/badge';
 
 export const RecommendationPanel = ({ attemptId }: { attemptId: string }) => {
   const { data, isLoading, isError } = useResultRecommendations(attemptId);
+  const { data: topicsList } = useTopics(false);
+
+  const topicMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    topicsList?.forEach((t) => map.set(t.id, t.name));
+    return map;
+  }, [topicsList]);
 
   if (isLoading) return <Loading />;
   if (isError || !data) return null;
@@ -63,7 +71,7 @@ export const RecommendationPanel = ({ attemptId }: { attemptId: string }) => {
               <div className='flex flex-wrap gap-2'>
                 {data.focusTopics.map((topic, i) => (
                   <Badge key={i} variant='secondary'>
-                    {topic}
+                    {topicMap.get(topic) || topic}
                   </Badge>
                 ))}
               </div>

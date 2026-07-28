@@ -4,7 +4,6 @@ import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
 import { SubmissionSummary } from './SubmissionSummary';
 import { Modal } from '@/components/ui/modal';
-import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
@@ -51,49 +50,63 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
 
   return (
     <Modal isOpen={isOpen} onClose={isSubmitting ? () => {} : onClose}>
-      <div className='space-y-2 mb-4'>
-        <h2 className='text-xl font-bold tracking-tight'>Submit Assessment</h2>
-        <p className='text-sm text-muted-foreground'>
-          Please review your progress before final submission. Once submitted, you cannot edit your
-          answers.
-        </p>
-      </div>
-      <div className='mt-4'>
-        <SubmissionSummary />
+      <div className='space-y-4 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar text-gray-800 font-sans select-none'>
+        <div className='border-b pb-3 border-gray-200'>
+          <h2 className='text-xl font-bold text-gray-900 tracking-tight'>
+            Submit Assessment
+          </h2>
+          <p className='text-xs text-gray-600 mt-1'>
+            Please review your question status breakdown before final submission. Once submitted, answers cannot be edited.
+          </p>
+        </div>
 
-        {hasFailed && (
-          <div className='mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded-md flex items-start gap-2'>
-            <AlertCircle className='w-5 h-5 shrink-0' />
-            <p>
-              Submission failed due to a network error. Please check your connection and try again.
-            </p>
+        <div className='mt-3'>
+          <SubmissionSummary />
+
+          {hasFailed && (
+            <div className='mt-4 p-3.5 bg-red-50 border border-red-300 text-red-800 text-xs rounded-sm flex items-start gap-2.5 shadow-2xs'>
+              <AlertCircle className='w-4 h-4 shrink-0 text-red-600 mt-0.5' />
+              <p>
+                Submission failed due to a network error. Please check your connection and try submitting again.
+              </p>
+            </div>
+          )}
+
+          {unanswered > 0 && !hasFailed && (
+            <div className='mt-4 p-3.5 bg-amber-50 border border-amber-300 text-amber-900 text-xs rounded-sm flex items-start gap-2.5 shadow-2xs'>
+              <AlertTriangle className='w-4 h-4 shrink-0 text-amber-600 mt-0.5' />
+              <p>
+                You have <strong>{unanswered} unanswered</strong>{' '}
+                {unanswered === 1 ? 'question' : 'questions'}. Are you sure you want to proceed with final submission?
+              </p>
+            </div>
+          )}
+
+          <div className='flex flex-row items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200'>
+            <button
+              type='button'
+              onClick={onClose}
+              disabled={isSubmitting}
+              className='bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 font-bold text-xs px-5 py-2.5 h-9 rounded-sm shadow-xs transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed m-0'
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className='bg-[#27783f] hover:bg-[#1f6333] text-white border border-[#195028] font-bold text-xs px-6 py-2.5 h-9 rounded-sm shadow-sm transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center m-0 min-w-[140px]'
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className='w-3.5 h-3.5 mr-2 animate-spin' />
+                  Submitting...
+                </>
+              ) : (
+                'Confirm Submission'
+              )}
+            </button>
           </div>
-        )}
-
-        {unanswered > 0 && !hasFailed && (
-          <div className='mt-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm rounded-md flex items-start gap-2'>
-            <AlertTriangle className='w-5 h-5 shrink-0' />
-            <p>
-              You still have <strong>{unanswered} unanswered</strong>{' '}
-              {unanswered === 1 ? 'question' : 'questions'}. Are you sure you want to submit?
-            </p>
-          </div>
-        )}
-
-        <div className='flex justify-end gap-3 mt-6 pt-6 border-t'>
-          <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting} className='min-w-[140px]'>
-            {isSubmitting ? (
-              <>
-                <Loader2 className='w-4 h-4 mr-2 animate-spin' />
-                Submitting...
-              </>
-            ) : (
-              'Confirm Submission'
-            )}
-          </Button>
         </div>
       </div>
     </Modal>

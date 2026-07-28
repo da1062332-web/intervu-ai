@@ -12,8 +12,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useExecutionStore } from '../stores/execution.store';
 import { useMemo, useState } from 'react';
-import { AlertTriangle, Lock, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
+import { Lock, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export function SectionChangeModal() {
   const {
@@ -110,49 +111,48 @@ export function SectionChangeModal() {
     <AnimatePresence>
       {isOpen && (
         <AlertDialog open={isOpen} onOpenChange={(open: any) => !open && cancelSectionChange()}>
-          <AlertDialogContent className='overflow-hidden p-0 max-w-md border-0 ring-1 ring-primary/10 shadow-2xl'>
+          <AlertDialogContent className='overflow-hidden p-0 max-w-md bg-white border border-gray-300 rounded-md shadow-2xl text-gray-800 font-sans select-none z-[9999]'>
             <div
-              className={`h-2 w-full ${showLockWarning ? 'bg-gradient-to-r from-amber-500 to-orange-600' : 'bg-gradient-to-r from-blue-500 to-primary'}`}
+              className={`h-2 w-full ${showLockWarning ? 'bg-amber-600' : 'bg-[#26773e]'}`}
             />
 
             <div className='p-6'>
               <AlertDialogHeader>
-                <AlertDialogTitle className='flex items-center gap-3 text-xl'>
+                <AlertDialogTitle className='flex items-center gap-3 text-lg font-bold text-gray-900 tracking-tight'>
                   {showLockWarning ? (
-                    <div className='flex items-center justify-center size-10 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500'>
-                      <Lock className='size-5' />
+                    <div className='flex items-center justify-center size-9 rounded-full bg-amber-100 text-amber-700 border border-amber-200 shrink-0'>
+                      <Lock className='size-4.5' />
                     </div>
                   ) : (
-                    <div className='flex items-center justify-center size-10 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-500'>
-                      <ArrowRight className='size-5' />
+                    <div className='flex items-center justify-center size-9 rounded-full bg-[#d6eafb] text-[#1c3e66] border border-[#96bae0] shrink-0'>
+                      <ArrowRight className='size-4.5' />
                     </div>
                   )}
                   Switch to {targetSectionName}?
                 </AlertDialogTitle>
 
                 <AlertDialogDescription asChild>
-                  <div className='space-y-4 pt-3 text-base text-slate-600 dark:text-slate-300'>
+                  <div className='space-y-4 pt-3 text-sm text-gray-600 font-normal leading-relaxed'>
                     <p>
                       You are about to switch from{' '}
-                      <span className='font-semibold text-foreground'>{currentSectionName}</span> to{' '}
-                      <span className='font-semibold text-foreground'>{targetSectionName}</span>.
+                      <span className='font-bold text-gray-900'>{currentSectionName}</span> to{' '}
+                      <span className='font-bold text-gray-900'>{targetSectionName}</span>.
                     </p>
 
                     {showLockWarning && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className='flex items-start gap-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/50 text-amber-900 dark:text-amber-200 p-4 shadow-sm'
+                        className='flex items-start gap-3 rounded-sm bg-amber-50 border border-amber-300 text-amber-900 p-3.5 shadow-2xs'
                       >
-                        <ShieldAlert className='size-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5' />
-                        <div className='text-sm leading-relaxed'>
-                          <span className='font-bold text-amber-700 dark:text-amber-400'>
-                            Warning:{' '}
+                        <ShieldAlert className='size-5 text-amber-700 shrink-0 mt-0.5' />
+                        <div className='text-xs leading-normal'>
+                          <span className='font-bold text-amber-950 block mb-0.5'>
+                            Lock Warning:
                           </span>
                           Once you proceed, the{' '}
                           <span className='font-semibold'>{currentSectionName}</span> section will be{' '}
-                          <strong>permanently locked</strong>. You will not be able to return to it
-                          later.
+                          <strong>permanently locked</strong>. You will not be able to return to it later.
                         </div>
                       </motion.div>
                     )}
@@ -160,32 +160,33 @@ export function SectionChangeModal() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
 
-              <AlertDialogFooter className='mt-8 flex gap-3 sm:gap-0'>
+              <AlertDialogFooter className='mt-6 pt-4 border-t border-gray-200 flex flex-row items-center justify-end gap-3 sm:gap-3 sm:space-x-0'>
                 <AlertDialogCancel
                   onClick={cancelSectionChange}
                   disabled={isLoading}
-                  className='mt-0 border-slate-200 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800'
+                  className='bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 font-bold text-xs px-5 py-2.5 h-9 rounded-sm shadow-xs transition-colors m-0 sm:m-0 cursor-pointer shrink-0'
                 >
                   Stay here
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleConfirm}
                   disabled={isLoading}
-                  className={`gap-2 text-white shadow-md transition-all ${
+                  className={cn(
+                    'font-bold text-xs px-6 py-2.5 h-9 rounded-sm shadow-sm transition-colors flex items-center gap-1.5 m-0 sm:m-0 cursor-pointer shrink-0',
                     showLockWarning
-                      ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500'
-                      : 'bg-primary hover:bg-primary/90 focus:ring-primary'
-                  }`}
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white border border-amber-800'
+                      : 'bg-[#27783f] hover:bg-[#1f6333] text-white border border-[#195028]'
+                  )}
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className='size-4 animate-spin' />
+                      <Loader2 className='size-3.5 animate-spin' />
                       Loading...
                     </>
                   ) : (
                     <>
                       Proceed
-                      <ArrowRight className='size-4' />
+                      <ArrowRight className='size-3.5' />
                     </>
                   )}
                 </AlertDialogAction>
