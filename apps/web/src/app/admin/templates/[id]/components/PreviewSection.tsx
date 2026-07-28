@@ -41,6 +41,53 @@ export function PreviewSection({ template }: { template?: any }) {
 
   const currentStrategy = template?.generationStrategy || 'VARIABLE';
 
+  // Formatting config — show between 2 and 4 decimal places for numeric answers
+  const MIN_DECIMALS = 2;
+  const MAX_DECIMALS = 4;
+
+  function trimTrailingZeros(s: string) {
+    return s.replace(/(?:\.0+|(?<=\.[0-9]*?)0+)$/, '').replace(/\.$/, '');
+  }
+
+  function formatNumberValue(n: number) {
+    if (Number.isNaN(n) || !isFinite(n)) return String(n);
+    if (Number.isInteger(n)) return String(n);
+    // Count fractional digits in original representation
+    const parts = String(n).split('.');
+    const frac = parts[1] || '';
+    const fracLen = frac.length;
+    const decimals = Math.min(MAX_DECIMALS, Math.max(MIN_DECIMALS, fracLen));
+    const fixed = n.toFixed(decimals);
+    return trimTrailingZeros(fixed);
+  }
+
+  function formatDisplay(value: unknown) {
+    if (value === null || value === undefined) return '';
+    // Numbers
+    if (typeof value === 'number') return formatNumberValue(value);
+
+    // Strings: try to find a leading number and format it, preserve surrounding text
+    if (typeof value === 'string') {
+      // match first numeric token (handles negative and decimal and scientific)
+      const m = value.match(/^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/i);
+      if (m) {
+        try {
+          const num = Number(m[0]);
+          if (!Number.isNaN(num) && isFinite(num)) {
+            const formatted = formatNumberValue(num);
+            return value.replace(m[0], formatted);
+          }
+        } catch (e) {
+          // fallthrough
+        }
+      }
+      return value;
+    }
+
+    // Fallback to stringify
+    return String(value);
+  }
+
   return (
     <TemplateSection
       title="Question Preview"
@@ -140,7 +187,7 @@ export function PreviewSection({ template }: { template?: any }) {
                         >
                           {isCorrect && <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600 dark:text-green-400" />}
                           {!isCorrect && <span className="w-4 inline-block font-medium text-gray-400">{String.fromCharCode(65 + i)}.</span>}
-                          {opt}
+                          {formatDisplay(opt)}
                         </div>
                       )
                     })}
@@ -154,7 +201,7 @@ export function PreviewSection({ template }: { template?: any }) {
                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <div>
                     <span className="font-semibold text-green-800 dark:text-green-300 block text-xs uppercase tracking-wider mb-0.5">Correct Answer</span>
-                    <span className="font-medium text-green-900 dark:text-green-100">{result.correctAnswer}</span>
+                    <span className="font-medium text-green-900 dark:text-green-100">{formatDisplay(result.correctAnswer)}</span>
                   </div>
                 </div>
               )}
