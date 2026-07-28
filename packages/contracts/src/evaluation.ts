@@ -43,6 +43,11 @@ export const SectionScoreDtoSchema = z.object({
   skipped: z.number().int().nonnegative(),
   marks: z.number().nonnegative(),
   accuracy: z.number().min(0).max(100),
+  // Enriched fields
+  totalQuestions: z.number().int().nonnegative().optional(),
+  attempted: z.number().int().nonnegative().optional(),
+  maxMarks: z.number().nonnegative().optional(),
+  percentage: z.number().min(0).max(100).optional(),
 });
 
 export type SectionScoreDto = z.infer<typeof SectionScoreDtoSchema>;
@@ -52,6 +57,13 @@ export const OverallScoreDtoSchema = z.object({
   percentage: z.number().min(0).max(100),
   accuracy: z.number().min(0).max(100),
   normalizedScore: z.number().min(0).max(100),
+  // Enriched fields
+  maxMarks: z.number().nonnegative().optional(),
+  objectiveScore: z.number().nonnegative().optional(),
+  codingScore: z.number().nonnegative().optional(),
+  objectiveMaxMarks: z.number().nonnegative().optional(),
+  codingMaxMarks: z.number().nonnegative().optional(),
+  passed: z.boolean().optional(),
 });
 
 export type OverallScoreDto = z.infer<typeof OverallScoreDtoSchema>;
@@ -93,8 +105,16 @@ export const CandidateResultDtoSchema = z.object({
   weaknesses: z.array(z.string()).optional(),
   recommendations: z.array(RecommendationDtoSchema).optional(),
   explanations: EvaluationExplanationSchema.optional(),
-  predictedProfile: z.string().optional(),
-  profileDetails: z.record(z.string(), z.any()).optional(),
+
+
+  // Enriched result fields
+  totalAttempted: z.number().int().nonnegative().optional(),
+  totalCorrect: z.number().int().nonnegative().optional(),
+  totalIncorrect: z.number().int().nonnegative().optional(),
+  maxMarks: z.number().nonnegative().optional(),
+  objectiveScore: z.number().nonnegative().optional(),
+  codingScore: z.number().nonnegative().optional(),
+  passed: z.boolean().optional(),
 });
 
 export type CandidateResultDto = z.infer<typeof CandidateResultDtoSchema>;

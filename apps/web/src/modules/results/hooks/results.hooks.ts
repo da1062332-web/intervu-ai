@@ -44,13 +44,18 @@ export function useResultDetails(attemptId: string) {
     queryKey: resultKeys.detail(attemptId),
     queryFn: () => resultApi.getResultDetails(attemptId),
     enabled: !!attemptId,
-    // Keep retrying every 5 seconds while result is not yet generated (404/500)
-    retry: true,
+    // Keep retrying while result is not yet generated, but stop on 401/403 authentication errors
+    retry: (failureCount, error: any) => {
+      const status = error?.response?.status || error?.status;
+      if (status === 401 || status === 403) return false;
+      return failureCount < 5;
+    },
     retryDelay: 5000,
     refetchInterval: (query) => {
-      // Stop polling once we have data
+      // Stop polling once we have data or if auth error
       if (query.state?.data) return false;
-      // Keep polling if still erroring (result not generated yet)
+      const status = (query.state?.error as any)?.response?.status;
+      if (status === 401 || status === 403) return false;
       return 5000;
     },
   });
@@ -100,5 +105,10 @@ export function usePerformanceDashboard(attemptId: string) {
     queryKey: resultKeys.performanceDashboard(attemptId),
     queryFn: () => resultApi.getPerformanceDashboard(attemptId),
     enabled: !!attemptId,
+    retry: (failureCount, error: any) => {
+      const status = error?.response?.status || error?.status;
+      if (status === 401 || status === 403) return false;
+      return failureCount < 3;
+    },
   });
 }

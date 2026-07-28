@@ -40,20 +40,24 @@ export class ResultStorageService {
       });
 
       // 1b. Create or Update EvaluationResult for CandidateReportService compatibility
+      // We repurpose technicalScore and communicationScore to store coding vs objective splits
       await tx.evaluationResult.upsert({
         where: { testInstanceId: attemptId },
         update: {
           overallScore: score,
-          technicalScore: score,
+          technicalScore: result.codingScore || 0,
+          communicationScore: result.objectiveScore || 0,
           confidenceScore: percentage,
+          overallRating: result.passed ? 1.0 : 0.0,
         },
         create: {
           testInstanceId: attemptId,
           userId: candidateId,
           overallScore: score,
-          technicalScore: score,
+          technicalScore: result.codingScore || 0,
+          communicationScore: result.objectiveScore || 0,
           confidenceScore: percentage,
-          overallRating: percentage >= 70 ? 4.5 : 3.0,
+          overallRating: result.passed ? 1.0 : 0.0,
         },
       });
 

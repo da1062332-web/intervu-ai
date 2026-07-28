@@ -9,12 +9,19 @@ export interface QuestionEvaluationResult {
   candidateAnswer: string;
   correctAnswer: string;
   timeSpentSeconds: number;
+  // Coding-specific fields (populated only for CODING questions)
+  passed?: boolean;
+  constraintValidation?: "PASSED" | "FAILED" | "NOT_CHECKED";
+  syntaxError?: boolean;
+  compilationError?: boolean;
+  codingFeedback?: string;
 }
 
 @Injectable()
 export class ObjectiveEvaluatorService {
   /**
    * Evaluates individual candidate answers against correct answers.
+   * Scoring: 1 mark for correct, 0 for incorrect or skipped. No negative marking.
    */
   evaluateAnswers(
     answers: AnswerDto[],
@@ -26,13 +33,11 @@ export class ObjectiveEvaluatorService {
     }>,
   ): QuestionEvaluationResult[] {
     const results: QuestionEvaluationResult[] = [];
-
     const answersMap = new Map(answers.map((a) => [a.questionId, a]));
 
     for (const question of questions) {
       const candidateAnsObj = answersMap.get(question.id);
 
-      // Determine candidate answer string based on properties in AnswerDto
       let candidateAnswer = "";
       let timeSpentSeconds = 0;
 
@@ -53,13 +58,11 @@ export class ObjectiveEvaluatorService {
       const correctAnswer = question.answer || "";
       const type = (question.questionType || "MCQ").toLowerCase();
 
-      const isCorrect = this.compareAnswers(
-        candidateAnswer,
-        correctAnswer,
-        type,
-      );
+      const isCorrect = this.compareAnswers(candidateAnswer, correctAnswer, type);
+
+      // No negative marking — score is always 0 or 1
       const score = isCorrect ? 1 : 0;
-      const maxMarks = 1; // Default to 1 mark per question
+      const maxMarks = 1;
 
       results.push({
         questionId: question.id,
@@ -76,7 +79,7 @@ export class ObjectiveEvaluatorService {
   }
 
   /**
-   * Compares candidate answer with correct answer.
+   * Compares candidate answer with correct answer based on question type.
    */
   compareAnswers(candidate: string, expected: string, type: string): boolean {
     const cleanCand = (candidate ?? "").trim().toLowerCase();

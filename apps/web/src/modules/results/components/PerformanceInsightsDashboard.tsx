@@ -9,6 +9,7 @@ import { DashboardSectionAccuracy } from './DashboardSectionAccuracy';
 import { DashboardSectionTime } from './DashboardSectionTime';
 import { DashboardPerformanceSummary } from './DashboardPerformanceSummary';
 import { DashboardRecommendations } from './DashboardRecommendations';
+import { DashboardCodingCard } from './DashboardCodingCard';
 
 interface Props {
   attemptId: string;
@@ -40,6 +41,12 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId }) => 
       <div className="grid grid-cols-1 gap-6">
         <DashboardScoreCard data={data} />
       </div>
+
+      {data.codingScore !== undefined && (
+        <div className="grid grid-cols-1 gap-6">
+          <DashboardCodingCard data={data} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <DashboardOverallAccuracy data={data} />

@@ -279,36 +279,24 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // Ownership is checked via assertAttemptOwnership (already replaces the direct check)
+    // Ownership is checked via assertAttemptOwnership
     await this.assertAttemptOwnership(attemptId, user);
 
-    let insightRecord = await this.prisma.evaluationInsight.findUnique({
+    const insightRecord = await this.prisma.evaluationInsight.findUnique({
       where: { attemptId },
     });
-    let insights = insightRecord?.insights as string[];
-    if (!insights) {
-      insights = await this.aiInsightService.generateInsights(attemptId);
-    }
+    const insights = insightRecord?.insights as string[] || [];
 
-    let planRecord = await this.prisma.improvementPlan.findUnique({
+    const planRecord = await this.prisma.improvementPlan.findUnique({
       where: { attemptId },
     });
-    let plan = planRecord
+    const plan = planRecord
       ? {
           plan7Day: planRecord.plan7Day as string[],
           plan14Day: planRecord.plan14Day as string[],
           plan30Day: planRecord.plan30Day as string[],
         }
-      : null;
-    if (!plan) {
-      const generated =
-        await this.improvementPlanService.generatePlans(attemptId);
-      plan = {
-        plan7Day: generated.plan7Day,
-        plan14Day: generated.plan14Day,
-        plan30Day: generated.plan30Day,
-      };
-    }
+      : { plan7Day: [], plan14Day: [], plan30Day: [] };
 
     return {
       insights,

@@ -53,7 +53,7 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
 
   // Initialize checkboxes & weightages when modal opens or server data updates
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isLoadingAssigned) {
       const initialSet = new Set(assignedTopicIds);
       setSelectedIds(initialSet);
 
@@ -73,7 +73,7 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
       setWeightages(weightageMap);
       setSearchQuery('');
     }
-  }, [isOpen, assignedTopics.length, weightagesData.length]);
+  }, [isOpen, isLoadingAssigned, JSON.stringify(assignedTopicIds), weightagesData.length]);
 
   const filteredTopics = useMemo(() => {
     if (!searchQuery.trim()) return allTopics;
@@ -97,10 +97,8 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
 
     setSelectedIds(next);
 
-    // If adding and currently has 0 weightage, auto-rebalance
-    if (isAdding) {
-      rebalanceWeightages(next);
-    }
+    // Auto-rebalance weightages across active topics on both check AND uncheck
+    rebalanceWeightages(next);
   };
 
   const handleWeightageChange = (topicId: string, val: string) => {
