@@ -11,6 +11,7 @@ import {
   ExecutionState,
   Prisma,
   ConfigStatus,
+  UserRole,
 } from "@prisma/client";
 import { TestInstanceRepository } from "../repositories";
 import { PrismaService } from "../../../prisma/prisma.service";
@@ -48,9 +49,11 @@ export class ExecutionValidatorService {
     return testInstance;
   }
 
-  validateOwnership(testInstance: TestInstance, userId: string) {
-    // SEC-002: Temporarily bypassed to allow all students access
-    /*
+  validateOwnership(testInstance: TestInstance, userId: string, userRole?: string) {
+    if (userRole === UserRole.ADMIN) {
+      return;
+    }
+
     if (testInstance.userId !== userId) {
       this.logger.warn("Validation failed: Unauthorized access attempt", {
         testInstanceId: testInstance.id,
@@ -61,7 +64,6 @@ export class ExecutionValidatorService {
         "You do not have permission to access this assessment",
       );
     }
-    */
   }
 
   validateSubmissionState(testInstance: TestInstance): void {

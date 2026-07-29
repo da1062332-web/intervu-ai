@@ -46,11 +46,13 @@ export class ExecutionController {
 
   /**
    * SEC-002: Shared ownership guard for execution sessions.
-   * Ensures the authenticated user owns the TestInstance.
+   * Ensures the authenticated user owns the TestInstance, unless they are an ADMIN.
    */
   private async assertExecutionOwnership(id: string, user: AuthUser) {
-    // SEC-002: Temporarily bypassed to allow all students access
-    /*
+    if (user.role === UserRole.ADMIN) {
+      return;
+    }
+
     const instance = await this.prisma.testInstance.findUnique({
       where: { id },
       select: { id: true, userId: true },
@@ -68,7 +70,6 @@ export class ExecutionController {
         "You do not have permission to access this assessment session",
       );
     }
-    */
   }
 
   @Get("tests/:id")
@@ -84,6 +85,7 @@ export class ExecutionController {
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
   ): Promise<any> {
+    await this.assertExecutionOwnership(id, user);
     return this.executionService.loadAssessment(id, user.id);
   }
 
