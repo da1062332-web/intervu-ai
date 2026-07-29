@@ -206,52 +206,54 @@ export function QuestionRenderer() {
         </span>
       </div>
 
-      {/* Two-Column Split Pane (Passage / Directions on Left, Question & Options on Right) */}
+      {/* Two-Column Split Pane (Question & Context on Left, Options / Actions on Right) */}
       <div className='flex flex-1 w-full overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-300 min-h-[420px]'>
-        {/* Left Pane - Directions / Passage / Stem */}
-        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white shrink-0 custom-scrollbar select-text'>
-          <div className='max-w-2xl text-gray-800 space-y-4 font-sans'>
-            <h3 className='font-bold text-gray-900 text-sm md:text-[15px] leading-snug tracking-normal'>
-              Directions [Set of Questions]: Read the following passage or instructions carefully and answer the questions that follow.
-            </h3>
-
-            {currentQuestion.stem ? (
-              <div className='text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line pt-2'>
-                {currentQuestion.stem}
-              </div>
-            ) : (
-              <div className='text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify pt-2'>
-                <p>
-                  Analyze the given statement on the right panel and select the correct answer from the provided options.
-                </p>
-                {rawInstructions && (
-                  <div className='bg-blue-50/80 border-l-4 border-blue-600 p-3.5 my-3 text-sm text-gray-800 rounded-r-sm'>
-                    <span className='font-bold underline block mb-1 text-blue-950'>Candidate Notice:</span>
-                    {rawInstructions}
-                  </div>
-                )}
-                <p className='text-gray-600 text-sm pt-2'>
-                  Note: You may click <span className='font-bold text-gray-800'>Mark for Review & Next</span> if you wish to re-evaluate your response later before completing this section.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Pane - Question Statement & Options / Inputs */}
-        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white flex flex-col justify-between custom-scrollbar select-text'>
-          <div className='space-y-5'>
-            <div className='text-base sm:text-[16px] font-normal leading-relaxed text-gray-950 font-sans break-words'>
+        {/* Left Pane - Question Statement & Context */}
+        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white shrink-0 custom-scrollbar select-text flex flex-col justify-between'>
+          <div className='max-w-2xl text-gray-800 space-y-5 font-sans'>
+            <div className='text-base sm:text-[17px] font-semibold leading-relaxed text-gray-950 font-sans break-words pb-2 border-b border-gray-100'>
               {currentQuestion.text}
             </div>
 
+            {currentQuestion.stem && (
+              <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line'>
+                <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>Background / Passage:</h4>
+                {currentQuestion.stem}
+              </div>
+            )}
+
             {parsedInstructions?.constraints && (
-              <div className='mt-4 p-4 rounded-md border border-amber-200 bg-amber-50/50 text-sm'>
+              <div className='p-4 rounded-md border border-amber-200 bg-amber-50/50 text-sm'>
                 <h4 className='font-semibold text-amber-900 mb-2'>Constraints</h4>
                 <div className='font-mono text-gray-800 whitespace-pre-wrap'>{parsedInstructions.constraints}</div>
               </div>
             )}
 
+            {rawInstructions && (
+              <div className='bg-blue-50/80 border-l-4 border-blue-600 p-3.5 text-sm text-gray-800 rounded-r-sm'>
+                <span className='font-bold underline block mb-1 text-blue-950'>Candidate Notice:</span>
+                {rawInstructions}
+              </div>
+            )}
+          </div>
+
+          <p className='text-gray-500 text-xs pt-4 mt-6 border-t border-gray-100'>
+            Note: You may click <span className='font-semibold text-gray-700'>Mark for Review & Next</span> if you wish to re-evaluate your response later before completing this section.
+          </p>
+        </div>
+
+        {/* Right Pane - Options / Response Box */}
+        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-slate-50/30 flex flex-col justify-between custom-scrollbar select-text'>
+          <div className='space-y-4 max-w-2xl w-full'>
+            <div className='text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between pb-2 border-b border-gray-200'>
+              <span>
+                {currentQuestion.type === 'CODING'
+                  ? 'Code Solution'
+                  : currentQuestion.type === 'NUMERIC'
+                    ? 'Numeric Answer'
+                    : 'Select Response'}
+              </span>
+            </div>
             <div className='pt-1'>
               {renderQuestionContent()}
             </div>

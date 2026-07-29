@@ -92,9 +92,20 @@ export class ResultQueryService {
   }
 
   private async getTopicNameMap(): Promise<Map<string, string>> {
-    const topics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const topics = await this.prisma.topic.findMany({ select: { id: true, name: true, code: true } });
+    const concepts = await this.prisma.concept.findMany({
+      select: { id: true, name: true, code: true, topic: { select: { name: true } } },
+    });
     const map = new Map<string, string>();
-    topics.forEach((t) => map.set(t.id, t.name));
+    topics.forEach((t) => {
+      map.set(t.id, t.name);
+      if (t.code) map.set(t.code, t.name);
+    });
+    concepts.forEach((c) => {
+      const parentOrName = c.topic?.name || c.name;
+      map.set(c.id, parentOrName);
+      if (c.code) map.set(c.code, parentOrName);
+    });
     return map;
   }
 
