@@ -65,14 +65,14 @@ export class ResultsService {
         },
         candidateAnswers: true,
       },
-    });
+    }) as any;
 
     if (!testInstance) {
       return this.composeResultResponse(evaluation);
     }
 
-    const answerMap = new Map(
-      testInstance.candidateAnswers.map((a) => [a.questionId, a]),
+    const answerMap = new Map<string, any>(
+      testInstance.candidateAnswers.map((a: any) => [a.questionId, a]),
     );
 
     // 2. Perform score, topic, difficulty, and section aggregation
@@ -88,14 +88,29 @@ export class ResultsService {
     const difficultyScores: Record<string, any> = {};
     let totalQuestionsCount = 0;
     let correctAnswersCount = evaluation.correctAnswers || 0;
+    // Authoritative total time: wall-clock elapsed from startedAt to submittedAt.
+    // This correctly accounts for time spent before any interruptions/resumes.
+    let wallClockTimeSpent = 0;
+    if (testInstance.startedAt) {
+      const end = testInstance.submittedAt
+        ? new Date(testInstance.submittedAt).getTime()
+        : Date.now();
+      wallClockTimeSpent = Math.floor(
+        (end - new Date(testInstance.startedAt).getTime()) / 1000,
+      );
+      // Cap at the allowed duration to avoid inflated values from very long idle gaps
+      if (testInstance.durationSeconds && wallClockTimeSpent > testInstance.durationSeconds) {
+        wallClockTimeSpent = testInstance.durationSeconds;
+      }
+    }
     let totalTimeSpent = 0;
 
-    testInstance.sections.forEach((section) => {
+    testInstance.sections.forEach((section: any) => {
       let sectionQuestions = 0;
       let sectionCorrect = 0;
       let sectionTimeSpent = 0;
 
-      section.questions.forEach((q) => {
+      section.questions.forEach((q: any) => {
         sectionQuestions++;
         totalQuestionsCount++;
         const answer = answerMap.get(q.questionId);
@@ -206,10 +221,14 @@ export class ResultsService {
       evaluatedAt: evaluation.evaluatedAt,
       accuracy,
       timeAnalysis: {
-        totalTimeSpentSeconds: totalTimeSpent,
+        // Use wall-clock elapsed time if available (captures pre-interruption time),
+        // otherwise fall back to sum of per-question timers.
+        totalTimeSpentSeconds: wallClockTimeSpent > 0 ? wallClockTimeSpent : totalTimeSpent,
+        // Per-question breakdown still uses per-answer timers
+        perQuestionTimeSpentSeconds: totalTimeSpent,
         averageTimePerQuestion:
           totalQuestionsCount > 0
-            ? Math.round(totalTimeSpent / totalQuestionsCount)
+            ? Math.round((wallClockTimeSpent > 0 ? wallClockTimeSpent : totalTimeSpent) / totalQuestionsCount)
             : 0,
       },
       sectionScores: sectionsArray,
