@@ -34,6 +34,26 @@ export class CandidateListQueryDto {
   @IsString()
   @IsIn(["asc", "desc"])
   sortOrder?: "asc" | "desc" = "desc";
+
+  @ApiPropertyOptional({
+    description: "Page number for pagination",
+    default: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @ApiPropertyOptional({
+    description: "Number of records per page (Max 100)",
+    default: 20,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number = 20;
 }
 
 export class CandidateListItemDto {
