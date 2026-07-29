@@ -14,7 +14,12 @@ export class OptionGeneratorService {
     shuffledOptions: string[];
     normalizedCorrectAnswer: string;
   } {
-    const isMcq = questionType === "mcq" || questionType === "multiple_choice";
+    const normalizedQuestionType = String(questionType || "")
+      .trim()
+      .toLowerCase();
+    const isMcq =
+      normalizedQuestionType === "mcq" ||
+      normalizedQuestionType === "multiple_choice";
 
     if (!isMcq) {
       return {

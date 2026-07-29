@@ -11,6 +11,7 @@ export interface ProgressData {
   };
   overview: {
     averageScore: number;
+    peerAverageScore?: number;
     topPercentileScore: number;
     totalAssessments: number;
     completionRate: number;
