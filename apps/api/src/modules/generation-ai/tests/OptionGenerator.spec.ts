@@ -18,6 +18,21 @@ describe("OptionGeneratorService", () => {
     expect(result.normalizedCorrectAnswer).toBe("8");
   });
 
+  it("should validate and shuffle options successfully for MULTIPLE_CHOICE", () => {
+    const options = ["6", "8", "10", "12"];
+    const correctAnswer = "8";
+
+    const result = service.processOptions(
+      options,
+      correctAnswer,
+      "MULTIPLE_CHOICE",
+    );
+
+    expect(result.shuffledOptions.length).toBe(4);
+    expect(result.shuffledOptions).toContain("8");
+    expect(result.normalizedCorrectAnswer).toBe("8");
+  });
+
   it("should throw error if options count is not 4 for MCQ", () => {
     const options = ["6", "8", "10"];
     const correctAnswer = "8";
