@@ -107,7 +107,7 @@ export class PdfReportService {
         doc
           .fillColor("#0F172A")
           .fontSize(24)
-          .text(`${reportData.score}%`, 60, gridY + 35);
+          .text(`${reportData.score}/100`, 60, gridY + 35);
 
         doc
           .fillColor("#475569")

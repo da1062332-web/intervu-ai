@@ -27,7 +27,7 @@ const columns: ColumnDef<RecentTestAttempt>[] = [
 
       return (
         <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold', colorClass)}>
-          {row.score}%
+          {row.score}/100
         </span>
       );
     },

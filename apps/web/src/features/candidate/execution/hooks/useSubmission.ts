@@ -40,7 +40,23 @@ export function useSubmission(testId: string) {
 
       // Redirect to the Results Page
       router.push(`/candidate/results/${testId}`);
-    } catch {
+    } catch (error: any) {
+      const isAlreadySubmitted =
+        error?.status === 409 ||
+        error?.response?.status === 409 ||
+        String(error?.message || '').toLowerCase().includes('already') ||
+        String(error?.response?.data?.message || '').toLowerCase().includes('already');
+
+      if (isAlreadySubmitted) {
+        setSubmissionStatus('SUCCESS');
+        localStorage.removeItem(`${STORAGE_KEY}_${testId}`);
+        if (typeof document !== 'undefined' && document.fullscreenElement) {
+          document.exitFullscreen().catch(console.error);
+        }
+        router.push(`/candidate/results/${testId}`);
+        return;
+      }
+
       setSubmissionStatus('FAILED');
     }
   };

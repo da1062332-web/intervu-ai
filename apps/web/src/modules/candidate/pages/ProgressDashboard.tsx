@@ -39,7 +39,7 @@ const ProgressCards = React.memo(({ overview }: { overview: any }) => {
           </div>
           <div>
             <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>Average Score</p>
-            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.averageScore}%</h3>
+            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.averageScore}/100</h3>
           </div>
         </CardContent>
       </Card>
@@ -63,7 +63,7 @@ const ProgressCards = React.memo(({ overview }: { overview: any }) => {
           </div>
           <div>
             <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>Top Percentile</p>
-            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.topPercentileScore}%</h3>
+            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.topPercentileScore}/100</h3>
           </div>
         </CardContent>
       </Card>
@@ -182,7 +182,7 @@ export function ProgressDashboard() {
           <CardContent className='flex flex-col justify-center h-full pb-8'>
             <PerformanceComparisonChart
               userScore={data.overview.averageScore}
-              averageScore={data.overview.peerAverageScore ?? 65}
+              averageScore={(data.overview as any).peerAverageScore ?? 65}
               topPercentileScore={data.overview.topPercentileScore}
             />
           </CardContent>

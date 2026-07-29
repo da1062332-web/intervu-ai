@@ -146,7 +146,7 @@ export function AssessmentStatusPanel() {
                   <CheckCircle2 className='size-3.5 text-emerald-500' />
                   <span className='text-emerald-600 dark:text-emerald-400 font-semibold'>Completed</span>
                   {attempt.score != null && (
-                    <span>· Score: <strong className='text-foreground font-bold'>{attempt.score}%</strong></span>
+                    <span>· Score: <strong className='text-foreground font-bold'>{attempt.score}/100</strong></span>
                   )}
                 </div>
               </div>

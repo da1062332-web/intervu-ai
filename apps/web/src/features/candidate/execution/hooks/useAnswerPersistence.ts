@@ -64,7 +64,19 @@ export function useAnswerPersistence(testId: string) {
             window.location.href = `/candidate/tests/${testId}/summary`;
           }
         })
-        .catch(() => {
+        .catch((error: any) => {
+          const isAlreadySubmitted =
+            error?.status === 409 ||
+            error?.response?.status === 409 ||
+            String(error?.message || '').toLowerCase().includes('already') ||
+            String(error?.response?.data?.message || '').toLowerCase().includes('already');
+
+          if (isAlreadySubmitted) {
+            setAutosaveStatus('SAVED');
+            window.location.href = `/candidate/results/${testId}`;
+            return;
+          }
+
           setAutosaveStatus('FAILED');
           // DATA-001: When online save fails, queue to IndexedDB for replay on reconnect
           queueOperation('SAVE_ANSWER', payload).catch((err) => {

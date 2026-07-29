@@ -26,11 +26,25 @@ export class AppConfigService {
   }
 
   get jwtSecret(): string {
-    return this.configService.get<string>("JWT_SECRET", "") || "";
+    const secret = this.configService.get<string>("JWT_SECRET");
+    if (!secret || secret.length < 32) {
+      if (this.nodeEnv !== "test") {
+        throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET must be configured and at least 32 characters long.");
+      }
+      return secret || "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345";
+    }
+    return secret;
   }
 
   get jwtRefreshSecret(): string {
-    return this.configService.get<string>("JWT_REFRESH_SECRET", "") || "";
+    const secret = this.configService.get<string>("JWT_REFRESH_SECRET");
+    if (!secret || secret.length < 32) {
+      if (this.nodeEnv !== "test") {
+        throw new Error("CRITICAL SECURITY ERROR: JWT_REFRESH_SECRET must be configured and at least 32 characters long.");
+      }
+      return secret || "dev_jwt_refresh_secret_must_be_at_least_32_chars_long_key_67890";
+    }
+    return secret;
   }
 
   get isDevelopment(): boolean {

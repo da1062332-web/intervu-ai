@@ -80,7 +80,7 @@ export function TestFilters({
               checked={showOnlyBookmarked}
               onCheckedChange={onShowOnlyBookmarkedChange}
               className='scale-90 ml-0.5'
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             />
           </div>
 

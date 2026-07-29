@@ -33,7 +33,7 @@ export class EvaluationExplainabilityService {
     );
 
     // 1. Score Explanation
-    const scoreExplanation = `Your overall score of ${score}% is determined by answering ${correct} out of ${total} questions correctly across ${sections.length} section(s).`;
+    const scoreExplanation = `Your overall score of ${score}/100 is determined by answering ${correct} out of ${total} questions correctly across ${sections.length} section(s).`;
 
     // 2. Recommendation Reason
     const recs = result.recommendations || [];
@@ -47,16 +47,16 @@ export class EvaluationExplainabilityService {
         : `A low-priority study recommendation was provided because you achieved 75% or higher accuracy across all assessment topics.`;
 
     // 3. Benchmark Reason
-    let benchmarkReason = `Your score of ${score}% is evaluated against cohort averages. Benchmarking calculations are currently pending.`;
+    let benchmarkReason = `Your score of ${score}/100 is evaluated against cohort averages. Benchmarking calculations are currently pending.`;
     try {
       const benchmark = await this.benchmarkService.getBenchmark(attemptId);
       const diff = score - benchmark.assessmentAverage;
       if (diff > 0) {
-        benchmarkReason = `Your score of ${score}% is ${Math.round(diff)}% higher than the cohort average of ${Math.round(benchmark.assessmentAverage)}%.`;
+        benchmarkReason = `Your score of ${score}/100 is ${Math.round(diff)} points higher than the cohort average of ${Math.round(benchmark.assessmentAverage)}/100.`;
       } else if (diff < 0) {
-        benchmarkReason = `Your score of ${score}% is ${Math.round(Math.abs(diff))}% lower than the cohort average of ${Math.round(benchmark.assessmentAverage)}%.`;
+        benchmarkReason = `Your score of ${score}/100 is ${Math.round(Math.abs(diff))} points lower than the cohort average of ${Math.round(benchmark.assessmentAverage)}/100.`;
       } else {
-        benchmarkReason = `Your score of ${score}% matches the cohort average of ${Math.round(benchmark.assessmentAverage)}% exactly.`;
+        benchmarkReason = `Your score of ${score}/100 matches the cohort average of ${Math.round(benchmark.assessmentAverage)}/100 exactly.`;
       }
     } catch {
       // Fallback if BenchmarkService throws (e.g. during initial generation)

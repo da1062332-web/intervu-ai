@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
@@ -185,6 +186,7 @@ export function QuestionRenderer() {
         return (
           <div className='mt-4 w-full flex-1'>
             <EmbeddedCompiler
+              key={currentQuestion.id}
               onChange={(data) => saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })}
             />
           </div>
@@ -193,6 +195,56 @@ export function QuestionRenderer() {
         return renderMCQ();
     }
   };
+
+  const isCoding = currentQuestion.type?.toUpperCase() === 'CODING';
+
+  const handleCompilerChange = useCallback(
+    (data: any) => {
+      if (!currentQuestion) return;
+      saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) });
+    },
+    [currentQuestion?.id, saveAnswer]
+  );
+
+  if (isCoding) {
+    return (
+      <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
+        {/* Question Number Header Bar */}
+        <div className='bg-white px-4 py-3 border-b border-gray-300 flex items-center justify-between shrink-0'>
+          <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
+            Question No {currentQuestionIndex + 1}
+          </h2>
+          <span className='text-xs font-bold text-gray-600 bg-gray-100 border border-gray-300 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
+            {currentQuestion.type}
+          </span>
+        </div>
+
+        <div className='flex flex-col flex-1 w-full overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar select-text'>
+          {/* Question Statement & Constraints */}
+          <div className='bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-200 space-y-3 shrink-0'>
+            <div className='text-base sm:text-lg font-semibold leading-relaxed text-slate-900 font-sans break-words'>
+              {currentQuestion.text}
+            </div>
+
+            {parsedInstructions?.constraints && (
+              <div className='p-3.5 rounded-md border border-amber-200 bg-amber-50/70 text-sm'>
+                <h4 className='font-semibold text-amber-900 mb-1 text-xs uppercase tracking-wider'>Constraints</h4>
+                <div className='font-mono text-gray-800 text-xs whitespace-pre-wrap'>{parsedInstructions.constraints}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Full Width Embedded Compiler */}
+          <div className='w-full flex-1 min-h-[550px]'>
+            <EmbeddedCompiler
+              key={currentQuestion.id}
+              onChange={handleCompilerChange}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
