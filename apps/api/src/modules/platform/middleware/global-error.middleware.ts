@@ -59,6 +59,13 @@ export class GlobalErrorFilter implements ExceptionFilter {
       stack,
     );
 
+    // SEC-003: Mask internal server error messages in production to prevent information disclosure
+    const isProduction = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging";
+    if (status === HttpStatus.INTERNAL_SERVER_ERROR && isProduction) {
+      message = "An unexpected internal server error occurred. Please contact support.";
+      details = null;
+    }
+
     response.status(status).json({
       success: false,
       data: null,

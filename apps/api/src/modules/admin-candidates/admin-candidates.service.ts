@@ -59,9 +59,15 @@ export class AdminCandidatesService {
       orderBy = { [sortBy]: sortOrder };
     }
 
+    const page = Math.max(1, query.page || 1);
+    const limit = Math.min(100, Math.max(1, query.limit || 20));
+    const skip = (page - 1) * limit;
+
     const { items, total } = await this.userRepository.findCandidatesWithSummary({
       where,
       orderBy,
+      skip,
+      take: limit,
     });
 
     const formattedItems = await Promise.all(
