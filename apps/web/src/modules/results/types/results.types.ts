@@ -65,6 +65,20 @@ export type PerformanceDashboardResponse = {
     wrong: number;
     skipped: number;
     accuracy: number;
+    topics?: {
+      topicName: string;
+      sectionName?: string;
+      accuracy: number;
+      correct: number;
+      total: number;
+    }[];
+  }[];
+  topicAccuracy?: {
+    topicName: string;
+    sectionName?: string;
+    accuracy: number;
+    correct: number;
+    total: number;
   }[];
   sectionTime: {
     sectionName: string;
@@ -72,6 +86,17 @@ export type PerformanceDashboardResponse = {
     expectedTime: number;
     timeDifference: number;
     status: string;
+    accuracy?: number;
+    questionCount?: number;
+    avgTimePerQuestion?: string;
+    timeUsedPercentage?: number;
+    pacingFeedback?: string;
+  }[];
+  detailedStrengthsWeaknesses?: {
+    name: string;
+    score: number;
+    category: 'STRENGTH' | 'NEEDS_IMPROVEMENT' | 'WEAKNESS';
+    feedback: string;
   }[];
   recommendations: string[];
   // Enriched fields

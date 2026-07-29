@@ -10,10 +10,10 @@ import { AuthUser } from "../interfaces/auth-user.interface";
 export const CurrentUser = createParamDecorator(
   (property: keyof AuthUser | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
-    const user = request.user;
+    const user = request?.user;
 
     if (!user) {
-      throw new UnauthorizedException("User context is missing");
+      return undefined;
     }
 
     if (!property) {

@@ -42,16 +42,12 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId }) => 
         <DashboardScoreCard data={data} />
       </div>
 
-      {data.codingScore !== undefined && (
-        <div className="grid grid-cols-1 gap-6">
-          <DashboardCodingCard data={data} />
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <DashboardOverallAccuracy data={data} />
         <DashboardPerformanceSummary data={data} />
       </div>
+
+      <DashboardCodingCard data={data} />
 
       <div className="grid grid-cols-1 gap-6">
         <DashboardStrengthWeakness data={data} />

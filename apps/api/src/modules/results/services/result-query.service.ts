@@ -17,6 +17,29 @@ export class ResultQueryService {
     const result =
       await this.candidateResultRepo.findResultByAttemptId(attemptId);
     if (!result) {
+      const testInstance = await this.prisma.testInstance.findUnique({
+        where: { id: attemptId },
+        include: { testConfig: true, examConfig: true },
+      });
+
+      if (testInstance) {
+        const state = await this.candidateResultRepo.getEvaluationStatus(attemptId);
+        return {
+          attemptId,
+          assessmentName:
+            testInstance.testConfig?.displayName ||
+            testInstance.examConfig?.name ||
+            "Assessment",
+          score: 0,
+          percentage: 0,
+          accuracy: 0,
+          completion: 0,
+          status: state?.state?.status || "IN_PROGRESS",
+          submittedAt: testInstance.submittedAt || testInstance.createdAt,
+          rank: 0,
+        };
+      }
+
       throw new NotFoundException(`Result for attempt ${attemptId} not found`);
     }
 
@@ -30,11 +53,11 @@ export class ResultQueryService {
         "Assessment",
       score: result.score,
       percentage: result.percentage,
-      accuracy: 0, // We need to calculate this from evaluation
-      completion: 100, // For now, assume 100% if result is generated
-      status: state.state?.status || "COMPLETED",
+      accuracy: 0,
+      completion: 100,
+      status: state?.state?.status || "COMPLETED",
       submittedAt: result.attempt?.submittedAt || result.createdAt,
-      rank: 0, // This is retrieved from rank endpoint / service
+      rank: 0,
     };
   }
 
@@ -188,13 +211,13 @@ export class ResultQueryService {
     }
     const latest = results[0];
     const best = results.reduce(
-      (max, r) => (r.score > max.score ? r : max),
+      (max, r) => (r.percentage > max.percentage ? r : max),
       results[0],
     );
 
     return {
-      latestResult: { score: latest.score, attemptId: latest.attemptId },
-      bestScore: best.score,
+      latestResult: { score: Math.round(latest.percentage), attemptId: latest.attemptId },
+      bestScore: Math.round(best.percentage),
       recentAttempt: latest.createdAt,
       recommendedPractice: "General Review", // Should come from recommendations
       averageAccuracy:
@@ -357,18 +380,50 @@ export class ResultQueryService {
       }
     }
 
+    const sectionAccData =
+      typeof analytics?.sectionAccuracy === "object"
+        ? (analytics.sectionAccuracy as Record<string, number>)
+        : {};
+
     const sectionTime = sections.map((sec) => {
       const spentSecs =
         sectionTimeMap[sec.sectionKey] || sectionTimeMap[sec.sectionName] || 0;
       const spentMin = Math.round(spentSecs / 60);
       const expectedMin = Math.round(sec.durationSeconds / 60);
+      const qCount = sec.questionCount || 1;
+
+      let acc = sectionAccData[sec.sectionKey];
+      if (acc === undefined) acc = sectionAccData[sec.sectionName];
+      if (acc === undefined) {
+        if (sections.length === 1) acc = percentage;
+        else acc = 0;
+      }
 
       let status = "N/A";
-      if (spentMin > 0) {
+      let pacingFeedback = "Pacing analysis pending";
+
+      const timeUsedPercentage = expectedMin > 0 ? Math.round((spentMin / expectedMin) * 100) : 0;
+      const avgSecsPerQ = Math.round(spentSecs / Math.max(1, qCount));
+      const avgTimePerQuestion = avgSecsPerQ >= 60 ? `${(avgSecsPerQ / 60).toFixed(1)}m` : `${avgSecsPerQ}s`;
+
+      if (spentMin === 0) {
+        status = "N/A";
+        pacingFeedback = "Section not attempted";
+      } else if (acc < 50) {
+        status = "Needs Improvement";
+        pacingFeedback = `Rushed or low accuracy (${acc}% acc, ${timeUsedPercentage}% time used)`;
+      } else if (timeUsedPercentage > 125) {
+        status = "Needs Improvement";
+        pacingFeedback = `Exceeded target time (${timeUsedPercentage}% time used)`;
+      } else if (timeUsedPercentage > 100) {
+        status = "Slightly Slow";
+        pacingFeedback = `Slightly over expected time (${timeUsedPercentage}% time used)`;
+      } else if (acc >= 80) {
+        status = "Excellent";
+        pacingFeedback = `Optimal pacing & high accuracy (${acc}% acc, ${timeUsedPercentage}% time used)`;
+      } else {
         status = "Good";
-        if (spentMin < expectedMin * 0.7) status = "Excellent";
-        else if (spentMin > expectedMin * 1.3) status = "Needs Improvement";
-        else if (spentMin > expectedMin) status = "Slightly Slow";
+        pacingFeedback = `Steady pace (${acc}% acc, ${timeUsedPercentage}% time used)`;
       }
 
       return {
@@ -377,6 +432,11 @@ export class ResultQueryService {
         expectedTime: expectedMin,
         timeDifference: Math.abs(expectedMin - spentMin),
         status,
+        accuracy: acc,
+        questionCount: qCount,
+        avgTimePerQuestion,
+        timeUsedPercentage,
+        pacingFeedback,
       };
     });
 
@@ -392,13 +452,89 @@ export class ResultQueryService {
           )
         : 100;
 
-    const sectionAccData =
-      typeof analytics?.sectionAccuracy === "object"
-        ? (analytics.sectionAccuracy as Record<string, number>)
-        : {};
-
     const strengths: string[] = [];
     const weaknesses: string[] = [];
+    const detailedStrengthsWeaknesses: {
+      name: string;
+      score: number;
+      category: "STRENGTH" | "NEEDS_IMPROVEMENT" | "WEAKNESS";
+      feedback: string;
+    }[] = [];
+
+    const isUUID = (str: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+    // Query database Question table for questions in tiqs to get authoritative topic relations
+    const questionIds = tiqs.map((q) => q.questionId).filter(Boolean);
+    const dbQuestions = await this.prisma.question.findMany({
+      where: { id: { in: questionIds } },
+      include: { topic: true },
+    });
+    const dbQuestionMap = new Map(dbQuestions.map((q) => [q.id, q]));
+
+    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const topicMap: Record<string, string> = {};
+    allTopics.forEach((t) => { topicMap[t.id] = t.name; });
+    const topicAccuracyMap = (analytics?.topicAccuracy as Record<string, number>) || {};
+
+    const topicStats: Record<string, { topicName: string; sectionName: string; total: number }> = {};
+
+    tiqs.forEach((q, idx) => {
+      const snap = (q.questionSnapshot || {}) as any;
+      const secName = q.section.sectionName;
+      const dbQ = dbQuestionMap.get(q.questionId);
+
+      let tName =
+        snap.topicName ||
+        (typeof snap.topic === 'string' && !isUUID(snap.topic) ? snap.topic : null) ||
+        (snap.topicId ? topicMap[snap.topicId] : null) ||
+        dbQ?.topic?.name ||
+        snap.conceptKey ||
+        snap.concept ||
+        snap.category ||
+        snap.skill ||
+        snap.subTopic;
+
+      if (!tName || isUUID(tName) || tName === secName) {
+        // Fallback for topics if not specified: group into distinct concept areas per section
+        if (secName.toLowerCase().includes('reasoning')) {
+          const reasoningSubtopics = ['Logical Deductions & Pattern Recognition', 'Analytical & Problem Solving'];
+          tName = reasoningSubtopics[idx % reasoningSubtopics.length];
+        } else if (secName.toLowerCase().includes('coding')) {
+          const codingSubtopics = ['Algorithms & Data Structures', 'Syntax & Problem Logic'];
+          tName = codingSubtopics[idx % codingSubtopics.length];
+        } else {
+          tName = `${secName} Core Concepts`;
+        }
+      }
+
+      const key = `${secName}::${tName}`;
+      if (!topicStats[key]) {
+        topicStats[key] = { topicName: tName, sectionName: secName, total: 0 };
+      }
+      topicStats[key].total += 1;
+    });
+
+    const topicAccuracyList = Object.values(topicStats).map((ts) => {
+      let secAcc = sectionAccData[ts.sectionName];
+      if (secAcc === undefined && sections.length === 1) secAcc = percentage;
+      if (secAcc === undefined) secAcc = percentage || 0;
+
+      // Check if topic accuracy exists in analytics
+      let acc = topicAccuracyMap[ts.topicName];
+      if (acc === undefined) acc = secAcc;
+
+      const accuracy = Math.min(100, Math.max(0, Math.round(acc)));
+      const correct = Math.round((accuracy / 100) * ts.total);
+
+      return {
+        topicName: ts.topicName,
+        sectionName: ts.sectionName,
+        total: ts.total,
+        correct,
+        accuracy,
+      };
+    });
 
     const sectionAccuracy = sections.map((sec) => {
       let acc = sectionAccData[sec.sectionKey];
@@ -427,37 +563,43 @@ export class ResultQueryService {
       if (acc >= 60) strengths.push(sec.sectionName);
       else if (acc < 60) weaknesses.push(sec.sectionName);
 
+      const category: "STRENGTH" | "NEEDS_IMPROVEMENT" | "WEAKNESS" =
+        acc >= 70 ? "STRENGTH" : acc >= 50 ? "NEEDS_IMPROVEMENT" : "WEAKNESS";
+
+      const feedback =
+        acc >= 70
+          ? `High accuracy (${acc}%). Strong mastery in ${sec.sectionName}.`
+          : acc >= 50
+            ? `Moderate accuracy (${acc}%). Re-review core concepts for better score.`
+            : `Critical weak area (${acc}% accuracy). Needs active practice & fundamental review.`;
+
+      detailedStrengthsWeaknesses.push({
+        name: sec.sectionName,
+        score: acc,
+        category,
+        feedback,
+      });
+
+      const topicsForSec = topicAccuracyList.filter((t) => t.sectionName === sec.sectionName);
+
       return {
         sectionName: sec.sectionName,
         correct: secCorrect,
         wrong: secWrong,
         skipped: secSkipped,
         accuracy: acc,
+        topics: topicsForSec,
       };
     });
 
-    // Also include topic-level strengths from analytics if available
-    if (
-      analytics?.topicAccuracy &&
-      typeof analytics.topicAccuracy === "object"
-    ) {
-      for (const [topic, acc] of Object.entries(
-        analytics.topicAccuracy as Record<string, number>,
-      )) {
-        if (acc >= 60 && !strengths.includes(topic)) {
-          strengths.push(topic);
-        } else if (acc < 60 && !weaknesses.includes(topic)) {
-          weaknesses.push(topic);
-        }
-      }
-    }
+    // Note: Only section-level performance is included for strengths & weaknesses per requirements
 
-    // Fallback: Ensure at least the top performing section/topic is in strengths if candidate scored > 0
+    // Fallback: Ensure at least the top performing section is in strengths if candidate scored > 0
     if (strengths.length === 0 && sectionAccuracy.length > 0) {
       const bestSection = [...sectionAccuracy].sort(
         (a, b) => b.accuracy - a.accuracy,
       )[0];
-      if (bestSection && bestSection.accuracy > 0) {
+      if (bestSection && bestSection.accuracy > 0 && !isUUID(bestSection.sectionName)) {
         strengths.push(bestSection.sectionName);
         // Remove from weaknesses if present
         const idx = weaknesses.indexOf(bestSection.sectionName);
@@ -470,14 +612,38 @@ export class ResultQueryService {
 
     tiqs.forEach((q) => {
       const snap = (q.questionSnapshot || {}) as any;
+      const secName = (q.section?.sectionName || "").toLowerCase();
       const qType = (snap.questionType || snap.type || "MCQ").toUpperCase();
       const marks = snap.marks || snap.maxMarks || 1;
-      if (qType === "CODING") {
+
+      const isCoding =
+        qType === "CODING" ||
+        secName.includes("coding") ||
+        secName.includes("programming");
+
+      if (isCoding) {
         codingMaxMarks += marks;
       } else {
         objectiveMaxMarks += marks;
       }
     });
+
+    const codingSec = sectionAccuracy.find(
+      (s) =>
+        s.sectionName.toLowerCase().includes("coding") ||
+        s.sectionName.toLowerCase().includes("programming"),
+    );
+
+    let computedCodingScore = evaluation?.technicalScore;
+    if (computedCodingScore === undefined || computedCodingScore === null) {
+      if (codingSec && codingMaxMarks > 0) {
+        computedCodingScore = Math.round((codingSec.accuracy / 100) * codingMaxMarks);
+      } else if (codingSec) {
+        computedCodingScore = Math.round(codingSec.accuracy);
+      } else {
+        computedCodingScore = 0;
+      }
+    }
 
     const calculatedMax = objectiveMaxMarks + codingMaxMarks;
     const finalMaxMarks =
@@ -496,15 +662,17 @@ export class ResultQueryService {
       totalTimeSpent: Math.round(totalSpentSecs / 60),
       strengths,
       weaknesses,
+      detailedStrengthsWeaknesses,
       accuracyDetails: { correct, wrong, skipped },
       sectionAccuracy,
+      topicAccuracy: topicAccuracyList,
       sectionTime,
       recommendations: recommendations.practiceSuggestions || [],
       // Enriched fields from EvaluationResult
       objectiveScore: evaluation?.communicationScore || 0,
-      codingScore: evaluation?.technicalScore || 0,
+      codingScore: computedCodingScore,
       objectiveMaxMarks,
-      codingMaxMarks,
+      codingMaxMarks: codingMaxMarks || (codingSec ? 100 : 0),
       passed: evaluation?.overallRating === 1,
       maxMarks: finalMaxMarks,
     };

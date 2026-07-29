@@ -31,7 +31,7 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
     <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5'>
       <StatCard
         title='BEST SCORE'
-        value={`${bestScore}%`}
+        value={`${bestScore}/100`}
         icon={<Trophy className='size-4 text-indigo-500' />}
         className='bg-card/80 border border-border/60 shadow-xs hover:bg-card transition-all'
       />

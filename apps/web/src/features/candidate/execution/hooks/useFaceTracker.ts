@@ -14,7 +14,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
   const [isFaceDetected, setIsFaceDetected] = useState(true);
   const [isMultipleFaces, setIsMultipleFaces] = useState(false);
   const [hasCameraError, setHasCameraError] = useState(false);
-  const maxViolations = 3;
+  const maxViolations = 5;
 
   const violationsRef = useRef(0);
   const isSubmittedRef = useRef(false);
@@ -119,8 +119,8 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
       faceapiModule = faceapi;
 
       const options = new faceapi.TinyFaceDetectorOptions({
-        inputSize: 416, // Increased for much better multi-face and distance detection
-        scoreThreshold: 0.4, // Adjusted for higher resolution to avoid false positives
+        inputSize: 224, // Optimized for smooth, lenient face tracking without false positives
+        scoreThreshold: 0.15, // Lower threshold so movement or side angles aren't strictly penalized
       });
 
       intervalId = setInterval(async () => {
@@ -186,7 +186,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
             multiFaceSecondsRef.current = 0;
             noFaceSecondsRef.current += 1;
 
-            if (noFaceSecondsRef.current >= 3 && !inNoFaceViolationRef.current) {
+            if (noFaceSecondsRef.current >= 8 && !inNoFaceViolationRef.current) {
               inNoFaceViolationRef.current = true;
               setIsFaceDetected(false);
 
@@ -214,7 +214,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
               ctx.strokeRect(x * scaleX, y * scaleY, width * scaleX, height * scaleY);
             });
 
-            if (multiFaceSecondsRef.current >= 3 && !inMultiFaceViolationRef.current) {
+            if (multiFaceSecondsRef.current >= 8 && !inMultiFaceViolationRef.current) {
               inMultiFaceViolationRef.current = true;
               setIsMultipleFaces(true);
 

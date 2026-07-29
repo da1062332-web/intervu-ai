@@ -30,7 +30,7 @@ const ScoreOverview = React.memo(({ data }: { data: ReportData }) => (
   <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
     <Card className='glass-card flex flex-col items-center justify-center p-6 text-center h-full'>
       <div className='text-muted-foreground font-medium mb-2'>Overall Score</div>
-      <div className='text-5xl font-bold text-primary mb-2'>{data.score}%</div>
+      <div className='text-5xl font-bold text-primary mb-2'>{data.score}/100</div>
       <Progress value={data.score} className='h-2 w-full max-w-[200px]' />
     </Card>
 

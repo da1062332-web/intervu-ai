@@ -35,7 +35,7 @@ export function PerformanceSummaryCard({ summary }: PerformanceSummaryCardProps)
 
           <div className='bg-muted/30 p-4 rounded-lg flex flex-col items-center text-center'>
             <TrendingUp className='w-5 h-5 text-primary mb-2' />
-            <span className='text-2xl font-bold text-primary'>{summary.averageScore}%</span>
+            <span className='text-2xl font-bold text-primary'>{summary.averageScore}/100</span>
             <span className='text-xs text-muted-foreground mt-1 uppercase tracking-wider font-semibold'>
               Average Score
             </span>
@@ -43,7 +43,7 @@ export function PerformanceSummaryCard({ summary }: PerformanceSummaryCardProps)
 
           <div className='bg-muted/30 p-4 rounded-lg flex flex-col items-center text-center'>
             <Award className='w-5 h-5 text-amber-500 mb-2' />
-            <span className='text-2xl font-bold text-amber-500'>{summary.bestScore}%</span>
+            <span className='text-2xl font-bold text-amber-500'>{summary.bestScore}/100</span>
             <span className='text-xs text-muted-foreground mt-1 uppercase tracking-wider font-semibold'>
               Best Score
             </span>
