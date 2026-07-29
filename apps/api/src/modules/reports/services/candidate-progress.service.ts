@@ -133,9 +133,20 @@ export class CandidateProgressService {
       }
     }
 
-    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true, code: true } });
+    const allConcepts = await this.prisma.concept.findMany({
+      select: { id: true, name: true, code: true, topic: { select: { name: true } } },
+    });
     const topicNameMap = new Map<string, string>();
-    allTopics.forEach((t) => topicNameMap.set(t.id, t.name));
+    allTopics.forEach((t) => {
+      topicNameMap.set(t.id, t.name);
+      if (t.code) topicNameMap.set(t.code, t.name);
+    });
+    allConcepts.forEach((c) => {
+      const parentOrName = c.topic?.name || c.name;
+      topicNameMap.set(c.id, parentOrName);
+      if (c.code) topicNameMap.set(c.code, parentOrName);
+    });
 
     const mergedSkills: Record<string, { sum: number; count: number }> = {};
     Object.keys(topicAgg).forEach((topicKey) => {

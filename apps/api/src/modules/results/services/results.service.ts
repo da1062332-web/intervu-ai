@@ -79,9 +79,20 @@ export class ResultsService {
 
     const sectionScores: Record<string, any> = {};
 
-    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true, code: true } });
+    const allConcepts = await this.prisma.concept.findMany({
+      select: { id: true, name: true, code: true, topic: { select: { name: true } } },
+    });
     const topicNameMap = new Map<string, string>();
-    allTopics.forEach((t) => topicNameMap.set(t.id, t.name));
+    allTopics.forEach((t) => {
+      topicNameMap.set(t.id, t.name);
+      if (t.code) topicNameMap.set(t.code, t.name);
+    });
+    allConcepts.forEach((c) => {
+      const parentOrName = c.topic?.name || c.name;
+      topicNameMap.set(c.id, parentOrName);
+      if (c.code) topicNameMap.set(c.code, parentOrName);
+    });
 
     const topicScores: Record<string, any> = {};
 
@@ -139,7 +150,14 @@ export class ResultsService {
         }
 
         // Topic Aggregation
-        const rawTopic = snap?.topic?.name || snap?.topicName || snap?.conceptKey || snap?.topicId || "General";
+        const rawTopic =
+          snap?.topic?.name ||
+          snap?.topicName ||
+          snap?.topicId ||
+          (typeof snap?.topic === 'string' ? snap?.topic : undefined) ||
+          snap?.conceptName ||
+          snap?.conceptKey ||
+          "General";
         const topic = topicNameMap.get(rawTopic) || rawTopic;
         if (!topicScores[topic]) {
           topicScores[topic] = { total: 0, correct: 0, timeSpent: 0 };

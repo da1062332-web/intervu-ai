@@ -10,6 +10,7 @@ export function ExecutionHeader() {
     questions,
     connectionStatus,
     autosaveStatus,
+    hasUnsavedChanges,
     ping,
     lastSavedAt,
   } = useExecutionStore();
@@ -35,44 +36,41 @@ export function ExecutionHeader() {
           </h1>
         </div>
 
-        {/* Center/Right - Sync Warning & Connectivity Status on Green Bar */}
+        {/* Center/Right - Connectivity Status on Green Bar */}
         <div className='flex items-center gap-3 shrink-0'>
-          {/* Offline or Sync Failure Warning Badge */}
-          {isOffline || isSyncFailed ? (
-            <div className='bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-1.5 rounded-sm border border-red-300 shadow-xs flex items-center gap-1.5 animate-pulse transition-all'>
-              <AlertCircle className='size-4 text-white shrink-0' />
-              <span>Sync Warning: {isOffline ? 'Offline Mode (Locally Cached)' : 'Sync Retrying...'}</span>
+          <div className='flex items-center gap-2.5 bg-[#1e6132] border border-[#348b4f] px-3 py-1 rounded-sm text-xs font-semibold text-green-100 shadow-inner'>
+            {/* Online Connection Status */}
+            <div className='flex items-center gap-1.5 text-white'>
+              <Wifi className='size-3.5 text-green-300' />
+              <span className='hidden md:inline text-xs'>{isOffline ? 'Offline' : 'Online'}</span>
+              {ping !== null && !isOffline && <span className='text-[11px] text-green-200 font-normal'>({ping}ms)</span>}
             </div>
-          ) : (
-            <div className='flex items-center gap-2.5 bg-[#1e6132] border border-[#348b4f] px-3 py-1 rounded-sm text-xs font-semibold text-green-100 shadow-inner'>
-              {/* Online Connection Status */}
-              <div className='flex items-center gap-1.5 text-white'>
-                <Wifi className='size-3.5 text-green-300' />
-                <span className='hidden md:inline text-xs'>Online</span>
-                {ping !== null && <span className='text-[11px] text-green-200 font-normal'>({ping}ms)</span>}
-              </div>
 
-              <span className='text-green-400 opacity-50 select-none'>|</span>
+            <span className='text-green-400 opacity-50 select-none'>|</span>
 
-              {/* Autosave Sync Status */}
-              <div className='flex items-center gap-1.5 text-green-100 text-xs'>
-                {autosaveStatus === 'SAVING' ? (
-                  <>
-                    <RefreshCw className='size-3.5 animate-spin text-green-300' />
-                    <span>Syncing...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className='size-3.5 text-green-300' />
-                    <span className='hidden lg:inline'>
-                      Synced {lastSavedAt ? `at ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
-                    </span>
-                    <span className='lg:hidden'>Synced</span>
-                  </>
-                )}
-              </div>
+            {/* Autosave Sync Status inside Green Bar */}
+            <div className='flex items-center gap-1.5 text-green-100 text-xs'>
+              {autosaveStatus === 'SAVING' || hasUnsavedChanges ? (
+                <>
+                  <RefreshCw className={`size-3.5 ${autosaveStatus === 'SAVING' ? 'animate-spin' : ''} text-green-300`} />
+                  <span>{autosaveStatus === 'SAVING' ? 'Syncing...' : 'Sync Pending'}</span>
+                </>
+              ) : autosaveStatus === 'FAILED' ? (
+                <>
+                  <AlertCircle className='size-3.5 text-amber-300' />
+                  <span>Sync Retrying...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className='size-3.5 text-green-300' />
+                  <span className='hidden lg:inline'>
+                    Synced {lastSavedAt ? `at ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+                  </span>
+                  <span className='lg:hidden'>Synced</span>
+                </>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Right - Company Logo Emblem */}
           <div className='hidden sm:flex items-center gap-2.5 pl-3 border-l border-[#348b4f]'>

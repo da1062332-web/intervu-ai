@@ -157,7 +157,7 @@ export class PdfReportService {
         reportData.sectionBreakdown.forEach((sec: any) => {
           if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
           doc.fillColor("#0F172A");
-          doc.text(sec.section || sec.sectionKey || "General", 60, tableY);
+          doc.text(sec.section || sec.sectionKey || "General", 60, tableY, { width: 180, ellipsis: true, lineBreak: false });
           doc.text(`${sec.score}%`, 250, tableY);
           doc.text(`${sec.correct} / ${sec.total}`, 350, tableY);
           const sMins = Math.floor(sec.timeSpent / 60);
@@ -186,7 +186,7 @@ export class PdfReportService {
           reportData.topicBreakdown.forEach((topic: any) => {
             if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
             doc.fillColor("#0F172A");
-            doc.text(topic.topic || "Unknown", 60, tableY);
+            doc.text(topic.topic || "Unknown", 60, tableY, { width: 180, ellipsis: true, lineBreak: false });
             doc.text(`${topic.score}%`, 250, tableY);
             doc.text(`${topic.correct} / ${topic.total}`, 350, tableY);
             const tMins = Math.floor(topic.timeSpent / 60);
@@ -219,7 +219,7 @@ export class PdfReportService {
           reportData.difficultyBreakdown.forEach((diff: any) => {
             if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
             doc.fillColor("#0F172A");
-            doc.text(diff.difficulty || "Unknown", 60, tableY);
+            doc.text(diff.difficulty || "Unknown", 60, tableY, { width: 180, ellipsis: true, lineBreak: false });
             doc.text(`${diff.score}%`, 250, tableY);
             doc.text(`${diff.correct} / ${diff.total}`, 350, tableY);
             const dMins = Math.floor(diff.timeSpent / 60);

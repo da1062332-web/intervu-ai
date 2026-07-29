@@ -11,7 +11,6 @@ import { TabWarningModal } from './TabWarningModal';
 import { SectionChangeModal } from './SectionChangeModal';
 import { FaceTracker } from './FaceTracker';
 import { TimerWidget } from './TimerWidget';
-import { UnsavedChangesBanner } from './UnsavedChangesBanner';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
 import { useAutosave } from '../hooks/useAutosave';
@@ -64,9 +63,8 @@ export function ExecutionLayout() {
     >
       <FullscreenOverlay />
       <TabWarningModal />
-      <UnsavedChangesBanner />
       
-      {/* Green Header Banner (with integrated sync/offline warning) */}
+      {/* Green Header Banner (with integrated sync status) */}
       <ExecutionHeader />
 
       {/* Main Viewport Container */}

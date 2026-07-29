@@ -52,10 +52,10 @@ describe('QuestionRenderer', () => {
     });
 
     render(<QuestionRenderer />);
-    expect(screen.getByPlaceholderText('Enter your numeric answer')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Type your numerical answer...')).toBeInTheDocument();
   });
 
-  it('renders CODING textarea', () => {
+  it('renders CODING editor', () => {
     (useExecutionStore as any).mockReturnValue({
       currentQuestion: { ...baseQuestion, type: 'CODING' },
       currentQuestionIndex: 0,
@@ -66,6 +66,6 @@ describe('QuestionRenderer', () => {
     });
 
     render(<QuestionRenderer />);
-    expect(screen.getByPlaceholderText('// Write your code here...')).toBeInTheDocument();
+    expect(screen.getByTitle('OneCompiler')).toBeInTheDocument();
   });
 });
