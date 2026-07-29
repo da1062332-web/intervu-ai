@@ -1,5 +1,6 @@
 'use client';
 
+import { type MouseEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -80,7 +81,7 @@ export function TestFilters({
               checked={showOnlyBookmarked}
               onCheckedChange={onShowOnlyBookmarkedChange}
               className='scale-90 ml-0.5'
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
             />
           </div>
 
