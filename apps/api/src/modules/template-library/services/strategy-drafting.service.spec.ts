@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StrategyDraftingService } from './strategy-drafting.service';
+import { StrategyCanonicalizationService } from './strategy-canonicalization.service';
 import { AppLogger } from '@intervu-ai/shared-logger';
 
 describe('StrategyDraftingService', () => {
@@ -31,6 +32,10 @@ describe('StrategyDraftingService', () => {
         {
           provide: AppLogger,
           useValue: mockLogger,
+        },
+        {
+          provide: StrategyCanonicalizationService,
+          useClass: StrategyCanonicalizationService,
         },
       ],
     }).compile();
@@ -135,15 +140,10 @@ describe('StrategyDraftingService', () => {
       expect(result.data?.variables[0].name).toBe('x');
     });
 
-    it('should return validation warnings for inconsistent strategies', async () => {
+    it('should return validation warnings for weak strategies', async () => {
       const mockLLMResponse = JSON.stringify({
-        variables: [
-          { name: 'price', type: 'number', min: 100, max: 500 },
-        ],
-        derivedVariables: [
-          // References non-existent variable
-          { name: 'total', expression: 'quantity * price' },
-        ],
+        variables: [],
+        derivedVariables: [],
         constraints: [],
         notes: [],
       });
@@ -154,7 +154,29 @@ describe('StrategyDraftingService', () => {
 
       expect(result.success).toBe(true);
       expect(result.validationWarnings).toBeDefined();
-      expect(result.validationWarnings?.length).toBeGreaterThan(0);
+      expect(result.validationWarnings?.some((warning) => warning.toLowerCase().includes('no variables'))).toBe(true);
+    });
+
+    it('should accept a derived gcd expression in generated draft', async () => {
+      const mockLLMResponse = JSON.stringify({
+        variables: [
+          { name: 'rawSumNumerator', type: 'number' },
+          { name: 'rawSumDenominator', type: 'number' },
+        ],
+        derivedVariables: [
+          { name: 'gcdValue', expression: 'gcd(rawSumNumerator, rawSumDenominator)' },
+        ],
+        constraints: [],
+        notes: [],
+      });
+
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
+
+      const result = await service.draftStrategy('create a gcd derived variable draft');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.derivedVariables[0].expression).toBe('gcd(rawSumNumerator, rawSumDenominator)');
+      expect(result.validationWarnings).toEqual([]);
     });
   });
 
@@ -366,6 +388,37 @@ describe('StrategyDraftingService', () => {
     });
   });
 
+  describe('canonical validation', () => {
+    it('rejects natural-language constraint rules', async () => {
+      const mockLLMResponse = JSON.stringify({
+        variables: [{ name: 'avgRamMohan', type: 'number' }],
+        derivedVariables: [],
+        constraints: [{ rule: 'avgRamMohan is an integer', severity: 'critical' }],
+        notes: [],
+      });
+
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
+
+      await expect(service.draftStrategy('test')).rejects.toThrow(/invalid constraint definitions|undefined identifier/i);
+    });
+
+    it('normalizes single equals in constraint rules to double equals', async () => {
+      const mockLLMResponse = JSON.stringify({
+        variables: [{ name: 'x', type: 'number' }],
+        derivedVariables: [],
+        constraints: [{ rule: 'x = 0', severity: 'critical' }],
+        notes: [],
+      });
+
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
+
+      const result = await service.draftStrategy('test');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.constraints[0].rule).toBe('x == 0');
+    });
+  });
+
   describe('buildDraftingPrompt', () => {
     it('should include user prompt in the generated system prompt', () => {
       const userPrompt = 'Create variables for a pricing question';
@@ -383,12 +436,35 @@ describe('StrategyDraftingService', () => {
       expect(systemPrompt).toContain('constraints');
     });
 
-    it('should include guidance on variable types', () => {
+    it('should explicitly require variable domains to use type/min/max', () => {
       const systemPrompt = service['buildDraftingPrompt']('test');
 
-      expect(systemPrompt).toContain('number');
-      expect(systemPrompt).toContain('integer');
-      expect(systemPrompt).toContain('string');
+      expect(systemPrompt).toContain("Use 'variables' for base-domain requirements");
+      expect(systemPrompt).toContain('type: "integer"');
+      expect(systemPrompt).toContain('min: 10');
+      expect(systemPrompt).toContain('max: 70');
+    });
+
+    it('should explicitly forbid English prose in constraints.rule', () => {
+      const systemPrompt = service['buildDraftingPrompt']('test');
+
+      expect(systemPrompt).toContain("Do NOT duplicate natural-language domain requirements inside 'constraints[].rule'");
+      expect(systemPrompt).toContain("Invalid examples: 'ages are integers between 10 and 70', 'avgRamMohan is an integer'");
+      expect(systemPrompt).toContain("Do NOT output 'avgRamMohan = (ram_age + mohan_age) / 2' inside 'expression'");
+    });
+
+    it('should guide derived expressions to use only mathematical RHS values', () => {
+      const systemPrompt = service['buildDraftingPrompt']('test');
+
+      expect(systemPrompt).toContain("Derived variables must use 'expression' only");
+      expect(systemPrompt).toContain("Do NOT output 'avgRamMohan = (ram_age + mohan_age) / 2' inside 'expression'");
+    });
+
+    it('should use canonical equality examples with == for constraints', () => {
+      const systemPrompt = service['buildDraftingPrompt']('test');
+
+      expect(systemPrompt).toContain('totalCost == price * quantity');
+      expect(systemPrompt).not.toContain("totalCost = price * quantity");
     });
 
     it('should include examples in system prompt', () => {

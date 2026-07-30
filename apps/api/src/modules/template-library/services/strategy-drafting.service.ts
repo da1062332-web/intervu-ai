@@ -2,6 +2,8 @@ import { Injectable, BadRequestException, InternalServerErrorException, Inject }
 import { parse } from "mathjs";
 import { LLMAdapter } from "../../generation-ai/adapters/llm-adapter.interface";
 import { AppLogger } from "@intervu-ai/shared-logger";
+import { StrategyCanonicalizationService } from "./strategy-canonicalization.service";
+import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
 
 export interface VariableDraft {
   name: string;
@@ -54,6 +56,7 @@ export class StrategyDraftingService {
 
   constructor(
     @Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter,
+    private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
 
   /**
@@ -85,12 +88,16 @@ export class StrategyDraftingService {
 
       // 5. Normalize the output
       const normalized = this.normalizeStrategy(parsed);
-      const validationWarnings = this.validateDraft(normalized);
+      const validation = this.canonicalizationService.validateDraft(normalized);
+      if (validation.errors.length > 0) {
+        const validationMessage = `Drafted strategy contains invalid constraint definitions: ${validation.errors.join("; ")}`;
+        throw new BadRequestException(validationMessage);
+      }
 
       return {
         success: true,
         data: normalized,
-        validationWarnings,
+        validationWarnings: validation.warnings,
       };
     } catch (error: any) {
       this.logger.error("Strategy drafting failed", {
@@ -112,7 +119,7 @@ export class StrategyDraftingService {
    * Build the system prompt for strategy drafting
    */
   private buildDraftingPrompt(userPrompt: string): string {
-    return `You are an expert assessment question designer. A template author has described the logic for a question template. 
+    return `You are an expert assessment question designer. A template author has described the logic for a question template.
 Your task is to analyze their description and convert it into a structured strategy object.
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no explanations, no code blocks.
@@ -140,7 +147,7 @@ Analyze this and return a JSON object with this exact structure:
   ],
   "constraints": [
     {
-      "rule": "expression or comparison like 'totalCost = price * quantity' or 'totalCost > 100'",
+      "rule": "expression or comparison like 'totalCost == price * quantity' or 'totalCost > 100'",
       "severity": "critical|warning"
     }
   ],
@@ -150,12 +157,18 @@ Analyze this and return a JSON object with this exact structure:
 Critical output rules:
 - Return ONLY valid JSON. No markdown. No comments. No trailing text.
 - The JSON keys must match the schema exactly: variables, derivedVariables, constraints, notes.
-- Variables must be base inputs only. Derived variables must be mathematically computed from those base variables.
-- Constraint rules must be simple parseable expressions that can be stored in the same manual schema format used by the template editor.
-- Use clean identifier names with no spaces (e.g. total_cost, price, quantity).
-- Infer reasonable numeric ranges when they are implied by the prompt.
-- Prefer simple arithmetic relations over long prose.
-- If a value is not explicitly given, choose a sensible default and mention it in notes.
+- Use 'variables' for base-domain requirements. If the prompt says something like "ages are integers between 10 and 70", represent it using 'type: "integer"', 'min: 10', and 'max: 70' for each age variable.
+- Do NOT duplicate natural-language domain requirements inside 'constraints[].rule'.
+- Derived variables must use 'expression' only, and that expression must contain only the mathematical right-hand side.
+  Example: {"name": "avgRamMohan", "expression": "(ram_age + mohan_age) / 2"}
+  Do NOT output 'avgRamMohan = (ram_age + mohan_age) / 2' inside 'expression'.
+- 'constraints[].rule' must contain ONLY machine-parseable mathematical expressions or comparisons using declared identifiers and supported operators.
+  Valid examples: 'avgRamMohan % 1 == 0', 'difference1 > 0', 'difference1 % 1 == 0', 'avgRamMohan > avgMohanJitesh'.
+  Invalid examples: 'ages are integers between 10 and 70', 'avgRamMohan is an integer', 'difference1 is a positive integer', 'jitesh_age is uniquely solvable'.
+- Use '==' for equality comparisons in constraints, not single '='.
+- For integer requirements on derived values, represent them with parseable math constraints such as 'avgRamMohan % 1 == 0'.
+- For positive integer requirements, represent them with supported math constraints such as 'difference1 > 0' and optionally 'difference1 % 1 == 0'.
+- If the prompt contains a semantic requirement like "uniquely solvable" that has no formal field, use it as guidance when choosing variables and relations, and optionally include it in 'notes', but do not encode it as a 'constraints[].rule' sentence.
 - Keep each constraint rule as one straightforward string expression.
 - Do NOT include placeholder-only terms or template boilerplate. Only variables that actually participate in the logic.
 - Support only deterministic, arithmetic-based logic in this version.`;
@@ -314,7 +327,7 @@ Critical output rules:
         if (!c?.rule || typeof c.rule !== "string") continue;
 
         normalized.constraints.push({
-          rule: c.rule.trim(),
+          rule: this.canonicalizationService.normalizeConstraintRule(c.rule.trim()),
           severity: c.severity === "warning" ? "warning" : "critical",
         });
       }
@@ -393,7 +406,14 @@ Critical output rules:
         `Derived variable "${derived.name}"`,
       );
 
-      const mentioned = this.extractIdentifiers(derived.expression);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(derived.expression);
+      if (unsupportedFunctions.length > 0) {
+        warnings.push(
+          `Derived variable "${derived.name}" uses unsupported function(s): ${unsupportedFunctions.join(", ")}`,
+        );
+      }
+
+      const mentioned = analyzeMathjsExpression(derived.expression).identifiers.map((name) => name.toLowerCase());
       const orphaned = mentioned.filter(
         (name) =>
           !baseVarNames.has(name) && !derivedVarNames.has(name),
@@ -424,7 +444,8 @@ Critical output rules:
         `Constraint rule`,
       );
 
-      const mentioned = this.extractIdentifiers(constraint.rule);
+      const normalizedRule = this.normalizeConstraintRuleForParsing(constraint.rule);
+      const mentioned = analyzeMathjsExpression(normalizedRule).identifiers.map((name) => name.toLowerCase());
       const undefinedVars = mentioned.filter(
         (name) =>
           !baseVarNames.has(name) && !derivedVarNames.has(name),
@@ -509,20 +530,6 @@ Critical output rules:
     }
   }
 
-  private normalizeConstraintRuleForParsing(rule: string): string {
-    return rule.replace(/(?<![=!<>])=(?!=)/g, "==");
-  }
-
-  private extractIdentifiers(expression: string): string[] {
-    return Array.from(
-      new Set(
-        (expression.match(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g) || []).map((token) =>
-          token.toLowerCase(),
-        ),
-      ),
-    );
-  }
-
   private findDerivedCycle(
     derivedVariables: DerivedVariableDraft[],
   ): string[] | null {
@@ -533,9 +540,10 @@ Critical output rules:
 
     for (const derived of derivedVariables) {
       const name = derived.name.toLowerCase();
-      const references = this.extractIdentifiers(derived.expression).filter(
-        (token) => derivedNames.has(token) && token !== name,
-      );
+      const references = analyzeMathjsExpression(derived.expression)
+        .identifiers
+        .map((token) => token.toLowerCase())
+        .filter((token) => derivedNames.has(token) && token !== name);
       graph.set(name, references);
     }
 
@@ -616,6 +624,14 @@ Critical output rules:
     return "random";
   }
 
+  private normalizeConstraintRuleForParsing(rule: string): string {
+    if (typeof rule !== "string") {
+      return "";
+    }
+
+    return rule.trim().replace(/(?<![=!<>])=(?!=)/g, "==");
+  }
+
   /**
    * Collect validation warnings from the strategy
    */
@@ -635,10 +651,11 @@ Critical output rules:
     const baseVarNames = new Set(
       strategy.variables.map((v) => v.name.toLowerCase()),
     );
+    const derivedVarNames = new Set(
+      strategy.derivedVariables.map((d) => d.name.toLowerCase()),
+    );
     for (const derived of strategy.derivedVariables) {
-      const mentioned = derived.expression
-        .toLowerCase()
-        .match(/\b[a-z_][a-z0-9_]*\b/g) || [];
+      const mentioned = analyzeMathjsExpression(derived.expression).identifiers.map((name) => name.toLowerCase());
       const orphaned = mentioned.filter(
         (name) => !baseVarNames.has(name.toLowerCase()),
       );
@@ -651,15 +668,11 @@ Critical output rules:
 
     // Check for constraints on undefined variables
     for (const constraint of strategy.constraints) {
-      const mentioned = constraint.rule
-        .toLowerCase()
-        .match(/\b[a-z_][a-z0-9_]*\b/g) || [];
+      const mentioned = analyzeMathjsExpression(this.normalizeConstraintRuleForParsing(constraint.rule)).identifiers.map((name) => name.toLowerCase());
       const undefined_vars = mentioned.filter(
         (name) =>
           !baseVarNames.has(name.toLowerCase()) &&
-          !new Set(strategy.derivedVariables.map((d) => d.name.toLowerCase())).has(
-            name.toLowerCase(),
-          ),
+          !derivedVarNames.has(name.toLowerCase()),
       );
       if (undefined_vars.length > 0) {
         warnings.push(

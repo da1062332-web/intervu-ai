@@ -37,6 +37,7 @@ describe('TemplateService AI strategy apply flow', () => {
       {} as TemplateVariableRepository,
       {} as TemplateRuleRepository,
       cacheService as unknown as RedisCacheService,
+      { normalizeConstraintRule: (rule: string) => rule, validateDraft: () => ({ errors: [], warnings: [] }) } as any,
     );
 
     await service.applyDraftedStrategy('template_123', {
@@ -132,6 +133,7 @@ describe('TemplateService AI strategy apply flow', () => {
       {} as TemplateVariableRepository,
       {} as TemplateRuleRepository,
       cacheService as unknown as RedisCacheService,
+      { normalizeConstraintRule: (rule: string) => rule, validateDraft: () => ({ errors: [], warnings: [] }) } as any,
     );
 
     const result = await service.generateQuestionForTemplate('template_456');
@@ -167,6 +169,7 @@ describe('TemplateService AI strategy apply flow', () => {
       {} as TemplateVariableRepository,
       {} as TemplateRuleRepository,
       cacheService as unknown as RedisCacheService,
+      { normalizeConstraintRule: (rule: string) => rule, validateDraft: () => ({ errors: [], warnings: [] }) } as any,
     );
 
     await expect(

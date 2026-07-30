@@ -341,18 +341,18 @@ export class ParameterGeneratorService {
     }
 
     if (typeof rule.rule === "string" && rule.rule.trim()) {
-      return rule.rule;
+      return rule.rule.replace(/(?<![=!<>])=(?!=)/g, "==");
     }
 
     if (typeof rule.expression === "string" && rule.expression.trim()) {
-      return rule.expression;
+      return rule.expression.replace(/(?<![=!<>])=(?!=)/g, "==");
     }
 
     if (typeof rule.target === "string" && rule.target.trim()) {
       const target = rule.target.trim();
       const operator = typeof rule.operator === "string" ? rule.operator : "==";
       const value = this.formatConstraintValue(rule.value);
-      return `${target} ${operator} ${value}`;
+      return `${target} ${operator} ${value}`.replace(/(?<![=!<>])=(?!=)/g, "==");
     }
 
     return "";
