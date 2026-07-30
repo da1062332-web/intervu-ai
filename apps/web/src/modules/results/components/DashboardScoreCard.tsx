@@ -10,21 +10,22 @@ interface Props {
 const formatScore = (val: number) => (Number.isInteger(val) ? val : val.toFixed(1));
 
 export const DashboardScoreCard: React.FC<Props> = ({ data }) => {
+  const overallScoreOutOf100 = data.percentage !== undefined && data.percentage !== null
+    ? Math.round(data.percentage)
+    : (data.maxMarks && data.maxMarks > 0)
+      ? Math.round((data.overallScore / data.maxMarks) * 100)
+      : Math.round(data.overallScore);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Overall Score Card</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
             <p className="text-sm text-gray-500 font-medium mb-1">Overall Score</p>
-            <p className="text-3xl font-bold text-gray-900">{formatScore(data.overallScore)} {data.maxMarks ? <span className="text-sm font-normal text-gray-400">/ {data.maxMarks}</span> : ''}</p>
-          </div>
-          
-          <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
-            <p className="text-sm text-gray-500 font-medium mb-1">Percentage</p>
-            <p className="text-3xl font-bold text-indigo-600">{Math.round(data.percentage)}%</p>
+            <p className="text-3xl font-bold text-gray-900">{overallScoreOutOf100} <span className="text-sm font-normal text-gray-400">/ 100</span></p>
           </div>
           
           <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">

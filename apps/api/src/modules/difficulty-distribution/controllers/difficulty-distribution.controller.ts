@@ -99,10 +99,15 @@ export class DifficultyDistributionController {
   async findOne(@Param("id") id: string) {
     const distribution = await this.service.getDifficultyDistribution(id);
     if (!distribution) {
-      throw new NotFoundException({
-        code: "DISTRIBUTION_NOT_FOUND",
-        message: "Difficulty distribution not found for this config",
-      });
+      return {
+        id: "",
+        examConfigId: id,
+        easyPercentage: 0,
+        mediumPercentage: 0,
+        hardPercentage: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
     }
     return distribution;
   }

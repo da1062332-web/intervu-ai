@@ -116,6 +116,9 @@ export class ConfigPublisherService {
 
     // ─── Step 3-5: Execute Mutations in Transaction ─────────────────────────
     await this.prisma.$transaction(async (tx) => {
+      // Auto-generate Blueprint shell if missing to break circular deadlock & ensure readiness
+      await this.autoEnsureBlueprint(tx, config);
+
       // Create version using the pre-fetched graph
       const versionEntry = await this.versionService.createVersion(config, tx);
       finalVersionStr = `v${versionEntry.versionNumber}`;
@@ -202,5 +205,56 @@ export class ConfigPublisherService {
       warnings: [...validation.warnings, ...dependencyCheck.warnings],
       dependencyCheck,
     };
+  }
+
+  private async autoEnsureBlueprint(tx: any, config: any) {
+    const existingBp = await tx.blueprint.findUnique({
+      where: { configId: config.id },
+    });
+
+    if (existingBp) return existingBp;
+
+    let styleProfile = await tx.styleProfile.findFirst({
+      where: { status: "ACTIVE", active: true },
+    });
+
+    if (!styleProfile) {
+      styleProfile = await tx.styleProfile.create({
+        data: {
+          name: "Default Standard Profile",
+          profileType: "DEFAULT",
+          status: "ACTIVE",
+          active: true,
+        },
+      });
+    }
+
+    const diffAlloc = config.difficultyDistribution
+      ? {
+          easy: config.difficultyDistribution.easyPercentage ?? 0,
+          medium: config.difficultyDistribution.mediumPercentage ?? 0,
+          hard: config.difficultyDistribution.hardPercentage ?? 0,
+        }
+      : { easy: 0, medium: 0, hard: 0 };
+
+    const bpSections = (config.sections || []).map((section: any) => ({
+      sectionId: section.id,
+      sectionKey: section.sectionKey || section.id,
+      displayName: section.name,
+      questionCount: section.questionCount || 5,
+      difficultyAllocation: diffAlloc,
+      topicAllocations: (section.sectionTopics || []).map((st: any) => ({
+        topicId: st.topicId,
+        percentage: Math.round(100 / (section.sectionTopics?.length || 1)),
+      })),
+    }));
+
+    return tx.blueprint.create({
+      data: {
+        configId: config.id,
+        styleProfileId: styleProfile.id,
+        sections: bpSections as any,
+      },
+    });
   }
 }

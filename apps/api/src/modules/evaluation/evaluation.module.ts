@@ -29,6 +29,9 @@ import { ReEvaluationService } from "./services/re-evaluation.service";
 import { EvaluationWorkerService } from "./services/evaluation-worker.service";
 import { EvaluationExplainabilityService } from "./insights/explainability.service";
 import { EvaluationValidationService } from "./validation/services/evaluation-validation.service";
+import { TcsHiringStrategy } from "./strategies/tcs-hiring.strategy";
+import { HiringStrategyRegistry } from "./strategies/hiring-strategy.registry";
+import { HiringEvaluationEngine } from "./services/hiring-evaluation.engine";
 
 @Module({
   imports: [PrismaModule, ConfigModule, forwardRef(() => GenerationAiModule)],
@@ -58,6 +61,10 @@ import { EvaluationValidationService } from "./validation/services/evaluation-va
     EvaluationWorkerService,
     EvaluationExplainabilityService,
     EvaluationValidationService,
+
+    TcsHiringStrategy,
+    HiringStrategyRegistry,
+    HiringEvaluationEngine,
   ],
   exports: [
     EvaluationService,
@@ -84,6 +91,10 @@ import { EvaluationValidationService } from "./validation/services/evaluation-va
     EvaluationWorkerService,
     EvaluationExplainabilityService,
     EvaluationValidationService,
+
+    TcsHiringStrategy,
+    HiringStrategyRegistry,
+    HiringEvaluationEngine,
   ],
 })
 export class EvaluationModule {}

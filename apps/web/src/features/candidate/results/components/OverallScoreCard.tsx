@@ -21,7 +21,7 @@ export function OverallScoreCard({ evaluation }: OverallScoreCardProps) {
             <span className='text-sm font-medium text-muted-foreground mb-1'>Total Score</span>
             <div className='flex items-end gap-1'>
               <span className='text-4xl font-black text-primary'>{evaluation.overallScore}</span>
-              <span className='text-lg text-primary/70 pb-1'>%</span>
+              <span className='text-lg text-primary/70 pb-1'>/100</span>
             </div>
           </div>
 

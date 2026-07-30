@@ -45,7 +45,7 @@ export function AttemptHistoryCard({ history }: AttemptHistoryCardProps) {
                   </div>
                 </div>
                 <Badge variant='secondary' className='text-sm font-bold ml-4'>
-                  {attempt.score}%
+                  {attempt.score}/100
                 </Badge>
               </div>
             ))}

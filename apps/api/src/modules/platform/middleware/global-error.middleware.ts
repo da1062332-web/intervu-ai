@@ -17,7 +17,7 @@ export class GlobalErrorFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const status =
+    let status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
@@ -44,11 +44,33 @@ export class GlobalErrorFilter implements ExceptionFilter {
       details = respObj.details || null;
     } else if (exception && typeof exception === "object") {
       const excObj = exception as Record<string, unknown>;
-      if (excObj.name === "UnauthorizedResultAccessError") {
+      if (excObj.code && typeof excObj.code === "string") {
+        errorCode = excObj.code;
+        message = (excObj.message as string) || message;
+        details = excObj.details || null;
+
+        if (excObj.code === "NOT_FOUND") {
+          status = HttpStatus.NOT_FOUND;
+        } else if (
+          excObj.code === "VALIDATION_ERROR" ||
+          excObj.code === "TOPIC_ALREADY_MAPPED" ||
+          excObj.code === "WEIGHTAGE_TOTAL_EXCEEDED" ||
+          excObj.code === "WEIGHTAGE_TOTAL_INVALID" ||
+          excObj.code === "TOPIC_NOT_MAPPED_TO_SECTION"
+        ) {
+          status = HttpStatus.BAD_REQUEST;
+        } else if (excObj.code === "UNAUTHORIZED") {
+          status = HttpStatus.UNAUTHORIZED;
+        } else if (excObj.code === "FORBIDDEN") {
+          status = HttpStatus.FORBIDDEN;
+        }
+      } else if (excObj.name === "UnauthorizedResultAccessError") {
         errorCode = "FORBIDDEN";
+        status = HttpStatus.FORBIDDEN;
         message = "You are not authorized to access this resource";
       } else if (excObj.name === "ResultNotFoundError") {
         errorCode = "NOT_FOUND";
+        status = HttpStatus.NOT_FOUND;
         message = "Requested evaluation result was not found";
       }
     }

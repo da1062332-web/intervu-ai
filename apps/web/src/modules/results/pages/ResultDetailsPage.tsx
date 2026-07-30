@@ -17,6 +17,7 @@ import { RecommendationPanel } from '../components/RecommendationPanel';
 import { ShareableResultCard } from '../components/ShareableResultCard';
 import { Target, PlayCircle } from 'lucide-react';
 import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsDashboard';
+import { HiringEvaluationCard } from '@/features/candidate/results/components/HiringEvaluationCard';
 
 export const ResultDetailsPage = () => {
   const params = useParams();
@@ -146,6 +147,20 @@ export const ResultDetailsPage = () => {
       </div>
 
       <ResultStatusTracker attemptId={attemptId!} onComplete={refetch} />
+
+      {result.qualification && (
+        <div className="pt-2">
+          <HiringEvaluationCard
+            qualification={result.qualification}
+            qualificationReason={result.qualificationReason}
+            evaluationStrategy={result.evaluationStrategy}
+            foundationScore={result.foundationScore}
+            advancedScore={result.advancedScore}
+            codingSolved={result.codingSolved}
+            qualificationDetails={result.qualificationDetails}
+          />
+        </div>
+      )}
 
       <div className="pt-4">
         <PerformanceInsightsDashboard attemptId={attemptId!} />

@@ -78,7 +78,7 @@ export function RecentAttempts() {
                   variant='secondary'
                   className='text-sm font-bold ml-4 bg-primary/10 text-primary border border-primary/20'
                 >
-                  {attempt.score}%
+                  {attempt.score}/100
                 </Badge>
               </div>
             ))}

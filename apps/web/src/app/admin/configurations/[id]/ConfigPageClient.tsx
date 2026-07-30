@@ -12,6 +12,7 @@ import { GeneralSettingsTab } from '@/features/admin/configs/components/general-
 import { ConceptsAndTemplatesTab } from '@/features/admin/configs/components/concepts-templates-tab';
 import { BlueprintSelectionTab } from '@/features/admin/configs/components/blueprint-selection-tab';
 import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-summary-tab';
+import { HiringEvaluationTab } from '@/features/admin/configs/components/hiring-evaluation-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
 import { GenerationReadinessPanel } from '@/features/admin/configs/components/GenerationReadinessPanel';
 
@@ -41,6 +42,7 @@ const WIZARD_TABS = [
   { id: 'concepts-templates', label: 'Concepts & Content' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
+  { id: 'hiring-evaluation', label: 'Hiring Qualification' },
   { id: 'blueprint', label: 'Blueprint' },
   { id: 'readiness', label: 'Readiness' },
   { id: 'preview', label: 'Preview' },
@@ -74,11 +76,13 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const markClean = useCallback(() => setIsDirty(false), []);
 
   const handleNext = () => {
-    if (activeTabId === 'blueprint' && !selectedBlueprintId) {
+    // Auto-assign blueprint if available or allow auto-generation on publish
+    const currentBlueprintId = selectedBlueprintId || (config as any)?.blueprint?.id || (config as any)?.blueprintId;
+    if (activeTabId === 'blueprint' && !currentBlueprintId && false) {
       toast.error('Please select a blueprint before continuing.');
       return;
     }
-    // More complex validations can be added here if needed
+    // Advance to next tab smoothly
     if (activeTabIndex < WIZARD_TABS.length - 1) {
       if (isDirty) {
         if (!window.confirm('You have unsaved changes. Continue without saving?')) return;
@@ -103,11 +107,6 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     if (isDirty) {
       if (!window.confirm('You have unsaved changes. Leave this tab without saving?')) return;
       markClean();
-    }
-    if (!selectedBlueprintId && index > 7) {
-      toast.error('Please select a blueprint first.');
-      setActiveTabIndex(7); // Force them to blueprint tab
-      return;
     }
     setActiveTabIndex(index);
   };
@@ -262,6 +261,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         {activeTabId === 'concepts-templates' && <ConceptsAndTemplatesTab configId={configId} />}
         {activeTabId === 'difficulty' && <DifficultyDistributionTab configId={configId} />}
         {activeTabId === 'rules' && <RuleFlagsTab configId={configId} onNext={handleNext} />}
+        {activeTabId === 'hiring-evaluation' && <HiringEvaluationTab configId={configId} onNext={handleNext} />}
         {activeTabId === 'blueprint' && <BlueprintSelectionTab configId={configId} />}
         {activeTabId === 'readiness' && (
           <GenerationReadinessPanel

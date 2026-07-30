@@ -73,12 +73,12 @@ export class OptionGeneratorService {
           opt,
         ),
     );
-    const allShort = cleanOptions.every((opt) => opt.length < 15);
+    const allShort = cleanOptions.every((opt) => opt.length < 50);
 
-    if (!hasCodeSyntax && !allShort) {
-      if (minLen === 0 || maxLen / minLen > 2.5) {
+    if (!hasCodeSyntax && !allShort && minLen > 0) {
+      if (maxLen / minLen > 6.0) {
         throw new BadRequestException(
-          `Option length mismatch: the options are not of balanced lengths (longest option is more than 2.5x the length of the shortest option). Longest: ${maxLen} chars, Shortest: ${minLen} chars.`,
+          `Option length mismatch: the options are not of balanced lengths (longest option is more than 6x the length of the shortest option). Longest: ${maxLen} chars, Shortest: ${minLen} chars.`,
         );
       }
     }

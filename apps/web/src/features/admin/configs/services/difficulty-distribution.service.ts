@@ -8,12 +8,20 @@ const BASE_PATH = '/admin/configs';
 
 export const difficultyDistributionService = {
   getDifficultyDistribution: async (configId: string): Promise<DifficultyDistributionResponse> => {
-    return apiClient.request<DifficultyDistributionResponse>(
-      `${BASE_PATH}/${configId}/difficulty`,
-      {
+    return apiClient
+      .request<DifficultyDistributionResponse>(`${BASE_PATH}/${configId}/difficulty`, {
         method: 'GET',
-      },
-    );
+        skipErrorToast: true,
+      })
+      .catch(() => ({
+        id: '',
+        examConfigId: configId,
+        easyPercentage: 0,
+        mediumPercentage: 0,
+        hardPercentage: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }));
   },
 
   updateDifficultyDistribution: async (

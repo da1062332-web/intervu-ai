@@ -1,6 +1,6 @@
 import { CandidateRecommendations } from '@/features/candidate/dashboard/types/candidateDashboard.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lightbulb, Percent, TrendingUp } from 'lucide-react';
+import { Lightbulb, Percent, TrendingUp, Award } from 'lucide-react';
 
 interface RecommendationsCardProps {
   recommendations: CandidateRecommendations | null;
@@ -36,10 +36,10 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
         <div className='grid grid-cols-2 gap-4'>
           <div className='bg-primary/5 p-4 rounded-lg border border-primary/10 flex flex-col items-center justify-center text-center'>
             <div className='flex items-center gap-1 text-muted-foreground mb-1 text-sm'>
-              <Percent className='size-3' />
+              <Award className='size-3' />
               Overall Score
             </div>
-            <div className='text-3xl font-bold text-primary'>{recommendations.overallScore}%</div>
+            <div className='text-3xl font-bold text-primary'>{recommendations.overallScore}/100</div>
           </div>
           <div className='bg-primary/5 p-4 rounded-lg border border-primary/10 flex flex-col items-center justify-center text-center'>
             <div className='flex items-center gap-1 text-muted-foreground mb-1 text-sm'>

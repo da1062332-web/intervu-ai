@@ -35,7 +35,11 @@ export class CandidateDashboardService {
       instanceId: t.id,
       configId: t.examConfigId || t.testConfigId,
       name: t.examConfig?.name || t.testConfig?.displayName || "Unknown Test",
-      score: t.evaluationResult?.overallScore || 0,
+      score: Math.round(
+        t.candidateResult?.percentage ??
+        t.evaluationResult?.confidenceScore ??
+        t.evaluationResult?.overallScore ?? 0
+      ),
       submittedAt: t.updatedAt?.toISOString() || null,
     }));
 
@@ -101,16 +105,18 @@ export class CandidateDashboardService {
     const data = await this.dashboardRepository.getDashboardData(userId);
     
     // completedTests maps to data.completedTests
-    const completedTests = data.completedTests.map((t: any) => ({
-      score: t.evaluationResult?.overallScore || 0,
-    }));
+    const completedTests = data.completedTests.map((t: any) => {
+      const score = t.candidateResult?.score ?? t.evaluationResult?.overallScore ?? 0;
+      const percentage = t.candidateResult?.percentage ?? t.evaluationResult?.confidenceScore ?? score;
+      return { score, percentage };
+    });
 
     const bestScore = completedTests.length > 0 
-      ? Math.max(...completedTests.map((t: any) => t.score)) 
+      ? Math.max(...completedTests.map((t: any) => Math.round(t.percentage))) 
       : 0;
       
     const averageAccuracy = completedTests.length > 0
-      ? completedTests.reduce((sum: number, t: any) => sum + t.score, 0) / completedTests.length
+      ? completedTests.reduce((sum: number, t: any) => sum + t.percentage, 0) / completedTests.length
       : 0;
 
     return {

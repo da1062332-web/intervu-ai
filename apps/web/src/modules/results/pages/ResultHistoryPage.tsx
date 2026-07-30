@@ -202,7 +202,7 @@ export const ResultHistoryPage = () => {
                         </div>
                         <div className='flex items-center gap-1.5'>
                           <TrendingUp className='size-3.5 text-emerald-500' />
-                          <span>Score: {result.score}</span>
+                          <span>Score: {Math.round(result.score)}/100</span>
                         </div>
                       </div>
                     </div>

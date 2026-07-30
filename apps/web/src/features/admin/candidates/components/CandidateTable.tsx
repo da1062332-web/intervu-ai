@@ -9,6 +9,8 @@ import { CandidateStatusBadge } from './CandidateStatusBadge';
 import { formatCandidateDate } from '../utils';
 import type { CandidateListItem, CandidatePagination } from '../types/candidate.types';
 
+import { Badge } from '@/components/ui/badge';
+
 interface CandidateTableProps {
   candidates: CandidateListItem[];
   pagination?: CandidatePagination;
@@ -24,6 +26,22 @@ export function CandidateTable({
 }: CandidateTableProps) {
   const router = useRouter();
 
+  const getQualificationBadge = (q?: string) => {
+    if (!q) return <span className="text-xs text-muted-foreground">-</span>;
+    switch (q.toUpperCase()) {
+      case 'PRIME':
+        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/30 font-semibold">PRIME</Badge>;
+      case 'DIGITAL':
+        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/30 font-semibold">DIGITAL</Badge>;
+      case 'NINJA':
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/30 font-semibold">NINJA</Badge>;
+      case 'NOT_QUALIFIED':
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/30 font-semibold">NOT QUALIFIED</Badge>;
+      default:
+        return <Badge variant="outline">{q}</Badge>;
+    }
+  };
+
   const columns: ColumnDef<CandidateListItem>[] = [
     {
       id: 'name',
@@ -34,6 +52,11 @@ export function CandidateTable({
       id: 'email',
       header: 'Email',
       cell: (row) => <span className="text-sm text-muted-foreground">{row.email}</span>,
+    },
+    {
+      id: 'qualification',
+      header: 'Hiring Qualification',
+      cell: (row) => getQualificationBadge(row.qualification),
     },
     {
       id: 'status',

@@ -52,7 +52,7 @@ export class AiInsightService {
         const prompt = `
 You are an expert AI assessment evaluator. Generate a list of 3-5 short, qualitative, bulleted performance insights for a candidate based on their assessment results.
 Candidate Results:
-- Overall Score: ${score}%
+- Overall Score: ${score}/100
 - Subject Accuracies: ${JSON.stringify(topicAccuracy)}
 - Difficulty Accuracies: ${JSON.stringify(difficultyAccuracy)}
 - Completion Rate: ${completionRate}%
@@ -286,7 +286,7 @@ CRITICAL INSTRUCTIONS:
 
     // Default fallback if no insights matched
     if (insights.length === 0) {
-      insights.push(`Completed the assessment with a score of ${score}%.`);
+      insights.push(`Completed the assessment with a score of ${score}/100.`);
       insights.push(
         `Maintain regular practice to improve overall speed and accuracy.`,
       );

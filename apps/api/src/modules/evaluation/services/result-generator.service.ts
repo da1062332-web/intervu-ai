@@ -7,6 +7,7 @@ import { OverallScoreService } from "../scoring/overall-score.service";
 import { PerformanceAnalyticsService } from "../analytics/performance-analytics.service";
 import { StrengthWeaknessService } from "../analytics/strength-weakness.service";
 import { RecommendationService } from "../recommendations/recommendation.service";
+import { HiringEvaluationEngine } from "./hiring-evaluation.engine";
 import { ExecutionResultDto } from "../../execution/dto/execution-result.dto";
 import { CandidateResultDto } from "@intervu-ai/contracts";
 import { randomUUID } from "crypto";
@@ -25,6 +26,7 @@ export class ResultGeneratorService {
     private readonly analytics: PerformanceAnalyticsService,
     private readonly strengthWeakness: StrengthWeaknessService,
     private readonly recommendation: RecommendationService,
+    private readonly hiringEngine: HiringEvaluationEngine,
   ) {}
 
   /**
@@ -259,7 +261,15 @@ export class ResultGeneratorService {
     ).length;
     const totalIncorrect = totalAttempted - totalCorrect;
 
-    // 13. Assemble final result (TCS classification is NOT included — runs async later)
+    // 13. Evaluate Generic Hiring Qualification if enabled
+    const hiringOutcome = await this.hiringEngine.evaluateAttempt(
+      testInstance.id,
+      sectionScores,
+      objectiveEvalResults,
+      codingEvalResults,
+    );
+
+    // 14. Assemble final result
     return {
       id: `res_${randomUUID()}`,
       candidateId: testInstance.userId,
@@ -280,6 +290,19 @@ export class ResultGeneratorService {
       objectiveScore: overallScore.objectiveScore,
       codingScore: overallScore.codingScore,
       passed: overallScore.passed,
+      // Hiring Evaluation fields
+      ...(hiringOutcome
+        ? {
+            evaluationStrategy: hiringOutcome.strategy,
+            qualification: hiringOutcome.qualification,
+            qualificationReason: hiringOutcome.qualificationReason,
+            foundationScore: hiringOutcome.foundationScore,
+            advancedScore: hiringOutcome.advancedScore,
+            codingSolved: hiringOutcome.codingSolved,
+            qualificationDetails: hiringOutcome,
+            evaluatedAt: hiringOutcome.evaluatedAt,
+          }
+        : {}),
     };
   }
 }

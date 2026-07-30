@@ -39,6 +39,16 @@ export class AdminReportsController {
     return this.adminReportService.getCandidateReports(filters);
   }
 
+  @Get("qualification-stats")
+  @ApiOperation({ summary: "Get aggregated hiring qualification statistics" })
+  @ApiResponse({
+    status: 200,
+    description: "Successfully retrieved qualification stats",
+  })
+  async getQualificationStats(@Query("assessmentId") assessmentId?: string) {
+    return this.adminReportService.getQualificationStats(assessmentId);
+  }
+
   @Get("exports/candidates")
   @ApiOperation({ summary: "Bulk export candidate reports as CSV" })
   @ApiResponse({

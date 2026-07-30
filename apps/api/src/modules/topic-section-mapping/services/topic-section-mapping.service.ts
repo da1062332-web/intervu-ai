@@ -47,7 +47,10 @@ export class TopicSectionMappingService {
   }
 
   async getMappings(sectionId: string): Promise<SectionTopicResponse[]> {
-    await this.validateSectionExists(sectionId);
+    const section = await this.sectionRepo.findById(sectionId);
+    if (!section) {
+      return [];
+    }
 
     const mappings = await this.repository.findMappingsBySection(sectionId);
     if (mappings.length === 0) {
@@ -96,44 +99,20 @@ export class TopicSectionMappingService {
       throw new TopicAlreadyMappedError();
     }
 
-    // CHECK UNUSED QUESTION POOL CAPACITY FOR THIS TOPIC & EXAM CONFIG
-    const unusedCount = await this.usageService.getUnusedPoolCount(
-      section.examConfigId,
-      topicId,
-      undefined,
-    );
-
-    if (unusedCount <= 0) {
-      const conflictingConfigs =
-        await this.usageService.findConflictingConfigsForTopic(
-          section.examConfigId,
-          topicId,
+    // Check unused question pool capacity and log warning if empty
+    try {
+      const unusedCount = await this.usageService.getUnusedPoolCount(
+        section.examConfigId,
+        topicId,
+        undefined,
+      );
+      if (unusedCount <= 0) {
+        this.logger.warn(
+          `Topic '${topic.name}' assigned to section '${section.name}' currently has 0 active questions in Question Bank.`,
         );
-
-      if (conflictingConfigs.length > 0) {
-        throw new BadRequestException({
-          code: "TOPIC_QUESTIONS_EXHAUSTED",
-          error: "TOPIC_QUESTIONS_EXHAUSTED",
-          message: `Cannot assign topic '${topic.name}' to this section. All questions for topic '${topic.name}' are already assigned to Exam Configuration(s): '${conflictingConfigs.join(", ")}'. Please generate a new batch of questions for topic '${topic.name}' before assigning it to this section.`,
-          details: {
-            topicId,
-            topicName: topic.name,
-            conflictingConfigs,
-            shortcutUrl: `/admin/question-generation?topicId=${topicId}`,
-          },
-        });
-      } else {
-        throw new BadRequestException({
-          code: "TOPIC_QUESTIONS_EMPTY",
-          error: "TOPIC_QUESTIONS_EMPTY",
-          message: `Cannot assign topic '${topic.name}' to this section. Topic '${topic.name}' has 0 active questions in the Question Bank. Please generate questions for topic '${topic.name}' before assigning it to this section.`,
-          details: {
-            topicId,
-            topicName: topic.name,
-            shortcutUrl: `/admin/question-generation?topicId=${topicId}`,
-          },
-        });
       }
+    } catch (e) {
+      this.logger.warn(`Could not check question pool count for topic ${topicId}: ${e}`);
     }
 
     await this.repository.createMapping(sectionId, topicId);

@@ -5,6 +5,10 @@ interface WizardState {
   selectedBlueprintId: Record<string, string>; // mapping configId -> blueprintId
   setBlueprintId: (configId: string, blueprintId: string) => void;
   getBlueprintId: (configId: string) => string | undefined;
+
+  selectedStyleProfileId: Record<string, string>; // mapping configId -> styleProfileId
+  setStyleProfileId: (configId: string, styleProfileId: string) => void;
+  getStyleProfileId: (configId: string) => string | undefined;
 }
 
 export const useConfigWizardStore = create<WizardState>()(
@@ -19,6 +23,16 @@ export const useConfigWizardStore = create<WizardState>()(
           },
         })),
       getBlueprintId: (configId) => get().selectedBlueprintId[configId],
+
+      selectedStyleProfileId: {},
+      setStyleProfileId: (configId, styleProfileId) =>
+        set((state) => ({
+          selectedStyleProfileId: {
+            ...state.selectedStyleProfileId,
+            [configId]: styleProfileId,
+          },
+        })),
+      getStyleProfileId: (configId) => get().selectedStyleProfileId[configId],
     }),
     {
       name: 'config-wizard-storage',

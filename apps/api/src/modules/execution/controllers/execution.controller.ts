@@ -147,18 +147,45 @@ export class ExecutionController {
     // SEC-002: Verify the candidate owns this session before returning any answers
     await this.assertExecutionOwnership(id, user);
 
-    const state = await this.prisma.executionState.findUnique({
-      where: { testInstanceId: id },
-    });
-    const answers = await this.prisma.candidateAnswer.findMany({
-      where: { testInstanceId: id },
-    });
+    const [state, answers, testInstance] = await Promise.all([
+      this.prisma.executionState.findUnique({ where: { testInstanceId: id } }),
+      this.prisma.candidateAnswer.findMany({ where: { testInstanceId: id } }),
+      this.prisma.testInstance.findUnique({
+        where: { id },
+        select: { expiresAt: true, startedAt: true },
+      }),
+    ]);
 
-    await this.auditService.logEvent(id, "RESUME");
+    // Compute accurate remaining time from server-side expiresAt (absolute deadline)
+    // This correctly accumulates all pre-interruption elapsed time.
+    let accurateRemainingSeconds: number | null = null;
+    if (testInstance?.expiresAt) {
+      const now = Date.now();
+      const expiresAt = new Date(testInstance.expiresAt).getTime();
+      accurateRemainingSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    }
+
+    // Merge accurate remaining time into executionState for the frontend
+    const enrichedState = state
+      ? {
+          ...state,
+          // Override remainingTimeSeconds with authoritative server calculation
+          remainingTimeSeconds: accurateRemainingSeconds ?? state.remainingTimeSeconds,
+        }
+      : accurateRemainingSeconds !== null
+        ? { remainingTimeSeconds: accurateRemainingSeconds }
+        : null;
+
+    await this.auditService.logEvent(id, "RESUME", {
+      accurateRemainingSeconds,
+      savedRemainingSeconds: state?.remainingTimeSeconds,
+    });
 
     return {
       testInstanceId: id,
-      executionState: state,
+      executionState: enrichedState,
+      // Also expose at top level for frontend fallback
+      remainingTime: accurateRemainingSeconds,
       answers: answers.map((ans) => ({
         questionId: ans.questionId,
         answer: ans.answer,

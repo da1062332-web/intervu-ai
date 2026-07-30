@@ -207,7 +207,7 @@ export function AttemptHistoryTable({
           Score <ArrowUpDown className='size-3 opacity-50' />
         </div>
       ),
-      cell: (row) => <span className='font-extrabold text-sm text-foreground'>{row.score !== null ? `${row.score}%` : '-'}</span>,
+      cell: (row) => <span className='font-extrabold text-sm text-foreground'>{row.score !== null ? `${row.score}/100` : '-'}</span>,
     },
     {
       id: 'actions',

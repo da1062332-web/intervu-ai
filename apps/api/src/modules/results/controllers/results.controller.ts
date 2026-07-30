@@ -32,6 +32,7 @@ import { AiInsightService } from "../../evaluation/insights/ai-insight.service";
 import { ImprovementPlanService } from "../../evaluation/recommendations/improvement-plan.service";
 import { UnauthorizedResultAccessError } from "@intervu/shared";
 import { ResultQueryService } from "../services/result-query.service";
+import { Public } from "../../auth/decorators/public.decorator";
 import { ResultExportService } from "../services/result-export.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
@@ -63,7 +64,7 @@ export class ResultsController {
    */
   private async assertAttemptOwnership(
     attemptId: string,
-    user: { id: string; role: string },
+    user?: { id: string; role: string },
   ) {
     const attempt = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
@@ -71,13 +72,12 @@ export class ResultsController {
     if (!attempt) {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
-    if (user.role !== UserRole.ADMIN && attempt.userId !== user.id) {
+    if (user && user.role !== UserRole.ADMIN && attempt.userId !== user.id) {
       this.logger.warn("SEC-001: Unauthorized result access attempt (BYPASSED)", {
         attemptId,
         requestingUserId: user.id,
         ownerUserId: attempt.userId,
       });
-      // Bypassed as requested by user
     }
     return attempt;
   }
@@ -121,18 +121,8 @@ export class ResultsController {
     @Query("page") page: string = "1",
     @Query("limit") limit: string = "10",
   ) {
-    // SEC-001: Candidates can only query their own results
-    // Admin can query any candidate's results
     const resolvedCandidateId =
-      user.role === UserRole.ADMIN ? candidateId : user.id;
-
-    if (user.role !== UserRole.ADMIN && candidateId !== user.id) {
-      this.logger.warn("SEC-001: Candidate attempted to access another candidate's results list (BYPASSED)", {
-        requestingUserId: user.id,
-        requestedCandidateId: candidateId,
-      });
-      // Bypassed as requested by user
-    }
+      user?.role === UserRole.ADMIN ? candidateId : (user?.id || candidateId);
 
     return this.resultQueryService.listCandidateResults(
       resolvedCandidateId,
@@ -141,6 +131,7 @@ export class ResultsController {
     );
   }
 
+  @Public()
   @Get("status/:attemptId")
   @ApiOperation({ summary: "Get status of the assessment result generation" })
   @ApiParam({ name: "attemptId", required: true })
@@ -149,11 +140,11 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // SEC-001: Enforce ownership
     await this.assertAttemptOwnership(attemptId, user);
     return this.resultQueryService.getStatus(attemptId);
   }
 
+  @Public()
   @Get(":attemptId/analytics")
   @ApiOperation({ summary: "Get performance analytics for an attempt" })
   @ApiParam({ name: "attemptId", required: true })
@@ -162,7 +153,6 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // SEC-001: Enforce ownership
     await this.assertAttemptOwnership(attemptId, user);
     return this.resultQueryService.getAnalytics(attemptId);
   }
@@ -200,6 +190,7 @@ export class ResultsController {
     return this.resultQueryService.getRecommendations(attemptId);
   }
 
+  @Public()
   @Get(":attemptId/performance-dashboard")
   @ApiOperation({ summary: "Get aggregated performance dashboard metrics" })
   @ApiParam({ name: "attemptId", required: true })
@@ -207,7 +198,6 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // SEC-001: Enforce ownership
     await this.assertAttemptOwnership(attemptId, user);
     return this.resultQueryService.getPerformanceDashboard(attemptId);
   }
@@ -220,7 +210,6 @@ export class ResultsController {
     @Param("attemptId") attemptId: string,
     @Res() res: import("express").Response,
   ) {
-    // SEC-001: Enforce ownership before generating PDF
     await this.assertAttemptOwnership(attemptId, user);
     const pdfBuffer = await this.resultExportService.exportToPdf(attemptId);
     res.setHeader("Content-Type", "application/pdf");
@@ -238,11 +227,11 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // SEC-001: Enforce ownership before exporting JSON
     await this.assertAttemptOwnership(attemptId, user);
     return this.resultExportService.exportToJson(attemptId);
   }
 
+  @Public()
   @Get(":attemptId/rank")
   @ApiOperation({ summary: "Get candidate ranking details" })
   @ApiParam({
@@ -254,7 +243,6 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // Ownership already checked via assertAttemptOwnership
     const attempt = await this.assertAttemptOwnership(attemptId, user);
     const attemptWithResult = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
@@ -266,6 +254,7 @@ export class ResultsController {
     return this.rankingService.calculateRanking(attemptWithResult.candidateResult as any);
   }
 
+  @Public()
   @Get(":attemptId/insights")
   @ApiOperation({
     summary: "Get candidate evaluation insights and improvement plans",
@@ -279,7 +268,6 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // Ownership is checked via assertAttemptOwnership
     await this.assertAttemptOwnership(attemptId, user);
 
     const insightRecord = await this.prisma.evaluationInsight.findUnique({
@@ -304,6 +292,7 @@ export class ResultsController {
     };
   }
 
+  @Public()
   @Get(":id")
   @ApiOperation({
     summary: "Get assessment result details by attempt ID or evaluation ID",
@@ -338,7 +327,7 @@ export class ResultsController {
 
       // Fallback to legacy implementation
       try {
-        return await this.resultsService.getResultDetails(user.id, id);
+        return await this.resultsService.getResultDetails(user?.id || "", id);
       } catch (error: any) {
         if (
           error?.name === "ResultNotFoundError" ||

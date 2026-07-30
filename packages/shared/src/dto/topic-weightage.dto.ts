@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsInt, Min, Max } from "class-validator";
+import { IsString, IsNotEmpty, IsNumber, Min, Max } from "class-validator";
 import {
   CreateTopicWeightageRequest,
   UpdateTopicWeightageRequest,
@@ -15,26 +15,26 @@ export class CreateTopicWeightageDto implements CreateTopicWeightageRequest {
   topicId!: string;
 
   @ApiProperty({
-    description: "Weightage percentage (1 to 100)",
+    description: "Weightage percentage (0 to 100)",
     example: 40,
-    minimum: 1,
+    minimum: 0,
     maximum: 100,
   })
-  @IsInt()
-  @Min(1)
+  @IsNumber()
+  @Min(0)
   @Max(100)
   weightagePercentage!: number;
 }
 
 export class UpdateTopicWeightageDto implements UpdateTopicWeightageRequest {
   @ApiProperty({
-    description: "Weightage percentage (1 to 100)",
+    description: "Weightage percentage (0 to 100)",
     example: 50,
-    minimum: 1,
+    minimum: 0,
     maximum: 100,
   })
-  @IsInt()
-  @Min(1)
+  @IsNumber()
+  @Min(0)
   @Max(100)
   weightagePercentage!: number;
 }

@@ -69,7 +69,7 @@ export function Recommendations() {
           <div className='bg-primary/5 border border-primary/10 rounded-xl p-4 flex flex-col items-center justify-center text-center'>
             <TrendingUp className='size-5 text-primary mb-1.5' />
             <span className='text-2xl font-bold text-foreground'>
-              {recommendations.overallScore}%
+              {recommendations.overallScore}/100
             </span>
             <span className='text-[10px] uppercase tracking-wider text-muted-foreground mt-1'>
               Avg Score

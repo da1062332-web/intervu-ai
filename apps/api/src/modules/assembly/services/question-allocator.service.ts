@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+} from "@nestjs/common";
 import { BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedQuestionDto } from "@intervu/shared";
 
@@ -86,9 +90,12 @@ export class QuestionAllocatorService {
         const selectedForTopic: AllocatedQuestionDto[] = [];
         const requiredForTopic = topicCount;
 
-        while (selectedForTopic.length < requiredForTopic && attempts < maxAttempts) {
+        while (
+          selectedForTopic.length < requiredForTopic &&
+          attempts < maxAttempts
+        ) {
           const shortage = requiredForTopic - selectedForTopic.length;
-          
+
           const questions = await this.questionSource.fetchQuestions({
             conceptKey: topicAlloc.topicId,
             difficultyLevel: diff.level,
@@ -109,7 +116,7 @@ export class QuestionAllocatorService {
 
           const toAddCount = Math.min(shortage, filteredQuestions.length);
           const selected = filteredQuestions.slice(0, toAddCount);
-          
+
           for (const q of selected) {
             allocatedQuestionIds.add(q.id);
             const allocatedQ = {
@@ -125,7 +132,7 @@ export class QuestionAllocatorService {
             allocatedQuestions.push(allocatedQ);
             remainingDiffCount--;
           }
-          
+
           attempts++;
         }
 
@@ -141,13 +148,14 @@ export class QuestionAllocatorService {
             const shortage = requiredForTopic - selectedForTopic.length;
 
             try {
-              const fallbackQuestions = await this.questionSource.fetchQuestions({
-                conceptKey: topicAlloc.topicId,
-                difficultyLevel: fallbackLevel,
-                limit: shortage * 5,
-                excludeIds: Array.from(currentlyExcludedIds),
-                examId,
-              });
+              const fallbackQuestions =
+                await this.questionSource.fetchQuestions({
+                  conceptKey: topicAlloc.topicId,
+                  difficultyLevel: fallbackLevel,
+                  limit: shortage * 5,
+                  excludeIds: Array.from(currentlyExcludedIds),
+                  examId,
+                });
 
               for (const q of fallbackQuestions) {
                 currentlyExcludedIds.add(q.id);
@@ -183,15 +191,16 @@ export class QuestionAllocatorService {
 
         if (selectedForTopic.length < requiredForTopic) {
           throw new BadRequestException({
-            error: 'INSUFFICIENT_ELIGIBLE_QUESTIONS',
+            error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
             message: `Unable to assemble this assessment because there are not enough eligible questions for the ${topicAlloc.topicId} / ${diff.level} requirement.`,
             details: {
-              section: (section as any).displayName || section.sectionKey || 'section',
+              section:
+                (section as any).displayName || section.sectionKey || "section",
               topic: topicAlloc.topicId,
               difficulty: diff.level,
               required: requiredForTopic,
-              available: selectedForTopic.length
-            }
+              available: selectedForTopic.length,
+            },
           });
         }
       }
@@ -205,9 +214,12 @@ export class QuestionAllocatorService {
         const selectedForExtra: AllocatedQuestionDto[] = [];
         const requiredForExtra = remainingDiffCount;
 
-        while (selectedForExtra.length < requiredForExtra && attempts < maxAttempts) {
+        while (
+          selectedForExtra.length < requiredForExtra &&
+          attempts < maxAttempts
+        ) {
           const shortage = requiredForExtra - selectedForExtra.length;
-          
+
           const extraQuestions = await this.questionSource.fetchQuestions({
             conceptKey: extraTopic.topicId,
             difficultyLevel: diff.level,
@@ -228,7 +240,7 @@ export class QuestionAllocatorService {
 
           const toAddCount = Math.min(shortage, filteredExtra.length);
           const selectedExtra = filteredExtra.slice(0, toAddCount);
-          
+
           for (const q of selectedExtra) {
             allocatedQuestionIds.add(q.id);
             const allocatedQ = {
@@ -244,7 +256,7 @@ export class QuestionAllocatorService {
             allocatedQuestions.push(allocatedQ);
             remainingDiffCount--;
           }
-          
+
           attempts++;
         }
 
@@ -302,15 +314,16 @@ export class QuestionAllocatorService {
 
         if (selectedForExtra.length < requiredForExtra) {
           throw new BadRequestException({
-            error: 'INSUFFICIENT_ELIGIBLE_QUESTIONS',
+            error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
             message: `Unable to assemble this assessment because there are not enough eligible questions for the extra ${extraTopic.topicId} / ${diff.level} requirement.`,
             details: {
-              section: (section as any).displayName || section.sectionKey || 'section',
+              section:
+                (section as any).displayName || section.sectionKey || "section",
               topic: extraTopic.topicId,
               difficulty: diff.level,
               required: requiredForExtra,
-              available: selectedForExtra.length
-            }
+              available: selectedForExtra.length,
+            },
           });
         }
       }

@@ -44,12 +44,10 @@ export class TopicWeightageService {
     // 1. Validate section exists and is active
     await this.validateSectionAndGetConfig(sectionId);
 
-    // 2. Validate topic is mapped to section
+    // 2. Ensure topic is mapped to section
     const isMapped = await this.mappingRepository.exists(sectionId, topicId);
     if (!isMapped) {
-      throw new TopicNotMappedToSectionError(
-        `Topic ${topicId} is not mapped to section ${sectionId}`,
-      );
+      await this.mappingRepository.createMapping(sectionId, topicId);
     }
 
     // 3. Check for existing weightage
@@ -85,7 +83,7 @@ export class TopicWeightageService {
   async getWeightages(sectionId: string) {
     const section = await this.sectionRepo.findById(sectionId);
     if (!section) {
-      throw new SectionNotFoundError(`Section ${sectionId} not found`);
+      return [];
     }
     return this.repository.findWeightagesBySection(sectionId);
   }

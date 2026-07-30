@@ -68,7 +68,7 @@ export function AdminOverviewDashboard() {
         />
         <StatCard
           title='Average Score'
-          value={data.averageScore ? `${data.averageScore}%` : '0%'}
+          value={data.averageScore ? `${data.averageScore}/100` : '0/100'}
           icon={<Activity className='size-5' />}
           isLoading={isLoading}
         />

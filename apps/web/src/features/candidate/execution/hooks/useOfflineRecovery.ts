@@ -124,17 +124,25 @@ export function useOfflineRecovery() {
             console.log(`[OfflineRecovery] Synced and removed operation ${op.id}`);
           }
         } catch (err: any) {
-          // DATA-001: On failure, leave the operation in the queue for retry
-          // Do not retry permanent 4xx errors (assessment submitted, not found, etc.)
-          const status = err?.statusCode || err?.status;
-          if (status && status >= 400 && status < 500) {
+          // DATA-001: On failure, check HTTP status (including Axios response status)
+          const status = err?.statusCode || err?.status || err?.response?.status;
+          const isConflictOrSubmitted =
+            status === 409 ||
+            String(err?.message || '').includes('409') ||
+            String(err?.response?.data?.message || '').toLowerCase().includes('already');
+
+          if ((status && status >= 400 && status < 500) || isConflictOrSubmitted) {
             console.warn(
               `[OfflineRecovery] Permanent error for operation ${op.id} (status ${status}), removing from queue`,
               err,
             );
-            // Permanent 4xx — remove to avoid indefinite queue buildup
-            const deleteTx = db.transaction(STORE_NAME, 'readwrite');
-            deleteTx.objectStore(STORE_NAME).delete(op.id);
+            // Permanent 4xx / 409 — remove from IndexedDB to avoid endless replay
+            await new Promise<void>((resolve) => {
+              const deleteTx = db.transaction(STORE_NAME, 'readwrite');
+              deleteTx.objectStore(STORE_NAME).delete(op.id);
+              deleteTx.oncomplete = () => resolve();
+              deleteTx.onerror = () => resolve();
+            });
           } else {
             console.error(
               `[OfflineRecovery] Transient error for operation ${op.id}, keeping in queue for retry`,
