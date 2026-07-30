@@ -5,12 +5,14 @@ import {
   PerformanceAnalyticsDto,
 } from "@intervu-ai/contracts";
 import { PrismaService } from "@/prisma/prisma.service";
+import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
 
 @Injectable()
 export class ResultQueryService {
   constructor(
     private readonly candidateResultRepo: CandidateResultRepository,
     private readonly prisma: PrismaService,
+    private readonly resultGenerator: ResultGeneratorService,
   ) {}
 
   async getResult(attemptId: string) {
@@ -664,6 +666,59 @@ export class ResultQueryService {
           ? Math.round((overallScore / percentage) * 100)
           : overallScore;
 
+    let qualification: string | null = result.qualification;
+    let qualificationReason: string | null = result.qualificationReason;
+    let evaluationStrategy: string | null = result.evaluationStrategy;
+    let foundationScore: number | null = result.foundationScore;
+    let advancedScore: number | null = result.advancedScore;
+    let codingSolved: number | null = result.codingSolved;
+    let qualificationDetails: any = result.qualificationDetails;
+
+    // Dynamic on-the-fly evaluation if past result is missing qualification fields
+    if (!qualification) {
+      try {
+        const fullResult = await this.resultGenerator.generateResult({
+          executionId: attemptId,
+          testId: attemptId,
+          status: "submitted",
+          submittedAt: attemptRecord?.submittedAt || new Date(),
+          answers: answers.map((a) => ({
+            questionId: a.questionId,
+            answer: String(a.answer),
+            timeSpentSeconds: a.timeSpentSeconds || 0,
+            isMarkedForReview: false,
+          })),
+        });
+
+        if (fullResult.qualification) {
+          qualification = fullResult.qualification || null;
+          qualificationReason = fullResult.qualificationReason || null;
+          evaluationStrategy = fullResult.evaluationStrategy || null;
+          foundationScore = fullResult.foundationScore ?? null;
+          advancedScore = fullResult.advancedScore ?? null;
+          codingSolved = fullResult.codingSolved ?? null;
+          qualificationDetails = fullResult.qualificationDetails || null;
+
+          // Asynchronously persist computed qualification back to DB
+          this.prisma.candidateResult.update({
+            where: { attemptId },
+            data: {
+              qualification: fullResult.qualification,
+              qualificationReason: fullResult.qualificationReason,
+              evaluationStrategy: fullResult.evaluationStrategy,
+              foundationScore: fullResult.foundationScore,
+              advancedScore: fullResult.advancedScore,
+              codingSolved: fullResult.codingSolved,
+              qualificationDetails: fullResult.qualificationDetails as any,
+              evaluatedAt: fullResult.evaluatedAt ? new Date(fullResult.evaluatedAt) : new Date(),
+            },
+          }).catch(() => {});
+        }
+      } catch {
+        // Ignore fallback evaluation error
+      }
+    }
+
     return {
       overallScore,
       percentage,
@@ -686,6 +741,14 @@ export class ResultQueryService {
       codingMaxMarks: codingMaxMarks || (codingSec ? 100 : 0),
       passed: evaluation?.overallRating === 1,
       maxMarks: finalMaxMarks,
+      // Hiring Evaluation fields
+      qualification,
+      qualificationReason,
+      evaluationStrategy,
+      foundationScore,
+      advancedScore,
+      codingSolved,
+      qualificationDetails,
     };
   }
 }
