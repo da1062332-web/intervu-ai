@@ -25,6 +25,7 @@ import {
   roundToPrecision,
 } from "@intervu-ai/generation";
 import { parseOptionsTemplate } from "../../generation/services/question-instantiator.service";
+import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
 
 import { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
@@ -32,6 +33,7 @@ import { TemplateVariableRepository } from "../repositories/template-variable.re
 import { TemplateRuleRepository } from "../repositories/template-rule.repository";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
+import { StrategyCanonicalizationService } from "./strategy-canonicalization.service";
 import {
   CreateTemplateDto,
   UpdateTemplateDto,
@@ -69,6 +71,7 @@ export class TemplateService {
     private readonly templateVariableRepository: TemplateVariableRepository,
     private readonly templateRuleRepository: TemplateRuleRepository,
     private readonly cacheService: RedisCacheService,
+    private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
 
   /**
@@ -1586,14 +1589,14 @@ export class TemplateService {
       throw new BadRequestException("Invalid draft structure");
     }
 
-    const validationErrors = this.validateDraftedStrategy(draft);
-    if (validationErrors.length > 0) {
+    const validation = this.canonicalizationService.validateDraft(draft);
+    if (validation.errors.length > 0) {
       throw new BadRequestException({
         success: false,
         error: {
           code: "INVALID_STRATEGY_DRAFT",
           message: "Drafted strategy contains invalid variable or constraint definitions.",
-          details: validationErrors,
+          details: validation.errors,
         },
       });
     }
@@ -1646,11 +1649,12 @@ export class TemplateService {
 
     const normalizedConstraints = (draft.constraints || []).map((item: any) => {
       const rule = typeof item?.rule === "string" ? item.rule.trim() : "";
+      const normalizedRule = this.canonicalizationService.normalizeConstraintRule(rule);
       const severity = item?.severity === "warning" ? "warning" : "critical";
-      const parsed = this.parseConstraintRule(rule);
+      const parsed = this.parseConstraintRule(normalizedRule);
 
       return {
-        rule,
+        rule: normalizedRule,
         severity,
         ...(parsed || {}),
       };
@@ -1892,7 +1896,13 @@ export class TemplateService {
 
     const formulaDeps = new Map<string, string[]>();
     for (const [name, expression] of formulaMap.entries()) {
-      const deps = this.extractIdentifierNames(expression).filter(
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(expression);
+      if (unsupportedFunctions.length > 0) {
+        errors.push(
+          `Derived variable ${name} uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
+        );
+      }
+      const deps = analyzeMathjsExpression(expression).identifiers.filter(
         (dep) => dep !== name,
       );
       formulaDeps.set(name, deps);
@@ -1915,7 +1925,13 @@ export class TemplateService {
         errors.push(`Invalid constraint formula: ${constraint.rule} (${err.message})`);
       }
 
-      const identifiers = this.extractIdentifierNames(constraint.rule);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(constraint.rule);
+      if (unsupportedFunctions.length > 0) {
+        errors.push(
+          `Constraint uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
+        );
+      }
+      const identifiers = analyzeMathjsExpression(constraint.rule).identifiers;
       for (const id of identifiers) {
         if (!parameterNames.has(id)) {
           errors.push(`Constraint references undefined variable or derived variable: ${id}`);
@@ -1968,7 +1984,13 @@ export class TemplateService {
         continue;
       }
 
-      const identifiers = this.extractIdentifierNames(expression);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(expression);
+      if (unsupportedFunctions.length > 0) {
+        errors.push(
+          `solutionSchema.${key} uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
+        );
+      }
+      const identifiers = analyzeMathjsExpression(expression).identifiers;
       for (const identifier of identifiers) {
         if (!variableNames.has(identifier)) {
           errors.push(
@@ -2025,16 +2047,7 @@ export class TemplateService {
   }
 
   private extractIdentifierNames(expression: string): string[] {
-    const nodes = math.parse(expression);
-    const identifiers = new Set<string>();
-
-    nodes.traverse((node: any) => {
-      if (node && node.isSymbolNode) {
-        identifiers.add(node.name);
-      }
-    });
-
-    return Array.from(identifiers);
+    return analyzeMathjsExpression(expression).identifiers;
   }
 
   private detectCycle(deps: Map<string, string[]>): string[] {

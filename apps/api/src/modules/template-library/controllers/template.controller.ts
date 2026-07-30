@@ -56,6 +56,7 @@ import {
 } from "../dto/strategy-drafting.dto";
 import { TemplateService } from "../services/template.service";
 import { StrategyDraftingService } from "../services/strategy-drafting.service";
+import { StrategyCanonicalizationService } from "../services/strategy-canonicalization.service";
 import { SolutionTemplateService } from "../services/solution-template.service";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
@@ -105,6 +106,7 @@ export class TemplateController {
     private readonly templateService: TemplateService,
     private readonly solutionTemplateService: SolutionTemplateService,
     private readonly strategyDraftingService: StrategyDraftingService,
+    private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
 
   @Get()
@@ -463,20 +465,27 @@ export class TemplateController {
     @Param("id") id: string,
     @Body() dto: PreviewStrategyRequestDto,
   ) {
-    // Validate the draft structure
-    const warnings: string[] = [];
+    const validation = this.canonicalizationService.validateDraft(dto.draft);
+    const warnings = validation.warnings;
 
-    if (!dto.draft.variables || dto.draft.variables.length === 0) {
-      warnings.push("No variables detected. You may need to add them manually.");
-    }
-
-    if (!Array.isArray(dto.draft.variables)) {
-      throw new Error("Invalid draft: variables must be an array");
+    if (validation.errors.length > 0) {
+      return {
+        success: false,
+        preview: dto.draft,
+        warnings,
+        error: validation.errors.join(" "),
+      };
     }
 
     return {
       success: true,
-      preview: dto.draft,
+      preview: {
+        ...dto.draft,
+        constraints: (dto.draft.constraints || []).map((constraint: any) => ({
+          ...constraint,
+          rule: this.canonicalizationService.normalizeConstraintRule(constraint.rule || ""),
+        })),
+      },
       warnings,
     };
   }

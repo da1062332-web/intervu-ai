@@ -49,6 +49,10 @@ describe("Template Library Integration Tests", () => {
       variableRepo,
       ruleRepo,
       cacheService,
+      {
+        normalizeConstraintRule: (rule: string) => rule,
+        validateDraft: () => ({ errors: [], warnings: [] }),
+      } as any,
     );
 
     // Create a dummy template for testing
