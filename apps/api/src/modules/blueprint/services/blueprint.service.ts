@@ -33,11 +33,41 @@ export class BlueprintService {
   ) {}
 
   async create(dto: CreateBlueprintDto) {
-    const { configId, styleProfileId, sections } = dto;
+    let { configId, styleProfileId, sections } = dto;
+
+    if (!configId) {
+      const name = (dto as any).name || `Config (${Date.now()})`;
+      const code = (dto as any).code || `CFG_${Date.now()}`;
+      const newConfig = await this.prisma.examConfig.create({
+        data: {
+          name,
+          code,
+          role: "Software Engineer",
+          durationMinutes: (dto as any).totalDurationMinutes || 60,
+          totalQuestions: (dto as any).totalQuestions || 30,
+          status: "DRAFT",
+        },
+      });
+      configId = newConfig.id;
+    }
 
     if (!styleProfileId) {
-      throw new BadRequestException("No Style Profile selected. Please assign a Style Profile before saving the Blueprint.");
+      let activeProfile = await this.prisma.styleProfile.findFirst({
+        where: { status: "ACTIVE", active: true },
+      });
+      if (!activeProfile) {
+        activeProfile = await this.prisma.styleProfile.create({
+          data: {
+            name: "Default Standard Profile",
+            profileType: "DEFAULT",
+            status: "ACTIVE",
+            active: true,
+          },
+        });
+      }
+      styleProfileId = activeProfile.id;
     }
+
     const styleProfile = await this.prisma.styleProfile.findUnique({
       where: { id: styleProfileId },
     });
@@ -46,6 +76,42 @@ export class BlueprintService {
     }
     if (!styleProfile.active || styleProfile.status !== "ACTIVE") {
       throw new BadRequestException("Selected Style Profile is inactive.");
+    }
+
+    if ((!sections || (Array.isArray(sections) && sections.length === 0)) && configId) {
+      const existingConfig = await this.prisma.examConfig.findUnique({
+        where: { id: configId },
+        include: {
+          difficultyDistribution: true,
+          sections: {
+            include: {
+              sectionTopics: true,
+            },
+          },
+        },
+      });
+
+      if (existingConfig && existingConfig.sections.length > 0) {
+        const diffAlloc = existingConfig.difficultyDistribution
+          ? {
+              easy: existingConfig.difficultyDistribution.easyPercentage ?? 0,
+              medium: existingConfig.difficultyDistribution.mediumPercentage ?? 0,
+              hard: existingConfig.difficultyDistribution.hardPercentage ?? 0,
+            }
+          : { easy: 0, medium: 0, hard: 0 };
+
+        sections = existingConfig.sections.map((sec) => ({
+          sectionId: sec.id,
+          sectionKey: sec.code || sec.id,
+          displayName: sec.name,
+          questionCount: sec.questionCount || 5,
+          difficultyAllocation: diffAlloc,
+          topicAllocations: (sec.sectionTopics || []).map((st) => ({
+            topicId: st.topicId,
+            percentage: Math.round(100 / (sec.sectionTopics.length || 1)),
+          })),
+        })) as any;
+      }
     }
 
     const tempBlueprint = {
@@ -281,9 +347,9 @@ export class BlueprintService {
       };
       const diffSum =
         (diffAlloc.easy || 0) + (diffAlloc.medium || 0) + (diffAlloc.hard || 0);
-      if (diffSum !== 100) {
+      if (diffSum !== 0 && diffSum !== 100) {
         errors.push(
-          `Section "${sectionName}": Difficulty allocation total must be exactly 100%, currently ${diffSum}%`,
+          `Section "${sectionName}": Difficulty allocation total must be 0% (Flexible Pool Mode) or exactly 100%, currently ${diffSum}%`,
         );
       }
 
@@ -407,11 +473,30 @@ export class BlueprintService {
       };
     });
 
+    const config = (blueprint as any).examConfig || (blueprint as any).config;
+    const styleProfile = (blueprint as any).styleProfile;
+    const bpId = (blueprint as any).id || (blueprint as any).blueprintId || "";
+    const name =
+      config?.displayName ||
+      config?.name ||
+      styleProfile?.name ||
+      `Blueprint (${bpId.slice(0, 8)})`;
+    const code = config?.code || config?.configKey || bpId;
+
     return {
-      blueprintId: blueprint.id,
+      id: bpId,
+      blueprintId: bpId,
+      name,
+      displayName: name,
+      title: name,
+      code,
       configId: blueprint.configId,
       styleProfileId: blueprint.styleProfileId,
+      status: (blueprint as any).status || "ACTIVE",
+      isActive: (blueprint as any).status === "ACTIVE" || (blueprint as any).active !== false,
       sections: previewSections,
+      createdAt: (blueprint as any).createdAt || new Date().toISOString(),
+      updatedAt: (blueprint as any).updatedAt || new Date().toISOString(),
     };
   }
 }
