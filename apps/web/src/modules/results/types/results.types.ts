@@ -10,6 +10,13 @@ export type ResultDetails = {
   status: string;
   submittedAt: Date | string;
   rank: number;
+  qualification?: string;
+  qualificationReason?: string;
+  evaluationStrategy?: string;
+  foundationScore?: number;
+  advancedScore?: number;
+  codingSolved?: number;
+  qualificationDetails?: any;
 };
 
 export type PaginatedResults = {

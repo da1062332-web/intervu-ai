@@ -12,6 +12,7 @@ import { GeneralSettingsTab } from '@/features/admin/configs/components/general-
 import { ConceptsAndTemplatesTab } from '@/features/admin/configs/components/concepts-templates-tab';
 import { BlueprintSelectionTab } from '@/features/admin/configs/components/blueprint-selection-tab';
 import { TopicsSummaryTab } from '@/features/admin/configs/components/topics-summary-tab';
+import { HiringEvaluationTab } from '@/features/admin/configs/components/hiring-evaluation-tab';
 import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
 import { GenerationReadinessPanel } from '@/features/admin/configs/components/GenerationReadinessPanel';
 
@@ -41,6 +42,7 @@ const WIZARD_TABS = [
   { id: 'concepts-templates', label: 'Concepts & Content' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
+  { id: 'hiring-evaluation', label: 'Hiring Qualification' },
   { id: 'blueprint', label: 'Blueprint' },
   { id: 'readiness', label: 'Readiness' },
   { id: 'preview', label: 'Preview' },
@@ -262,6 +264,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         {activeTabId === 'concepts-templates' && <ConceptsAndTemplatesTab configId={configId} />}
         {activeTabId === 'difficulty' && <DifficultyDistributionTab configId={configId} />}
         {activeTabId === 'rules' && <RuleFlagsTab configId={configId} onNext={handleNext} />}
+        {activeTabId === 'hiring-evaluation' && <HiringEvaluationTab configId={configId} onNext={handleNext} />}
         {activeTabId === 'blueprint' && <BlueprintSelectionTab configId={configId} />}
         {activeTabId === 'readiness' && (
           <GenerationReadinessPanel

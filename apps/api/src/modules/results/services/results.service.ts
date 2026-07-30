@@ -332,13 +332,22 @@ export class ResultsService {
         results.push(fullResult);
       } catch {
         // Fallback to basic record if deep resolution fails
+        const r = res as any;
         results.push({
-          id: res.id,
-          candidateId: res.candidateId,
-          attemptId: res.attemptId,
-          score: res.score,
-          percentage: res.percentage,
-          createdAt: res.createdAt,
+          id: r.id,
+          candidateId: r.candidateId,
+          attemptId: r.attemptId,
+          score: r.score,
+          percentage: r.percentage,
+          evaluationStrategy: r.evaluationStrategy || undefined,
+          qualification: r.qualification || undefined,
+          qualificationReason: r.qualificationReason || undefined,
+          foundationScore: r.foundationScore ?? undefined,
+          advancedScore: r.advancedScore ?? undefined,
+          codingSolved: r.codingSolved ?? undefined,
+          qualificationDetails: r.qualificationDetails || undefined,
+          evaluatedAt: r.evaluatedAt || undefined,
+          createdAt: r.createdAt,
         });
       }
     }

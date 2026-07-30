@@ -38,6 +38,38 @@ export {
   RecommendationPriority,
 } from "@prisma/client";
 
+export type HiringStrategyType =
+  | "TCS"
+  | "INFOSYS"
+  | "ACCENTURE"
+  | "CAPGEMINI"
+  | "COGNIZANT"
+  | "CUSTOM";
+
+export const HiringStrategyType = {
+  TCS: "TCS" as const,
+  INFOSYS: "INFOSYS" as const,
+  ACCENTURE: "ACCENTURE" as const,
+  CAPGEMINI: "CAPGEMINI" as const,
+  COGNIZANT: "COGNIZANT" as const,
+  CUSTOM: "CUSTOM" as const,
+};
+
+export type HiringMappingType =
+  | "NUMERICAL"
+  | "VERBAL"
+  | "REASONING"
+  | "ADVANCED_APTITUDE"
+  | "CODING";
+
+export const HiringMappingType = {
+  NUMERICAL: "NUMERICAL" as const,
+  VERBAL: "VERBAL" as const,
+  REASONING: "REASONING" as const,
+  ADVANCED_APTITUDE: "ADVANCED_APTITUDE" as const,
+  CODING: "CODING" as const,
+};
+
 export type {
   GeneratedQuestion,
   DifficultyLevel,

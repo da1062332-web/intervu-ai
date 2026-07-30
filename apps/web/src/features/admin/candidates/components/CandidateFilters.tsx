@@ -15,6 +15,8 @@ import { CANDIDATE_STATUSES, CANDIDATE_SORT_OPTIONS } from '../constants';
 interface CandidateFiltersProps {
   status: string;
   onStatusChange: (status: string) => void;
+  qualification?: string;
+  onQualificationChange?: (qualification: string) => void;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
@@ -25,6 +27,8 @@ interface CandidateFiltersProps {
 export function CandidateFilters({
   status,
   onStatusChange,
+  qualification = '',
+  onQualificationChange,
   sortBy,
   sortOrder,
   onSortChange,
@@ -60,6 +64,26 @@ export function CandidateFilters({
           </SelectContent>
         </Select>
       </div>
+
+      {onQualificationChange && (
+        <div className="flex items-center gap-2">
+          <Select
+            value={qualification || 'ALL'}
+            onValueChange={(val: string) => onQualificationChange(val === 'ALL' ? '' : val)}
+          >
+            <SelectTrigger className="w-[160px] sm:w-[170px] h-10 bg-background whitespace-nowrap">
+              <SelectValue placeholder="Qualification" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Qualifications</SelectItem>
+              <SelectItem value="NOT_QUALIFIED">Not Qualified</SelectItem>
+              <SelectItem value="NINJA">Ninja</SelectItem>
+              <SelectItem value="DIGITAL">Digital</SelectItem>
+              <SelectItem value="PRIME">Prime</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <Select value={currentSortKey} onValueChange={handleSortSelect}>

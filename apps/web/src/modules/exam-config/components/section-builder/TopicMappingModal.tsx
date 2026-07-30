@@ -149,31 +149,35 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
       const toRemove = Array.from(initialIds).filter((id) => !selectedIds.has(id));
 
       // 1. Assign / Remove Topics
-      const assignPromises: Promise<any>[] = [];
       for (const id of toAdd) {
-        assignPromises.push(assignTopic.mutateAsync(id));
+        try {
+          await assignTopic.mutateAsync(id);
+        } catch (e) {
+          console.error(`Failed to assign topic ${id}:`, e);
+        }
       }
       for (const id of toRemove) {
-        assignPromises.push(removeTopic.mutateAsync(id));
+        try {
+          await removeTopic.mutateAsync(id);
+        } catch (e) {
+          console.error(`Failed to remove topic ${id}:`, e);
+        }
       }
-      await Promise.allSettled(assignPromises);
 
-      // 2. Update Weightages for all currently selected topics
-      const weightagePromises: Promise<any>[] = [];
+      // 2. Update / Create Weightages for all currently selected topics
       for (const topicId of Array.from(selectedIds)) {
         const val = weightages[topicId] ?? 0;
         const existing = weightagesData.find((w) => w.topicId === topicId);
-        if (existing) {
-          weightagePromises.push(
-            updateWeightage.mutateAsync({ id: existing.id, weightagePercentage: val }),
-          );
-        } else {
-          weightagePromises.push(
-            createWeightage.mutateAsync({ topicId, weightagePercentage: val }),
-          );
+        try {
+          if (existing) {
+            await updateWeightage.mutateAsync({ id: existing.id, weightagePercentage: val });
+          } else {
+            await createWeightage.mutateAsync({ topicId, weightagePercentage: val });
+          }
+        } catch (e) {
+          console.error(`Failed to save weightage for topic ${topicId}:`, e);
         }
       }
-      await Promise.allSettled(weightagePromises);
 
       toast.success('Topic mappings and weightages updated successfully!');
 

@@ -115,9 +115,135 @@ export const CandidateResultDtoSchema = z.object({
   objectiveScore: z.number().nonnegative().optional(),
   codingScore: z.number().nonnegative().optional(),
   passed: z.boolean().optional(),
+
+  // Hiring Qualification / Evaluation fields
+  evaluationStrategy: z.string().optional(),
+  qualification: z.string().optional(),
+  qualificationReason: z.string().optional(),
+  foundationScore: z.number().int().optional(),
+  advancedScore: z.number().int().optional(),
+  codingSolved: z.number().int().optional(),
+  qualificationDetails: z.any().optional(),
+  evaluatedAt: z.preprocess((arg) => {
+    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+    return arg;
+  }, z.date().optional()),
 });
 
 export type CandidateResultDto = z.infer<typeof CandidateResultDtoSchema>;
+
+export const HiringSectionMappingDtoSchema = z.object({
+  id: z.string().optional(),
+  sectionCode: z.string().min(1, "sectionCode is required"),
+  sectionName: z.string().optional(),
+  mappingType: z.enum([
+    "NUMERICAL",
+    "VERBAL",
+    "REASONING",
+    "ADVANCED_APTITUDE",
+    "CODING",
+  ]),
+  minimumCorrectAnswers: z.number().int().nonnegative().default(0),
+});
+
+export type HiringSectionMappingDto = z.infer<typeof HiringSectionMappingDtoSchema>;
+
+export const HiringEvaluationConfigDtoSchema = z.object({
+  id: z.string().optional(),
+  examConfigId: z.string().min(1, "examConfigId is required"),
+  strategy: z.enum(["TCS", "INFOSYS", "ACCENTURE", "CAPGEMINI", "COGNIZANT", "CUSTOM"]).default("TCS"),
+  enabled: z.boolean().default(false),
+  ninjaThreshold: z.number().int().nonnegative().default(0),
+  digitalThreshold: z.number().int().nonnegative().default(0),
+  primeThreshold: z.number().int().nonnegative().default(0),
+  advancedDigitalMin: z.number().int().nonnegative().default(0),
+  advancedPrimeMin: z.number().int().nonnegative().default(0),
+  codingTotalProblems: z.number().int().nonnegative().default(0),
+  codingDigitalMinSolved: z.number().int().nonnegative().default(0),
+  codingPrimeMinSolved: z.number().int().nonnegative().default(0),
+  sectionMappings: z.array(HiringSectionMappingDtoSchema).default([]),
+});
+
+export type HiringEvaluationConfigDto = z.infer<typeof HiringEvaluationConfigDtoSchema>;
+
+export const SectionPassFailBreakdownSchema = z.object({
+  category: z.string(),
+  sectionCode: z.string(),
+  sectionName: z.string().optional(),
+  correctCount: z.number().int().nonnegative(),
+  requiredMin: z.number().int().nonnegative(),
+  passed: z.boolean(),
+});
+
+export type SectionPassFailBreakdown = z.infer<typeof SectionPassFailBreakdownSchema>;
+
+export const FoundationBreakdownDtoSchema = z.object({
+  numericalScore: z.number().int().nonnegative(),
+  numericalMin: z.number().int().nonnegative(),
+  verbalScore: z.number().int().nonnegative(),
+  verbalMin: z.number().int().nonnegative(),
+  reasoningScore: z.number().int().nonnegative(),
+  reasoningMin: z.number().int().nonnegative(),
+  foundationTotal: z.number().int().nonnegative(),
+  ninjaThreshold: z.number().int().nonnegative(),
+  digitalThreshold: z.number().int().nonnegative(),
+  primeThreshold: z.number().int().nonnegative(),
+  sectionsBreakdown: z.array(SectionPassFailBreakdownSchema),
+});
+
+export type FoundationBreakdownDto = z.infer<typeof FoundationBreakdownDtoSchema>;
+
+export const AdvancedBreakdownDtoSchema = z.object({
+  sectionCode: z.string().optional(),
+  advancedScore: z.number().int().nonnegative(),
+  advancedMinDigital: z.number().int().nonnegative(),
+  advancedMinPrime: z.number().int().nonnegative(),
+  passedDigital: z.boolean(),
+  passedPrime: z.boolean(),
+});
+
+export type AdvancedBreakdownDto = z.infer<typeof AdvancedBreakdownDtoSchema>;
+
+export const CodingProblemSummarySchema = z.object({
+  problemId: z.string(),
+  problemTitle: z.string().optional(),
+  scorePercentage: z.number().min(0).max(100),
+  status: z.enum(["SOLVED", "PARTIAL", "FAILED"]),
+});
+
+export type CodingProblemSummary = z.infer<typeof CodingProblemSummarySchema>;
+
+export const CodingBreakdownDtoSchema = z.object({
+  totalCodingProblems: z.number().int().nonnegative(),
+  codingSolved: z.number().int().nonnegative(),
+  codingMinDigital: z.number().int().nonnegative(),
+  codingMinPrime: z.number().int().nonnegative(),
+  passedDigital: z.boolean(),
+  passedPrime: z.boolean(),
+  problems: z.array(CodingProblemSummarySchema),
+});
+
+export type CodingBreakdownDto = z.infer<typeof CodingBreakdownDtoSchema>;
+
+export const HiringEvaluationResultDtoSchema = z.object({
+  strategy: z.string(),
+  strategyVersion: z.number().int().default(1),
+  qualification: z.enum(["NOT_QUALIFIED", "NINJA", "DIGITAL", "PRIME"]),
+  qualificationReason: z.string(),
+  foundationScore: z.number().int().nonnegative(),
+  advancedScore: z.number().int().nonnegative(),
+  codingSolved: z.number().int().nonnegative(),
+  foundationBreakdown: FoundationBreakdownDtoSchema,
+  advancedBreakdown: AdvancedBreakdownDtoSchema,
+  codingBreakdown: CodingBreakdownDtoSchema,
+  evaluatedAt: z.preprocess((arg) => {
+    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+    return arg;
+  }, z.date()),
+});
+
+export type HiringEvaluationResultDto = z.infer<typeof HiringEvaluationResultDtoSchema>;
+
 
 export const CandidateRankDtoSchema = z.object({
   rank: z.number().int().positive(),

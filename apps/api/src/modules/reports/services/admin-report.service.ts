@@ -169,27 +169,45 @@ export class AdminReportService {
         testConfig: { select: { id: true, displayName: true } },
         examConfig: { select: { id: true, name: true } },
         evaluationResult: true,
+        candidateResult: true,
       },
       orderBy,
       take: filters.limit ? parseInt(filters.limit, 10) : 50,
       skip: filters.skip ? parseInt(filters.skip, 10) : 0,
     });
 
-    const results = attempts.map((attempt) => {
-      const score = attempt.evaluationResult?.overallScore || 0;
+    const results = attempts.map((attempt: any) => {
+      const cr = attempt.candidateResult;
+      const score = attempt.evaluationResult?.overallScore || cr?.score || 0;
       const assessmentName = attempt.testConfig?.displayName || attempt.examConfig?.name || 'Unknown Assessment';
       const assessmentId = attempt.testConfig?.id || attempt.examConfig?.id || 'unknown';
-      
+
       return {
         id: attempt.id,
         candidate: attempt.user,
         assessment: { id: assessmentId, displayName: assessmentName },
         score,
+        evaluationStrategy: cr?.evaluationStrategy || "TCS",
+        qualification: cr?.qualification || "NOT_SPECIFIED",
+        qualificationReason: cr?.qualificationReason || "N/A",
+        foundationScore: cr?.foundationScore ?? 0,
+        advancedScore: cr?.advancedScore ?? 0,
+        codingSolved: cr?.codingSolved ?? 0,
         completedAt: attempt.submittedAt || attempt.updatedAt,
       };
     });
 
     let filteredResults = results;
+    if (filters.qualification && filters.qualification !== "ALL") {
+      filteredResults = filteredResults.filter(
+        (r) => r.qualification.toUpperCase() === filters.qualification.toUpperCase(),
+      );
+    }
+    if (filters.strategy && filters.strategy !== "ALL") {
+      filteredResults = filteredResults.filter(
+        (r) => r.evaluationStrategy.toUpperCase() === filters.strategy.toUpperCase(),
+      );
+    }
     if (filters.minScore !== undefined) {
       filteredResults = filteredResults.filter(
         (r) => r.score >= parseFloat(filters.minScore),
@@ -203,25 +221,74 @@ export class AdminReportService {
     return filteredResults;
   }
 
+  async getQualificationStats(assessmentId?: string) {
+    const where: any = {};
+    if (assessmentId) {
+      where.attempt = {
+        OR: [
+          { testConfigId: assessmentId },
+          { examConfigId: assessmentId },
+        ],
+      };
+    }
+
+    const candidateResults = await (this.prisma as any).candidateResult.findMany({
+      where,
+      select: { qualification: true },
+    });
+
+    const totalCandidates = candidateResults.length;
+    let primeCount = 0;
+    let digitalCount = 0;
+    let ninjaCount = 0;
+    let notQualifiedCount = 0;
+
+    candidateResults.forEach((cr: any) => {
+      const q = (cr.qualification || "").toUpperCase();
+      if (q === "PRIME") primeCount++;
+      else if (q === "DIGITAL") digitalCount++;
+      else if (q === "NINJA") ninjaCount++;
+      else notQualifiedCount++;
+    });
+
+    const qualifiedTotal = primeCount + digitalCount + ninjaCount;
+    const qualificationPercentage =
+      totalCandidates > 0 ? Math.round((qualifiedTotal / totalCandidates) * 100) : 0;
+
+    return {
+      totalCandidates,
+      primeCount,
+      digitalCount,
+      ninjaCount,
+      notQualifiedCount,
+      qualificationPercentage,
+    };
+  }
+
   async exportCandidatesCsv(filters: any): Promise<string> {
     this.logger.debug("Generating bulk candidate export CSV", { filters });
-    // Increase limit for bulk export if not provided
     const exportFilters = { ...filters, limit: filters.limit || 1000 };
     const reports = await this.getCandidateReports(exportFilters);
 
     if (reports.length === 0) {
-      return "Candidate Name,Candidate Email,Assessment,Score,Completed At\n";
+      return "Candidate Name,Candidate Email,Assessment,Score,Strategy,Qualification,Reason,Foundation Score,Advanced Score,Coding Solved,Completed At\n";
     }
 
     const header =
-      "Candidate Name,Candidate Email,Assessment,Score,Completed At\n";
+      "Candidate Name,Candidate Email,Assessment,Score,Strategy,Qualification,Reason,Foundation Score,Advanced Score,Coding Solved,Completed At\n";
     const rows = reports.map((r) => {
       const name = `"${r.candidate?.fullName || "Candidate"}"`;
       const email = `"${r.candidate?.email || ""}"`;
       const assessment = `"${r.assessment?.displayName || ""}"`;
       const score = r.score;
+      const strategy = `"${r.evaluationStrategy || "TCS"}"`;
+      const qualification = `"${r.qualification || "NOT_SPECIFIED"}"`;
+      const reason = `"${(r.qualificationReason || "").replace(/"/g, '""')}"`;
+      const foundation = r.foundationScore ?? 0;
+      const advanced = r.advancedScore ?? 0;
+      const coding = r.codingSolved ?? 0;
       const completed = `"${new Date(r.completedAt).toISOString()}"`;
-      return `${name},${email},${assessment},${score},${completed}`;
+      return `${name},${email},${assessment},${score},${strategy},${qualification},${reason},${foundation},${advanced},${coding},${completed}`;
     });
 
     return header + rows.join("\n");

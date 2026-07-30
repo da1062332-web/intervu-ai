@@ -22,11 +22,19 @@ export class ResultStorageService {
 
     await this.prisma.$transaction(async (tx) => {
       // 1. Create or Update CandidateResult
-      await tx.candidateResult.upsert({
+      await (tx as any).candidateResult.upsert({
         where: { attemptId },
         update: {
           score,
           percentage,
+          evaluationStrategy: result.evaluationStrategy || null,
+          qualification: result.qualification || null,
+          qualificationReason: result.qualificationReason || null,
+          foundationScore: result.foundationScore ?? null,
+          advancedScore: result.advancedScore ?? null,
+          codingSolved: result.codingSolved ?? null,
+          qualificationDetails: result.qualificationDetails || null,
+          evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
           createdAt: new Date(),
         },
         create: {
@@ -35,6 +43,14 @@ export class ResultStorageService {
           attemptId,
           score,
           percentage,
+          evaluationStrategy: result.evaluationStrategy || null,
+          qualification: result.qualification || null,
+          qualificationReason: result.qualificationReason || null,
+          foundationScore: result.foundationScore ?? null,
+          advancedScore: result.advancedScore ?? null,
+          codingSolved: result.codingSolved ?? null,
+          qualificationDetails: result.qualificationDetails || null,
+          evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
           createdAt: new Date(),
         },
       });

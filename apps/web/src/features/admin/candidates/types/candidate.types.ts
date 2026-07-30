@@ -8,6 +8,12 @@ export interface CandidateListItem {
   completedTests: number;
   averageScore: number;
   bestScore: number;
+  qualification?: string;
+  qualificationReason?: string;
+  evaluationStrategy?: string;
+  foundationScore?: number;
+  advancedScore?: number;
+  codingSolved?: number;
   lastAttempt: string;
   createdAt: string;
 }
@@ -29,6 +35,8 @@ export interface CandidateListParams {
   limit?: number;
   search?: string;
   status?: string;
+  qualification?: string;
+  strategy?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -57,6 +65,12 @@ export interface CandidateTestHistoryItem {
   status: string;
   score: number;
   percentage: number;
+  qualification?: string;
+  qualificationReason?: string;
+  evaluationStrategy?: string;
+  foundationScore?: number;
+  advancedScore?: number;
+  codingSolved?: number;
   startedAt: string;
   submittedAt: string;
 }

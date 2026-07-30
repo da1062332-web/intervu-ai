@@ -371,17 +371,28 @@ model Submission {
 }
 
 model CandidateResult {
-  id          String       @id @default(cuid())
-  candidateId String       @map("candidate_id")
-  attemptId   String       @unique @map("attempt_id")
-  score       Float
-  percentage  Float
-  createdAt   DateTime     @default(now()) @map("created_at")
-  attempt     TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  user        User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id                    String       @id @default(cuid())
+  candidateId           String       @map("candidate_id")
+  attemptId             String       @unique @map("attempt_id")
+  score                 Float
+  percentage            Float
+  evaluationStrategy    String?      @map("evaluation_strategy")
+  strategyVersion       Int          @default(1) @map("strategy_version")
+  qualification         String?      @map("qualification")
+  qualificationReason   String?      @map("qualification_reason")
+  foundationScore       Int?         @map("foundation_score")
+  advancedScore         Int?         @map("advanced_score")
+  codingSolved          Int?         @map("coding_solved")
+  qualificationDetails  Json?        @map("qualification_details")
+  evaluatedAt           DateTime?    @map("evaluated_at")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  attempt               TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  user                  User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@index([candidateId])
   @@index([attemptId])
+  @@index([qualification])
+  @@index([evaluationStrategy])
   @@map("candidate_results")
 }
 
@@ -480,6 +491,7 @@ model ExamConfig {
   workflow               ExamWorkflow?
   readinessReports       ReadinessReport[]
   questionUsages         ExamConfigQuestionUsage[]
+  hiringEvaluationConfig HiringEvaluationConfig?
 
   @@index([createdAt])
   @@index([role])
@@ -1613,4 +1625,60 @@ model TransactionalOutbox {
   @@index([processed, createdAt])
   @@map("transactional_outbox")
 }
+
+enum HiringStrategyType {
+  TCS
+  INFOSYS
+  ACCENTURE
+  CAPGEMINI
+  COGNIZANT
+  CUSTOM
+}
+
+enum HiringMappingType {
+  NUMERICAL
+  VERBAL
+  REASONING
+  ADVANCED_APTITUDE
+  CODING
+}
+
+model HiringEvaluationConfig {
+  id                     String                 @id @default(cuid())
+  examConfigId           String                 @unique @map("exam_config_id")
+  strategy               HiringStrategyType     @default(TCS)
+  enabled                Boolean                @default(false)
+  ninjaThreshold         Int                    @default(0) @map("ninja_threshold")
+  digitalThreshold       Int                    @default(0) @map("digital_threshold")
+  primeThreshold         Int                    @default(0) @map("prime_threshold")
+  advancedDigitalMin     Int                    @default(0) @map("advanced_digital_min")
+  advancedPrimeMin       Int                    @default(0) @map("advanced_prime_min")
+  codingTotalProblems    Int                    @default(0) @map("coding_total_problems")
+  codingDigitalMinSolved Int                    @default(0) @map("coding_digital_min_solved")
+  codingPrimeMinSolved   Int                    @default(0) @map("coding_prime_min_solved")
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+  examConfig             ExamConfig             @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  sectionMappings        HiringSectionMapping[]
+
+  @@index([examConfigId])
+  @@map("hiring_evaluation_configs")
+}
+
+model HiringSectionMapping {
+  id                    String                 @id @default(cuid())
+  configId              String                 @map("config_id")
+  sectionCode           String                 @map("section_code")
+  sectionName           String?                @map("section_name")
+  mappingType           HiringMappingType      @map("mapping_type")
+  minimumCorrectAnswers Int                    @default(0) @map("minimum_correct_answers")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  config                HiringEvaluationConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@unique([configId, sectionCode, mappingType])
+  @@index([configId])
+  @@map("hiring_section_mappings")
+}
+
 
