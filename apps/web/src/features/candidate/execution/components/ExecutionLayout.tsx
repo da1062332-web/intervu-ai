@@ -27,6 +27,9 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
+import { FloatingToolbar } from '@/components/candidate/sandbox/FloatingToolbar';
+import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScratchPad';
+import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalculator';
 
 export function ExecutionLayout() {
   const { testInstance, isInteractionBlocked } = useExecutionStore();
@@ -112,6 +115,7 @@ export function ExecutionLayout() {
                     <TimerWidget />
                   </div>
                 </div>
+                {testInstance && <FloatingToolbar assessmentId={testInstance.id} />}
                 <div className='flex-1 flex flex-col overflow-hidden'>
                   <QuestionPalette />
                 </div>
@@ -139,6 +143,9 @@ export function ExecutionLayout() {
               </div>
             </div>
 
+            {/* Productivity Tools Bar (Under Video Camera) */}
+            {testInstance && <FloatingToolbar assessmentId={testInstance.id} />}
+
             {/* Light Blue Question Palette Sidebar */}
             <div className='flex-1 flex flex-col overflow-hidden'>
               <QuestionPalette />
@@ -149,6 +156,8 @@ export function ExecutionLayout() {
 
       {testInstance && (
         <>
+          <FloatingScratchPad />
+          <FloatingCalculator />
           <SubmissionModal
             isOpen={isSubmitModalOpen}
             onClose={() => setIsSubmitModalOpen(false)}

@@ -1,6 +1,7 @@
 import { useRouter } from 'next/navigation';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
+import { clearAssessmentSandboxStorage } from '@/components/candidate/sandbox/useCalculator';
 
 const STORAGE_KEY = 'intervu_execution_autosave';
 
@@ -30,6 +31,7 @@ export function useSubmission(testId: string) {
 
       // On success, clear the local storage so it doesn't resume later
       localStorage.removeItem(`${STORAGE_KEY}_${testId}`);
+      clearAssessmentSandboxStorage(testId);
 
       setSubmissionStatus('SUCCESS');
 
@@ -50,6 +52,7 @@ export function useSubmission(testId: string) {
       if (isAlreadySubmitted) {
         setSubmissionStatus('SUCCESS');
         localStorage.removeItem(`${STORAGE_KEY}_${testId}`);
+        clearAssessmentSandboxStorage(testId);
         if (typeof document !== 'undefined' && document.fullscreenElement) {
           document.exitFullscreen().catch(console.error);
         }

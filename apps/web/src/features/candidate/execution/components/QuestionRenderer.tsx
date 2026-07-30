@@ -9,6 +9,14 @@ export function QuestionRenderer() {
   const { currentQuestion, currentQuestionIndex, answers, saveAnswer, testInstance } =
     useExecutionStore();
 
+  const handleCompilerChange = useCallback(
+    (data: any) => {
+      if (!currentQuestion) return;
+      saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) });
+    },
+    [currentQuestion?.id, saveAnswer]
+  );
+
   if (!currentQuestion || !testInstance) return null;
 
   const currentAnswer = answers[currentQuestion.id];
@@ -197,14 +205,6 @@ export function QuestionRenderer() {
   };
 
   const isCoding = currentQuestion.type?.toUpperCase() === 'CODING';
-
-  const handleCompilerChange = useCallback(
-    (data: any) => {
-      if (!currentQuestion) return;
-      saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) });
-    },
-    [currentQuestion?.id, saveAnswer]
-  );
 
   if (isCoding) {
     return (
