@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
+import { clearAssessmentSandboxStorage } from '@/components/candidate/sandbox/useCalculator';
 
 export function useExecution(testId: string) {
   const router = useRouter();
@@ -20,6 +21,7 @@ export function useExecution(testId: string) {
         if (!mounted) return;
 
         if (data.status === 'SUBMITTED' || data.status === 'COMPLETED') {
+          clearAssessmentSandboxStorage(testId);
           router.replace(`/candidate/results/${testId}`);
           return;
         }
@@ -27,7 +29,8 @@ export function useExecution(testId: string) {
         if (data.status === 'CREATED' || data.status === 'IN_PROGRESS') {
           initializeTest(data);
         } else {
-          // E.g., EXPIRED or CANCELLED, though EXPIRED could route to summary as well if it's considered completed
+          // E.g., EXPIRED or CANCELLED
+          clearAssessmentSandboxStorage(testId);
           router.replace('/candidate/dashboard');
         }
       } catch (err: any) {
@@ -35,7 +38,10 @@ export function useExecution(testId: string) {
           if (err.status === 401) setError('UNAUTHORIZED');
           else if (err.status === 403) setError('FORBIDDEN');
           else if (err.status === 404) setError('NOT_FOUND');
-          else if (err.status === 410) setError('EXPIRED');
+          else if (err.status === 410) {
+            setError('EXPIRED');
+            clearAssessmentSandboxStorage(testId);
+          }
           else if (err.status === 500) setError('SERVER_ERROR');
           else setError(err instanceof Error ? err.message : 'Failed to load assessment');
           setLoading(false);
