@@ -156,6 +156,28 @@ describe('StrategyDraftingService', () => {
       expect(result.validationWarnings).toBeDefined();
       expect(result.validationWarnings?.some((warning) => warning.toLowerCase().includes('no variables'))).toBe(true);
     });
+
+    it('should accept a derived gcd expression in generated draft', async () => {
+      const mockLLMResponse = JSON.stringify({
+        variables: [
+          { name: 'rawSumNumerator', type: 'number' },
+          { name: 'rawSumDenominator', type: 'number' },
+        ],
+        derivedVariables: [
+          { name: 'gcdValue', expression: 'gcd(rawSumNumerator, rawSumDenominator)' },
+        ],
+        constraints: [],
+        notes: [],
+      });
+
+      mockLLMAdapter.generate.mockResolvedValue(mockLLMResponse);
+
+      const result = await service.draftStrategy('create a gcd derived variable draft');
+
+      expect(result.success).toBe(true);
+      expect(result.data?.derivedVariables[0].expression).toBe('gcd(rawSumNumerator, rawSumDenominator)');
+      expect(result.validationWarnings).toEqual([]);
+    });
   });
 
   describe('parseAndValidateResponse', () => {

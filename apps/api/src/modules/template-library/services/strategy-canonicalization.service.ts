@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as math from "mathjs";
+import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
 
 export interface StrategyDraftValidationResult {
   errors: string[];
@@ -112,7 +113,15 @@ export class StrategyCanonicalizationService {
         continue;
       }
 
-      const identifiers = this.extractIdentifierNames(expression);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(expression);
+      if (unsupportedFunctions.length > 0) {
+        errors.push(
+          `Derived variable ${normalizedName} uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
+        );
+        continue;
+      }
+
+      const identifiers = analyzeMathjsExpression(expression).identifiers;
       for (const identifier of identifiers) {
         if (!variableNames.has(identifier.toLowerCase()) && !derivedNames.has(identifier.toLowerCase())) {
           errors.push(
@@ -159,6 +168,14 @@ export class StrategyCanonicalizationService {
         continue;
       }
 
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(normalizedRule);
+      if (unsupportedFunctions.length > 0) {
+        errors.push(
+          `Constraint uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
+        );
+        continue;
+      }
+
       const parseError = this.tryParseExpression(normalizedRule);
       if (!parseError) {
         errors.push(
@@ -167,7 +184,7 @@ export class StrategyCanonicalizationService {
         continue;
       }
 
-      const identifiers = this.extractIdentifierNames(normalizedRule);
+      const identifiers = analyzeMathjsExpression(normalizedRule).identifiers;
       for (const identifier of identifiers) {
         if (!parameterNames.has(identifier.toLowerCase())) {
           errors.push(`Constraint references undefined identifier ${identifier}.`);
@@ -201,19 +218,7 @@ export class StrategyCanonicalizationService {
   }
 
   private extractIdentifierNames(expression: string): string[] {
-    const nodes = this.tryParseExpression(expression);
-    if (!nodes) {
-      return [];
-    }
-
-    const identifiers = new Set<string>();
-    nodes.traverse((node: any) => {
-      if (node && node.isSymbolNode) {
-        identifiers.add(node.name);
-      }
-    });
-
-    return Array.from(identifiers);
+    return analyzeMathjsExpression(expression).identifiers;
   }
 
   private detectCycle(deps: Map<string, string[]>): string[] {

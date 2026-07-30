@@ -3,6 +3,7 @@ import { parse } from "mathjs";
 import { LLMAdapter } from "../../generation-ai/adapters/llm-adapter.interface";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { StrategyCanonicalizationService } from "./strategy-canonicalization.service";
+import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
 
 export interface VariableDraft {
   name: string;
@@ -405,7 +406,14 @@ Critical output rules:
         `Derived variable "${derived.name}"`,
       );
 
-      const mentioned = this.extractIdentifiers(derived.expression);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(derived.expression);
+      if (unsupportedFunctions.length > 0) {
+        warnings.push(
+          `Derived variable "${derived.name}" uses unsupported function(s): ${unsupportedFunctions.join(", ")}`,
+        );
+      }
+
+      const mentioned = analyzeMathjsExpression(derived.expression).identifiers.map((name) => name.toLowerCase());
       const orphaned = mentioned.filter(
         (name) =>
           !baseVarNames.has(name) && !derivedVarNames.has(name),
@@ -436,7 +444,8 @@ Critical output rules:
         `Constraint rule`,
       );
 
-      const mentioned = this.extractIdentifiers(constraint.rule);
+      const normalizedRule = this.normalizeConstraintRuleForParsing(constraint.rule);
+      const mentioned = analyzeMathjsExpression(normalizedRule).identifiers.map((name) => name.toLowerCase());
       const undefinedVars = mentioned.filter(
         (name) =>
           !baseVarNames.has(name) && !derivedVarNames.has(name),
@@ -521,20 +530,6 @@ Critical output rules:
     }
   }
 
-  private normalizeConstraintRuleForParsing(rule: string): string {
-    return rule.replace(/(?<![=!<>])=(?!=)/g, "==");
-  }
-
-  private extractIdentifiers(expression: string): string[] {
-    return Array.from(
-      new Set(
-        (expression.match(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g) || []).map((token) =>
-          token.toLowerCase(),
-        ),
-      ),
-    );
-  }
-
   private findDerivedCycle(
     derivedVariables: DerivedVariableDraft[],
   ): string[] | null {
@@ -545,9 +540,10 @@ Critical output rules:
 
     for (const derived of derivedVariables) {
       const name = derived.name.toLowerCase();
-      const references = this.extractIdentifiers(derived.expression).filter(
-        (token) => derivedNames.has(token) && token !== name,
-      );
+      const references = analyzeMathjsExpression(derived.expression)
+        .identifiers
+        .map((token) => token.toLowerCase())
+        .filter((token) => derivedNames.has(token) && token !== name);
       graph.set(name, references);
     }
 
@@ -628,6 +624,14 @@ Critical output rules:
     return "random";
   }
 
+  private normalizeConstraintRuleForParsing(rule: string): string {
+    if (typeof rule !== "string") {
+      return "";
+    }
+
+    return rule.trim().replace(/(?<![=!<>])=(?!=)/g, "==");
+  }
+
   /**
    * Collect validation warnings from the strategy
    */
@@ -647,10 +651,11 @@ Critical output rules:
     const baseVarNames = new Set(
       strategy.variables.map((v) => v.name.toLowerCase()),
     );
+    const derivedVarNames = new Set(
+      strategy.derivedVariables.map((d) => d.name.toLowerCase()),
+    );
     for (const derived of strategy.derivedVariables) {
-      const mentioned = derived.expression
-        .toLowerCase()
-        .match(/\b[a-z_][a-z0-9_]*\b/g) || [];
+      const mentioned = analyzeMathjsExpression(derived.expression).identifiers.map((name) => name.toLowerCase());
       const orphaned = mentioned.filter(
         (name) => !baseVarNames.has(name.toLowerCase()),
       );
@@ -663,15 +668,11 @@ Critical output rules:
 
     // Check for constraints on undefined variables
     for (const constraint of strategy.constraints) {
-      const mentioned = constraint.rule
-        .toLowerCase()
-        .match(/\b[a-z_][a-z0-9_]*\b/g) || [];
+      const mentioned = analyzeMathjsExpression(this.normalizeConstraintRuleForParsing(constraint.rule)).identifiers.map((name) => name.toLowerCase());
       const undefined_vars = mentioned.filter(
         (name) =>
           !baseVarNames.has(name.toLowerCase()) &&
-          !new Set(strategy.derivedVariables.map((d) => d.name.toLowerCase())).has(
-            name.toLowerCase(),
-          ),
+          !derivedVarNames.has(name.toLowerCase()),
       );
       if (undefined_vars.length > 0) {
         warnings.push(
