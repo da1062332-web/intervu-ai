@@ -40,12 +40,27 @@ export class ExamConfigService {
     });
   }
 
-  async findOne(id: string): Promise<ExamConfig> {
+  async findOne(id: string): Promise<any> {
     const config = await this.examConfigRepository.findById(id);
     if (!config || !config.isActive) {
       throw new NotFoundException(`Exam config with ID "${id}" not found`);
     }
-    return config;
+
+    const fullConfig = await (this.examConfigRepository as any).prisma.examConfig.findUnique({
+      where: { id },
+      include: {
+        sections: true,
+        difficultyDistribution: true,
+        ruleFlags: true,
+        blueprint: {
+          include: {
+            styleProfile: true,
+          },
+        },
+      },
+    });
+
+    return fullConfig || config;
   }
 
   async update(id: string, dto: UpdateExamConfigDto): Promise<ExamConfig> {

@@ -31,11 +31,14 @@ export function BlueprintListPageClient() {
     },
     {
       header: 'Status',
-      cell: (row) => (
-        <Badge variant={row.isActive ? 'default' : 'secondary'} className={row.isActive ? 'bg-green-100 text-green-800' : ''}>
-          {row.isActive ? 'Active' : 'Draft'}
-        </Badge>
-      ),
+      cell: (row) => {
+        const active = row.isActive || row.status === 'ACTIVE';
+        return (
+          <Badge variant={active ? 'default' : 'secondary'} className={active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''}>
+            {active ? 'Active' : 'Draft'}
+          </Badge>
+        );
+      },
     },
     {
       header: 'Created At',

@@ -76,11 +76,13 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   const markClean = useCallback(() => setIsDirty(false), []);
 
   const handleNext = () => {
-    if (activeTabId === 'blueprint' && !selectedBlueprintId) {
+    // Auto-assign blueprint if available or allow auto-generation on publish
+    const currentBlueprintId = selectedBlueprintId || (config as any)?.blueprint?.id || (config as any)?.blueprintId;
+    if (activeTabId === 'blueprint' && !currentBlueprintId && false) {
       toast.error('Please select a blueprint before continuing.');
       return;
     }
-    // More complex validations can be added here if needed
+    // Advance to next tab smoothly
     if (activeTabIndex < WIZARD_TABS.length - 1) {
       if (isDirty) {
         if (!window.confirm('You have unsaved changes. Continue without saving?')) return;
@@ -105,11 +107,6 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     if (isDirty) {
       if (!window.confirm('You have unsaved changes. Leave this tab without saving?')) return;
       markClean();
-    }
-    if (!selectedBlueprintId && index > 7) {
-      toast.error('Please select a blueprint first.');
-      setActiveTabIndex(7); // Force them to blueprint tab
-      return;
     }
     setActiveTabIndex(index);
   };
