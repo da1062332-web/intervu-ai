@@ -32,6 +32,7 @@ import { TemplateVariableRepository } from "../repositories/template-variable.re
 import { TemplateRuleRepository } from "../repositories/template-rule.repository";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
+import { StrategyCanonicalizationService } from "./strategy-canonicalization.service";
 import {
   CreateTemplateDto,
   UpdateTemplateDto,
@@ -69,6 +70,7 @@ export class TemplateService {
     private readonly templateVariableRepository: TemplateVariableRepository,
     private readonly templateRuleRepository: TemplateRuleRepository,
     private readonly cacheService: RedisCacheService,
+    private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
 
   /**
@@ -1586,14 +1588,14 @@ export class TemplateService {
       throw new BadRequestException("Invalid draft structure");
     }
 
-    const validationErrors = this.validateDraftedStrategy(draft);
-    if (validationErrors.length > 0) {
+    const validation = this.canonicalizationService.validateDraft(draft);
+    if (validation.errors.length > 0) {
       throw new BadRequestException({
         success: false,
         error: {
           code: "INVALID_STRATEGY_DRAFT",
           message: "Drafted strategy contains invalid variable or constraint definitions.",
-          details: validationErrors,
+          details: validation.errors,
         },
       });
     }
@@ -1646,11 +1648,12 @@ export class TemplateService {
 
     const normalizedConstraints = (draft.constraints || []).map((item: any) => {
       const rule = typeof item?.rule === "string" ? item.rule.trim() : "";
+      const normalizedRule = this.canonicalizationService.normalizeConstraintRule(rule);
       const severity = item?.severity === "warning" ? "warning" : "critical";
-      const parsed = this.parseConstraintRule(rule);
+      const parsed = this.parseConstraintRule(normalizedRule);
 
       return {
-        rule,
+        rule: normalizedRule,
         severity,
         ...(parsed || {}),
       };
