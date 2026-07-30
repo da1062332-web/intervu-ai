@@ -41,14 +41,54 @@ export class HiringEvaluationEngine {
       return null;
     }
 
-    // 2. Fetch HiringEvaluationConfig and relational section mappings
-    const hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
-      where: { examConfigId: configId },
-      include: { sectionMappings: true },
-    });
+    // 2. Fetch HiringEvaluationConfig with robust multi-level lookup
+    let hiringConfig: any = null;
+
+    // A. Lookup by testInstance.examConfigId
+    if (testInstance?.examConfigId) {
+      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+        where: { examConfigId: testInstance.examConfigId },
+        include: { sectionMappings: true },
+      });
+    }
+
+    // B. Lookup by testInstance.testConfigId
+    if (!hiringConfig && testInstance?.testConfigId) {
+      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+        where: { examConfigId: testInstance.testConfigId },
+        include: { sectionMappings: true },
+      });
+    }
+
+    // C. Lookup via AssembledTest configId
+    if (!hiringConfig) {
+      const assembledTest = await this.prisma.assembledTest.findFirst({
+        where: {
+          OR: [
+            { id: attemptId },
+            ...(testInstance?.testConfigId ? [{ configId: testInstance.testConfigId }] : []),
+          ],
+        },
+      });
+      if (assembledTest?.configId) {
+        hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+          where: { examConfigId: assembledTest.configId },
+          include: { sectionMappings: true },
+        });
+      }
+    }
+
+    // D. Global Fallback: Most recently updated active enabled HiringEvaluationConfig
+    if (!hiringConfig) {
+      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findFirst({
+        where: { enabled: true },
+        include: { sectionMappings: true },
+        orderBy: { updatedAt: "desc" },
+      });
+    }
 
     if (!hiringConfig || !hiringConfig.enabled) {
-      this.logger.debug("Hiring evaluation is disabled or not configured", { attemptId, configId });
+      this.logger.debug("Hiring evaluation is disabled or not configured", { attemptId });
       return null;
     }
 

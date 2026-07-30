@@ -75,13 +75,18 @@ export class QuestionAllocatorService {
     for (const diff of difficulties) {
       if (diff.count <= 0) continue;
 
+      // remainingDiffCount tracks how many questions are still owed for this difficulty level.
+      // Capping per-topic slices against this prevents Math.round() overshoot within a bucket.
       let remainingDiffCount = diff.count;
 
       for (const topicAlloc of section.topicAllocations) {
-        // Allocate proportionally by topic
-        const topicCount = Math.round(
+        if (remainingDiffCount <= 0) break;
+
+        // Proportional topic slice, capped against the remaining bucket budget.
+        const proportionalCount = Math.round(
           (topicAlloc.percentage / 100) * diff.count,
         );
+        const topicCount = Math.min(proportionalCount, remainingDiffCount);
         if (topicCount <= 0) continue;
 
         let attempts = 0;
@@ -114,7 +119,9 @@ export class QuestionAllocatorService {
             Array.from(allocatedQuestionIds),
           );
 
-          const toAddCount = Math.min(shortage, filteredQuestions.length);
+          // Cap against the per-topic shortage and the remaining bucket budget.
+          const bucketRemaining = remainingDiffCount - selectedForTopic.length;
+          const toAddCount = Math.min(shortage, filteredQuestions.length, bucketRemaining);
           const selected = filteredQuestions.slice(0, toAddCount);
 
           for (const q of selected) {
@@ -167,14 +174,15 @@ export class QuestionAllocatorService {
                 Array.from(allocatedQuestionIds),
               );
 
-              const toAdd = filtered.slice(0, shortage);
+              const bucketCap = remainingDiffCount - selectedForTopic.length;
+              const toAdd = filtered.slice(0, Math.min(shortage, bucketCap));
               for (const q of toAdd) {
                 allocatedQuestionIds.add(q.id);
                 const allocatedQ = {
                   questionId: q.id,
                   questionHash: q.questionHash || "hash",
                   conceptKey: q.conceptKey,
-                  difficultyLevel: q.difficultyLevel,
+                  difficultyLevel: diff.level,
                   questionType: q.questionType,
                   questionOrder: orderCounter++,
                   questionSnapshot: q,
@@ -205,7 +213,7 @@ export class QuestionAllocatorService {
         }
       }
 
-      // If rounding caused a shortfall in this difficulty bucket, grab extra from the first topic
+      // If rounding caused a shortfall in this difficulty bucket, grab extra from the first topic.
       if (remainingDiffCount > 0 && section.topicAllocations.length > 0) {
         const extraTopic = section.topicAllocations[0];
         let attempts = 0;
@@ -297,7 +305,7 @@ export class QuestionAllocatorService {
                   questionId: q.id,
                   questionHash: q.questionHash || "hash",
                   conceptKey: q.conceptKey,
-                  difficultyLevel: q.difficultyLevel,
+                  difficultyLevel: diff.level,
                   questionType: q.questionType,
                   questionOrder: orderCounter++,
                   questionSnapshot: q,
@@ -327,6 +335,11 @@ export class QuestionAllocatorService {
           });
         }
       }
+    }
+
+    // Safety net: trim any 1-off overshoot from edge-case rounding combinations.
+    if (allocatedQuestions.length > totalQuestions) {
+      allocatedQuestions.splice(totalQuestions);
     }
 
     if (allocatedQuestions.length !== totalQuestions) {

@@ -108,7 +108,7 @@ export class DuplicateDetectorService {
         maxSimilarity = similarity;
       }
 
-      if (similarity > 0.85) {
+      if (similarity > 0.92) {
         return { duplicate: true, similarity };
       }
     }

@@ -22,7 +22,26 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     const sectionCorrectMap = new Map<string, number>();
     sectionScores.forEach((sec) => {
       sectionCorrectMap.set(sec.sectionKey, sec.correct);
+      sectionCorrectMap.set(sec.sectionKey.toUpperCase(), sec.correct);
+      if (sec.sectionName) {
+        sectionCorrectMap.set(sec.sectionName, sec.correct);
+        sectionCorrectMap.set(sec.sectionName.toUpperCase(), sec.correct);
+      }
     });
+
+    const getCorrectForSection = (sectionCode: string, sectionName?: string) => {
+      if (sectionCorrectMap.has(sectionCode)) return sectionCorrectMap.get(sectionCode)!;
+      if (sectionCorrectMap.has(sectionCode.toUpperCase())) return sectionCorrectMap.get(sectionCode.toUpperCase())!;
+      if (sectionName && sectionCorrectMap.has(sectionName)) return sectionCorrectMap.get(sectionName)!;
+      if (sectionName && sectionCorrectMap.has(sectionName.toUpperCase())) return sectionCorrectMap.get(sectionName.toUpperCase())!;
+      // Partial match fallback: e.g. NA101 in "Numerical Ability (NA101)"
+      for (const [key, val] of sectionCorrectMap.entries()) {
+        if (key.includes(sectionCode) || sectionCode.includes(key)) {
+          return val;
+        }
+      }
+      return 0;
+    };
 
     const sectionsBreakdown: SectionPassFailBreakdown[] = [];
 
@@ -40,7 +59,7 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     let reasoningMin = 0;
 
     for (const mapping of foundationMappings) {
-      const correctCount = sectionCorrectMap.get(mapping.sectionCode) || 0;
+      const correctCount = getCorrectForSection(mapping.sectionCode, mapping.sectionName || undefined);
       const minRequired = mapping.minimumCorrectAnswers;
       const passed = correctCount >= minRequired;
 
@@ -79,7 +98,7 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     let advancedSectionCode: string | undefined;
     for (const m of advancedMappings) {
       advancedSectionCode = m.sectionCode;
-      advancedScore += sectionCorrectMap.get(m.sectionCode) || 0;
+      advancedScore += getCorrectForSection(m.sectionCode, m.sectionName || undefined);
     }
 
     // Coding Evaluation
