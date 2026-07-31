@@ -399,6 +399,82 @@ describe("GenerationRetryService", () => {
     expect(result.question?.correctAnswer).toBe("10000");
   });
 
+  it("should normalize decimal options and correct answer together while preserving raw metadata", async () => {
+    const fixedVariables = {
+      lcm_input: 13339,
+      hcf_input: 39,
+      calculated_answer: 342.02564102564105,
+    };
+
+    service = new GenerationRetryService(
+      prisma,
+      promptBuilder,
+      questionGenerator,
+      optionGenerator,
+      explanationGenerator,
+      responseValidator,
+      auditService,
+      duplicateDetector,
+      qualityScorer,
+      {
+        generateParameters: jest.fn().mockReturnValue(fixedVariables),
+      } as any,
+      {} as any,
+      {} as any,
+    );
+
+    jest.spyOn(mockAdapter, "generate").mockResolvedValue(
+      JSON.stringify({
+        question: "Calculate the required value.",
+        options: [
+          "342.02564102564105",
+          "341.02564102564105",
+          "343.02564102564105",
+          "344.02564102564105",
+        ],
+        correctAnswer: "342.02564102564105",
+        answer: "342.02564102564105",
+        explanation:
+          "Concept\nLCM/HCF calculation.\n\nFormula / Reasoning\nUse 13339/39.\n\nStep-by-Step Solution\nThe quotient is 342.02564102564105.\n\nFinal Answer\n342.02564102564105",
+        difficulty: "medium",
+        topic: "lcm_hcf",
+      }),
+    );
+
+    const result = await service.generateFromTemplate(
+      {
+        id: "tpl-lcm-hcf-display",
+        name: "LCM HCF Display Template",
+        description: "Display formatting for calculated answer.",
+        conceptKey: "lcm_hcf",
+        difficultyLevel: "MEDIUM",
+        questionType: "mcq",
+        generationStrategy: "VARIABLE",
+        structure: {
+          questionTemplate:
+            "Given the fraction {{lcm_input}}/{{hcf_input}}, calculate the decimal value {{calculated_answer}}.",
+        },
+        variableSchema: { variables: [] },
+        constraints: { constraints: [] },
+        solutionSchema: {
+          correctVariable: "calculated_answer",
+        },
+      },
+      fixedVariables,
+      1,
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.question?.question).toContain("342.03");
+    expect(result.question?.question).toContain("13339/39");
+    expect(result.question?.options).toContain("342.03");
+    expect(result.question?.correctAnswer).toBe("342.03");
+    expect(result.question?.answer).toBe("342.03");
+    expect(result.question?.explanation).toContain("342.03");
+    expect(result.question?.explanation).toContain("13339/39");
+    expect(result.question?.metadata?.variables).toMatchObject(fixedVariables);
+  });
+
   it("should validate 100 questions under 15 seconds (Performance Target)", async () => {
     const start = Date.now();
 

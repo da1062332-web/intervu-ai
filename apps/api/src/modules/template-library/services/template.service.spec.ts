@@ -7,7 +7,7 @@ import type { TemplateRuleRepository } from '../repositories/template-rule.repos
 import type { RedisCacheService } from '../../../cache';
 
 describe('TemplateService AI strategy apply flow', () => {
-  it('merges AI-drafted variables and constraints into the existing template schema instead of replacing legacy fields', async () => {
+  it('replaces strategy-owned variables and constraints while preserving unrelated legacy fields', async () => {
     const templateRepository = {
       findById: jest.fn().mockResolvedValue({
         id: 'template_123',
@@ -53,23 +53,37 @@ describe('TemplateService AI strategy apply flow', () => {
       expect.objectContaining({
         variableSchema: expect.objectContaining({
           legacyKey: 'preserve-me',
-          variables: expect.arrayContaining([
-            expect.objectContaining({ name: 'legacyVar' }),
-            expect.objectContaining({ name: 'price' }),
-          ]),
-          derivedVariables: expect.arrayContaining([
-            expect.objectContaining({ name: 'legacyDerived' }),
-            expect.objectContaining({ name: 'total' }),
-          ]),
+          variables: [expect.objectContaining({ name: 'price' })],
+          derivedVariables: [expect.objectContaining({ name: 'total' })],
+          formulas: ['total = price * 2'],
+          generationStrategyConfig: expect.objectContaining({
+            legacy: true,
+            variables: [expect.objectContaining({ name: 'price' })],
+            derivedVariables: [expect.objectContaining({ name: 'total' })],
+            constraints: [expect.objectContaining({ rule: 'total < 200' })],
+            formulas: ['total = price * 2'],
+          }),
         }),
         constraints: expect.objectContaining({
           legacyKey: 'preserve-me-too',
-          constraints: expect.arrayContaining([
-            expect.objectContaining({ rule: 'legacyVar >= 1' }),
-            expect.objectContaining({ rule: 'total < 200' }),
-          ]),
+          constraints: [expect.objectContaining({ rule: 'total < 200' })],
+          rules: ['total < 200'],
+          generationStrategyConfig: expect.objectContaining({
+            legacy: true,
+            variables: [expect.objectContaining({ name: 'price' })],
+            derivedVariables: [expect.objectContaining({ name: 'total' })],
+            constraints: [expect.objectContaining({ rule: 'total < 200' })],
+            formulas: ['total = price * 2'],
+          }),
         }),
       }),
+    );
+
+    expect(updatePayload.variableSchema.variables).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'legacyVar' })]),
+    );
+    expect(updatePayload.constraints.constraints).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ rule: 'legacyVar >= 1' })]),
     );
   });
 

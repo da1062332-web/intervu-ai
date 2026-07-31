@@ -1667,42 +1667,15 @@ export class TemplateService {
           typeof rule === "string" && rule.length > 0,
       );
 
-    const rawVariables = Array.isArray(existingVariableSchema.variables)
-      ? existingVariableSchema.variables
-      : [];
-    const rawDerivedVariables = Array.isArray(existingVariableSchema.derivedVariables)
-      ? existingVariableSchema.derivedVariables
-      : [];
-    const rawFormulas = Array.isArray(existingVariableSchema.formulas)
-      ? existingVariableSchema.formulas
-      : [];
-
     const draftVariables = draft.variables || [];
     const draftDerivedVariables = draft.derivedVariables || [];
     const draftFormulas = (draftDerivedVariables || []).map(
       (d: any) => `${d.name} = ${d.expression}`,
     );
 
-    const variables = this.mergeByName(rawVariables, draftVariables);
-    const derivedVariables = this.mergeByName(
-      rawDerivedVariables,
-      draftDerivedVariables,
-    );
-    const formulas = this.mergeUniqueStrings(rawFormulas, draftFormulas);
-
-    const existingConstraintItems = Array.isArray(existingConstraintsSchema.constraints)
-      ? existingConstraintsSchema.constraints
-      : [];
-    const mergedConstraints = this.mergeByRule(
-      existingConstraintItems,
-      normalizedConstraints,
-    );
-    const mergedRules = this.mergeUniqueStrings(
-      Array.isArray(existingConstraintsSchema.rules)
-        ? existingConstraintsSchema.rules
-        : [],
-      normalizedRules,
-    );
+    const variables = draftVariables;
+    const derivedVariables = draftDerivedVariables;
+    const formulas = draftFormulas;
 
     const variableSchema = {
       ...existingVariableSchema,
@@ -1713,7 +1686,7 @@ export class TemplateService {
         ...(existingVariableSchema.generationStrategyConfig || {}),
         variables,
         derivedVariables,
-        constraints: mergedConstraints,
+        constraints: normalizedConstraints,
         formulas,
       },
     };
@@ -1722,13 +1695,13 @@ export class TemplateService {
 
     const constraintsSchema = {
       ...existingConstraintsSchema,
-      constraints: mergedConstraints,
-      rules: mergedRules,
+      constraints: normalizedConstraints,
+      rules: normalizedRules,
       generationStrategyConfig: {
         ...(existingConstraintsSchema.generationStrategyConfig || {}),
         variables,
         derivedVariables,
-        constraints: mergedConstraints,
+        constraints: normalizedConstraints,
         formulas,
       },
     };

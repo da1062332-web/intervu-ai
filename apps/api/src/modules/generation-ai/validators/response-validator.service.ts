@@ -178,13 +178,42 @@ export class ResponseValidatorService {
       if (computedAnswer !== undefined) {
         const cleanComputed = String(computedAnswer).trim().toLowerCase();
         const cleanLlmAnswer = String(question.correctAnswer || question.answer).trim().toLowerCase();
-        if (cleanLlmAnswer !== cleanComputed) {
+        if (!this.answersMatch(cleanLlmAnswer, cleanComputed)) {
           throw new BadRequestException(
             `Math validation failed: LLM generated answer "${cleanLlmAnswer}" does not match backend computed answer "${cleanComputed}"`
           );
         }
       }
     }
+  }
+
+  private answersMatch(llmAnswer: string, computedAnswer: string): boolean {
+    if (llmAnswer === computedAnswer) {
+      return true;
+    }
+
+    const llmNumeric = this.parseNumericAnswer(llmAnswer);
+    const computedNumeric = this.parseNumericAnswer(computedAnswer);
+    if (llmNumeric === null || computedNumeric === null) {
+      return false;
+    }
+
+    return Math.abs(llmNumeric - computedNumeric) <= 0.01;
+  }
+
+  private parseNumericAnswer(value: string): number | null {
+    const normalized = value
+      .replace(/,/g, "")
+      .replace(/^(?:rs\.?|inr|₹|rupees?)\s*/i, "")
+      .replace(/\s*(?:rs\.?|inr|₹|rupees?)$/i, "")
+      .trim();
+
+    if (!/^-?\d+(?:\.\d+)?%?$/.test(normalized)) {
+      return null;
+    }
+
+    const numeric = Number(normalized.replace(/%$/, ""));
+    return Number.isFinite(numeric) ? numeric : null;
   }
 
   private validateDatasetStrategy(question: GeneratedQuestionDto, template?: any): void {
