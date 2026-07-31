@@ -348,7 +348,7 @@ export class ResultsService {
           qualificationDetails: r.qualificationDetails || undefined,
           evaluatedAt: r.evaluatedAt || undefined,
           createdAt: r.createdAt,
-        });
+        } as any);
       }
     }
 

@@ -152,17 +152,17 @@ export default function LoginPage() {
           <div className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8 w-max animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both'>
             <Sparkles className='size-4 text-violet-300' />
             <span className='text-sm font-semibold tracking-wide text-violet-50'>
-              Next-Gen Hiring Platform
+              AI-Powered Assessment Platform
             </span>
           </div>
 
           <h2 className='text-5xl xl:text-[3.5rem] font-heading font-bold leading-[1.1] mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-500 fill-mode-both'>
-            Elevate your technical hiring process.
+            Test your knowledge & showcase your expertise.
           </h2>
 
           <p className='text-lg xl:text-xl text-white/80 max-w-lg leading-relaxed font-medium mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both'>
-            Automate assessments, analyze candidate performance, and make data-driven hiring
-            decisions with our intelligent AI-powered platform.
+            Take interactive AI-powered assessments, participate in real-time interviews,
+            and demonstrate your problem-solving abilities with intelligent instant insights.
           </p>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function LoginPage() {
               Welcome back
             </h1>
             <p className='text-muted-foreground mt-3 text-[1.05rem] font-medium'>
-              Enter your credentials to access your workspace.
+              Enter your credentials to access your account.
             </p>
           </div>
 

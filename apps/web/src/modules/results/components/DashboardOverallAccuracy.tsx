@@ -28,21 +28,21 @@ export const DashboardOverallAccuracy: React.FC<Props> = ({ data }) => {
                 )`
               }}
             />
-            <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center">
-              <span className="text-3xl font-bold">{Math.round(data.overallAccuracy)}%</span>
+            <div className="absolute inset-2 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center">
+              <span className="text-3xl font-bold text-gray-900 dark:text-white">{Math.round(data.overallAccuracy)}%</span>
             </div>
           </div>
           
           <div className="w-full space-y-3">
-            <div className="flex justify-between items-center p-2 bg-green-50 rounded text-green-700">
+            <div className="flex justify-between items-center p-2.5 bg-green-50 dark:bg-green-950/40 rounded-lg text-green-700 dark:text-green-300 border border-transparent dark:border-green-800/40">
               <span className="font-medium">Correct</span>
               <span className="font-bold text-lg">{correct}</span>
             </div>
-            <div className="flex justify-between items-center p-2 bg-red-50 rounded text-red-700">
+            <div className="flex justify-between items-center p-2.5 bg-red-50 dark:bg-red-950/40 rounded-lg text-red-700 dark:text-red-300 border border-transparent dark:border-red-800/40">
               <span className="font-medium">Wrong</span>
               <span className="font-bold text-lg">{wrong}</span>
             </div>
-            <div className="flex justify-between items-center p-2 bg-slate-50 rounded text-slate-700">
+            <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-900/60 rounded-lg text-slate-700 dark:text-slate-300 border border-transparent dark:border-slate-800">
               <span className="font-medium">Skipped</span>
               <span className="font-bold text-lg">{skipped}</span>
             </div>
