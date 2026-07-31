@@ -131,17 +131,86 @@ export class BlueprintService {
     // Check if blueprint already exists for this config
     const existing = await this.repository.findByConfigId(configId);
     if (existing) {
-      return this.repository.update(existing.id, {
+      const updated = await this.repository.update(existing.id, {
         styleProfile: { connect: { id: styleProfileId } },
         sections: sections as unknown as Prisma.InputJsonValue,
       });
+      await this.syncBlueprintSectionsToConfig(configId, sections as any[]);
+      return this.mapBlueprintToDto(updated);
     }
 
-    return this.repository.create({
+    const created = await this.repository.create({
       sections: sections as unknown as Prisma.InputJsonValue,
       examConfig: { connect: { id: configId } },
       styleProfile: { connect: { id: styleProfileId } },
     });
+    await this.syncBlueprintSectionsToConfig(configId, sections as any[]);
+    return this.mapBlueprintToDto(created);
+  }
+
+  public async syncBlueprintSectionsToConfig(configId: string, blueprintSections: any[]) {
+    if (!configId || !Array.isArray(blueprintSections) || blueprintSections.length === 0) return;
+
+    try {
+      const existingConfig = await this.prisma.examConfig.findUnique({
+        where: { id: configId },
+        include: { sections: true },
+      });
+
+      if (!existingConfig) return;
+
+      for (let idx = 0; idx < blueprintSections.length; idx++) {
+        const sec = blueprintSections[idx];
+        const secName = sec.displayName || sec.name || `Section ${idx + 1}`;
+        const secCode = sec.sectionKey || sec.code || `SEC_${idx + 1}`;
+        const qCount = sec.questionCount || 10;
+
+        let examSec = existingConfig.sections.find(
+          (s) => s.code === secCode || s.name === secName,
+        );
+
+        if (!examSec) {
+          examSec = await this.prisma.examSection.create({
+            data: {
+              examConfigId: configId,
+              name: secName,
+              code: secCode,
+              questionCount: qCount,
+              sectionOrder: idx + 1,
+              sectionDurationMinutes: sec.sectionDurationMinutes || 15,
+            },
+          });
+        }
+
+        const topicAllocs = sec.topicAllocations || sec.sectionTopics || [];
+        for (const ta of topicAllocs) {
+          const tId = ta.topicId || ta.id;
+          if (tId) {
+            const existingSt = await this.prisma.sectionTopic.findFirst({
+              where: { sectionId: examSec.id, topicId: tId },
+            });
+            if (!existingSt) {
+              const newSt = await this.prisma.sectionTopic.create({
+                data: {
+                  sectionId: examSec.id,
+                  topicId: tId,
+                },
+              });
+              await this.prisma.topicWeightage.create({
+                data: {
+                  id: newSt.id,
+                  sectionId: examSec.id,
+                  topicId: tId,
+                  weightagePercentage: ta.percentage ?? ta.weightagePercentage ?? ta.weightage ?? 50,
+                },
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to sync blueprint sections to ExamSection table:", err);
+    }
   }
 
   async findAll() {

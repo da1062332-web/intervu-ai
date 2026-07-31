@@ -1,5 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { evaluate } from "mathjs";
+import {
+  formatDisplayValue,
+  formatInterpolatedDisplayValue,
+} from "../utils/display-value-formatter";
 
 export interface PromptBuilderInput {
   template: {
@@ -42,13 +46,17 @@ export class PromptBuilderService {
   interpolate(text: string, variables: Record<string, any>): string {
     if (!text) return "";
     return text
-      .replace(/\{\{([^{}]+)\}\}/g, (match, key) => {
+      .replace(/\{\{([^{}]+)\}\}/g, (match, key, offset, text) => {
         const trimmed = key.trim();
-        return variables.hasOwnProperty(trimmed) ? String(variables[trimmed]) : match;
+        return variables.hasOwnProperty(trimmed)
+          ? formatInterpolatedDisplayValue(text, offset, variables[trimmed])
+          : match;
       })
-      .replace(/\{([^{}]+)\}/g, (match, key) => {
+      .replace(/\{([^{}]+)\}/g, (match, key, offset, text) => {
         const trimmed = key.trim();
-        return variables.hasOwnProperty(trimmed) ? String(variables[trimmed]) : match;
+        return variables.hasOwnProperty(trimmed)
+          ? formatInterpolatedDisplayValue(text, offset, variables[trimmed])
+          : match;
       });
   }
 
@@ -135,7 +143,7 @@ export class PromptBuilderService {
 [RESOLVED PARAMETERS]
 The math problem has already been solved by the backend. Use the following exact parameter values:
 ${Object.entries(variableValues)
-  .map(([key, val]) => `- ${key} = ${val}`)
+  .map(([key, val]) => `- ${key} = ${formatDisplayValue(val)}`)
   .join("\n")}
 ${correctAnswerHint}
 

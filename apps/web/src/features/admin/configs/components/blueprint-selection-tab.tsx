@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useBlueprints } from '@/services/blueprints/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 import { useConfigWizardStore } from './wizard-store';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,27 +18,35 @@ interface BlueprintSelectionTabProps {
 export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) {
   const { data: blueprints, isLoading } = useBlueprints();
   const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
+  const queryClient = useQueryClient();
   const setBlueprintId = useConfigWizardStore((state) => state.setBlueprintId);
   const selectedStyleProfileId = useConfigWizardStore((state) => state.getStyleProfileId(configId)) || '';
   const setStyleProfileId = useConfigWizardStore((state) => state.setStyleProfileId);
 
-  const handleStyleProfileChange = async (val: string) => {
-    setStyleProfileId(configId, val);
-    try {
-      const res = await apiClient.request<any>('/blueprints', {
-        method: 'POST',
-        body: {
-          configId,
-          styleProfileId: val,
-          sections: [],
-        },
-      });
-      if (res?.data?.id || res?.data?.blueprintId) {
-        setBlueprintId(configId, res.data.id || res.data.blueprintId);
+  const handleBlueprintChange = async (bpId: string) => {
+    setBlueprintId(configId, bpId);
+    if (bpId) {
+      const selectedBp = blueprints?.find((b) => b.id === bpId);
+      const styleProfileId = selectedBp?.styleProfileId || (selectedBp as any)?.styleProfile?.id;
+      if (styleProfileId) {
+        setStyleProfileId(configId, styleProfileId);
       }
-    } catch (err) {
-      console.warn('Immediate blueprint binding pending publish:', err);
+      try {
+        await apiClient.request('/blueprints/sync-config', {
+          method: 'POST',
+          body: { configId, blueprintId: bpId },
+          skipErrorToast: true,
+        });
+        queryClient.invalidateQueries({ queryKey: ['sections', configId] });
+        queryClient.invalidateQueries({ queryKey: ['configuration-validation', configId] });
+      } catch (err) {
+        console.warn('Blueprint section sync pending:', err);
+      }
     }
+  };
+
+  const handleStyleProfileChange = (val: string) => {
+    setStyleProfileId(configId, val);
   };
 
   if (isLoading) {
@@ -65,7 +74,7 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
           <select
             className='h-12 rounded-lg border border-input bg-background px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
             value={selectedBlueprintId || ''}
-            onChange={(e) => setBlueprintId(configId, e.target.value)}
+            onChange={(e) => handleBlueprintChange(e.target.value)}
           >
             <option value=''>
               ✨ Auto-Generate Blueprint Matching Sections (Default)

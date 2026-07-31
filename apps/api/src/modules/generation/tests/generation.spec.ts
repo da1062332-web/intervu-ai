@@ -286,6 +286,180 @@ describe("Test Generation Core (Module 2)", () => {
       expect(typeof params.profit_percent).toBe("number");
     });
 
+    it("should continue to compute derived formulas from top-level metadata formulas", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 10, max: 10 },
+            { name: "B", type: "integer", min: 5, max: 5 },
+          ],
+        },
+        formulas: ["C = A + B"],
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(10);
+      expect(params.B).toBe(5);
+      expect(params.C).toBe(15);
+    });
+
+    it("should compute derived variables from variableSchema.derivedVariables", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "principal_amount", type: "integer", min: 10000, max: 10000 },
+            { name: "annual_rate", type: "integer", min: 5, max: 5 },
+            { name: "year_number", type: "integer", min: 3, max: 3 },
+          ],
+          derivedVariables: [
+            {
+              name: "yearly_interest",
+              expression:
+                "principal_amount * (1 + annual_rate / 100) ^ (year_number - 1) * (annual_rate / 100)",
+            },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.principal_amount).toBe(10000);
+      expect(params.annual_rate).toBe(5);
+      expect(params.year_number).toBe(3);
+      expect(params.yearly_interest).toBe(551.25);
+    });
+
+    it("should compute derived variables from variableSchema.generationStrategyConfig.derivedVariables", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 8, max: 8 },
+            { name: "B", type: "integer", min: 4, max: 4 },
+          ],
+          generationStrategyConfig: {
+            derivedVariables: [
+              { name: "C", expression: "A * B" },
+            ],
+          },
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(8);
+      expect(params.B).toBe(4);
+      expect(params.C).toBe(32);
+    });
+
+    it("should not let newly recognized derived variables override existing formula targets", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 8, max: 8 },
+            { name: "B", type: "integer", min: 4, max: 4 },
+          ],
+          formulas: ["C = A + B"],
+          derivedVariables: [
+            { name: "C", expression: "A * B" },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(8);
+      expect(params.B).toBe(4);
+      expect(params.C).toBe(12);
+    });
+
+    it("should support legacy templates with only constraint rules", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 10, max: 10 },
+          ],
+        },
+        constraints: {
+          rules: ["A == 10"],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(10);
+    });
+
+    it("should support templates with only structured constraints", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 10, max: 10 },
+          ],
+        },
+        constraints: {
+          constraints: [
+            { rule: "A == 10" },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(10);
+    });
+
+    it("should prefer structured constraints over stale rules when both exist", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 10, max: 10 },
+          ],
+        },
+        constraints: {
+          rules: ["legacy_missing_variable > 0"],
+          constraints: [
+            { rule: "A == 10" },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(10);
+    });
+
+    it("should generate compound-interest variables when stale rules coexist with valid structured constraints", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "principal_amount", type: "integer", min: 10000, max: 10000 },
+            { name: "annual_rate", type: "integer", min: 5, max: 5 },
+            { name: "year_number", type: "integer", min: 3, max: 3 },
+          ],
+          derivedVariables: [
+            {
+              name: "yearly_interest",
+              expression:
+                "principal_amount * (1 + annual_rate / 100) ^ (year_number - 1) * (annual_rate / 100)",
+            },
+          ],
+        },
+        constraints: {
+          rules: [
+            "compound_interest_yearly >= 1",
+            "principal > 0",
+            "compound_interest_earned % 1 == 0",
+            "principal_amount % 100 == 0",
+          ],
+          constraints: [
+            { rule: "principal_amount % 100 == 0" },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params).toMatchObject({
+        principal_amount: 10000,
+        annual_rate: 5,
+        year_number: 3,
+        yearly_interest: 551.25,
+      });
+    });
+
     it("should support structured generation strategy payloads with derived variables and object constraints", () => {
       const metadata = {
         generationStrategyConfig: {

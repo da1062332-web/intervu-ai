@@ -12,6 +12,7 @@ import { GenerationAuditService } from "../services/generation-audit.service";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
 import { QuestionQualityService } from "../scorers/question-quality.service";
+import { formatInterpolatedDisplayValue } from "../utils/display-value-formatter";
 
 export interface RetryResult {
   attempts: number;
@@ -314,6 +315,13 @@ export class GenerationRetryService {
               logicalGraph: options?.logicalGraph,
             },
           };
+
+          if ((template as any)?.generationStrategy === "VARIABLE") {
+            parsedQuestion.question = this.hydrateCanonicalQuestion(
+              template,
+              attemptVariables,
+            );
+          }
         }
 
         // 3. Process & Shuffle options
@@ -436,5 +444,31 @@ export class GenerationRetryService {
       success: false,
       errors,
     };
+  }
+
+  private hydrateCanonicalQuestion(
+    template: any,
+    variables: Record<string, unknown>,
+  ): string {
+    const questionTemplate =
+      (template.structure &&
+        (template.structure.questionTemplate ||
+          template.structure.questionStatement ||
+          template.structure.prompt)) ||
+      "";
+
+    return String(questionTemplate)
+      .replace(/\{\{([^{}]+)\}\}/g, (match, key, offset, text) => {
+        const trimmed = key.trim();
+        return Object.prototype.hasOwnProperty.call(variables, trimmed)
+          ? formatInterpolatedDisplayValue(text, offset, variables[trimmed])
+          : match;
+      })
+      .replace(/\{([^{}]+)\}/g, (match, key, offset, text) => {
+        const trimmed = key.trim();
+        return Object.prototype.hasOwnProperty.call(variables, trimmed)
+          ? formatInterpolatedDisplayValue(text, offset, variables[trimmed])
+          : match;
+      });
   }
 }

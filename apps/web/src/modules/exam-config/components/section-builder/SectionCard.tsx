@@ -5,8 +5,8 @@ import type { ExamSection } from '@/services/exam-sections/types';
 
 interface SectionCardProps {
   section: ExamSection;
-  onEdit: (section: ExamSection) => void;
-  onDelete: (section: ExamSection) => void;
+  onEdit?: (section: ExamSection) => void;
+  onDelete?: (section: ExamSection) => void;
   onManageTopics?: (section: ExamSection) => void;
 }
 
@@ -40,29 +40,39 @@ export function SectionCard({ section, onEdit, onDelete, onManageTopics }: Secti
         </div>
       </CardContent>
 
-      <CardFooter className='pt-0 flex justify-end space-x-2'>
-        <Button variant='ghost' size='sm' onClick={() => onEdit(section)}>
-          <Edit2 className='w-4 h-4 mr-1' />
-          Edit
-        </Button>
-        <Button
-          variant='ghost'
-          size='sm'
-          className='text-red-600 hover:text-red-700 hover:bg-red-50'
-          onClick={() => onDelete(section)}
-        >
-          <Trash2 className='w-4 h-4 mr-1' />
-          Delete
-        </Button>
-        <Button 
-          variant='default' 
-          size='sm' 
-          className='w-full mt-2'
-          onClick={() => onManageTopics?.(section)}
-        >
-          Manage Topics
-        </Button>
-      </CardFooter>
+      {(onEdit || onDelete || onManageTopics) && (
+        <CardFooter className='pt-0 flex flex-col gap-2 w-full'>
+          <div className='flex items-center justify-end space-x-2 w-full'>
+            {onEdit && (
+              <Button variant='ghost' size='sm' onClick={() => onEdit(section)}>
+                <Edit2 className='w-4 h-4 mr-1' />
+                Edit
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant='ghost'
+                size='sm'
+                className='text-red-600 hover:text-red-700 hover:bg-red-50'
+                onClick={() => onDelete(section)}
+              >
+                <Trash2 className='w-4 h-4 mr-1' />
+                Delete
+              </Button>
+            )}
+          </div>
+          {onManageTopics && (
+            <Button
+              variant='outline'
+              size='sm'
+              className='w-full text-xs font-medium'
+              onClick={() => onManageTopics(section)}
+            >
+              Manage Topics
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 }
