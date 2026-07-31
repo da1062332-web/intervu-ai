@@ -46,6 +46,8 @@ export interface BlueprintConfig {
   configId: string;
   name: string;
   code: string;
+  displayName?: string;
+  title?: string;
   description?: string;
   totalQuestions: number;
   totalDurationMinutes: number;
