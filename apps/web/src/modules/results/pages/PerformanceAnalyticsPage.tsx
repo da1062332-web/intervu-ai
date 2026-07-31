@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import { useResultAnalytics } from '../hooks/results.hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,9 @@ import { SectionAccuracyChart } from '../components/SectionAccuracyChart';
 export const PerformanceAnalyticsPage = () => {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith('/admin');
+  const baseRoute = isAdminRoute ? '/admin/results' : '/candidate/results';
   const navigate = router.push;
   const attemptId = params.attemptId;
 
@@ -28,15 +31,15 @@ export const PerformanceAnalyticsPage = () => {
         title='No Analytics Available'
         description='Unable to load performance analytics for this result.'
         actionLabel='Go Back'
-        onAction={() => navigate(`/candidate/results/${attemptId}`)}
+        onAction={() => navigate(`${baseRoute}/${attemptId}`)}
       />
     );
   }
 
   return (
-    <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-8'>
+    <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in-up'>
       <div className='flex items-center gap-4'>
-        <Button variant='ghost' size='icon' onClick={() => navigate(`/candidate/results/${attemptId}`)}>
+        <Button variant='ghost' size='icon' onClick={() => navigate(`${baseRoute}/${attemptId}`)} title="Back to attempt scorecard">
           <ChevronLeft className='w-5 h-5' />
         </Button>
         <div>

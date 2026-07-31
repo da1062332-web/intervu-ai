@@ -2,10 +2,11 @@ import { useRecentAssessments } from '../../hooks/useRecentAssessments';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { EmptyState, EmptyStateCard } from '@/components/ui/empty-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
-import { Eye, Edit } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import type { RecentAssessment } from '../../services/dashboard.service';
+import Link from 'next/link';
 
 const columns: ColumnDef<RecentAssessment>[] = [
   {
@@ -35,21 +36,6 @@ const columns: ColumnDef<RecentAssessment>[] = [
     header: 'Created Date',
     cell: (row) => <span>{new Date(row.createdAt).toLocaleDateString()}</span>,
   },
-  {
-    id: 'actions',
-    header: <div className="text-right">Actions</div>,
-    className: "text-right",
-    cell: () => (
-      <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button size="icon" variant="ghost" className="size-7 h-7 w-7 rounded-md">
-          <Eye className="size-3.5" />
-        </Button>
-        <Button size="icon" variant="ghost" className="size-7 h-7 w-7 rounded-md">
-          <Edit className="size-3.5" />
-        </Button>
-      </div>
-    ),
-  },
 ];
 
 export function RecentAssessmentsTable() {
@@ -71,8 +57,13 @@ export function RecentAssessmentsTable() {
 
   return (
     <Card className="rounded-xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-      <CardHeader className="py-4 px-5 border-b bg-card z-20">
+      <CardHeader className="py-3 px-5 border-b bg-card z-20 flex flex-row items-center justify-between">
         <CardTitle className="text-base font-semibold">Recent Assessments</CardTitle>
+        <Button variant="ghost" size="sm" asChild className="text-xs h-8 text-muted-foreground hover:text-foreground">
+          <Link href="/admin/assessments">
+            View All <ChevronRight className="ml-1 size-3" />
+          </Link>
+        </Button>
       </CardHeader>
       <CardContent className="p-0 flex-1 overflow-hidden">
         <DataTable
@@ -97,3 +88,4 @@ export function RecentAssessmentsTable() {
     </Card>
   );
 }
+

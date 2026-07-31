@@ -689,27 +689,28 @@ export class ResultQueryService {
         })),
       });
 
-      qualification = fullResult.qualification || null;
-      qualificationReason = fullResult.qualificationReason || null;
-      evaluationStrategy = fullResult.evaluationStrategy || null;
-      foundationScore = fullResult.foundationScore ?? null;
-      advancedScore = fullResult.advancedScore ?? null;
-      codingSolved = fullResult.codingSolved ?? null;
-      qualificationDetails = fullResult.qualificationDetails || null;
+      const fRes = fullResult as any;
+      qualification = fRes.qualification || null;
+      qualificationReason = fRes.qualificationReason || null;
+      evaluationStrategy = fRes.evaluationStrategy || null;
+      foundationScore = fRes.foundationScore ?? null;
+      advancedScore = fRes.advancedScore ?? null;
+      codingSolved = fRes.codingSolved ?? null;
+      qualificationDetails = fRes.qualificationDetails || null;
 
       // Asynchronously persist computed qualification (or null if disabled) back to DB
       this.prisma.candidateResult.update({
         where: { attemptId },
         data: {
-          qualification: fullResult.qualification || null,
-          qualificationReason: fullResult.qualificationReason || null,
-          evaluationStrategy: fullResult.evaluationStrategy || null,
-          foundationScore: fullResult.foundationScore ?? null,
-          advancedScore: fullResult.advancedScore ?? null,
-          codingSolved: fullResult.codingSolved ?? null,
-          qualificationDetails: (fullResult.qualificationDetails as any) || null,
-          evaluatedAt: fullResult.evaluatedAt ? new Date(fullResult.evaluatedAt) : new Date(),
-        },
+          qualification: fRes.qualification || null,
+          qualificationReason: fRes.qualificationReason || null,
+          evaluationStrategy: fRes.evaluationStrategy || null,
+          foundationScore: fRes.foundationScore ?? null,
+          advancedScore: fRes.advancedScore ?? null,
+          codingSolved: fRes.codingSolved ?? null,
+          qualificationDetails: fRes.qualificationDetails || null,
+          evaluatedAt: fRes.evaluatedAt ? new Date(fRes.evaluatedAt) : new Date(),
+        } as any,
       }).catch(() => {});
     } catch {
       // Ignore fallback evaluation error

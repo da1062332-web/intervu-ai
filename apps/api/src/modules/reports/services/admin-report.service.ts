@@ -8,32 +8,55 @@ export class AdminReportService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  private async resolveAssessmentConfig(id: string): Promise<{ configId: string; isExam: boolean; config: any }> {
+    let config: any = await this.prisma.testConfig.findUnique({
+      where: { id },
+    });
+    if (config) {
+      return { configId: id, isExam: false, config };
+    }
+
+    config = await this.prisma.examConfig.findUnique({
+      where: { id },
+    });
+    if (config) {
+      return { configId: id, isExam: true, config };
+    }
+
+    const assembledTest = await this.prisma.assembledTest.findUnique({
+      where: { id },
+      include: { examConfig: true },
+    });
+    if (assembledTest && assembledTest.examConfig) {
+      return { configId: assembledTest.configId, isExam: true, config: assembledTest.examConfig };
+    }
+
+    throw new NotFoundException(`Assessment ${id} not found`);
+  }
+
+  private async resolveConfigIdIfAssembled(id?: string): Promise<string | undefined> {
+    if (!id) return undefined;
+    const testConfig = await this.prisma.testConfig.findUnique({ where: { id }, select: { id: true } });
+    if (testConfig) return id;
+    const examConfig = await this.prisma.examConfig.findUnique({ where: { id }, select: { id: true } });
+    if (examConfig) return id;
+    const assembled = await this.prisma.assembledTest.findUnique({ where: { id }, select: { configId: true } });
+    if (assembled) return assembled.configId;
+    return id;
+  }
+
   async getAssessmentOutcome(assessmentId: string) {
     this.logger.debug("Generating admin assessment outcome report", {
       assessmentId,
     });
 
-    let assessment: any = await this.prisma.testConfig.findUnique({
-      where: { id: assessmentId },
-    });
-    let isExam = false;
-
-    if (!assessment) {
-      assessment = await this.prisma.examConfig.findUnique({
-        where: { id: assessmentId },
-      });
-      if (assessment) {
-        isExam = true;
-      } else {
-        throw new NotFoundException(`Assessment ${assessmentId} not found`);
-      }
-    }
+    const { configId, isExam, config: assessment } = await this.resolveAssessmentConfig(assessmentId);
 
     const attempts = await this.prisma.evaluationResult.findMany({
       where: {
         testInstance: isExam
-          ? { examConfigId: assessmentId }
-          : { testConfigId: assessmentId },
+          ? { examConfigId: configId }
+          : { testConfigId: configId },
       },
       include: {
         testInstance: {
@@ -99,7 +122,7 @@ export class AdminReportService {
 
     // Find total enrollments or started instances to calculate completion rate properly
     const allInstances = await this.prisma.testInstance.count({
-      where: { testConfigId: assessmentId },
+      where: isExam ? { examConfigId: configId } : { testConfigId: configId },
     });
 
     const completionRate =
@@ -127,10 +150,11 @@ export class AdminReportService {
     const andConditions: any[] = [{ evaluationResult: { isNot: null } }];
 
     if (filters.assessmentId) {
+      const resolvedId = await this.resolveConfigIdIfAssembled(filters.assessmentId);
       andConditions.push({
         OR: [
-          { testConfigId: filters.assessmentId },
-          { examConfigId: filters.assessmentId },
+          { testConfigId: resolvedId },
+          { examConfigId: resolvedId },
         ],
       });
     }
@@ -224,10 +248,11 @@ export class AdminReportService {
   async getQualificationStats(assessmentId?: string) {
     const where: any = {};
     if (assessmentId) {
+      const resolvedId = await this.resolveConfigIdIfAssembled(assessmentId);
       where.attempt = {
         OR: [
-          { testConfigId: assessmentId },
-          { examConfigId: assessmentId },
+          { testConfigId: resolvedId },
+          { examConfigId: resolvedId },
         ],
       };
     }

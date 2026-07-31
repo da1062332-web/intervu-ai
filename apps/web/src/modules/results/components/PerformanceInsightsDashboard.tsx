@@ -37,8 +37,8 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId }) => 
   return (
     <div className="space-y-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-2">Performance Insights Dashboard</h2>
-        <p className="text-gray-500">Comprehensive analysis of your test performance, strengths, weaknesses, and time management.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">Performance Insights Dashboard</h2>
+        <p className="text-gray-500 dark:text-slate-400">Comprehensive analysis of test performance, strengths, weaknesses, and time management.</p>
       </div>
 
       {d.qualification && (

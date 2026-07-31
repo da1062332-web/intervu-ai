@@ -70,16 +70,16 @@ export const RecommendationPanel = ({ attemptId }: { attemptId: string }) => {
             </div>
 
             <div className='space-y-4'>
-              <h4 className='font-semibold text-gray-800'>Practice Plan</h4>
+              <h4 className='font-semibold text-gray-800 dark:text-gray-200'>Practice Plan</h4>
               {data.improvementPlan.map((step, i) => (
                 <div
                   key={i}
-                  className='flex gap-3 items-start bg-gray-50 p-3 rounded-lg border border-gray-100'
+                  className='flex gap-3 items-start bg-gray-50 dark:bg-slate-900/60 p-3 rounded-lg border border-gray-100 dark:border-slate-800'
                 >
                   <span className='flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold'>
                     {i + 1}
                   </span>
-                  <p className='text-sm text-gray-700 leading-relaxed'>{step}</p>
+                  <p className='text-sm text-gray-700 dark:text-slate-300 leading-relaxed'>{step}</p>
                 </div>
               ))}
             </div>

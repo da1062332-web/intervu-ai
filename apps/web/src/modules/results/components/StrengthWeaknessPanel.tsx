@@ -21,20 +21,20 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
         </CardHeader>
         <CardContent>
           {data.strengths.length === 0 ? (
-            <p className='text-sm text-gray-500'>No specific strengths identified yet.</p>
+            <p className='text-sm text-gray-500 dark:text-slate-400'>No specific strengths identified yet.</p>
           ) : (
             <ul className='space-y-4'>
               {data.strengths.map((item, i) => (
-                <li key={i} className='flex flex-col border-b last:border-0 pb-3 last:pb-0'>
+                <li key={i} className='flex flex-col border-b border-gray-200 dark:border-slate-800 last:border-0 pb-3 last:pb-0'>
                   <div className='flex justify-between items-center mb-1'>
-                    <span className='font-semibold text-gray-800 truncate max-w-[80%]' title={item.topic}>
+                    <span className='font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[80%]' title={item.topic}>
                       {item.topic}
                     </span>
-                    <span className='text-sm font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded-full'>
+                    <span className='text-sm font-medium bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300 dark:border dark:border-green-800/40 px-2 py-0.5 rounded-full'>
                       {item.score}%
                     </span>
                   </div>
-                  <span className='text-sm text-gray-600'>{item.remarks}</span>
+                  <span className='text-sm text-gray-600 dark:text-slate-400'>{item.remarks}</span>
                 </li>
               ))}
             </ul>
@@ -51,20 +51,20 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
         </CardHeader>
         <CardContent>
           {data.weaknesses.length === 0 ? (
-            <p className='text-sm text-gray-500'>No specific weaknesses identified yet.</p>
+            <p className='text-sm text-gray-500 dark:text-slate-400'>No specific weaknesses identified yet.</p>
           ) : (
             <ul className='space-y-4'>
               {data.weaknesses.map((item, i) => (
-                <li key={i} className='flex flex-col border-b last:border-0 pb-3 last:pb-0'>
+                <li key={i} className='flex flex-col border-b border-gray-200 dark:border-slate-800 last:border-0 pb-3 last:pb-0'>
                   <div className='flex justify-between items-center mb-1'>
-                    <span className='font-semibold text-gray-800 truncate max-w-[80%]' title={item.topic}>
+                    <span className='font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[80%]' title={item.topic}>
                       {item.topic}
                     </span>
-                    <span className='text-sm font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded-full'>
+                    <span className='text-sm font-medium bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 dark:border dark:border-red-800/40 px-2 py-0.5 rounded-full'>
                       {item.score}%
                     </span>
                   </div>
-                  <span className='text-sm text-gray-600'>{item.remarks}</span>
+                  <span className='text-sm text-gray-600 dark:text-slate-400'>{item.remarks}</span>
                 </li>
               ))}
             </ul>

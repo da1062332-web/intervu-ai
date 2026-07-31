@@ -126,7 +126,9 @@ export class AdminDashboardService {
       const candidateName = attempt.user?.fullName || attempt.user?.email || "Unknown Candidate";
       
       return {
+        id: attempt.id,
         candidateName,
+        email: attempt.user?.email || undefined,
         assessment: assessmentName,
         score: attempt.evaluationResult?.overallScore || 0,
         status: attempt.status,

@@ -318,7 +318,6 @@ export function QuestionBankAnalyticsPage() {
                   <table className='w-full text-sm text-left border-collapse'>
                     <thead>
                       <tr className='border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
-                        <th className='p-3.5 text-left'>Question ID</th>
                         <th className='p-3.5 text-left'>Question Context</th>
                         <th className='p-3.5 text-left'>Topic</th>
                         <th className='p-3.5 text-left'>Difficulty</th>
@@ -327,9 +326,6 @@ export function QuestionBankAnalyticsPage() {
                     <tbody className='divide-y divide-border/50 bg-card/25'>
                       {filteredUnused.slice(0, 15).map((q) => (
                         <tr key={q.id} className='hover:bg-muted/30 transition-colors'>
-                          <td className='p-3.5 text-xs font-mono font-semibold text-muted-foreground'>
-                            {q.id}
-                          </td>
                           <td
                             className='p-3.5 font-medium text-foreground max-w-[400px] truncate'
                             title={q.questionText}
