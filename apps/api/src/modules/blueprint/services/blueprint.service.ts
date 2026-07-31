@@ -190,11 +190,18 @@ export class BlueprintService {
               where: { sectionId: examSec.id, topicId: tId },
             });
             if (!existingSt) {
-              await this.prisma.sectionTopic.create({
+              const newSt = await this.prisma.sectionTopic.create({
                 data: {
                   sectionId: examSec.id,
                   topicId: tId,
-                  weightagePercentage: ta.percentage ?? ta.weightagePercentage ?? 50,
+                },
+              });
+              await this.prisma.topicWeightage.create({
+                data: {
+                  id: newSt.id,
+                  sectionId: examSec.id,
+                  topicId: tId,
+                  weightagePercentage: ta.percentage ?? ta.weightagePercentage ?? ta.weightage ?? 50,
                 },
               });
             }
