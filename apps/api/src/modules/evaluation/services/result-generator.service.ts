@@ -36,7 +36,7 @@ export class ResultGeneratorService {
   async generateResult(
     executionResult: ExecutionResultDto,
   ): Promise<CandidateResultDto> {
-    const attemptId = executionResult.testId;
+    const attemptId = executionResult.executionId;
     this.logger.info("Generating candidate assessment results", { attemptId });
 
     // 1. Single consolidated DB fetch — test instance + sections + questions in one query

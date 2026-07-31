@@ -12,9 +12,10 @@ import {
   ReportAuditService,
   AdminReportService,
 } from "./services";
+import { EvaluationModule } from "../evaluation/evaluation.module";
 
 @Module({
-  imports: [PrismaModule, ResultsModule, ExecutionModule],
+  imports: [PrismaModule, ResultsModule, ExecutionModule, EvaluationModule],
   controllers: [ReportsController, AdminReportsController],
   providers: [
     CandidateReportService,

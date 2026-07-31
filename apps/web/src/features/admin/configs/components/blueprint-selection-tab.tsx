@@ -72,7 +72,7 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
             </option>
             {blueprints?.map((bp) => (
               <option key={bp.id} value={bp.id}>
-                {bp.name || bp.displayName || bp.title || `Blueprint (${bp.id.slice(0, 8)})`}
+                {bp.name || (bp as any).displayName || (bp as any).title || `Blueprint (${bp.id.slice(0, 8)})`}
               </option>
             ))}
           </select>

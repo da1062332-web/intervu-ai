@@ -810,7 +810,7 @@ export default function TCSDemoResultPage() {
 
               <div className='p-2.5 rounded bg-indigo-50/50 border border-indigo-100 text-xs text-indigo-800 font-medium'>
                 🎯{' '}
-                {activeData.reasoningCorrect === 0
+                {activeData.reasoningTimeSpent === '0m' && activeData.reasoningCorrect === 0
                   ? 'Section not attempted'
                   : 'Pacing within optimal limits'}
               </div>

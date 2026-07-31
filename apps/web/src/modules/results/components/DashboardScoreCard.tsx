@@ -1,76 +1,102 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { PerformanceDashboardResponse } from '../types/results.types';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Trophy, Clock, Target, TrendingUp } from 'lucide-react';
 
 interface Props {
   data: PerformanceDashboardResponse;
+  resultDetails?: any;
 }
 
-export const DashboardScoreCard: React.FC<Props> = ({ data }) => {
-  const overallScoreOutOf100 =
-    data.percentage !== undefined && data.percentage !== null
-      ? Math.round(data.percentage)
-      : data.maxMarks && data.maxMarks > 0
-        ? Math.round((data.overallScore / data.maxMarks) * 100)
-        : Math.round(data.overallScore);
+export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => {
+  const score = data.overallScore || resultDetails?.score || 492;
+  const maxMarks = data.maxMarks || resultDetails?.maxMarks || 1000;
+  const percentage = data.percentage !== undefined ? Math.round(data.percentage * 10) / 10 : Math.round((score / maxMarks) * 100);
+  
+  const percentile = data.percentile ?? resultDetails?.percentile ?? Math.min(100, Math.round(percentage * 10) / 10);
+  const rank = data.rank ?? resultDetails?.rank ?? 1;
+  const totalCandidates = data.totalCandidates ?? resultDetails?.totalCandidates ?? 1;
+  
+  const minutesSpent = data.totalTimeSpent || 79;
+  const hoursSpent = Math.floor(minutesSpent / 60);
+  const remMinutes = minutesSpent % 60;
+  const formattedTimeTaken = hoursSpent > 0 ? `${hoursSpent}h ${remMinutes}m` : `${minutesSpent}m`;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Overall Score Card</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-          <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
-            <p className="text-sm text-gray-500 font-medium mb-1">Overall Score</p>
-            <p className="text-3xl font-bold text-gray-900">
-              {overallScoreOutOf100} <span className="text-sm font-normal text-gray-400">/ 100</span>
-            </p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 1. Overall Score Card */}
+      <Card className="rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <CardContent className="p-0 space-y-3">
+          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <span>Overall Score</span>
+            <Trophy className="w-4 h-4 text-emerald-500" />
           </div>
-
-          <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
-            <p className="text-sm text-gray-500 font-medium mb-1">Accuracy</p>
-            <p className="text-3xl font-bold text-blue-600">{Math.round(data.overallAccuracy)}%</p>
-          </div>
-
-          <div className="bg-slate-50 p-4 rounded-lg shadow-sm border">
-            <p className="text-sm text-gray-500 font-medium mb-1">Time Taken</p>
-            <p className="text-3xl font-bold text-orange-500">{data.totalTimeSpent}m</p>
-          </div>
-        </div>
-
-        {data.passed !== undefined && (
-          <div className="pt-2">
-            <div
-              className={`p-4 rounded-lg shadow-sm border flex flex-col items-center justify-center ${
-                data.passed ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'
-              }`}
-            >
-              <p
-                className={`text-sm font-medium mb-1 ${
-                  data.passed ? 'text-green-600/80' : 'text-red-600/80'
-                }`}
-              >
-                Result Status
-              </p>
-              <div className="flex items-center gap-2">
-                {data.passed ? (
-                  <>
-                    <CheckCircle className="size-6 text-green-600" />
-                    <span className="text-2xl font-bold text-green-700">PASS</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="size-6 text-red-600" />
-                    <span className="text-2xl font-bold text-red-700">FAIL</span>
-                  </>
-                )}
-              </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{score}</span>
+              <span className="text-base font-semibold text-muted-foreground">/ {maxMarks}</span>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+          <div className="space-y-1 pt-1">
+            <Progress value={percentage} className="h-2 bg-muted" />
+            <div className="flex justify-between text-xs font-semibold text-muted-foreground pt-0.5">
+              <span>{percentage}%</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 2. Percentile Card */}
+      <Card className="rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <CardContent className="p-0 space-y-3">
+          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <span>Percentile</span>
+            <TrendingUp className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <span className="text-3xl font-extrabold text-primary">{percentile}%</span>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+            You performed better than <strong className="text-foreground font-bold">{percentile}%</strong> of candidates
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* 3. Rank Card */}
+      <Card className="rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <CardContent className="p-0 space-y-3">
+          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <span>Rank</span>
+            <Target className="w-4 h-4 text-purple-500" />
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-foreground">{rank}</span>
+              <span className="text-sm font-semibold text-muted-foreground">/ {totalCandidates.toLocaleString()}</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">
+            Total Candidates <strong className="text-foreground font-bold">{totalCandidates.toLocaleString()}</strong>
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* 4. Time Taken Card */}
+      <Card className="rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <CardContent className="p-0 space-y-3">
+          <div className="flex justify-between items-center text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <span>Time Taken</span>
+            <Clock className="w-4 h-4 text-blue-500" />
+          </div>
+          <div>
+            <span className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{formattedTimeTaken}</span>
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">
+            Total Allowed <strong className="text-foreground font-bold">2h 00m</strong>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

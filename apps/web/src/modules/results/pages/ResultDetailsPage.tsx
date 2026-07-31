@@ -1,23 +1,23 @@
 'use client';
+
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useResultDetails, useResultAnalytics } from '../hooks/results.hooks';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useResultDetails } from '../hooks/results.hooks';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loading } from '@/components/ui/loading';
-import { EmptyState } from '@/components/ui/empty-state';
 import { ResultStatusTracker } from '../components/ResultStatusTracker';
-import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { resultApi } from '../api/results.api';
-import { RadarChart } from '../components/RadarChart';
-import { SectionAccuracyChart } from '../components/SectionAccuracyChart';
-import { StrengthWeaknessPanel } from '../components/StrengthWeaknessPanel';
-import { RecommendationPanel } from '../components/RecommendationPanel';
-import { ShareableResultCard } from '../components/ShareableResultCard';
-import { Target, PlayCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Download,
+  Share2,
+  RotateCcw,
+  CheckCircle2,
+  Target,
+  XCircle,
+} from 'lucide-react';
 import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsDashboard';
-import { HiringEvaluationCard } from '@/features/candidate/results/components/HiringEvaluationCard';
 
 export const ResultDetailsPage = () => {
   const params = useParams();
@@ -30,10 +30,8 @@ export const ResultDetailsPage = () => {
     isError,
     refetch,
   } = useResultDetails(attemptId || '');
-  const { data: analytics, isLoading: analyticsLoading } = useResultAnalytics(attemptId || '');
 
   const [isExportingPdf, setIsExportingPdf] = React.useState(false);
-  const [isExportingJson, setIsExportingJson] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
 
   React.useEffect(() => {
@@ -48,122 +46,219 @@ export const ResultDetailsPage = () => {
   const handleExportPdf = async () => {
     try {
       setIsExportingPdf(true);
-      const blob = await resultApi.exportToPdf(attemptId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `result-${attemptId}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('PDF exported successfully');
-    } catch (e) {
-      toast.error('Failed to export PDF');
+      await new Promise(r => setTimeout(r, 100)); // Allow UI to update
+      
+      const htmlToImage = await import('html-to-image');
+      const { jsPDF } = await import('jspdf');
+
+      const sections = document.querySelectorAll('.pdf-section');
+      if (!sections.length) return;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const margin = 12; // 12mm margin all around
+      let currentY = margin;
+      
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i] as HTMLElement;
+        
+        const imgData = await htmlToImage.toJpeg(section, {
+          quality: 0.98,
+          pixelRatio: 2,
+          backgroundColor: '#ffffff'
+        });
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgWidth = pdfWidth - (margin * 2);
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        
+        if (currentY + imgHeight > pdfHeight - margin && i > 0) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        
+        pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 8; // 8mm gap between sections
+      }
+
+      // Add Footer on all pages natively
+      const pageCount = (pdf as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(120, 120, 120);
+        const footerY = pdfHeight - 8;
+        pdf.text('InterVu AI', margin, footerY);
+        pdf.text(`Candidate Performance Report • ${new Date().toLocaleDateString()}`, pdfWidth / 2, footerY, { align: 'center' });
+        pdf.text(`Confidential Document`, pdfWidth - margin, footerY, { align: 'right' });
+      }
+
+      pdf.save(`result-${attemptId}.pdf`);
+      toast.success('PDF downloaded successfully');
+    } catch (e: any) {
+      console.error("PDF Export Error:", e);
+      toast.error('Failed to generate PDF: ' + (e?.message || 'Unknown error'));
     } finally {
       setIsExportingPdf(false);
     }
   };
 
-  const handleExportJson = async () => {
-    try {
-      setIsExportingJson(true);
-      const data = await resultApi.exportToJson(attemptId);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `result-${attemptId}.json`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('JSON exported successfully');
-    } catch (e) {
-      toast.error('Failed to export JSON');
-    } finally {
-      setIsExportingJson(false);
+  const handleShareResult = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Result URL copied to clipboard');
+    } else {
+      toast.info('Share feature enabled');
     }
   };
 
   if (detailsLoading || isError || !result) {
     return (
-      <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50 px-4'>
-        <div className='bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center max-w-md w-full text-center'>
-          {/* Animated spinner */}
+      <div className='min-h-screen flex flex-col items-center justify-center bg-background px-4'>
+        <div className='bg-card text-card-foreground rounded-2xl shadow-xs border border-border/60 p-10 flex flex-col items-center max-w-md w-full text-center'>
           <div className='relative mb-6'>
-            <div className='w-20 h-20 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-spin' />
+            <div className='w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin' />
             <div className='absolute inset-0 flex items-center justify-center'>
-              <Target className='size-8 text-indigo-400' />
+              <Target className='size-8 text-primary' />
             </div>
           </div>
 
-          <h2 className='text-2xl font-bold text-gray-900 mb-2'>Generating Your Results</h2>
-          <p className='text-gray-500 text-sm leading-relaxed mb-6'>
-            Your assessment has been submitted. We are evaluating your answers and computing your score.
-            This may take up to a minute — please stay on this page.
+          <h2 className='text-2xl font-bold text-foreground mb-2'>Generating Your Results</h2>
+          <p className='text-muted-foreground text-sm leading-relaxed mb-6'>
+            Evaluating answers and computing performance metrics.
           </p>
 
-          {/* Animated progress bar */}
-          <div className='w-full bg-gray-100 rounded-full h-2 overflow-hidden'>
-            <div 
-              className='h-2 bg-indigo-500 rounded-full transition-all duration-500 ease-out relative overflow-hidden' 
+          <div className='w-full bg-muted rounded-full h-2 overflow-hidden'>
+            <div
+              className='h-2 bg-primary rounded-full transition-all duration-500 ease-out'
               style={{ width: `${Math.min(progress, 95)}%` }}
-            >
-              <div className='absolute inset-0 bg-white/20 w-full animate-shimmer' style={{ transform: 'translateX(-100%)' }} />
-            </div>
+            />
           </div>
-          <p className='text-xs text-gray-400 mt-3 flex items-center justify-center gap-1'>
-            <span>{Math.min(Math.round(progress), 95)}%</span>
-            <span>-</span>
-            <span>Checking every 5 seconds…</span>
-          </p>
         </div>
       </div>
     );
   }
 
+  const initial = (result.assessmentName || 'Assessment').charAt(0).toUpperCase();
+  const isQualified =
+    result.qualification && result.qualification.toUpperCase() !== 'NOT_QUALIFIED';
+  const formattedDate = new Date(result.submittedAt).toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
   return (
-    <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-6'>
-      <div className='flex flex-col md:flex-row justify-between items-start md:items-center'>
-        <div>
-          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
-            {result.assessmentName}
-          </h1>
-          <p className='text-sm text-gray-500'>
-            Submitted on {new Date(result.submittedAt).toLocaleDateString()}
-          </p>
-        </div>
-        <div className='mt-4 md:mt-0 flex flex-wrap gap-2'>
+    <div id="pdf-content" className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+      {/* 1. Top Navigation & Action Buttons */}
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden' data-html2canvas-ignore="true">
+        <Button
+          variant='ghost'
+          className='text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center gap-2 p-0 hover:bg-transparent'
+          onClick={() => navigate('/candidate/dashboard')}
+        >
+          <ArrowLeft className='w-4 h-4' />
+          <span>Back to Dashboard</span>
+        </Button>
+
+        <div className='flex flex-wrap items-center gap-3 w-full sm:w-auto'>
           <Button
             variant='outline'
-            onClick={() => navigate(`/candidate/results/${attemptId}/analytics`)}
+            className='rounded-xl font-bold text-sm bg-card border-border/80 text-foreground px-4 py-2 flex items-center gap-2 shadow-2xs hover:bg-muted/50 transition-all'
+            onClick={handleExportPdf}
+            disabled={isExportingPdf}
           >
-            View Analytics
+            <span>{isExportingPdf ? 'Exporting...' : 'Download PDF'}</span>
+            <Download className='w-4 h-4 text-muted-foreground' />
           </Button>
-          <Button variant='outline' onClick={handleExportJson} disabled={isExportingJson}>
-            {isExportingJson ? 'Exporting...' : 'Export JSON'}
-          </Button>
-          <Button onClick={handleExportPdf} disabled={isExportingPdf}>
-            {isExportingPdf ? 'Exporting...' : 'Export PDF'}
+
+          <Button
+            variant='outline'
+            className='rounded-xl font-bold text-sm bg-card border-border/80 text-foreground px-4 py-2 flex items-center gap-2 shadow-2xs hover:bg-muted/50 transition-all'
+            onClick={handleShareResult}
+          >
+            <Share2 className='w-4 h-4 text-muted-foreground' />
+            <span>Share Result</span>
           </Button>
         </div>
       </div>
 
       <ResultStatusTracker attemptId={attemptId!} onComplete={refetch} />
 
-      {result.qualification && (
-        <div className="pt-2">
-          <HiringEvaluationCard
-            qualification={result.qualification}
-            qualificationReason={result.qualificationReason}
-            evaluationStrategy={result.evaluationStrategy}
-            foundationScore={result.foundationScore}
-            advancedScore={result.advancedScore}
-            codingSolved={result.codingSolved}
-            qualificationDetails={result.qualificationDetails}
-          />
-        </div>
-      )}
+      {/* 2. Hero Qualification & Assessment Header Card */}
+      <div className="pdf-section">
+        <Card className='rounded-2xl border-border/60 bg-card text-card-foreground shadow-2xs overflow-hidden print:break-inside-avoid'>
+        <CardContent className='p-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-1'>
+          <div className='flex items-center gap-4'>
+            <div className='w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-extrabold text-2xl flex items-center justify-center shrink-0 shadow-xs'>
+              {initial}
+            </div>
+            <div>
+              <h1 className='text-2xl font-extrabold text-foreground tracking-tight'>
+                {result.assessmentName}
+              </h1>
+              <p className='text-xs text-muted-foreground font-medium mt-1 mb-1'>
+                {formattedDate} ·{' '}
+                <span className='font-semibold text-foreground'>
+                  Submission ID: {attemptId.slice(0, 10).toUpperCase()}
+                </span>
+              </p>
+              {result.candidate && (
+                <div className='flex flex-col mt-1'>
+                  <span className='text-sm font-bold text-foreground'>{result.candidate.fullName}</span>
+                  <span className='text-xs text-muted-foreground'>{result.candidate.email}</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-      <div className="pt-4">
-        <PerformanceInsightsDashboard attemptId={attemptId!} />
+          {/* Qualification Banner */}
+          <div className='flex items-center gap-3'>
+            {isQualified ? (
+              <div className='p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center gap-3'>
+                <div className='p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 shrink-0'>
+                  <CheckCircle2 className='w-5 h-5' />
+                </div>
+                <div>
+                  <span className='text-xs font-extrabold uppercase tracking-wider block'>
+                    QUALIFIED ({result.qualification?.replace('_', ' ')})
+                  </span>
+                  <span className='text-[11px] opacity-80 font-medium'>
+                    {result.qualificationReason ||
+                      'Congratulations! You met the corporate qualification criteria.'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className='p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-3'>
+                <div className='p-2 rounded-xl bg-destructive/20 shrink-0'>
+                  <XCircle className='w-5 h-5' />
+                </div>
+                <div>
+                  <span className='text-xs font-extrabold uppercase tracking-wider block'>
+                    NOT QUALIFIED
+                  </span>
+                  <span className='text-[11px] opacity-80 font-medium'>
+                    {result.qualificationReason || 'Qualification cutoff not met.'}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      </div>
+
+      {/* 3. Performance Insights Dashboard */}
+      <PerformanceInsightsDashboard attemptId={attemptId!} resultDetails={result} />
+
+      {/* 4. Print Footer (Only visible when printing or in html2pdf) */}
+      <div className="hidden print:flex fixed bottom-0 left-0 right-0 w-full justify-between items-center text-[10px] text-gray-500 bg-white pt-2 border-t border-gray-200" data-html2canvas-ignore="true">
+        <div className="font-semibold text-gray-800">InterVu AI</div>
+        <div>Candidate Performance Report • {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
+        <div className="italic">Confidential Document</div>
       </div>
     </div>
   );

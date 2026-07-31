@@ -17,6 +17,10 @@ export type ResultDetails = {
   advancedScore?: number;
   codingSolved?: number;
   qualificationDetails?: any;
+  candidate?: {
+    fullName: string;
+    email: string;
+  };
 };
 
 export type PaginatedResults = {
@@ -67,6 +71,7 @@ export type PerformanceDashboardResponse = {
     skipped: number;
   };
   sectionAccuracy: {
+    questionCount: number;
     sectionName: string;
     correct: number;
     wrong: number;
@@ -113,4 +118,9 @@ export type PerformanceDashboardResponse = {
   objectiveMaxMarks?: number;
   codingMaxMarks?: number;
   passed?: boolean;
+  rank?: number;
+  totalCandidates?: number;
+  percentile?: number;
+  qualification?: string;
+  qualificationReason?: string;
 };

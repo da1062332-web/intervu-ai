@@ -23,6 +23,7 @@ import { PercentileService } from "./ranking/percentile.service";
 import { BenchmarkService } from "./benchmarking/benchmark.service";
 import { TopicMasteryService } from "./analytics/topic-mastery.service";
 import { AiInsightService } from "./insights/ai-insight.service";
+import { AiAnalysisService } from "./insights/ai-analysis.service";
 import { ImprovementPlanService } from "./recommendations/improvement-plan.service";
 import { EvaluationReliabilityService } from "./reliability/evaluation-reliability.service";
 import { ReEvaluationService } from "./services/re-evaluation.service";
@@ -55,6 +56,7 @@ import { HiringEvaluationEngine } from "./services/hiring-evaluation.engine";
     BenchmarkService,
     TopicMasteryService,
     AiInsightService,
+    AiAnalysisService,
     ImprovementPlanService,
     EvaluationReliabilityService,
     ReEvaluationService,
@@ -85,6 +87,7 @@ import { HiringEvaluationEngine } from "./services/hiring-evaluation.engine";
     BenchmarkService,
     TopicMasteryService,
     AiInsightService,
+    AiAnalysisService,
     ImprovementPlanService,
     EvaluationReliabilityService,
     ReEvaluationService,

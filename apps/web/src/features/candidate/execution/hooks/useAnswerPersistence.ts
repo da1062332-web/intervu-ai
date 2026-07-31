@@ -43,7 +43,7 @@ export function useAnswerPersistence(testId: string) {
       testId,
       questionId: changedQuestionId,
       answer: answerString,
-      timeSpentSeconds: 0,
+      timeSpentSeconds: (current as any).timeSpentSeconds || 0,
       isMarkedForReview: current.status === 'MARKED_FOR_REVIEW',
     };
 

@@ -81,7 +81,7 @@ export function HiringEvaluationCard({
   const cBreakdown = qualificationDetails?.codingBreakdown;
 
   return (
-    <Card className="border shadow-sm overflow-hidden">
+    <Card className="rounded-2xl border-border/60 bg-card text-card-foreground shadow-2xs overflow-hidden">
       <CardHeader className="bg-muted/10 pb-4 border-b">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

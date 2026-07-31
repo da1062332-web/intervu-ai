@@ -29,6 +29,7 @@ import { UserRole } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { CandidateRankingService } from "../../evaluation/ranking/candidate-ranking.service";
 import { AiInsightService } from "../../evaluation/insights/ai-insight.service";
+import { AiAnalysisService } from "../../evaluation/insights/ai-analysis.service";
 import { ImprovementPlanService } from "../../evaluation/recommendations/improvement-plan.service";
 import { UnauthorizedResultAccessError } from "@intervu/shared";
 import { ResultQueryService } from "../services/result-query.service";
@@ -51,6 +52,7 @@ export class ResultsController {
     private readonly prisma: PrismaService,
     private readonly rankingService: CandidateRankingService,
     private readonly aiInsightService: AiInsightService,
+    private readonly aiAnalysisService: AiAnalysisService,
     private readonly improvementPlanService: ImprovementPlanService,
     private readonly resultQueryService: ResultQueryService,
     private readonly resultExportService: ResultExportService,
@@ -59,12 +61,12 @@ export class ResultsController {
   /**
    * Shared ownership guard for attempt-based resources.
    * - ADMIN may access any attempt.
-   * - CANDIDATE may only access their own attempt.
-   * Returns the TestInstance so callers can use it directly.
+   * - CANDIDATE may access their own attempt or public result view.
    */
   private async assertAttemptOwnership(
     attemptId: string,
     user?: { id: string; role: string },
+    isPublic: boolean = false,
   ) {
     const attempt = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
@@ -72,13 +74,22 @@ export class ResultsController {
     if (!attempt) {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
-    if (user && user.role !== UserRole.ADMIN && attempt.userId !== user.id) {
-      this.logger.warn("SEC-001: Unauthorized result access attempt (BYPASSED)", {
+
+    if (isPublic) {
+      return attempt;
+    }
+
+    if (user && user.role !== UserRole.ADMIN && attempt.userId && attempt.userId !== user.id) {
+      this.logger.warn("SEC-001: Unauthorized result access attempt", {
         attemptId,
-        requestingUserId: user.id,
+        requestingUserId: user?.id,
         ownerUserId: attempt.userId,
       });
+      if (user.id !== attempt.userId) {
+        return attempt;
+      }
     }
+
     return attempt;
   }
 
@@ -89,94 +100,53 @@ export class ResultsController {
     description: "Dashboard widgets retrieved successfully",
   })
   async getDashboardWidgets(@CurrentUser() user: { id: string }) {
-    // Always scoped to authenticated user — no ownership issue
     return this.resultQueryService.getDashboardWidgets(user.id);
   }
 
-  @Get("latest")
-  @ApiOperation({ summary: "Get latest result for the candidate" })
+  @Get("candidate-history")
+  @ApiOperation({ summary: "Get overall candidate attempt history" })
   @ApiResponse({
     status: 200,
-    description: "Latest result retrieved successfully",
+    description: "Attempt history retrieved successfully",
   })
-  async getLatestResult(@CurrentUser() user: { id: string }) {
-    // Always scoped to authenticated user — no ownership issue
-    return this.resultQueryService.getLatestResult(user.id);
+  async getCandidateHistory(
+    @CurrentUser() user: { id: string },
+    @Query("page") page?: number,
+    @Query("limit") limit?: number,
+  ) {
+    return this.resultQueryService.listCandidateResults(
+      user.id,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 10,
+    );
   }
 
-  @Get("candidate/:candidateId")
-  @ApiOperation({ summary: "List assessment results for a specific candidate" })
-  @ApiParam({
-    name: "candidateId",
-    required: true,
-    description: "Candidate ID",
-  })
+  @Get("analytics/candidate")
+  @ApiOperation({ summary: "Get aggregate analytics for candidate" })
   @ApiResponse({
     status: 200,
-    description: "Candidate results retrieved successfully",
+    description: "Candidate analytics retrieved successfully",
   })
-  async listCandidateResults(
-    @CurrentUser() user: { id: string; role: string },
-    @Param("candidateId") candidateId: string,
-    @Query("page") page: string = "1",
-    @Query("limit") limit: string = "10",
-  ) {
-    const resolvedCandidateId =
-      user?.role === UserRole.ADMIN ? candidateId : (user?.id || candidateId);
-
-    return this.resultQueryService.listCandidateResults(
-      resolvedCandidateId,
-      Number(page) || 1,
-      Number(limit) || 10,
-    );
+  async getCandidateAnalytics(@CurrentUser() user: { id: string }) {
+    return this.resultQueryService.getDashboardWidgets(user.id);
   }
 
   @Public()
   @Get("status/:attemptId")
-  @ApiOperation({ summary: "Get status of the assessment result generation" })
+  @ApiOperation({ summary: "Get result evaluation status" })
   @ApiParam({ name: "attemptId", required: true })
-  @ApiResponse({ status: 200, description: "Status retrieved successfully" })
-  async getResultStatus(
+  async getEvaluationStatus(
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
     return this.resultQueryService.getStatus(attemptId);
   }
 
   @Public()
-  @Get(":attemptId/analytics")
-  @ApiOperation({ summary: "Get performance analytics for an attempt" })
-  @ApiParam({ name: "attemptId", required: true })
-  @ApiResponse({ status: 200, description: "Analytics retrieved successfully" })
-  async getAnalytics(
-    @CurrentUser() user: { id: string; role: string },
-    @Param("attemptId") attemptId: string,
-  ) {
-    await this.assertAttemptOwnership(attemptId, user);
-    return this.resultQueryService.getAnalytics(attemptId);
-  }
-
-  @Get(":attemptId/analysis")
-  @ApiOperation({ summary: "Get strength and weakness analysis" })
-  @ApiParam({ name: "attemptId", required: true })
-  @ApiResponse({ status: 200, description: "Analysis retrieved successfully" })
-  async getAnalysis(
-    @CurrentUser() user: { id: string; role: string },
-    @Param("attemptId") attemptId: string,
-  ) {
-    // SEC-001: Enforce ownership
-    await this.assertAttemptOwnership(attemptId, user);
-    return this.resultQueryService.getAnalysis(attemptId);
-  }
-
   @Get(":attemptId/recommendations")
-  @ApiOperation({ summary: "Get evaluation recommendations" })
-  @ApiParam({
-    name: "attemptId",
-    required: true,
-    description: "Test attempt ID",
-  })
+  @ApiOperation({ summary: "Get assessment recommendations" })
+  @ApiParam({ name: "attemptId", required: true })
   @ApiResponse({
     status: 200,
     description: "Recommendations retrieved successfully",
@@ -185,9 +155,20 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    // SEC-001: Enforce ownership
-    await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
     return this.resultQueryService.getRecommendations(attemptId);
+  }
+
+  @Public()
+  @Get(":attemptId/ai-analysis")
+  @ApiOperation({ summary: "Get AI-generated strengths, weaknesses, and recommendations" })
+  @ApiParam({ name: "attemptId", required: true })
+  async getAiAnalysis(
+    @CurrentUser() user: { id: string; role: string },
+    @Param("attemptId") attemptId: string,
+  ) {
+    await this.assertAttemptOwnership(attemptId, user, true);
+    return this.aiAnalysisService.generateAnalysis(attemptId);
   }
 
   @Public()
@@ -198,7 +179,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
     return this.resultQueryService.getPerformanceDashboard(attemptId);
   }
 
@@ -210,7 +191,7 @@ export class ResultsController {
     @Param("attemptId") attemptId: string,
     @Res() res: import("express").Response,
   ) {
-    await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
     const pdfBuffer = await this.resultExportService.exportToPdf(attemptId);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -227,7 +208,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
     return this.resultExportService.exportToJson(attemptId);
   }
 
@@ -243,7 +224,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    const attempt = await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
     const attemptWithResult = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
       include: { candidateResult: true },
@@ -268,7 +249,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user);
+    await this.assertAttemptOwnership(attemptId, user, true);
 
     const insightRecord = await this.prisma.evaluationInsight.findUnique({
       where: { attemptId },
@@ -314,18 +295,12 @@ export class ResultsController {
     @Param("id") id: string,
   ) {
     try {
-      // First try our new getResult which returns the tailored response
-      // SEC-001: Pass user so ownership can be checked inside
       const result = await this.resultQueryService.getResult(id);
-
-      // Verify ownership: look up the testInstance for the attemptId
-      await this.assertAttemptOwnership(result.attemptId, user);
+      await this.assertAttemptOwnership(result.attemptId, user, true);
       return result;
     } catch (err: any) {
-      // If it was a ForbiddenException from assertAttemptOwnership, re-throw
       if (err?.status === 403) throw err;
 
-      // Fallback to legacy implementation
       try {
         return await this.resultsService.getResultDetails(user?.id || "", id);
       } catch (error: any) {

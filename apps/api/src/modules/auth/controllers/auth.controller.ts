@@ -86,7 +86,6 @@ export class AuthController {
 
   @Public()
   @Post("refresh")
-  @ValidateResponse(TokensResponseSchema)
   @ApiOperation({ summary: "Refresh access token using refresh token" })
   @ApiBody({ type: RefreshTokenDto, description: "Refresh token" })
   @ApiOkResponse({ description: "Tokens refreshed successfully" })
