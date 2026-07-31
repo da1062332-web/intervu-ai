@@ -57,19 +57,9 @@ export function AssemblyMonitoringPage() {
 
   const columns: ColumnDef<AssemblyAnalyticsData['drilldowns'][0]>[] = [
     {
-      id: 'id',
-      header: 'Assembly ID',
-      cell: (row) => <span className="font-mono font-semibold text-muted-foreground">{row.id}</span>,
-    },
-    {
       id: 'assessment',
-      header: 'Assessment Config',
+      header: 'Assessment Name',
       cell: (row) => <span className="font-medium text-foreground">{row.assessment}</span>,
-    },
-    {
-      id: 'questions',
-      header: 'Total Questions',
-      cell: (row) => <span className="text-muted-foreground">{row.totalQuestions} items</span>,
     },
     {
       id: 'status',
@@ -94,8 +84,13 @@ export function AssemblyMonitoringPage() {
       cell: (row) => <span className="text-muted-foreground">v{row.version}</span>,
     },
     {
+      id: 'questions',
+      header: 'Total Questions',
+      cell: (row) => <span className="text-muted-foreground">{row.totalQuestions} items</span>,
+    },
+    {
       id: 'date',
-      header: 'Assembled Date',
+      header: 'Created Date',
       cell: (row) => <span className="text-muted-foreground">{new Date(row.createdAt).toLocaleDateString()}</span>,
     },
     {

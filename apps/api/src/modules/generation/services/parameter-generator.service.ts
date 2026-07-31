@@ -42,8 +42,9 @@ interface GenerationStrategyConfig {
 interface TemplateMetadata {
   variableSchema?: {
     variables?: VariableDefinition[];
-    derivedVariables?: string[];
+    derivedVariables?: DerivedVariableDefinition[];
     formulas?: string[];
+    generationStrategyConfig?: GenerationStrategyConfig;
     [key: string]: any;
   };
   constraints?: {
@@ -264,6 +265,33 @@ export class ParameterGeneratorService {
       ...(variableSchema.formulas || []),
       ...formulasFromDerived,
     ];
+    const formulaTargets = new Set(
+      formulas
+        .map((formula) => this.getFormulaTarget(formula))
+        .filter((target): target is string => Boolean(target)),
+    );
+
+    const missingDerivedSources = [
+      variableSchema.derivedVariables,
+      variableSchema.generationStrategyConfig?.derivedVariables,
+    ];
+    for (const source of missingDerivedSources) {
+      if (!Array.isArray(source)) continue;
+
+      for (const entry of source) {
+        if (!entry || typeof entry.expression !== "string" || !entry.name) {
+          continue;
+        }
+
+        const target = String(entry.name).trim();
+        if (!target || formulaTargets.has(target)) {
+          continue;
+        }
+
+        formulas.push(`${target} = ${entry.expression}`);
+        formulaTargets.add(target);
+      }
+    }
 
     const constraintSource =
       strategyConfig.constraints && Array.isArray(strategyConfig.constraints)
@@ -278,17 +306,29 @@ export class ParameterGeneratorService {
     return { variables, formulas, constraints };
   }
 
+  private getFormulaTarget(formula: string): string | null {
+    if (typeof formula !== "string" || !formula.includes("=")) {
+      return null;
+    }
+
+    const [lhs] = formula.split("=").map((part) => part.trim());
+    return lhs || null;
+  }
+
   private normalizeConstraintRules(constraintSource: any): Array<string | StrategyConstraintDefinition> {
     if (!constraintSource) {
       return [];
     }
 
-    if (Array.isArray(constraintSource.rules)) {
-      return constraintSource.rules;
+    if (
+      Array.isArray(constraintSource.constraints) &&
+      constraintSource.constraints.length > 0
+    ) {
+      return constraintSource.constraints;
     }
 
-    if (Array.isArray(constraintSource.constraints)) {
-      return constraintSource.constraints;
+    if (Array.isArray(constraintSource.rules)) {
+      return constraintSource.rules;
     }
 
     return [];

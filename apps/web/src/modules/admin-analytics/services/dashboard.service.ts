@@ -15,6 +15,9 @@ export interface RecentAssessment {
 }
 
 export interface RecentTestAttempt {
+  id?: string;
+  attemptId?: string;
+  email?: string;
   candidateName: string;
   assessment: string;
   score: number;

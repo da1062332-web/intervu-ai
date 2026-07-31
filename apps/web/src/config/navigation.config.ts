@@ -20,6 +20,7 @@ import {
   Sparkles,
   GitBranch,
   Users,
+  Activity,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -30,6 +31,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       heading: 'Overview',
       items: [
         { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Activity Feed', route: '/admin/activities', icon: Activity },
         { label: 'Analytics', route: '/admin/analytics/generation', icon: TrendingUp },
         { label: 'Reports', route: '/admin/reports/candidates', icon: FileText },
       ],
@@ -54,9 +56,10 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     {
       heading: 'Assessment Builder',
       items: [
+        { label: 'Recent Assessments', route: '/admin/assessments', icon: Briefcase },
+        { label: 'Assessment Generator', route: '/admin/assessment-builder', icon: FileCog },
         { label: 'Blueprints', route: '/admin/blueprints', icon: Layers },
         { label: 'Test Assembly', route: '/admin/assembly', icon: ClipboardList },
-        { label: 'Assessments', route: '/admin/assessment-builder', icon: FileCog },
       ],
     },
     {
@@ -70,6 +73,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     {
       heading: 'Execution & Review',
       items: [
+        { label: 'Recent Test Attempts', route: '/admin/results', icon: BarChart3 },
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },
         { label: 'Candidates', route: '/admin/candidates', icon: Users },
@@ -116,12 +120,14 @@ export const ALL_NAV_ITEMS = [
 ];
 
 export function getActiveNavItem(pathname: string) {
+  const exactMatch = ALL_NAV_ITEMS.find((item) => pathname === item.route);
+  if (exactMatch) return exactMatch;
+
   return ALL_NAV_ITEMS.find(
     (item) =>
-      pathname === item.route ||
-      (item.route !== '/admin/dashboard' &&
-        item.route !== '/candidate/dashboard' &&
-        pathname.startsWith(item.route)),
+      item.route !== '/admin/dashboard' &&
+      item.route !== '/candidate/dashboard' &&
+      pathname.startsWith(item.route),
   );
 }
 

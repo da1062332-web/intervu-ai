@@ -64,16 +64,20 @@ export function QuestionPoolTable({
       },
     },
     {
-      id: 'id',
-      header: 'ID',
-      cell: (item: any) => <span className="font-mono text-xs">{item.id}</span>,
-    },
-    {
       id: 'questionText',
       header: 'Question Statement',
       cell: (item: any) => (
-        <span className="max-w-[300px] truncate block" title={item.questionText || item.content}>
+        <span className="max-w-[400px] truncate block font-medium text-foreground" title={item.questionText || item.content}>
           {item.questionText || item.content}
+        </span>
+      ),
+    },
+    {
+      id: 'strategy',
+      header: 'Strategy',
+      cell: (item: any) => (
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          {item.generationStrategy || 'HYBRID'}
         </span>
       ),
     },
@@ -96,11 +100,6 @@ export function QuestionPoolTable({
           </Badge>
         );
       },
-    },
-    {
-      id: 'templateId',
-      header: 'Template',
-      cell: (item: any) => <span className="font-mono text-xs text-muted-foreground">{item.templateId}</span>,
     },
     {
       id: 'status',

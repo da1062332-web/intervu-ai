@@ -42,10 +42,13 @@ export class ResultsService {
     const evaluation = await this.getEvaluation(idOrAttemptId);
 
     if (userId && evaluation.userId && evaluation.userId !== userId) {
-      this.logger.warn("SEC-001: Unauthorized result access attempt (BYPASSED for candidate result view)", {
-        evaluationUserId: evaluation.userId,
-        requestUserId: userId,
-      });
+      this.logger.warn(
+        "SEC-001: Unauthorized result access attempt (BYPASSED for candidate result view)",
+        {
+          evaluationUserId: evaluation.userId,
+          requestUserId: userId,
+        },
+      );
     }
 
     const testInstanceId = evaluation.testInstanceId;
@@ -69,7 +72,10 @@ export class ResultsService {
 
     const executionResult = {
       executionId: testInstance.id,
-      testId: testInstance.testConfigId || testInstance.examConfigId || testInstance.id,
+      testId:
+        testInstance.testConfigId ||
+        testInstance.examConfigId ||
+        testInstance.id,
       status: "submitted",
       submittedAt: testInstance.submittedAt || new Date(),
       answers: testInstance.candidateAnswers.map((a) => ({
@@ -93,7 +99,7 @@ export class ResultsService {
     (fullResult as any).assessmentName = assessmentName;
     (fullResult as any).candidate = {
       fullName: (testInstance as any).user?.fullName || "Candidate",
-      email: (testInstance as any).user?.email || "N/A"
+      email: (testInstance as any).user?.email || "N/A",
     };
 
     (fullResult as any).explanations =
@@ -122,13 +128,11 @@ export class ResultsService {
       accuracy: Number(s.percentage || s.accuracy || 0),
     }));
 
-    return ResultMapper.toDto(
-      {
-        ...evaluation,
-        answers: normalizedAnswers,
-        skillScores: normalizedSkills,
-      },
-    );
+    return ResultMapper.toDto({
+      ...evaluation,
+      answers: normalizedAnswers,
+      skillScores: normalizedSkills,
+    });
   }
 
   /**

@@ -52,13 +52,13 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resul
   return (
     <div className='space-y-6'>
       {/* 1. Top KPI Metrics Cards Row (Page 1 Continued) */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <DashboardScoreCard data={data} resultDetails={resultDetails} />
       </div>
 
       {/* 2. Corporate Hiring Qualification Evaluation (Page 2) */}
       {(qual || qualificationDetails) && (
-        <div className="pdf-section">
+        <div className='pdf-section'>
           <HiringEvaluationCard
             qualification={qual}
             qualificationReason={qualReason}
@@ -72,27 +72,27 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resul
       )}
 
       {/* 3. Performance Overview (Radar + Horizontal Progress Bars) (Page 3) */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <DashboardOverallAccuracy data={data} />
       </div>
 
       {/* 4. AI Generated Recommendations (Page 4) */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <DashboardRecommendations data={data} attemptId={attemptId} />
       </div>
 
       {/* 5. Section Performance Table Card (Page 5) */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <DashboardSectionAccuracy data={data} attemptId={attemptId} />
       </div>
 
       {/* 7. Coding Evaluation Card (Page 6) */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <DashboardCodingCard data={data} attemptId={attemptId} />
       </div>
 
       {/* 8. Section Time & Pacing Breakdown (Page 7) */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <DashboardSectionTime data={data} />
       </div>
     </div>

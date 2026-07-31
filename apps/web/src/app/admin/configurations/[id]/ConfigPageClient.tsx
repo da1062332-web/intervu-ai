@@ -37,13 +37,13 @@ interface ConfigPageClientProps {
 
 const WIZARD_TABS = [
   { id: 'general', label: 'General' },
+  { id: 'blueprint', label: 'Blueprint' },
   { id: 'sections', label: 'Sections' },
   { id: 'topics', label: 'Topics' },
   { id: 'concepts-templates', label: 'Concepts & Content' },
   { id: 'difficulty', label: 'Difficulty' },
   { id: 'rules', label: 'Rules' },
   { id: 'hiring-evaluation', label: 'Hiring Qualification' },
-  { id: 'blueprint', label: 'Blueprint' },
   { id: 'readiness', label: 'Readiness' },
   { id: 'preview', label: 'Preview' },
 ];
@@ -137,7 +137,17 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         return;
       }
 
-      // 2. Generate Assembly
+      // 2. Publish config to create version and auto-ensure blueprint
+      try {
+        await apiClient.request<any>(`/admin/configs/${configId}/publish`, {
+          method: 'POST',
+          skipErrorToast: true,
+        });
+      } catch (e) {
+        console.warn('Publish notice before assembly generation:', e);
+      }
+
+      // 3. Generate Assembly
       const response = await apiClient.request<{ testInstanceId: string }>(
         '/assembly/tests/generate',
         {

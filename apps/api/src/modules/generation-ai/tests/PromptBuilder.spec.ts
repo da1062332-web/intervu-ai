@@ -104,4 +104,45 @@ describe("PromptBuilderService", () => {
     expect(prompt).toContain("compute it exactly from the provided parameter values");
     expect(prompt).not.toContain("do not perform any mathematical calculations unless");
   });
+
+  it("should preserve integer variable display while formatting decimal variables", () => {
+    const input: PromptBuilderInput = {
+      template: {
+        id: "template_display",
+        name: "Display Formatting",
+        description: "Format values for candidate-facing text",
+        conceptKey: "compound_interest",
+        difficultyLevel: "MEDIUM",
+        questionType: "mcq",
+        structure: {
+          questionTemplate:
+            "Principal {principal_amount}; interest Rs. {yearly_interest}.",
+        },
+        variableSchema: { variables: [] },
+        constraints: { constraints: [] },
+        solutionSchema: {
+          steps: ["Use compound interest"],
+          correctVariable: "principal_amount",
+        },
+      },
+      variableValues: {
+        principal_amount: 10000,
+        yearly_interest: 3245.4016875000007,
+        growth_rate: 12.3456,
+      },
+    };
+    input.template.structure.questionTemplate =
+      "Principal {principal_amount}; interest Rs. {yearly_interest}; growth {growth_rate}%.";
+
+    const prompt = service.buildPrompt(input);
+
+    expect(prompt).toContain("Principal 10000; interest Rs. 3245; growth 12.35%.");
+    expect(prompt).not.toContain("interest Rs. 3245.40");
+    expect(prompt).toContain("principal_amount = 10000");
+    expect(prompt).toContain("yearly_interest = 3245.40");
+    expect(prompt).toContain("growth_rate = 12.35");
+    expect(prompt).toContain(
+      '"variables": {"principal_amount":10000,"yearly_interest":3245.4016875000007,"growth_rate":12.3456}',
+    );
+  });
 });

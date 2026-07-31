@@ -192,12 +192,17 @@ export class ConfigPublisherService {
       this.dependencyValidator.validateDependencies(config),
     ]);
 
-    // If fully valid, mark status as VALIDATED
+    // If fully valid, mark status as VALIDATED and ensure blueprint exists
     if (validation.valid && dependencyCheck.valid) {
       await this.prisma.examConfig.update({
         where: { id: configId },
         data: { status: "VALIDATED" },
       });
+      try {
+        await this.autoEnsureBlueprint(this.prisma, config);
+      } catch (err) {
+        console.warn("Auto-ensure blueprint notice in validateOnly:", err);
+      }
     }
 
     return {

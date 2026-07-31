@@ -91,8 +91,14 @@ export class RecentAssessmentsResponseDto {
 }
 
 export class RecentTestAttemptItemDto {
+  @ApiProperty({ example: "test-instance-id-123" })
+  id!: string;
+
   @ApiProperty({ example: "John Doe" })
   candidateName!: string;
+
+  @ApiProperty({ example: "candidate@example.com", required: false })
+  email?: string;
 
   @ApiProperty({ example: "TCS NQT Assessment" })
   assessment!: string;

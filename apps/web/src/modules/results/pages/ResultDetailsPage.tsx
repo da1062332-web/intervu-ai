@@ -23,6 +23,9 @@ export const ResultDetailsPage = () => {
   const params = useParams();
   const attemptId = params?.attemptId as string;
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith('/admin');
+  const baseRoute = isAdminRoute ? '/admin/results' : '/candidate/results';
   const navigate = router.push;
   const {
     data: result,
@@ -46,8 +49,8 @@ export const ResultDetailsPage = () => {
   const handleExportPdf = async () => {
     try {
       setIsExportingPdf(true);
-      await new Promise(r => setTimeout(r, 100)); // Allow UI to update
-      
+      await new Promise((r) => setTimeout(r, 100)); // Allow UI to update
+
       const htmlToImage = await import('html-to-image');
       const { jsPDF } = await import('jspdf');
 
@@ -57,28 +60,28 @@ export const ResultDetailsPage = () => {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
+
       const margin = 12; // 12mm margin all around
       let currentY = margin;
-      
+
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i] as HTMLElement;
-        
+
         const imgData = await htmlToImage.toJpeg(section, {
           quality: 0.98,
           pixelRatio: 2,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
         });
-        
+
         const imgProps = pdf.getImageProperties(imgData);
-        const imgWidth = pdfWidth - (margin * 2);
+        const imgWidth = pdfWidth - margin * 2;
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-        
+
         if (currentY + imgHeight > pdfHeight - margin && i > 0) {
           pdf.addPage();
           currentY = margin;
         }
-        
+
         pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight);
         currentY += imgHeight + 8; // 8mm gap between sections
       }
@@ -91,14 +94,19 @@ export const ResultDetailsPage = () => {
         pdf.setTextColor(120, 120, 120);
         const footerY = pdfHeight - 8;
         pdf.text('InterVu AI', margin, footerY);
-        pdf.text(`Candidate Performance Report • ${new Date().toLocaleDateString()}`, pdfWidth / 2, footerY, { align: 'center' });
+        pdf.text(
+          `Candidate Performance Report • ${new Date().toLocaleDateString()}`,
+          pdfWidth / 2,
+          footerY,
+          { align: 'center' },
+        );
         pdf.text(`Confidential Document`, pdfWidth - margin, footerY, { align: 'right' });
       }
 
       pdf.save(`result-${attemptId}.pdf`);
       toast.success('PDF downloaded successfully');
     } catch (e: any) {
-      console.error("PDF Export Error:", e);
+      console.error('PDF Export Error:', e);
       toast.error('Failed to generate PDF: ' + (e?.message || 'Unknown error'));
     } finally {
       setIsExportingPdf(false);
@@ -151,9 +159,15 @@ export const ResultDetailsPage = () => {
   });
 
   return (
-    <div id="pdf-content" className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+    <div
+      id='pdf-content'
+      className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'
+    >
       {/* 1. Top Navigation & Action Buttons */}
-      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden' data-html2canvas-ignore="true">
+      <div
+        className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden'
+        data-html2canvas-ignore='true'
+      >
         <Button
           variant='ghost'
           className='text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center gap-2 p-0 hover:bg-transparent'
@@ -188,77 +202,85 @@ export const ResultDetailsPage = () => {
       <ResultStatusTracker attemptId={attemptId!} onComplete={refetch} />
 
       {/* 2. Hero Qualification & Assessment Header Card */}
-      <div className="pdf-section">
+      <div className='pdf-section'>
         <Card className='rounded-2xl border-border/60 bg-card text-card-foreground shadow-2xs overflow-hidden print:break-inside-avoid'>
-        <CardContent className='p-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-1'>
-          <div className='flex items-center gap-4'>
-            <div className='w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-extrabold text-2xl flex items-center justify-center shrink-0 shadow-xs'>
-              {initial}
+          <CardContent className='p-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-1'>
+            <div className='flex items-center gap-4'>
+              <div className='w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-extrabold text-2xl flex items-center justify-center shrink-0 shadow-xs'>
+                {initial}
+              </div>
+              <div>
+                <h1 className='text-2xl font-extrabold text-foreground tracking-tight'>
+                  {result.assessmentName}
+                </h1>
+                <p className='text-xs text-muted-foreground font-medium mt-1 mb-1'>
+                  {formattedDate} ·{' '}
+                  <span className='font-semibold text-foreground'>
+                    Submission ID: {attemptId.slice(0, 10).toUpperCase()}
+                  </span>
+                </p>
+                {result.candidate && (
+                  <div className='flex flex-col mt-1'>
+                    <span className='text-sm font-bold text-foreground'>
+                      {result.candidate.fullName}
+                    </span>
+                    <span className='text-xs text-muted-foreground'>{result.candidate.email}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div>
-              <h1 className='text-2xl font-extrabold text-foreground tracking-tight'>
-                {result.assessmentName}
-              </h1>
-              <p className='text-xs text-muted-foreground font-medium mt-1 mb-1'>
-                {formattedDate} ·{' '}
-                <span className='font-semibold text-foreground'>
-                  Submission ID: {attemptId.slice(0, 10).toUpperCase()}
-                </span>
-              </p>
-              {result.candidate && (
-                <div className='flex flex-col mt-1'>
-                  <span className='text-sm font-bold text-foreground'>{result.candidate.fullName}</span>
-                  <span className='text-xs text-muted-foreground'>{result.candidate.email}</span>
+
+            {/* Qualification Banner */}
+            <div className='flex items-center gap-3'>
+              {isQualified ? (
+                <div className='p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center gap-3'>
+                  <div className='p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 shrink-0'>
+                    <CheckCircle2 className='w-5 h-5' />
+                  </div>
+                  <div>
+                    <span className='text-xs font-extrabold uppercase tracking-wider block'>
+                      QUALIFIED ({result.qualification?.replace('_', ' ')})
+                    </span>
+                    <span className='text-[11px] opacity-80 font-medium'>
+                      {result.qualificationReason ||
+                        'Congratulations! You met the corporate qualification criteria.'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className='p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-3'>
+                  <div className='p-2 rounded-xl bg-destructive/20 shrink-0'>
+                    <XCircle className='w-5 h-5' />
+                  </div>
+                  <div>
+                    <span className='text-xs font-extrabold uppercase tracking-wider block'>
+                      NOT QUALIFIED
+                    </span>
+                    <span className='text-[11px] opacity-80 font-medium'>
+                      {result.qualificationReason || 'Qualification cutoff not met.'}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Qualification Banner */}
-          <div className='flex items-center gap-3'>
-            {isQualified ? (
-              <div className='p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center gap-3'>
-                <div className='p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 shrink-0'>
-                  <CheckCircle2 className='w-5 h-5' />
-                </div>
-                <div>
-                  <span className='text-xs font-extrabold uppercase tracking-wider block'>
-                    QUALIFIED ({result.qualification?.replace('_', ' ')})
-                  </span>
-                  <span className='text-[11px] opacity-80 font-medium'>
-                    {result.qualificationReason ||
-                      'Congratulations! You met the corporate qualification criteria.'}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className='p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-3'>
-                <div className='p-2 rounded-xl bg-destructive/20 shrink-0'>
-                  <XCircle className='w-5 h-5' />
-                </div>
-                <div>
-                  <span className='text-xs font-extrabold uppercase tracking-wider block'>
-                    NOT QUALIFIED
-                  </span>
-                  <span className='text-[11px] opacity-80 font-medium'>
-                    {result.qualificationReason || 'Qualification cutoff not met.'}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
       </div>
 
       {/* 3. Performance Insights Dashboard */}
       <PerformanceInsightsDashboard attemptId={attemptId!} resultDetails={result} />
 
       {/* 4. Print Footer (Only visible when printing or in html2pdf) */}
-      <div className="hidden print:flex fixed bottom-0 left-0 right-0 w-full justify-between items-center text-[10px] text-gray-500 bg-white pt-2 border-t border-gray-200" data-html2canvas-ignore="true">
-        <div className="font-semibold text-gray-800">InterVu AI</div>
-        <div>Candidate Performance Report • {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
-        <div className="italic">Confidential Document</div>
+      <div
+        className='hidden print:flex fixed bottom-0 left-0 right-0 w-full justify-between items-center text-[10px] text-gray-500 bg-white pt-2 border-t border-gray-200'
+        data-html2canvas-ignore='true'
+      >
+        <div className='font-semibold text-gray-800'>InterVu AI</div>
+        <div>
+          Candidate Performance Report • {new Date().toLocaleDateString()}{' '}
+          {new Date().toLocaleTimeString()}
+        </div>
+        <div className='italic'>Confidential Document</div>
       </div>
     </div>
   );
