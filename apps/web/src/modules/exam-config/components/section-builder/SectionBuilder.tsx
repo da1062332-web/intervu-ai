@@ -12,6 +12,8 @@ import {
   useUpdateSection,
   useDeleteSection,
 } from '@/services/exam-sections/hooks';
+import { useConfigWizardStore } from '@/features/admin/configs/components/wizard-store';
+import { useBlueprints, useBlueprint } from '@/services/blueprints/hooks';
 import type { ExamSection, CreateSectionPayload } from '@/services/exam-sections/types';
 
 interface SectionBuilderProps {
@@ -20,6 +22,27 @@ interface SectionBuilderProps {
 
 export function SectionBuilder({ configId }: SectionBuilderProps) {
   const { data: sections, isLoading, isError, error, refetch } = useSections(configId);
+  const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
+  const { data: blueprints } = useBlueprints();
+  const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
+  const { data: blueprintDetail } = useBlueprint(selectedBlueprintId || '');
+
+  const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections;
+
+  const displaySections: ExamSection[] = (selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0)
+    ? bpRawSections.map((sec: any, idx: number) => ({
+        id: sec.sectionId || sec.id || `bp_sec_${idx}`,
+        name: sec.displayName || sec.name || `Section ${idx + 1}`,
+        code: sec.sectionKey || sec.code || `SEC_${idx + 1}`,
+        questionCount: sec.questionCount || 10,
+        sectionOrder: idx + 1,
+        sectionDurationMinutes: sec.sectionDurationMinutes || 15,
+        isRequired: true,
+        createdAt: sec.createdAt || new Date().toISOString(),
+        updatedAt: sec.updatedAt || new Date().toISOString(),
+        examConfigId: configId,
+      }))
+    : (sections || []);
 
   const createSection = useCreateSection(configId);
   const updateSection = useUpdateSection(configId);
@@ -116,14 +139,36 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
 
   return (
     <div className='max-w-6xl mx-auto space-y-8 py-4'>
+      {selectedBlueprintId && (
+        <div className='p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 rounded-xl flex items-center justify-between shadow-sm'>
+          <div className='flex items-center gap-3'>
+            <div className='h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm'>
+              🔒
+            </div>
+            <div>
+              <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
+                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+              </h4>
+              <p className='text-xs text-muted-foreground mt-0.5'>
+                Sections and question allocations are loaded directly from the blueprint rules in Read-Only Inspection Mode.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
         <div className='space-y-1'>
           <h3 className='text-2xl font-semibold tracking-tight'>Exam Sections</h3>
           <p className='text-muted-foreground'>
-            Create and manage the sections that will make up your examination structure.
+            {selectedBlueprintId
+              ? 'View the pre-configured section structure for this blueprint.'
+              : 'Create and manage the sections that will make up your examination structure.'}
           </p>
         </div>
-        <Button onClick={handleOpenCreateModal} className='shadow-sm shrink-0'>+ Add Section</Button>
+        {!selectedBlueprintId && (
+          <Button onClick={handleOpenCreateModal} className='shadow-sm shrink-0'>+ Add Section</Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -132,15 +177,15 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
             <Skeleton key={i} className='h-48 w-full rounded-lg' />
           ))}
         </div>
-      ) : sections && sections.length > 0 ? (
+      ) : displaySections && displaySections.length > 0 ? (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {sections.map((section) => (
+          {displaySections.map((section) => (
             <SectionCard
               key={section.id}
               section={section}
-              onEdit={handleOpenEditModal}
-              onDelete={handleOpenDeleteDialog}
-              onManageTopics={handleOpenTopicModal}
+              onEdit={selectedBlueprintId ? undefined : handleOpenEditModal}
+              onDelete={selectedBlueprintId ? undefined : handleOpenDeleteDialog}
+              onManageTopics={selectedBlueprintId ? undefined : handleOpenTopicModal}
             />
           ))}
         </div>

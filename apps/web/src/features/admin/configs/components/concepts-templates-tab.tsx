@@ -14,6 +14,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 
+import { useConfigWizardStore } from './wizard-store';
+import { useBlueprints, useBlueprint } from '@/services/blueprints/hooks';
+import { useTopics } from '@/services/topics/hooks';
+
 interface ConceptsAndTemplatesTabProps {
   configId: string;
 }
@@ -21,28 +25,76 @@ interface ConceptsAndTemplatesTabProps {
 export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabProps) {
   const router = useRouter();
   const { data: sections = [], isLoading: isLoadingSections } = useSections(configId);
+  const { data: allTopics = [] } = useTopics(false);
+  const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
+  const { data: blueprints } = useBlueprints();
+  const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
+  const { data: blueprintDetail } = useBlueprint(selectedBlueprintId || '');
+
+  const topicNameMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    (allTopics || []).forEach((t: any) => {
+      if (t.id) {
+        map[t.id] = t.name || t.displayName || t.code || t.id;
+      }
+    });
+    return map;
+  }, [allTopics]);
+
+  const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
+
+  const displaySections = (selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0)
+    ? bpRawSections.map((sec: any, idx: number) => ({
+        id: sec.sectionId || sec.id || `bp_sec_${idx}`,
+        name: sec.displayName || sec.name || `Section ${idx + 1}`,
+      }))
+    : sections;
+
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   
   // Auto-select first section
   useEffect(() => {
-    if (sections.length > 0 && !selectedSectionId) {
-      setSelectedSectionId(sections[0].id);
+    if (displaySections.length > 0 && !selectedSectionId) {
+      setSelectedSectionId(displaySections[0].id);
     }
-  }, [sections, selectedSectionId]);
+  }, [displaySections, selectedSectionId]);
 
   const { data: topicsData, isLoading: isLoadingTopics } = useSectionTopics(selectedSectionId);
   const topics = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.data || [];
   
+  const currentBpSec = Array.isArray(bpRawSections)
+    ? bpRawSections.find((s: any) => (s.sectionId || s.id) === selectedSectionId) || bpRawSections[0]
+    : null;
+
+  const sectionBpTopics = currentBpSec?.topicAllocations || currentBpSec?.sectionTopics || currentBpSec?.topics || [];
+  const allBpTopics = Array.isArray(bpRawSections)
+    ? bpRawSections.flatMap((s: any) => s.topicAllocations || s.sectionTopics || s.topics || [])
+    : [];
+
+  const bpTopics = sectionBpTopics.length > 0 ? sectionBpTopics : allBpTopics;
+
+  const displayTopics = (selectedBlueprintId && Array.isArray(bpTopics) && bpTopics.length > 0)
+    ? bpTopics.map((ta: any) => {
+        const id = ta.topicId || ta.id;
+        const name = ta.topicName || ta.name || topicNameMap[id] || id;
+        return {
+          topicId: id,
+          topicName: name,
+        };
+      })
+    : topics;
+
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
 
   // Auto-select first topic
   useEffect(() => {
-    if (topics.length > 0 && !selectedTopicId) {
-      setSelectedTopicId(topics[0].topicId);
-    } else if (topics.length === 0) {
+    if (displayTopics.length > 0 && !selectedTopicId) {
+      const firstTopicId = displayTopics[0].topicId || displayTopics[0].id;
+      setSelectedTopicId(firstTopicId);
+    } else if (displayTopics.length === 0) {
       setSelectedTopicId('');
     }
-  }, [topics, selectedTopicId]);
+  }, [displayTopics, selectedTopicId]);
 
   const { data: concepts, isLoading: isLoadingConcepts, refetch: refetchConcepts } = useConcepts(selectedTopicId);
 
@@ -78,7 +130,7 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
     return <Skeleton className="w-full h-64" />;
   }
 
-  if (sections.length === 0) {
+  if (displaySections.length === 0 && !selectedBlueprintId) {
     return (
       <EmptyState
         title="No Sections"
@@ -89,6 +141,24 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
 
   return (
     <div className='max-w-5xl mx-auto space-y-8 py-4'>
+      {selectedBlueprintId && (
+        <div className='p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 rounded-xl flex items-center justify-between shadow-sm'>
+          <div className='flex items-center gap-3'>
+            <div className='h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm'>
+              🔒
+            </div>
+            <div>
+              <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
+                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+              </h4>
+              <p className='text-xs text-muted-foreground mt-0.5'>
+                Concepts and question content templates are loaded directly from the blueprint rules in Read-Only Inspection Mode.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className='flex items-start justify-between'>
         <h3 className='text-2xl font-semibold tracking-tight'>Concepts & Content</h3>
       </div>
@@ -110,7 +180,7 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
                   onChange={(e) => { setSelectedSectionId(e.target.value); setSelectedTopicId(''); }}
                   className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
-                  {sections.map((section) => (
+                  {displaySections.map((section) => (
                     <option key={section.id} value={section.id}>
                       {section.name}
                     </option>
@@ -124,12 +194,12 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
                   value={selectedTopicId}
                   onChange={(e) => setSelectedTopicId(e.target.value)}
                   className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  disabled={isLoadingTopics || topics.length === 0}
+                  disabled={displayTopics.length === 0}
                 >
-                  {topics.length === 0 && <option value="">No topics available</option>}
-                  {topics.map((topic: any) => (
-                    <option key={topic.topicId} value={topic.topicId}>
-                      {topic.topicName || topic.topic || topic.name || 'Unnamed'}
+                  {displayTopics.length === 0 && <option value="">No topics available</option>}
+                  {displayTopics.map((topic: any) => (
+                    <option key={topic.topicId || topic.id} value={topic.topicId || topic.id}>
+                      {topic.topicName || topic.name || 'Unnamed'}
                     </option>
                   ))}
                 </select>
