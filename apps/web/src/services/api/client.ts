@@ -225,7 +225,24 @@ class ApiClient {
     }
 
     if (!config.skipAuth) {
-      const token = apiAuthHooks.getAccessToken?.();
+      let token = apiAuthHooks.getAccessToken?.();
+
+      if (!token && typeof window !== 'undefined') {
+        token =
+          localStorage.getItem('accessToken') ||
+          localStorage.getItem('auth_token') ||
+          localStorage.getItem('token');
+
+        if (!token) {
+          try {
+            const rawAuth = localStorage.getItem('intervu-auth-store');
+            if (rawAuth) {
+              const parsed = JSON.parse(rawAuth);
+              token = parsed?.state?.accessToken || parsed?.state?.token || null;
+            }
+          } catch (e) {}
+        }
+      }
 
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);

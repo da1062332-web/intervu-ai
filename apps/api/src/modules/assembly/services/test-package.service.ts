@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { AssemblyRepository } from "../repositories/assembly.repository";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import type {
   ExecutionReadyTestDto,
@@ -30,21 +31,48 @@ export class TestPackageService {
   constructor(
     private readonly assembledTestRepository: AssembledTestRepository,
     private readonly blueprintRepository: BlueprintRepository,
+    private readonly testInstanceRepository: AssemblyRepository,
   ) {}
 
   /**
-   * Generate an execution-ready package from a persisted AssembledTest.
+   * Generate an execution-ready package from a persisted AssembledTest or TestInstance.
    *
-   * @param assemblyId - ID of the AssembledTest record
+   * @param assemblyId - ID of the AssembledTest or TestInstance record
    * @returns ExecutionReadyTestDto ready for Module 4
    * @throws NotFoundException if assembly does not exist
    */
   async generatePackage(assemblyId: string): Promise<ExecutionReadyTestDto> {
-    // 1. Load assembly with full question data
-    const assembly = await this.assembledTestRepository.findById(assemblyId);
+    // 1. Load assembly with full question data (with fallback to TestInstance)
+    let assembly: any = await this.assembledTestRepository.findById(assemblyId);
+
+    if (!assembly) {
+      this.logger.warn(
+        `AssembledTest lookup failed for ${assemblyId}, falling back to TestInstance`,
+      );
+      const testInstance = await this.testInstanceRepository.findById(assemblyId);
+      if (testInstance) {
+        const totalQuestions = (testInstance.sections ?? []).reduce(
+          (sum: number, s: any) => sum + (s.questionCount || s.questions?.length || 0),
+          0,
+        );
+        const totalDurationSeconds = (testInstance.sections ?? []).reduce(
+          (sum: number, s: any) => sum + (s.durationSeconds || 0),
+          0,
+        );
+        assembly = {
+          id: testInstance.id,
+          configId: testInstance.testConfigId,
+          status: testInstance.status || "DRAFT",
+          totalDurationSeconds,
+          totalQuestions,
+          sections: testInstance.sections,
+        };
+      }
+    }
+
     if (!assembly) {
       throw new NotFoundException(
-        `Assembly ${assemblyId} not found. Cannot generate test package.`,
+        `Assembly or TestInstance ${assemblyId} not found. Cannot generate test package.`,
       );
     }
 
@@ -69,11 +97,11 @@ export class TestPackageService {
 
     // 3. Map sections and questions
     const sections: ExecutionSectionDto[] = (assembly.sections ?? [])
-      .sort((a, b) => a.orderIndex - b.orderIndex)
-      .map((section) => {
+      .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+      .map((section: any) => {
         const questions: ExecutionQuestionDto[] = (section.questions ?? [])
-          .sort((a, b) => a.questionOrder - b.questionOrder)
-          .map((q) => this.mapQuestion(q));
+          .sort((a: any, b: any) => a.questionOrder - b.questionOrder)
+          .map((q: any) => this.mapQuestion(q));
 
         return {
           sectionKey: section.sectionKey,

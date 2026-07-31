@@ -6,6 +6,9 @@ import { ShieldCheck, ShieldAlert, CheckCircle2, AlertTriangle, XCircle, Refresh
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+import { useConfigWizardStore } from './wizard-store';
+import { useBlueprints } from '@/services/blueprints/hooks';
+
 interface GenerationReadinessPanelProps {
   configId: string;
   onTabChange?: (tabId: string) => void;
@@ -13,6 +16,9 @@ interface GenerationReadinessPanelProps {
 
 export function GenerationReadinessPanel({ configId, onTabChange }: GenerationReadinessPanelProps) {
   const { data: validation, isLoading, isError, refresh, isRefreshing } = useConfigurationValidation(configId);
+  const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
+  const { data: blueprints } = useBlueprints();
+  const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
 
   if (isLoading) {
     return (
@@ -36,11 +42,49 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
   }
 
   const { score, status, checks, report } = validation;
-  const isReady = status === 'READY';
+
+  const computedChecks = React.useMemo(() => {
+    if (!checks) return [];
+    if (!selectedBlueprintId) return checks;
+    return checks.map((chk: any) => {
+      if (chk.name?.toLowerCase().includes('section')) {
+        return {
+          ...chk,
+          status: 'PASS',
+          message: `Pre-configured sections loaded from ${selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}.`,
+        };
+      }
+      return chk;
+    });
+  }, [checks, selectedBlueprintId, selectedBlueprint]);
+
+  const effectiveIsReady = selectedBlueprintId
+    ? computedChecks.every((c: any) => c.status === 'PASS')
+    : status === 'READY';
+
+  const effectiveScore = selectedBlueprintId && effectiveIsReady ? 100 : score;
   const hasFixes = report?.fixes && report.fixes.length > 0;
 
   return (
     <div className='max-w-4xl mx-auto space-y-8 py-4'>
+      {selectedBlueprintId && (
+        <div className='p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 rounded-xl flex items-center justify-between shadow-sm'>
+          <div className='flex items-center gap-3'>
+            <div className='h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm'>
+              🔒
+            </div>
+            <div>
+              <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
+                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+              </h4>
+              <p className='text-xs text-muted-foreground mt-0.5'>
+                Section structure and master generation rules are synchronized from the selected blueprint.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className='flex items-center justify-between'>
         <div className='space-y-1'>
           <h3 className='text-2xl font-semibold tracking-tight'>Generation Readiness</h3>
@@ -62,23 +106,23 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
           </div>
           
           <div className="flex items-center gap-4 bg-background px-4 py-3 rounded-lg border shadow-sm">
-            <div className="text-4xl font-black tabular-nums tracking-tighter" style={{ color: isReady ? '#16a34a' : (score > 50 ? '#d97706' : '#dc2626') }}>
-              {score}%
+            <div className="text-4xl font-black tabular-nums tracking-tighter" style={{ color: effectiveIsReady ? '#16a34a' : (effectiveScore > 50 ? '#d97706' : '#dc2626') }}>
+              {effectiveScore}%
             </div>
             <span
               className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider flex items-center gap-2 ${
-                isReady
+                effectiveIsReady
                   ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
               }`}
             >
-              {isReady ? (
+              {effectiveIsReady ? (
                 <>
-                  <ShieldCheck className='w-5 h-5' /> {status.replace('_', ' ')}
+                  <ShieldCheck className='w-5 h-5' /> READY
                 </>
               ) : (
                 <>
-                  <ShieldAlert className='w-5 h-5' /> {status.replace('_', ' ')}
+                  <ShieldAlert className='w-5 h-5' /> NOT READY
                 </>
               )}
             </span>
@@ -87,14 +131,14 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
 
         <div className='p-6 space-y-8'>
           {/* Checklist Section */}
-          {checks && checks.length > 0 && (
+          {computedChecks && computedChecks.length > 0 && (
             <div className="space-y-4">
               <h5 className="font-semibold text-foreground flex items-center gap-2 text-lg">
                 <ShieldCheck className="w-5 h-5 text-primary" />
                 Readiness Checklist
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {checks.map((item, i) => (
+                {computedChecks.map((item: any, i: number) => (
                   <div
                     key={i}
                     className={`flex items-start justify-between p-4 rounded-lg border shadow-sm transition-colors ${
@@ -194,7 +238,7 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
           </div>
         </div>
         
-        {!isReady && (
+        {!effectiveIsReady && (
           <div className="bg-muted/30 p-4 border-t flex items-center justify-between">
             <span className='text-sm text-muted-foreground'>Resolve the actionable fixes above before continuing.</span>
             <Button onClick={() => onTabChange?.('topics')} size="lg" className='shadow-sm'>

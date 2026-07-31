@@ -107,8 +107,9 @@ export class ResponseValidatorService {
       );
     }
 
-    // 5. Placeholder Leakage Scan (curly brace detection)
-    const placeholderRegex = /\{([a-zA-Z0-9_]+)\}/;
+    // 5. Placeholder Leakage Scan — detect double-brace Handlebars-style tokens like {{variable}}
+    //    Single-brace patterns like {x} or {profit} are valid in math/LaTeX LLM output and must NOT be flagged.
+    const placeholderRegex = /\{\{([a-zA-Z0-9_]+)\}\}/;
     if (placeholderRegex.test(question.question)) {
       throw new BadRequestException(
         "Question text contains unresolved template placeholder tokens",

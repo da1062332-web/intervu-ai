@@ -29,26 +29,105 @@ export class HiringEvaluationEngine {
     objectiveEvalResults: QuestionEvalContext[],
     codingEvalResults: CodingEvalContext[],
   ): Promise<HiringEvaluationResultDto | null> {
-    // 1. Fetch test instance to identify linked examConfigId
+    // 1. Fetch test instance to identify linked examConfigId / testConfig
     const testInstance = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
-      select: { id: true, examConfigId: true, testConfigId: true },
+      include: {
+        examConfig: {
+          include: { hiringEvaluationConfig: { include: { sectionMappings: true } } },
+        },
+        testConfig: true,
+      },
     });
 
-    const configId = testInstance?.examConfigId || testInstance?.testConfigId;
-    if (!configId) {
-      this.logger.debug("No assessment config ID associated with attempt", { attemptId });
+    if (!testInstance) {
+      this.logger.debug("Test instance not found", { attemptId });
       return null;
     }
 
-    // 2. Fetch HiringEvaluationConfig and relational section mappings
-    const hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
-      where: { examConfigId: configId },
-      include: { sectionMappings: true },
-    });
+    let hiringConfig: any = null;
+    let foundExplicitConfig = false;
+
+    // A. Check directly linked ExamConfig on TestInstance
+    if (testInstance.examConfig?.hiringEvaluationConfig) {
+      hiringConfig = testInstance.examConfig.hiringEvaluationConfig;
+      foundExplicitConfig = true;
+    }
+
+    // B. Check by testInstance.examConfigId
+    if (!hiringConfig && testInstance.examConfigId) {
+      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+        where: { examConfigId: testInstance.examConfigId },
+        include: { sectionMappings: true },
+      });
+      if (hiringConfig) foundExplicitConfig = true;
+    }
+
+    // C. Check via AssembledTest linked configId
+    if (!hiringConfig) {
+      const assembledTest = await this.prisma.assembledTest.findFirst({
+        where: {
+          OR: [
+            { id: attemptId },
+            ...(testInstance.testConfigId ? [{ id: testInstance.testConfigId }] : []),
+            ...(testInstance.testConfigId ? [{ configId: testInstance.testConfigId }] : []),
+          ],
+        },
+        include: {
+          examConfig: {
+            include: { hiringEvaluationConfig: { include: { sectionMappings: true } } },
+          },
+        },
+      });
+
+      if (assembledTest?.examConfig?.hiringEvaluationConfig) {
+        hiringConfig = assembledTest.examConfig.hiringEvaluationConfig;
+        foundExplicitConfig = true;
+      } else if (assembledTest?.configId) {
+        hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+          where: { examConfigId: assembledTest.configId },
+          include: { sectionMappings: true },
+        });
+        if (hiringConfig) foundExplicitConfig = true;
+      }
+    }
+
+    // D. Check by testInstance.testConfigId
+    if (!hiringConfig && testInstance.testConfigId) {
+      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+        where: { examConfigId: testInstance.testConfigId },
+        include: { sectionMappings: true },
+      });
+      if (hiringConfig) foundExplicitConfig = true;
+    }
+
+    // If an explicit config was found for this assessment and it is DISABLED (enabled = false), STOP and return null!
+    if (foundExplicitConfig && hiringConfig && !hiringConfig.enabled) {
+      this.logger.debug("Hiring evaluation is explicitly disabled for this assessment", {
+        attemptId,
+        examConfigId: hiringConfig.examConfigId,
+      });
+      return null;
+    }
+
+    // E. Fallback: Only match global enabled config if attempt is a TCS/TCS-NQT exam and has no custom config record
+    if (!hiringConfig && !foundExplicitConfig) {
+      const isTcsExam =
+        testInstance.testConfig?.displayName?.toUpperCase().includes("TCS") ||
+        testInstance.testConfig?.companyName?.toUpperCase().includes("TCS") ||
+        testInstance.examConfig?.name?.toUpperCase().includes("TCS");
+
+      if (isTcsExam) {
+        hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findFirst({
+          where: { enabled: true },
+          include: { sectionMappings: true },
+          orderBy: { updatedAt: "desc" },
+        });
+      }
+    }
 
     if (!hiringConfig || !hiringConfig.enabled) {
-      this.logger.debug("Hiring evaluation is disabled or not configured", { attemptId, configId });
+      this.logger.debug("Hiring evaluation is disabled or not configured", { attemptId });
       return null;
     }
 

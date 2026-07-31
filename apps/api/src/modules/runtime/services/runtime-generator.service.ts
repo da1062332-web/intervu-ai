@@ -58,7 +58,7 @@ export class RuntimeGeneratorService {
       // Monitor Failure
       const buildDuration = Date.now() - startTime;
       await this.monitoringService.trackBuildFailed(
-        packagedTest.assemblyId,
+        packagedTest?.assemblyId || "unknown",
         error.message,
         buildDuration,
       );

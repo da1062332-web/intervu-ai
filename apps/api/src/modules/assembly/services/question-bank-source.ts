@@ -55,10 +55,11 @@ export class QuestionBankSource implements IQuestionSource {
       | "MEDIUM"
       | "HARD";
 
-    // 1. Calculate available active Manual questions count
+    // 1. Calculate available active Manual questions count matching requested difficulty
     const manualCount = await this.prisma.question.count({
       where: {
         status: "ACTIVE",
+        difficulty: difficulty,
         OR: [
           { topicId: topicId },
           { topicId: resolvedCode },
@@ -69,12 +70,13 @@ export class QuestionBankSource implements IQuestionSource {
       },
     });
 
-    // 2. Calculate available active Templates count
+    // 2. Calculate available active Templates count matching requested difficulty
     const conceptCodes = (topic as any)?.concepts?.map((c: any) => c.code) || [];
     const templateCount = await this.prisma.template.count({
       where: {
         isActive: true,
         deletedAt: null,
+        difficultyLevel: difficulty,
         OR: [
           { conceptKey: { in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode] } },
           { conceptKey: resolvedCode },
@@ -88,7 +90,7 @@ export class QuestionBankSource implements IQuestionSource {
     // Default: Fallback to legacy template pool if zero pool available
     if (totalPool === 0 || !this.useRealBank) {
       this.logger.warn(
-        `Pool count 0 or real bank disabled for topic=${topicId}. Using legacy template pool.`,
+        `Pool count 0 or real bank disabled for topic=${topicId} difficulty=${difficulty}. Using legacy template pool.`,
       );
       return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
     }
@@ -125,22 +127,31 @@ export class QuestionBankSource implements IQuestionSource {
 
       try {
         const availability = await this.rotationService.checkAvailability(request);
-        let actualReq = request;
+        let actualCount = targetManual;
         if (
           availability.status === "INSUFFICIENT_POOL" ||
           availability.available < targetManual
         ) {
-          actualReq = {
-            ...request,
-            difficultyDistribution: { EASY: 0, MEDIUM: 0, HARD: 0 },
-          };
+          actualCount = Math.max(0, availability.available);
         }
 
-        const response = await this.rotationService.retrieveAndReserve(actualReq);
-        const mapped = response.questions.map((q) =>
-          this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
-        );
-        assembledResults.push(...mapped);
+        if (actualCount > 0) {
+          const actualReq: AssemblyProviderRequest = {
+            ...request,
+            count: actualCount,
+            difficultyDistribution: {
+              EASY: difficulty === "EASY" ? actualCount : 0,
+              MEDIUM: difficulty === "MEDIUM" ? actualCount : 0,
+              HARD: difficulty === "HARD" ? actualCount : 0,
+            },
+          };
+
+          const response = await this.rotationService.retrieveAndReserve(actualReq);
+          const mapped = response.questions.map((q) =>
+            this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
+          );
+          assembledResults.push(...mapped);
+        }
       } catch (err) {
         this.logger.warn(`Manual question retrieval notice (${err}). Shifting to templates.`);
       }

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Award, Code, BookOpen, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, XCircle, Award, Code, BookOpen, AlertTriangle, ShieldCheck, Trophy } from 'lucide-react';
 
 interface SectionBreakdownItem {
   category: string;
@@ -105,22 +105,36 @@ export function HiringEvaluationCard({
       <CardContent className="p-6 space-y-6">
         {/* Decision & Reason Banner */}
         <div
-          className={`p-4 rounded-lg border flex items-start gap-3 ${
+          className={`p-4 md:p-5 rounded-xl border flex items-start gap-3.5 shadow-sm transition-all ${
             qualification === 'NOT_QUALIFIED'
-              ? 'bg-red-50/50 border-red-200 text-red-800'
-              : 'bg-emerald-50/50 border-emerald-200 text-emerald-800'
+              ? 'bg-red-50/70 border-red-200 text-red-900'
+              : qualification === 'PRIME'
+              ? 'bg-gradient-to-r from-amber-500/15 via-amber-50/80 to-amber-500/10 border-amber-300 text-amber-950'
+              : qualification === 'DIGITAL'
+              ? 'bg-gradient-to-r from-purple-500/15 via-purple-50/80 to-purple-500/10 border-purple-300 text-purple-950'
+              : 'bg-gradient-to-r from-emerald-500/15 via-emerald-50/80 to-emerald-500/10 border-emerald-300 text-emerald-950'
           }`}
         >
           {qualification === 'NOT_QUALIFIED' ? (
-            <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" />
           ) : (
-            <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            <Trophy className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
           )}
-          <div className="space-y-0.5">
-            <p className="font-semibold text-sm">
-              Status: {qualification.replace('_', ' ')}
-            </p>
-            <p className="text-xs text-muted-foreground">{qualificationReason}</p>
+          <div className="space-y-1">
+            <h3 className="font-bold text-base md:text-lg tracking-tight">
+              {qualification === 'NOT_QUALIFIED'
+                ? 'Status: NOT QUALIFIED'
+                : `🎉 Congratulations! You have qualified for ${
+                    qualification === 'NINJA'
+                      ? 'Ninja'
+                      : qualification === 'DIGITAL'
+                      ? 'Digital'
+                      : qualification === 'PRIME'
+                      ? 'Prime'
+                      : qualification.replace('_', ' ')
+                  } Role!`}
+            </h3>
+            <p className="text-xs md:text-sm font-medium opacity-80">{qualificationReason}</p>
           </div>
         </div>
 

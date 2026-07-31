@@ -10,6 +10,7 @@ import { DashboardSectionTime } from './DashboardSectionTime';
 import { DashboardPerformanceSummary } from './DashboardPerformanceSummary';
 import { DashboardRecommendations } from './DashboardRecommendations';
 import { DashboardCodingCard } from './DashboardCodingCard';
+import { HiringEvaluationCard } from '@/features/candidate/results/components/HiringEvaluationCard';
 
 interface Props {
   attemptId: string;
@@ -31,12 +32,26 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId }) => 
     );
   }
 
+  const d = data as any;
+
   return (
     <div className="space-y-6">
       <div className="mb-4">
         <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-2">Performance Insights Dashboard</h2>
         <p className="text-gray-500">Comprehensive analysis of your test performance, strengths, weaknesses, and time management.</p>
       </div>
+
+      {d.qualification && (
+        <HiringEvaluationCard
+          qualification={d.qualification}
+          qualificationReason={d.qualificationReason}
+          evaluationStrategy={d.evaluationStrategy}
+          foundationScore={d.foundationScore}
+          advancedScore={d.advancedScore}
+          codingSolved={d.codingSolved}
+          qualificationDetails={d.qualificationDetails}
+        />
+      )}
 
       <div className="grid grid-cols-1 gap-6">
         <DashboardScoreCard data={data} />

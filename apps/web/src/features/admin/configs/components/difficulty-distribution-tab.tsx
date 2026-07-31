@@ -19,6 +19,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+import { useConfigWizardStore } from './wizard-store';
+import { useBlueprints, useBlueprint } from '@/services/blueprints/hooks';
+
 interface DifficultyDistributionTabProps {
   configId: string;
 }
@@ -26,6 +29,13 @@ interface DifficultyDistributionTabProps {
 export function DifficultyDistributionTab({ configId }: DifficultyDistributionTabProps) {
   const { data: distribution, isLoading } = useDifficultyDistribution(configId);
   const { mutate: saveDistribution, isPending } = useSaveDistribution(configId);
+  const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
+  const { data: blueprints } = useBlueprints();
+  const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
+  const { data: blueprintDetail } = useBlueprint(selectedBlueprintId || '');
+
+  const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
+  const firstBpDiff = bpRawSections[0]?.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
 
   const [easyPercentage, setEasyPercentage] = useState<number>(0);
   const [mediumPercentage, setMediumPercentage] = useState<number>(0);
@@ -34,12 +44,16 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
   const { setDistribution, setDirty } = useConfigRulesStore();
 
   useEffect(() => {
-    if (distribution) {
+    if (selectedBlueprintId && bpRawSections.length > 0) {
+      setEasyPercentage(firstBpDiff.easy || 0);
+      setMediumPercentage(firstBpDiff.medium || 0);
+      setHardPercentage(firstBpDiff.hard || 0);
+    } else if (distribution) {
       setEasyPercentage(distribution.easyPercentage);
       setMediumPercentage(distribution.mediumPercentage);
       setHardPercentage(distribution.hardPercentage);
     }
-  }, [distribution]);
+  }, [selectedBlueprintId, blueprintDetail, selectedBlueprint, distribution]);
 
   const totalPercentage = easyPercentage + mediumPercentage + hardPercentage;
   const isValid = totalPercentage === 100 || totalPercentage === 0;
@@ -99,6 +113,24 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
 
   return (
     <div className='max-w-2xl mx-auto space-y-8 py-4'>
+      {selectedBlueprintId && (
+        <div className='p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 rounded-xl flex items-center justify-between shadow-sm'>
+          <div className='flex items-center gap-3'>
+            <div className='h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm'>
+              🔒
+            </div>
+            <div>
+              <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
+                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+              </h4>
+              <p className='text-xs text-muted-foreground mt-0.5'>
+                Difficulty distribution curve is loaded directly from the blueprint rules in Read-Only Inspection Mode.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className='space-y-1'>
         <h3 className='text-2xl font-semibold tracking-tight'>Difficulty Distribution</h3>
         <p className='text-muted-foreground'>

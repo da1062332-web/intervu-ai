@@ -9,6 +9,10 @@ const mockBlueprintRepository = {
   getExamConfigForBlueprint: jest.fn(),
 };
 
+const mockAssemblyRepository = {
+  findById: jest.fn(),
+};
+
 describe("TestPackageService", () => {
   let service: TestPackageService;
 
@@ -17,6 +21,7 @@ describe("TestPackageService", () => {
     service = new TestPackageService(
       mockAssembledTestRepository as unknown as import("../repositories/assembled-test.repository").AssembledTestRepository,
       mockBlueprintRepository as unknown as import("../repositories/blueprint.repository").BlueprintRepository,
+      mockAssemblyRepository as unknown as import("../repositories/assembly.repository").AssemblyRepository,
     );
   });
 
