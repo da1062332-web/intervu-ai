@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { evaluateExpression } from "@intervu-ai/generation";
+import { formatDisplayString } from "../../generation-ai/utils/display-value-formatter";
 
 interface InstantiatorInput {
   template: {
@@ -131,7 +132,12 @@ export class QuestionInstantiatorService {
         offset += 1;
       }
 
-      options.push(String(correctVal), ...Array.from(distractors).slice(0, 3));
+      options.push(
+        formatDisplayString(correctVal),
+        ...Array.from(distractors).slice(0, 3).map((value) =>
+          formatDisplayString(value),
+        ),
+      );
       options.sort(() => Math.random() - 0.5);
     }
 
@@ -186,7 +192,9 @@ export class QuestionInstantiatorService {
   private interpolate(text: string, params: Record<string, any>): string {
     if (!text) return "";
     return text.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (match, varName) => {
-      return params.hasOwnProperty(varName) ? String(params[varName]) : match;
+      return params.hasOwnProperty(varName)
+        ? formatDisplayString(params[varName])
+        : match;
     });
   }
 
@@ -210,14 +218,14 @@ export class QuestionInstantiatorService {
       solutionSchema.correctVariable &&
       params.hasOwnProperty(solutionSchema.correctVariable)
     ) {
-      return String(params[solutionSchema.correctVariable]);
+      return formatDisplayString(params[solutionSchema.correctVariable]);
     }
 
     // If solutionSchema has a formula (e.g. { "formula": "A + B" })
     if (solutionSchema.formula) {
       try {
         const result = this.evaluateFormula(solutionSchema.formula, params);
-        return String(result);
+        return formatDisplayString(result);
       } catch {
         // Fallback or bubble up
       }
@@ -227,7 +235,7 @@ export class QuestionInstantiatorService {
     if (solutionSchema.finalAnswer) {
       try {
         const result = this.evaluateFormula(solutionSchema.finalAnswer, params);
-        return String(result);
+        return formatDisplayString(result);
       } catch {
         // Fallback or bubble up
       }
@@ -243,7 +251,7 @@ export class QuestionInstantiatorService {
 
     // Direct constant value fallback
     if (solutionSchema.value !== undefined) {
-      return String(solutionSchema.value);
+      return formatDisplayString(solutionSchema.value);
     }
 
     return "";

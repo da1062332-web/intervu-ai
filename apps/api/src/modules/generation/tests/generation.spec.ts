@@ -349,6 +349,51 @@ describe("Test Generation Core (Module 2)", () => {
       expect(params.C).toBe(32);
     });
 
+    it("should fall back to variableSchema.generationStrategyConfig.variables when top-level variables are missing", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [],
+          generationStrategyConfig: {
+            variables: [
+              { name: "principal_amount", type: "integer", min: 1000, max: 1000 },
+              { name: "annual_rate", type: "integer", min: 10, max: 10 },
+            ],
+            derivedVariables: [
+              { name: "interest", expression: "principal_amount * annual_rate / 100" },
+            ],
+          },
+        },
+        constraints: {
+          constraints: [
+            { rule: "interest == 100" },
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.principal_amount).toBe(1000);
+      expect(params.annual_rate).toBe(10);
+      expect(params.interest).toBe(100);
+    });
+
+    it("should keep top-level variable precedence over nested generationStrategyConfig variables", () => {
+      const metadata = {
+        variableSchema: {
+          variables: [
+            { name: "A", type: "integer", min: 5, max: 5 },
+          ],
+          generationStrategyConfig: {
+            variables: [
+              { name: "A", type: "integer", min: 99, max: 99 },
+            ],
+          },
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(metadata);
+      expect(params.A).toBe(5);
+    });
+
     it("should not let newly recognized derived variables override existing formula targets", () => {
       const metadata = {
         variableSchema: {
@@ -538,6 +583,50 @@ describe("Test Generation Core (Module 2)", () => {
       expect(result.questionText).toBe("What is 2 + 3?");
       expect(result.answer).toBe("5");
       expect(result.options).toContain("5");
+    });
+
+    it("should format display values without changing raw metadata parameters", () => {
+      const template = {
+        id: "temp-display",
+        templateKey: "key-display",
+        conceptKey: "lcm-hcf",
+        difficultyLevel: "MEDIUM",
+        questionType: "multiple_choice",
+        version: 1,
+        structure: {
+          questionTemplate:
+            "Given {{numerator}}/{{denominator}}, calculate {{answer_value}}.",
+          explanationTemplate:
+            "The fraction {{numerator}}/{{denominator}} gives {{answer_value}}.",
+          optionsTemplate: [
+            "{{answer_value}}",
+            "341.02564102564105",
+            "343.02564102564105",
+            "344.02564102564105",
+          ],
+        },
+        solutionSchema: {
+          correctVariable: "answer_value",
+        },
+      };
+      const parameters = {
+        numerator: 13339,
+        denominator: 39,
+        answer_value: 342.02564102564105,
+      };
+
+      const result = instantiator.instantiate({ template, parameters });
+
+      expect(result.questionText).toBe(
+        "Given 13339/39, calculate 342.03.",
+      );
+      expect(result.explanation).toBe(
+        "The fraction 13339/39 gives 342.03.",
+      );
+      expect(result.options).toContain("342.03");
+      expect(result.answer).toBe("342.03");
+      expect(result.metadata.parameters).toBe(parameters);
+      expect(result.metadata.parameters.answer_value).toBe(342.02564102564105);
     });
   });
 

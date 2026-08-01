@@ -249,8 +249,19 @@ export class ParameterGeneratorService {
     const variableSchema = metadata.variableSchema || {};
     const strategyConfig = metadata.generationStrategyConfig || {};
 
-    const variables =
-      strategyConfig.variables || variableSchema.variables || [];
+    const topLevelVariables = Array.isArray(variableSchema.variables)
+      ? variableSchema.variables
+      : [];
+    const nestedStrategyVariables = Array.isArray(
+      variableSchema.generationStrategyConfig?.variables,
+    )
+      ? variableSchema.generationStrategyConfig.variables
+      : [];
+    const variables = Array.isArray(strategyConfig.variables)
+      ? strategyConfig.variables
+      : topLevelVariables.length > 0
+      ? topLevelVariables
+      : nestedStrategyVariables;
 
     const derivedVariables = Array.isArray(strategyConfig.derivedVariables)
       ? strategyConfig.derivedVariables

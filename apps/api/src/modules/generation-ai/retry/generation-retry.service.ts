@@ -12,7 +12,10 @@ import { GenerationAuditService } from "../services/generation-audit.service";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 import { DuplicateDetectorService } from "../validators/duplicate-detector.service";
 import { QuestionQualityService } from "../scorers/question-quality.service";
-import { formatInterpolatedDisplayValue } from "../utils/display-value-formatter";
+import {
+  formatInterpolatedDisplayValue,
+  normalizeDisplayQuestion,
+} from "../utils/display-value-formatter";
 
 export interface RetryResult {
   attempts: number;
@@ -323,6 +326,8 @@ export class GenerationRetryService {
             );
           }
         }
+
+        parsedQuestion = normalizeDisplayQuestion(parsedQuestion);
 
         // 3. Process & Shuffle options
         const qType = String(template.questionType || "").toLowerCase();
