@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useResultDetails } from '../hooks/results.hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
