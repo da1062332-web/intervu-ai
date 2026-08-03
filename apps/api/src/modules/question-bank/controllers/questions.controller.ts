@@ -672,9 +672,14 @@ export class QuestionsController {
     if (concept?.topicId) {
       topicId = concept.topicId;
     } else {
-      // If no concept found, try treating conceptKey as a topicId directly
-      const topicCheck = await this.prisma.topic.findUnique({
-        where: { id: question.conceptKey },
+      // If no concept found, try treating conceptKey as a topicId or topic code directly
+      const topicCheck = await this.prisma.topic.findFirst({
+        where: {
+          OR: [
+            { id: question.conceptKey },
+            { code: { equals: question.conceptKey, mode: "insensitive" } },
+          ],
+        },
       });
       if (topicCheck?.id) {
         topicId = topicCheck.id;

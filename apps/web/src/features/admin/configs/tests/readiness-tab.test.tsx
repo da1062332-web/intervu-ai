@@ -8,9 +8,13 @@ vi.mock('../hooks/useConfigurationValidation', () => ({
   useConfigurationValidation: vi.fn(),
 }));
 
+vi.mock('@/services/blueprints/hooks', () => ({
+  useBlueprints: vi.fn(() => ({ data: [] })),
+}));
+
 describe('GenerationReadinessPanel UI Components', () => {
   const mockConfigId = 'config-e2e-123';
-  const mockRefetch = vi.fn();
+  const mockRefresh = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,7 +25,8 @@ describe('GenerationReadinessPanel UI Components', () => {
       isLoading: true,
       isError: false,
       data: null,
-      refetch: mockRefetch,
+      refresh: mockRefresh,
+      isRefreshing: false,
     } as any);
 
     const { container } = render(<GenerationReadinessPanel configId={mockConfigId} />);
@@ -33,7 +38,8 @@ describe('GenerationReadinessPanel UI Components', () => {
       isLoading: false,
       isError: true,
       data: null,
-      refetch: mockRefetch,
+      refresh: mockRefresh,
+      isRefreshing: false,
     } as any);
 
     render(<GenerationReadinessPanel configId={mockConfigId} />);
@@ -42,7 +48,7 @@ describe('GenerationReadinessPanel UI Components', () => {
 
     const retryBtn = screen.getByRole('button', { name: /Retry/i });
     fireEvent.click(retryBtn);
-    expect(mockRefetch).toHaveBeenCalled();
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it('renders readiness score and checks breakdown status correctly', () => {
@@ -50,19 +56,22 @@ describe('GenerationReadinessPanel UI Components', () => {
       isLoading: false,
       isError: false,
       data: {
-        valid: false,
-        readiness: 75,
-        errors: ['Mismatched topic totals'],
-        warnings: [],
+        score: 75,
+        status: 'NOT_READY',
+        checks: [],
+        report: {
+          fixes: [{ type: 'mismatched_totals', message: 'Mismatched topic totals' }],
+        },
       },
-      refetch: mockRefetch,
+      refresh: mockRefresh,
+      isRefreshing: false,
     } as any);
 
     render(<GenerationReadinessPanel configId={mockConfigId} />);
 
     expect(screen.getByText('75%')).toBeInTheDocument();
-    expect(screen.getByText(/Ready: NO/i)).toBeInTheDocument();
-    expect(screen.getByText('Blocking Issues (1)')).toBeInTheDocument();
+    expect(screen.getByText(/NOT READY/i)).toBeInTheDocument();
+    expect(screen.getByText(/Actionable Fixes \(1\)/i)).toBeInTheDocument();
     expect(screen.getByText('Mismatched topic totals')).toBeInTheDocument();
   });
 
@@ -71,18 +80,21 @@ describe('GenerationReadinessPanel UI Components', () => {
       isLoading: false,
       isError: false,
       data: {
-        valid: true,
-        readiness: 100,
-        errors: [],
-        warnings: [],
+        score: 100,
+        status: 'READY',
+        checks: [],
+        report: {
+          fixes: [],
+        },
       },
-      refetch: mockRefetch,
+      refresh: mockRefresh,
+      isRefreshing: false,
     } as any);
 
     render(<GenerationReadinessPanel configId={mockConfigId} />);
 
     expect(screen.getByText('100%')).toBeInTheDocument();
-    expect(screen.getByText(/Ready: YES/i)).toBeInTheDocument();
-    expect(screen.getByText('No blocking issues found.')).toBeInTheDocument();
+    expect(screen.getByText(/^READY$/i)).toBeInTheDocument();
+    expect(screen.getByText(/No actionable fixes found/i)).toBeInTheDocument();
   });
 });

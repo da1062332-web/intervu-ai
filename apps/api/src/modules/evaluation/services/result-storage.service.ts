@@ -20,106 +20,109 @@ export class ResultStorageService {
       candidateId,
     });
 
-    await this.prisma.$transaction(async (tx) => {
-      // 1. Create or Update CandidateResult
-      await (tx as any).candidateResult.upsert({
-        where: { attemptId },
-        update: {
-          score,
-          percentage,
-          evaluationStrategy: result.evaluationStrategy || null,
-          qualification: result.qualification || null,
-          qualificationReason: result.qualificationReason || null,
-          foundationScore: result.foundationScore ?? null,
-          advancedScore: result.advancedScore ?? null,
-          codingSolved: result.codingSolved ?? null,
-          qualificationDetails: result.qualificationDetails || null,
-          evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
-          createdAt: new Date(),
-        },
-        create: {
-          id: result.id,
-          candidateId,
-          attemptId,
-          score,
-          percentage,
-          evaluationStrategy: result.evaluationStrategy || null,
-          qualification: result.qualification || null,
-          qualificationReason: result.qualificationReason || null,
-          foundationScore: result.foundationScore ?? null,
-          advancedScore: result.advancedScore ?? null,
-          codingSolved: result.codingSolved ?? null,
-          qualificationDetails: result.qualificationDetails || null,
-          evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
-          createdAt: new Date(),
-        },
-      });
-
-      // 1b. Create or Update EvaluationResult for CandidateReportService compatibility
-      // We repurpose technicalScore and communicationScore to store coding vs objective splits
-      await tx.evaluationResult.upsert({
-        where: { testInstanceId: attemptId },
-        update: {
-          overallScore: score,
-          technicalScore: result.codingScore || 0,
-          communicationScore: result.objectiveScore || 0,
-          confidenceScore: percentage,
-          overallRating: result.passed ? 1.0 : 0.0,
-        },
-        create: {
-          testInstanceId: attemptId,
-          userId: candidateId,
-          overallScore: score,
-          technicalScore: result.codingScore || 0,
-          communicationScore: result.objectiveScore || 0,
-          confidenceScore: percentage,
-          overallRating: result.passed ? 1.0 : 0.0,
-        },
-      });
-
-      // 2. Create or Update EvaluationAnalytics
-      if (analytics) {
-        await tx.evaluationAnalytics.upsert({
+    await this.prisma.$transaction(
+      async (tx: any) => {
+        // 1. Create or Update CandidateResult
+        await (tx as any).candidateResult.upsert({
           where: { attemptId },
           update: {
-            topicAccuracy: analytics.topicAccuracy || {},
-            difficultyAccuracy: analytics.difficultyAccuracy || {},
-            sectionAccuracy: analytics.sectionAccuracy || {},
-            completionRate: analytics.completionRate,
-            attemptRate: analytics.attemptRate,
+            score,
+            percentage,
+            evaluationStrategy: result.evaluationStrategy || null,
+            qualification: result.qualification || null,
+            qualificationReason: result.qualificationReason || null,
+            foundationScore: result.foundationScore ?? null,
+            advancedScore: result.advancedScore ?? null,
+            codingSolved: result.codingSolved ?? null,
+            qualificationDetails: result.qualificationDetails || null,
+            evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
             createdAt: new Date(),
           },
           create: {
+            id: result.id,
+            candidateId,
             attemptId,
-            topicAccuracy: analytics.topicAccuracy || {},
-            difficultyAccuracy: analytics.difficultyAccuracy || {},
-            sectionAccuracy: analytics.sectionAccuracy || {},
-            completionRate: analytics.completionRate,
-            attemptRate: analytics.attemptRate,
+            score,
+            percentage,
+            evaluationStrategy: result.evaluationStrategy || null,
+            qualification: result.qualification || null,
+            qualificationReason: result.qualificationReason || null,
+            foundationScore: result.foundationScore ?? null,
+            advancedScore: result.advancedScore ?? null,
+            codingSolved: result.codingSolved ?? null,
+            qualificationDetails: result.qualificationDetails || null,
+            evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
             createdAt: new Date(),
           },
         });
-      }
 
-      // 3. Update Submission status to EVALUATED
-      await tx.submission.updateMany({
-        where: { testInstanceId: attemptId },
-        data: {
-          status: "EVALUATED",
-          updatedAt: new Date(),
-        },
-      });
+        // 1b. Create or Update EvaluationResult for CandidateReportService compatibility
+        // We repurpose technicalScore and communicationScore to store coding vs objective splits
+        await tx.evaluationResult.upsert({
+          where: { testInstanceId: attemptId },
+          update: {
+            overallScore: score,
+            technicalScore: result.codingScore || 0,
+            communicationScore: result.objectiveScore || 0,
+            confidenceScore: percentage,
+            overallRating: result.passed ? 1.0 : 0.0,
+          },
+          create: {
+            testInstanceId: attemptId,
+            userId: candidateId,
+            overallScore: score,
+            technicalScore: result.codingScore || 0,
+            communicationScore: result.objectiveScore || 0,
+            confidenceScore: percentage,
+            overallRating: result.passed ? 1.0 : 0.0,
+          },
+        });
 
-      // 4. Log successful EvaluationRun
-      await tx.evaluationRun.create({
-        data: {
-          attemptId,
-          status: "COMPLETED",
-          durationMs,
-          createdAt: new Date(),
-        },
-      });
-    });
+        // 2. Create or Update EvaluationAnalytics
+        if (analytics) {
+          await tx.evaluationAnalytics.upsert({
+            where: { attemptId },
+            update: {
+              topicAccuracy: analytics.topicAccuracy || {},
+              difficultyAccuracy: analytics.difficultyAccuracy || {},
+              sectionAccuracy: analytics.sectionAccuracy || {},
+              completionRate: analytics.completionRate,
+              attemptRate: analytics.attemptRate,
+              createdAt: new Date(),
+            },
+            create: {
+              attemptId,
+              topicAccuracy: analytics.topicAccuracy || {},
+              difficultyAccuracy: analytics.difficultyAccuracy || {},
+              sectionAccuracy: analytics.sectionAccuracy || {},
+              completionRate: analytics.completionRate,
+              attemptRate: analytics.attemptRate,
+              createdAt: new Date(),
+            },
+          });
+        }
+
+        // 3. Update Submission status to EVALUATED
+        await tx.submission.updateMany({
+          where: { testInstanceId: attemptId },
+          data: {
+            status: "EVALUATED",
+            updatedAt: new Date(),
+          },
+        });
+
+        // 4. Log successful EvaluationRun
+        await tx.evaluationRun.create({
+          data: {
+            attemptId,
+            status: "COMPLETED",
+            durationMs,
+            createdAt: new Date(),
+          },
+        });
+      },
+      { timeout: 30000 },
+    );
   }
 
   /**
