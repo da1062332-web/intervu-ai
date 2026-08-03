@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTestDetails } from '../hooks/useTestDetails';
 import { CandidateInfo } from '../components/CandidateInfo';
 import { TestSummary } from '../components/TestSummary';
@@ -22,6 +22,8 @@ interface TestLaunchPageProps {
 
 export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isResume = searchParams.get('resume') === 'true';
   const { data: test, isLoading, error, refetch } = useTestDetails(testId);
   const [isSystemReady, setIsSystemReady] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -66,6 +68,10 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   const handleStartAssessment = async () => {
     try {
       setIsStarting(true);
+      if (isResume) {
+        router.push(`/candidate/tests/${testId}/execution`);
+        return;
+      }
       const { testInstanceId } = await testService.startTest(testId);
       router.push(`/candidate/tests/${testInstanceId}/execution`);
     } catch (err) {
@@ -87,12 +93,12 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
                 asChild
                 className='shrink-0 hover:bg-muted/80 rounded-full transition-colors'
               >
-                <Link href={`/candidate/tests/${testId}/instructions`}>
+                <Link href={isResume ? '/candidate/dashboard' : `/candidate/tests/${testId}/instructions`}>
                   <ChevronLeft className='size-5' />
                 </Link>
               </Button>
               <h1 className='text-xl sm:text-2xl font-heading font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent'>
-                Launch Assessment
+                {isResume ? 'Resume Assessment' : 'Launch Assessment'}
               </h1>
             </div>
             
@@ -118,7 +124,9 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
             <div className='relative'>
               <h3 className='text-sm font-bold text-amber-800 dark:text-amber-300 mb-0.5'>Action Required</h3>
               <p className='text-sm font-medium text-amber-700/90 dark:text-amber-400/90'>
-                Please ensure all system checks pass (including camera face detection and active microphone) before starting.
+                {isResume
+                  ? 'Please verify system readiness before resuming your assessment session. Ensure camera face detection and active microphone are operational.'
+                  : 'Please ensure all system checks pass (including camera face detection and active microphone) before starting.'}
               </p>
             </div>
           </div>
@@ -131,7 +139,9 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
             <div className='relative'>
               <h3 className='text-sm font-bold text-green-800 dark:text-green-300 mb-0.5'>All Systems Go</h3>
               <p className='text-sm font-medium text-green-700/90 dark:text-green-400/90'>
-                Your hardware is verified. You may begin the assessment whenever you're ready.
+                {isResume
+                  ? 'Your hardware is verified and ready. You may resume your assessment session whenever you are ready.'
+                  : "Your hardware is verified. You may begin the assessment whenever you're ready."}
               </p>
             </div>
           </div>
@@ -169,11 +179,11 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
               {isStarting ? (
                 <span className="flex items-center gap-3">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Starting Secure Session...
+                  {isResume ? 'Resuming Secure Session...' : 'Starting Secure Session...'}
                 </span>
               ) : (
                 <span className="flex items-center gap-3">
-                  {!isSystemReady ? 'Hardware Checks Pending' : 'Start Assessment'}
+                  {!isSystemReady ? 'Hardware Checks Pending' : isResume ? 'Resume Assessment' : 'Start Assessment'}
                   {isSystemReady && <Play className='size-6 fill-current animate-pulse' />}
                 </span>
               )}

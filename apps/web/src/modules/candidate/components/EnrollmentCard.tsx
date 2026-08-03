@@ -82,7 +82,7 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
         )}
         {status === 'STARTED' && (
           <Button className='w-full bg-blue-600 hover:bg-blue-700 text-white' asChild>
-            <Link href={`/candidate/tests/${testId}/instructions`}>
+            <Link href={`/candidate/tests/${testId}/launch?resume=true`}>
               Resume Assessment
               <PlayCircle className='ml-2 size-4' />
             </Link>

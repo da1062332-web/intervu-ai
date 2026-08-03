@@ -81,8 +81,8 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Button size='sm' variant='default' asChild className='h-8 px-3 text-xs font-semibold'>
-          <Link href={`/candidate/tests/${attempt.instanceId}/execution`}>
-            <Play className='size-3.5 mr-1.5' /> Continue
+          <Link href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}>
+            <Play className='size-3.5 mr-1.5' /> Resume
           </Link>
         </Button>
       ) : (

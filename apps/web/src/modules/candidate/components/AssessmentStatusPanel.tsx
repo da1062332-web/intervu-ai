@@ -96,7 +96,7 @@ export function AssessmentStatusPanel() {
               </div>
             </div>
             <Button asChild size='sm' className='gap-1.5 font-semibold text-xs h-8 shrink-0'>
-              <Link href={`/candidate/tests/${test.instanceId}/execution`}>
+              <Link href={`/candidate/tests/${test.instanceId}/launch?resume=true`}>
                 Resume <ArrowRight className='size-3.5' />
               </Link>
             </Button>

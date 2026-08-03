@@ -49,6 +49,32 @@ export const testService = {
     const configs = await testService.getTestConfigs();
     const config = configs.find((c: TestConfig) => c.id === id);
     if (!config) {
+      try {
+        const { executionService } = await import('@/features/candidate/execution/services/execution.service');
+        const instance = await executionService.getTestInstance(id);
+        if (instance) {
+          const matchedConfig = configs.find((c: TestConfig) => c.id === instance.testConfigId);
+          if (matchedConfig) {
+            return matchedConfig;
+          }
+          return {
+            id: instance.testConfigId || instance.id,
+            company: null,
+            title: instance.assessmentName || 'In-Progress Assessment',
+            difficulty: 'Active Session' as any,
+            durationMinutes: Math.ceil((instance.durationSeconds || 3600) / 60),
+            questionCount: instance.sections?.reduce((sum, s) => sum + (s.questions?.length || 0), 0) || 0,
+            sections: instance.sections?.map((s) => ({
+              id: s.id,
+              name: s.title || s.sectionKey || 'Section',
+              questionCount: s.questions?.length || 0,
+              durationMinutes: Math.ceil((s.durationSeconds || 900) / 60),
+            })) || [],
+          };
+        }
+      } catch {
+        // Fallback to throw below if instance lookup fails
+      }
       throw new Error('Assessment not found');
     }
     return config;
