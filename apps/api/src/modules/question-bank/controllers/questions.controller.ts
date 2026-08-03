@@ -664,26 +664,26 @@ export class QuestionsController {
     // First check if conceptKey is directly a topicId (UUID format)
     let topicId: string | undefined;
     
-    // Try as a concept code first
-    const concept = await this.prisma.concept.findFirst({
-      where: { code: { equals: question.conceptKey, mode: "insensitive" } },
+    // First try matching Topic directly by ID, Code, or Name
+    const topicCheck = await this.prisma.topic.findFirst({
+      where: {
+        OR: [
+          { id: question.conceptKey },
+          { code: { equals: question.conceptKey, mode: "insensitive" } },
+          { name: { equals: question.conceptKey, mode: "insensitive" } },
+        ],
+      },
     });
-    
-    if (concept?.topicId) {
-      topicId = concept.topicId;
+
+    if (topicCheck?.id) {
+      topicId = topicCheck.id;
     } else {
-      // If no concept found, try treating conceptKey as a topicId, topic code, or topic name
-      const topicCheck = await this.prisma.topic.findFirst({
-        where: {
-          OR: [
-            { id: question.conceptKey },
-            { code: { equals: question.conceptKey, mode: "insensitive" } },
-            { name: { equals: question.conceptKey, mode: "insensitive" } },
-          ],
-        },
+      // Fallback: try matching concept code
+      const concept = await this.prisma.concept.findFirst({
+        where: { code: { equals: question.conceptKey, mode: "insensitive" } },
       });
-      if (topicCheck?.id) {
-        topicId = topicCheck.id;
+      if (concept?.topicId) {
+        topicId = concept.topicId;
       } else {
         // Last resort: use first topic
         topicId = (await this.prisma.topic.findFirst())?.id;
