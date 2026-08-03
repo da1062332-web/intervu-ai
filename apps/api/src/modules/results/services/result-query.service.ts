@@ -5,6 +5,7 @@ import {
   PerformanceAnalyticsDto,
 } from "@intervu-ai/contracts";
 import { PrismaService } from "@/prisma/prisma.service";
+import { RecommendationService } from "../../evaluation/recommendations/recommendation.service";
 import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
 
 @Injectable()
@@ -13,6 +14,7 @@ export class ResultQueryService {
     private readonly candidateResultRepo: CandidateResultRepository,
     private readonly prisma: PrismaService,
     private readonly resultGenerator: ResultGeneratorService,
+    private readonly recommendationService: RecommendationService,
   ) {}
 
   async getResult(attemptId: string) {
@@ -21,11 +23,12 @@ export class ResultQueryService {
     if (!result) {
       const testInstance = await this.prisma.testInstance.findUnique({
         where: { id: attemptId },
-        include: { testConfig: true, examConfig: true },
+        include: { testConfig: true, examConfig: true, user: true },
       });
 
       if (testInstance) {
-        const state = await this.candidateResultRepo.getEvaluationStatus(attemptId);
+        const state =
+          await this.candidateResultRepo.getEvaluationStatus(attemptId);
         return {
           attemptId,
           assessmentName:
@@ -39,6 +42,15 @@ export class ResultQueryService {
           status: state?.state?.status || "IN_PROGRESS",
           submittedAt: testInstance.submittedAt || testInstance.createdAt,
           rank: 0,
+          candidate: (testInstance as any).user
+            ? {
+                fullName:
+                  (testInstance as any).user.fullName ||
+                  (testInstance as any).user.name ||
+                  "Candidate",
+                email: (testInstance as any).user.email || "",
+              }
+            : undefined,
         };
       }
 
@@ -50,16 +62,25 @@ export class ResultQueryService {
     return {
       attemptId: result.attemptId,
       assessmentName:
-        result.attempt?.testConfig?.displayName ||
-        result.attempt?.examConfig?.name ||
+        (result as any).attempt?.testConfig?.displayName ||
+        (result as any).attempt?.examConfig?.name ||
         "Assessment",
       score: result.score,
       percentage: result.percentage,
       accuracy: 0,
       completion: 100,
       status: state?.state?.status || "COMPLETED",
-      submittedAt: result.attempt?.submittedAt || result.createdAt,
+      submittedAt: (result as any).attempt?.submittedAt || result.createdAt,
       rank: 0,
+      candidate: (result as any).attempt?.user
+        ? {
+            fullName:
+              (result as any).attempt.user.fullName ||
+              (result as any).attempt.user.name ||
+              "Candidate",
+            email: (result as any).attempt.user.email || "",
+          }
+        : undefined,
     };
   }
 
@@ -75,23 +96,26 @@ export class ResultQueryService {
         limit,
       );
     return {
-      data: items.map((res) => ({
+      data: items.map((res: any) => ({
         id: res.id,
         attemptId: res.attemptId,
         candidateId: res.candidateId,
         score: res.score,
         percentage: res.percentage,
+        qualification: res.qualification || undefined,
+        qualificationReason: res.qualificationReason || undefined,
+        evaluationStrategy: res.evaluationStrategy || undefined,
         assessmentName:
           res.attempt?.testConfig?.displayName ||
           res.attempt?.examConfig?.name ||
-          "Assessment",
+          "Corporate Assessment",
         createdAt: res.createdAt,
       })),
       meta: {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / Math.max(1, limit)),
       },
     };
   }
@@ -117,9 +141,16 @@ export class ResultQueryService {
   }
 
   private async getTopicNameMap(): Promise<Map<string, string>> {
-    const topics = await this.prisma.topic.findMany({ select: { id: true, name: true, code: true } });
+    const topics = await this.prisma.topic.findMany({
+      select: { id: true, name: true, code: true },
+    });
     const concepts = await this.prisma.concept.findMany({
-      select: { id: true, name: true, code: true, topic: { select: { name: true } } },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        topic: { select: { name: true } },
+      },
     });
     const map = new Map<string, string>();
     topics.forEach((t) => {
@@ -186,17 +217,44 @@ export class ResultQueryService {
     return {
       strengths: rawInsights
         .filter((i) => i.type === "strength")
-        .map((i) => ({ topic: topicNameMap.get(i.topic) || i.topic, score: i.score, remarks: i.remarks })),
+        .map((i) => ({
+          topic: topicNameMap.get(i.topic) || i.topic,
+          score: i.score,
+          remarks: i.remarks,
+        })),
       weaknesses: rawInsights
         .filter((i) => i.type === "weakness")
-        .map((i) => ({ topic: topicNameMap.get(i.topic) || i.topic, score: i.score, remarks: i.remarks })),
+        .map((i) => ({
+          topic: topicNameMap.get(i.topic) || i.topic,
+          score: i.score,
+          remarks: i.remarks,
+        })),
     };
   }
 
   async getRecommendations(attemptId: string) {
-    const recommendations =
+    const dbRecs =
       await this.candidateResultRepo.findRecommendations(attemptId);
-    if (!recommendations || recommendations.length === 0) {
+    let recList = dbRecs || [];
+
+    if (!recList || recList.length === 0) {
+      try {
+        const analytics = await this.getAnalytics(attemptId);
+        const generated = this.recommendationService.generateRecommendations(
+          analytics as any,
+        );
+        recList = generated.map((g) => ({
+          title: g.title,
+          description: g.description,
+          skill: g.skill,
+          priority: g.priority,
+        })) as any[];
+      } catch {
+        // Ignore fallback error
+      }
+    }
+
+    if (!recList || recList.length === 0) {
       return {
         practiceSuggestions: ["General Review"],
         focusTopics: ["Core Concepts"],
@@ -205,14 +263,14 @@ export class ResultQueryService {
         priority: "Medium",
       };
     }
+
     const topicNameMap = await this.getTopicNameMap();
-    // Return aggregated payload
     return {
-      practiceSuggestions: recommendations.map((r) => r.title),
-      focusTopics: recommendations.map((r) => topicNameMap.get(r.skill) || r.skill),
-      improvementPlan: recommendations.map((r) => r.description),
-      estimatedPracticeHours: recommendations.length * 2,
-      priority: recommendations[0]?.priority || "Medium",
+      practiceSuggestions: recList.map((r) => r.title),
+      focusTopics: recList.map((r) => topicNameMap.get(r.skill) || r.skill),
+      improvementPlan: recList.map((r) => r.description),
+      estimatedPracticeHours: recList.length * 2,
+      priority: recList[0]?.priority || "Medium",
     };
   }
 
@@ -229,7 +287,10 @@ export class ResultQueryService {
     );
 
     return {
-      latestResult: { score: Math.round(latest.percentage), attemptId: latest.attemptId },
+      latestResult: {
+        score: Math.round(latest.percentage),
+        attemptId: latest.attemptId,
+      },
       bestScore: Math.round(best.percentage),
       recentAttempt: latest.createdAt,
       recommendedPractice: "General Review", // Should come from recommendations
@@ -333,7 +394,10 @@ export class ResultQueryService {
     });
 
     tiqs.forEach((q) => {
-      questionToSectionMap[q.questionId] = q.section.sectionName;
+      if (q.section) {
+        questionToSectionMap[q.questionId] = q.section.sectionName;
+        questionToSectionMap[`${q.questionId}_key`] = q.section.sectionKey;
+      }
     });
 
     let totalSpentSecs = 0;
@@ -344,7 +408,6 @@ export class ResultQueryService {
       where: { testInstanceId: attemptId },
     });
 
-    let hasSectionTime = false;
     sectionRecords.forEach((secRecord) => {
       if (secRecord.startedAt) {
         let spentSecs = 0;
@@ -353,44 +416,85 @@ export class ResultQueryService {
             (secRecord.updatedAt.getTime() - secRecord.startedAt.getTime()) /
               1000,
           );
-        } else if (secRecord.status === "ACTIVE") {
-          if (attemptRecord?.submittedAt) {
-            spentSecs = Math.floor(
-              (attemptRecord.submittedAt.getTime() -
-                secRecord.startedAt.getTime()) /
-                1000,
-            );
-          }
+        } else if (
+          secRecord.status === "ACTIVE" &&
+          attemptRecord?.submittedAt
+        ) {
+          spentSecs = Math.floor(
+            (attemptRecord.submittedAt.getTime() -
+              secRecord.startedAt.getTime()) /
+              1000,
+          );
         }
         if (spentSecs > 0) {
           sectionTimeMap[secRecord.sectionKey] = Math.max(0, spentSecs);
           sectionTimeMap[secRecord.sectionName] = Math.max(0, spentSecs);
           totalSpentSecs += Math.max(0, spentSecs);
-          hasSectionTime = true;
         }
       }
     });
 
-    if (!hasSectionTime) {
-      totalSpentSecs = answers.reduce((sum, a) => sum + a.timeSpentSeconds, 0);
-      if (totalSpentSecs === 0 && attemptRecord?.submittedAt) {
-        totalSpentSecs = Math.floor(
-          (attemptRecord.submittedAt.getTime() -
-            attemptRecord.createdAt.getTime()) /
-            1000,
-        );
-        if (sections.length === 1) {
-          sectionTimeMap[sections[0].sectionName] = totalSpentSecs;
-        }
-      } else {
-        answers.forEach((a) => {
-          const sectionName = questionToSectionMap[a.questionId];
-          if (sectionName) {
-            sectionTimeMap[sectionName] =
-              (sectionTimeMap[sectionName] || 0) + a.timeSpentSeconds;
-          }
-        });
+    // Sum per-question answer timeSpentSeconds for each section
+    const answerTimeMap: Record<string, number> = {};
+    answers.forEach((a) => {
+      const sectionName = questionToSectionMap[a.questionId];
+      const sectionKey = questionToSectionMap[`${a.questionId}_key`];
+      if (sectionName) {
+        answerTimeMap[sectionName] =
+          (answerTimeMap[sectionName] || 0) + (a.timeSpentSeconds || 0);
       }
+      if (sectionKey) {
+        answerTimeMap[sectionKey] =
+          (answerTimeMap[sectionKey] || 0) + (a.timeSpentSeconds || 0);
+      }
+    });
+
+    // Merge answerTimeMap into sectionTimeMap for any section missing spent time
+    for (const [k, v] of Object.entries(answerTimeMap)) {
+      if (!sectionTimeMap[k] || sectionTimeMap[k] === 0) {
+        sectionTimeMap[k] = v;
+      }
+    }
+
+    // Fallback: if sectionTimeMap for an attempted section is still 0, derive from total wall-clock duration
+    const wallClockSecs =
+      attemptRecord?.submittedAt && attemptRecord?.startedAt
+        ? Math.floor(
+            (attemptRecord.submittedAt.getTime() -
+              attemptRecord.startedAt.getTime()) /
+              1000,
+          )
+        : attemptRecord?.submittedAt && attemptRecord?.createdAt
+          ? Math.floor(
+              (attemptRecord.submittedAt.getTime() -
+                attemptRecord.createdAt.getTime()) /
+                1000,
+            )
+          : 0;
+
+    if (wallClockSecs > 0) {
+      const totalQ = Math.max(1, tiqs.length);
+      sections.forEach((sec) => {
+        const spent =
+          sectionTimeMap[sec.sectionKey] ||
+          sectionTimeMap[sec.sectionName] ||
+          0;
+        if (spent === 0) {
+          const secQCount =
+            tiqs.filter(
+              (q) =>
+                q.section?.sectionKey === sec.sectionKey ||
+                q.section?.sectionName === sec.sectionName,
+            ).length ||
+            sec.questionCount ||
+            1;
+          const estimatedSecs = Math.round(
+            (wallClockSecs * secQCount) / totalQ,
+          );
+          sectionTimeMap[sec.sectionKey] = estimatedSecs;
+          sectionTimeMap[sec.sectionName] = estimatedSecs;
+        }
+      });
     }
 
     const sectionAccData =
@@ -399,14 +503,49 @@ export class ResultQueryService {
         : {};
 
     const sectionTime = sections.map((sec) => {
-      const spentSecs =
+      const normalize = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const secKeyNorm = normalize(sec.sectionKey || "");
+      const secNameNorm = normalize(sec.sectionName || "");
+
+      let spentSecs =
         sectionTimeMap[sec.sectionKey] || sectionTimeMap[sec.sectionName] || 0;
-      const spentMin = Math.round(spentSecs / 60);
+      if (!spentSecs) {
+        for (const [k, v] of Object.entries(sectionTimeMap)) {
+          const kNorm = normalize(k);
+          if (
+            kNorm === secKeyNorm ||
+            kNorm === secNameNorm ||
+            kNorm.includes(secKeyNorm) ||
+            secKeyNorm.includes(kNorm)
+          ) {
+            spentSecs = v;
+            break;
+          }
+        }
+      }
+
+      const spentMin =
+        spentSecs > 0 && spentSecs < 60 ? 1 : Math.round(spentSecs / 60);
       const expectedMin = Math.round(sec.durationSeconds / 60);
       const qCount = sec.questionCount || 1;
 
       let acc = sectionAccData[sec.sectionKey];
       if (acc === undefined) acc = sectionAccData[sec.sectionName];
+      if (acc === undefined) {
+        for (const [k, v] of Object.entries(sectionAccData)) {
+          const kNorm = normalize(k);
+          if (
+            kNorm === secKeyNorm ||
+            kNorm === secNameNorm ||
+            kNorm.includes(secKeyNorm) ||
+            secKeyNorm.includes(kNorm)
+          ) {
+            acc = v;
+            break;
+          }
+        }
+      }
       if (acc === undefined) {
         if (sections.length === 1) acc = percentage;
         else acc = 0;
@@ -415,11 +554,15 @@ export class ResultQueryService {
       let status = "N/A";
       let pacingFeedback = "Pacing analysis pending";
 
-      const timeUsedPercentage = expectedMin > 0 ? Math.round((spentMin / expectedMin) * 100) : 0;
+      const timeUsedPercentage =
+        expectedMin > 0 ? Math.round((spentMin / expectedMin) * 100) : 0;
       const avgSecsPerQ = Math.round(spentSecs / Math.max(1, qCount));
-      const avgTimePerQuestion = avgSecsPerQ >= 60 ? `${(avgSecsPerQ / 60).toFixed(1)}m` : `${avgSecsPerQ}s`;
+      const avgTimePerQuestion =
+        avgSecsPerQ >= 60
+          ? `${(avgSecsPerQ / 60).toFixed(1)}m`
+          : `${avgSecsPerQ}s`;
 
-      if (spentMin === 0) {
+      if (spentSecs === 0 && acc === 0) {
         status = "N/A";
         pacingFeedback = "Section not attempted";
       } else if (acc < 50) {
@@ -457,13 +600,21 @@ export class ResultQueryService {
       (sum, s) => sum + s.durationSeconds,
       0,
     );
-    const timeEfficiency =
-      totalExpectedSecs > 0 && totalSpentSecs > 0
-        ? Math.min(
-            100,
-            Math.round((totalExpectedSecs / Math.max(totalSpentSecs, 1)) * 100),
-          )
-        : 100;
+
+    const actualSpentSecs = sectionTime.reduce((sum, s) => {
+      const spent = sectionTimeMap[s.sectionName] || 0;
+      return sum + spent;
+    }, 0);
+
+    let timeEfficiency = 0;
+    if (totalExpectedSecs > 0 && actualSpentSecs > 0) {
+      const ratio = actualSpentSecs / totalExpectedSecs;
+      if (ratio <= 1) {
+        timeEfficiency = Math.round(ratio * 100);
+      } else {
+        timeEfficiency = Math.max(0, Math.round((2 - ratio) * 100));
+      }
+    }
 
     const strengths: string[] = [];
     const weaknesses: string[] = [];
@@ -475,7 +626,9 @@ export class ResultQueryService {
     }[] = [];
 
     const isUUID = (str: string) =>
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        str,
+      );
 
     // Query database Question table for questions in tiqs to get authoritative topic relations
     const questionIds = tiqs.map((q) => q.questionId).filter(Boolean);
@@ -485,12 +638,20 @@ export class ResultQueryService {
     });
     const dbQuestionMap = new Map(dbQuestions.map((q) => [q.id, q]));
 
-    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const allTopics = await this.prisma.topic.findMany({
+      select: { id: true, name: true },
+    });
     const topicMap: Record<string, string> = {};
-    allTopics.forEach((t) => { topicMap[t.id] = t.name; });
-    const topicAccuracyMap = (analytics?.topicAccuracy as Record<string, number>) || {};
+    allTopics.forEach((t) => {
+      topicMap[t.id] = t.name;
+    });
+    const topicAccuracyMap =
+      (analytics?.topicAccuracy as Record<string, number>) || {};
 
-    const topicStats: Record<string, { topicName: string; sectionName: string; total: number }> = {};
+    const topicStats: Record<
+      string,
+      { topicName: string; sectionName: string; total: number }
+    > = {};
 
     tiqs.forEach((q, idx) => {
       const snap = (q.questionSnapshot || {}) as any;
@@ -499,7 +660,9 @@ export class ResultQueryService {
 
       let tName =
         snap.topicName ||
-        (typeof snap.topic === 'string' && !isUUID(snap.topic) ? snap.topic : null) ||
+        (typeof snap.topic === "string" && !isUUID(snap.topic)
+          ? snap.topic
+          : null) ||
         (snap.topicId ? topicMap[snap.topicId] : null) ||
         dbQ?.topic?.name ||
         snap.conceptKey ||
@@ -510,11 +673,17 @@ export class ResultQueryService {
 
       if (!tName || isUUID(tName) || tName === secName) {
         // Fallback for topics if not specified: group into distinct concept areas per section
-        if (secName.toLowerCase().includes('reasoning')) {
-          const reasoningSubtopics = ['Logical Deductions & Pattern Recognition', 'Analytical & Problem Solving'];
+        if (secName.toLowerCase().includes("reasoning")) {
+          const reasoningSubtopics = [
+            "Logical Deductions & Pattern Recognition",
+            "Analytical & Problem Solving",
+          ];
           tName = reasoningSubtopics[idx % reasoningSubtopics.length];
-        } else if (secName.toLowerCase().includes('coding')) {
-          const codingSubtopics = ['Algorithms & Data Structures', 'Syntax & Problem Logic'];
+        } else if (secName.toLowerCase().includes("coding")) {
+          const codingSubtopics = [
+            "Algorithms & Data Structures",
+            "Syntax & Problem Logic",
+          ];
           tName = codingSubtopics[idx % codingSubtopics.length];
         } else {
           tName = `${secName} Core Concepts`;
@@ -593,7 +762,9 @@ export class ResultQueryService {
         feedback,
       });
 
-      const topicsForSec = topicAccuracyList.filter((t) => t.sectionName === sec.sectionName);
+      const topicsForSec = topicAccuracyList.filter(
+        (t) => t.sectionName === sec.sectionName,
+      );
 
       return {
         sectionName: sec.sectionName,
@@ -612,7 +783,11 @@ export class ResultQueryService {
       const bestSection = [...sectionAccuracy].sort(
         (a, b) => b.accuracy - a.accuracy,
       )[0];
-      if (bestSection && bestSection.accuracy > 0 && !isUUID(bestSection.sectionName)) {
+      if (
+        bestSection &&
+        bestSection.accuracy > 0 &&
+        !isUUID(bestSection.sectionName)
+      ) {
         strengths.push(bestSection.sectionName);
         // Remove from weaknesses if present
         const idx = weaknesses.indexOf(bestSection.sectionName);
@@ -650,7 +825,9 @@ export class ResultQueryService {
     let computedCodingScore = evaluation?.technicalScore;
     if (computedCodingScore === undefined || computedCodingScore === null) {
       if (codingSec && codingMaxMarks > 0) {
-        computedCodingScore = Math.round((codingSec.accuracy / 100) * codingMaxMarks);
+        computedCodingScore = Math.round(
+          (codingSec.accuracy / 100) * codingMaxMarks,
+        );
       } else if (codingSec) {
         computedCodingScore = Math.round(codingSec.accuracy);
       } else {
@@ -675,48 +852,143 @@ export class ResultQueryService {
     let qualificationDetails: any = result.qualificationDetails;
 
     // Dynamic on-the-fly evaluation to sync qualification fields according to current hiring config
+    if (!result.evaluatedAt) {
+      try {
+        const fullResult = await this.resultGenerator.generateResult({
+          executionId: attemptId,
+          testId: attemptId,
+          status: "submitted",
+          submittedAt: attemptRecord?.submittedAt || new Date(),
+          answers: answers.map((a) => ({
+            questionId: a.questionId,
+            answer: String(a.answer),
+            timeSpentSeconds: a.timeSpentSeconds || 0,
+            isMarkedForReview: false,
+          })),
+        });
+
+        qualification = fullResult.qualification || null;
+        qualificationReason = fullResult.qualificationReason || null;
+        evaluationStrategy = fullResult.evaluationStrategy || null;
+        foundationScore = fullResult.foundationScore ?? null;
+        advancedScore = fullResult.advancedScore ?? null;
+        codingSolved = fullResult.codingSolved ?? null;
+        qualificationDetails = fullResult.qualificationDetails || null;
+
+        // Asynchronously persist computed qualification (or null if disabled) back to DB
+        this.prisma.candidateResult
+          .update({
+            where: { attemptId },
+            data: {
+              qualification: fullResult.qualification || null,
+              qualificationReason: fullResult.qualificationReason || null,
+              evaluationStrategy: fullResult.evaluationStrategy || null,
+              foundationScore: fullResult.foundationScore ?? null,
+              advancedScore: fullResult.advancedScore ?? null,
+              codingSolved: fullResult.codingSolved ?? null,
+              qualificationDetails:
+                (fullResult.qualificationDetails as any) || null,
+              evaluatedAt: fullResult.evaluatedAt
+                ? new Date(fullResult.evaluatedAt)
+                : new Date(),
+            },
+          })
+          .catch(() => {});
+      } catch {
+        // Ignore fallback evaluation error
+      }
+    } else {
+      // Fire and forget re-evaluation in background to keep data fresh without blocking response
+      this.resultGenerator
+        .generateResult({
+          executionId: attemptId,
+          testId: attemptId,
+          status: "submitted",
+          submittedAt: attemptRecord?.submittedAt || new Date(),
+          answers: answers.map((a) => ({
+            questionId: a.questionId,
+            answer: String(a.answer),
+            timeSpentSeconds: a.timeSpentSeconds || 0,
+            isMarkedForReview: false,
+          })),
+        })
+        .then((fullResult) => {
+          this.prisma.candidateResult
+            .update({
+              where: { attemptId },
+              data: {
+                qualification: fullResult.qualification || null,
+                qualificationReason: fullResult.qualificationReason || null,
+                evaluationStrategy: fullResult.evaluationStrategy || null,
+                foundationScore: fullResult.foundationScore ?? null,
+                advancedScore: fullResult.advancedScore ?? null,
+                codingSolved: fullResult.codingSolved ?? null,
+                qualificationDetails:
+                  (fullResult.qualificationDetails as any) || null,
+                evaluatedAt: fullResult.evaluatedAt
+                  ? new Date(fullResult.evaluatedAt)
+                  : new Date(),
+              },
+            })
+            .catch(() => {});
+        })
+        .catch(() => {});
+    }
+
+    let rank = 1;
+    let totalCandidates = 1;
+    let percentile = 100;
+
     try {
-      const fullResult = await this.resultGenerator.generateResult({
-        executionId: attemptId,
-        testId: attemptId,
-        status: "submitted",
-        submittedAt: attemptRecord?.submittedAt || new Date(),
-        answers: answers.map((a) => ({
-          questionId: a.questionId,
-          answer: String(a.answer),
-          timeSpentSeconds: a.timeSpentSeconds || 0,
-          isMarkedForReview: false,
-        })),
+      const testConfigId = attemptRecord?.testConfigId;
+      const examConfigId = attemptRecord?.examConfigId;
+      const whereClause = testConfigId
+        ? { attempt: { testConfigId } }
+        : examConfigId
+          ? { attempt: { examConfigId } }
+          : {};
+
+      const candidateResults = await this.prisma.candidateResult.findMany({
+        where: whereClause,
+        select: { percentage: true },
       });
 
-      const fRes = fullResult as any;
-      qualification = fRes.qualification || null;
-      qualificationReason = fRes.qualificationReason || null;
-      evaluationStrategy = fRes.evaluationStrategy || null;
-      foundationScore = fRes.foundationScore ?? null;
-      advancedScore = fRes.advancedScore ?? null;
-      codingSolved = fRes.codingSolved ?? null;
-      qualificationDetails = fRes.qualificationDetails || null;
+      if (candidateResults && candidateResults.length > 0) {
+        totalCandidates = candidateResults.length;
+        const currentPct = percentage;
+        let countHigher = 0;
+        let countEqual = 0;
 
-      // Asynchronously persist computed qualification (or null if disabled) back to DB
-      this.prisma.candidateResult.update({
-        where: { attemptId },
-        data: {
-          qualification: fRes.qualification || null,
-          qualificationReason: fRes.qualificationReason || null,
-          evaluationStrategy: fRes.evaluationStrategy || null,
-          foundationScore: fRes.foundationScore ?? null,
-          advancedScore: fRes.advancedScore ?? null,
-          codingSolved: fRes.codingSolved ?? null,
-          qualificationDetails: fRes.qualificationDetails || null,
-          evaluatedAt: fRes.evaluatedAt ? new Date(fRes.evaluatedAt) : new Date(),
-        } as any,
-      }).catch(() => {});
+        for (const cr of candidateResults) {
+          const p = cr.percentage ?? 0;
+          if (p > currentPct) {
+            countHigher++;
+          } else if (Math.abs(p - currentPct) < 0.001) {
+            countEqual++;
+          }
+        }
+
+        rank = countHigher + 1;
+        const countLess = totalCandidates - countHigher - countEqual;
+        percentile =
+          totalCandidates > 0
+            ? parseFloat(
+                (
+                  ((countLess + 0.5 * countEqual) / totalCandidates) *
+                  100
+                ).toFixed(1),
+              )
+            : 100;
+      }
     } catch {
-      // Ignore fallback evaluation error
+      // Ignore rank calculation error fallback
     }
 
     return {
+      assessmentName:
+        result.attempt?.testConfig?.displayName ||
+        result.attempt?.examConfig?.name ||
+        "Assessment",
       overallScore,
       percentage,
       overallAccuracy,
@@ -733,11 +1005,18 @@ export class ResultQueryService {
       recommendations: recommendations.practiceSuggestions || [],
       // Enriched fields from EvaluationResult
       objectiveScore: evaluation?.communicationScore || 0,
-      codingScore: computedCodingScore,
+      codingScore: computedCodingScore || 0,
       objectiveMaxMarks,
-      codingMaxMarks: codingMaxMarks || (codingSec ? 100 : 0),
+      codingMaxMarks:
+        codingMaxMarks <= 10 && (computedCodingScore || 0) > codingMaxMarks
+          ? 100
+          : codingMaxMarks || (codingSec ? 100 : 0),
       passed: evaluation?.overallRating === 1,
       maxMarks: finalMaxMarks,
+      // Ranking & Percentile
+      rank,
+      totalCandidates,
+      percentile,
       // Hiring Evaluation fields
       qualification,
       qualificationReason,

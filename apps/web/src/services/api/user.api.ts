@@ -7,6 +7,7 @@ export const userApi = {
   getCurrentUser(): Promise<AuthUser> {
     return apiClient.request<AuthUser>(`${USER_BASE_PATH}/me`, {
       method: 'GET',
+      skipErrorToast: true,
     });
   },
 

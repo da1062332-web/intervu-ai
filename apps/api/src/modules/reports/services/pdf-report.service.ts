@@ -15,7 +15,7 @@ export class PdfReportService {
     return new Promise<Buffer>((resolve, reject) => {
       try {
         const doc = new PDFDocument({
-          margin: 50,
+          margin: 40,
           size: "A4",
           bufferPages: true,
         });
@@ -33,298 +33,205 @@ export class PdfReportService {
         });
         doc.on("error", (err: any) => reject(err));
 
-        // ─── 1. COVER PAGE ──────────────────────────────────────────────────
-        doc.rect(0, 0, doc.page.width, doc.page.height).fill("#0F172A"); // Dark navy primary background
+        const COLORS = {
+          primary: "#7C3AED",
+          success: "#10B981",
+          warning: "#F59E0B",
+          danger: "#EF4444",
+          textMain: "#0F172A",
+          textMuted: "#64748B",
+          border: "#E2E8F0",
+          cardBg: "#FFFFFF",
+          pageBg: "#FAFAFA",
+        };
 
-        doc
-          .fillColor("#38BDF8")
-          .fontSize(32)
-          .text("INTERVU-AI", 50, 180, { wordSpacing: 2 });
-        doc
-          .fillColor("#FFFFFF")
-          .fontSize(28)
-          .text("CANDIDATE PERFORMANCE REPORT", 50, 220);
+        // Helper: format time
+        const formatTimeSpent = (timeInSecs: number) => {
+          if (!timeInSecs || timeInSecs <= 0) return "0s";
+          const m = Math.floor(timeInSecs / 60);
+          const s = Math.round(timeInSecs % 60);
+          if (m === 0) return `${s}s`;
+          if (s === 0) return `${m}m`;
+          return `${m}m ${s}s`;
+        };
 
-        // Horizontal divider line
-        doc
-          .moveTo(50, 270)
-          .lineTo(500, 270)
-          .strokeColor("#38BDF8")
-          .lineWidth(3)
-          .stroke();
+        const drawCard = (x: number, y: number, w: number, h: number) => {
+          doc.roundedRect(x, y, w, h, 12).fillAndStroke(COLORS.cardBg, COLORS.border);
+        };
 
-        doc.fillColor("#94A3B8").fontSize(14).text("Assessment Title", 50, 310);
-        doc
-          .fillColor("#FFFFFF")
-          .fontSize(18)
-          .text(reportData.assessment.title, 50, 330);
+        const drawBadge = (text: string, x: number, y: number, color: string, bg: string, w = 60) => {
+          doc.roundedRect(x, y, w, 20, 6).fill(bg);
+          doc.fillColor(color).fontSize(9).text(text, x, y + 6, { width: w, align: 'center' });
+        };
 
-        doc.fillColor("#94A3B8").fontSize(14).text("Prepared For", 50, 390);
-        doc
-          .fillColor("#FFFFFF")
-          .fontSize(18)
-          .text(reportData.candidate.fullName, 50, 410);
-        doc
-          .fillColor("#38BDF8")
-          .fontSize(14)
-          .text(reportData.candidate.email, 50, 430);
+        // --- PAGE 1: COVER PAGE ---
+        doc.rect(0, 0, doc.page.width, doc.page.height).fill(COLORS.pageBg);
 
-        doc
-          .fillColor("#94A3B8")
-          .fontSize(12)
-          .text(`Generated: ${new Date().toLocaleDateString()}`, 50, 680);
-        doc
-          .fillColor("#38BDF8")
-          .fontSize(12)
-          .text("CONFIDENTIAL", 400, 680, { align: "right" });
-
-        // ─── 2. ASSESSMENT SUMMARY ──────────────────────────────────────────
-        doc.addPage({ margin: 50, size: "A4" });
-        doc.fillColor("#1E293B"); // Back to standard text
-
-        // Page Header
-        doc
-          .fontSize(20)
-          .fillColor("#0F172A")
-          .text("Assessment Summary", 50, 50);
-        doc
-          .moveTo(50, 75)
-          .lineTo(545, 75)
-          .strokeColor("#CBD5E1")
-          .lineWidth(1)
-          .stroke();
-
-        // Score Grid
-        const gridY = 100;
-        doc.rect(50, gridY, 150, 80).fill("#F8FAFC");
-        doc.rect(220, gridY, 150, 80).fill("#F8FAFC");
-        doc.rect(395, gridY, 150, 80).fill("#F8FAFC");
-
-        doc
-          .fillColor("#475569")
-          .fontSize(11)
-          .text("OVERALL SCORE", 60, gridY + 15);
-        doc
-          .fillColor("#0F172A")
-          .fontSize(24)
-          .text(`${reportData.score}/100`, 60, gridY + 35);
-
-        doc
-          .fillColor("#475569")
-          .fontSize(11)
-          .text("ACCURACY", 230, gridY + 15);
-        doc
-          .fillColor("#0F172A")
-          .fontSize(24)
-          .text(`${reportData.accuracy}%`, 230, gridY + 35);
-
-        doc
-          .fillColor("#475569")
-          .fontSize(11)
-          .text("TIME TAKEN", 405, gridY + 15);
-        const mins = Math.floor(reportData.timeTaken / 60);
-        const secs = reportData.timeTaken % 60;
-        doc
-          .fillColor("#0F172A")
-          .fontSize(20)
-          .text(`${mins}m ${secs}s`, 405, gridY + 38);
-
-        // Rank & Percentile
-        doc
-          .fillColor("#0F172A")
-          .fontSize(12)
-          .text(`Global Rank: #${reportData.rank}`, 50, 205);
-        doc.text(`Percentile: ${reportData.percentile}th percentile`, 220, 205);
-
-        // Section Breakdown Table
-        doc.fontSize(16).text("Section Breakdown", 50, 250);
-        doc.moveTo(50, 270).lineTo(545, 270).strokeColor("#E2E8F0").stroke();
-
-        let tableY = 285;
-        doc.fontSize(11).fillColor("#64748B");
-        doc.text("SECTION NAME", 60, tableY);
-        doc.text("SCORE", 250, tableY);
-        doc.text("CORRECT / TOTAL", 350, tableY);
-        doc.text("TIME SPENT", 470, tableY);
-
-        doc
-          .moveTo(50, tableY + 15)
-          .lineTo(545, tableY + 15)
-          .strokeColor("#E2E8F0")
-          .stroke();
-        tableY += 25;
-
-        reportData.sectionBreakdown.forEach((sec: any) => {
-          if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
-          doc.fillColor("#0F172A");
-          doc.text(sec.section || sec.sectionKey || "General", 60, tableY, { width: 180, ellipsis: true, lineBreak: false });
-          doc.text(`${sec.score}%`, 250, tableY);
-          doc.text(`${sec.correct} / ${sec.total}`, 350, tableY);
-          const sMins = Math.floor(sec.timeSpent / 60);
-          doc.text(`${sMins}m`, 470, tableY);
-          tableY += 25;
-        });
-
-        // Topic Mastery Table
-        tableY += 15;
-        if (tableY > 650) { doc.addPage({ margin: 50 }); tableY = 50; }
-        doc.fontSize(16).fillColor("#0F172A").text("Topic Mastery", 50, tableY);
-        tableY += 20;
-        doc.moveTo(50, tableY).lineTo(545, tableY).strokeColor("#E2E8F0").stroke();
-        tableY += 15;
+        // Header
+        doc.fillColor(COLORS.primary).fontSize(28).font('Helvetica-Bold').text("InterVu AI", 40, 60);
+        doc.fillColor(COLORS.textMuted).fontSize(12).font('Helvetica').text("CANDIDATE ASSESSMENT REPORT", 40, 95, { characterSpacing: 2 });
         
-        doc.fontSize(11).fillColor("#64748B");
-        doc.text("TOPIC", 60, tableY);
-        doc.text("SCORE", 250, tableY);
-        doc.text("CORRECT / TOTAL", 350, tableY);
-        doc.text("TIME SPENT", 470, tableY);
+        doc.moveTo(40, 120).lineTo(555, 120).strokeColor(COLORS.border).lineWidth(1).stroke();
+
+        // Candidate Info
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(reportData.candidate.fullName || "Candidate", 40, 150);
+        doc.fillColor(COLORS.textMuted).fontSize(14).font('Helvetica').text(reportData.candidate.email || "No Email", 40, 180);
         
-        doc.moveTo(50, tableY + 15).lineTo(545, tableY + 15).strokeColor("#E2E8F0").stroke();
-        tableY += 25;
+        doc.fontSize(12).text(`Assessment: `, 40, 220, { continued: true }).fillColor(COLORS.textMain).font('Helvetica-Bold').text(reportData.assessment.title || "Untitled Assessment");
+        doc.fillColor(COLORS.textMuted).font('Helvetica').text(`Submission ID: `, 40, 240, { continued: true }).fillColor(COLORS.textMain).text(attemptId);
+        doc.fillColor(COLORS.textMuted).font('Helvetica').text(`Generated: `, 40, 260, { continued: true }).fillColor(COLORS.textMain).text(new Date().toLocaleDateString());
+
+        // Qualification Banner
+        const isQualified = reportData.score >= 70; // Placeholder logic if qualification not present
+        const qualStatus = reportData.qualification?.status || (isQualified ? "QUALIFIED" : "NOT QUALIFIED");
+        const bannerColor = qualStatus.toUpperCase() === "QUALIFIED" || qualStatus.toUpperCase() === "PASS" ? COLORS.success : COLORS.danger;
         
-        if (reportData.topicBreakdown && reportData.topicBreakdown.length > 0) {
-          reportData.topicBreakdown.forEach((topic: any) => {
-            if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
-            doc.fillColor("#0F172A");
-            doc.text(topic.topic || "Unknown", 60, tableY, { width: 180, ellipsis: true, lineBreak: false });
-            doc.text(`${topic.score}%`, 250, tableY);
-            doc.text(`${topic.correct} / ${topic.total}`, 350, tableY);
-            const tMins = Math.floor(topic.timeSpent / 60);
-            doc.text(`${tMins}m`, 470, tableY);
-            tableY += 25;
+        doc.roundedRect(40, 310, 515, 60, 12).fill(bannerColor);
+        doc.fillColor("#FFFFFF").fontSize(20).font('Helvetica-Bold').text(qualStatus.toUpperCase(), 40, 332, { width: 515, align: 'center' });
+
+        // Performance Summary Cards
+        doc.fillColor(COLORS.textMain).fontSize(16).font('Helvetica-Bold').text("Performance Summary", 40, 410);
+        
+        const cardWidth = 160;
+        const cardHeight = 80;
+        
+        // Card 1: Score
+        drawCard(40, 440, cardWidth, cardHeight);
+        doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("OVERALL SCORE", 55, 455);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportData.score || 0}/100`, 55, 475);
+        
+        // Card 2: Accuracy
+        drawCard(217, 440, cardWidth, cardHeight);
+        doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("ACCURACY", 232, 455);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportData.accuracy || 0}%`, 232, 475);
+        
+        // Card 3: Time Taken
+        drawCard(395, 440, cardWidth, cardHeight);
+        doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("TIME TAKEN", 410, 455);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(formatTimeSpent(reportData.timeTaken || 0), 410, 475);
+        
+        // Card 4: Percentile
+        drawCard(40, 535, cardWidth, cardHeight);
+        doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("PERCENTILE", 55, 550);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportData.percentile || 0}th`, 55, 570);
+
+        // Card 5: Rank
+        drawCard(217, 535, cardWidth, cardHeight);
+        doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("GLOBAL RANK", 232, 550);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`#${reportData.rank || 0}`, 232, 570);
+
+
+        // --- PAGE 2: SECTION PERFORMANCE ---
+        doc.addPage({ margin: 40, size: "A4" });
+        doc.rect(0, 0, doc.page.width, doc.page.height).fill(COLORS.pageBg);
+
+        doc.fillColor(COLORS.textMain).fontSize(18).font('Helvetica-Bold').text("Section Performance", 40, 50);
+        drawCard(40, 80, 515, 300); // Container for section performance
+
+        // Table Header
+        let secY = 100;
+        doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold');
+        doc.text("SECTION NAME", 60, secY);
+        doc.text("SCORE", 250, secY);
+        doc.text("ACCURACY", 330, secY);
+        doc.text("STATUS", 440, secY);
+        doc.moveTo(40, secY + 20).lineTo(555, secY + 20).strokeColor(COLORS.border).stroke();
+        
+        secY += 35;
+        if (reportData.sectionBreakdown && reportData.sectionBreakdown.length > 0) {
+          reportData.sectionBreakdown.forEach((sec: any) => {
+            doc.fillColor(COLORS.textMain).fontSize(11).font('Helvetica-Bold').text(sec.section || sec.sectionKey || "General", 60, secY, { width: 180, lineBreak: false });
+            doc.fillColor(COLORS.textMuted).font('Helvetica').text(`${sec.score || 0}%`, 250, secY);
+            doc.text(`${sec.correct || 0}/${sec.total || 0}`, 330, secY);
+            
+            const isPass = (sec.score || 0) >= 50;
+            const statusTxt = isPass ? "PASS" : "FAIL";
+            const sColor = isPass ? COLORS.success : COLORS.danger;
+            const sBg = isPass ? "#D1FAE5" : "#FEE2E2"; // Light emerald / Light red
+            drawBadge(statusTxt, 440, secY - 4, sColor, sBg, 60);
+
+            // Progress bar
+            const barW = 475;
+            doc.roundedRect(60, secY + 20, barW, 6, 3).fill(COLORS.border);
+            const fillW = Math.max(0, Math.min(barW, (barW * (sec.score || 50)) / 100));
+            if (fillW > 0) doc.roundedRect(60, secY + 20, fillW, 6, 3).fill(COLORS.primary);
+
+            secY += 50;
           });
         } else {
-          doc.fillColor("#64748B").text("No topic data available.", 60, tableY);
-          tableY += 25;
+          doc.fillColor(COLORS.textMuted).font('Helvetica').text("No section data available.", 60, secY);
         }
 
-        // Difficulty Performance Table
-        tableY += 15;
-        if (tableY > 650) { doc.addPage({ margin: 50 }); tableY = 50; }
-        doc.fontSize(16).fillColor("#0F172A").text("Difficulty Performance", 50, tableY);
-        tableY += 20;
-        doc.moveTo(50, tableY).lineTo(545, tableY).strokeColor("#E2E8F0").stroke();
-        tableY += 15;
+        // --- STRENGTHS & IMPROVEMENT AREAS ---
+        const swY = 410;
+        doc.fillColor(COLORS.textMain).fontSize(18).font('Helvetica-Bold').text("Strengths & Improvement Areas", 40, swY);
         
-        doc.fontSize(11).fillColor("#64748B");
-        doc.text("DIFFICULTY", 60, tableY);
-        doc.text("SCORE", 250, tableY);
-        doc.text("CORRECT / TOTAL", 350, tableY);
-        doc.text("TIME SPENT", 470, tableY);
-        
-        doc.moveTo(50, tableY + 15).lineTo(545, tableY + 15).strokeColor("#E2E8F0").stroke();
-        tableY += 25;
-        
-        if (reportData.difficultyBreakdown && reportData.difficultyBreakdown.length > 0) {
-          reportData.difficultyBreakdown.forEach((diff: any) => {
-            if (tableY > 700) { doc.addPage({ margin: 50 }); tableY = 50; }
-            doc.fillColor("#0F172A");
-            doc.text(diff.difficulty || "Unknown", 60, tableY, { width: 180, ellipsis: true, lineBreak: false });
-            doc.text(`${diff.score}%`, 250, tableY);
-            doc.text(`${diff.correct} / ${diff.total}`, 350, tableY);
-            const dMins = Math.floor(diff.timeSpent / 60);
-            doc.text(`${dMins}m`, 470, tableY);
-            tableY += 25;
+        // Left Card (Strengths)
+        drawCard(40, swY + 30, 250, 200);
+        doc.fillColor(COLORS.success).fontSize(14).font('Helvetica-Bold').text("Top Strengths", 55, swY + 45);
+        doc.fillColor(COLORS.textMain).fontSize(10).font('Helvetica');
+        let sy = swY + 75;
+        if (reportData.strengths && reportData.strengths.length > 0) {
+          reportData.strengths.slice(0, 3).forEach((s: any) => {
+            doc.text(`• ${s.title || s}`, 55, sy, { width: 220 });
+            sy += 25;
           });
         } else {
-          doc.fillColor("#64748B").text("No difficulty data available.", 60, tableY);
-          tableY += 25;
+          doc.text("Consistent overall performance.", 55, sy);
         }
 
-        // ─── 3. ANALYTICS & RECOMMENDATIONS ────────────────────────────────
-        doc.addPage({ margin: 50, size: "A4" });
-        doc
-          .fontSize(20)
-          .fillColor("#0F172A")
-          .text("Detailed Analytics & Recommendations", 50, 50);
-        doc
-          .moveTo(50, 75)
-          .lineTo(545, 75)
-          .strokeColor("#CBD5E1")
-          .lineWidth(1)
-          .stroke();
-
-        // Strengths & Weaknesses
-        doc.fontSize(14).text("Key Strengths", 50, 100);
-        doc.fontSize(11).fillColor("#16A34A"); // Green
-        if (reportData.strengths.length > 0) {
-          reportData.strengths.forEach((s: string, idx: number) => {
-            doc.text(`\u2022 ${s}`, 60, 120 + idx * 18);
+        // Right Card (Weaknesses)
+        drawCard(305, swY + 30, 250, 200);
+        doc.fillColor(COLORS.warning).fontSize(14).font('Helvetica-Bold').text("Needs Improvement", 320, swY + 45);
+        doc.fillColor(COLORS.textMain).fontSize(10).font('Helvetica');
+        let wy = swY + 75;
+        if (reportData.weaknesses && reportData.weaknesses.length > 0) {
+          reportData.weaknesses.slice(0, 3).forEach((w: any) => {
+            doc.text(`• ${w.title || w}`, 320, wy, { width: 220 });
+            wy += 25;
           });
         } else {
-          doc.text("Keep practicing to identify standout skills.", 60, 120);
+          doc.text("No critical weaknesses detected.", 320, wy);
         }
 
-        const weaknessY = 190;
-        doc
-          .fillColor("#0F172A")
-          .fontSize(14)
-          .text("Areas for Improvement", 50, weaknessY);
-        doc.fontSize(11).fillColor("#DC2626"); // Red
-        if (reportData.weaknesses.length > 0) {
-          reportData.weaknesses.forEach((w: string, idx: number) => {
-            doc.text(`\u2022 ${w}`, 60, weaknessY + 20 + idx * 18);
+
+        // --- PAGE 3: AI RECOMMENDATIONS ---
+        doc.addPage({ margin: 40, size: "A4" });
+        doc.rect(0, 0, doc.page.width, doc.page.height).fill(COLORS.pageBg);
+
+        doc.fillColor(COLORS.textMain).fontSize(18).font('Helvetica-Bold').text("AI Insights & Recommendations", 40, 50);
+        
+        drawCard(40, 80, 515, 300);
+        doc.fillColor(COLORS.primary).fontSize(14).font('Helvetica-Bold').text("Actionable Next Steps", 60, 100);
+        
+        let recY = 135;
+        if (reportData.recommendations && reportData.recommendations.length > 0) {
+          reportData.recommendations.slice(0, 4).forEach((rec: any) => {
+            doc.fillColor(COLORS.textMain).fontSize(11).font('Helvetica-Bold').text(rec.title || "Recommendation", 60, recY);
+            doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica').text(rec.description || rec.action || String(rec), 60, recY + 15, { width: 475 });
+            recY += 45;
           });
         } else {
-          doc.text(
-            "No significant weaknesses detected. Great job!",
-            60,
-            weaknessY + 20,
-          );
+          doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica').text("Continue practicing regularly to maintain and improve your skills.", 60, recY);
         }
 
-        // Action Plan Recommendations
-        const recY = 300;
-        doc
-          .fillColor("#0F172A")
-          .fontSize(16)
-          .text("Recommended Action Plan", 50, recY);
-        doc
-          .moveTo(50, recY + 20)
-          .lineTo(545, recY + 20)
-          .strokeColor("#E2E8F0")
-          .stroke();
-
-        let recTextY = recY + 35;
-        reportData.recommendations
-          .slice(0, 3)
-          .forEach((r: any, idx: number) => {
-            doc
-              .fillColor("#0F172A")
-              .fontSize(11)
-              .text(`${idx + 1}. [${r.priority}] ${r.title}`, 60, recTextY, {
-                bold: true,
-              } as any);
-            doc
-              .fillColor("#475569")
-              .fontSize(10)
-              .text(r.description, 75, recTextY + 15);
-            recTextY += 45;
-          });
-
-        // Improvement plan list
-        const planY = recTextY + 10;
-        doc
-          .fillColor("#0F172A")
-          .fontSize(14)
-          .text("Step-by-Step Path", 50, planY);
-        let planTextY = planY + 20;
-        reportData.improvementPlan.forEach((planItem: string) => {
-          doc.fillColor("#475569").fontSize(10).text(planItem, 60, planTextY);
-          planTextY += 18;
-        });
-
-        // Footer Page numbering
+        // --- FOOTER FOR ALL PAGES ---
         const pages = doc.bufferedPageRange();
+        let oldBottomMargin: any = 0;
+        if (doc.options.margins) {
+          oldBottomMargin = doc.options.margins.bottom;
+          doc.options.margins.bottom = 0; // Prevent auto page-break
+        }
         for (let i = 0; i < pages.count; i++) {
           doc.switchToPage(i);
-          doc.fillColor("#94A3B8").fontSize(9);
-          // Don't draw footer on cover page
-          if (i > 0) {
-            doc.text(`Page ${i + 1} of ${pages.count}`, 50, 780, {
-              align: "center",
-            });
+          doc.fillColor(COLORS.textMuted).fontSize(9).font('Helvetica');
+          if (i > 0) { // No footer on cover page
+            doc.text(`Page ${i + 1} of ${pages.count}`, 40, 810, { align: "left", lineBreak: false });
+            doc.text("InterVu AI - Confidential Report", 40, 810, { align: "right", lineBreak: false });
           }
+        }
+        if (doc.options.margins) {
+          doc.options.margins.bottom = oldBottomMargin;
         }
 
         doc.end();

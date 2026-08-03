@@ -1,166 +1,107 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { PerformanceDashboardResponse } from '../types/results.types';
-import { CheckCircle2, AlertTriangle, XCircle, Award, Target, TrendingUp, Sparkles } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { Trophy, TrendingDown, Target, CheckCircle2, AlertCircle, ArrowRight, PlusCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface Props {
   data: PerformanceDashboardResponse;
+  attemptId?: string;
 }
 
-const isUUID = (str: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
-export const DashboardStrengthWeakness: React.FC<Props> = ({ data }) => {
-  const sectionNames = new Set(data.sectionAccuracy.map(s => s.sectionName));
-
-  const detailed = (data.detailedStrengthsWeaknesses || []).filter(
-    d => sectionNames.has(d.name) && !isUUID(d.name)
-  );
-
-  // Build items by category
-  const strengthItems = detailed.filter(d => d.category === 'STRENGTH');
-  const needsImprovementItems = detailed.filter(d => d.category === 'NEEDS_IMPROVEMENT');
-  const weaknessItems = detailed.filter(d => d.category === 'WEAKNESS');
-
-  // Fallbacks if detailed list not present
-  const simpleStrengths = data.strengths.filter(s => sectionNames.has(s) && !isUUID(s));
-  const simpleWeaknesses = data.weaknesses.filter(w => sectionNames.has(w) && !isUUID(w));
+export const DashboardStrengthWeakness: React.FC<Props> = ({ data, attemptId }) => {
+  const strongSections = data.sectionAccuracy.filter(s => s.accuracy >= 70);
+  const weakSections = data.sectionAccuracy.filter(s => s.accuracy < 70);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
-          <Award className="w-5 h-5 text-indigo-500" />
-          Detailed Strengths & Weaknesses Analysis
-        </CardTitle>
-        <CardDescription className="text-xs text-muted-foreground mt-0.5">
-          Categorized assessment of your section performance, accuracy scores, and specific improvement focus areas
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* 💪 STRENGTHS COLUMN */}
-          <div className="border rounded-xl p-4 bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-900/40 flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-emerald-200/60 dark:border-emerald-900/60">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="text-emerald-600 dark:text-emerald-400 w-5 h-5 shrink-0" />
-                  <h3 className="font-bold text-emerald-900 dark:text-emerald-200 text-base">Key Strengths</h3>
-                </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full">
-                  {strengthItems.length || simpleStrengths.length} Areas
-                </span>
-              </div>
-
-              {strengthItems.length > 0 ? (
-                <div className="space-y-3">
-                  {strengthItems.map((item, i) => (
-                    <div key={i} className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-emerald-100 dark:border-emerald-900/50 shadow-2xs space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">{item.name}</span>
-                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                          {item.score}% Acc
-                        </span>
-                      </div>
-                      <Progress value={item.score} className="h-1.5 bg-emerald-100 dark:bg-emerald-950" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">{item.feedback}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : simpleStrengths.length > 0 ? (
-                <ul className="space-y-2">
-                  {simpleStrengths.map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 p-2 bg-white dark:bg-slate-900 rounded-lg border border-emerald-100 text-xs font-medium text-emerald-900 dark:text-emerald-200">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-emerald-600/80 italic p-3 text-center">Keep practicing to build your core strengths.</p>
-              )}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* 1. STRENGTHS */}
+      <Card className="rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-border/60">
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Trophy className="w-4 h-4" />
             </div>
+            <h3 className="font-bold text-foreground text-base">Strengths</h3>
           </div>
 
-          {/* ⚠️ NEEDS IMPROVEMENT COLUMN */}
-          <div className="border rounded-xl p-4 bg-amber-50/40 dark:bg-amber-950/20 border-amber-200/80 dark:border-amber-900/40 flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200/60 dark:border-amber-900/60">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="text-amber-600 dark:text-amber-400 w-5 h-5 shrink-0" />
-                  <h3 className="font-bold text-amber-900 dark:text-amber-200 text-base">Needs Improvement</h3>
-                </div>
-                <span className="text-xs font-bold text-amber-700 bg-amber-100 dark:bg-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full">
-                  {needsImprovementItems.length} Areas
-                </span>
-              </div>
+          <div className="space-y-3.5 pt-1">
+            {strongSections.length > 0 ? (
+              strongSections.map((sec, idx) => {
+                const acc = Math.round(sec.accuracy || 0);
+                const perc = data.percentile ?? Math.min(100, acc);
 
-              {needsImprovementItems.length > 0 ? (
-                <div className="space-y-3">
-                  {needsImprovementItems.map((item, i) => (
-                    <div key={i} className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-amber-100 dark:border-amber-900/50 shadow-2xs space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">{item.name}</span>
-                        <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-                          {item.score}% Acc
-                        </span>
-                      </div>
-                      <Progress value={item.score} className="h-1.5 bg-amber-100 dark:bg-amber-950" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">{item.feedback}</p>
+                return (
+                  <div key={idx} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-foreground text-xs">{sec.sectionName}</h4>
+                      <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                        Accuracy: <span className="font-bold text-emerald-600 dark:text-emerald-400">{acc}%</span>
+                      </p>
                     </div>
-                  ))}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-foreground text-xs">General Proficiency</h4>
+                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                    Overall Accuracy: <span className="font-bold text-emerald-600 dark:text-emerald-400">{Math.round(data.overallAccuracy)}%</span>
+                  </p>
                 </div>
-              ) : (
-                <p className="text-xs text-amber-600/80 italic p-3 text-center">No moderate areas detected.</p>
-              )}
-            </div>
-          </div>
-
-          {/* ❌ WEAK AREAS COLUMN */}
-          <div className="border rounded-xl p-4 bg-red-50/40 dark:bg-red-950/20 border-red-200/80 dark:border-red-900/40 flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-red-200/60 dark:border-red-900/60">
-                <div className="flex items-center gap-2">
-                  <XCircle className="text-red-600 dark:text-red-400 w-5 h-5 shrink-0" />
-                  <h3 className="font-bold text-red-900 dark:text-red-200 text-base">Weak Areas</h3>
-                </div>
-                <span className="text-xs font-bold text-red-700 bg-red-100 dark:bg-red-900 dark:text-red-200 px-2 py-0.5 rounded-full">
-                  {weaknessItems.length || simpleWeaknesses.length} Areas
-                </span>
               </div>
-
-              {weaknessItems.length > 0 ? (
-                <div className="space-y-3">
-                  {weaknessItems.map((item, i) => (
-                    <div key={i} className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-red-100 dark:border-red-900/50 shadow-2xs space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">{item.name}</span>
-                        <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-800">
-                          {item.score}% Acc
-                        </span>
-                      </div>
-                      <Progress value={item.score} className="h-1.5 bg-red-100 dark:bg-red-950" />
-                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">{item.feedback}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : simpleWeaknesses.length > 0 ? (
-                <ul className="space-y-2">
-                  {simpleWeaknesses.map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 p-2 bg-white dark:bg-slate-900 rounded-lg border border-red-100 text-xs font-medium text-red-900 dark:text-red-200">
-                      <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-emerald-600/80 italic p-3 text-center">Great job! No major weak areas found.</p>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* 2. NEEDS IMPROVEMENT */}
+      <Card className="rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-border/60">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <TrendingDown className="w-4 h-4" />
+            </div>
+            <h3 className="font-bold text-foreground text-base">Needs Improvement</h3>
+          </div>
+
+          <div className="space-y-3.5 pt-1">
+            {weakSections.length > 0 ? (
+              weakSections.map((sec, idx) => {
+                const acc = Math.round(sec.accuracy || 0);
+                const perc = data.percentile ?? Math.min(100, acc);
+
+                return (
+                  <div key={idx} className="flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-foreground text-xs">{sec.sectionName}</h4>
+                      <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                        Accuracy: <span className="font-bold text-amber-600 dark:text-amber-400">{acc}%</span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-foreground text-xs">Pacing & Speed</h4>
+                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                    Focus on question response timing to maximize attempt count.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+
+    </div>
   );
 };

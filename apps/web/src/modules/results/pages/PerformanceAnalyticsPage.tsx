@@ -50,6 +50,14 @@ export const PerformanceAnalyticsPage = () => {
         </div>
       </div>
 
+      {/* AI Generated Recommendation over the result */}
+      <div>
+        <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
+          🤖 AI Recommended Action Plan
+        </h2>
+        <RecommendationPanel attemptId={attemptId as string} />
+      </div>
+
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
         <Card>
           <CardContent className='p-4 flex items-center gap-4'>
@@ -75,8 +83,8 @@ export const PerformanceAnalyticsPage = () => {
         </Card>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-        <Card className='lg:col-span-1'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+        <Card>
           <CardHeader>
             <CardTitle>Topic Mastery</CardTitle>
           </CardHeader>
@@ -89,20 +97,7 @@ export const PerformanceAnalyticsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className='lg:col-span-1'>
-          <CardHeader>
-            <CardTitle>Difficulty Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {Object.keys(analytics.difficultyAccuracy || {}).length > 0 ? (
-              <SectionAccuracyChart data={analytics.difficultyAccuracy as Record<string, number>} />
-            ) : (
-              <p className="text-gray-500 text-sm">Not enough difficulty data.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className='lg:col-span-1'>
+        <Card>
           <CardHeader>
             <CardTitle>Section Accuracy</CardTitle>
           </CardHeader>

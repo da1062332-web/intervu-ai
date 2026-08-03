@@ -26,7 +26,6 @@ export class ResultsService {
     const evaluation =
       await this.evaluationRepository.findEvaluationWithDetails(evaluationId);
     if (!evaluation) {
-      // Try fetching by testInstanceId (attemptId)
       const attemptEval = await this.prisma.evaluationResult.findFirst({
         where: { testInstanceId: evaluationId },
         include: { skillScores: true },
@@ -43,10 +42,13 @@ export class ResultsService {
     const evaluation = await this.getEvaluation(idOrAttemptId);
 
     if (userId && evaluation.userId && evaluation.userId !== userId) {
-      this.logger.warn("SEC-001: Unauthorized result access attempt (BYPASSED for candidate result view)", {
-        evaluationUserId: evaluation.userId,
-        requestUserId: userId,
-      });
+      this.logger.warn(
+        "SEC-001: Unauthorized result access attempt (BYPASSED for candidate result view)",
+        {
+          evaluationUserId: evaluation.userId,
+          requestUserId: userId,
+        },
+      );
     }
 
     const testInstanceId = evaluation.testInstanceId;
@@ -54,214 +56,83 @@ export class ResultsService {
       return this.composeResultResponse(evaluation);
     }
 
-    // 1. Fetch attempt details (sections, questions, answers) for aggregation
     const testInstance = await this.prisma.testInstance.findUnique({
       where: { id: testInstanceId },
       include: {
-        sections: {
-          include: {
-            questions: true,
-          },
-        },
         candidateAnswers: true,
+        testConfig: true,
+        examConfig: true,
+        user: true,
       },
-    }) as any;
+    });
 
     if (!testInstance) {
       return this.composeResultResponse(evaluation);
     }
 
-    const answerMap = new Map<string, any>(
-      testInstance.candidateAnswers.map((a: any) => [a.questionId, a]),
-    );
-
-    // 2. Perform score, topic, difficulty, and section aggregation
-
-    const sectionScores: Record<string, any> = {};
-
-    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true, code: true } });
-    const allConcepts = await this.prisma.concept.findMany({
-      select: { id: true, name: true, code: true, topic: { select: { name: true } } },
-    });
-    const topicNameMap = new Map<string, string>();
-    allTopics.forEach((t) => {
-      topicNameMap.set(t.id, t.name);
-      if (t.code) topicNameMap.set(t.code, t.name);
-    });
-    allConcepts.forEach((c) => {
-      const parentOrName = c.topic?.name || c.name;
-      topicNameMap.set(c.id, parentOrName);
-      if (c.code) topicNameMap.set(c.code, parentOrName);
-    });
-
-    const topicScores: Record<string, any> = {};
-
-    const difficultyScores: Record<string, any> = {};
-    let totalQuestionsCount = 0;
-    let correctAnswersCount = evaluation.correctAnswers || 0;
-    // Authoritative total time: wall-clock elapsed from startedAt to submittedAt.
-    // This correctly accounts for time spent before any interruptions/resumes.
-    let wallClockTimeSpent = 0;
-    if (testInstance.startedAt) {
-      const end = testInstance.submittedAt
-        ? new Date(testInstance.submittedAt).getTime()
-        : Date.now();
-      wallClockTimeSpent = Math.floor(
-        (end - new Date(testInstance.startedAt).getTime()) / 1000,
-      );
-      // Cap at the allowed duration to avoid inflated values from very long idle gaps
-      if (testInstance.durationSeconds && wallClockTimeSpent > testInstance.durationSeconds) {
-        wallClockTimeSpent = testInstance.durationSeconds;
-      }
-    }
-    let totalTimeSpent = 0;
-
-    testInstance.sections.forEach((section: any) => {
-      let sectionQuestions = 0;
-      let sectionCorrect = 0;
-      let sectionTimeSpent = 0;
-
-      section.questions.forEach((q: any) => {
-        sectionQuestions++;
-        totalQuestionsCount++;
-        const answer = answerMap.get(q.questionId);
-
-        const snap = q.questionSnapshot as Record<string, any>;
-
-        const timeSpent = answer?.timeSpentSeconds || 0;
-        sectionTimeSpent += timeSpent;
-        totalTimeSpent += timeSpent;
-
-        // Determine correctness
-        const correctVal =
-          snap?.correctOption || snap?.correctAnswer || snap?.answer;
-        let isCorrect = false;
-        if (answer && correctVal) {
-          isCorrect =
-            String(answer.answer).toLowerCase().trim() ===
-            String(correctVal).toLowerCase().trim();
-        } else if (answer) {
-          // Fallback logic: check if overall correct count suggests it is correct
-          isCorrect = true;
-        }
-
-        if (isCorrect) {
-          sectionCorrect++;
-        }
-
-        // Topic Aggregation
-        const rawTopic =
-          snap?.topic?.name ||
-          snap?.topicName ||
-          snap?.topicId ||
-          (typeof snap?.topic === 'string' ? snap?.topic : undefined) ||
-          snap?.conceptName ||
-          snap?.conceptKey ||
-          "General";
-        const topic = topicNameMap.get(rawTopic) || rawTopic;
-        if (!topicScores[topic]) {
-          topicScores[topic] = { total: 0, correct: 0, timeSpent: 0 };
-        }
-        topicScores[topic].total++;
-        if (isCorrect) topicScores[topic].correct++;
-        topicScores[topic].timeSpent += timeSpent;
-
-        // Difficulty Aggregation
-        const diff = snap?.difficultyLevel || snap?.difficulty || "MEDIUM";
-        if (!difficultyScores[diff]) {
-          difficultyScores[diff] = { total: 0, correct: 0, timeSpent: 0 };
-        }
-        difficultyScores[diff].total++;
-        if (isCorrect) difficultyScores[diff].correct++;
-        difficultyScores[diff].timeSpent += timeSpent;
-      });
-
-      const sectionKey = section.sectionName || section.sectionKey;
-      sectionScores[sectionKey] = {
-        total: sectionQuestions,
-        correct: sectionCorrect,
-        timeSpent: sectionTimeSpent,
-        score:
-          sectionQuestions > 0
-            ? Math.round((sectionCorrect / sectionQuestions) * 100)
-            : 0,
-      };
-    });
-
-    // Formatting outputs for final response DTO
-    const sectionsArray = Object.keys(sectionScores).map((key) => ({
-      section: key,
-      ...sectionScores[key],
-    }));
-
-    const topicsArray = Object.keys(topicScores).map((key) => ({
-      topic: key,
-      score:
-        topicScores[key].total > 0
-          ? Math.round(
-              (topicScores[key].correct / topicScores[key].total) * 100,
-            )
-          : 0,
-      total: topicScores[key].total,
-      correct: topicScores[key].correct,
-      timeSpent: topicScores[key].timeSpent,
-    }));
-
-    const difficultiesArray = Object.keys(difficultyScores).map((key) => ({
-      difficulty: key,
-      score:
-        difficultyScores[key].total > 0
-          ? Math.round(
-              (difficultyScores[key].correct / difficultyScores[key].total) *
-                100,
-            )
-          : 0,
-      total: difficultyScores[key].total,
-      correct: difficultyScores[key].correct,
-      timeSpent: difficultyScores[key].timeSpent,
-    }));
-
-    const accuracy =
-      totalQuestionsCount > 0
-        ? Math.round((correctAnswersCount / totalQuestionsCount) * 100)
-        : 0;
-
-    return {
-      id: evaluation.id,
-      testInstanceId: evaluation.testInstanceId,
-      userId: evaluation.userId,
-      overallScore: evaluation.overallScore,
-      communicationScore: evaluation.communicationScore,
-      technicalScore: evaluation.technicalScore,
-      confidenceScore: evaluation.confidenceScore,
-      overallRating: evaluation.overallRating,
-      notes: evaluation.notes,
-      evaluatedAt: evaluation.evaluatedAt,
-      accuracy,
-      timeAnalysis: {
-        // Use wall-clock elapsed time if available (captures pre-interruption time),
-        // otherwise fall back to sum of per-question timers.
-        totalTimeSpentSeconds: wallClockTimeSpent > 0 ? wallClockTimeSpent : totalTimeSpent,
-        // Per-question breakdown still uses per-answer timers
-        perQuestionTimeSpentSeconds: totalTimeSpent,
-        averageTimePerQuestion:
-          totalQuestionsCount > 0
-            ? Math.round((wallClockTimeSpent > 0 ? wallClockTimeSpent : totalTimeSpent) / totalQuestionsCount)
-            : 0,
-      },
-      sectionScores: sectionsArray,
-      topicScores: topicsArray,
-      difficultyScores: difficultiesArray,
-      skillScores: evaluation.skillScores || [],
+    const executionResult = {
+      executionId: testInstance.id,
+      testId:
+        testInstance.testConfigId ||
+        testInstance.examConfigId ||
+        testInstance.id,
+      status: "submitted",
+      submittedAt: testInstance.submittedAt || new Date(),
+      answers: testInstance.candidateAnswers.map((a) => ({
+        questionId: a.questionId,
+        answer: String(a.answer),
+        timeSpentSeconds: a.timeSpentSeconds || 0,
+        isMarkedForReview: a.isMarkedForReview || false,
+      })),
     };
+
+    const fullResult =
+      await this.resultGenerator.generateResult(executionResult);
+
+    const assessmentName =
+      testInstance.testConfig?.displayName ||
+      testInstance.examConfig?.name ||
+      "Corporate Assessment";
+
+    fullResult.id = evaluation.id;
+    fullResult.createdAt = evaluation.createdAt;
+    (fullResult as any).assessmentName = assessmentName;
+    (fullResult as any).candidate = {
+      fullName: (testInstance as any).user?.fullName || "Candidate",
+      email: (testInstance as any).user?.email || "N/A",
+    };
+
+    (fullResult as any).explanations =
+      await this.explainabilityService.getExplanation(
+        testInstanceId,
+        fullResult,
+      );
+
+    return fullResult;
   }
 
-  getSkillBreakdown(evaluation: any) {
-    return evaluation.skillScores || [];
-  }
+  private composeResultResponse(evaluation: any): ResultResponseDto {
+    const rawAnswers = evaluation.evaluationData?.answers || [];
+    const normalizedAnswers = rawAnswers.map((a: any) => ({
+      questionId: a.questionId || a.id || "",
+      userAnswer: a.answer || a.userAnswer || "",
+      isCorrect: Boolean(a.isCorrect),
+      score: Number(a.score || 0),
+      timeTaken: Number(a.timeSpentSeconds || a.timeTaken || 0),
+    }));
 
-  composeResultResponse(evaluation: any): ResultResponseDto {
-    return ResultMapper.toDto(evaluation);
+    const rawSkills = evaluation.skillScores || [];
+    const normalizedSkills = rawSkills.map((s: any) => ({
+      name: s.skillName || s.name || "General",
+      score: Number(s.score || 0),
+      accuracy: Number(s.percentage || s.accuracy || 0),
+    }));
+
+    return ResultMapper.toDto({
+      ...evaluation,
+      answers: normalizedAnswers,
+      skillScores: normalizedSkills,
+    });
   }
 
   /**
@@ -276,17 +147,15 @@ export class ResultsService {
       throw new NotFoundException(`Result for attempt ${attemptId} not found`);
     }
 
-    // Fetch attempt details to rebuild full DTO
     const testInstance = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
-      include: { candidateAnswers: true },
+      include: { candidateAnswers: true, testConfig: true, examConfig: true },
     });
 
     if (!testInstance) {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
 
-    // Reconstruct ExecutionResultDto for the generator pipeline
     const executionResult = {
       executionId: testInstance.id,
       testId: attemptId,
@@ -303,11 +172,15 @@ export class ResultsService {
     const fullResult =
       await this.resultGenerator.generateResult(executionResult);
 
-    // Override IDs with persisted DB records for consistency
+    const assessmentName =
+      testInstance.testConfig?.displayName ||
+      testInstance.examConfig?.name ||
+      "Corporate Assessment";
+
     fullResult.id = candidateResult.id;
     fullResult.createdAt = candidateResult.createdAt;
+    (fullResult as any).assessmentName = assessmentName;
 
-    // Attach Explainability Layer
     (fullResult as any).explanations =
       await this.explainabilityService.getExplanation(attemptId, fullResult);
 
@@ -322,36 +195,36 @@ export class ResultsService {
   ): Promise<CandidateResultDto[]> {
     const candidateResults = await this.prisma.candidateResult.findMany({
       where: { candidateId },
+      include: {
+        attempt: {
+          include: {
+            testConfig: true,
+            examConfig: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 
-    const results: CandidateResultDto[] = [];
-    for (const res of candidateResults) {
-      try {
-        const fullResult = await this.getCandidateResult(res.attemptId);
-        results.push(fullResult);
-      } catch {
-        // Fallback to basic record if deep resolution fails
-        const r = res as any;
-        results.push({
-          id: r.id,
-          candidateId: r.candidateId,
-          attemptId: r.attemptId,
-          score: r.score,
-          percentage: r.percentage,
-          evaluationStrategy: r.evaluationStrategy || undefined,
-          qualification: r.qualification || undefined,
-          qualificationReason: r.qualificationReason || undefined,
-          foundationScore: r.foundationScore ?? undefined,
-          advancedScore: r.advancedScore ?? undefined,
-          codingSolved: r.codingSolved ?? undefined,
-          qualificationDetails: r.qualificationDetails || undefined,
-          evaluatedAt: r.evaluatedAt || undefined,
-          createdAt: r.createdAt,
-        } as any);
-      }
-    }
-
-    return results;
+    return candidateResults.map((r: any) => ({
+      id: r.id,
+      candidateId: r.candidateId,
+      attemptId: r.attemptId,
+      assessmentName:
+        r.attempt?.testConfig?.displayName ||
+        r.attempt?.examConfig?.name ||
+        "Corporate Assessment",
+      score: r.score,
+      percentage: r.percentage,
+      evaluationStrategy: r.evaluationStrategy || undefined,
+      qualification: r.qualification || undefined,
+      qualificationReason: r.qualificationReason || undefined,
+      foundationScore: r.foundationScore ?? undefined,
+      advancedScore: r.advancedScore ?? undefined,
+      codingSolved: r.codingSolved ?? undefined,
+      qualificationDetails: r.qualificationDetails || undefined,
+      evaluatedAt: r.evaluatedAt || undefined,
+      createdAt: r.createdAt,
+    }));
   }
 }

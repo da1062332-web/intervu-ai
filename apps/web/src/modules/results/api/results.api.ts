@@ -21,11 +21,11 @@ export const resultApi = {
   },
 
   listCandidateResults: async (
-    candidateId: string,
+    candidateId?: string,
     page = 1,
     limit = 10,
   ): Promise<PaginatedResults> => {
-    return apiClient.request<PaginatedResults>(`${BASE_PATH}/candidate/${candidateId}`, {
+    return apiClient.request<PaginatedResults>(`${BASE_PATH}/candidate-history`, {
       query: { page, limit },
     });
   },
@@ -54,6 +54,16 @@ export const resultApi = {
 
   getPerformanceDashboard: async (attemptId: string): Promise<PerformanceDashboardResponse> => {
     return apiClient.request<PerformanceDashboardResponse>(`${BASE_PATH}/${attemptId}/performance-dashboard`);
+  },
+
+  getAiAnalysis: async (attemptId: string): Promise<{
+    summary: string;
+    practiceHours: number;
+    strengths: { title: string; detail: string }[];
+    weaknesses: { title: string; detail: string }[];
+    recommendations: { priority: 'HIGH' | 'MEDIUM' | 'LOW'; title: string; action: string }[];
+  }> => {
+    return apiClient.request(`${BASE_PATH}/${attemptId}/ai-analysis`);
   },
 
   exportToPdf: async (attemptId: string): Promise<Blob> => {

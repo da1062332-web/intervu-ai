@@ -28,6 +28,7 @@ export class CandidateResultRepository extends BaseRepository<
           include: {
             testConfig: true,
             examConfig: true,
+            user: true,
           },
         },
       },

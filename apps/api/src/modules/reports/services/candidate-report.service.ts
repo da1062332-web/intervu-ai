@@ -3,6 +3,7 @@ import { PrismaService } from "@/prisma/prisma.service";
 import { ResultsService } from "../../results/services/results.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { ReportAuditService } from "./report-audit.service";
+import { AiAnalysisService } from "../../evaluation/insights/ai-analysis.service";
 
 @Injectable()
 export class CandidateReportService {
@@ -12,6 +13,7 @@ export class CandidateReportService {
     private readonly prisma: PrismaService,
     private readonly resultsService: ResultsService,
     private readonly auditService: ReportAuditService,
+    private readonly aiAnalysisService: AiAnalysisService,
   ) {}
 
   async getCandidateReport(userId: string, attemptId: string): Promise<any> {
@@ -54,7 +56,6 @@ export class CandidateReportService {
     );
 
     // 4. Calculate Rank and Percentile dynamically
-    const testConfigId = attempt.testConfigId;
     const allAttempts = await this.prisma.evaluationResult.findMany({
       where: {
         testInstance: {
@@ -76,28 +77,47 @@ export class CandidateReportService {
     ).length;
     const rank = countHigher + 1;
 
-    // Percentile = ((Total - Rank) / (Total - 1)) * 100
+    const countLess = allAttempts.filter((a) => a.overallScore < score).length;
+    const countEqual = allAttempts.filter((a) => a.overallScore === score).length;
+
+    // Standard percentile formula: ((countLess + 0.5 * countEqual) / total) * 100
     const percentile =
-      totalAttemptsCount > 1
+      totalAttemptsCount > 0
         ? Math.round(
-            ((totalAttemptsCount - rank) / (totalAttemptsCount - 1)) * 100,
+            ((countLess + 0.5 * countEqual) / totalAttemptsCount) * 100,
           )
         : 100;
 
-    // 5. Derive strengths and weaknesses from skill scores
-    const skillScores = evaluation.skillScores || [];
-    const strengths = skillScores
-      .filter((s) => s.score >= 70 || (s.score >= 7 && s.score <= 10))
-      .map((s) => s.skill);
+    // 5. Use strengths, weaknesses, and recommendations directly from CandidateResultDto
+    let strengths = resultDetails.strengths || [];
+    let weaknesses = resultDetails.weaknesses || [];
+    let recommendations = resultDetails.recommendations || [];
 
-    const weaknesses = skillScores
-      .filter((s) => s.score < 60 || (s.score < 6 && s.score <= 10))
-      .map((s) => s.skill);
+    try {
+      const aiAnalysis = await this.aiAnalysisService.generateAnalysis(attemptId);
+      if (aiAnalysis) {
+        if (aiAnalysis.strengths && aiAnalysis.strengths.length > 0) {
+          strengths = aiAnalysis.strengths.map((s: any) => ({ title: s.title, description: s.detail }));
+        }
+        if (aiAnalysis.weaknesses && aiAnalysis.weaknesses.length > 0) {
+          weaknesses = aiAnalysis.weaknesses.map((w: any) => ({ title: w.title, description: w.detail }));
+        }
+        if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
+          recommendations = aiAnalysis.recommendations.map((r: any) => ({
+            title: r.title,
+            description: r.action,
+            priority: r.priority
+          }));
+        }
+      }
+    } catch (err) {
+      this.logger.error("Failed to fetch AI analysis for report", err);
+    }
 
     // 6. Generate dynamic improvement plan based on weaknesses
     const improvementPlan = this.generateImprovementPlan(
       weaknesses,
-      evaluation.recommendations,
+      recommendations,
     );
 
     // 7. Log audit trail event
@@ -129,26 +149,25 @@ export class CandidateReportService {
       score,
       rank,
       percentile,
-      accuracy: resultDetails.accuracy,
-      timeTaken: resultDetails.timeAnalysis.totalTimeSpentSeconds,
-      sectionBreakdown: resultDetails.sectionScores,
-      topicBreakdown: resultDetails.topicScores,
-      difficultyBreakdown: resultDetails.difficultyScores,
+      accuracy: resultDetails.percentage || 0,
+      timeTaken: attempt.candidateAnswers.reduce((total, a) => total + (a.timeSpentSeconds || 0), 0),
+      sectionBreakdown: (resultDetails.sections || []).map((s: any) => ({
+        section: s.sectionName || s.sectionKey,
+        score: s.percentage || 0,
+        correct: s.correct || 0,
+        total: s.totalQuestions || 0
+      })),
+      topicBreakdown: Object.entries(resultDetails.analytics?.topicAccuracy || {}).map(([topic, score]) => ({ topic, score })),
+      difficultyBreakdown: Object.entries(resultDetails.analytics?.difficultyAccuracy || {}).map(([difficulty, score]) => ({ difficulty, score })),
       strengths,
       weaknesses,
-      recommendations: evaluation.recommendations.map((r) => ({
-        id: r.id,
-        skill: r.skill,
-        priority: r.priority,
-        title: r.title,
-        description: r.description,
-      })),
+      recommendations,
       improvementPlan,
     };
   }
 
   private generateImprovementPlan(
-    weaknesses: string[],
+    weaknesses: any[],
     recommendations: any[],
   ): string[] {
     const plan: string[] = [];
@@ -160,14 +179,15 @@ export class CandidateReportService {
       return plan;
     }
 
+    const weaknessNames = weaknesses.map((w: any) => typeof w === 'string' ? w : w.title).filter(Boolean);
     plan.push(
-      `1. Address core skills needing improvement: Focus on key areas: ${weaknesses.join(", ")}.`,
+      `1. Address core skills needing improvement: Focus on key areas: ${weaknessNames.join(", ")}.`,
     );
 
     recommendations.forEach((rec, idx) => {
       if (idx < 2) {
         plan.push(
-          `${idx + 2}. Study Action: ${rec.title} - ${rec.description}`,
+          `${idx + 2}. Study Action: ${rec.title} - ${rec.description || rec.action || ""}`,
         );
       }
     });
@@ -202,7 +222,6 @@ export class CandidateReportService {
       return { status: "PENDING" };
     }
 
-    const testConfigId = attempt.testConfigId;
     const allAttempts = await this.prisma.evaluationResult.findMany({
       where: {
         testInstance: {
@@ -221,10 +240,12 @@ export class CandidateReportService {
       (a) => a.overallScore > score,
     ).length;
     const rank = countHigher + 1;
+    const countLess = allAttempts.filter((a) => a.overallScore < score).length;
+    const countEqual = allAttempts.filter((a) => a.overallScore === score).length;
     const percentile =
-      totalAttemptsCount > 1
+      totalAttemptsCount > 0
         ? Math.round(
-            ((totalAttemptsCount - rank) / (totalAttemptsCount - 1)) * 100,
+            ((countLess + 0.5 * countEqual) / totalAttemptsCount) * 100,
           )
         : 100;
 

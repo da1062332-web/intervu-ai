@@ -1,80 +1,144 @@
 import React from 'react';
 
 export const RadarChart = ({ data }: { data: Record<string, number> }) => {
-  const size = 300;
-  const center = size / 2;
-  const radius = center - 40;
-
   const entries = Object.entries(data || {});
-  if (entries.length === 0)
+  if (entries.length === 0) {
     return (
-      <div className='flex items-center justify-center h-full text-gray-500'>No data available</div>
+      <div className='flex items-center justify-center py-8 text-xs font-semibold text-muted-foreground'>
+        No performance overview data available
+      </div>
     );
+  }
 
-  const totalPoints = Math.max(entries.length, 3); // Minimum 3 points to form a polygon
+  // Dimension calculations
+  const size = 280;
+  const center = size / 2;
+  const radius = 80; // 80px radius leaves 60px padding on all sides for clear text labels
+
+  const totalPoints = Math.max(entries.length, 3);
   const angleStep = (Math.PI * 2) / totalPoints;
 
+  // Function to calculate (x, y) coordinates given score (0-100) and index
   const getPoint = (value: number, index: number) => {
-    const r = (value / 100) * radius;
-    const x = center + r * Math.sin(index * angleStep);
-    const y = center - r * Math.cos(index * angleStep);
-    return `${x},${y}`;
+    const clampedValue = Math.max(5, Math.min(100, value));
+    const r = (clampedValue / 100) * radius;
+    const angle = index * angleStep - Math.PI / 2; // Start at 12 o'clock
+    const x = center + r * Math.cos(angle);
+    const y = center + r * Math.sin(angle);
+    return { x, y };
   };
 
-  const polygonPoints = entries.map(([, value], index) => getPoint(value, index)).join(' ');
-  const gridLevels = [20, 40, 60, 80, 100];
+  const points = entries.map(([, value], index) => getPoint(value, index));
+  const polygonPointsString = points.map((p) => `${p.x},${p.y}`).join(' ');
+
+  const gridLevels = [25, 50, 75, 100];
 
   return (
-    <div className='w-full flex justify-center items-center overflow-hidden'>
-      <svg viewBox={`0 0 ${size} ${size}`} className='w-full h-auto max-w-[300px]'>
-        {/* Grid */}
-        {gridLevels.map((level) => (
-          <polygon
-            key={`grid-${level}`}
-            points={entries.map((_, index) => getPoint(level, index)).join(' ')}
-            fill='none'
-            stroke='#e5e7eb'
-            strokeWidth='1'
-          />
-        ))}
+    <div className='w-full flex justify-center items-center py-2 overflow-visible'>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className='w-full h-auto max-w-[260px] max-h-[260px] overflow-visible'
+      >
+        {/* Concentric Grid Lines */}
+        {gridLevels.map((level) => {
+          const levelPoints = Array.from({ length: totalPoints }).map((_, index) => {
+            const r = (level / 100) * radius;
+            const angle = index * angleStep - Math.PI / 2;
+            const x = center + r * Math.cos(angle);
+            const y = center + r * Math.sin(angle);
+            return `${x},${y}`;
+          }).join(' ');
 
-        {/* Axes */}
-        {entries.map((_, index) => (
-          <line
-            key={`axis-${index}`}
-            x1={center}
-            y1={center}
-            x2={center + radius * Math.sin(index * angleStep)}
-            y2={center - radius * Math.cos(index * angleStep)}
-            stroke='#e5e7eb'
-            strokeWidth='1'
-          />
-        ))}
+          return (
+            <polygon
+              key={`grid-${level}`}
+              points={levelPoints}
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1'
+              strokeDasharray={level === 100 ? undefined : '2,2'}
+              className='text-slate-300 dark:text-slate-700'
+            />
+          );
+        })}
 
-        {/* Data Polygon */}
+        {/* Axes Lines */}
+        {Array.from({ length: totalPoints }).map((_, index) => {
+          const angle = index * angleStep - Math.PI / 2;
+          const x2 = center + radius * Math.cos(angle);
+          const y2 = center + radius * Math.sin(angle);
+          return (
+            <line
+              key={`axis-${index}`}
+              x1={center}
+              y1={center}
+              x2={x2}
+              y2={y2}
+              stroke='currentColor'
+              strokeWidth='1'
+              className='text-slate-300 dark:text-slate-700'
+            />
+          );
+        })}
+
+        {/* Data Polygon Fill & Outline */}
         <polygon
-          points={polygonPoints}
-          fill='rgba(79, 70, 229, 0.2)'
-          stroke='#4f46e5'
-          strokeWidth='2'
+          points={polygonPointsString}
+          fill='rgba(99, 102, 241, 0.25)'
+          stroke='#6366f1'
+          strokeWidth='2.5'
+          strokeLinejoin='round'
         />
 
-        {/* Labels */}
+        {/* Data Points (Circles at Vertices) */}
+        {points.map((p, index) => (
+          <circle
+            key={`vertex-${index}`}
+            cx={p.x}
+            cy={p.y}
+            r='3.5'
+            fill='#6366f1'
+            stroke='#ffffff'
+            strokeWidth='1.5'
+          />
+        ))}
+
+        {/* Outer Section Labels */}
         {entries.map(([label], index) => {
-          const x = center + (radius + 20) * Math.sin(index * angleStep);
-          const y = center - (radius + 20) * Math.cos(index * angleStep);
+          const angle = index * angleStep - Math.PI / 2;
+          const labelRadius = radius + 20;
+          const x = center + labelRadius * Math.cos(angle);
+          const y = center + labelRadius * Math.sin(angle);
+
+          // Calculate text alignment based on position relative to center
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+
+          let textAnchor: 'middle' | 'start' | 'end' = 'middle';
+          if (cos > 0.3) textAnchor = 'start';
+          else if (cos < -0.3) textAnchor = 'end';
+
+          let dominantBaseline: 'middle' | 'auto' | 'hanging' = 'middle';
+          if (sin < -0.5) dominantBaseline = 'auto';
+          else if (sin > 0.5) dominantBaseline = 'hanging';
+
+          // Format clean short label without truncating abruptly
+          const formattedLabel = label
+            .replace(/ability/i, '')
+            .replace(/advanced/i, 'Adv.')
+            .trim();
+
           return (
             <text
               key={`label-${index}`}
               x={x}
               y={y}
-              fontSize='10'
-              fill='#374151'
-              textAnchor='middle'
-              alignmentBaseline='middle'
-              className='font-medium'
+              fontSize='11'
+              textAnchor={textAnchor}
+              dominantBaseline={dominantBaseline}
+              className='fill-slate-700 dark:fill-slate-300 font-bold tracking-tight'
             >
-              {label.length > 15 ? label.substring(0, 15) + '...' : label}
+              {formattedLabel || label}
             </text>
           );
         })}

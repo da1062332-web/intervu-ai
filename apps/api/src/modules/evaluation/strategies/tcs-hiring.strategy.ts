@@ -29,17 +29,47 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
       }
     });
 
-    const getCorrectForSection = (sectionCode: string, sectionName?: string) => {
-      if (sectionCorrectMap.has(sectionCode)) return sectionCorrectMap.get(sectionCode)!;
-      if (sectionCorrectMap.has(sectionCode.toUpperCase())) return sectionCorrectMap.get(sectionCode.toUpperCase())!;
-      if (sectionName && sectionCorrectMap.has(sectionName)) return sectionCorrectMap.get(sectionName)!;
-      if (sectionName && sectionCorrectMap.has(sectionName.toUpperCase())) return sectionCorrectMap.get(sectionName.toUpperCase())!;
-      // Partial match fallback: e.g. NA101 in "Numerical Ability (NA101)"
+    const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const categoryAliases: Record<string, string[]> = {
+      NUMERICAL: ["numerical", "quant", "quantitative", "aptitude", "math"],
+      VERBAL: ["verbal", "english", "language", "reading"],
+      REASONING: ["reasoning", "logical", "analytic", "mental"],
+      ADVANCED_APTITUDE: ["advanced", "advaptitude", "advquant", "complex"],
+    };
+
+    const getCorrectForSection = (sectionCode: string, sectionName?: string, mappingType?: string) => {
+      const codeNorm = normalize(sectionCode);
+      const nameNorm = sectionName ? normalize(sectionName) : "";
+
+      // 1. Direct match or normalized match
       for (const [key, val] of sectionCorrectMap.entries()) {
-        if (key.includes(sectionCode) || sectionCode.includes(key)) {
+        const keyNorm = normalize(key);
+        if (keyNorm === codeNorm || (nameNorm && keyNorm === nameNorm)) {
           return val;
         }
       }
+
+      // 2. Category Alias matching
+      const targetCategory = mappingType || sectionCode;
+      const aliases = categoryAliases[targetCategory.toUpperCase()] || [];
+      for (const [key, val] of sectionCorrectMap.entries()) {
+        const keyNorm = normalize(key);
+        for (const alias of aliases) {
+          if (keyNorm.includes(alias) || alias.includes(keyNorm)) {
+            return val;
+          }
+        }
+      }
+
+      // 3. Partial match fallback
+      for (const [key, val] of sectionCorrectMap.entries()) {
+        const keyNorm = normalize(key);
+        if ((codeNorm && keyNorm.includes(codeNorm)) || (codeNorm && codeNorm.includes(keyNorm))) {
+          return val;
+        }
+      }
+
       return 0;
     };
 
@@ -59,7 +89,7 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     let reasoningMin = 0;
 
     for (const mapping of foundationMappings) {
-      const correctCount = getCorrectForSection(mapping.sectionCode, mapping.sectionName || undefined);
+      const correctCount = getCorrectForSection(mapping.sectionCode, mapping.sectionName || undefined, mapping.mappingType);
       const minRequired = mapping.minimumCorrectAnswers;
       const passed = correctCount >= minRequired;
 
@@ -98,7 +128,7 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     let advancedSectionCode: string | undefined;
     for (const m of advancedMappings) {
       advancedSectionCode = m.sectionCode;
-      advancedScore += getCorrectForSection(m.sectionCode, m.sectionName || undefined);
+      advancedScore += getCorrectForSection(m.sectionCode, m.sectionName || undefined, m.mappingType);
     }
 
     // Coding Evaluation

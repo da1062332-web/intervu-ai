@@ -57,7 +57,19 @@ export const ResultHistoryPage = () => {
     );
   }
 
-  if (isError || !data || data.data.length === 0) {
+  const items: any[] = Array.isArray(data)
+    ? data
+    : Array.isArray((data as any)?.data)
+      ? (data as any).data
+      : Array.isArray((data as any)?.items)
+        ? (data as any).items
+        : Array.isArray((data as any)?.results)
+          ? (data as any).results
+          : [];
+
+  const totalPages = (data as any)?.meta?.totalPages || (data as any)?.totalPages || Math.max(1, Math.ceil(items.length / 10));
+
+  if (isError || !data || items.length === 0) {
     return (
       <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
         <SectionHeader
@@ -76,12 +88,12 @@ export const ResultHistoryPage = () => {
   }
 
   const filteredData = (() => {
-    if (!data?.data) return [];
-    let result = [...data.data];
+    if (!items || items.length === 0) return [];
+    let result = [...items];
 
     if (searchQuery) {
       result = result.filter((r) =>
-        r.assessmentName.toLowerCase().includes(searchQuery.toLowerCase()),
+        (r.assessmentName || r.testName || 'Assessment').toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -94,11 +106,11 @@ export const ResultHistoryPage = () => {
 
     result.sort((a, b) => {
       if (sortBy === 'date-desc')
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime();
       if (sortBy === 'date-asc')
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      if (sortBy === 'score-desc') return b.score - a.score;
-      if (sortBy === 'score-asc') return a.score - b.score;
+        return new Date(a.createdAt || Date.now()).getTime() - new Date(b.createdAt || Date.now()).getTime();
+      if (sortBy === 'score-desc') return (b.score || b.percentage || 0) - (a.score || a.percentage || 0);
+      if (sortBy === 'score-asc') return (a.score || a.percentage || 0) - (b.score || b.percentage || 0);
       return 0;
     });
 
@@ -120,120 +132,128 @@ export const ResultHistoryPage = () => {
         breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Results & History' }]}
       />
 
-      {/* Modern Filter Toolbar */}
-      <Card className='bg-card/80 border border-border/60 shadow-xs'>
-        <CardContent className='p-3 sm:p-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5'>
-          <div className='relative flex-1 min-w-[240px] max-w-md'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70' />
+      {/* Filter & Search Bar */}
+      <Card className='rounded-2xl border-border/60 bg-card text-card-foreground shadow-2xs p-4'>
+        <CardContent className='p-0 flex flex-col md:flex-row items-center justify-between gap-4'>
+          <div className='relative w-full md:w-80'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
             <Input
-              placeholder='Search by assessment name...'
+              type='text'
+              placeholder='Search by test name...'
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm transition-all'
+              className='pl-9 rounded-xl border-border/60 bg-background text-sm font-medium focus:ring-1 focus:ring-primary'
             />
           </div>
 
-          <div className='flex items-center gap-2 flex-wrap'>
+          <div className='flex flex-wrap items-center gap-3 w-full md:w-auto justify-end'>
             <select
-              className='h-9 rounded-md border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all'
               value={statusFilter}
               onChange={(e) => handleStatusChange(e.target.value)}
-              aria-label='Filter by status'
+              className='h-10 px-3 py-1.5 rounded-xl border border-border/60 bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary cursor-pointer'
             >
               <option value='ALL'>All Statuses</option>
-              <option value='COMPLETED'>Completed Only</option>
-              <option value='FAILED'>Unsuccessful Attempt</option>
+              <option value='COMPLETED'>Completed</option>
+              <option value='QUALIFIED'>Qualified</option>
+              <option value='NOT_QUALIFIED'>Not Qualified</option>
             </select>
 
             <select
-              className='h-9 rounded-md border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all'
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value)}
-              aria-label='Sort results'
+              className='h-10 px-3 py-1.5 rounded-xl border border-border/60 bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary cursor-pointer'
             >
               <option value='date-desc'>Newest First</option>
               <option value='date-asc'>Oldest First</option>
               <option value='score-desc'>Highest Score</option>
               <option value='score-asc'>Lowest Score</option>
             </select>
-
-            <Badge variant='secondary' className='text-xs font-semibold px-3 py-1 h-9 flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 shrink-0'>
-              {filteredData.length} {filteredData.length === 1 ? 'result' : 'results'}
-            </Badge>
           </div>
         </CardContent>
       </Card>
 
       {/* Results List */}
-      <div className='space-y-3.5'>
+      <div className='space-y-4'>
         {filteredData.length === 0 ? (
-          <EmptyState
-            title='No matching results'
-            description='We could not find any results matching your current search or status filter.'
-            actionLabel='Reset Filters'
-            onAction={handleResetFilters}
-          />
+          <Card className='rounded-2xl border-border/60 bg-card text-card-foreground p-8 text-center shadow-2xs'>
+            <CardContent className='p-0 flex flex-col items-center justify-center space-y-3'>
+              <FileText className='w-10 h-10 text-muted-foreground opacity-50' />
+              <h4 className='font-bold text-foreground text-base'>No matching results found</h4>
+              <p className='text-xs text-muted-foreground max-w-sm'>
+                Try adjusting your search query or filter selection to find your past assessment attempts.
+              </p>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={handleResetFilters}
+                className='rounded-xl font-bold text-xs mt-2 border-border/60'
+              >
+                Reset Filters
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          filteredData.map((result) => {
-            const statusText = (result as any).status || 'COMPLETED';
-            const isHigh = result.percentage >= 70;
-            const isMid = result.percentage >= 40 && result.percentage < 70;
+          filteredData.map((result: any, idx: number) => {
+            const perc = Math.round(result.percentage || result.score || 0);
+            const isQual = result.qualification && result.qualification !== 'NOT_QUALIFIED';
 
             return (
-              <Card key={result.id} className='hover:bg-card/90 transition-all duration-200 border border-border/60 group shadow-xs'>
-                <CardContent className='p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
-                  <div className='flex items-start sm:items-center gap-4 flex-1'>
-                    <div className='bg-primary/10 text-primary p-3 rounded-xl shrink-0 hidden sm:flex items-center justify-center border border-primary/20'>
-                      <FileText className='size-5' />
+              <Card
+                key={result.id || result.attemptId || idx}
+                onClick={() => navigate(`/candidate/results/${result.attemptId || result.id}`)}
+                className='rounded-2xl border-border/60 bg-card text-card-foreground p-5 shadow-2xs hover:shadow-xs hover:border-primary/50 transition-all cursor-pointer group'
+              >
+                <CardContent className='p-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+                  <div className='flex items-start gap-4'>
+                    <div className='w-12 h-12 rounded-xl bg-primary/10 text-primary font-black text-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform'>
+                      {perc}%
                     </div>
-                    <div className='space-y-1.5'>
+                    <div>
                       <div className='flex items-center gap-2 flex-wrap'>
-                        <h3 className='font-bold text-base md:text-lg text-foreground group-hover:text-primary transition-colors'>
-                          {result.assessmentName}
+                        <h3 className='font-bold text-foreground text-base group-hover:text-primary transition-colors'>
+                          {result.assessmentName || result.testName || result.examName || 'Corporate Assessment'}
                         </h3>
-                        <Badge variant='outline' className='text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 border-border/60'>
-                          {statusText}
-                        </Badge>
+                        {result.qualification && (
+                          <Badge
+                            className={`text-[10px] uppercase font-bold tracking-wider rounded-lg px-2 py-0.5 ${
+                              isQual
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                : 'bg-destructive/10 text-destructive border-destructive/20'
+                            }`}
+                          >
+                            {result.qualification.replace('_', ' ')}
+                          </Badge>
+                        )}
                       </div>
-                      <div className='flex items-center gap-4 text-xs font-semibold text-muted-foreground'>
-                        <div className='flex items-center gap-1.5'>
-                          <Calendar className='size-3.5 text-primary/80' />
-                          <span>{new Date(result.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                        </div>
-                        <div className='flex items-center gap-1.5'>
-                          <TrendingUp className='size-3.5 text-emerald-500' />
-                          <span>Score: {Math.round(result.score)}/100</span>
-                        </div>
+                      <div className='flex items-center gap-4 text-xs text-muted-foreground font-medium mt-1.5 flex-wrap'>
+                        <span className='flex items-center gap-1'>
+                          <Calendar className='w-3.5 h-3.5 text-muted-foreground' />
+                          {result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <TrendingUp className='w-3.5 h-3.5 text-muted-foreground' />
+                          Score: {result.score || 0}
+                        </span>
+                        {result.attemptId && (
+                          <span className='opacity-70 font-mono text-[11px]'>
+                            ID: {result.attemptId.slice(0, 8).toUpperCase()}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div className='flex items-center gap-3.5 w-full sm:w-auto justify-between sm:justify-end pt-3 sm:pt-0 border-t border-border/40 sm:border-0'>
-                    <div className='flex flex-col items-end'>
-                      <span className='text-[10px] uppercase font-bold text-muted-foreground/80 tracking-wider'>
-                        Percentage
-                      </span>
-                      <Badge
-                        variant='outline'
-                        className={`text-sm font-extrabold px-3 py-1 mt-0.5 ${
-                          isHigh
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                            : isMid
-                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                              : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
-                        }`}
-                      >
-                        {result.percentage}%
-                      </Badge>
-                    </div>
-
+                  <div className='flex items-center gap-3 self-end sm:self-center shrink-0'>
                     <Button
                       size='sm'
-                      className='text-xs font-semibold transition-transform group-hover:translate-x-0.5'
-                      onClick={() => navigate(`/candidate/results/${result.attemptId}`)}
+                      className='rounded-xl font-bold text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs px-4 py-2 flex items-center gap-1.5 transition-all z-10 relative'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/candidate/results/${result.attemptId || result.id}`);
+                      }}
                     >
-                      View Report
-                      <ChevronRight className='ml-1 size-3.5' />
+                      View Result
+                      <ChevronRight className='w-4 h-4' />
                     </Button>
                   </div>
                 </CardContent>
@@ -244,11 +264,11 @@ export const ResultHistoryPage = () => {
       </div>
 
       {/* Pagination Controls */}
-      {data.meta.totalPages > 1 && (
+      {totalPages > 1 && (
         <div className='flex items-center justify-between border-t border-border/60 pt-6 mt-8'>
           <div className='text-sm text-muted-foreground font-medium'>
             Showing page <span className='text-foreground font-semibold'>{page}</span> of{' '}
-            <span className='text-foreground font-semibold'>{data.meta.totalPages}</span>
+            <span className='text-foreground font-semibold'>{totalPages}</span>
           </div>
           <div className='flex items-center gap-2'>
             <Button
@@ -256,7 +276,7 @@ export const ResultHistoryPage = () => {
               size='sm'
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className='h-9 font-semibold'
+              className='h-9 font-semibold rounded-xl'
             >
               <ChevronLeft className='size-4 mr-1' />
               Previous
@@ -264,9 +284,9 @@ export const ResultHistoryPage = () => {
             <Button
               variant='outline'
               size='sm'
-              disabled={page === data.meta.totalPages}
-              onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
-              className='h-9 font-semibold'
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className='h-9 font-semibold rounded-xl'
             >
               Next
               <ChevronRight className='size-4 ml-1' />

@@ -1,51 +1,93 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PerformanceDashboardResponse } from '../types/results.types';
+import { RadarChart } from './RadarChart';
+import { Calculator, Brain, BookOpen, Code2 } from 'lucide-react';
 
 interface Props {
   data: PerformanceDashboardResponse;
 }
 
 export const DashboardOverallAccuracy: React.FC<Props> = ({ data }) => {
-  const { correct, wrong, skipped } = data.accuracyDetails;
-  
+  const radarData: Record<string, number> = {};
+  data.sectionAccuracy.forEach((sec) => {
+    radarData[sec.sectionName] = Math.round(sec.accuracy || 0);
+  });
+
+  const getSectionIcon = (name: string) => {
+    const lower = name.toLowerCase();
+    if (lower.includes('numerical') || lower.includes('quant') || lower.includes('math')) {
+      return (
+        <div className='p-1.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'>
+          <Calculator className='w-3.5 h-3.5' />
+        </div>
+      );
+    }
+    if (lower.includes('reasoning') || lower.includes('logic')) {
+      return (
+        <div className='p-1.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'>
+          <Brain className='w-3.5 h-3.5' />
+        </div>
+      );
+    }
+    if (lower.includes('verbal') || lower.includes('english')) {
+      return (
+        <div className='p-1.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400'>
+          <BookOpen className='w-3.5 h-3.5' />
+        </div>
+      );
+    }
+    return (
+      <div className='p-1.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400'>
+        <Code2 className='w-3.5 h-3.5' />
+      </div>
+    );
+  };
+
+  const getProgressColor = (acc: number) => {
+    if (acc >= 75) return 'bg-emerald-500';
+    if (acc >= 50) return 'bg-primary';
+    return 'bg-amber-500';
+  };
+
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle>Overall Accuracy</CardTitle>
+    <Card className='rounded-2xl border-border/60 bg-card text-card-foreground shadow-2xs overflow-hidden h-auto'>
+      <CardHeader className='pb-3 pt-4 px-5 border-b border-border/60'>
+        <CardTitle className='text-base font-bold text-foreground'>Performance Overview</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-center justify-center">
-          <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
-            {/* Simple CSS donut chart representation */}
-            <div 
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: `conic-gradient(
-                  #22c55e 0% ${data.overallAccuracy}%, 
-                  #ef4444 ${data.overallAccuracy}% ${data.overallAccuracy + (wrong / (correct + wrong + skipped || 1)) * 100}%,
-                  #94a3b8 ${data.overallAccuracy + (wrong / (correct + wrong + skipped || 1)) * 100}% 100%
-                )`
-              }}
-            />
-            <div className="absolute inset-2 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center">
-              <span className="text-3xl font-bold text-gray-900 dark:text-white">{Math.round(data.overallAccuracy)}%</span>
-            </div>
+      <CardContent className='p-5'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6 items-center'>
+          {/* Left Column: Compact Radar Chart */}
+          <div className='flex justify-center items-center py-1'>
+            <RadarChart data={radarData} />
           </div>
-          
-          <div className="w-full space-y-3">
-            <div className="flex justify-between items-center p-2.5 bg-green-50 dark:bg-green-950/40 rounded-lg text-green-700 dark:text-green-300 border border-transparent dark:border-green-800/40">
-              <span className="font-medium">Correct</span>
-              <span className="font-bold text-lg">{correct}</span>
-            </div>
-            <div className="flex justify-between items-center p-2.5 bg-red-50 dark:bg-red-950/40 rounded-lg text-red-700 dark:text-red-300 border border-transparent dark:border-red-800/40">
-              <span className="font-medium">Wrong</span>
-              <span className="font-bold text-lg">{wrong}</span>
-            </div>
-            <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-900/60 rounded-lg text-slate-700 dark:text-slate-300 border border-transparent dark:border-slate-800">
-              <span className="font-medium">Skipped</span>
-              <span className="font-bold text-lg">{skipped}</span>
-            </div>
+
+          {/* Right Column: Dynamic Horizontal Progress Bars */}
+          <div className='space-y-4 py-1'>
+            {data.sectionAccuracy.map((sec, idx) => {
+              const acc = Math.round(sec.accuracy || 0);
+              const totalQ = sec.questionCount || sec.correct + sec.wrong + sec.skipped || 1;
+
+              return (
+                <div key={idx} className='space-y-1.5'>
+                  <div className='flex justify-between items-center text-xs font-semibold'>
+                    <div className='flex items-center gap-2'>
+                      {getSectionIcon(sec.sectionName)}
+                      <span className='text-foreground'>{sec.sectionName}</span>
+                    </div>
+                    <span className='font-bold text-foreground'>
+                      {sec.correct} / {totalQ}
+                    </span>
+                  </div>
+                  <div className='w-full bg-muted rounded-full h-2 overflow-hidden'>
+                    <div
+                      className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(acc)}`}
+                      style={{ width: `${Math.min(100, acc)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>
