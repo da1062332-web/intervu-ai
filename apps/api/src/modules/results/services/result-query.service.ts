@@ -897,7 +897,7 @@ export class ResultQueryService {
       } catch {
         // Ignore fallback evaluation error
       }
-    } else {
+    } else if (this.resultGenerator?.generateResult) {
       // Fire and forget re-evaluation in background to keep data fresh without blocking response
       this.resultGenerator
         .generateResult({
@@ -1012,6 +1012,7 @@ export class ResultQueryService {
           ? 100
           : codingMaxMarks || (codingSec ? 100 : 0),
       passed: evaluation?.overallRating === 1,
+      hasCodingSection: !!codingSec || codingMaxMarks > 0,
       maxMarks: finalMaxMarks,
       // Ranking & Percentile
       rank,

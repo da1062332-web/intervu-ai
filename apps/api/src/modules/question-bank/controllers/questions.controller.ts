@@ -655,7 +655,7 @@ export class QuestionsController {
     const currentMeta = (question.metadata as any) || {};
     const currentStatus = currentMeta.status || "GENERATED";
 
-    if (currentStatus !== "APPROVED") {
+    if (currentStatus !== "APPROVED" && currentStatus !== "PUBLISHED") {
       throw new BadRequestException(
         `Invalid status transition from ${currentStatus} to PUBLISHED. Question must be APPROVED first.`,
       );
@@ -672,12 +672,13 @@ export class QuestionsController {
     if (concept?.topicId) {
       topicId = concept.topicId;
     } else {
-      // If no concept found, try treating conceptKey as a topicId or topic code directly
+      // If no concept found, try treating conceptKey as a topicId, topic code, or topic name
       const topicCheck = await this.prisma.topic.findFirst({
         where: {
           OR: [
             { id: question.conceptKey },
             { code: { equals: question.conceptKey, mode: "insensitive" } },
+            { name: { equals: question.conceptKey, mode: "insensitive" } },
           ],
         },
       });
@@ -726,26 +727,50 @@ export class QuestionsController {
       });
     }
 
-    const mainQuestion = await this.prisma.question.create({
-      data: {
-        questionText: question.questionText,
-        answer: question.correctAnswer as string,
-        explanation: question.solution as string,
-        topicId,
-        sectionId: section.id,
-        difficulty: question.difficultyLevel,
-        source: "GENERATED",
-        templateId: question.templateId,
-        version: 1,
-        status: "ACTIVE",
-        metadata: {
-          options: question.options,
-          _generatedQuestionId: question.id,
-          _generationSeed: currentMeta._generationSeed,
-          _templateVersion: currentMeta._templateVersion,
-        },
+    const existingQuestion = await this.prisma.question.findFirst({
+      where: {
+        OR: [
+          { questionText: question.questionText },
+          { id: question.id },
+        ],
       },
     });
+
+    let mainQuestion;
+    if (existingQuestion) {
+      mainQuestion = await this.prisma.question.update({
+        where: { id: existingQuestion.id },
+        data: {
+          topicId,
+          sectionId: section.id,
+          status: "ACTIVE",
+          answer: question.correctAnswer as string,
+          explanation: question.solution as string,
+          difficulty: question.difficultyLevel,
+        },
+      });
+    } else {
+      mainQuestion = await this.prisma.question.create({
+        data: {
+          questionText: question.questionText,
+          answer: question.correctAnswer as string,
+          explanation: question.solution as string,
+          topicId,
+          sectionId: section.id,
+          difficulty: question.difficultyLevel,
+          source: "GENERATED",
+          templateId: question.templateId,
+          version: 1,
+          status: "ACTIVE",
+          metadata: {
+            options: question.options,
+            _generatedQuestionId: question.id,
+            _generationSeed: currentMeta._generationSeed,
+            _templateVersion: currentMeta._templateVersion,
+          },
+        },
+      });
+    }
 
     const updatedMeta = {
       ...currentMeta,
