@@ -118,6 +118,7 @@ export function QuestionPoolTable({
         columns={columns}
         data={poolQuestions || []}
         isLoading={isLoading}
+        pageSize={20}
         emptyState={
           <EmptyState
             title="No Questions Found"

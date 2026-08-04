@@ -20,11 +20,33 @@ export const useApproveQuestion = () => {
   });
 };
 
+export const useBulkApproveQuestion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => questionPoolApi.bulkApproveQuestions(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['generated-questions'] });
+    },
+  });
+};
+
 export const useRejectQuestion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => questionPoolApi.rejectQuestion(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['generated-questions'] });
+    },
+  });
+};
+
+export const useBulkRejectQuestion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => questionPoolApi.bulkRejectQuestions(ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['generated-questions'] });
     },

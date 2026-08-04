@@ -9,6 +9,7 @@ import { Eye, Check, X, RefreshCw, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useTopics } from '@/services/topics/hooks';
 import { useConcepts } from '@/services/concept-mapping/hooks';
+import { DataTable, ColumnDef } from '@/components/ui/data-table';
 
 function TopicNameCell({ topicId }: { topicId?: string }) {
   const { data: topics = [], isLoading } = useTopics();
@@ -94,6 +95,117 @@ export function ReviewTable({
   const filteredIds = filtered.map((q) => q.id);
   const allSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedIds.includes(id));
 
+  const columns: ColumnDef<GeneratedQuestion>[] = [
+    {
+      id: 'select',
+      header: (
+        <Checkbox 
+          checked={allSelected}
+          onCheckedChange={() => onToggleSelectAll(filteredIds)}
+          aria-label="Select all"
+        />
+      ),
+      cell: (q) => (
+        <Checkbox 
+          checked={selectedIds.includes(q.id)}
+          onCheckedChange={() => onToggleSelect(q.id)}
+          aria-label={`Select ${q.id}`}
+        />
+      ),
+      className: 'w-[50px]',
+    },
+    {
+      id: 'questionText',
+      header: 'Question Statement',
+      cell: (q) => (
+        <span className="max-w-[320px] truncate block font-medium" title={q.questionText}>
+          {q.questionText}
+        </span>
+      ),
+    },
+    {
+      id: 'topic',
+      header: 'Topic',
+      cell: (q) => (
+        <span className="text-sm text-muted-foreground">
+          <TopicNameCell topicId={q.topicId} />
+        </span>
+      ),
+    },
+    {
+      id: 'concept',
+      header: 'Concept / Section',
+      cell: (q) => (
+        <span className="text-sm text-muted-foreground">
+          <ConceptNameCell topicId={q.topicId} conceptId={q.conceptId || (q as any).conceptKey} />
+        </span>
+      ),
+    },
+    {
+      id: 'difficulty',
+      header: 'Difficulty',
+      cell: (q) => (
+        <Badge 
+          variant={
+            (q.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD' 
+              ? 'destructive' 
+              : (q.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM' 
+                ? 'default' 
+                : 'secondary'
+          }
+        >
+          {q.difficulty || 'Medium'}
+        </Badge>
+      ),
+    },
+    {
+      id: 'actions',
+      header: <div className="text-right">Actions</div>,
+      className: 'text-right',
+      cell: (q) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            title="Preview"
+            onClick={() => onPreview(q)}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            title="Regenerate"
+            onClick={() => onRegenerate(q.id)}
+            disabled={processingId === q.id}
+          >
+            <RefreshCw className={`h-4 w-4 ${processingId === q.id ? 'animate-spin text-blue-500' : ''}`} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            title="Reject"
+            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={() => onReject(q.id)}
+            disabled={processingId === q.id}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            title="Approve"
+            className="text-green-500 hover:text-green-600 hover:bg-green-50"
+            onClick={() => onApprove(q.id)}
+            disabled={processingId === q.id}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       {/* Filter Toolbar */}
@@ -167,121 +279,19 @@ export function ReviewTable({
         </div>
       </div>
 
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">
-                <Checkbox 
-                  checked={allSelected}
-                  onCheckedChange={() => onToggleSelectAll(filteredIds)}
-                  aria-label="Select all"
-                />
-              </TableHead>
-              <TableHead>Question Statement</TableHead>
-              <TableHead>Topic</TableHead>
-              <TableHead>Concept / Section</TableHead>
-              <TableHead>Difficulty</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
-                </TableRow>
-              ))
-            ) : filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  No generated questions pending review.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filtered.map((q) => (
-                <TableRow key={q.id}>
-                  <TableCell>
-                    <Checkbox 
-                      checked={selectedIds.includes(q.id)}
-                      onCheckedChange={() => onToggleSelect(q.id)}
-                      aria-label={`Select ${q.id}`}
-                    />
-                  </TableCell>
-                  <TableCell className="max-w-[320px] truncate" title={q.questionText}>
-                    {q.questionText}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    <TopicNameCell topicId={q.topicId} />
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    <ConceptNameCell topicId={q.topicId} conceptId={q.conceptId || (q as any).conceptKey} />
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        (q.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD' 
-                          ? 'destructive' 
-                          : (q.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM' 
-                            ? 'default' 
-                            : 'secondary'
-                      }
-                    >
-                      {q.difficulty || 'Medium'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        title="Preview"
-                        onClick={() => onPreview(q)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        title="Regenerate"
-                        onClick={() => onRegenerate(q.id)}
-                        disabled={processingId === q.id}
-                      >
-                        <RefreshCw className={`h-4 w-4 ${processingId === q.id ? 'animate-spin text-blue-500' : ''}`} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        title="Reject"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => onReject(q.id)}
-                        disabled={processingId === q.id}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        title="Approve"
-                        className="text-green-500 hover:text-green-600 hover:bg-green-50"
-                        onClick={() => onApprove(q.id)}
-                        disabled={processingId === q.id}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={filtered}
+        isLoading={isLoading}
+        rowKey={(row) => row.id}
+        hideSrNo
+        pageSize={20}
+        emptyState={
+          <div className="py-12 text-center text-muted-foreground font-medium">
+            No generated questions pending review.
+          </div>
+        }
+      />
     </div>
   );
 }

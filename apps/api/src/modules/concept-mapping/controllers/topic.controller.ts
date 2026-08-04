@@ -19,6 +19,7 @@ import {
   ApiOkResponse,
 } from "@nestjs/swagger";
 import { Roles } from "../../auth/decorators/roles.decorator";
+import { Public } from "../../auth/decorators/public.decorator";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { UserRole } from "@prisma/client";
 import { TopicService } from "../services/topic.service";
@@ -47,6 +48,7 @@ export class TopicController {
     return this.service.createTopic(dto);
   }
 
+  @Public()
   @Get()
   @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ValidateResponse(TopicListResponseSchema)
@@ -57,6 +59,7 @@ export class TopicController {
     return this.service.getTopics(filterActive);
   }
 
+  @Public()
   @Get(":id")
   @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @ValidateResponse(TopicResponseSchema)

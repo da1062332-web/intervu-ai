@@ -31,6 +31,8 @@ export interface DataTableProps<T> {
   rowKey?: (row: T) => string | number;
   containerClassName?: string;
   disablePagination?: boolean;
+  hideSrNo?: boolean;
+  pageSize?: number;
 }
 
 export function DataTable<T>({
@@ -43,9 +45,11 @@ export function DataTable<T>({
   rowKey,
   containerClassName,
   disablePagination,
+  hideSrNo = false,
+  pageSize = 20,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = pageSize;
   const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
 
   // Ensure current page is within bounds when data changes
@@ -56,7 +60,7 @@ export function DataTable<T>({
   }, [data.length, totalPages, currentPage]);
 
   if (isLoading) {
-    return <TableSkeleton columns={columns.length + 1} rows={5} className={containerClassName} />;
+    return <TableSkeleton columns={columns.length + (hideSrNo ? 0 : 1)} rows={5} className={containerClassName} />;
   }
 
   const paginatedData = disablePagination 
@@ -71,7 +75,9 @@ export function DataTable<T>({
         <Table>
           <TableHeader className="sticky top-0 bg-muted/40 z-10 backdrop-blur-md">
             <TableRow className="hover:bg-transparent border-b border-border/40">
-              <TableHead className="w-[50px] text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40 text-center">Sr. No.</TableHead>
+              {!hideSrNo && (
+                <TableHead className="w-[50px] text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40 text-center">Sr. No.</TableHead>
+              )}
               {columns.map((col, index) => (
                 <TableHead key={col.id || index} className={cn("text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40", col.className)}>
                   {col.header}
@@ -82,7 +88,7 @@ export function DataTable<T>({
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="h-48 text-center p-0">
+                <TableCell colSpan={columns.length + (hideSrNo ? 0 : 1)} className="h-48 text-center p-0">
                   {emptyState || (
                     <EmptyStateCard
                       title="No data available"
@@ -95,9 +101,11 @@ export function DataTable<T>({
             ) : (
               paginatedData.map((row, i) => (
                 <TableRow key={rowKey ? rowKey(row) : i} className="group transition-colors hover:bg-muted/40 border-b border-border/40">
-                  <TableCell className="w-[50px] py-3.5 text-sm text-center text-muted-foreground font-medium">
-                    {(currentPage - 1) * itemsPerPage + i + 1}
-                  </TableCell>
+                  {!hideSrNo && (
+                    <TableCell className="w-[50px] py-3.5 text-sm text-center text-muted-foreground font-medium">
+                      {(currentPage - 1) * itemsPerPage + i + 1}
+                    </TableCell>
+                  )}
                   {columns.map((col, j) => (
                     <TableCell key={col.id || j} className={cn("py-3.5 text-sm", col.className)}>
                       {col.cell(row, (currentPage - 1) * itemsPerPage + i)}

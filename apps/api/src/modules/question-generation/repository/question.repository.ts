@@ -21,11 +21,35 @@ export class QuestionRepository {
       sectionId = section?.id ?? "default";
     }
 
-    // Use the first available topic if topicId is not provided.
+    // Resolve topicId from template/concept if not explicitly provided
     let topicId = assembled.topicId;
+    if (!topicId && assembled.templateId) {
+      const tmpl = await this.prisma.template.findUnique({
+        where: { id: assembled.templateId },
+      });
+      if (tmpl?.conceptKey) {
+        const concept = await this.prisma.concept.findFirst({
+          where: { code: { equals: tmpl.conceptKey, mode: "insensitive" } },
+        });
+        if (concept?.topicId) {
+          topicId = concept.topicId;
+        }
+      }
+    }
+
+    if (!topicId && (assembled.metadata as any)?.conceptKey) {
+      const concept = await this.prisma.concept.findFirst({
+        where: { code: { equals: (assembled.metadata as any).conceptKey, mode: "insensitive" } },
+      });
+      if (concept?.topicId) {
+        topicId = concept.topicId;
+      }
+    }
+
     if (!topicId) {
-      const topic = await this.prisma.topic.findFirst();
-      topicId = topic?.id ?? "default";
+      throw new Error(
+        `Cannot save assembled question: No valid topicId could be resolved for template ${assembled.templateId}`
+      );
     }
 
     return this.prisma.question.create({

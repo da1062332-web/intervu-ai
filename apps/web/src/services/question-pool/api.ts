@@ -3,7 +3,9 @@ import { GeneratedQuestion, QuestionFilters } from './types';
 
 export const questionPoolApi = {
   getGeneratedQuestions: async (filters?: QuestionFilters): Promise<GeneratedQuestion[]> => {
-    const query: Record<string, string> = {};
+    const query: Record<string, string> = {
+      limit: '500',
+    };
 
     if (filters?.search) query.q = filters.search;
     if (filters?.templateId) query.templateId = filters.templateId;
@@ -51,9 +53,23 @@ export const questionPoolApi = {
     });
   },
 
+  bulkApproveQuestions: async (ids: string[]): Promise<{ success: boolean; count: number }> => {
+    return apiClient.request<{ success: boolean; count: number }>('/questions/bulk-approve', {
+      method: 'POST',
+      body: { ids },
+    });
+  },
+
   rejectQuestion: async (id: string): Promise<GeneratedQuestion> => {
     return apiClient.request<GeneratedQuestion>(`/questions/${id}/reject`, {
       method: 'POST',
+    });
+  },
+
+  bulkRejectQuestions: async (ids: string[]): Promise<{ success: boolean; count: number }> => {
+    return apiClient.request<{ success: boolean; count: number }>('/questions/bulk-reject', {
+      method: 'POST',
+      body: { ids },
     });
   },
 

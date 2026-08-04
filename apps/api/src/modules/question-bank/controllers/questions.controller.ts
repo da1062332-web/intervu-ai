@@ -24,6 +24,7 @@ import {
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
+import { Public } from "../../auth/decorators/public.decorator";
 import { UserRole } from "@prisma/client";
 
 import { QuestionSearchService } from "../services/question-search.service";
@@ -46,6 +47,7 @@ export class QuestionsController {
     private readonly generationOrchestrator?: GenerationOrchestratorService,
   ) {}
 
+  @Public()
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -598,6 +600,40 @@ export class QuestionsController {
     };
   }
 
+  @Post("bulk-approve")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk approve generated questions" })
+  async bulkApproveQuestions(@Body() body: { ids: string[] }) {
+    const ids = body?.ids || [];
+    let count = 0;
+    for (const id of ids) {
+      try {
+        await this.approveQuestion(id);
+        count++;
+      } catch (err) {
+        console.error(`Failed to approve question ${id}`, err);
+      }
+    }
+    return { success: true, count };
+  }
+
+  @Post("bulk-reject")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk reject generated questions" })
+  async bulkRejectQuestions(@Body() body: { ids: string[] }) {
+    const ids = body?.ids || [];
+    let count = 0;
+    for (const id of ids) {
+      try {
+        await this.rejectQuestion(id);
+        count++;
+      } catch (err) {
+        console.error(`Failed to reject question ${id}`, err);
+      }
+    }
+    return { success: true, count };
+  }
+
   @Post(":id/reject")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Reject a generated question" })
@@ -685,11 +721,61 @@ export class QuestionsController {
       if (concept?.topicId) {
         topicId = concept.topicId;
       } else {
-        // Last resort: use first topic
-        topicId = (await this.prisma.topic.findFirst())?.id;
+        // Fallback: try matching template concept
+        if (question.templateId) {
+          const tmpl = await this.prisma.template.findUnique({
+            where: { id: question.templateId },
+          });
+          if (tmpl?.conceptKey) {
+            const tmplConcept = await this.prisma.concept.findFirst({
+              where: { code: { equals: tmpl.conceptKey, mode: "insensitive" } },
+            });
+            if (tmplConcept?.topicId) {
+              topicId = tmplConcept.topicId;
+            }
+          }
+        }
       }
     }
     
+    // Check metadata for topicId or conceptKey
+    if (!topicId && currentMeta.topicId) {
+      topicId = currentMeta.topicId;
+    }
+
+    if (!topicId && (currentMeta.conceptKey || currentMeta.conceptCode)) {
+      const cKey = currentMeta.conceptKey || currentMeta.conceptCode;
+      const concept = await this.prisma.concept.findFirst({
+        where: { code: { equals: cKey, mode: "insensitive" } },
+      });
+      if (concept?.topicId) {
+        topicId = concept.topicId;
+      }
+    }
+
+    // Check text pattern matching for Error Identification
+    if (!topicId && question.questionText) {
+      const txt = question.questionText.toLowerCase();
+      if (
+        txt.includes("select the option that has the error") ||
+        txt.includes("grammatical error") ||
+        txt.includes("find out whether there is any error")
+      ) {
+        const errTopic = await this.prisma.topic.findFirst({
+          where: { code: { equals: "ERROR_IDENTIFICATION", mode: "insensitive" } },
+        });
+        if (errTopic) topicId = errTopic.id;
+      }
+    }
+
+    // Safety fallback to active topic if all else fails
+    if (!topicId) {
+      const activeTopic = await this.prisma.topic.findFirst({
+        where: { status: "ACTIVE" },
+      });
+      topicId = activeTopic?.id;
+    }
+
     if (!topicId) {
       throw new BadRequestException(
         "No topic found to associate with the question",

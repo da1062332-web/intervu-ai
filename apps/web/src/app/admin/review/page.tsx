@@ -5,7 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import {
   useGeneratedQuestions,
   useApproveQuestion,
+  useBulkApproveQuestion,
   useRejectQuestion,
+  useBulkRejectQuestion,
   useRegenerateQuestion,
 } from '@/services/question-pool/hooks';
 import { ReviewTable } from './components/ReviewTable';
@@ -18,7 +20,9 @@ import { toast } from 'sonner';
 export default function QuestionReviewPage() {
   const { data: questions = [], isLoading } = useGeneratedQuestions({ status: 'GENERATED' });
   const { mutateAsync: approve } = useApproveQuestion();
+  const { mutateAsync: bulkApprove } = useBulkApproveQuestion();
   const { mutateAsync: reject } = useRejectQuestion();
+  const { mutateAsync: bulkReject } = useBulkRejectQuestion();
   const { mutateAsync: regenerate } = useRegenerateQuestion();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -118,38 +122,28 @@ export default function QuestionReviewPage() {
   };
 
   const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return;
     setIsBulkProcessing(true);
-    let successCount = 0;
     try {
-      for (const id of selectedIds) {
-        try {
-          await approve(id);
-          successCount++;
-        } catch (err: any) {
-          toast.error(err.message || 'Failed to approve question');
-        }
-      }
+      const res = await bulkApprove(selectedIds);
       setSelectedIds([]);
-      if (successCount > 0) toast.success(`Approved ${successCount} questions`);
+      toast.success(`Approved ${res.count} questions`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to approve questions');
     } finally {
       setIsBulkProcessing(false);
     }
   };
 
   const handleBulkReject = async () => {
+    if (selectedIds.length === 0) return;
     setIsBulkProcessing(true);
-    let successCount = 0;
     try {
-      for (const id of selectedIds) {
-        try {
-          await reject(id);
-          successCount++;
-        } catch (err: any) {
-          toast.error(err.message || 'Failed to reject question');
-        }
-      }
+      const res = await bulkReject(selectedIds);
       setSelectedIds([]);
-      if (successCount > 0) toast.success(`Rejected ${successCount} questions`);
+      toast.success(`Rejected ${res.count} questions`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to reject questions');
     } finally {
       setIsBulkProcessing(false);
     }
