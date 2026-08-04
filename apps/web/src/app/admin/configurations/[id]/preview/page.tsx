@@ -1,14 +1,13 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import { ConfigurationPreview } from '@/modules/admin/configuration/ConfigurationPreview';
 import { SectionHeader } from '@/components/ui/section-header';
 
-interface PreviewPageProps {
-  params: Promise<{ id: string }>;
-}
+export default function PreviewPage() {
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id || '';
 
-export default async function PreviewPage({ params }: PreviewPageProps) {
-  const resolvedParams = await params;
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-5xl'>
       <SectionHeader 
@@ -16,7 +15,7 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
         description='Review downstream impact before publishing.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations', href: '/admin/configurations' }, { label: 'Preview' }]}
       />
-      <ConfigurationPreview configId={resolvedParams.id} />
+      <ConfigurationPreview configId={id} />
     </div>
   );
 }
