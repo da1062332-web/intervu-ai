@@ -85,7 +85,7 @@ export class QuestionPoolRepository implements IQuestionSource {
     const codingData = (question.codingData as any) ?? null;
 
     let options = metadata.options as GeneratedQuestion["options"];
-    if ((!Array.isArray(options) || options.length === 0) && mcqData?.options && Array.isArray(mcqData.options)) {
+    if ((!Array.isArray(options) || options.length < 4) && mcqData?.options && Array.isArray(mcqData.options) && mcqData.options.length >= 4) {
       options = mcqData.options;
     }
 
@@ -97,7 +97,7 @@ export class QuestionPoolRepository implements IQuestionSource {
       difficultyLevel: question.difficulty as DifficultyLevel,
       questionType: question.questionType || "MULTIPLE_CHOICE",
       questionText: question.questionText,
-      options: Array.isArray(options) && options.length > 0 ? options : [question.answer],
+      options: Array.isArray(options) && options.length >= 4 ? options : (mcqData?.options || [question.answer]),
       mcqData,
       codingData,
       correctAnswer: question.answer as GeneratedQuestion["correctAnswer"],

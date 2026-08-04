@@ -42,12 +42,11 @@ export function QuestionRenderer() {
 
     return (
       <div className='space-y-2 mt-4' role='radiogroup' aria-label='Select an option'>
-        {currentQuestion.options.map((option, index) => {
+        {currentQuestion.options.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
-          // Always use index-based key to avoid duplicate key warnings
           const optKey = `opt-${currentQuestion.id}-${index}`;
-          // Use option.text as the value submitted (for backend evaluation)
-          const optValue = option.text || option.id || index.toString();
+          const optText = typeof option === 'string' ? option : (option?.text || option?.value || option?.label || '');
+          const optValue = typeof option === 'string' ? option : (option?.text || option?.id || index.toString());
           const isSelected = selectedOptionId === optValue;
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
@@ -57,11 +56,11 @@ export function QuestionRenderer() {
               key={optKey}
               htmlFor={htmlId}
               className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
+                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-xs
                 ${
                   isSelected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/50 bg-white'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 bg-white dark:bg-slate-900'
                 }
               `}
             >
@@ -73,7 +72,7 @@ export function QuestionRenderer() {
                 checked={isSelected}
                 onChange={() => saveAnswer(currentQuestion.id, { selectedOptionId: optValue })}
                 className='sr-only'
-                aria-label={`Option ${letter}: ${option.text}`}
+                aria-label={`Option ${letter}: ${optText}`}
               />
               <div
                 className={`
@@ -81,15 +80,15 @@ export function QuestionRenderer() {
                 ${
                   isSelected
                     ? 'bg-primary border-primary text-white'
-                    : 'bg-background border-muted-foreground/30 text-muted-foreground'
+                    : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }
               `}
                 aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-normal leading-relaxed break-words'>
-                {option.text}
+              <span className='text-base font-medium leading-relaxed break-words text-slate-900 dark:text-slate-100'>
+                {optText}
               </span>
             </label>
           );
@@ -111,10 +110,10 @@ export function QuestionRenderer() {
 
     return (
       <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
-        {currentQuestion.options.map((option, index) => {
+        {currentQuestion.options.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
-          // Use text as the selection value (for backend evaluation)
-          const optValue = option.text || option.id || index.toString();
+          const optText = typeof option === 'string' ? option : (option?.text || option?.value || option?.label || '');
+          const optValue = typeof option === 'string' ? option : (option?.text || option?.id || index.toString());
           const isSelected = selectedOptionIds.includes(optValue);
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
@@ -124,11 +123,11 @@ export function QuestionRenderer() {
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-sm
+                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-xs
                 ${
                   isSelected
                     ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/50 bg-white'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 bg-white dark:bg-slate-900'
                 }
               `}
             >
@@ -138,7 +137,7 @@ export function QuestionRenderer() {
                 className='sr-only'
                 checked={isSelected}
                 onChange={() => handleToggle(optValue)}
-                aria-label={`Option ${letter}: ${option.text}`}
+                aria-label={`Option ${letter}: ${optText}`}
               />
               <div
                 className={`
@@ -146,15 +145,15 @@ export function QuestionRenderer() {
                 ${
                   isSelected
                     ? 'bg-primary border-primary text-white'
-                    : 'bg-background border-muted-foreground/30 text-muted-foreground'
+                    : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }
               `}
                 aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-normal leading-relaxed break-words'>
-                {option.text}
+              <span className='text-base font-medium leading-relaxed break-words text-slate-900 dark:text-slate-100'>
+                {optText}
               </span>
             </label>
           );
