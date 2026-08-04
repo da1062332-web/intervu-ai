@@ -7,6 +7,7 @@ import {
 import { PrismaService } from "@/prisma/prisma.service";
 import { RecommendationService } from "../../evaluation/recommendations/recommendation.service";
 import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
+import { ResultStorageService } from "../../evaluation/services/result-storage.service";
 
 @Injectable()
 export class ResultQueryService {
@@ -328,7 +329,7 @@ export class ResultQueryService {
   }
 
   async getPerformanceDashboard(attemptId: string) {
-    const [result, analytics, evaluation, sections, answers, recommendations] =
+    let [result, analytics, evaluation, sections, answers, recommendations] =
       await Promise.all([
         this.candidateResultRepo.findResultByAttemptId(attemptId),
         this.candidateResultRepo.findAnalytics(attemptId),
@@ -347,7 +348,42 @@ export class ResultQueryService {
       ]);
 
     if (!result) {
-      throw new NotFoundException(`Result not found for attempt ${attemptId}`);
+      const testInstance = await this.prisma.testInstance.findUnique({
+        where: { id: attemptId },
+      });
+
+      if (testInstance && (testInstance.status === "SUBMITTED" || testInstance.submittedAt)) {
+        try {
+          const executionResult = {
+            executionId: testInstance.id,
+            testId: testInstance.id,
+            status: "submitted",
+            submittedAt: testInstance.submittedAt || new Date(),
+            answers: answers.map((a) => ({
+              questionId: a.questionId,
+              answer: String(a.answer || ""),
+              timeSpentSeconds: a.timeSpentSeconds || 0,
+              isMarkedForReview: a.isMarkedForReview || false,
+            })),
+          };
+          const generated = await this.resultGenerator?.generateResult(executionResult as any);
+          if (generated) {
+            const storage = new ResultStorageService(this.prisma);
+            await storage.saveResult(generated, 1000);
+            result = await this.candidateResultRepo.findResultByAttemptId(attemptId);
+            analytics = await this.candidateResultRepo.findAnalytics(attemptId);
+            evaluation = await this.prisma.evaluationResult.findFirst({
+              where: { testInstanceId: attemptId },
+            });
+          }
+        } catch (e) {
+          // Ignore fallback error and let NotFoundException throw if still null
+        }
+      }
+
+      if (!result) {
+        throw new NotFoundException(`Result not found for attempt ${attemptId}`);
+      }
     }
 
     const overallScore = result.score;
@@ -897,7 +933,7 @@ export class ResultQueryService {
       } catch {
         // Ignore fallback evaluation error
       }
-    } else {
+    } else if (this.resultGenerator?.generateResult) {
       // Fire and forget re-evaluation in background to keep data fresh without blocking response
       this.resultGenerator
         .generateResult({
@@ -1012,6 +1048,7 @@ export class ResultQueryService {
           ? 100
           : codingMaxMarks || (codingSec ? 100 : 0),
       passed: evaluation?.overallRating === 1,
+      hasCodingSection: !!codingSec || codingMaxMarks > 0,
       maxMarks: finalMaxMarks,
       // Ranking & Percentile
       rank,

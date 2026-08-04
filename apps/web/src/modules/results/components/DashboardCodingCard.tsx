@@ -10,18 +10,24 @@ interface Props {
 }
 
 export const DashboardCodingCard: React.FC<Props> = ({ data, attemptId }) => {
-  const codingSection = data.sectionAccuracy.find(s => 
+  const codingSection = data.sectionAccuracy?.find(s => 
     s.sectionName.toLowerCase().includes('coding') || 
     s.sectionName.toLowerCase().includes('programming')
   );
 
-  if (data.codingScore === undefined && !codingSection) return null;
+  const hasCoding = Boolean(
+    codingSection || 
+    (data.codingMaxMarks !== undefined && data.codingMaxMarks > 0) ||
+    (data as any).hasCodingSection
+  );
 
-  const score = data.codingScore ?? (codingSection ? Math.round(codingSection.accuracy) : 40);
+  if (!hasCoding) return null;
+
+  const score = data.codingScore ?? (codingSection ? Math.round(codingSection.accuracy) : 0);
   const maxMarks = data.codingMaxMarks || 100;
-  const accuracy = codingSection ? Math.round(codingSection.accuracy) : 50;
+  const accuracy = codingSection ? Math.round(codingSection.accuracy) : Math.round((score / Math.max(1, maxMarks)) * 100);
 
-  const totalCases = codingSection ? (codingSection.questionCount || (codingSection.correct + codingSection.wrong + (codingSection.skipped || 0)) || 12) : 12;
+  const totalCases = codingSection ? (codingSection.questionCount || (codingSection.correct + codingSection.wrong + (codingSection.skipped || 0)) || 10) : 10;
   const passedCases = codingSection ? codingSection.correct : Math.round((accuracy / 100) * totalCases);
   const failedCases = Math.max(0, totalCases - passedCases);
 
