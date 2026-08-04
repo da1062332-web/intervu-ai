@@ -232,7 +232,7 @@ export class QuestionBankSource implements IQuestionSource {
       conceptKey: q.topicId,
       difficultyLevel: (q.difficulty ??
         difficulty) as GeneratedQuestion["difficultyLevel"],
-      questionType: "MULTIPLE_CHOICE",
+      questionType: ((q as any).questionType || "MULTIPLE_CHOICE") as any,
       questionText: q.questionText,
       // questionHash is not on Question model — use id as stable unique identifier
       questionHash: q.id,
