@@ -49,8 +49,14 @@ export function DataTable<T>({
   pageSize = 20,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = pageSize;
-  const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
+  const [itemsPerPage, setItemsPerPage] = useState<number>(pageSize);
+
+  // Synchronize initial pageSize prop changes
+  React.useEffect(() => {
+    setItemsPerPage(pageSize);
+  }, [pageSize]);
+
+  const totalPages = itemsPerPage >= data.length ? 1 : Math.max(1, Math.ceil(data.length / itemsPerPage));
 
   // Ensure current page is within bounds when data changes
   React.useEffect(() => {
@@ -120,9 +126,28 @@ export function DataTable<T>({
       
       {/* Internal Pagination if no custom pagination provided and total pages > 1 */}
       {!disablePagination && !pagination && data.length > 0 && (
-        <div className="flex items-center justify-between px-2 py-4 border-t border-border/40 text-sm text-muted-foreground">
-          <div>
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, data.length)} of {data.length} entries
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2 py-4 border-t border-border/40 text-sm text-muted-foreground">
+          <div className="flex items-center space-x-4">
+            <div>
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, data.length)} of {data.length} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-muted-foreground">Rows per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="h-8 px-2 text-xs bg-background border rounded-md font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={9999}>All ({data.length})</option>
+              </select>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Button
