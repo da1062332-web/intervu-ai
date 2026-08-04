@@ -1,16 +1,10 @@
-import { Metadata } from 'next';
+'use client';
+
+import { useParams } from 'next/navigation';
 import { EditConfigClient } from './EditConfigClient';
 
-export const metadata: Metadata = {
-  title: 'Edit Exam Configuration | Admin',
-  description: 'Edit an existing exam configuration',
-};
-
-interface EditConfigPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function EditConfigPage({ params }: EditConfigPageProps) {
-  const resolvedParams = await params;
-  return <EditConfigClient configId={resolvedParams.id} />;
+export default function EditConfigPage() {
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id || '';
+  return <EditConfigClient configId={id} />;
 }
