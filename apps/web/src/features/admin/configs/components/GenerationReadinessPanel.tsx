@@ -20,6 +20,23 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
   const { data: blueprints } = useBlueprints();
   const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
 
+  const checks = validation?.checks;
+
+  const computedChecks = React.useMemo(() => {
+    if (!checks) return [];
+    if (!selectedBlueprintId) return checks;
+    return checks.map((chk: any) => {
+      if (chk.name?.toLowerCase().includes('section')) {
+        return {
+          ...chk,
+          status: 'PASS',
+          message: `Pre-configured sections loaded from ${selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}.`,
+        };
+      }
+      return chk;
+    });
+  }, [checks, selectedBlueprintId, selectedBlueprint]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
@@ -41,22 +58,7 @@ export function GenerationReadinessPanel({ configId, onTabChange }: GenerationRe
     );
   }
 
-  const { score, status, checks, report } = validation;
-
-  const computedChecks = React.useMemo(() => {
-    if (!checks) return [];
-    if (!selectedBlueprintId) return checks;
-    return checks.map((chk: any) => {
-      if (chk.name?.toLowerCase().includes('section')) {
-        return {
-          ...chk,
-          status: 'PASS',
-          message: `Pre-configured sections loaded from ${selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}.`,
-        };
-      }
-      return chk;
-    });
-  }, [checks, selectedBlueprintId, selectedBlueprint]);
+  const { score, status, report } = validation;
 
   const effectiveIsReady = selectedBlueprintId
     ? computedChecks.every((c: any) => c.status === 'PASS')
