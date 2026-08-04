@@ -38,6 +38,8 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
       },
       question: {
         create: jest.fn(),
+        findFirst: jest.fn(),
+        update: jest.fn(),
       },
     };
 

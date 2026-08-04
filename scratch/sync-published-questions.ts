@@ -23,24 +23,25 @@ async function main() {
       // 1. Resolve Topic ID
       let topicId: string | undefined;
 
-      const concept = await prisma.concept.findFirst({
-        where: { code: { equals: gq.conceptKey, mode: 'insensitive' } },
+      const topicCheck = await prisma.topic.findFirst({
+        where: {
+          OR: [
+            { id: gq.conceptKey },
+            { code: { equals: gq.conceptKey, mode: 'insensitive' } },
+            { name: { equals: gq.conceptKey, mode: 'insensitive' } },
+          ],
+        },
       });
 
-      if (concept?.topicId) {
-        topicId = concept.topicId;
+      if (topicCheck?.id) {
+        topicId = topicCheck.id;
       } else {
-        const topicCheck = await prisma.topic.findFirst({
-          where: {
-            OR: [
-              { id: gq.conceptKey },
-              { code: { equals: gq.conceptKey, mode: 'insensitive' } },
-              { name: { equals: gq.conceptKey, mode: 'insensitive' } },
-            ],
-          },
+        const concept = await prisma.concept.findFirst({
+          where: { code: { equals: gq.conceptKey, mode: 'insensitive' } },
         });
-        if (topicCheck?.id) {
-          topicId = topicCheck.id;
+
+        if (concept?.topicId) {
+          topicId = concept.topicId;
         } else {
           topicId = (await prisma.topic.findFirst())?.id;
         }
