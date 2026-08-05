@@ -144,8 +144,13 @@ export class AssembledTestRepository {
 
   async findByConfigId(configId: string) {
     return this.prisma.assembledTest.findFirst({
-      where: { configId, status: 'PUBLISHED' },
+      where: { configId, status: AssemblyStatus.PUBLISHED },
       include: {
+        examConfig: {
+          select: {
+            updatedAt: true,
+          },
+        },
         sections: {
           include: {
             questions: {
@@ -153,6 +158,28 @@ export class AssembledTestRepository {
             },
           },
           orderBy: { orderIndex: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findLatestReusableByConfigId(configId: string) {
+    return this.prisma.assembledTest.findFirst({
+      where: {
+        configId,
+        status: AssemblyStatus.PUBLISHED,
+      },
+      select: {
+        id: true,
+        configId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        examConfig: {
+          select: {
+            updatedAt: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
