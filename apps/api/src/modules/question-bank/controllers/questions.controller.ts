@@ -185,6 +185,7 @@ export class QuestionsController {
       success: true,
       data: questions.map((q) => {
         const c = conceptMap.get(q.conceptKey);
+        const metadata = (q.metadata as Record<string, any>) || {};
         return {
           id: q.id,
           templateId: q.templateId,
@@ -192,13 +193,14 @@ export class QuestionsController {
           conceptId: c?.id || q.conceptKey,
           topicId: c?.topicId,
           questionText: q.questionText,
-          variables: q.metadata,
+          variables: metadata,
           options: q.options,
           answer: q.correctAnswer,
           correctAnswer: q.correctAnswer,
           explanation: q.solution,
           difficulty: q.difficultyLevel,
-          status: (q.metadata as any)?.status || "GENERATED",
+          generationStrategy: metadata.generationStrategy,
+          status: metadata.status || "GENERATED",
           createdAt: q.createdAt,
         };
       }),

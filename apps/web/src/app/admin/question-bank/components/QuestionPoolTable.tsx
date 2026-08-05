@@ -75,11 +75,14 @@ export function QuestionPoolTable({
     {
       id: 'strategy',
       header: 'Strategy',
-      cell: (item: any) => (
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          {item.generationStrategy || 'HYBRID'}
-        </span>
-      ),
+      cell: (item: any) => {
+        const strategy = item.generationStrategy || item.metadata?.generationStrategy || 'UNKNOWN';
+        return (
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {String(strategy).toUpperCase()}
+          </span>
+        );
+      },
     },
     {
       id: 'difficulty',
