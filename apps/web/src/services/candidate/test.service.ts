@@ -25,24 +25,44 @@ interface StartTestResponse {
 
 export const testService = {
   getTestConfigs: async (): Promise<TestConfig[]> => {
-    const response = await apiClient.request<{ configs: AvailableConfigDto[] }>('/tests/configs', {
+    const response = await apiClient.request<{ configs: any[] }>('/tests/configs', {
       method: 'GET',
     });
     const configs = response.configs || [];
-    return configs.map((config) => ({
-      id: config.configId,
-      company: config.company || null,
-      title: config.name,
-      difficulty: config.difficulty,
-      durationMinutes: config.duration ? Math.floor(config.duration / 60) : null,
-      questionCount: config.questionCount,
-      sections: (config.sections || []).map((s, idx) => ({
-        id: `section-${idx}`,
-        name: s,
-        questionCount: 10 + (idx * 5),
-        durationMinutes: 15 + (idx * 10),
-      })),
-    }));
+    return configs.map((config) => {
+      const parsedSections = (config.sections || []).map((s: any, idx: number) => {
+        if (typeof s === 'object' && s !== null) {
+          return {
+            id: s.id || `section-${idx}`,
+            name: s.name || s.displayName || `Section ${idx + 1}`,
+            questionCount: Number(s.questionCount) || 0,
+            durationMinutes: Number(s.durationMinutes) || (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0),
+          };
+        }
+        return {
+          id: `section-${idx}`,
+          name: String(s),
+          questionCount: config.questionCount || 0,
+          durationMinutes: config.duration ? Math.floor(config.duration / 60) : 0,
+        };
+      });
+
+      const sumSectionMins = parsedSections.reduce((sum: number, sec: any) => sum + (sec.durationMinutes || 0), 0);
+      const sumSectionQs = parsedSections.reduce((sum: number, sec: any) => sum + (sec.questionCount || 0), 0);
+
+      const durationMinutes = sumSectionMins > 0 ? sumSectionMins : (config.durationMinutes || (config.duration ? Math.floor(config.duration / 60) : null));
+      const questionCount = sumSectionQs > 0 ? sumSectionQs : (config.questionCount || 0);
+
+      return {
+        id: config.configId || config.id,
+        company: config.company || null,
+        title: config.name || config.title,
+        difficulty: config.difficulty || 'Medium',
+        durationMinutes,
+        questionCount,
+        sections: parsedSections,
+      };
+    });
   },
 
   getTestDetails: async (id: string): Promise<TestConfig> => {

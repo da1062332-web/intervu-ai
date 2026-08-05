@@ -30,7 +30,10 @@ export class EvaluationWorkerService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const redisUrlString = this.configService.redisUrl;
+    const redisUrlString =
+      this.configService?.redisUrl ||
+      process.env.REDIS_URL ||
+      "redis://localhost:6379";
     this.logger.log(
       `Initializing BullMQ Evaluation worker. Redis URL: ${redisUrlString}`,
     );

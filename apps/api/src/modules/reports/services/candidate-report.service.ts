@@ -34,7 +34,7 @@ export class CandidateReportService {
       throw new NotFoundException(`Assessment attempt ${attemptId} not found`);
     }
 
-    // 2. Fetch the EvaluationResult and associated models
+    // 2. Fetch the EvaluationResult or CandidateResult
     const evaluation = await this.prisma.evaluationResult.findUnique({
       where: { testInstanceId: attemptId },
       include: {
@@ -43,17 +43,24 @@ export class CandidateReportService {
       },
     });
 
-    if (!evaluation) {
+    // 3. Reuse ResultsService to calculate breakdown details
+    let resultDetails: any = {};
+    try {
+      resultDetails = await this.resultsService.getResultDetails(
+        attempt.userId,
+        attemptId,
+      );
+    } catch (e) {
+      this.logger.warn(`Failed to get resultDetails for ${attemptId}`, {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+
+    if (!evaluation && !resultDetails?.score && resultDetails?.score !== 0) {
       throw new NotFoundException(
         `Evaluation for attempt ${attemptId} has not been completed yet`,
       );
     }
-
-    // 3. Reuse ResultsService to calculate breakdown details
-    const resultDetails = await this.resultsService.getResultDetails(
-      attempt.userId,
-      attemptId,
-    );
 
     // 4. Calculate Rank and Percentile dynamically
     const allAttempts = await this.prisma.evaluationResult.findMany({
@@ -69,7 +76,7 @@ export class CandidateReportService {
     });
 
     const totalAttemptsCount = allAttempts.length;
-    const score = evaluation.overallScore;
+    const score = evaluation?.overallScore ?? resultDetails?.score ?? 0;
 
     // Rank is the number of attempts with score higher than candidate + 1
     const countHigher = allAttempts.filter(
@@ -163,7 +170,15 @@ export class CandidateReportService {
       weaknesses,
       recommendations,
       improvementPlan,
+      qualification: resultDetails.qualification || null,
+      qualificationReason: resultDetails.qualificationReason || null,
+      evaluationStrategy: resultDetails.evaluationStrategy || null,
+      foundationScore: resultDetails.foundationScore ?? null,
+      advancedScore: resultDetails.advancedScore ?? null,
+      codingSolved: resultDetails.codingSolved ?? null,
+      qualificationDetails: resultDetails.qualificationDetails || null,
     };
+
   }
 
   private generateImprovementPlan(

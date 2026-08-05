@@ -55,7 +55,7 @@ export const ResultDetailsPage = () => {
       const { jsPDF } = await import('jspdf');
 
       const sections = document.querySelectorAll('.pdf-section');
-      if (!sections.length) return;
+      if (!sections.length) throw new Error('No PDF content found');
 
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -68,9 +68,11 @@ export const ResultDetailsPage = () => {
         const section = sections[i] as HTMLElement;
 
         const imgData = await htmlToImage.toJpeg(section, {
-          quality: 0.98,
+          quality: 0.95,
           pixelRatio: 2,
           backgroundColor: '#ffffff',
+          fontEmbedCSS: '',
+          skipFonts: true,
         });
 
         const imgProps = pdf.getImageProperties(imgData);
@@ -106,8 +108,22 @@ export const ResultDetailsPage = () => {
       pdf.save(`result-${attemptId}.pdf`);
       toast.success('PDF downloaded successfully');
     } catch (e: any) {
-      console.error('PDF Export Error:', e);
-      toast.error('Failed to generate PDF: ' + (e?.message || 'Unknown error'));
+      console.warn('Frontend DOM PDF capture failed, falling back to server PDF API:', e);
+      try {
+        const blob = await resultApi.exportToPdf(attemptId);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `result-${attemptId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('PDF downloaded successfully');
+      } catch (fallbackErr: any) {
+        console.error('Server PDF Export Error:', fallbackErr);
+        toast.error('Failed to download PDF: ' + (fallbackErr?.message || 'Unknown error'));
+      }
     } finally {
       setIsExportingPdf(false);
     }

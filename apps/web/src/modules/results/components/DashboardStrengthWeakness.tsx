@@ -36,8 +36,8 @@ export const DashboardStrengthWeakness: React.FC<Props> = ({ data, attemptId }) 
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                     <div>
                       <h4 className="font-bold text-foreground text-xs">{sec.sectionName}</h4>
-                      <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                        Accuracy: <span className="font-bold text-emerald-600 dark:text-emerald-400">{acc}%</span>
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                        High Concept Mastery
                       </p>
                     </div>
                   </div>
@@ -48,8 +48,8 @@ export const DashboardStrengthWeakness: React.FC<Props> = ({ data, attemptId }) 
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-bold text-foreground text-xs">General Proficiency</h4>
-                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                    Overall Accuracy: <span className="font-bold text-emerald-600 dark:text-emerald-400">{Math.round(data.overallAccuracy)}%</span>
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                    Strong Overall Foundation
                   </p>
                 </div>
               </div>
@@ -79,8 +79,8 @@ export const DashboardStrengthWeakness: React.FC<Props> = ({ data, attemptId }) 
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                     <div>
                       <h4 className="font-bold text-foreground text-xs">{sec.sectionName}</h4>
-                      <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                        Accuracy: <span className="font-bold text-amber-600 dark:text-amber-400">{acc}%</span>
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
+                        Focus Area • Needs Practice
                       </p>
                     </div>
                   </div>

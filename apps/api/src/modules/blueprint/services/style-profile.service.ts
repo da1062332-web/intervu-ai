@@ -46,6 +46,9 @@ export class StyleProfileService implements OnModuleInit {
   }
 
   async seedDefaultProfiles() {
+    if (!this.repository || !this.repository.findByName) {
+      return;
+    }
     const defaultProfiles = [
       {
         name: "Campus Placement",

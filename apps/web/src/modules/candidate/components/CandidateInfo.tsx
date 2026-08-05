@@ -7,7 +7,7 @@ import { User, Mail, ShieldCheck } from 'lucide-react';
 export function CandidateInfo() {
   const user = useAuthStore((state) => state.user);
 
-  const displayName = user?.fullName || 'Candidate';
+  const displayName = user?.fullName || (user as any)?.name || user?.email?.split('@')[0] || 'Candidate';
   const displayEmail = user?.email || 'candidate@intervu.ai';
 
   return (

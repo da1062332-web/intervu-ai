@@ -24,7 +24,7 @@ export function CandidateDashboard() {
             value='history'
             className='rounded-none px-2 py-3 text-sm font-semibold tracking-wide data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary border-b-2 border-transparent data-[state=active]:border-primary text-muted-foreground hover:text-foreground transition-all'
           >
-            History & Reports
+            Attempt History
           </TabsTrigger>
         </TabsList>
 

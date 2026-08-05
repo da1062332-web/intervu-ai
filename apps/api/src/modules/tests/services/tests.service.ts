@@ -12,34 +12,61 @@ export class TestsService {
 
   /**
    * Returns all active assessment configurations available to candidates.
-   *
-   * Pipeline: validate → fetchDependencies → coreLogic → formatResponse
-   *
-   * Template.config is Json (no DB schema) — all keys accessed defensively
-   * via the TemplateConfig interface with optional fields.
    */
   async getAvailableConfigs(): Promise<TestConfigsResponseDto> {
-    // 1. validate — no input required for this read-only discovery endpoint
-
-    // 2. fetchDependencies
     const testConfigs = await this.testsRepository.findAllActiveConfigs();
 
-    // 3. coreLogic — map TestConfig rows to AvailableConfigDto
     const configs: AvailableConfigDto[] = testConfigs.map((tc) => {
+      const isExam = tc.isExam;
+      const rawSections = tc.sections || [];
+
+      const mappedSections = isExam
+        ? rawSections.map((s: any, idx: number) => ({
+            id: s.id || `section-${idx}`,
+            name: s.name,
+            questionCount: s.questionCount || 0,
+            durationMinutes: s.sectionDurationMinutes || 0,
+          }))
+        : rawSections.map((s: any, idx: number) => ({
+            id: s.id || `section-${idx}`,
+            name: s.displayName,
+            questionCount: s.questionCount || 0,
+            durationMinutes: s.durationSeconds
+              ? Math.floor(s.durationSeconds / 60)
+              : 0,
+          }));
+
+      const sumSectionMins = mappedSections.reduce(
+        (sum: number, s: any) => sum + (s.durationMinutes || 0),
+        0,
+      );
+      const sumSectionQs = mappedSections.reduce(
+        (sum: number, s: any) => sum + (s.questionCount || 0),
+        0,
+      );
+
+      const totalDurationMins =
+        sumSectionMins > 0
+          ? sumSectionMins
+          : isExam
+            ? (tc.durationMinutes || 0)
+            : Math.floor((tc.totalDurationSeconds || 0) / 60);
+
+      const totalQuestions =
+        sumSectionQs > 0 ? sumSectionQs : (tc.totalQuestions || 0);
+
       return {
         configId: tc.id,
-        company: tc.isExam ? "Intervu" : tc.companyName,
-        name: tc.isExam ? tc.name : tc.displayName,
-        difficulty: "MEDIUM",
-        duration: tc.isExam ? tc.durationMinutes * 60 : tc.totalDurationSeconds,
-        sections: tc.isExam
-          ? tc.sections.map((s: { name: string }) => s.name)
-          : tc.sections.map((s: { displayName: string }) => s.displayName),
-        questionCount: tc.isExam ? tc.totalQuestions : 0,
+        company: isExam ? "Intervu" : tc.companyName || "Platform Assessment",
+        name: isExam ? tc.name : tc.displayName,
+        difficulty: tc.difficulty || "MEDIUM",
+        duration: totalDurationMins * 60,
+        durationMinutes: totalDurationMins,
+        sections: mappedSections as any,
+        questionCount: totalQuestions,
       };
     });
 
-    // 4. formatResponse
     return { configs };
   }
 }

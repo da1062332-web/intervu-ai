@@ -265,31 +265,35 @@ export class GenerationRetryService {
           styleProfile,
         });
 
-        if ((template as any)?.generationStrategy === "DATASET" && options?.datasetItem) {
-          // Bypass LLM generation and map directly from the dataset item
-          const dsItem = options.datasetItem;
-          parsedQuestion = {
-            question: dsItem.questionText || dsItem.content || "No question text provided.",
-            options: dsItem.options || [],
-            correctAnswer: dsItem.answer || "",
-            answer: dsItem.answer || "",
-            explanation: dsItem.explanation || "Directly fetched from dataset.",
-            difficulty: difficulty,
-            topic: topic,
-            metadata: {
-              ...(dsItem.metadata || {}),
-              status: "GENERATED",
-              templateId: template.id,
-              generationStrategy: "DATASET",
-              datasetItem: dsItem,
-              isDirectDatasetFetch: true,
-            },
-          };
-          response = JSON.stringify(parsedQuestion);
-        } else {
-          // 1. Generate LLM Output
+        // 1. Generate LLM Output for all strategies (including DATASET)
+        try {
           response = await this.questionGenerator.generate(promptStr);
+        } catch (llmErr) {
+          if ((template as any)?.generationStrategy === "DATASET" && options?.datasetItem) {
+            const dsItem = options.datasetItem;
+            parsedQuestion = {
+              question: dsItem.questionText || dsItem.content || "No question text provided.",
+              options: dsItem.options || [],
+              correctAnswer: dsItem.answer || "",
+              answer: dsItem.answer || "",
+              explanation: dsItem.explanation || "Directly fetched from dataset.",
+              difficulty: difficulty,
+              topic: topic,
+              metadata: {
+                ...(dsItem.metadata || {}),
+                status: "GENERATED",
+                templateId: template.id,
+                generationStrategy: "DATASET",
+                datasetItem: dsItem,
+                isFallbackDatasetFetch: true,
+              },
+            };
+          } else {
+            throw llmErr;
+          }
+        }
 
+        if (!parsedQuestion) {
           // 2. Parse LLM JSON
           let cleaned = response.trim();
           if (cleaned.startsWith("```")) {
@@ -318,6 +322,7 @@ export class GenerationRetryService {
               logicalGraph: options?.logicalGraph,
             },
           };
+        }
 
           if ((template as any)?.generationStrategy === "VARIABLE") {
             parsedQuestion.question = this.hydrateCanonicalQuestion(
@@ -325,7 +330,6 @@ export class GenerationRetryService {
               attemptVariables,
             );
           }
-        }
 
         parsedQuestion = normalizeDisplayQuestion(parsedQuestion);
 

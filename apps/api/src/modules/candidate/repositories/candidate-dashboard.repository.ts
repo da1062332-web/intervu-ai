@@ -134,7 +134,7 @@ export class CandidateDashboardRepository {
           name: true,
           durationMinutes: true,
           totalQuestions: true,
-          sections: { select: { name: true } },
+          sections: { select: { name: true, questionCount: true, sectionDurationMinutes: true } },
           ruleFlags: { select: { id: true, maxAttempts: true } },
           createdAt: true,
         },
@@ -158,7 +158,7 @@ export class CandidateDashboardRepository {
           companyName: true,
           totalDurationSeconds: true,
           totalQuestions: true,
-          sections: { select: { displayName: true } },
+          sections: { select: { displayName: true, questionCount: true, durationSeconds: true } },
           createdAt: true,
         },
       });

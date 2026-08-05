@@ -73,16 +73,26 @@ export class PdfReportService {
         
         doc.moveTo(40, 120).lineTo(555, 120).strokeColor(COLORS.border).lineWidth(1).stroke();
 
+        // BUG-001: Safe null-coalescing for candidate and assessment fields
+        const candidateName = reportData.candidate?.fullName || reportData.candidateName || "Candidate";
+        const candidateEmail = reportData.candidate?.email || reportData.email || "N/A";
+        const assessmentTitle = reportData.assessment?.title || reportData.assessmentName || "Assessment";
+        const reportScore = reportData.score ?? 0;
+        const reportAccuracy = reportData.accuracy ?? 0;
+        const reportTimeTaken = reportData.timeTaken ?? 0;
+        const reportPercentile = reportData.percentile ?? 0;
+        const reportRank = reportData.rank ?? 0;
+
         // Candidate Info
-        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(reportData.candidate.fullName || "Candidate", 40, 150);
-        doc.fillColor(COLORS.textMuted).fontSize(14).font('Helvetica').text(reportData.candidate.email || "No Email", 40, 180);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(candidateName, 40, 150);
+        doc.fillColor(COLORS.textMuted).fontSize(14).font('Helvetica').text(candidateEmail, 40, 180);
         
-        doc.fontSize(12).text(`Assessment: `, 40, 220, { continued: true }).fillColor(COLORS.textMain).font('Helvetica-Bold').text(reportData.assessment.title || "Untitled Assessment");
+        doc.fontSize(12).text(`Assessment: `, 40, 220, { continued: true }).fillColor(COLORS.textMain).font('Helvetica-Bold').text(assessmentTitle);
         doc.fillColor(COLORS.textMuted).font('Helvetica').text(`Submission ID: `, 40, 240, { continued: true }).fillColor(COLORS.textMain).text(attemptId);
         doc.fillColor(COLORS.textMuted).font('Helvetica').text(`Generated: `, 40, 260, { continued: true }).fillColor(COLORS.textMain).text(new Date().toLocaleDateString());
 
         // Qualification Banner
-        const isQualified = reportData.score >= 70; // Placeholder logic if qualification not present
+        const isQualified = reportScore >= 70;
         const qualStatus = reportData.qualification?.status || (isQualified ? "QUALIFIED" : "NOT QUALIFIED");
         const bannerColor = qualStatus.toUpperCase() === "QUALIFIED" || qualStatus.toUpperCase() === "PASS" ? COLORS.success : COLORS.danger;
         
@@ -98,27 +108,27 @@ export class PdfReportService {
         // Card 1: Score
         drawCard(40, 440, cardWidth, cardHeight);
         doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("OVERALL SCORE", 55, 455);
-        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportData.score || 0}/100`, 55, 475);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportScore}/100`, 55, 475);
         
         // Card 2: Accuracy
         drawCard(217, 440, cardWidth, cardHeight);
         doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("ACCURACY", 232, 455);
-        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportData.accuracy || 0}%`, 232, 475);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportAccuracy}%`, 232, 475);
         
         // Card 3: Time Taken
         drawCard(395, 440, cardWidth, cardHeight);
         doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("TIME TAKEN", 410, 455);
-        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(formatTimeSpent(reportData.timeTaken || 0), 410, 475);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(formatTimeSpent(reportTimeTaken), 410, 475);
         
         // Card 4: Percentile
         drawCard(40, 535, cardWidth, cardHeight);
         doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("PERCENTILE", 55, 550);
-        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportData.percentile || 0}th`, 55, 570);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`${reportPercentile}th`, 55, 570);
 
         // Card 5: Rank
         drawCard(217, 535, cardWidth, cardHeight);
         doc.fillColor(COLORS.textMuted).fontSize(10).font('Helvetica-Bold').text("GLOBAL RANK", 232, 550);
-        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`#${reportData.rank || 0}`, 232, 570);
+        doc.fillColor(COLORS.textMain).fontSize(24).font('Helvetica-Bold').text(`#${reportRank}`, 232, 570);
 
 
         // --- PAGE 2: SECTION PERFORMANCE ---

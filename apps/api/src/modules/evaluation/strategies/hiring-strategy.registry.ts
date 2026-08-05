@@ -11,7 +11,9 @@ export class HiringStrategyRegistry {
   }
 
   registerStrategy(strategy: IHiringEvaluationStrategy): void {
-    this.strategies.set(strategy.strategyType.toUpperCase(), strategy);
+    if (strategy && strategy.strategyType) {
+      this.strategies.set(strategy.strategyType.toUpperCase(), strategy);
+    }
   }
 
   getStrategy(strategyType: string): IHiringEvaluationStrategy {

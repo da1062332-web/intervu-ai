@@ -73,6 +73,26 @@ export const DashboardRecommendations: React.FC<Props> = ({ data, attemptId }) =
 
   const { strengths, weaknesses, recommendations, practiceHours, summary } = aiData;
 
+  const cleanDetailText = (str: string): string => {
+    if (!str) return '';
+    let text = str
+      .replace(/Achieved \d+%\s*accuracy,?\s*indicating/gi, 'Demonstrated')
+      .replace(/Scored \d+%\s*accuracy,?\s*showing/gi, 'Exhibited')
+      .replace(/Also scored \d+%,?\s*demonstrating/gi, 'Demonstrated')
+      .replace(/Only \d+%\s*accuracy indicates/gi, 'Indicates')
+      .replace(/no answers were submitted for this topic\s*\(\s*0%\s*accuracy\s*\)\.?/gi, 'Topic requires foundational concept revision and practice.')
+      .replace(/accuracy at \d+%\s*—\s*/gi, '')
+      .replace(/\s*\(\s*\d+%\s*accuracy\s*\)/gi, '')
+      .replace(/\s*\d+%\s*accuracy/gi, '')
+      .replace(/\s*\d+%/gi, '')
+      .replace(/  +/g, ' ')
+      .trim();
+    if (text.length > 0) {
+      text = text.charAt(0).toUpperCase() + text.slice(1);
+    }
+    return text;
+  };
+
   return (
     <>
       <Card className="rounded-2xl border-indigo-200/80 dark:border-indigo-900/60 bg-gradient-to-br from-indigo-50/60 via-background to-purple-50/40 dark:from-slate-900 dark:via-background dark:to-indigo-950/30 shadow-sm relative overflow-hidden">
@@ -125,7 +145,7 @@ export const DashboardRecommendations: React.FC<Props> = ({ data, attemptId }) =
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                       <div>
                         <h5 className="text-xs font-bold text-foreground">{item.title}</h5>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{cleanDetailText(item.detail)}</p>
                       </div>
                     </div>
                   ))
@@ -154,7 +174,7 @@ export const DashboardRecommendations: React.FC<Props> = ({ data, attemptId }) =
                       <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                       <div>
                         <h5 className="text-xs font-bold text-foreground">{item.title}</h5>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{cleanDetailText(item.detail)}</p>
                       </div>
                     </div>
                   ))

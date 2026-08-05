@@ -10,19 +10,19 @@ interface Props {
 }
 
 export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => {
-  const score = data.overallScore || resultDetails?.score || 492;
-  const maxMarks = data.maxMarks || resultDetails?.maxMarks || 1000;
+  const score = data.overallScore ?? resultDetails?.score ?? 0;
+  const maxMarks = data.maxMarks ?? resultDetails?.maxMarks ?? 100;
   const percentage =
     data.percentage !== undefined
       ? Math.round(data.percentage * 10) / 10
-      : Math.round((score / maxMarks) * 100);
+      : maxMarks > 0 ? Math.round((score / maxMarks) * 100) : 0;
 
   const percentile =
     data.percentile ?? resultDetails?.percentile ?? Math.min(100, Math.round(percentage * 10) / 10);
   const rank = data.rank ?? resultDetails?.rank ?? 1;
   const totalCandidates = data.totalCandidates ?? resultDetails?.totalCandidates ?? 1;
 
-  const minutesSpent = data.totalTimeSpent || 79;
+  const minutesSpent = data.totalTimeSpent ?? 0;
   const hoursSpent = Math.floor(minutesSpent / 60);
   const remMinutes = minutesSpent % 60;
   const formattedTimeTaken = hoursSpent > 0 ? `${hoursSpent}h ${remMinutes}m` : `${minutesSpent}m`;

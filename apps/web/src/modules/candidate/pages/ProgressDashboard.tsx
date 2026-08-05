@@ -16,13 +16,6 @@ const TopicAnalysis = dynamic(
   () => import('../components/analytics/TopicAnalysis').then((m) => m.TopicAnalysis),
   { ssr: false },
 );
-const PerformanceComparisonChart = dynamic(
-  () =>
-    import('../components/analytics/PerformanceComparisonChart').then(
-      (m) => m.PerformanceComparisonChart,
-    ),
-  { ssr: false },
-);
 const DifficultyAnalysis = dynamic(
   () => import('../components/analytics/DifficultyAnalysis').then((m) => m.DifficultyAnalysis),
   { ssr: false },
@@ -30,55 +23,58 @@ const DifficultyAnalysis = dynamic(
 
 // Memoized analytics stat cards
 const ProgressCards = React.memo(({ overview }: { overview: any }) => {
+  const cards = [
+    {
+      label: 'Average Score',
+      value: `${overview?.averageScore ?? 0}/100`,
+      icon: Target,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+    },
+    {
+      label: 'Completion Rate',
+      value: `${overview?.completionRate ?? 0}%`,
+      icon: Award,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    },
+    {
+      label: 'Top Percentile',
+      value: `${overview?.topPercentileScore ?? 0}/100`,
+      icon: TrendingUp,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    },
+    {
+      label: 'Total Assessments',
+      value: `${overview?.totalAssessments ?? 0}`,
+      icon: Brain,
+      iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+    },
+  ];
+
   return (
-    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'>
-      <Card className='bg-card/80 border border-border/60 hover:bg-card transition-colors shadow-xs'>
-        <CardContent className='p-5 flex items-center gap-4'>
-          <div className='bg-primary/10 p-3 rounded-xl text-primary border border-primary/20 shrink-0'>
-            <Target className='size-6' />
-          </div>
-          <div>
-            <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>Average Score</p>
-            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.averageScore}/100</h3>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className='bg-card/80 border border-border/60 hover:bg-card transition-colors shadow-xs'>
-        <CardContent className='p-5 flex items-center gap-4'>
-          <div className='bg-emerald-500/10 p-3 rounded-xl text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0'>
-            <Award className='size-6' />
-          </div>
-          <div>
-            <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>Completion Rate</p>
-            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.completionRate}%</h3>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className='bg-card/80 border border-border/60 hover:bg-card transition-colors shadow-xs'>
-        <CardContent className='p-5 flex items-center gap-4'>
-          <div className='bg-amber-500/10 p-3 rounded-xl text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0'>
-            <TrendingUp className='size-6' />
-          </div>
-          <div>
-            <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>Top Percentile</p>
-            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.topPercentileScore}/100</h3>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className='bg-card/80 border border-border/60 hover:bg-card transition-colors shadow-xs'>
-        <CardContent className='p-5 flex items-center gap-4'>
-          <div className='bg-blue-500/10 p-3 rounded-xl text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0'>
-            <Brain className='size-6' />
-          </div>
-          <div>
-            <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>Total Assessments</p>
-            <h3 className='text-2xl font-extrabold mt-0.5 text-foreground'>{overview.totalAssessments}</h3>
-          </div>
-        </CardContent>
-      </Card>
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+      {cards.map((c, i) => {
+        const Icon = c.icon;
+        return (
+          <Card
+            key={i}
+            className='bg-card/80 backdrop-blur-sm border border-border/60 hover:border-border/80 hover:bg-card transition-all duration-200 shadow-2xs hover:shadow-xs rounded-xl overflow-hidden'
+          >
+            <CardContent className='p-4 flex items-center gap-3.5'>
+              <div className={`p-2.5 rounded-xl border shrink-0 ${c.iconBg}`}>
+                <Icon className='size-5' />
+              </div>
+              <div className='min-w-0 flex-1'>
+                <p className='text-[11px] font-bold uppercase tracking-wider text-muted-foreground/90 truncate whitespace-nowrap'>
+                  {c.label}
+                </p>
+                <h3 className='text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mt-1 leading-none'>
+                  {c.value}
+                </h3>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 });
@@ -104,9 +100,12 @@ export function ProgressDashboard() {
             <Skeleton key={i} className='h-24 bg-muted/60 rounded-xl border border-border/60' />
           ))}
         </div>
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2'>
-          <Skeleton className='lg:col-span-2 h-80 bg-muted/60 rounded-xl border border-border/60' />
-          <Skeleton className='h-80 bg-muted/60 rounded-xl border border-border/60' />
+        <div className='space-y-6 pt-2'>
+          <Skeleton className='w-full h-80 bg-muted/60 rounded-xl border border-border/60' />
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            <Skeleton className='h-72 bg-muted/60 rounded-xl border border-border/60' />
+            <Skeleton className='h-72 bg-muted/60 rounded-xl border border-border/60' />
+          </div>
         </div>
       </div>
     );
@@ -143,51 +142,48 @@ export function ProgressDashboard() {
 
       <ProgressCards overview={data.overview} />
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2'>
-        <Card className='lg:col-span-2 bg-card/80 border border-border/60 shadow-xs'>
+      <div className='space-y-6 pt-2'>
+        {/* Featured Full-Width Score Trend Hero Card */}
+        <Card className='w-full bg-card/80 border border-border/60 shadow-xs'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-lg font-bold text-foreground'>Score Trend</CardTitle>
-            <CardDescription className='text-xs text-muted-foreground font-medium'>Performance historical timeline across your recent assessment evaluations</CardDescription>
+            <CardDescription className='text-xs text-muted-foreground font-medium'>
+              Performance historical timeline across your recent assessment evaluations
+            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className='pb-3.5'>
             <ScoreTrendChart data={data.trend} height='260px' />
           </CardContent>
         </Card>
 
-        <Card className='bg-card/80 border border-border/60 shadow-xs'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-bold text-foreground'>Topic Mastery</CardTitle>
-            <CardDescription className='text-xs text-muted-foreground font-medium'>Competency evaluation of your strongest and weakest domains</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TopicAnalysis topics={data.skills} />
-          </CardContent>
-        </Card>
+        {/* 2-Column Balanced Domain & Tier Analytics */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <Card className='bg-card/80 border border-border/60 shadow-xs'>
+            <CardHeader className='pb-3'>
+              <CardTitle className='text-lg font-bold text-foreground'>Top 5 Topic Mastery</CardTitle>
+              <CardDescription className='text-xs text-muted-foreground font-medium'>
+                Competency evaluation of your top performing domains
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='pb-5'>
+              <TopicAnalysis topics={data.skills} />
+            </CardContent>
+          </Card>
 
-        <Card className='lg:col-span-2 bg-card/80 border border-border/60 shadow-xs'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-bold text-foreground'>Difficulty Analysis</CardTitle>
-            <CardDescription className='text-xs text-muted-foreground font-medium'>Success percentage and response accuracy categorized by difficulty tier</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DifficultyAnalysis stats={data.difficulty} />
-          </CardContent>
-        </Card>
-
-        <Card className='bg-card/80 border border-border/60 shadow-xs'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-bold text-foreground'>Peer Comparison</CardTitle>
-            <CardDescription className='text-xs text-muted-foreground font-medium'>Comparative evaluation against standard cohort benchmarks</CardDescription>
-          </CardHeader>
-          <CardContent className='flex flex-col justify-center h-full pb-8'>
-            <PerformanceComparisonChart
-              userScore={data.overview.averageScore}
-              averageScore={(data.overview as any).peerAverageScore ?? 65}
-              topPercentileScore={data.overview.topPercentileScore}
-            />
-          </CardContent>
-        </Card>
+          <Card className='bg-card/80 border border-border/60 shadow-xs'>
+            <CardHeader className='pb-3'>
+              <CardTitle className='text-lg font-bold text-foreground'>Difficulty Analysis</CardTitle>
+              <CardDescription className='text-xs text-muted-foreground font-medium'>
+                Success percentage and response accuracy categorized by difficulty tier
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='pb-5'>
+              <DifficultyAnalysis stats={data.difficulty} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
 }
+

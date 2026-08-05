@@ -51,6 +51,9 @@ export class TopicRegistryLoader implements OnModuleInit {
 
   async loadTopics(): Promise<TopicRegistryItem[]> {
     try {
+      if (!this.prisma || !this.prisma.topic) {
+        return [];
+      }
       const dbTopics = await this.prisma.topic.findMany({
         where: {
           status: TopicStatus.ACTIVE,
