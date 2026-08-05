@@ -254,6 +254,7 @@ export class QuestionAllocatorService {
 
     const allocatedQuestions: AllocatedQuestionDto[] = [];
     let orderCounter = 1;
+    const isFlexible = Boolean((section as any).isFlexible);
 
     const diffConfig =
       section.difficultyDistribution || fallbackConfig.distribution;
@@ -341,27 +342,15 @@ export class QuestionAllocatorService {
       sectionDifficultyTargets,
     );
 
-    easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
-    hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
-    mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
-
     const difficulties = [
       { level: DifficultyLevel.EASY, count: sectionDifficultyTargets.EASY },
       { level: DifficultyLevel.MEDIUM, count: sectionDifficultyTargets.MEDIUM },
       { level: DifficultyLevel.HARD, count: sectionDifficultyTargets.HARD },
     ];
 
-<<<<<<< HEAD
-    for (const diff of difficulties) {
-      if (diff.count <= 0) continue;
-=======
-    const allocatedQuestions: AllocatedQuestionDto[] = [];
-    let orderCounter = 1;
-
     for (const topicAlloc of section.topicAllocations) {
       const topicQuota = topicQuotas.get(topicAlloc.topicId) || 0;
       const topicDifficultyTargets = topicDifficultyPlan.get(topicAlloc.topicId);
->>>>>>> devyani
 
       if (!topicDifficultyTargets || topicQuota <= 0) {
         continue;
@@ -452,12 +441,7 @@ export class QuestionAllocatorService {
                 Array.from(allocatedQuestionIds),
               );
 
-<<<<<<< HEAD
-              const bucketCap = Math.max(1, shortage);
-              const toAdd = filtered.slice(0, Math.min(shortage, bucketCap));
-=======
               const toAdd = filtered.slice(0, shortage);
->>>>>>> devyani
               for (const q of toAdd) {
                 allocatedQuestionIds.add(q.id);
                 const allocatedQ = {
