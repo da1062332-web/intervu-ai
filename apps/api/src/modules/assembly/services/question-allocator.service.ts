@@ -22,6 +22,12 @@ export interface AllocationConfig {
   };
 }
 
+interface DifficultyTargetMap {
+  EASY: number;
+  MEDIUM: number;
+  HARD: number;
+}
+
 @Injectable()
 export class QuestionAllocatorService {
   constructor(
@@ -29,6 +35,212 @@ export class QuestionAllocatorService {
     private readonly questionSource: IQuestionSource,
     private readonly antiRepetitionService: AntiRepetitionService,
   ) {}
+
+  private calculateSectionDifficultyTargets(
+    totalQuestions: number,
+    diffConfig: AllocationConfig["distribution"],
+  ): DifficultyTargetMap {
+    const isFlexible =
+      !diffConfig ||
+      (diffConfig.EASY === 0 && diffConfig.MEDIUM === 0 && diffConfig.HARD === 0);
+
+    if (isFlexible) {
+      const easyCount = Math.round(totalQuestions / 3);
+      const hardCount = Math.round(totalQuestions / 3);
+      const mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
+      return {
+        EASY: easyCount,
+        MEDIUM: mediumCount,
+        HARD: hardCount,
+      };
+    }
+
+    const easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
+    const hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
+    const mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
+
+    return {
+      EASY: easyCount,
+      MEDIUM: mediumCount,
+      HARD: hardCount,
+    };
+  }
+
+  private calculateSectionTopicQuotas(
+    totalQuestions: number,
+    topicAllocations: BlueprintSectionDto["topicAllocations"],
+  ): Map<string, number> {
+    if (topicAllocations.length === 0) {
+      return new Map();
+    }
+
+    const totalPercentage = topicAllocations.reduce(
+      (sum, topicAlloc) => sum + (topicAlloc.percentage || 0),
+      0,
+    );
+
+    const normalizedTopics = topicAllocations.map((topicAlloc) => {
+      const safePercentage = topicAlloc.percentage || 0;
+      const normalizedPercentage =
+        totalPercentage > 0 ? (safePercentage / totalPercentage) * 100 : 100 / topicAllocations.length;
+      return {
+        topicId: topicAlloc.topicId,
+        percentage: normalizedPercentage,
+      };
+    });
+
+    const rawQuotas = normalizedTopics.map((topicAlloc) => ({
+      topicId: topicAlloc.topicId,
+      rawQuota: (topicAlloc.percentage / 100) * totalQuestions,
+    }));
+
+    const floorQuotas = new Map<string, number>();
+    let remainingQuestions = totalQuestions;
+
+    for (const rawQuota of rawQuotas) {
+      const floor = Math.floor(rawQuota.rawQuota);
+      floorQuotas.set(rawQuota.topicId, floor);
+      remainingQuestions -= floor;
+    }
+
+    const sortedRemainders = rawQuotas
+      .map((rawQuota) => ({
+        topicId: rawQuota.topicId,
+        remainder: rawQuota.rawQuota - Math.floor(rawQuota.rawQuota),
+      }))
+      .sort((a, b) => b.remainder - a.remainder || a.topicId.localeCompare(b.topicId));
+
+    for (let i = 0; i < remainingQuestions; i++) {
+      const nextTopic = sortedRemainders[i % sortedRemainders.length];
+      if (!nextTopic) break;
+      floorQuotas.set(nextTopic.topicId, (floorQuotas.get(nextTopic.topicId) || 0) + 1);
+    }
+
+    return floorQuotas;
+  }
+
+  private buildTopicDifficultyPlan(
+    section: BlueprintSectionDto,
+    topicQuotas: Map<string, number>,
+    sectionDifficultyTargets: DifficultyTargetMap,
+  ): Map<string, DifficultyTargetMap> {
+    const topicPlans = new Map<string, DifficultyTargetMap>();
+    const remainingDifficulty = { ...sectionDifficultyTargets };
+
+    const difficulties: Array<{
+      level: DifficultyLevel;
+      percentage: number;
+    }> = [
+      { level: DifficultyLevel.EASY, percentage: section.difficultyDistribution?.EASY ?? 0 },
+      { level: DifficultyLevel.MEDIUM, percentage: section.difficultyDistribution?.MEDIUM ?? 0 },
+      { level: DifficultyLevel.HARD, percentage: section.difficultyDistribution?.HARD ?? 0 },
+    ].filter((entry) => entry.percentage > 0);
+
+    if (difficulties.length === 0) {
+      difficulties.push(
+        { level: DifficultyLevel.EASY, percentage: 40 },
+        { level: DifficultyLevel.MEDIUM, percentage: 40 },
+        { level: DifficultyLevel.HARD, percentage: 20 },
+      );
+    }
+
+    const topicEntries = section.topicAllocations
+      .map((topicAlloc) => {
+        const quota = topicQuotas.get(topicAlloc.topicId) || 0;
+        const rawTargets = difficulties.reduce(
+          (acc, diff) => {
+            acc[diff.level] = (quota * diff.percentage) / 100;
+            return acc;
+          },
+          {} as Record<DifficultyLevel, number>,
+        );
+
+        const floors = difficulties.reduce(
+          (acc, diff) => {
+            acc[diff.level] = Math.floor(rawTargets[diff.level]);
+            return acc;
+          },
+          {} as Record<DifficultyLevel, number>,
+        );
+
+        return {
+          topicId: topicAlloc.topicId,
+          quota,
+          rawTargets,
+          floors,
+          remainder: difficulties.map((diff) => ({
+            level: diff.level,
+            value: rawTargets[diff.level] - floors[diff.level],
+          })),
+        };
+      })
+      .sort((a, b) => b.quota - a.quota || a.topicId.localeCompare(b.topicId));
+
+    for (const topicEntry of topicEntries) {
+      const topicPlan: DifficultyTargetMap = {
+        EASY: 0,
+        MEDIUM: 0,
+        HARD: 0,
+      };
+
+      let topicRemaining = topicEntry.quota;
+
+      for (const diff of difficulties) {
+        const floor = topicEntry.floors[diff.level] || 0;
+        const assignable = Math.min(floor, remainingDifficulty[diff.level], topicRemaining);
+        topicPlan[diff.level] += assignable;
+        remainingDifficulty[diff.level] -= assignable;
+        topicRemaining -= assignable;
+      }
+
+      const remainders = [...topicEntry.remainder].sort(
+        (a, b) => b.value - a.value || a.level.localeCompare(b.level),
+      );
+
+      while (topicRemaining > 0) {
+        const nextDiff = remainders.find(
+          (item) => (remainingDifficulty[item.level] || 0) > 0,
+        );
+
+        if (!nextDiff) {
+          break;
+        }
+
+        topicPlan[nextDiff.level] += 1;
+        remainingDifficulty[nextDiff.level] -= 1;
+        topicRemaining -= 1;
+      }
+
+      if (topicRemaining > 0) {
+        const fallbackDiffs = difficulties
+          .map((diff) => diff.level)
+          .filter((diff) => (remainingDifficulty[diff] || 0) > 0);
+
+        while (topicRemaining > 0 && fallbackDiffs.length > 0) {
+          const diffLevel = fallbackDiffs[0];
+          topicPlan[diffLevel] += 1;
+          remainingDifficulty[diffLevel] -= 1;
+          topicRemaining -= 1;
+        }
+      }
+
+      if (topicRemaining > 0) {
+        throw new BadRequestException({
+          error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
+          message: `Unable to assemble this assessment because the section-level quota for topic ${topicEntry.topicId} cannot be satisfied within the remaining difficulty budget.`,
+          details: {
+            topic: topicEntry.topicId,
+            required: topicEntry.quota,
+            available: topicPlan.EASY + topicPlan.MEDIUM + topicPlan.HARD,
+          },
+        });
+      }
+
+      topicPlans.set(topicEntry.topicId, topicPlan);
+    }
+
+    return topicPlans;
+  }
 
   async allocateQuestions(
     section: BlueprintSectionDto,
@@ -46,15 +258,15 @@ export class QuestionAllocatorService {
     const diffConfig =
       section.difficultyDistribution || fallbackConfig.distribution;
 
-    const isFlexible =
-      !diffConfig ||
-      (diffConfig.EASY === 0 &&
-        diffConfig.MEDIUM === 0 &&
-        diffConfig.HARD === 0);
+    const sectionDifficultyTargets = this.calculateSectionDifficultyTargets(
+      totalQuestions,
+      diffConfig,
+    );
 
-    let easyCount = 0;
-    let mediumCount = 0;
-    let hardCount = 0;
+    const topicQuotas = this.calculateSectionTopicQuotas(
+      totalQuestions,
+      section.topicAllocations,
+    );
 
     if (isFlexible) {
       // In Flexible Mode, delegate to Natural Ratio Engine without forcing rigid 33/34/33 difficulty quotas
@@ -123,39 +335,46 @@ export class QuestionAllocatorService {
       }
       return allocatedQuestions;
     }
+    const topicDifficultyPlan = this.buildTopicDifficultyPlan(
+      section,
+      topicQuotas,
+      sectionDifficultyTargets,
+    );
 
     easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
     hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
     mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
 
     const difficulties = [
-      { level: DifficultyLevel.EASY, count: easyCount },
-      { level: DifficultyLevel.MEDIUM, count: mediumCount },
-      { level: DifficultyLevel.HARD, count: hardCount },
+      { level: DifficultyLevel.EASY, count: sectionDifficultyTargets.EASY },
+      { level: DifficultyLevel.MEDIUM, count: sectionDifficultyTargets.MEDIUM },
+      { level: DifficultyLevel.HARD, count: sectionDifficultyTargets.HARD },
     ];
 
+<<<<<<< HEAD
     for (const diff of difficulties) {
       if (diff.count <= 0) continue;
+=======
+    const allocatedQuestions: AllocatedQuestionDto[] = [];
+    let orderCounter = 1;
 
-      // remainingDiffCount tracks how many questions are still owed for this difficulty level.
-      // Capping per-topic slices against this prevents Math.round() overshoot within a bucket.
-      let remainingDiffCount = diff.count;
+    for (const topicAlloc of section.topicAllocations) {
+      const topicQuota = topicQuotas.get(topicAlloc.topicId) || 0;
+      const topicDifficultyTargets = topicDifficultyPlan.get(topicAlloc.topicId);
+>>>>>>> devyani
 
-      for (const topicAlloc of section.topicAllocations) {
-        if (remainingDiffCount <= 0) break;
+      if (!topicDifficultyTargets || topicQuota <= 0) {
+        continue;
+      }
 
-        // Proportional topic slice, capped against the remaining bucket budget.
-        const proportionalCount = Math.round(
-          (topicAlloc.percentage / 100) * diff.count,
-        );
-        const topicCount = Math.min(proportionalCount, remainingDiffCount);
-        if (topicCount <= 0) continue;
+      for (const diff of difficulties) {
+        const requiredForTopic = topicDifficultyTargets[diff.level];
+        if (requiredForTopic <= 0) continue;
 
         let attempts = 0;
         const maxAttempts = 3;
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
         const selectedForTopic: AllocatedQuestionDto[] = [];
-        const requiredForTopic = topicCount;
 
         while (
           selectedForTopic.length < requiredForTopic &&
@@ -181,9 +400,7 @@ export class QuestionAllocatorService {
             Array.from(allocatedQuestionIds),
           );
 
-          // Cap against the per-topic shortage and the remaining bucket budget.
-          const bucketRemaining = remainingDiffCount - selectedForTopic.length;
-          const toAddCount = Math.min(shortage, filteredQuestions.length, bucketRemaining);
+          const toAddCount = Math.min(shortage, filteredQuestions.length);
           const selected = filteredQuestions.slice(0, toAddCount);
 
           for (const q of selected) {
@@ -199,7 +416,6 @@ export class QuestionAllocatorService {
             };
             selectedForTopic.push(allocatedQ);
             allocatedQuestions.push(allocatedQ);
-            remainingDiffCount--;
           }
 
           attempts++;
@@ -236,8 +452,12 @@ export class QuestionAllocatorService {
                 Array.from(allocatedQuestionIds),
               );
 
+<<<<<<< HEAD
               const bucketCap = Math.max(1, shortage);
               const toAdd = filtered.slice(0, Math.min(shortage, bucketCap));
+=======
+              const toAdd = filtered.slice(0, shortage);
+>>>>>>> devyani
               for (const q of toAdd) {
                 allocatedQuestionIds.add(q.id);
                 const allocatedQ = {
@@ -251,7 +471,6 @@ export class QuestionAllocatorService {
                 };
                 selectedForTopic.push(allocatedQ);
                 allocatedQuestions.push(allocatedQ);
-                remainingDiffCount--;
               }
             } catch (err) {
               // ignore fallback error and try next difficulty level
@@ -277,132 +496,8 @@ export class QuestionAllocatorService {
           });
         }
       }
-
-      // If rounding caused a shortfall in this difficulty bucket, grab extra from the first topic.
-      if (remainingDiffCount > 0 && section.topicAllocations.length > 0) {
-        const extraTopic = section.topicAllocations[0];
-        let attempts = 0;
-        const maxAttempts = 3;
-        const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
-        const selectedForExtra: AllocatedQuestionDto[] = [];
-        const requiredForExtra = remainingDiffCount;
-
-        while (
-          selectedForExtra.length < requiredForExtra &&
-          attempts < maxAttempts
-        ) {
-          const shortage = requiredForExtra - selectedForExtra.length;
-
-          const extraQuestions = await this.questionSource.fetchQuestions({
-            conceptKey: extraTopic.topicId,
-            difficultyLevel: diff.level,
-            limit: shortage * 5,
-            excludeIds: Array.from(currentlyExcludedIds),
-            examId,
-          });
-
-          for (const q of extraQuestions) {
-            currentlyExcludedIds.add(q.id);
-          }
-
-          const filteredExtra = await this.antiRepetitionService.filterPool(
-            extraQuestions,
-            historyIds,
-            Array.from(allocatedQuestionIds),
-          );
-
-          const toAddCount = Math.min(shortage, filteredExtra.length);
-          const selectedExtra = filteredExtra.slice(0, toAddCount);
-
-          for (const q of selectedExtra) {
-            allocatedQuestionIds.add(q.id);
-            const allocatedQ = {
-              questionId: q.id,
-              questionHash: q.questionHash || "hash",
-              conceptKey: q.conceptKey,
-              difficultyLevel: q.difficultyLevel,
-              questionType: q.questionType,
-              questionOrder: orderCounter++,
-              questionSnapshot: q,
-            };
-            selectedForExtra.push(allocatedQ);
-            allocatedQuestions.push(allocatedQ);
-            remainingDiffCount--;
-          }
-
-          attempts++;
-        }
-
-        if (selectedForExtra.length < requiredForExtra) {
-          const fallbackLevels: DifficultyLevel[] = [
-            DifficultyLevel.EASY,
-            DifficultyLevel.MEDIUM,
-            DifficultyLevel.HARD,
-          ].filter((lvl) => lvl !== diff.level);
-
-          for (const fallbackLevel of fallbackLevels) {
-            if (selectedForExtra.length >= requiredForExtra) break;
-            const shortage = requiredForExtra - selectedForExtra.length;
-
-            try {
-              const fallbackExtra = await this.questionSource.fetchQuestions({
-                conceptKey: extraTopic.topicId,
-                difficultyLevel: fallbackLevel,
-                limit: shortage * 5,
-                excludeIds: Array.from(currentlyExcludedIds),
-                examId,
-              });
-
-              for (const q of fallbackExtra) {
-                currentlyExcludedIds.add(q.id);
-              }
-
-              const filteredExtra = await this.antiRepetitionService.filterPool(
-                fallbackExtra,
-                historyIds,
-                Array.from(allocatedQuestionIds),
-              );
-
-              const toAdd = filteredExtra.slice(0, shortage);
-              for (const q of toAdd) {
-                allocatedQuestionIds.add(q.id);
-                const allocatedQ = {
-                  questionId: q.id,
-                  questionHash: q.questionHash || "hash",
-                  conceptKey: q.conceptKey,
-                  difficultyLevel: diff.level,
-                  questionType: q.questionType,
-                  questionOrder: orderCounter++,
-                  questionSnapshot: q,
-                };
-                selectedForExtra.push(allocatedQ);
-                allocatedQuestions.push(allocatedQ);
-                remainingDiffCount--;
-              }
-            } catch (err) {
-              // ignore fallback error
-            }
-          }
-        }
-
-        if (selectedForExtra.length < requiredForExtra) {
-          throw new BadRequestException({
-            error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
-            message: `Unable to assemble this assessment because there are not enough eligible questions for the extra ${extraTopic.topicId} / ${diff.level} requirement.`,
-            details: {
-              section:
-                (section as any).displayName || section.sectionKey || "section",
-              topic: extraTopic.topicId,
-              difficulty: diff.level,
-              required: requiredForExtra,
-              available: selectedForExtra.length,
-            },
-          });
-        }
-      }
     }
 
-    // Safety net: trim any 1-off overshoot from edge-case rounding combinations.
     if (allocatedQuestions.length > totalQuestions) {
       allocatedQuestions.splice(totalQuestions);
     }
