@@ -14,6 +14,7 @@ import { SectionBuilderService } from "./section-builder.service";
 import { AssemblyValidatorService } from "../validators/assembly-validator.service";
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
+import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 
 @Injectable()
 export class AssemblyService {
@@ -31,6 +32,7 @@ export class AssemblyService {
     private readonly sectionBuilder: SectionBuilderService,
     private readonly validator: AssemblyValidatorService,
     private readonly poolRepository: QuestionPoolRepository,
+    private readonly assembledTestRepository: AssembledTestRepository,
   ) {}
 
   async assembleTest(
@@ -38,6 +40,16 @@ export class AssemblyService {
     userId: string = "system-user",
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
+
+    const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
+    if (reusableAssembly) {
+      const assemblyUpdatedAt = reusableAssembly.updatedAt ?? reusableAssembly.createdAt;
+      const configUpdatedAt = reusableAssembly.examConfig?.updatedAt ?? null;
+
+      if (!configUpdatedAt || !assemblyUpdatedAt || assemblyUpdatedAt >= configUpdatedAt) {
+        return reusableAssembly.id;
+      }
+    }
 
     const blueprint = await this.blueprintBuilder.generateBlueprint(configId);
 

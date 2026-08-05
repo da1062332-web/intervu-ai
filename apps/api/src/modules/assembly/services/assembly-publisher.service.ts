@@ -6,6 +6,7 @@ import { AssemblyAuditService } from "./assembly-audit.service";
 import { AssemblyStatus } from "@prisma/client";
 import { BlueprintBuilderService } from "./blueprint-builder.service";
 import { PublishReadinessService } from "./publish-readiness.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class AssemblyPublisherService {
@@ -16,6 +17,7 @@ export class AssemblyPublisherService {
     private readonly auditService: AssemblyAuditService,
     private readonly blueprintBuilder: BlueprintBuilderService,
     private readonly readinessService: PublishReadinessService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
@@ -121,6 +123,19 @@ export class AssemblyPublisherService {
         `Skipping status update for ${assemblyId} due to missing table or TestInstance mismatch`,
       );
       publishedAssembly = { ...assembly, status: "PUBLISHED" };
+    }
+
+    // Sync parent ExamConfig status to ACTIVE in database
+    const targetConfigId = assembly.configId || assembly.testConfigId;
+    if (targetConfigId) {
+      try {
+        await this.prisma.examConfig.update({
+          where: { id: targetConfigId },
+          data: { status: "ACTIVE" },
+        });
+      } catch (err) {
+        console.warn(`Skipped syncing ExamConfig ${targetConfigId} status:`, err);
+      }
     }
 
     return {

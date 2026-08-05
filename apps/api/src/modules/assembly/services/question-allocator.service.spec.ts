@@ -113,6 +113,102 @@ describe("QuestionAllocatorService", () => {
     expect(allocated[1].questionId).toBe("q3");
   });
 
+  it("should plan section-level topic quotas before per-difficulty bucket allocation", async () => {
+    const section: BlueprintSectionDto = {
+      sectionKey: "sec-1",
+      displayName: "Section 1",
+      durationSeconds: 120,
+      questionCount: 7,
+      orderIndex: 0,
+      topicAllocations: [
+        { topicId: "ages", percentage: 50 },
+        { topicId: "math", percentage: 50 },
+      ],
+      difficultyDistribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
+    };
+
+    sourceMock.fetchQuestions.mockImplementation(async ({ conceptKey, difficultyLevel, limit }) => {
+      const safeLimit = Math.max(0, Math.min(limit ?? 10, 10));
+      return Array.from({ length: safeLimit }, (_, index) => ({
+        id: `${conceptKey}-${difficultyLevel}-${index + 1}`,
+        conceptKey,
+        difficultyLevel,
+        questionType: "MCQ",
+      })) as never;
+    });
+
+    const fallbackConfig: AllocationConfig = {
+      distribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
+    };
+
+    const allocated = await service.allocateQuestions(
+      section,
+      new Set(),
+      [],
+      fallbackConfig,
+    );
+
+    const topicCounts = allocated.reduce(
+      (acc, q) => {
+        acc[q.conceptKey] = (acc[q.conceptKey] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    expect(allocated).toHaveLength(7);
+    expect(topicCounts["ages"]).toBe(4);
+    expect(topicCounts["math"]).toBe(3);
+  });
+
+  it("should preserve section difficulty totals while using section-level topic quotas", async () => {
+    const section: BlueprintSectionDto = {
+      sectionKey: "sec-1",
+      displayName: "Section 1",
+      durationSeconds: 120,
+      questionCount: 7,
+      orderIndex: 0,
+      topicAllocations: [
+        { topicId: "ages", percentage: 50 },
+        { topicId: "math", percentage: 50 },
+      ],
+      difficultyDistribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
+    };
+
+    sourceMock.fetchQuestions.mockImplementation(async ({ conceptKey, difficultyLevel, limit }) => {
+      const safeLimit = Math.max(0, Math.min(limit ?? 10, 10));
+      return Array.from({ length: safeLimit }, (_, index) => ({
+        id: `${conceptKey}-${difficultyLevel}-${index + 1}`,
+        conceptKey,
+        difficultyLevel,
+        questionType: "MCQ",
+      })) as never;
+    });
+
+    const fallbackConfig: AllocationConfig = {
+      distribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
+    };
+
+    const allocated = await service.allocateQuestions(
+      section,
+      new Set(),
+      [],
+      fallbackConfig,
+    );
+
+    const difficultyCounts = allocated.reduce(
+      (acc, q) => {
+        acc[q.difficultyLevel] = (acc[q.difficultyLevel] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    expect(difficultyCounts.EASY).toBe(3);
+    expect(difficultyCounts.MEDIUM).toBe(3);
+    expect(difficultyCounts.HARD).toBe(1);
+  });
+
   it("should throw BadRequestException if pool is exhausted after bounded attempts", async () => {
     const section: BlueprintSectionDto = {
       sectionKey: "sec-1",

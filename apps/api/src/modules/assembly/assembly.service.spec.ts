@@ -6,6 +6,7 @@ import { QuestionAllocatorService } from "./services/question-allocator.service"
 import { SectionBuilderService } from "./services/section-builder.service";
 import { AssemblyValidatorService } from "./validators/assembly-validator.service";
 import { QuestionPoolRepository } from "./repositories/question-pool.repository";
+import { AssembledTestRepository } from "./repositories/assembled-test.repository";
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { BlueprintDto } from "@intervu/shared";
 
@@ -17,6 +18,7 @@ describe("AssemblyService", () => {
   let sectionBuilder: jest.Mocked<SectionBuilderService>;
   let validator: jest.Mocked<AssemblyValidatorService>;
   let poolRepository: jest.Mocked<QuestionPoolRepository>;
+  let assembledTestRepository: jest.Mocked<AssembledTestRepository>;
 
   beforeEach(async () => {
     persistenceService = {
@@ -43,6 +45,10 @@ describe("AssemblyService", () => {
       findRecentUsedQuestions: jest.fn().mockResolvedValue([]),
     } as unknown as jest.Mocked<QuestionPoolRepository>;
 
+    assembledTestRepository = {
+      findLatestReusableByConfigId: jest.fn(),
+    } as unknown as jest.Mocked<AssembledTestRepository>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AssemblyService,
@@ -52,6 +58,7 @@ describe("AssemblyService", () => {
         { provide: SectionBuilderService, useValue: sectionBuilder },
         { provide: AssemblyValidatorService, useValue: validator },
         { provide: QuestionPoolRepository, useValue: poolRepository },
+        { provide: AssembledTestRepository, useValue: assembledTestRepository },
       ],
     }).compile();
 
@@ -100,5 +107,22 @@ describe("AssemblyService", () => {
     const result = await service.assembleTest("config-1");
     expect(persistenceService.saveAssembly).toHaveBeenCalled();
     expect(result).toBe("success-uuid");
+  });
+
+  it("reuses an existing published assembly snapshot when available", async () => {
+    assembledTestRepository.findLatestReusableByConfigId.mockResolvedValueOnce({
+      id: "existing-assembly-id",
+      configId: "config-1",
+      status: "PUBLISHED",
+      updatedAt: new Date("2024-01-01T00:00:00.000Z"),
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      examConfig: { updatedAt: new Date("2023-12-31T00:00:00.000Z") },
+    } as any);
+
+    const result = await service.assembleTest("config-1");
+
+    expect(result).toBe("existing-assembly-id");
+    expect(blueprintBuilder.generateBlueprint).not.toHaveBeenCalled();
+    expect(persistenceService.saveAssembly).not.toHaveBeenCalled();
   });
 });
