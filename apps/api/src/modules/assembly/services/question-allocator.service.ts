@@ -254,10 +254,14 @@ export class QuestionAllocatorService {
 
     const allocatedQuestions: AllocatedQuestionDto[] = [];
     let orderCounter = 1;
-    const isFlexible = Boolean((section as any).isFlexible);
 
     const diffConfig =
       section.difficultyDistribution || fallbackConfig.distribution;
+    const isFlexible =
+      !diffConfig ||
+      (diffConfig.EASY === 0 &&
+        diffConfig.MEDIUM === 0 &&
+        diffConfig.HARD === 0);
 
     const sectionDifficultyTargets = this.calculateSectionDifficultyTargets(
       totalQuestions,
@@ -441,7 +445,8 @@ export class QuestionAllocatorService {
                 Array.from(allocatedQuestionIds),
               );
 
-              const toAdd = filtered.slice(0, shortage);
+              const bucketCap = Math.max(1, shortage);
+              const toAdd = filtered.slice(0, Math.min(shortage, bucketCap));
               for (const q of toAdd) {
                 allocatedQuestionIds.add(q.id);
                 const allocatedQ = {
