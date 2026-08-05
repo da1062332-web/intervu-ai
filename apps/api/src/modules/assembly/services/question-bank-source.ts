@@ -50,16 +50,17 @@ export class QuestionBankSource implements IQuestionSource {
     const limit = filters.limit ?? 10;
     const excludeIds = filters.excludeIds ?? [];
     const topicId = topic?.id || resolvedCode;
+    const hasExplicitDifficulty = !!filters.difficultyLevel;
     const difficulty = (filters.difficultyLevel ?? "MEDIUM") as
       | "EASY"
       | "MEDIUM"
       | "HARD";
 
-    // 1. Calculate available active Manual questions count matching requested difficulty
+    // 1. Calculate available active Manual questions count matching requested difficulty (or all if flexible)
     const manualCount = await this.prisma.question.count({
       where: {
         status: "ACTIVE",
-        difficulty: difficulty,
+        ...(hasExplicitDifficulty ? { difficulty } : {}),
         OR: [
           { topicId: topicId },
           { topicId: resolvedCode },
@@ -70,13 +71,13 @@ export class QuestionBankSource implements IQuestionSource {
       },
     });
 
-    // 2. Calculate available active Templates count matching requested difficulty
+    // 2. Calculate available active Templates count matching requested difficulty (or all if flexible)
     const conceptCodes = (topic as any)?.concepts?.map((c: any) => c.code) || [];
     const templateCount = await this.prisma.template.count({
       where: {
         isActive: true,
         deletedAt: null,
-        difficultyLevel: difficulty,
+        ...(hasExplicitDifficulty ? { difficultyLevel: difficulty } : {}),
         OR: [
           { conceptKey: { in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode] } },
           { conceptKey: resolvedCode },
@@ -90,7 +91,7 @@ export class QuestionBankSource implements IQuestionSource {
     // Default: Fallback to legacy template pool if zero pool available
     if (totalPool === 0 || !this.useRealBank) {
       this.logger.warn(
-        `Pool count 0 or real bank disabled for topic=${topicId} difficulty=${difficulty}. Using legacy template pool.`,
+        `Pool count 0 or real bank disabled for topic=${topicId} difficulty=${hasExplicitDifficulty ? difficulty : "FLEXIBLE"}. Using legacy template pool.`,
       );
       return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
     }
@@ -113,15 +114,19 @@ export class QuestionBankSource implements IQuestionSource {
 
     // 4. Fetch Manual Questions according to targetManual
     if (targetManual > 0) {
+      const diffDist = hasExplicitDifficulty
+        ? {
+            EASY: difficulty === "EASY" ? targetManual : 0,
+            MEDIUM: difficulty === "MEDIUM" ? targetManual : 0,
+            HARD: difficulty === "HARD" ? targetManual : 0,
+          }
+        : { EASY: 0, MEDIUM: 0, HARD: 0 };
+
       const request: AssemblyProviderRequest = {
         examId: filters.examId || "assembly-source",
         sectionId: topicId,
         count: targetManual,
-        difficultyDistribution: {
-          EASY: difficulty === "EASY" ? targetManual : 0,
-          MEDIUM: difficulty === "MEDIUM" ? targetManual : 0,
-          HARD: difficulty === "HARD" ? targetManual : 0,
-        },
+        difficultyDistribution: diffDist,
         topicIds: topicId ? [topicId] : undefined,
       };
 
@@ -136,14 +141,18 @@ export class QuestionBankSource implements IQuestionSource {
         }
 
         if (actualCount > 0) {
+          const actualDiffDist = hasExplicitDifficulty
+            ? {
+                EASY: difficulty === "EASY" ? actualCount : 0,
+                MEDIUM: difficulty === "MEDIUM" ? actualCount : 0,
+                HARD: difficulty === "HARD" ? actualCount : 0,
+              }
+            : { EASY: 0, MEDIUM: 0, HARD: 0 };
+
           const actualReq: AssemblyProviderRequest = {
             ...request,
             count: actualCount,
-            difficultyDistribution: {
-              EASY: difficulty === "EASY" ? actualCount : 0,
-              MEDIUM: difficulty === "MEDIUM" ? actualCount : 0,
-              HARD: difficulty === "HARD" ? actualCount : 0,
-            },
+            difficultyDistribution: actualDiffDist,
           };
 
           const response = await this.rotationService.retrieveAndReserve(actualReq);
@@ -158,7 +167,7 @@ export class QuestionBankSource implements IQuestionSource {
     }
 
     // 5. Fetch Template Questions according to remaining target
-    const remainingNeeded = limit - assembledResults.length;
+    let remainingNeeded = limit - assembledResults.length;
     if (remainingNeeded > 0) {
       try {
         const templateQs = await this.fetchFromLegacyPool(
@@ -169,6 +178,34 @@ export class QuestionBankSource implements IQuestionSource {
         assembledResults.push(...templateQs);
       } catch (err) {
         this.logger.warn(`Template pool fetch notice (${err}).`);
+      }
+    }
+
+    // 6. Final Failsafe: If still short, fill remaining quota from active manual questions in DB
+    const finalNeeded = limit - assembledResults.length;
+    if (finalNeeded > 0) {
+      try {
+        const existingIds = new Set([...excludeIds, ...assembledResults.map((q) => q.id)]);
+        const extraManualQs = await this.prisma.question.findMany({
+          where: {
+            status: "ACTIVE",
+            OR: [
+              { topicId: topicId },
+              { topicId: resolvedCode },
+              { concept: { topicId: topicId } },
+              { concept: { code: resolvedCode.toUpperCase() } },
+            ],
+            id: { notIn: Array.from(existingIds) },
+          },
+          take: finalNeeded,
+        });
+
+        const mappedExtra = extraManualQs.map((q) =>
+          this.mapToGeneratedQuestion(q as any, (q as any).difficulty || difficulty),
+        );
+        assembledResults.push(...mappedExtra);
+      } catch (err) {
+        this.logger.warn(`Final manual pool fetch notice (${err}).`);
       }
     }
 

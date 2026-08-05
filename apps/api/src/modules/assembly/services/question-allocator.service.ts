@@ -40,6 +40,9 @@ export class QuestionAllocatorService {
     const totalQuestions = section.questionCount;
     if (totalQuestions <= 0) return [];
 
+    const allocatedQuestions: AllocatedQuestionDto[] = [];
+    let orderCounter = 1;
+
     const diffConfig =
       section.difficultyDistribution || fallbackConfig.distribution;
 
@@ -54,23 +57,82 @@ export class QuestionAllocatorService {
     let hardCount = 0;
 
     if (isFlexible) {
-      easyCount = Math.round(totalQuestions / 3);
-      hardCount = Math.round(totalQuestions / 3);
-      mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
-    } else {
-      easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
-      hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
-      mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
+      // In Flexible Mode, delegate to Natural Ratio Engine without forcing rigid 33/34/33 difficulty quotas
+      let remainingSectionCount = totalQuestions;
+
+      for (let i = 0; i < section.topicAllocations.length; i++) {
+        if (remainingSectionCount <= 0) break;
+        const topicAlloc = section.topicAllocations[i];
+        const isLast = i === section.topicAllocations.length - 1;
+
+        const rawCount = Math.round((topicAlloc.percentage / 100) * totalQuestions) || remainingSectionCount;
+        const topicCount = isLast ? remainingSectionCount : Math.min(rawCount, remainingSectionCount);
+        if (topicCount <= 0) continue;
+
+        const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
+        const selectedForTopic: AllocatedQuestionDto[] = [];
+
+        // Fetch using Natural Ratio ({ EASY: 0, MEDIUM: 0, HARD: 0 })
+        const questions = await this.questionSource.fetchQuestions({
+          conceptKey: topicAlloc.topicId,
+          difficultyLevel: undefined,
+          limit: topicCount * 5,
+          excludeIds: Array.from(currentlyExcludedIds),
+          examId,
+        });
+
+        const filtered = await this.antiRepetitionService.filterPool(
+          questions,
+          historyIds,
+          Array.from(allocatedQuestionIds),
+        );
+
+        const selected = filtered.slice(0, topicCount);
+        for (const q of selected) {
+          allocatedQuestionIds.add(q.id);
+          const allocatedQ = {
+            questionId: q.id,
+            questionHash: q.questionHash || "hash",
+            conceptKey: q.conceptKey,
+            difficultyLevel: q.difficultyLevel,
+            questionType: q.questionType,
+            questionOrder: orderCounter++,
+            questionSnapshot: q,
+          };
+          selectedForTopic.push(allocatedQ);
+          allocatedQuestions.push(allocatedQ);
+          remainingSectionCount--;
+        }
+
+        if (selectedForTopic.length < topicCount) {
+          const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
+          const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
+          const deficit = topicCount - selectedForTopic.length;
+          throw new BadRequestException({
+            error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
+            message: `Assembly Blocked: Missing ${deficit} question(s) for topic '${topicName}' in section '${sectionName}'. Please create new questions for this topic in the Question Bank!`,
+            details: {
+              section: sectionName,
+              topic: topicName,
+              required: topicCount,
+              available: selectedForTopic.length,
+              deficit,
+            },
+          });
+        }
+      }
+      return allocatedQuestions;
     }
+
+    easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
+    hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
+    mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
 
     const difficulties = [
       { level: DifficultyLevel.EASY, count: easyCount },
       { level: DifficultyLevel.MEDIUM, count: mediumCount },
       { level: DifficultyLevel.HARD, count: hardCount },
     ];
-
-    const allocatedQuestions: AllocatedQuestionDto[] = [];
-    let orderCounter = 1;
 
     for (const diff of difficulties) {
       if (diff.count <= 0) continue;
@@ -174,7 +236,7 @@ export class QuestionAllocatorService {
                 Array.from(allocatedQuestionIds),
               );
 
-              const bucketCap = remainingDiffCount - selectedForTopic.length;
+              const bucketCap = Math.max(1, shortage);
               const toAdd = filtered.slice(0, Math.min(shortage, bucketCap));
               for (const q of toAdd) {
                 allocatedQuestionIds.add(q.id);
@@ -182,7 +244,7 @@ export class QuestionAllocatorService {
                   questionId: q.id,
                   questionHash: q.questionHash || "hash",
                   conceptKey: q.conceptKey,
-                  difficultyLevel: diff.level,
+                  difficultyLevel: q.difficultyLevel,
                   questionType: q.questionType,
                   questionOrder: orderCounter++,
                   questionSnapshot: q,
@@ -198,16 +260,19 @@ export class QuestionAllocatorService {
         }
 
         if (selectedForTopic.length < requiredForTopic) {
+          const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
+          const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
+          const deficit = requiredForTopic - selectedForTopic.length;
           throw new BadRequestException({
             error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
-            message: `Unable to assemble this assessment because there are not enough eligible questions for the ${topicAlloc.topicId} / ${diff.level} requirement.`,
+            message: `Assembly Blocked: Missing ${deficit} ${diff.level} question(s) for topic '${topicName}' in section '${sectionName}'. Please create new ${diff.level} question(s) for this topic in the Question Bank!`,
             details: {
-              section:
-                (section as any).displayName || section.sectionKey || "section",
-              topic: topicAlloc.topicId,
+              section: sectionName,
+              topic: topicName,
               difficulty: diff.level,
               required: requiredForTopic,
               available: selectedForTopic.length,
+              deficit,
             },
           });
         }
