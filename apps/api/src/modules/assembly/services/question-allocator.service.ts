@@ -257,6 +257,11 @@ export class QuestionAllocatorService {
 
     const diffConfig =
       section.difficultyDistribution || fallbackConfig.distribution;
+    const isFlexible =
+      !diffConfig ||
+      (diffConfig.EASY === 0 &&
+        diffConfig.MEDIUM === 0 &&
+        diffConfig.HARD === 0);
 
     const sectionDifficultyTargets = this.calculateSectionDifficultyTargets(
       totalQuestions,
@@ -341,18 +346,11 @@ export class QuestionAllocatorService {
       sectionDifficultyTargets,
     );
 
-    easyCount = Math.round((diffConfig.EASY / 100) * totalQuestions);
-    hardCount = Math.round((diffConfig.HARD / 100) * totalQuestions);
-    mediumCount = Math.max(0, totalQuestions - easyCount - hardCount);
-
     const difficulties = [
       { level: DifficultyLevel.EASY, count: sectionDifficultyTargets.EASY },
       { level: DifficultyLevel.MEDIUM, count: sectionDifficultyTargets.MEDIUM },
       { level: DifficultyLevel.HARD, count: sectionDifficultyTargets.HARD },
     ];
-
-    const allocatedQuestions: AllocatedQuestionDto[] = [];
-    let orderCounter = 1;
 
     for (const topicAlloc of section.topicAllocations) {
       const topicQuota = topicQuotas.get(topicAlloc.topicId) || 0;
