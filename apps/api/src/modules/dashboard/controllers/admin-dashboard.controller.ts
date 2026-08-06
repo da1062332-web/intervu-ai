@@ -14,6 +14,7 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { AdminDashboardService } from "../services/admin-dashboard.service";
 import {
   AdminPaginationQueryDto,
+  AdminActivitiesQueryDto,
   TotalAssessmentsDto,
   ActiveAssessmentsDto,
   TotalCandidatesDto,
@@ -106,7 +107,7 @@ export class AdminDashboardController {
   @ApiOperation({ summary: "Get paginated list of recent assessment activities" })
   @ApiOkResponse({ type: RecentActivitiesResponseDto })
   async getRecentActivities(
-    @Query() query: AdminPaginationQueryDto
+    @Query() query: AdminActivitiesQueryDto
   ): Promise<RecentActivitiesResponseDto> {
     return this.adminDashboardService.getRecentActivities(query);
   }

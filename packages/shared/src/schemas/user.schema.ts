@@ -1,11 +1,13 @@
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string(),
   email: z.string().email(),
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().nullable().optional(),
+  fullName: z.string().nullable().optional(),
   role: z.enum(["ADMIN", "CANDIDATE"]),
-  createdAt: z.union([z.date(), z.string()]),
+  createdAt: z.union([z.date(), z.string()]).optional(),
+  updatedAt: z.union([z.date(), z.string()]).optional(),
 });
 
 export const CreateUserSchema = UserSchema.pick({
@@ -18,12 +20,13 @@ export const UpdateUserSchema = CreateUserSchema.partial();
 
 export const UpdateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
+  fullName: z.string().min(1).max(100).optional(),
 });
 
 export const UserResponseSchema = UserSchema;
 
 export const SessionSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string(),
   userAgent: z.string().nullable().optional(),
   ipAddress: z.string().nullable().optional(),
   createdAt: z.union([z.date(), z.string()]),

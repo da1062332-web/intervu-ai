@@ -50,7 +50,7 @@ export function TestCatalogPage() {
 
   if (isLoading) {
     return (
-      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+      <div className='mx-auto w-full max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-16 py-8 sm:py-12 space-y-8 animate-fade-in-up'>
         <SectionHeader
           title='Available Assessments'
           description='Find and prepare for your assigned and recommended assessments.'
@@ -101,7 +101,7 @@ export function TestCatalogPage() {
   };
 
   return (
-    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+    <div className='mx-auto w-full max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-16 py-8 sm:py-12 space-y-8 animate-fade-in-up'>
       <SectionHeader
         title='Available Assessments'
         description='Find and prepare for your assigned and recommended assessments.'

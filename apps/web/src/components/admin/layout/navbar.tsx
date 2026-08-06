@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { LogOut, Moon, Sun, Bell, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
@@ -25,11 +25,14 @@ import { cn } from '@/lib/utils';
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const { theme, setTheme } = useTheme();
   const { pageTitle } = useActiveRoute();
   const collapsed = useLayoutStore((state) => state.sidebarCollapsed);
   const toggleCollapsed = useLayoutStore((state) => state.toggleSidebarCollapsed);
+
+  const isCandidate = user?.role === 'CANDIDATE' || pathname?.startsWith('/candidate');
 
   const handleLogout = async () => {
     await authApi.logout();
@@ -48,8 +51,8 @@ export function Navbar() {
     });
   };
 
-  const userInitial = (user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
-  const userName = user?.fullName ?? user?.email ?? 'User';
+  const userInitial = (user?.name ?? user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
+  const userName = user?.name ?? user?.fullName ?? user?.email ?? 'User';
   const userEmail = user?.email ?? '';
 
   return (
@@ -64,31 +67,33 @@ export function Navbar() {
     >
       {/* ── Left: Sidebar toggle (desktop) + Mobile trigger + Page title ── */}
       <div className='flex items-center gap-1'>
-        {/* Mobile hamburger — only visible on mobile */}
-        <MobileNavTrigger />
+        {/* Mobile hamburger — only visible on mobile when not in candidate layout */}
+        {!isCandidate && <MobileNavTrigger />}
 
-        {/* Sidebar collapse toggle — only visible on desktop */}
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={toggleCollapsed}
-              className='hidden md:inline-flex rounded-xl text-muted-foreground hover:text-foreground'
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? (
-                <PanelLeftOpen className='size-[18px]' />
-              ) : (
-                <PanelLeftClose className='size-[18px]' />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{collapsed ? 'Expand sidebar' : 'Collapse sidebar'}</TooltipContent>
-        </Tooltip>
+        {/* Sidebar collapse toggle — only visible on desktop when not in candidate layout */}
+        {!isCandidate && (
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={toggleCollapsed}
+                className='hidden md:inline-flex rounded-xl text-muted-foreground hover:text-foreground'
+                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {collapsed ? (
+                  <PanelLeftOpen className='size-[18px]' />
+                ) : (
+                  <PanelLeftClose className='size-[18px]' />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{collapsed ? 'Expand sidebar' : 'Collapse sidebar'}</TooltipContent>
+          </Tooltip>
+        )}
 
         {/* Divider */}
-        <div className='hidden md:block mx-1 h-5 w-px bg-border' aria-hidden='true' />
+        {!isCandidate && <div className='hidden md:block mx-1 h-5 w-px bg-border' aria-hidden='true' />}
 
         {/* Page title */}
         <h1 className='text-lg font-heading font-semibold text-foreground leading-none ml-1'>
@@ -174,12 +179,12 @@ export function Navbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href='/profile' className='cursor-pointer'>
+              <Link href={isCandidate ? '/candidate/profile' : '/profile'} className='cursor-pointer'>
                 Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href='/settings' className='cursor-pointer'>
+              <Link href={isCandidate ? '/candidate/settings' : '/settings'} className='cursor-pointer'>
                 Settings
               </Link>
             </DropdownMenuItem>

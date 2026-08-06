@@ -99,8 +99,8 @@ export function MobileNav() {
   const navConfig = user?.role === 'CANDIDATE' ? CANDIDATE_NAV_CONFIG : ADMIN_NAV_CONFIG;
   const dashboardHref = user?.role === 'CANDIDATE' ? '/candidate/dashboard' : '/admin/dashboard';
 
-  const userInitial = (user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
-  const userName = user?.fullName ?? user?.email ?? 'User';
+  const userInitial = (user?.name ?? user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
+  const userName = user?.name ?? user?.fullName ?? user?.email ?? 'User';
   const userEmail = user?.email ?? '';
 
   return (

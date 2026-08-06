@@ -11,6 +11,9 @@ export class UserEntity {
   @ApiProperty({ example: "John Doe", nullable: true })
   name!: string | null;
 
+  @ApiProperty({ example: "John Doe", nullable: true })
+  fullName!: string | null;
+
   @ApiProperty({ enum: UserRole, example: "CANDIDATE" })
   role!: UserRole;
 

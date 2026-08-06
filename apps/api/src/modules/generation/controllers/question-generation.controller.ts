@@ -104,90 +104,132 @@ export class QuestionGenerationController {
       sectionId = fallbackSection?.id || "fallback-section-id";
     }
 
-    for (let i = 0; i < loopCount; i++) {
-      // 2. Resolve parameters, dataset items or relationship graphs
-      const context = await this.strategyResolver.resolve(templateId);
+    const job = await this.prisma.generationJob.create({
+      data: {
+        topic: concept.name || template.conceptKey || "General",
+        count: loopCount,
+        generated: 0,
+        status: "RUNNING",
+        category: template.questionType || "Standard",
+        difficulty: template.difficultyLevel || "MEDIUM",
+      },
+    });
 
-      // 3. Trigger SGE AI prompt compilation and LLM generation
-      const templateData = {
-        id: template.id,
-        name: template.name,
-        description: template.description,
-        conceptKey: template.conceptKey,
-        difficultyLevel: template.difficultyLevel,
-        questionType: template.questionType,
-        structure: template.structure,
-        variableSchema: template.variableSchema,
-        constraints: template.constraints,
-        solutionSchema: template.solutionSchema,
-        generationStrategy: context.generationStrategy,
-      };
+    try {
+      for (let i = 0; i < loopCount; i++) {
+        // 2. Resolve parameters, dataset items or relationship graphs
+        const context = await this.strategyResolver.resolve(templateId);
 
-      const result = await this.retryService.generateFromTemplate(
-        templateData,
-        context.variables,
-        3,
-        {
-          datasetItem: context.datasetItem,
-          logicalGraph: context.logicalGraph,
-        },
-      );
-
-      if (!result.success || !result.question) {
-        throw new BadRequestException(
-          `SGE AI generation failed: ${result.errors?.join("; ") || "Unknown error"}`,
-        );
-      }
-
-      try {
-        this.responseValidator.validate(
-          result.question,
-          template.difficultyLevel,
-          template.conceptKey,
-          template,
-        );
-      } catch (err) {
-        validationReport = {
-          valid: false,
-          errors: [
-            err instanceof Error ? err.message : "Question validation failed",
-          ],
-          warnings: [],
-        };
-      }
-
-      // 4. Atomically persist SGE question details to pool
-      const q = await this.prisma.generatedQuestion.create({
-        data: {
-          questionText: result.question.question,
-          questionHash: randomUUID(),
-          templateId: template.id,
-          conceptKey: concept.code,
+        // 3. Trigger SGE AI prompt compilation and LLM generation
+        const templateData = {
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          conceptKey: template.conceptKey,
           difficultyLevel: template.difficultyLevel,
           questionType: template.questionType,
-          options: result.question.options as any,
-          correctAnswer: result.question.correctAnswer || result.question.answer || "",
-          solution: result.question.explanation,
-          metadata: {
-            status: "GENERATED",
-            generationStrategy: context.generationStrategy,
-            variables: context.variables,
+          structure: template.structure,
+          variableSchema: template.variableSchema,
+          constraints: template.constraints,
+          solutionSchema: template.solutionSchema,
+          generationStrategy: context.generationStrategy,
+        };
+
+        const result = await this.retryService.generateFromTemplate(
+          templateData,
+          context.variables,
+          3,
+          {
             datasetItem: context.datasetItem,
             logicalGraph: context.logicalGraph,
-            lineage: {
-              datasetId: config?.datasetId || null,
-              datasetItemId: context.datasetItem?.id || null,
-              templateId: template.id,
-              templateVersion: template.version,
-              variablesUsed: context.variables,
-              mappingUsed: config?.variableMapping || {},
-              promptVersion: 1,
+          },
+        );
+
+        if (!result.success || !result.question) {
+          throw new BadRequestException(
+            `SGE AI generation failed: ${result.errors?.join("; ") || "Unknown error"}`,
+          );
+        }
+
+        try {
+          this.responseValidator.validate(
+            result.question,
+            template.difficultyLevel,
+            template.conceptKey,
+            template,
+          );
+        } catch (err) {
+          validationReport = {
+            valid: false,
+            errors: [
+              err instanceof Error ? err.message : "Question validation failed",
+            ],
+            warnings: [],
+          };
+        }
+
+        // 4. Atomically persist SGE question details to pool
+        const q = await this.prisma.generatedQuestion.create({
+          data: {
+            questionText: result.question.question,
+            questionHash: randomUUID(),
+            templateId: template.id,
+            conceptKey: concept.code,
+            difficultyLevel: template.difficultyLevel,
+            questionType: template.questionType,
+            options: result.question.options as any,
+            correctAnswer: result.question.correctAnswer || result.question.answer || "",
+            solution: result.question.explanation,
+            metadata: {
+              status: "GENERATED",
+              generationStrategy: context.generationStrategy,
+              variables: context.variables,
+              datasetItem: context.datasetItem,
+              logicalGraph: context.logicalGraph,
+              lineage: {
+                datasetId: config?.datasetId || null,
+                datasetItemId: context.datasetItem?.id || null,
+                templateId: template.id,
+                templateVersion: template.version,
+                variablesUsed: context.variables,
+                mappingUsed: config?.variableMapping || {},
+                promptVersion: 1,
+              },
             },
           },
+        });
+
+        generated.push(q);
+      }
+
+      await this.prisma.generationJob.update({
+        where: { id: job.id },
+        data: {
+          status: "COMPLETED",
+          generated: generated.length,
         },
       });
-
-      generated.push(q);
+    } catch (err: any) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      await this.prisma.generationJob.update({
+        where: { id: job.id },
+        data: {
+          status: "FAILED",
+          error: errorMsg,
+          generated: generated.length,
+        },
+      }).catch(() => {});
+      await this.prisma.generationLog.create({
+        data: {
+          examId: job.id,
+          step: "GENERATE_QUESTION",
+          status: "FAILED",
+          durationMs: 0,
+          retryCount: 3,
+          message: errorMsg,
+        },
+      }).catch(() => {});
+      throw err;
     }
 
     return {

@@ -33,6 +33,25 @@ export interface ActivityTimelineItem {
   createdAt: string;
 }
 
+export interface ActivitiesQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  type?: string;
+  user?: string;
+  startDate?: string;
+  endDate?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface ActivitiesPaginatedResponse {
+  data: ActivityTimelineItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages?: number;
+}
+
 export const dashboardService = {
   getTotalAssessments: () => 
     apiClient.request<{ totalAssessments: number }>('/admin/dashboard/total-assessments').then(res => res.totalAssessments),
@@ -61,6 +80,18 @@ export const dashboardService = {
   getRecentTestAttempts: () => 
     apiClient.request<{ data: RecentTestAttempt[] }>('/admin/dashboard/recent-test-attempts').then(res => res.data),
     
-  getRecentActivities: () => 
-    apiClient.request<{ data: ActivityTimelineItem[] }>('/admin/dashboard/recent-activities').then(res => res.data),
+  getRecentActivities: (params?: ActivitiesQueryParams) => {
+    const query = new URLSearchParams();
+    if (params?.page !== undefined) query.append('page', params.page.toString());
+    if (params?.limit !== undefined) query.append('limit', params.limit.toString());
+    if (params?.search) query.append('search', params.search);
+    if (params?.type && params.type !== 'all') query.append('type', params.type);
+    if (params?.user) query.append('user', params.user);
+    if (params?.startDate) query.append('startDate', params.startDate);
+    if (params?.endDate) query.append('endDate', params.endDate);
+    if (params?.sortOrder) query.append('sortOrder', params.sortOrder);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return apiClient.request<ActivitiesPaginatedResponse>(`/admin/dashboard/recent-activities${queryString}`);
+  },
 };

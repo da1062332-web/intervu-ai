@@ -31,6 +31,7 @@ export interface AdminTestAttemptItem {
   email?: string;
   assessment: string;
   score: number;
+  hasEvaluation?: boolean;
   status: string;
   submittedAt: string;
 }
@@ -42,10 +43,10 @@ function useAllAdminTestAttempts() {
       // Fetch both recent attempts and candidate reports to provide comprehensive attempt history
       const [recentRes, reportsRes] = await Promise.allSettled([
         apiClient.request<{ data: any[] }>('/admin/dashboard/recent-test-attempts', {
-          query: { limit: 200 },
+          query: { limit: 500 },
         }),
         apiClient.request<any[]>('/admin/reports/candidates', {
-          query: { limit: 200 },
+          query: { limit: 500 },
         }),
       ]);
 
@@ -60,7 +61,8 @@ function useAllAdminTestAttempts() {
             candidateName: item.candidateName || 'Unknown Candidate',
             email: item.email || undefined,
             assessment: item.assessment || 'General Assessment',
-            score: typeof item.score === 'number' ? Math.round(item.score) : 0,
+            score: typeof item.score === 'number' ? Math.round(item.score * 100) / 100 : 0,
+            hasEvaluation: Boolean(item.hasEvaluation),
             status: item.status || 'COMPLETED',
             submittedAt: item.submittedAt || new Date().toISOString(),
           });
@@ -74,13 +76,15 @@ function useAllAdminTestAttempts() {
           const existing = map.get(rep.id);
           if (existing) {
             existing.email = existing.email || rep.candidate?.email;
+            existing.hasEvaluation = true;
           } else {
             map.set(rep.id, {
               id: rep.id,
               candidateName: rep.candidate?.fullName || 'Unknown Candidate',
               email: rep.candidate?.email,
               assessment: rep.assessment?.displayName || 'Assessment Evaluation',
-              score: typeof rep.score === 'number' ? Math.round(rep.score) : 0,
+              score: typeof rep.score === 'number' ? Math.round(rep.score * 100) / 100 : 0,
+              hasEvaluation: true,
               status: 'COMPLETED',
               submittedAt: rep.completedAt || new Date().toISOString(),
             });
@@ -144,7 +148,7 @@ const columns: ColumnDef<AdminTestAttemptItem>[] = [
         variant="outline"
         className={cn(
           'text-[10px] uppercase font-semibold tracking-wider',
-          row.status === 'COMPLETED' ? 'border-emerald-500/60 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-muted-foreground'
+          row.status === 'COMPLETED' || row.status === 'SUBMITTED' ? 'border-emerald-500/60 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-muted-foreground'
         )}
       >
         {row.status}
@@ -207,10 +211,16 @@ export default function AdminRecentTestAttemptsPage() {
     if (!attempts || attempts.length === 0) {
       return { total: 0, avgScore: 0, completed: 0, highPerformers: 0 };
     }
-    const completed = attempts.filter((a) => a.status.toUpperCase() === 'COMPLETED').length;
+    const completed = attempts.filter(
+      (a) => a.status.toUpperCase() === 'COMPLETED' || a.status.toUpperCase() === 'SUBMITTED'
+    ).length;
     const highPerformers = attempts.filter((a) => a.score >= 80).length;
-    const totalScore = attempts.reduce((acc, curr) => acc + (curr.score || 0), 0);
-    const avgScore = Math.round(totalScore / attempts.length);
+    
+    const evaluatedAttempts = attempts.filter((a) => a.hasEvaluation || (a.score && a.score > 0));
+    const totalScore = evaluatedAttempts.reduce((acc, curr) => acc + (curr.score || 0), 0);
+    const avgScore = evaluatedAttempts.length > 0
+      ? Math.round((totalScore / evaluatedAttempts.length) * 100) / 100
+      : 0;
 
     return { total: attempts.length, avgScore, completed, highPerformers };
   }, [attempts]);

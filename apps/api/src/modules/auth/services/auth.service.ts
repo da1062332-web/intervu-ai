@@ -26,6 +26,7 @@ export interface AuthResponse {
     id: string;
     email: string;
     fullName: string | null;
+    name?: string | null;
     role: AuthUserRole;
   };
   accessToken: string;
@@ -206,6 +207,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        name: user.fullName,
         role: user.role,
       },
       accessToken: tokens.accessToken,

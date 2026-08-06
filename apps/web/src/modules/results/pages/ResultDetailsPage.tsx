@@ -7,12 +7,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ResultStatusTracker } from '../components/ResultStatusTracker';
 import { toast } from 'sonner';
-import { resultApi } from '../api/results.api';
 import {
   ArrowLeft,
   Download,
   Share2,
-  RotateCcw,
   CheckCircle2,
   Target,
   XCircle,
@@ -25,7 +23,6 @@ export const ResultDetailsPage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
-  const baseRoute = isAdminRoute ? '/admin/results' : '/candidate/results';
   const navigate = router.push;
   const {
     data: result,
@@ -49,29 +46,41 @@ export const ResultDetailsPage = () => {
   const handleExportPdf = async () => {
     try {
       setIsExportingPdf(true);
-      await new Promise((r) => setTimeout(r, 100)); // Allow UI to update
+      toast.info('Preparing your PDF report... Please hold on.', { duration: 3000 });
+      await new Promise((r) => setTimeout(r, 150)); // Allow UI notifications to settle
 
-      const htmlToImage = await import('html-to-image');
+      const html2canvasModule = await import('html2canvas');
+      const html2canvas = html2canvasModule.default;
       const { jsPDF } = await import('jspdf');
 
       const sections = document.querySelectorAll('.pdf-section');
-      if (!sections.length) return;
+      if (!sections.length) {
+        toast.error('No report sections found to export.');
+        return;
+      }
 
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-
-      const margin = 12; // 12mm margin all around
+      const margin = 12;
       let currentY = margin;
 
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i] as HTMLElement;
+        if (!section || section.clientHeight === 0) continue;
 
-        const imgData = await htmlToImage.toJpeg(section, {
-          quality: 0.98,
-          pixelRatio: 2,
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
           backgroundColor: '#ffffff',
+          allowTaint: true,
         });
+
+        if (!canvas || canvas.width === 0 || canvas.height === 0) continue;
+
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        if (!imgData || !imgData.startsWith('data:image/')) continue;
 
         const imgProps = pdf.getImageProperties(imgData);
         const imgWidth = pdfWidth - margin * 2;
@@ -82,11 +91,11 @@ export const ResultDetailsPage = () => {
           currentY = margin;
         }
 
-        pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight);
-        currentY += imgHeight + 8; // 8mm gap between sections
+        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 6;
       }
 
-      // Add Footer on all pages natively
+      // Add Headers and Footers to each generated page
       const pageCount = (pdf as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
@@ -100,25 +109,41 @@ export const ResultDetailsPage = () => {
           footerY,
           { align: 'center' },
         );
-        pdf.text(`Confidential Document`, pdfWidth - margin, footerY, { align: 'right' });
+        pdf.text(`Page ${i} of ${pageCount}`, pdfWidth - margin, footerY, { align: 'right' });
       }
 
-      pdf.save(`result-${attemptId}.pdf`);
+      pdf.save(`Assessment_Report_${attemptId.slice(0, 8)}.pdf`);
       toast.success('PDF downloaded successfully');
     } catch (e: any) {
       console.error('PDF Export Error:', e);
-      toast.error('Failed to generate PDF: ' + (e?.message || 'Unknown error'));
+      toast.error('Failed to generate PDF: ' + (e?.message || 'Unexpected error occurred'));
     } finally {
       setIsExportingPdf(false);
     }
   };
 
-  const handleShareResult = () => {
+  const handleShareResult = async () => {
+    const canonicalPath = `/candidate/results/${attemptId}`;
+    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${canonicalPath}` : '';
+    const title = `Performance Report - ${result?.assessmentName || 'Assessment'}`;
+    const text = `Check out my verified assessment performance report for ${result?.assessmentName || 'Assessment'}!`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url: shareUrl });
+        toast.success('Result shared successfully');
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+        // Fallback to clipboard on error
+      }
+    }
+
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Result URL copied to clipboard');
+      navigator.clipboard.writeText(shareUrl || window.location.href);
+      toast.success('Shareable candidate report link copied to clipboard');
     } else {
-      toast.info('Share feature enabled');
+      toast.info(`Share link: ${shareUrl}`);
     }
   };
 
@@ -171,7 +196,7 @@ export const ResultDetailsPage = () => {
         <Button
           variant='ghost'
           className='text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center gap-2 p-0 hover:bg-transparent'
-          onClick={() => navigate('/candidate/dashboard')}
+          onClick={() => navigate(isAdminRoute ? '/admin/dashboard' : '/candidate/dashboard')}
         >
           <ArrowLeft className='w-4 h-4' />
           <span>Back to Dashboard</span>
@@ -184,7 +209,7 @@ export const ResultDetailsPage = () => {
             onClick={handleExportPdf}
             disabled={isExportingPdf}
           >
-            <span>{isExportingPdf ? 'Exporting...' : 'Download PDF'}</span>
+            <span>{isExportingPdf ? 'Generating PDF...' : 'Download PDF'}</span>
             <Download className='w-4 h-4 text-muted-foreground' />
           </Button>
 
@@ -204,7 +229,7 @@ export const ResultDetailsPage = () => {
       {/* 2. Hero Qualification & Assessment Header Card */}
       <div className='pdf-section'>
         <Card className='rounded-2xl border-border/60 bg-card text-card-foreground shadow-2xs overflow-hidden print:break-inside-avoid'>
-          <CardContent className='p-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-1'>
+          <CardContent className='p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6'>
             <div className='flex items-center gap-4'>
               <div className='w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-extrabold text-2xl flex items-center justify-center shrink-0 shadow-xs'>
                 {initial}
@@ -231,9 +256,9 @@ export const ResultDetailsPage = () => {
             </div>
 
             {/* Qualification Banner */}
-            <div className='flex items-center gap-3'>
+            <div className='flex items-center gap-3 w-full md:w-auto justify-end'>
               {isQualified ? (
-                <div className='p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center gap-3'>
+                <div className='w-full md:w-auto p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center gap-3'>
                   <div className='p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 shrink-0'>
                     <CheckCircle2 className='w-5 h-5' />
                   </div>
@@ -248,7 +273,7 @@ export const ResultDetailsPage = () => {
                   </div>
                 </div>
               ) : (
-                <div className='p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-3'>
+                <div className='w-full md:w-auto p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-3'>
                   <div className='p-2 rounded-xl bg-destructive/20 shrink-0'>
                     <XCircle className='w-5 h-5' />
                   </div>
@@ -270,7 +295,7 @@ export const ResultDetailsPage = () => {
       {/* 3. Performance Insights Dashboard */}
       <PerformanceInsightsDashboard attemptId={attemptId!} resultDetails={result} />
 
-      {/* 4. Print Footer (Only visible when printing or in html2pdf) */}
+      {/* 4. Print Footer */}
       <div
         className='hidden print:flex fixed bottom-0 left-0 right-0 w-full justify-between items-center text-[10px] text-gray-500 bg-white pt-2 border-t border-gray-200'
         data-html2canvas-ignore='true'

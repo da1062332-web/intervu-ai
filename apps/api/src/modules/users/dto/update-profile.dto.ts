@@ -9,6 +9,12 @@ export class UpdateProfileDto {
   })
   name?: string;
 
+  @ApiPropertyOptional({
+    example: "John Doe",
+    description: "Updated full name of the user profile",
+  })
+  fullName?: string;
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, UpdateProfileDto> {

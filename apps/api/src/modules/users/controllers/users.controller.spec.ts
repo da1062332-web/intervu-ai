@@ -20,6 +20,7 @@ describe("UsersController", () => {
     id: "user-1",
     email: "test@example.com",
     name: "Test User",
+    fullName: "Test User",
     role: UserRole.CANDIDATE,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -73,6 +74,7 @@ describe("UsersController", () => {
       jest.spyOn(service, "updateProfile").mockResolvedValue({
         ...mockUserEntity,
         name: "Updated Name",
+        fullName: "Updated Name",
       });
 
       const result = await controller.updateProfile(mockAuthUser, dto);

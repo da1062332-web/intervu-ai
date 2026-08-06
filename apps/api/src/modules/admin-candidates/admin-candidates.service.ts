@@ -40,6 +40,9 @@ export class AdminCandidatesService {
       where.deletedAt = null;
     } else if (query.status === "INACTIVE") {
       where.deletedAt = { not: null };
+    } else {
+      // Fetch all candidates (both active and inactive)
+      delete (where as any).deletedAt;
     }
 
     if (query.search && query.search.trim() !== "") {
@@ -63,18 +66,22 @@ export class AdminCandidatesService {
     const limit = Math.min(100, Math.max(1, query.limit || 20));
     const skip = (page - 1) * limit;
 
-    const { items, total } = await this.userRepository.findCandidatesWithSummary({
-      where,
-      orderBy,
-      skip,
-      take: limit,
-    });
+    const [{ items, total }, statusCounts] = await Promise.all([
+      this.userRepository.findCandidatesWithSummary({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.userRepository.getCandidateStatusCounts(where),
+    ]);
 
     const formattedItems = await Promise.all(
       items.map(async (user: any) => {
-        const perf = await this.performanceRepository.getAggregatedPerformance(
-          user.id,
-        );
+        const [perf, res] = await Promise.all([
+          this.performanceRepository.getAggregatedPerformance(user.id),
+          this.candidateResultRepository.findCandidateResults(user.id, 1, 1),
+        ]);
         const summary = user.performanceSummary || {};
         const completedTests = perf.testsCompleted || summary.testsCompleted || 0;
         const averageScore = Math.round(
@@ -84,6 +91,7 @@ export class AdminCandidatesService {
           perf.bestScore || summary.bestScore || 0,
         );
         const lastAttemptDate = perf.lastAssessmentDate || summary.lastAssessmentDate;
+        const latestResult = res.items?.[0];
 
         return {
           id: user.id,
@@ -95,6 +103,7 @@ export class AdminCandidatesService {
           completedTests,
           averageScore,
           bestScore,
+          qualification: latestResult?.qualification || undefined,
           lastAttempt: lastAttemptDate
             ? new Date(lastAttemptDate).toISOString()
             : "",
@@ -106,10 +115,15 @@ export class AdminCandidatesService {
     return {
       items: formattedItems,
       pagination: {
-        page: 1,
-        limit: total || formattedItems.length || 0,
+        page,
+        limit,
         total,
-        totalPages: 1,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+      summary: {
+        total: statusCounts.total,
+        activeCount: statusCounts.active,
+        inactiveCount: statusCounts.inactive,
       },
     };
   }

@@ -14,7 +14,7 @@ export class CandidateListQueryDto {
   })
   @IsOptional()
   @IsString()
-  @IsIn(["ACTIVE", "INACTIVE", ""])
+  @IsIn(["ACTIVE", "INACTIVE", "ALL", "all", ""])
   status?: string;
 
   @ApiPropertyOptional({
@@ -81,8 +81,11 @@ export class CandidateListItemDto {
   @ApiProperty({ example: 82, description: "Average evaluation score percentage" })
   averageScore!: number;
 
-  @ApiProperty({ example: 95, description: "Best evaluation score percentage" })
+  @ApiProperty({ example: "95", description: "Best evaluation score percentage" })
   bestScore!: number;
+
+  @ApiProperty({ example: "PRIME", description: "Latest hiring qualification", required: false })
+  qualification?: string;
 
   @ApiProperty({ example: "2026-07-20T10:30:00.000Z", description: "Timestamp of last attempt" })
   lastAttempt!: string;
@@ -105,12 +108,26 @@ export class CandidatePaginationDto {
   totalPages!: number;
 }
 
+export class CandidateSummaryDto {
+  @ApiProperty({ example: 150, description: "Total candidates across system" })
+  total!: number;
+
+  @ApiProperty({ example: 140, description: "Active candidates across system" })
+  activeCount!: number;
+
+  @ApiProperty({ example: 10, description: "Inactive candidates across system" })
+  inactiveCount!: number;
+}
+
 export class CandidateListResponseDto {
   @ApiProperty({ type: [CandidateListItemDto], description: "List of candidates" })
   items!: CandidateListItemDto[];
 
   @ApiProperty({ type: CandidatePaginationDto, description: "Pagination metadata" })
   pagination!: CandidatePaginationDto;
+
+  @ApiProperty({ type: CandidateSummaryDto, description: "Summary KPI metrics", required: false })
+  summary?: CandidateSummaryDto;
 }
 
 export class CandidateDetailsResponseDto {

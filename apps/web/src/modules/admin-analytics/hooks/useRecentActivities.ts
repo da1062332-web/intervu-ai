@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { dashboardService } from '../services/dashboard.service';
+import { dashboardService, ActivitiesQueryParams } from '../services/dashboard.service';
 
-export function useRecentActivities() {
+export function useRecentActivities(params?: ActivitiesQueryParams) {
   return useQuery({
-    queryKey: ['admin-dashboard', 'recent-activities'],
-    queryFn: dashboardService.getRecentActivities,
+    queryKey: ['admin-dashboard', 'recent-activities', params],
+    queryFn: () => dashboardService.getRecentActivities(params),
   });
 }

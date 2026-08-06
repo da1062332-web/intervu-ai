@@ -2,24 +2,31 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { 
   Prisma, 
-  AssemblyStatus, 
+  ConfigStatus, 
   UserRole, 
-  TestInstanceStatus, 
-  QuestionStatus 
+  TestInstanceStatus 
 } from "@prisma/client";
-import { AdminPaginationQueryDto } from "../dto/admin-dashboard.dto";
+import { AdminPaginationQueryDto, AdminActivitiesQueryDto } from "../dto/admin-dashboard.dto";
 
 @Injectable()
 export class AdminDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getTotalAssessments(): Promise<number> {
-    return this.prisma.assembledTest.count();
+    return this.prisma.examConfig.count({
+      where: { isArchived: false },
+    });
   }
 
   async getActiveAssessments(): Promise<number> {
-    return this.prisma.assembledTest.count({
-      where: { status: AssemblyStatus.PUBLISHED },
+    return this.prisma.examConfig.count({
+      where: {
+        isArchived: false,
+        OR: [
+          { status: { in: [ConfigStatus.PUBLISHED, ConfigStatus.ACTIVE] } },
+          { status: { notIn: [ConfigStatus.ARCHIVED, ConfigStatus.DRAFT] }, isActive: true },
+        ],
+      },
     });
   }
 
@@ -37,6 +44,11 @@ export class AdminDashboardService {
 
   async getAverageScore(): Promise<number> {
     const aggregate = await this.prisma.evaluationResult.aggregate({
+      where: {
+        testInstance: {
+          status: { in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED] },
+        },
+      },
       _avg: { overallScore: true },
     });
     
@@ -48,9 +60,13 @@ export class AdminDashboardService {
   }
 
   async getQuestionBankCount(): Promise<number> {
-    return this.prisma.question.count({
-      where: { status: { not: QuestionStatus.ARCHIVED } },
+    const questions = await this.prisma.generatedQuestion.findMany({
+      select: { metadata: true },
     });
+    return questions.filter((q) => {
+      const status = ((q.metadata as any)?.status || "GENERATED").toString().toUpperCase();
+      return status === "APPROVED" || status === "PUBLISHED";
+    }).length;
   }
 
   async getRecentAssessments(query: AdminPaginationQueryDto) {
@@ -58,34 +74,30 @@ export class AdminDashboardService {
     const limit = Number(query.limit || 10);
     const skip = (page - 1) * limit;
 
+    const where: Prisma.ExamConfigWhereInput = { isActive: true, isArchived: false };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.assembledTest.count(),
-      this.prisma.assembledTest.findMany({
+      this.prisma.examConfig.count({ where }),
+      this.prisma.examConfig.findMany({
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: {
-          examConfig: {
-            select: { name: true },
-          },
-        },
       }),
     ]);
 
-    // To get candidate counts per assembled test, we count test instances linked to the config
-    // Note: Since TestInstance links to testConfigId or examConfigId, we use examConfigId.
     const items = await Promise.all(
-      data.map(async (test) => {
+      data.map(async (config) => {
         const candidateCount = await this.prisma.testInstance.count({
-          where: { examConfigId: test.configId },
+          where: { examConfigId: config.id },
         });
 
         return {
-          id: test.id,
-          assessmentName: test.examConfig?.name || "Unknown Assessment",
-          status: test.status,
+          id: config.id,
+          assessmentName: config.name || "Unknown Assessment",
+          status: config.status || (config.isActive ? "PUBLISHED" : "DRAFT"),
           candidateCount,
-          createdAt: test.createdAt.toISOString(),
+          createdAt: config.createdAt.toISOString(),
         };
       })
     );
@@ -98,9 +110,14 @@ export class AdminDashboardService {
     const limit = Number(query.limit || 10);
     const skip = (page - 1) * limit;
 
+    const where: Prisma.TestInstanceWhereInput = {
+      status: { in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED] },
+    };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.testInstance.count(),
+      this.prisma.testInstance.count({ where }),
       this.prisma.testInstance.findMany({
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -131,6 +148,7 @@ export class AdminDashboardService {
         email: attempt.user?.email || undefined,
         assessment: assessmentName,
         score: attempt.evaluationResult?.overallScore || 0,
+        hasEvaluation: attempt.evaluationResult !== null,
         status: attempt.status,
         submittedAt: attempt.submittedAt?.toISOString() || attempt.updatedAt.toISOString(),
       };
@@ -139,26 +157,71 @@ export class AdminDashboardService {
     return { data: items, total, page, limit };
   }
 
-  async getRecentActivities(query: AdminPaginationQueryDto) {
+  async getRecentActivities(query: AdminActivitiesQueryDto) {
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 10);
     const skip = (page - 1) * limit;
 
+    const where: Prisma.AssessmentAuditLogWhereInput = {};
+
+    if (query.type && query.type !== "all") {
+      const typeLower = query.type.toLowerCase();
+      if (typeLower === "assessment") {
+        where.eventType = { in: ["ASSESSMENT_STARTED", "ASSESSMENT_SUBMITTED", "EVALUATION_COMPLETED", "CHECKPOINT", "RESUME", "TERMINATE"] };
+      } else if (typeLower === "system") {
+        where.eventType = { notIn: ["ASSESSMENT_STARTED", "ASSESSMENT_SUBMITTED", "EVALUATION_COMPLETED", "REPORT_VIEWED", "PROGRESS_VIEWED"] };
+      } else if (typeLower === "user") {
+        where.eventType = { in: ["REPORT_VIEWED", "PROGRESS_VIEWED", "USER"] };
+      } else {
+        where.eventType = { startsWith: query.type, mode: "insensitive" };
+      }
+    }
+
+    if (query.search && query.search.trim() !== "") {
+      const search = query.search.trim();
+      where.OR = [
+        { eventType: { contains: search, mode: "insensitive" } },
+        {
+          testInstance: {
+            OR: [
+              { user: { fullName: { contains: search, mode: "insensitive" } } },
+              { user: { email: { contains: search, mode: "insensitive" } } },
+              { examConfig: { name: { contains: search, mode: "insensitive" } } },
+              { testConfig: { displayName: { contains: search, mode: "insensitive" } } },
+            ],
+          },
+        },
+      ];
+    }
+
+    if (query.startDate || query.endDate) {
+      where.createdAt = {};
+      if (query.startDate) {
+        where.createdAt.gte = new Date(query.startDate);
+      }
+      if (query.endDate) {
+        where.createdAt.lte = new Date(query.endDate);
+      }
+    }
+
+    const orderBy = { createdAt: query.sortOrder === "asc" ? ("asc" as const) : ("desc" as const) };
+
     const [total, data] = await this.prisma.$transaction([
-      this.prisma.assessmentAuditLog.count(),
+      this.prisma.assessmentAuditLog.count({ where }),
       this.prisma.assessmentAuditLog.findMany({
+        where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy,
         include: {
           testInstance: {
             include: {
               user: { select: { fullName: true, email: true } },
               examConfig: { select: { name: true } },
-              testConfig: { select: { displayName: true } }
-            }
-          }
-        }
+              testConfig: { select: { displayName: true } },
+            },
+          },
+        },
       }),
     ]);
 
@@ -170,7 +233,6 @@ export class AdminDashboardService {
       let title = log.eventType;
       let description = `${candidateName} triggered ${log.eventType} on ${assessmentName}`;
 
-      // Improve title and description based on common event types if known
       if (log.eventType === "ASSESSMENT_STARTED") {
         title = "Assessment Started";
         description = `${candidateName} started taking ${assessmentName}`;
@@ -180,6 +242,18 @@ export class AdminDashboardService {
       } else if (log.eventType === "EVALUATION_COMPLETED") {
         title = "Evaluation Completed";
         description = `Evaluation was completed for ${candidateName}'s attempt of ${assessmentName}`;
+      } else if (log.eventType === "REPORT_VIEWED") {
+        title = "Report Viewed";
+        description = `${candidateName} viewed report for ${assessmentName}`;
+      } else if (log.eventType === "PROGRESS_VIEWED") {
+        title = "Progress Viewed";
+        description = `${candidateName} checked progress for ${assessmentName}`;
+      } else if (log.eventType === "PDF_EXPORTED") {
+        title = "PDF Exported";
+        description = `PDF report exported for ${candidateName} on ${assessmentName}`;
+      } else if (log.eventType === "JSON_EXPORTED") {
+        title = "JSON Exported";
+        description = `JSON data exported for ${candidateName} on ${assessmentName}`;
       }
 
       return {
@@ -191,7 +265,8 @@ export class AdminDashboardService {
       };
     });
 
-    return { data: items, total, page, limit };
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    return { data: items, total, page, limit, totalPages };
   }
 
   async getAssessmentCompletionRate() {

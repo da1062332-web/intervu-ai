@@ -19,72 +19,83 @@ export class AdminAnalyticsSyncService {
     );
 
     // ─── 1. Sync Generation Analytics ───
-    const genRequests = await this.prisma.generationJob.count();
-    const genSuccesses = await this.prisma.generationJob.count({
-      where: { status: "COMPLETED" },
-    });
-    const genFailures = await this.prisma.generationJob.count({
-      where: { status: "FAILED" },
-    });
+    const [
+      genJobsCount,
+      genSuccesses,
+      jobFailures,
+      logFailures,
+      genLogsAvg,
+      questions,
+      generatedQuestions,
+      recentJobs,
+      recentLogs,
+    ] = await Promise.all([
+      this.prisma.generationJob.count(),
+      this.prisma.generationJob.count({ where: { status: "COMPLETED" } }),
+      this.prisma.generationJob.count({ where: { status: "FAILED" } }),
+      this.prisma.generationLog.count({ where: { status: { in: ["FAILED", "ERROR", "FAILURE"] } } }),
+      this.prisma.generationLog.aggregate({ _avg: { durationMs: true } }),
+      this.prisma.question.findMany({ where: { source: "GENERATED" }, include: { topic: true } }),
+      this.prisma.generatedQuestion.findMany({ select: { conceptKey: true, difficultyLevel: true, createdAt: true } }),
+      this.prisma.generationJob.findMany({
+        where: { createdAt: { gte: new Date(now.getTime() - 6 * 24 * 3600 * 1000) } },
+        select: { createdAt: true, status: true },
+      }),
+      this.prisma.generationLog.findMany({
+        where: {
+          createdAt: { gte: new Date(now.getTime() - 6 * 24 * 3600 * 1000) },
+          status: { in: ["FAILED", "ERROR", "FAILURE"] },
+        },
+        select: { createdAt: true },
+      }),
+    ]);
 
-    const genLogsAvg = await this.prisma.generationLog.aggregate({
-      _avg: { durationMs: true },
-    });
+    const genFailures = Math.max(jobFailures, logFailures);
+    const genRequests = Math.max(genJobsCount, genSuccesses + genFailures);
     const avgDurationMs = genLogsAvg._avg.durationMs || 4500;
-
-    // Group questions by topic where source = "GENERATED"
-    const questions = await this.prisma.question.findMany({
-      where: { source: "GENERATED" },
-      include: { topic: true },
-    });
 
     const questionsGeneratedPerTopic: Record<string, number> = {};
     const questionsGeneratedPerDifficulty: Record<string, number> = {};
 
     for (const q of questions) {
       const topicName = q.topic?.name || "Unknown";
-      questionsGeneratedPerTopic[topicName] =
-        (questionsGeneratedPerTopic[topicName] || 0) + 1;
-      questionsGeneratedPerDifficulty[q.difficulty] =
-        (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
+      questionsGeneratedPerTopic[topicName] = (questionsGeneratedPerTopic[topicName] || 0) + 1;
+      questionsGeneratedPerDifficulty[q.difficulty] = (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
+    }
+    for (const gq of generatedQuestions) {
+      const topicName = gq.conceptKey || "General";
+      questionsGeneratedPerTopic[topicName] = (questionsGeneratedPerTopic[topicName] || 0) + 1;
+      questionsGeneratedPerDifficulty[gq.difficultyLevel] = (questionsGeneratedPerDifficulty[gq.difficultyLevel] || 0) + 1;
     }
 
-    // Mock trend data for visualization
-    const trendData = [
-      {
-        date: new Date(now.getTime() - 4 * 24 * 3600 * 1000)
-          .toISOString()
-          .split("T")[0],
-        success: Math.round(genSuccesses * 0.1),
-        failure: Math.round(genFailures * 0.1),
-      },
-      {
-        date: new Date(now.getTime() - 3 * 24 * 3600 * 1000)
-          .toISOString()
-          .split("T")[0],
-        success: Math.round(genSuccesses * 0.2),
-        failure: Math.round(genFailures * 0.1),
-      },
-      {
-        date: new Date(now.getTime() - 2 * 24 * 3600 * 1000)
-          .toISOString()
-          .split("T")[0],
-        success: Math.round(genSuccesses * 0.3),
-        failure: Math.round(genFailures * 0.2),
-      },
-      {
-        date: new Date(now.getTime() - 1 * 24 * 3600 * 1000)
-          .toISOString()
-          .split("T")[0],
-        success: Math.round(genSuccesses * 0.2),
-        failure: Math.round(genFailures * 0.4),
-      },
-      {
-        date: now.toISOString().split("T")[0],
-        success: Math.round(genSuccesses * 0.2),
-        failure: Math.round(genFailures * 0.2),
-      },
-    ];
+    // Live daily trend data from actual generation records
+    const trendMap: Record<string, { date: string; success: number; failure: number }> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000).toISOString().split("T")[0];
+      trendMap[d] = { date: d, success: 0, failure: 0 };
+    }
+
+    for (const job of recentJobs) {
+      const d = job.createdAt.toISOString().split("T")[0];
+      if (trendMap[d]) {
+        if (job.status === "COMPLETED") trendMap[d].success++;
+        else if (job.status === "FAILED") trendMap[d].failure++;
+      }
+    }
+    for (const log of recentLogs) {
+      const d = log.createdAt.toISOString().split("T")[0];
+      if (trendMap[d] && trendMap[d].failure === 0) {
+        trendMap[d].failure++;
+      }
+    }
+    for (const gq of generatedQuestions) {
+      const d = gq.createdAt.toISOString().split("T")[0];
+      if (trendMap[d] && trendMap[d].success === 0) {
+        trendMap[d].success++;
+      }
+    }
+
+    const trendData = Object.values(trendMap);
 
     const genAnalytics = await this.prisma.generationAnalytics.create({
       data: {

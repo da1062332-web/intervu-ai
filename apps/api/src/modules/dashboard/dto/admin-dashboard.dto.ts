@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsInt, Min } from "class-validator";
+import { IsOptional, IsInt, Min, IsString, IsIn } from "class-validator";
 import { Type } from "class-transformer";
 
 export class AdminPaginationQueryDto {
@@ -16,6 +16,38 @@ export class AdminPaginationQueryDto {
   @IsInt()
   @Min(1)
   limit?: number = 10;
+}
+
+export class AdminActivitiesQueryDto extends AdminPaginationQueryDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  user?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+
+  @ApiProperty({ required: false, enum: ["asc", "desc"], default: "desc" })
+  @IsOptional()
+  @IsIn(["asc", "desc"])
+  sortOrder?: "asc" | "desc" = "desc";
 }
 
 export class TotalAssessmentsDto {
@@ -106,6 +138,10 @@ export class RecentTestAttemptItemDto {
   @ApiProperty({ example: 82.5 })
   score!: number;
 
+  @ApiProperty({ example: true, required: false })
+  @IsOptional()
+  hasEvaluation?: boolean;
+
   @ApiProperty({ example: "COMPLETED" })
   status!: string;
 
@@ -156,4 +192,7 @@ export class RecentActivitiesResponseDto {
 
   @ApiProperty({ example: 10 })
   limit!: number;
+
+  @ApiProperty({ required: false, example: 10 })
+  totalPages?: number;
 }

@@ -28,6 +28,11 @@ export interface CandidatePagination {
 export interface CandidateListResponse {
   items: CandidateListItem[];
   pagination: CandidatePagination;
+  summary?: {
+    total: number;
+    activeCount: number;
+    inactiveCount: number;
+  };
 }
 
 export interface CandidateListParams {

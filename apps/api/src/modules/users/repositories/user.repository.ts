@@ -68,4 +68,16 @@ export class UserRepository extends BaseRepository<
     ]);
     return { items, total };
   }
+
+  async getCandidateStatusCounts(baseWhere?: Prisma.UserWhereInput): Promise<{ total: number; active: number; inactive: number }> {
+    const whereWithoutStatus = { ...baseWhere, role: "CANDIDATE" as const };
+    delete (whereWithoutStatus as any).deletedAt;
+
+    const [active, inactive] = await Promise.all([
+      this.db.user.count({ where: { ...whereWithoutStatus, deletedAt: null } }),
+      this.db.user.count({ where: { ...whereWithoutStatus, deletedAt: { not: null } } }),
+    ]);
+    return { total: active + inactive, active, inactive };
+  }
 }
+

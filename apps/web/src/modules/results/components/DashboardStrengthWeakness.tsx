@@ -10,8 +10,8 @@ interface Props {
 }
 
 export const DashboardStrengthWeakness: React.FC<Props> = ({ data, attemptId }) => {
-  const strongSections = data.sectionAccuracy.filter(s => s.accuracy >= 70);
-  const weakSections = data.sectionAccuracy.filter(s => s.accuracy < 70);
+  const strongSections = (data.sectionAccuracy || []).filter(s => s.accuracy >= 70);
+  const weakSections = (data.sectionAccuracy || []).filter(s => s.accuracy < 70);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

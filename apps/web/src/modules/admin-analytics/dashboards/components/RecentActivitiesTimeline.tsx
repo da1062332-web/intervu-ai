@@ -24,7 +24,8 @@ function getActivityConfig(type: string) {
 }
 
 export function RecentActivitiesTimeline() {
-  const { data, isLoading, isError, refetch } = useRecentActivities();
+  const { data: response, isLoading, isError, refetch } = useRecentActivities({ limit: 10 });
+  const data = response?.data;
 
   if (isLoading) {
     return <TimelineSkeleton className="h-full min-h-[300px]" />;

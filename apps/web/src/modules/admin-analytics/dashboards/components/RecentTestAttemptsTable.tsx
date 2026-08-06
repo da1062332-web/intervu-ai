@@ -28,14 +28,23 @@ const columns: ColumnDef<RecentTestAttempt>[] = [
   {
     id: 'score',
     header: 'Score',
-    cell: (row) => {
-      let colorClass = 'text-orange-600 bg-orange-100 dark:bg-orange-950 dark:text-orange-400';
-      if (row.score >= 80) colorClass = 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-400';
-      else if (row.score >= 60) colorClass = 'text-blue-700 bg-blue-100 dark:bg-blue-950 dark:text-blue-400';
+    cell: (row: any) => {
+      if (!row.hasEvaluation && row.score === 0) {
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border/60">
+            Pending Eval
+          </span>
+        );
+      }
+
+      let colorClass = 'text-amber-700 bg-amber-500/10 dark:text-amber-300 border border-amber-500/20';
+      if (row.score >= 80) colorClass = 'text-emerald-700 bg-emerald-500/10 dark:text-emerald-300 border border-emerald-500/20';
+      else if (row.score >= 60) colorClass = 'text-blue-700 bg-blue-500/10 dark:text-blue-300 border border-blue-500/20';
+      else if (row.score < 50) colorClass = 'text-destructive bg-destructive/10 border border-destructive/20';
 
       return (
-        <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold', colorClass)}>
-          {row.score}/100
+        <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-bold', colorClass)}>
+          {row.score} {row.score <= 100 ? '/ 100' : 'pts'}
         </span>
       );
     },

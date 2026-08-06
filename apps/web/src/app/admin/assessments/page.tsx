@@ -30,6 +30,13 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import type { ExamConfig } from '@/services/exam-configs/types';
 
+function isConfigActive(item: any): boolean {
+  if (item.isArchived === true || item.status === 'ARCHIVED' || item.status === 'DRAFT' || item.isActive === false) {
+    return false;
+  }
+  return item.status === 'PUBLISHED' || item.status === 'ACTIVE' || item.isActive === true;
+}
+
 function AssessmentRowActions({ row }: { row: ExamConfig }) {
   const router = useRouter();
   const activateMutation = useActivateAssessment();
@@ -51,7 +58,7 @@ function AssessmentRowActions({ row }: { row: ExamConfig }) {
     router.push(`/admin/assessment-builder?assessmentId=${encodeURIComponent(row.id)}`);
   };
 
-  const isActive = row.status === 'PUBLISHED' || row.status === 'ACTIVE' || row.isActive === true;
+  const isActive = isConfigActive(row);
 
   return (
     <div className="flex justify-end gap-1.5">
@@ -163,13 +170,13 @@ const columns: ColumnDef<ExamConfig>[] = [
     id: 'status',
     header: 'Status',
     cell: (row) => {
-      const isAct = row.status === 'PUBLISHED' || row.status === 'ACTIVE' || row.isActive === true;
-      const statusLabel = row.status || (row.isActive ? 'PUBLISHED' : 'DRAFT');
+      const isAct = isConfigActive(row);
+      const statusLabel = row.status || (isAct ? 'PUBLISHED' : 'DRAFT');
       
       let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
       if (isAct) variant = 'default';
       else if (statusLabel === 'ARCHIVED') variant = 'destructive';
-      else if (statusLabel === 'DRAFT') variant = 'secondary';
+      else variant = 'secondary';
 
       return <Badge variant={variant} className="text-[10px] font-semibold tracking-wider uppercase">{statusLabel}</Badge>;
     },
@@ -205,7 +212,7 @@ export default function AdminAssessmentsPage() {
         (item.code && item.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.role && item.role.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const isAct = item.status === 'PUBLISHED' || item.status === 'ACTIVE' || item.isActive === true;
+      const isAct = isConfigActive(item);
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'active' && isAct) ||
@@ -217,7 +224,7 @@ export default function AdminAssessmentsPage() {
 
   const stats = useMemo(() => {
     if (!configs) return { total: 0, active: 0, inactive: 0 };
-    const active = configs.filter((c) => c.status === 'PUBLISHED' || c.status === 'ACTIVE' || c.isActive === true).length;
+    const active = configs.filter(isConfigActive).length;
     return {
       total: configs.length,
       active,

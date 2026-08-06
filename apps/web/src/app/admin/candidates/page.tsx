@@ -56,9 +56,9 @@ export default function AdminCandidatesPage() {
   const candidates = data?.items ?? [];
   const pagination = data?.pagination;
 
-  const totalCandidates = pagination?.total ?? 0;
-  const activeCount = candidates.filter((c) => c.status === 'ACTIVE').length;
-  const inactiveCount = candidates.filter((c) => c.status !== 'ACTIVE').length;
+  const totalCandidates = data?.summary?.total ?? (pagination?.total ?? 0);
+  const activeCount = data?.summary?.activeCount ?? candidates.filter((c) => c.status === 'ACTIVE').length;
+  const inactiveCount = data?.summary?.inactiveCount ?? candidates.filter((c) => c.status !== 'ACTIVE').length;
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
@@ -75,8 +75,8 @@ export default function AdminCandidatesPage() {
 
       <CandidateOverviewCard
         total={totalCandidates}
-        activeCount={status === 'ACTIVE' ? totalCandidates : activeCount}
-        inactiveCount={status === 'INACTIVE' ? totalCandidates : inactiveCount}
+        activeCount={activeCount}
+        inactiveCount={inactiveCount}
         isLoading={isLoading && !isRefetching}
       />
 

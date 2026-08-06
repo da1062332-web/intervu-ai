@@ -47,7 +47,7 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
     if (!values.name.trim()) return;
 
     updateProfile.mutate(
-      { name: values.name.trim() },
+      { name: values.name.trim(), fullName: values.name.trim() },
       {
         onSuccess: () => {
           notifySuccess('Profile updated successfully');

@@ -1,45 +1,52 @@
 'use client';
 
 import { CandidateDashboardHeader } from '@/components/candidate/dashboard/CandidateDashboardHeader';
-import { UpcomingTests } from '../components/UpcomingTests';
-import { PerformanceSnapshot } from '../components/PerformanceSnapshot';
-import { AssessmentStatusPanel } from '../components/AssessmentStatusPanel';
-import { AttemptHistoryTable } from '../components/AttemptHistoryTable';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCandidateDashboard, useCandidateDashboardMetrics } from '../hooks/useCandidateDashboard';
+import { CandidateOverviewCard } from '../components/CandidateOverviewCard';
+import { CandidateKpiSection } from '../components/CandidateKpiSection';
+import { AvailableAssessmentSection } from '../components/AvailableAssessmentSection';
+import { CandidateHistorySection } from '../components/CandidateHistorySection';
+import { CandidateProgressSection } from '../components/CandidateProgressSection';
 
 export function CandidateDashboard() {
+  const { data: dashboard, isLoading: isDashboardLoading, error: dashboardError } = useCandidateDashboard();
+  const { data: metrics, isLoading: isMetricsLoading } = useCandidateDashboardMetrics();
+
   return (
-    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'>
+    <div className='mx-auto w-full max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-16 py-6 md:py-8 space-y-7 md:space-y-8 animate-fade-in-up'>
+      {/* 1. Big Welcome Header */}
       <CandidateDashboardHeader />
 
-      <Tabs defaultValue='overview' className='w-full space-y-6'>
-        <TabsList className='bg-transparent border-b border-border/60 w-full flex justify-start p-0 h-auto rounded-none space-x-6'>
-          <TabsTrigger
-            value='overview'
-            className='rounded-none px-2 py-3 text-sm font-semibold tracking-wide data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary border-b-2 border-transparent data-[state=active]:border-primary text-muted-foreground hover:text-foreground transition-all'
-          >
-            Overview & Tasks
-          </TabsTrigger>
-          <TabsTrigger
-            value='history'
-            className='rounded-none px-2 py-3 text-sm font-semibold tracking-wide data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary border-b-2 border-transparent data-[state=active]:border-primary text-muted-foreground hover:text-foreground transition-all'
-          >
-            History & Reports
-          </TabsTrigger>
-        </TabsList>
+      {/* 2. Recently Added / Active Assessment Hero Card */}
+      <CandidateOverviewCard dashboard={dashboard} isLoading={isDashboardLoading} />
 
-        <TabsContent value='overview' className='space-y-6 pt-2'>
-          <PerformanceSnapshot />
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            <AssessmentStatusPanel />
-            <UpcomingTests />
-          </div>
-        </TabsContent>
+      {/* 3. KPI Stat Cards */}
+      <CandidateKpiSection
+        dashboard={dashboard}
+        metrics={metrics}
+        isLoading={isDashboardLoading || isMetricsLoading}
+      />
 
-        <TabsContent value='history' className='space-y-6 pt-2'>
-          <AttemptHistoryTable showFilters={true} />
-        </TabsContent>
-      </Tabs>
+      {/* Side-by-side Layout: Available Assessments & Attempt History with matched heights */}
+      <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch'>
+        {/* Left Area (7 cols on desktop): Available Assessments 2x2 Grid */}
+        <div className='lg:col-span-7 h-full'>
+          <AvailableAssessmentSection
+            dashboard={dashboard}
+            isLoading={isDashboardLoading}
+            error={dashboardError}
+            compact={true}
+          />
+        </div>
+
+        {/* Right Area (5 cols on desktop): Attempt History Card Feed */}
+        <div className='lg:col-span-5 h-full'>
+          <CandidateHistorySection compact={true} />
+        </div>
+      </div>
+
+      {/* 6. Progress Analytics (Side-by-side cards at the bottom) */}
+      <CandidateProgressSection compact={true} />
     </div>
   );
 }

@@ -99,14 +99,8 @@ export class AdminAnalyticsController {
   @Get("analytics/generation")
   @ApiOperation({ summary: "Get generation analytics" })
   async getGenerationAnalytics() {
-    let stats = await this.prisma.generationAnalytics.findFirst({
-      orderBy: { timestamp: "desc" },
-    });
-    if (!stats) {
-      const syncResult = await this.syncService.syncAll();
-      stats = syncResult.generation;
-    }
-    return stats;
+    const syncResult = await this.syncService.syncAll();
+    return syncResult.generation;
   }
 
   @Get("analytics/review")
@@ -272,19 +266,38 @@ export class AdminAnalyticsController {
   @Get("generation/failures")
   @ApiOperation({ summary: "Get failed generation jobs list" })
   async getFailures() {
-    const failedJobs = await this.prisma.generationJob.findMany({
-      where: { status: "FAILED" },
-      orderBy: { createdAt: "desc" },
-    });
+    const [failedJobs, failedLogs] = await Promise.all([
+      this.prisma.generationJob.findMany({
+        where: { status: "FAILED" },
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prisma.generationLog.findMany({
+        where: { status: { in: ["FAILED", "ERROR", "FAILURE"] } },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
 
-    return failedJobs.map((j) => ({
+    const jobFailures = failedJobs.map((j) => ({
       jobId: j.id,
       topic: j.topic,
       count: j.count,
       reason: j.error || "Generation job failed with unhandled error",
       provider: "Gemini",
-      timestamp: j.updatedAt,
+      timestamp: j.updatedAt || j.createdAt,
     }));
+
+    const logFailures = failedLogs.map((l) => ({
+      jobId: l.examId || l.id,
+      topic: `${l.step} (${l.id})`,
+      count: 1,
+      reason: l.message || "Generation log failure",
+      provider: "Gemini",
+      timestamp: l.createdAt,
+    }));
+
+    return [...jobFailures, ...logFailures].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
   }
 
   @Post("generation/retry/:jobId")

@@ -77,6 +77,7 @@ describe("UsersService", () => {
         id: "user-1",
         email: "test@example.com",
         name: "Test User",
+        fullName: "Test User",
         role: UserRole.CANDIDATE,
         createdAt: mockUser.createdAt,
         updatedAt: mockUser.updatedAt,

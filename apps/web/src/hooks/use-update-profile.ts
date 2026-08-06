@@ -15,12 +15,14 @@ export function useUpdateProfile() {
     mutationFn: userApi.updateProfile,
     onSuccess: (updatedUser, variables) => {
       // Optimistically update React Query cache
+      const updatedName = variables.name;
       queryClient.setQueryData(userQueryKeys.current(), (oldData: AuthUser | undefined) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
           ...updatedUser,
-          name: variables.name, // Ensure the new name is applied immediately
+          name: updatedName ?? oldData.name,
+          fullName: updatedName ?? oldData.fullName, // Ensure both fields are updated immediately
         };
       });
 
@@ -29,7 +31,12 @@ export function useUpdateProfile() {
       // Optimistically update Zustand store
       const currentUser = useAuthStore.getState().user;
       if (currentUser) {
-        setAuthenticated({ ...currentUser, ...updatedUser, name: variables.name } as AuthUser);
+        setAuthenticated({
+          ...currentUser,
+          ...updatedUser,
+          name: updatedName ?? currentUser.name,
+          fullName: updatedName ?? currentUser.fullName,
+        } as AuthUser);
       }
     },
   });

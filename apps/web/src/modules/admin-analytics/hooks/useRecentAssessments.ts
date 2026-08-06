@@ -15,7 +15,7 @@ export function useActivateAssessment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return examConfigsApi.updateConfig(id, { isActive: true, status: 'PUBLISHED' });
+      return examConfigsApi.updateConfig(id, { isActive: true, status: 'PUBLISHED', isArchived: false } as any);
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard', 'recent-assessments'] });
@@ -36,7 +36,7 @@ export function useDeactivateAssessment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return examConfigsApi.updateConfig(id, { isActive: false, status: 'ARCHIVED' });
+      return examConfigsApi.updateConfig(id, { isActive: false, status: 'DRAFT', isArchived: false } as any);
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard', 'recent-assessments'] });

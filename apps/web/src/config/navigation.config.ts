@@ -97,6 +97,7 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Dashboard', route: '/candidate/dashboard', icon: LayoutDashboard },
         { label: 'Assessments', route: '/candidate/tests', icon: Briefcase },
+        { label: 'Assessments', route: '/candidate/assessments', icon: Briefcase },
         { label: 'Results', route: '/candidate/results', icon: BarChart3 },
         { label: 'Progress', route: '/candidate/progress', icon: LineChart },
       ],

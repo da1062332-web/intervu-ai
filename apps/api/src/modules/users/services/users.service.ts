@@ -49,8 +49,8 @@ export class UsersService {
 
     // 3. Core logic
     const updateData: Record<string, unknown> = {};
-    if (dto.name !== undefined) {
-      updateData.fullName = dto.name;
+    if (dto.name !== undefined || dto.fullName !== undefined) {
+      updateData.fullName = dto.name ?? dto.fullName;
     }
 
     const updatedUser = await this.userRepository.update(userId, updateData);
@@ -122,6 +122,7 @@ export class UsersService {
       id: user.id,
       email: user.email,
       name: user.fullName,
+      fullName: user.fullName,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
