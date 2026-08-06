@@ -251,10 +251,27 @@ export class AssemblyController {
       );
     }
 
-    const data: AssemblyResponseDto = {
+    const data: AssemblyResponseDto & { examConfig?: any; testConfig?: any; name?: string } = {
       id: instance.id,
       configId: instance.configId ?? instance.testConfigId,
       status: instance.status ?? "CREATED",
+      name: instance.examConfig?.name || instance.testConfig?.displayName || instance.name || null,
+      examConfig: instance.examConfig
+        ? {
+            id: instance.examConfig.id,
+            name: instance.examConfig.name,
+            role: instance.examConfig.role,
+            code: instance.examConfig.code,
+          }
+        : null,
+      testConfig: instance.testConfig
+        ? {
+            id: instance.testConfig.id,
+            displayName: instance.testConfig.displayName,
+            companyName: instance.testConfig.companyName,
+            configKey: instance.testConfig.configKey,
+          }
+        : null,
       totalDurationSeconds:
         instance.totalDurationSeconds ??
         instance.sections?.reduce(

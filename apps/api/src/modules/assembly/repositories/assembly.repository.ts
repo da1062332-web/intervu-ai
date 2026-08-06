@@ -91,6 +91,22 @@ export class AssemblyRepository {
     return this.prisma.testInstance.findUnique({
       where: { id },
       include: {
+        examConfig: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            code: true,
+          },
+        },
+        testConfig: {
+          select: {
+            id: true,
+            displayName: true,
+            companyName: true,
+            configKey: true,
+          },
+        },
         sections: {
           include: {
             questions: {
