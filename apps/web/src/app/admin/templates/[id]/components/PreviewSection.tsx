@@ -3,15 +3,17 @@
 import React, { useState } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
-import { Loader2, Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useGeneratePreview } from '@/services/templates/hooks';
+import { normalizeApiError } from '@/services/api/error';
+import { buildPreviewErrorDisplay } from './preview-error-utils';
 
 export function PreviewSection({ template }: { template?: any }) {
   const { id: templateId } = useParams() as { id: string };
   const { mutateAsync: generatePreview, isPending } = useGeneratePreview();
   const [result, setResult] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ReturnType<typeof buildPreviewErrorDisplay> | null>(null);
 
   const handlePreview = async () => {
     setError(null);
@@ -23,19 +25,8 @@ export function PreviewSection({ template }: { template?: any }) {
       const previewData = (res as any).previewResult || res;
       setResult(previewData);
     } catch (e: any) {
-      const backendMessage = e?.response?.data?.message;
-      const backendDetails = e?.response?.data?.details;
-      const detailsText = Array.isArray(backendDetails)
-        ? backendDetails.join(' | ')
-        : backendDetails
-        ? String(backendDetails)
-        : null;
-
-      setError(
-        backendMessage
-          ? `${backendMessage}${detailsText ? `: ${detailsText}` : ''}`
-          : e?.message || 'Preview failed. Please try again.',
-      );
+      const normalizedError = normalizeApiError(e);
+      setError(buildPreviewErrorDisplay(normalizedError));
     }
   };
 
@@ -131,8 +122,18 @@ export function PreviewSection({ template }: { template?: any }) {
 
           {error && (
             <div className="flex items-start gap-2 p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md">
-              <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              {error}
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <div className="space-y-2">
+                <p className="font-semibold">{error.title}</p>
+                <p>{error.summary}</p>
+                {error.details.length > 0 && (
+                  <ul className="list-disc pl-4 space-y-1">
+                    {error.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
         </div>
