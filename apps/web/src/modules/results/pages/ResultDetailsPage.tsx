@@ -51,7 +51,9 @@ export const ResultDetailsPage = () => {
       setIsExportingPdf(true);
       await new Promise((r) => setTimeout(r, 100)); // Allow UI to update
 
+      // @ts-ignore
       const htmlToImage = await import('html-to-image');
+      // @ts-ignore
       const { jsPDF } = await import('jspdf');
 
       const sections = document.querySelectorAll('.pdf-section');

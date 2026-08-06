@@ -81,16 +81,23 @@ export default function AssessmentBuilderPage() {
       },
       {
         onSuccess: (res: any) => {
-          const id = res.jobId || res.data?.jobId;
-          if (id) {
-            setActiveJobId(id);
-          } else {
-            // Fallback if no job ID is returned (e.g. synchronous generation fallback)
+          const id = res?.jobId || res?.data?.jobId;
+          const questionsList = res?.questions || res?.data?.questions;
+
+          if (questionsList && questionsList.length > 0) {
             const assessmentData = (res.data || res) as Assessment;
             setGeneratedAssessment(assessmentData);
             const validation = validateAssessment(selectedConfig, assessmentData);
             setValidationResult(validation);
-            setTimeout(() => setStep('RESULT'), 1500);
+            setTimeout(() => setStep('RESULT'), 1000);
+          } else if (id) {
+            setActiveJobId(id);
+          } else {
+            const assessmentData = (res.data || res) as Assessment;
+            setGeneratedAssessment(assessmentData);
+            const validation = validateAssessment(selectedConfig, assessmentData);
+            setValidationResult(validation);
+            setTimeout(() => setStep('RESULT'), 1000);
           }
         },
         onError: () => {

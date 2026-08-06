@@ -154,23 +154,24 @@ export class BlueprintService {
     try {
       const existingConfig = await this.prisma.examConfig.findUnique({
         where: { id: configId },
-        include: { sections: true },
       });
 
       if (!existingConfig) return;
 
-      for (let idx = 0; idx < blueprintSections.length; idx++) {
-        const sec = blueprintSections[idx];
-        const secName = sec.displayName || sec.name || `Section ${idx + 1}`;
-        const secCode = sec.sectionKey || sec.code || `SEC_${idx + 1}`;
-        const qCount = sec.questionCount || 10;
+      await this.prisma.$transaction(async (tx) => {
+        // Clear previous sections for this configuration to ensure clean blueprint binding
+        await tx.examSection.deleteMany({
+          where: { examConfigId: configId },
+        });
 
-        let examSec = existingConfig.sections.find(
-          (s) => s.code === secCode || s.name === secName,
-        );
+        // Re-create sections and topic weightages according to the new blueprint
+        for (let idx = 0; idx < blueprintSections.length; idx++) {
+          const sec = blueprintSections[idx];
+          const secName = sec.displayName || sec.name || `Section ${idx + 1}`;
+          const secCode = sec.sectionKey || sec.code || `SEC_${idx + 1}`;
+          const qCount = sec.questionCount || 10;
 
-        if (!examSec) {
-          examSec = await this.prisma.examSection.create({
+          const examSec = await tx.examSection.create({
             data: {
               examConfigId: configId,
               name: secName,
@@ -180,23 +181,18 @@ export class BlueprintService {
               sectionDurationMinutes: sec.sectionDurationMinutes || 15,
             },
           });
-        }
 
-        const topicAllocs = sec.topicAllocations || sec.sectionTopics || [];
-        for (const ta of topicAllocs) {
-          const tId = ta.topicId || ta.id;
-          if (tId) {
-            const existingSt = await this.prisma.sectionTopic.findFirst({
-              where: { sectionId: examSec.id, topicId: tId },
-            });
-            if (!existingSt) {
-              const newSt = await this.prisma.sectionTopic.create({
+          const topicAllocs = sec.topicAllocations || sec.sectionTopics || [];
+          for (const ta of topicAllocs) {
+            const tId = ta.topicId || ta.id;
+            if (tId) {
+              const newSt = await tx.sectionTopic.create({
                 data: {
                   sectionId: examSec.id,
                   topicId: tId,
                 },
               });
-              await this.prisma.topicWeightage.create({
+              await tx.topicWeightage.create({
                 data: {
                   id: newSt.id,
                   sectionId: examSec.id,
@@ -207,7 +203,7 @@ export class BlueprintService {
             }
           }
         }
-      }
+      });
     } catch (err) {
       console.warn("Failed to sync blueprint sections to ExamSection table:", err);
     }
