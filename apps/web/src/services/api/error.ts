@@ -24,6 +24,25 @@ function isApiErrorResponse(payload: unknown): payload is ApiErrorResponse {
   return typeof payload.error.code === 'string' && typeof payload.error.message === 'string';
 }
 
+function getErrorPayload(input: unknown): ApiErrorResponse | null {
+  if (isApiErrorResponse(input)) {
+    return input;
+  }
+
+  if (isRecord(input)) {
+    const maybeResponse = input.response;
+    if (isRecord(maybeResponse) && isApiErrorResponse(maybeResponse.data)) {
+      return maybeResponse.data as ApiErrorResponse;
+    }
+
+    if (isRecord(input.data) && isApiErrorResponse(input.data)) {
+      return input.data as ApiErrorResponse;
+    }
+  }
+
+  return null;
+}
+
 function mapValidationErrors(details?: ApiErrorDetails): Record<string, string[]> {
   if (!details) {
     return {};
@@ -52,6 +71,9 @@ function buildNormalizedError(
   normalized.code = error.code ?? FALLBACK_ERROR_CODE;
   normalized.status = error.status ?? 500;
   normalized.validationErrors = error.validationErrors ?? {};
+  normalized.category = error.category;
+  normalized.reason = error.reason;
+  normalized.details = error.details;
   normalized.isApiError = true;
   normalized.raw = error.raw;
   normalized.notified = error.notified;
@@ -59,17 +81,34 @@ function buildNormalizedError(
   return normalized;
 }
 
+export function extractPreviewErrorData(details?: ApiErrorDetails) {
+  if (!details || typeof details !== 'object') {
+    return { category: undefined, reason: undefined, details };
+  }
+
+  const category = typeof details.category === 'string' ? details.category : undefined;
+  const reason = typeof details.reason === 'string' ? details.reason : undefined;
+
+  return { category, reason, details };
+}
+
 export function normalizeApiError(input: unknown, fallbackStatus = 500): NormalizedApiError {
   if (input instanceof Error && 'isApiError' in input && input.isApiError) {
     return input as NormalizedApiError;
   }
 
-  if (isApiErrorResponse(input)) {
+  const payload = getErrorPayload(input);
+  if (payload) {
+    const previewErrorData = extractPreviewErrorData(payload.error.details);
+
     return buildNormalizedError({
-      code: input.error.code,
-      message: input.error.message ?? FALLBACK_ERROR_MESSAGE,
+      code: payload.error.code,
+      message: payload.error.message ?? FALLBACK_ERROR_MESSAGE,
       status: fallbackStatus,
-      validationErrors: mapValidationErrors(input.error.details),
+      validationErrors: mapValidationErrors(payload.error.details),
+      category: previewErrorData.category,
+      reason: previewErrorData.reason,
+      details: previewErrorData.details,
       raw: input,
     });
   }
