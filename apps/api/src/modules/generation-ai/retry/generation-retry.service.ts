@@ -1,5 +1,6 @@
-import { Injectable, Inject, BadRequestException } from "@nestjs/common";
+import { Injectable, Inject, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { PreviewErrorDetails, PreviewGenerationException } from "../../../core/exceptions";
 import { PromptBuilderService } from "../prompts/prompt-builder.service";
 import { QuestionGeneratorService } from "../generators/question-generator.service";
 import { OptionGeneratorService } from "../generators/option-generator.service";
@@ -26,6 +27,8 @@ export interface RetryResult {
 
 @Injectable()
 export class GenerationRetryService {
+  private readonly logger = new Logger(GenerationRetryService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly promptBuilder: PromptBuilderService,
@@ -187,7 +190,18 @@ export class GenerationRetryService {
         variableValues = this.parameterGenerator.generateParameters(
           template as any,
         );
-      } catch {
+      } catch (error) {
+        if (error instanceof PreviewGenerationException) {
+          throw error;
+        }
+
+        const classified = this.classifyPreviewFailure(error, "parameter-generator");
+        if (!classified.retryable) {
+          throw new PreviewGenerationException(
+            classified.message,
+            classified.details,
+          );
+        }
         variableValues = {};
       }
     }
@@ -249,7 +263,25 @@ export class GenerationRetryService {
         if ((template as any)?.generationStrategy === "VARIABLE") {
           try {
             attemptVariables = this.parameterGenerator.generateParameters(template as any);
-          } catch {
+          } catch (error) {
+            if (error instanceof PreviewGenerationException) {
+              const details = error.details as PreviewErrorDetails | undefined;
+              this.logger.warn(
+                `[preview] ${details?.category || "FORMULA_ERROR"} from parameter-generator: ${error.message}`,
+              );
+              throw error;
+            }
+
+            const classified = this.classifyPreviewFailure(error, "parameter-generator");
+            if (!classified.retryable) {
+              this.logger.warn(
+                `[preview] ${classified.category} from ${classified.details.source}: ${classified.reason}`,
+              );
+              throw new PreviewGenerationException(
+                classified.message,
+                classified.details,
+              );
+            }
             attemptVariables = variableValues;
           }
         }
@@ -399,7 +431,22 @@ export class GenerationRetryService {
 
         validationSuccess = true;
       } catch (e: any) {
-        attemptErrors.push(e.message || String(e));
+        if (e instanceof PreviewGenerationException) {
+          throw e;
+        }
+
+        const classified = this.classifyPreviewFailure(e, "generation-retry");
+        attemptErrors.push(classified.reason);
+
+        if (!classified.retryable) {
+          this.logger.warn(
+            `[preview] ${classified.category} from ${classified.details.source}: ${classified.reason}`,
+          );
+          throw new PreviewGenerationException(
+            classified.message,
+            classified.details,
+          );
+        }
       }
 
       // 6. Calculate quality score for log
@@ -452,6 +499,108 @@ export class GenerationRetryService {
       attempts,
       success: false,
       errors,
+    };
+  }
+
+  private classifyPreviewFailure(
+    error: unknown,
+    source: string,
+  ): {
+    message: string;
+    retryable: boolean;
+    category: string;
+    reason: string;
+    details: PreviewErrorDetails;
+  } {
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    const reason = rawMessage.replace(/^Error:\s*/i, "").trim();
+    const lower = reason.toLowerCase();
+
+    const nonRetryablePatterns = [
+      "unknown variable",
+      "undefined variable",
+      "undefined symbol",
+      "invalid formula",
+      "formula",
+      "placeholder tokens",
+      "unresolved template placeholder",
+      "constraint",
+      "circular",
+      "duplicate question",
+      "quality threshold",
+      "validation failed",
+      "topic alignment check",
+      "difficulty mismatch",
+      "math validation failed",
+    ];
+
+    const retryablePatterns = [
+      "timeout",
+      "rate limit",
+      "temporarily unavailable",
+      "network",
+      "econnreset",
+      "fetch",
+      "service unavailable",
+      "429",
+      "502",
+      "503",
+      "504",
+    ];
+
+    const isNonRetryable = nonRetryablePatterns.some((pattern) => lower.includes(pattern));
+    const isRetryable = retryablePatterns.some((pattern) => lower.includes(pattern));
+
+    if (isNonRetryable) {
+      const category = lower.includes("placeholder") || lower.includes("template")
+        ? "TEMPLATE_CONFIGURATION_ERROR"
+        : lower.includes("formula") || lower.includes("variable") || lower.includes("constraint")
+        ? "FORMULA_ERROR"
+        : "CONTENT_VALIDATION_ERROR";
+
+      return {
+        message: "Template configuration error.",
+        retryable: false,
+        category,
+        reason,
+        details: {
+          category,
+          retryable: false,
+          source,
+          reason,
+          context: { originalError: reason },
+        },
+      };
+    }
+
+    if (isRetryable) {
+      return {
+        message: "AI service temporarily unavailable.",
+        retryable: true,
+        category: "AI_SERVICE_ERROR",
+        reason,
+        details: {
+          category: "AI_SERVICE_ERROR",
+          retryable: true,
+          source,
+          reason,
+          context: { originalError: reason },
+        },
+      };
+    }
+
+    return {
+      message: "Preview generation failed.",
+      retryable: true,
+      category: "MODEL_OUTPUT_ERROR",
+      reason,
+      details: {
+        category: "MODEL_OUTPUT_ERROR",
+        retryable: true,
+        source,
+        reason,
+        context: { originalError: reason },
+      },
     };
   }
 

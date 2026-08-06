@@ -1,4 +1,5 @@
 import { GenerationRetryService } from "../retry/generation-retry.service";
+import { PreviewGenerationException } from "../../../core/exceptions";
 import { PromptBuilderService } from "../prompts/prompt-builder.service";
 import { QuestionGeneratorService } from "../generators/question-generator.service";
 import { OptionGeneratorService } from "../generators/option-generator.service";
@@ -116,6 +117,46 @@ describe("GenerationRetryService", () => {
     expect(result.success).toBe(false);
     expect(result.attempts).toBe(3);
     expect(auditService.log).toHaveBeenCalledTimes(3);
+  });
+
+  it("should classify template formula mistakes as non-retryable preview errors", async () => {
+    service = new GenerationRetryService(
+      prisma,
+      promptBuilder,
+      questionGenerator,
+      optionGenerator,
+      explanationGenerator,
+      responseValidator,
+      auditService,
+      duplicateDetector,
+      qualityScorer,
+      {
+        generateParameters: jest.fn().mockImplementation(() => {
+          throw new Error("Unknown variable 'clild_age' in derived variable 'parent_age'");
+        }),
+      } as any,
+      {} as any,
+      {} as any,
+    );
+
+    await expect(
+      service.generateFromTemplate(
+        {
+          id: "tpl-formula",
+          name: "Formula Template",
+          conceptKey: "Percentages",
+          difficultyLevel: "MEDIUM",
+          questionType: "mcq",
+          generationStrategy: "VARIABLE",
+          structure: { questionTemplate: "Evaluate {{child_age}}" },
+          variableSchema: { variables: [] },
+          constraints: { constraints: [] },
+          solutionSchema: { steps: [], finalAnswer: "42" },
+        },
+        {},
+        3,
+      ),
+    ).rejects.toBeInstanceOf(PreviewGenerationException);
   });
 
   it("should use backend-hydrated question text for VARIABLE templates when LLM changes numeric values", async () => {

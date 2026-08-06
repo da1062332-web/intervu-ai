@@ -12,6 +12,7 @@ import { TemplatePreviewRepository } from "../repositories/template-preview.repo
 import { TemplateRepository } from "../repositories/template.repository";
 import { TemplateRendererService } from "./template-renderer.service";
 import { PlaceholderValidatorService } from "./placeholder-validator.service";
+import { PreviewGenerationException } from "../../../core/exceptions";
 import {
   CreateSolutionTemplateRequest,
   UpdateSolutionTemplateRequest,
@@ -153,9 +154,16 @@ export class SolutionTemplateService {
     );
 
     if (!result.success || !result.question) {
-      throw new BadRequestException({
-        message: "AI Generation failed during preview generation",
-        details: result.errors || [],
+      const lastError =
+        Array.isArray(result.errors) && result.errors.length > 0
+          ? result.errors[result.errors.length - 1]
+          : "Preview generation failed.";
+
+      throw new PreviewGenerationException("Preview generation failed.", {
+        category: "AI_SERVICE_ERROR",
+        retryable: true,
+        source: "generation-retry",
+        reason: lastError,
       });
     }
 
