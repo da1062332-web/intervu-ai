@@ -35,6 +35,7 @@ import { AnimatedLoader } from '@/components/ui/animated-loader';
 import { EmptyState } from '@/components/ui/empty-state';
 import { CustomFormCard } from '@/components/ui/custom-form-card';
 import Link from 'next/link';
+import { useTopics } from '@/services/topics/hooks';
 
 export default function AssemblyPreviewPage() {
   const router = useRouter();
@@ -46,6 +47,8 @@ export default function AssemblyPreviewPage() {
   const [loading, setLoading] = useState(true);
   const [isSavingVersion, setIsSavingVersion] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  const { data: topics } = useTopics(false);
 
   useEffect(() => {
     if (params.id) {
@@ -167,12 +170,15 @@ export default function AssemblyPreviewPage() {
       },
     },
     {
-      header: 'Concept',
+      header: 'Concept / Topic',
       cell: (row) => {
         const snap = row.questionSnapshot || {};
+        const key = snap.conceptName || snap.conceptKey || snap.conceptId || snap.topicId;
+        const matchingTopic = topics?.find((t) => t.id === key || t.code === key);
+        const displayName = matchingTopic ? matchingTopic.name : key || 'General';
         return (
-          <Badge variant='outline' className='bg-blue-50 text-blue-700'>
-            {snap.conceptKey || 'General'}
+          <Badge variant='outline' className='bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'>
+            {displayName}
           </Badge>
         );
       },
@@ -196,6 +202,9 @@ export default function AssemblyPreviewPage() {
 
   if (!assembly) return null;
 
+  const examName = assembly?.examConfig?.name || assembly?.testConfig?.displayName || assembly?.name;
+  const examCode = assembly?.examConfig?.code || assembly?.testConfig?.configKey;
+
   const totalQuestions =
     assembly.sections?.reduce((acc: number, s: any) => acc + (s.questions?.length || 0), 0) || 0;
 
@@ -204,12 +213,16 @@ export default function AssemblyPreviewPage() {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
       <SectionHeader
-        title='Test Assembly Preview'
-        description={`Instance ID: ${assembly.id}`}
+        title={examName ? `Test Assembly: ${examName}` : 'Test Assembly Preview'}
+        description={
+          examName
+            ? `Exam: ${examName} ${examCode ? `(${examCode})` : ''} · Instance ID: ${assembly.id}`
+            : `Instance ID: ${assembly.id}`
+        }
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Assembly', href: '/admin/assembly' },
-          { label: 'Preview' }
+          { label: examName || 'Preview' }
         ]}
         actions={
           <div className='flex items-center gap-3'>
@@ -287,7 +300,9 @@ export default function AssemblyPreviewPage() {
                   <div className='flex justify-between items-start mb-2'>
                     <div>
                       <p className='font-bold text-lg'>Version {latestVersion.version}</p>
-                      <p className='text-xs text-muted-foreground'>ID: {latestVersion.id}</p>
+                      <p className='text-xs text-muted-foreground'>
+                        {examName ? `Exam: ${examName}` : `ID: ${latestVersion.id}`}
+                      </p>
                     </div>
                     <Badge variant='secondary'>{isPublished ? 'Published' : 'Draft'}</Badge>
                   </div>

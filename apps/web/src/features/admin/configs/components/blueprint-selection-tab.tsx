@@ -38,7 +38,9 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
           skipErrorToast: true,
         });
         queryClient.invalidateQueries({ queryKey: ['sections', configId] });
+        queryClient.invalidateQueries({ queryKey: ['config-readiness', configId] });
         queryClient.invalidateQueries({ queryKey: ['configuration-validation', configId] });
+        queryClient.invalidateQueries({ queryKey: ['exam-config', configId] });
       } catch (err) {
         console.warn('Blueprint section sync pending:', err);
       }
