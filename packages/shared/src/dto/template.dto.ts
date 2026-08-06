@@ -27,6 +27,7 @@ export const CreateTemplateSchema = z.object({
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
   generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).default("VARIABLE"),
+  datasetGenerationMode: z.enum(["DIRECT", "AI"]).optional(),
 });
 
 export const UpdateTemplateSchema = z.object({
@@ -42,6 +43,7 @@ export const UpdateTemplateSchema = z.object({
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
   generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).optional(),
+  datasetGenerationMode: z.enum(["DIRECT", "AI"]).optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -211,6 +213,13 @@ export class UpdateTemplateDto {
     description: "Template generation strategy",
   })
   generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID";
+
+  @ApiPropertyOptional({
+    enum: ["DIRECT", "AI"],
+    example: "AI",
+    description: "Dataset generation mode: DIRECT | AI",
+  })
+  datasetGenerationMode?: "DIRECT" | "AI";
 
   @ApiPropertyOptional({
     example: true,

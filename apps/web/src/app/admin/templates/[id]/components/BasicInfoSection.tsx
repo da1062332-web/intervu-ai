@@ -19,6 +19,7 @@ interface BasicInfoForm {
   status: string;
   tags: string;
   generationStrategy: GenerationStrategy;
+  datasetGenerationMode: 'AI' | 'DIRECT';
 }
 
 interface BasicInfoSectionProps {
@@ -45,6 +46,11 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
       status: template?.isActive ? 'Active' : 'Draft',
       tags: '',
       generationStrategy: template?.generationStrategy || 'VARIABLE',
+      datasetGenerationMode:
+        template?.datasetGenerationMode ||
+        template?.config?.datasetGenerationMode ||
+        template?.datasetConfig?.datasetGenerationMode ||
+        'AI',
     },
   });
 
@@ -67,6 +73,11 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
         status: template.isActive ? 'Active' : 'Draft',
         tags: '',
         generationStrategy: template.generationStrategy || 'VARIABLE',
+        datasetGenerationMode:
+          template.datasetGenerationMode ||
+          template.config?.datasetGenerationMode ||
+          template.datasetConfig?.datasetGenerationMode ||
+          'AI',
       });
     }
   }, [template, reset]);
@@ -74,6 +85,7 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
   const onSubmit = (data: BasicInfoForm) => {
     if (!template?.id) return;
     
+    const currentConfig = (template?.config as Record<string, any>) || {};
     updateTemplate({
       templateId: template.id,
       payload: {
@@ -84,7 +96,12 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
         questionType: data.questionType,
         isActive: data.status === 'Active',
         generationStrategy: data.generationStrategy,
-      }
+        datasetGenerationMode: data.datasetGenerationMode,
+        config: {
+          ...currentConfig,
+          datasetGenerationMode: data.datasetGenerationMode,
+        },
+      },
     });
   };
 
@@ -212,6 +229,29 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
               />
             </div>
           </div>
+
+          {/* Dataset Generation Mode (Visible when strategy is DATASET) */}
+          {(watchedStrategy === 'DATASET' || currentStrategy === 'DATASET') && (
+            <div className="space-y-2 p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
+              <Label htmlFor="datasetGenerationMode" className="font-semibold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                Dataset Generation Mode *
+              </Label>
+              <select
+                id="datasetGenerationMode"
+                {...register('datasetGenerationMode')}
+                className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              >
+                <option value="AI">AI Mode (Generate new question via AI)</option>
+                <option value="DIRECT">Direct Mode (Fetch directly from dataset)</option>
+              </select>
+              <p className="text-xs text-indigo-700 dark:text-indigo-300 font-normal">
+                {watch('datasetGenerationMode') === 'DIRECT'
+                  ? '⚡ Fetches raw questions directly from dataset without calling AI.'
+                  : '🤖 Generates a brand-new question using dataset concept as reference.'}
+              </p>
+            </div>
+          )}
 
 
           

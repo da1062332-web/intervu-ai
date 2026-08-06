@@ -328,11 +328,22 @@ ${candidateInstructions ? `Candidate Instructions: "${candidateInstructions}"` :
     }
 
     let questionInstructions = promptConfig?.instructions || `
-[QUESTION INSTRUCTIONS]
-Generate a high-quality ${questionType} question of ${difficulty} difficulty that tests comprehension or analysis based on the content asset above.
-- The question stem must refer directly to the content asset.
-- Keep the wording precise, unambiguous, and suitable for the target age or proficiency level.
-- Do not leak any variable placeholders (e.g. no curly braces).
+[QUESTION INSTRUCTIONS & CONCEPT-REFERENCE GENERATION RULES]
+Generate a high-quality, completely NEW ${questionType} question of ${difficulty.toUpperCase()} difficulty using the content asset above ONLY as a structural reference.
+
+CONCEPT-REFERENCE & NO-COPY CREATIVITY RULES:
+1. Use the [CONTENT ASSET] ONLY as a reference for the concept, reasoning pattern, difficulty level, and question style.
+2. DO NOT copy, verbatim-repeat, paraphrase, or slightly modify the original scenario, entities, or wording.
+3. You MUST create a COMPLETELY NEW SCENARIO with DIFFERENT entities (e.g., use new names, symbols, or variables), different relationships/values, fresh wording, and a brand new set of 4 options.
+
+DIFFICULTY & COGNITIVE COMPLEXITY PRESERVATION RULES (${difficulty.toUpperCase()} DIFFICULTY):
+4. EQUIVALENT COGNITIVE LOAD: The generated question MUST preserve equivalent multi-step reasoning depth, constraint density, and cognitive load as the reference asset.
+5. REASONING PARITY: The generated question must preserve the same reasoning pattern as the reference question. It should require an equivalent number of logical inferences, dependency chains, and constraint evaluations to reach the correct answer. Do not reduce the number of deductions, remove intermediate constraints, or convert a multi-step reasoning problem into a direct relationship question.
+6. DO NOT SIMPLIFY REASONING & ENSURE UNAMBIGUOUS COMPLEXITY: If the reference asset contains 6 members/entities and 6 intricate relationship constraints (e.g., negated links "is son of R but R is not mother", married couples, sibling relations), your new question MUST also feature at least 6 members/entities and 6 multi-layered relationship constraints with fully specified or logically determinable roles/genders.
+7. COMPLETE DEDUCTIBILITY: Every entity's gender or role necessary to count or determine the final answer MUST be unambiguously deducible from the multi-step clues provided (e.g. state explicitly if child X is a son/daughter or provide a deduction clue).
+8. ADVANCED DISTRACTORS: Options MUST represent realistic, high-level reasoning errors (e.g., miscounting gender, confusing maternal vs paternal relatives, or misinterpreting negated conditions).
+9. SELF-CONTAINED: The generated question MUST be 100% self-contained, logically sound, and independently solvable with a clear step-by-step solution.
+10. Do not leak any variable placeholders (e.g. no double curly braces).
 `;
     if (promptConfig?.instructions) {
       questionInstructions = this.interpolate(promptConfig.instructions, variableValues);
