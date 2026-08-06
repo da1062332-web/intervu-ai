@@ -2,6 +2,7 @@ import {
   PromptBuilderService,
   PromptBuilderInput,
 } from "../prompts/prompt-builder.service";
+import { PreviewGenerationException } from "../../../core/exceptions";
 
 describe("PromptBuilderService", () => {
   let service: PromptBuilderService;
@@ -103,6 +104,33 @@ describe("PromptBuilderService", () => {
     const prompt = service.buildPrompt(input);
     expect(prompt).toContain("compute it exactly from the provided parameter values");
     expect(prompt).not.toContain("do not perform any mathematical calculations unless");
+  });
+
+  it("should throw a preview exception for unresolved question placeholders", () => {
+    const input: PromptBuilderInput = {
+      template: {
+        id: "template_placeholder",
+        name: "Placeholder Validation",
+        description: "Missing variable should fail before AI generation",
+        conceptKey: "math",
+        difficultyLevel: "MEDIUM",
+        questionType: "mcq",
+        structure: {
+          questionTemplate: "What is the sum of {{missing_var}} and {{b}}?",
+        },
+        variableSchema: {
+          variables: [{ name: "b", type: "number", min: 1, max: 10 }],
+        },
+        constraints: { constraints: [] },
+        solutionSchema: {
+          steps: ["Add b"],
+          finalAnswer: "b",
+        },
+      },
+      variableValues: { b: 7 },
+    };
+
+    expect(() => service.buildPrompt(input)).toThrow(PreviewGenerationException);
   });
 
   it("should preserve integer variable display while formatting decimal variables", () => {

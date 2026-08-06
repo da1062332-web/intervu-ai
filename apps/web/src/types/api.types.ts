@@ -9,7 +9,7 @@ export interface ApiSuccessResponse<TData> {
 }
 
 export interface ApiErrorDetails {
-  [field: string]: string[] | string;
+  [field: string]: unknown;
 }
 
 export interface ApiErrorPayload {
@@ -31,6 +31,9 @@ export interface NormalizedApiError extends Error {
   code: string;
   status: number;
   validationErrors: Record<string, string[]>;
+  category?: string;
+  reason?: string;
+  details?: ApiErrorDetails;
   isApiError: true;
   raw?: unknown;
   notified?: boolean;

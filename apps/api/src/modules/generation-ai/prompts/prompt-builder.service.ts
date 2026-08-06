@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { evaluate } from "mathjs";
+import { PreviewGenerationException } from "../../../core/exceptions";
+import { PlaceholderValidatorService } from "../../template-library/services/placeholder-validator.service";
 import {
   formatDisplayValue,
   formatInterpolatedDisplayValue,
@@ -40,6 +42,8 @@ export interface PromptBuilderInput {
 
 @Injectable()
 export class PromptBuilderService {
+  private readonly placeholderValidator = new PlaceholderValidatorService();
+
   /**
    * Helper to replace variable placeholders with actual values
    */
@@ -108,6 +112,27 @@ export class PromptBuilderService {
           template.structure.questionStatement ||
           template.structure.prompt)) ||
       "";
+
+    const placeholderValidation = this.placeholderValidator.validate(
+      rawQuestionTemplate,
+      this.collectAllowedVariables(template, variableValues),
+    );
+    if (!placeholderValidation.valid) {
+      throw new PreviewGenerationException(
+        "Template configuration error.",
+        {
+          category: "PLACEHOLDER_ERROR",
+          retryable: false,
+          source: "prompt-builder",
+          reason: `Unresolved placeholder(s) in question template: ${placeholderValidation.unknownVariables.join(", ")}`,
+          context: {
+            placeholders: placeholderValidation.unknownVariables,
+            template: rawQuestionTemplate,
+          },
+        },
+      );
+    }
+
     // Pre-interpolate question stem using direct variable substitution
     const interpolatedQuestion = this.interpolate(rawQuestionTemplate, variableValues);
 
@@ -223,6 +248,35 @@ CRITICAL:
 `;
 
     return `${systemPrompt}\n\n${templateContext}\n\n${variableValuesText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
+  }
+
+  private collectAllowedVariables(
+    template: PromptBuilderInput["template"],
+    variableValues: Record<string, unknown>,
+  ): string[] {
+    const allowed = new Set<string>(Object.keys(variableValues));
+
+    const variableSchema = (template as any)?.variableSchema || {};
+    const declaredVariables = Array.isArray(variableSchema.variables)
+      ? variableSchema.variables
+      : [];
+    for (const variable of declaredVariables) {
+      if (variable && typeof variable.name === "string") {
+        allowed.add(variable.name);
+      }
+    }
+
+    const generationStrategyConfig = variableSchema.generationStrategyConfig || {};
+    const nestedVariables = Array.isArray(generationStrategyConfig.variables)
+      ? generationStrategyConfig.variables
+      : [];
+    for (const variable of nestedVariables) {
+      if (variable && typeof variable.name === "string") {
+        allowed.add(variable.name);
+      }
+    }
+
+    return Array.from(allowed);
   }
 
   private resolveCorrectAnswer(

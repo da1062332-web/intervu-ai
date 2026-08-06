@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import * as math from "mathjs";
+import { PreviewGenerationException } from "../../../core/exceptions";
 
 interface VariableDefinition {
   name: string;
@@ -201,6 +202,8 @@ export class ParameterGeneratorService {
           const normalized = formula.trim();
           if (!normalized) continue;
 
+          this.validateFormulaReferences(normalized, params, variables);
+
           if (normalized.includes("=")) {
             const [lhs, rhs] = normalized.split("=").map((part) => part.trim());
             if (lhs && rhs) {
@@ -216,6 +219,10 @@ export class ParameterGeneratorService {
           }
         }
       } catch (err) {
+        if (err instanceof PreviewGenerationException) {
+          throw err;
+        }
+
         // If formula chain evaluation fails (e.g. division by zero), we retry with new parameters
         continue;
       }
@@ -315,6 +322,94 @@ export class ParameterGeneratorService {
     };
 
     return { variables, formulas, constraints };
+  }
+
+  private validateFormulaReferences(
+    formula: string,
+    params: Record<string, any>,
+    variables: VariableDefinition[],
+  ): void {
+    if (typeof formula !== "string") {
+      return;
+    }
+
+    const normalized = formula.trim();
+    if (!normalized) {
+      return;
+    }
+
+    const expression = normalized.includes("=")
+      ? normalized.split("=").slice(1).join("=").trim()
+      : normalized;
+
+    const knownSymbols = new Set<string>([
+      ...variables.map((variable) => String(variable.name).trim()).filter(Boolean),
+      ...Object.keys(params),
+    ]);
+
+    const references = this.extractReferencedVariables(expression);
+    const unknownReference = references.find((ref) => !knownSymbols.has(ref));
+
+    if (!unknownReference) {
+      return;
+    }
+
+    const target = normalized.includes("=")
+      ? normalized.split("=")[0].trim()
+      : "derived variable";
+
+    throw new PreviewGenerationException(
+      "Template configuration error.",
+      {
+        category: "FORMULA_ERROR",
+        retryable: false,
+        source: "parameter-generator",
+        reason: `Unknown variable '${unknownReference}' in formula '${formula}'`,
+        context: {
+          variable: target,
+          formula: formula,
+          unknownSymbol: unknownReference,
+        },
+      },
+    );
+  }
+
+  private extractReferencedVariables(expression: string): string[] {
+    const reservedWords = new Set([
+      "abs",
+      "acos",
+      "asin",
+      "atan",
+      "ceil",
+      "cos",
+      "e",
+      "exp",
+      "floor",
+      "log",
+      "max",
+      "min",
+      "mod",
+      "pi",
+      "pow",
+      "round",
+      "sin",
+      "sqrt",
+      "tan",
+      "true",
+      "false",
+      "and",
+      "or",
+      "not",
+      "if",
+      "then",
+      "else",
+      "for",
+      "while",
+    ]);
+
+    return Array.from(expression.matchAll(/[A-Za-z_][A-Za-z0-9_]*/g), (match) => match[0]).filter(
+      (name) => !reservedWords.has(name),
+    );
   }
 
   private getFormulaTarget(formula: string): string | null {
