@@ -78,6 +78,49 @@ export class AiAnalysisService {
     const rawTopicAccuracy: Record<string, number> =
       (analytics?.topicAccuracy as Record<string, number>) || {};
 
+    // BUG-005: If the assessment was fully skipped (completionRate = 0 or overallScore = 0
+    // and no topic has accuracy > 0), return no strengths early — do NOT send to LLM.
+    const completionRate = analytics?.completionRate ?? 100;
+    const allTopicAccuracies = Object.values(rawTopicAccuracy);
+    const allSkipped =
+      completionRate === 0 ||
+      (overallScore === 0 &&
+        allTopicAccuracies.length > 0 &&
+        allTopicAccuracies.every((acc) => acc === 0));
+
+    if (allSkipped) {
+      this.logger.warn(
+        `Assessment ${attemptId} appears fully skipped (completionRate=${completionRate}%). Returning no-strengths result.`,
+      );
+      const weaknessTopics = Object.keys(rawTopicAccuracy).map((key) => ({
+        title: `Improvement Needed: ${topicNameMap.get(key) || key}`,
+        detail: `No answers were submitted for this topic. Recommend targeted concept practice.`,
+      }));
+      return {
+        summary: `The assessment was not completed — all questions were skipped. Score: 0%.`,
+        practiceHours: 30,
+        strengths: [],
+        weaknesses:
+          weaknessTopics.length > 0
+            ? weaknessTopics.slice(0, 4)
+            : [
+                {
+                  title: "Assessment Not Attempted",
+                  detail:
+                    "All questions were skipped. Please attempt the assessment to receive a meaningful analysis.",
+                },
+              ],
+        recommendations: [
+          {
+            priority: "HIGH",
+            title: "Complete the Assessment",
+            action:
+              "Attempt all questions to receive an accurate performance analysis and personalized recommendations.",
+          },
+        ],
+      };
+    }
+
     // Map raw UUID keys in topicAccuracy to clean human-readable names
     const topicAccuracy: Record<string, number> = {};
     for (const [key, val] of Object.entries(rawTopicAccuracy)) {
@@ -90,7 +133,6 @@ export class AiAnalysisService {
       : [];
     const difficultyAccuracy: Record<string, number> =
       (analytics?.difficultyAccuracy as Record<string, number>) || {};
-    const completionRate = analytics?.completionRate || 100;
     const assessmentName =
       attempt.testConfig?.displayName ||
       (attempt.examConfig as any)?.name ||
@@ -123,9 +165,10 @@ Based on this data, generate a structured analysis with:
 4. A brief overall SUMMARY sentence
 5. Total estimated PRACTICE_HOURS needed (integer, 5-40 range)
 
-CRITICAL INSTRUCTIONS FOR TOPIC AND AREA NAMES:
+CRITICAL INSTRUCTIONS FOR STRENGTHS AND WEAKNESSES:
+- DO NOT INCLUDE ANY PERCENTAGES (e.g. '100%', '75%', '50%', 'X% accuracy') OR NUMBERS IN THE TITLE OR DETAIL TEXT FOR STRENGTHS OR WEAKNESSES.
+- Describe candidate performance using qualitative professional terms ONLY (e.g. 'Demonstrated excellent spatial reasoning skills', 'Exhibited solid conceptual understanding', 'Requires targeted practice in programming logic').
 - NEVER output raw database IDs, UUIDs, or hex strings (like '10a3707f-7fc6-41c1...') for topic or area titles/descriptions.
-- Always output clean, professional, human-readable topic names (e.g. 'Quantitative Aptitude', 'Verbal Ability', 'Data Structures & Algorithms', 'Analytical Reasoning').
 - Base everything strictly on the provided performance numbers.
 
 Return ONLY a valid JSON object in this exact format (no markdown, no explanation):
@@ -133,10 +176,10 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
   "summary": "One concise sentence summarizing overall performance",
   "practiceHours": 15,
   "strengths": [
-    { "title": "Strong Area Name", "detail": "Specific achievement with numbers" }
+    { "title": "Strong Area Name", "detail": "Qualitative description of achievement without percentages" }
   ],
   "weaknesses": [
-    { "title": "Weak Area Name", "detail": "Specific gap with numbers and impact" }
+    { "title": "Weak Area Name", "detail": "Qualitative description of skill gap without percentages" }
   ],
   "recommendations": [
     { "priority": "HIGH", "title": "Action Title", "action": "Concrete step with specific techniques" }
@@ -149,11 +192,27 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       /'?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'?/gi;
     const cleanString = (str: string): string => {
       if (!str) return str;
-      return str.replace(uuidRegex, (match) => {
+      let text = str.replace(uuidRegex, (match) => {
         const rawId = match.replace(/'/g, "");
         const mappedName = topicNameMap.get(rawId);
         return mappedName ? `'${mappedName}'` : "'Core Topic'";
       });
+
+      text = text
+        .replace(/Achieved \d+%\s*accuracy,?\s*indicating/gi, "Demonstrated")
+        .replace(/Scored \d+%\s*accuracy,?\s*showing/gi, "Exhibited")
+        .replace(/Also scored \d+%,?\s*demonstrating/gi, "Demonstrated")
+        .replace(/Only \d+%\s*accuracy indicates/gi, "Indicates")
+        .replace(/\s*\(\s*\d+%\s*accuracy\s*\)/gi, "")
+        .replace(/\s*\d+%\s*accuracy/gi, "")
+        .replace(/\s*\d+%/gi, "")
+        .replace(/  +/g, " ")
+        .trim();
+
+      if (text.length > 0) {
+        text = text.charAt(0).toUpperCase() + text.slice(1);
+      }
+      return text;
     };
 
     for (let attemptCount = 1; attemptCount <= 3; attemptCount++) {
@@ -236,7 +295,7 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       } else if (acc < 55) {
         weaknesses.push({
           title: `Improvement Needed in '${topicName}'`,
-          detail: `Accuracy at ${Math.round(acc)}% — requires targeted revision and practice.`,
+          detail: `Requires targeted revision and concept practice in core problem-solving techniques.`,
         });
       }
     }

@@ -102,6 +102,7 @@ export class CandidateResultRepository extends BaseRepository<
       select: {
         status: true,
         candidateResult: { select: { id: true } },
+        evaluationResult: { select: { id: true } },
       },
     });
 

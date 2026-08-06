@@ -45,6 +45,6 @@ describe('AttemptHistoryTable', () => {
     expect(screen.getByText('Attempt History')).toBeInTheDocument();
     expect(screen.getByText('Test 1')).toBeInTheDocument();
     expect(screen.getByText('COMPLETED')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
+    expect(screen.getByText('QUALIFIED')).toBeInTheDocument();
   });
 });

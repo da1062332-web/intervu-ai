@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  Download,
   Play,
   Eye,
   ArrowUpDown,
@@ -36,49 +35,14 @@ interface AttemptHistoryTableProps {
 }
 
 const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
-  const [downloading, setDownloading] = useState(false);
-
-  const handleDownload = async () => {
-    try {
-      setDownloading(true);
-      const blob = await import('@/services/api/client').then(m => m.apiClient.request<Blob>(`/reports/export/pdf/${attempt.instanceId}`, {
-        responseType: 'blob'
-      }));
-      const url = URL.createObjectURL(blob as any);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Report-${attempt.instanceId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   return (
     <div className='flex items-center justify-end gap-2'>
       {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
-        <>
-          <Button size='sm' variant='ghost' asChild className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'>
-            <Link href={`/candidate/results/${attempt.instanceId}`}>
-              <Eye className='size-3.5 mr-1.5' /> View
-            </Link>
-          </Button>
-          <Button 
-            size='sm' 
-            variant='ghost' 
-            className='h-8 px-2.5 text-xs font-semibold text-primary hover:bg-primary/10'
-            onClick={handleDownload}
-            isLoading={downloading}
-            leftIcon={!downloading ? <Download className='size-3.5' /> : undefined}
-          >
-            Report
-          </Button>
-        </>
+        <Button size='sm' variant='ghost' asChild className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'>
+          <Link href={`/candidate/results/${attempt.instanceId}`}>
+            <Eye className='size-3.5 mr-1.5' /> View
+          </Link>
+        </Button>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Button size='sm' variant='default' asChild className='h-8 px-3 text-xs font-semibold'>
           <Link href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}>
@@ -86,9 +50,7 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
           </Link>
         </Button>
       ) : (
-        <Button size='sm' variant='ghost' disabled className='h-8 px-2.5 text-xs font-semibold opacity-50'>
-          <Download className='size-3.5 mr-1.5' /> Report
-        </Button>
+        <span className='text-xs font-medium text-muted-foreground'>-</span>
       )}
     </div>
   );
@@ -197,17 +159,49 @@ export function AttemptHistoryTable({
       },
     },
     {
-      id: 'score',
-      className: 'text-right',
+      id: 'result',
       header: (
-        <div 
-          className='flex items-center justify-end gap-1.5 cursor-pointer hover:text-foreground select-none font-bold text-xs uppercase tracking-wide'
-          onClick={() => toggleSort('score')}
-        >
-          Score <ArrowUpDown className='size-3 opacity-50' />
+        <div className='font-bold text-xs uppercase tracking-wide'>
+          Result
         </div>
       ),
-      cell: (row) => <span className='font-extrabold text-sm text-foreground'>{row.score !== null ? `${row.score}/100` : '-'}</span>,
+      cell: (row) => {
+        if (row.status === 'IN_PROGRESS' || row.status === 'CREATED') {
+          return <span className='text-xs font-medium text-muted-foreground'>-</span>;
+        }
+
+        if (row.status === 'EVALUATING') {
+          return (
+            <Badge variant='outline' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/10 border-amber-500/30'>
+              Evaluating
+            </Badge>
+          );
+        }
+
+        const scoreValue = row.score ?? 0;
+
+        if (scoreValue >= 80) {
+          return (
+            <Badge variant='success' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'>
+              Qualified
+            </Badge>
+          );
+        }
+
+        if (scoreValue >= 60) {
+          return (
+            <Badge variant='success' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/30'>
+              Pass
+            </Badge>
+          );
+        }
+
+        return (
+          <Badge variant='destructive' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-destructive/15 text-destructive border border-destructive/30'>
+            Fail
+          </Badge>
+        );
+      },
     },
     {
       id: 'actions',

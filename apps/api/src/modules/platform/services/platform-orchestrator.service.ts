@@ -24,6 +24,8 @@ export class PlatformOrchestratorService implements OnModuleInit {
       "Initializing Platform Orchestrator and subscribing to event lifecycle...",
     );
 
+    if (!this.eventBus || !this.eventBus.subscribe) return;
+
     // Register event subscriptions
     this.eventBus.subscribe("QUESTION_GENERATED", async (payload: unknown) => {
       await this.handleGenerationCompleted(payload);

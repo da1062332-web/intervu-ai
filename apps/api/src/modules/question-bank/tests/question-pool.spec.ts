@@ -24,6 +24,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
       concept: {
         count: jest.fn(),
         findFirst: jest.fn(),
+        findMany: jest.fn(),
       },
       topic: {
         findFirst: jest.fn(),
@@ -130,7 +131,40 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
     });
   });
 
-  describe("2. Status Approval & Rejection Transitions", () => {
+  describe("2. Question Bank search response mapping", () => {
+    it("should expose generationStrategy from stored metadata in the question bank response", async () => {
+      prismaMock.generatedQuestion.findMany.mockResolvedValue([
+        {
+          id: "q-1",
+          templateId: "template-1",
+          conceptKey: "concept-1",
+          questionText: "Strategy visible question",
+          options: ["A", "B"],
+          correctAnswer: "A",
+          solution: "Explanation",
+          difficultyLevel: "MEDIUM",
+          metadata: {
+            status: "APPROVED",
+            generationStrategy: "VARIABLE",
+          },
+          createdAt: new Date("2024-01-01T00:00:00.000Z"),
+        },
+      ]);
+      prismaMock.generatedQuestion.count.mockResolvedValue(1);
+      prismaMock.concept.findMany.mockResolvedValue([]);
+
+      const result = await controller.search();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]).toMatchObject({
+        generationStrategy: "VARIABLE",
+        status: "APPROVED",
+      });
+    });
+  });
+
+  describe("3. Status Approval & Rejection Transitions", () => {
     it("should approve a generated question if validation checks pass", async () => {
       const mockQuestion = {
         id: "q-1",
@@ -187,7 +221,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
     });
   });
 
-  describe("3. Publishing Flow", () => {
+  describe("4. Publishing Flow", () => {
     it("should copy an approved question to main Question pool and set status PUBLISHED", async () => {
       const mockQuestion = {
         id: "q-approved",
@@ -219,7 +253,7 @@ describe("QuestionsController Unit Tests — Question Pool & Lifecycle", () => {
     });
   });
 
-  describe("4. Statistics Engine", () => {
+  describe("5. Statistics Engine", () => {
     it("should dynamically calculate counts", async () => {
       prismaMock.generatedQuestion.findMany.mockResolvedValue([
         { metadata: { status: "APPROVED" } },

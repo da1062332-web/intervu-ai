@@ -34,7 +34,6 @@ export function AssessmentStatusPanel() {
   const enrolledTests: DashboardTestItem[] = (data?.availableTests || []).filter(
     (t) => t.status === 'ENROLLED',
   );
-  const completedTests: DashboardCompletedAttempt[] = data?.completedAttempts || [];
 
   const reattemptableTests: DashboardTestItem[] = (data?.availableTests || []).filter(
     (t) => t.attemptCount > 0 && t.canReattempt && !t.hasActiveAttempt,
@@ -43,7 +42,7 @@ export function AssessmentStatusPanel() {
   const hasContent =
     inProgressTests.length > 0 ||
     enrolledTests.length > 0 ||
-    completedTests.length > 0;
+    reattemptableTests.length > 0;
 
   if (!hasContent) {
     return (
@@ -129,33 +128,6 @@ export function AssessmentStatusPanel() {
               </Button>
             </motion.div>
           ))}
-
-        {/* COMPLETED */}
-        {completedTests.map((attempt, idx) => {
-          return (
-            <motion.div
-              key={attempt.instanceId}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.04 }}
-              className='flex items-center justify-between p-3.5 border border-emerald-500/20 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors shadow-2xs gap-3'
-            >
-              <div className='min-w-0 flex-1'>
-                <div className='font-semibold text-sm text-foreground truncate'>{attempt.assessmentName}</div>
-                <div className='text-xs flex items-center gap-1.5 mt-1 font-medium text-muted-foreground'>
-                  <CheckCircle2 className='size-3.5 text-emerald-500' />
-                  <span className='text-emerald-600 dark:text-emerald-400 font-semibold'>Completed</span>
-                  {attempt.score != null && (
-                    <span>· Score: <strong className='text-foreground font-bold'>{attempt.score}/100</strong></span>
-                  )}
-                </div>
-              </div>
-              <Button asChild size='sm' variant='ghost' className='h-8 px-3 text-xs font-semibold hover:bg-background/80'>
-                <Link href={`/candidate/results/${attempt.instanceId}`}>View Report</Link>
-              </Button>
-            </motion.div>
-          );
-        })}
       </CardContent>
     </Card>
   );

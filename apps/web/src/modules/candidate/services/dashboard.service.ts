@@ -153,7 +153,7 @@ export const dashboardService = {
         title: t.name,
         company: t.company || null,
         description: t.description || t.summary || null,
-        durationMinutes: t.duration ? Math.floor(t.duration / 60) : 0,
+        durationMinutes: t.durationMinutes || (t.duration ? Math.floor(t.duration / 60) : 0),
         questionCount: t.questionCount || 0,
         sections: t.sections || [],
         difficulty: t.difficulty || 'Medium',

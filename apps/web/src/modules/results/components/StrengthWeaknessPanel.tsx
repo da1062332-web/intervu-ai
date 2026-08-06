@@ -10,12 +10,21 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
   if (isLoading) return <Loading />;
   if (isError || !data) return null;
 
+  const cleanRemarks = (str: string) => {
+    if (!str) return '';
+    return str
+      .replace(/no answers were submitted for this topic\s*\(\s*0%\s*accuracy\s*\)\.?/gi, 'Topic requires foundational concept practice.')
+      .replace(/\s*\(\s*\d+%\s*accuracy\s*\)/gi, '')
+      .replace(/\s*\(\s*0%\s*accuracy\s*\)/gi, '')
+      .trim();
+  };
+
   return (
     <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-      <Card className='border-t-4 border-t-green-500'>
+      <Card className='border-t-4 border-t-emerald-500'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <CheckCircle className='text-green-500 w-5 h-5' />
+            <CheckCircle className='text-emerald-500 w-5 h-5' />
             Key Strengths
           </CardTitle>
         </CardHeader>
@@ -30,11 +39,11 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
                     <span className='font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[80%]' title={item.topic}>
                       {item.topic}
                     </span>
-                    <span className='text-sm font-medium bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300 dark:border dark:border-green-800/40 px-2 py-0.5 rounded-full'>
-                      {item.score}%
+                    <span className='text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md'>
+                      Strong Area
                     </span>
                   </div>
-                  <span className='text-sm text-gray-600 dark:text-slate-400'>{item.remarks}</span>
+                  <span className='text-sm text-gray-600 dark:text-slate-400'>{cleanRemarks(item.remarks)}</span>
                 </li>
               ))}
             </ul>
@@ -42,10 +51,10 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
         </CardContent>
       </Card>
 
-      <Card className='border-t-4 border-t-red-500'>
+      <Card className='border-t-4 border-t-amber-500'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <AlertCircle className='text-red-500 w-5 h-5' />
+            <AlertCircle className='text-amber-500 w-5 h-5' />
             Areas for Improvement
           </CardTitle>
         </CardHeader>
@@ -60,11 +69,11 @@ export const StrengthWeaknessPanel = ({ attemptId }: { attemptId: string }) => {
                     <span className='font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[80%]' title={item.topic}>
                       {item.topic}
                     </span>
-                    <span className='text-sm font-medium bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 dark:border dark:border-red-800/40 px-2 py-0.5 rounded-full'>
-                      {item.score}%
+                    <span className='text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-0.5 rounded-md'>
+                      Needs Practice
                     </span>
                   </div>
-                  <span className='text-sm text-gray-600 dark:text-slate-400'>{item.remarks}</span>
+                  <span className='text-sm text-gray-600 dark:text-slate-400'>{cleanRemarks(item.remarks)}</span>
                 </li>
               ))}
             </ul>

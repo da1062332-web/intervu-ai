@@ -72,29 +72,29 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
         <>
           <Link
             href={`/candidate/results/${attempt.instanceId}`}
-            className='inline-flex items-center justify-center rounded-xl font-bold text-xs h-9 px-4 sm:px-5 bg-[#f3e8ff] hover:bg-[#e9d5ff] text-[#7e22ce] dark:bg-purple-900/40 dark:text-purple-300 dark:hover:bg-purple-900/60 transition-all shadow-2xs'
+            className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-[#f3e8ff] hover:bg-[#e7d4ff] text-[#7e22ce] dark:bg-purple-950/60 dark:text-purple-300 dark:hover:bg-purple-900/70 transition-all border border-purple-200/60 dark:border-purple-800/50 shadow-2xs'
           >
             View Result
           </Link>
           <button
             type="button"
-            className='inline-flex items-center justify-center rounded-xl font-semibold text-xs h-9 px-3 sm:px-4 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all gap-1'
+            className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-3.5 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
             onClick={handleDownload}
             disabled={downloading}
           >
-            <Download className='size-3.5 text-muted-foreground/80' />
-            <span>Report</span>
+            <Download className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
+            <span>{downloading ? 'Exporting...' : 'Report'}</span>
           </button>
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Link
           href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}
-          className='inline-flex items-center justify-center rounded-xl font-bold text-xs h-9 px-6 bg-[#6366f1] hover:bg-[#4f46e5] text-white transition-all shadow-md gap-1.5'
+          className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-6 bg-[#6366f1] hover:bg-[#4f46e5] text-white transition-all shadow-md gap-1.5'
         >
           <Play className='size-3.5 fill-current' /> Resume
         </Link>
       ) : (
-        <Button size='sm' variant='ghost' disabled className='h-9 px-4 text-xs font-semibold opacity-50 rounded-xl'>
+        <Button size='sm' variant='ghost' disabled className='h-9 px-4 text-xs font-semibold opacity-50 rounded-[14px]'>
           Pending
         </Button>
       )}
@@ -199,11 +199,11 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
   if (compact) {
     if (isLoading) {
       return (
-        <div className='space-y-4'>
-          <div className='flex items-center justify-between pb-1'>
+        <div className='flex flex-col h-full space-y-4'>
+          <div className='flex items-center justify-between pb-1 shrink-0'>
             <Skeleton className='h-7 w-44' />
           </div>
-          <Skeleton className='h-[500px] w-full rounded-[28px] border border-border/40' />
+          <Skeleton className='h-[500px] w-full rounded-[28px] border border-border/40 flex-1' />
         </div>
       );
     }
@@ -227,38 +227,37 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
           </button>
         </div>
 
-        <div className='rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs space-y-7 flex-1 flex flex-col justify-between'>
+        <div className='rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs space-y-6 flex-1 flex flex-col justify-between'>
           {processedAttempts.map((row, index) => {
             const isCompleted = row.status === 'COMPLETED' || row.status === 'SUBMITTED';
-            const isPerfect = row.score === 100 || row.score === null;
             const iconBg = row.status === 'IN_PROGRESS'
-              ? 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800'
-              : (row.score && row.score >= 90) ? 'bg-[#6366f1] text-white dark:bg-indigo-600' : 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border border-orange-200/50';
+              ? 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800 border-border/40'
+              : (row.score && row.score >= 90) ? 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/60' : 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-200/60';
 
             return (
               <div
                 key={row.instanceId}
-                className={`flex items-start gap-4 pb-6 ${index !== processedAttempts.length - 1 ? 'border-b border-border/40' : ''}`}
+                className={`flex items-start gap-4 pb-5 ${index !== processedAttempts.length - 1 ? 'border-b border-border/40' : ''}`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs ${iconBg}`}>
-                  {row.status === 'IN_PROGRESS' ? <Pause className='size-3.5' /> : <Check className='size-4' />}
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border mt-0.5 font-bold shadow-2xs ${iconBg}`}>
+                  {row.status === 'IN_PROGRESS' ? <Pause className='size-4' /> : <Check className='size-5' />}
                 </div>
 
-                <div className='min-w-0 flex-1 space-y-1.5'>
+                <div className='min-w-0 flex-1 space-y-2'>
                   <div className='flex items-center justify-between gap-3'>
-                    <h4 className='font-bold text-sm sm:text-base text-foreground truncate'>
+                    <h4 className='font-bold text-sm sm:text-base text-foreground truncate tracking-tight'>
                       {row.assessmentName}
                     </h4>
                     {row.score !== null ? (
-                      <span className='font-extrabold text-sm sm:text-base text-[#6366f1] dark:text-indigo-400 shrink-0'>
+                      <span className='font-black text-xs sm:text-sm bg-indigo-50 dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 px-2.5 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/50 shrink-0'>
                         {row.score}%
                       </span>
                     ) : (
-                      <span className='text-muted-foreground font-semibold text-sm shrink-0'>--</span>
+                      <span className='text-muted-foreground font-semibold text-xs sm:text-sm shrink-0'>--</span>
                     )}
                   </div>
 
-                  <p className='text-xs text-muted-foreground font-normal leading-normal'>
+                  <p className='text-xs text-muted-foreground font-normal leading-normal line-clamp-1'>
                     {row.subtitle || (isCompleted ? `Completed on ${format(new Date(row.date), 'MMM d, yyyy')}` : 'Evaluation in progress')}
                   </p>
 
@@ -268,7 +267,7 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
                       <span>{format(new Date(row.date), 'MMM d, yyyy')}</span>
                     </div>
 
-                    {/* Preserve all buttons as requested */}
+                    {/* Preserved interactive button triggers */}
                     <div className='mt-1 sm:mt-0'>
                       <ActionsCell attempt={row} />
                     </div>

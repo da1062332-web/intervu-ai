@@ -126,6 +126,14 @@ export class AssembledTestRepository {
     return this.prisma.assembledTest.findUnique({
       where: { id },
       include: {
+        examConfig: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            code: true,
+          },
+        },
         sections: {
           include: {
             questions: {
@@ -144,7 +152,8 @@ export class AssembledTestRepository {
 
   async findByConfigId(configId: string) {
     return this.prisma.assembledTest.findFirst({
-      where: { configId, status: AssemblyStatus.PUBLISHED },
+      where: { configId },
+      orderBy: { createdAt: "desc" },
       include: {
         examConfig: {
           select: {
@@ -160,7 +169,6 @@ export class AssembledTestRepository {
           orderBy: { orderIndex: 'asc' },
         },
       },
-      orderBy: { createdAt: 'desc' },
     });
   }
 

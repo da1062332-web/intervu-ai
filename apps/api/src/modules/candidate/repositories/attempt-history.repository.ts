@@ -42,6 +42,12 @@ export class AttemptHistoryRepository {
               overallScore: true,
             },
           },
+          candidateResult: {
+            select: {
+              score: true,
+              percentage: true,
+            },
+          },
         },
       }),
     ]);

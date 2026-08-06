@@ -38,9 +38,38 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
       : `Professional proficiency assessment designed to test domain expertise in ${test.title}.`
   );
 
-  const displayDuration = test.durationMinutes ? `${test.durationMinutes} min` : 'Flexible';
-  const displayQuestions = test.questionCount ? `${test.questionCount}` : 'Adaptive';
-  const displaySections = Array.isArray(test.sections) ? test.sections.length : 0;
+  const totalQuestionsFromSections =
+    Array.isArray(test.sections) && test.sections.length > 0
+      ? test.sections.reduce((sum: number, section: any) => {
+          if (typeof section === 'object' && section !== null && section.questionCount) {
+            return sum + Number(section.questionCount);
+          }
+          return sum;
+        }, 0)
+      : 0;
+
+  const totalDurationFromSections =
+    Array.isArray(test.sections) && test.sections.length > 0
+      ? test.sections.reduce((sum: number, section: any) => {
+          if (typeof section === 'object' && section !== null) {
+            const mins = section.durationMinutes || section.sectionDurationMinutes || (section.durationSeconds ? Math.floor(section.durationSeconds / 60) : 0);
+            return sum + (Number(mins) || 0);
+          }
+          return sum;
+        }, 0)
+      : 0;
+
+  const testDurationMain =
+    test.durationMinutes ||
+    ((test as any).durationSeconds ? Math.floor((test as any).durationSeconds / 60) : 0) ||
+    ((test as any).duration ? Math.floor((test as any).duration / 60) : 0);
+
+  const finalDuration = testDurationMain > 0 ? testDurationMain : (totalDurationFromSections > 0 ? totalDurationFromSections : 60);
+  const finalQuestions = totalQuestionsFromSections > 0 ? totalQuestionsFromSections : (test.questionCount || (test as any).totalQuestions || 0);
+
+  const displayDuration = finalDuration > 0 ? `${finalDuration} min` : 'Flexible';
+  const displayQuestions = finalQuestions > 0 ? `${finalQuestions}` : 'Adaptive';
+  const displaySections = Array.isArray(test.sections) && test.sections.length > 0 ? test.sections.length : 1;
 
   return (
     <Card className='h-full flex flex-col bg-card/80 hover:bg-card hover:shadow-md transition-all duration-200 border border-border/60 group relative overflow-hidden'>

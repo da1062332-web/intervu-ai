@@ -313,7 +313,7 @@ export class ResultQueryService {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
 
-    if (state.candidateResult) {
+    if (state.candidateResult || (state as any).evaluationResult) {
       return { status: "COMPLETED" };
     }
     if (evalRun && evalRun.status === "FAILED") {
