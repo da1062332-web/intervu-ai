@@ -149,6 +149,22 @@ export function DatasetStrategyPanel({ templateId: _, template }: StrategyPanelP
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Dataset Generation Mode */}
+          <div className="space-y-2 col-span-1 md:col-span-2 p-3 bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-md">
+            <Label htmlFor="panelDatasetGenMode" className="font-semibold text-indigo-900 dark:text-indigo-200">
+              Dataset Generation Mode <span className="text-red-500">*</span>
+            </Label>
+            <select
+              id="panelDatasetGenMode"
+              value={(config.datasetGenerationMode as string) ?? 'AI'}
+              onChange={(e) => handleFieldChange('datasetGenerationMode', e.target.value)}
+              className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+            >
+              <option value="AI">AI Mode (Generate new question via AI)</option>
+              <option value="DIRECT">Direct Mode (Fetch directly from dataset)</option>
+            </select>
+          </div>
+
           {/* Dataset Type */}
           <div className="space-y-2">
             <Label htmlFor="datasetType">

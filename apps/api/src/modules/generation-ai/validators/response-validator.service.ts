@@ -216,10 +216,42 @@ export class ResponseValidatorService {
     return Number.isFinite(numeric) ? numeric : null;
   }
 
+  private calculateJaccardSimilarity(textA: string, textB: string): number {
+    const tokenize = (text: string) =>
+      new Set(text.toLowerCase().split(/\W+/).filter(Boolean));
+    const setA = tokenize(textA);
+    const setB = tokenize(textB);
+    if (setA.size === 0 && setB.size === 0) return 1.0;
+    let intersection = 0;
+    for (const item of setA) {
+      if (setB.has(item)) intersection++;
+    }
+    const union = setA.size + setB.size - intersection;
+    return intersection / union;
+  }
+
   private validateDatasetStrategy(question: GeneratedQuestionDto, template?: any): void {
-    // 2. Dataset checks: Ensure the question contains no placeholder tokens
+    // 1. Placeholder check
     if (question.question.includes("{{") || question.question.includes("}}")) {
       throw new BadRequestException("Dataset validation failed: Question text contains raw template placeholders.");
+    }
+
+    // 2. Self-containment check
+    const qText = (question.question || "").trim();
+    if (qText.length < 30) {
+      throw new BadRequestException("Dataset validation failed: Generated question text is too short to be self-contained.");
+    }
+
+    // 3. Uniqueness / Anti-Copying check against original dataset reference item
+    const dsItem = question.metadata?.datasetItem as any;
+    const dsContent = (dsItem?.content || dsItem?.questionText || "").trim();
+    if (dsContent && dsContent.length > 30) {
+      const similarity = this.calculateJaccardSimilarity(qText, dsContent);
+      if (similarity > 0.85) {
+        throw new BadRequestException(
+          `Dataset validation failed: Generated question is too similar to the source dataset reference item (similarity: ${similarity.toFixed(2)}). The model must generate a new scenario with different entities, wording, and options.`
+        );
+      }
     }
   }
 

@@ -108,7 +108,13 @@ export class QuestionGenerationController {
       // 2. Resolve parameters, dataset items or relationship graphs
       const context = await this.strategyResolver.resolve(templateId);
 
-      // 3. Trigger SGE AI prompt compilation and LLM generation
+      const modeRaw =
+        (template as any)?.datasetGenerationMode ||
+        (template as any)?.config?.datasetGenerationMode ||
+        (template as any)?.datasetConfig?.datasetGenerationMode ||
+        (template as any)?.datasetConfigRelation?.datasetGenerationMode ||
+        "AI";
+
       const templateData = {
         id: template.id,
         name: template.name,
@@ -121,6 +127,9 @@ export class QuestionGenerationController {
         constraints: template.constraints,
         solutionSchema: template.solutionSchema,
         generationStrategy: context.generationStrategy,
+        datasetGenerationMode: modeRaw,
+        config: template.config,
+        datasetConfig: template.datasetConfig,
       };
 
       const result = await this.retryService.generateFromTemplate(
@@ -171,6 +180,19 @@ export class QuestionGenerationController {
           metadata: {
             status: "GENERATED",
             generationStrategy: context.generationStrategy,
+            datasetGenerationMode:
+              result.question.metadata?.datasetGenerationMode ??
+              (template as any)?.datasetGenerationMode ??
+              (config as any)?.datasetGenerationMode ??
+              "AI",
+            isAiGenerated: result.question.metadata?.isAiGenerated ?? true,
+            generationSource:
+              result.question.metadata?.generationSource ??
+              (result.question.metadata?.isFallbackDatasetFetch
+                ? "DIRECT_DATASET_FETCH"
+                : "AI_LLM_MODEL"),
+            isFallbackDatasetFetch:
+              result.question.metadata?.isFallbackDatasetFetch ?? false,
             variables: context.variables,
             datasetItem: context.datasetItem,
             logicalGraph: context.logicalGraph,
@@ -248,6 +270,13 @@ export class QuestionGenerationController {
     const context = await this.strategyResolver.resolve(templateId);
 
     // 2. Trigger SGE AI prompt builder and generation
+    const modeRawPreview =
+      (template as any)?.datasetGenerationMode ||
+      (template as any)?.config?.datasetGenerationMode ||
+      (template as any)?.datasetConfig?.datasetGenerationMode ||
+      (template as any)?.datasetConfigRelation?.datasetGenerationMode ||
+      "AI";
+
     const templateData = {
       id: template.id,
       name: template.name,
@@ -260,6 +289,9 @@ export class QuestionGenerationController {
       constraints: template.constraints,
       solutionSchema: template.solutionSchema,
       generationStrategy: context.generationStrategy,
+      datasetGenerationMode: modeRawPreview,
+      config: template.config,
+      datasetConfig: template.datasetConfig,
     };
 
     const result = await this.retryService.generateFromTemplate(

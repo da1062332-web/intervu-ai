@@ -57,8 +57,7 @@ export class DuplicateDetectorService {
     });
 
     const candidateTemplateId = (generated.metadata as any)?.templateId || null;
-    const candidateVars =
-      (generated.metadata as any)?.variables || generated.metadata || {};
+    const candidateVars = (generated.metadata as any)?.variables;
 
     const areVariableSetsEqual = (varsA: any, varsB: any): boolean => {
       if (
@@ -69,8 +68,9 @@ export class DuplicateDetectorService {
       ) {
         return false;
       }
-      const keysA = Object.keys(varsA).sort();
-      const keysB = Object.keys(varsB).sort();
+      const keysA = Object.keys(varsA).filter(k => k !== 'templateId' && k !== 'status' && k !== 'generationStrategy' && k !== 'datasetItem').sort();
+      const keysB = Object.keys(varsB).filter(k => k !== 'templateId' && k !== 'status' && k !== 'generationStrategy' && k !== 'datasetItem').sort();
+      if (keysA.length === 0 || keysB.length === 0) return false;
       if (keysA.length !== keysB.length) return false;
       return keysA.every((k, idx) => {
         if (keysB[idx] !== k) return false;
@@ -89,15 +89,15 @@ export class DuplicateDetectorService {
         continue;
       }
 
-      // Exact Match check
+      // Exact Match check on actual question text
       if (eqText.toLowerCase() === candidateText.toLowerCase()) {
         return { duplicate: true, similarity: 1.0 };
       }
 
-      // Check duplicate variable sets for same template
-      if (candidateTemplateId && eq.templateId === candidateTemplateId) {
-        const eqVars = (eq.metadata as any)?.variables || eq.metadata || {};
-        if (areVariableSetsEqual(candidateVars, eqVars)) {
+      // Check duplicate variable sets for same template (only if dynamic variables exist)
+      if (candidateTemplateId && eq.templateId === candidateTemplateId && candidateVars) {
+        const eqVars = (eq.metadata as any)?.variables;
+        if (eqVars && areVariableSetsEqual(candidateVars, eqVars)) {
           return { duplicate: true, similarity: 1.0 };
         }
       }

@@ -330,6 +330,22 @@ export class TemplateService {
     }
     if (validated.config !== undefined)
       updateInput.config = validated.config as Prisma.InputJsonValue;
+    const mode =
+      (validated as any).datasetGenerationMode ||
+      (validated.config as any)?.datasetGenerationMode;
+    if (mode !== undefined) {
+      const currentConfig = (existing.config as Record<string, any>) || {};
+      const currentDatasetConfig = (existing.datasetConfig as Record<string, any>) || {};
+      updateInput.config = {
+        ...currentConfig,
+        ...((updateInput.config as Record<string, any>) || {}),
+        datasetGenerationMode: mode,
+      } as Prisma.InputJsonValue;
+      updateInput.datasetConfig = {
+        ...currentDatasetConfig,
+        datasetGenerationMode: mode,
+      } as Prisma.InputJsonValue;
+    }
     if (validated.templateKey !== undefined)
       updateInput.templateKey = validated.templateKey;
     if (validated.conceptKey !== undefined)

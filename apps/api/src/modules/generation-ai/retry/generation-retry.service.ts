@@ -254,74 +254,126 @@ export class GenerationRetryService {
           }
         }
 
-        // Compile dynamic structured prompt for this attempt
-        promptStr = this.promptBuilder.buildPrompt({
-          template,
-          variableValues: attemptVariables,
-          correctAnswer: options?.correctAnswer,
-          datasetItem: options?.datasetItem,
-          logicalGraph: options?.logicalGraph,
-          promptConfig: promptConfig || undefined,
-          styleProfile,
-        });
+        const isDatasetStrategy =
+          (template as any)?.generationStrategy === "DATASET" ||
+          (template as any)?.strategy === "DATASET";
 
-        // 1. Generate LLM Output for all strategies (including DATASET)
-        try {
-          response = await this.questionGenerator.generate(promptStr);
-        } catch (llmErr) {
-          if ((template as any)?.generationStrategy === "DATASET" && options?.datasetItem) {
-            const dsItem = options.datasetItem;
-            parsedQuestion = {
-              question: dsItem.questionText || dsItem.content || "No question text provided.",
-              options: dsItem.options || [],
-              correctAnswer: dsItem.answer || "",
-              answer: dsItem.answer || "",
-              explanation: dsItem.explanation || "Directly fetched from dataset.",
-              difficulty: difficulty,
-              topic: topic,
-              metadata: {
-                ...(dsItem.metadata || {}),
-                status: "GENERATED",
-                templateId: template.id,
-                generationStrategy: "DATASET",
-                datasetItem: dsItem,
-                isFallbackDatasetFetch: true,
-              },
-            };
-          } else {
-            throw llmErr;
-          }
-        }
+        const rawMode =
+          (template as any)?.datasetGenerationMode ||
+          (template as any)?.config?.datasetGenerationMode ||
+          (template as any)?.datasetConfig?.datasetGenerationMode ||
+          (options as any)?.datasetGenerationMode ||
+          "AI";
+        const datasetGenerationMode: "DIRECT" | "AI" =
+          String(rawMode).toUpperCase() === "DIRECT" ? "DIRECT" : "AI";
 
-        if (!parsedQuestion) {
-          // 2. Parse LLM JSON
-          let cleaned = response.trim();
-          if (cleaned.startsWith("```")) {
-            cleaned = cleaned
-              .replace(/^```(?:json)?/gi, "")
-              .replace(/```$/gi, "")
-              .trim();
-          }
-          const parsed = JSON.parse(cleaned);
-
-          // Map parsed keys to standard GeneratedQuestionDto
+        if (isDatasetStrategy && datasetGenerationMode === "DIRECT" && options?.datasetItem) {
+          const dsItem = options.datasetItem;
           parsedQuestion = {
-            question: parsed.question,
-            options: parsed.options || [],
-            correctAnswer: parsed.correctAnswer || parsed.answer,
-            answer: parsed.correctAnswer || parsed.answer,
-            explanation: parsed.explanation,
-            difficulty: parsed.difficulty || difficulty,
-            topic: parsed.topic || topic,
+            question: dsItem.questionText || dsItem.content || "No question text provided.",
+            options: dsItem.options || [],
+            correctAnswer: dsItem.answer || "",
+            answer: dsItem.answer || "",
+            explanation: dsItem.explanation || "Directly fetched from dataset.",
+            difficulty: difficulty,
+            topic: topic,
             metadata: {
-              ...(parsed.metadata || {}),
+              ...(dsItem.metadata || {}),
+              status: "GENERATED",
               templateId: template.id,
-              variables: (template as any)?.generationStrategy === "VARIABLE" ? attemptVariables : variableValues,
-              generationStrategy: template.generationStrategy,
-              datasetItem: options?.datasetItem,
-              logicalGraph: options?.logicalGraph,
+              generationStrategy: "DATASET",
+              datasetGenerationMode: "DIRECT",
+              datasetItem: dsItem,
+              isFallbackDatasetFetch: false,
+              isAiGenerated: false,
+              generationSource: "DIRECT_DATASET_FETCH",
             },
           };
+        } else {
+          // Compile dynamic structured prompt for this attempt
+          promptStr = this.promptBuilder.buildPrompt({
+            template,
+            variableValues: attemptVariables,
+            correctAnswer: options?.correctAnswer,
+            datasetItem: options?.datasetItem,
+            logicalGraph: options?.logicalGraph,
+            promptConfig: promptConfig || undefined,
+            styleProfile,
+          });
+
+          // 1. Generate LLM Output for AI mode
+          try {
+            response = await this.questionGenerator.generate(promptStr);
+          } catch (llmErr) {
+            if (isDatasetStrategy && options?.datasetItem) {
+              const dsItem = options.datasetItem;
+              parsedQuestion = {
+                question: dsItem.questionText || dsItem.content || "No question text provided.",
+                options: dsItem.options || [],
+                correctAnswer: dsItem.answer || "",
+                answer: dsItem.answer || "",
+                explanation: dsItem.explanation || "Directly fetched from dataset.",
+                difficulty: difficulty,
+                topic: topic,
+                metadata: {
+                  ...(dsItem.metadata || {}),
+                  status: "GENERATED",
+                  templateId: template.id,
+                  generationStrategy: "DATASET",
+                  datasetGenerationMode: "AI",
+                  datasetItem: dsItem,
+                  isFallbackDatasetFetch: true,
+                  isAiGenerated: false,
+                  generationSource: "DIRECT_DATASET_FETCH",
+                },
+              };
+            } else {
+              throw llmErr;
+            }
+          }
+
+          if (!parsedQuestion) {
+            // 2. Parse LLM JSON
+            let cleaned = response.trim();
+            if (cleaned.startsWith("```")) {
+              cleaned = cleaned
+                .replace(/^```(?:json)?/gi, "")
+                .replace(/```$/gi, "")
+                .trim();
+            }
+            const parsed = JSON.parse(cleaned);
+
+            const answerVal =
+              parsed.correctAnswer ||
+              parsed.answer ||
+              parsed.correct_answer ||
+              parsed.correctOption ||
+              parsed.correct_option ||
+              "";
+
+            // Map parsed keys to standard GeneratedQuestionDto
+            parsedQuestion = {
+              question: parsed.question,
+              options: parsed.options || [],
+              correctAnswer: answerVal,
+              answer: answerVal,
+              explanation: parsed.explanation,
+              difficulty: parsed.difficulty || difficulty,
+              topic: parsed.topic || topic,
+              metadata: {
+                ...(parsed.metadata || {}),
+                templateId: template.id,
+                variables: (template as any)?.generationStrategy === "VARIABLE" ? attemptVariables : variableValues,
+                generationStrategy: template.generationStrategy,
+                datasetGenerationMode: "AI",
+                datasetItem: options?.datasetItem,
+                logicalGraph: options?.logicalGraph,
+                isAiGenerated: true,
+                generationSource: "AI_LLM_MODEL",
+                isFallbackDatasetFetch: false,
+              },
+            };
+          }
         }
 
           if ((template as any)?.generationStrategy === "VARIABLE") {
@@ -357,7 +409,11 @@ export class GenerationRetryService {
         }
 
         // 4. Validate structured explanation
-        if (!parsedQuestion.metadata?.isDirectDatasetFetch) {
+        const isDirect =
+          parsedQuestion.metadata?.isDirectDatasetFetch ||
+          parsedQuestion.metadata?.datasetGenerationMode === "DIRECT";
+
+        if (!isDirect) {
           this.explanationGenerator.validateExplanation(
             parsedQuestion.explanation,
             parsedQuestion.correctAnswer!,
@@ -373,7 +429,7 @@ export class GenerationRetryService {
         }
 
         // 5b. Run duplicate check (Task Group 5)
-        if (!parsedQuestion.metadata?.isDirectDatasetFetch) {
+        if (!isDirect) {
           const dupResult =
             await this.duplicateDetector.checkDuplicate(parsedQuestion);
           if (dupResult.duplicate) {
@@ -384,7 +440,7 @@ export class GenerationRetryService {
         }
 
         // 5c. Run quality scorer (Task Group 7)
-        if (!parsedQuestion.metadata?.isDirectDatasetFetch) {
+        if (!isDirect) {
           const qScore = await this.qualityScorer.score(
             parsedQuestion,
             topic,
@@ -405,7 +461,10 @@ export class GenerationRetryService {
       // 6. Calculate quality score for log
       let finalScore = 0.0;
       if (validationSuccess && parsedQuestion) {
-        if (parsedQuestion.metadata?.isDirectDatasetFetch) {
+        const isDirect =
+          parsedQuestion.metadata?.isDirectDatasetFetch ||
+          parsedQuestion.metadata?.datasetGenerationMode === "DIRECT";
+        if (isDirect) {
           finalScore = 100.0;
         } else {
           try {
