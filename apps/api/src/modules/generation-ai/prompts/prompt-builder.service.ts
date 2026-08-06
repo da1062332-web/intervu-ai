@@ -42,9 +42,7 @@ export interface PromptBuilderInput {
 
 @Injectable()
 export class PromptBuilderService {
-  constructor(
-    private readonly placeholderValidator: PlaceholderValidatorService = new PlaceholderValidatorService(),
-  ) {}
+  private readonly placeholderValidator = new PlaceholderValidatorService();
 
   /**
    * Helper to replace variable placeholders with actual values
