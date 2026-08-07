@@ -96,14 +96,9 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
 
       {compact && (
         <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
-          <div>
-            <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
-              Progress & Skill Mastery
-            </h3>
-            <p className='text-xs text-muted-foreground font-medium mt-0.5'>
-              Historical trajectory and technical domain strength index
-            </p>
-          </div>
+          <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
+            Progress & Skill Mastery
+          </h3>
           <button
             type="button"
             className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'

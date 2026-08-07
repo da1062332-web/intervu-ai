@@ -8,6 +8,8 @@ export const useConcepts = (topicId: string, activeOnly = true) => {
     queryKey: ['concepts', topicId, activeOnly],
     queryFn: () => conceptMappingApi.getConcepts(topicId, activeOnly),
     enabled: !!topicId,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 };
 

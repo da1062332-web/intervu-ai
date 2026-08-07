@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { FileText, Calendar, TrendingUp, Search, ChevronRight, ChevronLeft, Award } from 'lucide-react';
+import { FileText, Calendar, TrendingUp, Search, ChevronRight, ChevronLeft, Award, Play } from 'lucide-react';
 
 export const ResultHistoryPage = () => {
   const { user } = useAuth();
@@ -244,6 +244,18 @@ export const ResultHistoryPage = () => {
                   </div>
 
                   <div className='flex items-center gap-3 self-end sm:self-center shrink-0'>
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      className='rounded-xl font-bold text-xs bg-background hover:bg-muted/60 text-foreground border-border/80 shadow-2xs px-4 py-2 flex items-center gap-1.5 transition-all z-10 relative'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/candidate/tests/${result.testId || result.configId || result.assessmentId || result.attemptId || result.id}`);
+                      }}
+                    >
+                      <Play className='w-3.5 h-3.5 text-muted-foreground' />
+                      Re-Exam
+                    </Button>
                     <Button
                       size='sm'
                       className='rounded-xl font-bold text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xs px-4 py-2 flex items-center gap-1.5 transition-all z-10 relative'

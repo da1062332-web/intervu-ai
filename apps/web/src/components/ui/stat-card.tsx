@@ -16,7 +16,7 @@ export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   isLoading?: boolean;
 }
 
-export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
+export const StatCard = React.memo(React.forwardRef<HTMLDivElement, StatCardProps>(
   ({ title, value, description, icon, trend, isLoading, className, ...props }, ref) => {
     if (isLoading) {
       return <CardSkeleton className={className} />;
@@ -53,5 +53,5 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
       </Card>
     );
   }
-);
+));
 StatCard.displayName = 'StatCard';

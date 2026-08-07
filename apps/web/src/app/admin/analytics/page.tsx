@@ -4,7 +4,11 @@ import React from 'react';
 import { Users, FileText, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatCard } from '@/components/ui/stat-card';
-import { TrendCard } from '@/components/admin/analytics/TrendCard';
+import dynamic from 'next/dynamic';
+const TrendCard = dynamic(() => import('@/components/admin/analytics/TrendCard').then((mod) => mod.TrendCard), {
+  loading: () => <WidgetSkeleton className="h-[300px]" />,
+  ssr: false,
+});
 import { ProgressIndicator } from '@/components/admin/analytics/ProgressIndicator';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

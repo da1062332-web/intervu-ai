@@ -11,15 +11,15 @@ import { useTopics } from '@/services/topics/hooks';
 import { useConcepts } from '@/services/concept-mapping/hooks';
 import { DataTable, ColumnDef } from '@/components/ui/data-table';
 
-function TopicNameCell({ topicId }: { topicId?: string }) {
+const TopicNameCell = React.memo(function TopicNameCell({ topicId }: { topicId?: string }) {
   const { data: topics = [], isLoading } = useTopics();
   if (!topicId) return <span className="text-muted-foreground font-mono text-xs">General</span>;
   if (isLoading) return <Skeleton className="h-4 w-20" />;
   const topic = topics.find((t: any) => t.id === topicId);
   return <span title={topic?.name || topicId}>{topic?.name || topicId}</span>;
-}
+});
 
-function ConceptNameCell({ topicId, conceptId }: { topicId?: string; conceptId?: string }) {
+const ConceptNameCell = React.memo(function ConceptNameCell({ topicId, conceptId }: { topicId?: string; conceptId?: string }) {
   const { data: concepts, isLoading } = useConcepts(topicId || '', false);
   
   if (!conceptId) return <span className="text-muted-foreground font-mono text-xs">General</span>;
@@ -39,7 +39,7 @@ function ConceptNameCell({ topicId, conceptId }: { topicId?: string; conceptId?:
       {concept?.name || concept?.conceptName || conceptId}
     </span>
   );
-}
+});
 
 export interface ReviewTableProps {
   questions: GeneratedQuestion[];
@@ -73,7 +73,7 @@ export function ReviewTable({
   const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
   const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(selectedTopicId !== 'ALL' ? selectedTopicId : '', true);
 
-  const filtered = questions.filter((q: any) => {
+  const filtered = React.useMemo(() => questions.filter((q: any) => {
     const isPending =
       q.status === 'GENERATED' ||
       q.status === 'Draft' ||
@@ -90,12 +90,12 @@ export function ReviewTable({
       (q.questionText && q.questionText.toLowerCase().includes(search.toLowerCase()));
 
     return isPending && matchesTopic && matchesConcept && matchesSearch;
-  });
+  }), [questions, selectedTopicId, selectedConceptId, search]);
 
-  const filteredIds = filtered.map((q) => q.id);
+  const filteredIds = React.useMemo(() => filtered.map((q) => q.id), [filtered]);
   const allSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedIds.includes(id));
 
-  const columns: ColumnDef<GeneratedQuestion>[] = [
+  const columns: ColumnDef<GeneratedQuestion>[] = React.useMemo(() => [
     {
       id: 'select',
       header: (
@@ -204,7 +204,7 @@ export function ReviewTable({
         </div>
       ),
     },
-  ];
+  ], [allSelected, filteredIds, selectedIds, onToggleSelect, onToggleSelectAll, onPreview, onRegenerate, onReject, onApprove, processingId]);
 
   return (
     <div className="space-y-4">
