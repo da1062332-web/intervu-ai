@@ -46,6 +46,8 @@ describe("RuleFlagsService", () => {
       expect(result.examConfigId).toBe("config-1");
       expect(result.sectionalCutoffEnabled).toBe(false);
       expect(result.allowSectionNavigation).toBe(false);
+      expect(result.candidateNoRepeatEnabled).toBe(false);
+      expect(result.runtimeGenerationOnDeficit).toBe(false);
     });
 
     it("should return found rule flags", async () => {
@@ -55,6 +57,8 @@ describe("RuleFlagsService", () => {
         examConfigId: "config-1",
         sectionalCutoffEnabled: true,
         allowSectionNavigation: false,
+        candidateNoRepeatEnabled: true,
+        runtimeGenerationOnDeficit: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       } as import("@prisma/client").RuleFlags;
@@ -64,6 +68,8 @@ describe("RuleFlagsService", () => {
 
       expect(result.sectionalCutoffEnabled).toBe(true);
       expect(result.allowSectionNavigation).toBe(false);
+      expect(result.candidateNoRepeatEnabled).toBe(true);
+      expect(result.runtimeGenerationOnDeficit).toBe(true);
     });
   });
 

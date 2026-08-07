@@ -31,6 +31,8 @@ export class RuleFlagsService {
         shuffleOptionsEnabled: false,
         allowSectionNavigation: false,
         maxAttempts: 3,
+        candidateNoRepeatEnabled: false,
+        runtimeGenerationOnDeficit: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -63,6 +65,8 @@ export class RuleFlagsService {
       shuffleOptionsEnabled: entity.shuffleOptionsEnabled,
       allowSectionNavigation: entity.allowSectionNavigation,
       maxAttempts: entity.maxAttempts,
+      candidateNoRepeatEnabled: entity.candidateNoRepeatEnabled ?? false,
+      runtimeGenerationOnDeficit: entity.runtimeGenerationOnDeficit ?? false,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
     };

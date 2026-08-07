@@ -197,6 +197,8 @@ export class ConfigVersionService {
             shuffleQuestionsEnabled: snapshot.ruleFlags.shuffleQuestionsEnabled,
             shuffleOptionsEnabled: snapshot.ruleFlags.shuffleOptionsEnabled,
             allowSectionNavigation: snapshot.ruleFlags.allowSectionNavigation,
+            candidateNoRepeatEnabled: snapshot.ruleFlags.candidateNoRepeatEnabled ?? false,
+            runtimeGenerationOnDeficit: snapshot.ruleFlags.runtimeGenerationOnDeficit ?? false,
           },
         });
       }

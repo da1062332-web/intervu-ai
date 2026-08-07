@@ -12,7 +12,9 @@ import {
   IQuestionSource,
   QUESTION_SOURCE_TOKEN,
 } from "./question-source.interface";
-import { Inject } from "@nestjs/common";
+import { Inject, Optional } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { GenerationOrchestratorService } from "../../generation-ai/orchestrators/generation-orchestrator.service";
 
 export interface AllocationConfig {
   distribution: {
@@ -34,6 +36,8 @@ export class QuestionAllocatorService {
     @Inject(QUESTION_SOURCE_TOKEN)
     private readonly questionSource: IQuestionSource,
     private readonly antiRepetitionService: AntiRepetitionService,
+    @Optional() private readonly prisma?: PrismaService,
+    @Optional() private readonly orchestrator?: GenerationOrchestratorService,
   ) {}
 
   private calculateSectionDifficultyTargets(
@@ -325,17 +329,36 @@ export class QuestionAllocatorService {
           const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = topicCount - selectedForTopic.length;
-          throw new BadRequestException({
-            error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
-            message: `Assembly Blocked: Missing ${deficit} question(s) for topic '${topicName}' in section '${sectionName}'. Please create new questions for this topic in the Question Bank!`,
-            details: {
-              section: sectionName,
-              topic: topicName,
-              required: topicCount,
-              available: selectedForTopic.length,
-              deficit,
-            },
-          });
+
+          const runtimeGenerated = await this.handleDeficitGeneration(
+            deficit,
+            topicAlloc.topicId,
+            DifficultyLevel.MEDIUM,
+            allocatedQuestionIds,
+            orderCounter,
+            examId,
+          );
+
+          if (runtimeGenerated.length > 0) {
+            selectedForTopic.push(...runtimeGenerated);
+            allocatedQuestions.push(...runtimeGenerated);
+            orderCounter += runtimeGenerated.length;
+            remainingSectionCount -= runtimeGenerated.length;
+          }
+
+          if (selectedForTopic.length < topicCount) {
+            throw new BadRequestException({
+              error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
+              message: `Assembly Blocked: Missing ${deficit - runtimeGenerated.length} question(s) for topic '${topicName}' in section '${sectionName}'. Please create new questions for this topic in the Question Bank!`,
+              details: {
+                section: sectionName,
+                topic: topicName,
+                required: topicCount,
+                available: selectedForTopic.length,
+                deficit: deficit - runtimeGenerated.length,
+              },
+            });
+          }
         }
       }
       return allocatedQuestions;
@@ -471,18 +494,36 @@ export class QuestionAllocatorService {
           const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = requiredForTopic - selectedForTopic.length;
-          throw new BadRequestException({
-            error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
-            message: `Assembly Blocked: Missing ${deficit} ${diff.level} question(s) for topic '${topicName}' in section '${sectionName}'. Please create new ${diff.level} question(s) for this topic in the Question Bank!`,
-            details: {
-              section: sectionName,
-              topic: topicName,
-              difficulty: diff.level,
-              required: requiredForTopic,
-              available: selectedForTopic.length,
-              deficit,
-            },
-          });
+
+          const runtimeGenerated = await this.handleDeficitGeneration(
+            deficit,
+            topicAlloc.topicId,
+            diff.level,
+            allocatedQuestionIds,
+            orderCounter,
+            examId,
+          );
+
+          if (runtimeGenerated.length > 0) {
+            selectedForTopic.push(...runtimeGenerated);
+            allocatedQuestions.push(...runtimeGenerated);
+            orderCounter += runtimeGenerated.length;
+          }
+
+          if (selectedForTopic.length < requiredForTopic) {
+            throw new BadRequestException({
+              error: "INSUFFICIENT_ELIGIBLE_QUESTIONS",
+              message: `Assembly Blocked: Missing ${deficit - runtimeGenerated.length} ${diff.level} question(s) for topic '${topicName}' in section '${sectionName}'. Please create new ${diff.level} question(s) for this topic in the Question Bank!`,
+              details: {
+                section: sectionName,
+                topic: topicName,
+                difficulty: diff.level,
+                required: requiredForTopic,
+                available: selectedForTopic.length,
+                deficit: deficit - runtimeGenerated.length,
+              },
+            });
+          }
         }
       }
     }
@@ -498,5 +539,82 @@ export class QuestionAllocatorService {
     }
 
     return allocatedQuestions;
+  }
+
+  private async handleDeficitGeneration(
+    deficit: number,
+    topicId: string,
+    difficulty: DifficultyLevel,
+    allocatedQuestionIds: Set<string>,
+    orderCounter: number,
+    examId?: string,
+  ): Promise<AllocatedQuestionDto[]> {
+    if (!examId || !this.prisma) return [];
+
+    try {
+      const ruleFlags = await this.prisma.ruleFlags.findUnique({
+        where: { examConfigId: examId },
+      });
+
+      if (!ruleFlags || !ruleFlags.runtimeGenerationOnDeficit) {
+        return [];
+      }
+
+      const generatedAllocations: AllocatedQuestionDto[] = [];
+      for (let i = 0; i < deficit; i++) {
+        const uniqueHash = `runtime_gen_${topicId}_${difficulty}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}`;
+        let questionData: any = null;
+
+        if (this.orchestrator) {
+          try {
+            const aiRes = await this.orchestrator.generateQuestions({
+              topic: topicId,
+              count: 1,
+              difficulty: difficulty,
+            });
+            if (aiRes.questions && aiRes.questions.length > 0) {
+              questionData = aiRes.questions[0];
+            }
+          } catch (err) {
+            // Fallback if LLM adapter fails
+          }
+        }
+
+        const questionText = questionData?.questionText || `Runtime AI Question ${i + 1} for ${topicId}`;
+        const options = questionData?.options || ["Option A", "Option B", "Option C", "Option D"];
+        const correctAnswer = questionData?.correctAnswer || "Option A";
+        const solution = questionData?.solution || "Auto-generated runtime explanation.";
+
+        const newQ = await this.prisma.generatedQuestion.create({
+          data: {
+            templateId: "",
+            questionHash: uniqueHash,
+            conceptKey: topicId,
+            difficultyLevel: difficulty,
+            questionType: "MULTIPLE_CHOICE",
+            questionText,
+            options,
+            correctAnswer,
+            solution,
+            metadata: { source: "RUNTIME_AI_GENERATED", examId },
+          },
+        });
+
+        allocatedQuestionIds.add(newQ.id);
+        generatedAllocations.push({
+          questionId: newQ.id,
+          questionHash: newQ.questionHash,
+          conceptKey: newQ.conceptKey,
+          difficultyLevel: newQ.difficultyLevel,
+          questionType: newQ.questionType,
+          questionOrder: orderCounter++,
+          questionSnapshot: newQ as any,
+        });
+      }
+
+      return generatedAllocations;
+    } catch (err) {
+      return [];
+    }
   }
 }

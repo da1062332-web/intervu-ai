@@ -24,6 +24,12 @@ export class UpdateRuleFlagsDto implements UpdateRuleFlags {
   @ApiProperty({ example: false })
   allowSectionNavigation!: boolean;
 
+  @ApiProperty({ example: false, required: false })
+  candidateNoRepeatEnabled?: boolean;
+
+  @ApiProperty({ example: false, required: false })
+  runtimeGenerationOnDeficit?: boolean;
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, UpdateRuleFlagsDto> {
