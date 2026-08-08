@@ -151,7 +151,9 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
         }),
       },
       topic: {
-        findFirst: vi.fn().mockResolvedValue({ id: "topic-1", code: "Concept 1" }),
+        findFirst: vi
+          .fn()
+          .mockResolvedValue({ id: "topic-1", code: "Concept 1" }),
       },
       sectionTopic: {
         findFirst: vi.fn().mockResolvedValue({ sectionId: "E2E_QA_SECTION" }),

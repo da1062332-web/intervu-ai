@@ -31,20 +31,18 @@ export function CandidateSettings() {
   return (
     <div className='flex flex-col md:flex-row gap-8 mt-6'>
       <Tabs defaultValue='preferences' className='flex-1 flex flex-col md:flex-row gap-8'>
-        
         {/* Sidebar Navigation */}
         <div className='w-full md:w-64 shrink-0'>
           <TabsList className='flex flex-col h-auto w-full bg-transparent p-0 space-y-1'>
-
-            <TabsTrigger 
-              value='preferences' 
+            <TabsTrigger
+              value='preferences'
               className='w-full justify-start px-4 py-3 rounded-xl data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors'
             >
               <Bell className='mr-3 size-4' />
               Preferences
             </TabsTrigger>
-            <TabsTrigger 
-              value='security' 
+            <TabsTrigger
+              value='security'
               className='w-full justify-start px-4 py-3 rounded-xl data-[state=active]:bg-red-500/10 data-[state=active]:text-red-600 data-[state=active]:shadow-none hover:bg-muted/50 transition-colors text-muted-foreground'
             >
               <ShieldAlert className='mr-3 size-4' />
@@ -55,21 +53,19 @@ export function CandidateSettings() {
 
         {/* Content Area */}
         <div className='flex-1'>
-          
           {/* PREFERENCES TAB */}
           <TabsContent value='preferences' className='m-0 animate-in fade-in-50 duration-500'>
             <Card className='border-border/50 shadow-sm'>
               <CardHeader>
                 <CardTitle className='text-xl'>Preferences</CardTitle>
-                <CardDescription>
-                  Manage your notifications and system preferences.
-                </CardDescription>
+                <CardDescription>Manage your notifications and system preferences.</CardDescription>
               </CardHeader>
               <CardContent className='space-y-6'>
-                
                 <div className='space-y-4'>
-                  <h3 className='font-medium text-sm text-muted-foreground uppercase tracking-wider'>Email Notifications</h3>
-                  
+                  <h3 className='font-medium text-sm text-muted-foreground uppercase tracking-wider'>
+                    Email Notifications
+                  </h3>
+
                   <div className='flex items-center justify-between space-x-2 rounded-lg border p-4 shadow-sm'>
                     <div className='space-y-0.5'>
                       <Label className='text-base'>Assessment Invites</Label>
@@ -100,7 +96,6 @@ export function CandidateSettings() {
                     <Switch />
                   </div>
                 </div>
-
               </CardContent>
             </Card>
           </TabsContent>
@@ -119,7 +114,9 @@ export function CandidateSettings() {
                   <div className='flex items-center justify-between'>
                     <div>
                       <p className='font-medium'>Password</p>
-                      <p className='text-sm text-muted-foreground'>Set a unique password to protect your account.</p>
+                      <p className='text-sm text-muted-foreground'>
+                        Set a unique password to protect your account.
+                      </p>
                     </div>
                     <Button variant='outline'>Change Password</Button>
                   </div>
@@ -127,16 +124,22 @@ export function CandidateSettings() {
                   <div className='flex items-center justify-between'>
                     <div>
                       <p className='font-medium'>Active Sessions</p>
-                      <p className='text-sm text-muted-foreground'>Sign out of all other devices.</p>
+                      <p className='text-sm text-muted-foreground'>
+                        Sign out of all other devices.
+                      </p>
                     </div>
-                    <Button variant='secondary' className='gap-2'><LogOut className='size-4' /> Sign out all</Button>
+                    <Button variant='secondary' className='gap-2'>
+                      <LogOut className='size-4' /> Sign out all
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className='border-red-500/20 bg-red-500/5 shadow-sm'>
                 <CardHeader>
-                  <CardTitle className='text-xl text-red-600 dark:text-red-400'>Danger Zone</CardTitle>
+                  <CardTitle className='text-xl text-red-600 dark:text-red-400'>
+                    Danger Zone
+                  </CardTitle>
                   <CardDescription>
                     Permanently delete your account and all associated data.
                   </CardDescription>
@@ -145,12 +148,13 @@ export function CandidateSettings() {
                   <p className='text-sm text-muted-foreground mb-4'>
                     Once you delete your account, there is no going back. Please be certain.
                   </p>
-                  <Button variant='destructive' className='w-full sm:w-auto'>Delete Account</Button>
+                  <Button variant='destructive' className='w-full sm:w-auto'>
+                    Delete Account
+                  </Button>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
-
         </div>
       </Tabs>
     </div>

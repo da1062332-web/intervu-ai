@@ -49,10 +49,12 @@ export class TestPackageService {
       this.logger.warn(
         `AssembledTest lookup failed for ${assemblyId}, falling back to TestInstance`,
       );
-      const testInstance = await this.testInstanceRepository.findById(assemblyId);
+      const testInstance =
+        await this.testInstanceRepository.findById(assemblyId);
       if (testInstance) {
         const totalQuestions = (testInstance.sections ?? []).reduce(
-          (sum: number, s: any) => sum + (s.questionCount || s.questions?.length || 0),
+          (sum: number, s: any) =>
+            sum + (s.questionCount || s.questions?.length || 0),
           0,
         );
         const totalDurationSeconds = (testInstance.sections ?? []).reduce(

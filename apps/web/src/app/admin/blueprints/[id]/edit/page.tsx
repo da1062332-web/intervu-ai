@@ -135,10 +135,15 @@ export default function EditBlueprintPage() {
 
   return (
     <div className='container mx-auto py-6 space-y-8 max-w-5xl animate-fade-in-up pb-8'>
-      <SectionHeader 
+      <SectionHeader
         title={`Edit Blueprint: ${blueprint.name}`}
         description='Modify your blueprint allocations.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Blueprints', href: '/admin/blueprints' }, { label: blueprint.name, href: `/admin/blueprints/${id}` }, { label: 'Edit' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Blueprints', href: '/admin/blueprints' },
+          { label: blueprint.name, href: `/admin/blueprints/${id}` },
+          { label: 'Edit' },
+        ]}
       />
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
@@ -169,7 +174,9 @@ export default function EditBlueprintPage() {
               <h2 className='text-xl font-semibold border-b pb-4'>3. Allocations</h2>
 
               {sections.map((section: BlueprintSectionPayload) => {
-                const sectionName = configSections?.find((s) => s.id === section.sectionId)?.name || section.sectionId;
+                const sectionName =
+                  configSections?.find((s) => s.id === section.sectionId)?.name ||
+                  section.sectionId;
 
                 return (
                   <div key={section.sectionId} className='space-y-6 pt-4'>

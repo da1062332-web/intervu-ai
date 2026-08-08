@@ -11,7 +11,12 @@ import { PrismaModule } from "../../prisma/prisma.module";
 import { QuestionBankModule } from "../question-bank/question-bank.module";
 
 @Module({
-  imports: [PrismaModule, ConceptMappingModule, AdminConfigModule, QuestionBankModule],
+  imports: [
+    PrismaModule,
+    ConceptMappingModule,
+    AdminConfigModule,
+    QuestionBankModule,
+  ],
   controllers: [TopicSectionMappingController, TopicWeightageController],
   providers: [
     TopicSectionMappingService,

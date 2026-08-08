@@ -161,8 +161,8 @@ export default function LoginPage() {
           </h2>
 
           <p className='text-lg xl:text-xl text-white/80 max-w-lg leading-relaxed font-medium mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both'>
-            Take interactive AI-powered assessments, participate in real-time interviews,
-            and demonstrate your problem-solving abilities with intelligent instant insights.
+            Take interactive AI-powered assessments, participate in real-time interviews, and
+            demonstrate your problem-solving abilities with intelligent instant insights.
           </p>
         </div>
       </div>

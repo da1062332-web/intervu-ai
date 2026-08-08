@@ -352,7 +352,10 @@ export class ResultQueryService {
         where: { id: attemptId },
       });
 
-      if (testInstance && (testInstance.status === "SUBMITTED" || testInstance.submittedAt)) {
+      if (
+        testInstance &&
+        (testInstance.status === "SUBMITTED" || testInstance.submittedAt)
+      ) {
         try {
           const executionResult = {
             executionId: testInstance.id,
@@ -366,11 +369,14 @@ export class ResultQueryService {
               isMarkedForReview: a.isMarkedForReview || false,
             })),
           };
-          const generated = await this.resultGenerator?.generateResult(executionResult as any);
+          const generated = await this.resultGenerator?.generateResult(
+            executionResult as any,
+          );
           if (generated) {
             const storage = new ResultStorageService(this.prisma);
             await storage.saveResult(generated, 1000);
-            result = await this.candidateResultRepo.findResultByAttemptId(attemptId);
+            result =
+              await this.candidateResultRepo.findResultByAttemptId(attemptId);
             analytics = await this.candidateResultRepo.findAnalytics(attemptId);
             evaluation = await this.prisma.evaluationResult.findFirst({
               where: { testInstanceId: attemptId },
@@ -382,7 +388,9 @@ export class ResultQueryService {
       }
 
       if (!result) {
-        throw new NotFoundException(`Result not found for attempt ${attemptId}`);
+        throw new NotFoundException(
+          `Result not found for attempt ${attemptId}`,
+        );
       }
     }
 

@@ -36,12 +36,17 @@ export class AdminDashboardController {
   constructor(private readonly adminDashboardService: AdminDashboardService) {}
 
   @Get("total-assessments")
-  @ApiOperation({ summary: "Get total number of assessments (published & unpublished)" })
+  @ApiOperation({
+    summary: "Get total number of assessments (published & unpublished)",
+  })
   @ApiOkResponse({ type: TotalAssessmentsDto })
-  @ApiUnauthorizedResponse({ description: "Invalid or missing JWT bearer token" })
+  @ApiUnauthorizedResponse({
+    description: "Invalid or missing JWT bearer token",
+  })
   @ApiForbiddenResponse({ description: "Forbidden - Requires ADMIN role" })
   async getTotalAssessments(): Promise<TotalAssessmentsDto> {
-    const totalAssessments = await this.adminDashboardService.getTotalAssessments();
+    const totalAssessments =
+      await this.adminDashboardService.getTotalAssessments();
     return { totalAssessments };
   }
 
@@ -49,7 +54,8 @@ export class AdminDashboardController {
   @ApiOperation({ summary: "Get number of active (published) assessments" })
   @ApiOkResponse({ type: ActiveAssessmentsDto })
   async getActiveAssessments(): Promise<ActiveAssessmentsDto> {
-    const activeAssessments = await this.adminDashboardService.getActiveAssessments();
+    const activeAssessments =
+      await this.adminDashboardService.getActiveAssessments();
     return { activeAssessments };
   }
 
@@ -57,12 +63,15 @@ export class AdminDashboardController {
   @ApiOperation({ summary: "Get total number of candidates" })
   @ApiOkResponse({ type: TotalCandidatesDto })
   async getTotalCandidates(): Promise<TotalCandidatesDto> {
-    const totalCandidates = await this.adminDashboardService.getTotalCandidates();
+    const totalCandidates =
+      await this.adminDashboardService.getTotalCandidates();
     return { totalCandidates };
   }
 
   @Get("completed-tests")
-  @ApiOperation({ summary: "Get total number of completed or submitted test attempts" })
+  @ApiOperation({
+    summary: "Get total number of completed or submitted test attempts",
+  })
   @ApiOkResponse({ type: CompletedTestsDto })
   async getCompletedTests(): Promise<CompletedTestsDto> {
     const completedTests = await this.adminDashboardService.getCompletedTests();
@@ -78,42 +87,54 @@ export class AdminDashboardController {
   }
 
   @Get("question-bank-count")
-  @ApiOperation({ summary: "Get total number of questions in the bank (excluding archived)" })
+  @ApiOperation({
+    summary: "Get total number of questions in the bank (excluding archived)",
+  })
   @ApiOkResponse({ type: QuestionBankCountDto })
   async getQuestionBankCount(): Promise<QuestionBankCountDto> {
-    const questionBankCount = await this.adminDashboardService.getQuestionBankCount();
+    const questionBankCount =
+      await this.adminDashboardService.getQuestionBankCount();
     return { questionBankCount };
   }
 
   @Get("recent-assessments")
-  @ApiOperation({ summary: "Get paginated list of recent assembled assessments" })
+  @ApiOperation({
+    summary: "Get paginated list of recent assembled assessments",
+  })
   @ApiOkResponse({ type: RecentAssessmentsResponseDto })
   async getRecentAssessments(
-    @Query() query: AdminPaginationQueryDto
+    @Query() query: AdminPaginationQueryDto,
   ): Promise<RecentAssessmentsResponseDto> {
     return this.adminDashboardService.getRecentAssessments(query);
   }
 
   @Get("recent-test-attempts")
-  @ApiOperation({ summary: "Get paginated list of recent candidate test attempts" })
+  @ApiOperation({
+    summary: "Get paginated list of recent candidate test attempts",
+  })
   @ApiOkResponse({ type: RecentTestAttemptsResponseDto })
   async getRecentTestAttempts(
-    @Query() query: AdminPaginationQueryDto
+    @Query() query: AdminPaginationQueryDto,
   ): Promise<RecentTestAttemptsResponseDto> {
     return this.adminDashboardService.getRecentTestAttempts(query);
   }
 
   @Get("recent-activities")
-  @ApiOperation({ summary: "Get paginated list of recent assessment activities" })
+  @ApiOperation({
+    summary: "Get paginated list of recent assessment activities",
+  })
   @ApiOkResponse({ type: RecentActivitiesResponseDto })
   async getRecentActivities(
-    @Query() query: AdminActivitiesQueryDto
+    @Query() query: AdminActivitiesQueryDto,
   ): Promise<RecentActivitiesResponseDto> {
     return this.adminDashboardService.getRecentActivities(query);
   }
 
   @Get("assessment-completion-rate")
-  @ApiOperation({ summary: "Get assessment completion rate (completed vs total eligible attempts)" })
+  @ApiOperation({
+    summary:
+      "Get assessment completion rate (completed vs total eligible attempts)",
+  })
   @ApiOkResponse({ type: AssessmentCompletionRateDto })
   async getAssessmentCompletionRate(): Promise<AssessmentCompletionRateDto> {
     return this.adminDashboardService.getAssessmentCompletionRate();

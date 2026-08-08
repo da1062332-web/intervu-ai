@@ -8,7 +8,7 @@ import {
   DM_Sans,
   Geist,
   JetBrains_Mono,
-} from "next/font/google";
+} from 'next/font/google';
 
 /* ============================================================================
    BODY FONT
@@ -23,7 +23,6 @@ import {
 //   weight: ["300", "400", "500", "600", "700", "800"],
 // });
 
-
 // // ⭐ Option 2 - Inter (Clean & Professional)
 // export const fontSans = Inter({
 //   subsets: ["latin"],
@@ -32,7 +31,6 @@ import {
 //   weight: ["300", "400", "500", "600", "700"],
 // });
 
-
 // // ⭐ Option 3 - Manrope (Premium SaaS)
 // export const fontSans = Manrope({
 //   subsets: ["latin"],
@@ -40,7 +38,6 @@ import {
 //   display: "swap",
 //   weight: ["300", "400", "500", "600", "700", "800"],
 // });
-
 
 // // ⭐ Option 4 - Outfit (Modern & Rounded)
 // export const fontSans = Outfit({
@@ -62,9 +59,9 @@ export const fontSans = DM_Sans({
 
 // ⭐ Option 6 - Geist (Vercel Style)
 export const fontSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
 });
 
 /* ============================================================================
@@ -72,10 +69,10 @@ export const fontSans = Geist({
 ============================================================================ */
 
 export const fontHeading = Outfit({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
+  subsets: ['latin'],
+  variable: '--font-heading',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
 });
 
 /* ============================================================================
@@ -83,7 +80,7 @@ export const fontHeading = Outfit({
 ============================================================================ */
 
 export const fontMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
 });

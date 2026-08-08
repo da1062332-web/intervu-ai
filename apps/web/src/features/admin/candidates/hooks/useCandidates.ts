@@ -9,7 +9,8 @@ export const candidateQueryKeys = {
   list: (params: Record<string, unknown>) => [...candidateQueryKeys.all, 'list', params] as const,
   details: (id: string) => [...candidateQueryKeys.all, 'details', id] as const,
   stats: (id: string) => [...candidateQueryKeys.all, 'stats', id] as const,
-  tests: (id: string, params: Record<string, unknown>) => [...candidateQueryKeys.all, 'tests', id, params] as const,
+  tests: (id: string, params: Record<string, unknown>) =>
+    [...candidateQueryKeys.all, 'tests', id, params] as const,
 };
 
 export function useCandidates(params: CandidateListParams = {}) {

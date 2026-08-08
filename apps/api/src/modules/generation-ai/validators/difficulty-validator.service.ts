@@ -31,7 +31,9 @@ export class DifficultyValidatorService {
       }
 
       // Check entity/variable count for reasoning questions
-      const entityMatches = Array.from(new Set(qText.match(/\b[A-Z0-9_]{1,4}\b/g) || []));
+      const entityMatches = Array.from(
+        new Set(qText.match(/\b[A-Z0-9_]{1,4}\b/g) || []),
+      );
       if (entityMatches.length < 4 && qText.length < 140) {
         return false;
       }

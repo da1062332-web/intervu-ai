@@ -77,7 +77,8 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
   const handleNext = () => {
     // Auto-assign blueprint if available or allow auto-generation on publish
-    const currentBlueprintId = selectedBlueprintId || (config as any)?.blueprint?.id || (config as any)?.blueprintId;
+    const currentBlueprintId =
+      selectedBlueprintId || (config as any)?.blueprint?.id || (config as any)?.blueprintId;
     if (activeTabId === 'blueprint' && !currentBlueprintId && false) {
       toast.error('Please select a blueprint before continuing.');
       return;
@@ -165,7 +166,8 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
     } catch (error: any) {
       const errorMsg = error.message || 'Failed to generate assembly';
       let displayMsg = errorMsg;
-      const uuidRegex = /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
+      const uuidRegex =
+        /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
       displayMsg = displayMsg.replace(uuidRegex, (match: string) => {
         const foundTopic = topics?.find((t: any) => t.id === match);
         return foundTopic ? `"${foundTopic.name}"` : match;
@@ -208,17 +210,23 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         <SectionHeader
           title={config.name}
           description='Follow the guided workflow to complete this exam configuration.'
-          breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations', href: '/admin/configurations' }, { label: config.name }]}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Configurations', href: '/admin/configurations' },
+            { label: config.name },
+          ]}
           className='!mb-0'
         />
 
         {/* Configuration Health Panel */}
         <Card className='p-5'>
           <div className='flex items-center justify-between mb-4 pb-4 border-b'>
-            <h3 className='font-semibold text-sm text-foreground uppercase tracking-wider'>Configuration Health</h3>
+            <h3 className='font-semibold text-sm text-foreground uppercase tracking-wider'>
+              Configuration Health
+            </h3>
             <div className='flex items-center gap-4'>
-               <Progress value={progressPercent} className="w-32 md:w-64 hidden sm:block h-2" />
-               <span className='text-sm font-medium text-primary'>{progressPercent}%</span>
+              <Progress value={progressPercent} className='w-32 md:w-64 hidden sm:block h-2' />
+              <span className='text-sm font-medium text-primary'>{progressPercent}%</span>
             </div>
           </div>
           <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-4 gap-x-4'>
@@ -229,13 +237,18 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
                 ) : (
                   <Circle className='w-4 h-4 text-muted-foreground shrink-0' />
                 )}
-                <span className={`truncate ${check.status === 'PASS' ? 'text-foreground font-medium' : 'text-muted-foreground'}`} title={check.message}>
+                <span
+                  className={`truncate ${check.status === 'PASS' ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+                  title={check.message}
+                >
                   {check.name}
                 </span>
               </div>
             ))}
             {healthChecks.length === 0 && (
-              <div className="text-muted-foreground text-sm col-span-full">Loading health checks...</div>
+              <div className='text-muted-foreground text-sm col-span-full'>
+                Loading health checks...
+              </div>
             )}
           </div>
         </Card>
@@ -243,7 +256,11 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
 
       {/* Top Workflow Navigation */}
       <div className='border-b border-gray-200 dark:border-gray-800 overflow-x-auto pb-1'>
-        <Tabs value={activeTabId} onValueChange={(id: string) => handleTabClick(WIZARD_TABS.findIndex((t) => t.id === id))} className='w-full'>
+        <Tabs
+          value={activeTabId}
+          onValueChange={(id: string) => handleTabClick(WIZARD_TABS.findIndex((t) => t.id === id))}
+          className='w-full'
+        >
           <TabsList className='flex w-full justify-start bg-transparent border-none h-auto p-0'>
             {WIZARD_TABS.map((tab, index) => (
               <TabsTrigger
@@ -251,7 +268,9 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
                 value={tab.id}
                 className={cn(
                   'rounded-none border-b-2 border-transparent px-1 py-4 text-sm font-medium transition-colors hover:text-primary data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent gap-2',
-                  index < activeTabIndex ? 'text-foreground hover:text-primary' : 'text-muted-foreground hover:text-foreground'
+                  index < activeTabIndex
+                    ? 'text-foreground hover:text-primary'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 <span className='flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]'>
@@ -271,7 +290,9 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         {activeTabId === 'concepts-templates' && <ConceptsAndTemplatesTab configId={configId} />}
         {activeTabId === 'difficulty' && <DifficultyDistributionTab configId={configId} />}
         {activeTabId === 'rules' && <RuleFlagsTab configId={configId} onNext={handleNext} />}
-        {activeTabId === 'hiring-evaluation' && <HiringEvaluationTab configId={configId} onNext={handleNext} />}
+        {activeTabId === 'hiring-evaluation' && (
+          <HiringEvaluationTab configId={configId} onNext={handleNext} />
+        )}
         {activeTabId === 'blueprint' && <BlueprintSelectionTab configId={configId} />}
         {activeTabId === 'readiness' && (
           <GenerationReadinessPanel
@@ -326,7 +347,12 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
                           ) : (
                             <span className='w-3 h-3 border rounded-sm' />
                           )}
-                          <span className={check.status === 'PASS' ? 'line-through text-muted-foreground' : ''} title={check.message}>
+                          <span
+                            className={
+                              check.status === 'PASS' ? 'line-through text-muted-foreground' : ''
+                            }
+                            title={check.message}
+                          >
                             {check.name}
                           </span>
                         </li>

@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -81,7 +87,8 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
           setEnabled(!!data.enabled);
           if (data.strategy) {
             setStrategy(data.strategy);
-            const isKnownPreset = data.strategy === 'TCS' || savedStrategies.some((s) => s.strategy === data.strategy);
+            const isKnownPreset =
+              data.strategy === 'TCS' || savedStrategies.some((s) => s.strategy === data.strategy);
             if (!isKnownPreset && data.strategy !== 'TCS') {
               setCustomStrategyName(data.strategy);
             }
@@ -91,9 +98,12 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
           if (data.primeThreshold !== undefined) setPrimeThreshold(data.primeThreshold);
           if (data.advancedDigitalMin !== undefined) setAdvancedDigitalMin(data.advancedDigitalMin);
           if (data.advancedPrimeMin !== undefined) setAdvancedPrimeMin(data.advancedPrimeMin);
-          if (data.codingTotalProblems !== undefined) setCodingTotalProblems(data.codingTotalProblems);
-          if (data.codingDigitalMinSolved !== undefined) setCodingDigitalMinSolved(data.codingDigitalMinSolved);
-          if (data.codingPrimeMinSolved !== undefined) setCodingPrimeMinSolved(data.codingPrimeMinSolved);
+          if (data.codingTotalProblems !== undefined)
+            setCodingTotalProblems(data.codingTotalProblems);
+          if (data.codingDigitalMinSolved !== undefined)
+            setCodingDigitalMinSolved(data.codingDigitalMinSolved);
+          if (data.codingPrimeMinSolved !== undefined)
+            setCodingPrimeMinSolved(data.codingPrimeMinSolved);
 
           if (Array.isArray(data.sectionMappings)) {
             data.sectionMappings.forEach((m: any) => {
@@ -138,9 +148,12 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
       if (preset.primeThreshold !== undefined) setPrimeThreshold(preset.primeThreshold);
       if (preset.advancedDigitalMin !== undefined) setAdvancedDigitalMin(preset.advancedDigitalMin);
       if (preset.advancedPrimeMin !== undefined) setAdvancedPrimeMin(preset.advancedPrimeMin);
-      if (preset.codingTotalProblems !== undefined) setCodingTotalProblems(preset.codingTotalProblems);
-      if (preset.codingDigitalMinSolved !== undefined) setCodingDigitalMinSolved(preset.codingDigitalMinSolved);
-      if (preset.codingPrimeMinSolved !== undefined) setCodingPrimeMinSolved(preset.codingPrimeMinSolved);
+      if (preset.codingTotalProblems !== undefined)
+        setCodingTotalProblems(preset.codingTotalProblems);
+      if (preset.codingDigitalMinSolved !== undefined)
+        setCodingDigitalMinSolved(preset.codingDigitalMinSolved);
+      if (preset.codingPrimeMinSolved !== undefined)
+        setCodingPrimeMinSolved(preset.codingPrimeMinSolved);
       if (preset.numericalMin !== undefined) setNumericalMin(preset.numericalMin);
       if (preset.verbalMin !== undefined) setVerbalMin(preset.verbalMin);
       if (preset.reasoningMin !== undefined) setReasoningMin(preset.reasoningMin);
@@ -199,7 +212,8 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
         });
       }
 
-      const effectiveStrategy = strategy === 'CUSTOM' ? (customStrategyName.trim() || 'CUSTOM') : strategy;
+      const effectiveStrategy =
+        strategy === 'CUSTOM' ? customStrategyName.trim() || 'CUSTOM' : strategy;
 
       const payload = {
         examConfigId: configId,
@@ -233,45 +247,45 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
 
   if (loading || isSectionsLoading) {
     return (
-      <div className="flex items-center justify-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='flex items-center justify-center h-48'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-2xl font-semibold tracking-tight">Hiring Evaluation Configuration</h3>
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+    <div className='max-w-4xl mx-auto space-y-8 py-4'>
+      <div className='flex items-center justify-between'>
+        <div className='space-y-1'>
+          <div className='flex items-center gap-2'>
+            <h3 className='text-2xl font-semibold tracking-tight'>
+              Hiring Evaluation Configuration
+            </h3>
+            <Badge variant='outline' className='bg-primary/5 text-primary border-primary/20'>
               Strategy Pattern
             </Badge>
           </div>
-          <p className="text-muted-foreground">
-            Configure candidate qualification thresholds (Ninja, Digital, Prime) using corporate evaluation strategies.
+          <p className='text-muted-foreground'>
+            Configure candidate qualification thresholds (Ninja, Digital, Prime) using corporate
+            evaluation strategies.
           </p>
         </div>
       </div>
 
       {/* Enable Toggle Card */}
-      <Card className="border shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="hiring-toggle" className="text-lg font-medium">
+      <Card className='border shadow-sm'>
+        <CardContent className='p-6'>
+          <div className='flex items-center justify-between'>
+            <div className='space-y-0.5'>
+              <Label htmlFor='hiring-toggle' className='text-lg font-medium'>
                 Enable Hiring Qualification Evaluation
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically classify candidates into NOT_QUALIFIED, NINJA, DIGITAL, or PRIME post-assessment.
+              <p className='text-sm text-muted-foreground'>
+                Automatically classify candidates into NOT_QUALIFIED, NINJA, DIGITAL, or PRIME
+                post-assessment.
               </p>
             </div>
-            <Switch
-              id="hiring-toggle"
-              checked={enabled}
-              onCheckedChange={setEnabled}
-            />
+            <Switch id='hiring-toggle' checked={enabled} onCheckedChange={setEnabled} />
           </div>
         </CardContent>
       </Card>
@@ -279,20 +293,22 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
       {enabled && (
         <>
           {/* Strategy Selection Card */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+          <Card className='border shadow-sm'>
+            <CardHeader className='pb-4'>
+              <CardTitle className='text-lg flex items-center gap-2'>
+                <Sparkles className='h-5 w-5 text-primary' />
                 Evaluation Strategy
               </CardTitle>
-              <CardDescription>Select the corporate qualification ruleset to execute for this assessment.</CardDescription>
+              <CardDescription>
+                Select the corporate qualification ruleset to execute for this assessment.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="strategy-select">Hiring Strategy</Label>
+            <CardContent className='space-y-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='strategy-select'>Hiring Strategy</Label>
                 <Select value={strategy} onValueChange={handleStrategySelect}>
-                  <SelectTrigger id="strategy-select" className="w-full">
-                    <SelectValue placeholder="Select strategy" />
+                  <SelectTrigger id='strategy-select' className='w-full'>
+                    <SelectValue placeholder='Select strategy' />
                   </SelectTrigger>
                   <SelectContent>
                     {savedStrategies.map((st) => (
@@ -300,22 +316,23 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
                         {st.name || st.strategy}
                       </SelectItem>
                     ))}
-                    <SelectItem value="CUSTOM">Custom Corporate Strategy</SelectItem>
+                    <SelectItem value='CUSTOM'>Custom Corporate Strategy</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {strategy === 'CUSTOM' && (
-                <div className="space-y-2 pt-2 border-t mt-3">
-                  <Label htmlFor="custom-strategy-name">Custom Strategy Name</Label>
+                <div className='space-y-2 pt-2 border-t mt-3'>
+                  <Label htmlFor='custom-strategy-name'>Custom Strategy Name</Label>
                   <Input
-                    id="custom-strategy-name"
-                    placeholder="Enter corporate strategy name (e.g., Wipro, Infosys, Accenture...)"
+                    id='custom-strategy-name'
+                    placeholder='Enter corporate strategy name (e.g., Wipro, Infosys, Accenture...)'
                     value={customStrategyName}
                     onChange={(e) => setCustomStrategyName(e.target.value)}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Give your custom strategy a name so you can reuse and identify it for future evaluation runs.
+                  <p className='text-xs text-muted-foreground'>
+                    Give your custom strategy a name so you can reuse and identify it for future
+                    evaluation runs.
                   </p>
                 </div>
               )}
@@ -323,22 +340,24 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
           </Card>
 
           {/* Section Mappings Card */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Layers className="h-5 w-5 text-primary" />
+          <Card className='border shadow-sm'>
+            <CardHeader className='pb-4'>
+              <CardTitle className='text-lg flex items-center gap-2'>
+                <Layers className='h-5 w-5 text-primary' />
                 Section Mappings & Sectional Cutoffs
               </CardTitle>
-              <CardDescription>Map existing assessment sections to Foundation, Advanced, and Coding categories.</CardDescription>
+              <CardDescription>
+                Map existing assessment sections to Foundation, Advanced, and Coding categories.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className='space-y-6'>
               {/* Numerical Ability */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-2">
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20'>
+                <div className='space-y-2'>
                   <Label>Numerical Ability Section</Label>
                   <Select value={numericalSection} onValueChange={setNumericalSection}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Section" />
+                      <SelectValue placeholder='Select Section' />
                     </SelectTrigger>
                     <SelectContent>
                       {sections.map((sec) => (
@@ -349,10 +368,10 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Minimum Correct Answers</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={numericalMin}
                     onChange={(e) => setNumericalMin(parseInt(e.target.value, 10) || 0)}
@@ -361,12 +380,12 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
               </div>
 
               {/* Verbal Ability */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-2">
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20'>
+                <div className='space-y-2'>
                   <Label>Verbal Ability Section</Label>
                   <Select value={verbalSection} onValueChange={setVerbalSection}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Section" />
+                      <SelectValue placeholder='Select Section' />
                     </SelectTrigger>
                     <SelectContent>
                       {sections.map((sec) => (
@@ -377,10 +396,10 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Minimum Correct Answers</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={verbalMin}
                     onChange={(e) => setVerbalMin(parseInt(e.target.value, 10) || 0)}
@@ -389,12 +408,12 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
               </div>
 
               {/* Reasoning Ability */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-2">
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20'>
+                <div className='space-y-2'>
                   <Label>Reasoning Ability Section</Label>
                   <Select value={reasoningSection} onValueChange={setReasoningSection}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Section" />
+                      <SelectValue placeholder='Select Section' />
                     </SelectTrigger>
                     <SelectContent>
                       {sections.map((sec) => (
@@ -405,10 +424,10 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Minimum Correct Answers</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={reasoningMin}
                     onChange={(e) => setReasoningMin(parseInt(e.target.value, 10) || 0)}
@@ -417,12 +436,12 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
               </div>
 
               {/* Advanced Aptitude */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-2">
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/20'>
+                <div className='space-y-2'>
                   <Label>Advanced Aptitude Section</Label>
                   <Select value={advancedSection} onValueChange={setAdvancedSection}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Section" />
+                      <SelectValue placeholder='Select Section' />
                     </SelectTrigger>
                     <SelectContent>
                       {sections.map((sec) => (
@@ -433,19 +452,19 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Digital Min Correct</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={advancedDigitalMin}
                     onChange={(e) => setAdvancedDigitalMin(parseInt(e.target.value, 10) || 0)}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Prime Min Correct</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={advancedPrimeMin}
                     onChange={(e) => setAdvancedPrimeMin(parseInt(e.target.value, 10) || 0)}
@@ -454,12 +473,12 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
               </div>
 
               {/* Coding Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/20">
-                <div className="space-y-2">
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/20'>
+                <div className='space-y-2'>
                   <Label>Coding Section</Label>
                   <Select value={codingSection} onValueChange={setCodingSection}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Section" />
+                      <SelectValue placeholder='Select Section' />
                     </SelectTrigger>
                     <SelectContent>
                       {sections.map((sec) => (
@@ -470,19 +489,19 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Digital Min Solved</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={codingDigitalMinSolved}
                     onChange={(e) => setCodingDigitalMinSolved(parseInt(e.target.value, 10) || 0)}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Prime Min Solved</Label>
                   <Input
-                    type="number"
+                    type='number'
                     min={0}
                     value={codingPrimeMinSolved}
                     onChange={(e) => setCodingPrimeMinSolved(parseInt(e.target.value, 10) || 0)}
@@ -493,46 +512,55 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
           </Card>
 
           {/* Foundation Thresholds Card */}
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" />
+          <Card className='border shadow-sm'>
+            <CardHeader className='pb-4'>
+              <CardTitle className='text-lg flex items-center gap-2'>
+                <Award className='h-5 w-5 text-primary' />
                 Foundation Thresholds & Tier Cutoffs
               </CardTitle>
-              <CardDescription>Configure total foundation correct answer thresholds for Ninja, Digital, and Prime tiers.</CardDescription>
+              <CardDescription>
+                Configure total foundation correct answer thresholds for Ninja, Digital, and Prime
+                tiers.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2 p-4 border rounded-lg bg-blue-50/30 border-blue-200">
-                <Label className="text-blue-700 font-semibold">Ninja Minimum Total</Label>
+            <CardContent className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+              <div className='space-y-2 p-4 border rounded-lg bg-blue-50/30 border-blue-200'>
+                <Label className='text-blue-700 font-semibold'>Ninja Minimum Total</Label>
                 <Input
-                  type="number"
+                  type='number'
                   min={0}
                   value={ninjaThreshold}
                   onChange={(e) => setNinjaThreshold(parseInt(e.target.value, 10) || 0)}
                 />
-                <p className="text-xs text-muted-foreground">Min total correct in Foundation sections for Ninja</p>
+                <p className='text-xs text-muted-foreground'>
+                  Min total correct in Foundation sections for Ninja
+                </p>
               </div>
 
-              <div className="space-y-2 p-4 border rounded-lg bg-purple-50/30 border-purple-200">
-                <Label className="text-purple-700 font-semibold">Digital Minimum Total</Label>
+              <div className='space-y-2 p-4 border rounded-lg bg-purple-50/30 border-purple-200'>
+                <Label className='text-purple-700 font-semibold'>Digital Minimum Total</Label>
                 <Input
-                  type="number"
+                  type='number'
                   min={0}
                   value={digitalThreshold}
                   onChange={(e) => setDigitalThreshold(parseInt(e.target.value, 10) || 0)}
                 />
-                <p className="text-xs text-muted-foreground">Min total correct in Foundation sections for Digital</p>
+                <p className='text-xs text-muted-foreground'>
+                  Min total correct in Foundation sections for Digital
+                </p>
               </div>
 
-              <div className="space-y-2 p-4 border rounded-lg bg-amber-50/30 border-amber-200">
-                <Label className="text-amber-700 font-semibold">Prime Minimum Total</Label>
+              <div className='space-y-2 p-4 border rounded-lg bg-amber-50/30 border-amber-200'>
+                <Label className='text-amber-700 font-semibold'>Prime Minimum Total</Label>
                 <Input
-                  type="number"
+                  type='number'
                   min={0}
                   value={primeThreshold}
                   onChange={(e) => setPrimeThreshold(parseInt(e.target.value, 10) || 0)}
                 />
-                <p className="text-xs text-muted-foreground">Min total correct in Foundation sections for Prime</p>
+                <p className='text-xs text-muted-foreground'>
+                  Min total correct in Foundation sections for Prime
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -540,8 +568,8 @@ export function HiringEvaluationTab({ configId, onNext }: HiringEvaluationTabPro
       )}
 
       {/* Save Button */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
-        <Button onClick={handleSave} disabled={saving} className="px-8">
+      <div className='flex justify-end gap-3 pt-4 border-t'>
+        <Button onClick={handleSave} disabled={saving} className='px-8'>
           {saving ? 'Saving...' : 'Save Hiring Configuration'}
         </Button>
       </div>

@@ -53,7 +53,11 @@ export const questionGenerationApi = {
     });
   },
 
-  batch: async (payload: { templateId: string; count: number; context?: any }): Promise<{ jobId: string; status: string }> => {
+  batch: async (payload: {
+    templateId: string;
+    count: number;
+    context?: any;
+  }): Promise<{ jobId: string; status: string }> => {
     return apiClient.request<{ jobId: string; status: string }>('/question-generation/batch', {
       method: 'POST',
       body: payload,

@@ -88,9 +88,16 @@ export class CandidateProgressService {
 
     // BUG-006 fix: Fetch topic/concept name maps ONCE (not per attempt)
     const [allTopics, allConcepts] = await Promise.all([
-      this.prisma.topic.findMany({ select: { id: true, name: true, code: true } }),
+      this.prisma.topic.findMany({
+        select: { id: true, name: true, code: true },
+      }),
       this.prisma.concept.findMany({
-        select: { id: true, name: true, code: true, topic: { select: { name: true } } },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          topic: { select: { name: true } },
+        },
       }),
     ]);
 
@@ -134,13 +141,17 @@ export class CandidateProgressService {
       const analytics = a.evaluationAnalytics as any;
       if (!analytics) continue;
 
-      const rawTopicAccuracy = analytics.topicAccuracy as
-        | Record<string, number>
-        | null;
+      const rawTopicAccuracy = analytics.topicAccuracy as Record<
+        string,
+        number
+      > | null;
       if (rawTopicAccuracy && typeof rawTopicAccuracy === "object") {
         for (const [topicKey, accuracy] of Object.entries(rawTopicAccuracy)) {
           const cleanName = topicNameMap.get(topicKey) || topicKey;
-          const isUuidOrId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanName.trim()) || /^c[a-z0-9]{24}$/i.test(cleanName.trim());
+          const isUuidOrId =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+              cleanName.trim(),
+            ) || /^c[a-z0-9]{24}$/i.test(cleanName.trim());
           if (isUuidOrId) continue;
 
           if (!topicAgg[cleanName]) topicAgg[cleanName] = { sum: 0, count: 0 };
@@ -149,9 +160,10 @@ export class CandidateProgressService {
         }
       }
 
-      const rawDifficultyAccuracy = analytics.difficultyAccuracy as
-        | Record<string, number>
-        | null;
+      const rawDifficultyAccuracy = analytics.difficultyAccuracy as Record<
+        string,
+        number
+      > | null;
       if (rawDifficultyAccuracy && typeof rawDifficultyAccuracy === "object") {
         for (const [diff, accuracy] of Object.entries(rawDifficultyAccuracy)) {
           const key = diff.toLowerCase() as keyof typeof diffAgg;
@@ -179,9 +191,7 @@ export class CandidateProgressService {
 
     const averageScore =
       scores.length > 0
-        ? Math.round(
-            scores.reduce((acc, s) => acc + s, 0) / scores.length,
-          )
+        ? Math.round(scores.reduce((acc, s) => acc + s, 0) / scores.length)
         : 0;
     const topPercentileScore = scores.length > 0 ? Math.max(...scores) : 0;
     // All fetched attempts are COMPLETED/SUBMITTED so completion rate is 100%

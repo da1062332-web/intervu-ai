@@ -27,7 +27,7 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
   const { data: assignedData, isLoading: isAssignedLoading } = useTemplatesByConcept(
     concept?.code || concept?.conceptCode || '',
     1,
-    100
+    100,
   );
 
   // Initialize selectedTemplateIds with assigned templates when they load
@@ -52,7 +52,7 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
 
   const handleToggleMapping = async (templateId: string, isMapped: boolean) => {
     if (!concept) return;
-    
+
     setProcessingId(templateId);
     const newMappedIds = Array.from(selectedTemplateIds);
     if (isMapped) {
@@ -140,27 +140,30 @@ export function TemplateMappingModal({ isOpen, onClose, concept }: TemplateMappi
                       </td>
                       <td className='px-4 py-3'>
                         {isSelected ? (
-                          <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                          <span className='inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20'>
                             Already Mapped
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                          <span className='inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10'>
                             Available
                           </span>
                         )}
                       </td>
                       <td className='px-4 py-3 text-right'>
-                        <Button 
-                          variant={isSelected ? "destructive" : "default"}
-                          size="sm"
+                        <Button
+                          variant={isSelected ? 'destructive' : 'default'}
+                          size='sm'
                           disabled={processingId === id}
                           onClick={() => handleToggleMapping(id, isSelected)}
                         >
-                          {processingId === id && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                          {processingId === id 
-                            ? (isSelected ? 'Unmapping...' : 'Mapping...') 
-                            : (isSelected ? 'Unmap' : 'Map')
-                          }
+                          {processingId === id && <Loader2 className='mr-2 h-3 w-3 animate-spin' />}
+                          {processingId === id
+                            ? isSelected
+                              ? 'Unmapping...'
+                              : 'Mapping...'
+                            : isSelected
+                              ? 'Unmap'
+                              : 'Map'}
                         </Button>
                       </td>
                     </tr>

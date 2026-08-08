@@ -22,7 +22,9 @@ export class PromptBuilderService {
 
   async buildAndExecute(context: GenerationContext): Promise<RawQuestion> {
     // 1. Obtain prompt template from registry — no switch, no if
-    const promptTemplate = this.promptTemplateRegistry.resolve(context.strategy);
+    const promptTemplate = this.promptTemplateRegistry.resolve(
+      context.strategy,
+    );
 
     // 2. Fill template with payload data
     const filledPrompt = this.fillTemplate(promptTemplate, context);
@@ -37,38 +39,32 @@ export class PromptBuilderService {
     if (context.strategy === "VARIABLE") {
       const payload = context.payload as VariablePayload;
       filled = filled
-        .replace(
-          "{{variables}}",
-          JSON.stringify(payload.variables, null, 2),
-        )
+        .replace("{{variables}}", JSON.stringify(payload.variables, null, 2))
         .replace("{{hydratedQuestion}}", payload.hydratedQuestion ?? "");
     } else if (context.strategy === "DATASET") {
       const payload = context.payload as DatasetPayload;
-      const variables = (context.metadata?.variables as Record<string, any>) || {};
+      const variables =
+        (context.metadata?.variables as Record<string, any>) || {};
       filled = filled
         .replace("{{passage}}", payload.passage)
         .replace("{{topic}}", payload.datasetMetadata.topic)
         .replace("{{difficulty}}", payload.datasetMetadata.difficulty);
-      filled = this.interpolate(filled, { ...variables, passage: payload.passage });
+      filled = this.interpolate(filled, {
+        ...variables,
+        passage: payload.passage,
+      });
     } else if (context.strategy === "HYBRID") {
       const payload = context.payload as HybridPayload;
       const graph = payload.relationshipGraph;
       filled = filled
-        .replace(
-          "{{entities}}",
-          JSON.stringify(graph.entities ?? [], null, 2),
-        )
+        .replace("{{entities}}", JSON.stringify(graph.entities ?? [], null, 2))
         .replace(
           "{{relationships}}",
           JSON.stringify(graph.edges ?? [], null, 2),
         )
         .replace(
           "{{rules}}",
-          JSON.stringify(
-            payload.scenario.entitySchema.rules ?? {},
-            null,
-            2,
-          ),
+          JSON.stringify(payload.scenario.entitySchema.rules ?? {}, null, 2),
         );
     }
 
@@ -92,12 +88,14 @@ export class PromptBuilderService {
     if (!styleProfile) return "";
 
     const language = styleProfile.languageStyle?.language || "English";
-    const sentenceLength = styleProfile.languageStyle?.sentenceLength || "medium";
+    const sentenceLength =
+      styleProfile.languageStyle?.sentenceLength || "medium";
     const vocabularyLevel =
       styleProfile.languageStyle?.vocabularyLevel || "intermediate";
     const grammarStyle = styleProfile.languageStyle?.grammarStyle || "formal";
 
-    const preferredContexts = styleProfile.contextStyle?.preferredContexts || [];
+    const preferredContexts =
+      styleProfile.contextStyle?.preferredContexts || [];
     const contextText =
       preferredContexts.length > 0
         ? `- Preferred Context: Prefer real-world contexts such as: ${preferredContexts.join(", ")}.`
@@ -184,7 +182,7 @@ ${aiInstructionsText}
       const a = Number(payload.variables.a ?? 0);
       const b = Number(payload.variables.b ?? 0);
       const ans = Math.round((a / 100) * b);
-      
+
       return {
         questionText: payload.hydratedQuestion ?? "",
         options: [
@@ -220,7 +218,8 @@ ${aiInstructionsText}
     if (!text) return "";
     let result = text;
     for (const [key, value] of Object.entries(variables)) {
-      const strValue = typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
+      const strValue =
+        typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
       result = result.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), strValue);
     }
     return result;

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { TopicRegistryLoader } from "../../concept-mapping/services/topic-registry-loader.service";
 import { TemplateRepository } from "../../template-library/repositories/template.repository";
@@ -78,7 +82,10 @@ export class BlueprintService {
       throw new BadRequestException("Selected Style Profile is inactive.");
     }
 
-    if ((!sections || (Array.isArray(sections) && sections.length === 0)) && configId) {
+    if (
+      (!sections || (Array.isArray(sections) && sections.length === 0)) &&
+      configId
+    ) {
       const existingConfig = await this.prisma.examConfig.findUnique({
         where: { id: configId },
         include: {
@@ -95,7 +102,8 @@ export class BlueprintService {
         const diffAlloc = existingConfig.difficultyDistribution
           ? {
               easy: existingConfig.difficultyDistribution.easyPercentage ?? 0,
-              medium: existingConfig.difficultyDistribution.mediumPercentage ?? 0,
+              medium:
+                existingConfig.difficultyDistribution.mediumPercentage ?? 0,
               hard: existingConfig.difficultyDistribution.hardPercentage ?? 0,
             }
           : { easy: 0, medium: 0, hard: 0 };
@@ -148,8 +156,16 @@ export class BlueprintService {
     return this.mapBlueprintToDto(created);
   }
 
-  public async syncBlueprintSectionsToConfig(configId: string, blueprintSections: any[]) {
-    if (!configId || !Array.isArray(blueprintSections) || blueprintSections.length === 0) return;
+  public async syncBlueprintSectionsToConfig(
+    configId: string,
+    blueprintSections: any[],
+  ) {
+    if (
+      !configId ||
+      !Array.isArray(blueprintSections) ||
+      blueprintSections.length === 0
+    )
+      return;
 
     try {
       const existingConfig = await this.prisma.examConfig.findUnique({
@@ -197,7 +213,11 @@ export class BlueprintService {
                   id: newSt.id,
                   sectionId: examSec.id,
                   topicId: tId,
-                  weightagePercentage: ta.percentage ?? ta.weightagePercentage ?? ta.weightage ?? 50,
+                  weightagePercentage:
+                    ta.percentage ??
+                    ta.weightagePercentage ??
+                    ta.weightage ??
+                    50,
                 },
               });
             }
@@ -205,7 +225,10 @@ export class BlueprintService {
         }
       });
     } catch (err) {
-      console.warn("Failed to sync blueprint sections to ExamSection table:", err);
+      console.warn(
+        "Failed to sync blueprint sections to ExamSection table:",
+        err,
+      );
     }
   }
 
@@ -235,7 +258,9 @@ export class BlueprintService {
     }
 
     const styleProfileId =
-      dto.styleProfileId !== undefined ? dto.styleProfileId : existing.styleProfileId;
+      dto.styleProfileId !== undefined
+        ? dto.styleProfileId
+        : existing.styleProfileId;
     const sections =
       dto.sections !== undefined ? dto.sections : existing.sections;
 
@@ -292,7 +317,9 @@ export class BlueprintService {
   mapBlueprintToDto(blueprint: BlueprintWithRelations) {
     if (!blueprint) return null;
     const rawSections = blueprint.sections;
-    const sections = Array.isArray(rawSections) ? (rawSections as unknown as BlueprintSection[]) : [];
+    const sections = Array.isArray(rawSections)
+      ? (rawSections as unknown as BlueprintSection[])
+      : [];
     const topics: Array<{
       topicName: string;
       sectionName: string;
@@ -380,7 +407,9 @@ export class BlueprintService {
     }
 
     const rawSections = blueprint.sections;
-    const sections = Array.isArray(rawSections) ? (rawSections as unknown as BlueprintSection[]) : [];
+    const sections = Array.isArray(rawSections)
+      ? (rawSections as unknown as BlueprintSection[])
+      : [];
     if (sections.length === 0) {
       errors.push("Blueprint must contain at least one section");
       return { valid: errors.length === 0, errors };
@@ -468,7 +497,9 @@ export class BlueprintService {
               const availableDifficulties = new Set<string>();
 
               templates
-                .filter((t) => t.isActive && topic.concepts.includes(t.conceptKey))
+                .filter(
+                  (t) => t.isActive && topic.concepts.includes(t.conceptKey),
+                )
                 .forEach((t) => availableDifficulties.add(t.difficultyLevel));
 
               const questions = await this.prisma.question.findMany({
@@ -478,11 +509,14 @@ export class BlueprintService {
                 },
                 select: { difficulty: true },
               });
-              questions.forEach((q: any) => availableDifficulties.add(q.difficulty));
+              questions.forEach((q: any) =>
+                availableDifficulties.add(q.difficulty),
+              );
 
-              const suggestion = availableDifficulties.size > 0
-                ? `Please assign weight to: [${Array.from(availableDifficulties).join(", ")}].`
-                : "Please create active templates or manual questions for this topic first.";
+              const suggestion =
+                availableDifficulties.size > 0
+                  ? `Please assign weight to: [${Array.from(availableDifficulties).join(", ")}].`
+                  : "Please create active templates or manual questions for this topic first.";
 
               errors.push(
                 `Topic "${topic.topic}" does not have any active "${level}" templates or manual questions. ${suggestion}`,
@@ -506,7 +540,9 @@ export class BlueprintService {
   async preview(id: string) {
     const blueprint = await this.findOne(id);
     const rawSections = blueprint.sections;
-    const sections = Array.isArray(rawSections) ? (rawSections as unknown as BlueprintSection[]) : [];
+    const sections = Array.isArray(rawSections)
+      ? (rawSections as unknown as BlueprintSection[])
+      : [];
 
     const previewSections = sections.map((section: BlueprintSection) => {
       const qCount = section.questionCount || 0;
@@ -558,7 +594,9 @@ export class BlueprintService {
       configId: blueprint.configId,
       styleProfileId: blueprint.styleProfileId,
       status: (blueprint as any).status || "ACTIVE",
-      isActive: (blueprint as any).status === "ACTIVE" || (blueprint as any).active !== false,
+      isActive:
+        (blueprint as any).status === "ACTIVE" ||
+        (blueprint as any).active !== false,
       sections: previewSections,
       createdAt: (blueprint as any).createdAt || new Date().toISOString(),
       updatedAt: (blueprint as any).updatedAt || new Date().toISOString(),

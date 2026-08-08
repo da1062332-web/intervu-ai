@@ -13,12 +13,16 @@ async function run() {
   });
 
   if (!concept) {
-    console.error("❌ No active concepts found in the database. Please create one first.");
+    console.error(
+      "❌ No active concepts found in the database. Please create one first.",
+    );
     await prisma.$disconnect();
     return;
   }
 
-  console.log(`📋 Using real DB Concept: "${concept.name}" (Code: ${concept.code}, Topic ID: ${concept.topicId})`);
+  console.log(
+    `📋 Using real DB Concept: "${concept.name}" (Code: ${concept.code}, Topic ID: ${concept.topicId})`,
+  );
 
   const blueprintService = new BlueprintService(
     prisma,
@@ -30,7 +34,11 @@ async function run() {
   // Inject prisma
   (blueprintService as any).prisma = prisma;
   (blueprintService as any).prisma.styleProfile = {
-    findUnique: async () => ({ id: "style-profile-id", active: true, status: "ACTIVE" }),
+    findUnique: async () => ({
+      id: "style-profile-id",
+      active: true,
+      status: "ACTIVE",
+    }),
   } as any;
 
   (blueprintService as any).topicRegistryLoader = {
@@ -80,14 +88,21 @@ async function run() {
     },
   };
 
-  const result1 = await blueprintService.validateBlueprintObject(mockBlueprintBase as any);
-  console.log("Validation Valid?", result1.valid ? "✅ YES (Pass)" : "❌ NO (Fail)");
+  const result1 = await blueprintService.validateBlueprintObject(
+    mockBlueprintBase as any,
+  );
+  console.log(
+    "Validation Valid?",
+    result1.valid ? "✅ YES (Pass)" : "❌ NO (Fail)",
+  );
   if (!result1.valid) console.log("Errors:", result1.errors);
 
   // --------------------------------------------------------------------------------
   // Scenario 2: No Templates, but Active Manual Question Exists (EASY)
   // --------------------------------------------------------------------------------
-  console.log("\n--- Scenario 2: No Templates, but Active Manual Question Exists ---");
+  console.log(
+    "\n--- Scenario 2: No Templates, but Active Manual Question Exists ---",
+  );
 
   // Override templates to return empty array
   (blueprintService as any).templateRepository.findAll = async () => [];
@@ -106,22 +121,34 @@ async function run() {
     },
   });
 
-  const result2 = await blueprintService.validateBlueprintObject(mockBlueprintBase as any);
-  console.log("Validation Valid?", result2.valid ? "✅ YES (Pass)" : "❌ NO (Fail)");
+  const result2 = await blueprintService.validateBlueprintObject(
+    mockBlueprintBase as any,
+  );
+  console.log(
+    "Validation Valid?",
+    result2.valid ? "✅ YES (Pass)" : "❌ NO (Fail)",
+  );
   if (!result2.valid) console.log("Errors:", result2.errors);
 
   // --------------------------------------------------------------------------------
   // Scenario 3: Neither Templates nor Manual Questions Exist (EASY)
   // --------------------------------------------------------------------------------
-  console.log("\n--- Scenario 3: Neither Templates nor Manual Questions Exist ---");
+  console.log(
+    "\n--- Scenario 3: Neither Templates nor Manual Questions Exist ---",
+  );
 
   // Delete seeded question
   await prisma.question.delete({
     where: { id: testQuestion.id },
   });
 
-  const result3 = await blueprintService.validateBlueprintObject(mockBlueprintBase as any);
-  console.log("Validation Valid?", !result3.valid ? "✅ YES (Correctly Failed)" : "❌ NO (Should have failed)");
+  const result3 = await blueprintService.validateBlueprintObject(
+    mockBlueprintBase as any,
+  );
+  console.log(
+    "Validation Valid?",
+    !result3.valid ? "✅ YES (Correctly Failed)" : "❌ NO (Should have failed)",
+  );
   if (!result3.valid) console.log("Returned Error Message:", result3.errors[0]);
 
   console.log("\n🎉 ALL SCENARIO CHECKS PASSED SUCCESSFULLY!");

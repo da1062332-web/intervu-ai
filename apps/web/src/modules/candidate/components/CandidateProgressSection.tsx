@@ -28,10 +28,30 @@ const DifficultyAnalysis = dynamic(
 
 const ProgressCards = React.memo(({ overview }: { overview: any }) => {
   const cards = [
-    { label: 'Average Score', value: `${overview?.averageScore ?? 0}/100`, icon: Target, bg: 'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-200/50' },
-    { label: 'Completion Rate', value: `${overview?.completionRate ?? 0}%`, icon: Award, bg: 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/50' },
-    { label: 'Top Percentile', value: `${overview?.topPercentileScore ?? 0}/100`, icon: TrendingUp, bg: 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-200/50' },
-    { label: 'Evaluated Tests', value: `${overview?.totalAssessments ?? 0}`, icon: Brain, bg: 'bg-[#f3e8ff] text-[#9333ea] dark:bg-purple-950/50 dark:text-purple-400 border-purple-200/50' },
+    {
+      label: 'Average Score',
+      value: `${overview?.averageScore ?? 0}/100`,
+      icon: Target,
+      bg: 'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-200/50',
+    },
+    {
+      label: 'Completion Rate',
+      value: `${overview?.completionRate ?? 0}%`,
+      icon: Award,
+      bg: 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/50',
+    },
+    {
+      label: 'Top Percentile',
+      value: `${overview?.topPercentileScore ?? 0}/100`,
+      icon: TrendingUp,
+      bg: 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-200/50',
+    },
+    {
+      label: 'Evaluated Tests',
+      value: `${overview?.totalAssessments ?? 0}`,
+      icon: Brain,
+      bg: 'bg-[#f3e8ff] text-[#9333ea] dark:bg-purple-950/50 dark:text-purple-400 border-purple-200/50',
+    },
   ];
 
   return (
@@ -39,13 +59,22 @@ const ProgressCards = React.memo(({ overview }: { overview: any }) => {
       {cards.map((c, idx) => {
         const Icon = c.icon;
         return (
-          <Card key={idx} className='rounded-[24px] border border-border/60 bg-card p-6 shadow-2xs hover:shadow-md transition-all'>
+          <Card
+            key={idx}
+            className='rounded-[24px] border border-border/60 bg-card p-6 shadow-2xs hover:shadow-md transition-all'
+          >
             <CardContent className='p-0 flex items-center justify-between gap-4'>
               <div>
-                <p className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>{c.label}</p>
-                <h3 className='text-3xl font-extrabold mt-1.5 text-foreground tracking-tight'>{c.value}</h3>
+                <p className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
+                  {c.label}
+                </p>
+                <h3 className='text-3xl font-extrabold mt-1.5 text-foreground tracking-tight'>
+                  {c.value}
+                </h3>
               </div>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-2xs ${c.bg}`}>
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-2xs ${c.bg}`}
+              >
                 <Icon className='size-5' />
               </div>
             </CardContent>
@@ -72,7 +101,13 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
           <Skeleton className='h-7 w-56' />
           <Skeleton className='h-5 w-24' />
         </div>
-        <div className={compact ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'grid grid-cols-1 lg:grid-cols-3 gap-6'}>
+        <div
+          className={
+            compact
+              ? 'grid grid-cols-1 md:grid-cols-2 gap-6'
+              : 'grid grid-cols-1 lg:grid-cols-3 gap-6'
+          }
+        >
           <Skeleton className='h-[350px] w-full rounded-[28px] border border-border/40' />
           <Skeleton className='h-[350px] w-full rounded-[28px] border border-border/40' />
         </div>
@@ -90,7 +125,10 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
         <SectionHeader
           title='Progress Analytics & Mastery'
           description='Comprehensive breakdown of your ability growth, scoring trajectory, and technical proficiency across evaluation categories.'
-          breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Progress Analytics' }]}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/candidate/dashboard' },
+            { label: 'Progress Analytics' },
+          ]}
         />
       )}
 
@@ -105,7 +143,7 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
             </p>
           </div>
           <button
-            type="button"
+            type='button'
             className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
             onClick={() => router.push('/candidate/progress')}
           >
@@ -116,12 +154,22 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
 
       {!compact && <ProgressCards overview={data.overview} />}
 
-      <div className={compact ? 'grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch' : 'grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch'}>
-        <Card className={`${compact ? '' : 'lg:col-span-2'} rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full`}>
+      <div
+        className={
+          compact
+            ? 'grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch'
+            : 'grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch'
+        }
+      >
+        <Card
+          className={`${compact ? '' : 'lg:col-span-2'} rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full`}
+        >
           <div>
             <div className='flex items-center justify-between gap-3 pb-4 mb-3 border-b border-border/40'>
               <div>
-                <h4 className='text-lg font-bold text-foreground tracking-tight'>Score Timeline Trend</h4>
+                <h4 className='text-lg font-bold text-foreground tracking-tight'>
+                  Score Timeline Trend
+                </h4>
                 <p className='text-xs text-muted-foreground font-normal mt-0.5'>
                   Score progression across all evaluation sessions
                 </p>
@@ -140,7 +188,9 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
           <div>
             <div className='flex items-center justify-between gap-3 pb-4 mb-3 border-b border-border/40'>
               <div>
-                <h4 className='text-lg font-bold text-foreground tracking-tight'>Domain Competency</h4>
+                <h4 className='text-lg font-bold text-foreground tracking-tight'>
+                  Domain Competency
+                </h4>
                 <p className='text-xs text-muted-foreground font-normal mt-0.5'>
                   Proficiency level by technical subject area
                 </p>
@@ -160,7 +210,9 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
             <Card className='lg:col-span-2 rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all'>
               <div className='flex items-center justify-between gap-3 pb-4 mb-3 border-b border-border/40'>
                 <div>
-                  <h4 className='text-lg font-bold text-foreground tracking-tight'>Difficulty Breakdown</h4>
+                  <h4 className='text-lg font-bold text-foreground tracking-tight'>
+                    Difficulty Breakdown
+                  </h4>
                   <p className='text-xs text-muted-foreground font-normal mt-0.5'>
                     Success consistency categorized by problem complexity tiers
                   </p>
@@ -178,7 +230,9 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
               <div>
                 <div className='flex items-center justify-between gap-3 pb-4 mb-3 border-b border-border/40'>
                   <div>
-                    <h4 className='text-lg font-bold text-foreground tracking-tight'>Cohort Comparison</h4>
+                    <h4 className='text-lg font-bold text-foreground tracking-tight'>
+                      Cohort Comparison
+                    </h4>
                     <p className='text-xs text-muted-foreground font-normal mt-0.5'>
                       Your standing relative to the broader applicant talent pool
                     </p>

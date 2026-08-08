@@ -108,10 +108,7 @@ export const useScratchPad = create<ScratchPadState>((set, get) => ({
           if (parsedPos.viewport) {
             viewport = parsedPos.viewport;
             // Check monitor safety: if monitor changed significantly or window is out of bounds, reset position
-            if (
-              window.innerWidth < parsedPos.x + 40 ||
-              window.innerHeight < parsedPos.y + 40
-            ) {
+            if (window.innerWidth < parsedPos.x + 40 || window.innerHeight < parsedPos.y + 40) {
               position = null;
               viewport = null;
             }
@@ -157,16 +154,14 @@ export const useScratchPad = create<ScratchPadState>((set, get) => ({
     // 500ms debounce auto-save
     if (textSaveTimeout) clearTimeout(textSaveTimeout);
     textSaveTimeout = setTimeout(() => {
-      safeSetItem(
-        `candidate:${assessmentId}:scratchpad:text`,
-        newText,
-        () => {
-          if (!get().hasQuotaFailed) {
-            set({ hasQuotaFailed: true });
-            toast.error('Unable to save locally. Your notes will remain until this session ends.', { id: 'scratchpad-quota' });
-          }
+      safeSetItem(`candidate:${assessmentId}:scratchpad:text`, newText, () => {
+        if (!get().hasQuotaFailed) {
+          set({ hasQuotaFailed: true });
+          toast.error('Unable to save locally. Your notes will remain until this session ends.', {
+            id: 'scratchpad-quota',
+          });
         }
-      );
+      });
     }, 500);
   },
 
@@ -185,9 +180,11 @@ export const useScratchPad = create<ScratchPadState>((set, get) => ({
         () => {
           if (!get().hasQuotaFailed) {
             set({ hasQuotaFailed: true });
-            toast.error('Unable to save locally. Your notes will remain until this session ends.', { id: 'scratchpad-quota' });
+            toast.error('Unable to save locally. Your notes will remain until this session ends.', {
+              id: 'scratchpad-quota',
+            });
           }
-        }
+        },
       );
     }
   },
@@ -210,7 +207,7 @@ export const useScratchPad = create<ScratchPadState>((set, get) => ({
       safeSetItem(
         `candidate:${assessmentId}:scratchpad:canvas`,
         JSON.stringify(canvasHistory.slice(0, nextIndex + 1)),
-        () => {}
+        () => {},
       );
     }
   },
@@ -224,7 +221,7 @@ export const useScratchPad = create<ScratchPadState>((set, get) => ({
       safeSetItem(
         `candidate:${assessmentId}:scratchpad:canvas`,
         JSON.stringify(canvasHistory.slice(0, nextIndex + 1)),
-        () => {}
+        () => {},
       );
     }
   },
@@ -256,7 +253,13 @@ export const useScratchPad = create<ScratchPadState>((set, get) => ({
     set({ position: pos, viewport: vp || null });
     const { assessmentId } = get();
     if (assessmentId && typeof window !== 'undefined') {
-      const payload = JSON.stringify({ x: pos.x, y: pos.y, width: pos.width, height: pos.height, viewport: vp });
+      const payload = JSON.stringify({
+        x: pos.x,
+        y: pos.y,
+        width: pos.width,
+        height: pos.height,
+        viewport: vp,
+      });
       safeSetItem(`candidate:${assessmentId}:scratchpad:position`, payload, () => {});
     }
   },

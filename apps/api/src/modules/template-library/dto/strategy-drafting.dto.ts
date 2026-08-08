@@ -3,7 +3,8 @@ import { IsString, IsNotEmpty, MaxLength } from "class-validator";
 
 export class DraftStrategyRequestDto {
   @ApiProperty({
-    description: "Plain-English description of the variable and constraint logic",
+    description:
+      "Plain-English description of the variable and constraint logic",
     example:
       "Create a question where price is between 100 and 500, quantity is an integer, and total cost equals price times quantity.",
     maxLength: 2000,

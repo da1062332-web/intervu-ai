@@ -16,8 +16,8 @@ export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => 
     data.percentage !== undefined && data.percentage !== null
       ? Math.round(data.percentage * 10) / 10
       : maxMarks > 0
-      ? Math.round((score / maxMarks) * 1000) / 10
-      : 0;
+        ? Math.round((score / maxMarks) * 1000) / 10
+        : 0;
 
   const percentile =
     data.percentile ?? resultDetails?.percentile ?? Math.min(100, Math.round(percentage * 10) / 10);
@@ -42,8 +42,8 @@ export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => 
         ? `${allowedHours}h ${allowedRemMinutes}m`
         : `${allowedRemMinutes}m`
       : resultDetails?.testConfig?.durationSeconds
-      ? `${Math.round(resultDetails.testConfig.durationSeconds / 60)}m`
-      : 'N/A';
+        ? `${Math.round(resultDetails.testConfig.durationSeconds / 60)}m`
+        : 'N/A';
 
   return (
     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
@@ -106,7 +106,9 @@ export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => 
           </div>
           <div>
             <div className='flex items-baseline gap-1.5'>
-              <span className='text-3xl font-extrabold text-foreground tracking-tight'>#{rank}</span>
+              <span className='text-3xl font-extrabold text-foreground tracking-tight'>
+                #{rank}
+              </span>
               <span className='text-sm font-semibold text-muted-foreground'>
                 of {totalCandidates.toLocaleString()}
               </span>
@@ -115,7 +117,8 @@ export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => 
           <p className='text-xs text-muted-foreground font-medium pt-1'>
             Total Cohort Size:{' '}
             <strong className='text-foreground font-bold'>
-              {totalCandidates.toLocaleString()} {totalCandidates === 1 ? 'candidate' : 'candidates'}
+              {totalCandidates.toLocaleString()}{' '}
+              {totalCandidates === 1 ? 'candidate' : 'candidates'}
             </strong>
           </p>
         </CardContent>

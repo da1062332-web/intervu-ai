@@ -17,7 +17,9 @@ import { PrismaService } from "../../../prisma/prisma.service";
  */
 @Injectable()
 export class ZombieAssessmentReconcilerService {
-  private readonly logger = new AppLogger({ name: "ZombieAssessmentReconciler" });
+  private readonly logger = new AppLogger({
+    name: "ZombieAssessmentReconciler",
+  });
 
   constructor(private readonly prisma: PrismaService) {}
 

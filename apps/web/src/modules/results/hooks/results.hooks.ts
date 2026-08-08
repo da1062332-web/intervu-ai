@@ -15,8 +15,7 @@ export const resultKeys = {
     [...resultKeys.all, 'recommendations', attemptId] as const,
   performanceDashboard: (attemptId: string) =>
     [...resultKeys.all, 'performanceDashboard', attemptId] as const,
-  aiAnalysis: (attemptId: string) =>
-    [...resultKeys.all, 'aiAnalysis', attemptId] as const,
+  aiAnalysis: (attemptId: string) => [...resultKeys.all, 'aiAnalysis', attemptId] as const,
 };
 
 export function useDashboardWidgets() {

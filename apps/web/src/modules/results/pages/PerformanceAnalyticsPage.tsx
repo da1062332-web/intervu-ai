@@ -39,13 +39,16 @@ export const PerformanceAnalyticsPage = () => {
   return (
     <div className='container mx-auto p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in-up'>
       <div className='flex items-center gap-4'>
-        <Button variant='ghost' size='icon' onClick={() => navigate(`${baseRoute}/${attemptId}`)} title="Back to attempt scorecard">
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={() => navigate(`${baseRoute}/${attemptId}`)}
+          title='Back to attempt scorecard'
+        >
           <ChevronLeft className='w-5 h-5' />
         </Button>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
-            Performance Analytics
-          </h1>
+          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Performance Analytics</h1>
           <p className='text-sm text-gray-500'>Detailed breakdown of your assessment performance</p>
         </div>
       </div>
@@ -92,7 +95,7 @@ export const PerformanceAnalyticsPage = () => {
             {Object.keys(analytics.topicAccuracy || {}).length > 0 ? (
               <RadarChart data={analytics.topicAccuracy as Record<string, number>} />
             ) : (
-              <p className="text-gray-500 text-sm">Not enough topic data.</p>
+              <p className='text-gray-500 text-sm'>Not enough topic data.</p>
             )}
           </CardContent>
         </Card>
@@ -105,7 +108,7 @@ export const PerformanceAnalyticsPage = () => {
             {Object.keys(analytics.sectionAccuracy || {}).length > 0 ? (
               <SectionAccuracyChart data={analytics.sectionAccuracy as Record<string, number>} />
             ) : (
-              <p className="text-gray-500 text-sm">Not enough accuracy data.</p>
+              <p className='text-gray-500 text-sm'>Not enough accuracy data.</p>
             )}
           </CardContent>
         </Card>

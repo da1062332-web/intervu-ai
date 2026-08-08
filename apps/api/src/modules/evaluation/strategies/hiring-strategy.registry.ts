@@ -22,7 +22,9 @@ export class HiringStrategyRegistry {
       // Default to TCS if strategy is unknown or fallback
       const defaultStrategy = this.strategies.get("TCS");
       if (defaultStrategy) return defaultStrategy;
-      throw new NotFoundException(`Hiring evaluation strategy '${strategyType}' not found`);
+      throw new NotFoundException(
+        `Hiring evaluation strategy '${strategyType}' not found`,
+      );
     }
     return strategy;
   }

@@ -17,23 +17,19 @@ interface CandidateTableProps {
   emptyState?: React.ReactNode;
 }
 
-export function CandidateTable({
-  candidates,
-  isLoading = false,
-  emptyState,
-}: CandidateTableProps) {
+export function CandidateTable({ candidates, isLoading = false, emptyState }: CandidateTableProps) {
   const router = useRouter();
 
   const columns: ColumnDef<CandidateListItem>[] = [
     {
       id: 'name',
       header: 'Candidate',
-      cell: (row) => <span className="font-medium text-foreground">{row.name || 'Unnamed'}</span>,
+      cell: (row) => <span className='font-medium text-foreground'>{row.name || 'Unnamed'}</span>,
     },
     {
       id: 'email',
       header: 'Email',
-      cell: (row) => <span className="text-sm text-muted-foreground">{row.email}</span>,
+      cell: (row) => <span className='text-sm text-muted-foreground'>{row.email}</span>,
     },
     {
       id: 'status',
@@ -43,22 +39,24 @@ export function CandidateTable({
     {
       id: 'createdAt',
       header: 'Created Date',
-      cell: (row) => <span className="text-xs text-muted-foreground">{formatCandidateDate(row.createdAt)}</span>,
+      cell: (row) => (
+        <span className='text-xs text-muted-foreground'>{formatCandidateDate(row.createdAt)}</span>
+      ),
     },
     {
       id: 'actions',
-      header: <div className="text-right">Actions</div>,
+      header: <div className='text-right'>Actions</div>,
       className: 'text-right',
       cell: (row) => (
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Button
-            variant="ghost"
-            size="icon"
+            variant='ghost'
+            size='icon'
             onClick={() => router.push(`/admin/candidates/${row.id}`)}
-            className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
-            title="View Candidate Details"
+            className='h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors'
+            title='View Candidate Details'
           >
-            <Eye className="w-4 h-4" />
+            <Eye className='w-4 h-4' />
           </Button>
         </div>
       ),
@@ -72,7 +70,7 @@ export function CandidateTable({
       isLoading={isLoading}
       emptyState={emptyState}
       rowKey={(row) => row.id}
-      containerClassName="border-0 rounded-none shadow-none"
+      containerClassName='border-0 rounded-none shadow-none'
     />
   );
 }

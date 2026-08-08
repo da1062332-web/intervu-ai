@@ -29,13 +29,13 @@ export function ConnectionStatusBadge() {
       const isSlow = ping > 500;
       return (
         <Badge
-          variant="outline"
+          variant='outline'
           className={`flex items-center gap-1 font-medium shadow-sm border-gray-200 text-gray-600 bg-white`}
         >
           {isSlow ? (
-            <Activity className="w-3.5 h-3.5 text-yellow-500" />
+            <Activity className='w-3.5 h-3.5 text-yellow-500' />
           ) : (
-            <Wifi className="w-3.5 h-3.5 text-green-500" />
+            <Wifi className='w-3.5 h-3.5 text-green-500' />
           )}
           <span>{ping}ms</span>
         </Badge>

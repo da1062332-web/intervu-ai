@@ -11,7 +11,7 @@ export function FullscreenOverlay() {
 
   useEffect(() => {
     setIsMounted(true);
-    
+
     const checkFullscreen = () => {
       const isFs = !!document.fullscreenElement;
       setIsFullscreen(isFs);
@@ -20,7 +20,6 @@ export function FullscreenOverlay() {
 
     // Check initial state
     checkFullscreen();
-
 
     document.addEventListener('fullscreenchange', checkFullscreen);
     document.addEventListener('mozfullscreenchange', checkFullscreen);
@@ -50,7 +49,7 @@ export function FullscreenOverlay() {
   }
 
   return (
-    <div 
+    <div
       className='fixed inset-0 z-[9999] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in duration-200'
       style={{ pointerEvents: 'auto' }}
     >
@@ -58,19 +57,16 @@ export function FullscreenOverlay() {
         <div className='w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center'>
           <AlertTriangle className='size-8 text-amber-500' />
         </div>
-        
+
         <div className='space-y-2'>
           <h2 className='text-2xl font-bold tracking-tight'>Fullscreen Required</h2>
           <p className='text-muted-foreground'>
-            This assessment must be completed in fullscreen mode. Exiting fullscreen may result in automatic submission or flagging of your assessment.
+            This assessment must be completed in fullscreen mode. Exiting fullscreen may result in
+            automatic submission or flagging of your assessment.
           </p>
         </div>
 
-        <Button 
-          size='lg' 
-          className='w-full text-base py-6 rounded-xl' 
-          onClick={requestFullscreen}
-        >
+        <Button size='lg' className='w-full text-base py-6 rounded-xl' onClick={requestFullscreen}>
           <Maximize className='mr-2 size-5' />
           Return to Fullscreen
         </Button>

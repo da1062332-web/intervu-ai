@@ -39,13 +39,18 @@ export class AttemptHistoryService {
             : null;
 
         // If attempt is completed or submitted, fallback missing score to 0 (e.g. all questions skipped = 0% score & FAIL)
-        if (score === null && (t.status === "COMPLETED" || t.status === "SUBMITTED")) {
+        if (
+          score === null &&
+          (t.status === "COMPLETED" || t.status === "SUBMITTED")
+        ) {
           score = 0;
         }
 
         // Once the result/score is evaluated and generated, mark the status as COMPLETED
         const status =
-          (Boolean(t.evaluationResult) || Boolean(t.candidateResult) || rawScore !== null) &&
+          (Boolean(t.evaluationResult) ||
+            Boolean(t.candidateResult) ||
+            rawScore !== null) &&
           (t.status === "SUBMITTED" || t.status === "COMPLETED")
             ? "COMPLETED"
             : t.status;
@@ -54,8 +59,14 @@ export class AttemptHistoryService {
           instanceId: t.id,
           attemptId: t.id,
           testConfigId: t.testConfigId,
-          testName: t.testConfig?.displayName || t.examConfig?.name || "Unknown Assessment",
-          assessmentName: t.testConfig?.displayName || t.examConfig?.name || "Unknown Assessment",
+          testName:
+            t.testConfig?.displayName ||
+            t.examConfig?.name ||
+            "Unknown Assessment",
+          assessmentName:
+            t.testConfig?.displayName ||
+            t.examConfig?.name ||
+            "Unknown Assessment",
           date: t.createdAt.toISOString(),
           submittedAt: t.submittedAt
             ? t.submittedAt.toISOString()

@@ -296,7 +296,8 @@ export class AdminAnalyticsController {
     }));
 
     return [...jobFailures, ...logFailures].sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
   }
 

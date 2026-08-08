@@ -67,7 +67,10 @@ export class ResultGeneratorService {
     }
 
     // 3. Batch fetch question metadata (instructions, questionStatement) in one query
-    const dbQuestionsMap = new Map<string, { instructions: string | null; questionStatement: string | null }>();
+    const dbQuestionsMap = new Map<
+      string,
+      { instructions: string | null; questionStatement: string | null }
+    >();
     if (questionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
         where: { id: { in: Array.from(questionIds) } },
@@ -103,7 +106,9 @@ export class ResultGeneratorService {
       sectionKey: string;
     }> = [];
 
-    const allTopics = await this.prisma.topic.findMany({ select: { id: true, name: true } });
+    const allTopics = await this.prisma.topic.findMany({
+      select: { id: true, name: true },
+    });
     const dbTopicMap = new Map<string, string>();
     allTopics.forEach((t) => dbTopicMap.set(t.id, t.name));
 
@@ -111,7 +116,11 @@ export class ResultGeneratorService {
       const sectionQuestions = section.questions.map((q) => {
         const snap = (q.questionSnapshot || {}) as any;
         const answer = snap.answer || snap.correctAnswer || "";
-        const questionType = (snap.questionType || snap.type || "MCQ").toUpperCase();
+        const questionType = (
+          snap.questionType ||
+          snap.type ||
+          "MCQ"
+        ).toUpperCase();
         const difficulty = snap.difficulty || snap.difficultyLevel || "MEDIUM";
 
         // Resolve topic display name
@@ -124,7 +133,10 @@ export class ResultGeneratorService {
           topicName = snap.topicName;
         } else if (snap.topicId && dbTopicMap.get(snap.topicId)) {
           topicName = dbTopicMap.get(snap.topicId)!;
-        } else if (typeof snap.topic === "string" && dbTopicMap.get(snap.topic)) {
+        } else if (
+          typeof snap.topic === "string" &&
+          dbTopicMap.get(snap.topic)
+        ) {
           topicName = dbTopicMap.get(snap.topic)!;
         } else if (snap.conceptKey && dbTopicMap.get(snap.conceptKey)) {
           topicName = dbTopicMap.get(snap.conceptKey)!;
@@ -155,7 +167,11 @@ export class ResultGeneratorService {
           codingQuestionsList.push({
             id: q.questionId,
             questionType,
-            problemStatement: meta?.questionStatement || snap.questionStatement || snap.questionText || "",
+            problemStatement:
+              meta?.questionStatement ||
+              snap.questionStatement ||
+              snap.questionText ||
+              "",
             questionText: snap.questionText || snap.text || "",
             constraints,
             testCases,
@@ -248,7 +264,9 @@ export class ResultGeneratorService {
 
     // 10. Strengths & Weaknesses
     const { strengths, weaknesses } =
-      this.strengthWeakness.determineStrengthsAndWeaknesses(performanceAnalytics);
+      this.strengthWeakness.determineStrengthsAndWeaknesses(
+        performanceAnalytics,
+      );
 
     // 11. Recommendations
     const recommendationsList =

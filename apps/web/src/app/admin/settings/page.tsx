@@ -152,7 +152,10 @@ export default function SettingsPage() {
 
       {/* Danger zone */}
       <section aria-labelledby='danger-zone-heading'>
-        <SectionHeader title='Danger Zone' className='text-destructive !mb-3 text-sm font-semibold' />
+        <SectionHeader
+          title='Danger Zone'
+          className='text-destructive !mb-3 text-sm font-semibold'
+        />
         <Card className='border-destructive/30 p-6'>
           <div className='flex items-center justify-between gap-4'>
             <div>
@@ -169,10 +172,15 @@ export default function SettingsPage() {
               onConfirm={async () => {
                 'use server';
                 // Handle delete logic here
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
               }}
               trigger={
-                <Button variant='destructive' size='sm' id='delete-account-btn' className='shrink-0'>
+                <Button
+                  variant='destructive'
+                  size='sm'
+                  id='delete-account-btn'
+                  className='shrink-0'
+                >
                   Delete Account
                 </Button>
               }

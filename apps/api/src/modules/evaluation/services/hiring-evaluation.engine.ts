@@ -34,7 +34,9 @@ export class HiringEvaluationEngine {
       where: { id: attemptId },
       include: {
         examConfig: {
-          include: { hiringEvaluationConfig: { include: { sectionMappings: true } } },
+          include: {
+            hiringEvaluationConfig: { include: { sectionMappings: true } },
+          },
         },
         testConfig: true,
       },
@@ -56,7 +58,9 @@ export class HiringEvaluationEngine {
 
     // B. Check by testInstance.examConfigId
     if (!hiringConfig && testInstance.examConfigId) {
-      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+      hiringConfig = await (
+        this.prisma as any
+      ).hiringEvaluationConfig.findUnique({
         where: { examConfigId: testInstance.examConfigId },
         include: { sectionMappings: true },
       });
@@ -69,13 +73,19 @@ export class HiringEvaluationEngine {
         where: {
           OR: [
             { id: attemptId },
-            ...(testInstance.testConfigId ? [{ id: testInstance.testConfigId }] : []),
-            ...(testInstance.testConfigId ? [{ configId: testInstance.testConfigId }] : []),
+            ...(testInstance.testConfigId
+              ? [{ id: testInstance.testConfigId }]
+              : []),
+            ...(testInstance.testConfigId
+              ? [{ configId: testInstance.testConfigId }]
+              : []),
           ],
         },
         include: {
           examConfig: {
-            include: { hiringEvaluationConfig: { include: { sectionMappings: true } } },
+            include: {
+              hiringEvaluationConfig: { include: { sectionMappings: true } },
+            },
           },
         },
       });
@@ -84,7 +94,9 @@ export class HiringEvaluationEngine {
         hiringConfig = assembledTest.examConfig.hiringEvaluationConfig;
         foundExplicitConfig = true;
       } else if (assembledTest?.configId) {
-        hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+        hiringConfig = await (
+          this.prisma as any
+        ).hiringEvaluationConfig.findUnique({
           where: { examConfigId: assembledTest.configId },
           include: { sectionMappings: true },
         });
@@ -94,7 +106,9 @@ export class HiringEvaluationEngine {
 
     // D. Check by testInstance.testConfigId
     if (!hiringConfig && testInstance.testConfigId) {
-      hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findUnique({
+      hiringConfig = await (
+        this.prisma as any
+      ).hiringEvaluationConfig.findUnique({
         where: { examConfigId: testInstance.testConfigId },
         include: { sectionMappings: true },
       });
@@ -103,10 +117,13 @@ export class HiringEvaluationEngine {
 
     // If an explicit config was found for this assessment and it is DISABLED (enabled = false), STOP and return null!
     if (foundExplicitConfig && hiringConfig && !hiringConfig.enabled) {
-      this.logger.debug("Hiring evaluation is explicitly disabled for this assessment", {
-        attemptId,
-        examConfigId: hiringConfig.examConfigId,
-      });
+      this.logger.debug(
+        "Hiring evaluation is explicitly disabled for this assessment",
+        {
+          attemptId,
+          examConfigId: hiringConfig.examConfigId,
+        },
+      );
       return null;
     }
 
@@ -118,7 +135,9 @@ export class HiringEvaluationEngine {
         testInstance.examConfig?.name?.toUpperCase().includes("TCS");
 
       if (isTcsExam) {
-        hiringConfig = await (this.prisma as any).hiringEvaluationConfig.findFirst({
+        hiringConfig = await (
+          this.prisma as any
+        ).hiringEvaluationConfig.findFirst({
           where: { enabled: true },
           include: { sectionMappings: true },
           orderBy: { updatedAt: "desc" },
@@ -127,7 +146,9 @@ export class HiringEvaluationEngine {
     }
 
     if (!hiringConfig || !hiringConfig.enabled) {
-      this.logger.debug("Hiring evaluation is disabled or not configured", { attemptId });
+      this.logger.debug("Hiring evaluation is disabled or not configured", {
+        attemptId,
+      });
       return null;
     }
 

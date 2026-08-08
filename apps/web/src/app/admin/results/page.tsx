@@ -93,7 +93,7 @@ function useAllAdminTestAttempts() {
       }
 
       return Array.from(map.values()).sort(
-        (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+        (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
       );
     },
     staleTime: 30_000,
@@ -105,12 +105,12 @@ const columns: ColumnDef<AdminTestAttemptItem>[] = [
     id: 'candidate',
     header: 'Candidate',
     cell: (row) => (
-      <div className="flex flex-col">
-        <span className="font-semibold text-foreground text-sm">{row.candidateName}</span>
+      <div className='flex flex-col'>
+        <span className='font-semibold text-foreground text-sm'>{row.candidateName}</span>
         {row.email ? (
-          <span className="text-xs text-muted-foreground">{row.email}</span>
+          <span className='text-xs text-muted-foreground'>{row.email}</span>
         ) : (
-          <span className="text-xs text-muted-foreground/60 italic">No email documented</span>
+          <span className='text-xs text-muted-foreground/60 italic'>No email documented</span>
         )}
       </div>
     ),
@@ -118,19 +118,20 @@ const columns: ColumnDef<AdminTestAttemptItem>[] = [
   {
     id: 'assessment',
     header: 'Assessment Title',
-    cell: (row) => (
-      <span className="font-medium text-foreground/90 text-sm">{row.assessment}</span>
-    ),
+    cell: (row) => <span className='font-medium text-foreground/90 text-sm'>{row.assessment}</span>,
   },
   {
     id: 'score',
     header: 'Overall Score',
     cell: (row) => {
-      let colorClass = 'text-orange-700 bg-orange-100 dark:bg-orange-950/60 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+      let colorClass =
+        'text-orange-700 bg-orange-100 dark:bg-orange-950/60 dark:text-orange-400 border-orange-200 dark:border-orange-800';
       if (row.score >= 80) {
-        colorClass = 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+        colorClass =
+          'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
       } else if (row.score >= 60) {
-        colorClass = 'text-blue-700 bg-blue-100 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+        colorClass =
+          'text-blue-700 bg-blue-100 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-800';
       }
 
       return (
@@ -145,10 +146,12 @@ const columns: ColumnDef<AdminTestAttemptItem>[] = [
     header: 'Status',
     cell: (row) => (
       <Badge
-        variant="outline"
+        variant='outline'
         className={cn(
           'text-[10px] uppercase font-semibold tracking-wider',
-          row.status === 'COMPLETED' || row.status === 'SUBMITTED' ? 'border-emerald-500/60 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-muted-foreground'
+          row.status === 'COMPLETED' || row.status === 'SUBMITTED'
+            ? 'border-emerald-500/60 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5'
+            : 'text-muted-foreground',
         )}
       >
         {row.status}
@@ -161,8 +164,8 @@ const columns: ColumnDef<AdminTestAttemptItem>[] = [
     cell: (row) => {
       const d = new Date(row.submittedAt);
       return (
-        <div className="flex flex-col text-xs text-muted-foreground">
-          <span className="font-medium text-foreground/80">{d.toLocaleDateString()}</span>
+        <div className='flex flex-col text-xs text-muted-foreground'>
+          <span className='font-medium text-foreground/80'>{d.toLocaleDateString()}</span>
           <span>{d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
       );
@@ -170,13 +173,18 @@ const columns: ColumnDef<AdminTestAttemptItem>[] = [
   },
   {
     id: 'actions',
-    header: <div className="text-right">Actions</div>,
+    header: <div className='text-right'>Actions</div>,
     className: 'text-right',
     cell: (row) => (
-      <div className="flex justify-end items-center">
-        <Button asChild size="sm" variant="outline" className="gap-1.5 h-8 px-3 shadow-2xs hover:bg-primary hover:text-primary-foreground transition-colors">
+      <div className='flex justify-end items-center'>
+        <Button
+          asChild
+          size='sm'
+          variant='outline'
+          className='gap-1.5 h-8 px-3 shadow-2xs hover:bg-primary hover:text-primary-foreground transition-colors'
+        >
           <Link href={`/admin/results/${encodeURIComponent(row.id)}`}>
-            <Eye className="size-3.5" />
+            <Eye className='size-3.5' />
             <span>View Details</span>
           </Link>
         </Button>
@@ -200,8 +208,7 @@ export default function AdminRecentTestAttemptsPage() {
         item.assessment.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
-        statusFilter === 'all' ||
-        item.status.toLowerCase() === statusFilter.toLowerCase();
+        statusFilter === 'all' || item.status.toLowerCase() === statusFilter.toLowerCase();
 
       return matchesSearch && matchesStatus;
     });
@@ -212,35 +219,33 @@ export default function AdminRecentTestAttemptsPage() {
       return { total: 0, avgScore: 0, completed: 0, highPerformers: 0 };
     }
     const completed = attempts.filter(
-      (a) => a.status.toUpperCase() === 'COMPLETED' || a.status.toUpperCase() === 'SUBMITTED'
+      (a) => a.status.toUpperCase() === 'COMPLETED' || a.status.toUpperCase() === 'SUBMITTED',
     ).length;
     const highPerformers = attempts.filter((a) => a.score >= 80).length;
-    
+
     const evaluatedAttempts = attempts.filter((a) => a.hasEvaluation || (a.score && a.score > 0));
     const totalScore = evaluatedAttempts.reduce((acc, curr) => acc + (curr.score || 0), 0);
-    const avgScore = evaluatedAttempts.length > 0
-      ? Math.round((totalScore / evaluatedAttempts.length) * 100) / 100
-      : 0;
+    const avgScore =
+      evaluatedAttempts.length > 0
+        ? Math.round((totalScore / evaluatedAttempts.length) * 100) / 100
+        : 0;
 
     return { total: attempts.length, avgScore, completed, highPerformers };
   }, [attempts]);
 
   return (
-    <div className="space-y-8 container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl animate-fade-in-up pb-12">
+    <div className='space-y-8 container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl animate-fade-in-up pb-12'>
       <SectionHeader
-        title="Recent Test Attempts"
-        description="Monitor candidate testing execution, evaluate grading metrics, and inspect comprehensive diagnostic scorecards for individual test sessions."
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/admin/dashboard' },
-          { label: 'Test Attempts' },
-        ]}
+        title='Recent Test Attempts'
+        description='Monitor candidate testing execution, evaluate grading metrics, and inspect comprehensive diagnostic scorecards for individual test sessions.'
+        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Test Attempts' }]}
         actions={
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={() => refetch()}
             disabled={isFetching}
-            className="gap-2 shadow-2xs"
+            className='gap-2 shadow-2xs'
           >
             <RefreshCw className={cn('size-4', isFetching && 'animate-spin')} />
             Refresh Data
@@ -249,81 +254,82 @@ export default function AdminRecentTestAttemptsPage() {
       />
 
       {/* KPI Stats Grid */}
-      <div className="grid gap-5 sm:grid-cols-4">
+      <div className='grid gap-5 sm:grid-cols-4'>
         <StatCard
-          title="Total Attempts"
+          title='Total Attempts'
           value={stats.total.toString()}
-          icon={<BarChart3 className="size-5 text-indigo-500" />}
-          description="Total recorded testing sessions"
+          icon={<BarChart3 className='size-5 text-indigo-500' />}
+          description='Total recorded testing sessions'
         />
         <StatCard
-          title="Average Score"
+          title='Average Score'
           value={`${stats.avgScore}%`}
-          icon={<TrendingUp className="size-5 text-blue-500" />}
-          description="Platform-wide evaluation mean"
+          icon={<TrendingUp className='size-5 text-blue-500' />}
+          description='Platform-wide evaluation mean'
         />
         <StatCard
-          title="Completed"
+          title='Completed'
           value={stats.completed.toString()}
-          icon={<UserCheck className="size-5 text-emerald-500" />}
-          description="Evaluations finalized & graded"
+          icon={<UserCheck className='size-5 text-emerald-500' />}
+          description='Evaluations finalized & graded'
         />
         <StatCard
-          title="Top Performers (≥80%)"
+          title='Top Performers (≥80%)'
           value={stats.highPerformers.toString()}
-          icon={<Award className="size-5 text-amber-500" />}
-          description="Candidates exceeding excellence benchmark"
+          icon={<Award className='size-5 text-amber-500' />}
+          description='Candidates exceeding excellence benchmark'
         />
       </div>
 
       {/* Table Directory Card */}
-      <Card className="rounded-xl shadow-sm border border-border">
-        <CardHeader className="p-5 border-b bg-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <Card className='rounded-xl shadow-sm border border-border'>
+        <CardHeader className='p-5 border-b bg-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
           <div>
-            <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-              <Clock className="size-4 text-primary" />
+            <CardTitle className='text-base font-semibold text-foreground flex items-center gap-2'>
+              <Clock className='size-4 text-primary' />
               Test Attempts & Results Log
             </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground mt-1">
-              Click &quot;View Details&quot; to open an individual candidate&apos;s full analytical breakdown and evaluation report.
+            <CardDescription className='text-xs text-muted-foreground mt-1'>
+              Click &quot;View Details&quot; to open an individual candidate&apos;s full analytical
+              breakdown and evaluation report.
             </CardDescription>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <div className='flex flex-wrap items-center gap-3 w-full sm:w-auto'>
+            <div className='relative flex-1 sm:w-64'>
+              <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground' />
               <input
-                type="text"
-                placeholder="Search candidate or exam..."
+                type='text'
+                placeholder='Search candidate or exam...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder-muted-foreground font-medium"
+                className='w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder-muted-foreground font-medium'
               />
             </div>
 
-            <div className="flex items-center gap-2 border border-input rounded-lg px-2.5 py-1.5 bg-background">
-              <Filter className="size-3.5 text-muted-foreground" />
+            <div className='flex items-center gap-2 border border-input rounded-lg px-2.5 py-1.5 bg-background'>
+              <Filter className='size-3.5 text-muted-foreground' />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-transparent text-xs text-foreground focus:outline-none font-medium"
+                className='bg-transparent text-xs text-foreground focus:outline-none font-medium'
               >
-                <option value="all">All Statuses</option>
-                <option value="completed">Completed</option>
-                <option value="in_progress">In Progress</option>
+                <option value='all'>All Statuses</option>
+                <option value='completed'>Completed</option>
+                <option value='in_progress'>In Progress</option>
               </select>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className='p-0'>
           {isError ? (
-            <div className="py-12">
+            <div className='py-12'>
               <EmptyState
-                variant="error"
-                title="Failed to load test attempts"
-                description="A server error occurred while retrieving recent candidate test submissions."
-                actionLabel="Retry Fetch"
+                variant='error'
+                title='Failed to load test attempts'
+                description='A server error occurred while retrieving recent candidate test submissions.'
+                actionLabel='Retry Fetch'
                 onAction={refetch}
               />
             </div>
@@ -333,14 +339,14 @@ export default function AdminRecentTestAttemptsPage() {
               data={filteredAttempts}
               isLoading={isLoading}
               rowKey={(row) => row.id}
-              containerClassName="border-0 rounded-none"
+              containerClassName='border-0 rounded-none'
               emptyState={
-                <div className="py-16">
+                <div className='py-16'>
                   <EmptyState
-                    variant="no-data"
-                    title="No Matching Test Attempts"
-                    description="No test attempts were found matching your current search terms or filter criteria."
-                    actionLabel="Reset Filters"
+                    variant='no-data'
+                    title='No Matching Test Attempts'
+                    description='No test attempts were found matching your current search terms or filter criteria.'
+                    actionLabel='Reset Filters'
                     onAction={() => {
                       setSearchQuery('');
                       setStatusFilter('all');

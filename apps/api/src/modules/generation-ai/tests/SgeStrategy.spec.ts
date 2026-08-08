@@ -81,11 +81,13 @@ describe("SGE Strategy Integration", () => {
       };
 
       const question: GeneratedQuestionDto = {
-        question: "If the old price is 100 and it increases, the new price is 120.",
+        question:
+          "If the old price is 100 and it increases, the new price is 120.",
         options: ["10", "15", "20", "25"],
         correctAnswer: "20",
         answer: "20",
-        explanation: "Concept\n\nFormula / Reasoning\n\nStep-by-Step Solution\n\nFinal Answer\nThis is a different answer.",
+        explanation:
+          "Concept\n\nFormula / Reasoning\n\nStep-by-Step Solution\n\nFinal Answer\nThis is a different answer.",
         difficulty: "easy",
         topic: "percentages",
         metadata: {

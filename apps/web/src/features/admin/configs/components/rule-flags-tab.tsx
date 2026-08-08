@@ -106,7 +106,12 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
     });
   };
 
-  if (isLoading) return <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
+  if (isLoading)
+    return (
+      <div className='flex items-center justify-center h-48'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+      </div>
+    );
 
   return (
     <div className='max-w-4xl mx-auto space-y-8 py-4'>
@@ -120,7 +125,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border rounded-xl bg-card shadow-sm'>
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='negative-marking' className='text-base'>Negative Marking</Label>
+            <Label htmlFor='negative-marking' className='text-base'>
+              Negative Marking
+            </Label>
             <p className='text-sm text-muted-foreground'>Apply penalties for incorrect answers.</p>
           </div>
           <Switch
@@ -132,7 +139,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
 
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='sectional-cutoff' className='text-base'>Sectional Cutoff</Label>
+            <Label htmlFor='sectional-cutoff' className='text-base'>
+              Sectional Cutoff
+            </Label>
             <p className='text-sm text-muted-foreground'>
               Enable minimum qualification score per section.
             </p>
@@ -146,7 +155,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
 
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='adaptive-difficulty' className='text-base'>Adaptive Difficulty</Label>
+            <Label htmlFor='adaptive-difficulty' className='text-base'>
+              Adaptive Difficulty
+            </Label>
             <p className='text-sm text-muted-foreground'>
               Vary question difficulty based on candidate performance.
             </p>
@@ -160,7 +171,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
 
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='shuffle-questions' className='text-base'>Shuffle Questions</Label>
+            <Label htmlFor='shuffle-questions' className='text-base'>
+              Shuffle Questions
+            </Label>
             <p className='text-sm text-muted-foreground'>Present questions in a random order.</p>
           </div>
           <Switch
@@ -172,7 +185,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
 
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='shuffle-options' className='text-base'>Shuffle Options</Label>
+            <Label htmlFor='shuffle-options' className='text-base'>
+              Shuffle Options
+            </Label>
             <p className='text-sm text-muted-foreground'>Shuffle multiple-choice options.</p>
           </div>
           <Switch
@@ -184,7 +199,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
 
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='allow-section-navigation' className='text-base'>Section Navigation</Label>
+            <Label htmlFor='allow-section-navigation' className='text-base'>
+              Section Navigation
+            </Label>
             <p className='text-sm text-muted-foreground'>
               Allow candidates to freely navigate between sections.
             </p>
@@ -198,7 +215,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
 
         <div className='flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors md:col-span-2'>
           <div className='space-y-0.5 pr-4'>
-            <Label htmlFor='max-attempts' className='text-base'>Maximum Attempts</Label>
+            <Label htmlFor='max-attempts' className='text-base'>
+              Maximum Attempts
+            </Label>
             <p className='text-sm text-muted-foreground'>
               Maximum number of times a candidate can attempt this exam (1-10).
             </p>
@@ -224,8 +243,10 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       </div>
 
       <div className='flex items-center justify-between p-4 rounded-lg bg-muted/30'>
-        <span className='text-sm text-muted-foreground'>Make sure to save your changes before proceeding.</span>
-        <Button onClick={handleSave} disabled={isPending} size="lg" className='shadow-sm'>
+        <span className='text-sm text-muted-foreground'>
+          Make sure to save your changes before proceeding.
+        </span>
+        <Button onClick={handleSave} disabled={isPending} size='lg' className='shadow-sm'>
           {isPending ? 'Saving...' : 'Save Rules'}
         </Button>
       </div>

@@ -10,13 +10,23 @@ import {
   useDeactivateConcept,
 } from '@/services/concept-mapping';
 import { useManualQuestions } from '@/services/manual-questions/hooks';
-import { useTemplatesByConcept, useCreateTemplate, useDeleteTemplate } from '@/services/templates/hooks';
+import {
+  useTemplatesByConcept,
+  useCreateTemplate,
+  useDeleteTemplate,
+} from '@/services/templates/hooks';
 import { toast } from 'sonner';
 import { ManualQuestionModal } from '@/app/admin/manual-questions/components/ManualQuestionModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -155,7 +165,9 @@ function ConceptTemplatesRow({
                       onConfirm={async () => {
                         try {
                           await deleteMutation.mutateAsync(tpl.id);
-                          toast.success(`Template "${tpl.name || 'Untitled Template'}" deleted successfully!`);
+                          toast.success(
+                            `Template "${tpl.name || 'Untitled Template'}" deleted successfully!`,
+                          );
                         } catch (err: any) {
                           toast.error(err?.message || 'Failed to delete template.');
                         }
@@ -192,8 +204,12 @@ export function ConceptManualQuestionsRow({
   onEditManualQuestion: (q: any) => void;
 }) {
   const { data: response, isLoading, isError } = useManualQuestions({ conceptId: concept.id });
-  const allQuestions = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || [];
-  const questions = allQuestions.filter((q: any) => q.conceptId === concept.id || q.conceptId === concept.code);
+  const allQuestions = Array.isArray(response)
+    ? response
+    : (response as any)?.data || (response as any)?.items || [];
+  const questions = allQuestions.filter(
+    (q: any) => q.conceptId === concept.id || q.conceptId === concept.code,
+  );
 
   if (isLoading) {
     return (
@@ -264,7 +280,12 @@ export function ConceptManualQuestionsRow({
                     </div>
                   </div>
                   <div className='flex items-center gap-2'>
-                    <Button variant='ghost' size='sm' className='h-8' onClick={() => onEditManualQuestion(q)}>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='h-8'
+                      onClick={() => onEditManualQuestion(q)}
+                    >
                       <Edit2 className='w-3.5 h-3.5 mr-1' /> Edit
                     </Button>
                   </div>
@@ -548,7 +569,9 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
 
   const handleOpenAddManualQuestion = (concept: ConceptMapping) => {
     const returnTo = encodeURIComponent(`/admin/topics/${topicId}`);
-    router.push(`/admin/manual-questions/create?topicId=${topicId}&conceptId=${concept.id}&returnTo=${returnTo}`);
+    router.push(
+      `/admin/manual-questions/create?topicId=${topicId}&conceptId=${concept.id}&returnTo=${returnTo}`,
+    );
   };
 
   const handleOpenEditManualQuestion = (question: any) => {
@@ -622,8 +645,6 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
         }
       />
 
-
-
       {/* Concepts Registry Section */}
       <div className='space-y-6'>
         <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4'>
@@ -687,7 +708,8 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                     const cCode = concept.code || concept.conceptCode;
                     const isAct =
                       (concept.status || (concept.isActive ? 'ACTIVE' : 'INACTIVE')) === 'ACTIVE';
-                    const isExpanded = expandedRows.has(concept.id) || expandedMqRows.has(concept.id);
+                    const isExpanded =
+                      expandedRows.has(concept.id) || expandedMqRows.has(concept.id);
 
                     return (
                       <React.Fragment key={concept.id}>
@@ -769,16 +791,25 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                               </Button>
                               <ConfirmationDialog
                                 title={isAct ? 'Deactivate Concept' : 'Activate Concept'}
-                                description={isAct ? `Are you sure you want to deactivate "${cName}"?` : `Are you sure you want to activate "${cName}"?`}
+                                description={
+                                  isAct
+                                    ? `Are you sure you want to deactivate "${cName}"?`
+                                    : `Are you sure you want to activate "${cName}"?`
+                                }
                                 confirmLabel={isAct ? 'Deactivate' : 'Activate'}
                                 destructive={isAct}
                                 onConfirm={() => {
                                   if (isAct) {
-                                    deactivateMutation.mutate(concept.id, { onSuccess: () => refetchConcepts() });
+                                    deactivateMutation.mutate(concept.id, {
+                                      onSuccess: () => refetchConcepts(),
+                                    });
                                   } else {
                                     updateMutation.mutate(
-                                      { conceptId: concept.id, payload: { status: 'ACTIVE', isActive: true } },
-                                      { onSuccess: () => refetchConcepts() }
+                                      {
+                                        conceptId: concept.id,
+                                        payload: { status: 'ACTIVE', isActive: true },
+                                      },
+                                      { onSuccess: () => refetchConcepts() },
                                     );
                                   }
                                 }}

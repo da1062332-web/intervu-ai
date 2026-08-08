@@ -93,7 +93,7 @@ export default function AnalyticsDashboardPage() {
     return (
       <div className='p-6'>
         <EmptyState
-          variant="error"
+          variant='error'
           title='Failed to load analytics'
           description='There was an error loading the dashboard data. Please try again later.'
         />
@@ -146,7 +146,7 @@ export default function AnalyticsDashboardPage() {
           </CardHeader>
           <CardContent className='flex-1 flex flex-col justify-center space-y-6 pt-2'>
             {isLoadingSummary ? (
-              <WidgetSkeleton className="border-0 shadow-none bg-transparent" />
+              <WidgetSkeleton className='border-0 shadow-none bg-transparent' />
             ) : hasSkills ? (
               performanceMetrics.map((metric, idx) => (
                 <ProgressIndicator
@@ -164,7 +164,7 @@ export default function AnalyticsDashboardPage() {
               ))
             ) : (
               <EmptyState
-                variant="no-data"
+                variant='no-data'
                 title='No skills tracked'
                 description='Performance metrics will appear here once candidates complete tests.'
                 compact
@@ -183,7 +183,7 @@ export default function AnalyticsDashboardPage() {
       <Card>
         <CardContent className='p-0'>
           {isLoadingActivity ? (
-            <TimelineSkeleton className="border-0 shadow-none bg-transparent" />
+            <TimelineSkeleton className='border-0 shadow-none bg-transparent' />
           ) : recentActivities.length > 0 ? (
             <div className='divide-y divide-border'>
               {recentActivities.map((activity) => (
@@ -219,7 +219,7 @@ export default function AnalyticsDashboardPage() {
           ) : (
             <div className='p-6 flex justify-center items-center h-48'>
               <EmptyState
-                variant="no-data"
+                variant='no-data'
                 title='No recent activity'
                 description='Activity will appear here once candidates take interviews.'
                 compact

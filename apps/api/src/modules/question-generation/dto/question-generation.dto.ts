@@ -1,10 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsObject,
-} from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsObject } from "class-validator";
 
 /**
  * Shared request DTO for all three question-generation endpoints.

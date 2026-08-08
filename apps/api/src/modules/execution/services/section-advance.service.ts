@@ -55,7 +55,8 @@ export class SectionAdvanceService {
     userId: string,
   ): Promise<SectionAdvanceResult> {
     // 1. Validate assessment
-    const testInstance = await this.validator.validateAssessment(testInstanceId);
+    const testInstance =
+      await this.validator.validateAssessment(testInstanceId);
     this.validator.validateOwnership(testInstance, userId);
     this.validator.validateSubmissionState(testInstance);
 
@@ -94,11 +95,14 @@ export class SectionAdvanceService {
     ) {
       const nextSectionIndex = currentSectionIndex + 1;
       const nextSection = sections[nextSectionIndex];
-      this.logger.warn("CON-002: Section advance already completed, returning idempotent result", {
-        testInstanceId,
-        currentSectionIndex,
-        currentSectionStatus: currentSection.status,
-      });
+      this.logger.warn(
+        "CON-002: Section advance already completed, returning idempotent result",
+        {
+          testInstanceId,
+          currentSectionIndex,
+          currentSectionStatus: currentSection.status,
+        },
+      );
       return {
         nextSectionIndex: nextSection ? nextSectionIndex : null,
         nextSectionId: nextSection ? nextSection.id : null,

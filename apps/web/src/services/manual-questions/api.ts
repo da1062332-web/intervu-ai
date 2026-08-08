@@ -7,7 +7,7 @@ export const manualQuestionsApi = {
       method: 'GET',
       query: filters as any,
     });
-    const items = Array.isArray(res) ? res : (res?.data || res?.items || []);
+    const items = Array.isArray(res) ? res : res?.data || res?.items || [];
     return items.map((q: any) => ({
       ...q,
       options: q.options || q.mcqData?.options || [],
@@ -19,7 +19,7 @@ export const manualQuestionsApi = {
       method: 'GET',
       query,
     });
-    const items = Array.isArray(res) ? res : (res?.data || res?.items || []);
+    const items = Array.isArray(res) ? res : res?.data || res?.items || [];
     return items.map((q: any) => ({
       ...q,
       options: q.options || q.mcqData?.options || [],
@@ -39,7 +39,7 @@ export const manualQuestionsApi = {
 
   createQuestion: async (payload: Partial<ManualQuestion>) => {
     const desiredStatus = payload.status;
-    
+
     // Always create as DRAFT first to respect backend lifecycle constraints
     const created = await apiClient.request<ManualQuestion>('/manual-questions', {
       method: 'POST',
@@ -60,7 +60,7 @@ export const manualQuestionsApi = {
         created.status = 'VALIDATED';
       } catch (e) {}
     }
-    
+
     return created;
   },
 

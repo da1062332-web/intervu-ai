@@ -17,25 +17,28 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
 
   const hasCoding = Boolean(
     codingSection ||
-      (data.codingMaxMarks !== undefined && data.codingMaxMarks > 0) ||
-      (data as any).hasCodingSection,
+    (data.codingMaxMarks !== undefined && data.codingMaxMarks > 0) ||
+    (data as any).hasCodingSection,
   );
 
   if (!hasCoding) return null;
 
   const score = data.codingScore ?? (codingSection ? Math.round(codingSection.accuracy) : 0);
-  const maxMarks = data.codingMaxMarks && data.codingMaxMarks > 0 ? data.codingMaxMarks : score > 0 ? 100 : 0;
+  const maxMarks =
+    data.codingMaxMarks && data.codingMaxMarks > 0 ? data.codingMaxMarks : score > 0 ? 100 : 0;
   const accuracy = codingSection
     ? Math.round(codingSection.accuracy)
     : maxMarks > 0
-    ? Math.round((score / maxMarks) * 100)
-    : 0;
+      ? Math.round((score / maxMarks) * 100)
+      : 0;
 
   const totalCases = codingSection
-    ? codingSection.questionCount ??
-      ((codingSection.correct || 0) + (codingSection.wrong || 0) + (codingSection.skipped || 0))
+    ? (codingSection.questionCount ??
+      (codingSection.correct || 0) + (codingSection.wrong || 0) + (codingSection.skipped || 0))
     : 0;
-  const passedCases = codingSection ? codingSection.correct : Math.round((accuracy / 100) * totalCases);
+  const passedCases = codingSection
+    ? codingSection.correct
+    : Math.round((accuracy / 100) * totalCases);
   const failedCases = Math.max(0, totalCases - passedCases);
 
   const performanceRating =
@@ -74,7 +77,9 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
                 />
               </svg>
               <div className='absolute flex flex-col items-center justify-center text-center'>
-                <span className='text-2xl font-extrabold text-foreground tracking-tight'>{score}</span>
+                <span className='text-2xl font-extrabold text-foreground tracking-tight'>
+                  {score}
+                </span>
                 {maxMarks > 0 && (
                   <span className='text-xs text-muted-foreground font-semibold'>/{maxMarks}</span>
                 )}

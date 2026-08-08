@@ -88,19 +88,17 @@ export default function AdminCandidateReportsPage() {
     {
       id: 'completedAt',
       header: 'Completed Date',
-      cell: (row) => <span className='text-gray-700'>{new Date(row.completedAt).toLocaleDateString()}</span>,
+      cell: (row) => (
+        <span className='text-gray-700'>{new Date(row.completedAt).toLocaleDateString()}</span>
+      ),
     },
     {
       id: 'actions',
-      header: <div className="text-right">Action</div>,
-      className: "text-right",
+      header: <div className='text-right'>Action</div>,
+      className: 'text-right',
       cell: (row) => (
-        <div className="flex justify-end gap-1.5">
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => router.push(`/admin/results/${row.id}`)}
-          >
+        <div className='flex justify-end gap-1.5'>
+          <Button variant='ghost' size='sm' onClick={() => router.push(`/admin/results/${row.id}`)}>
             <Eye className='w-4 h-4 mr-2' />
             View
           </Button>
@@ -115,7 +113,7 @@ export default function AdminCandidateReportsPage() {
                 btn.innerHTML = '<span class="animate-pulse">...</span>';
                 btn.disabled = true;
                 const blob = await apiClient.request<Blob>(`/reports/export/pdf/${row.id}`, {
-                  responseType: 'blob'
+                  responseType: 'blob',
                 });
                 const url = URL.createObjectURL(blob as any);
                 const a = document.createElement('a');
@@ -146,7 +144,11 @@ export default function AdminCandidateReportsPage() {
       <SectionHeader
         title='Candidate Reports Explorer'
         description='View and filter candidate assessment results'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Reports' }, { label: 'Candidates' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Reports' },
+          { label: 'Candidates' },
+        ]}
       />
 
       <Card>
@@ -174,10 +176,10 @@ export default function AdminCandidateReportsPage() {
             data={reports}
             isLoading={loading}
             rowKey={(row) => row.id}
-            containerClassName="border-0 rounded-none"
+            containerClassName='border-0 rounded-none'
             emptyState={
               <EmptyState
-                variant="no-data"
+                variant='no-data'
                 title='No Reports Found'
                 description='No candidate reports matched your search criteria.'
               />

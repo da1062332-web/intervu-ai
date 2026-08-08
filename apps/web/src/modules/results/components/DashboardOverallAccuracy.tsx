@@ -74,7 +74,7 @@ export const DashboardOverallAccuracy: React.FC<Props> = ({ data }) => {
               const totalQ =
                 sec.questionCount ??
                 matchedSecTime?.questionCount ??
-                (sec.correct + sec.wrong + (sec.skipped || 0));
+                sec.correct + sec.wrong + (sec.skipped || 0);
 
               return (
                 <div key={idx} className='space-y-2'>
@@ -84,10 +84,11 @@ export const DashboardOverallAccuracy: React.FC<Props> = ({ data }) => {
                       <span className='text-foreground font-bold text-sm'>{sec.sectionName}</span>
                     </div>
                     <div className='text-right'>
-                      <span className='font-extrabold text-foreground text-sm'>
-                        {sec.correct}
+                      <span className='font-extrabold text-foreground text-sm'>{sec.correct}</span>
+                      <span className='text-muted-foreground font-medium'>
+                        {' '}
+                        / {totalQ} correct ({acc}%)
                       </span>
-                      <span className='text-muted-foreground font-medium'> / {totalQ} correct ({acc}%)</span>
                     </div>
                   </div>
                   <div className='w-full bg-muted rounded-full h-2.5 overflow-hidden'>

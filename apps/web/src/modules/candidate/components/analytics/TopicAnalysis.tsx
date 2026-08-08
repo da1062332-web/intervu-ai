@@ -17,7 +17,9 @@ export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: Topic
     return (
       <div className='flex flex-col items-center justify-center h-48 text-sm text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/40 p-4 text-center'>
         <p className='font-semibold text-foreground/80'>No topic analysis available</p>
-        <p className='text-xs text-muted-foreground mt-1'>Complete assessments to view topic mastery breakdown.</p>
+        <p className='text-xs text-muted-foreground mt-1'>
+          Complete assessments to view topic mastery breakdown.
+        </p>
       </div>
     );
   }
@@ -75,4 +77,3 @@ export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: Topic
     </div>
   );
 });
-

@@ -83,14 +83,14 @@ export class AdminCandidatesService {
           this.candidateResultRepository.findCandidateResults(user.id, 1, 1),
         ]);
         const summary = user.performanceSummary || {};
-        const completedTests = perf.testsCompleted || summary.testsCompleted || 0;
+        const completedTests =
+          perf.testsCompleted || summary.testsCompleted || 0;
         const averageScore = Math.round(
           perf.averageScore || summary.averageScore || 0,
         );
-        const bestScore = Math.round(
-          perf.bestScore || summary.bestScore || 0,
-        );
-        const lastAttemptDate = perf.lastAssessmentDate || summary.lastAssessmentDate;
+        const bestScore = Math.round(perf.bestScore || summary.bestScore || 0);
+        const lastAttemptDate =
+          perf.lastAssessmentDate || summary.lastAssessmentDate;
         const latestResult = res.items?.[0];
 
         return {
@@ -107,7 +107,9 @@ export class AdminCandidatesService {
           lastAttempt: lastAttemptDate
             ? new Date(lastAttemptDate).toISOString()
             : "",
-          createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : "",
+          createdAt: user.createdAt
+            ? new Date(user.createdAt).toISOString()
+            : "",
         };
       }),
     );
@@ -189,16 +191,19 @@ export class AdminCandidatesService {
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const { items, total } = await this.attemptHistoryRepository.findAttemptsByUser({
-      userId: candidateId,
-      skip,
-      take: limit,
-    });
+    const { items, total } =
+      await this.attemptHistoryRepository.findAttemptsByUser({
+        userId: candidateId,
+        skip,
+        take: limit,
+      });
 
     const enrichedItems = await Promise.all(
       items.map(async (attempt: any) => {
         const candResult =
-          await this.candidateResultRepository.findResultByAttemptId(attempt.id);
+          await this.candidateResultRepository.findResultByAttemptId(
+            attempt.id,
+          );
         const evalScore = attempt.evaluationResult?.overallScore;
         const score =
           candResult?.score ?? (evalScore !== undefined ? evalScore : 0);
@@ -217,12 +222,16 @@ export class AdminCandidatesService {
           percentage: Math.round(percentage),
           startedAt: attempt.startedAt
             ? new Date(attempt.startedAt).toISOString()
-            : (attempt.createdAt ? new Date(attempt.createdAt).toISOString() : ""),
+            : attempt.createdAt
+              ? new Date(attempt.createdAt).toISOString()
+              : "",
           submittedAt: attempt.submittedAt
             ? new Date(attempt.submittedAt).toISOString()
-            : (attempt.status === "COMPLETED" || attempt.status === "SUBMITTED"
-                ? (attempt.updatedAt ? new Date(attempt.updatedAt).toISOString() : "")
-                : ""),
+            : attempt.status === "COMPLETED" || attempt.status === "SUBMITTED"
+              ? attempt.updatedAt
+                ? new Date(attempt.updatedAt).toISOString()
+                : ""
+              : "",
         };
       }),
     );

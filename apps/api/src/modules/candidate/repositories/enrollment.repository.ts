@@ -24,10 +24,7 @@ export class EnrollmentRepository extends BaseRepository<
     return this.db.candidateEnrollment.findFirst({
       where: {
         candidateId,
-        OR: [
-          { testId },
-          { examConfigId: testId }
-        ]
+        OR: [{ testId }, { examConfigId: testId }],
       },
     });
   }
@@ -51,8 +48,8 @@ export class EnrollmentRepository extends BaseRepository<
             name: true,
             durationMinutes: true,
             totalQuestions: true,
-          }
-        }
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

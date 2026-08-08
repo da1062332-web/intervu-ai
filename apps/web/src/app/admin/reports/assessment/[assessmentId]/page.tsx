@@ -65,7 +65,12 @@ export default function AdminAssessmentOutcomePage() {
       <SectionHeader
         title='Assessment Outcome Report'
         description={outcome.assessment.title}
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Reports' }, { label: 'Assessment' }, { label: outcome.assessment.title }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Reports' },
+          { label: 'Assessment' },
+          { label: outcome.assessment.title },
+        ]}
         actions={
           <Button variant='outline' onClick={() => router.back()}>
             <ChevronLeft className='w-4 h-4 mr-2' />
@@ -76,24 +81,24 @@ export default function AdminAssessmentOutcomePage() {
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
         <StatCard
-          title="Average Score"
+          title='Average Score'
           value={Math.round(outcome.averageScore)}
-          icon={<BarChart3 className="size-5" />}
+          icon={<BarChart3 className='size-5' />}
         />
         <StatCard
-          title="Pass Rate"
+          title='Pass Rate'
           value={`${Math.round(outcome.passRate)}%`}
-          icon={<Target className="size-5" />}
+          icon={<Target className='size-5' />}
         />
         <StatCard
-          title="Completion Rate"
+          title='Completion Rate'
           value={`${Math.round(outcome.completionRate)}%`}
-          icon={<Users className="size-5" />}
+          icon={<Users className='size-5' />}
         />
         <StatCard
-          title="Highest / Lowest"
+          title='Highest / Lowest'
           value={`${Math.round(outcome.highestScore)} / ${Math.round(outcome.lowestScore)}`}
-          icon={<Activity className="size-5" />}
+          icon={<Activity className='size-5' />}
         />
       </div>
 

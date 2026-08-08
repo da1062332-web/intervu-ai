@@ -13,7 +13,10 @@ export const PerformanceSnapshot = React.memo(function PerformanceSnapshot() {
     return (
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5'>
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className='h-24 w-full rounded-xl border border-border/60 bg-muted/50' />
+          <Skeleton
+            key={i}
+            className='h-24 w-full rounded-xl border border-border/60 bg-muted/50'
+          />
         ))}
       </div>
     );

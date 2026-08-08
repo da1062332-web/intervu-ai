@@ -1681,4 +1681,82 @@ model HiringSectionMapping {
   @@map("hiring_section_mappings")
 }
 
+enum CodingPatternStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model CodingOracle {
+  id                    String            @id @default(cuid())
+  key                   String            @unique
+  name                  String
+  category              String            @default("GENERAL")
+  description           String?
+  supportedDifficulties String[]          @default(["EASY", "MEDIUM", "HARD"])
+  parameterSchema       Json              @default("{}")
+  metadata              Json              @default("{}")
+  isActive              Boolean           @default(true)
+  isSystem              Boolean           @default(true)
+  version               Int               @default(1)
+  creatorId             String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  deletedAt             DateTime?
+  patterns              CodingPattern[]
+
+  @@index([key])
+  @@index([category])
+  @@index([isActive])
+  @@map("coding_oracles")
+}
+
+model CodingPattern {
+  id                     String              @id @default(cuid())
+  patternKey             String              @unique @default(cuid())
+  title                  String
+  slug                   String              @unique
+  description            String?
+  difficulty             DifficultyLevel     @default(MEDIUM)
+  status                 CodingPatternStatus @default(DRAFT)
+  version                Int                 @default(1)
+  oracleKey              String
+  statementSpecification Json                @default("{}")
+  parameterSchema        Json                @default("{}")
+  constraintSchema       Json                @default("{}")
+  aiConfiguration        Json                @default("{}")
+  starterCode            Json                @default("{}")
+  metadata               Json                @default("{}")
+  creatorId              String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  deletedAt              DateTime?
+  testCases              CodingTestCase[]
+  oracle                 CodingOracle?       @relation(fields: [oracleKey], references: [key])
+
+  @@index([patternKey])
+  @@index([oracleKey])
+  @@index([difficulty])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("coding_patterns")
+}
+
+model CodingTestCase {
+  id             String        @id @default(cuid())
+  patternId      String
+  input          Json
+  expectedOutput Json
+  isPublic       Boolean       @default(false)
+  isStress       Boolean       @default(false)
+  isBoundary     Boolean       @default(false)
+  explanation    String?
+  createdAt      DateTime      @default(now())
+  pattern        CodingPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@index([patternId])
+  @@index([isPublic])
+  @@map("coding_test_cases")
+}
+
 

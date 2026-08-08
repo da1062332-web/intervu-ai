@@ -4,7 +4,10 @@ import {
   ValidationReport,
   RawQuestion,
 } from "../interfaces/validation-strategy.interface";
-import { GenerationContext, DatasetPayload } from "../interfaces/generation-context.interface";
+import {
+  GenerationContext,
+  DatasetPayload,
+} from "../interfaces/generation-context.interface";
 
 /**
  * DatasetValidator
@@ -29,9 +32,7 @@ export class DatasetValidator implements IValidationStrategy {
 
     // 2. Must have exactly 4 options
     if (!question.options || question.options.length !== 4) {
-      errors.push(
-        `Expected 4 options, got ${question.options?.length ?? 0}.`,
-      );
+      errors.push(`Expected 4 options, got ${question.options?.length ?? 0}.`);
     }
 
     // 3. Correct answer must be one of A/B/C/D
@@ -44,7 +45,9 @@ export class DatasetValidator implements IValidationStrategy {
 
     // 4. Passage must exist
     if (!payload.passage?.trim()) {
-      errors.push("Dataset passage is empty — cannot generate reading comprehension question.");
+      errors.push(
+        "Dataset passage is empty — cannot generate reading comprehension question.",
+      );
     }
 
     // 5. Basic passage consistency: question should reference the passage topic

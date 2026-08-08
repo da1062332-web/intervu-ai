@@ -10,4 +10,3 @@ export function ProgressDashboard() {
     </div>
   );
 }
-

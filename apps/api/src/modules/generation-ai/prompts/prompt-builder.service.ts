@@ -118,23 +118,23 @@ export class PromptBuilderService {
       this.collectAllowedVariables(template, variableValues),
     );
     if (!placeholderValidation.valid) {
-      throw new PreviewGenerationException(
-        "Template configuration error.",
-        {
-          category: "PLACEHOLDER_ERROR",
-          retryable: false,
-          source: "prompt-builder",
-          reason: `Unresolved placeholder(s) in question template: ${placeholderValidation.unknownVariables.join(", ")}`,
-          context: {
-            placeholders: placeholderValidation.unknownVariables,
-            template: rawQuestionTemplate,
-          },
+      throw new PreviewGenerationException("Template configuration error.", {
+        category: "PLACEHOLDER_ERROR",
+        retryable: false,
+        source: "prompt-builder",
+        reason: `Unresolved placeholder(s) in question template: ${placeholderValidation.unknownVariables.join(", ")}`,
+        context: {
+          placeholders: placeholderValidation.unknownVariables,
+          template: rawQuestionTemplate,
         },
-      );
+      });
     }
 
     // Pre-interpolate question stem using direct variable substitution
-    const interpolatedQuestion = this.interpolate(rawQuestionTemplate, variableValues);
+    const interpolatedQuestion = this.interpolate(
+      rawQuestionTemplate,
+      variableValues,
+    );
 
     const systemPrompt = `You are an expert AI Assessment Question Generator. Your task is to produce high-quality, professional, and mathematically accurate assessment questions based on solved numerical parameters.`;
 
@@ -149,7 +149,10 @@ export class PromptBuilderService {
 `;
 
     // Try to get pre-calculated correctAnswer
-    const resolvedCorrectAnswer = this.resolveCorrectAnswer(template, variableValues);
+    const resolvedCorrectAnswer = this.resolveCorrectAnswer(
+      template,
+      variableValues,
+    );
     const correctAnswerVal =
       input.correctAnswer ||
       (variableValues as any).correctAnswer ||
@@ -203,7 +206,8 @@ Since this is a ${questionType} question type, return an empty array for options
 `;
     }
 
-    const solutionSteps = (template.solutionSchema && template.solutionSchema.steps) || [];
+    const solutionSteps =
+      (template.solutionSchema && template.solutionSchema.steps) || [];
     const explanationRules = `
 [EXPLANATION RULES]
 Write a step-by-step math explanation. The explanation must adhere to the following exact structure with exactly these headings:
@@ -266,7 +270,8 @@ CRITICAL:
       }
     }
 
-    const generationStrategyConfig = variableSchema.generationStrategyConfig || {};
+    const generationStrategyConfig =
+      variableSchema.generationStrategyConfig || {};
     const nestedVariables = Array.isArray(generationStrategyConfig.variables)
       ? generationStrategyConfig.variables
       : [];
@@ -294,7 +299,10 @@ CRITICAL:
 
     const finalAnswerExpression =
       solutionSchema.finalAnswer || solutionSchema.formula;
-    if (typeof finalAnswerExpression === "string" && finalAnswerExpression.trim()) {
+    if (
+      typeof finalAnswerExpression === "string" &&
+      finalAnswerExpression.trim()
+    ) {
       try {
         const resolved = evaluate(finalAnswerExpression, variableValues as any);
         return resolved !== undefined ? String(resolved) : undefined;
@@ -316,14 +324,16 @@ CRITICAL:
 
     const variableValues = {
       ...(input.variableValues || {}),
-      ...(input.datasetItem?.metadata || {})
+      ...(input.datasetItem?.metadata || {}),
     };
     let datasetContent = input.datasetItem?.content || "";
     if (datasetContent) {
       datasetContent = this.interpolate(datasetContent, variableValues);
     }
 
-    const systemPrompt = promptConfig?.systemPrompt || `You are an expert AI Assessment Question Generator. Your task is to generate assessment questions based on a provided static content asset.`;
+    const systemPrompt =
+      promptConfig?.systemPrompt ||
+      `You are an expert AI Assessment Question Generator. Your task is to generate assessment questions based on a provided static content asset.`;
 
     const templateContext = `
 [TEMPLATE CONTEXT]
@@ -346,7 +356,10 @@ ${datasetContent}
     let parsedStructure: any = {};
     if (template.structure) {
       try {
-        parsedStructure = typeof template.structure === "string" ? JSON.parse(template.structure) : template.structure;
+        parsedStructure =
+          typeof template.structure === "string"
+            ? JSON.parse(template.structure)
+            : template.structure;
       } catch (e) {}
     }
 
@@ -370,7 +383,7 @@ ${this.interpolate(finalUserPrompt, { content: datasetContent, ...variableValues
 
     const questionStem = questionTemplateObj?.stem;
     const candidateInstructions = questionTemplateObj?.instructions;
-    
+
     let presentationContext = "";
     if (questionStem || candidateInstructions) {
       presentationContext = `
@@ -381,7 +394,9 @@ ${candidateInstructions ? `Candidate Instructions: "${candidateInstructions}"` :
 `;
     }
 
-    let questionInstructions = promptConfig?.instructions || `
+    let questionInstructions =
+      promptConfig?.instructions ||
+      `
 [QUESTION INSTRUCTIONS & CONCEPT-REFERENCE GENERATION RULES]
 Generate a high-quality, completely NEW ${questionType} question of ${difficulty.toUpperCase()} difficulty using the content asset above ONLY as a structural reference.
 
@@ -400,7 +415,10 @@ DIFFICULTY & COGNITIVE COMPLEXITY PRESERVATION RULES (${difficulty.toUpperCase()
 10. Do not leak any variable placeholders (e.g. no double curly braces).
 `;
     if (promptConfig?.instructions) {
-      questionInstructions = this.interpolate(promptConfig.instructions, variableValues);
+      questionInstructions = this.interpolate(
+        promptConfig.instructions,
+        variableValues,
+      );
     }
 
     let optionStrategyText = "";
@@ -431,10 +449,12 @@ Final Answer
 <State the final answer clearly, explicitly referencing the correct option>
 `;
 
-    const customOutputRules = promptConfig?.outputRules ? `
+    const customOutputRules = promptConfig?.outputRules
+      ? `
 [CUSTOM OUTPUT RULES]
 ${promptConfig.outputRules}
-` : "";
+`
+      : "";
 
     const outputFormat = `
 [OUTPUT FORMAT]
@@ -563,12 +583,14 @@ CRITICAL:
     if (!styleProfile) return "";
 
     const language = styleProfile.languageStyle?.language || "English";
-    const sentenceLength = styleProfile.languageStyle?.sentenceLength || "medium";
+    const sentenceLength =
+      styleProfile.languageStyle?.sentenceLength || "medium";
     const vocabularyLevel =
       styleProfile.languageStyle?.vocabularyLevel || "intermediate";
     const grammarStyle = styleProfile.languageStyle?.grammarStyle || "formal";
 
-    const preferredContexts = styleProfile.contextStyle?.preferredContexts || [];
+    const preferredContexts =
+      styleProfile.contextStyle?.preferredContexts || [];
     const contextText =
       preferredContexts.length > 0
         ? `- Preferred Context: Prefer real-world contexts such as: ${preferredContexts.join(", ")}.`

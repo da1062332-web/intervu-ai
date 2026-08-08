@@ -244,7 +244,9 @@ describe("ConceptMappingService", () => {
     it("should throw BadRequestException if concept to delete is linked to generated questions", async () => {
       repository.findById.mockResolvedValue(mockConcept);
       prisma.template.findMany.mockResolvedValue([]);
-      prisma.generatedQuestion.findMany.mockResolvedValue([{ id: "question-1" }]);
+      prisma.generatedQuestion.findMany.mockResolvedValue([
+        { id: "question-1" },
+      ]);
 
       await expect(service.deleteConcept("concept-123")).rejects.toThrow(
         BadRequestException,

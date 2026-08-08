@@ -19,12 +19,12 @@ export const questionPoolApi = {
       query,
     });
 
-    const items = Array.isArray(res) 
-      ? res 
-      : Array.isArray(res?.data) 
-        ? res.data 
-        : Array.isArray(res?.items) 
-          ? res.items 
+    const items = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.items)
+          ? res.items
           : [];
     return items.map((q: any) => {
       const rawStatus = (q.status || q.metadata?.status || 'GENERATED').toString().toUpperCase();
@@ -32,12 +32,12 @@ export const questionPoolApi = {
         rawStatus === 'GENERATED' || rawStatus === 'DRAFT'
           ? 'Draft'
           : rawStatus === 'APPROVED'
-          ? 'Approved'
-          : rawStatus === 'REJECTED'
-          ? 'Rejected'
-          : rawStatus === 'PUBLISHED'
-          ? 'Published'
-          : rawStatus;
+            ? 'Approved'
+            : rawStatus === 'REJECTED'
+              ? 'Rejected'
+              : rawStatus === 'PUBLISHED'
+                ? 'Published'
+                : rawStatus;
 
       return {
         ...q,
@@ -79,7 +79,10 @@ export const questionPoolApi = {
     });
   },
 
-  updateQuestion: async (id: string, payload: Partial<GeneratedQuestion>): Promise<GeneratedQuestion> => {
+  updateQuestion: async (
+    id: string,
+    payload: Partial<GeneratedQuestion>,
+  ): Promise<GeneratedQuestion> => {
     return apiClient.request<GeneratedQuestion>(`/questions/${id}`, {
       method: 'PATCH',
       body: payload,

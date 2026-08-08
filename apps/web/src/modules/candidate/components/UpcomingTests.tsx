@@ -18,12 +18,19 @@ export function UpcomingTests() {
     return (
       <Card className='bg-card/80 border border-border/60 shadow-xs h-full flex flex-col'>
         <CardHeader className='pb-3 border-b border-border/40'>
-          <CardTitle className='text-base md:text-lg font-bold text-foreground'>Available Assessments</CardTitle>
-          <CardDescription className='text-xs text-muted-foreground font-medium'>Recommended and assigned tests open for evaluation</CardDescription>
+          <CardTitle className='text-base md:text-lg font-bold text-foreground'>
+            Available Assessments
+          </CardTitle>
+          <CardDescription className='text-xs text-muted-foreground font-medium'>
+            Recommended and assigned tests open for evaluation
+          </CardDescription>
         </CardHeader>
         <CardContent className='p-4 space-y-3 flex-1'>
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className='h-18 w-full rounded-xl border border-border/60 bg-muted/50' />
+            <Skeleton
+              key={i}
+              className='h-18 w-full rounded-xl border border-border/60 bg-muted/50'
+            />
           ))}
         </CardContent>
       </Card>
@@ -40,18 +47,25 @@ export function UpcomingTests() {
     );
   }
 
-  const tests = data.availableTests?.filter((t) => t.status !== 'ENROLLED' && t.attemptCount === 0 && !t.hasActiveAttempt) || [];
+  const tests =
+    data.availableTests?.filter(
+      (t) => t.status !== 'ENROLLED' && t.attemptCount === 0 && !t.hasActiveAttempt,
+    ) || [];
   if (tests.length === 0) {
     return (
       <Card className='bg-card/80 border border-border/60 shadow-xs h-full flex flex-col'>
         <CardHeader className='pb-3 border-b border-border/40'>
-          <CardTitle className='text-base md:text-lg font-bold text-foreground'>Available Assessments</CardTitle>
-          <CardDescription className='text-xs text-muted-foreground font-medium'>Recommended and assigned tests open for evaluation</CardDescription>
+          <CardTitle className='text-base md:text-lg font-bold text-foreground'>
+            Available Assessments
+          </CardTitle>
+          <CardDescription className='text-xs text-muted-foreground font-medium'>
+            Recommended and assigned tests open for evaluation
+          </CardDescription>
         </CardHeader>
         <CardContent className='flex-1 flex items-center justify-center p-6'>
           <EmptyState
             title='No Pending Assessments'
-            description="You have completed or enrolled in all assessments currently available to your profile."
+            description='You have completed or enrolled in all assessments currently available to your profile.'
             icon={<Clock className='size-8 text-muted-foreground/70' />}
             variant='no-data'
           />
@@ -63,8 +77,12 @@ export function UpcomingTests() {
   return (
     <Card className='bg-card/80 border border-border/60 shadow-xs h-full flex flex-col'>
       <CardHeader className='pb-3 border-b border-border/40'>
-        <CardTitle className='text-base md:text-lg font-bold text-foreground'>Available Assessments</CardTitle>
-        <CardDescription className='text-xs text-muted-foreground font-medium'>Recommended and assigned tests open for evaluation</CardDescription>
+        <CardTitle className='text-base md:text-lg font-bold text-foreground'>
+          Available Assessments
+        </CardTitle>
+        <CardDescription className='text-xs text-muted-foreground font-medium'>
+          Recommended and assigned tests open for evaluation
+        </CardDescription>
       </CardHeader>
       <CardContent className='p-4 space-y-3 flex-1 overflow-y-auto max-h-[440px] custom-scrollbar'>
         {tests.map((test) => (
@@ -73,7 +91,9 @@ export function UpcomingTests() {
             className='flex items-center justify-between p-3.5 border border-border/60 rounded-xl bg-background/50 hover:bg-muted/30 transition-colors shadow-2xs gap-3 group'
           >
             <div className='min-w-0 flex-1'>
-              <div className='font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors'>{test.title}</div>
+              <div className='font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors'>
+                {test.title}
+              </div>
               <div className='flex items-center gap-2 text-xs font-medium text-muted-foreground mt-1'>
                 <Badge
                   variant='outline'

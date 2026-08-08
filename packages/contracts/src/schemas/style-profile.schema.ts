@@ -57,4 +57,3 @@ export const StyleProfileSchema = z.object({
   explanationStyle: ExplanationStyleSchema.default({}),
   aiInstructions: z.string().default(""),
 });
-

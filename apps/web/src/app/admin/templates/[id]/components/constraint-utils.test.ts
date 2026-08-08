@@ -12,7 +12,11 @@ describe('constraint-utils', () => {
   });
 
   it('builds raw rule strings for custom operators', () => {
-    const rule = buildConstraintRule({ target: 'other_number', operator: 'Formula', value: 'other_number % 1 = 0' });
+    const rule = buildConstraintRule({
+      target: 'other_number',
+      operator: 'Formula',
+      value: 'other_number % 1 = 0',
+    });
 
     expect(rule).toBe('other_number % 1 = 0');
   });

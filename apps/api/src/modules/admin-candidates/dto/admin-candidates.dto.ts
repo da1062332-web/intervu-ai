@@ -63,34 +63,62 @@ export class CandidateListItemDto {
   @ApiProperty({ example: "John Doe", description: "Candidate full name" })
   name!: string;
 
-  @ApiProperty({ example: "john.doe@example.com", description: "Email address" })
+  @ApiProperty({
+    example: "john.doe@example.com",
+    description: "Email address",
+  })
   email!: string;
 
-  @ApiProperty({ example: "ACTIVE", description: "Account status: ACTIVE or INACTIVE" })
+  @ApiProperty({
+    example: "ACTIVE",
+    description: "Account status: ACTIVE or INACTIVE",
+  })
   status!: string;
 
-  @ApiProperty({ example: 10, description: "Total number of tests assigned to candidate" })
+  @ApiProperty({
+    example: 10,
+    description: "Total number of tests assigned to candidate",
+  })
   assignedTests!: number;
 
-  @ApiProperty({ example: 8, description: "Total number of test instances attempted" })
+  @ApiProperty({
+    example: 8,
+    description: "Total number of test instances attempted",
+  })
   attemptedTests!: number;
 
   @ApiProperty({ example: 7, description: "Total number of completed tests" })
   completedTests!: number;
 
-  @ApiProperty({ example: 82, description: "Average evaluation score percentage" })
+  @ApiProperty({
+    example: 82,
+    description: "Average evaluation score percentage",
+  })
   averageScore!: number;
 
-  @ApiProperty({ example: "95", description: "Best evaluation score percentage" })
+  @ApiProperty({
+    example: "95",
+    description: "Best evaluation score percentage",
+  })
   bestScore!: number;
 
-  @ApiProperty({ example: "PRIME", description: "Latest hiring qualification", required: false })
+  @ApiProperty({
+    example: "PRIME",
+    description: "Latest hiring qualification",
+    required: false,
+  })
   qualification?: string;
 
-  @ApiProperty({ example: "2026-07-20T10:30:00.000Z", description: "Timestamp of last attempt" })
+  @ApiProperty({
+    example: "2026-07-20T10:30:00.000Z",
+    description: "Timestamp of last attempt",
+  })
   lastAttempt!: string;
 
-  @ApiProperty({ example: "2026-01-15T08:00:00.000Z", description: "Registration timestamp" })
+  @ApiProperty({
+    example: "2026-01-15T08:00:00.000Z",
+    description: "Registration timestamp",
+  })
   createdAt!: string;
 }
 
@@ -115,18 +143,31 @@ export class CandidateSummaryDto {
   @ApiProperty({ example: 140, description: "Active candidates across system" })
   activeCount!: number;
 
-  @ApiProperty({ example: 10, description: "Inactive candidates across system" })
+  @ApiProperty({
+    example: 10,
+    description: "Inactive candidates across system",
+  })
   inactiveCount!: number;
 }
 
 export class CandidateListResponseDto {
-  @ApiProperty({ type: [CandidateListItemDto], description: "List of candidates" })
+  @ApiProperty({
+    type: [CandidateListItemDto],
+    description: "List of candidates",
+  })
   items!: CandidateListItemDto[];
 
-  @ApiProperty({ type: CandidatePaginationDto, description: "Pagination metadata" })
+  @ApiProperty({
+    type: CandidatePaginationDto,
+    description: "Pagination metadata",
+  })
   pagination!: CandidatePaginationDto;
 
-  @ApiProperty({ type: CandidateSummaryDto, description: "Summary KPI metrics", required: false })
+  @ApiProperty({
+    type: CandidateSummaryDto,
+    description: "Summary KPI metrics",
+    required: false,
+  })
   summary?: CandidateSummaryDto;
 }
 
@@ -137,16 +178,25 @@ export class CandidateDetailsResponseDto {
   @ApiProperty({ example: "John Doe", description: "Candidate full name" })
   name!: string;
 
-  @ApiProperty({ example: "john.doe@example.com", description: "Email address" })
+  @ApiProperty({
+    example: "john.doe@example.com",
+    description: "Email address",
+  })
   email!: string;
 
   @ApiProperty({ example: "+1234567890", description: "Phone number" })
   phone!: string;
 
-  @ApiProperty({ example: "2026-01-15T08:00:00.000Z", description: "Registration timestamp" })
+  @ApiProperty({
+    example: "2026-01-15T08:00:00.000Z",
+    description: "Registration timestamp",
+  })
   createdAt!: string;
 
-  @ApiProperty({ example: "ACTIVE", description: "Account status: ACTIVE or INACTIVE" })
+  @ApiProperty({
+    example: "ACTIVE",
+    description: "Account status: ACTIVE or INACTIVE",
+  })
   status!: string;
 }
 
@@ -166,7 +216,10 @@ export class CandidateStatsResponseDto {
   @ApiProperty({ example: 95, description: "Best overall score" })
   bestScore!: number;
 
-  @ApiProperty({ example: "2026-07-20T10:30:00.000Z", description: "Last attempt date" })
+  @ApiProperty({
+    example: "2026-07-20T10:30:00.000Z",
+    description: "Last attempt date",
+  })
   lastAttempt!: string;
 }
 
@@ -190,10 +243,16 @@ export class CandidateTestHistoryItemDto {
   @ApiProperty({ example: "atm_123456", description: "Test attempt unique ID" })
   attemptId!: string;
 
-  @ApiProperty({ example: "Frontend Engineer Screening", description: "Assessment title" })
+  @ApiProperty({
+    example: "Frontend Engineer Screening",
+    description: "Assessment title",
+  })
   assessmentName!: string;
 
-  @ApiProperty({ example: "COMPLETED", description: "Execution status of attempt" })
+  @ApiProperty({
+    example: "COMPLETED",
+    description: "Execution status of attempt",
+  })
   status!: string;
 
   @ApiProperty({ example: 80, description: "Raw evaluation score" })
@@ -202,17 +261,29 @@ export class CandidateTestHistoryItemDto {
   @ApiProperty({ example: 80, description: "Percentage evaluation score" })
   percentage!: number;
 
-  @ApiProperty({ example: "2026-07-20T09:00:00.000Z", description: "Attempt start time" })
+  @ApiProperty({
+    example: "2026-07-20T09:00:00.000Z",
+    description: "Attempt start time",
+  })
   startedAt!: string;
 
-  @ApiProperty({ example: "2026-07-20T10:00:00.000Z", description: "Attempt submission time" })
+  @ApiProperty({
+    example: "2026-07-20T10:00:00.000Z",
+    description: "Attempt submission time",
+  })
   submittedAt!: string;
 }
 
 export class CandidateTestHistoryResponseDto {
-  @ApiProperty({ type: [CandidateTestHistoryItemDto], description: "List of attempted tests" })
+  @ApiProperty({
+    type: [CandidateTestHistoryItemDto],
+    description: "List of attempted tests",
+  })
   items!: CandidateTestHistoryItemDto[];
 
-  @ApiPropertyOptional({ type: CandidatePaginationDto, description: "Pagination metadata" })
+  @ApiPropertyOptional({
+    type: CandidatePaginationDto,
+    description: "Pagination metadata",
+  })
   pagination?: CandidatePaginationDto;
 }

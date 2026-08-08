@@ -53,10 +53,14 @@ export const resultApi = {
   },
 
   getPerformanceDashboard: async (attemptId: string): Promise<PerformanceDashboardResponse> => {
-    return apiClient.request<PerformanceDashboardResponse>(`${BASE_PATH}/${attemptId}/performance-dashboard`);
+    return apiClient.request<PerformanceDashboardResponse>(
+      `${BASE_PATH}/${attemptId}/performance-dashboard`,
+    );
   },
 
-  getAiAnalysis: async (attemptId: string): Promise<{
+  getAiAnalysis: async (
+    attemptId: string,
+  ): Promise<{
     summary: string;
     practiceHours: number;
     strengths: { title: string; detail: string }[];

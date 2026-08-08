@@ -21,11 +21,36 @@ describe("TcsHiringStrategy", () => {
     codingDigitalMinSolved: 1,
     codingPrimeMinSolved: 2,
     sectionMappings: [
-      { sectionCode: "SEC_NUM", sectionName: "Numerical Ability", mappingType: "NUMERICAL" as const, minimumCorrectAnswers: 5 },
-      { sectionCode: "SEC_VERB", sectionName: "Verbal Ability", mappingType: "VERBAL" as const, minimumCorrectAnswers: 5 },
-      { sectionCode: "SEC_REAS", sectionName: "Reasoning Ability", mappingType: "REASONING" as const, minimumCorrectAnswers: 5 },
-      { sectionCode: "SEC_ADV", sectionName: "Advanced Aptitude", mappingType: "ADVANCED_APTITUDE" as const, minimumCorrectAnswers: 0 },
-      { sectionCode: "SEC_CODE", sectionName: "Coding Section", mappingType: "CODING" as const, minimumCorrectAnswers: 0 },
+      {
+        sectionCode: "SEC_NUM",
+        sectionName: "Numerical Ability",
+        mappingType: "NUMERICAL" as const,
+        minimumCorrectAnswers: 5,
+      },
+      {
+        sectionCode: "SEC_VERB",
+        sectionName: "Verbal Ability",
+        mappingType: "VERBAL" as const,
+        minimumCorrectAnswers: 5,
+      },
+      {
+        sectionCode: "SEC_REAS",
+        sectionName: "Reasoning Ability",
+        mappingType: "REASONING" as const,
+        minimumCorrectAnswers: 5,
+      },
+      {
+        sectionCode: "SEC_ADV",
+        sectionName: "Advanced Aptitude",
+        mappingType: "ADVANCED_APTITUDE" as const,
+        minimumCorrectAnswers: 0,
+      },
+      {
+        sectionCode: "SEC_CODE",
+        sectionName: "Coding Section",
+        mappingType: "CODING" as const,
+        minimumCorrectAnswers: 0,
+      },
     ],
   };
 
@@ -33,9 +58,24 @@ describe("TcsHiringStrategy", () => {
     const context: HiringEvaluationContext = {
       config: baseConfig,
       sectionScores: [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 3, incorrect: 7 }, // Failed (req 5)
-        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 8, incorrect: 2 },
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 8, incorrect: 2 },
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical Ability",
+          correct: 3,
+          incorrect: 7,
+        }, // Failed (req 5)
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal Ability",
+          correct: 8,
+          incorrect: 2,
+        },
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning Ability",
+          correct: 8,
+          incorrect: 2,
+        },
       ],
       objectiveEvalResults: [],
       codingEvalResults: [],
@@ -51,9 +91,24 @@ describe("TcsHiringStrategy", () => {
     const context: HiringEvaluationContext = {
       config: baseConfig,
       sectionScores: [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 5, incorrect: 5 }, // Passed (5)
-        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 5, incorrect: 5 }, // Passed (5)
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 4, incorrect: 6 }, // Failed (4 < 5)
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical Ability",
+          correct: 5,
+          incorrect: 5,
+        }, // Passed (5)
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal Ability",
+          correct: 5,
+          incorrect: 5,
+        }, // Passed (5)
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning Ability",
+          correct: 4,
+          incorrect: 6,
+        }, // Failed (4 < 5)
       ],
       objectiveEvalResults: [],
       codingEvalResults: [],
@@ -68,9 +123,24 @@ describe("TcsHiringStrategy", () => {
     const context: HiringEvaluationContext = {
       config: baseConfig,
       sectionScores: [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 6, incorrect: 4 },
-        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 6, incorrect: 4 },
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 6, incorrect: 4 }, // Foundation total = 18 >= 15
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical Ability",
+          correct: 6,
+          incorrect: 4,
+        },
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal Ability",
+          correct: 6,
+          incorrect: 4,
+        },
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning Ability",
+          correct: 6,
+          incorrect: 4,
+        }, // Foundation total = 18 >= 15
       ],
       objectiveEvalResults: [],
       codingEvalResults: [],
@@ -86,10 +156,30 @@ describe("TcsHiringStrategy", () => {
     const context: HiringEvaluationContext = {
       config: baseConfig,
       sectionScores: [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 9, incorrect: 1 },
-        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 9, incorrect: 1 },
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 9, incorrect: 1 }, // Foundation total = 27 >= 25
-        { sectionKey: "SEC_ADV", sectionName: "Advanced Aptitude", correct: 10, incorrect: 2 }, // Advanced = 10 >= 8
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical Ability",
+          correct: 9,
+          incorrect: 1,
+        },
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal Ability",
+          correct: 9,
+          incorrect: 1,
+        },
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning Ability",
+          correct: 9,
+          incorrect: 1,
+        }, // Foundation total = 27 >= 25
+        {
+          sectionKey: "SEC_ADV",
+          sectionName: "Advanced Aptitude",
+          correct: 10,
+          incorrect: 2,
+        }, // Advanced = 10 >= 8
       ],
       objectiveEvalResults: [],
       codingEvalResults: [
@@ -111,10 +201,30 @@ describe("TcsHiringStrategy", () => {
     const context: HiringEvaluationContext = {
       config: baseConfig,
       sectionScores: [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 12, incorrect: 0 },
-        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 12, incorrect: 0 },
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 12, incorrect: 0 }, // Foundation total = 36 >= 35
-        { sectionKey: "SEC_ADV", sectionName: "Advanced Aptitude", correct: 14, incorrect: 1 }, // Advanced = 14 >= 12
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical Ability",
+          correct: 12,
+          incorrect: 0,
+        },
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal Ability",
+          correct: 12,
+          incorrect: 0,
+        },
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning Ability",
+          correct: 12,
+          incorrect: 0,
+        }, // Foundation total = 36 >= 35
+        {
+          sectionKey: "SEC_ADV",
+          sectionName: "Advanced Aptitude",
+          correct: 14,
+          incorrect: 1,
+        }, // Advanced = 14 >= 12
       ],
       objectiveEvalResults: [],
       codingEvalResults: [
@@ -134,10 +244,30 @@ describe("TcsHiringStrategy", () => {
     const context: HiringEvaluationContext = {
       config: baseConfig,
       sectionScores: [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 12, incorrect: 0 },
-        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 12, incorrect: 0 },
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 12, incorrect: 0 }, // Foundation = 36 >= 35 (Prime)
-        { sectionKey: "SEC_ADV", sectionName: "Advanced Aptitude", correct: 14, incorrect: 1 }, // Advanced = 14 >= 12 (Prime)
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical Ability",
+          correct: 12,
+          incorrect: 0,
+        },
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal Ability",
+          correct: 12,
+          incorrect: 0,
+        },
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning Ability",
+          correct: 12,
+          incorrect: 0,
+        }, // Foundation = 36 >= 35 (Prime)
+        {
+          sectionKey: "SEC_ADV",
+          sectionName: "Advanced Aptitude",
+          correct: 14,
+          incorrect: 1,
+        }, // Advanced = 14 >= 12 (Prime)
       ],
       objectiveEvalResults: [],
       codingEvalResults: [

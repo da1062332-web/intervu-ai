@@ -402,9 +402,10 @@ export class BlueprintCompilerService {
     const allocations: Record<string, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
     if (total === 0) return allocations;
 
-    const distNormalized = (dist.easy === 0 && dist.medium === 0 && dist.hard === 0)
-      ? { easy: 40, medium: 40, hard: 20 }
-      : dist;
+    const distNormalized =
+      dist.easy === 0 && dist.medium === 0 && dist.hard === 0
+        ? { easy: 40, medium: 40, hard: 20 }
+        : dist;
 
     const items = [
       { id: "EASY", percentage: distNormalized.easy },

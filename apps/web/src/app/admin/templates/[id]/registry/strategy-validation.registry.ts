@@ -29,16 +29,12 @@ export const datasetStrategySchema = z.object({
 });
 
 export const hybridStrategySchema = z.object({
-  entitySchema: z
-    .record(z.unknown())
-    .refine((v) => Object.keys(v).length > 0, {
-      message: 'Entity Schema is required — add at least one entity type',
-    }),
-  relationshipSchema: z
-    .record(z.unknown())
-    .refine((v) => Object.keys(v).length > 0, {
-      message: 'Relationship Schema is required — add at least one relationship',
-    }),
+  entitySchema: z.record(z.unknown()).refine((v) => Object.keys(v).length > 0, {
+    message: 'Entity Schema is required — add at least one entity type',
+  }),
+  relationshipSchema: z.record(z.unknown()).refine((v) => Object.keys(v).length > 0, {
+    message: 'Relationship Schema is required — add at least one relationship',
+  }),
   constraintSchema: z.record(z.unknown()).optional(),
   scenarioId: z.string().optional(),
 });

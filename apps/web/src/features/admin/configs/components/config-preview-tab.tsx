@@ -23,8 +23,8 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='flex items-center justify-center h-48'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
@@ -67,7 +67,9 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
             </div>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Status</p>
-              <p className={`font-semibold text-base ${isReady ? 'text-green-600' : 'text-amber-600'}`}>
+              <p
+                className={`font-semibold text-base ${isReady ? 'text-green-600' : 'text-amber-600'}`}
+              >
                 {isReady ? 'Ready to Assemble' : 'Incomplete'}
               </p>
             </div>
@@ -82,21 +84,33 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
           <div className='p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm'>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Topics</p>
-              <p className='font-semibold text-lg'>{previewData?.totalTopics || 0} <span className="text-sm font-normal text-muted-foreground">Available</span></p>
+              <p className='font-semibold text-lg'>
+                {previewData?.totalTopics || 0}{' '}
+                <span className='text-sm font-normal text-muted-foreground'>Available</span>
+              </p>
             </div>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Concepts</p>
-              <p className='font-semibold text-lg'>{previewData?.conceptCodes?.length || 0} <span className="text-sm font-normal text-muted-foreground">Mapped</span></p>
+              <p className='font-semibold text-lg'>
+                {previewData?.conceptCodes?.length || 0}{' '}
+                <span className='text-sm font-normal text-muted-foreground'>Mapped</span>
+              </p>
             </div>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Templates / MQs</p>
               <p className='font-semibold text-lg'>
-                {previewData?.totalTemplates || 0} <span className="text-sm font-normal text-muted-foreground">T</span> / {previewData?.totalManualQuestions || 0} <span className="text-sm font-normal text-muted-foreground">MQ</span>
+                {previewData?.totalTemplates || 0}{' '}
+                <span className='text-sm font-normal text-muted-foreground'>T</span> /{' '}
+                {previewData?.totalManualQuestions || 0}{' '}
+                <span className='text-sm font-normal text-muted-foreground'>MQ</span>
               </p>
             </div>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Sections</p>
-              <p className='font-semibold text-lg'>{sections?.length || 0} <span className="text-sm font-normal text-muted-foreground">Configured</span></p>
+              <p className='font-semibold text-lg'>
+                {sections?.length || 0}{' '}
+                <span className='text-sm font-normal text-muted-foreground'>Configured</span>
+              </p>
             </div>
           </div>
         </div>
@@ -111,11 +125,15 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
             <div className='p-6 flex-1 flex flex-col justify-center space-y-6'>
               <div className='flex justify-between items-center'>
                 <p className='text-muted-foreground font-medium'>Total Questions</p>
-                <p className='font-semibold text-lg bg-primary/10 text-primary px-3 py-1 rounded-md'>{config.totalQuestions}</p>
+                <p className='font-semibold text-lg bg-primary/10 text-primary px-3 py-1 rounded-md'>
+                  {config.totalQuestions}
+                </p>
               </div>
               <div className='flex justify-between items-center'>
                 <p className='text-muted-foreground font-medium'>Total Duration</p>
-                <p className='font-semibold text-lg bg-primary/10 text-primary px-3 py-1 rounded-md'>{config.durationMinutes} min</p>
+                <p className='font-semibold text-lg bg-primary/10 text-primary px-3 py-1 rounded-md'>
+                  {config.durationMinutes} min
+                </p>
               </div>
             </div>
           </div>
@@ -140,7 +158,11 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
                     <span
                       className={`w-2.5 h-2.5 rounded-full shrink-0 ${isEnabled ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-gray-300'}`}
                     />
-                    <span className={`text-sm ${isEnabled ? 'font-medium' : 'text-muted-foreground'}`}>{label}</span>
+                    <span
+                      className={`text-sm ${isEnabled ? 'font-medium' : 'text-muted-foreground'}`}
+                    >
+                      {label}
+                    </span>
                   </div>
                 );
               })}

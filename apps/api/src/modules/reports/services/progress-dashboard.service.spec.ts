@@ -30,24 +30,34 @@ describe("CandidateProgressService", () => {
         { provide: PrismaService, useValue: prisma },
         { provide: RedisCacheService, useValue: cacheService },
         { provide: ReportAuditService, useValue: auditService },
-        { 
-          provide: ResultsService, 
+        {
+          provide: ResultsService,
           useValue: {
-            getResultDetails: jest.fn().mockImplementation((attemptId: string) => {
-              if (attemptId === "ti-1") {
-                return Promise.resolve({
-                  percentage: 80,
-                  evaluationAnalytics: { completionRate: 100, topicAccuracy: { "Coding": 80 }, difficultyAccuracy: { "medium": 80 } }
-                });
-              } else if (attemptId === "ti-2") {
-                return Promise.resolve({
-                  percentage: 90,
-                  evaluationAnalytics: { completionRate: 100, topicAccuracy: { "Coding": 90 }, difficultyAccuracy: { "medium": 90 } }
-                });
-              }
-              return Promise.resolve({});
-            })
-          }
+            getResultDetails: jest
+              .fn()
+              .mockImplementation((attemptId: string) => {
+                if (attemptId === "ti-1") {
+                  return Promise.resolve({
+                    percentage: 80,
+                    evaluationAnalytics: {
+                      completionRate: 100,
+                      topicAccuracy: { Coding: 80 },
+                      difficultyAccuracy: { medium: 80 },
+                    },
+                  });
+                } else if (attemptId === "ti-2") {
+                  return Promise.resolve({
+                    percentage: 90,
+                    evaluationAnalytics: {
+                      completionRate: 100,
+                      topicAccuracy: { Coding: 90 },
+                      difficultyAccuracy: { medium: 90 },
+                    },
+                  });
+                }
+                return Promise.resolve({});
+              }),
+          },
         },
       ],
     }).compile();
@@ -75,8 +85,8 @@ describe("CandidateProgressService", () => {
         },
         evaluationAnalytics: {
           completionRate: 100,
-          topicAccuracy: { "Coding": 80 },
-          difficultyAccuracy: { "medium": 80 },
+          topicAccuracy: { Coding: 80 },
+          difficultyAccuracy: { medium: 80 },
         },
         testConfig: { displayName: "Assessment 1" },
       },
@@ -88,8 +98,8 @@ describe("CandidateProgressService", () => {
         },
         evaluationAnalytics: {
           completionRate: 100,
-          topicAccuracy: { "Coding": 90 },
-          difficultyAccuracy: { "medium": 90 },
+          topicAccuracy: { Coding: 90 },
+          difficultyAccuracy: { medium: 90 },
         },
         testConfig: { displayName: "Assessment 2" },
       },

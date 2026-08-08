@@ -39,13 +39,18 @@ export class BlueprintController {
   @Post("sync-config")
   @Post("sync-cofig")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Sync blueprint sections and topics to exam config" })
+  @ApiOperation({
+    summary: "Sync blueprint sections and topics to exam config",
+  })
   async syncToConfig(@Body() body: { configId: string; blueprintId: string }) {
     if (body?.configId && body?.blueprintId) {
       try {
         const blueprint = await this.service.findOne(body.blueprintId);
         if (blueprint && blueprint.sections) {
-          await this.service.syncBlueprintSectionsToConfig(body.configId, blueprint.sections as any[]);
+          await this.service.syncBlueprintSectionsToConfig(
+            body.configId,
+            blueprint.sections as any[],
+          );
         }
       } catch (err) {
         console.warn("Blueprint sync warning:", err);

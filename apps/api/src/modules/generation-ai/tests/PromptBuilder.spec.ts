@@ -102,8 +102,12 @@ describe("PromptBuilderService", () => {
     };
 
     const prompt = service.buildPrompt(input);
-    expect(prompt).toContain("compute it exactly from the provided parameter values");
-    expect(prompt).not.toContain("do not perform any mathematical calculations unless");
+    expect(prompt).toContain(
+      "compute it exactly from the provided parameter values",
+    );
+    expect(prompt).not.toContain(
+      "do not perform any mathematical calculations unless",
+    );
   });
 
   it("should throw a preview exception for unresolved question placeholders", () => {
@@ -130,7 +134,9 @@ describe("PromptBuilderService", () => {
       variableValues: { b: 7 },
     };
 
-    expect(() => service.buildPrompt(input)).toThrow(PreviewGenerationException);
+    expect(() => service.buildPrompt(input)).toThrow(
+      PreviewGenerationException,
+    );
   });
 
   it("should preserve integer variable display while formatting decimal variables", () => {
@@ -164,7 +170,9 @@ describe("PromptBuilderService", () => {
 
     const prompt = service.buildPrompt(input);
 
-    expect(prompt).toContain("Principal 10000; interest Rs. 3245; growth 12.35%.");
+    expect(prompt).toContain(
+      "Principal 10000; interest Rs. 3245; growth 12.35%.",
+    );
     expect(prompt).not.toContain("interest Rs. 3245.40");
     expect(prompt).toContain("principal_amount = 10000");
     expect(prompt).toContain("yearly_interest = 3245.40");

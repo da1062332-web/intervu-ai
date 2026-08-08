@@ -68,8 +68,12 @@ export function useAnswerPersistence(testId: string) {
           const isAlreadySubmitted =
             error?.status === 409 ||
             error?.response?.status === 409 ||
-            String(error?.message || '').toLowerCase().includes('already') ||
-            String(error?.response?.data?.message || '').toLowerCase().includes('already');
+            String(error?.message || '')
+              .toLowerCase()
+              .includes('already') ||
+            String(error?.response?.data?.message || '')
+              .toLowerCase()
+              .includes('already');
 
           if (isAlreadySubmitted) {
             setAutosaveStatus('SAVED');
@@ -80,7 +84,10 @@ export function useAnswerPersistence(testId: string) {
           setAutosaveStatus('FAILED');
           // DATA-001: When online save fails, queue to IndexedDB for replay on reconnect
           queueOperation('SAVE_ANSWER', payload).catch((err) => {
-            console.error('[AnswerPersistence] Failed to queue failed answer to offline store', err);
+            console.error(
+              '[AnswerPersistence] Failed to queue failed answer to offline store',
+              err,
+            );
           });
         });
     } else {

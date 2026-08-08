@@ -22,22 +22,30 @@ export interface PoolFiltersProps {
 
 export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) {
   const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
-  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(filters.topicId || '', true);
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(
+    filters.topicId || '',
+    true,
+  );
 
   const hasActiveFilters = Boolean(
-    filters.search || filters.topicId || filters.conceptId || filters.status || filters.difficulty
+    filters.search || filters.topicId || filters.conceptId || filters.status || filters.difficulty,
   );
 
   return (
     <div className='bg-white dark:bg-gray-900 border rounded-xl p-5 shadow-sm space-y-4'>
       <div className='flex justify-between items-center border-b pb-3'>
-        <div className="flex items-center gap-2 font-semibold text-sm">
-          <Filter className="w-4 h-4 text-indigo-500" />
+        <div className='flex items-center gap-2 font-semibold text-sm'>
+          <Filter className='w-4 h-4 text-indigo-500' />
           Filter Questions
         </div>
         {hasActiveFilters && (
-          <Button variant='outline' size='sm' onClick={onClear} className='h-8 text-xs text-muted-foreground hover:text-foreground'>
-            <X className="w-3.5 h-3.5 mr-1" /> Clear Filters
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={onClear}
+            className='h-8 text-xs text-muted-foreground hover:text-foreground'
+          >
+            <X className='w-3.5 h-3.5 mr-1' /> Clear Filters
           </Button>
         )}
       </div>
@@ -45,10 +53,10 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4'>
         {/* Search Input */}
         <div className='space-y-1.5'>
-          <Label className="text-xs text-muted-foreground">Search Statement</Label>
+          <Label className='text-xs text-muted-foreground'>Search Statement</Label>
           <Input
             placeholder='Search text...'
-            className="h-9 text-sm"
+            className='h-9 text-sm'
             value={filters.search || ''}
             onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
           />
@@ -56,9 +64,9 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
 
         {/* Topic Selector */}
         <div className='space-y-1.5'>
-          <Label className="text-xs text-muted-foreground">Topic</Label>
+          <Label className='text-xs text-muted-foreground'>Topic</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
             value={filters.topicId || ''}
             onChange={(e) => {
               const val = e.target.value;
@@ -70,7 +78,7 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
             }}
             disabled={isLoadingTopics}
           >
-            <option value="">{isLoadingTopics ? 'Loading topics...' : 'All Topics'}</option>
+            <option value=''>{isLoadingTopics ? 'Loading topics...' : 'All Topics'}</option>
             {topics.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -81,9 +89,9 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
 
         {/* Concept Selector */}
         <div className='space-y-1.5'>
-          <Label className="text-xs text-muted-foreground">Concept / Section</Label>
+          <Label className='text-xs text-muted-foreground'>Concept / Section</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
             value={filters.conceptId || ''}
             onChange={(e) => {
               const val = e.target.value;
@@ -94,7 +102,7 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
             }}
             disabled={!filters.topicId || isLoadingConcepts}
           >
-            <option value="">
+            <option value=''>
               {!filters.topicId
                 ? 'Select a topic first'
                 : isLoadingConcepts
@@ -111,16 +119,18 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
 
         {/* Status Selector */}
         <div className='space-y-1.5'>
-          <Label className="text-xs text-muted-foreground">Status</Label>
-          <Select 
-            value={filters.status || 'all'} 
-            onValueChange={(val: string) => setFilters((prev) => ({ ...prev, status: val === 'all' ? undefined : val }))}
+          <Label className='text-xs text-muted-foreground'>Status</Label>
+          <Select
+            value={filters.status || 'all'}
+            onValueChange={(val: string) =>
+              setFilters((prev) => ({ ...prev, status: val === 'all' ? undefined : val }))
+            }
           >
-            <SelectTrigger className="h-9 text-sm">
-              <SelectValue placeholder="All Statuses" />
+            <SelectTrigger className='h-9 text-sm'>
+              <SelectValue placeholder='All Statuses' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value='all'>All Statuses</SelectItem>
               <SelectItem value='Approved'>Approved</SelectItem>
               <SelectItem value='Published'>Published</SelectItem>
             </SelectContent>
@@ -129,16 +139,18 @@ export function PoolFilters({ filters, setFilters, onClear }: PoolFiltersProps) 
 
         {/* Difficulty Selector */}
         <div className='space-y-1.5'>
-          <Label className="text-xs text-muted-foreground">Difficulty</Label>
-          <Select 
-            value={filters.difficulty || 'all'} 
-            onValueChange={(val: string) => setFilters((prev) => ({ ...prev, difficulty: val === 'all' ? undefined : val }))}
+          <Label className='text-xs text-muted-foreground'>Difficulty</Label>
+          <Select
+            value={filters.difficulty || 'all'}
+            onValueChange={(val: string) =>
+              setFilters((prev) => ({ ...prev, difficulty: val === 'all' ? undefined : val }))
+            }
           >
-            <SelectTrigger className="h-9 text-sm">
-              <SelectValue placeholder="All Difficulties" />
+            <SelectTrigger className='h-9 text-sm'>
+              <SelectValue placeholder='All Difficulties' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Difficulties</SelectItem>
+              <SelectItem value='all'>All Difficulties</SelectItem>
               <SelectItem value='Easy'>Easy</SelectItem>
               <SelectItem value='Medium'>Medium</SelectItem>
               <SelectItem value='Hard'>Hard</SelectItem>

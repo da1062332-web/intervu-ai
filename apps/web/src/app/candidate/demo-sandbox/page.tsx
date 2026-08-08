@@ -29,7 +29,8 @@ const mockTestInstance: TestInstance = {
           type: 'MCQ',
           orderIndex: 0,
           stem: 'A train running at the speed of 60 km/hr crosses a pole in 9 seconds. What is the length of the train in meters?',
-          candidateInstructions: 'Use exact formulas for speed, time and distance. Do not round off intermediate fractions.',
+          candidateInstructions:
+            'Use exact formulas for speed, time and distance. Do not round off intermediate fractions.',
           text: 'Based on the train speed and time taken above, select the correct length of the train:',
           options: [
             { id: 'opt-1a', text: '120 metres' },
@@ -139,10 +140,22 @@ const mockTestInstance: TestInstance = {
           stem: 'Read the short passage below and answer the related question:\n\n"Artificial Intelligence has rapidly shifted from academic experimentation into industrial productivity. While classical algorithmic systems relied on strict deterministic rule sets, modern generative models leverage billions of parameters trained over massive unstructured data distributions. The core paradigm challenge today lies in aligning these systems with robust safety standards without diminishing their computational agility."',
           text: 'According to the passage, what is highlighted as the primary challenge facing modern generative AI models today?',
           options: [
-            { id: 'opt-8a', text: 'Gathering enough unstructured data distributions for parameter training' },
-            { id: 'opt-8b', text: 'Aligning model outputs with safety standards while preserving computational agility' },
-            { id: 'opt-8c', text: 'Replacing deterministic rule sets with academic experimentation' },
-            { id: 'opt-8d', text: 'Increasing the billions of parameters to outpace classical algorithmic systems' },
+            {
+              id: 'opt-8a',
+              text: 'Gathering enough unstructured data distributions for parameter training',
+            },
+            {
+              id: 'opt-8b',
+              text: 'Aligning model outputs with safety standards while preserving computational agility',
+            },
+            {
+              id: 'opt-8c',
+              text: 'Replacing deterministic rule sets with academic experimentation',
+            },
+            {
+              id: 'opt-8d',
+              text: 'Increasing the billions of parameters to outpace classical algorithmic systems',
+            },
           ],
         },
         {

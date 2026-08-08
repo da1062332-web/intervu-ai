@@ -12,9 +12,7 @@ export function CandidateHistoryPage() {
         </div>
         <div>
           <h1 className='text-3xl font-bold tracking-tight'>Assessment History</h1>
-          <p className='text-muted-foreground'>
-            Review your previous assessment attempts.
-          </p>
+          <p className='text-muted-foreground'>Review your previous assessment attempts.</p>
         </div>
       </div>
 

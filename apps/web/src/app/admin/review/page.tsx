@@ -51,7 +51,9 @@ export default function QuestionReviewPage() {
       }
     })();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [searchParams]);
 
   // Filter only generated (pending review) questions for this view
@@ -61,7 +63,7 @@ export default function QuestionReviewPage() {
       q.status === 'GENERATED' ||
       q.status === 'DRAFT' ||
       q.rawStatus === 'GENERATED' ||
-      q.rawStatus === 'DRAFT'
+      q.rawStatus === 'DRAFT',
   );
 
   const handleToggleSelect = (id: string) => {
@@ -69,11 +71,11 @@ export default function QuestionReviewPage() {
   };
 
   const handleToggleSelectAll = (visibleIds?: string[]) => {
-    const targetIds = visibleIds && visibleIds.length > 0 
-      ? visibleIds 
-      : draftQuestions.map((q) => q.id);
+    const targetIds =
+      visibleIds && visibleIds.length > 0 ? visibleIds : draftQuestions.map((q) => q.id);
 
-    const allVisibleSelected = targetIds.length > 0 && targetIds.every((id) => selectedIds.includes(id));
+    const allVisibleSelected =
+      targetIds.length > 0 && targetIds.every((id) => selectedIds.includes(id));
 
     if (allVisibleSelected) {
       setSelectedIds((prev) => prev.filter((id) => !targetIds.includes(id)));
@@ -152,9 +154,12 @@ export default function QuestionReviewPage() {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
       <SectionHeader
-        title="Question Review"
-        description="Review, approve, or reject generated questions before they enter the Question Bank."
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Question Review' }]}
+        title='Question Review'
+        description='Review, approve, or reject generated questions before they enter the Question Bank.'
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Question Review' },
+        ]}
       />
 
       <BulkActionToolbar

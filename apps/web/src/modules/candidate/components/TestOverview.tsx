@@ -14,7 +14,11 @@ interface TestOverviewProps {
   onToggleBookmark?: () => void;
 }
 
-export function TestOverview({ test, isBookmarked: externalBookmarked, onToggleBookmark }: TestOverviewProps) {
+export function TestOverview({
+  test,
+  isBookmarked: externalBookmarked,
+  onToggleBookmark,
+}: TestOverviewProps) {
   const [internalBookmarked, setInternalBookmarked] = useState(false);
   const isBookmarked = externalBookmarked ?? internalBookmarked;
 
@@ -33,17 +37,22 @@ export function TestOverview({ test, isBookmarked: externalBookmarked, onToggleB
   };
 
   const diffKey = (test.difficulty || 'Medium').toLowerCase();
-  const difficultyClass = difficultyColors[diffKey] || 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+  const difficultyClass =
+    difficultyColors[diffKey] ||
+    'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
 
-  const sectionNames = Array.isArray(test.sections) && test.sections.length > 0
-    ? test.sections.map((s: any) => typeof s === 'string' ? s : (s.name || 'Default Section')).join(', ')
-    : 'Default Section';
+  const sectionNames =
+    Array.isArray(test.sections) && test.sections.length > 0
+      ? test.sections
+          .map((s: any) => (typeof s === 'string' ? s : s.name || 'Default Section'))
+          .join(', ')
+      : 'Default Section';
 
-  const descriptionText = test.description || (
-    sectionNames
+  const descriptionText =
+    test.description ||
+    (sectionNames
       ? `Comprehensive examination evaluating competencies across ${sectionNames}.`
-      : `Professional proficiency assessment designed to test domain expertise in ${test.title}.`
-  );
+      : `Professional proficiency assessment designed to test domain expertise in ${test.title}.`);
 
   const totalQuestionsFromSections =
     Array.isArray(test.sections) && test.sections.length > 0
@@ -59,7 +68,10 @@ export function TestOverview({ test, isBookmarked: externalBookmarked, onToggleB
     Array.isArray(test.sections) && test.sections.length > 0
       ? test.sections.reduce((sum: number, section: any) => {
           if (typeof section === 'object' && section !== null) {
-            const mins = section.durationMinutes || section.sectionDurationMinutes || (section.durationSeconds ? Math.floor(section.durationSeconds / 60) : 0);
+            const mins =
+              section.durationMinutes ||
+              section.sectionDurationMinutes ||
+              (section.durationSeconds ? Math.floor(section.durationSeconds / 60) : 0);
             return sum + (Number(mins) || 0);
           }
           return sum;
@@ -71,9 +83,18 @@ export function TestOverview({ test, isBookmarked: externalBookmarked, onToggleB
     ((test as any).durationSeconds ? Math.floor((test as any).durationSeconds / 60) : 0) ||
     ((test as any).duration ? Math.floor((test as any).duration / 60) : 0);
 
-  const finalDuration = testDurationMain > 0 ? testDurationMain : (totalDurationFromSections > 0 ? totalDurationFromSections : 60);
-  const finalQuestions = totalQuestionsFromSections > 0 ? totalQuestionsFromSections : (test.questionCount || (test as any).totalQuestions || 10);
-  const finalSections = Array.isArray(test.sections) && test.sections.length > 0 ? test.sections.length : 1;
+  const finalDuration =
+    testDurationMain > 0
+      ? testDurationMain
+      : totalDurationFromSections > 0
+        ? totalDurationFromSections
+        : 60;
+  const finalQuestions =
+    totalQuestionsFromSections > 0
+      ? totalQuestionsFromSections
+      : test.questionCount || (test as any).totalQuestions || 10;
+  const finalSections =
+    Array.isArray(test.sections) && test.sections.length > 0 ? test.sections.length : 1;
 
   const displayDuration = `${finalDuration} min`;
   const displayQuestions = `${finalQuestions}`;
@@ -131,27 +152,21 @@ export function TestOverview({ test, isBookmarked: externalBookmarked, onToggleB
         <div className='grid grid-cols-3 gap-3 border-y border-border/40 py-3.5 px-4 bg-muted/20 rounded-xl'>
           <div className='flex flex-col items-center justify-center text-center p-2.5 rounded-lg bg-card/60 border border-border/40 shadow-xs'>
             <Clock className='size-4 text-primary/80 mb-1' />
-            <span className='text-xs font-bold text-foreground'>
-              {displayDuration}
-            </span>
+            <span className='text-xs font-bold text-foreground'>{displayDuration}</span>
             <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider mt-0.5'>
               Duration
             </span>
           </div>
           <div className='flex flex-col items-center justify-center text-center p-2.5 rounded-lg bg-card/60 border border-border/40 shadow-xs'>
             <HelpCircle className='size-4 text-violet-500 mb-1' />
-            <span className='text-xs font-bold text-foreground'>
-              {displayQuestions}
-            </span>
+            <span className='text-xs font-bold text-foreground'>{displayQuestions}</span>
             <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider mt-0.5'>
               Questions
             </span>
           </div>
           <div className='flex flex-col items-center justify-center text-center p-2.5 rounded-lg bg-card/60 border border-border/40 shadow-xs'>
             <Layers className='size-4 text-emerald-500 mb-1' />
-            <span className='text-xs font-bold text-foreground'>
-              {displaySections}
-            </span>
+            <span className='text-xs font-bold text-foreground'>{displaySections}</span>
             <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider mt-0.5'>
               Sections
             </span>
@@ -161,4 +176,3 @@ export function TestOverview({ test, isBookmarked: externalBookmarked, onToggleB
     </Card>
   );
 }
-

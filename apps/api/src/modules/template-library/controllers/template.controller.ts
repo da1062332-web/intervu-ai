@@ -63,7 +63,8 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 
 class SaveQuestionDefinitionDto {
   @ApiProperty({
-    example: "A product is priced at {{price}} USD. The tax is {{tax}} USD. What is the total price?",
+    example:
+      "A product is priced at {{price}} USD. The tax is {{tax}} USD. What is the total price?",
     description: "Question template definition with placeholders",
   })
   questionTemplate!: string;
@@ -163,7 +164,8 @@ export class TemplateController {
   @ApiOkResponse({ description: "Template record" })
   async findOne(@Param("id") id: string) {
     const template = await this.templateService.findById(id);
-    const datasetId = (template as any).datasetConfigRelation?.datasetId || null;
+    const datasetId =
+      (template as any).datasetConfigRelation?.datasetId || null;
     return {
       ...template,
       datasetId,
@@ -370,7 +372,9 @@ export class TemplateController {
 
     let datasetId: string | null = null;
     if (template.generationStrategy === "DATASET") {
-      const dbConfig = await this.templateService.findDatasetConfig(template.id);
+      const dbConfig = await this.templateService.findDatasetConfig(
+        template.id,
+      );
       if (dbConfig) {
         datasetId = dbConfig.datasetId;
       }
@@ -408,7 +412,10 @@ export class TemplateController {
       updatePayload.generationStrategy = body.strategy;
     }
 
-    const updatedTemplate = await this.templateService.update(id, updatePayload);
+    const updatedTemplate = await this.templateService.update(
+      id,
+      updatePayload,
+    );
 
     if (body.datasetId) {
       await this.templateService.upsertDatasetConfig(id, body.datasetId);
@@ -483,7 +490,9 @@ export class TemplateController {
         ...dto.draft,
         constraints: (dto.draft.constraints || []).map((constraint: any) => ({
           ...constraint,
-          rule: this.canonicalizationService.normalizeConstraintRule(constraint.rule || ""),
+          rule: this.canonicalizationService.normalizeConstraintRule(
+            constraint.rule || "",
+          ),
         })),
       },
       warnings,

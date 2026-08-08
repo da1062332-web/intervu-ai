@@ -42,10 +42,14 @@ export class ExamConfigService {
   async findOne(id: string): Promise<any> {
     const config = await this.examConfigRepository.findById(id);
     if (!config || config.isArchived) {
-      throw new NotFoundException(`Exam config with ID "${id}" not found or archived`);
+      throw new NotFoundException(
+        `Exam config with ID "${id}" not found or archived`,
+      );
     }
 
-    const fullConfig = await (this.examConfigRepository as any).prisma.examConfig.findUnique({
+    const fullConfig = await (
+      this.examConfigRepository as any
+    ).prisma.examConfig.findUnique({
       where: { id },
       include: {
         sections: true,
@@ -68,12 +72,19 @@ export class ExamConfigService {
       throw new NotFoundException(`Exam config with ID "${id}" not found`);
     }
 
-    const isReactivating = (dto as any).isActive === true || (dto as any).status === "PUBLISHED" || (dto as any).status === "ACTIVE";
-    if ((config.isArchived || config.status === "ARCHIVED") && !isReactivating) {
+    const isReactivating =
+      (dto as any).isActive === true ||
+      (dto as any).status === "PUBLISHED" ||
+      (dto as any).status === "ACTIVE";
+    if (
+      (config.isArchived || config.status === "ARCHIVED") &&
+      !isReactivating
+    ) {
       throw new BadRequestException({
         code: "CONFIG_ARCHIVED",
         error: "CONFIG_ARCHIVED",
-        message: "Archived configurations cannot be modified unless reactivating",
+        message:
+          "Archived configurations cannot be modified unless reactivating",
       });
     }
 

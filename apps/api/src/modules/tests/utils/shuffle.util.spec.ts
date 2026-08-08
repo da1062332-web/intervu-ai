@@ -40,7 +40,7 @@ describe("shuffleArray", () => {
     (Math.random as jest.Mock).mockReturnValue(0);
     const input = ["A", "B", "C"];
     const result = shuffleArray(input);
-    
+
     // Original: ["A", "B", "C"]
     // i=2: j=0 -> swap A and C -> ["C", "B", "A"]
     // i=1: j=0 -> swap C and B -> ["B", "C", "A"]

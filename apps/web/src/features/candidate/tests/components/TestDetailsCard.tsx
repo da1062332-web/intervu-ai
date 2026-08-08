@@ -23,7 +23,10 @@ export function TestDetailsCard({ config }: { config: TestConfig }) {
         <div className='flex items-center gap-2 text-muted-foreground'>
           <HelpCircle className='size-5 text-primary/70' />
           <span className='font-medium'>
-            {config.questionCount ?? config.sections?.reduce((sum, section) => sum + section.questionCount, 0) ?? 0} Questions
+            {config.questionCount ??
+              config.sections?.reduce((sum, section) => sum + section.questionCount, 0) ??
+              0}{' '}
+            Questions
           </span>
         </div>
         {config.durationMinutes && (

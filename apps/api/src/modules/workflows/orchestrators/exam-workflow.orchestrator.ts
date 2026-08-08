@@ -162,7 +162,9 @@ export class ExamWorkflowOrchestrator {
           },
         });
       }
-      this.logger.log(`Automatically synchronized TestConfig for published exam: ${examConfig.name}`);
+      this.logger.log(
+        `Automatically synchronized TestConfig for published exam: ${examConfig.name}`,
+      );
     }
 
     // Complete workflow status

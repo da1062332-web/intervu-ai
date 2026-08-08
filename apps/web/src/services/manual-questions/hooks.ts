@@ -30,8 +30,15 @@ export const useCreateManualQuestion = () => {
 export const useUpdateManualQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload, currentStatus }: { id: string; payload: Partial<ManualQuestion>; currentStatus?: string }) =>
-      manualQuestionsApi.updateQuestion(id, payload, currentStatus),
+    mutationFn: ({
+      id,
+      payload,
+      currentStatus,
+    }: {
+      id: string;
+      payload: Partial<ManualQuestion>;
+      currentStatus?: string;
+    }) => manualQuestionsApi.updateQuestion(id, payload, currentStatus),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['manual-questions'] });
       queryClient.invalidateQueries({ queryKey: ['manual-question', variables.id] });

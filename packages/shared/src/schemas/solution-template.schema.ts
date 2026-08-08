@@ -14,19 +14,21 @@ export const TemplatePreviewBaseSchema = z.object({
   id: z.string(),
   templateId: z.string(),
   previewPayload: z.record(z.unknown()),
-  previewResult: z.object({
-    solution: z.string(),
-    explanation: z.string().nullable(),
-    resolvedVariables: z.record(z.unknown()),
-    validation: z.object({
-      valid: z.boolean(),
-      unknownVariables: z.array(z.string()).optional(),
-    }),
-    questionText: z.string().optional(),
-    options: z.array(z.string()).optional(),
-    correctAnswer: z.string().optional(),
-    context: z.record(z.unknown()).optional(),
-  }).passthrough(),
+  previewResult: z
+    .object({
+      solution: z.string(),
+      explanation: z.string().nullable(),
+      resolvedVariables: z.record(z.unknown()),
+      validation: z.object({
+        valid: z.boolean(),
+        unknownVariables: z.array(z.string()).optional(),
+      }),
+      questionText: z.string().optional(),
+      options: z.array(z.string()).optional(),
+      correctAnswer: z.string().optional(),
+      context: z.record(z.unknown()).optional(),
+    })
+    .passthrough(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 });

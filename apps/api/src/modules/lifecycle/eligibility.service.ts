@@ -76,7 +76,8 @@ export class EligibilityService {
         return {
           eligible: false,
           errorCode: "TEST_NOT_PUBLISHED",
-          reason: "This assessment is still in DRAFT mode and has not been published by the administrator.",
+          reason:
+            "This assessment is still in DRAFT mode and has not been published by the administrator.",
         };
       }
     }
@@ -99,7 +100,7 @@ export class EligibilityService {
     if (activeTest) {
       await this.prisma.testInstance.update({
         where: { id: activeTest.id },
-        data: { expiresAt: new Date(Date.now() - 1000) }
+        data: { expiresAt: new Date(Date.now() - 1000) },
       });
     }
 

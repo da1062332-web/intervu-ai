@@ -28,7 +28,7 @@ export function TestCardGrid({
   const totalPages = Math.ceil(actualTotal / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  
+
   // If totalItems is provided, assume tests is already paginated by the server.
   // Otherwise, fallback to client-side pagination.
   const paginatedTests = totalItems !== undefined ? tests : tests.slice(startIndex, endIndex);
@@ -56,9 +56,7 @@ export function TestCardGrid({
         <div className='flex items-center justify-between border-t border-border/60 pt-6 mt-8'>
           <div className='text-sm text-muted-foreground font-medium'>
             Showing <span className='text-foreground font-semibold'>{startIndex + 1}</span> to{' '}
-            <span className='text-foreground font-semibold'>
-              {Math.min(endIndex, actualTotal)}
-            </span>{' '}
+            <span className='text-foreground font-semibold'>{Math.min(endIndex, actualTotal)}</span>{' '}
             of <span className='text-foreground font-semibold'>{actualTotal}</span> assessments
           </div>
           <div className='flex items-center gap-1.5'>

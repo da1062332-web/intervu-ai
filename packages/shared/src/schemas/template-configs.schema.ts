@@ -19,7 +19,8 @@ export const TemplateDatasetConfigBaseSchema = z.object({
   fallbackPolicy: z.string().optional().nullable(),
 });
 
-export const TemplateDatasetConfigResponseSchema = TemplateDatasetConfigBaseSchema.nullable();
+export const TemplateDatasetConfigResponseSchema =
+  TemplateDatasetConfigBaseSchema.nullable();
 
 export const TemplatePromptConfigBaseSchema = z.object({
   id: z.string(),
@@ -32,4 +33,5 @@ export const TemplatePromptConfigBaseSchema = z.object({
   updatedAt: z.date().or(z.string()),
 });
 
-export const TemplatePromptConfigResponseSchema = TemplatePromptConfigBaseSchema.nullable();
+export const TemplatePromptConfigResponseSchema =
+  TemplatePromptConfigBaseSchema.nullable();

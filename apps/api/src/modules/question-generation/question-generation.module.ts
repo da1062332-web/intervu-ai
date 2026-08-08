@@ -92,23 +92,56 @@ export class QuestionGenerationModule implements OnModuleInit {
   onModuleInit() {
     // Register generation strategies safely
     if (this.strategyRegistry) {
-      if (this.variableStrategy) this.strategyRegistry.register(GenerationStrategy.VARIABLE, this.variableStrategy);
-      if (this.datasetStrategy) this.strategyRegistry.register(GenerationStrategy.DATASET, this.datasetStrategy);
-      if (this.hybridStrategy) this.strategyRegistry.register(GenerationStrategy.HYBRID, this.hybridStrategy);
+      if (this.variableStrategy)
+        this.strategyRegistry.register(
+          GenerationStrategy.VARIABLE,
+          this.variableStrategy,
+        );
+      if (this.datasetStrategy)
+        this.strategyRegistry.register(
+          GenerationStrategy.DATASET,
+          this.datasetStrategy,
+        );
+      if (this.hybridStrategy)
+        this.strategyRegistry.register(
+          GenerationStrategy.HYBRID,
+          this.hybridStrategy,
+        );
     }
 
     // Register validators safely
     if (this.validationRegistry) {
-      if (this.variableValidator) this.validationRegistry.register(GenerationStrategy.VARIABLE, this.variableValidator);
-      if (this.datasetValidator) this.validationRegistry.register(GenerationStrategy.DATASET, this.datasetValidator);
-      if (this.hybridValidator) this.validationRegistry.register(GenerationStrategy.HYBRID, this.hybridValidator);
+      if (this.variableValidator)
+        this.validationRegistry.register(
+          GenerationStrategy.VARIABLE,
+          this.variableValidator,
+        );
+      if (this.datasetValidator)
+        this.validationRegistry.register(
+          GenerationStrategy.DATASET,
+          this.datasetValidator,
+        );
+      if (this.hybridValidator)
+        this.validationRegistry.register(
+          GenerationStrategy.HYBRID,
+          this.hybridValidator,
+        );
     }
 
     // Register prompt templates safely
     if (this.promptRegistry) {
-      this.promptRegistry.register(GenerationStrategy.VARIABLE, VARIABLE_PROMPT_TEMPLATE);
-      this.promptRegistry.register(GenerationStrategy.DATASET, DATASET_PROMPT_TEMPLATE);
-      this.promptRegistry.register(GenerationStrategy.HYBRID, HYBRID_PROMPT_TEMPLATE);
+      this.promptRegistry.register(
+        GenerationStrategy.VARIABLE,
+        VARIABLE_PROMPT_TEMPLATE,
+      );
+      this.promptRegistry.register(
+        GenerationStrategy.DATASET,
+        DATASET_PROMPT_TEMPLATE,
+      );
+      this.promptRegistry.register(
+        GenerationStrategy.HYBRID,
+        HYBRID_PROMPT_TEMPLATE,
+      );
     }
   }
 }

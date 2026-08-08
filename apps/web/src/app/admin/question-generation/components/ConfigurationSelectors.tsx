@@ -34,15 +34,15 @@ export function ConfigurationSelectors({
 }: ConfigurationSelectorsProps) {
   return (
     <CustomFormCard
-      title="Generation Context"
-      description="Select the hierarchy and template you want to use for generating questions."
+      title='Generation Context'
+      description='Select the hierarchy and template you want to use for generating questions.'
     >
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
         <div className='space-y-2'>
           <Label>Topic</Label>
           <Select value={selectedTopic} onValueChange={setSelectedTopic}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a topic..." />
+              <SelectValue placeholder='Select a topic...' />
             </SelectTrigger>
             <SelectContent>
               {topics.map((topic) => (
@@ -56,9 +56,13 @@ export function ConfigurationSelectors({
 
         <div className='space-y-2'>
           <Label>Concept</Label>
-          <Select value={selectedConcept} onValueChange={setSelectedConcept} disabled={!selectedTopic}>
+          <Select
+            value={selectedConcept}
+            onValueChange={setSelectedConcept}
+            disabled={!selectedTopic}
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Select a concept..." />
+              <SelectValue placeholder='Select a concept...' />
             </SelectTrigger>
             <SelectContent>
               {concepts.map((concept) => (
@@ -72,9 +76,13 @@ export function ConfigurationSelectors({
 
         <div className='space-y-2'>
           <Label>Template</Label>
-          <Select value={selectedTemplate} onValueChange={setSelectedTemplate} disabled={!selectedConcept}>
+          <Select
+            value={selectedTemplate}
+            onValueChange={setSelectedTemplate}
+            disabled={!selectedConcept}
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Select a template..." />
+              <SelectValue placeholder='Select a template...' />
             </SelectTrigger>
             <SelectContent>
               {templates.map((template) => (

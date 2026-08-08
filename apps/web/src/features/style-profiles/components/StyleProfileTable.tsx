@@ -45,7 +45,7 @@ export function StyleProfileTable() {
   if (!profiles || profiles.length === 0) {
     return (
       <EmptyState
-        icon={<Settings className="w-7 h-7 text-muted-foreground" />}
+        icon={<Settings className='w-7 h-7 text-muted-foreground' />}
         title='No Style Profiles Found'
         description='Create your first Style Profile to establish reusable generation rules for your blueprints.'
         actionLabel='Create Style Profile'
@@ -62,7 +62,9 @@ export function StyleProfileTable() {
       toast.success('Style Profile deleted successfully');
       setProfileToDelete(null);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to delete Style Profile. It might be assigned to a Blueprint.';
+      const msg =
+        err?.response?.data?.message ||
+        'Failed to delete Style Profile. It might be assigned to a Blueprint.';
       toast.error(msg);
       setProfileToDelete(null);
     }
@@ -107,17 +109,20 @@ export function StyleProfileTable() {
       id: 'details',
       header: 'Profile Details',
       cell: (row) => (
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">{row.name}</span>
+        <div className='flex flex-col'>
+          <div className='flex items-center gap-2'>
+            <span className='font-medium text-foreground'>{row.name}</span>
             {row.isDefault && (
-              <Badge variant="secondary" className="bg-violet-100 text-violet-700 hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300 gap-1 text-[10px]">
-                <Shield className="h-3 w-3" /> Default
+              <Badge
+                variant='secondary'
+                className='bg-violet-100 text-violet-700 hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300 gap-1 text-[10px]'
+              >
+                <Shield className='h-3 w-3' /> Default
               </Badge>
             )}
           </div>
           {row.description && (
-            <span className="text-xs text-muted-foreground mt-0.5 max-w-sm truncate">
+            <span className='text-xs text-muted-foreground mt-0.5 max-w-sm truncate'>
               {row.description}
             </span>
           )}
@@ -129,7 +134,7 @@ export function StyleProfileTable() {
       header: 'Type',
       className: 'capitalize',
       cell: (row) => (
-        <Badge variant="outline" className="shadow-sm">
+        <Badge variant='outline' className='shadow-sm'>
           {row.profileType || 'campus'}
         </Badge>
       ),
@@ -138,13 +143,14 @@ export function StyleProfileTable() {
       id: 'language',
       header: 'Language / Constraints',
       cell: (row) => (
-        <div className="flex flex-col text-xs text-muted-foreground space-y-0.5">
+        <div className='flex flex-col text-xs text-muted-foreground space-y-0.5'>
           <div>
-            <span className="font-semibold text-foreground">Lang:</span>{' '}
-            {row.languageStyle?.language || 'English'} ({row.languageStyle?.sentenceLength || 'medium'})
+            <span className='font-semibold text-foreground'>Lang:</span>{' '}
+            {row.languageStyle?.language || 'English'} (
+            {row.languageStyle?.sentenceLength || 'medium'})
           </div>
           <div>
-            <span className="font-semibold text-foreground">Distractors:</span>{' '}
+            <span className='font-semibold text-foreground'>Distractors:</span>{' '}
             {row.distractorRules?.exactlyFourOptions ? '4 Options' : 'Any'}
           </div>
         </div>
@@ -152,27 +158,27 @@ export function StyleProfileTable() {
     },
     {
       id: 'status',
-      header: <div className="text-center">Status</div>,
+      header: <div className='text-center'>Status</div>,
       className: 'text-center',
       cell: (row) => (
-        <div className="flex items-center justify-center">
+        <div className='flex items-center justify-center'>
           <Switch
             checked={row.active}
             onCheckedChange={() => handleToggleActive(row)}
-            className="data-[state=checked]:bg-emerald-500"
+            className='data-[state=checked]:bg-emerald-500'
           />
         </div>
       ),
     },
     {
       id: 'default',
-      header: <div className="text-center">Default</div>,
+      header: <div className='text-center'>Default</div>,
       className: 'text-center',
       cell: (row) => (
-        <div className="flex items-center justify-center">
+        <div className='flex items-center justify-center'>
           <Button
             variant={row.isDefault ? 'default' : 'outline'}
-            size="sm"
+            size='sm'
             onClick={() => handleSetDefault(row)}
             disabled={row.isDefault}
             className={`text-xs ${
@@ -188,32 +194,32 @@ export function StyleProfileTable() {
     },
     {
       id: 'actions',
-      header: <div className="text-right">Actions</div>,
+      header: <div className='text-right'>Actions</div>,
       className: 'text-right',
       cell: (row) => (
-        <div className="flex items-center justify-end gap-1.5">
-          <Button asChild variant="ghost" size="icon" className="hover:text-foreground">
+        <div className='flex items-center justify-end gap-1.5'>
+          <Button asChild variant='ghost' size='icon' className='hover:text-foreground'>
             <Link href={`/admin/style-profiles/${row.id}/edit`}>
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className='h-4 w-4' />
             </Link>
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
+            variant='ghost'
+            size='icon'
             onClick={() => handleDuplicate(row.id)}
-            className="hover:text-foreground"
-            title="Duplicate Profile"
+            className='hover:text-foreground'
+            title='Duplicate Profile'
           >
-            <Copy className="h-4 w-4" />
+            <Copy className='h-4 w-4' />
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
+            variant='ghost'
+            size='icon'
             onClick={() => setProfileToDelete(row.id)}
             disabled={row.isDefault}
-            className="hover:text-destructive text-muted-foreground disabled:opacity-50"
+            className='hover:text-destructive text-muted-foreground disabled:opacity-50'
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className='h-4 w-4' />
           </Button>
         </div>
       ),
@@ -221,18 +227,14 @@ export function StyleProfileTable() {
   ];
 
   return (
-    <div className="border rounded-xl bg-card shadow-sm overflow-hidden backdrop-blur-md bg-white/50">
-      <DataTable
-        columns={columns}
-        data={profiles}
-        rowKey={(row) => row.id}
-      />
+    <div className='border rounded-xl bg-card shadow-sm overflow-hidden backdrop-blur-md bg-white/50'>
+      <DataTable columns={columns} data={profiles} rowKey={(row) => row.id} />
       <ConfirmationDialog
         isOpen={!!profileToDelete}
         onOpenChange={(open) => !open && setProfileToDelete(null)}
-        title="Delete Style Profile?"
-        description="Are you sure you want to delete this Style Profile? This action cannot be undone."
-        confirmLabel="Delete"
+        title='Delete Style Profile?'
+        description='Are you sure you want to delete this Style Profile? This action cannot be undone.'
+        confirmLabel='Delete'
         destructive
         onConfirm={handleDelete}
         isLoading={deleteMutation.isPending}

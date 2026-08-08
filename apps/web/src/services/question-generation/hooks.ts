@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { questionGenerationApi } from './api';
-import type { QuestionGenerationRequest, ValidateQuestionRequest, GenerationHistoryEntry } from './types';
+import type {
+  QuestionGenerationRequest,
+  ValidateQuestionRequest,
+  GenerationHistoryEntry,
+} from './types';
 
 /**
  * useGenerateQuestion
@@ -48,7 +52,7 @@ export const useValidateQuestion = () => {
 export const useGenerateBatch = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { templateId: string; count: number; context?: any }) => 
+    mutationFn: (payload: { templateId: string; count: number; context?: any }) =>
       questionGenerationApi.batch(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['generation-history', variables.templateId] });
@@ -67,7 +71,9 @@ export const useGenerationHistory = (templateId?: string) => {
     refetchInterval: (query) => {
       // Poll every 3 seconds if any jobs are in progress or pending
       const jobs = query.state.data as any[] | undefined;
-      const isActive = jobs?.some(job => job.status === 'IN_PROGRESS' || job.status === 'PENDING');
+      const isActive = jobs?.some(
+        (job) => job.status === 'IN_PROGRESS' || job.status === 'PENDING',
+      );
       return isActive ? 3000 : false;
     },
   });

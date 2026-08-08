@@ -26,9 +26,7 @@ interface AiCodingEvalResult {
 export class CodingEvaluatorService {
   private readonly logger = new Logger("CodingEvaluatorService");
 
-  constructor(
-    @Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter,
-  ) {}
+  constructor(@Inject("LLM_ADAPTER") private readonly llmAdapter: LLMAdapter) {}
 
   /**
    * Evaluates all coding answers in parallel using the LLM.
@@ -108,7 +106,8 @@ export class CodingEvaluatorService {
     let language = "Unknown";
 
     try {
-      const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
+      const parsed =
+        typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
       if (typeof parsed === "object" && parsed !== null) {
         language = parsed.language || parsed.lang || "Unknown";
         submittedCode =
@@ -118,10 +117,7 @@ export class CodingEvaluatorService {
           parsed.value ||
           "";
         executionOutput =
-          parsed.result?.output ||
-          parsed.output ||
-          parsed.stdout ||
-          "";
+          parsed.result?.output || parsed.output || parsed.stdout || "";
       } else if (typeof parsed === "string") {
         submittedCode = parsed;
       }
@@ -129,7 +125,11 @@ export class CodingEvaluatorService {
       submittedCode = typeof rawAnswer === "string" ? rawAnswer : "";
     }
 
-    if (!submittedCode || submittedCode.trim() === "" || submittedCode.includes('{"action":')) {
+    if (
+      !submittedCode ||
+      submittedCode.trim() === "" ||
+      submittedCode.includes('{"action":')
+    ) {
       if (
         typeof rawAnswer === "string" &&
         (rawAnswer.includes("class") ||

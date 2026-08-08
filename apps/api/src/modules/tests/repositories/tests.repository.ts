@@ -20,7 +20,7 @@ export class TestsRepository {
       where: { isActive: true },
       include: { sections: true },
     });
-    
+
     return [
       ...testConfigs.map((tc) => ({ ...tc, isExam: false })),
       ...examConfigs.map((ec) => ({ ...ec, isExam: true })),

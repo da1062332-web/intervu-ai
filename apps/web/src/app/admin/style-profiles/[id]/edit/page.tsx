@@ -15,7 +15,7 @@ export default function EditStyleProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[50vh]">
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[50vh]'>
         <FormSkeleton />
       </div>
     );
@@ -23,21 +23,21 @@ export default function EditStyleProfilePage() {
 
   if (isError || !profile) {
     return (
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[50vh]">
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl h-[50vh]'>
         <EmptyState
-          variant="error"
-          title="Failed to load Style Profile"
-          description="The requested style profile could not be found or retrieved."
-          actionLabel="Go Back"
+          variant='error'
+          title='Failed to load Style Profile'
+          description='The requested style profile could not be found or retrieved.'
+          actionLabel='Go Back'
           onAction={() => router.push('/admin/style-profiles')}
-          className="border rounded-md"
+          className='border rounded-md'
         />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl'>
       <StyleProfileForm initialData={profile} isEdit={true} />
     </div>
   );

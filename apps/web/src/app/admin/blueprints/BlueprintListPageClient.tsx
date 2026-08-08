@@ -15,26 +15,42 @@ export function BlueprintListPageClient() {
   const columns: ColumnDef<any>[] = [
     {
       header: 'Blueprint Name',
-      cell: (row) => <span className='font-medium'>{row.name ?? row.examConfig?.name ?? row.configId ?? '-'}</span>,
+      cell: (row) => (
+        <span className='font-medium'>
+          {row.name ?? row.examConfig?.name ?? row.configId ?? '-'}
+        </span>
+      ),
     },
     {
       header: 'Exam Config',
       cell: (row) => (
-        <Badge variant='outline' className='bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'>
+        <Badge
+          variant='outline'
+          className='bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+        >
           {row.examConfig?.code ?? row.code ?? row.configId ?? '-'}
         </Badge>
       ),
     },
     {
       header: 'Style Profile',
-      cell: (row) => <span className='text-muted-foreground'>{row.styleProfile?.name ?? row.styleProfileId ?? '-'}</span>,
+      cell: (row) => (
+        <span className='text-muted-foreground'>
+          {row.styleProfile?.name ?? row.styleProfileId ?? '-'}
+        </span>
+      ),
     },
     {
       header: 'Status',
       cell: (row) => {
         const active = row.isActive || row.status === 'ACTIVE';
         return (
-          <Badge variant={active ? 'default' : 'secondary'} className={active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''}>
+          <Badge
+            variant={active ? 'default' : 'secondary'}
+            className={
+              active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''
+            }
+          >
             {active ? 'Active' : 'Draft'}
           </Badge>
         );
@@ -42,7 +58,11 @@ export function BlueprintListPageClient() {
     },
     {
       header: 'Created At',
-      cell: (row) => <span className='text-muted-foreground'>{row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '-'}</span>,
+      cell: (row) => (
+        <span className='text-muted-foreground'>
+          {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '-'}
+        </span>
+      ),
     },
     {
       header: 'Actions',
@@ -55,12 +75,22 @@ export function BlueprintListPageClient() {
             </Button>
           </Link>
           <Link href={`/admin/blueprints/${row.id}/edit`}>
-            <Button variant='ghost' size='sm' className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400' title='Edit'>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'
+              title='Edit'
+            >
               <Edit2 className='w-4 h-4' />
             </Button>
           </Link>
           <Link href={`/admin/blueprints/${row.id}`}>
-            <Button variant='ghost' size='sm' className='text-amber-600 hover:text-amber-900 dark:hover:text-amber-400' title='Validate'>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='text-amber-600 hover:text-amber-900 dark:hover:text-amber-400'
+              title='Validate'
+            >
               <ShieldAlert className='w-4 h-4' />
             </Button>
           </Link>
@@ -93,7 +123,7 @@ export function BlueprintListPageClient() {
               title='No Blueprints Found'
               description='Create your first blueprint to get started.'
               actionLabel='Create Blueprint'
-              onAction={() => window.location.href = '/admin/blueprints/new'}
+              onAction={() => (window.location.href = '/admin/blueprints/new')}
               className='py-12 border-0'
             />
           }

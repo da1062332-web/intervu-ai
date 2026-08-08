@@ -41,12 +41,18 @@ export class AssemblyService {
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
 
-    const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
+    const reusableAssembly =
+      await this.assembledTestRepository.findLatestReusableByConfigId(configId);
     if (reusableAssembly) {
-      const assemblyUpdatedAt = reusableAssembly.updatedAt ?? reusableAssembly.createdAt;
+      const assemblyUpdatedAt =
+        reusableAssembly.updatedAt ?? reusableAssembly.createdAt;
       const configUpdatedAt = reusableAssembly.examConfig?.updatedAt ?? null;
 
-      if (!configUpdatedAt || !assemblyUpdatedAt || assemblyUpdatedAt >= configUpdatedAt) {
+      if (
+        !configUpdatedAt ||
+        !assemblyUpdatedAt ||
+        assemblyUpdatedAt >= configUpdatedAt
+      ) {
         return reusableAssembly.id;
       }
     }

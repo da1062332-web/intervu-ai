@@ -366,13 +366,18 @@ export class ReadinessEngineService {
 
     const templates = await this.templateRepository.findAll();
     const hasVariableConcepts = allAssignedConcepts.some(
-      (c) => (c.questionSources?.includes("VARIABLE_TEMPLATE") || !c.questionSources?.includes("MANUAL")) &&
-             templates.some((t) => t.isActive && t.conceptKey === c.code)
+      (c) =>
+        (c.questionSources?.includes("VARIABLE_TEMPLATE") ||
+          !c.questionSources?.includes("MANUAL")) &&
+        templates.some((t) => t.isActive && t.conceptKey === c.code),
     );
 
     if (allAssignedConcepts.length > 0 && sections.length > 0) {
       for (const section of sections) {
-        const mappings = await this.topicSectionMappingRepository.findMappingsBySection(section.id);
+        const mappings =
+          await this.topicSectionMappingRepository.findMappingsBySection(
+            section.id,
+          );
         const sectionQuestions = section.questionCount;
 
         for (const mapping of mappings) {
@@ -387,10 +392,11 @@ export class ReadinessEngineService {
           const weight = weightage?.weightagePercentage ?? 0;
           const topicRequired = Math.round((weight / 100) * sectionQuestions);
 
-          const concepts = await this.conceptMappingRepository.findManyByTopicId(
-            mapping.topicId,
-            true,
-          );
+          const concepts =
+            await this.conceptMappingRepository.findManyByTopicId(
+              mapping.topicId,
+              true,
+            );
 
           if (concepts.length > 0) {
             const conceptRequired = Math.ceil(topicRequired / concepts.length);
@@ -427,7 +433,9 @@ export class ReadinessEngineService {
                 });
               } else {
                 if (hasTemplates) {
-                  matchingTemplates.forEach((t) => templateIdsToCheck.add(t.id));
+                  matchingTemplates.forEach((t) =>
+                    templateIdsToCheck.add(t.id),
+                  );
                 }
               }
 
@@ -453,12 +461,19 @@ export class ReadinessEngineService {
       templatesPresentPass = false;
     }
 
-    if (templatesPresentPass && manualPoolPass && allAssignedConcepts.length > 0) {
+    if (
+      templatesPresentPass &&
+      manualPoolPass &&
+      allAssignedConcepts.length > 0
+    ) {
       checks.push({
         name: "Templates Present",
         status: "PASS",
       });
-    } else if (allAssignedConcepts.length > 0 && (templatesPresentPass === false || manualPoolPass === false)) {
+    } else if (
+      allAssignedConcepts.length > 0 &&
+      (templatesPresentPass === false || manualPoolPass === false)
+    ) {
       // Handled
     } else {
       checks.push({
@@ -527,7 +542,10 @@ export class ReadinessEngineService {
       }
     }
 
-    if (variablesValidPass && (!hasVariableConcepts || templateIdsArray.length > 0)) {
+    if (
+      variablesValidPass &&
+      (!hasVariableConcepts || templateIdsArray.length > 0)
+    ) {
       checks.push({
         name: "Variables Valid",
         status: "PASS",
@@ -579,7 +597,10 @@ export class ReadinessEngineService {
       }
     }
 
-    if (rulesValidPass && (!hasVariableConcepts || templateIdsArray.length > 0)) {
+    if (
+      rulesValidPass &&
+      (!hasVariableConcepts || templateIdsArray.length > 0)
+    ) {
       checks.push({
         name: "Rules Valid",
         status: "PASS",

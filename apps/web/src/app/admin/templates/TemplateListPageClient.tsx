@@ -94,9 +94,7 @@ export function TemplateListPageClient() {
         <div>
           <div className='font-medium'>{row.name}</div>
           {row.templateKey && (
-            <div className='text-xs text-muted-foreground font-mono'>
-              {row.templateKey}
-            </div>
+            <div className='text-xs text-muted-foreground font-mono'>{row.templateKey}</div>
           )}
         </div>
       ),
@@ -151,12 +149,22 @@ export function TemplateListPageClient() {
       className: 'text-right',
       cell: (row) => (
         <div className='inline-flex items-center gap-2 justify-end'>
-          <Button asChild variant='ghost' size='sm' className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'>
+          <Button
+            asChild
+            variant='ghost'
+            size='sm'
+            className='text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400'
+          >
             <Link href={`/admin/templates/${row.id}`}>
               <Edit2 className='w-4 h-4 mr-1' /> Edit
             </Link>
           </Button>
-          <Button asChild variant='ghost' size='sm' className='text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400'>
+          <Button
+            asChild
+            variant='ghost'
+            size='sm'
+            className='text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-400'
+          >
             <Link href='/admin/assembly'>
               <ClipboardList className='w-4 h-4 mr-1' /> Assemble
             </Link>
@@ -229,7 +237,13 @@ export function TemplateListPageClient() {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setModalError(''); }}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalError('');
+        }}
+      >
         <h2 className='text-xl font-semibold mb-4'>Create New Template</h2>
         {modalError && (
           <div className='p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md dark:bg-red-950/30 dark:border-red-800 dark:text-red-400'>
@@ -265,7 +279,9 @@ export function TemplateListPageClient() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder={isLoadingTopics ? 'Loading topics...' : 'Select a topic...'} />
+                <SelectValue
+                  placeholder={isLoadingTopics ? 'Loading topics...' : 'Select a topic...'}
+                />
               </SelectTrigger>
               <SelectContent>
                 {topics.map((topic) => (
@@ -287,7 +303,15 @@ export function TemplateListPageClient() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder={!selectedTopicId ? 'Select a topic first' : isLoadingConcepts ? 'Loading concepts...' : 'Select a concept...'} />
+                <SelectValue
+                  placeholder={
+                    !selectedTopicId
+                      ? 'Select a topic first'
+                      : isLoadingConcepts
+                        ? 'Loading concepts...'
+                        : 'Select a concept...'
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {concepts.map((concept) => (

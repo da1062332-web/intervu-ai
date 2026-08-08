@@ -12,24 +12,20 @@ import { useConcepts } from '@/services/concept-mapping/hooks';
 
 function ConceptNameCell({ topicId, conceptId }: { topicId?: string; conceptId?: string }) {
   const { data: concepts, isLoading } = useConcepts(topicId || '', false);
-  
-  if (!conceptId) return <span className="text-muted-foreground">N/A</span>;
-  if (isLoading) return <Skeleton className="h-4 w-20" />;
-  
-  const conceptsArray = Array.isArray(concepts) 
-    ? concepts 
-    : (concepts as any)?.data 
-      ? (concepts as any).data 
-      : (concepts as any)?.items 
-        ? (concepts as any).items 
+
+  if (!conceptId) return <span className='text-muted-foreground'>N/A</span>;
+  if (isLoading) return <Skeleton className='h-4 w-20' />;
+
+  const conceptsArray = Array.isArray(concepts)
+    ? concepts
+    : (concepts as any)?.data
+      ? (concepts as any).data
+      : (concepts as any)?.items
+        ? (concepts as any).items
         : [];
 
   const concept = conceptsArray.find((c: any) => c.id === conceptId);
-  return (
-    <span title={concept?.name || conceptId}>
-      {concept?.name || conceptId}
-    </span>
-  );
+  return <span title={concept?.name || conceptId}>{concept?.name || conceptId}</span>;
 }
 
 interface ManualQuestionTableProps {
@@ -38,11 +34,7 @@ interface ManualQuestionTableProps {
   onEdit?: (question: ManualQuestion) => void;
 }
 
-export function ManualQuestionTable({
-  questions,
-  isLoading,
-  onEdit,
-}: ManualQuestionTableProps) {
+export function ManualQuestionTable({ questions, isLoading, onEdit }: ManualQuestionTableProps) {
   const { mutate: deleteQuestion } = useDeleteManualQuestion();
 
   const columns: ColumnDef<ManualQuestion>[] = [
@@ -79,11 +71,7 @@ export function ManualQuestionTable({
       cell: (row) => (
         <Badge
           variant={
-            row.status === 'ACTIVE'
-              ? 'default'
-              : row.status === 'DRAFT'
-                ? 'outline'
-                : 'secondary'
+            row.status === 'ACTIVE' ? 'default' : row.status === 'DRAFT' ? 'outline' : 'secondary'
           }
         >
           {row.status}
@@ -128,14 +116,14 @@ export function ManualQuestionTable({
         columns={columns}
         data={questions || []}
         isLoading={isLoading}
-          rowKey={(row) => row.id}
-          emptyState={
-            <EmptyState
-              title='No Questions Found'
-              description='Try adjusting your filters or add a new manual question.'
-              className='py-12 border-0'
-            />
-          }
+        rowKey={(row) => row.id}
+        emptyState={
+          <EmptyState
+            title='No Questions Found'
+            description='Try adjusting your filters or add a new manual question.'
+            className='py-12 border-0'
+          />
+        }
       />
     </div>
   );

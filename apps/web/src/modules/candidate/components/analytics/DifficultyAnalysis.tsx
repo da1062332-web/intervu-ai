@@ -56,7 +56,9 @@ export const DifficultyAnalysis = React.memo(function DifficultyAnalysis({
             className='p-4 border border-border/50 rounded-xl bg-card/60 shadow-2xs hover:bg-card transition-all flex flex-col items-center justify-between'
           >
             {/* Header Tag */}
-            <div className={`text-xs font-bold px-2.5 py-0.5 rounded-full border mb-3 flex items-center gap-1.5 ${lvl.badgeClass}`}>
+            <div
+              className={`text-xs font-bold px-2.5 py-0.5 rounded-full border mb-3 flex items-center gap-1.5 ${lvl.badgeClass}`}
+            >
               <div className={`w-2 h-2 rounded-full ${lvl.dotColor}`} />
               {lvl.label}
             </div>
@@ -101,7 +103,8 @@ export const DifficultyAnalysis = React.memo(function DifficultyAnalysis({
 
             {/* Questions Correct Subtitle */}
             <div className='text-xs font-medium text-muted-foreground mt-3 pt-2 border-t border-border/30 w-full'>
-              <strong className='text-foreground font-semibold'>{lvl.data.correct}</strong> / {lvl.data.attempted} correct
+              <strong className='text-foreground font-semibold'>{lvl.data.correct}</strong> /{' '}
+              {lvl.data.attempted} correct
             </div>
           </div>
         );
@@ -109,4 +112,3 @@ export const DifficultyAnalysis = React.memo(function DifficultyAnalysis({
     </div>
   );
 });
-

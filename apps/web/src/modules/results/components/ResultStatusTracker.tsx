@@ -23,8 +23,13 @@ export const ResultStatusTracker: React.FC<ResultStatusTrackerProps> = ({
   }, [status, onComplete]);
 
   if (isLoading)
-    return <div className='text-gray-500 dark:text-slate-400 animate-pulse text-sm'>Checking status...</div>;
-  if (isError) return <div className='text-red-500 dark:text-red-400 text-sm'>Failed to check status</div>;
+    return (
+      <div className='text-gray-500 dark:text-slate-400 animate-pulse text-sm'>
+        Checking status...
+      </div>
+    );
+  if (isError)
+    return <div className='text-red-500 dark:text-red-400 text-sm'>Failed to check status</div>;
 
   const getStatusColor = (s: string) => {
     switch (s) {
@@ -43,7 +48,9 @@ export const ResultStatusTracker: React.FC<ResultStatusTrackerProps> = ({
 
   return (
     <div className='flex items-center space-x-2'>
-      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Evaluation Status:</span>
+      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+        Evaluation Status:
+      </span>
       <span
         className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(status || '')}`}
       >

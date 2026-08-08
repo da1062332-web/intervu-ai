@@ -56,7 +56,13 @@ describe("Topic & Concept Registry Integration Tests", () => {
       providers: [
         TopicService,
         ConceptMappingService,
-        { provide: PrismaService, useValue: { template: { findMany: vi.fn().mockResolvedValue([]) }, generatedQuestion: { findMany: vi.fn().mockResolvedValue([]) } } },
+        {
+          provide: PrismaService,
+          useValue: {
+            template: { findMany: vi.fn().mockResolvedValue([]) },
+            generatedQuestion: { findMany: vi.fn().mockResolvedValue([]) },
+          },
+        },
         { provide: TopicRepository, useValue: topicRepoMock },
         { provide: ConceptMappingRepository, useValue: conceptRepoMock },
         { provide: TopicRegistryLoader, useValue: registryLoaderMock },

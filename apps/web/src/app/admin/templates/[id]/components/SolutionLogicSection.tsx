@@ -15,7 +15,7 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
   // But wait, user says "Every section reads from the same template (Master Template Object)".
   // Let's rely on `template` if possible, but the backend stores solution logic separately?
   // No, `GET /templates/{id}/solution` fetches the solution template.
-  // Actually, wait, let me just initialize from the master template if it is there, 
+  // Actually, wait, let me just initialize from the master template if it is there,
   // or just use `useSolutionTemplate` and save with `useSaveSolutionTemplate` which invalidates `template` anyway.
   // We'll initialize from `template.solutionSchema` if available, otherwise from `useSolutionTemplate`.
 
@@ -51,21 +51,24 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
 
     const hasExistingSolutionTemplate = Boolean(existingData?.id);
 
-    saveSolution({
-      templateId: template.id,
-      payload: {
-        solutionTemplate: solutionTemplateStr,
-        explanationTemplate: explanationTemplateStr,
+    saveSolution(
+      {
+        templateId: template.id,
+        payload: {
+          solutionTemplate: solutionTemplateStr,
+          explanationTemplate: explanationTemplateStr,
+        },
+        isUpdate: hasExistingSolutionTemplate,
       },
-      isUpdate: hasExistingSolutionTemplate,
-    }, {
-      onSuccess: () => {
-        toast.success("Solution logic saved successfully");
+      {
+        onSuccess: () => {
+          toast.success('Solution logic saved successfully');
+        },
+        onError: () => {
+          toast.error('Failed to save solution logic');
+        },
       },
-      onError: () => {
-        toast.error("Failed to save solution logic");
-      }
-    });
+    );
   };
 
   return (

@@ -19,12 +19,18 @@ function getContextValue(context: unknown, key: string): string | null {
   return asString(value);
 }
 
-export function buildPreviewErrorDisplay(error: Partial<NormalizedApiError> | null | undefined): PreviewErrorDisplay {
+export function buildPreviewErrorDisplay(
+  error: Partial<NormalizedApiError> | null | undefined,
+): PreviewErrorDisplay {
   const message = asString(error?.message) ?? 'Template configuration error.';
-  const details = (error?.details && typeof error.details === 'object' ? error.details : {}) as Record<string, unknown>;
+  const details = (
+    error?.details && typeof error.details === 'object' ? error.details : {}
+  ) as Record<string, unknown>;
   const category = asString(error?.category) ?? asString(details.category) ?? 'UNKNOWN_ERROR';
   const reason = asString(error?.reason) ?? asString(details.reason) ?? message;
-  const context = (details.context && typeof details.context === 'object' ? details.context : {}) as Record<string, unknown>;
+  const context = (
+    details.context && typeof details.context === 'object' ? details.context : {}
+  ) as Record<string, unknown>;
 
   switch (category.toUpperCase()) {
     case 'FORMULA_ERROR': {
@@ -44,7 +50,9 @@ export function buildPreviewErrorDisplay(error: Partial<NormalizedApiError> | nu
     }
     case 'PLACEHOLDER_ERROR': {
       const placeholders = Array.isArray(context.placeholders)
-        ? context.placeholders.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        ? context.placeholders.filter(
+            (item): item is string => typeof item === 'string' && item.trim().length > 0,
+          )
         : [];
       const detailsList = [
         placeholders.length > 0 ? `Missing placeholder: ${placeholders.join(', ')}` : null,
@@ -61,9 +69,7 @@ export function buildPreviewErrorDisplay(error: Partial<NormalizedApiError> | nu
       return {
         title: 'Variable generation error',
         summary: reason,
-        details: [
-          'Check the variable definitions and constraints in the template.',
-        ],
+        details: ['Check the variable definitions and constraints in the template.'],
       };
     }
     case 'AI_SERVICE_ERROR': {

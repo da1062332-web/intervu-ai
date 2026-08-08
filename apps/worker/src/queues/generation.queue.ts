@@ -70,8 +70,11 @@ export class GenerationQueueProcessor {
       }
 
       // Map API payload difficulty to worker expected enum
-      let difficulty: "beginner" | "intermediate" | "advanced" | "expert" = "intermediate";
-      const incomingDiff = (parsedPayload.payload.difficulty || "").toUpperCase();
+      let difficulty: "beginner" | "intermediate" | "advanced" | "expert" =
+        "intermediate";
+      const incomingDiff = (
+        parsedPayload.payload.difficulty || ""
+      ).toUpperCase();
       if (incomingDiff === "EASY") {
         difficulty = "beginner";
       } else if (incomingDiff === "MEDIUM") {
@@ -97,9 +100,7 @@ export class GenerationQueueProcessor {
 
       // Persist to Database (wrapped in try/catch to gracefully handle missing Test record)
       const testId = parsedPayload.payload.assemblyId || "test_123";
-      this.logger.info(
-        `Persisting generated questions for testId: ${testId}`,
-      );
+      this.logger.info(`Persisting generated questions for testId: ${testId}`);
       try {
         await this.prisma.test.update({
           where: { id: testId },

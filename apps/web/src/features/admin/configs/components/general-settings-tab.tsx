@@ -17,8 +17,8 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='flex items-center justify-center h-48'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
@@ -29,9 +29,7 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
     <div className='max-w-4xl mx-auto space-y-8 py-4'>
       <div className='space-y-2'>
         <h3 className='text-2xl font-semibold tracking-tight'>General Settings</h3>
-        <p className='text-muted-foreground'>
-          Basic details for this examination configuration.
-        </p>
+        <p className='text-muted-foreground'>Basic details for this examination configuration.</p>
       </div>
 
       <div className='p-8 border rounded-xl bg-card shadow-sm'>
@@ -85,7 +83,11 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
             Edit Configuration
           </Link>
         </Button>
-        {onNext && <Button onClick={onNext} size="lg" className='shadow-sm'>Continue to Sections</Button>}
+        {onNext && (
+          <Button onClick={onNext} size='lg' className='shadow-sm'>
+            Continue to Sections
+          </Button>
+        )}
       </div>
     </div>
   );

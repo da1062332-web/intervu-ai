@@ -10,7 +10,11 @@ interface FloatingToolbarProps {
 }
 
 export function FloatingToolbar({ assessmentId }: FloatingToolbarProps) {
-  const { initialize: initScratchPad, toggleOpen: toggleScratchPad, isOpen: isScratchOpen } = useScratchPad();
+  const {
+    initialize: initScratchPad,
+    toggleOpen: toggleScratchPad,
+    isOpen: isScratchOpen,
+  } = useScratchPad();
   const { initialize: initCalc, toggleOpen: toggleCalc, isOpen: isCalcOpen } = useCalculator();
   const { bringToFront } = useSandboxZIndex();
 

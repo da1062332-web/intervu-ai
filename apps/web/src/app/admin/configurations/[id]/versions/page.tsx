@@ -10,10 +10,15 @@ export default function VersionsPage() {
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-6xl'>
-      <SectionHeader 
+      <SectionHeader
         title='Version History'
         description='View, compare, and restore previous configuration versions.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations', href: '/admin/configurations' }, { label: 'Configuration', href: `/admin/configurations/${id}` }, { label: 'Versions' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Configurations', href: '/admin/configurations' },
+          { label: 'Configuration', href: `/admin/configurations/${id}` },
+          { label: 'Versions' },
+        ]}
       />
       <VersionHistory configId={id} />
     </div>

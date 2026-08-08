@@ -72,14 +72,19 @@ export class QuestionBankSource implements IQuestionSource {
     });
 
     // 2. Calculate available active Templates count matching requested difficulty (or all if flexible)
-    const conceptCodes = (topic as any)?.concepts?.map((c: any) => c.code) || [];
+    const conceptCodes =
+      (topic as any)?.concepts?.map((c: any) => c.code) || [];
     const templateCount = await this.prisma.template.count({
       where: {
         isActive: true,
         deletedAt: null,
         ...(hasExplicitDifficulty ? { difficultyLevel: difficulty } : {}),
         OR: [
-          { conceptKey: { in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode] } },
+          {
+            conceptKey: {
+              in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode],
+            },
+          },
           { conceptKey: resolvedCode },
           { conceptKey: topicId },
         ],
@@ -131,7 +136,8 @@ export class QuestionBankSource implements IQuestionSource {
       };
 
       try {
-        const availability = await this.rotationService.checkAvailability(request);
+        const availability =
+          await this.rotationService.checkAvailability(request);
         let actualCount = targetManual;
         if (
           availability.status === "INSUFFICIENT_POOL" ||
@@ -155,14 +161,17 @@ export class QuestionBankSource implements IQuestionSource {
             difficultyDistribution: actualDiffDist,
           };
 
-          const response = await this.rotationService.retrieveAndReserve(actualReq);
+          const response =
+            await this.rotationService.retrieveAndReserve(actualReq);
           const mapped = response.questions.map((q) =>
             this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
           );
           assembledResults.push(...mapped);
         }
       } catch (err) {
-        this.logger.warn(`Manual question retrieval notice (${err}). Shifting to templates.`);
+        this.logger.warn(
+          `Manual question retrieval notice (${err}). Shifting to templates.`,
+        );
       }
     }
 
@@ -185,7 +194,10 @@ export class QuestionBankSource implements IQuestionSource {
     const finalNeeded = limit - assembledResults.length;
     if (finalNeeded > 0) {
       try {
-        const existingIds = new Set([...excludeIds, ...assembledResults.map((q) => q.id)]);
+        const existingIds = new Set([
+          ...excludeIds,
+          ...assembledResults.map((q) => q.id),
+        ]);
         const extraManualQs = await this.prisma.question.findMany({
           where: {
             status: "ACTIVE",
@@ -201,7 +213,10 @@ export class QuestionBankSource implements IQuestionSource {
         });
 
         const mappedExtra = extraManualQs.map((q) =>
-          this.mapToGeneratedQuestion(q as any, (q as any).difficulty || difficulty),
+          this.mapToGeneratedQuestion(
+            q as any,
+            (q as any).difficulty || difficulty,
+          ),
         );
         assembledResults.push(...mappedExtra);
       } catch (err) {

@@ -43,7 +43,9 @@ export class StartTestService {
         // Return existing active instance for idempotency
         let durationSeconds = 3600;
         if (eligibility.isExamConfig) {
-          const config = await this.prisma.examConfig.findUnique({ where: { id: input.testConfigId } });
+          const config = await this.prisma.examConfig.findUnique({
+            where: { id: input.testConfigId },
+          });
           if (config) durationSeconds = config.durationMinutes * 60;
         } else {
           const config = await this.testConfigRepository.findById(
@@ -70,21 +72,31 @@ export class StartTestService {
       config = await this.prisma.examConfig.findUnique({
         where: { id: input.testConfigId },
         include: {
-          sections: { orderBy: { sectionOrder: 'asc' } },
+          sections: { orderBy: { sectionOrder: "asc" } },
           blueprint: true,
           ruleFlags: true,
         },
       });
       if (config) {
         config.totalDurationSeconds = config.durationMinutes * 60;
-        config.sectionTimingEnabled = config.ruleFlags?.sectionTimingEnabled ?? false;
+        config.sectionTimingEnabled =
+          config.ruleFlags?.sectionTimingEnabled ?? false;
         const numSections = config.sections.length || 1;
         config.sections = config.sections.map((s: any, index: number) => {
-          let conceptKey = s.code ? `CONCEPT_${s.code}` : s.name.toLowerCase().replace(/ /g, '_');
+          let conceptKey = s.code
+            ? `CONCEPT_${s.code}`
+            : s.name.toLowerCase().replace(/ /g, "_");
           if (config.blueprint && Array.isArray(config.blueprint.sections)) {
-            const bpSection = config.blueprint.sections.find((bs: any) => bs.sectionId === s.id);
-            if (bpSection && bpSection.topicAllocations?.[0]?.concepts?.[0]?.conceptName) {
-              conceptKey = bpSection.topicAllocations[0].concepts[0].conceptName.replace(/\s+/g, '_').toUpperCase();
+            const bpSection = config.blueprint.sections.find(
+              (bs: any) => bs.sectionId === s.id,
+            );
+            if (
+              bpSection &&
+              bpSection.topicAllocations?.[0]?.concepts?.[0]?.conceptName
+            ) {
+              conceptKey = bpSection.topicAllocations[0].concepts[0].conceptName
+                .replace(/\s+/g, "_")
+                .toUpperCase();
             }
           }
           // Use the explicitly defined section duration if available, otherwise divide total duration evenly.
@@ -130,7 +142,8 @@ export class StartTestService {
             .map((q) => ({
               questionId: q.questionId,
               questionOrder: q.questionOrder,
-              questionSnapshot: q.questionSnapshot as unknown as Prisma.InputJsonValue,
+              questionSnapshot:
+                q.questionSnapshot as unknown as Prisma.InputJsonValue,
             }));
 
           sectionsData.push({
@@ -145,13 +158,14 @@ export class StartTestService {
       } else {
         // No published snapshot — fall back to live generation
         for (const section of config.sections) {
-          const questions = await this.questionProvider.fetchOrGenerateQuestions([
-            {
-              conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
-              difficultyLevel: "MEDIUM",
-              count: section.questionCount,
-            },
-          ]);
+          const questions =
+            await this.questionProvider.fetchOrGenerateQuestions([
+              {
+                conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
+                difficultyLevel: "MEDIUM",
+                count: section.questionCount,
+              },
+            ]);
 
           sectionsData.push({
             sectionKey: section.sectionKey,
@@ -199,11 +213,15 @@ export class StartTestService {
 
     // Final Shuffle
     const shuffleFlags = {
-      shuffleQuestionsEnabled: config.ruleFlags?.shuffleQuestionsEnabled ?? false,
+      shuffleQuestionsEnabled:
+        config.ruleFlags?.shuffleQuestionsEnabled ?? false,
       shuffleOptionsEnabled: config.ruleFlags?.shuffleOptionsEnabled ?? false,
     };
-    
-    sectionsData = this.finalShufflerService.shuffleSections(sectionsData as any, shuffleFlags);
+
+    sectionsData = this.finalShufflerService.shuffleSections(
+      sectionsData as any,
+      shuffleFlags,
+    );
 
     const testInstance = await this.testInstanceService.createTestInstance({
       userId,

@@ -48,14 +48,16 @@ export function formatDisplayString(text: unknown): string {
   });
 }
 
-export function normalizeDisplayQuestion<T extends {
-  question?: unknown;
-  questionText?: unknown;
-  options?: unknown[];
-  correctAnswer?: unknown;
-  answer?: unknown;
-  explanation?: unknown;
-}>(question: T): T {
+export function normalizeDisplayQuestion<
+  T extends {
+    question?: unknown;
+    questionText?: unknown;
+    options?: unknown[];
+    correctAnswer?: unknown;
+    answer?: unknown;
+    explanation?: unknown;
+  },
+>(question: T): T {
   const normalizedOptions = Array.isArray(question.options)
     ? question.options.map((option) => formatDisplayString(option))
     : question.options;
@@ -63,7 +65,10 @@ export function normalizeDisplayQuestion<T extends {
   const optionMap = new Map<string, string>();
   if (Array.isArray(question.options) && Array.isArray(normalizedOptions)) {
     question.options.forEach((option, index) => {
-      optionMap.set(String(option).trim(), String(normalizedOptions[index]).trim());
+      optionMap.set(
+        String(option).trim(),
+        String(normalizedOptions[index]).trim(),
+      );
     });
   }
 
@@ -88,7 +93,9 @@ export function normalizeDisplayQuestion<T extends {
         ? normalizeAnswer(question.correctAnswer)
         : question.correctAnswer,
     answer:
-      question.answer !== undefined ? normalizeAnswer(question.answer) : question.answer,
+      question.answer !== undefined
+        ? normalizeAnswer(question.answer)
+        : question.answer,
     explanation:
       question.explanation !== undefined
         ? formatDisplayString(question.explanation)
@@ -101,7 +108,10 @@ export function formatInterpolatedDisplayValue(
   placeholderIndex: number,
   value: unknown,
 ): string {
-  const precedingText = templateText.slice(Math.max(0, placeholderIndex - 16), placeholderIndex);
+  const precedingText = templateText.slice(
+    Math.max(0, placeholderIndex - 16),
+    placeholderIndex,
+  );
   const currencyLike = /(?:rs\.?|inr|₹|rupees?)\s*$/i.test(precedingText);
   return formatDisplayValue(value, { currencyLike });
 }

@@ -8,7 +8,13 @@ export default function CandidateTestLaunchPage({ params }: { params: Promise<{ 
   const { id } = React.use(params);
 
   return (
-    <React.Suspense fallback={<div className='flex justify-center p-8'><div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' /></div>}>
+    <React.Suspense
+      fallback={
+        <div className='flex justify-center p-8'>
+          <div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' />
+        </div>
+      }
+    >
       <TestLaunchPage testId={id} />
     </React.Suspense>
   );

@@ -3,7 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function run() {
-  console.log("🔍 Checking database resources for topic 'JavaScript Basics'...\n");
+  console.log(
+    "🔍 Checking database resources for topic 'JavaScript Basics'...\n",
+  );
 
   // 1. Find the topic
   const topic = await prisma.topic.findFirst({
@@ -18,7 +20,9 @@ async function run() {
   }
 
   console.log(`📋 Topic: "${topic.name}" (${topic.id})`);
-  console.log(`📋 Concepts: ${topic.concepts.map((c) => `"${c.name}" (Code: ${c.code}, Status: ${c.status})`).join(", ")}`);
+  console.log(
+    `📋 Concepts: ${topic.concepts.map((c) => `"${c.name}" (Code: ${c.code}, Status: ${c.status})`).join(", ")}`,
+  );
   console.log("\n");
 
   const conceptCodes = topic.concepts.map((c) => c.code);

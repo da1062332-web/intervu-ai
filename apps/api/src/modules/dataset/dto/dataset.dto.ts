@@ -81,7 +81,10 @@ export class CreateDatasetItemDto {
   @IsOptional()
   content?: string;
 
-  @ApiPropertyOptional({ description: "MCQ Options array", example: ["A", "B", "C", "D"] })
+  @ApiPropertyOptional({
+    description: "MCQ Options array",
+    example: ["A", "B", "C", "D"],
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
@@ -102,7 +105,10 @@ export class CreateDatasetItemDto {
   @IsNotEmpty()
   difficulty!: string;
 
-  @ApiPropertyOptional({ description: "Associated topic string", example: "synonyms" })
+  @ApiPropertyOptional({
+    description: "Associated topic string",
+    example: "synonyms",
+  })
   @IsString()
   @IsOptional()
   topic?: string;
@@ -117,7 +123,10 @@ export class CreateDatasetItemDto {
   @IsOptional()
   conceptId?: string;
 
-  @ApiPropertyOptional({ description: "Filter tags", example: ["english", "synonyms"] })
+  @ApiPropertyOptional({
+    description: "Filter tags",
+    example: ["english", "synonyms"],
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
@@ -167,7 +176,10 @@ export class UpdateDatasetItemDto {
   @IsOptional()
   difficulty?: string;
 
-  @ApiPropertyOptional({ description: "Associated topic string", example: "synonyms" })
+  @ApiPropertyOptional({
+    description: "Associated topic string",
+    example: "synonyms",
+  })
   @IsString()
   @IsOptional()
   topic?: string;
@@ -182,7 +194,10 @@ export class UpdateDatasetItemDto {
   @IsOptional()
   conceptId?: string;
 
-  @ApiPropertyOptional({ description: "Filter tags", example: ["english", "synonyms"] })
+  @ApiPropertyOptional({
+    description: "Filter tags",
+    example: ["english", "synonyms"],
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
@@ -196,4 +211,3 @@ export class UpdateDatasetItemDto {
   @IsOptional()
   metadata?: Record<string, any>;
 }
-

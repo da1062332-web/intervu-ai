@@ -42,7 +42,9 @@ export class QuestionAllocatorService {
   ): DifficultyTargetMap {
     const isFlexible =
       !diffConfig ||
-      (diffConfig.EASY === 0 && diffConfig.MEDIUM === 0 && diffConfig.HARD === 0);
+      (diffConfig.EASY === 0 &&
+        diffConfig.MEDIUM === 0 &&
+        diffConfig.HARD === 0);
 
     if (isFlexible) {
       const easyCount = Math.round(totalQuestions / 3);
@@ -82,7 +84,9 @@ export class QuestionAllocatorService {
     const normalizedTopics = topicAllocations.map((topicAlloc) => {
       const safePercentage = topicAlloc.percentage || 0;
       const normalizedPercentage =
-        totalPercentage > 0 ? (safePercentage / totalPercentage) * 100 : 100 / topicAllocations.length;
+        totalPercentage > 0
+          ? (safePercentage / totalPercentage) * 100
+          : 100 / topicAllocations.length;
       return {
         topicId: topicAlloc.topicId,
         percentage: normalizedPercentage,
@@ -108,12 +112,18 @@ export class QuestionAllocatorService {
         topicId: rawQuota.topicId,
         remainder: rawQuota.rawQuota - Math.floor(rawQuota.rawQuota),
       }))
-      .sort((a, b) => b.remainder - a.remainder || a.topicId.localeCompare(b.topicId));
+      .sort(
+        (a, b) =>
+          b.remainder - a.remainder || a.topicId.localeCompare(b.topicId),
+      );
 
     for (let i = 0; i < remainingQuestions; i++) {
       const nextTopic = sortedRemainders[i % sortedRemainders.length];
       if (!nextTopic) break;
-      floorQuotas.set(nextTopic.topicId, (floorQuotas.get(nextTopic.topicId) || 0) + 1);
+      floorQuotas.set(
+        nextTopic.topicId,
+        (floorQuotas.get(nextTopic.topicId) || 0) + 1,
+      );
     }
 
     return floorQuotas;
@@ -131,9 +141,18 @@ export class QuestionAllocatorService {
       level: DifficultyLevel;
       percentage: number;
     }> = [
-      { level: DifficultyLevel.EASY, percentage: section.difficultyDistribution?.EASY ?? 0 },
-      { level: DifficultyLevel.MEDIUM, percentage: section.difficultyDistribution?.MEDIUM ?? 0 },
-      { level: DifficultyLevel.HARD, percentage: section.difficultyDistribution?.HARD ?? 0 },
+      {
+        level: DifficultyLevel.EASY,
+        percentage: section.difficultyDistribution?.EASY ?? 0,
+      },
+      {
+        level: DifficultyLevel.MEDIUM,
+        percentage: section.difficultyDistribution?.MEDIUM ?? 0,
+      },
+      {
+        level: DifficultyLevel.HARD,
+        percentage: section.difficultyDistribution?.HARD ?? 0,
+      },
     ].filter((entry) => entry.percentage > 0);
 
     if (difficulties.length === 0) {
@@ -187,7 +206,11 @@ export class QuestionAllocatorService {
 
       for (const diff of difficulties) {
         const floor = topicEntry.floors[diff.level] || 0;
-        const assignable = Math.min(floor, remainingDifficulty[diff.level], topicRemaining);
+        const assignable = Math.min(
+          floor,
+          remainingDifficulty[diff.level],
+          topicRemaining,
+        );
         topicPlan[diff.level] += assignable;
         remainingDifficulty[diff.level] -= assignable;
         topicRemaining -= assignable;
@@ -282,8 +305,12 @@ export class QuestionAllocatorService {
         const topicAlloc = section.topicAllocations[i];
         const isLast = i === section.topicAllocations.length - 1;
 
-        const rawCount = Math.round((topicAlloc.percentage / 100) * totalQuestions) || remainingSectionCount;
-        const topicCount = isLast ? remainingSectionCount : Math.min(rawCount, remainingSectionCount);
+        const rawCount =
+          Math.round((topicAlloc.percentage / 100) * totalQuestions) ||
+          remainingSectionCount;
+        const topicCount = isLast
+          ? remainingSectionCount
+          : Math.min(rawCount, remainingSectionCount);
         if (topicCount <= 0) continue;
 
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
@@ -322,7 +349,11 @@ export class QuestionAllocatorService {
         }
 
         if (selectedForTopic.length < topicCount) {
-          const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
+          const sectionName =
+            (section as any).displayName ||
+            (section as any).name ||
+            section.sectionKey ||
+            "Section";
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = topicCount - selectedForTopic.length;
           throw new BadRequestException({
@@ -354,7 +385,9 @@ export class QuestionAllocatorService {
 
     for (const topicAlloc of section.topicAllocations) {
       const topicQuota = topicQuotas.get(topicAlloc.topicId) || 0;
-      const topicDifficultyTargets = topicDifficultyPlan.get(topicAlloc.topicId);
+      const topicDifficultyTargets = topicDifficultyPlan.get(
+        topicAlloc.topicId,
+      );
 
       if (!topicDifficultyTargets || topicQuota <= 0) {
         continue;
@@ -468,7 +501,11 @@ export class QuestionAllocatorService {
         }
 
         if (selectedForTopic.length < requiredForTopic) {
-          const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
+          const sectionName =
+            (section as any).displayName ||
+            (section as any).name ||
+            section.sectionKey ||
+            "Section";
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = requiredForTopic - selectedForTopic.length;
           throw new BadRequestException({

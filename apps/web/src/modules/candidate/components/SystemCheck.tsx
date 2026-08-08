@@ -223,12 +223,9 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
             </div>
           </div>
         ))}
-        
-        <div className="pt-4 mt-2 border-t border-border/40">
-          <MediaPreview 
-            onFaceDetected={setFaceDetected} 
-            onMicActive={setMicActive} 
-          />
+
+        <div className='pt-4 mt-2 border-t border-border/40'>
+          <MediaPreview onFaceDetected={setFaceDetected} onMicActive={setMicActive} />
         </div>
       </CardContent>
     </Card>

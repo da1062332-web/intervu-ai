@@ -75,7 +75,8 @@ export default function AssemblyDashboardPage() {
       } else {
         // Attempt to replace any UUIDs in the error message with actual topic names
         let displayMsg = errorMsg;
-        const uuidRegex = /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
+        const uuidRegex =
+          /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
         displayMsg = displayMsg.replace(uuidRegex, (match: string) => {
           const foundTopic = topics?.find((t: any) => t.id === match);
           return foundTopic ? `"${foundTopic.name}"` : match;
@@ -123,7 +124,7 @@ export default function AssemblyDashboardPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           <WidgetSkeleton />
           <WidgetSkeleton />
           <WidgetSkeleton />
@@ -146,7 +147,18 @@ export default function AssemblyDashboardPage() {
                     <FileText className='h-5 w-5' />
                     <span className='text-sm font-medium'>Config: {config.code || 'N/A'}</span>
                   </div>
-                  <Badge variant={config.status === 'PUBLISHED' || config.status === 'ACTIVE' ? 'default' : 'secondary'} className={config.status === 'PUBLISHED' || config.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : ''}>
+                  <Badge
+                    variant={
+                      config.status === 'PUBLISHED' || config.status === 'ACTIVE'
+                        ? 'default'
+                        : 'secondary'
+                    }
+                    className={
+                      config.status === 'PUBLISHED' || config.status === 'ACTIVE'
+                        ? 'bg-green-100 text-green-800'
+                        : ''
+                    }
+                  >
                     {config.status === 'ACTIVE'
                       ? 'Active'
                       : config.status === 'DRAFT'

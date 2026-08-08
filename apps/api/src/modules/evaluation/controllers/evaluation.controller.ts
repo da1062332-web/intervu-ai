@@ -183,7 +183,11 @@ export class EvaluationController {
       evalResults,
       parsedSections,
     );
-    return this.overallScoring.calculateOverallScore(sectionScores, evalResults, []);
+    return this.overallScoring.calculateOverallScore(
+      sectionScores,
+      evalResults,
+      [],
+    );
   }
 
   @Post("queue")

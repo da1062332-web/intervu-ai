@@ -87,4 +87,3 @@ export interface UpdateStyleProfile {
   explanationStyle?: Partial<ExplanationStyle>;
   aiInstructions?: string;
 }
-

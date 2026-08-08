@@ -82,7 +82,9 @@ export class ManualQuestionsController {
 
   @Get("random")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get random questions for a concept and difficulty" })
+  @ApiOperation({
+    summary: "Get random questions for a concept and difficulty",
+  })
   @ApiOkResponse({ description: "Random questions retrieved successfully" })
   async getRandom(
     @Query("conceptId") conceptId: string,
@@ -147,10 +149,7 @@ export class ManualQuestionsController {
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Edit a manual question by ID" })
-  async editQuestion(
-    @Param("id") id: string,
-    @Body() body: UpdateQuestionDto,
-  ) {
+  async editQuestion(@Param("id") id: string, @Body() body: UpdateQuestionDto) {
     const manualQuestion = await this.prisma.question.findUnique({
       where: { id },
     });

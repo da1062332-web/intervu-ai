@@ -18,7 +18,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the basic math problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_NUMERICAL_ABILITY_MEDIUM",
@@ -31,7 +31,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the math problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_NUMERICAL_ABILITY_HARD",
@@ -44,7 +44,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the complex math problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_VERBAL_ABILITY_EASY",
@@ -57,7 +57,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Answer the basic verbal question" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_VERBAL_ABILITY_MEDIUM",
@@ -70,7 +70,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Answer the verbal question" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_VERBAL_ABILITY_HARD",
@@ -83,7 +83,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Answer the complex verbal question" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_REASONING_ABILITY_EASY",
@@ -96,7 +96,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the basic reasoning problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_REASONING_ABILITY_MEDIUM",
@@ -109,7 +109,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the reasoning problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_REASONING_ABILITY_HARD",
@@ -122,7 +122,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the complex reasoning problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_ADVANCED_APTITUDE_EASY",
@@ -135,7 +135,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the basic advanced aptitude problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_ADVANCED_APTITUDE_MEDIUM",
@@ -148,7 +148,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the advanced aptitude problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_ADVANCED_APTITUDE_HARD",
@@ -161,7 +161,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the complex advanced aptitude problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_CODING_EASY",
@@ -174,7 +174,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the basic coding problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_CODING_MEDIUM",
@@ -187,7 +187,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the coding problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
     {
       name: "TCS_NQT_CODING_HARD",
@@ -200,7 +200,7 @@ export async function seedTemplates(prisma: PrismaClient): Promise<void> {
       structure: { prompt: "Solve the complex coding problem" },
       variableSchema: {},
       constraints: {},
-      solutionSchema: {}
+      solutionSchema: {},
     },
   ];
 

@@ -1,6 +1,14 @@
-import { Injectable, Inject, BadRequestException, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  Logger,
+} from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { PreviewErrorDetails, PreviewGenerationException } from "../../../core/exceptions";
+import {
+  PreviewErrorDetails,
+  PreviewGenerationException,
+} from "../../../core/exceptions";
 import { PromptBuilderService } from "../prompts/prompt-builder.service";
 import { QuestionGeneratorService } from "../generators/question-generator.service";
 import { OptionGeneratorService } from "../generators/option-generator.service";
@@ -195,7 +203,10 @@ export class GenerationRetryService {
           throw error;
         }
 
-        const classified = this.classifyPreviewFailure(error, "parameter-generator");
+        const classified = this.classifyPreviewFailure(
+          error,
+          "parameter-generator",
+        );
         if (!classified.retryable) {
           throw new PreviewGenerationException(
             classified.message,
@@ -228,7 +239,11 @@ export class GenerationRetryService {
 
     // Fetch custom prompt configuration if strategy is DATASET
     let promptConfig: any = undefined;
-    if (template.id && (template.generationStrategy === "DATASET" || (template as any).strategy === "DATASET")) {
+    if (
+      template.id &&
+      (template.generationStrategy === "DATASET" ||
+        (template as any).strategy === "DATASET")
+    ) {
       promptConfig = await this.prisma.templatePromptConfig.findUnique({
         where: { templateId: template.id },
       });
@@ -262,7 +277,9 @@ export class GenerationRetryService {
         let attemptVariables = variableValues;
         if ((template as any)?.generationStrategy === "VARIABLE") {
           try {
-            attemptVariables = this.parameterGenerator.generateParameters(template as any);
+            attemptVariables = this.parameterGenerator.generateParameters(
+              template as any,
+            );
           } catch (error) {
             if (error instanceof PreviewGenerationException) {
               const details = error.details as PreviewErrorDetails | undefined;
@@ -272,7 +289,10 @@ export class GenerationRetryService {
               throw error;
             }
 
-            const classified = this.classifyPreviewFailure(error, "parameter-generator");
+            const classified = this.classifyPreviewFailure(
+              error,
+              "parameter-generator",
+            );
             if (!classified.retryable) {
               this.logger.warn(
                 `[preview] ${classified.category} from ${classified.details.source}: ${classified.reason}`,
@@ -299,10 +319,17 @@ export class GenerationRetryService {
         const datasetGenerationMode: "DIRECT" | "AI" =
           String(rawMode).toUpperCase() === "DIRECT" ? "DIRECT" : "AI";
 
-        if (isDatasetStrategy && datasetGenerationMode === "DIRECT" && options?.datasetItem) {
+        if (
+          isDatasetStrategy &&
+          datasetGenerationMode === "DIRECT" &&
+          options?.datasetItem
+        ) {
           const dsItem = options.datasetItem;
           parsedQuestion = {
-            question: dsItem.questionText || dsItem.content || "No question text provided.",
+            question:
+              dsItem.questionText ||
+              dsItem.content ||
+              "No question text provided.",
             options: dsItem.options || [],
             correctAnswer: dsItem.answer || "",
             answer: dsItem.answer || "",
@@ -340,11 +367,15 @@ export class GenerationRetryService {
             if (isDatasetStrategy && options?.datasetItem) {
               const dsItem = options.datasetItem;
               parsedQuestion = {
-                question: dsItem.questionText || dsItem.content || "No question text provided.",
+                question:
+                  dsItem.questionText ||
+                  dsItem.content ||
+                  "No question text provided.",
                 options: dsItem.options || [],
                 correctAnswer: dsItem.answer || "",
                 answer: dsItem.answer || "",
-                explanation: dsItem.explanation || "Directly fetched from dataset.",
+                explanation:
+                  dsItem.explanation || "Directly fetched from dataset.",
                 difficulty: difficulty,
                 topic: topic,
                 metadata: {
@@ -395,7 +426,10 @@ export class GenerationRetryService {
               metadata: {
                 ...(parsed.metadata || {}),
                 templateId: template.id,
-                variables: (template as any)?.generationStrategy === "VARIABLE" ? attemptVariables : variableValues,
+                variables:
+                  (template as any)?.generationStrategy === "VARIABLE"
+                    ? attemptVariables
+                    : variableValues,
                 generationStrategy: template.generationStrategy,
                 datasetGenerationMode: "AI",
                 datasetItem: options?.datasetItem,
@@ -408,18 +442,20 @@ export class GenerationRetryService {
           }
         }
 
-          if ((template as any)?.generationStrategy === "VARIABLE") {
-            parsedQuestion.question = this.hydrateCanonicalQuestion(
-              template,
-              attemptVariables,
-            );
-          }
+        if ((template as any)?.generationStrategy === "VARIABLE") {
+          parsedQuestion.question = this.hydrateCanonicalQuestion(
+            template,
+            attemptVariables,
+          );
+        }
 
         parsedQuestion = normalizeDisplayQuestion(parsedQuestion);
 
         // 3. Process & Shuffle options
         const qType = String(template.questionType || "").toLowerCase();
-        const hasOptions = Array.isArray(parsedQuestion.options) && parsedQuestion.options.length > 0;
+        const hasOptions =
+          Array.isArray(parsedQuestion.options) &&
+          parsedQuestion.options.length > 0;
 
         if (
           qType === "mcq" ||
@@ -607,15 +643,22 @@ export class GenerationRetryService {
       "504",
     ];
 
-    const isNonRetryable = nonRetryablePatterns.some((pattern) => lower.includes(pattern));
-    const isRetryable = retryablePatterns.some((pattern) => lower.includes(pattern));
+    const isNonRetryable = nonRetryablePatterns.some((pattern) =>
+      lower.includes(pattern),
+    );
+    const isRetryable = retryablePatterns.some((pattern) =>
+      lower.includes(pattern),
+    );
 
     if (isNonRetryable) {
-      const category = lower.includes("placeholder") || lower.includes("template")
-        ? "TEMPLATE_CONFIGURATION_ERROR"
-        : lower.includes("formula") || lower.includes("variable") || lower.includes("constraint")
-        ? "FORMULA_ERROR"
-        : "CONTENT_VALIDATION_ERROR";
+      const category =
+        lower.includes("placeholder") || lower.includes("template")
+          ? "TEMPLATE_CONFIGURATION_ERROR"
+          : lower.includes("formula") ||
+              lower.includes("variable") ||
+              lower.includes("constraint")
+            ? "FORMULA_ERROR"
+            : "CONTENT_VALIDATION_ERROR";
 
       return {
         message: "Template configuration error.",

@@ -43,7 +43,9 @@ export function ExecutionHeader() {
             <div className='flex items-center gap-1.5 text-white'>
               <Wifi className='size-3.5 text-green-300' />
               <span className='hidden md:inline text-xs'>{isOffline ? 'Offline' : 'Online'}</span>
-              {ping !== null && !isOffline && <span className='text-[11px] text-green-200 font-normal'>({ping}ms)</span>}
+              {ping !== null && !isOffline && (
+                <span className='text-[11px] text-green-200 font-normal'>({ping}ms)</span>
+              )}
             </div>
 
             <span className='text-green-400 opacity-50 select-none'>|</span>
@@ -52,7 +54,9 @@ export function ExecutionHeader() {
             <div className='flex items-center gap-1.5 text-green-100 text-xs'>
               {autosaveStatus === 'SAVING' || hasUnsavedChanges ? (
                 <>
-                  <RefreshCw className={`size-3.5 ${autosaveStatus === 'SAVING' ? 'animate-spin' : ''} text-green-300`} />
+                  <RefreshCw
+                    className={`size-3.5 ${autosaveStatus === 'SAVING' ? 'animate-spin' : ''} text-green-300`}
+                  />
                   <span>{autosaveStatus === 'SAVING' ? 'Syncing...' : 'Sync Pending'}</span>
                 </>
               ) : autosaveStatus === 'FAILED' ? (
@@ -64,7 +68,10 @@ export function ExecutionHeader() {
                 <>
                   <CheckCircle2 className='size-3.5 text-green-300' />
                   <span className='hidden lg:inline'>
-                    Synced {lastSavedAt ? `at ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+                    Synced{' '}
+                    {lastSavedAt
+                      ? `at ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      : ''}
                   </span>
                   <span className='lg:hidden'>Synced</span>
                 </>
@@ -78,8 +85,12 @@ export function ExecutionHeader() {
               V
             </div>
             <div className='flex flex-col text-white leading-none'>
-              <span className='font-extrabold text-sm tracking-wide uppercase font-sans'>InterVu AI</span>
-              <span className='text-[9px] font-semibold tracking-wider text-green-100 uppercase mt-0.5'>Skill Sandbox</span>
+              <span className='font-extrabold text-sm tracking-wide uppercase font-sans'>
+                InterVu AI
+              </span>
+              <span className='text-[9px] font-semibold tracking-wider text-green-100 uppercase mt-0.5'>
+                Skill Sandbox
+              </span>
             </div>
           </div>
         </div>

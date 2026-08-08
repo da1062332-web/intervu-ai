@@ -34,7 +34,6 @@ export function TopicsPageClient() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
-
   if (isError) {
     return (
       <EmptyState
@@ -129,7 +128,9 @@ export function TopicsPageClient() {
     {
       header: 'Topic Info',
       cell: (row) => (
-        <span className='font-medium text-foreground group-hover:text-primary transition-colors'>{row.name}</span>
+        <span className='font-medium text-foreground group-hover:text-primary transition-colors'>
+          {row.name}
+        </span>
       ),
     },
     {
@@ -144,7 +145,9 @@ export function TopicsPageClient() {
       header: 'Description',
       cell: (row) => (
         <span className='text-muted-foreground max-w-xs truncate block'>
-          {row.description || <span className='text-muted-foreground/40 italic'>No description</span>}
+          {row.description || (
+            <span className='text-muted-foreground/40 italic'>No description</span>
+          )}
         </span>
       ),
     },
@@ -167,8 +170,17 @@ export function TopicsPageClient() {
       header: 'Actions',
       className: 'text-right',
       cell: (row) => (
-        <div className='inline-flex items-center gap-2 justify-end w-full' onClick={(e) => e.stopPropagation()}>
-          <Button asChild variant='ghost' size='icon' title='View Details' className='h-8 w-8 text-muted-foreground hover:text-primary'>
+        <div
+          className='inline-flex items-center gap-2 justify-end w-full'
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            asChild
+            variant='ghost'
+            size='icon'
+            title='View Details'
+            className='h-8 w-8 text-muted-foreground hover:text-primary'
+          >
             <Link href={`/admin/topics/${row.id}`}>
               <Eye className='w-4 h-4' />
             </Link>
@@ -184,14 +196,21 @@ export function TopicsPageClient() {
           </Button>
           <ConfirmationDialog
             title={row.status === 'ACTIVE' ? 'Deactivate Topic' : 'Activate Topic'}
-            description={row.status === 'ACTIVE' ? `Are you sure you want to deactivate "${row.name}"?` : `Are you sure you want to activate "${row.name}"?`}
+            description={
+              row.status === 'ACTIVE'
+                ? `Are you sure you want to deactivate "${row.name}"?`
+                : `Are you sure you want to activate "${row.name}"?`
+            }
             confirmLabel={row.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
             destructive={row.status === 'ACTIVE'}
             onConfirm={() => {
               if (row.status === 'ACTIVE') {
                 deactivateMutation.mutate(row.id, { onSuccess: () => refetch() });
               } else {
-                updateMutation.mutate({ id: row.id, payload: { status: 'ACTIVE' } }, { onSuccess: () => refetch() });
+                updateMutation.mutate(
+                  { id: row.id, payload: { status: 'ACTIVE' } },
+                  { onSuccess: () => refetch() },
+                );
               }
             }}
             trigger={
@@ -205,7 +224,11 @@ export function TopicsPageClient() {
                     : 'text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-950/20'
                 }`}
               >
-                {row.status === 'ACTIVE' ? <Trash2 className='w-4 h-4' /> : <CheckCircle className='w-4 h-4' />}
+                {row.status === 'ACTIVE' ? (
+                  <Trash2 className='w-4 h-4' />
+                ) : (
+                  <CheckCircle className='w-4 h-4' />
+                )}
               </Button>
             }
           />
@@ -260,7 +283,7 @@ export function TopicsPageClient() {
           />
         }
         rowKey={(row) => row.id}
-        containerClassName="bg-card border rounded-xl shadow-sm"
+        containerClassName='bg-card border rounded-xl shadow-sm'
       />
 
       {/* Create Topic Modal */}

@@ -26,7 +26,7 @@ export class FinalShufflerService {
   /**
    * Applies the final shuffle to an array of sections.
    * Shuffles questions within their section and/or options within each question based on the provided flags.
-   * 
+   *
    * @param sections - The array of section data from assembly.
    * @param flags - The configuration flags dictating what to shuffle.
    * @returns A deep-cloned and shuffled array of section data.
@@ -65,12 +65,12 @@ export class FinalShufflerService {
         // Shuffle options inside the snapshot (Task 4 requirement)
         questions.forEach((q) => {
           const snapshot = q.questionSnapshot || {};
-          
+
           // Only shuffle if options exist and questionType suggests it's safe (e.g. MCQ/MSQ/etc)
           // Defensive check to avoid shuffling CODING or DESCRIPTIVE questions.
           const qType = (snapshot.questionType || "MCQ").toUpperCase();
           const isObjective = ["MCQ", "MULTIPLE_CHOICE", "MSQ"].includes(qType);
-          
+
           if (isObjective && Array.isArray(snapshot.options)) {
             // Note: correctAnswer string is not altered, because evaluation uses string matching.
             snapshot.options = shuffleArray(snapshot.options);
@@ -83,7 +83,9 @@ export class FinalShufflerService {
     });
   }
 
-  private deepCloneSections(sections: ShufflerSectionData[]): ShufflerSectionData[] {
+  private deepCloneSections(
+    sections: ShufflerSectionData[],
+  ): ShufflerSectionData[] {
     // structuredClone is safe for basic DTOs and JSON snapshots
     return structuredClone(sections);
   }

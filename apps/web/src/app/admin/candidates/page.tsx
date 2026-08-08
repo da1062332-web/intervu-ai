@@ -52,19 +52,23 @@ export default function AdminCandidatesPage() {
     setPage(1);
   };
 
-  const isFilterOrSearchActive = Boolean(search || status || sortBy !== 'createdAt' || sortOrder !== 'desc');
+  const isFilterOrSearchActive = Boolean(
+    search || status || sortBy !== 'createdAt' || sortOrder !== 'desc',
+  );
   const candidates = data?.items ?? [];
   const pagination = data?.pagination;
 
-  const totalCandidates = data?.summary?.total ?? (pagination?.total ?? 0);
-  const activeCount = data?.summary?.activeCount ?? candidates.filter((c) => c.status === 'ACTIVE').length;
-  const inactiveCount = data?.summary?.inactiveCount ?? candidates.filter((c) => c.status !== 'ACTIVE').length;
+  const totalCandidates = data?.summary?.total ?? pagination?.total ?? 0;
+  const activeCount =
+    data?.summary?.activeCount ?? candidates.filter((c) => c.status === 'ACTIVE').length;
+  const inactiveCount =
+    data?.summary?.inactiveCount ?? candidates.filter((c) => c.status !== 'ACTIVE').length;
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
       <SectionHeader
-        title="Candidate Management"
-        description="Monitor candidate activity, view assessment performance metrics, and manage enrolled accounts."
+        title='Candidate Management'
+        description='Monitor candidate activity, view assessment performance metrics, and manage enrolled accounts.'
         icon={Users}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
@@ -81,11 +85,11 @@ export default function AdminCandidatesPage() {
       />
 
       <Card>
-        <CardHeader className="pb-3 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <CardHeader className='pb-3 border-b flex flex-col md:flex-row md:items-center justify-between gap-4'>
           <CandidateSearch
             value={search}
             onChange={handleSearchChange}
-            placeholder="Search by candidate name or email..."
+            placeholder='Search by candidate name or email...'
           />
           <CandidateFilters
             status={status}
@@ -97,12 +101,9 @@ export default function AdminCandidatesPage() {
             isRefetching={isRefetching}
           />
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className='p-0'>
           {error ? (
-            <CandidateEmptyState
-              error={error}
-              onRetry={refetch}
-            />
+            <CandidateEmptyState error={error} onRetry={refetch} />
           ) : !isLoading && candidates.length === 0 ? (
             <CandidateEmptyState
               isSearchOrFilterActive={isFilterOrSearchActive}

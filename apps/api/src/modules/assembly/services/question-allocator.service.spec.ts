@@ -79,21 +79,51 @@ describe("QuestionAllocatorService", () => {
     // Second fetch (replenishment) returns q3, q4
     sourceMock.fetchQuestions
       .mockResolvedValueOnce([
-        { id: "q1", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
-        { id: "q2", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+        {
+          id: "q1",
+          conceptKey: "top-1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+        },
+        {
+          id: "q2",
+          conceptKey: "top-1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+        },
       ] as never)
       .mockResolvedValueOnce([
-        { id: "q3", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
-        { id: "q4", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+        {
+          id: "q3",
+          conceptKey: "top-1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+        },
+        {
+          id: "q4",
+          conceptKey: "top-1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+        },
       ] as never);
 
     // Filter mocks: first time q2 is rejected (e.g. duplicate)
     antiRepRepo.filterPool
       .mockResolvedValueOnce([
-        { id: "q1", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+        {
+          id: "q1",
+          conceptKey: "top-1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+        },
       ] as never)
       .mockResolvedValueOnce([
-        { id: "q3", conceptKey: "top-1", difficultyLevel: "EASY", questionType: "MCQ" },
+        {
+          id: "q3",
+          conceptKey: "top-1",
+          difficultyLevel: "EASY",
+          questionType: "MCQ",
+        },
       ] as never);
 
     const fallbackConfig: AllocationConfig = {
@@ -127,15 +157,17 @@ describe("QuestionAllocatorService", () => {
       difficultyDistribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
     };
 
-    sourceMock.fetchQuestions.mockImplementation(async ({ conceptKey, difficultyLevel, limit }) => {
-      const safeLimit = Math.max(0, Math.min(limit ?? 10, 10));
-      return Array.from({ length: safeLimit }, (_, index) => ({
-        id: `${conceptKey}-${difficultyLevel}-${index + 1}`,
-        conceptKey,
-        difficultyLevel,
-        questionType: "MCQ",
-      })) as never;
-    });
+    sourceMock.fetchQuestions.mockImplementation(
+      async ({ conceptKey, difficultyLevel, limit }) => {
+        const safeLimit = Math.max(0, Math.min(limit ?? 10, 10));
+        return Array.from({ length: safeLimit }, (_, index) => ({
+          id: `${conceptKey}-${difficultyLevel}-${index + 1}`,
+          conceptKey,
+          difficultyLevel,
+          questionType: "MCQ",
+        })) as never;
+      },
+    );
 
     const fallbackConfig: AllocationConfig = {
       distribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
@@ -175,15 +207,17 @@ describe("QuestionAllocatorService", () => {
       difficultyDistribution: { EASY: 40, MEDIUM: 40, HARD: 20 },
     };
 
-    sourceMock.fetchQuestions.mockImplementation(async ({ conceptKey, difficultyLevel, limit }) => {
-      const safeLimit = Math.max(0, Math.min(limit ?? 10, 10));
-      return Array.from({ length: safeLimit }, (_, index) => ({
-        id: `${conceptKey}-${difficultyLevel}-${index + 1}`,
-        conceptKey,
-        difficultyLevel,
-        questionType: "MCQ",
-      })) as never;
-    });
+    sourceMock.fetchQuestions.mockImplementation(
+      async ({ conceptKey, difficultyLevel, limit }) => {
+        const safeLimit = Math.max(0, Math.min(limit ?? 10, 10));
+        return Array.from({ length: safeLimit }, (_, index) => ({
+          id: `${conceptKey}-${difficultyLevel}-${index + 1}`,
+          conceptKey,
+          difficultyLevel,
+          questionType: "MCQ",
+        })) as never;
+      },
+    );
 
     const fallbackConfig: AllocationConfig = {
       distribution: { EASY: 40, MEDIUM: 40, HARD: 20 },

@@ -23,19 +23,19 @@ import { DatasetConfigurationSection } from './components/DatasetConfigurationSe
 import { PreviewSection } from './components/PreviewSection';
 import { DatasetQuestionDefinitionSection } from './components/DatasetQuestionDefinitionSection';
 
-type SectionType = 
-  | 'basic' 
-  | 'question' 
-  | 'variables' 
-  | 'constraints' 
-  | 'generation-strategy' 
-  | 'options' 
-  | 'solution' 
+type SectionType =
+  | 'basic'
+  | 'question'
+  | 'variables'
+  | 'constraints'
+  | 'generation-strategy'
+  | 'options'
+  | 'solution'
   | 'strategy'
-  | 'preview' 
-  | 'media' 
-  | 'validation' 
-  | 'publishing' 
+  | 'preview'
+  | 'media'
+  | 'validation'
+  | 'publishing'
   | 'analytics';
 
 export default function TemplatePage() {
@@ -92,21 +92,24 @@ export default function TemplatePage() {
     sections.push(
       { id: 'options', label: 'Option Strategy' },
       { id: 'solution', label: 'Solution & Explanation' },
-      { id: 'preview', label: 'Preview' }
+      { id: 'preview', label: 'Preview' },
     );
   }
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'basic': return <BasicInfoSection template={template} />;
-      case 'question': 
+      case 'basic':
+        return <BasicInfoSection template={template} />;
+      case 'question':
         return strategy === 'DATASET' ? (
           <DatasetQuestionDefinitionSection template={template} />
         ) : (
           <QuestionDefinitionSection template={template} />
         );
-      case 'dataset-config' as SectionType: return <DatasetConfigurationSection template={template} />;
-      case 'generation-strategy': return <GenerationStrategySection />;
+      case 'dataset-config' as SectionType:
+        return <DatasetConfigurationSection template={template} />;
+      case 'generation-strategy':
+        return <GenerationStrategySection />;
       case 'variables':
         return showLegacyBuilderPages ? (
           <VariableBuilderSection />
@@ -123,10 +126,14 @@ export default function TemplatePage() {
             Legacy Constraint Builder is hidden. Use the Generation Strategy tab instead.
           </div>
         );
-      case 'options': return <OptionStrategySection template={template} />;
-      case 'solution': return <SolutionLogicSection template={template} />;
-      case 'preview': return <PreviewSection template={template} />;
-      default: return <BasicInfoSection template={template} />;
+      case 'options':
+        return <OptionStrategySection template={template} />;
+      case 'solution':
+        return <SolutionLogicSection template={template} />;
+      case 'preview':
+        return <PreviewSection template={template} />;
+      default:
+        return <BasicInfoSection template={template} />;
     }
   };
 
@@ -138,7 +145,7 @@ export default function TemplatePage() {
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Templates', href: '/admin/templates' },
-          { label: 'Editor', /* active: true */ },
+          { label: 'Editor' /* active: true */ },
         ]}
         actions={
           <Link href='/admin/assembly'>
@@ -151,11 +158,9 @@ export default function TemplatePage() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        
+      <div className='grid grid-cols-1 md:grid-cols-12 gap-6'>
         {/* Local Navigation Sidebar */}
-        <div className="md:col-span-3 space-y-6">
-          
+        <div className='md:col-span-3 space-y-6'>
           {/* Template Info Card */}
           {template && (
             <div className='flex flex-col gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm'>
@@ -168,15 +173,21 @@ export default function TemplatePage() {
                     {template.name}
                   </h2>
                   {template.conceptKey && (
-                    <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium">
+                    <div className='text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium'>
                       Concept: {template.conceptKey}
                     </div>
                   )}
-                  <div className="flex gap-2 mt-1">
-                    <Badge variant='outline' className='text-[10px] uppercase bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'>
+                  <div className='flex gap-2 mt-1'>
+                    <Badge
+                      variant='outline'
+                      className='text-[10px] uppercase bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
+                    >
                       {template.difficultyLevel ?? template.difficulty ?? 'MEDIUM'}
                     </Badge>
-                    <Badge variant={template.isActive ? 'outline' : 'secondary'} className='text-[10px] uppercase'>
+                    <Badge
+                      variant={template.isActive ? 'outline' : 'secondary'}
+                      className='text-[10px] uppercase'
+                    >
                       {template.isActive ? 'Active' : 'Draft'}
                     </Badge>
                   </div>
@@ -185,9 +196,11 @@ export default function TemplatePage() {
             </div>
           )}
 
-          <div className="bg-white dark:bg-gray-900 border rounded-lg p-2 shadow-sm">
-            <nav className="space-y-1">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-2">Core Settings</h3>
+          <div className='bg-white dark:bg-gray-900 border rounded-lg p-2 shadow-sm'>
+            <nav className='space-y-1'>
+              <h3 className='px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-2'>
+                Core Settings
+              </h3>
               {sections.map((section) => (
                 <button
                   key={section.id}
@@ -206,10 +219,7 @@ export default function TemplatePage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="md:col-span-9">
-          {renderSection()}
-        </div>
-
+        <div className='md:col-span-9'>{renderSection()}</div>
       </div>
     </div>
   );

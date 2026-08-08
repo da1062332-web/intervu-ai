@@ -26,7 +26,9 @@ export const CreateTemplateSchema = z.object({
   variableSchema: z.record(z.unknown()).optional(),
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
-  generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).default("VARIABLE"),
+  generationStrategy: z
+    .enum(["VARIABLE", "DATASET", "HYBRID"])
+    .default("VARIABLE"),
   datasetGenerationMode: z.enum(["DIRECT", "AI"]).optional(),
 });
 
@@ -106,13 +108,19 @@ export class CreateTemplateDto {
   isSystem?: boolean;
 
   @ApiPropertyOptional({
-    example: { variables: [{ name: "price", type: "number", min: 100, max: 200 }] },
+    example: {
+      variables: [{ name: "price", type: "number", min: 100, max: 200 }],
+    },
     description: "Variables schema configuration",
   })
   variableSchema?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    example: { correctVariable: "C", explanationTemplate: "The total is {{price}} + {{tax}} = {{price + tax}}." },
+    example: {
+      correctVariable: "C",
+      explanationTemplate:
+        "The total is {{price}} + {{tax}} = {{price + tax}}.",
+    },
     description: "Solution schema configuration",
   })
   solutionSchema?: Record<string, unknown>;
@@ -190,13 +198,19 @@ export class UpdateTemplateDto {
   structure?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    example: { variables: [{ name: "price", type: "number", min: 100, max: 200 }] },
+    example: {
+      variables: [{ name: "price", type: "number", min: 100, max: 200 }],
+    },
     description: "Variables schema configuration",
   })
   variableSchema?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    example: { correctVariable: "C", explanationTemplate: "The total is {{price}} + {{tax}} = {{price + tax}}." },
+    example: {
+      correctVariable: "C",
+      explanationTemplate:
+        "The total is {{price}} + {{tax}} = {{price + tax}}.",
+    },
     description: "Solution schema configuration",
   })
   solutionSchema?: Record<string, unknown>;
@@ -270,7 +284,8 @@ export const TemplateDatasetConfigSchema = z.object({
   fallbackPolicy: z.string().default("RELAX_FILTERS"),
 });
 
-export const UpdateTemplateDatasetConfigSchema = TemplateDatasetConfigSchema.partial();
+export const UpdateTemplateDatasetConfigSchema =
+  TemplateDatasetConfigSchema.partial();
 
 export class UpdateTemplateDatasetConfigDto {
   @ApiProperty({
@@ -344,7 +359,10 @@ export class UpdateTemplateDatasetConfigDto {
   ): z.SafeParseReturnType<unknown, UpdateTemplateDatasetConfigDto> {
     return UpdateTemplateDatasetConfigSchema.safeParse(
       data,
-    ) as unknown as z.SafeParseReturnType<unknown, UpdateTemplateDatasetConfigDto>;
+    ) as unknown as z.SafeParseReturnType<
+      unknown,
+      UpdateTemplateDatasetConfigDto
+    >;
   }
 }
 
@@ -357,11 +375,13 @@ export const TemplatePromptConfigSchema = z.object({
   outputRules: z.string().optional().nullable(),
 });
 
-export const UpdateTemplatePromptConfigSchema = TemplatePromptConfigSchema.partial();
+export const UpdateTemplatePromptConfigSchema =
+  TemplatePromptConfigSchema.partial();
 
 export class UpdateTemplatePromptConfigDto {
   @ApiProperty({
-    example: "You are an AI assistant that generates reading comprehension questions.",
+    example:
+      "You are an AI assistant that generates reading comprehension questions.",
     description: "System instructions for the LLM",
   })
   systemPrompt!: string;
@@ -389,7 +409,9 @@ export class UpdateTemplatePromptConfigDto {
   ): z.SafeParseReturnType<unknown, UpdateTemplatePromptConfigDto> {
     return UpdateTemplatePromptConfigSchema.safeParse(
       data,
-    ) as unknown as z.SafeParseReturnType<unknown, UpdateTemplatePromptConfigDto>;
+    ) as unknown as z.SafeParseReturnType<
+      unknown,
+      UpdateTemplatePromptConfigDto
+    >;
   }
 }
-

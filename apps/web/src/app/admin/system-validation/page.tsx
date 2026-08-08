@@ -87,9 +87,12 @@ export default function SystemValidationPage() {
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
       {/* Page Header */}
       <SectionHeader
-        title="Cross-Module System Validation"
-        description="Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules."
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'System Validation' }]}
+        title='Cross-Module System Validation'
+        description='Verify configuration chain integrity from Exam Config and Sections to Topics, Templates, Blueprints, and Readiness status before dispatching to generation modules.'
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'System Validation' },
+        ]}
       />
 
       {/* Configuration Selection Control */}
@@ -233,17 +236,17 @@ export default function SystemValidationPage() {
 
             {isLoading ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <WidgetSkeleton className="h-[120px]" />
-                <WidgetSkeleton className="h-[120px]" />
-                <WidgetSkeleton className="h-[120px]" />
-                <WidgetSkeleton className="h-[120px]" />
+                <WidgetSkeleton className='h-[120px]' />
+                <WidgetSkeleton className='h-[120px]' />
+                <WidgetSkeleton className='h-[120px]' />
+                <WidgetSkeleton className='h-[120px]' />
               </div>
             ) : !validationResult ? (
               <EmptyState
-                icon={<ShieldCheck className="w-7 h-7 text-muted-foreground" />}
-                title="No active validation results"
-                description="Select a config above and click validate."
-                className="backdrop-blur-md bg-white/40 dark:bg-gray-950/40"
+                icon={<ShieldCheck className='w-7 h-7 text-muted-foreground' />}
+                title='No active validation results'
+                description='Select a config above and click validate.'
+                className='backdrop-blur-md bg-white/40 dark:bg-gray-950/40'
               />
             ) : (
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>

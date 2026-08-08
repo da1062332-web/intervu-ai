@@ -51,10 +51,7 @@ export class SectionController {
     status: 400,
     description: "Already submitted or invalid section state",
   })
-  async advanceSection(
-    @Param("id") id: string,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async advanceSection(@Param("id") id: string, @CurrentUser() user: AuthUser) {
     return this.sectionAdvanceService.advanceSection(id, user.id);
   }
 }

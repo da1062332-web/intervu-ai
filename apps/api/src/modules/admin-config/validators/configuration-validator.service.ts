@@ -88,25 +88,30 @@ export class ConfigurationValidatorService {
 
             if (!st.topicWeightage) {
               errors.push(
-                `Topic "${st.topic.name}" is missing a weightage assignment in section "${section.name}"`
+                `Topic "${st.topic.name}" is missing a weightage assignment in section "${section.name}"`,
               );
             }
-            
+
             // Validate Concepts mapping
-            const activeConcepts = st.topic.concepts?.filter(c => c.status === 'ACTIVE') || [];
+            const activeConcepts =
+              st.topic.concepts?.filter((c) => c.status === "ACTIVE") || [];
             if (activeConcepts.length === 0) {
               errors.push(
-                `Topic "${st.topic.name}" has no active concepts assigned in section "${section.name}"`
+                `Topic "${st.topic.name}" has no active concepts assigned in section "${section.name}"`,
               );
             } else {
               // Validate Templates mapping
               for (const concept of st.topic.concepts) {
-                if (concept.status !== 'ACTIVE') {
+                if (concept.status !== "ACTIVE") {
                   continue; // Skip disabled/inactive concepts
                 }
 
                 const templateCount = await this.prisma.template.count({
-                  where: { conceptKey: concept.code, isActive: true, deletedAt: null }
+                  where: {
+                    conceptKey: concept.code,
+                    isActive: true,
+                    deletedAt: null,
+                  },
                 });
                 const availableManualCount = await this.prisma.question.count({
                   where: {
@@ -120,7 +125,7 @@ export class ConfigurationValidatorService {
                 });
                 if (templateCount === 0 && availableManualCount === 0) {
                   errors.push(
-                    `Concept "${concept.name}" has no active templates or manual questions mapped in topic "${st.topic.name}"`
+                    `Concept "${concept.name}" has no active templates or manual questions mapped in topic "${st.topic.name}"`,
                   );
                 }
               }

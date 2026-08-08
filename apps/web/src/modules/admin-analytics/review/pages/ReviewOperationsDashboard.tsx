@@ -68,7 +68,10 @@ export function ReviewOperationsDashboard() {
       id: 'question',
       header: 'Question Context',
       cell: (row) => (
-        <div className="font-medium text-foreground max-w-[200px] truncate" title={row.questionText}>
+        <div
+          className='font-medium text-foreground max-w-[200px] truncate'
+          title={row.questionText}
+        >
           {row.questionText}
         </div>
       ),
@@ -76,7 +79,7 @@ export function ReviewOperationsDashboard() {
     {
       id: 'topic',
       header: 'Topic',
-      cell: (row) => <span className="text-muted-foreground">{row.topic}</span>,
+      cell: (row) => <span className='text-muted-foreground'>{row.topic}</span>,
     },
     {
       id: 'difficulty',
@@ -98,14 +101,18 @@ export function ReviewOperationsDashboard() {
     {
       id: 'age',
       header: 'Age',
-      cell: (row) => <span className="text-muted-foreground">{new Date(row.createdAt).toLocaleDateString()}</span>,
+      cell: (row) => (
+        <span className='text-muted-foreground'>
+          {new Date(row.createdAt).toLocaleDateString()}
+        </span>
+      ),
     },
     {
       id: 'action',
       header: '',
       className: 'text-right',
       cell: () => (
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Button asChild size='sm'>
             <Link href={`/admin/workflows`}>Review</Link>
           </Button>
@@ -119,7 +126,10 @@ export function ReviewOperationsDashboard() {
       id: 'question',
       header: 'Question Context',
       cell: (row) => (
-        <div className="font-medium text-foreground max-w-[300px] truncate" title={row.questionText}>
+        <div
+          className='font-medium text-foreground max-w-[300px] truncate'
+          title={row.questionText}
+        >
           {row.questionText}
         </div>
       ),
@@ -127,7 +137,7 @@ export function ReviewOperationsDashboard() {
     {
       id: 'topic',
       header: 'Topic',
-      cell: (row) => <span className="text-muted-foreground">{row.topic}</span>,
+      cell: (row) => <span className='text-muted-foreground'>{row.topic}</span>,
     },
     {
       id: 'status',
@@ -147,12 +157,14 @@ export function ReviewOperationsDashboard() {
     {
       id: 'reviewer',
       header: 'Reviewer',
-      cell: (row) => <span className="text-muted-foreground">{row.reviewer}</span>,
+      cell: (row) => <span className='text-muted-foreground'>{row.reviewer}</span>,
     },
     {
       id: 'timestamp',
       header: 'Timestamp',
-      cell: (row) => <span className="text-muted-foreground">{new Date(row.timestamp).toLocaleString()}</span>,
+      cell: (row) => (
+        <span className='text-muted-foreground'>{new Date(row.timestamp).toLocaleString()}</span>
+      ),
     },
   ];
 
@@ -162,7 +174,10 @@ export function ReviewOperationsDashboard() {
       <SectionHeader
         title='Review Operations Center'
         description='Observe pending backlogs, human/AI reviewer queues, workload divisions, and review decision outputs.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Review Operations' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Review Operations' },
+        ]}
       />
 
       {/* KPI Stats Grid */}
@@ -193,94 +208,89 @@ export function ReviewOperationsDashboard() {
         />
       </div>
 
-          {/* Workload and Queue Tables Section */}
-          <div className='grid gap-6 md:grid-cols-3'>
-            {/* Workload */}
-            <Card className='glass border border-border shadow-lg'>
-              <CardHeader>
-                <CardTitle className='text-lg font-heading font-semibold text-foreground flex items-center gap-2'>
-                  <Users className='size-5 text-indigo-500' />
-                  Reviewer Workload
-                </CardTitle>
-                <CardDescription>
-                  Distribution of evaluated audit decisions across system agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4 pt-6 border-t border-border/40'>
-                {workloadArray.length === 0 ? (
-                  <div className='text-sm text-muted-foreground text-center py-6'>
-                    No reviews recorded.
+      {/* Workload and Queue Tables Section */}
+      <div className='grid gap-6 md:grid-cols-3'>
+        {/* Workload */}
+        <Card className='glass border border-border shadow-lg'>
+          <CardHeader>
+            <CardTitle className='text-lg font-heading font-semibold text-foreground flex items-center gap-2'>
+              <Users className='size-5 text-indigo-500' />
+              Reviewer Workload
+            </CardTitle>
+            <CardDescription>
+              Distribution of evaluated audit decisions across system agents.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='space-y-4 pt-6 border-t border-border/40'>
+            {workloadArray.length === 0 ? (
+              <div className='text-sm text-muted-foreground text-center py-6'>
+                No reviews recorded.
+              </div>
+            ) : (
+              workloadArray.map((w, idx) => (
+                <div
+                  key={idx}
+                  className='flex items-center justify-between border-b border-border/30 pb-3 last:border-b-0 last:pb-0'
+                >
+                  <div className='flex items-center gap-2'>
+                    <div className='size-2.5 rounded-full bg-primary' />
+                    <span className='text-sm text-foreground font-medium'>{w.reviewer}</span>
                   </div>
-                ) : (
-                  workloadArray.map((w, idx) => (
-                    <div
-                      key={idx}
-                      className='flex items-center justify-between border-b border-border/30 pb-3 last:border-b-0 last:pb-0'
-                    >
-                      <div className='flex items-center gap-2'>
-                        <div className='size-2.5 rounded-full bg-primary' />
-                        <span className='text-sm text-foreground font-medium'>{w.reviewer}</span>
-                      </div>
-                      <span className='text-sm text-muted-foreground font-bold'>
-                        {w.count} Reviews
-                      </span>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+                  <span className='text-sm text-muted-foreground font-bold'>{w.count} Reviews</span>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
 
-            {/* Pending queue */}
-            <Card className='md:col-span-2 glass border border-border shadow-lg'>
-              <CardHeader>
-                <CardTitle className='text-lg font-heading font-semibold text-foreground flex items-center gap-2'>
-                  <Clock className='size-5 text-amber-500' />
-                  Pending Review Items
-                </CardTitle>
-                <CardDescription>
-                  Questions awaiting administrator evaluation to become Active.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='p-0 border-t border-border/40'>
-                <DataTable
-                  columns={pendingColumns}
-                  data={data?.pendingItems || []}
-                  isLoading={loading}
-                  emptyState={
-                    <EmptyStateCard
-                      title='Review Queue Empty'
-                      description='🎉 Review Queue is empty! All items cleared.'
-                    />
-                  }
+        {/* Pending queue */}
+        <Card className='md:col-span-2 glass border border-border shadow-lg'>
+          <CardHeader>
+            <CardTitle className='text-lg font-heading font-semibold text-foreground flex items-center gap-2'>
+              <Clock className='size-5 text-amber-500' />
+              Pending Review Items
+            </CardTitle>
+            <CardDescription>
+              Questions awaiting administrator evaluation to become Active.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='p-0 border-t border-border/40'>
+            <DataTable
+              columns={pendingColumns}
+              data={data?.pendingItems || []}
+              isLoading={loading}
+              emptyState={
+                <EmptyStateCard
+                  title='Review Queue Empty'
+                  description='🎉 Review Queue is empty! All items cleared.'
                 />
-              </CardContent>
-            </Card>
-          </div>
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Recent Decisions Table */}
-          <Card className='glass border border-border shadow-lg'>
-            <CardHeader>
-              <CardTitle className='text-lg font-heading font-semibold text-foreground'>
-                Recent Decisions Audit Log
-              </CardTitle>
-              <CardDescription>
-                Auditable log of the latest question validation approvals or rejections.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='p-0 border-t border-border/40'>
-              <DataTable
-                columns={decisionColumns}
-                data={data?.recentDecisions || []}
-                isLoading={loading}
-                emptyState={
-                  <EmptyStateCard
-                    title='No Decisions'
-                    description='No decisions recorded.'
-                  />
-                }
-              />
-            </CardContent>
-          </Card>
+      {/* Recent Decisions Table */}
+      <Card className='glass border border-border shadow-lg'>
+        <CardHeader>
+          <CardTitle className='text-lg font-heading font-semibold text-foreground'>
+            Recent Decisions Audit Log
+          </CardTitle>
+          <CardDescription>
+            Auditable log of the latest question validation approvals or rejections.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='p-0 border-t border-border/40'>
+          <DataTable
+            columns={decisionColumns}
+            data={data?.recentDecisions || []}
+            isLoading={loading}
+            emptyState={
+              <EmptyStateCard title='No Decisions' description='No decisions recorded.' />
+            }
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

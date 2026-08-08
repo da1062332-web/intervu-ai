@@ -32,7 +32,11 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
   const sectionId = section?.id;
   const queryClient = useQueryClient();
 
-  const { data: assignedData, isLoading: isLoadingAssigned, refetch } = useSectionTopics(sectionId || '');
+  const {
+    data: assignedData,
+    isLoading: isLoadingAssigned,
+    refetch,
+  } = useSectionTopics(sectionId || '');
   const { data: allTopics = [], isLoading: isLoadingAll } = useAdminTopics();
   const { data: weightagesData = [] } = useWeightages(sectionId || '');
 
@@ -59,7 +63,8 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
 
       const weightageMap: Record<string, number> = {};
       assignedTopics.forEach((st) => {
-        const w = (st as any).topicWeightage?.weightagePercentage ?? (st as any).weightagePercentage ?? 0;
+        const w =
+          (st as any).topicWeightage?.weightagePercentage ?? (st as any).weightagePercentage ?? 0;
         weightageMap[st.topicId] = w;
       });
 
@@ -124,7 +129,9 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
     });
 
     setWeightages(newMap);
-    toast.success(`Auto-balanced weightages across ${count} topics! Click Update & Save below to manually save.`);
+    toast.success(
+      `Auto-balanced weightages across ${count} topics! Click Update & Save below to manually save.`,
+    );
   };
 
   const totalWeightage = Array.from(selectedIds).reduce(
@@ -201,50 +208,54 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
   const isLoading = isLoadingAssigned || isLoadingAll;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl overflow-hidden p-0 flex flex-col max-h-[85vh]">
-      <div className="p-5 border-b bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className='max-w-3xl overflow-hidden p-0 flex flex-col max-h-[85vh]'
+    >
+      <div className='p-5 border-b bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0'>
         <div>
-          <h2 className="text-xl font-semibold">Manage Topics & Weightages - {section?.name}</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className='text-xl font-semibold'>Manage Topics & Weightages - {section?.name}</h2>
+          <p className='text-sm text-muted-foreground'>
             Select topics for this section and set their weightages (must sum to 100%).
           </p>
         </div>
         {selectedIds.size > 0 && (
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
+            type='button'
+            variant='outline'
+            size='sm'
             onClick={() => rebalanceWeightages()}
-            className="text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10 whitespace-nowrap shadow-sm shrink-0"
+            className='text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10 whitespace-nowrap shadow-sm shrink-0'
           >
-            <Sparkles className="w-3.5 h-3.5" /> Auto-Balance (100%)
+            <Sparkles className='w-3.5 h-3.5' /> Auto-Balance (100%)
           </Button>
         )}
       </div>
 
       {sectionId && (
-        <div className="flex-1 overflow-hidden flex flex-col p-5 space-y-4">
+        <div className='flex-1 overflow-hidden flex flex-col p-5 space-y-4'>
           {/* Search Box on Top */}
-          <div className="relative shrink-0">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className='relative shrink-0'>
+            <Search className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground' />
             <Input
-              type="text"
-              placeholder="Search topics by name or code..."
+              type='text'
+              placeholder='Search topics by name or code...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 text-sm"
+              className='pl-9 text-sm'
             />
           </div>
 
           {isLoading ? (
-            <div className="space-y-3 shrink-0">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+            <div className='space-y-3 shrink-0'>
+              <Skeleton className='h-12 w-full' />
+              <Skeleton className='h-12 w-full' />
+              <Skeleton className='h-12 w-full' />
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto bg-card border rounded-lg p-3 space-y-2 min-h-[200px]">
-              <div className="grid grid-cols-1 gap-2.5">
+            <div className='flex-1 overflow-y-auto bg-card border rounded-lg p-3 space-y-2 min-h-[200px]'>
+              <div className='grid grid-cols-1 gap-2.5'>
                 {filteredTopics.map((topic: any) => {
                   const id = topic.id || topic.topicId;
                   const name = topic.topicName || topic.topic || topic.name || 'Unnamed Topic';
@@ -261,41 +272,45 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
                           : 'border-border hover:bg-muted/40'
                       }`}
                     >
-                      <label className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0">
+                      <label className='flex items-center space-x-3 cursor-pointer flex-1 min-w-0'>
                         <input
-                          type="checkbox"
+                          type='checkbox'
                           checked={isChecked}
                           onChange={() => handleToggle(id)}
-                          className="w-4.5 h-4.5 text-primary rounded border-gray-300 focus:ring-primary"
+                          className='w-4.5 h-4.5 text-primary rounded border-gray-300 focus:ring-primary'
                         />
-                        <div className="flex flex-col truncate">
-                          <span className="font-medium text-sm truncate">{name}</span>
-                          {code && <span className="text-xs text-muted-foreground font-mono">{code}</span>}
+                        <div className='flex flex-col truncate'>
+                          <span className='font-medium text-sm truncate'>{name}</span>
+                          {code && (
+                            <span className='text-xs text-muted-foreground font-mono'>{code}</span>
+                          )}
                         </div>
                       </label>
 
-                      <div className="flex items-center gap-3 justify-between sm:justify-end">
+                      <div className='flex items-center gap-3 justify-between sm:justify-end'>
                         {isChecked && (
-                          <div className="flex items-center gap-1.5 bg-background border px-2.5 py-1 rounded-md shadow-xs">
-                            <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">Weight:</span>
+                          <div className='flex items-center gap-1.5 bg-background border px-2.5 py-1 rounded-md shadow-xs'>
+                            <span className='text-xs text-muted-foreground font-medium whitespace-nowrap'>
+                              Weight:
+                            </span>
                             <Input
-                              type="number"
+                              type='number'
                               min={0}
                               max={100}
                               value={currentWeightage}
                               onChange={(e) => handleWeightageChange(id, e.target.value)}
-                              className="w-20 h-7 text-center text-sm font-bold border-muted px-1"
+                              className='w-20 h-7 text-center text-sm font-bold border-muted px-1'
                             />
-                            <span className="text-xs font-bold text-primary">%</span>
+                            <span className='text-xs font-bold text-primary'>%</span>
                           </div>
                         )}
 
                         <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs text-yellow-600 border-yellow-200 hover:bg-yellow-50 whitespace-nowrap"
-                          title="Generate Questions"
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          className='h-7 text-xs text-yellow-600 border-yellow-200 hover:bg-yellow-50 whitespace-nowrap'
+                          title='Generate Questions'
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -311,8 +326,10 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
               </div>
 
               {filteredTopics.length === 0 && (
-                <p className="text-muted-foreground text-center py-6 text-sm">
-                  {searchQuery ? `No topics match "${searchQuery}".` : 'No topics found in the system.'}
+                <p className='text-muted-foreground text-center py-6 text-sm'>
+                  {searchQuery
+                    ? `No topics match "${searchQuery}".`
+                    : 'No topics found in the system.'}
                 </p>
               )}
             </div>
@@ -322,7 +339,7 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
 
       {/* Fixed Footer: Summary Bar & Save Button */}
       {sectionId && (
-        <div className="p-5 bg-muted/20 border-t shrink-0 space-y-3">
+        <div className='p-5 bg-muted/20 border-t shrink-0 space-y-3'>
           {/* Live Weightage Total Summary Bar */}
           {selectedIds.size > 0 && (
             <div
@@ -332,11 +349,11 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
                   : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-400'
               }`}
             >
-              <div className="flex items-center space-x-2">
+              <div className='flex items-center space-x-2'>
                 {isTotal100 ? (
-                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                  <CheckCircle2 className='w-4 h-4 text-green-600 dark:text-green-400 shrink-0' />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+                  <AlertCircle className='w-4 h-4 text-red-600 dark:text-red-400 shrink-0' />
                 )}
                 <span>
                   Selected Topics ({selectedIds.size}) — Total Weightage:{' '}
@@ -345,30 +362,38 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
               </div>
 
               {!isTotal100 ? (
-                <span className="text-xs font-semibold shrink-0">Total must equal 100%</span>
+                <span className='text-xs font-semibold shrink-0'>Total must equal 100%</span>
               ) : (
-                <span className="text-xs font-semibold text-green-700 dark:text-green-300 shrink-0">Ready to Save</span>
+                <span className='text-xs font-semibold text-green-700 dark:text-green-300 shrink-0'>
+                  Ready to Save
+                </span>
               )}
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3 pt-1">
-            <span className="text-xs text-muted-foreground font-medium">
+          <div className='flex items-center justify-between gap-3 pt-1'>
+            <span className='text-xs text-muted-foreground font-medium'>
               {selectedIds.size > 0
                 ? isTotal100
                   ? 'Click Update & Save Mappings for final save of added/removed topics & weights. No auto-save.'
                   : 'Adjust weightages or use Auto-Balance.'
                 : 'Select topics to continue.'}
             </span>
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={onClose} disabled={isSaving} size="sm" className="h-9 px-4">
+            <div className='flex justify-end gap-3'>
+              <Button
+                variant='outline'
+                onClick={onClose}
+                disabled={isSaving}
+                size='sm'
+                className='h-9 px-4'
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={isSaving || isLoading || (selectedIds.size > 0 && !isTotal100)}
-                size="sm"
-                className="h-9 px-5 font-semibold shadow-sm"
+                size='sm'
+                className='h-9 px-5 font-semibold shadow-sm'
               >
                 {isSaving ? 'Updating...' : 'Update & Save Mappings'}
               </Button>

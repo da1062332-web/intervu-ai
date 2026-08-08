@@ -21,7 +21,11 @@ import { ExamConfigUsageService } from "./services/exam-config-usage.service";
 
 @Module({
   imports: [forwardRef(() => TemplateLibraryModule)],
-  controllers: [QuestionBankController, QuestionsController, ManualQuestionsController],
+  controllers: [
+    QuestionBankController,
+    QuestionsController,
+    ManualQuestionsController,
+  ],
   providers: [
     QuestionBankService,
     QuestionSearchService,

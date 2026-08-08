@@ -26,12 +26,12 @@ async function run() {
       throw new Error(`Authentication failed: ${await loginRes.text()}`);
     }
 
-    const loginData = await loginRes.json() as any;
+    const loginData = (await loginRes.json()) as any;
     const token = loginData.data?.accessToken || loginData.accessToken;
     const authHeaders = {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-      "accept": "*/*"
+      Authorization: `Bearer ${token}`,
+      accept: "*/*",
     };
     console.log("   Authenticated successfully.\n");
 
@@ -44,31 +44,36 @@ async function run() {
         role: "Software Engineer",
         durationMinutes: 60,
         totalQuestions: 10,
-        status: "DRAFT"
-      }
+        status: "DRAFT",
+      },
     });
-    console.log(`   Exam Config created. ID: ${examConfig.id}, Code: ${examConfig.code}\n`);
+    console.log(
+      `   Exam Config created. ID: ${examConfig.id}, Code: ${examConfig.code}\n`,
+    );
 
     // 3. Create Section under Exam Config via API
     console.log("3. Creating Section...");
-    const sectionRes = await fetch(`${API_BASE}/admin/configs/${examConfig.id}/sections`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        name: "Backend Internals Section",
-        code: `backend_internals_${timestamp}`,
-        questionCount: 5,
-        sectionDurationMinutes: 30,
-        sectionOrder: 1,
-        isRequired: true
-      }),
-    });
+    const sectionRes = await fetch(
+      `${API_BASE}/admin/configs/${examConfig.id}/sections`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          name: "Backend Internals Section",
+          code: `backend_internals_${timestamp}`,
+          questionCount: 5,
+          sectionDurationMinutes: 30,
+          sectionOrder: 1,
+          isRequired: true,
+        }),
+      },
+    );
 
     if (!sectionRes.ok) {
       throw new Error(`Section creation failed: ${await sectionRes.text()}`);
     }
 
-    const sectionData = await sectionRes.json() as any;
+    const sectionData = (await sectionRes.json()) as any;
     const sectionId = sectionData.data?.id || sectionData.id;
     console.log(`   Section created successfully. ID: ${sectionId}\n`);
 
@@ -80,7 +85,7 @@ async function run() {
       body: JSON.stringify({
         name: `NodeJS Event Loop ${timestamp}`,
         code: `nodejs_event_loop_${timestamp}`,
-        description: "Topic covering Libuv event loop and thread pool"
+        description: "Topic covering Libuv event loop and thread pool",
       }),
     });
 
@@ -88,45 +93,55 @@ async function run() {
       throw new Error(`Topic creation failed: ${await topicRes.text()}`);
     }
 
-    const topicData = await topicRes.json() as any;
+    const topicData = (await topicRes.json()) as any;
     const topicId = topicData.data?.id || topicData.id;
     console.log(`   Topic created successfully. ID: ${topicId}\n`);
 
     // 5. Map Topic to Section via API
     console.log("5. Mapping Topic to Section...");
-    const mappingRes = await fetch(`${API_BASE}/admin/sections/${sectionId}/topics`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        topicId: topicId
-      }),
-    });
+    const mappingRes = await fetch(
+      `${API_BASE}/admin/sections/${sectionId}/topics`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          topicId: topicId,
+        }),
+      },
+    );
 
     if (!mappingRes.ok) {
-      throw new Error(`Mapping Topic to Section failed: ${await mappingRes.text()}`);
+      throw new Error(
+        `Mapping Topic to Section failed: ${await mappingRes.text()}`,
+      );
     }
     console.log("   Topic successfully mapped to Section.\n");
 
     // 6. Create Concept Mapping under Topic via API
     console.log("6. Creating Concept Mapping...");
-    const conceptRes = await fetch(`${API_BASE}/admin/topics/${topicId}/concepts`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        name: `Event Loop Phases ${timestamp}`,
-        code: `event_loop_phases_${timestamp}`,
-        description: "Timers, pending, idle, poll, check, close phases"
-      }),
-    });
+    const conceptRes = await fetch(
+      `${API_BASE}/admin/topics/${topicId}/concepts`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          name: `Event Loop Phases ${timestamp}`,
+          code: `event_loop_phases_${timestamp}`,
+          description: "Timers, pending, idle, poll, check, close phases",
+        }),
+      },
+    );
 
     if (!conceptRes.ok) {
       throw new Error(`Concept creation failed: ${await conceptRes.text()}`);
     }
 
-    const conceptData = await conceptRes.json() as any;
+    const conceptData = (await conceptRes.json()) as any;
     const conceptId = conceptData.data?.id || conceptData.id;
     const conceptCode = conceptData.data?.code || conceptData.code;
-    console.log(`   Concept created successfully. ID: ${conceptId}, Code: ${conceptCode}\n`);
+    console.log(
+      `   Concept created successfully. ID: ${conceptId}, Code: ${conceptCode}\n`,
+    );
 
     // 7. Create Template (Option B) via API
     console.log("7. Creating Template (Option B)...");
@@ -140,8 +155,14 @@ async function run() {
         questionType: "multiple_choice",
         generationStrategy: "VARIABLE",
         structure: {
-          questionTemplate: "Which phase of the NodeJS event loop runs callbacks of setImmediate when max queue size is {max_queue_size}?",
-          optionsTemplate: ["Check phase", "Timer phase", "Poll phase", "Close phase"]
+          questionTemplate:
+            "Which phase of the NodeJS event loop runs callbacks of setImmediate when max queue size is {max_queue_size}?",
+          optionsTemplate: [
+            "Check phase",
+            "Timer phase",
+            "Poll phase",
+            "Close phase",
+          ],
         },
         variableSchema: {
           variables: [
@@ -149,16 +170,16 @@ async function run() {
               name: "max_queue_size",
               type: "integer",
               min: 100,
-              max: 500
-            }
-          ]
+              max: 500,
+            },
+          ],
         },
         constraints: {
-          constraints: []
+          constraints: [],
         },
         solutionSchema: {
-          finalAnswer: "Check phase"
-        }
+          finalAnswer: "Check phase",
+        },
       }),
     });
 
@@ -166,19 +187,22 @@ async function run() {
       throw new Error(`Template creation failed: ${await templateRes.text()}`);
     }
 
-    const templateData = await templateRes.json() as any;
+    const templateData = (await templateRes.json()) as any;
     const templateId = templateData.data?.id || templateData.id;
     console.log(`   Template created successfully. ID: ${templateId}\n`);
 
     // 8. Assign Template to Concept via API
     console.log("8. Assigning Template to Concept...");
-    const assignRes = await fetch(`${API_BASE}/admin/concepts/${conceptId}/templates`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        templateIds: [templateId]
-      }),
-    });
+    const assignRes = await fetch(
+      `${API_BASE}/admin/concepts/${conceptId}/templates`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          templateIds: [templateId],
+        }),
+      },
+    );
 
     if (!assignRes.ok) {
       throw new Error(`Template assignment failed: ${await assignRes.text()}`);
@@ -187,20 +211,25 @@ async function run() {
 
     // 9. Generate Question and Save to Database Pool via API
     console.log("9. Triggering AI Question Generation and Pool Save...");
-    const generateRes = await fetch(`${API_BASE}/question-generation/generate`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        templateId: templateId,
-        count: 1
-      }),
-    });
+    const generateRes = await fetch(
+      `${API_BASE}/question-generation/generate`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          templateId: templateId,
+          count: 1,
+        }),
+      },
+    );
 
     if (!generateRes.ok) {
-      throw new Error(`Question generation failed: ${await generateRes.text()}`);
+      throw new Error(
+        `Question generation failed: ${await generateRes.text()}`,
+      );
     }
 
-    const generateData = await generateRes.json() as any;
+    const generateData = (await generateRes.json()) as any;
     console.log("   Question generated and saved to pool successfully.");
     console.log("   --- Saved Question details ---");
     console.log(JSON.stringify(generateData.data || generateData, null, 2));
@@ -215,7 +244,6 @@ async function run() {
     console.log(`- Concept ID:     ${conceptId}`);
     console.log(`- Template ID:    ${templateId}`);
     console.log("==========================================");
-
   } catch (err: any) {
     console.error("\n❌ E2E TEST FAILED:", err.message);
   } finally {

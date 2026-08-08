@@ -132,7 +132,9 @@ describe("GenerationRetryService", () => {
       qualityScorer,
       {
         generateParameters: jest.fn().mockImplementation(() => {
-          throw new Error("Unknown variable 'clild_age' in derived variable 'parent_age'");
+          throw new Error(
+            "Unknown variable 'clild_age' in derived variable 'parent_age'",
+          );
         }),
       } as any,
       {} as any,
@@ -258,7 +260,12 @@ describe("GenerationRetryService", () => {
         },
         variableSchema: {
           variables: [
-            { name: "principal_amount", type: "integer", min: 10000, max: 10000 },
+            {
+              name: "principal_amount",
+              type: "integer",
+              min: 10000,
+              max: 10000,
+            },
             { name: "annual_rate", type: "integer", min: 5, max: 5 },
             { name: "year_number", type: "integer", min: 3, max: 3 },
           ],
@@ -322,7 +329,12 @@ describe("GenerationRetryService", () => {
         },
         variableSchema: {
           variables: [
-            { name: "principal_amount", type: "integer", min: 10000, max: 10000 },
+            {
+              name: "principal_amount",
+              type: "integer",
+              min: 10000,
+              max: 10000,
+            },
             { name: "annual_rate", type: "integer", min: 5, max: 5 },
             { name: "year_number", type: "integer", min: 3, max: 3 },
           ],
@@ -341,9 +353,7 @@ describe("GenerationRetryService", () => {
             "compound_interest_earned % 1 == 0",
             "principal_amount % 100 == 0",
           ],
-          constraints: [
-            { rule: "principal_amount % 100 == 0" },
-          ],
+          constraints: [{ rule: "principal_amount % 100 == 0" }],
         },
         solutionSchema: {
           correctVariable: "principal_amount",

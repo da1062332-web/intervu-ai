@@ -176,8 +176,15 @@ export const useSaveOptionStrategy = () => {
 export const useUpdateVariable = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ variableId, payload, templateId }: { variableId: string; payload: any; templateId: string }) =>
-      templateApi.updateVariable(variableId, payload),
+    mutationFn: ({
+      variableId,
+      payload,
+      templateId,
+    }: {
+      variableId: string;
+      payload: any;
+      templateId: string;
+    }) => templateApi.updateVariable(variableId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['templateVariables', variables.templateId] });
     },
@@ -209,8 +216,15 @@ export const useCreateRule = () => {
 export const useUpdateRule = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ ruleId, payload, templateId }: { ruleId: string; payload: any; templateId: string }) =>
-      templateApi.updateRule(ruleId, payload),
+    mutationFn: ({
+      ruleId,
+      payload,
+      templateId,
+    }: {
+      ruleId: string;
+      payload: any;
+      templateId: string;
+    }) => templateApi.updateRule(ruleId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['templateRules', variables.templateId] });
     },

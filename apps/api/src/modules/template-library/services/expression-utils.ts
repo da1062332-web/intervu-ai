@@ -7,7 +7,9 @@ export interface ExpressionAnalysis {
   functionNames: string[];
 }
 
-export function analyzeMathjsExpression(expression: string): ExpressionAnalysis {
+export function analyzeMathjsExpression(
+  expression: string,
+): ExpressionAnalysis {
   try {
     const nodes = math.parse(expression);
     const identifiers = new Set<string>();

@@ -43,11 +43,11 @@ export class VariableGenerationStrategy implements IQuestionGenerationStrategy {
 
       variablesDef = dbVars.map((v) => {
         const rulesForVar = dbRules.filter(
-          (r: any) => r.ruleConfig?.variableName === v.variableName
+          (r: any) => r.ruleConfig?.variableName === v.variableName,
         );
         let min = 1;
         let max = 100;
-        
+
         for (const rule of rulesForVar) {
           const config = rule.ruleConfig as any;
           if (config.min !== undefined && config.min !== null) {
@@ -79,9 +79,14 @@ export class VariableGenerationStrategy implements IQuestionGenerationStrategy {
         .map((r) => {
           const config = r.ruleConfig as any;
           let ruleStr = config.pattern || config.rule || "";
-          
+
           // If it's a comparison rule, construct a mathJS-compatible expression
-          if (!ruleStr && config.variableName && config.operator && config.value) {
+          if (
+            !ruleStr &&
+            config.variableName &&
+            config.operator &&
+            config.value
+          ) {
             const op = config.operator === "=" ? "==" : config.operator;
             ruleStr = `${config.variableName} ${op} ${config.value}`;
           }
@@ -99,17 +104,30 @@ export class VariableGenerationStrategy implements IQuestionGenerationStrategy {
     let variables = generateVariables(variablesDef, new PRNG(seed));
     let attempts = 0;
     let constraintResult: any = { isValid: true };
-    console.log("DEBUG Generation Strategy: variablesDef =", JSON.stringify(variablesDef, null, 2));
-    console.log("DEBUG Generation Strategy: constraintsDef =", JSON.stringify(constraintsDef, null, 2));
-    
+    console.log(
+      "DEBUG Generation Strategy: variablesDef =",
+      JSON.stringify(variablesDef, null, 2),
+    );
+    console.log(
+      "DEBUG Generation Strategy: constraintsDef =",
+      JSON.stringify(constraintsDef, null, 2),
+    );
+
     while (attempts < 10) {
-      constraintResult = evaluateConstraints(
-        constraintsDef,
-        variables as any,
+      constraintResult = evaluateConstraints(constraintsDef, variables as any);
+      console.log(
+        `Attempt ${attempts}: variables =`,
+        JSON.stringify(variables, null, 2),
+        "isValid =",
+        constraintResult.isValid,
+        "violated =",
+        JSON.stringify(constraintResult.violatedConstraints, null, 2),
       );
-      console.log(`Attempt ${attempts}: variables =`, JSON.stringify(variables, null, 2), "isValid =", constraintResult.isValid, "violated =", JSON.stringify(constraintResult.violatedConstraints, null, 2));
       if (constraintResult.isValid) break;
-      variables = generateVariables(variablesDef, new PRNG(seed + attempts + 1));
+      variables = generateVariables(
+        variablesDef,
+        new PRNG(seed + attempts + 1),
+      );
       attempts++;
     }
 
@@ -122,8 +140,7 @@ export class VariableGenerationStrategy implements IQuestionGenerationStrategy {
     const hydratedQuestion = hydrateString(questionTemplate, variables as any);
 
     // 5. Resolve derived variables if present
-    const derivedSchema =
-      (varSchema.derived as Record<string, string>) ?? {};
+    const derivedSchema = (varSchema.derived as Record<string, string>) ?? {};
     const derivedVariables: Record<string, unknown> = {};
     for (const [key, formula] of Object.entries(derivedSchema)) {
       try {

@@ -100,7 +100,10 @@ export const executionService = {
     return apiClient.request<any>(`/assessment-sessions/${id}/resume`);
   },
 
-  saveAnswer: async (testId: string, payload: CandidateAnswerPayload): Promise<{ status?: string }> => {
+  saveAnswer: async (
+    testId: string,
+    payload: CandidateAnswerPayload,
+  ): Promise<{ status?: string }> => {
     if (isDemoId(testId)) {
       return { status: 'SAVED' };
     }

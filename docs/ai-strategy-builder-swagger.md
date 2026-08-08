@@ -7,6 +7,7 @@ The AI Strategy Builder API provides three endpoints for AI-assisted and manual 
 ## Authentication
 
 All endpoints require:
+
 ```
 Authorization: Bearer {jwt_token}
 X-Intervu-Admin: true (implied by RBAC)
@@ -21,16 +22,18 @@ X-Intervu-Admin: true (implied by RBAC)
 Generates an AI-drafted strategy (variables, derived variables, constraints) from a plain-English description.
 
 #### Summary
+
 Draft a strategy from plain-English description
 
 #### Description
+
 AI-assisted drafting of variable and constraint strategies. Returns a structured draft ready for preview and application.
 
 #### Parameters
 
-| Name  | In   | Type   | Required | Description             |
-|-------|------|--------|----------|-------------------------|
-| id    | path | string | true     | Template ID (for ref)   |
+| Name | In   | Type   | Required | Description           |
+| ---- | ---- | ------ | -------- | --------------------- |
+| id   | path | string | true     | Template ID (for ref) |
 
 #### Request Body
 
@@ -186,16 +189,18 @@ ErrorResponse:
 Validates a drafted strategy and shows it in structured form without making database changes.
 
 #### Summary
+
 Preview a strategy before applying
 
 #### Description
+
 Validates a drafted strategy and shows it in structured form without making changes to the template.
 
 #### Parameters
 
-| Name  | In   | Type   | Required | Description             |
-|-------|------|--------|----------|-------------------------|
-| id    | path | string | true     | Template ID (for ref)   |
+| Name | In   | Type   | Required | Description           |
+| ---- | ---- | ------ | -------- | --------------------- |
+| id   | path | string | true     | Template ID (for ref) |
 
 #### Request Body
 
@@ -326,16 +331,18 @@ ErrorResponse:
 Applies a reviewed and edited strategy to the template, persisting it to the database.
 
 #### Summary
+
 Apply a drafted strategy to a template
 
 #### Description
+
 Applies the reviewed and potentially edited AI-drafted strategy to the template, persisting it to the database. Invalidates cache for the template.
 
 #### Parameters
 
-| Name  | In   | Type   | Required | Description             |
-|-------|------|--------|----------|-------------------------|
-| id    | path | string | true     | Template ID             |
+| Name | In   | Type   | Required | Description |
+| ---- | ---- | ------ | -------- | ----------- |
+| id   | path | string | true     | Template ID |
 
 #### Request Body
 
@@ -449,22 +456,14 @@ ApplyStrategyResponseDto:
 
 ```yaml
 # Missing or invalid draft
-{
-  "success": false,
-  "error": "Invalid draft structure",
-  "statusCode": 400
-}
+{ "success": false, "error": "Invalid draft structure", "statusCode": 400 }
 ```
 
 ##### 404 Not Found
 
 ```yaml
 # Template doesn't exist
-{
-  "success": false,
-  "error": "Template not found",
-  "statusCode": 404
-}
+{ "success": false, "error": "Template not found", "statusCode": 404 }
 ```
 
 ##### 500 Internal Server Error
@@ -473,7 +472,7 @@ ApplyStrategyResponseDto:
 {
   "success": false,
   "error": "Failed to apply strategy: Database error",
-  "statusCode": 500
+  "statusCode": 500,
 }
 ```
 
@@ -492,7 +491,7 @@ VariableDraftDto:
   properties:
     name:
       type: string
-      pattern: '^[a-zA-Z_][a-zA-Z0-9_]*$'
+      pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$"
       minLength: 1
       maxLength: 50
       example: "price"
@@ -538,7 +537,7 @@ DerivedVariableDraftDto:
   properties:
     name:
       type: string
-      pattern: '^[a-zA-Z_][a-zA-Z0-9_]*$'
+      pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$"
       example: "total"
       description: Derived variable name
     expression:
@@ -590,14 +589,14 @@ X-RateLimit-Reset: 1234567890
 
 ## Error Codes Reference
 
-| Code | Meaning | Example |
-|------|---------|---------|
-| 400  | Bad Request | Empty prompt, invalid draft structure |
-| 401  | Unauthorized | Missing JWT token |
-| 403  | Forbidden | Non-admin user trying to draft |
-| 404  | Not Found | Template doesn't exist |
-| 429  | Too Many Requests | Rate limit exceeded |
-| 500  | Server Error | OpenAI API failure, database error |
+| Code | Meaning           | Example                               |
+| ---- | ----------------- | ------------------------------------- |
+| 400  | Bad Request       | Empty prompt, invalid draft structure |
+| 401  | Unauthorized      | Missing JWT token                     |
+| 403  | Forbidden         | Non-admin user trying to draft        |
+| 404  | Not Found         | Template doesn't exist                |
+| 429  | Too Many Requests | Rate limit exceeded                   |
+| 500  | Server Error      | OpenAI API failure, database error    |
 
 ---
 
@@ -607,47 +606,51 @@ X-RateLimit-Reset: 1234567890
 
 ```javascript
 // Draft strategy
-const draftResponse = await fetch('/templates/template_123/ai/strategy/draft', {
-  method: 'POST',
+const draftResponse = await fetch("/templates/template_123/ai/strategy/draft", {
+  method: "POST",
   headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    prompt: 'Create variables for multiplication: a 10-99, b 10-99, result = a*b'
-  })
+    prompt:
+      "Create variables for multiplication: a 10-99, b 10-99, result = a*b",
+  }),
 });
 
 const draft = await draftResponse.json();
 console.log(draft.data.variables); // Array of variables
 
 // Preview the draft
-const previewResponse = await fetch('/templates/template_123/ai/strategy/preview', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
+const previewResponse = await fetch(
+  "/templates/template_123/ai/strategy/preview",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ draft: draft.data }),
   },
-  body: JSON.stringify({ draft: draft.data })
-});
+);
 
 const preview = await previewResponse.json();
 if (preview.warnings.length > 0) {
-  console.warn('Warnings:', preview.warnings);
+  console.warn("Warnings:", preview.warnings);
 }
 
 // Apply the strategy
-const applyResponse = await fetch('/templates/template_123/ai/strategy/apply', {
-  method: 'POST',
+const applyResponse = await fetch("/templates/template_123/ai/strategy/apply", {
+  method: "POST",
   headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   },
-  body: JSON.stringify({ draft: draft.data })
+  body: JSON.stringify({ draft: draft.data }),
 });
 
 const result = await applyResponse.json();
-console.log('Applied successfully:', result.success);
+console.log("Applied successfully:", result.success);
 ```
 
 ### cURL
@@ -690,4 +693,3 @@ curl -X POST http://localhost:3000/templates/template_123/ai/strategy/apply \
 **Access Swagger UI at**: `http://localhost:3000/api/swagger`
 
 All three endpoints are documented with interactive Try-it-out functionality.
-

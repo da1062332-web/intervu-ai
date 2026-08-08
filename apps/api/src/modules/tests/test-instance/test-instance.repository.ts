@@ -94,10 +94,7 @@ export class TestInstanceRepository {
     return this.prisma.testInstance.findFirst({
       where: {
         userId,
-        OR: [
-          { testConfigId: testConfigId },
-          { examConfigId: testConfigId }
-        ],
+        OR: [{ testConfigId: testConfigId }, { examConfigId: testConfigId }],
         status: { in: ["CREATED", "IN_PROGRESS"] },
       },
     });
@@ -114,10 +111,7 @@ export class TestInstanceRepository {
     return this.prisma.testInstance.count({
       where: {
         userId,
-        OR: [
-          { testConfigId: testConfigId },
-          { examConfigId: testConfigId }
-        ],
+        OR: [{ testConfigId: testConfigId }, { examConfigId: testConfigId }],
       },
     });
   }

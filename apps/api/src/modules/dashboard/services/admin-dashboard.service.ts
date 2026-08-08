@@ -1,12 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { 
-  Prisma, 
-  ConfigStatus, 
-  UserRole, 
-  TestInstanceStatus 
+import {
+  Prisma,
+  ConfigStatus,
+  UserRole,
+  TestInstanceStatus,
 } from "@prisma/client";
-import { AdminPaginationQueryDto, AdminActivitiesQueryDto } from "../dto/admin-dashboard.dto";
+import {
+  AdminPaginationQueryDto,
+  AdminActivitiesQueryDto,
+} from "../dto/admin-dashboard.dto";
 
 @Injectable()
 export class AdminDashboardService {
@@ -24,7 +27,10 @@ export class AdminDashboardService {
         isArchived: false,
         OR: [
           { status: { in: [ConfigStatus.PUBLISHED, ConfigStatus.ACTIVE] } },
-          { status: { notIn: [ConfigStatus.ARCHIVED, ConfigStatus.DRAFT] }, isActive: true },
+          {
+            status: { notIn: [ConfigStatus.ARCHIVED, ConfigStatus.DRAFT] },
+            isActive: true,
+          },
         ],
       },
     });
@@ -38,7 +44,11 @@ export class AdminDashboardService {
 
   async getCompletedTests(): Promise<number> {
     return this.prisma.testInstance.count({
-      where: { status: { in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED] } },
+      where: {
+        status: {
+          in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
+        },
+      },
     });
   }
 
@@ -46,15 +56,17 @@ export class AdminDashboardService {
     const aggregate = await this.prisma.evaluationResult.aggregate({
       where: {
         testInstance: {
-          status: { in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED] },
+          status: {
+            in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
+          },
         },
       },
       _avg: { overallScore: true },
     });
-    
+
     // Default to 0 if there are no evaluation results yet
     const avgScore = aggregate._avg.overallScore || 0;
-    
+
     // Round to 2 decimal places
     return Math.round(avgScore * 100) / 100;
   }
@@ -64,7 +76,9 @@ export class AdminDashboardService {
       select: { metadata: true },
     });
     return questions.filter((q) => {
-      const status = ((q.metadata as any)?.status || "GENERATED").toString().toUpperCase();
+      const status = ((q.metadata as any)?.status || "GENERATED")
+        .toString()
+        .toUpperCase();
       return status === "APPROVED" || status === "PUBLISHED";
     }).length;
   }
@@ -74,7 +88,10 @@ export class AdminDashboardService {
     const limit = Number(query.limit || 10);
     const skip = (page - 1) * limit;
 
-    const where: Prisma.ExamConfigWhereInput = { isActive: true, isArchived: false };
+    const where: Prisma.ExamConfigWhereInput = {
+      isActive: true,
+      isArchived: false,
+    };
 
     const [total, data] = await this.prisma.$transaction([
       this.prisma.examConfig.count({ where }),
@@ -99,7 +116,7 @@ export class AdminDashboardService {
           candidateCount,
           createdAt: config.createdAt.toISOString(),
         };
-      })
+      }),
     );
 
     return { data: items, total, page, limit };
@@ -111,7 +128,9 @@ export class AdminDashboardService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.TestInstanceWhereInput = {
-      status: { in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED] },
+      status: {
+        in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
+      },
     };
 
     const [total, data] = await this.prisma.$transaction([
@@ -139,9 +158,13 @@ export class AdminDashboardService {
     ]);
 
     const items = data.map((attempt) => {
-      const assessmentName = attempt.examConfig?.name || attempt.testConfig?.displayName || "Unknown Assessment";
-      const candidateName = attempt.user?.fullName || attempt.user?.email || "Unknown Candidate";
-      
+      const assessmentName =
+        attempt.examConfig?.name ||
+        attempt.testConfig?.displayName ||
+        "Unknown Assessment";
+      const candidateName =
+        attempt.user?.fullName || attempt.user?.email || "Unknown Candidate";
+
       return {
         id: attempt.id,
         candidateName,
@@ -150,7 +173,8 @@ export class AdminDashboardService {
         score: attempt.evaluationResult?.overallScore || 0,
         hasEvaluation: attempt.evaluationResult !== null,
         status: attempt.status,
-        submittedAt: attempt.submittedAt?.toISOString() || attempt.updatedAt.toISOString(),
+        submittedAt:
+          attempt.submittedAt?.toISOString() || attempt.updatedAt.toISOString(),
       };
     });
 
@@ -167,9 +191,26 @@ export class AdminDashboardService {
     if (query.type && query.type !== "all") {
       const typeLower = query.type.toLowerCase();
       if (typeLower === "assessment") {
-        where.eventType = { in: ["ASSESSMENT_STARTED", "ASSESSMENT_SUBMITTED", "EVALUATION_COMPLETED", "CHECKPOINT", "RESUME", "TERMINATE"] };
+        where.eventType = {
+          in: [
+            "ASSESSMENT_STARTED",
+            "ASSESSMENT_SUBMITTED",
+            "EVALUATION_COMPLETED",
+            "CHECKPOINT",
+            "RESUME",
+            "TERMINATE",
+          ],
+        };
       } else if (typeLower === "system") {
-        where.eventType = { notIn: ["ASSESSMENT_STARTED", "ASSESSMENT_SUBMITTED", "EVALUATION_COMPLETED", "REPORT_VIEWED", "PROGRESS_VIEWED"] };
+        where.eventType = {
+          notIn: [
+            "ASSESSMENT_STARTED",
+            "ASSESSMENT_SUBMITTED",
+            "EVALUATION_COMPLETED",
+            "REPORT_VIEWED",
+            "PROGRESS_VIEWED",
+          ],
+        };
       } else if (typeLower === "user") {
         where.eventType = { in: ["REPORT_VIEWED", "PROGRESS_VIEWED", "USER"] };
       } else {
@@ -186,8 +227,14 @@ export class AdminDashboardService {
             OR: [
               { user: { fullName: { contains: search, mode: "insensitive" } } },
               { user: { email: { contains: search, mode: "insensitive" } } },
-              { examConfig: { name: { contains: search, mode: "insensitive" } } },
-              { testConfig: { displayName: { contains: search, mode: "insensitive" } } },
+              {
+                examConfig: { name: { contains: search, mode: "insensitive" } },
+              },
+              {
+                testConfig: {
+                  displayName: { contains: search, mode: "insensitive" },
+                },
+              },
             ],
           },
         },
@@ -204,7 +251,10 @@ export class AdminDashboardService {
       }
     }
 
-    const orderBy = { createdAt: query.sortOrder === "asc" ? ("asc" as const) : ("desc" as const) };
+    const orderBy = {
+      createdAt:
+        query.sortOrder === "asc" ? ("asc" as const) : ("desc" as const),
+    };
 
     const [total, data] = await this.prisma.$transaction([
       this.prisma.assessmentAuditLog.count({ where }),
@@ -227,9 +277,13 @@ export class AdminDashboardService {
 
     const items = data.map((log) => {
       const attempt = log.testInstance;
-      const candidateName = attempt?.user?.fullName || attempt?.user?.email || "Candidate";
-      const assessmentName = attempt?.examConfig?.name || attempt?.testConfig?.displayName || "Assessment";
-      
+      const candidateName =
+        attempt?.user?.fullName || attempt?.user?.email || "Candidate";
+      const assessmentName =
+        attempt?.examConfig?.name ||
+        attempt?.testConfig?.displayName ||
+        "Assessment";
+
       let title = log.eventType;
       let description = `${candidateName} triggered ${log.eventType} on ${assessmentName}`;
 
@@ -272,7 +326,11 @@ export class AdminDashboardService {
   async getAssessmentCompletionRate() {
     const [completed, total] = await this.prisma.$transaction([
       this.prisma.testInstance.count({
-        where: { status: { in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED] } },
+        where: {
+          status: {
+            in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
+          },
+        },
       }),
       this.prisma.testInstance.count(),
     ]);

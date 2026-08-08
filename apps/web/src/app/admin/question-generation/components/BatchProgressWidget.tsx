@@ -25,7 +25,7 @@ export function BatchProgressWidget({
     <Card className='border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-900/10'>
       <CardHeader className='pb-2'>
         <div className='flex items-center gap-2'>
-          {status === 'generating' && <AnimatedLoader variant="button" className="text-blue-500" />}
+          {status === 'generating' && <AnimatedLoader variant='button' className='text-blue-500' />}
           {status === 'success' && <CheckCircle2 className='h-5 w-5 text-green-500' />}
           {status === 'error' && <XCircle className='h-5 w-5 text-red-500' />}
           <CardTitle className='text-lg'>

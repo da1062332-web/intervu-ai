@@ -20,9 +20,11 @@ export const useGenerateAssessment = () => {
         error?.response?.data?.message ||
         error?.message ||
         'Failed to enqueue assessment generation';
-        
+
       // Make concept pool errors user-friendly
-      const poolMatch = msg.match(/Question pool empty and generation failed for concept: '.*?' \((.*?)\)\. Found (\d+), needed (\d+)/i);
+      const poolMatch = msg.match(
+        /Question pool empty and generation failed for concept: '.*?' \((.*?)\)\. Found (\d+), needed (\d+)/i,
+      );
       if (poolMatch) {
         msg = `Not enough ${poolMatch[1]} questions available for the required concepts (Needed ${poolMatch[3]}, found ${poolMatch[2]}).`;
       }
