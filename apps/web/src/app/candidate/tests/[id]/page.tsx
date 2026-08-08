@@ -7,5 +7,9 @@ export default function CandidateTestDetailsPage({ params }: { params: Promise<{
   // @ts-expect-error - React.use is not in current types
   const { id } = React.use(params);
 
-  return <TestDetailsPage testId={id} />;
+  return (
+    <React.Suspense fallback={<div className='flex justify-center p-8'><div className='w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin' /></div>}>
+      <TestDetailsPage testId={id} />
+    </React.Suspense>
+  );
 }

@@ -14,6 +14,8 @@ interface RuleFlagsState {
   shuffleOptionsEnabled: boolean;
   allowSectionNavigation: boolean;
   maxAttempts?: number;
+  candidateNoRepeatEnabled?: boolean;
+  runtimeGenerationOnDeficit?: boolean;
 }
 
 interface ConfigRulesState {

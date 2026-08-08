@@ -29,6 +29,8 @@ import Link from 'next/link';
 interface AttemptItem {
   instanceId: string;
   testId?: string;
+  configId?: string;
+  assessmentId?: string;
   assessmentName: string;
   date: string;
   status: string;
@@ -85,6 +87,13 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
             <Download className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
             <span>{downloading ? 'Exporting...' : 'Report'}</span>
           </button>
+          <Link
+            href={`/candidate/tests/${attempt.testId || attempt.configId || attempt.assessmentId || attempt.instanceId}`}
+            className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
+          >
+            <Play className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
+            <span>Re-Exam</span>
+          </Link>
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Link

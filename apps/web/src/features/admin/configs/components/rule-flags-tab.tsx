@@ -14,6 +14,8 @@ const UpdateRuleFlagsSchema = z.object({
   shuffleOptionsEnabled: z.boolean(),
   allowSectionNavigation: z.boolean(),
   maxAttempts: z.number().int().min(1).max(10).optional(),
+  candidateNoRepeatEnabled: z.boolean().optional(),
+  runtimeGenerationOnDeficit: z.boolean().optional(),
 });
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -36,6 +38,8 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
   const [shuffleOptionsEnabled, setShuffleOptionsEnabled] = useState(false);
   const [allowSectionNavigation, setAllowSectionNavigation] = useState(false);
   const [maxAttempts, setMaxAttempts] = useState<number>(3);
+  const [candidateNoRepeatEnabled, setCandidateNoRepeatEnabled] = useState(false);
+  const [runtimeGenerationOnDeficit, setRuntimeGenerationOnDeficit] = useState(false);
 
   const { setRules, setDirty } = useConfigRulesStore();
 
@@ -50,6 +54,12 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       if ((ruleFlags as any).maxAttempts !== undefined) {
         setMaxAttempts((ruleFlags as any).maxAttempts);
       }
+      if ((ruleFlags as any).candidateNoRepeatEnabled !== undefined) {
+        setCandidateNoRepeatEnabled((ruleFlags as any).candidateNoRepeatEnabled);
+      }
+      if ((ruleFlags as any).runtimeGenerationOnDeficit !== undefined) {
+        setRuntimeGenerationOnDeficit((ruleFlags as any).runtimeGenerationOnDeficit);
+      }
     }
   }, [ruleFlags]);
 
@@ -63,6 +73,8 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       shuffleOptionsEnabled,
       allowSectionNavigation,
       maxAttempts,
+      candidateNoRepeatEnabled,
+      runtimeGenerationOnDeficit,
     });
   }, [
     negativeMarkingEnabled,
@@ -72,6 +84,8 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
     shuffleOptionsEnabled,
     allowSectionNavigation,
     maxAttempts,
+    candidateNoRepeatEnabled,
+    runtimeGenerationOnDeficit,
     setRules,
   ]);
 
@@ -89,6 +103,8 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       shuffleOptionsEnabled,
       allowSectionNavigation,
       maxAttempts,
+      candidateNoRepeatEnabled,
+      runtimeGenerationOnDeficit,
     };
 
     const validation = UpdateRuleFlagsSchema.safeParse(payload);
@@ -210,6 +226,34 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
             id='allow-section-navigation'
             checked={allowSectionNavigation}
             onCheckedChange={(val: boolean) => handleToggle(setAllowSectionNavigation, val)}
+          />
+        </div>
+
+        <div className='flex items-center justify-between p-4 border border-primary/20 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors'>
+          <div className='space-y-0.5 pr-4'>
+            <Label htmlFor='candidate-no-repeat' className='text-base font-semibold text-primary'>Candidate Unique Questions</Label>
+            <p className='text-sm text-muted-foreground'>
+              Ensure candidates receive brand-new, non-overlapping questions on retakes or re-exams.
+            </p>
+          </div>
+          <Switch
+            id='candidate-no-repeat'
+            checked={candidateNoRepeatEnabled}
+            onCheckedChange={(val: boolean) => handleToggle(setCandidateNoRepeatEnabled, val)}
+          />
+        </div>
+
+        <div className='flex items-center justify-between p-4 border border-primary/20 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors'>
+          <div className='space-y-0.5 pr-4'>
+            <Label htmlFor='runtime-generation-deficit' className='text-base font-semibold text-primary'>Runtime AI Generation on Deficit</Label>
+            <p className='text-sm text-muted-foreground'>
+              Dynamically generate missing questions via AI at runtime if Question Bank pool runs short.
+            </p>
+          </div>
+          <Switch
+            id='runtime-generation-deficit'
+            checked={runtimeGenerationOnDeficit}
+            onCheckedChange={(val: boolean) => handleToggle(setRuntimeGenerationOnDeficit, val)}
           />
         </div>
 

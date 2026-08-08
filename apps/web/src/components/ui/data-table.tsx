@@ -35,7 +35,7 @@ export interface DataTableProps<T> {
   pageSize?: number;
 }
 
-export function DataTable<T>({
+function DataTableInner<T>({
   columns,
   data,
   isLoading,
@@ -223,3 +223,6 @@ export function DataTable<T>({
     </div>
   );
 }
+
+export const DataTable = React.memo(DataTableInner) as typeof DataTableInner;
+

@@ -8,6 +8,8 @@ export const UpdateRuleFlagsSchema = z.object({
   shuffleOptionsEnabled: z.boolean(),
   allowSectionNavigation: z.boolean(),
   maxAttempts: z.number().int().min(1).max(10).optional(),
+  candidateNoRepeatEnabled: z.boolean().optional(),
+  runtimeGenerationOnDeficit: z.boolean().optional(),
 });
 
 export type UpdateRuleFlags = z.infer<typeof UpdateRuleFlagsSchema>;

@@ -190,6 +190,12 @@ export class AssembledTestRepository {
         examConfig: {
           select: {
             updatedAt: true,
+            ruleFlags: {
+              select: {
+                candidateNoRepeatEnabled: true,
+                runtimeGenerationOnDeficit: true,
+              },
+            },
           },
         },
       },

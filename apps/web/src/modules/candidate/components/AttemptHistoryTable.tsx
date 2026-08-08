@@ -15,6 +15,8 @@ import Link from 'next/link';
 interface AttemptItem {
   instanceId: string;
   testId?: string;
+  configId?: string;
+  assessmentId?: string;
   assessmentName: string;
   date: string;
   status: string;
@@ -30,16 +32,30 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
   return (
     <div className='flex items-center justify-end gap-2'>
       {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
-        <Button
-          size='sm'
-          variant='ghost'
-          asChild
-          className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'
-        >
-          <Link href={`/candidate/results/${attempt.instanceId}`}>
-            <Eye className='size-3.5 mr-1.5' /> View
-          </Link>
-        </Button>
+        <>
+          <Button
+            size='sm'
+            variant='ghost'
+            asChild
+            className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'
+          >
+            <Link href={`/candidate/results/${attempt.instanceId}`}>
+              <Eye className='size-3.5 mr-1.5' /> View
+            </Link>
+          </Button>
+          <Button
+            size='sm'
+            variant='outline'
+            asChild
+            className='h-8 px-2.5 text-xs font-semibold border-border/60 hover:bg-muted/80 text-primary hover:text-primary'
+          >
+            <Link
+              href={`/candidate/tests/${attempt.testId || attempt.configId || attempt.assessmentId || attempt.instanceId}`}
+            >
+              <Play className='size-3.5 mr-1.5' /> Re-Exam
+            </Link>
+          </Button>
+        </>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Button size='sm' variant='default' asChild className='h-8 px-3 text-xs font-semibold'>
           <Link href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}>

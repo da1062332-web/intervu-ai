@@ -270,4 +270,52 @@ describe("QuestionAllocatorService", () => {
     expect(error).toBeDefined();
     expect(error.response.error).toBe("INSUFFICIENT_ELIGIBLE_QUESTIONS");
   });
+
+  it("should generate questions at runtime when runtimeGenerationOnDeficit flag is enabled", async () => {
+    const mockPrisma = {
+      ruleFlags: {
+        findUnique: jest.fn().mockResolvedValue({ runtimeGenerationOnDeficit: true }),
+      },
+      generatedQuestion: {
+        create: jest.fn().mockImplementation(({ data }) => ({
+          id: `gen-${Math.random()}`,
+          ...data,
+        })),
+      },
+    } as any;
+
+    const serviceWithPrisma = new QuestionAllocatorService(
+      sourceMock,
+      antiRepRepo,
+      mockPrisma,
+    );
+
+    const section: BlueprintSectionDto = {
+      sectionKey: "sec-1",
+      displayName: "Section 1",
+      durationSeconds: 120,
+      questionCount: 2,
+      orderIndex: 0,
+      topicAllocations: [{ topicId: "top-1", percentage: 100 }],
+      difficultyDistribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
+    };
+
+    sourceMock.fetchQuestions.mockResolvedValue([]);
+    antiRepRepo.filterPool.mockResolvedValue([]);
+
+    const fallbackConfig: AllocationConfig = {
+      distribution: { EASY: 100, MEDIUM: 0, HARD: 0 },
+    };
+
+    const allocated = await serviceWithPrisma.allocateQuestions(
+      section,
+      new Set(),
+      [],
+      fallbackConfig,
+      "config-1",
+    );
+
+    expect(allocated).toHaveLength(2);
+    expect(mockPrisma.generatedQuestion.create).toHaveBeenCalledTimes(2);
+  });
 });

@@ -1,7 +1,7 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
@@ -87,7 +87,7 @@ export function TemplateListPageClient() {
     );
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<any>[] = React.useMemo(() => [
     {
       header: 'Name',
       cell: (row) => (
@@ -172,7 +172,7 @@ export function TemplateListPageClient() {
         </div>
       ),
     },
-  ];
+  ], []);
 
   return (
     <div className='container mx-auto space-y-6 max-w-7xl'>

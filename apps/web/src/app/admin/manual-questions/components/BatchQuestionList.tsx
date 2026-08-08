@@ -15,7 +15,7 @@ export function BatchQuestionList({ disabled }: BatchQuestionListProps) {
     name: 'questions',
   });
 
-  const handleAddQuestion = () => {
+  const handleAddQuestion = React.useCallback(() => {
     append({
       questionType: 'MCQ',
       difficulty: 'MEDIUM',
@@ -25,12 +25,12 @@ export function BatchQuestionList({ disabled }: BatchQuestionListProps) {
       answer: '',
       explanation: '',
     });
-  };
+  }, [append]);
 
-  const handleDuplicate = (index: number) => {
+  const handleDuplicate = React.useCallback((index: number) => {
     const currentVals = getValues(`questions.${index}`);
     insert(index + 1, { ...currentVals });
-  };
+  }, [getValues, insert]);
 
   return (
     <div className='space-y-8'>

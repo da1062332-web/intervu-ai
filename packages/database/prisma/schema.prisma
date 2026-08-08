@@ -555,6 +555,8 @@ model RuleFlags {
   allowSectionNavigation    Boolean    @default(false)
   sectionTimingEnabled      Boolean    @default(false) @map("section_timing_enabled")
   maxAttempts               Int        @default(3) @map("max_attempts")
+  candidateNoRepeatEnabled  Boolean    @default(false) @map("candidate_no_repeat_enabled")
+  runtimeGenerationOnDeficit Boolean    @default(false) @map("runtime_generation_on_deficit")
   createdAt                 DateTime   @default(now())
   updatedAt                 DateTime   @updatedAt
   examConfig                ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)

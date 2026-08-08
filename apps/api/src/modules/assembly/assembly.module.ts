@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { AssemblyController } from "./controllers/assembly.controller";
 import { AssemblyService } from "./services/test-assembly.service";
 import { BlueprintBuilderService } from "./services/blueprint-builder.service";
@@ -34,8 +34,15 @@ import { TestPackageService } from "./services/test-package.service";
 import { PublishReadinessService } from "./services/publish-readiness.service";
 import { AssessmentVersionValidatorService } from "./services/assessment-version-validator.service";
 
+import { GenerationAiModule } from "../generation-ai/generation-ai.module";
+
 @Module({
-  imports: [PrismaModule, QuestionPoolModule, QuestionBankModule],
+  imports: [
+    PrismaModule,
+    QuestionPoolModule,
+    QuestionBankModule,
+    forwardRef(() => GenerationAiModule),
+  ],
   controllers: [AssemblyController],
   providers: [
     // --- Existing services (preserved, untouched) ---
@@ -84,6 +91,9 @@ import { AssessmentVersionValidatorService } from "./services/assessment-version
     AssemblyPublisherService,
     AssessmentVersionValidatorService,
     AssembledTestRepository,
+    BlueprintBuilderService,
+    QuestionAllocatorService,
+    QuestionPoolRepository,
     // Export new services for Module 4 / other consumers
     TestPackageService,
     PublishReadinessService,

@@ -47,23 +47,33 @@ export class ExamConfigService {
       );
     }
 
-    const fullConfig = await (
-      this.examConfigRepository as any
-    ).prisma.examConfig.findUnique({
-      where: { id },
-      include: {
-        sections: true,
-        difficultyDistribution: true,
-        ruleFlags: true,
-        blueprint: {
-          include: {
-            styleProfile: true,
+    try {
+      const fullConfig = await (
+        this.examConfigRepository as any
+      ).prisma.examConfig.findUnique({
+        where: { id },
+        include: {
+          sections: true,
+          difficultyDistribution: true,
+          ruleFlags: true,
+          blueprint: {
+            include: {
+              styleProfile: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return fullConfig || config;
+      if (fullConfig) {
+        return fullConfig;
+      }
+    } catch (err: any) {
+      console.warn(
+        `ExamConfig findOne include query error for ${id}: ${err?.message}`,
+      );
+    }
+
+    return config;
   }
 
   async update(id: string, dto: UpdateExamConfigDto): Promise<ExamConfig> {

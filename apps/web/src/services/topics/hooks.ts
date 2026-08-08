@@ -7,6 +7,8 @@ export const useTopics = (activeOnly = true) => {
   return useQuery({
     queryKey: ['topics', activeOnly],
     queryFn: () => topicsApi.getTopics(activeOnly),
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -15,6 +17,8 @@ export const useTopic = (id: string) => {
     queryKey: ['topic', id],
     queryFn: () => topicsApi.getTopic(id),
     enabled: !!id,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 };
 
