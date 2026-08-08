@@ -196,10 +196,9 @@ export class ConfigVersionService {
               snapshot.ruleFlags.adaptiveDifficultyEnabled,
             shuffleQuestionsEnabled: snapshot.ruleFlags.shuffleQuestionsEnabled,
             shuffleOptionsEnabled: snapshot.ruleFlags.shuffleOptionsEnabled,
-            allowSectionNavigation: snapshot.ruleFlags.allowSectionNavigation,
-            candidateNoRepeatEnabled: snapshot.ruleFlags.candidateNoRepeatEnabled ?? false,
-            runtimeGenerationOnDeficit: snapshot.ruleFlags.runtimeGenerationOnDeficit ?? false,
-          },
+            candidateNoRepeatEnabled: (snapshot.ruleFlags as any)?.candidateNoRepeatEnabled ?? false,
+            runtimeGenerationOnDeficit: (snapshot.ruleFlags as any)?.runtimeGenerationOnDeficit ?? false,
+          } as any,
         });
       }
 

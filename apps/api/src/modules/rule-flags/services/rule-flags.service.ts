@@ -35,7 +35,7 @@ export class RuleFlagsService {
         runtimeGenerationOnDeficit: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      };
+      } as any;
     }
 
     return this.mapToResponse(ruleFlags);
@@ -65,10 +65,10 @@ export class RuleFlagsService {
       shuffleOptionsEnabled: entity.shuffleOptionsEnabled,
       allowSectionNavigation: entity.allowSectionNavigation,
       maxAttempts: entity.maxAttempts,
-      candidateNoRepeatEnabled: entity.candidateNoRepeatEnabled ?? false,
-      runtimeGenerationOnDeficit: entity.runtimeGenerationOnDeficit ?? false,
+      candidateNoRepeatEnabled: (entity as any).candidateNoRepeatEnabled ?? false,
+      runtimeGenerationOnDeficit: (entity as any).runtimeGenerationOnDeficit ?? false,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
-    };
+    } as any;
   }
 }

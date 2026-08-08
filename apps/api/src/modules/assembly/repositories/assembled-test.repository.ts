@@ -194,7 +194,7 @@ export class AssembledTestRepository {
               select: {
                 candidateNoRepeatEnabled: true,
                 runtimeGenerationOnDeficit: true,
-              },
+              } as any,
             },
           },
         },

@@ -593,8 +593,8 @@ export class QuestionAllocatorService {
         where: { examConfigId: examId },
       });
 
-      const isCandidateNoRepeat = ruleFlags?.candidateNoRepeatEnabled ?? false;
-      const isRuntimeGen = ruleFlags?.runtimeGenerationOnDeficit ?? false;
+      const isCandidateNoRepeat = (ruleFlags as any)?.candidateNoRepeatEnabled ?? false;
+      const isRuntimeGen = (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
 
       // Allow runtime AI generation if runtimeGenerationOnDeficit or candidateNoRepeat is true, or fallback to auto-recovery on deficit
       if (ruleFlags && !isRuntimeGen && !isCandidateNoRepeat) {
