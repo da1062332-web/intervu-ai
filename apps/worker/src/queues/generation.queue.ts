@@ -69,6 +69,22 @@ export class GenerationQueueProcessor {
         throw err;
       }
 
+      try {
+        await this.prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: "RUNNING",
+            attemptsMade: job.attemptsMade,
+            maxAttempts: job.opts.attempts,
+          },
+        });
+      } catch (jobStatusError) {
+        this.logger.warn("Failed to update GenerationJob to RUNNING", {
+          error: String(jobStatusError),
+          jobId: job.id,
+        });
+      }
+
       // Map API payload difficulty to worker expected enum
       let difficulty: "beginner" | "intermediate" | "advanced" | "expert" = "intermediate";
       const incomingDiff = (parsedPayload.payload.difficulty || "").toUpperCase();
@@ -115,6 +131,26 @@ export class GenerationQueueProcessor {
         this.logger.warn(
           `Failed to persist generated questions for testId: ${testId} (record not found). Continuing as success.`,
         );
+        throw dbErr;
+      }
+
+      try {
+        await this.prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: "COMPLETED",
+            result: aiResponse as Prisma.InputJsonValue,
+            attemptsMade: job.attemptsMade,
+          },
+        });
+      } catch (jobStatusError) {
+        this.logger.warn(
+          "Failed to update GenerationJob to COMPLETED; reconciliation required",
+          {
+            error: jobStatusError instanceof Error ? jobStatusError.message : String(jobStatusError),
+            jobId: job.id,
+          },
+        );
       }
 
       this.logger.info(`Successfully completed generation job ${job.id}`, {
@@ -137,6 +173,25 @@ export class GenerationQueueProcessor {
         maxAttempts: job.opts.attempts,
         duration,
       });
+
+      try {
+        await this.prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: "FAILED",
+            error: error instanceof Error ? error.message : String(error),
+            attemptsMade: job.attemptsMade,
+          },
+        });
+      } catch (jobStatusError) {
+        this.logger.warn(
+          "Failed to update GenerationJob to FAILED; reconciliation required",
+          {
+            error: jobStatusError instanceof Error ? jobStatusError.message : String(jobStatusError),
+            jobId: job.id,
+          },
+        );
+      }
 
       throw error;
     }

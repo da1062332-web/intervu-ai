@@ -116,6 +116,31 @@ export class TestAssemblyService {
     );
 
     try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+      await prisma.generationJob.create({
+        data: {
+          id: jobId,
+          topic: topicId || body.topicId || "default-topic",
+          count: body.quantity || 0,
+          status: "QUEUED",
+          difficulty: body.difficulty as string,
+        },
+      });
+      await prisma.$disconnect();
+    } catch (persistError) {
+      const errorMessage =
+        persistError instanceof Error ? persistError.message : String(persistError);
+      this.logger.error(
+        "Failed to persist generation job record before enqueue; aborting queue submission",
+        { error: errorMessage, jobId },
+      );
+      throw new Error(
+        `Failed to persist generation job record before enqueue: ${errorMessage}`,
+      );
+    }
+
+    try {
       await this.queueService.enqueueGeneration({
         jobId,
         correlationId,
@@ -139,6 +164,20 @@ export class TestAssemblyService {
       this.logger.warn("Queue service unavailable, falling back to direct DB question assembly", {
         error: String(enqueueError),
       });
+
+      try {
+        const { PrismaClient } = await import("@prisma/client");
+        const prisma = new PrismaClient();
+        await prisma.generationJob.update({
+          where: { id: jobId },
+          data: { status: "FALLBACK" },
+        });
+        await prisma.$disconnect();
+      } catch (updateError) {
+        this.logger.error("Failed to update generation job record after enqueue failure", updateError as Error, {
+          jobId,
+        });
+      }
     }
 
     // Direct DB Question Assembly Fallback
@@ -190,6 +229,32 @@ export class TestAssemblyService {
   }
 
   async getJobStatus(jobId: string) {
+    try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+      const dbJob = await prisma.generationJob.findUnique({
+        where: { id: jobId },
+      });
+      await prisma.$disconnect();
+
+      if (dbJob) {
+        return {
+          id: dbJob.id,
+          status: dbJob.status || "unknown",
+          progress: 0,
+          result: dbJob.result ?? null,
+          failedReason: dbJob.error || null,
+        };
+      }
+    } catch (dbError) {
+      this.logger.warn(
+        "Failed to read generation job record from DB. Falling back to queue state.",
+        {
+          error: String(dbError),
+        },
+      );
+    }
+
     const job = await this.queueService.getJob(QueueType.GENERATION, jobId);
     const state = await this.queueService.getJobState(
       QueueType.GENERATION,

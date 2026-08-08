@@ -18,6 +18,7 @@ import {
   ValidationJobInput,
 } from "./queue-payloads";
 import { BadRequestException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 export interface QueueMetrics {
   waiting: number;
@@ -36,9 +37,11 @@ export interface AllQueueMetrics {
 
 export class QueueService {
   private readonly logger: AppLogger;
+  private readonly prisma?: PrismaService;
 
-  constructor(logger: AppLogger) {
+  constructor(logger: AppLogger, prisma?: PrismaService) {
     this.logger = logger;
+    this.prisma = prisma;
   }
 
   // ─── Enqueue Methods ─────────────────────────────────────────────────────────
@@ -161,6 +164,126 @@ export class QueueService {
       });
       return undefined;
     }
+  }
+
+  async reconcileGenerationJob(jobId: string): Promise<{
+    jobId: string;
+    dbStatus?: string;
+    bullmqState?: string;
+    updated: boolean;
+    reason: string;
+  }> {
+    if (!this.prisma) {
+      return {
+        jobId,
+        updated: false,
+        reason: "prisma-unavailable",
+      };
+    }
+
+    const dbJob = await this.prisma.generationJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!dbJob) {
+      return {
+        jobId,
+        updated: false,
+        reason: "db-job-not-found",
+      };
+    }
+
+    const bullmqState = await this.getJobState(QueueType.GENERATION, jobId);
+
+    if (!bullmqState) {
+      return {
+        jobId,
+        dbStatus: dbJob.status ?? undefined,
+        updated: false,
+        reason: "bullmq-job-not-found",
+      };
+    }
+
+    const dbStatus = String(dbJob.status ?? "");
+    const normalizedDbStatus = dbStatus.toUpperCase();
+    const normalizedBullmqState = bullmqState.toLowerCase();
+
+    const isTerminalDbStatus = ["COMPLETED", "FAILED", "FALLBACK"].includes(
+      normalizedDbStatus,
+    );
+
+    if (normalizedBullmqState === "completed") {
+      if (isTerminalDbStatus) {
+        return {
+          jobId,
+          dbStatus,
+          bullmqState,
+          updated: false,
+          reason: "db-already-terminal",
+        };
+      }
+
+      await this.prisma.generationJob.update({
+        where: { id: jobId },
+        data: { status: "COMPLETED" },
+      });
+
+      return {
+        jobId,
+        dbStatus,
+        bullmqState,
+        updated: true,
+        reason: "bullmq-completed",
+      };
+    }
+
+    if (normalizedBullmqState === "failed") {
+      if (isTerminalDbStatus) {
+        return {
+          jobId,
+          dbStatus,
+          bullmqState,
+          updated: false,
+          reason: "db-already-terminal",
+        };
+      }
+
+      await this.prisma.generationJob.update({
+        where: { id: jobId },
+        data: { status: "FAILED" },
+      });
+
+      return {
+        jobId,
+        dbStatus,
+        bullmqState,
+        updated: true,
+        reason: "bullmq-failed",
+      };
+    }
+
+    if (normalizedBullmqState === "active" && normalizedDbStatus === "QUEUED") {
+      await this.prisma.generationJob.update({
+        where: { id: jobId },
+        data: { status: "RUNNING" },
+      });
+
+      return {
+        jobId,
+        dbStatus,
+        bullmqState,
+        updated: true,
+        reason: "bullmq-active",
+      };
+    }
+
+    return {
+      jobId,
+      dbStatus,
+      bullmqState,
+      updated: false,
+      reason: "no-safe-reconciliation",
+    };
   }
 
   // ─── Queue Metrics ───────────────────────────────────────────────────────────

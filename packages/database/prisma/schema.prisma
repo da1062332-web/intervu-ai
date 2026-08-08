@@ -1127,17 +1127,19 @@ model ExamWorkflowHistory {
 }
 
 model GenerationJob {
-  id         String   @id @default(cuid())
-  topic      String
-  count      Int
-  generated  Int      @default(0)
-  status     String
-  error      String?
-  result     Json?
-  category   String?
-  createdAt  DateTime @default(now())
-  difficulty String?
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(cuid())
+  topic        String
+  count        Int
+  generated    Int      @default(0)
+  status       String
+  error        String?
+  result       Json?
+  category     String?
+  createdAt    DateTime @default(now())
+  difficulty   String?
+  attemptsMade Int      @default(0)
+  maxAttempts  Int?
+  updatedAt    DateTime @updatedAt
 
   @@map("generation_jobs")
 }
