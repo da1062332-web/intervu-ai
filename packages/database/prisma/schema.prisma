@@ -371,23 +371,23 @@ model Submission {
 }
 
 model CandidateResult {
-  id                    String       @id @default(cuid())
-  candidateId           String       @map("candidate_id")
-  attemptId             String       @unique @map("attempt_id")
-  score                 Float
-  percentage            Float
-  evaluationStrategy    String?      @map("evaluation_strategy")
-  strategyVersion       Int          @default(1) @map("strategy_version")
-  qualification         String?      @map("qualification")
-  qualificationReason   String?      @map("qualification_reason")
-  foundationScore       Int?         @map("foundation_score")
-  advancedScore         Int?         @map("advanced_score")
-  codingSolved          Int?         @map("coding_solved")
-  qualificationDetails  Json?        @map("qualification_details")
-  evaluatedAt           DateTime?    @map("evaluated_at")
-  createdAt             DateTime     @default(now()) @map("created_at")
-  attempt               TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  user                  User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id                   String       @id @default(cuid())
+  candidateId          String       @map("candidate_id")
+  attemptId            String       @unique @map("attempt_id")
+  score                Float
+  percentage           Float
+  evaluationStrategy   String?      @map("evaluation_strategy")
+  strategyVersion      Int          @default(1) @map("strategy_version")
+  qualification        String?      @map("qualification")
+  qualificationReason  String?      @map("qualification_reason")
+  foundationScore      Int?         @map("foundation_score")
+  advancedScore        Int?         @map("advanced_score")
+  codingSolved         Int?         @map("coding_solved")
+  qualificationDetails Json?        @map("qualification_details")
+  evaluatedAt          DateTime?    @map("evaluated_at")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  attempt              TestInstance @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  user                 User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@index([candidateId])
   @@index([attemptId])
@@ -466,19 +466,19 @@ model PerformanceSummary {
 }
 
 model ExamConfig {
-  id                     String                  @id @default(cuid())
+  id                     String                    @id @default(cuid())
   name                   String
   role                   String
   durationMinutes        Int
   totalQuestions         Int
-  isActive               Boolean                 @default(true)
+  isActive               Boolean                   @default(true)
   createdBy              String?
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
-  code                   String                  @unique
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  code                   String                    @unique
   description            String?
-  isArchived             Boolean                 @default(false)
-  status                 ConfigStatus            @default(DRAFT)
+  isArchived             Boolean                   @default(false)
+  status                 ConfigStatus              @default(DRAFT)
   publishLogs            ConfigPublishLog[]
   difficultyDistribution DifficultyDistribution?
   versions               ExamConfigVersion[]
@@ -545,21 +545,21 @@ model ExamConfigVersion {
 }
 
 model RuleFlags {
-  id                        String     @id @default(uuid())
-  examConfigId              String     @unique
-  negativeMarkingEnabled    Boolean    @default(false)
-  sectionalCutoffEnabled    Boolean    @default(false)
-  adaptiveDifficultyEnabled Boolean    @default(false)
-  shuffleQuestionsEnabled   Boolean    @default(false)
-  shuffleOptionsEnabled     Boolean    @default(false)
-  allowSectionNavigation    Boolean    @default(false)
-  sectionTimingEnabled      Boolean    @default(false) @map("section_timing_enabled")
-  maxAttempts               Int        @default(3) @map("max_attempts")
-  candidateNoRepeatEnabled  Boolean    @default(false) @map("candidate_no_repeat_enabled")
+  id                         String     @id @default(uuid())
+  examConfigId               String     @unique
+  negativeMarkingEnabled     Boolean    @default(false)
+  sectionalCutoffEnabled     Boolean    @default(false)
+  adaptiveDifficultyEnabled  Boolean    @default(false)
+  shuffleQuestionsEnabled    Boolean    @default(false)
+  shuffleOptionsEnabled      Boolean    @default(false)
+  allowSectionNavigation     Boolean    @default(false)
+  sectionTimingEnabled       Boolean    @default(false) @map("section_timing_enabled")
+  maxAttempts                Int        @default(3) @map("max_attempts")
+  candidateNoRepeatEnabled   Boolean    @default(false) @map("candidate_no_repeat_enabled")
   runtimeGenerationOnDeficit Boolean    @default(false) @map("runtime_generation_on_deficit")
-  createdAt                 DateTime   @default(now())
-  updatedAt                 DateTime   @updatedAt
-  examConfig                ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+  examConfig                 ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
 
   @@index([examConfigId])
 }
@@ -797,12 +797,12 @@ model TemplateDatasetConfig {
   template           Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   // New Fields
-  variableMapping    Json     @default("{}") @map("variable_mapping")
-  sampleSize         Int      @default(1) @map("sample_size")
-  shuffle            Boolean  @default(true)
-  allowReuse         Boolean  @default(true) @map("allow_reuse")
-  specificItemId     String?  @map("specific_item_id")
-  fallbackPolicy     String   @default("RELAX_FILTERS") @map("fallback_policy")
+  variableMapping Json    @default("{}") @map("variable_mapping")
+  sampleSize      Int     @default(1) @map("sample_size")
+  shuffle         Boolean @default(true)
+  allowReuse      Boolean @default(true) @map("allow_reuse")
+  specificItemId  String? @map("specific_item_id")
+  fallbackPolicy  String  @default("RELAX_FILTERS") @map("fallback_policy")
 
   @@index([templateId])
   @@map("template_dataset_configs")
@@ -838,45 +838,45 @@ model ReadinessReport {
 }
 
 model Question {
-  id                String               @id @default(cuid())
-  questionText      String               @map("question_text")
+  id                String                    @id @default(cuid())
+  questionText      String                    @map("question_text")
   answer            String
   explanation       String
-  topicId           String               @map("topic_id")
-  sectionId         String?              @map("section_id")
-  conceptId         String?              @map("concept_id")
+  topicId           String                    @map("topic_id")
+  sectionId         String?                   @map("section_id")
+  conceptId         String?                   @map("concept_id")
   difficulty        String
-  difficultyScore   Float?               @map("difficulty_score")
+  difficultyScore   Float?                    @map("difficulty_score")
   source            String
-  questionSource    QuestionSourceType   @default(MANUAL) @map("question_source")
-  questionType      String               @default("MCQ") @map("question_type")
-  estimatedTime     Int?                 @map("estimated_time")
-  questionTitle     String?              @map("question_title")
-  questionStatement String?              @map("question_statement")
+  questionSource    QuestionSourceType        @default(MANUAL) @map("question_source")
+  questionType      String                    @default("MCQ") @map("question_type")
+  estimatedTime     Int?                      @map("estimated_time")
+  questionTitle     String?                   @map("question_title")
+  questionStatement String?                   @map("question_statement")
   instructions      String?
-  questionImage     String?              @map("question_image")
+  questionImage     String?                   @map("question_image")
   attachments       Json?
-  mcqData           Json?                @map("mcq_data")
-  codingData        Json?                @map("coding_data")
-  templateId        String?              @map("template_id")
-  version           Int                  @default(1)
-  status            QuestionStatus       @default(DRAFT)
-  timesUsed         Int                  @default(0) @map("times_used")
-  lastUsed          DateTime?            @map("last_used")
-  createdAt         DateTime             @default(now()) @map("created_at")
-  updatedAt         DateTime             @updatedAt @map("updated_at")
-  metadata          Json?                @default("{}")
+  mcqData           Json?                     @map("mcq_data")
+  codingData        Json?                     @map("coding_data")
+  templateId        String?                   @map("template_id")
+  version           Int                       @default(1)
+  status            QuestionStatus            @default(DRAFT)
+  timesUsed         Int                       @default(0) @map("times_used")
+  lastUsed          DateTime?                 @map("last_used")
+  createdAt         DateTime                  @default(now()) @map("created_at")
+  updatedAt         DateTime                  @updatedAt @map("updated_at")
+  metadata          Json?                     @default("{}")
   reservations      QuestionReservation?
   reviews           QuestionReview[]
   usage             QuestionUsage?
   versions          QuestionVersion[]
-  section           ExamSection?         @relation(fields: [sectionId], references: [id])
-  template          Template?            @relation(fields: [templateId], references: [id])
-  topic             Topic                @relation(fields: [topicId], references: [id])
-  concept           Concept?             @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+  section           ExamSection?              @relation(fields: [sectionId], references: [id])
+  template          Template?                 @relation(fields: [templateId], references: [id])
+  topic             Topic                     @relation(fields: [topicId], references: [id])
+  concept           Concept?                  @relation(fields: [conceptId], references: [id], onDelete: SetNull)
   reviewAuditLogs   ReviewAuditLog[]
-  batchId           String?              @map("batch_id")
-  batch             QuestionBatch?       @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  batchId           String?                   @map("batch_id")
+  batch             QuestionBatch?            @relation(fields: [batchId], references: [id], onDelete: SetNull)
   configUsages      ExamConfigQuestionUsage[]
 
   @@index([topicId])
@@ -1127,14 +1127,14 @@ model ExamWorkflowHistory {
 }
 
 model GenerationJob {
-  id           String   @id @default(cuid())
-  topic        String
-  count        Int
-  generated    Int      @default(0)
-  status       String
-  error        String?
-  result       Json?
-  category     String?
+  id             String   @id @default(cuid())
+  topic          String
+  count          Int
+  generated      Int      @default(0)
+  status         String
+  error          String?
+  result         Json?
+  category       String?
   createdAt      DateTime @default(now())
   difficulty     String?
   idempotencyKey String?
@@ -1561,45 +1561,45 @@ enum BatchState {
 }
 
 model QuestionBatch {
-  id            String               @id @default(cuid())
-  batchNumber   Int                  @map("batch_number")
-  topicId       String               @map("topic_id")
-  conceptId     String?              @map("concept_id")
-  sourceType    String               @map("source_type")
-  state         BatchState           @default(PENDING)
-  totalCount    Int                  @map("total_count")
-  validCount    Int                  @default(0) @map("valid_count")
-  createdAt     DateTime             @default(now()) @map("created_at")
-  updatedAt     DateTime             @updatedAt @map("updated_at")
+  id          String     @id @default(cuid())
+  batchNumber Int        @map("batch_number")
+  topicId     String     @map("topic_id")
+  conceptId   String?    @map("concept_id")
+  sourceType  String     @map("source_type")
+  state       BatchState @default(PENDING)
+  totalCount  Int        @map("total_count")
+  validCount  Int        @default(0) @map("valid_count")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
 
-  questions     Question[]
-  errors        QuestionBatchError[]
+  questions Question[]
+  errors    QuestionBatchError[]
 
   @@index([topicId, state])
   @@map("question_batches")
 }
 
 model QuestionBatchError {
-  id            String        @id @default(cuid())
-  batchId       String        @map("batch_id")
-  rawText       String?       @map("raw_text")
-  reason        String
-  createdAt     DateTime      @default(now()) @map("created_at")
+  id        String   @id @default(cuid())
+  batchId   String   @map("batch_id")
+  rawText   String?  @map("raw_text")
+  reason    String
+  createdAt DateTime @default(now()) @map("created_at")
 
-  batch         QuestionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batch QuestionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
   @@map("question_batch_errors")
 }
 
 model ExamConfigQuestionUsage {
-  id            String     @id @default(cuid())
-  configId      String     @map("config_id")
-  questionId    String     @map("question_id")
-  timesUsed     Int        @default(1) @map("times_used")
-  lastUsedAt    DateTime   @default(now()) @map("last_used_at")
+  id         String   @id @default(cuid())
+  configId   String   @map("config_id")
+  questionId String   @map("question_id")
+  timesUsed  Int      @default(1) @map("times_used")
+  lastUsedAt DateTime @default(now()) @map("last_used_at")
 
-  examConfig    ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
-  question      Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  examConfig ExamConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([configId, questionId])
   @@index([configId])
@@ -1608,13 +1608,13 @@ model ExamConfigQuestionUsage {
 }
 
 model ConfigReadinessStats {
-  configId                 String   @id @map("config_id")
-  readinessScore           Int      @default(0) @map("readiness_score")
-  status                   String   @default("PENDING")
-  totalRequiredQuestions   Int      @default(0) @map("total_required_questions")
-  availableUnusedCapacity  Int      @default(0) @map("available_unused_capacity")
-  detailsJson              Json     @map("details_json")
-  updatedAt                DateTime @updatedAt @map("updated_at")
+  configId                String   @id @map("config_id")
+  readinessScore          Int      @default(0) @map("readiness_score")
+  status                  String   @default("PENDING")
+  totalRequiredQuestions  Int      @default(0) @map("total_required_questions")
+  availableUnusedCapacity Int      @default(0) @map("available_unused_capacity")
+  detailsJson             Json     @map("details_json")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
   @@map("config_readiness_stats")
 }
@@ -1687,4 +1687,80 @@ model HiringSectionMapping {
   @@map("hiring_section_mappings")
 }
 
+enum CodingPatternStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
 
+model CodingOracle {
+  id                    String          @id @default(cuid())
+  key                   String          @unique
+  name                  String
+  category              String          @default("GENERAL")
+  description           String?
+  supportedDifficulties String[]        @default(["EASY", "MEDIUM", "HARD"])
+  parameterSchema       Json            @default("{}")
+  metadata              Json            @default("{}")
+  isActive              Boolean         @default(true)
+  isSystem              Boolean         @default(true)
+  version               Int             @default(1)
+  creatorId             String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  deletedAt             DateTime?
+  patterns              CodingPattern[]
+
+  @@index([key])
+  @@index([category])
+  @@index([isActive])
+  @@map("coding_oracles")
+}
+
+model CodingPattern {
+  id                     String              @id @default(cuid())
+  patternKey             String              @unique @default(cuid())
+  title                  String
+  slug                   String              @unique
+  description            String?
+  difficulty             DifficultyLevel     @default(MEDIUM)
+  status                 CodingPatternStatus @default(DRAFT)
+  version                Int                 @default(1)
+  oracleKey              String
+  statementSpecification Json                @default("{}")
+  parameterSchema        Json                @default("{}")
+  constraintSchema       Json                @default("{}")
+  aiConfiguration        Json                @default("{}")
+  starterCode            Json                @default("{}")
+  metadata               Json                @default("{}")
+  creatorId              String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  deletedAt              DateTime?
+  testCases              CodingTestCase[]
+  oracle                 CodingOracle?       @relation(fields: [oracleKey], references: [key])
+
+  @@index([patternKey])
+  @@index([oracleKey])
+  @@index([difficulty])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("coding_patterns")
+}
+
+model CodingTestCase {
+  id             String        @id @default(cuid())
+  patternId      String
+  input          Json
+  expectedOutput Json
+  isPublic       Boolean       @default(false)
+  isStress       Boolean       @default(false)
+  isBoundary     Boolean       @default(false)
+  explanation    String?
+  createdAt      DateTime      @default(now())
+  pattern        CodingPattern @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@index([patternId])
+  @@index([isPublic])
+  @@map("coding_test_cases")
+}
