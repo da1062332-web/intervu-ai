@@ -35,11 +35,17 @@ export class EnrollmentService {
       );
     }
 
+    const targetConfigId = eligibility.resolvedConfigId || dto.testId;
+
     // 2. Check if already enrolled
     const existingEnrollment =
-      await this.enrollmentRepository.findByUserAndTest(userId, dto.testId);
+      await this.enrollmentRepository.findByUserAndTest(userId, targetConfigId);
     if (existingEnrollment) {
-      throw new ConflictException("You are already enrolled in this test");
+      const enrollments = await this.enrollmentRepository.findAllByUser(userId);
+      const fullEnrollment: any = enrollments.find((e) => e.id === existingEnrollment.id);
+      if (fullEnrollment) {
+        return this.formatEnrollment(fullEnrollment);
+      }
     }
 
     // 3. Create enrollment
@@ -51,9 +57,9 @@ export class EnrollmentService {
       };
       
       if (eligibility.isExamConfig) {
-        data.examConfig = { connect: { id: dto.testId } };
+        data.examConfig = { connect: { id: targetConfigId } };
       } else {
-        data.testConfig = { connect: { id: dto.testId } };
+        data.testConfig = { connect: { id: targetConfigId } };
       }
 
       enrollment = await this.enrollmentRepository.create(data);
@@ -73,6 +79,10 @@ export class EnrollmentService {
       throw new Error("Failed to load created enrollment details");
     }
 
+    return this.formatEnrollment(fullEnrollment);
+  }
+
+  private formatEnrollment(fullEnrollment: any): EnrollResponseDto {
     return {
       enrollment: {
         id: fullEnrollment.id,

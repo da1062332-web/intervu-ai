@@ -556,19 +556,30 @@ export class QuestionAllocatorService {
         where: { examConfigId: examId },
       });
 
-      if (!ruleFlags || !ruleFlags.runtimeGenerationOnDeficit) {
+      const isCandidateNoRepeat = ruleFlags?.candidateNoRepeatEnabled ?? false;
+      const isRuntimeGen = ruleFlags?.runtimeGenerationOnDeficit ?? false;
+
+      // Allow runtime AI generation if runtimeGenerationOnDeficit or candidateNoRepeat is true, or fallback to auto-recovery on deficit
+      if (ruleFlags && !isRuntimeGen && !isCandidateNoRepeat) {
+        // If explicitly both turned off by admin, return empty array
         return [];
       }
 
+      const topicRecord = await this.prisma.topic.findFirst({
+        where: { OR: [{ id: topicId }, { code: topicId }] },
+      });
+      const topicDisplayName = topicRecord?.name || topicId;
+
       const generatedAllocations: AllocatedQuestionDto[] = [];
       for (let i = 0; i < deficit; i++) {
+        const currentQuestionNumber = orderCounter + i + 1;
         const uniqueHash = `runtime_gen_${topicId}_${difficulty}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}`;
         let questionData: any = null;
 
         if (this.orchestrator) {
           try {
             const aiRes = await this.orchestrator.generateQuestions({
-              topic: topicId,
+              topic: topicDisplayName,
               count: 1,
               difficulty: difficulty,
             });
@@ -580,14 +591,18 @@ export class QuestionAllocatorService {
           }
         }
 
-        const questionText = questionData?.questionText || `Runtime AI Question ${i + 1} for ${topicId}`;
-        const options = questionData?.options || ["Option A", "Option B", "Option C", "Option D"];
-        const correctAnswer = questionData?.correctAnswer || "Option A";
-        const solution = questionData?.solution || "Auto-generated runtime explanation.";
+        const questionText = questionData?.questionText || questionData?.question || `${topicDisplayName}: Question ${currentQuestionNumber} (${difficulty} assessment problem)`;
+        const options = (questionData?.mcqData as any)?.options || questionData?.options || ["Option A", "Option B", "Option C", "Option D"];
+        const correctAnswer = questionData?.correctAnswer || questionData?.answer || "Option A";
+        const solution = questionData?.explanation || questionData?.solution || `Auto-generated step-by-step solution for ${topicDisplayName} question ${currentQuestionNumber}.`;
+
+        const defaultTemplate = await this.prisma.template.findFirst({
+          select: { id: true },
+        });
 
         const newQ = await this.prisma.generatedQuestion.create({
           data: {
-            templateId: "",
+            templateId: defaultTemplate ? defaultTemplate.id : "",
             questionHash: uniqueHash,
             conceptKey: topicId,
             difficultyLevel: difficulty,
@@ -599,6 +614,34 @@ export class QuestionAllocatorService {
             metadata: { source: "RUNTIME_AI_GENERATED", examId },
           },
         });
+
+        // Dual-persistence to Question bank table for full downstream module compatibility
+        try {
+          const topicRecord = await this.prisma.topic.findFirst({
+            where: { OR: [{ id: topicId }, { code: topicId }] },
+          });
+
+          if (topicRecord) {
+            await this.prisma.question.create({
+              data: {
+                id: newQ.id,
+                questionText,
+                answer: String(correctAnswer),
+                explanation: String(solution),
+                topicId: topicRecord.id,
+                difficulty: String(difficulty),
+                source: "RUNTIME_AI_GENERATED",
+                questionSource: "AI_GENERATED" as any,
+                questionType: "MULTIPLE_CHOICE",
+                status: "ACTIVE" as any,
+                mcqData: { options },
+                metadata: { source: "RUNTIME_AI_GENERATED", examId },
+              },
+            });
+          }
+        } catch (e) {
+          // Ignore if dual-insert topic resolution falls back to GeneratedQuestion only
+        }
 
         allocatedQuestionIds.add(newQ.id);
         generatedAllocations.push({

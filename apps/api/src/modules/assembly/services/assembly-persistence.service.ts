@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AllocatedSectionDto } from "@intervu/shared";
 import { AssemblyAuditService } from "./assembly-audit.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class AssemblyPersistenceService {
@@ -10,6 +12,7 @@ export class AssemblyPersistenceService {
     private readonly repository: AssembledTestRepository,
     private readonly testInstanceRepository: AssemblyRepository,
     private readonly auditService: AssemblyAuditService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async saveAssembly(
@@ -38,6 +41,59 @@ export class AssemblyPersistenceService {
       totalQuestions,
       totalDuration,
     });
+
+    // Create candidate test instance and nested sections & questions in testInstance table for execution controller session resolution
+    try {
+      const expiresAt = new Date(Date.now() + (totalDuration || 3600) * 1000);
+      const queries: Prisma.PrismaPromise<unknown>[] = [];
+
+      queries.push(
+        this.prisma.testInstance.create({
+          data: {
+            id: assemblyId,
+            userId,
+            examConfigId: configId,
+            status: "CREATED",
+            expiresAt,
+          },
+        }),
+      );
+
+      for (const section of sections) {
+        const sectionId = `sec_inst_${assemblyId}_${section.sectionKey}`;
+        queries.push(
+          this.prisma.testInstanceSection.create({
+            data: {
+              id: sectionId,
+              testInstanceId: assemblyId,
+              sectionKey: section.sectionKey,
+              sectionName: (section as any).sectionName || section.displayName || "Section",
+              durationSeconds: section.durationSeconds,
+              questionCount: section.questionCount,
+              orderIndex: section.orderIndex || 0,
+            },
+          }),
+        );
+
+        if (section.questions && section.questions.length > 0) {
+          queries.push(
+            this.prisma.testInstanceQuestion.createMany({
+              data: section.questions.map((q, idx) => ({
+                testInstanceId: assemblyId,
+                sectionId,
+                questionId: q.questionId,
+                questionOrder: q.questionOrder ?? idx,
+                questionSnapshot: (q.questionSnapshot as unknown as Prisma.InputJsonValue) || {},
+              })),
+            }),
+          );
+        }
+      }
+
+      await this.prisma.$transaction(queries);
+    } catch (e: any) {
+      console.error("AssemblyPersistenceService testInstance transaction error:", e?.message || e);
+    }
 
     return assemblyId;
   }

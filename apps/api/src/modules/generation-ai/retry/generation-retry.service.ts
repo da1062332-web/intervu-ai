@@ -408,7 +408,7 @@ export class GenerationRetryService {
           }
         }
 
-          if ((template as any)?.generationStrategy === "VARIABLE") {
+          if ((!parsedQuestion.question || parsedQuestion.question.trim().length === 0) && (template as any)?.generationStrategy === "VARIABLE") {
             parsedQuestion.question = this.hydrateCanonicalQuestion(
               template,
               attemptVariables,
