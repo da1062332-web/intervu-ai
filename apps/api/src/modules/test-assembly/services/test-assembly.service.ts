@@ -4,7 +4,7 @@ import { TestRepository } from "../repositories/test.repository";
 import { AssembledTestRepository } from "../../assembly/repositories/assembled-test.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { GenerationRequest } from "@intervu-ai/contracts";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
 @Injectable()
 export class TestAssemblyService {
@@ -78,6 +78,52 @@ export class TestAssemblyService {
       this.logger.warn('Failed to lookup existing assembled test', { error: message });
     }
 
+    const idempotencyKey = createHash("sha256")
+      .update(
+        [
+          body.blueprintId || "",
+          body.sectionId || "",
+          body.topicId || "",
+          body.conceptId || "",
+          body.templateId || "",
+          body.difficulty || "",
+          String(body.quantity ?? ""),
+        ].join("|"),
+      )
+      .digest("hex");
+
+    try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+      const existingActiveJob = await prisma.generationJob.findFirst({
+        where: {
+          idempotencyKey,
+          status: { in: ["QUEUED", "RUNNING"] },
+        },
+      });
+      await prisma.$disconnect();
+
+      if (existingActiveJob) {
+        this.logger.info("Reusing active generation job for identical request", {
+          idempotencyKey,
+          existingJobId: existingActiveJob.id,
+          status: existingActiveJob.status,
+        });
+        return {
+          jobId: existingActiveJob.id,
+          topic: existingActiveJob.topic || body.topicId,
+          difficulty: existingActiveJob.difficulty || body.difficulty,
+          count: existingActiveJob.count || body.quantity,
+          status: "queued",
+        };
+      }
+    } catch (dedupeError) {
+      this.logger.warn("Failed to evaluate existing active generation job", {
+        error: dedupeError instanceof Error ? dedupeError.message : String(dedupeError),
+        idempotencyKey,
+      });
+    }
+
     const jobId = randomUUID();
     const correlationId = randomUUID(); // Ideally comes from Request Scope Context
 
@@ -125,6 +171,7 @@ export class TestAssemblyService {
           count: body.quantity || 0,
           status: "QUEUED",
           difficulty: body.difficulty as string,
+          idempotencyKey,
         },
       });
       await prisma.$disconnect();

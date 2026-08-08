@@ -1135,12 +1135,14 @@ model GenerationJob {
   error        String?
   result       Json?
   category     String?
-  createdAt    DateTime @default(now())
-  difficulty   String?
-  attemptsMade Int      @default(0)
-  maxAttempts  Int?
-  updatedAt    DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  difficulty     String?
+  idempotencyKey String?
+  attemptsMade   Int      @default(0)
+  maxAttempts    Int?
+  updatedAt      DateTime @updatedAt
 
+  @@index([status, idempotencyKey])
   @@map("generation_jobs")
 }
 
