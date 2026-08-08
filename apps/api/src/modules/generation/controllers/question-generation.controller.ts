@@ -188,7 +188,8 @@ export class QuestionGenerationController {
             difficultyLevel: template.difficultyLevel,
             questionType: template.questionType,
             options: result.question.options as any,
-            correctAnswer: result.question.correctAnswer || result.question.answer || "",
+            correctAnswer:
+              result.question.correctAnswer || result.question.answer || "",
             solution: result.question.explanation,
             metadata: {
               status: "GENERATED",
@@ -234,24 +235,28 @@ export class QuestionGenerationController {
       });
     } catch (err: any) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      await this.prisma.generationJob.update({
-        where: { id: job.id },
-        data: {
-          status: "FAILED",
-          error: errorMsg,
-          generated: generated.length,
-        },
-      }).catch(() => {});
-      await this.prisma.generationLog.create({
-        data: {
-          examId: job.id,
-          step: "GENERATE_QUESTION",
-          status: "FAILED",
-          durationMs: 0,
-          retryCount: 3,
-          message: errorMsg,
-        },
-      }).catch(() => {});
+      await this.prisma.generationJob
+        .update({
+          where: { id: job.id },
+          data: {
+            status: "FAILED",
+            error: errorMsg,
+            generated: generated.length,
+          },
+        })
+        .catch(() => {});
+      await this.prisma.generationLog
+        .create({
+          data: {
+            examId: job.id,
+            step: "GENERATE_QUESTION",
+            status: "FAILED",
+            durationMs: 0,
+            retryCount: 3,
+            message: errorMsg,
+          },
+        })
+        .catch(() => {});
       throw err;
     }
 

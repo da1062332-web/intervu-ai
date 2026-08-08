@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { GenerationStrategy, QuestionGenerationJobStatus } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/prisma/prisma.service";
+import {
+  GenerationStrategy,
+  QuestionGenerationJobStatus,
+} from "@prisma/client";
 
 @Injectable()
 export class GenerationTrackingService {
@@ -65,19 +68,19 @@ export class GenerationTrackingService {
   async getJobsByTemplate(templateId: string) {
     return this.prisma.questionGenerationJob.findMany({
       where: { templateId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         _count: {
-          select: { auditLogs: true }
-        }
-      }
+          select: { auditLogs: true },
+        },
+      },
     });
   }
 
   async getAuditLogsByJob(jobId: string) {
     return this.prisma.questionGenerationAuditLog.findMany({
       where: { jobId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
   }
 }

@@ -12,7 +12,8 @@ export class CandidateDashboardService {
     userId: string,
   ): Promise<CandidateDashboardResponseDto> {
     const data = await this.dashboardRepository.getDashboardData(userId);
-    const attemptsByConfig: Record<string, number> = (data as any).attemptsByConfig || {};
+    const attemptsByConfig: Record<string, number> =
+      (data as any).attemptsByConfig || {};
 
     // Active / in-progress tests
     const activeAttempts = data.activeAttempts.map((t: any) => {
@@ -37,8 +38,9 @@ export class CandidateDashboardService {
       name: t.examConfig?.name || t.testConfig?.displayName || "Unknown Test",
       score: Math.round(
         t.candidateResult?.percentage ??
-        t.evaluationResult?.confidenceScore ??
-        t.evaluationResult?.overallScore ?? 0
+          t.evaluationResult?.confidenceScore ??
+          t.evaluationResult?.overallScore ??
+          0,
       ),
       submittedAt: t.updatedAt?.toISOString() || null,
     }));
@@ -60,7 +62,8 @@ export class CandidateDashboardService {
         durationSeconds: e.examConfig
           ? e.examConfig.durationMinutes * 60
           : e.testConfig?.totalDurationSeconds || 0,
-        questionCount: e.examConfig?.totalQuestions || e.testConfig?.totalQuestions || 0,
+        questionCount:
+          e.examConfig?.totalQuestions || e.testConfig?.totalQuestions || 0,
         sections: e.examConfig?.sections?.map((s: any) => s.name) || [],
         enrollmentStatus: e.status,
         attemptCount,
@@ -78,34 +81,45 @@ export class CandidateDashboardService {
     const recommendedTests = data.upcomingTests
       .filter((t: any) => !enrolledConfigIds.has(t.id))
       .map((t: any) => {
-        const sumSectionQuestions = t.sections?.reduce(
-          (sum: number, s: any) => sum + (s.questionCount || 0),
-          0,
-        ) || 0;
+        const sumSectionQuestions =
+          t.sections?.reduce(
+            (sum: number, s: any) => sum + (s.questionCount || 0),
+            0,
+          ) || 0;
 
-        const sumSectionMinutes = t.sections?.reduce(
-          (sum: number, s: any) =>
-            sum +
-            (s.sectionDurationMinutes || (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0) || 0),
-          0,
-        ) || 0;
+        const sumSectionMinutes =
+          t.sections?.reduce(
+            (sum: number, s: any) =>
+              sum +
+              (s.sectionDurationMinutes ||
+                (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0) ||
+                0),
+            0,
+          ) || 0;
 
-        const questionCount = sumSectionQuestions > 0 ? sumSectionQuestions : (t.totalQuestions || 0);
+        const questionCount =
+          sumSectionQuestions > 0 ? sumSectionQuestions : t.totalQuestions || 0;
 
-        const durationMinutes = sumSectionMinutes > 0
-          ? sumSectionMinutes
-          : t.isExam
-            ? (t.durationMinutes || 0)
-            : (t.totalDurationSeconds ? Math.floor(t.totalDurationSeconds / 60) : 0);
+        const durationMinutes =
+          sumSectionMinutes > 0
+            ? sumSectionMinutes
+            : t.isExam
+              ? t.durationMinutes || 0
+              : t.totalDurationSeconds
+                ? Math.floor(t.totalDurationSeconds / 60)
+                : 0;
 
         const durationSeconds = durationMinutes * 60;
 
-        const mappedSections = t.sections?.map((s: any) => ({
-          name: t.isExam ? s.name : s.displayName,
-          displayName: t.isExam ? s.name : s.displayName,
-          questionCount: s.questionCount || 0,
-          durationMinutes: s.sectionDurationMinutes || (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0),
-        })) || [];
+        const mappedSections =
+          t.sections?.map((s: any) => ({
+            name: t.isExam ? s.name : s.displayName,
+            displayName: t.isExam ? s.name : s.displayName,
+            questionCount: s.questionCount || 0,
+            durationMinutes:
+              s.sectionDurationMinutes ||
+              (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0),
+          })) || [];
 
         return {
           configId: t.id,
@@ -133,21 +147,30 @@ export class CandidateDashboardService {
 
   async getDashboardMetrics(userId: string) {
     const data = await this.dashboardRepository.getDashboardData(userId);
-    
+
     // completedTests maps to data.completedTests
     const completedTests = data.completedTests.map((t: any) => {
-      const score = t.candidateResult?.score ?? t.evaluationResult?.overallScore ?? 0;
-      const percentage = t.candidateResult?.percentage ?? t.evaluationResult?.confidenceScore ?? score;
+      const score =
+        t.candidateResult?.score ?? t.evaluationResult?.overallScore ?? 0;
+      const percentage =
+        t.candidateResult?.percentage ??
+        t.evaluationResult?.confidenceScore ??
+        score;
       return { score, percentage };
     });
 
-    const bestScore = completedTests.length > 0 
-      ? Math.max(...completedTests.map((t: any) => Math.round(t.percentage))) 
-      : 0;
-      
-    const averageAccuracy = completedTests.length > 0
-      ? completedTests.reduce((sum: number, t: any) => sum + t.percentage, 0) / completedTests.length
-      : 0;
+    const bestScore =
+      completedTests.length > 0
+        ? Math.max(...completedTests.map((t: any) => Math.round(t.percentage)))
+        : 0;
+
+    const averageAccuracy =
+      completedTests.length > 0
+        ? completedTests.reduce(
+            (sum: number, t: any) => sum + t.percentage,
+            0,
+          ) / completedTests.length
+        : 0;
 
     return {
       bestScore,

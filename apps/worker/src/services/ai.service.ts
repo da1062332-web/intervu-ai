@@ -94,7 +94,11 @@ export class AiWorkerService {
 
         return {
           questions,
-          metadata: { source: "QUESTION_BANK", returnedFrom: "DB", count: questions.length },
+          metadata: {
+            source: "QUESTION_BANK",
+            returnedFrom: "DB",
+            count: questions.length,
+          },
         };
       }
 

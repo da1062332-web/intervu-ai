@@ -15,9 +15,9 @@ export function ScratchCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cursorIndicatorRef = useRef<HTMLDivElement | null>(null);
-  
+
   const { canvasHistory, canvasIndex, pushCanvasState, undo, redo, clearCanvas } = useScratchPad();
-  
+
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
   const [color, setColor] = useState<string>('#0f172a');
   const [brushSize, setBrushSize] = useState<number>(5);
@@ -134,7 +134,9 @@ export function ScratchCanvas() {
   };
 
   // Hardware-accelerated direct DOM update for custom drawing cursor without triggering React re-renders
-  const updateCursorPosition = (e: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent) => {
+  const updateCursorPosition = (
+    e: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent,
+  ) => {
     const { x, y } = getCoordinates(e);
     if (cursorIndicatorRef.current && ('clientX' in e || 'touches' in e)) {
       cursorIndicatorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
@@ -202,7 +204,9 @@ export function ScratchCanvas() {
           <button
             onClick={() => setTool('pen')}
             className={`p-1.5 rounded transition-colors cursor-pointer flex items-center gap-1 ${
-              tool === 'pen' ? 'bg-[#d6eafb] text-[#1c3e66] font-bold' : 'text-gray-600 hover:bg-gray-100'
+              tool === 'pen'
+                ? 'bg-[#d6eafb] text-[#1c3e66] font-bold'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
             title='Pencil Tool'
             aria-label='Pencil Tool'
@@ -212,7 +216,9 @@ export function ScratchCanvas() {
           <button
             onClick={() => setTool('eraser')}
             className={`p-1.5 rounded transition-colors cursor-pointer flex items-center gap-1 ${
-              tool === 'eraser' ? 'bg-[#d6eafb] text-[#1c3e66] font-bold' : 'text-gray-600 hover:bg-gray-100'
+              tool === 'eraser'
+                ? 'bg-[#d6eafb] text-[#1c3e66] font-bold'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
             title='Rubber (Eraser) Tool'
             aria-label='Rubber (Eraser) Tool'
@@ -230,7 +236,9 @@ export function ScratchCanvas() {
                 onClick={() => setColor(c)}
                 style={{ backgroundColor: c }}
                 className={`w-5 h-5 rounded-full border border-gray-300 transition-transform cursor-pointer ${
-                  color === c ? 'scale-125 ring-2 ring-blue-500 ring-offset-1 shadow-xs' : 'hover:scale-110'
+                  color === c
+                    ? 'scale-125 ring-2 ring-blue-500 ring-offset-1 shadow-xs'
+                    : 'hover:scale-110'
                 }`}
                 aria-label={`Color ${c}`}
               />
@@ -247,7 +255,9 @@ export function ScratchCanvas() {
                 key={size.label}
                 onClick={() => setBrushSize(size.value)}
                 className={`px-2 py-1 rounded flex items-center gap-1.5 transition-all cursor-pointer ${
-                  isSelected ? 'bg-gray-200 font-bold text-gray-950 shadow-2xs' : 'hover:bg-gray-100 text-gray-600'
+                  isSelected
+                    ? 'bg-gray-200 font-bold text-gray-950 shadow-2xs'
+                    : 'hover:bg-gray-100 text-gray-600'
                 }`}
                 title={`Select ${size.label} ${tool === 'pen' ? 'Pencil' : 'Rubber'} Size`}
               >
@@ -392,7 +402,8 @@ export function ScratchCanvas() {
               <span>Clear Drawing Canvas?</span>
             </div>
             <p className='text-xs text-gray-600 leading-relaxed font-normal'>
-              Are you sure you want to completely clear your freehand drawing? Your Plain Notes will not be affected.
+              Are you sure you want to completely clear your freehand drawing? Your Plain Notes will
+              not be affected.
             </p>
             <div className='flex items-center justify-end gap-2 pt-2 border-t border-gray-100'>
               <button

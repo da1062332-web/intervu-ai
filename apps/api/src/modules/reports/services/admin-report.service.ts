@@ -8,7 +8,9 @@ export class AdminReportService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  private async resolveAssessmentConfig(id: string): Promise<{ configId: string; isExam: boolean; config: any }> {
+  private async resolveAssessmentConfig(
+    id: string,
+  ): Promise<{ configId: string; isExam: boolean; config: any }> {
     let config: any = await this.prisma.testConfig.findUnique({
       where: { id },
     });
@@ -28,19 +30,34 @@ export class AdminReportService {
       include: { examConfig: true },
     });
     if (assembledTest && assembledTest.examConfig) {
-      return { configId: assembledTest.configId, isExam: true, config: assembledTest.examConfig };
+      return {
+        configId: assembledTest.configId,
+        isExam: true,
+        config: assembledTest.examConfig,
+      };
     }
 
     throw new NotFoundException(`Assessment ${id} not found`);
   }
 
-  private async resolveConfigIdIfAssembled(id?: string): Promise<string | undefined> {
+  private async resolveConfigIdIfAssembled(
+    id?: string,
+  ): Promise<string | undefined> {
     if (!id) return undefined;
-    const testConfig = await this.prisma.testConfig.findUnique({ where: { id }, select: { id: true } });
+    const testConfig = await this.prisma.testConfig.findUnique({
+      where: { id },
+      select: { id: true },
+    });
     if (testConfig) return id;
-    const examConfig = await this.prisma.examConfig.findUnique({ where: { id }, select: { id: true } });
+    const examConfig = await this.prisma.examConfig.findUnique({
+      where: { id },
+      select: { id: true },
+    });
     if (examConfig) return id;
-    const assembled = await this.prisma.assembledTest.findUnique({ where: { id }, select: { configId: true } });
+    const assembled = await this.prisma.assembledTest.findUnique({
+      where: { id },
+      select: { configId: true },
+    });
     if (assembled) return assembled.configId;
     return id;
   }
@@ -50,7 +67,11 @@ export class AdminReportService {
       assessmentId,
     });
 
-    const { configId, isExam, config: assessment } = await this.resolveAssessmentConfig(assessmentId);
+    const {
+      configId,
+      isExam,
+      config: assessment,
+    } = await this.resolveAssessmentConfig(assessmentId);
 
     const attempts = await this.prisma.evaluationResult.findMany({
       where: {
@@ -73,7 +94,8 @@ export class AdminReportService {
       return {
         assessment: {
           id: assessment.id,
-          title: assessment.displayName || assessment.name || "Unknown Assessment",
+          title:
+            assessment.displayName || assessment.name || "Unknown Assessment",
         },
         averageScore: 0,
         highestScore: 0,
@@ -133,7 +155,8 @@ export class AdminReportService {
     return {
       assessment: {
         id: assessment.id,
-        title: assessment.displayName || assessment.name || "Unknown Assessment",
+        title:
+          assessment.displayName || assessment.name || "Unknown Assessment",
       },
       averageScore,
       highestScore,
@@ -150,22 +173,35 @@ export class AdminReportService {
     const andConditions: any[] = [{ evaluationResult: { isNot: null } }];
 
     if (filters.assessmentId) {
-      const resolvedId = await this.resolveConfigIdIfAssembled(filters.assessmentId);
+      const resolvedId = await this.resolveConfigIdIfAssembled(
+        filters.assessmentId,
+      );
       andConditions.push({
-        OR: [
-          { testConfigId: resolvedId },
-          { examConfigId: resolvedId },
-        ],
+        OR: [{ testConfigId: resolvedId }, { examConfigId: resolvedId }],
       });
     }
 
     if (filters.search) {
       andConditions.push({
         OR: [
-          { user: { fullName: { contains: filters.search, mode: "insensitive" } } },
-          { user: { email: { contains: filters.search, mode: "insensitive" } } },
-          { testConfig: { displayName: { contains: filters.search, mode: "insensitive" } } },
-          { examConfig: { name: { contains: filters.search, mode: "insensitive" } } },
+          {
+            user: {
+              fullName: { contains: filters.search, mode: "insensitive" },
+            },
+          },
+          {
+            user: { email: { contains: filters.search, mode: "insensitive" } },
+          },
+          {
+            testConfig: {
+              displayName: { contains: filters.search, mode: "insensitive" },
+            },
+          },
+          {
+            examConfig: {
+              name: { contains: filters.search, mode: "insensitive" },
+            },
+          },
         ],
       });
     }
@@ -203,8 +239,12 @@ export class AdminReportService {
     const results = attempts.map((attempt: any) => {
       const cr = attempt.candidateResult;
       const score = attempt.evaluationResult?.overallScore || cr?.score || 0;
-      const assessmentName = attempt.testConfig?.displayName || attempt.examConfig?.name || 'Unknown Assessment';
-      const assessmentId = attempt.testConfig?.id || attempt.examConfig?.id || 'unknown';
+      const assessmentName =
+        attempt.testConfig?.displayName ||
+        attempt.examConfig?.name ||
+        "Unknown Assessment";
+      const assessmentId =
+        attempt.testConfig?.id || attempt.examConfig?.id || "unknown";
 
       return {
         id: attempt.id,
@@ -224,12 +264,14 @@ export class AdminReportService {
     let filteredResults = results;
     if (filters.qualification && filters.qualification !== "ALL") {
       filteredResults = filteredResults.filter(
-        (r) => r.qualification.toUpperCase() === filters.qualification.toUpperCase(),
+        (r) =>
+          r.qualification.toUpperCase() === filters.qualification.toUpperCase(),
       );
     }
     if (filters.strategy && filters.strategy !== "ALL") {
       filteredResults = filteredResults.filter(
-        (r) => r.evaluationStrategy.toUpperCase() === filters.strategy.toUpperCase(),
+        (r) =>
+          r.evaluationStrategy.toUpperCase() === filters.strategy.toUpperCase(),
       );
     }
     if (filters.minScore !== undefined) {
@@ -250,14 +292,13 @@ export class AdminReportService {
     if (assessmentId) {
       const resolvedId = await this.resolveConfigIdIfAssembled(assessmentId);
       where.attempt = {
-        OR: [
-          { testConfigId: resolvedId },
-          { examConfigId: resolvedId },
-        ],
+        OR: [{ testConfigId: resolvedId }, { examConfigId: resolvedId }],
       };
     }
 
-    const candidateResults = await (this.prisma as any).candidateResult.findMany({
+    const candidateResults = await (
+      this.prisma as any
+    ).candidateResult.findMany({
       where,
       select: { qualification: true },
     });
@@ -278,7 +319,9 @@ export class AdminReportService {
 
     const qualifiedTotal = primeCount + digitalCount + ninjaCount;
     const qualificationPercentage =
-      totalCandidates > 0 ? Math.round((qualifiedTotal / totalCandidates) * 100) : 0;
+      totalCandidates > 0
+        ? Math.round((qualifiedTotal / totalCandidates) * 100)
+        : 0;
 
     return {
       totalCandidates,

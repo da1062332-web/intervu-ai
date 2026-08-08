@@ -141,12 +141,7 @@ export function ConfigTable({ configs, isLoading }: ConfigTableProps) {
 
   return (
     <div className='mt-6'>
-      <DataTable 
-        columns={columns} 
-        data={configs} 
-        isLoading={isLoading}
-        rowKey={(row) => row.id} 
-      />
+      <DataTable columns={columns} data={configs} isLoading={isLoading} rowKey={(row) => row.id} />
 
       <ConfirmationDialog
         isOpen={!!configToArchive}

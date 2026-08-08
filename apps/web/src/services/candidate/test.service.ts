@@ -36,7 +36,9 @@ export const testService = {
             id: s.id || `section-${idx}`,
             name: s.name || s.displayName || `Section ${idx + 1}`,
             questionCount: Number(s.questionCount) || 0,
-            durationMinutes: Number(s.durationMinutes) || (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0),
+            durationMinutes:
+              Number(s.durationMinutes) ||
+              (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0),
           };
         }
         return {
@@ -47,11 +49,20 @@ export const testService = {
         };
       });
 
-      const sumSectionMins = parsedSections.reduce((sum: number, sec: any) => sum + (sec.durationMinutes || 0), 0);
-      const sumSectionQs = parsedSections.reduce((sum: number, sec: any) => sum + (sec.questionCount || 0), 0);
+      const sumSectionMins = parsedSections.reduce(
+        (sum: number, sec: any) => sum + (sec.durationMinutes || 0),
+        0,
+      );
+      const sumSectionQs = parsedSections.reduce(
+        (sum: number, sec: any) => sum + (sec.questionCount || 0),
+        0,
+      );
 
-      const durationMinutes = sumSectionMins > 0 ? sumSectionMins : (config.durationMinutes || (config.duration ? Math.floor(config.duration / 60) : null));
-      const questionCount = sumSectionQs > 0 ? sumSectionQs : (config.questionCount || 0);
+      const durationMinutes =
+        sumSectionMins > 0
+          ? sumSectionMins
+          : config.durationMinutes || (config.duration ? Math.floor(config.duration / 60) : null);
+      const questionCount = sumSectionQs > 0 ? sumSectionQs : config.questionCount || 0;
 
       return {
         id: config.configId || config.id,
@@ -70,7 +81,8 @@ export const testService = {
     const config = configs.find((c: TestConfig) => c.id === id);
     if (!config) {
       try {
-        const { executionService } = await import('@/features/candidate/execution/services/execution.service');
+        const { executionService } =
+          await import('@/features/candidate/execution/services/execution.service');
         const instance = await executionService.getTestInstance(id);
         if (instance) {
           const matchedConfig = configs.find((c: TestConfig) => c.id === instance.testConfigId);
@@ -83,13 +95,15 @@ export const testService = {
             title: instance.assessmentName || 'In-Progress Assessment',
             difficulty: 'Active Session' as any,
             durationMinutes: Math.ceil((instance.durationSeconds || 3600) / 60),
-            questionCount: instance.sections?.reduce((sum, s) => sum + (s.questions?.length || 0), 0) || 0,
-            sections: instance.sections?.map((s) => ({
-              id: s.id,
-              name: s.title || s.sectionKey || 'Section',
-              questionCount: s.questions?.length || 0,
-              durationMinutes: Math.ceil((s.durationSeconds || 900) / 60),
-            })) || [],
+            questionCount:
+              instance.sections?.reduce((sum, s) => sum + (s.questions?.length || 0), 0) || 0,
+            sections:
+              instance.sections?.map((s) => ({
+                id: s.id,
+                name: s.title || s.sectionKey || 'Section',
+                questionCount: s.questions?.length || 0,
+                durationMinutes: Math.ceil((s.durationSeconds || 900) / 60),
+              })) || [],
           };
         }
       } catch {

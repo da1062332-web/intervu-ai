@@ -49,7 +49,10 @@ describe("StartTestService", () => {
         { provide: EligibilityService, useValue: eligibilityMock },
         { provide: TestConfigRepository, useValue: testConfigRepositoryMock },
         { provide: QuestionProviderService, useValue: questionProviderMock },
-        { provide: AssembledTestRepository, useValue: assembledTestRepositoryMock },
+        {
+          provide: AssembledTestRepository,
+          useValue: assembledTestRepositoryMock,
+        },
         { provide: TestInstanceService, useValue: testInstanceMock },
         { provide: PrismaService, useValue: {} },
         { provide: FinalShufflerService, useValue: finalShufflerMock },
@@ -164,37 +167,47 @@ describe("StartTestService", () => {
     testConfigRepository.findByIdWithSections.mockResolvedValue({
       id: validConfigId,
       totalDurationSeconds: 1200,
-      sections: [{ sectionKey: 'js-basics', questionCount: 2 }],
+      sections: [{ sectionKey: "js-basics", questionCount: 2 }],
     });
 
     // Mock a published assembled test with sections and questions
     assembledTestRepository.findByConfigId.mockResolvedValue({
-      id: 'assembly-1',
+      id: "assembly-1",
       configId: validConfigId,
       sections: [
         {
-          id: 's1',
-          sectionKey: 'js-basics',
-          sectionName: 'JS Basics',
+          id: "s1",
+          sectionKey: "js-basics",
+          sectionName: "JS Basics",
           durationSeconds: 600,
           questionCount: 2,
           orderIndex: 0,
           questions: [
-            { questionId: 'q1', questionOrder: 0, questionSnapshot: { questionText: 'Q1' } },
-            { questionId: 'q2', questionOrder: 1, questionSnapshot: { questionText: 'Q2' } },
+            {
+              questionId: "q1",
+              questionOrder: 0,
+              questionSnapshot: { questionText: "Q1" },
+            },
+            {
+              questionId: "q2",
+              questionOrder: 1,
+              questionSnapshot: { questionText: "Q2" },
+            },
           ],
         },
       ],
     });
 
     testInstanceService.createTestInstance.mockResolvedValue({
-      id: 'test-inst-2',
+      id: "test-inst-2",
       status: TestInstanceStatus.CREATED,
     } as any);
 
-    const result = await service.startTest(validUserId, { testConfigId: validConfigId });
+    const result = await service.startTest(validUserId, {
+      testConfigId: validConfigId,
+    });
 
-    expect(result.testInstanceId).toBe('test-inst-2');
+    expect(result.testInstanceId).toBe("test-inst-2");
     // Ensure live generation was NOT called when published snapshot exists.
     expect(questionProvider.fetchOrGenerateQuestions).not.toHaveBeenCalled();
   });

@@ -12,9 +12,9 @@ export function useKeyboardShortcuts({ onSubmit, disabled }: KeyboardShortcutPro
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (disabled) return;
-      
+
       // Prevent shortcut if we are typing in an input or textarea
-      const isInput = 
+      const isInput =
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
         (document.activeElement as HTMLElement)?.isContentEditable;
@@ -30,7 +30,7 @@ export function useKeyboardShortcuts({ onSubmit, disabled }: KeyboardShortcutPro
         e.preventDefault();
         return;
       }
-      
+
       // Even if they ARE in an input, block specific harmful combinations like Ctrl+R, Ctrl+P, Ctrl+S, etc.
       // (Copy/paste is already blocked at the ExecutionLayout level)
       if (isInput && (e.ctrlKey || e.metaKey)) {

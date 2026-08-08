@@ -112,7 +112,8 @@ CRITICAL INSTRUCTIONS:
       "LLM insights generation completely failed. Falling back to rule-based insights.",
       {
         attemptId,
-        error: lastError instanceof Error ? lastError.message : String(lastError),
+        error:
+          lastError instanceof Error ? lastError.message : String(lastError),
       },
     );
 
@@ -203,7 +204,11 @@ CRITICAL INSTRUCTIONS:
   /**
    * Saves the generated insights to the evaluation_insights table.
    */
-  async saveInsights(attemptId: string, insights: string[], retryCount = 0): Promise<void> {
+  async saveInsights(
+    attemptId: string,
+    insights: string[],
+    retryCount = 0,
+  ): Promise<void> {
     try {
       await this.prisma.evaluationInsight.upsert({
         where: { attemptId },
@@ -219,7 +224,10 @@ CRITICAL INSTRUCTIONS:
       });
     } catch (error) {
       if (retryCount < 2) {
-        this.logger.warn("Database connection error during saveInsights, retrying...", { attemptId, retryCount });
+        this.logger.warn(
+          "Database connection error during saveInsights, retrying...",
+          { attemptId, retryCount },
+        );
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return this.saveInsights(attemptId, insights, retryCount + 1);
       }

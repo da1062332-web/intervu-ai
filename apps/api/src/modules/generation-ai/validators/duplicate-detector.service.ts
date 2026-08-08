@@ -68,8 +68,24 @@ export class DuplicateDetectorService {
       ) {
         return false;
       }
-      const keysA = Object.keys(varsA).filter(k => k !== 'templateId' && k !== 'status' && k !== 'generationStrategy' && k !== 'datasetItem').sort();
-      const keysB = Object.keys(varsB).filter(k => k !== 'templateId' && k !== 'status' && k !== 'generationStrategy' && k !== 'datasetItem').sort();
+      const keysA = Object.keys(varsA)
+        .filter(
+          (k) =>
+            k !== "templateId" &&
+            k !== "status" &&
+            k !== "generationStrategy" &&
+            k !== "datasetItem",
+        )
+        .sort();
+      const keysB = Object.keys(varsB)
+        .filter(
+          (k) =>
+            k !== "templateId" &&
+            k !== "status" &&
+            k !== "generationStrategy" &&
+            k !== "datasetItem",
+        )
+        .sort();
       if (keysA.length === 0 || keysB.length === 0) return false;
       if (keysA.length !== keysB.length) return false;
       return keysA.every((k, idx) => {
@@ -95,7 +111,11 @@ export class DuplicateDetectorService {
       }
 
       // Check duplicate variable sets for same template (only if dynamic variables exist)
-      if (candidateTemplateId && eq.templateId === candidateTemplateId && candidateVars) {
+      if (
+        candidateTemplateId &&
+        eq.templateId === candidateTemplateId &&
+        candidateVars
+      ) {
         const eqVars = (eq.metadata as any)?.variables;
         if (eqVars && areVariableSetsEqual(candidateVars, eqVars)) {
           return { duplicate: true, similarity: 1.0 };

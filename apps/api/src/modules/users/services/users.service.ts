@@ -49,8 +49,9 @@ export class UsersService {
 
     // 3. Core logic
     const updateData: Record<string, unknown> = {};
-    if (dto.name !== undefined || dto.fullName !== undefined) {
-      updateData.fullName = dto.name ?? dto.fullName;
+    const dtoAny = dto as any;
+    if (dtoAny.name !== undefined || dtoAny.fullName !== undefined) {
+      updateData.fullName = dtoAny.name ?? dtoAny.fullName;
     }
 
     const updatedUser = await this.userRepository.update(userId, updateData);

@@ -15,26 +15,23 @@ interface CandidateHistoryTableProps {
   isLoading?: boolean;
 }
 
-export function CandidateHistoryTable({
-  history,
-  isLoading = false,
-}: CandidateHistoryTableProps) {
+export function CandidateHistoryTable({ history, isLoading = false }: CandidateHistoryTableProps) {
   const getStatusBadge = (status: string) => {
     const s = status?.toUpperCase() || 'UNKNOWN';
     if (s === 'COMPLETED' || s === 'PASSED' || s === 'SUBMITTED') {
-      return <Badge variant="success">{s}</Badge>;
+      return <Badge variant='success'>{s}</Badge>;
     }
     if (s === 'IN_PROGRESS' || s === 'STARTED') {
-      return <Badge variant="warning">{s}</Badge>;
+      return <Badge variant='warning'>{s}</Badge>;
     }
-    return <Badge variant="secondary">{s}</Badge>;
+    return <Badge variant='secondary'>{s}</Badge>;
   };
 
   const columns: ColumnDef<CandidateTestHistoryItem>[] = [
     {
       id: 'assessmentName',
       header: 'Assessment',
-      cell: (row) => <span className="font-medium text-foreground">{row.assessmentName}</span>,
+      cell: (row) => <span className='font-medium text-foreground'>{row.assessmentName}</span>,
     },
     {
       id: 'status',
@@ -45,33 +42,43 @@ export function CandidateHistoryTable({
       id: 'score',
       header: 'Raw Score',
       className: 'text-center',
-      cell: (row) => <span className="font-semibold text-indigo-600 dark:text-indigo-400">{row.score}</span>,
+      cell: (row) => (
+        <span className='font-semibold text-indigo-600 dark:text-indigo-400'>{row.score}</span>
+      ),
     },
     {
       id: 'percentage',
       header: 'Percentage',
       className: 'text-center',
-      cell: (row) => <span className="font-bold text-primary">{formatScore(row.percentage)}</span>,
+      cell: (row) => <span className='font-bold text-primary'>{formatScore(row.percentage)}</span>,
     },
     {
       id: 'startedAt',
       header: 'Started',
-      cell: (row) => <span className="text-xs text-muted-foreground">{formatCandidateDateTime(row.startedAt)}</span>,
+      cell: (row) => (
+        <span className='text-xs text-muted-foreground'>
+          {formatCandidateDateTime(row.startedAt)}
+        </span>
+      ),
     },
     {
       id: 'submittedAt',
       header: 'Submitted',
-      cell: (row) => <span className="text-xs text-muted-foreground">{formatCandidateDateTime(row.submittedAt, 'In progress')}</span>,
+      cell: (row) => (
+        <span className='text-xs text-muted-foreground'>
+          {formatCandidateDateTime(row.submittedAt, 'In progress')}
+        </span>
+      ),
     },
   ];
 
   const emptyState = (
     <EmptyState
-      variant="no-data"
-      icon={<FileText className="w-10 h-10 text-muted-foreground/50" />}
-      title="No test attempts found"
-      description="This candidate has not attempted or completed any assessments yet."
-      className="my-8 py-8 border rounded-lg"
+      variant='no-data'
+      icon={<FileText className='w-10 h-10 text-muted-foreground/50' />}
+      title='No test attempts found'
+      description='This candidate has not attempted or completed any assessments yet.'
+      className='my-8 py-8 border rounded-lg'
     />
   );
 
@@ -82,7 +89,7 @@ export function CandidateHistoryTable({
       isLoading={isLoading}
       emptyState={emptyState}
       rowKey={(row) => row.attemptId || Math.random().toString()}
-      containerClassName="border rounded-xl bg-card overflow-hidden shadow-xs"
+      containerClassName='border rounded-xl bg-card overflow-hidden shadow-xs'
     />
   );
 }

@@ -46,15 +46,15 @@ export default function AdminCandidateDetailsPage() {
 
   if (candidateError) {
     return (
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6">
-        <Button variant="ghost" onClick={() => router.push('/admin/candidates')} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+      <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
+        <Button variant='ghost' onClick={() => router.push('/admin/candidates')} className='mb-4'>
+          <ArrowLeft className='w-4 h-4 mr-2' />
           Back to Candidates
         </Button>
         <CandidateEmptyState
           error={candidateError}
-          title="Candidate Not Found"
-          description="We were unable to load profile details for this candidate ID."
+          title='Candidate Not Found'
+          description='We were unable to load profile details for this candidate ID.'
           onRetry={handleRefresh}
         />
       </div>
@@ -62,30 +62,32 @@ export default function AdminCandidateDetailsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8">
-      <div className="flex items-center justify-between mb-2">
+    <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8'>
+      <div className='flex items-center justify-between mb-2'>
         <Button
-          variant="ghost"
+          variant='ghost'
           onClick={() => router.push('/admin/candidates')}
-          className="text-muted-foreground hover:text-foreground"
+          className='text-muted-foreground hover:text-foreground'
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className='w-4 h-4 mr-2' />
           Back to Candidate List
         </Button>
         <Button
-          variant="outline"
-          size="sm"
+          variant='outline'
+          size='sm'
           onClick={handleRefresh}
-          className="flex items-center gap-2"
+          className='flex items-center gap-2'
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className='w-3.5 h-3.5' />
           Refresh Data
         </Button>
       </div>
 
       <SectionHeader
-        title={candidate?.name ? `${candidate.name} - Profile & Metrics` : 'Candidate Profile & Metrics'}
-        description="Comprehensive audit of candidate performance, evaluation statistics, and assessment history."
+        title={
+          candidate?.name ? `${candidate.name} - Profile & Metrics` : 'Candidate Profile & Metrics'
+        }
+        description='Comprehensive audit of candidate performance, evaluation statistics, and assessment history.'
         icon={User}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
@@ -94,23 +96,23 @@ export default function AdminCandidateDetailsPage() {
         ]}
       />
 
-      <section className="space-y-4">
+      <section className='space-y-4'>
         <CandidateProfileCard candidate={candidate} isLoading={isCandidateLoading} />
       </section>
 
-      <section className="space-y-4 pt-2">
-        <div className="flex items-center gap-2 pb-1 border-b border-border/40">
-          <BarChart2 className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold text-foreground">Assessment Performance Metrics</h3>
+      <section className='space-y-4 pt-2'>
+        <div className='flex items-center gap-2 pb-1 border-b border-border/40'>
+          <BarChart2 className='w-5 h-5 text-primary' />
+          <h3 className='text-lg font-bold text-foreground'>Assessment Performance Metrics</h3>
         </div>
         <CandidateStatsCards stats={stats} isLoading={isStatsLoading || isCandidateLoading} />
       </section>
 
-      <section className="space-y-4 pt-2">
-        <div className="flex items-center justify-between pb-1 border-b border-border/40">
-          <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold text-foreground">Test Assessment History</h3>
+      <section className='space-y-4 pt-2'>
+        <div className='flex items-center justify-between pb-1 border-b border-border/40'>
+          <div className='flex items-center gap-2'>
+            <History className='w-5 h-5 text-primary' />
+            <h3 className='text-lg font-bold text-foreground'>Test Assessment History</h3>
           </div>
         </div>
         <CandidateHistoryTable

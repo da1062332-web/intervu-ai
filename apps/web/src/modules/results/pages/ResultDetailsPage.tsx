@@ -7,14 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ResultStatusTracker } from '../components/ResultStatusTracker';
 import { toast } from 'sonner';
-import {
-  ArrowLeft,
-  Download,
-  Share2,
-  CheckCircle2,
-  Target,
-  XCircle,
-} from 'lucide-react';
+import { ArrowLeft, Download, Share2, CheckCircle2, Target, XCircle } from 'lucide-react';
 import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsDashboard';
 
 export const ResultDetailsPage = () => {
@@ -124,7 +117,8 @@ export const ResultDetailsPage = () => {
 
   const handleShareResult = async () => {
     const canonicalPath = `/candidate/results/${attemptId}`;
-    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${canonicalPath}` : '';
+    const shareUrl =
+      typeof window !== 'undefined' ? `${window.location.origin}${canonicalPath}` : '';
     const title = `Performance Report - ${result?.assessmentName || 'Assessment'}`;
     const text = `Check out my verified assessment performance report for ${result?.assessmentName || 'Assessment'}!`;
 

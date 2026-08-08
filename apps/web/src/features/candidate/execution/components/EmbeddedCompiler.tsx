@@ -33,10 +33,10 @@ export function EmbeddedCompiler({ onChange }: EmbeddedCompilerProps) {
   return (
     <iframe
       ref={iframeRef}
-      src="https://onecompiler.com/embed/?listenToEvents=true&codeChangeEvent=true"
-      width="100%"
-      height="550px"
-      frameBorder="0"
+      src='https://onecompiler.com/embed/?listenToEvents=true&codeChangeEvent=true'
+      width='100%'
+      height='550px'
+      frameBorder='0'
     ></iframe>
   );
 }

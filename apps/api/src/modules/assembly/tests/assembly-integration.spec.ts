@@ -78,12 +78,12 @@ describe("Assembly Module Integration Layer - End to End", () => {
         { provide: QuestionPoolRepository, useValue: mockPoolRepo },
         { provide: BlueprintBuilderService, useValue: mockBlueprintBuilder },
         { provide: AppLogger, useValue: mockLogger },
-        { 
-          provide: PrismaService, 
+        {
+          provide: PrismaService,
           useValue: {
             topic: { findUnique: jest.fn().mockResolvedValue(null) },
-            concept: { findFirst: jest.fn().mockResolvedValue(null) }
-          }
+            concept: { findFirst: jest.fn().mockResolvedValue(null) },
+          },
         },
       ],
     }).compile();

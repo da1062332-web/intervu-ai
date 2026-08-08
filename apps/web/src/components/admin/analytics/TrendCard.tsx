@@ -31,7 +31,7 @@ export const TrendCard = memo(function TrendCard({
       <Card>
         <CardContent className='pt-6 flex flex-col items-center justify-center h-full'>
           <EmptyState
-            variant="error"
+            variant='error'
             title='Failed to load analytics'
             description="We couldn't fetch the trend data."
             compact
@@ -46,7 +46,7 @@ export const TrendCard = memo(function TrendCard({
       <Card>
         <CardContent className='pt-6 flex flex-col items-center justify-center h-full'>
           <EmptyState
-            variant="no-data"
+            variant='no-data'
             title='No analytics available yet'
             description='Check back later for trend insights.'
             compact

@@ -283,7 +283,8 @@ test.describe.serial("Module 1 Cross-Module Validation E2E Scenarios", () => {
             explanationLength: "medium",
             highlightFinalAnswer: true,
           },
-          aiInstructions: "Provide deep technical explanations. Use realistic real-world engineering contexts.",
+          aiInstructions:
+            "Provide deep technical explanations. Use realistic real-world engineering contexts.",
         },
       });
     }

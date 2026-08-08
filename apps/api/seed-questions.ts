@@ -25,9 +25,9 @@ async function main() {
 
     for (let i = 0; i < concept.count; i++) {
       const qHash = `${concept.key}_${i}_${Date.now()}`;
-      
+
       let questionData: any = {};
-      
+
       if (concept.type === "mcq") {
         questionData = {
           templateId: template.id,
@@ -63,8 +63,8 @@ async function main() {
             initialCode: "def solve():\n    # write your code here\n    pass",
             testCases: [
               { input: "1", expectedOutput: "1", isHidden: false },
-              { input: "2", expectedOutput: "2", isHidden: true }
-            ]
+              { input: "2", expectedOutput: "2", isHidden: true },
+            ],
           },
         };
       }
@@ -75,7 +75,9 @@ async function main() {
         update: questionData,
       });
     }
-    console.log(`Successfully seeded ${concept.count} questions for ${concept.key}.`);
+    console.log(
+      `Successfully seeded ${concept.count} questions for ${concept.key}.`,
+    );
   }
 }
 

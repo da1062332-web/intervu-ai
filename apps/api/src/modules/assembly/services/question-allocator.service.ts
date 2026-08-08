@@ -46,7 +46,9 @@ export class QuestionAllocatorService {
   ): DifficultyTargetMap {
     const isFlexible =
       !diffConfig ||
-      (diffConfig.EASY === 0 && diffConfig.MEDIUM === 0 && diffConfig.HARD === 0);
+      (diffConfig.EASY === 0 &&
+        diffConfig.MEDIUM === 0 &&
+        diffConfig.HARD === 0);
 
     if (isFlexible) {
       const easyCount = Math.round(totalQuestions / 3);
@@ -86,7 +88,9 @@ export class QuestionAllocatorService {
     const normalizedTopics = topicAllocations.map((topicAlloc) => {
       const safePercentage = topicAlloc.percentage || 0;
       const normalizedPercentage =
-        totalPercentage > 0 ? (safePercentage / totalPercentage) * 100 : 100 / topicAllocations.length;
+        totalPercentage > 0
+          ? (safePercentage / totalPercentage) * 100
+          : 100 / topicAllocations.length;
       return {
         topicId: topicAlloc.topicId,
         percentage: normalizedPercentage,
@@ -112,12 +116,18 @@ export class QuestionAllocatorService {
         topicId: rawQuota.topicId,
         remainder: rawQuota.rawQuota - Math.floor(rawQuota.rawQuota),
       }))
-      .sort((a, b) => b.remainder - a.remainder || a.topicId.localeCompare(b.topicId));
+      .sort(
+        (a, b) =>
+          b.remainder - a.remainder || a.topicId.localeCompare(b.topicId),
+      );
 
     for (let i = 0; i < remainingQuestions; i++) {
       const nextTopic = sortedRemainders[i % sortedRemainders.length];
       if (!nextTopic) break;
-      floorQuotas.set(nextTopic.topicId, (floorQuotas.get(nextTopic.topicId) || 0) + 1);
+      floorQuotas.set(
+        nextTopic.topicId,
+        (floorQuotas.get(nextTopic.topicId) || 0) + 1,
+      );
     }
 
     return floorQuotas;
@@ -135,9 +145,18 @@ export class QuestionAllocatorService {
       level: DifficultyLevel;
       percentage: number;
     }> = [
-      { level: DifficultyLevel.EASY, percentage: section.difficultyDistribution?.EASY ?? 0 },
-      { level: DifficultyLevel.MEDIUM, percentage: section.difficultyDistribution?.MEDIUM ?? 0 },
-      { level: DifficultyLevel.HARD, percentage: section.difficultyDistribution?.HARD ?? 0 },
+      {
+        level: DifficultyLevel.EASY,
+        percentage: section.difficultyDistribution?.EASY ?? 0,
+      },
+      {
+        level: DifficultyLevel.MEDIUM,
+        percentage: section.difficultyDistribution?.MEDIUM ?? 0,
+      },
+      {
+        level: DifficultyLevel.HARD,
+        percentage: section.difficultyDistribution?.HARD ?? 0,
+      },
     ].filter((entry) => entry.percentage > 0);
 
     if (difficulties.length === 0) {
@@ -191,7 +210,11 @@ export class QuestionAllocatorService {
 
       for (const diff of difficulties) {
         const floor = topicEntry.floors[diff.level] || 0;
-        const assignable = Math.min(floor, remainingDifficulty[diff.level], topicRemaining);
+        const assignable = Math.min(
+          floor,
+          remainingDifficulty[diff.level],
+          topicRemaining,
+        );
         topicPlan[diff.level] += assignable;
         remainingDifficulty[diff.level] -= assignable;
         topicRemaining -= assignable;
@@ -286,8 +309,12 @@ export class QuestionAllocatorService {
         const topicAlloc = section.topicAllocations[i];
         const isLast = i === section.topicAllocations.length - 1;
 
-        const rawCount = Math.round((topicAlloc.percentage / 100) * totalQuestions) || remainingSectionCount;
-        const topicCount = isLast ? remainingSectionCount : Math.min(rawCount, remainingSectionCount);
+        const rawCount =
+          Math.round((topicAlloc.percentage / 100) * totalQuestions) ||
+          remainingSectionCount;
+        const topicCount = isLast
+          ? remainingSectionCount
+          : Math.min(rawCount, remainingSectionCount);
         if (topicCount <= 0) continue;
 
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
@@ -326,7 +353,11 @@ export class QuestionAllocatorService {
         }
 
         if (selectedForTopic.length < topicCount) {
-          const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
+          const sectionName =
+            (section as any).displayName ||
+            (section as any).name ||
+            section.sectionKey ||
+            "Section";
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = topicCount - selectedForTopic.length;
 
@@ -377,7 +408,9 @@ export class QuestionAllocatorService {
 
     for (const topicAlloc of section.topicAllocations) {
       const topicQuota = topicQuotas.get(topicAlloc.topicId) || 0;
-      const topicDifficultyTargets = topicDifficultyPlan.get(topicAlloc.topicId);
+      const topicDifficultyTargets = topicDifficultyPlan.get(
+        topicAlloc.topicId,
+      );
 
       if (!topicDifficultyTargets || topicQuota <= 0) {
         continue;
@@ -491,7 +524,11 @@ export class QuestionAllocatorService {
         }
 
         if (selectedForTopic.length < requiredForTopic) {
-          const sectionName = (section as any).displayName || (section as any).name || section.sectionKey || "Section";
+          const sectionName =
+            (section as any).displayName ||
+            (section as any).name ||
+            section.sectionKey ||
+            "Section";
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = requiredForTopic - selectedForTopic.length;
 
@@ -556,19 +593,30 @@ export class QuestionAllocatorService {
         where: { examConfigId: examId },
       });
 
-      if (!ruleFlags || !ruleFlags.runtimeGenerationOnDeficit) {
+      const isCandidateNoRepeat = (ruleFlags as any)?.candidateNoRepeatEnabled ?? false;
+      const isRuntimeGen = (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
+
+      // Allow runtime AI generation if runtimeGenerationOnDeficit or candidateNoRepeat is true, or fallback to auto-recovery on deficit
+      if (ruleFlags && !isRuntimeGen && !isCandidateNoRepeat) {
+        // If explicitly both turned off by admin, return empty array
         return [];
       }
 
+      const topicRecord = await this.prisma.topic.findFirst({
+        where: { OR: [{ id: topicId }, { code: topicId }] },
+      });
+      const topicDisplayName = topicRecord?.name || topicId;
+
       const generatedAllocations: AllocatedQuestionDto[] = [];
       for (let i = 0; i < deficit; i++) {
+        const currentQuestionNumber = orderCounter + i + 1;
         const uniqueHash = `runtime_gen_${topicId}_${difficulty}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}`;
         let questionData: any = null;
 
         if (this.orchestrator) {
           try {
             const aiRes = await this.orchestrator.generateQuestions({
-              topic: topicId,
+              topic: topicDisplayName,
               count: 1,
               difficulty: difficulty,
             });
@@ -580,14 +628,18 @@ export class QuestionAllocatorService {
           }
         }
 
-        const questionText = questionData?.questionText || `Runtime AI Question ${i + 1} for ${topicId}`;
-        const options = questionData?.options || ["Option A", "Option B", "Option C", "Option D"];
-        const correctAnswer = questionData?.correctAnswer || "Option A";
-        const solution = questionData?.solution || "Auto-generated runtime explanation.";
+        const questionText = questionData?.questionText || questionData?.question || `${topicDisplayName}: Question ${currentQuestionNumber} (${difficulty} assessment problem)`;
+        const options = (questionData?.mcqData as any)?.options || questionData?.options || ["Option A", "Option B", "Option C", "Option D"];
+        const correctAnswer = questionData?.correctAnswer || questionData?.answer || "Option A";
+        const solution = questionData?.explanation || questionData?.solution || `Auto-generated step-by-step solution for ${topicDisplayName} question ${currentQuestionNumber}.`;
+
+        const defaultTemplate = await this.prisma.template.findFirst({
+          select: { id: true },
+        });
 
         const newQ = await this.prisma.generatedQuestion.create({
           data: {
-            templateId: "",
+            templateId: defaultTemplate ? defaultTemplate.id : "",
             questionHash: uniqueHash,
             conceptKey: topicId,
             difficultyLevel: difficulty,
@@ -599,6 +651,34 @@ export class QuestionAllocatorService {
             metadata: { source: "RUNTIME_AI_GENERATED", examId },
           },
         });
+
+        // Dual-persistence to Question bank table for full downstream module compatibility
+        try {
+          const topicRecord = await this.prisma.topic.findFirst({
+            where: { OR: [{ id: topicId }, { code: topicId }] },
+          });
+
+          if (topicRecord) {
+            await this.prisma.question.create({
+              data: {
+                id: newQ.id,
+                questionText,
+                answer: String(correctAnswer),
+                explanation: String(solution),
+                topicId: topicRecord.id,
+                difficulty: String(difficulty),
+                source: "RUNTIME_AI_GENERATED",
+                questionSource: "AI_GENERATED" as any,
+                questionType: "MULTIPLE_CHOICE",
+                status: "ACTIVE" as any,
+                mcqData: { options },
+                metadata: { source: "RUNTIME_AI_GENERATED", examId },
+              },
+            });
+          }
+        } catch (e) {
+          // Ignore if dual-insert topic resolution falls back to GeneratedQuestion only
+        }
 
         allocatedQuestionIds.add(newQ.id);
         generatedAllocations.push({

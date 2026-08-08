@@ -13,7 +13,9 @@ export class KeepAliveService {
     const healthUrl = this.configService.get<string>("BACKEND_HEALTH_URL");
 
     if (!healthUrl) {
-      this.logger.warn("BACKEND_HEALTH_URL is not set. Keep-alive ping skipped.");
+      this.logger.warn(
+        "BACKEND_HEALTH_URL is not set. Keep-alive ping skipped.",
+      );
       return;
     }
 
@@ -23,10 +25,10 @@ export class KeepAliveService {
       hour: "numeric",
       hour12: false,
     });
-    
+
     // formatter returns a string like "24" (for midnight) or "07" or "15"
     let currentHour = parseInt(formatter.format(new Date()), 10);
-    
+
     // Intl.DateTimeFormat can sometimes return 24 for midnight, map to 0
     if (currentHour === 24) {
       currentHour = 0;
@@ -34,20 +36,24 @@ export class KeepAliveService {
 
     // Active window: 07:00 AM (7) to 11:59 PM (23)
     if (currentHour >= 7 && currentHour <= 23) {
-      this.logger.log(`Active window (IST Hour: ${currentHour}). Sending keep-alive ping to ${healthUrl}`);
+      this.logger.log(
+        `Active window (IST Hour: ${currentHour}). Sending keep-alive ping to ${healthUrl}`,
+      );
       try {
         const response = await fetch(healthUrl);
         if (response.ok) {
           this.logger.log("Keep-alive ping successful.");
         } else {
-          this.logger.error(`Keep-alive ping failed with status: ${response.status}`);
+          this.logger.error(
+            `Keep-alive ping failed with status: ${response.status}`,
+          );
         }
       } catch (error) {
         this.logger.error("Keep-alive ping failed.", error);
       }
     } else {
       this.logger.debug(
-        `Outside active window (IST Hour: ${currentHour}). Keep-alive ping skipped.`
+        `Outside active window (IST Hour: ${currentHour}). Keep-alive ping skipped.`,
       );
     }
   }

@@ -28,8 +28,7 @@ export interface UpdateScenarioPayload {
 }
 
 export const scenariosApi = {
-  getAll: (): Promise<Scenario[]> =>
-    apiClient.request<Scenario[]>('/scenarios', { method: 'GET' }),
+  getAll: (): Promise<Scenario[]> => apiClient.request<Scenario[]>('/scenarios', { method: 'GET' }),
 
   getById: (id: string): Promise<Scenario> =>
     apiClient.request<Scenario>(`/scenarios/${id}`, { method: 'GET' }),

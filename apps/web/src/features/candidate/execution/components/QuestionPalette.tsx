@@ -42,7 +42,12 @@ export const QuestionPalette = memo(function QuestionPalette() {
         runningCount += sectionLength;
       }
     }
-    return { startIndex: start, endIndex: end, currentSectionTitle: title, activeSectionIdx: secIdx };
+    return {
+      startIndex: start,
+      endIndex: end,
+      currentSectionTitle: title,
+      activeSectionIdx: secIdx,
+    };
   }, [testInstance, currentQuestionIndex, questions.length]);
 
   const visiblePalette = palette.slice(startIndex, endIndex);
@@ -52,7 +57,13 @@ export const QuestionPalette = memo(function QuestionPalette() {
     const absIdx = startIndex + idx;
     const qId = questions[absIdx]?.id;
     const ans = answers[qId];
-    const hasAns = qId ? !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse) : false;
+    const hasAns = qId
+      ? !!(
+          ans?.selectedOptionId ||
+          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+          ans?.textResponse
+        )
+      : false;
     return hasAns && ans?.status !== 'MARKED_FOR_REVIEW';
   }).length;
 
@@ -66,17 +77,28 @@ export const QuestionPalette = memo(function QuestionPalette() {
     const absIdx = startIndex + idx;
     const qId = questions[absIdx]?.id;
     const ans = answers[qId];
-    const hasAns = qId ? !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse) : false;
-    return !hasAns && (absIdx <= currentQuestionIndex || status === 'CURRENT') && ans?.status !== 'MARKED_FOR_REVIEW';
+    const hasAns = qId
+      ? !!(
+          ans?.selectedOptionId ||
+          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+          ans?.textResponse
+        )
+      : false;
+    return (
+      !hasAns &&
+      (absIdx <= currentQuestionIndex || status === 'CURRENT') &&
+      ans?.status !== 'MARKED_FOR_REVIEW'
+    );
   }).length;
 
-  const notVisitedCount = Math.max(0, visiblePalette.length - answeredCount - markedCount - notAnsweredCount);
+  const notVisitedCount = Math.max(
+    0,
+    visiblePalette.length - answeredCount - markedCount - notAnsweredCount,
+  );
 
   // Check if there is an actual subsequent section to navigate to
   const hasNextSection = Boolean(
-    testInstance &&
-    testInstance.sections &&
-    activeSectionIdx + 1 < testInstance.sections.length
+    testInstance && testInstance.sections && activeSectionIdx + 1 < testInstance.sections.length,
   );
 
   const handleNextSectionClick = () => {
@@ -128,11 +150,10 @@ export const QuestionPalette = memo(function QuestionPalette() {
           {/* Section Notice & Title */}
           <div className='mt-1 mb-2 shrink-0 border-t border-[#b7d5ec]/60 pt-3'>
             <p className='text-xs text-gray-700 font-normal mb-0.5'>
-              You are viewing <span className='font-bold text-gray-900'>{currentSectionTitle}</span> section
+              You are viewing <span className='font-bold text-gray-900'>{currentSectionTitle}</span>{' '}
+              section
             </p>
-            <p className='text-xs font-bold text-gray-900'>
-              Question Palette:
-            </p>
+            <p className='text-xs font-bold text-gray-900'>Question Palette:</p>
           </div>
 
           {/* Scrollable Question Grid */}
@@ -151,7 +172,8 @@ export const QuestionPalette = memo(function QuestionPalette() {
                       )
                     : false;
 
-                  let displayState: 'ANSWERED' | 'NOT_ANSWERED' | 'MARKED' | 'NOT_VISITED' = 'NOT_VISITED';
+                  let displayState: 'ANSWERED' | 'NOT_ANSWERED' | 'MARKED' | 'NOT_VISITED' =
+                    'NOT_VISITED';
                   if (ans?.status === 'MARKED_FOR_REVIEW' || status === 'MARKED_FOR_REVIEW') {
                     displayState = 'MARKED';
                   } else if (isAnswered) {
@@ -198,10 +220,7 @@ export const QuestionPalette = memo(function QuestionPalette() {
         </div>
       </div>
 
-      <InstructionsModal
-        isOpen={isInstructionsOpen}
-        onClose={() => setIsInstructionsOpen(false)}
-      />
+      <InstructionsModal isOpen={isInstructionsOpen} onClose={() => setIsInstructionsOpen(false)} />
     </>
   );
 });

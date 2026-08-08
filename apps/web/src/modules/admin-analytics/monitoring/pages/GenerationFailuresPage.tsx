@@ -61,23 +61,25 @@ export function GenerationFailuresPage() {
     {
       id: 'jobId',
       header: 'Job ID',
-      cell: (row) => <span className="font-mono font-semibold text-muted-foreground">{row.jobId}</span>,
+      cell: (row) => (
+        <span className='font-mono font-semibold text-muted-foreground'>{row.jobId}</span>
+      ),
     },
     {
       id: 'topic',
       header: 'Topic Target',
-      cell: (row) => <span className="font-semibold text-foreground">{row.topic}</span>,
+      cell: (row) => <span className='font-semibold text-foreground'>{row.topic}</span>,
     },
     {
       id: 'volume',
       header: 'Volume',
-      cell: (row) => <span className="text-muted-foreground">{row.count} questions</span>,
+      cell: (row) => <span className='text-muted-foreground'>{row.count} questions</span>,
     },
     {
       id: 'provider',
       header: 'Provider',
       cell: (row) => (
-        <span className="px-2 py-0.5 bg-foreground/5 rounded text-xs font-medium text-foreground/75">
+        <span className='px-2 py-0.5 bg-foreground/5 rounded text-xs font-medium text-foreground/75'>
           {row.provider}
         </span>
       ),
@@ -86,7 +88,7 @@ export function GenerationFailuresPage() {
       id: 'reason',
       header: 'Error Reason',
       cell: (row) => (
-        <div className="text-red-500 max-w-[280px] truncate" title={row.reason}>
+        <div className='text-red-500 max-w-[280px] truncate' title={row.reason}>
           {row.reason}
         </div>
       ),
@@ -94,14 +96,16 @@ export function GenerationFailuresPage() {
     {
       id: 'timestamp',
       header: 'Timestamp',
-      cell: (row) => <span className="text-muted-foreground">{new Date(row.timestamp).toLocaleString()}</span>,
+      cell: (row) => (
+        <span className='text-muted-foreground'>{new Date(row.timestamp).toLocaleString()}</span>
+      ),
     },
     {
       id: 'action',
       header: '',
       className: 'text-right',
       cell: (row) => (
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Button
             onClick={() => handleRetry(row.jobId)}
             disabled={retrying !== null}
@@ -126,7 +130,10 @@ export function GenerationFailuresPage() {
       <SectionHeader
         title='AI Generation Failures Center'
         description='Inspect details on failed question generation jobs, identify rate limits or prompt blocks, and restart jobs.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Generation Failures' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Generation Failures' },
+        ]}
         actions={
           <div className='flex gap-3'>
             <Button onClick={fetchFailures} disabled={loading} className='gap-2'>

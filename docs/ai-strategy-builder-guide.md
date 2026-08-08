@@ -1,6 +1,7 @@
 # AI-Assisted Strategy Builder - Complete Setup & Walkthrough Guide
 
 ## Table of Contents
+
 1. [Local Environment Setup](#local-environment-setup)
 2. [Running Backend & Frontend](#running-backend--frontend)
 3. [Feature Walkthrough](#feature-walkthrough)
@@ -13,6 +14,7 @@
 ## Local Environment Setup
 
 ### Prerequisites
+
 - **Node.js**: v18.0+ (check with `node --version`)
 - **npm**: v9.0+ (check with `npm --version`)
 - **PostgreSQL**: v12+ running locally or accessible
@@ -71,6 +73,7 @@ npm run dev
 ```
 
 **Expected output:**
+
 ```
 [Nest] 12345  - 01/15/2025 10:30:00     LOG [NestFactory] Starting Nest application...
 [Nest] 12345  - 01/15/2025 10:30:02     LOG [InstanceLoader] GenerationAiModule dependencies initialized
@@ -88,6 +91,7 @@ npm run dev
 ```
 
 **Expected output:**
+
 ```
 ▲ Next.js 16.2.10
 - Local:        http://localhost:3001
@@ -196,6 +200,7 @@ Create a question where:
 Click **"Generate Draft"** button. The AI will process your description and return:
 
 **Loading State:**
+
 - Button shows spinning loader
 - Text area is disabled
 - Wait for response (typically 2-5 seconds)
@@ -286,11 +291,13 @@ Once satisfied with the draft:
 3. Backend validates and applies the strategy
 
 **Success:**
+
 - Toast notification: "Strategy applied successfully!"
 - Page reloads with new variables/constraints in manual editor
 - AI section resets for new drafts
 
 **Error:**
+
 - Toast shows error message
 - Draft remains editable
 - Can try fixing and re-applying
@@ -347,12 +354,14 @@ Click ✕ icon to remove from template.
 ### Authentication
 
 All endpoints require:
+
 - **Authorization Header**: `Bearer {jwt_token}`
 - **Admin Role**: Only users with `ADMIN` role can access these endpoints
 
 ### Endpoint 1: Draft Strategy
 
 **Request:**
+
 ```http
 POST /templates/:id/ai/strategy/draft
 Authorization: Bearer eyJhbGc...
@@ -364,6 +373,7 @@ Content-Type: application/json
 ```
 
 **Response (Success - 200 OK):**
+
 ```json
 {
   "success": true,
@@ -408,6 +418,7 @@ Content-Type: application/json
 ```
 
 **Response (Error - 400 Bad Request):**
+
 ```json
 {
   "success": false,
@@ -417,6 +428,7 @@ Content-Type: application/json
 ```
 
 **Response (Error - 500 Server Error):**
+
 ```json
 {
   "success": false,
@@ -428,6 +440,7 @@ Content-Type: application/json
 ### Endpoint 2: Preview Strategy
 
 **Request:**
+
 ```http
 POST /templates/:id/ai/strategy/preview
 Authorization: Bearer eyJhbGc...
@@ -451,6 +464,7 @@ Content-Type: application/json
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -469,6 +483,7 @@ Content-Type: application/json
 ### Endpoint 3: Apply Strategy
 
 **Request:**
+
 ```http
 POST /templates/:id/ai/strategy/apply
 Authorization: Bearer eyJhbGc...
@@ -492,6 +507,7 @@ Content-Type: application/json
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -511,6 +527,7 @@ Content-Type: application/json
 ```
 
 **Response (Error - 404 Not Found):**
+
 ```json
 {
   "success": false,
@@ -526,6 +543,7 @@ Content-Type: application/json
 ### Example 1: Simple Math Question
 
 **Prompt:**
+
 ```
 Create variables for a multiplication question:
 - Two numbers called 'a' and 'b'
@@ -536,24 +554,22 @@ Create variables for a multiplication question:
 ```
 
 **Expected Draft:**
+
 ```json
 {
   "variables": [
-    {"name": "a", "type": "integer", "min": 10, "max": 99},
-    {"name": "b", "type": "integer", "min": 10, "max": 99}
+    { "name": "a", "type": "integer", "min": 10, "max": 99 },
+    { "name": "b", "type": "integer", "min": 10, "max": 99 }
   ],
-  "derivedVariables": [
-    {"name": "result", "expression": "a * b"}
-  ],
-  "constraints": [
-    {"rule": "result < 5000", "severity": "error"}
-  ]
+  "derivedVariables": [{ "name": "result", "expression": "a * b" }],
+  "constraints": [{ "rule": "result < 5000", "severity": "error" }]
 }
 ```
 
 ### Example 2: Financial Calculation
 
 **Prompt:**
+
 ```
 Design a compound interest question with these variables:
 - principal: starting amount between 1000 and 10000
@@ -563,15 +579,19 @@ Design a compound interest question with these variables:
 ```
 
 **Expected Draft:**
+
 ```json
 {
   "variables": [
-    {"name": "principal", "type": "number", "min": 1000, "max": 10000},
-    {"name": "rate", "type": "decimal", "min": 3, "max": 8},
-    {"name": "years", "type": "integer", "min": 1, "max": 20}
+    { "name": "principal", "type": "number", "min": 1000, "max": 10000 },
+    { "name": "rate", "type": "decimal", "min": 3, "max": 8 },
+    { "name": "years", "type": "integer", "min": 1, "max": 20 }
   ],
   "derivedVariables": [
-    {"name": "compound_amount", "expression": "principal * pow(1 + rate/100, years)"}
+    {
+      "name": "compound_amount",
+      "expression": "principal * pow(1 + rate/100, years)"
+    }
   ],
   "constraints": []
 }
@@ -580,6 +600,7 @@ Design a compound interest question with these variables:
 ### Example 3: Complex Business Logic
 
 **Prompt:**
+
 ```
 Create a e-commerce pricing question:
 - product_price between $50 and $500
@@ -591,21 +612,25 @@ Create a e-commerce pricing question:
 ```
 
 **Expected Draft:**
+
 ```json
 {
   "variables": [
-    {"name": "product_price", "type": "number", "min": 50, "max": 500},
-    {"name": "quantity", "type": "integer", "min": 1, "max": 100},
-    {"name": "tax_rate", "type": "decimal", "min": 8, "max": 8}
+    { "name": "product_price", "type": "number", "min": 50, "max": 500 },
+    { "name": "quantity", "type": "integer", "min": 1, "max": 100 },
+    { "name": "tax_rate", "type": "decimal", "min": 8, "max": 8 }
   ],
   "derivedVariables": [
-    {"name": "discount_percent", "expression": "quantity > 50 ? 10 : 0"},
-    {"name": "subtotal", "expression": "product_price * quantity * (1 - discount_percent/100)"},
-    {"name": "final_price", "expression": "subtotal * (1 + tax_rate/100)"}
+    { "name": "discount_percent", "expression": "quantity > 50 ? 10 : 0" },
+    {
+      "name": "subtotal",
+      "expression": "product_price * quantity * (1 - discount_percent/100)"
+    },
+    { "name": "final_price", "expression": "subtotal * (1 + tax_rate/100)" }
   ],
   "constraints": [
-    {"rule": "final_price >= 50", "severity": "error"},
-    {"rule": "final_price <= 5000", "severity": "error"}
+    { "rule": "final_price >= 50", "severity": "error" },
+    { "rule": "final_price <= 5000", "severity": "error" }
   ]
 }
 ```
@@ -613,6 +638,7 @@ Create a e-commerce pricing question:
 ### Example 4: Physics/Science Question
 
 **Prompt:**
+
 ```
 Create physics question variables for kinematics:
 - initial_velocity (u): 0 to 50 m/s
@@ -623,16 +649,23 @@ Create physics question variables for kinematics:
 ```
 
 **Expected Draft:**
+
 ```json
 {
   "variables": [
-    {"name": "initial_velocity", "type": "number", "min": 0, "max": 50},
-    {"name": "acceleration", "type": "number", "min": 1, "max": 10},
-    {"name": "time", "type": "decimal", "min": 0.5, "max": 10}
+    { "name": "initial_velocity", "type": "number", "min": 0, "max": 50 },
+    { "name": "acceleration", "type": "number", "min": 1, "max": 10 },
+    { "name": "time", "type": "decimal", "min": 0.5, "max": 10 }
   ],
   "derivedVariables": [
-    {"name": "distance", "expression": "initial_velocity * time + 0.5 * acceleration * pow(time, 2)"},
-    {"name": "final_velocity", "expression": "initial_velocity + acceleration * time"}
+    {
+      "name": "distance",
+      "expression": "initial_velocity * time + 0.5 * acceleration * pow(time, 2)"
+    },
+    {
+      "name": "final_velocity",
+      "expression": "initial_velocity + acceleration * time"
+    }
   ],
   "constraints": []
 }
@@ -647,11 +680,13 @@ Create physics question variables for kinematics:
 #### Issue: "OpenAI API error" when generating draft
 
 **Causes:**
+
 - Missing or invalid `OPENAI_API_KEY` in `.env.local`
 - API rate limit exceeded
 - OpenAI service is down
 
 **Solution:**
+
 1. Verify API key is set: `echo $env:OPENAI_API_KEY` (Windows PowerShell)
 2. Check OpenAI status at https://status.openai.com
 3. Wait a few minutes and retry
@@ -660,10 +695,12 @@ Create physics question variables for kinematics:
 #### Issue: "No variables in draft" after generation
 
 **Causes:**
+
 - Prompt was too vague or unclear
 - LLM didn't generate valid JSON
 
 **Solution:**
+
 1. Be more specific in your prompt
 2. Include exact variable names
 3. Specify ranges explicitly (e.g., "between 10 and 20")
@@ -672,11 +709,13 @@ Create physics question variables for kinematics:
 #### Issue: Backend not accessible at http://localhost:3000
 
 **Causes:**
+
 - Backend not started
 - Backend running on different port
 - Port 3000 already in use
 
 **Solution:**
+
 ```bash
 # Check if backend is running
 ps aux | grep "nest"
@@ -694,11 +733,13 @@ cd apps/api && npm run dev
 #### Issue: Frontend shows "Failed to connect to API"
 
 **Causes:**
+
 - Backend not running
 - CORS configuration issue
 - Wrong API URL in `.env.local`
 
 **Solution:**
+
 1. Ensure backend is running on http://localhost:3000
 2. Check `NEXT_PUBLIC_API_URL` in `.env.local` points to `http://localhost:3000`
 3. Verify network connectivity
@@ -707,11 +748,13 @@ cd apps/api && npm run dev
 #### Issue: Changes not persisting after "Apply to Template"
 
 **Causes:**
+
 - Database connection issue
 - Permission/RBAC issue
 - Validation error on backend
 
 **Solution:**
+
 1. Check backend logs for validation errors
 2. Verify you're logged in as admin
 3. Refresh page to see latest state
@@ -720,10 +763,12 @@ cd apps/api && npm run dev
 #### Issue: "Validation Notes" show undefined variable warnings
 
 **Causes:**
+
 - Derived variables reference non-existent base variables
 - Constraints reference undefined variables
 
 **Solution:**
+
 1. Review the warnings carefully
 2. Edit the variable/constraint to fix the reference
 3. Ensure all variables you reference are defined
@@ -758,4 +803,3 @@ For issues, questions, or feature requests:
    - Expected output
    - Actual output
    - Browser console errors (if any)
-

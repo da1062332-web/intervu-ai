@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Database,
-  CheckCircle,
-  Users,
-  FileText,
-  Activity,
-  Library,
-} from 'lucide-react';
+import { Database, CheckCircle, Users, FileText, Activity, Library } from 'lucide-react';
 import Link from 'next/link';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatCard } from '@/components/ui/stat-card';
@@ -82,10 +75,10 @@ export function AdminOverviewDashboard() {
 
       {/* Grid: Completion Widget + Recent Activities */}
       <section className='grid gap-6 md:grid-cols-1 lg:grid-cols-5'>
-        <div className="lg:col-span-2">
+        <div className='lg:col-span-2'>
           <AssessmentCompletionWidget />
         </div>
-        <div className="lg:col-span-3">
+        <div className='lg:col-span-3'>
           <RecentActivitiesTimeline />
         </div>
       </section>

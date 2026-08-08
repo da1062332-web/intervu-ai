@@ -32,13 +32,21 @@ export function FloatingScratchPad() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [currentPos, setCurrentPos] = useState<{ x: number; y: number }>({ x: 100, y: 100 });
-  const [size, setSize] = useState<{ width: number; height: number }>({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+  const [size, setSize] = useState<{ width: number; height: number }>({
+    width: DEFAULT_WIDTH,
+    height: DEFAULT_HEIGHT,
+  });
   const [isInitializedPos, setIsInitializedPos] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Resizing state
   const [isResizing, setIsResizing] = useState<false | 'bottom-right' | 'right' | 'bottom'>(false);
-  const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number }>({ startX: 0, startY: 0, startW: 0, startH: 0 });
+  const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number }>({
+    startX: 0,
+    startY: 0,
+    startW: 0,
+    startH: 0,
+  });
 
   // Set initial position and size or restore from store
   useEffect(() => {
@@ -59,24 +67,30 @@ export function FloatingScratchPad() {
   }, [isOpen, isMinimized, position, isInitializedPos]);
 
   // Ensure 40px of title bar always remains within viewport during resize or screen monitor shift
-  const constrainToViewport = useCallback((x: number, y: number, currentWidth = size.width) => {
-    if (typeof window === 'undefined') return { x, y };
-    const maxLeft = window.innerWidth - 40; // At least 40px visible on right edge
-    const minLeft = -currentWidth + 40;     // At least 40px visible on left edge
-    const minTop = 0;                       // Title bar cannot go above top viewport
-    const maxTop = window.innerHeight - 40; // At least 40px of top bar visible at bottom
+  const constrainToViewport = useCallback(
+    (x: number, y: number, currentWidth = size.width) => {
+      if (typeof window === 'undefined') return { x, y };
+      const maxLeft = window.innerWidth - 40; // At least 40px visible on right edge
+      const minLeft = -currentWidth + 40; // At least 40px visible on left edge
+      const minTop = 0; // Title bar cannot go above top viewport
+      const maxTop = window.innerHeight - 40; // At least 40px of top bar visible at bottom
 
-    const clampedX = Math.max(minLeft, Math.min(x, maxLeft));
-    const clampedY = Math.max(minTop, Math.min(y, maxTop));
-    return { x: clampedX, y: clampedY };
-  }, [size.width]);
+      const clampedX = Math.max(minLeft, Math.min(x, maxLeft));
+      const clampedY = Math.max(minTop, Math.min(y, maxTop));
+      return { x: clampedX, y: clampedY };
+    },
+    [size.width],
+  );
 
   useEffect(() => {
     const handleResize = () => {
       setCurrentPos((prev) => {
         const next = constrainToViewport(prev.x, prev.y);
         if (next.x !== prev.x || next.y !== prev.y) {
-          setPosition({ ...next, width: size.width, height: size.height }, { width: window.innerWidth, height: window.innerHeight });
+          setPosition(
+            { ...next, width: size.width, height: size.height },
+            { width: window.innerWidth, height: window.innerHeight },
+          );
         }
         return next;
       });
@@ -109,7 +123,10 @@ export function FloatingScratchPad() {
 
     const handleEnd = () => {
       setIsDragging(false);
-      setPosition({ ...currentPos, width: size.width, height: size.height }, { width: window.innerWidth, height: window.innerHeight });
+      setPosition(
+        { ...currentPos, width: size.width, height: size.height },
+        { width: window.innerWidth, height: window.innerHeight },
+      );
     };
 
     window.addEventListener('mousemove', handleMove);
@@ -123,16 +140,32 @@ export function FloatingScratchPad() {
       window.removeEventListener('touchmove', handleMove);
       window.removeEventListener('touchend', handleEnd);
     };
-  }, [isDragging, dragOffset, currentPos, constrainToViewport, setPosition, size.width, size.height]);
+  }, [
+    isDragging,
+    dragOffset,
+    currentPos,
+    constrainToViewport,
+    setPosition,
+    size.width,
+    size.height,
+  ]);
 
   // Border Resizing Logic
-  const startResize = (e: React.MouseEvent | React.TouchEvent, mode: 'bottom-right' | 'right' | 'bottom') => {
+  const startResize = (
+    e: React.MouseEvent | React.TouchEvent,
+    mode: 'bottom-right' | 'right' | 'bottom',
+  ) => {
     e.stopPropagation();
     bringToFront('scratchpad');
     setIsResizing(mode);
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    resizeRef.current = { startX: clientX, startY: clientY, startW: size.width, startH: size.height };
+    resizeRef.current = {
+      startX: clientX,
+      startY: clientY,
+      startW: size.width,
+      startH: size.height,
+    };
   };
 
   useEffect(() => {
@@ -148,10 +181,16 @@ export function FloatingScratchPad() {
       let newH = resizeRef.current.startH;
 
       if (isResizing === 'right' || isResizing === 'bottom-right') {
-        newW = Math.max(MIN_WIDTH, Math.min(resizeRef.current.startW + deltaX, window.innerWidth - currentPos.x - 10));
+        newW = Math.max(
+          MIN_WIDTH,
+          Math.min(resizeRef.current.startW + deltaX, window.innerWidth - currentPos.x - 10),
+        );
       }
       if (isResizing === 'bottom' || isResizing === 'bottom-right') {
-        newH = Math.max(MIN_HEIGHT, Math.min(resizeRef.current.startH + deltaY, window.innerHeight - currentPos.y - 10));
+        newH = Math.max(
+          MIN_HEIGHT,
+          Math.min(resizeRef.current.startH + deltaY, window.innerHeight - currentPos.y - 10),
+        );
       }
 
       setSize({ width: Math.round(newW), height: Math.round(newH) });
@@ -161,7 +200,7 @@ export function FloatingScratchPad() {
       setIsResizing(false);
       setPosition(
         { ...currentPos, width: size.width, height: size.height },
-        { width: window.innerWidth, height: window.innerHeight }
+        { width: window.innerWidth, height: window.innerHeight },
       );
     };
 
@@ -329,7 +368,7 @@ export function FloatingScratchPad() {
 
       {/* In-App Confirmation Modal (No native alert/confirm to preserve Fullscreen Mode) */}
       {showConfirmModal && (
-        <div 
+        <div
           className='absolute inset-0 z-[200] bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-150 select-none'
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
@@ -340,7 +379,8 @@ export function FloatingScratchPad() {
               <span>Clear Rough Paper?</span>
             </div>
             <p className='text-xs text-gray-600 leading-relaxed font-sans font-normal'>
-              Are you sure you want to completely erase your plain notes and freehand drawing history? This action cannot be undone.
+              Are you sure you want to completely erase your plain notes and freehand drawing
+              history? This action cannot be undone.
             </p>
             <div className='flex items-center justify-end gap-2 pt-2 border-t border-gray-100'>
               <button

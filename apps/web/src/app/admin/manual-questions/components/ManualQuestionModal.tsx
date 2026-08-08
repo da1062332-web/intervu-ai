@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCreateManualQuestion, useUpdateManualQuestion, useManualQuestion } from '@/services/manual-questions/hooks';
+import {
+  useCreateManualQuestion,
+  useUpdateManualQuestion,
+  useManualQuestion,
+} from '@/services/manual-questions/hooks';
 import { ManualQuestion } from '@/services/manual-questions/types';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,9 +40,17 @@ interface ManualQuestionModalProps {
   initialConceptId?: string;
 }
 
-export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId, initialConceptId }: ManualQuestionModalProps) {
+export function ManualQuestionModal({
+  isOpen,
+  onClose,
+  question,
+  initialTopicId,
+  initialConceptId,
+}: ManualQuestionModalProps) {
   const isEditing = !!question;
-  const { data: detailedQuestion, isLoading: isFetchingDetail } = useManualQuestion(question?.id || '');
+  const { data: detailedQuestion, isLoading: isFetchingDetail } = useManualQuestion(
+    question?.id || '',
+  );
   const { mutateAsync: createQuestion, isPending: isCreating } = useCreateManualQuestion();
   const { mutateAsync: updateQuestion, isPending: isUpdating } = useUpdateManualQuestion();
   const isSubmitting = isCreating || isUpdating || isFetchingDetail;
@@ -88,21 +100,24 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
           rawOpts = (targetQuestion as any).mcqData?.options || (targetQuestion as any).mcqData;
         }
         if (typeof rawOpts === 'string') {
-          try { rawOpts = JSON.parse(rawOpts); } catch (e) {}
+          try {
+            rawOpts = JSON.parse(rawOpts);
+          } catch (e) {}
         }
         if (rawOpts && rawOpts.options && Array.isArray(rawOpts.options)) {
           rawOpts = rawOpts.options;
         }
 
-        let opts = Array.isArray(rawOpts) && rawOpts.length > 0 
-          ? rawOpts.map((o: any) => String(o)) 
-          : ['', '', '', ''];
+        let opts =
+          Array.isArray(rawOpts) && rawOpts.length > 0
+            ? rawOpts.map((o: any) => String(o))
+            : ['', '', '', ''];
         while (opts.length < 4) {
           opts.push('');
         }
 
         setMcqOptions(opts);
-        const correctIdx = opts.findIndex(o => o && o.trim() === targetQuestion.answer?.trim());
+        const correctIdx = opts.findIndex((o) => o && o.trim() === targetQuestion.answer?.trim());
         setSelectedCorrectIndex(correctIdx >= 0 ? correctIdx : 0);
 
         let qType = (targetQuestion.questionType || 'MCQ').toUpperCase();
@@ -115,7 +130,7 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
           answer: targetQuestion.answer || '',
           explanation: targetQuestion.explanation || '',
           difficulty: (targetQuestion.difficulty || 'MEDIUM').toUpperCase() as any,
-          questionType: (qType === 'CODING' || qType === 'TRUE_FALSE') ? qType as any : 'MCQ',
+          questionType: qType === 'CODING' || qType === 'TRUE_FALSE' ? (qType as any) : 'MCQ',
           topicId: targetQuestion.topicId || '',
           sectionId: targetQuestion.sectionId || '',
           conceptId: targetQuestion.conceptId || '',
@@ -159,10 +174,8 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
   const onSubmit = async (data: FormValues) => {
     try {
       const isMcq = data.questionType === 'MCQ';
-      const cleanOptions = isMcq ? mcqOptions.filter(o => o && o.trim() !== '') : [];
-      const answerVal = isMcq 
-        ? (mcqOptions[selectedCorrectIndex] || data.answer) 
-        : data.answer;
+      const cleanOptions = isMcq ? mcqOptions.filter((o) => o && o.trim() !== '') : [];
+      const answerVal = isMcq ? mcqOptions[selectedCorrectIndex] || data.answer : data.answer;
 
       const payload = {
         ...data,
@@ -186,7 +199,9 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
     <Modal isOpen={isOpen} onClose={onClose} className='max-w-2xl max-h-[90vh] overflow-y-auto'>
       <div className='space-y-6 p-1'>
         <div>
-          <h3 className='text-lg font-medium'>{isEditing ? 'Edit Manual Question' : 'Add Manual Question'}</h3>
+          <h3 className='text-lg font-medium'>
+            {isEditing ? 'Edit Manual Question' : 'Add Manual Question'}
+          </h3>
           <p className='text-sm text-muted-foreground'>
             {isEditing ? 'Update the question details.' : 'Create a new manual question.'}
           </p>
@@ -202,7 +217,9 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
               {...register('questionText')}
               disabled={isSubmitting}
             />
-            {errors.questionText && <p className='text-sm text-destructive'>{errors.questionText.message}</p>}
+            {errors.questionText && (
+              <p className='text-sm text-destructive'>{errors.questionText.message}</p>
+            )}
           </div>
 
           <div className='grid grid-cols-2 gap-4'>
@@ -248,14 +265,18 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
                 }}
                 disabled={isSubmitting || isLoadingTopics}
               >
-                <option value=''>{isLoadingTopics ? 'Loading topics...' : 'Select Topic...'}</option>
+                <option value=''>
+                  {isLoadingTopics ? 'Loading topics...' : 'Select Topic...'}
+                </option>
                 {topics.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
                 ))}
               </select>
-              {errors.topicId && <p className='text-sm text-destructive'>{errors.topicId.message}</p>}
+              {errors.topicId && (
+                <p className='text-sm text-destructive'>{errors.topicId.message}</p>
+              )}
             </div>
 
             <div className='space-y-2'>
@@ -284,7 +305,8 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
           </div>
 
           {/* MCQ Option Fields */}
-          {(questionType?.toUpperCase() === 'MCQ' || questionType?.toUpperCase() === 'MULTIPLE_CHOICE') ? (
+          {questionType?.toUpperCase() === 'MCQ' ||
+          questionType?.toUpperCase() === 'MULTIPLE_CHOICE' ? (
             <div className='space-y-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-lg border'>
               <Label className='text-sm font-semibold'>MCQ Options & Correct Answer *</Label>
               <p className='text-xs text-muted-foreground mb-2'>
@@ -337,7 +359,10 @@ export function ManualQuestionModal({ isOpen, onClose, question, initialTopicId,
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
               <Label htmlFor='sectionId'>
-                Section {(((detailedQuestion as any)?.data || question) as any)?.section?.name ? `(${(((detailedQuestion as any)?.data || question) as any).section.name})` : '(Optional)'}
+                Section{' '}
+                {(((detailedQuestion as any)?.data || question) as any)?.section?.name
+                  ? `(${(((detailedQuestion as any)?.data || question) as any).section.name})`
+                  : '(Optional)'}
               </Label>
               <Input
                 id='sectionId'

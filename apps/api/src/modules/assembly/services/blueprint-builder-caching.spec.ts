@@ -18,7 +18,10 @@ describe("BlueprintBuilderService Caching MVP", () => {
       setBlueprint: jest.fn(),
     } as never;
 
-    service = new BlueprintBuilderService(repo, redis as unknown as RedisCacheService);
+    service = new BlueprintBuilderService(
+      repo,
+      redis as unknown as RedisCacheService,
+    );
   });
 
   it("should return blueprint from cache if present (Cache Hit)", async () => {
@@ -66,7 +69,11 @@ describe("BlueprintBuilderService Caching MVP", () => {
 
     expect(redis.getBlueprint).toHaveBeenCalledWith("cfg-1");
     expect(repo.getExamConfigForBlueprint).toHaveBeenCalledWith("cfg-1");
-    expect(redis.setBlueprint).toHaveBeenCalledWith("cfg-1", result, expect.any(Number));
+    expect(redis.setBlueprint).toHaveBeenCalledWith(
+      "cfg-1",
+      result,
+      expect.any(Number),
+    );
     expect(result.testConfigId).toBe("cfg-1");
   });
 

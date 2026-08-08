@@ -85,7 +85,9 @@ export class CandidateReportService {
     const rank = countHigher + 1;
 
     const countLess = allAttempts.filter((a) => a.overallScore < score).length;
-    const countEqual = allAttempts.filter((a) => a.overallScore === score).length;
+    const countEqual = allAttempts.filter(
+      (a) => a.overallScore === score,
+    ).length;
 
     // Standard percentile formula: ((countLess + 0.5 * countEqual) / total) * 100
     const percentile =
@@ -101,19 +103,29 @@ export class CandidateReportService {
     let recommendations = resultDetails.recommendations || [];
 
     try {
-      const aiAnalysis = await this.aiAnalysisService.generateAnalysis(attemptId);
+      const aiAnalysis =
+        await this.aiAnalysisService.generateAnalysis(attemptId);
       if (aiAnalysis) {
         if (aiAnalysis.strengths && aiAnalysis.strengths.length > 0) {
-          strengths = aiAnalysis.strengths.map((s: any) => ({ title: s.title, description: s.detail }));
+          strengths = aiAnalysis.strengths.map((s: any) => ({
+            title: s.title,
+            description: s.detail,
+          }));
         }
         if (aiAnalysis.weaknesses && aiAnalysis.weaknesses.length > 0) {
-          weaknesses = aiAnalysis.weaknesses.map((w: any) => ({ title: w.title, description: w.detail }));
+          weaknesses = aiAnalysis.weaknesses.map((w: any) => ({
+            title: w.title,
+            description: w.detail,
+          }));
         }
-        if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
+        if (
+          aiAnalysis.recommendations &&
+          aiAnalysis.recommendations.length > 0
+        ) {
           recommendations = aiAnalysis.recommendations.map((r: any) => ({
             title: r.title,
             description: r.action,
-            priority: r.priority
+            priority: r.priority,
           }));
         }
       }
@@ -157,15 +169,22 @@ export class CandidateReportService {
       rank,
       percentile,
       accuracy: resultDetails.percentage || 0,
-      timeTaken: attempt.candidateAnswers.reduce((total, a) => total + (a.timeSpentSeconds || 0), 0),
+      timeTaken: attempt.candidateAnswers.reduce(
+        (total, a) => total + (a.timeSpentSeconds || 0),
+        0,
+      ),
       sectionBreakdown: (resultDetails.sections || []).map((s: any) => ({
         section: s.sectionName || s.sectionKey,
         score: s.percentage || 0,
         correct: s.correct || 0,
-        total: s.totalQuestions || 0
+        total: s.totalQuestions || 0,
       })),
-      topicBreakdown: Object.entries(resultDetails.analytics?.topicAccuracy || {}).map(([topic, score]) => ({ topic, score })),
-      difficultyBreakdown: Object.entries(resultDetails.analytics?.difficultyAccuracy || {}).map(([difficulty, score]) => ({ difficulty, score })),
+      topicBreakdown: Object.entries(
+        resultDetails.analytics?.topicAccuracy || {},
+      ).map(([topic, score]) => ({ topic, score })),
+      difficultyBreakdown: Object.entries(
+        resultDetails.analytics?.difficultyAccuracy || {},
+      ).map(([difficulty, score]) => ({ difficulty, score })),
       strengths,
       weaknesses,
       recommendations,
@@ -178,7 +197,6 @@ export class CandidateReportService {
       codingSolved: resultDetails.codingSolved ?? null,
       qualificationDetails: resultDetails.qualificationDetails || null,
     };
-
   }
 
   private generateImprovementPlan(
@@ -194,7 +212,9 @@ export class CandidateReportService {
       return plan;
     }
 
-    const weaknessNames = weaknesses.map((w: any) => typeof w === 'string' ? w : w.title).filter(Boolean);
+    const weaknessNames = weaknesses
+      .map((w: any) => (typeof w === "string" ? w : w.title))
+      .filter(Boolean);
     plan.push(
       `1. Address core skills needing improvement: Focus on key areas: ${weaknessNames.join(", ")}.`,
     );
@@ -256,7 +276,9 @@ export class CandidateReportService {
     ).length;
     const rank = countHigher + 1;
     const countLess = allAttempts.filter((a) => a.overallScore < score).length;
-    const countEqual = allAttempts.filter((a) => a.overallScore === score).length;
+    const countEqual = allAttempts.filter(
+      (a) => a.overallScore === score,
+    ).length;
     const percentile =
       totalAttemptsCount > 0
         ? Math.round(

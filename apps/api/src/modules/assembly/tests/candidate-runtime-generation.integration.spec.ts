@@ -11,9 +11,8 @@ import { AssemblyValidatorService } from "../validators/assembly-validator.servi
 import { AntiRepetitionService } from "../services/anti-repetition.service";
 import { BlueprintSectionDto } from "@intervu/shared";
 
-describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integration)", () => {
+describe("Single-Question Exam: Candidate Re-Exam & AI Runtime Generation E2E Flow", () => {
   let assemblyService: AssemblyService;
-  let ruleFlagsService: RuleFlagsService;
   let mockPrisma: any;
   let mockOrchestrator: any;
   let mockQuestionPoolRepo: any;
@@ -21,14 +20,14 @@ describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integra
   let mockBlueprintBuilder: any;
   let mockPersistenceService: any;
 
-  const mockConfigId = "cfg-e2e-100";
-  const mockUserId = "user-candidate-e2e";
+  const mockConfigId = "cfg-single-question-exam";
+  const mockUserId = "candidate-user-1";
 
   beforeEach(async () => {
-    // 1. In-memory database state
+    // 1. In-memory DB state for RuleFlags & Attempts
     const ruleFlagsDb: Record<string, any> = {
       [mockConfigId]: {
-        id: "rf-1",
+        id: "rf-single-1",
         examConfigId: mockConfigId,
         negativeMarkingEnabled: false,
         sectionalCutoffEnabled: false,
@@ -49,46 +48,45 @@ describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integra
 
     mockPrisma = {
       ruleFlags: {
-        findUnique: jest.fn().mockImplementation(({ where }) => {
+        findUnique: jest.fn().mockImplementation(({ where }: { where: { examConfigId: string } }) => {
           return Promise.resolve(ruleFlagsDb[where.examConfigId] || null);
         }),
-        upsert: jest.fn().mockImplementation(({ where, update, create }) => {
+        upsert: jest.fn().mockImplementation(({ where, update, create }: any) => {
           const existing = ruleFlagsDb[where.examConfigId] || {};
           const updated = { ...existing, ...update, ...create, examConfigId: where.examConfigId };
           ruleFlagsDb[where.examConfigId] = updated;
           return Promise.resolve(updated);
         }),
-        count: jest.fn().mockResolvedValue(1),
       },
       examConfig: {
         count: jest.fn().mockResolvedValue(1),
       },
       testInstance: {
-        findMany: jest.fn().mockImplementation(({ where }) => {
+        findMany: jest.fn().mockImplementation(({ where }: { where: { userId: string } }) => {
           return Promise.resolve(
             testInstancesDb.filter((ti) => ti.userId === where.userId),
           );
         }),
       },
       generatedQuestion: {
-        create: jest.fn().mockImplementation(({ data }) => {
-          const record = { id: `gen_${Date.now()}_${Math.random()}`, ...data };
+        create: jest.fn().mockImplementation(({ data }: { data: any }) => {
+          const record = { id: `gen_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, ...data };
           generatedQuestionsDb.push(record);
           return Promise.resolve(record);
         }),
       },
     };
 
-    // 2. Mock AI Generator Orchestrator
+    // 2. Mock AI Generator Engine (GenerationOrchestratorService)
     mockOrchestrator = {
-      generateQuestions: jest.fn().mockImplementation(async (params) => {
+      generateQuestions: jest.fn().mockImplementation(async (params: { topic: string; difficulty: string }) => {
         return {
           questions: [
             {
-              questionText: `AI Runtime Generated Question for ${params.topic} (${params.difficulty})`,
-              options: ["Ans A", "Ans B", "Ans C", "Ans D"],
-              correctAnswer: "Ans A",
-              solution: "Step by step AI explanation",
+              questionText: `What is the memory structure in ${params.topic}?`,
+              options: ["Heap and Stack", "DOM Tree", "Registers only", "Kernel Space"],
+              correctAnswer: "Heap and Stack",
+              solution: "Java memory is divided into Heap memory and Stack memory.",
             },
           ],
           failures: [],
@@ -96,23 +94,18 @@ describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integra
       }),
     };
 
-    // 3. Question Bank Pool Mock (Starts with only 2 questions)
-    const initialPool = [
+    // 3. Question Bank Pool Mock (Starts with ONLY 1 Question)
+    const initialBank = [
       {
-        id: "q_pool_1",
-        questionHash: "hash_1",
-        conceptKey: "TOPIC_MATH",
+        id: "q_pool_java_1",
+        questionHash: "hash_java_1",
+        conceptKey: "TOPIC_JAVA",
         difficultyLevel: "MEDIUM",
         questionType: "MULTIPLE_CHOICE",
-        questionText: "Pool Question 1",
-      },
-      {
-        id: "q_pool_2",
-        questionHash: "hash_2",
-        conceptKey: "TOPIC_MATH",
-        difficultyLevel: "MEDIUM",
-        questionType: "MULTIPLE_CHOICE",
-        questionText: "Pool Question 2",
+        questionText: "What is an Interface in Java?",
+        options: ["Abstract contract", "Concrete class", "Database table", "Variable"],
+        correctAnswer: "Abstract contract",
+        solution: "Interfaces define abstract method signatures in Java.",
       },
     ];
 
@@ -126,17 +119,17 @@ describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integra
         }
         return Array.from(seenIds);
       }),
-      fetchQuestions: jest.fn().mockImplementation(async (filters) => {
+      fetchQuestions: jest.fn().mockImplementation(async (filters: { excludeIds?: string[] }) => {
         const exclude = new Set(filters.excludeIds || []);
-        return initialPool.filter((q) => !exclude.has(q.id));
+        return initialBank.filter((q) => !exclude.has(q.id));
       }),
     };
 
-    // 4. Mock AssembledTest Repository (Returns reusable assembly when flag is false)
+    // 4. Mock AssembledTest Repository (Returns cached assembly if candidateNoRepeatEnabled is false)
     mockAssembledTestRepo = {
       findLatestReusableByConfigId: jest.fn().mockImplementation(async (configId: string) => {
         return {
-          id: "assembly_cached_100",
+          id: "assembly_cached_single_100",
           configId,
           status: "PUBLISHED",
           createdAt: new Date(),
@@ -149,31 +142,31 @@ describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integra
       }),
     };
 
-    // 5. Mock Blueprint Builder (Section requires 2 MEDIUM Math questions)
+    // 5. Mock Blueprint Builder (Exam has 1 Section with exactly 1 Question requirement)
     mockBlueprintBuilder = {
       generateBlueprint: jest.fn().mockResolvedValue({
         sections: [
           {
-            sectionKey: "sec_math",
-            displayName: "Mathematics",
-            durationSeconds: 600,
-            questionCount: 2,
+            sectionKey: "sec_java_core",
+            displayName: "Core Java Section",
+            durationSeconds: 300,
+            questionCount: 1, // Exactly 1 Question for the entire exam
             orderIndex: 0,
-            topicAllocations: [{ topicId: "TOPIC_MATH", percentage: 100 }],
+            topicAllocations: [{ topicId: "TOPIC_JAVA", percentage: 100 }],
             difficultyDistribution: { EASY: 0, MEDIUM: 100, HARD: 0 },
           } as BlueprintSectionDto,
         ],
       }),
     };
 
-    // 6. Mock Assembly Persistence
+    // 6. Mock Assembly Persistence Service
     mockPersistenceService = {
-      saveAssembly: jest.fn().mockImplementation(async (configId, sections, userId) => {
-        const instanceId = `inst_${Date.now()}_${Math.random()}`;
+      saveAssembly: jest.fn().mockImplementation(async (configId: string, sections: any[], userId: string) => {
+        const instanceId = `inst_single_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
         const questionsList: any[] = [];
         for (const s of sections) {
           for (const q of s.questions) {
-            questionsList.push({ questionId: q.questionId });
+            questionsList.push({ questionId: q.questionId, snapshot: q.questionSnapshot });
           }
         }
         testInstancesDb.push({
@@ -194,61 +187,92 @@ describe("Candidate Unique Questions & Runtime AI Generation (End-to-End Integra
         SectionBuilderService,
         AssemblyValidatorService,
         AntiRepetitionService,
-        { provide: QuestionAllocatorService, useFactory: () => new QuestionAllocatorService(mockQuestionPoolRepo, { filterPool: (p: any) => p } as any, mockPrisma, mockOrchestrator) },
+        {
+          provide: QuestionAllocatorService,
+          useFactory: () =>
+            new QuestionAllocatorService(
+              mockQuestionPoolRepo,
+              { filterPool: (p: any) => p } as any,
+              mockPrisma,
+              mockOrchestrator,
+            ),
+        },
         { provide: QuestionPoolRepository, useValue: mockQuestionPoolRepo },
         { provide: AssembledTestRepository, useValue: mockAssembledTestRepo },
         { provide: BlueprintBuilderService, useValue: mockBlueprintBuilder },
         { provide: AssemblyPersistenceService, useValue: mockPersistenceService },
-        { provide: "RuleFlagsRepository", useValue: { checkConfigExists: () => true, findByConfigId: (id: string) => ruleFlagsDb[id], upsert: (id: string, d: any) => ruleFlagsDb[id] = { ...ruleFlagsDb[id], ...d } } },
+        {
+          provide: "RuleFlagsRepository",
+          useValue: {
+            checkConfigExists: () => true,
+            findByConfigId: (id: string) => ruleFlagsDb[id],
+            upsert: (id: string, d: any) => (ruleFlagsDb[id] = { ...ruleFlagsDb[id], ...d }),
+          },
+        },
       ],
     }).compile();
 
     assemblyService = moduleRef.get<AssemblyService>(AssemblyService);
   });
 
-  it("Step 1: Should allow Admin to enable candidateNoRepeat & runtimeGenerationOnDeficit flags", async () => {
-    const updatedFlags = await mockPrisma.ruleFlags.upsert({
-      where: { examConfigId: mockConfigId },
-      update: { candidateNoRepeatEnabled: true, runtimeGenerationOnDeficit: true },
-      create: { candidateNoRepeatEnabled: true, runtimeGenerationOnDeficit: true },
+  it("Step 1: Attempt #1 — Candidate starts 1-question exam and gets Question 1 from Bank", async () => {
+    const testInstanceId1 = await assemblyService.assembleTest(mockConfigId, mockUserId);
+    expect(testInstanceId1).toBeDefined();
+
+    // Verify Candidate History records Attempt #1 question
+    const seenQuestionsAttempt1 = await mockQuestionPoolRepo.findRecentUsedQuestions(mockUserId);
+    expect(seenQuestionsAttempt1).toHaveLength(1);
+    expect(seenQuestionsAttempt1[0]).toBe("q_pool_java_1");
+  });
+
+  it("Step 2: Attempt #2 — Candidate retakes 1-question exam, history excludes Question 1, pool has 0 unseen questions, AI Engine generates Question 2 on-the-fly", async () => {
+    // Complete Attempt #1 first
+    await assemblyService.assembleTest(mockConfigId, mockUserId);
+    const seenAttempt1 = await mockQuestionPoolRepo.findRecentUsedQuestions(mockUserId);
+    expect(seenAttempt1).toEqual(["q_pool_java_1"]);
+
+    // Candidate retakes the exam (Attempt #2)
+    const testInstanceId2 = await assemblyService.assembleTest(mockConfigId, mockUserId);
+
+    // Verify 1: Bypassed cached assembly
+    expect(testInstanceId2).not.toBe("assembly_cached_single_100");
+
+    // Verify 2: AI Engine was triggered for 1 missing question
+    expect(mockOrchestrator.generateQuestions).toHaveBeenCalledWith({
+      topic: "TOPIC_JAVA",
+      count: 1,
+      difficulty: "MEDIUM",
     });
 
-    expect(updatedFlags.candidateNoRepeatEnabled).toBe(true);
-    expect(updatedFlags.runtimeGenerationOnDeficit).toBe(true);
-  });
-
-  it("Step 2: Candidate Attempt #1 receives questions from Question Bank pool", async () => {
-    const instanceId1 = await assemblyService.assembleTest(mockConfigId, mockUserId);
-    expect(instanceId1).toBeDefined();
-
-    const history1 = await mockQuestionPoolRepo.findRecentUsedQuestions(mockUserId);
-    expect(history1).toContain("q_pool_1");
-    expect(history1).toContain("q_pool_2");
-    expect(history1).toHaveLength(2);
-  });
-
-  it("Step 3 & 4: Candidate Attempt #2 excludes Attempt #1 questions, detects deficit, generates new questions via AI, and receives ZERO overlapping questions", async () => {
-    // Run Attempt #1
-    await assemblyService.assembleTest(mockConfigId, mockUserId);
-    const attempt1Questions = await mockQuestionPoolRepo.findRecentUsedQuestions(mockUserId);
-    expect(attempt1Questions).toEqual(["q_pool_1", "q_pool_2"]);
-
-    // Run Attempt #2 for the same candidate
-    const instanceId2 = await assemblyService.assembleTest(mockConfigId, mockUserId);
-    expect(instanceId2).toBeDefined();
-    expect(instanceId2).not.toBe("assembly_cached_100"); // Verified: Bypassed cached assembly!
-
-    // Verify AI Generator was called to handle question pool deficit
-    expect(mockOrchestrator.generateQuestions).toHaveBeenCalled();
+    // Verify 3: Generated question was persisted to database
     expect(mockPrisma.generatedQuestion.create).toHaveBeenCalled();
+    const dbCallArg = mockPrisma.generatedQuestion.create.mock.calls[0][0].data;
 
-    // Verify Attempt #2 contains new generated question IDs and 0 overlap with Attempt #1
-    const allHistory = await mockQuestionPoolRepo.findRecentUsedQuestions(mockUserId);
-    expect(allHistory.length).toBeGreaterThan(2);
+    // Check validity of AI-generated question structure
+    expect(dbCallArg.conceptKey).toBe("TOPIC_JAVA");
+    expect(dbCallArg.difficultyLevel).toBe("MEDIUM");
+    expect(dbCallArg.questionText).toBe("What is the memory structure in TOPIC_JAVA?");
+    expect(dbCallArg.options).toEqual(["Heap and Stack", "DOM Tree", "Registers only", "Kernel Space"]);
+    expect(dbCallArg.correctAnswer).toBe("Heap and Stack");
+    expect(dbCallArg.solution).toContain("Heap memory and Stack memory");
+    expect(dbCallArg.metadata.source).toBe("RUNTIME_AI_GENERATED");
 
-    const attempt2NewQuestions = allHistory.filter((id: string) => !attempt1Questions.includes(id));
-    expect(attempt2NewQuestions.length).toBe(2);
-    expect(attempt2NewQuestions[0]).toMatch(/^gen_/);
-    expect(attempt2NewQuestions[1]).toMatch(/^gen_/);
+    // Verify 4: Attempt #1 question (q_pool_java_1) and Attempt #2 question (gen_...) have ZERO overlap
+    const totalSeenQuestions = await mockQuestionPoolRepo.findRecentUsedQuestions(mockUserId);
+    expect(totalSeenQuestions).toHaveLength(2);
+    expect(totalSeenQuestions[0]).toBe("q_pool_java_1");
+    expect(totalSeenQuestions[1]).toMatch(/^gen_/);
+  });
+
+  it("Step 3: If candidateNoRepeatEnabled is FALSE, system reuses cached assembly and serves same question", async () => {
+    // Disable candidateNoRepeatEnabled flag
+    await mockPrisma.ruleFlags.upsert({
+      where: { examConfigId: mockConfigId },
+      update: { candidateNoRepeatEnabled: false },
+      create: { candidateNoRepeatEnabled: false },
+    });
+
+    const testInstanceId = await assemblyService.assembleTest(mockConfigId, mockUserId);
+    expect(testInstanceId).toBe("assembly_cached_single_100"); // Returned cached assembly
   });
 });

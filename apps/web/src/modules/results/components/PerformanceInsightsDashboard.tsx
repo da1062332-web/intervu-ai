@@ -19,10 +19,7 @@ interface Props {
   onShareClick?: () => void;
 }
 
-export const PerformanceInsightsDashboard: React.FC<Props> = ({
-  attemptId,
-  resultDetails,
-}) => {
+export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resultDetails }) => {
   const { data, isLoading, isError } = usePerformanceDashboard(attemptId);
 
   if (isLoading) {
@@ -62,7 +59,7 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({
           <Trophy className='w-4 h-4 text-primary' />
           <span>Executive Performance Overview</span>
         </div>
-        
+
         <div className='pdf-section'>
           <DashboardScoreCard data={data} resultDetails={resultDetails} />
         </div>
@@ -146,11 +143,7 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({
         </div>
 
         <div id='shareable-card-section'>
-          <ShareableResultCard
-            attemptId={attemptId}
-            result={resultDetails}
-            dashboardData={data}
-          />
+          <ShareableResultCard attemptId={attemptId} result={resultDetails} dashboardData={data} />
         </div>
       </section>
     </div>

@@ -19,7 +19,7 @@ export default function BlueprintsPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Blueprints' }]}
         actions={
           <Button asChild>
-            <Link href="/admin/blueprints/new">
+            <Link href='/admin/blueprints/new'>
               <Plus className='w-4 h-4 mr-2' />
               Create Blueprint
             </Link>

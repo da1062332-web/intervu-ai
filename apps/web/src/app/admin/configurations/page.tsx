@@ -16,10 +16,13 @@ export default function ConfigsPage() {
       <SectionHeader
         title='Exam Configurations'
         description='Manage and create exam configurations for assessments.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Configurations' },
+        ]}
         actions={
           <Button asChild>
-            <Link href="/admin/configurations/new">
+            <Link href='/admin/configurations/new'>
               <Plus className='w-4 h-4 mr-2' />
               Create Config
             </Link>

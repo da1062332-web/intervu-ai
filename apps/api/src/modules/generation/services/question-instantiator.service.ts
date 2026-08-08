@@ -29,7 +29,11 @@ interface InstantiatedQuestion {
 export function parseOptionsTemplate(raw: any): string[] {
   if (!raw) return [];
   if (Array.isArray(raw)) {
-    if (raw.length === 1 && typeof raw[0] === "string" && raw[0].trim().startsWith("{")) {
+    if (
+      raw.length === 1 &&
+      typeof raw[0] === "string" &&
+      raw[0].trim().startsWith("{")
+    ) {
       try {
         const parsed = JSON.parse(raw[0]);
         if (parsed && Array.isArray(parsed.options)) {
@@ -83,12 +87,14 @@ export class QuestionInstantiatorService {
     const answer = this.resolveAnswer(solutionSchema, parameters, options);
 
     // 3.5 Generate distractors if options are missing for MCQs
-    const isMcq = ["MCQ", "MULTIPLE_CHOICE", "MCQS", "MSQ"].includes(String(template.questionType || "MULTIPLE_CHOICE").toUpperCase());
+    const isMcq = ["MCQ", "MULTIPLE_CHOICE", "MCQS", "MSQ"].includes(
+      String(template.questionType || "MULTIPLE_CHOICE").toUpperCase(),
+    );
     if (isMcq && options.length === 0 && answer && !isNaN(Number(answer))) {
       const correctVal = Number(answer);
       const isInt = Number.isInteger(correctVal);
       const distractors = new Set<string>();
-      
+
       const roundToPrecision = (val: number, step?: number) => {
         if (step === undefined) return val;
         const stepStr = step.toString();
@@ -120,7 +126,7 @@ export class QuestionInstantiatorService {
           distractors.add(strVal);
         }
       }
-      
+
       let offset = 1;
       while (distractors.size < 3) {
         const rawVal = correctVal + offset;
@@ -134,9 +140,9 @@ export class QuestionInstantiatorService {
 
       options.push(
         formatDisplayString(correctVal),
-        ...Array.from(distractors).slice(0, 3).map((value) =>
-          formatDisplayString(value),
-        ),
+        ...Array.from(distractors)
+          .slice(0, 3)
+          .map((value) => formatDisplayString(value)),
       );
       options.sort(() => Math.random() - 0.5);
     }

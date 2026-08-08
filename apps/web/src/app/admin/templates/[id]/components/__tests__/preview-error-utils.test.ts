@@ -6,10 +6,12 @@ describe('buildPreviewErrorDisplay', () => {
     const display = buildPreviewErrorDisplay({
       message: 'Template configuration error.',
       category: 'FORMULA_ERROR',
-      reason: "Unknown variable 'clild_age' in formula 'parent_age = clild_age + parent_age_difference'",
+      reason:
+        "Unknown variable 'clild_age' in formula 'parent_age = clild_age + parent_age_difference'",
       details: {
         category: 'FORMULA_ERROR',
-        reason: "Unknown variable 'clild_age' in formula 'parent_age = clild_age + parent_age_difference'",
+        reason:
+          "Unknown variable 'clild_age' in formula 'parent_age = clild_age + parent_age_difference'",
         context: {
           unknownSymbol: 'clild_age',
           formula: 'parent_age = clild_age + parent_age_difference',

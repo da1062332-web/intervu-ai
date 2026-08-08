@@ -56,7 +56,8 @@ function DataTableInner<T>({
     setItemsPerPage(pageSize);
   }, [pageSize]);
 
-  const totalPages = itemsPerPage >= data.length ? 1 : Math.max(1, Math.ceil(data.length / itemsPerPage));
+  const totalPages =
+    itemsPerPage >= data.length ? 1 : Math.max(1, Math.ceil(data.length / itemsPerPage));
 
   // Ensure current page is within bounds when data changes
   React.useEffect(() => {
@@ -66,26 +67,45 @@ function DataTableInner<T>({
   }, [data.length, totalPages, currentPage]);
 
   if (isLoading) {
-    return <TableSkeleton columns={columns.length + (hideSrNo ? 0 : 1)} rows={5} className={containerClassName} />;
+    return (
+      <TableSkeleton
+        columns={columns.length + (hideSrNo ? 0 : 1)}
+        rows={5}
+        className={containerClassName}
+      />
+    );
   }
 
-  const paginatedData = disablePagination 
-    ? data 
+  const paginatedData = disablePagination
+    ? data
     : data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="space-y-4 w-full flex flex-col h-full">
-      {search && <div className="flex items-center justify-between">{search}</div>}
-      
-      <div className={cn("overflow-auto relative border rounded-xl bg-card shadow-sm", containerClassName)}>
+    <div className='space-y-4 w-full flex flex-col h-full'>
+      {search && <div className='flex items-center justify-between'>{search}</div>}
+
+      <div
+        className={cn(
+          'overflow-auto relative border rounded-xl bg-card shadow-sm',
+          containerClassName,
+        )}
+      >
         <Table>
-          <TableHeader className="sticky top-0 bg-muted/40 z-10 backdrop-blur-md">
-            <TableRow className="hover:bg-transparent border-b border-border/40">
+          <TableHeader className='sticky top-0 bg-muted/40 z-10 backdrop-blur-md'>
+            <TableRow className='hover:bg-transparent border-b border-border/40'>
               {!hideSrNo && (
-                <TableHead className="w-[50px] text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40 text-center">Sr. No.</TableHead>
+                <TableHead className='w-[50px] text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40 text-center'>
+                  Sr. No.
+                </TableHead>
               )}
               {columns.map((col, index) => (
-                <TableHead key={col.id || index} className={cn("text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40", col.className)}>
+                <TableHead
+                  key={col.id || index}
+                  className={cn(
+                    'text-xs font-semibold tracking-wider text-muted-foreground uppercase h-11 border-b border-border/40',
+                    col.className,
+                  )}
+                >
                   {col.header}
                 </TableHead>
               ))}
@@ -94,26 +114,32 @@ function DataTableInner<T>({
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + (hideSrNo ? 0 : 1)} className="h-48 text-center p-0">
+                <TableCell
+                  colSpan={columns.length + (hideSrNo ? 0 : 1)}
+                  className='h-48 text-center p-0'
+                >
                   {emptyState || (
                     <EmptyStateCard
-                      title="No data available"
-                      description="There is no data to display in this table."
-                      cardClassName="border-0 rounded-none bg-transparent"
+                      title='No data available'
+                      description='There is no data to display in this table.'
+                      cardClassName='border-0 rounded-none bg-transparent'
                     />
                   )}
                 </TableCell>
               </TableRow>
             ) : (
               paginatedData.map((row, i) => (
-                <TableRow key={rowKey ? rowKey(row) : i} className="group transition-colors hover:bg-muted/40 border-b border-border/40">
+                <TableRow
+                  key={rowKey ? rowKey(row) : i}
+                  className='group transition-colors hover:bg-muted/40 border-b border-border/40'
+                >
                   {!hideSrNo && (
-                    <TableCell className="w-[50px] py-3.5 text-sm text-center text-muted-foreground font-medium">
+                    <TableCell className='w-[50px] py-3.5 text-sm text-center text-muted-foreground font-medium'>
                       {(currentPage - 1) * itemsPerPage + i + 1}
                     </TableCell>
                   )}
                   {columns.map((col, j) => (
-                    <TableCell key={col.id || j} className={cn("py-3.5 text-sm", col.className)}>
+                    <TableCell key={col.id || j} className={cn('py-3.5 text-sm', col.className)}>
                       {col.cell(row, (currentPage - 1) * itemsPerPage + i)}
                     </TableCell>
                   ))}
@@ -123,23 +149,24 @@ function DataTableInner<T>({
           </TableBody>
         </Table>
       </div>
-      
+
       {/* Internal Pagination if no custom pagination provided and total pages > 1 */}
       {!disablePagination && !pagination && data.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 px-2 py-4 border-t border-border/40 text-sm text-muted-foreground">
-          <div className="flex items-center space-x-4">
+        <div className='flex flex-wrap items-center justify-between gap-4 px-2 py-4 border-t border-border/40 text-sm text-muted-foreground'>
+          <div className='flex items-center space-x-4'>
             <div>
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, data.length)} of {data.length} entries
+              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+              {Math.min(currentPage * itemsPerPage, data.length)} of {data.length} entries
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground">Rows per page:</span>
+            <div className='flex items-center space-x-2'>
+              <span className='text-xs text-muted-foreground'>Rows per page:</span>
               <select
                 value={itemsPerPage}
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="h-8 px-2 text-xs bg-background border rounded-md font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className='h-8 px-2 text-xs bg-background border rounded-md font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary'
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -149,50 +176,50 @@ function DataTableInner<T>({
               </select>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className='flex items-center space-x-2'>
             <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
+              variant='outline'
+              size='icon'
+              className='h-8 w-8'
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
             >
-              <ChevronsLeft className="h-4 w-4" />
+              <ChevronsLeft className='h-4 w-4' />
             </Button>
             <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
+              variant='outline'
+              size='icon'
+              className='h-8 w-8'
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className='h-4 w-4' />
             </Button>
-            <span className="px-2 font-medium text-foreground">
+            <span className='px-2 font-medium text-foreground'>
               Page {currentPage} of {totalPages}
             </span>
             <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
+              variant='outline'
+              size='icon'
+              className='h-8 w-8'
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className='h-4 w-4' />
             </Button>
             <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
+              variant='outline'
+              size='icon'
+              className='h-8 w-8'
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
             >
-              <ChevronsRight className="h-4 w-4" />
+              <ChevronsRight className='h-4 w-4' />
             </Button>
           </div>
         </div>
       )}
-      {pagination && <div className="flex items-center justify-end">{pagination}</div>}
+      {pagination && <div className='flex items-center justify-end'>{pagination}</div>}
     </div>
   );
 }

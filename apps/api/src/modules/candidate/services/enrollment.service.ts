@@ -35,11 +35,17 @@ export class EnrollmentService {
       );
     }
 
+    const targetConfigId = eligibility.resolvedConfigId || dto.testId;
+
     // 2. Check if already enrolled
     const existingEnrollment =
-      await this.enrollmentRepository.findByUserAndTest(userId, dto.testId);
+      await this.enrollmentRepository.findByUserAndTest(userId, targetConfigId);
     if (existingEnrollment) {
-      throw new ConflictException("You are already enrolled in this test");
+      const enrollments = await this.enrollmentRepository.findAllByUser(userId);
+      const fullEnrollment: any = enrollments.find((e) => e.id === existingEnrollment.id);
+      if (fullEnrollment) {
+        return this.formatEnrollment(fullEnrollment);
+      }
     }
 
     // 3. Create enrollment
@@ -49,11 +55,11 @@ export class EnrollmentService {
         user: { connect: { id: userId } },
         status: "ENROLLED",
       };
-      
+
       if (eligibility.isExamConfig) {
-        data.examConfig = { connect: { id: dto.testId } };
+        data.examConfig = { connect: { id: targetConfigId } };
       } else {
-        data.testConfig = { connect: { id: dto.testId } };
+        data.testConfig = { connect: { id: targetConfigId } };
       }
 
       enrollment = await this.enrollmentRepository.create(data);
@@ -69,19 +75,34 @@ export class EnrollmentService {
     const enrollments = await this.enrollmentRepository.findAllByUser(userId);
     const fullEnrollment: any = enrollments.find((e) => e.id === enrollment.id);
 
-    if (!fullEnrollment || (!fullEnrollment.testConfig && !fullEnrollment.examConfig)) {
+    if (
+      !fullEnrollment ||
+      (!fullEnrollment.testConfig && !fullEnrollment.examConfig)
+    ) {
       throw new Error("Failed to load created enrollment details");
     }
 
+    return this.formatEnrollment(fullEnrollment);
+  }
+
+  private formatEnrollment(fullEnrollment: any): EnrollResponseDto {
     return {
       enrollment: {
         id: fullEnrollment.id,
         testId: fullEnrollment.examConfigId || fullEnrollment.testId,
-        testName: fullEnrollment.examConfig?.name || fullEnrollment.testConfig?.displayName || "",
+        testName:
+          fullEnrollment.examConfig?.name ||
+          fullEnrollment.testConfig?.displayName ||
+          "",
         company: fullEnrollment.testConfig?.companyName || "Unknown Company",
         status: fullEnrollment.status,
-        durationSeconds: fullEnrollment.examConfig ? (fullEnrollment.examConfig.durationMinutes * 60) : (fullEnrollment.testConfig?.totalDurationSeconds || 0),
-        questionCount: fullEnrollment.examConfig?.totalQuestions || fullEnrollment.testConfig?.totalQuestions || 0,
+        durationSeconds: fullEnrollment.examConfig
+          ? fullEnrollment.examConfig.durationMinutes * 60
+          : fullEnrollment.testConfig?.totalDurationSeconds || 0,
+        questionCount:
+          fullEnrollment.examConfig?.totalQuestions ||
+          fullEnrollment.testConfig?.totalQuestions ||
+          0,
         enrolledAt: fullEnrollment.createdAt.toISOString(),
       },
     };
@@ -94,11 +115,15 @@ export class EnrollmentService {
       enrollments: enrollments.map((e: any) => ({
         id: e.id,
         testId: e.examConfigId || e.testId,
-        testName: e.examConfig?.name || e.testConfig?.displayName || "Unknown Test",
+        testName:
+          e.examConfig?.name || e.testConfig?.displayName || "Unknown Test",
         company: e.testConfig?.companyName || "Unknown Company",
         status: e.status,
-        durationSeconds: e.examConfig ? (e.examConfig.durationMinutes * 60) : (e.testConfig?.totalDurationSeconds || 0),
-        questionCount: e.examConfig?.totalQuestions || e.testConfig?.totalQuestions || 0,
+        durationSeconds: e.examConfig
+          ? e.examConfig.durationMinutes * 60
+          : e.testConfig?.totalDurationSeconds || 0,
+        questionCount:
+          e.examConfig?.totalQuestions || e.testConfig?.totalQuestions || 0,
         enrolledAt: e.createdAt.toISOString(),
       })),
     };

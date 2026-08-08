@@ -1,7 +1,10 @@
 'use client';
 
 import { CandidateDashboardHeader } from '@/components/candidate/dashboard/CandidateDashboardHeader';
-import { useCandidateDashboard, useCandidateDashboardMetrics } from '../hooks/useCandidateDashboard';
+import {
+  useCandidateDashboard,
+  useCandidateDashboardMetrics,
+} from '../hooks/useCandidateDashboard';
 import { CandidateOverviewCard } from '../components/CandidateOverviewCard';
 import { CandidateKpiSection } from '../components/CandidateKpiSection';
 import { AvailableAssessmentSection } from '../components/AvailableAssessmentSection';
@@ -9,7 +12,11 @@ import { CandidateHistorySection } from '../components/CandidateHistorySection';
 import { CandidateProgressSection } from '../components/CandidateProgressSection';
 
 export function CandidateDashboard() {
-  const { data: dashboard, isLoading: isDashboardLoading, error: dashboardError } = useCandidateDashboard();
+  const {
+    data: dashboard,
+    isLoading: isDashboardLoading,
+    error: dashboardError,
+  } = useCandidateDashboard();
   const { data: metrics, isLoading: isMetricsLoading } = useCandidateDashboardMetrics();
 
   return (

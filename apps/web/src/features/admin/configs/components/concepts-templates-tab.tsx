@@ -41,17 +41,19 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
     return map;
   }, [allTopics]);
 
-  const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
+  const bpRawSections =
+    (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
 
-  const displaySections = (selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0)
-    ? bpRawSections.map((sec: any, idx: number) => ({
-        id: sec.sectionId || sec.id || `bp_sec_${idx}`,
-        name: sec.displayName || sec.name || `Section ${idx + 1}`,
-      }))
-    : sections;
+  const displaySections =
+    selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0
+      ? bpRawSections.map((sec: any, idx: number) => ({
+          id: sec.sectionId || sec.id || `bp_sec_${idx}`,
+          name: sec.displayName || sec.name || `Section ${idx + 1}`,
+        }))
+      : sections;
 
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
-  
+
   // Auto-select first section
   useEffect(() => {
     if (displaySections.length > 0 && !selectedSectionId) {
@@ -61,28 +63,31 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
 
   const { data: topicsData, isLoading: isLoadingTopics } = useSectionTopics(selectedSectionId);
   const topics = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.data || [];
-  
+
   const currentBpSec = Array.isArray(bpRawSections)
-    ? bpRawSections.find((s: any) => (s.sectionId || s.id) === selectedSectionId) || bpRawSections[0]
+    ? bpRawSections.find((s: any) => (s.sectionId || s.id) === selectedSectionId) ||
+      bpRawSections[0]
     : null;
 
-  const sectionBpTopics = currentBpSec?.topicAllocations || currentBpSec?.sectionTopics || currentBpSec?.topics || [];
+  const sectionBpTopics =
+    currentBpSec?.topicAllocations || currentBpSec?.sectionTopics || currentBpSec?.topics || [];
   const allBpTopics = Array.isArray(bpRawSections)
     ? bpRawSections.flatMap((s: any) => s.topicAllocations || s.sectionTopics || s.topics || [])
     : [];
 
   const bpTopics = sectionBpTopics.length > 0 ? sectionBpTopics : allBpTopics;
 
-  const displayTopics = (selectedBlueprintId && Array.isArray(bpTopics) && bpTopics.length > 0)
-    ? bpTopics.map((ta: any) => {
-        const id = ta.topicId || ta.id;
-        const name = ta.topicName || ta.name || topicNameMap[id] || id;
-        return {
-          topicId: id,
-          topicName: name,
-        };
-      })
-    : topics;
+  const displayTopics =
+    selectedBlueprintId && Array.isArray(bpTopics) && bpTopics.length > 0
+      ? bpTopics.map((ta: any) => {
+          const id = ta.topicId || ta.id;
+          const name = ta.topicName || ta.name || topicNameMap[id] || id;
+          return {
+            topicId: id,
+            topicName: name,
+          };
+        })
+      : topics;
 
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
 
@@ -96,7 +101,11 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
     }
   }, [displayTopics, selectedTopicId]);
 
-  const { data: concepts, isLoading: isLoadingConcepts, refetch: refetchConcepts } = useConcepts(selectedTopicId);
+  const {
+    data: concepts,
+    isLoading: isLoadingConcepts,
+    refetch: refetchConcepts,
+  } = useConcepts(selectedTopicId);
 
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
@@ -127,14 +136,14 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
   };
 
   if (isLoadingSections) {
-    return <Skeleton className="w-full h-64" />;
+    return <Skeleton className='w-full h-64' />;
   }
 
   if (displaySections.length === 0 && !selectedBlueprintId) {
     return (
       <EmptyState
-        title="No Sections"
-        description="You must create sections and assign topics to them before managing concepts."
+        title='No Sections'
+        description='You must create sections and assign topics to them before managing concepts.'
       />
     );
   }
@@ -149,10 +158,12 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
             </div>
             <div>
               <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
-                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+                Pre-configured by Blueprint:{' '}
+                {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
               </h4>
               <p className='text-xs text-muted-foreground mt-0.5'>
-                Concepts and question content templates are loaded directly from the blueprint rules in Read-Only Inspection Mode.
+                Concepts and question content templates are loaded directly from the blueprint rules
+                in Read-Only Inspection Mode.
               </p>
             </div>
           </div>
@@ -171,14 +182,17 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
         <div className='flex-1 p-6 flex flex-col min-w-0 bg-card'>
           <div className='flex flex-wrap items-center justify-between mb-6 gap-4 border-b pb-4'>
             <h3 className='font-semibold text-lg whitespace-nowrap'>Mapped Concepts</h3>
-            
-            <div className="flex items-center gap-4 flex-wrap justify-end">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground font-medium">Section:</span>
+
+            <div className='flex items-center gap-4 flex-wrap justify-end'>
+              <div className='flex items-center gap-2'>
+                <span className='text-sm text-muted-foreground font-medium'>Section:</span>
                 <select
                   value={selectedSectionId}
-                  onChange={(e) => { setSelectedSectionId(e.target.value); setSelectedTopicId(''); }}
-                  className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  onChange={(e) => {
+                    setSelectedSectionId(e.target.value);
+                    setSelectedTopicId('');
+                  }}
+                  className='flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                 >
                   {displaySections.map((section) => (
                     <option key={section.id} value={section.id}>
@@ -188,15 +202,15 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
                 </select>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground font-medium">Topic:</span>
+              <div className='flex items-center gap-2'>
+                <span className='text-sm text-muted-foreground font-medium'>Topic:</span>
                 <select
                   value={selectedTopicId}
                   onChange={(e) => setSelectedTopicId(e.target.value)}
-                  className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className='flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                   disabled={displayTopics.length === 0}
                 >
-                  {displayTopics.length === 0 && <option value="">No topics available</option>}
+                  {displayTopics.length === 0 && <option value=''>No topics available</option>}
                   {displayTopics.map((topic: any) => (
                     <option key={topic.topicId || topic.id} value={topic.topicId || topic.id}>
                       {topic.topicName || topic.name || 'Unnamed'}
@@ -206,7 +220,12 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
               </div>
 
               {selectedTopicId && (
-                <Button onClick={handleManageConcepts} size='sm' variant='outline' className='shadow-sm'>
+                <Button
+                  onClick={handleManageConcepts}
+                  size='sm'
+                  variant='outline'
+                  className='shadow-sm'
+                >
                   <ExternalLink className='w-4 h-4 mr-2' />
                   Manage Concepts
                 </Button>
@@ -217,7 +236,9 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
           {!selectedTopicId ? (
             <div className='flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg bg-muted/5 p-8 text-center'>
               <p className='text-muted-foreground font-medium'>Select a topic</p>
-              <p className='text-sm text-muted-foreground mt-1'>Choose a topic from the sidebar to view its concepts.</p>
+              <p className='text-sm text-muted-foreground mt-1'>
+                Choose a topic from the sidebar to view its concepts.
+              </p>
             </div>
           ) : isLoadingConcepts ? (
             <div className='space-y-3'>

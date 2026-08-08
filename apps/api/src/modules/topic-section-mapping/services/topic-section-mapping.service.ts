@@ -112,7 +112,9 @@ export class TopicSectionMappingService {
         );
       }
     } catch (e) {
-      this.logger.warn(`Could not check question pool count for topic ${topicId}: ${e}`);
+      this.logger.warn(
+        `Could not check question pool count for topic ${topicId}: ${e}`,
+      );
     }
 
     await this.repository.createMapping(sectionId, topicId);

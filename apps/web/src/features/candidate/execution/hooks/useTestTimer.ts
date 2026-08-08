@@ -2,7 +2,14 @@ import { useEffect } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 
 export function useTestTimer() {
-  const { remainingTime, setTimer, hasAttemptedResume, sectionTimingEnabled, sectionRemainingTime, setSectionTimer } = useExecutionStore();
+  const {
+    remainingTime,
+    setTimer,
+    hasAttemptedResume,
+    sectionTimingEnabled,
+    sectionRemainingTime,
+    setSectionTimer,
+  } = useExecutionStore();
 
   useEffect(() => {
     // If section timing is enabled, useSectionTimer handles the tick logic separately.

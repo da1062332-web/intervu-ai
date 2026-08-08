@@ -162,7 +162,10 @@ export class ExecutionController {
     if (testInstance?.expiresAt) {
       const now = Date.now();
       const expiresAt = new Date(testInstance.expiresAt).getTime();
-      accurateRemainingSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
+      accurateRemainingSeconds = Math.max(
+        0,
+        Math.floor((expiresAt - now) / 1000),
+      );
     }
 
     // Merge accurate remaining time into executionState for the frontend
@@ -170,7 +173,8 @@ export class ExecutionController {
       ? {
           ...state,
           // Override remainingTimeSeconds with authoritative server calculation
-          remainingTimeSeconds: accurateRemainingSeconds ?? state.remainingTimeSeconds,
+          remainingTimeSeconds:
+            accurateRemainingSeconds ?? state.remainingTimeSeconds,
         }
       : accurateRemainingSeconds !== null
         ? { remainingTimeSeconds: accurateRemainingSeconds }
@@ -251,10 +255,7 @@ export class ExecutionController {
   @Get("assessment-audit/:id")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Retrieve audit trail of assessment actions" })
-  async getAuditTrail(
-    @Param("id") id: string,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async getAuditTrail(@Param("id") id: string, @CurrentUser() user: AuthUser) {
     // SEC-002: Verify ownership before exposing audit trail
     await this.assertExecutionOwnership(id, user);
     return this.auditService.getAuditTrail(id);

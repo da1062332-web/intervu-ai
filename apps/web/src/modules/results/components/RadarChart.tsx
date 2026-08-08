@@ -41,13 +41,15 @@ export const RadarChart = ({ data }: { data: Record<string, number> }) => {
       >
         {/* Concentric Grid Lines */}
         {gridLevels.map((level) => {
-          const levelPoints = Array.from({ length: totalPoints }).map((_, index) => {
-            const r = (level / 100) * radius;
-            const angle = index * angleStep - Math.PI / 2;
-            const x = center + r * Math.cos(angle);
-            const y = center + r * Math.sin(angle);
-            return `${x},${y}`;
-          }).join(' ');
+          const levelPoints = Array.from({ length: totalPoints })
+            .map((_, index) => {
+              const r = (level / 100) * radius;
+              const angle = index * angleStep - Math.PI / 2;
+              const x = center + r * Math.cos(angle);
+              const y = center + r * Math.sin(angle);
+              return `${x},${y}`;
+            })
+            .join(' ');
 
           return (
             <polygon

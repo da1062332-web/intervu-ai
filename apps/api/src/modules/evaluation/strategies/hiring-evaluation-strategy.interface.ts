@@ -3,7 +3,12 @@ import { HiringEvaluationResultDto } from "@intervu-ai/contracts";
 export interface HiringSectionMappingContext {
   sectionCode: string;
   sectionName?: string | null;
-  mappingType: "NUMERICAL" | "VERBAL" | "REASONING" | "ADVANCED_APTITUDE" | "CODING";
+  mappingType:
+    | "NUMERICAL"
+    | "VERBAL"
+    | "REASONING"
+    | "ADVANCED_APTITUDE"
+    | "CODING";
   minimumCorrectAnswers: number;
 }
 
@@ -56,5 +61,7 @@ export interface HiringEvaluationContext {
 
 export interface IHiringEvaluationStrategy {
   readonly strategyType: string;
-  evaluate(context: HiringEvaluationContext): Promise<HiringEvaluationResultDto>;
+  evaluate(
+    context: HiringEvaluationContext,
+  ): Promise<HiringEvaluationResultDto>;
 }

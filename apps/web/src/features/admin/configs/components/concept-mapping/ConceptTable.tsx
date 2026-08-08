@@ -87,22 +87,22 @@ export function ConceptTable({
                 </TableCell>
                 {!hideTemplatesButton && (
                   <TableCell>
-                    <div className="flex gap-2">
+                    <div className='flex gap-2'>
                       <Button
                         variant='outline'
                         size='sm'
                         onClick={() => onMapTemplates?.(concept)}
-                        className="h-7 text-xs px-2"
+                        className='h-7 text-xs px-2'
                       >
-                        <Link className="h-3 w-3 mr-1" /> Templates
+                        <Link className='h-3 w-3 mr-1' /> Templates
                       </Button>
                       <Button
                         variant='outline'
                         size='sm'
                         onClick={() => onViewManualQuestions?.(concept)}
-                        className="h-7 text-xs px-2"
+                        className='h-7 text-xs px-2'
                       >
-                        <Link className="h-3 w-3 mr-1" /> Manual Qs
+                        <Link className='h-3 w-3 mr-1' /> Manual Qs
                       </Button>
                     </div>
                   </TableCell>

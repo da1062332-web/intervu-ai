@@ -13,7 +13,7 @@ export function SolutionTemplateEditor({
   solutionTemplate,
   explanationTemplate,
   setSolutionTemplate,
-  setExplanationTemplate
+  setExplanationTemplate,
 }: SolutionTemplateEditorProps) {
   return (
     <div className='space-y-4'>

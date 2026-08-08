@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
   datasources: {
@@ -9,7 +9,7 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  console.log('--- VERIFYING PUBLISH FLOW ---');
+  console.log("--- VERIFYING PUBLISH FLOW ---");
 
   const gqs = await prisma.generatedQuestion.findMany();
   console.log(`Found ${gqs.length} GeneratedQuestion records.`);
@@ -17,10 +17,7 @@ async function main() {
   for (const gq of gqs) {
     const mainQ = await prisma.question.findFirst({
       where: {
-        OR: [
-          { questionText: gq.questionText },
-          { id: gq.id },
-        ],
+        OR: [{ questionText: gq.questionText }, { id: gq.id }],
       },
       include: { topic: true },
     });
@@ -29,7 +26,9 @@ async function main() {
     console.log(`  conceptKey: ${gq.conceptKey}`);
     console.log(`  metadata.status: ${(gq.metadata as any)?.status}`);
     if (mainQ) {
-      console.log(`  Question Table Record: ID = ${mainQ.id}, topicId = ${mainQ.topicId}, topicName = ${mainQ.topic?.name}, status = ${mainQ.status}`);
+      console.log(
+        `  Question Table Record: ID = ${mainQ.id}, topicId = ${mainQ.topicId}, topicName = ${mainQ.topic?.name}, status = ${mainQ.status}`,
+      );
     } else {
       console.log(`  Question Table Record: MISSING!`);
     }

@@ -9,15 +9,7 @@ import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  Play,
-  Eye,
-  ArrowUpDown,
-  History,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Play, Eye, ArrowUpDown, History } from 'lucide-react';
 import Link from 'next/link';
 
 interface AttemptItem {
@@ -41,13 +33,25 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
     <div className='flex items-center justify-end gap-2'>
       {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
         <>
-          <Button size='sm' variant='ghost' asChild className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'>
+          <Button
+            size='sm'
+            variant='ghost'
+            asChild
+            className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'
+          >
             <Link href={`/candidate/results/${attempt.instanceId}`}>
               <Eye className='size-3.5 mr-1.5' /> View
             </Link>
           </Button>
-          <Button size='sm' variant='outline' asChild className='h-8 px-2.5 text-xs font-semibold border-border/60 hover:bg-muted/80 text-primary hover:text-primary'>
-            <Link href={`/candidate/tests/${attempt.testId || attempt.configId || attempt.assessmentId || attempt.instanceId}`}>
+          <Button
+            size='sm'
+            variant='outline'
+            asChild
+            className='h-8 px-2.5 text-xs font-semibold border-border/60 hover:bg-muted/80 text-primary hover:text-primary'
+          >
+            <Link
+              href={`/candidate/tests/${attempt.testId || attempt.configId || attempt.assessmentId || attempt.instanceId}`}
+            >
               <Play className='size-3.5 mr-1.5' /> Re-Exam
             </Link>
           </Button>
@@ -123,31 +127,37 @@ export function AttemptHistoryTable({
     {
       id: 'assessmentName',
       header: (
-        <div 
+        <div
           className='flex items-center gap-1.5 cursor-pointer hover:text-foreground select-none font-bold text-xs uppercase tracking-wide'
           onClick={() => toggleSort('assessmentName')}
         >
           Assessment <ArrowUpDown className='size-3 opacity-50' />
         </div>
       ),
-      cell: (row) => <span className='font-semibold text-sm text-foreground'>{row.assessmentName}</span>,
+      cell: (row) => (
+        <span className='font-semibold text-sm text-foreground'>{row.assessmentName}</span>
+      ),
     },
     {
       id: 'date',
       header: (
-        <div 
+        <div
           className='flex items-center gap-1.5 cursor-pointer hover:text-foreground select-none font-bold text-xs uppercase tracking-wide'
           onClick={() => toggleSort('date')}
         >
           Date <ArrowUpDown className='size-3 opacity-50' />
         </div>
       ),
-      cell: (row) => <span className='text-xs font-medium text-muted-foreground'>{format(new Date(row.date), 'MMM d, yyyy')}</span>,
+      cell: (row) => (
+        <span className='text-xs font-medium text-muted-foreground'>
+          {format(new Date(row.date), 'MMM d, yyyy')}
+        </span>
+      ),
     },
     {
       id: 'status',
       header: (
-        <div 
+        <div
           className='flex items-center gap-1.5 cursor-pointer hover:text-foreground select-none font-bold text-xs uppercase tracking-wide'
           onClick={() => toggleSort('status')}
         >
@@ -159,9 +169,12 @@ export function AttemptHistoryTable({
         if (row.status === 'COMPLETED' || row.status === 'SUBMITTED') variant = 'success';
         else if (row.status === 'IN_PROGRESS') variant = 'default';
         else variant = 'outline';
-        
+
         return (
-          <Badge variant={variant} className="rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider">
+          <Badge
+            variant={variant}
+            className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider'
+          >
             {row.status.replace('_', ' ')}
           </Badge>
         );
@@ -169,11 +182,7 @@ export function AttemptHistoryTable({
     },
     {
       id: 'result',
-      header: (
-        <div className='font-bold text-xs uppercase tracking-wide'>
-          Result
-        </div>
-      ),
+      header: <div className='font-bold text-xs uppercase tracking-wide'>Result</div>,
       cell: (row) => {
         if (row.status === 'IN_PROGRESS' || row.status === 'CREATED') {
           return <span className='text-xs font-medium text-muted-foreground'>-</span>;
@@ -181,7 +190,10 @@ export function AttemptHistoryTable({
 
         if (row.status === 'EVALUATING') {
           return (
-            <Badge variant='outline' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/10 border-amber-500/30'>
+            <Badge
+              variant='outline'
+              className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/10 border-amber-500/30'
+            >
               Evaluating
             </Badge>
           );
@@ -191,7 +203,10 @@ export function AttemptHistoryTable({
 
         if (scoreValue >= 80) {
           return (
-            <Badge variant='success' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'>
+            <Badge
+              variant='success'
+              className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+            >
               Qualified
             </Badge>
           );
@@ -199,14 +214,20 @@ export function AttemptHistoryTable({
 
         if (scoreValue >= 60) {
           return (
-            <Badge variant='success' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/30'>
+            <Badge
+              variant='success'
+              className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/30'
+            >
               Pass
             </Badge>
           );
         }
 
         return (
-          <Badge variant='destructive' className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-destructive/15 text-destructive border border-destructive/30'>
+          <Badge
+            variant='destructive'
+            className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-destructive/15 text-destructive border border-destructive/30'
+          >
             Fail
           </Badge>
         );
@@ -223,7 +244,9 @@ export function AttemptHistoryTable({
   return (
     <Card className='bg-card/80 border border-border/60 shadow-xs flex flex-col h-full'>
       <CardHeader className='flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-border/40 gap-4'>
-        <CardTitle className='text-base md:text-lg font-bold text-foreground'>Attempt History</CardTitle>
+        <CardTitle className='text-base md:text-lg font-bold text-foreground'>
+          Attempt History
+        </CardTitle>
       </CardHeader>
       <CardContent className='p-6 flex-1 flex flex-col'>
         <DataTable
@@ -231,40 +254,58 @@ export function AttemptHistoryTable({
           data={processedAttempts}
           isLoading={isLoading}
           rowKey={(row) => row.instanceId}
-          search={showFilters && (
-            <div className='flex flex-wrap items-center gap-2.5 mb-5'>
-              <Input
-                placeholder='Search by assessment title...'
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className='w-[200px] sm:w-[260px] text-xs sm:text-sm h-9 bg-background/60 border-border/60'
-                startIcon={<Search className='size-4 text-muted-foreground/70' />}
-              />
-              <select
-                className='h-9 rounded-md border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-background shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-primary/20'
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value='ALL'>All Statuses</option>
-                <option value='COMPLETED'>Completed Only</option>
-                <option value='IN_PROGRESS'>In Progress</option>
-                <option value='EVALUATING'>Under Evaluation</option>
-              </select>
-            </div>
-          )}
+          search={
+            showFilters && (
+              <div className='flex flex-wrap items-center gap-2.5 mb-5'>
+                <Input
+                  placeholder='Search by assessment title...'
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className='w-[200px] sm:w-[260px] text-xs sm:text-sm h-9 bg-background/60 border-border/60'
+                  startIcon={<Search className='size-4 text-muted-foreground/70' />}
+                />
+                <select
+                  className='h-9 rounded-md border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-background shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-primary/20'
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value='ALL'>All Statuses</option>
+                  <option value='COMPLETED'>Completed Only</option>
+                  <option value='IN_PROGRESS'>In Progress</option>
+                  <option value='EVALUATING'>Under Evaluation</option>
+                </select>
+              </div>
+            )
+          }
           emptyState={
             <EmptyState
-              title={!data?.attempts || data.attempts.length === 0 ? 'No Attempt History' : 'No Matching Results'}
-              description={!data?.attempts || data.attempts.length === 0 ? 'You have not initiated or completed any assessment attempts yet.' : 'We could not find any previous assessment attempts matching your filter parameters.'}
-              icon={!data?.attempts || data.attempts.length === 0 ? <History className='size-8 text-muted-foreground' /> : <Search className='size-8 text-muted-foreground' />}
+              title={
+                !data?.attempts || data.attempts.length === 0
+                  ? 'No Attempt History'
+                  : 'No Matching Results'
+              }
+              description={
+                !data?.attempts || data.attempts.length === 0
+                  ? 'You have not initiated or completed any assessment attempts yet.'
+                  : 'We could not find any previous assessment attempts matching your filter parameters.'
+              }
+              icon={
+                !data?.attempts || data.attempts.length === 0 ? (
+                  <History className='size-8 text-muted-foreground' />
+                ) : (
+                  <Search className='size-8 text-muted-foreground' />
+                )
+              }
               variant='no-data'
             />
           }
           pagination={
-            data && data.pagination.totalPages > 1 && (
+            data &&
+            data.pagination.totalPages > 1 && (
               <div className='flex items-center justify-between border-t border-border/40 pt-4 mt-4'>
                 <div className='text-xs font-semibold text-muted-foreground'>
-                  Showing page <span className='text-foreground'>{page}</span> of <span className='text-foreground'>{data.pagination.totalPages}</span>
+                  Showing page <span className='text-foreground'>{page}</span> of{' '}
+                  <span className='text-foreground'>{data.pagination.totalPages}</span>
                 </div>
                 <div className='flex items-center gap-2'>
                   <Button

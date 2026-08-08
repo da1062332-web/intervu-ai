@@ -11,23 +11,27 @@ The AI-Assisted Strategy Builder enables admins to define deterministic variable
 ### Key Features
 
 ✨ **AI-Powered Drafting**
+
 - Describe question logic in plain English
 - AI automatically extracts variables, ranges, and constraints
 - Instant structured draft ready for refinement
 
 🔍 **Review & Edit**
+
 - Preview draft before applying
 - Edit any variable or constraint
 - Add additional items manually
 - Validation warnings for potential issues
 
 💾 **Safe Application**
+
 - No database changes until "Apply" is clicked
 - Manual editor always available as fallback
 - Full RBAC protection (admin-only)
 - Proper error handling and rollback
 
 📊 **Full Integration**
+
 - Works seamlessly with existing template system
 - No database migrations required
 - Uses existing JSON schema fields
@@ -39,7 +43,7 @@ The AI-Assisted Strategy Builder enables admins to define deterministic variable
 
 ### For Users
 
-1. **Navigate**: Go to `/admin/templates/[id]` 
+1. **Navigate**: Go to `/admin/templates/[id]`
 2. **Find**: Scroll to "Generation Strategy" section
 3. **Describe**: Enter your question logic in English
 4. **Generate**: Click "Generate Draft"
@@ -59,6 +63,7 @@ npm run build
 #### Run Locally
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd apps/api
 npm run dev
@@ -66,6 +71,7 @@ npm run dev
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd apps/web
 npm run dev
@@ -133,6 +139,7 @@ npm run test -- template-strategy.integration.spec.ts
 ## File Structure
 
 ### Backend (NestJS)
+
 ```
 apps/api/src/modules/template-library/
 ├── services/
@@ -148,6 +155,7 @@ apps/api/src/modules/template-library/
 ```
 
 ### Frontend (React/Next.js)
+
 ```
 apps/web/src/
 ├── app/admin/templates/[id]/components/
@@ -158,6 +166,7 @@ apps/web/src/
 ```
 
 ### Documentation
+
 ```
 docs/
 ├── ai-strategy-builder-guide.md          (NEW - 500+ lines)
@@ -172,6 +181,7 @@ docs/
 All endpoints require JWT authentication and Admin role.
 
 ### 1. Draft Strategy
+
 ```
 POST /templates/{id}/ai/strategy/draft
 
@@ -194,6 +204,7 @@ Response:
 ```
 
 ### 2. Preview Strategy
+
 ```
 POST /templates/{id}/ai/strategy/preview
 
@@ -216,6 +227,7 @@ Response:
 ```
 
 ### 3. Apply Strategy
+
 ```
 POST /templates/{id}/ai/strategy/apply
 
@@ -239,15 +251,17 @@ Response:
 ### Scenario: Create a Pricing Question
 
 **User's Prompt:**
+
 ```
 Create a question where:
 - price ranges from 100-500
-- quantity ranges from 1-20  
+- quantity ranges from 1-20
 - total_cost = price * quantity
 - total_cost must be greater than 500
 ```
 
 **AI-Generated Draft:**
+
 ```json
 {
   "variables": [
@@ -287,6 +301,7 @@ Create a question where:
 ```
 
 **User Actions:**
+
 1. Reviews the draft - looks good!
 2. Edits quantity min from 1 to 2 for better questions
 3. Adds another constraint: `total_cost < 10000`
@@ -299,11 +314,13 @@ Create a question where:
 ## Testing
 
 ### Unit Tests (50+ cases)
+
 ```bash
 npm run test -- strategy-drafting.service.spec.ts
 ```
 
 Tests cover:
+
 - ✓ Valid strategy drafting
 - ✓ Input validation (empty, max length)
 - ✓ LLM error handling
@@ -315,11 +332,13 @@ Tests cover:
 - ✓ Edge cases and race conditions
 
 ### Integration Tests (20+ cases)
+
 ```bash
 npm run test -- template-strategy.integration.spec.ts
 ```
 
 Tests cover:
+
 - ✓ Full workflow (draft → preview → apply)
 - ✓ HTTP endpoints (POST requests)
 - ✓ Error scenarios (404, 500, 400)
@@ -334,9 +353,11 @@ Tests cover:
 ## Documentation
 
 ### 📖 User Guide
+
 **File**: `docs/ai-strategy-builder-guide.md`
 
 Includes:
+
 - Local environment setup
 - Backend & frontend boot commands
 - Step-by-step feature walkthrough with screenshots
@@ -344,9 +365,11 @@ Includes:
 - Troubleshooting guide
 
 ### 📋 API Documentation
+
 **File**: `docs/ai-strategy-builder-swagger.md`
 
 Includes:
+
 - Complete Swagger specification
 - Request/response body examples
 - Error codes and schemas
@@ -355,9 +378,11 @@ Includes:
 - Shared component definitions
 
 ### 🚀 Deployment Guide
+
 **File**: `docs/ai-strategy-builder-deployment.md`
 
 Includes:
+
 - Pre-deployment verification checklist
 - Local testing procedures
 - Database verification steps
@@ -371,18 +396,21 @@ Includes:
 ## Requirements Met
 
 ✅ **Complete Implementation**
+
 - All backend services fully implemented
 - All frontend UI components ready
 - All API endpoints functional
 - Full test coverage (unit + integration)
 
 ✅ **Safety & RBAC**
+
 - Admin-only endpoints with @Roles guard
 - JWT authentication required
 - Manual editor always available as fallback
 - No breaking changes to existing code
 
 ✅ **Formatting & UX**
+
 - Consistent Tailwind styling (indigo/gray theme)
 - Proper spacing and typography
 - Lucide icons for visual guidance
@@ -390,6 +418,7 @@ Includes:
 - Toast notifications for feedback
 
 ✅ **Documentation**
+
 - Swagger documented endpoints
 - Setup instructions with boot commands
 - Detailed feature walkthrough
@@ -397,12 +426,14 @@ Includes:
 - Example prompts with outputs
 
 ✅ **Testing & Verification**
+
 - Unit tests (50+ cases)
 - Integration tests (20+ cases)
 - Successful production build (1m18s, no errors)
 - All existing code remains unbroken
 
 ✅ **Code Quality**
+
 - Proper TypeScript types
 - JSDoc comments on complex logic
 - Follows NestJS/React patterns
@@ -449,6 +480,7 @@ For issues or questions:
 **Documentation**: 1500+ lines across 3 files
 
 ### What's New
+
 - AI-powered strategy drafting from plain English
 - Interactive review and edit panel
 - Seamless integration with existing templates
@@ -457,9 +489,11 @@ For issues or questions:
 - Comprehensive testing and documentation
 
 ### Breaking Changes
+
 - None - completely backward compatible
 
 ### Deprecations
+
 - None
 
 ---
@@ -473,4 +507,3 @@ For issues or questions:
 ---
 
 **Ready to deploy! 🎉**
-

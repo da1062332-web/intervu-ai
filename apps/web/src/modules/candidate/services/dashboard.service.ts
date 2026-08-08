@@ -59,10 +59,9 @@ export const dashboardService = {
       const data = await apiClient.request<any>('/candidate/dashboard');
 
       // Merge upcomingTests (enrolled) + recommendedTests into available list
-      const allAvailable = [
-        ...(data.upcomingTests || []),
-        ...(data.recommendedTests || []),
-      ].filter((v: any, i: number, a: any[]) => a.findIndex((t) => t.configId === v.configId) === i);
+      const allAvailable = [...(data.upcomingTests || []), ...(data.recommendedTests || [])].filter(
+        (v: any, i: number, a: any[]) => a.findIndex((t) => t.configId === v.configId) === i,
+      );
 
       const availableTests: DashboardTestItem[] = allAvailable.map((t: any) => ({
         id: t.configId,

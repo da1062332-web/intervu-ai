@@ -11,7 +11,16 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { FileText, Calendar, TrendingUp, Search, ChevronRight, ChevronLeft, Award, Play } from 'lucide-react';
+import {
+  FileText,
+  Calendar,
+  TrendingUp,
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  Award,
+  Play,
+} from 'lucide-react';
 
 export const ResultHistoryPage = () => {
   const { user } = useAuth();
@@ -45,7 +54,10 @@ export const ResultHistoryPage = () => {
         <SectionHeader
           title='Assessment History'
           description='View and track all your completed assessment results, attempt history, and scores.'
-          breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Results & History' }]}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/candidate/dashboard' },
+            { label: 'Results & History' },
+          ]}
         />
         <Skeleton className='h-20 w-full rounded-xl border border-border/60' />
         <div className='space-y-4 pt-2'>
@@ -67,7 +79,10 @@ export const ResultHistoryPage = () => {
           ? (data as any).results
           : [];
 
-  const totalPages = (data as any)?.meta?.totalPages || (data as any)?.totalPages || Math.max(1, Math.ceil(items.length / 10));
+  const totalPages =
+    (data as any)?.meta?.totalPages ||
+    (data as any)?.totalPages ||
+    Math.max(1, Math.ceil(items.length / 10));
 
   if (isError || !data || items.length === 0) {
     return (
@@ -75,7 +90,10 @@ export const ResultHistoryPage = () => {
         <SectionHeader
           title='Assessment History'
           description='View and track all your completed assessment results, attempt history, and scores.'
-          breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Results & History' }]}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/candidate/dashboard' },
+            { label: 'Results & History' },
+          ]}
         />
         <EmptyState
           title='No Results Found'
@@ -93,7 +111,9 @@ export const ResultHistoryPage = () => {
 
     if (searchQuery) {
       result = result.filter((r) =>
-        (r.assessmentName || r.testName || 'Assessment').toLowerCase().includes(searchQuery.toLowerCase()),
+        (r.assessmentName || r.testName || 'Assessment')
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -106,11 +126,19 @@ export const ResultHistoryPage = () => {
 
     result.sort((a, b) => {
       if (sortBy === 'date-desc')
-        return new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime();
+        return (
+          new Date(b.createdAt || Date.now()).getTime() -
+          new Date(a.createdAt || Date.now()).getTime()
+        );
       if (sortBy === 'date-asc')
-        return new Date(a.createdAt || Date.now()).getTime() - new Date(b.createdAt || Date.now()).getTime();
-      if (sortBy === 'score-desc') return (b.score || b.percentage || 0) - (a.score || a.percentage || 0);
-      if (sortBy === 'score-asc') return (a.score || a.percentage || 0) - (b.score || b.percentage || 0);
+        return (
+          new Date(a.createdAt || Date.now()).getTime() -
+          new Date(b.createdAt || Date.now()).getTime()
+        );
+      if (sortBy === 'score-desc')
+        return (b.score || b.percentage || 0) - (a.score || a.percentage || 0);
+      if (sortBy === 'score-asc')
+        return (a.score || a.percentage || 0) - (b.score || b.percentage || 0);
       return 0;
     });
 
@@ -129,7 +157,10 @@ export const ResultHistoryPage = () => {
       <SectionHeader
         title='Assessment History'
         description='View and track all your completed assessment results, attempt history, and scores.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Results & History' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/candidate/dashboard' },
+          { label: 'Results & History' },
+        ]}
       />
 
       {/* Filter & Search Bar */}
@@ -180,7 +211,8 @@ export const ResultHistoryPage = () => {
               <FileText className='w-10 h-10 text-muted-foreground opacity-50' />
               <h4 className='font-bold text-foreground text-base'>No matching results found</h4>
               <p className='text-xs text-muted-foreground max-w-sm'>
-                Try adjusting your search query or filter selection to find your past assessment attempts.
+                Try adjusting your search query or filter selection to find your past assessment
+                attempts.
               </p>
               <Button
                 variant='outline'
@@ -211,7 +243,10 @@ export const ResultHistoryPage = () => {
                     <div>
                       <div className='flex items-center gap-2 flex-wrap'>
                         <h3 className='font-bold text-foreground text-base group-hover:text-primary transition-colors'>
-                          {result.assessmentName || result.testName || result.examName || 'Corporate Assessment'}
+                          {result.assessmentName ||
+                            result.testName ||
+                            result.examName ||
+                            'Corporate Assessment'}
                         </h3>
                         {result.qualification && (
                           <Badge
@@ -228,7 +263,9 @@ export const ResultHistoryPage = () => {
                       <div className='flex items-center gap-4 text-xs text-muted-foreground font-medium mt-1.5 flex-wrap'>
                         <span className='flex items-center gap-1'>
                           <Calendar className='w-3.5 h-3.5 text-muted-foreground' />
-                          {result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'N/A'}
+                          {result.createdAt
+                            ? new Date(result.createdAt).toLocaleDateString()
+                            : 'N/A'}
                         </span>
                         <span className='flex items-center gap-1'>
                           <TrendingUp className='w-3.5 h-3.5 text-muted-foreground' />
@@ -250,7 +287,9 @@ export const ResultHistoryPage = () => {
                       className='rounded-xl font-bold text-xs bg-background hover:bg-muted/60 text-foreground border-border/80 shadow-2xs px-4 py-2 flex items-center gap-1.5 transition-all z-10 relative'
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/candidate/tests/${result.testId || result.configId || result.assessmentId || result.attemptId || result.id}`);
+                        navigate(
+                          `/candidate/tests/${result.testId || result.configId || result.assessmentId || result.attemptId || result.id}`,
+                        );
                       }}
                     >
                       <Play className='w-3.5 h-3.5 text-muted-foreground' />

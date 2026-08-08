@@ -26,7 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className='flex min-h-screen bg-background'>
       {/* ── Desktop Sidebar ── */}
-      <div className="print:hidden">
+      <div className='print:hidden'>
         <Sidebar />
       </div>
 
@@ -38,7 +38,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         className={cn('flex flex-1 flex-col min-w-0', 'transition-all duration-300 ease-in-out')}
       >
         {/* ── Top Navigation Bar ── */}
-        <div className="print:hidden">
+        <div className='print:hidden'>
           <Navbar />
         </div>
 

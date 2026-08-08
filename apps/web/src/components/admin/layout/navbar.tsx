@@ -93,7 +93,9 @@ export function Navbar() {
         )}
 
         {/* Divider */}
-        {!isCandidate && <div className='hidden md:block mx-1 h-5 w-px bg-border' aria-hidden='true' />}
+        {!isCandidate && (
+          <div className='hidden md:block mx-1 h-5 w-px bg-border' aria-hidden='true' />
+        )}
 
         {/* Page title */}
         <h1 className='text-lg font-heading font-semibold text-foreground leading-none ml-1'>
@@ -179,12 +181,18 @@ export function Navbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href={isCandidate ? '/candidate/profile' : '/profile'} className='cursor-pointer'>
+              <Link
+                href={isCandidate ? '/candidate/profile' : '/profile'}
+                className='cursor-pointer'
+              >
                 Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href={isCandidate ? '/candidate/settings' : '/settings'} className='cursor-pointer'>
+              <Link
+                href={isCandidate ? '/candidate/settings' : '/settings'}
+                className='cursor-pointer'
+              >
                 Settings
               </Link>
             </DropdownMenuItem>

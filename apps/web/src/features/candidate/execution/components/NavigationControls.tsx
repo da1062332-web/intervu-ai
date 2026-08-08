@@ -35,7 +35,8 @@ export const NavigationControls = memo(function NavigationControls({
     }
     currentSectionStartIndex = count;
   }
-  const isPreviousDisabled = isFirst || (sectionTimingEnabled && currentQuestionIndex === currentSectionStartIndex);
+  const isPreviousDisabled =
+    isFirst || (sectionTimingEnabled && currentQuestionIndex === currentSectionStartIndex);
 
   const handleClearResponse = () => {
     if (!currentQuestion) return;

@@ -31,7 +31,9 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
         setModelsLoaded(true);
       } catch (err) {
         console.error('Failed to load face-api models', err);
-        setStreamError('Failed to load face detection models. Ensure models exist in /models directory.');
+        setStreamError(
+          'Failed to load face detection models. Ensure models exist in /models directory.',
+        );
       }
     };
     loadModels();
@@ -46,11 +48,11 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
     const setupMedia = async () => {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error("Media capture APIs not supported (requires HTTPS or localhost).");
+          throw new Error('Media capture APIs not supported (requires HTTPS or localhost).');
         }
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         if (!isActive) {
-          stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach((track) => track.stop());
           return;
         }
         activeStream = stream;
@@ -77,7 +79,7 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
     return () => {
       isActive = false;
       if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
+        activeStream.getTracks().forEach((track) => track.stop());
       }
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
@@ -97,14 +99,14 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
       if (analyserRef.current) {
         const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getByteFrequencyData(dataArray);
-        
+
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) {
           sum += dataArray[i];
         }
         const average = sum / dataArray.length;
         setVolume(average);
-        
+
         const isMicActive = average > 5;
         setMicActive(isMicActive);
         onMicActive(isMicActive);
@@ -113,17 +115,26 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
       // Face Detection
       if (videoRef.current && videoRef.current.readyState === 4) {
         try {
-          const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 });
+          const options = new faceapi.TinyFaceDetectorOptions({
+            inputSize: 160,
+            scoreThreshold: 0.5,
+          });
           const detection = await faceapi.detectSingleFace(videoRef.current, options);
-          
+
           if (canvasRef.current && videoRef.current) {
-            const displaySize = { width: videoRef.current.videoWidth, height: videoRef.current.videoHeight };
-            
+            const displaySize = {
+              width: videoRef.current.videoWidth,
+              height: videoRef.current.videoHeight,
+            };
+
             // Only match dimensions if they differ to prevent clearing the canvas unnecessarily
-            if (canvasRef.current.width !== displaySize.width || canvasRef.current.height !== displaySize.height) {
+            if (
+              canvasRef.current.width !== displaySize.width ||
+              canvasRef.current.height !== displaySize.height
+            ) {
               faceapi.matchDimensions(canvasRef.current, displaySize);
             }
-            
+
             const ctx = canvasRef.current.getContext('2d');
             if (ctx) {
               ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -132,15 +143,15 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
                 ctx.strokeStyle = '#ef4444'; // Red-500
                 ctx.lineWidth = 2; // Thin
                 ctx.strokeRect(
-                  resizedDetections.box.x, 
-                  resizedDetections.box.y, 
-                  resizedDetections.box.width, 
-                  resizedDetections.box.height
+                  resizedDetections.box.x,
+                  resizedDetections.box.y,
+                  resizedDetections.box.width,
+                  resizedDetections.box.height,
                 );
               }
             }
           }
-          
+
           const faceDetected = !!detection;
           setHasFace(faceDetected);
           onFaceDetected(faceDetected);
@@ -160,18 +171,18 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
 
   if (streamError) {
     return (
-      <div className="w-full bg-red-50 text-red-600 p-4 rounded-lg border border-red-200">
-        <p className="font-semibold text-sm">Media Error</p>
-        <p className="text-xs">{streamError}</p>
+      <div className='w-full bg-red-50 text-red-600 p-4 rounded-lg border border-red-200'>
+        <p className='font-semibold text-sm'>Media Error</p>
+        <p className='text-xs'>{streamError}</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-lg border bg-slate-900 aspect-video flex flex-col items-center justify-center shadow-inner">
+    <div className='relative w-full overflow-hidden rounded-lg border bg-slate-900 aspect-video flex flex-col items-center justify-center shadow-inner'>
       {!modelsLoaded ? (
-        <div className="text-white text-sm flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className='text-white text-sm flex flex-col items-center gap-2'>
+          <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin'></div>
           Loading AI Models...
         </div>
       ) : (
@@ -181,34 +192,42 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
             autoPlay
             playsInline
             muted // Muted to prevent audio feedback loop
-            className="w-full h-full object-cover transform -scale-x-100"
+            className='w-full h-full object-cover transform -scale-x-100'
           />
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none"
+            className='absolute inset-0 w-full h-full object-cover transform -scale-x-100 pointer-events-none'
           />
-          
-          {/* Overlay Gradients for readability */}
-          <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
 
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
+          {/* Overlay Gradients for readability */}
+          <div className='absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent pointer-events-none' />
+
+          <div className='absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none'>
             {/* Mic Indicator */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${micActive ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}`}>
-              {micActive ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
-              <div className="flex gap-0.5 items-end h-3">
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${micActive ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}`}
+            >
+              {micActive ? <Mic className='w-3.5 h-3.5' /> : <MicOff className='w-3.5 h-3.5' />}
+              <div className='flex gap-0.5 items-end h-3'>
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className={`w-1 rounded-full transition-all duration-75 ${micActive ? 'bg-green-400' : 'bg-red-400/50'}`}
-                    style={{ height: micActive ? `${Math.max(20, Math.min(100, volume * (i/1.5)))}%` : '20%' }}
+                    style={{
+                      height: micActive
+                        ? `${Math.max(20, Math.min(100, volume * (i / 1.5)))}%`
+                        : '20%',
+                    }}
                   />
                 ))}
               </div>
             </div>
 
             {/* Face Indicator */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${hasFace ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}`}>
-              {hasFace ? <UserCheck className="w-3.5 h-3.5" /> : <UserX className="w-3.5 h-3.5" />}
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${hasFace ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}`}
+            >
+              {hasFace ? <UserCheck className='w-3.5 h-3.5' /> : <UserX className='w-3.5 h-3.5' />}
               {hasFace ? 'Face Detected' : 'No Face Detected'}
             </div>
           </div>

@@ -63,8 +63,8 @@ export default function QuestionBankPage() {
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
       <SectionHeader
-        title="Question Bank"
-        description="Browse, filter, and publish approved questions for use in assessments."
+        title='Question Bank'
+        description='Browse, filter, and publish approved questions for use in assessments.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Question Bank' }]}
       />
 

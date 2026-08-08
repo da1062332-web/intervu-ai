@@ -1,5 +1,9 @@
 import { create } from 'zustand';
-import type { GenerationStrategy, QuestionPreviewResult, ValidationReport } from '@/services/question-generation/types';
+import type {
+  GenerationStrategy,
+  QuestionPreviewResult,
+  ValidationReport,
+} from '@/services/question-generation/types';
 
 interface StrategyConfigState {
   currentStrategy: GenerationStrategy;

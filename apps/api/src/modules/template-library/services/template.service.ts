@@ -25,7 +25,10 @@ import {
   roundToPrecision,
 } from "@intervu-ai/generation";
 import { parseOptionsTemplate } from "../../generation/services/question-instantiator.service";
-import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
+import {
+  analyzeMathjsExpression,
+  getUnsupportedMathjsFunctions,
+} from "./expression-utils";
 
 import { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
@@ -106,7 +109,7 @@ export class TemplateService {
     const whereClause: Record<string, unknown> = {};
     if (difficulty) whereClause.difficulty = difficulty;
     if (strategy) whereClause.generationStrategy = strategy;
-    
+
     const result = await this.templateRepository.findPaginated(
       { page, limit },
       whereClause,
@@ -216,7 +219,10 @@ export class TemplateService {
     // 2. fetchDependencies() — none required for create
 
     // 2.5. Validate strategy / solution definitions before persisting
-    if (validated.variableSchema !== undefined || validated.constraints !== undefined) {
+    if (
+      validated.variableSchema !== undefined ||
+      validated.constraints !== undefined
+    ) {
       const validationErrors = this.validateStrategyPayload(
         validated.variableSchema,
         validated.constraints,
@@ -335,7 +341,8 @@ export class TemplateService {
       (validated.config as any)?.datasetGenerationMode;
     if (mode !== undefined) {
       const currentConfig = (existing.config as Record<string, any>) || {};
-      const currentDatasetConfig = (existing.datasetConfig as Record<string, any>) || {};
+      const currentDatasetConfig =
+        (existing.datasetConfig as Record<string, any>) || {};
       updateInput.config = {
         ...currentConfig,
         ...((updateInput.config as Record<string, any>) || {}),
@@ -355,15 +362,20 @@ export class TemplateService {
     if (validated.structure !== undefined)
       updateInput.structure = validated.structure as Prisma.InputJsonValue;
     if (validated.variableSchema !== undefined)
-      updateInput.variableSchema = validated.variableSchema as Prisma.InputJsonValue;
+      updateInput.variableSchema =
+        validated.variableSchema as Prisma.InputJsonValue;
     if (validated.solutionSchema !== undefined)
-      updateInput.solutionSchema = validated.solutionSchema as Prisma.InputJsonValue;
+      updateInput.solutionSchema =
+        validated.solutionSchema as Prisma.InputJsonValue;
     if (validated.constraints !== undefined)
       updateInput.constraints = validated.constraints as Prisma.InputJsonValue;
     if (validated.generationStrategy !== undefined)
       updateInput.generationStrategy = validated.generationStrategy;
 
-    if (validated.variableSchema !== undefined || validated.constraints !== undefined) {
+    if (
+      validated.variableSchema !== undefined ||
+      validated.constraints !== undefined
+    ) {
       const validationErrors = this.validateStrategyPayload(
         validated.variableSchema,
         validated.constraints,
@@ -381,7 +393,10 @@ export class TemplateService {
       }
     }
 
-    if (validated.solutionSchema !== undefined || validated.variableSchema !== undefined) {
+    if (
+      validated.solutionSchema !== undefined ||
+      validated.variableSchema !== undefined
+    ) {
       const finalVariableSchema =
         validated.variableSchema !== undefined
           ? validated.variableSchema
@@ -1271,14 +1286,20 @@ export class TemplateService {
               prngSeed,
               formula: solutionSchema.formula,
             });
-            const ansVal = evaluateExpression(solutionSchema.formula, parameters);
+            const ansVal = evaluateExpression(
+              solutionSchema.formula,
+              parameters,
+            );
             correctAnswer = String(ansVal);
           } else if (finalAnswerExpression) {
             this.logger.debug("Evaluating finalAnswerExpression", {
               prngSeed,
               finalAnswerExpression,
             });
-            const ansVal = evaluateExpression(finalAnswerExpression, parameters);
+            const ansVal = evaluateExpression(
+              finalAnswerExpression,
+              parameters,
+            );
             correctAnswer = String(ansVal);
           } else if (solutionSchema.correctOptionIndex !== undefined) {
             const idx = solutionSchema.correctOptionIndex;
@@ -1296,12 +1317,16 @@ export class TemplateService {
           });
         } catch (err) {
           const error = err instanceof Error ? err : new Error(String(err));
-          this.logger.error("Error while computing answer", error.stack || error.message, {
-            prngSeed,
-            solutionSchema,
-            finalAnswerExpression,
-            parameters,
-          });
+          this.logger.error(
+            "Error while computing answer",
+            error.stack || error.message,
+            {
+              prngSeed,
+              solutionSchema,
+              finalAnswerExpression,
+              parameters,
+            },
+          );
           correctAnswer = "0";
         }
 
@@ -1471,7 +1496,8 @@ export class TemplateService {
         }
       } catch (e) {}
     } else if (question.options && typeof question.options === "object") {
-      const opts = (question.options as any).options || (question.options as any).choices;
+      const opts =
+        (question.options as any).options || (question.options as any).choices;
       if (Array.isArray(opts)) {
         parsedOptions = opts.map((o: any) => String(o).trim());
       }
@@ -1611,7 +1637,8 @@ export class TemplateService {
         success: false,
         error: {
           code: "INVALID_STRATEGY_DRAFT",
-          message: "Drafted strategy contains invalid variable or constraint definitions.",
+          message:
+            "Drafted strategy contains invalid variable or constraint definitions.",
           details: validation.errors,
         },
       });
@@ -1665,7 +1692,8 @@ export class TemplateService {
 
     const normalizedConstraints = (draft.constraints || []).map((item: any) => {
       const rule = typeof item?.rule === "string" ? item.rule.trim() : "";
-      const normalizedRule = this.canonicalizationService.normalizeConstraintRule(rule);
+      const normalizedRule =
+        this.canonicalizationService.normalizeConstraintRule(rule);
       const severity = item?.severity === "warning" ? "warning" : "critical";
       const parsed = this.parseConstraintRule(normalizedRule);
 
@@ -1784,7 +1812,9 @@ export class TemplateService {
       return null;
     }
 
-    const match = rule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/);
+    const match = rule.match(
+      /^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/,
+    );
     if (!match) {
       return null;
     }
@@ -1796,22 +1826,27 @@ export class TemplateService {
     };
   }
 
-  private validateStrategyPayload(variableSchema: any, constraints: any): string[] {
-    const variables = Array.isArray(variableSchema?.variables) ? variableSchema.variables : [];
+  private validateStrategyPayload(
+    variableSchema: any,
+    constraints: any,
+  ): string[] {
+    const variables = Array.isArray(variableSchema?.variables)
+      ? variableSchema.variables
+      : [];
     const derivedVariables = Array.isArray(variableSchema?.derivedVariables)
       ? variableSchema.derivedVariables
       : Array.isArray(variableSchema?.formulas)
-      ? variableSchema.formulas.map((formula: any, index: number) => {
-          if (typeof formula !== 'string') {
-            return { name: `formula_${index}`, expression: '' };
-          }
-          const [name, ...parts] = formula.split('=');
-          return {
-            name: name?.trim() || `formula_${index}`,
-            expression: parts.join('=').trim(),
-          };
-        })
-      : [];
+        ? variableSchema.formulas.map((formula: any, index: number) => {
+            if (typeof formula !== "string") {
+              return { name: `formula_${index}`, expression: "" };
+            }
+            const [name, ...parts] = formula.split("=");
+            return {
+              name: name?.trim() || `formula_${index}`,
+              expression: parts.join("=").trim(),
+            };
+          })
+        : [];
 
     return this.validateDraftedStrategy({
       variables,
@@ -1836,23 +1871,45 @@ export class TemplateService {
       }
       variableNames.add(variable.name);
 
-      if (variable.type === "number" || variable.type === "integer" || variable.type === "decimal") {
+      if (
+        variable.type === "number" ||
+        variable.type === "integer" ||
+        variable.type === "decimal"
+      ) {
         if (variable.min !== undefined && variable.max !== undefined) {
-          if (typeof variable.min !== "number" || typeof variable.max !== "number") {
-            errors.push(`Variable ${variable.name} must have numeric min and max values.`);
+          if (
+            typeof variable.min !== "number" ||
+            typeof variable.max !== "number"
+          ) {
+            errors.push(
+              `Variable ${variable.name} must have numeric min and max values.`,
+            );
           } else if (variable.min > variable.max) {
-            errors.push(`Variable ${variable.name} has invalid range: min ${variable.min} cannot be greater than max ${variable.max}.`);
+            errors.push(
+              `Variable ${variable.name} has invalid range: min ${variable.min} cannot be greater than max ${variable.max}.`,
+            );
           }
         }
 
         if (variable.generator) {
           const generator = String(variable.generator).toLowerCase();
-          if (generator === "even" || generator === "odd" || generator === "prime") {
+          if (
+            generator === "even" ||
+            generator === "odd" ||
+            generator === "prime"
+          ) {
             if (variable.type === "decimal") {
-              errors.push(`Generator '${generator}' is incompatible with decimal variable ${variable.name}.`);
+              errors.push(
+                `Generator '${generator}' is incompatible with decimal variable ${variable.name}.`,
+              );
             }
-            if (generator === "prime" && (variable.min === undefined || variable.max === undefined)) {
-              errors.push(`Prime generator requires explicit min and max for variable ${variable.name}.`);
+            if (
+              generator === "prime" &&
+              (variable.min === undefined || variable.max === undefined)
+            ) {
+              errors.push(
+                `Prime generator requires explicit min and max for variable ${variable.name}.`,
+              );
             }
           }
         }
@@ -1869,10 +1926,14 @@ export class TemplateService {
       }
       derivedNames.add(derived.name);
       if (!derived.expression || typeof derived.expression !== "string") {
-        errors.push(`Derived variable ${derived.name} must have a valid expression.`);
+        errors.push(
+          `Derived variable ${derived.name} must have a valid expression.`,
+        );
       }
       if (variableNames.has(derived.name)) {
-        errors.push(`Derived variable name ${derived.name} conflicts with a base variable name.`);
+        errors.push(
+          `Derived variable name ${derived.name} conflicts with a base variable name.`,
+        );
       }
     }
 
@@ -1899,7 +1960,9 @@ export class TemplateService {
 
     const cycle = this.detectCycle(formulaDeps);
     if (cycle.length > 0) {
-      errors.push(`Circular dependency in derived variables: ${cycle.join(" -> ")}`);
+      errors.push(
+        `Circular dependency in derived variables: ${cycle.join(" -> ")}`,
+      );
     }
 
     const parameterNames = new Set<string>([...variableNames, ...derivedNames]);
@@ -1911,10 +1974,14 @@ export class TemplateService {
       try {
         math.parse(constraint.rule);
       } catch (err: any) {
-        errors.push(`Invalid constraint formula: ${constraint.rule} (${err.message})`);
+        errors.push(
+          `Invalid constraint formula: ${constraint.rule} (${err.message})`,
+        );
       }
 
-      const unsupportedFunctions = getUnsupportedMathjsFunctions(constraint.rule);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(
+        constraint.rule,
+      );
       if (unsupportedFunctions.length > 0) {
         errors.push(
           `Constraint uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
@@ -1923,7 +1990,9 @@ export class TemplateService {
       const identifiers = analyzeMathjsExpression(constraint.rule).identifiers;
       for (const id of identifiers) {
         if (!parameterNames.has(id)) {
-          errors.push(`Constraint references undefined variable or derived variable: ${id}`);
+          errors.push(
+            `Constraint references undefined variable or derived variable: ${id}`,
+          );
         }
       }
     }
@@ -1931,17 +2000,23 @@ export class TemplateService {
     return errors;
   }
 
-  private validateSolutionSchema(solutionSchema: any, variableSchema: any): string[] {
+  private validateSolutionSchema(
+    solutionSchema: any,
+    variableSchema: any,
+  ): string[] {
     const errors: string[] = [];
     if (!solutionSchema || typeof solutionSchema !== "object") {
       return errors;
     }
 
-    const variableNames = this.extractSolutionSchemaVariableNames(variableSchema);
+    const variableNames =
+      this.extractSolutionSchemaVariableNames(variableSchema);
 
     if (solutionSchema.correctVariable) {
       if (typeof solutionSchema.correctVariable !== "string") {
-        errors.push("solutionSchema.correctVariable must be a string reference to a defined variable.");
+        errors.push(
+          "solutionSchema.correctVariable must be a string reference to a defined variable.",
+        );
       } else if (!variableNames.has(solutionSchema.correctVariable)) {
         errors.push(
           `solutionSchema.correctVariable references undefined variable: ${solutionSchema.correctVariable}`,

@@ -11,17 +11,16 @@ export interface DomainEventPayload {
 
 @Injectable()
 export class TransactionalOutboxService {
-  private readonly logger = new AppLogger({ name: "TransactionalOutboxService" });
+  private readonly logger = new AppLogger({
+    name: "TransactionalOutboxService",
+  });
 
   constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Writes a domain event to the Transactional Outbox inside an existing Prisma transaction or standard client.
    */
-  async recordEvent(
-    event: DomainEventPayload,
-    tx?: any,
-  ): Promise<void> {
+  async recordEvent(event: DomainEventPayload, tx?: any): Promise<void> {
     const client = tx || this.prisma;
 
     await client.transactionalOutbox.create({

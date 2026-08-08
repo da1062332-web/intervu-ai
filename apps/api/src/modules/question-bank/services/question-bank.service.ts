@@ -30,7 +30,11 @@ export class QuestionBankService {
    */
   async createQuestion(dto: CreateQuestionDto): Promise<Question> {
     return this.prisma.$transaction(async (tx) => {
-      const mcqData = dto.mcqData || (dto.options && dto.options.length > 0 ? { options: dto.options } : null);
+      const mcqData =
+        dto.mcqData ||
+        (dto.options && dto.options.length > 0
+          ? { options: dto.options }
+          : null);
 
       // 1. Create the question record (starts as DRAFT)
       const question = await this.questionRepo.create(
@@ -241,7 +245,11 @@ export class QuestionBankService {
         }
       }
 
-      const mcqData = dto.mcqData || (dto.options && dto.options.length > 0 ? { options: dto.options } : undefined);
+      const mcqData =
+        dto.mcqData ||
+        (dto.options && dto.options.length > 0
+          ? { options: dto.options }
+          : undefined);
       const cleanDto: any = { ...dto };
       delete cleanDto.options;
 
@@ -258,7 +266,9 @@ export class QuestionBankService {
       const updateData: Prisma.QuestionUncheckedUpdateInput = {
         ...cleanDto,
         ...(mcqData !== undefined ? { mcqData } : {}),
-        questionSource: dto.questionSource ? (dto.questionSource as any) : undefined,
+        questionSource: dto.questionSource
+          ? (dto.questionSource as any)
+          : undefined,
         version: { increment: 1 },
       };
 

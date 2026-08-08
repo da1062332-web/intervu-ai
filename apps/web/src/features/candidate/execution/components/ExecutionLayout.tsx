@@ -21,11 +21,7 @@ import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
 import { useState, useCallback } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
 import { FloatingToolbar } from '@/components/candidate/sandbox/FloatingToolbar';
 import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScratchPad';
@@ -66,14 +62,13 @@ export function ExecutionLayout() {
     >
       <FullscreenOverlay />
       <TabWarningModal />
-      
+
       {/* Green Header Banner (with integrated sync status) */}
       <ExecutionHeader />
 
       {/* Main Viewport Container */}
       <main className='flex flex-1 lg:h-[calc(100vh-3.5rem)] overflow-hidden bg-[#f3f7fb] w-full select-text'>
         <div className='flex flex-col lg:flex-row w-full h-full overflow-y-auto lg:overflow-hidden'>
-          
           {/* Left Column: Sections Box & Main Question Area */}
           <div className='flex-1 flex flex-col h-full lg:overflow-hidden p-2.5 sm:p-3 min-w-0 bg-[#f3f7fb]'>
             {/* Sections Border Fieldset */}
@@ -101,7 +96,10 @@ export function ExecutionLayout() {
                   Open Question Palette &amp; Test Info
                 </button>
               </SheetTrigger>
-              <SheetContent side='right' className='w-full sm:w-[380px] p-0 bg-[#e3f2fb] overflow-hidden flex flex-col z-[9999]'>
+              <SheetContent
+                side='right'
+                className='w-full sm:w-[380px] p-0 bg-[#e3f2fb] overflow-hidden flex flex-col z-[9999]'
+              >
                 <div className='p-3.5 bg-white border-b border-gray-300 flex items-center justify-between shrink-0'>
                   <div className='flex flex-col items-center w-24 shrink-0'>
                     <div className='w-20 h-20 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>

@@ -57,7 +57,7 @@ export function useAutosave(testId: string) {
         localStorageDisabledRef.current = true;
         console.warn(
           '[Autosave] FE-001: localStorage unavailable or full. Offline snapshot disabled. ' +
-          'Network autosave (useAnswerPersistence) remains active.',
+            'Network autosave (useAnswerPersistence) remains active.',
           error,
         );
         // FE-001: Still clear the unsaved flag so we don't loop infinitely

@@ -134,7 +134,10 @@ export class AssemblyPublisherService {
           data: { status: "ACTIVE" },
         });
       } catch (err) {
-        console.warn(`Skipped syncing ExamConfig ${targetConfigId} status:`, err);
+        console.warn(
+          `Skipped syncing ExamConfig ${targetConfigId} status:`,
+          err,
+        );
       }
     }
 

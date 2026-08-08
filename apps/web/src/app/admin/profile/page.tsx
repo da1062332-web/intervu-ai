@@ -35,16 +35,12 @@ export default function ProfilePage() {
         title='Profile'
         description='Manage your personal information and account details.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Profile' }]}
-        actions={
-          <Button onClick={() => setIsEditModalOpen(true)}>
-            Edit Profile
-          </Button>
-        }
+        actions={<Button onClick={() => setIsEditModalOpen(true)}>Edit Profile</Button>}
       />
 
       <ProfileDetailsCard user={user} />
       <ActiveSessionsCard />
-      
+
       {user && (
         <EditProfileModal
           isOpen={isEditModalOpen}

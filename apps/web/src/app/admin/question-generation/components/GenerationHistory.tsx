@@ -12,7 +12,7 @@ export function GenerationHistory() {
     {
       header: 'Date',
       cell: (row) => (
-        <span className="font-medium text-foreground">
+        <span className='font-medium text-foreground'>
           {new Date(row.createdAt).toLocaleDateString()}{' '}
           {new Date(row.createdAt).toLocaleTimeString()}
         </span>
@@ -20,7 +20,9 @@ export function GenerationHistory() {
     },
     {
       header: 'Template ID',
-      cell: (row) => <span className="font-mono text-xs text-muted-foreground">{row.templateId}</span>,
+      cell: (row) => (
+        <span className='font-mono text-xs text-muted-foreground'>{row.templateId}</span>
+      ),
     },
     {
       header: 'Type',
@@ -29,9 +31,7 @@ export function GenerationHistory() {
     {
       header: 'Status',
       cell: (row) => (
-        <Badge variant={row.status === 'Completed' ? 'default' : 'destructive'}>
-          {row.status}
-        </Badge>
+        <Badge variant={row.status === 'Completed' ? 'default' : 'destructive'}>{row.status}</Badge>
       ),
     },
     {
@@ -46,21 +46,21 @@ export function GenerationHistory() {
   ];
 
   return (
-    <Card className="border-border/50">
+    <Card className='border-border/50'>
       <CardHeader>
         <CardTitle>Recent Generations</CardTitle>
         <CardDescription>History of recent single and batch question generations.</CardDescription>
       </CardHeader>
-      <CardContent className="p-0 border-t">
+      <CardContent className='p-0 border-t'>
         <DataTable
           columns={columns}
           data={history || []}
           isLoading={isLoading}
           emptyState={
             <EmptyState
-              title="No generation history found"
-              description="Your recent generations will appear here."
-              className="py-12 border-0"
+              title='No generation history found'
+              description='Your recent generations will appear here.'
+              className='py-12 border-0'
             />
           }
         />

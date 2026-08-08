@@ -39,7 +39,9 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
               <Award className='size-3' />
               Overall Score
             </div>
-            <div className='text-3xl font-bold text-primary'>{recommendations.overallScore}/100</div>
+            <div className='text-3xl font-bold text-primary'>
+              {recommendations.overallScore}/100
+            </div>
           </div>
           <div className='bg-primary/5 p-4 rounded-lg border border-primary/10 flex flex-col items-center justify-center text-center'>
             <div className='flex items-center gap-1 text-muted-foreground mb-1 text-sm'>

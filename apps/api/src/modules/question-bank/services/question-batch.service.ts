@@ -55,7 +55,9 @@ export class QuestionBatchService {
       },
     });
 
-    this.logger.info(`Created QuestionBatch #${batchNumber} (${batch.id}) for topic ${dto.topicId}`);
+    this.logger.info(
+      `Created QuestionBatch #${batchNumber} (${batch.id}) for topic ${dto.topicId}`,
+    );
     return batch;
   }
 

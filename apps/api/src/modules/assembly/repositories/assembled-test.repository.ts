@@ -54,7 +54,7 @@ export class AssembledTestRepository {
 
           return assembly.id;
         },
-        { maxWait: 10000, timeout: 60000 }
+        { maxWait: 10000, timeout: 60000 },
       );
 
       return result;
@@ -73,47 +73,50 @@ export class AssembledTestRepository {
     totalQuestions: number,
   ): Promise<void> {
     try {
-      await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        // Update assembly totals
-        await tx.assembledTest.update({
-          where: { id: assemblyId },
-          data: {
-            totalDurationSeconds,
-            totalQuestions,
-          },
-        });
-
-        // Delete existing sections (cascading to questions)
-        await tx.assembledTestSection.deleteMany({
-          where: { assemblyId },
-        });
-
-        // Create new sections and questions
-        for (const section of sections) {
-          const testSection = await tx.assembledTestSection.create({
+      await this.prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          // Update assembly totals
+          await tx.assembledTest.update({
+            where: { id: assemblyId },
             data: {
-              assemblyId,
-              sectionKey: section.sectionKey,
-              sectionName: section.displayName,
-              durationSeconds: section.durationSeconds,
-              questionCount: section.questionCount,
-              orderIndex: section.orderIndex,
+              totalDurationSeconds,
+              totalQuestions,
             },
           });
 
-          if (section.questions.length > 0) {
-            await tx.assembledTestQuestion.createMany({
-              data: section.questions.map((q: AllocatedQuestionDto) => ({
+          // Delete existing sections (cascading to questions)
+          await tx.assembledTestSection.deleteMany({
+            where: { assemblyId },
+          });
+
+          // Create new sections and questions
+          for (const section of sections) {
+            const testSection = await tx.assembledTestSection.create({
+              data: {
                 assemblyId,
-                sectionId: testSection.id,
-                questionId: q.questionId,
-                questionOrder: q.questionOrder,
-                questionSnapshot: q.questionSnapshot as Prisma.InputJsonValue,
-              })),
+                sectionKey: section.sectionKey,
+                sectionName: section.displayName,
+                durationSeconds: section.durationSeconds,
+                questionCount: section.questionCount,
+                orderIndex: section.orderIndex,
+              },
             });
+
+            if (section.questions.length > 0) {
+              await tx.assembledTestQuestion.createMany({
+                data: section.questions.map((q: AllocatedQuestionDto) => ({
+                  assemblyId,
+                  sectionId: testSection.id,
+                  questionId: q.questionId,
+                  questionOrder: q.questionOrder,
+                  questionSnapshot: q.questionSnapshot as Prisma.InputJsonValue,
+                })),
+              });
+            }
           }
-        }
-      }, { maxWait: 10000, timeout: 60000 });
+        },
+        { maxWait: 10000, timeout: 60000 },
+      );
     } catch (error) {
       throw new InternalServerErrorException(
         "Failed to replace assembly transaction",
@@ -163,10 +166,10 @@ export class AssembledTestRepository {
         sections: {
           include: {
             questions: {
-              orderBy: { questionOrder: 'asc' },
+              orderBy: { questionOrder: "asc" },
             },
           },
-          orderBy: { orderIndex: 'asc' },
+          orderBy: { orderIndex: "asc" },
         },
       },
     });
@@ -191,12 +194,12 @@ export class AssembledTestRepository {
               select: {
                 candidateNoRepeatEnabled: true,
                 runtimeGenerationOnDeficit: true,
-              },
+              } as any,
             },
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 

@@ -91,8 +91,8 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 max-w-2xl' noValidate>
         <CustomFormField
           control={form.control}
-          name="name"
-          label="Config Name"
+          name='name'
+          label='Config Name'
           render={(field) => (
             <Input
               {...field}
@@ -104,8 +104,8 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
 
         <CustomFormField
           control={form.control}
-          name="code"
-          label="Config Code"
+          name='code'
+          label='Config Code'
           render={(field) => (
             <Input
               {...field}
@@ -120,29 +120,27 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
 
         <CustomFormField
           control={form.control}
-          name="role"
-          label="Role"
+          name='role'
+          label='Role'
           render={(field) => (
-            <Input
-              {...field}
-              placeholder='e.g. Software Engineer'
-              disabled={isSubmitting}
-            />
+            <Input {...field} placeholder='e.g. Software Engineer' disabled={isSubmitting} />
           )}
         />
 
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <CustomFormField
             control={form.control}
-            name="durationMinutes"
-            label="Duration (minutes)"
+            name='durationMinutes'
+            label='Duration (minutes)'
             render={(field) => (
               <Input
                 {...field}
                 value={field.value ?? ''}
                 type='number'
                 placeholder='60'
-                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) =>
+                  field.onChange(e.target.value === '' ? '' : Number(e.target.value))
+                }
                 disabled={isSubmitting}
               />
             )}
@@ -150,15 +148,17 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
 
           <CustomFormField
             control={form.control}
-            name="totalQuestions"
-            label="Total Questions"
+            name='totalQuestions'
+            label='Total Questions'
             render={(field) => (
               <Input
                 {...field}
                 value={field.value ?? ''}
                 type='number'
                 placeholder='30'
-                onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) =>
+                  field.onChange(e.target.value === '' ? '' : Number(e.target.value))
+                }
                 disabled={isSubmitting}
               />
             )}

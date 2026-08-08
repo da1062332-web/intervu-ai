@@ -163,7 +163,9 @@ export default function AssemblyPreviewPage() {
         const snap = row.questionSnapshot || {};
         const diff = snap.difficultyLevel || 'UNKNOWN';
         return (
-          <Badge variant={diff === 'HARD' ? 'destructive' : diff === 'MEDIUM' ? 'default' : 'secondary'}>
+          <Badge
+            variant={diff === 'HARD' ? 'destructive' : diff === 'MEDIUM' ? 'default' : 'secondary'}
+          >
             {diff}
           </Badge>
         );
@@ -177,7 +179,10 @@ export default function AssemblyPreviewPage() {
         const matchingTopic = topics?.find((t) => t.id === key || t.code === key);
         const displayName = matchingTopic ? matchingTopic.name : key || 'General';
         return (
-          <Badge variant='outline' className='bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'>
+          <Badge
+            variant='outline'
+            className='bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+          >
             {displayName}
           </Badge>
         );
@@ -202,7 +207,8 @@ export default function AssemblyPreviewPage() {
 
   if (!assembly) return null;
 
-  const examName = assembly?.examConfig?.name || assembly?.testConfig?.displayName || assembly?.name;
+  const examName =
+    assembly?.examConfig?.name || assembly?.testConfig?.displayName || assembly?.name;
   const examCode = assembly?.examConfig?.code || assembly?.testConfig?.configKey;
 
   const totalQuestions =
@@ -222,11 +228,18 @@ export default function AssemblyPreviewPage() {
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Assembly', href: '/admin/assembly' },
-          { label: examName || 'Preview' }
+          { label: examName || 'Preview' },
         ]}
         actions={
           <div className='flex items-center gap-3'>
-            <Badge variant='outline' className={isPublished ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}>
+            <Badge
+              variant='outline'
+              className={
+                isPublished
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
+              }
+            >
               <CheckCircle2 className='h-3 w-3 mr-1' />
               {assembly.status}
             </Badge>
@@ -320,9 +333,7 @@ export default function AssemblyPreviewPage() {
                   <AlertCircle className='h-6 w-6 text-amber-500' />
                   <div>
                     <p className='font-semibold text-amber-700'>No Version Snapshot</p>
-                    <p className='text-xs text-amber-600/80'>
-                      Create a version before publishing.
-                    </p>
+                    <p className='text-xs text-amber-600/80'>Create a version before publishing.</p>
                   </div>
                 </div>
               )}

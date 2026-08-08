@@ -9,40 +9,62 @@ export class AppConfigService {
 
   get nodeEnv(): string {
     return (
-      this.configService?.get<string>("NODE_ENV", "development") || process.env.NODE_ENV || "development"
+      this.configService?.get<string>("NODE_ENV", "development") ||
+      process.env.NODE_ENV ||
+      "development"
     );
   }
 
   get port(): number {
-    return this.configService?.get<number>("PORT", 3000) || Number(process.env.PORT) || 3000;
+    return (
+      this.configService?.get<number>("PORT", 3000) ||
+      Number(process.env.PORT) ||
+      3000
+    );
   }
 
   get databaseUrl(): string {
-    return this.configService?.get<string>("DATABASE_URL", "") || process.env.DATABASE_URL || "";
+    return (
+      this.configService?.get<string>("DATABASE_URL", "") ||
+      process.env.DATABASE_URL ||
+      ""
+    );
   }
 
   get redisUrl(): string {
-    return this.configService?.get<string>("REDIS_URL", "") || process.env.REDIS_URL || "redis://localhost:6379";
+    return (
+      this.configService?.get<string>("REDIS_URL", "") ||
+      process.env.REDIS_URL ||
+      "redis://localhost:6379"
+    );
   }
 
   get jwtSecret(): string {
-    const secret = this.configService?.get<string>("JWT_SECRET") || process.env.JWT_SECRET;
+    const secret =
+      this.configService?.get<string>("JWT_SECRET") || process.env.JWT_SECRET;
     if (!secret || secret.length < 32) {
       if (this.nodeEnv !== "test") {
         return "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345";
       }
-      return secret || "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345";
+      return (
+        secret || "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345"
+      );
     }
     return secret;
   }
 
   get jwtRefreshSecret(): string {
-    const secret = this.configService?.get<string>("JWT_REFRESH_SECRET") || process.env.JWT_REFRESH_SECRET;
+    const secret =
+      this.configService?.get<string>("JWT_REFRESH_SECRET") ||
+      process.env.JWT_REFRESH_SECRET;
     if (!secret || secret.length < 32) {
       if (this.nodeEnv !== "test") {
         return "dev_jwt_refresh_secret_must_be_at_least_32_chars_long_key_67890";
       }
-      return secret || "dev_jwt_refresh_secret_must_be_at_least_32_chars_long_key_67890";
+      return (
+        secret ||
+        "dev_jwt_refresh_secret_must_be_at_least_32_chars_long_key_67890"
+      );
     }
     return secret;
   }
@@ -52,7 +74,11 @@ export class AppConfigService {
   }
 
   get openAiApiKey(): string {
-    return this.configService?.get<string>("OPENAI_API_KEY", "") || process.env.OPENAI_API_KEY || "";
+    return (
+      this.configService?.get<string>("OPENAI_API_KEY", "") ||
+      process.env.OPENAI_API_KEY ||
+      ""
+    );
   }
 
   get rateLimits() {

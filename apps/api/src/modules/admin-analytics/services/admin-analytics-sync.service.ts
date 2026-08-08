@@ -33,12 +33,21 @@ export class AdminAnalyticsSyncService {
       this.prisma.generationJob.count(),
       this.prisma.generationJob.count({ where: { status: "COMPLETED" } }),
       this.prisma.generationJob.count({ where: { status: "FAILED" } }),
-      this.prisma.generationLog.count({ where: { status: { in: ["FAILED", "ERROR", "FAILURE"] } } }),
+      this.prisma.generationLog.count({
+        where: { status: { in: ["FAILED", "ERROR", "FAILURE"] } },
+      }),
       this.prisma.generationLog.aggregate({ _avg: { durationMs: true } }),
-      this.prisma.question.findMany({ where: { source: "GENERATED" }, include: { topic: true } }),
-      this.prisma.generatedQuestion.findMany({ select: { conceptKey: true, difficultyLevel: true, createdAt: true } }),
+      this.prisma.question.findMany({
+        where: { source: "GENERATED" },
+        include: { topic: true },
+      }),
+      this.prisma.generatedQuestion.findMany({
+        select: { conceptKey: true, difficultyLevel: true, createdAt: true },
+      }),
       this.prisma.generationJob.findMany({
-        where: { createdAt: { gte: new Date(now.getTime() - 6 * 24 * 3600 * 1000) } },
+        where: {
+          createdAt: { gte: new Date(now.getTime() - 6 * 24 * 3600 * 1000) },
+        },
         select: { createdAt: true, status: true },
       }),
       this.prisma.generationLog.findMany({
@@ -59,19 +68,28 @@ export class AdminAnalyticsSyncService {
 
     for (const q of questions) {
       const topicName = q.topic?.name || "Unknown";
-      questionsGeneratedPerTopic[topicName] = (questionsGeneratedPerTopic[topicName] || 0) + 1;
-      questionsGeneratedPerDifficulty[q.difficulty] = (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
+      questionsGeneratedPerTopic[topicName] =
+        (questionsGeneratedPerTopic[topicName] || 0) + 1;
+      questionsGeneratedPerDifficulty[q.difficulty] =
+        (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
     }
     for (const gq of generatedQuestions) {
       const topicName = gq.conceptKey || "General";
-      questionsGeneratedPerTopic[topicName] = (questionsGeneratedPerTopic[topicName] || 0) + 1;
-      questionsGeneratedPerDifficulty[gq.difficultyLevel] = (questionsGeneratedPerDifficulty[gq.difficultyLevel] || 0) + 1;
+      questionsGeneratedPerTopic[topicName] =
+        (questionsGeneratedPerTopic[topicName] || 0) + 1;
+      questionsGeneratedPerDifficulty[gq.difficultyLevel] =
+        (questionsGeneratedPerDifficulty[gq.difficultyLevel] || 0) + 1;
     }
 
     // Live daily trend data from actual generation records
-    const trendMap: Record<string, { date: string; success: number; failure: number }> = {};
+    const trendMap: Record<
+      string,
+      { date: string; success: number; failure: number }
+    > = {};
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 24 * 3600 * 1000).toISOString().split("T")[0];
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000)
+        .toISOString()
+        .split("T")[0];
       trendMap[d] = { date: d, success: 0, failure: 0 };
     }
 

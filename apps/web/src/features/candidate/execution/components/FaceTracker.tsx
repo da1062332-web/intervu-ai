@@ -26,7 +26,9 @@ function WarningDialog({
   onDismiss: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   if (!isOpen || !mounted) return null;
 
   return createPortal(
@@ -41,9 +43,7 @@ function WarningDialog({
         <h2 className='text-lg font-bold text-gray-900 text-center uppercase tracking-wide mb-2'>
           {title}
         </h2>
-        <p className='text-gray-600 text-center text-xs mb-4 leading-relaxed'>
-          {description}
-        </p>
+        <p className='text-gray-600 text-center text-xs mb-4 leading-relaxed'>{description}</p>
         <span className='inline-flex items-center justify-center bg-red-50 text-red-600 font-bold px-4 py-1.5 rounded text-xs mb-5 border border-red-200'>
           {badge}
         </span>
@@ -112,8 +112,8 @@ export function FaceTracker({ onSubmit }: FaceTrackerProps) {
           !isFaceDetected && isModelLoaded && !hasCameraError
             ? 'ring-2 ring-red-500 inset-0'
             : isMultipleFaces
-            ? 'ring-2 ring-orange-500 inset-0'
-            : '',
+              ? 'ring-2 ring-orange-500 inset-0'
+              : '',
         )}
       >
         <div className='relative w-full h-full flex flex-col items-center justify-center'>
@@ -136,7 +136,7 @@ export function FaceTracker({ onSubmit }: FaceTrackerProps) {
             <div className='flex flex-col items-center justify-center text-gray-500 bg-gray-100 w-full h-full p-1'>
               {/* Classic silhouette portrait matching CBT exam UI */}
               <svg className='w-12 h-12 text-gray-600 fill-current' viewBox='0 0 24 24'>
-                <path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/>
+                <path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' />
               </svg>
               {hasCameraError && (
                 <span className='text-[8px] text-red-500 font-semibold mt-0.5 text-center leading-none'>

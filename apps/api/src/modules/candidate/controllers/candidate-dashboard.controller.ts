@@ -12,7 +12,10 @@ import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { CandidateDashboardService } from "../services/candidate-dashboard.service";
-import { CandidateDashboardResponseDto, CandidateDashboardMetricsResponseDto } from "../dto/candidate-dashboard.dto";
+import {
+  CandidateDashboardResponseDto,
+  CandidateDashboardMetricsResponseDto,
+} from "../dto/candidate-dashboard.dto";
 
 @ApiTags("candidate-dashboard")
 @ApiBearerAuth("jwt-auth")

@@ -391,7 +391,9 @@ export class WorkflowFacadeService {
         where.status = { in: ["VALIDATED", "ACTIVE"] };
       } else if (upperStatus === "REJECTED") {
         where.status = "ARCHIVED";
-      } else if (["DRAFT", "VALIDATED", "ACTIVE", "ARCHIVED"].includes(upperStatus)) {
+      } else if (
+        ["DRAFT", "VALIDATED", "ACTIVE", "ARCHIVED"].includes(upperStatus)
+      ) {
         where.status = upperStatus;
       } else {
         // Safe fallback for invalid status to return empty result instead of crashing

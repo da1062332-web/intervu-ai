@@ -28,13 +28,13 @@ const JsonEditor = ({
   required?: boolean;
   placeholder?: string;
 }) => (
-  <div className="space-y-2">
+  <div className='space-y-2'>
     <label
       htmlFor={id}
       className={`text-sm font-medium ${error ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}
     >
       {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className='text-red-500 ml-1'>*</span>}
     </label>
     <textarea
       id={id}
@@ -43,12 +43,10 @@ const JsonEditor = ({
       rows={6}
       placeholder={placeholder}
       className={`flex w-full rounded-md border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-900 ${
-        error
-          ? 'border-red-500'
-          : 'border-gray-300 dark:border-gray-800'
+        error ? 'border-red-500' : 'border-gray-300 dark:border-gray-800'
       }`}
     />
-    {error && <p className="text-xs text-red-500">{error}</p>}
+    {error && <p className='text-xs text-red-500'>{error}</p>}
   </div>
 );
 
@@ -68,9 +66,12 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
     if (template?.config && !hydrated) {
       if (template.generationStrategy === 'HYBRID') {
         updateConfig(template.config);
-        if (template.config.entitySchema) setEntitySchemaStr(JSON.stringify(template.config.entitySchema, null, 2));
-        if (template.config.relationshipSchema) setRelationshipSchemaStr(JSON.stringify(template.config.relationshipSchema, null, 2));
-        if (template.config.constraintSchema) setConstraintSchemaStr(JSON.stringify(template.config.constraintSchema, null, 2));
+        if (template.config.entitySchema)
+          setEntitySchemaStr(JSON.stringify(template.config.entitySchema, null, 2));
+        if (template.config.relationshipSchema)
+          setRelationshipSchemaStr(JSON.stringify(template.config.relationshipSchema, null, 2));
+        if (template.config.constraintSchema)
+          setConstraintSchemaStr(JSON.stringify(template.config.constraintSchema, null, 2));
         if (template.config.scenarioId) setSelectedScenarioId(template.config.scenarioId as string);
       }
       setHydrated(true);
@@ -136,35 +137,36 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       <TemplateSection
-        title="Hybrid Strategy Configuration"
-        description="Define entity schemas and relationships to generate logical reasoning questions from scenarios."
+        title='Hybrid Strategy Configuration'
+        description='Define entity schemas and relationships to generate logical reasoning questions from scenarios.'
         actions={
-          <Button onClick={handleSave} size="sm">
+          <Button onClick={handleSave} size='sm'>
             Save Configuration
           </Button>
         }
       >
-        <div className="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-md mb-4">
-          <p className="text-sm text-purple-800 dark:text-purple-300">
-            <strong>Hybrid Strategy:</strong> Questions are generated from entity-relationship graphs
-            and logic scenarios. Ideal for blood relations, seating arrangements, and logical puzzles.
+        <div className='p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-md mb-4'>
+          <p className='text-sm text-purple-800 dark:text-purple-300'>
+            <strong>Hybrid Strategy:</strong> Questions are generated from entity-relationship
+            graphs and logic scenarios. Ideal for blood relations, seating arrangements, and logical
+            puzzles.
           </p>
         </div>
 
         {/* General validation errors */}
         {validationErrors.general && (
-          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 rounded-md">
-            <p className="text-sm text-red-700 dark:text-red-400">{validationErrors.general}</p>
+          <div className='p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 rounded-md'>
+            <p className='text-sm text-red-700 dark:text-red-400'>{validationErrors.general}</p>
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className='space-y-6'>
           {/* Entity Schema */}
           <JsonEditor
-            id="entitySchema"
-            label="Entity Schema"
+            id='entitySchema'
+            label='Entity Schema'
             required
             value={entitySchemaStr}
             onChange={setEntitySchemaStr}
@@ -174,8 +176,8 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
 
           {/* Relationship Schema */}
           <JsonEditor
-            id="relationshipSchema"
-            label="Relationship Schema"
+            id='relationshipSchema'
+            label='Relationship Schema'
             required
             value={relationshipSchemaStr}
             onChange={setRelationshipSchemaStr}
@@ -185,8 +187,8 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
 
           {/* Constraint Schema */}
           <JsonEditor
-            id="constraintSchema"
-            label="Constraint Rules (optional)"
+            id='constraintSchema'
+            label='Constraint Rules (optional)'
             value={constraintSchemaStr}
             onChange={setConstraintSchemaStr}
             error={jsonErrors.constraintSchema}
@@ -194,25 +196,25 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
           />
 
           {/* Scenario Selector */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              <GitBranch className="inline w-4 h-4 mr-1" />
+          <div className='space-y-2'>
+            <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+              <GitBranch className='inline w-4 h-4 mr-1' />
               Select Scenario (optional)
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className='text-xs text-gray-500'>
               Link a pre-defined scenario to auto-populate entity/relationship schemas.
             </p>
             {isLoading ? (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className='flex items-center gap-2 text-sm text-gray-500'>
+                <Loader2 className='w-4 h-4 animate-spin' />
                 Loading scenarios...
               </div>
             ) : !scenarios || scenarios.length === 0 ? (
-              <div className="p-4 border border-dashed rounded-lg text-center text-sm text-gray-500">
+              <div className='p-4 border border-dashed rounded-lg text-center text-sm text-gray-500'>
                 No scenarios found. Create one first or fill schemas manually.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 {scenarios.map((scenario: Scenario) => (
                   <div
                     key={scenario.id}
@@ -228,9 +230,9 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
                         : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
                     }`}
                   >
-                    <div className="font-medium text-sm">{scenario.name}</div>
+                    <div className='font-medium text-sm'>{scenario.name}</div>
                     {scenario.description && (
-                      <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      <div className='text-xs text-gray-500 mt-1 line-clamp-2'>
                         {scenario.description}
                       </div>
                     )}
@@ -242,14 +244,14 @@ export function HybridStrategyPanel({ templateId: _, template }: StrategyPanelPr
 
           {/* Graph Preview */}
           {entitySchemaStr && relationshipSchemaStr && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className='space-y-2'>
+              <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                 Graph Preview (read-only)
               </h3>
-              <div className="p-4 bg-gray-50 dark:bg-gray-900 border rounded-md font-mono text-xs text-gray-700 dark:text-gray-300">
-                <div className="text-xs font-semibold text-gray-400 mb-2">ENTITIES</div>
+              <div className='p-4 bg-gray-50 dark:bg-gray-900 border rounded-md font-mono text-xs text-gray-700 dark:text-gray-300'>
+                <div className='text-xs font-semibold text-gray-400 mb-2'>ENTITIES</div>
                 <pre>{entitySchemaStr}</pre>
-                <div className="text-xs font-semibold text-gray-400 mb-2 mt-4">RELATIONSHIPS</div>
+                <div className='text-xs font-semibold text-gray-400 mb-2 mt-4'>RELATIONSHIPS</div>
                 <pre>{relationshipSchemaStr}</pre>
               </div>
             </div>

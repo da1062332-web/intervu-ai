@@ -22,7 +22,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
   const multiFaceSecondsRef = useRef(0);
   const inNoFaceViolationRef = useRef(false);
   const inMultiFaceViolationRef = useRef(false);
-  
+
   const onSubmitRef = useRef(onSubmit);
   useEffect(() => {
     onSubmitRef.current = onSubmit;

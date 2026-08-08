@@ -66,22 +66,25 @@ export class GenerationStrategyResolver {
         );
 
         const variables: Record<string, any> = {};
-        const config = await this.prismaService.templateDatasetConfig.findUnique({
-          where: { templateId: template.id },
-        });
-
-        if (config && config.variableMapping) {
-          const mapping = (config.variableMapping as Record<string, string>) || {};
-          const metadata = datasetItem.metadata || {};
-
-          const templateVars = await this.prismaService.templateVariable.findMany({
+        const config =
+          await this.prismaService.templateDatasetConfig.findUnique({
             where: { templateId: template.id },
           });
 
+        if (config && config.variableMapping) {
+          const mapping =
+            (config.variableMapping as Record<string, string>) || {};
+          const metadata = datasetItem.metadata || {};
+
+          const templateVars =
+            await this.prismaService.templateVariable.findMany({
+              where: { templateId: template.id },
+            });
+
           const getMappedValue = (field: string) => {
             if (!field) return undefined;
-            if (field === 'content') return datasetItem.content;
-            if (field === 'id') return datasetItem.id;
+            if (field === "content") return datasetItem.content;
+            if (field === "id") return datasetItem.id;
             return metadata[field];
           };
 

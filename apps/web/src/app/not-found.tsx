@@ -33,11 +33,7 @@ export default function NotFound() {
               Return to Dashboard
             </Link>
           </Button>
-          <Button
-            variant='outline'
-            onClick={() => router.back()}
-            className='w-full sm:w-auto h-11'
-          >
+          <Button variant='outline' onClick={() => router.back()} className='w-full sm:w-auto h-11'>
             <ArrowLeft className='mr-2 size-4' />
             Go Back
           </Button>

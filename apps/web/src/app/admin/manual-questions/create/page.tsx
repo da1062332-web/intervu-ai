@@ -15,34 +15,36 @@ import { manualQuestionsApi } from '@/services/manual-questions/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { SectionHeader } from '@/components/ui/section-header';
 
-const questionSchema = z.object({
-  questionType: z.enum(['MCQ', 'CODING', 'TRUE_FALSE']),
-  difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
-  questionTitle: z.string().optional(),
-  questionText: z.string().optional(),
-  options: z.array(z.string()).optional(),
-  answer: z.string().optional(),
-  explanation: z.string().optional(),
-  mcqCorrectIndex: z.string().optional(),
-  codingData: z.any().optional(),
-}).superRefine((val, ctx) => {
-  if (val.questionType !== 'CODING') {
-    if (!val.questionText || val.questionText.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Question text is required',
-        path: ['questionText']
-      });
+const questionSchema = z
+  .object({
+    questionType: z.enum(['MCQ', 'CODING', 'TRUE_FALSE']),
+    difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
+    questionTitle: z.string().optional(),
+    questionText: z.string().optional(),
+    options: z.array(z.string()).optional(),
+    answer: z.string().optional(),
+    explanation: z.string().optional(),
+    mcqCorrectIndex: z.string().optional(),
+    codingData: z.any().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.questionType !== 'CODING') {
+      if (!val.questionText || val.questionText.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Question text is required',
+          path: ['questionText'],
+        });
+      }
+      if (!val.answer || val.answer.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Answer is required',
+          path: ['answer'],
+        });
+      }
     }
-    if (!val.answer || val.answer.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Answer is required',
-        path: ['answer']
-      });
-    }
-  }
-});
+  });
 
 const formSchema = z.object({
   topicId: z.string().min(1, 'Topic is required'),
@@ -55,7 +57,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function BatchCreatePage() {
   return (
-    <React.Suspense fallback={<div className="p-8 flex items-center justify-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>}>
+    <React.Suspense
+      fallback={
+        <div className='p-8 flex items-center justify-center h-screen'>
+          <Loader2 className='w-8 h-8 animate-spin text-muted-foreground' />
+        </div>
+      }
+    >
       <BatchCreateContent />
     </React.Suspense>
   );
@@ -85,12 +93,17 @@ function BatchCreateContent() {
           options: ['', '', '', ''],
           answer: '',
           explanation: '',
-        }
+        },
       ],
     },
   });
 
-  const { handleSubmit, watch, setValue, formState: { errors } } = methods;
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = methods;
 
   const topicId = watch('topicId');
   const conceptId = watch('conceptId');
@@ -100,15 +113,13 @@ function BatchCreateContent() {
 
     const payloads = data.questions.map((q) => {
       // Clean up empty options
-      const filteredOptions = q.options?.filter(opt => opt && opt.trim() !== '') || [];
-      
+      const filteredOptions = q.options?.filter((opt) => opt && opt.trim() !== '') || [];
+
       const isCoding = q.questionType === 'CODING';
-      const questionText = isCoding 
-        ? (q.codingData?.problemStatement || 'Coding Challenge') 
-        : (q.questionText || '');
-      const answer = isCoding
-        ? 'Code solution provided'
-        : (q.answer || '');
+      const questionText = isCoding
+        ? q.codingData?.problemStatement || 'Coding Challenge'
+        : q.questionText || '';
+      const answer = isCoding ? 'Code solution provided' : q.answer || '';
 
       return {
         questionText: questionText,
@@ -117,19 +128,21 @@ function BatchCreateContent() {
         topicId: data.topicId,
         sectionId: data.sectionId || null,
         difficulty: q.difficulty,
-        source: "MANUAL" as const,
+        source: 'MANUAL' as const,
         templateId: null,
         options: filteredOptions,
         conceptId: data.conceptId,
-        questionSource: "MANUAL" as const,
+        questionSource: 'MANUAL' as const,
         questionType: q.questionType,
         estimatedTime: 120,
         questionTitle: q.questionTitle || '',
-        questionStatement: isCoding ? (q.codingData?.problemStatement || '') : '',
-        instructions: isCoding ? JSON.stringify({
-          constraints: q.codingData?.constraints || '',
-          testCases: q.codingData?.testCases || ''
-        }) : '',
+        questionStatement: isCoding ? q.codingData?.problemStatement || '' : '',
+        instructions: isCoding
+          ? JSON.stringify({
+              constraints: q.codingData?.constraints || '',
+              testCases: q.codingData?.testCases || '',
+            })
+          : '',
         questionImage: '',
         status: status, // status is required for Draft/Publish state
       };
@@ -137,10 +150,10 @@ function BatchCreateContent() {
 
     try {
       const results = await Promise.allSettled(
-        payloads.map(payload => manualQuestionsApi.createQuestion(payload))
+        payloads.map((payload) => manualQuestionsApi.createQuestion(payload)),
       );
 
-      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const successCount = results.filter((r) => r.status === 'fulfilled').length;
       const failCount = results.length - successCount;
 
       if (failCount === 0) {
@@ -150,7 +163,7 @@ function BatchCreateContent() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['manual-questions'] });
-      
+
       const returnTo = searchParams.get('returnTo');
       if (successCount > 0) {
         if (returnTo) {
@@ -177,10 +190,14 @@ function BatchCreateContent() {
 
   return (
     <div className='flex-1 space-y-4 max-w-5xl mx-auto w-full animate-fade-in-up pb-8 pt-8'>
-      <SectionHeader 
+      <SectionHeader
         title='Batch Question Builder'
         description='Create multiple manual questions for a specific topic and concept.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Manual Questions', href: '/admin/manual-questions' }, { label: 'Create' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Manual Questions', href: '/admin/manual-questions' },
+          { label: 'Create' },
+        ]}
         actions={
           <Button variant='ghost' size='icon' onClick={handleCancel} disabled={isSubmitting}>
             <ArrowLeft className='w-5 h-5' />
@@ -189,9 +206,8 @@ function BatchCreateContent() {
       />
 
       <FormProvider {...methods}>
-        <form className="space-y-8 pb-20" noValidate>
-          
-          <SharedConfigHeader 
+        <form className='space-y-8 pb-20' noValidate>
+          <SharedConfigHeader
             topicId={topicId}
             conceptId={conceptId}
             onTopicChange={(id) => setValue('topicId', id, { shouldValidate: true })}
@@ -201,37 +217,39 @@ function BatchCreateContent() {
           />
 
           {(errors.topicId || errors.conceptId) && (
-            <div className="text-sm text-destructive">
+            <div className='text-sm text-destructive'>
               Please select both a Topic and a Concept before proceeding.
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className='space-y-4'>
             <BatchQuestionList />
           </div>
 
-          <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting}>
+          <div className='flex justify-end gap-4 mt-8 pt-6 border-t'>
+            <Button type='button' variant='outline' onClick={handleCancel} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleSubmit((data) => onSubmit(data, 'DRAFT'))} 
+            <Button
+              type='button'
+              variant='outline'
+              onClick={handleSubmit((data) => onSubmit(data, 'DRAFT'))}
               disabled={isSubmitting}
             >
               Save Draft
             </Button>
-            <Button 
-              type="button" 
-              onClick={handleSubmit((data) => onSubmit(data, 'ACTIVE'))} 
+            <Button
+              type='button'
+              onClick={handleSubmit((data) => onSubmit(data, 'ACTIVE'))}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' /> Publishing...
                 </>
-              ) : 'Publish'}
+              ) : (
+                'Publish'
+              )}
             </Button>
           </div>
         </form>

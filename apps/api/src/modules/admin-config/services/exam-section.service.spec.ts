@@ -109,7 +109,9 @@ describe("ExamSectionService", () => {
         configId,
         dto.sectionOrder,
       );
-      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(configId);
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(
+        configId,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -286,7 +288,9 @@ describe("ExamSectionService", () => {
       const result = await service.updateSection(sectionId, dto);
 
       expect(sectionRepo.findById).toHaveBeenCalledWith(sectionId);
-      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith("config-uuid");
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(
+        "config-uuid",
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -439,7 +443,9 @@ describe("ExamSectionService", () => {
 
       expect(sectionRepo.findById).toHaveBeenCalledWith(sectionId);
       expect(sectionRepo.delete).toHaveBeenCalledWith(sectionId);
-      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith("config-uuid");
+      expect(redisCacheService.invalidateBlueprint).toHaveBeenCalledWith(
+        "config-uuid",
+      );
       expect(result).toEqual(existingSection);
     });
 

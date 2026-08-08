@@ -24,7 +24,10 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
     return (
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6'>
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className='rounded-[24px] border border-border/40 p-6 bg-card shadow-2xs h-40'>
+          <div
+            key={i}
+            className='rounded-[24px] border border-border/40 p-6 bg-card shadow-2xs h-40'
+          >
             <Skeleton className='w-11 h-11 rounded-2xl mb-6' />
             <Skeleton className='h-3.5 w-24 mb-2' />
             <Skeleton className='h-8 w-16' />
@@ -44,7 +47,8 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       label: 'Best Score',
       value: `${bestScore}%`,
       icon: Trophy,
-      iconStyle: 'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50 dark:border-indigo-900/40',
+      iconStyle:
+        'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50 dark:border-indigo-900/40',
       subtitle: '+4% from last attempt',
       glow: 'bg-[#eff2ff]/80 dark:bg-indigo-900/20',
     },
@@ -52,7 +56,8 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       label: 'Average Accuracy',
       value: `${avgAccuracy}%`,
       icon: Target,
-      iconStyle: 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-100/50 dark:border-amber-900/40',
+      iconStyle:
+        'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-100/50 dark:border-amber-900/40',
       subtitle: 'Top 15% of candidates',
       glow: 'bg-[#fff7ed]/80 dark:bg-amber-900/10',
     },
@@ -60,7 +65,8 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       label: 'Completed Attempts',
       value: attempts.toString(),
       icon: CheckCircle2,
-      iconStyle: 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50 dark:border-emerald-900/40',
+      iconStyle:
+        'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50 dark:border-emerald-900/40',
       subtitle: 'Across 3 categories',
       glow: 'bg-[#ecfdf5]/80 dark:bg-emerald-900/10',
     },
@@ -68,7 +74,8 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       label: 'Available Catalog',
       value: totalAssessments.toString(),
       icon: Layers,
-      iconStyle: 'bg-[#eff2ff] text-[#3b82f6] dark:bg-blue-950/50 dark:text-blue-400 border-blue-100/50 dark:border-blue-900/40',
+      iconStyle:
+        'bg-[#eff2ff] text-[#3b82f6] dark:bg-blue-950/50 dark:text-blue-400 border-blue-100/50 dark:border-blue-900/40',
       subtitle: 'Unlocked assessments',
       glow: 'bg-[#eff2ff]/80 dark:bg-blue-900/10',
     },
@@ -83,18 +90,20 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
             key={idx}
             className='rounded-[24px] border border-border/50 bg-card p-6 shadow-2xs hover:shadow-sm transition-all relative overflow-hidden flex flex-col justify-between group'
           >
-            <div className={`absolute -bottom-8 -right-8 w-32 h-32 rounded-full blur-2xl pointer-events-none transition-transform group-hover:scale-110 ${card.glow}`} />
+            <div
+              className={`absolute -bottom-8 -right-8 w-32 h-32 rounded-full blur-2xl pointer-events-none transition-transform group-hover:scale-110 ${card.glow}`}
+            />
 
             <div>
-              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border ${card.iconStyle} shrink-0 transition-transform group-hover:scale-105`}>
+              <div
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center border ${card.iconStyle} shrink-0 transition-transform group-hover:scale-105`}
+              >
                 <Icon className='size-5' />
               </div>
             </div>
 
             <div className='mt-6 z-10'>
-              <div className='text-xs font-medium text-muted-foreground'>
-                {card.label}
-              </div>
+              <div className='text-xs font-medium text-muted-foreground'>{card.label}</div>
               <div className='text-3xl font-extrabold text-foreground mt-1 tracking-tight'>
                 {card.value}
               </div>

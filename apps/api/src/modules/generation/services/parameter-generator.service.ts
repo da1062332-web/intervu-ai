@@ -105,27 +105,23 @@ export class ParameterGeneratorService {
         const type = String(v.type || "").toLowerCase();
         const range = (v as any).range || {};
         const min =
-          range.min !== undefined
-            ? range.min
-            : v.min !== undefined
-            ? v.min
-            : 1;
+          range.min !== undefined ? range.min : v.min !== undefined ? v.min : 1;
         const max =
           range.max !== undefined
             ? range.max
             : v.max !== undefined
-            ? v.max
-            : type === "decimal"
-            ? 1.0
-            : 100;
+              ? v.max
+              : type === "decimal"
+                ? 1.0
+                : 100;
         const step =
           range.step !== undefined
             ? range.step
             : v.step !== undefined
-            ? v.step
-            : type === "decimal"
-            ? undefined
-            : 1;
+              ? v.step
+              : type === "decimal"
+                ? undefined
+                : 1;
 
         if (type === "number" || type === "decimal" || type === "integer") {
           if (min > max) {
@@ -139,7 +135,11 @@ export class ParameterGeneratorService {
           }
 
           const precision =
-            v.precision !== undefined ? v.precision : type === "decimal" ? 2 : 0;
+            v.precision !== undefined
+              ? v.precision
+              : type === "decimal"
+                ? 2
+                : 0;
           const generator = String(v.generator || "").toLowerCase();
           const boundedRandom = () => {
             if (step !== undefined && step > 0) {
@@ -178,7 +178,11 @@ export class ParameterGeneratorService {
               params[v.name] = Math.round(boundedRandom());
             }
           }
-        } else if (type === "string" && Array.isArray((v as any).options) && (v as any).options.length > 0) {
+        } else if (
+          type === "string" &&
+          Array.isArray((v as any).options) &&
+          (v as any).options.length > 0
+        ) {
           const options = (v as any).options;
           const index = Math.floor(Math.random() * options.length);
           params[v.name] = options[index];
@@ -267,8 +271,8 @@ export class ParameterGeneratorService {
     const variables = Array.isArray(strategyConfig.variables)
       ? strategyConfig.variables
       : topLevelVariables.length > 0
-      ? topLevelVariables
-      : nestedStrategyVariables;
+        ? topLevelVariables
+        : nestedStrategyVariables;
 
     const derivedVariables = Array.isArray(strategyConfig.derivedVariables)
       ? strategyConfig.derivedVariables
@@ -343,7 +347,9 @@ export class ParameterGeneratorService {
       : normalized;
 
     const knownSymbols = new Set<string>([
-      ...variables.map((variable) => String(variable.name).trim()).filter(Boolean),
+      ...variables
+        .map((variable) => String(variable.name).trim())
+        .filter(Boolean),
       ...Object.keys(params),
     ]);
 
@@ -358,20 +364,17 @@ export class ParameterGeneratorService {
       ? normalized.split("=")[0].trim()
       : "derived variable";
 
-    throw new PreviewGenerationException(
-      "Template configuration error.",
-      {
-        category: "FORMULA_ERROR",
-        retryable: false,
-        source: "parameter-generator",
-        reason: `Unknown variable '${unknownReference}' in formula '${formula}'`,
-        context: {
-          variable: target,
-          formula: formula,
-          unknownSymbol: unknownReference,
-        },
+    throw new PreviewGenerationException("Template configuration error.", {
+      category: "FORMULA_ERROR",
+      retryable: false,
+      source: "parameter-generator",
+      reason: `Unknown variable '${unknownReference}' in formula '${formula}'`,
+      context: {
+        variable: target,
+        formula: formula,
+        unknownSymbol: unknownReference,
       },
-    );
+    });
   }
 
   private extractReferencedVariables(expression: string): string[] {
@@ -407,9 +410,10 @@ export class ParameterGeneratorService {
       "while",
     ]);
 
-    return Array.from(expression.matchAll(/[A-Za-z_][A-Za-z0-9_]*/g), (match) => match[0]).filter(
-      (name) => !reservedWords.has(name),
-    );
+    return Array.from(
+      expression.matchAll(/[A-Za-z_][A-Za-z0-9_]*/g),
+      (match) => match[0],
+    ).filter((name) => !reservedWords.has(name));
   }
 
   private getFormulaTarget(formula: string): string | null {
@@ -421,7 +425,9 @@ export class ParameterGeneratorService {
     return lhs || null;
   }
 
-  private normalizeConstraintRules(constraintSource: any): Array<string | StrategyConstraintDefinition> {
+  private normalizeConstraintRules(
+    constraintSource: any,
+  ): Array<string | StrategyConstraintDefinition> {
     if (!constraintSource) {
       return [];
     }
@@ -477,7 +483,9 @@ export class ParameterGeneratorService {
     return true;
   }
 
-  private buildConstraintExpression(rule: string | StrategyConstraintDefinition): string {
+  private buildConstraintExpression(
+    rule: string | StrategyConstraintDefinition,
+  ): string {
     if (typeof rule === "string") {
       return rule;
     }
@@ -498,7 +506,10 @@ export class ParameterGeneratorService {
       const target = rule.target.trim();
       const operator = typeof rule.operator === "string" ? rule.operator : "==";
       const value = this.formatConstraintValue(rule.value);
-      return `${target} ${operator} ${value}`.replace(/(?<![=!<>])=(?!=)/g, "==");
+      return `${target} ${operator} ${value}`.replace(
+        /(?<![=!<>])=(?!=)/g,
+        "==",
+      );
     }
 
     return "";

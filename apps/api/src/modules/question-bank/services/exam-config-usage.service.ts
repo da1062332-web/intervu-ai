@@ -84,7 +84,9 @@ export class ExamConfigUsageService {
         include: { concepts: true },
       });
       if (topicObj) {
-        topicIdsToMatch = Array.from(new Set([topicId, topicObj.id, topicObj.code]));
+        topicIdsToMatch = Array.from(
+          new Set([topicId, topicObj.id, topicObj.code]),
+        );
         conceptIdsToMatch = topicObj.concepts.map((c) => c.id);
       }
     }
@@ -94,7 +96,9 @@ export class ExamConfigUsageService {
       difficulty: difficulty || undefined,
       OR: [
         { topicId: { in: topicIdsToMatch } },
-        ...(conceptIdsToMatch.length > 0 ? [{ conceptId: { in: conceptIdsToMatch } }] : []),
+        ...(conceptIdsToMatch.length > 0
+          ? [{ conceptId: { in: conceptIdsToMatch } }]
+          : []),
       ],
     };
 
@@ -117,12 +121,13 @@ export class ExamConfigUsageService {
     });
 
     // 3. Count template questions used by OTHER configs
-    const templateAllocatedToOtherConfigsCount = await this.prisma.examConfigQuestionUsage.count({
-      where: {
-        configId: { not: configId },
-        question: templateQuestionFilter,
-      },
-    });
+    const templateAllocatedToOtherConfigsCount =
+      await this.prisma.examConfigQuestionUsage.count({
+        where: {
+          configId: { not: configId },
+          question: templateQuestionFilter,
+        },
+      });
 
     // 4. Calculate template questions claimed by OTHER active/validated exam configs
     const otherMappedSections = await this.prisma.sectionTopic.findMany({
@@ -153,23 +158,31 @@ export class ExamConfigUsageService {
       if (processedOtherConfigIds.has(otherConfigId)) continue;
       processedOtherConfigIds.add(otherConfigId);
 
-      const alreadyAllocatedCount = await this.prisma.examConfigQuestionUsage.count({
-        where: {
-          configId: otherConfigId,
-          question: templateQuestionFilter,
-        },
-      });
+      const alreadyAllocatedCount =
+        await this.prisma.examConfigQuestionUsage.count({
+          where: {
+            configId: otherConfigId,
+            question: templateQuestionFilter,
+          },
+        });
 
       const sectionTopicCount = st.section.sectionTopics.length || 1;
-      const sectionRequiredForTopic = Math.ceil(st.section.questionCount / sectionTopicCount);
+      const sectionRequiredForTopic = Math.ceil(
+        st.section.questionCount / sectionTopicCount,
+      );
 
-      const remainingClaim = Math.max(0, sectionRequiredForTopic - alreadyAllocatedCount);
+      const remainingClaim = Math.max(
+        0,
+        sectionRequiredForTopic - alreadyAllocatedCount,
+      );
       templateClaimedByOtherConfigs += remainingClaim;
     }
 
     const netTemplateAvailable = Math.max(
       0,
-      templateActiveCount - templateAllocatedToOtherConfigsCount - templateClaimedByOtherConfigs,
+      templateActiveCount -
+        templateAllocatedToOtherConfigsCount -
+        templateClaimedByOtherConfigs,
     );
 
     return manualActiveCount + netTemplateAvailable;
@@ -188,7 +201,9 @@ export class ExamConfigUsageService {
         where: { OR: [{ code: topicId }, { id: topicId }] },
       });
       if (topicObj) {
-        topicIdsToMatch = Array.from(new Set([topicId, topicObj.id, topicObj.code]));
+        topicIdsToMatch = Array.from(
+          new Set([topicId, topicObj.id, topicObj.code]),
+        );
       }
     }
 

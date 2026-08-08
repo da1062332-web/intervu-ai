@@ -57,18 +57,23 @@ export class ReEvaluationService {
       };
 
       // 3. Generate candidate result DTO (critical path)
-      const resultDto = await this.resultGenerator.generateResult(executionResult);
+      const resultDto =
+        await this.resultGenerator.generateResult(executionResult);
 
       // 4. Save base results — critical path ends here
       const durationMs = Date.now() - startTime;
       await this.resultStorage.saveResult(resultDto, durationMs);
 
       // 5. Fire-and-forget: run all post-processing tasks in parallel, non-blocking
-      this.runPostProcessingAsync(attemptId, resultDto, triggeredBy).catch((err) =>
-        this.logger.warn("Post-processing error (non-blocking, will not affect result)", {
-          attemptId,
-          error: err instanceof Error ? err.message : String(err),
-        }),
+      this.runPostProcessingAsync(attemptId, resultDto, triggeredBy).catch(
+        (err) =>
+          this.logger.warn(
+            "Post-processing error (non-blocking, will not affect result)",
+            {
+              attemptId,
+              error: err instanceof Error ? err.message : String(err),
+            },
+          ),
       );
 
       // Return immediately without waiting for post-processing
@@ -122,7 +127,8 @@ export class ReEvaluationService {
     const tasks = await Promise.allSettled([
       // Rankings
       (async () => {
-        const rankingDto = await this.rankingService.calculateRanking(resultDto);
+        const rankingDto =
+          await this.rankingService.calculateRanking(resultDto);
         await this.prisma.candidateRanking.upsert({
           where: { attemptId },
           update: {
@@ -160,11 +166,18 @@ export class ReEvaluationService {
 
     // Log individual post-processing results
     for (const [idx, result] of tasks.entries()) {
-      const taskNames = ["rankings+percentile", "ai-insights", "improvement-plans"];
+      const taskNames = [
+        "rankings+percentile",
+        "ai-insights",
+        "improvement-plans",
+      ];
       if (result.status === "rejected") {
         this.logger.warn(`Post-processing task [${taskNames[idx]}] failed`, {
           attemptId,
-          error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+          error:
+            result.reason instanceof Error
+              ? result.reason.message
+              : String(result.reason),
         });
       }
     }
@@ -179,9 +192,10 @@ export class ReEvaluationService {
       },
     });
 
-    this.logger.log(`Async post-processing completed for attempt: ${attemptId}`);
+    this.logger.log(
+      `Async post-processing completed for attempt: ${attemptId}`,
+    );
   }
-
 
   /**
    * Aggregates platform-wide evaluation metrics for admin dashboard.

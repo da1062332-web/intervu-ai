@@ -6,98 +6,122 @@ import { RedisCacheService } from "../../../cache/redis-cache.service";
 export class CandidateDashboardRepository {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cacheService: RedisCacheService
+    private readonly cacheService: RedisCacheService,
   ) {}
 
   async getDashboardData(userId: string) {
     try {
-      const [activeAttempts, completedTests, enrollments, examConfigs, testConfigs] =
-        await Promise.all([
-          // Active attempts (IN_PROGRESS or CREATED)
-          this.prisma.testInstance.findMany({
-            where: {
-              userId,
-              status: { in: ["IN_PROGRESS", "CREATED"] },
-              expiresAt: { gt: new Date() },
+      const [
+        activeAttempts,
+        completedTests,
+        enrollments,
+        examConfigs,
+        testConfigs,
+      ] = await Promise.all([
+        // Active attempts (IN_PROGRESS or CREATED)
+        this.prisma.testInstance.findMany({
+          where: {
+            userId,
+            status: { in: ["IN_PROGRESS", "CREATED"] },
+            expiresAt: { gt: new Date() },
+          },
+          include: {
+            testConfig: {
+              select: { displayName: true, totalDurationSeconds: true },
             },
-            include: {
-              testConfig: {
-                select: { displayName: true, totalDurationSeconds: true },
-              },
-              examConfig: {
-                select: { name: true, durationMinutes: true, totalQuestions: true },
+            examConfig: {
+              select: {
+                name: true,
+                durationMinutes: true,
+                totalQuestions: true,
               },
             },
-            orderBy: { createdAt: "desc" },
-          }),
+          },
+          orderBy: { createdAt: "desc" },
+        }),
 
-          // Completed/submitted tests – PERF-001: limit to 50 most recent to avoid unbounded query
-          this.prisma.testInstance.findMany({
-            where: {
-              userId,
-              status: { in: ["COMPLETED", "SUBMITTED"] },
+        // Completed/submitted tests – PERF-001: limit to 50 most recent to avoid unbounded query
+        this.prisma.testInstance.findMany({
+          where: {
+            userId,
+            status: { in: ["COMPLETED", "SUBMITTED"] },
+          },
+          include: {
+            testConfig: {
+              select: { displayName: true },
             },
-            include: {
-              testConfig: {
-                select: { displayName: true },
-              },
-              examConfig: {
-                select: { name: true, durationMinutes: true, totalQuestions: true },
-              },
-              evaluationResult: {
-                select: { overallScore: true, confidenceScore: true },
-              },
-              candidateResult: {
-                select: { score: true, percentage: true },
+            examConfig: {
+              select: {
+                name: true,
+                durationMinutes: true,
+                totalQuestions: true,
               },
             },
-            orderBy: { createdAt: "desc" },
-            take: 50, // PERF-001: Dashboard only needs recent history; full history is paginated elsewhere
-          }),
+            evaluationResult: {
+              select: { overallScore: true, confidenceScore: true },
+            },
+            candidateResult: {
+              select: { score: true, percentage: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50, // PERF-001: Dashboard only needs recent history; full history is paginated elsewhere
+        }),
 
-          // User's enrollments – PERF-001: limit to 20 most recent
-          this.prisma.candidateEnrollment.findMany({
-            where: { candidateId: userId },
-            include: {
-              testConfig: {
-                select: {
-                  id: true,
-                  displayName: true,
-                  companyName: true,
-                  totalDurationSeconds: true,
-                },
-              },
-              examConfig: {
-                select: {
-                  id: true,
-                  name: true,
-                  durationMinutes: true,
-                  totalQuestions: true,
-                  sections: { select: { name: true } },
-                  ruleFlags: { select: { id: true, maxAttempts: true } },
-                },
+        // User's enrollments – PERF-001: limit to 20 most recent
+        this.prisma.candidateEnrollment.findMany({
+          where: { candidateId: userId },
+          include: {
+            testConfig: {
+              select: {
+                id: true,
+                displayName: true,
+                companyName: true,
+                totalDurationSeconds: true,
               },
             },
-            orderBy: { createdAt: "desc" },
-            take: 20, // PERF-001: Dashboard enrollment list is capped
-          }),
+            examConfig: {
+              select: {
+                id: true,
+                name: true,
+                durationMinutes: true,
+                totalQuestions: true,
+                sections: { select: { name: true } },
+                ruleFlags: { select: { id: true, maxAttempts: true } },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 20, // PERF-001: Dashboard enrollment list is capped
+        }),
 
-          this.getCachedExamConfigs(),
-          this.getCachedTestConfigs(),
-        ]);
+        this.getCachedExamConfigs(),
+        this.getCachedTestConfigs(),
+      ]);
 
       // Build per-config attempt counts for the current user
       const attemptsByConfig = new Map<string, number>();
       completedTests.forEach((t: any) => {
         const configId = t.examConfigId || t.testConfigId;
         if (configId) {
-          attemptsByConfig.set(configId, (attemptsByConfig.get(configId) || 0) + 1);
+          attemptsByConfig.set(
+            configId,
+            (attemptsByConfig.get(configId) || 0) + 1,
+          );
         }
       });
 
       const upcomingTests = [
-        ...examConfigs.map((ec: any) => ({ ...ec, isExam: true, createdAt: new Date(ec.createdAt) })),
-        ...testConfigs.map((tc: any) => ({ ...tc, isExam: false, createdAt: new Date(tc.createdAt) })),
+        ...examConfigs.map((ec: any) => ({
+          ...ec,
+          isExam: true,
+          createdAt: new Date(ec.createdAt),
+        })),
+        ...testConfigs.map((tc: any) => ({
+          ...tc,
+          isExam: false,
+          createdAt: new Date(tc.createdAt),
+        })),
       ]
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         .slice(0, 8);
@@ -110,7 +134,10 @@ export class CandidateDashboardRepository {
         attemptsByConfig: Object.fromEntries(attemptsByConfig),
       };
     } catch (error) {
-      console.error("[CandidateDashboardRepository] Database connection error:", error);
+      console.error(
+        "[CandidateDashboardRepository] Database connection error:",
+        error,
+      );
       return {
         activeAttempts: [],
         completedTests: [],
@@ -134,7 +161,13 @@ export class CandidateDashboardRepository {
           name: true,
           durationMinutes: true,
           totalQuestions: true,
-          sections: { select: { name: true, questionCount: true, sectionDurationMinutes: true } },
+          sections: {
+            select: {
+              name: true,
+              questionCount: true,
+              sectionDurationMinutes: true,
+            },
+          },
           ruleFlags: { select: { id: true, maxAttempts: true } },
           createdAt: true,
         },
@@ -158,7 +191,13 @@ export class CandidateDashboardRepository {
           companyName: true,
           totalDurationSeconds: true,
           totalQuestions: true,
-          sections: { select: { displayName: true, questionCount: true, durationSeconds: true } },
+          sections: {
+            select: {
+              displayName: true,
+              questionCount: true,
+              durationSeconds: true,
+            },
+          },
           createdAt: true,
         },
       });

@@ -27,10 +27,21 @@ export function generateVariables(
   for (const variable of variables) {
     if (variable.type === "number") {
       const range = (variable as any).range || {};
-      const min = range.min !== undefined ? range.min : ((variable as any).min !== undefined ? (variable as any).min : 0);
-      const max = range.max !== undefined ? range.max : ((variable as any).max !== undefined ? (variable as any).max : 10);
-      const step = range.step !== undefined ? range.step : (variable as any).step;
-      
+      const min =
+        range.min !== undefined
+          ? range.min
+          : (variable as any).min !== undefined
+            ? (variable as any).min
+            : 0;
+      const max =
+        range.max !== undefined
+          ? range.max
+          : (variable as any).max !== undefined
+            ? (variable as any).max
+            : 10;
+      const step =
+        range.step !== undefined ? range.step : (variable as any).step;
+
       if (step !== undefined && step > 0) {
         const stepsCount = Math.floor((max - min) / step);
         const randomStepIdx = prng.nextInt(0, stepsCount);

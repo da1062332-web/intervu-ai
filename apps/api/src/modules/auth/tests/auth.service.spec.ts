@@ -118,7 +118,9 @@ describe("AuthService - Google Login", () => {
     });
 
     it("should throw UnauthorizedException if ticket verification fails", async () => {
-      mockOAuth2ClientInstance.verifyIdToken.mockRejectedValue(new Error("Invalid token"));
+      mockOAuth2ClientInstance.verifyIdToken.mockRejectedValue(
+        new Error("Invalid token"),
+      );
 
       await expect(
         service.loginWithGoogle({ idToken: "some-token" }),
@@ -162,7 +164,9 @@ describe("AuthService - Google Login", () => {
       const result = await service.loginWithGoogle({ idToken: "valid-token" });
 
       expect(userRepository.findByGoogleId).toHaveBeenCalledWith("google-id-1");
-      expect(userRepository.findByEmail).toHaveBeenCalledWith("test@example.com");
+      expect(userRepository.findByEmail).toHaveBeenCalledWith(
+        "test@example.com",
+      );
       expect(userRepository.update).toHaveBeenCalledWith("user-1", {
         googleId: "google-id-1",
       });

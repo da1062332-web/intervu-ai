@@ -37,7 +37,7 @@ function createQueryClient(): QueryClient {
       },
       onSuccess: () => {
         client.invalidateQueries({ queryKey: ['config-validation'] });
-      }
+      },
     }),
     defaultOptions: {
       queries: {

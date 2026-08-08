@@ -20,9 +20,13 @@ export class ResponseInterceptor implements NestInterceptor {
         if (data && typeof data === "object" && "success" in data) {
           return data;
         }
-        
+
         // Bypass for StreamableFile (used for downloads)
-        if (data && data.constructor && data.constructor.name === 'StreamableFile') {
+        if (
+          data &&
+          data.constructor &&
+          data.constructor.name === "StreamableFile"
+        ) {
           return data;
         }
 

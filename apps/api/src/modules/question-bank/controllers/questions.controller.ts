@@ -163,19 +163,20 @@ export class QuestionsController {
     const conceptKeys = Array.from(
       new Set(questions.map((q) => q.conceptKey).filter(Boolean)),
     );
-    const matchedConcepts = conceptKeys.length > 0
-      ? await this.prisma.concept.findMany({
-          where: {
-            OR: [
-              { code: { in: conceptKeys } },
-              { id: { in: conceptKeys } },
-            ],
-          },
-          select: { id: true, code: true, topicId: true, name: true },
-        })
-      : [];
+    const matchedConcepts =
+      conceptKeys.length > 0
+        ? await this.prisma.concept.findMany({
+            where: {
+              OR: [{ code: { in: conceptKeys } }, { id: { in: conceptKeys } }],
+            },
+            select: { id: true, code: true, topicId: true, name: true },
+          })
+        : [];
 
-    const conceptMap = new Map<string, { id: string; topicId: string; name: string }>();
+    const conceptMap = new Map<
+      string,
+      { id: string; topicId: string; name: string }
+    >();
     for (const c of matchedConcepts) {
       conceptMap.set(c.code, c);
       conceptMap.set(c.id, c);
@@ -498,13 +499,30 @@ export class QuestionsController {
     const datasetItem = currentMeta.datasetItem || {};
 
     let rawOptions =
-      (Array.isArray(question.options) && question.options.length > 0 ? question.options : null) ||
-      (Array.isArray(currentMeta.options) && currentMeta.options.length > 0 ? currentMeta.options : null) ||
-      (Array.isArray(datasetItem.options) && datasetItem.options.length > 0 ? datasetItem.options : null) ||
-      (Array.isArray((question as any).mcqData?.options) && (question as any).mcqData.options.length > 0 ? (question as any).mcqData.options : null) ||
-      (typeof question.options === "string" && question.options.trim() !== "" ? question.options : null) ||
-      (typeof currentMeta.options === "string" && currentMeta.options.trim() !== "" ? currentMeta.options : null) ||
-      (typeof datasetItem.options === "string" && datasetItem.options.trim() !== "" ? datasetItem.options : null) ||
+      (Array.isArray(question.options) && question.options.length > 0
+        ? question.options
+        : null) ||
+      (Array.isArray(currentMeta.options) && currentMeta.options.length > 0
+        ? currentMeta.options
+        : null) ||
+      (Array.isArray(datasetItem.options) && datasetItem.options.length > 0
+        ? datasetItem.options
+        : null) ||
+      (Array.isArray((question as any).mcqData?.options) &&
+      (question as any).mcqData.options.length > 0
+        ? (question as any).mcqData.options
+        : null) ||
+      (typeof question.options === "string" && question.options.trim() !== ""
+        ? question.options
+        : null) ||
+      (typeof currentMeta.options === "string" &&
+      currentMeta.options.trim() !== ""
+        ? currentMeta.options
+        : null) ||
+      (typeof datasetItem.options === "string" &&
+      datasetItem.options.trim() !== ""
+        ? datasetItem.options
+        : null) ||
       question.options;
 
     const rawAnswer =
@@ -522,7 +540,10 @@ export class QuestionsController {
           question.questionType.toUpperCase(),
         ));
 
-    if (isMcq && (!rawOptions || (Array.isArray(rawOptions) && rawOptions.length === 0))) {
+    if (
+      isMcq &&
+      (!rawOptions || (Array.isArray(rawOptions) && rawOptions.length === 0))
+    ) {
       const answerStr = String(rawAnswer || "Option 1").trim();
       const num = parseFloat(answerStr);
       if (!isNaN(num) && String(num) === answerStr) {
@@ -533,7 +554,12 @@ export class QuestionsController {
         rawOptions = Array.from(new Set([opt1, opt2, opt3, opt4]));
       } else {
         rawOptions = Array.from(
-          new Set([answerStr, "None of the above", "Cannot be determined", "Both A and B"]),
+          new Set([
+            answerStr,
+            "None of the above",
+            "Cannot be determined",
+            "Both A and B",
+          ]),
         );
       }
     }
@@ -542,14 +568,19 @@ export class QuestionsController {
       questionText: question.questionText,
       options: rawOptions,
       correctAnswer: rawAnswer,
-      solution: question.solution || datasetItem.solution || datasetItem.explanation,
+      solution:
+        question.solution || datasetItem.solution || datasetItem.explanation,
       templateId: question.templateId,
       conceptKey: question.conceptKey,
       difficultyLevel: question.difficultyLevel,
       questionType: question.questionType,
     });
 
-    if (!validationCheck.isValid && !currentMeta.isDirectDatasetFetch && currentMeta.generationStrategy !== "DATASET") {
+    if (
+      !validationCheck.isValid &&
+      !currentMeta.isDirectDatasetFetch &&
+      currentMeta.generationStrategy !== "DATASET"
+    ) {
       throw new BadRequestException({
         success: false,
         message: `Cannot approve invalid question. Errors: ${validationCheck.errors.join(" | ")}`,
@@ -576,7 +607,8 @@ export class QuestionsController {
     } else if (typeof rawOptions === "string" && rawOptions.trim() !== "") {
       try {
         const p = JSON.parse(rawOptions);
-        if (Array.isArray(p)) parsedOptionsToSave = p.map((o) => String(o).trim());
+        if (Array.isArray(p))
+          parsedOptionsToSave = p.map((o) => String(o).trim());
       } catch (e) {}
     }
 
@@ -701,7 +733,7 @@ export class QuestionsController {
 
     // First check if conceptKey is directly a topicId (UUID format)
     let topicId: string | undefined;
-    
+
     // First try matching Topic directly by ID, Code, or Name
     const topicCheck = await this.prisma.topic.findFirst({
       where: {
@@ -739,7 +771,7 @@ export class QuestionsController {
         }
       }
     }
-    
+
     // Check metadata for topicId or conceptKey
     if (!topicId && currentMeta.topicId) {
       topicId = currentMeta.topicId;
@@ -764,7 +796,9 @@ export class QuestionsController {
         txt.includes("find out whether there is any error")
       ) {
         const errTopic = await this.prisma.topic.findFirst({
-          where: { code: { equals: "ERROR_IDENTIFICATION", mode: "insensitive" } },
+          where: {
+            code: { equals: "ERROR_IDENTIFICATION", mode: "insensitive" },
+          },
         });
         if (errTopic) topicId = errTopic.id;
       }
@@ -817,10 +851,7 @@ export class QuestionsController {
 
     const existingQuestion = await this.prisma.question.findFirst({
       where: {
-        OR: [
-          { questionText: question.questionText },
-          { id: question.id },
-        ],
+        OR: [{ questionText: question.questionText }, { id: question.id }],
       },
     });
 
@@ -998,24 +1029,39 @@ export class QuestionsController {
 
     let parsedOptions: string[] = [];
     if (Array.isArray(question.options)) {
-      parsedOptions = question.options.map((o) => String(o).trim().replace(/^"|"$/g, ''));
+      parsedOptions = question.options.map((o) =>
+        String(o).trim().replace(/^"|"$/g, ""),
+      );
     } else if (typeof question.options === "string") {
       try {
         const parsed = JSON.parse(question.options);
         if (Array.isArray(parsed)) {
-          parsedOptions = parsed.map((o) => String(o).trim().replace(/^"|"$/g, ''));
-        } else if (parsed && typeof parsed === "object" && Array.isArray((parsed as any).options)) {
-          parsedOptions = (parsed as any).options.map((o: any) => String(o).trim().replace(/^"|"$/g, ''));
+          parsedOptions = parsed.map((o) =>
+            String(o).trim().replace(/^"|"$/g, ""),
+          );
+        } else if (
+          parsed &&
+          typeof parsed === "object" &&
+          Array.isArray((parsed as any).options)
+        ) {
+          parsedOptions = (parsed as any).options.map((o: any) =>
+            String(o).trim().replace(/^"|"$/g, ""),
+          );
         }
       } catch (e) {
         if (question.options.includes(",")) {
-          parsedOptions = question.options.split(",").map((o) => o.trim().replace(/^"|"$/g, ''));
+          parsedOptions = question.options
+            .split(",")
+            .map((o) => o.trim().replace(/^"|"$/g, ""));
         }
       }
     } else if (question.options && typeof question.options === "object") {
-      const opts = (question.options as any).options || (question.options as any).choices;
+      const opts =
+        (question.options as any).options || (question.options as any).choices;
       if (Array.isArray(opts)) {
-        parsedOptions = opts.map((o: any) => String(o).trim().replace(/^"|"$/g, ''));
+        parsedOptions = opts.map((o: any) =>
+          String(o).trim().replace(/^"|"$/g, ""),
+        );
       }
     }
 
@@ -1037,11 +1083,19 @@ export class QuestionsController {
     }
 
     let answerStr = "";
-    if (question.correctAnswer !== undefined && question.correctAnswer !== null) {
-      if (typeof question.correctAnswer === "object" && (question.correctAnswer as any).text) {
-        answerStr = String((question.correctAnswer as any).text).trim().replace(/^"|"$/g, '');
+    if (
+      question.correctAnswer !== undefined &&
+      question.correctAnswer !== null
+    ) {
+      if (
+        typeof question.correctAnswer === "object" &&
+        (question.correctAnswer as any).text
+      ) {
+        answerStr = String((question.correctAnswer as any).text)
+          .trim()
+          .replace(/^"|"$/g, "");
       } else {
-        answerStr = String(question.correctAnswer).trim().replace(/^"|"$/g, '');
+        answerStr = String(question.correctAnswer).trim().replace(/^"|"$/g, "");
       }
     }
 
@@ -1078,14 +1132,19 @@ export class QuestionsController {
     if (typeof question.solution === "string") {
       solutionText = question.solution.trim();
     } else if (question.solution && typeof question.solution === "object") {
-      solutionText = (question.solution as any).text || (question.solution as any).explanation || (question.solution as any).solution || "";
+      solutionText =
+        (question.solution as any).text ||
+        (question.solution as any).explanation ||
+        (question.solution as any).solution ||
+        "";
     }
     if (!solutionText && (question as any).explanation) {
       solutionText = String((question as any).explanation).trim();
     }
 
     if (!solutionText) {
-      solutionText = "Solution provided automatically during question generation.";
+      solutionText =
+        "Solution provided automatically during question generation.";
     }
 
     if (!question.templateId || String(question.templateId).trim() === "") {

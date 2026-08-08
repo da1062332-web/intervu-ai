@@ -18,25 +18,25 @@ export function CandidateOverviewCard({
   isLoading = false,
 }: CandidateOverviewCardProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className='grid gap-4 md:grid-cols-3'>
       <StatCard
-        title="Total Candidates"
+        title='Total Candidates'
         value={total}
-        description="Registered assessment candidates"
+        description='Registered assessment candidates'
         icon={<Users />}
         isLoading={isLoading}
       />
       <StatCard
-        title="Active Accounts"
+        title='Active Accounts'
         value={activeCount}
-        description="Currently enabled profiles"
+        description='Currently enabled profiles'
         icon={<UserCheck />}
         isLoading={isLoading}
       />
       <StatCard
-        title="Inactive / Deleted"
+        title='Inactive / Deleted'
         value={inactiveCount}
-        description="Disabled or unassigned accounts"
+        description='Disabled or unassigned accounts'
         icon={<UserX />}
         isLoading={isLoading}
       />

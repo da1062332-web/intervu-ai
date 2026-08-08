@@ -61,7 +61,9 @@ export class RedisCacheService {
         try {
           return JSON.parse(value) as T;
         } catch (parseError) {
-          this.logger.error("Cache corruption detected, ignoring", parseError, { key: fullKey });
+          this.logger.error("Cache corruption detected, ignoring", parseError, {
+            key: fullKey,
+          });
           // Optionally delete the corrupted key immediately
           await redis.del(fullKey).catch(() => {});
           return null;
@@ -109,10 +111,15 @@ export class RedisCacheService {
       const redis = RedisConnectionManager.getInstance();
       const fullKey = this.getKey(key, options?.prefix);
       const result = await redis.del(fullKey);
-      this.logger.debug("Cache invalidated", { key: fullKey, deleted: result > 0 });
+      this.logger.debug("Cache invalidated", {
+        key: fullKey,
+        deleted: result > 0,
+      });
       return result > 0;
     } catch (error) {
-      this.logger.error("Failed to delete cache (invalidation error)", error, { key });
+      this.logger.error("Failed to delete cache (invalidation error)", error, {
+        key,
+      });
       return false;
     }
   }

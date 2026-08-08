@@ -1,10 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { datasetsApi, CreateDatasetPayload, UpdateDatasetPayload, CreateDatasetItemPayload } from './api';
+import {
+  datasetsApi,
+  CreateDatasetPayload,
+  UpdateDatasetPayload,
+  CreateDatasetItemPayload,
+} from './api';
 
 const QUERY_KEY = 'datasets';
 
-export const useDatasets = () =>
-  useQuery({ queryKey: [QUERY_KEY], queryFn: datasetsApi.getAll });
+export const useDatasets = () => useQuery({ queryKey: [QUERY_KEY], queryFn: datasetsApi.getAll });
 
 export const useDataset = (id: string) =>
   useQuery({
@@ -48,8 +52,13 @@ export const useDeleteDataset = () => {
 export const useAddDatasetItem = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ datasetId, payload }: { datasetId: string; payload: CreateDatasetItemPayload }) =>
-      datasetsApi.addItem(datasetId, payload),
+    mutationFn: ({
+      datasetId,
+      payload,
+    }: {
+      datasetId: string;
+      payload: CreateDatasetItemPayload;
+    }) => datasetsApi.addItem(datasetId, payload),
     onSuccess: (_, { datasetId }) => {
       qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
       qc.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -60,8 +69,13 @@ export const useAddDatasetItem = () => {
 export const useBulkAddDatasetItems = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ datasetId, payload }: { datasetId: string; payload: CreateDatasetItemPayload[] }) =>
-      datasetsApi.bulkAddItems(datasetId, payload),
+    mutationFn: ({
+      datasetId,
+      payload,
+    }: {
+      datasetId: string;
+      payload: CreateDatasetItemPayload[];
+    }) => datasetsApi.bulkAddItems(datasetId, payload),
     onSuccess: (_, { datasetId }) => {
       qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
       qc.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -72,7 +86,7 @@ export const useBulkAddDatasetItems = () => {
 export const useDeleteDatasetItem = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ itemId, datasetId }: { itemId: string; datasetId: string }) => 
+    mutationFn: ({ itemId, datasetId }: { itemId: string; datasetId: string }) =>
       datasetsApi.deleteItem(itemId),
     onSuccess: (_, { datasetId }) => {
       qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
@@ -84,8 +98,15 @@ export const useDeleteDatasetItem = () => {
 export const useUpdateDatasetItem = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ itemId, datasetId, payload }: { itemId: string; datasetId: string; payload: Partial<CreateDatasetItemPayload> }) =>
-      datasetsApi.updateItem(itemId, payload),
+    mutationFn: ({
+      itemId,
+      datasetId,
+      payload,
+    }: {
+      itemId: string;
+      datasetId: string;
+      payload: Partial<CreateDatasetItemPayload>;
+    }) => datasetsApi.updateItem(itemId, payload),
     onSuccess: (_, { datasetId }) => {
       qc.invalidateQueries({ queryKey: [QUERY_KEY, datasetId] });
       qc.invalidateQueries({ queryKey: [QUERY_KEY] });

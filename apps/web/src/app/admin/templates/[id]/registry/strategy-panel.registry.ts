@@ -9,10 +9,22 @@ export interface StrategyPanelProps {
 }
 
 // Lazy-loaded strategy panels — avoids loading all panels on initial render
-const strategyPanelRegistry: Record<GenerationStrategy, () => Promise<{ default: ComponentType<StrategyPanelProps> }>> = {
-  VARIABLE: () => import('../components/strategy/VariableStrategyPanel').then(m => ({ default: m.VariableStrategyPanel })),
-  DATASET: () => import('../components/strategy/DatasetStrategyPanel').then(m => ({ default: m.DatasetStrategyPanel })),
-  HYBRID: () => import('../components/strategy/HybridStrategyPanel').then(m => ({ default: m.HybridStrategyPanel })),
+const strategyPanelRegistry: Record<
+  GenerationStrategy,
+  () => Promise<{ default: ComponentType<StrategyPanelProps> }>
+> = {
+  VARIABLE: () =>
+    import('../components/strategy/VariableStrategyPanel').then((m) => ({
+      default: m.VariableStrategyPanel,
+    })),
+  DATASET: () =>
+    import('../components/strategy/DatasetStrategyPanel').then((m) => ({
+      default: m.DatasetStrategyPanel,
+    })),
+  HYBRID: () =>
+    import('../components/strategy/HybridStrategyPanel').then((m) => ({
+      default: m.HybridStrategyPanel,
+    })),
 };
 
 /**

@@ -161,9 +161,14 @@ export class ExamConfigController {
    * Returns readiness report: unused question pool capacity, topic conflicts, and health checks.
    */
   @Get(":id/readiness")
-  @ApiOperation({ summary: "Check exam configuration generation readiness & question pool health" })
+  @ApiOperation({
+    summary:
+      "Check exam configuration generation readiness & question pool health",
+  })
   @ApiParam({ name: "id", description: "Exam configuration ID" })
-  @ApiOkResponse({ description: "Readiness score, conflict alerts, and health check details" })
+  @ApiOkResponse({
+    description: "Readiness score, conflict alerts, and health check details",
+  })
   async getReadiness(@Param("id") id: string) {
     return this.readinessService.checkReadiness(id);
   }

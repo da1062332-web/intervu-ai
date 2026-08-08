@@ -21,22 +21,25 @@ export class RecommendationService {
   /**
    * Generates dynamic, section-aware AI recommendations based on section correct/wrong counts and overall performance.
    */
-  generateRecommendations(
-    analytics: any,
-  ): RecommendationDto[] {
+  generateRecommendations(analytics: any): RecommendationDto[] {
     const recommendations: RecommendationDto[] = [];
 
     let sections: any[] = [];
     if (Array.isArray(analytics?.sectionAccuracy)) {
       sections = analytics.sectionAccuracy;
-    } else if (analytics?.sectionAccuracy && typeof analytics.sectionAccuracy === "object") {
-      sections = Object.entries(analytics.sectionAccuracy).map(([name, acc]) => ({
-        sectionName: name,
-        accuracy: Number(acc) || 0,
-        correct: 0,
-        wrong: 0,
-        skipped: 0,
-      }));
+    } else if (
+      analytics?.sectionAccuracy &&
+      typeof analytics.sectionAccuracy === "object"
+    ) {
+      sections = Object.entries(analytics.sectionAccuracy).map(
+        ([name, acc]) => ({
+          sectionName: name,
+          accuracy: Number(acc) || 0,
+          correct: 0,
+          wrong: 0,
+          skipped: 0,
+        }),
+      );
     }
 
     sections.forEach((sec) => {
@@ -44,7 +47,7 @@ export class RecommendationService {
       const correct = sec.correct || 0;
       const wrong = sec.wrong || 0;
       const skipped = sec.skipped || 0;
-      const total = sec.questionCount || (correct + wrong + skipped) || 1;
+      const total = sec.questionCount || correct + wrong + skipped || 1;
       const secName = sec.sectionName || "Section";
       const nameLower = secName.toLowerCase();
 
@@ -67,7 +70,11 @@ export class RecommendationService {
         } else {
           description = `Optimal coding performance with ${correct}/${total} problems passed (${acc}% accuracy). Practice dynamic programming and advanced algorithms.`;
         }
-      } else if (nameLower.includes("numerical") || nameLower.includes("quant") || nameLower.includes("math")) {
+      } else if (
+        nameLower.includes("numerical") ||
+        nameLower.includes("quant") ||
+        nameLower.includes("math")
+      ) {
         if (acc < 40) {
           description = `Scored ${correct} correct out of ${total} questions (${wrong} incorrect, ${skipped} skipped) with ${acc}% accuracy. High error rate detected; practice mental math shortcuts, ratio-proportions, and percentage estimation.`;
         } else if (acc < 70) {
@@ -75,7 +82,10 @@ export class RecommendationService {
         } else {
           description = `Strong quantitative accuracy at ${acc}% (${correct}/${total} correct). Focus on speed drills to finish numerical sections with buffer review time.`;
         }
-      } else if (nameLower.includes("reasoning") || nameLower.includes("logic")) {
+      } else if (
+        nameLower.includes("reasoning") ||
+        nameLower.includes("logic")
+      ) {
         if (acc < 50) {
           description = `Scored ${correct} correct out of ${total} questions (${wrong} incorrect, ${acc}% accuracy). Review diagrammatic puzzles, blood relations, and syllogism deduction techniques.`;
         } else if (acc < 75) {
@@ -83,7 +93,11 @@ export class RecommendationService {
         } else {
           description = `Exceptional reasoning performance (${acc}% accuracy, ${correct}/${total} correct). Continue timed puzzle practice to sustain high speed.`;
         }
-      } else if (nameLower.includes("verbal") || nameLower.includes("english") || nameLower.includes("communication")) {
+      } else if (
+        nameLower.includes("verbal") ||
+        nameLower.includes("english") ||
+        nameLower.includes("communication")
+      ) {
         if (acc < 50) {
           description = `Scored ${correct} correct out of ${total} questions (${wrong} wrong, ${acc}% accuracy). Review grammar rules, vocabulary roots, and reading comprehension main-idea extractions.`;
         } else if (acc < 75) {
@@ -102,7 +116,9 @@ export class RecommendationService {
       }
 
       if (sec.topics && sec.topics.length > 0) {
-        const weakTopics = sec.topics.filter((t: any) => t.accuracy < 60).map((t: any) => t.topicName);
+        const weakTopics = sec.topics
+          .filter((t: any) => t.accuracy < 60)
+          .map((t: any) => t.topicName);
         if (weakTopics.length > 0) {
           description += ` Key Focus Topics: ${weakTopics.join(", ")}.`;
         }

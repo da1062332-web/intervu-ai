@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import * as math from "mathjs";
-import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
+import {
+  analyzeMathjsExpression,
+  getUnsupportedMathjsFunctions,
+} from "./expression-utils";
 
 export interface StrategyDraftValidationResult {
   errors: string[];
@@ -30,7 +33,9 @@ export class StrategyCanonicalizationService {
     const derivedVariables = Array.isArray(draft?.derivedVariables)
       ? draft.derivedVariables
       : [];
-    const constraints = Array.isArray(draft?.constraints) ? draft.constraints : [];
+    const constraints = Array.isArray(draft?.constraints)
+      ? draft.constraints
+      : [];
 
     const variableNames = new Set<string>();
     const derivedNames = new Set<string>();
@@ -59,8 +64,13 @@ export class StrategyCanonicalizationService {
         variable.type === "decimal"
       ) {
         if (variable.min !== undefined && variable.max !== undefined) {
-          if (typeof variable.min !== "number" || typeof variable.max !== "number") {
-            errors.push(`Variable ${normalizedName} must have numeric min and max values.`);
+          if (
+            typeof variable.min !== "number" ||
+            typeof variable.max !== "number"
+          ) {
+            errors.push(
+              `Variable ${normalizedName} must have numeric min and max values.`,
+            );
           } else if (variable.min > variable.max) {
             errors.push(
               `Variable ${normalizedName} has invalid range: min ${variable.min} cannot be greater than max ${variable.max}.`,
@@ -89,12 +99,16 @@ export class StrategyCanonicalizationService {
       derivedNames.add(lowerName);
 
       if (!derived.expression || typeof derived.expression !== "string") {
-        errors.push(`Derived variable ${normalizedName} must have a valid expression.`);
+        errors.push(
+          `Derived variable ${normalizedName} must have a valid expression.`,
+        );
         continue;
       }
 
       if (variableNames.has(lowerName)) {
-        errors.push(`Derived variable name ${normalizedName} conflicts with a base variable name.`);
+        errors.push(
+          `Derived variable name ${normalizedName} conflicts with a base variable name.`,
+        );
       }
 
       const expression = derived.expression.trim();
@@ -123,7 +137,10 @@ export class StrategyCanonicalizationService {
 
       const identifiers = analyzeMathjsExpression(expression).identifiers;
       for (const identifier of identifiers) {
-        if (!variableNames.has(identifier.toLowerCase()) && !derivedNames.has(identifier.toLowerCase())) {
+        if (
+          !variableNames.has(identifier.toLowerCase()) &&
+          !derivedNames.has(identifier.toLowerCase())
+        ) {
           errors.push(
             `Derived variable ${normalizedName} references undefined identifier ${identifier}.`,
           );
@@ -151,7 +168,9 @@ export class StrategyCanonicalizationService {
 
     const cycle = this.detectCycle(formulaDeps);
     if (cycle.length > 0) {
-      errors.push(`Circular dependency in derived variables: ${cycle.join(" -> ")}`);
+      errors.push(
+        `Circular dependency in derived variables: ${cycle.join(" -> ")}`,
+      );
     }
 
     const parameterNames = new Set<string>([...variableNames, ...derivedNames]);
@@ -168,7 +187,8 @@ export class StrategyCanonicalizationService {
         continue;
       }
 
-      const unsupportedFunctions = getUnsupportedMathjsFunctions(normalizedRule);
+      const unsupportedFunctions =
+        getUnsupportedMathjsFunctions(normalizedRule);
       if (unsupportedFunctions.length > 0) {
         errors.push(
           `Constraint uses unsupported function(s): ${unsupportedFunctions.join(", ")}.`,
@@ -187,13 +207,17 @@ export class StrategyCanonicalizationService {
       const identifiers = analyzeMathjsExpression(normalizedRule).identifiers;
       for (const identifier of identifiers) {
         if (!parameterNames.has(identifier.toLowerCase())) {
-          errors.push(`Constraint references undefined identifier ${identifier}.`);
+          errors.push(
+            `Constraint references undefined identifier ${identifier}.`,
+          );
         }
       }
     }
 
     if (variables.length === 0) {
-      warnings.push("No variables were detected. Manual editing may be needed.");
+      warnings.push(
+        "No variables were detected. Manual editing may be needed.",
+      );
     }
 
     if (variables.length > 20) {

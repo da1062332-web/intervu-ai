@@ -24,7 +24,9 @@ export class TestAssemblyService {
     // If a published/created assembled test exists for this blueprint, return it directly
     try {
       if (body.blueprintId) {
-        const existing = await this.assembledRepo.findByConfigId(body.blueprintId);
+        const existing = await this.assembledRepo.findByConfigId(
+          body.blueprintId,
+        );
         if (existing) {
           // Map assembledTest -> Assessment-like result used by frontend
           const questions: any[] = [];
@@ -33,11 +35,15 @@ export class TestAssemblyService {
               const snap = (q.questionSnapshot as any) || {};
               questions.push({
                 id: q.questionId,
-                questionText: snap.questionText || snap.text || '',
+                questionText: snap.questionText || snap.text || "",
                 options: snap.options || [],
                 answer: snap.correctAnswer || snap.correct_answer || null,
-                explanation: snap.solution || snap.explanation || '',
-                difficulty: (snap.difficultyLevel || snap.difficulty || 'MEDIUM').toUpperCase(),
+                explanation: snap.solution || snap.explanation || "",
+                difficulty: (
+                  snap.difficultyLevel ||
+                  snap.difficulty ||
+                  "MEDIUM"
+                ).toUpperCase(),
                 conceptKey: snap.conceptKey || null,
                 topicId: snap.conceptKey || null,
               });
@@ -46,10 +52,10 @@ export class TestAssemblyService {
 
           const result = {
             testId: existing.id,
-            title: existing.configId || 'Published Assessment',
-            companyId: 'system',
+            title: existing.configId || "Published Assessment",
+            companyId: "system",
             examConfigId: existing.configId,
-            status: existing.status || 'PUBLISHED',
+            status: existing.status || "PUBLISHED",
             sections:
               existing.sections?.map((s: any) => {
                 return {
@@ -59,10 +65,10 @@ export class TestAssemblyService {
                     const snap = (q.questionSnapshot as any) || {};
                     return {
                       id: q.questionId,
-                      questionText: snap.questionText || '',
+                      questionText: snap.questionText || "",
                       options: snap.options || [],
                       answer: snap.correctAnswer || null,
-                      explanation: snap.solution || '',
+                      explanation: snap.solution || "",
                     };
                   }),
                 };
@@ -75,7 +81,9 @@ export class TestAssemblyService {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn('Failed to lookup existing assembled test', { error: message });
+      this.logger.warn("Failed to lookup existing assembled test", {
+        error: message,
+      });
     }
 
     const idempotencyKey = createHash("sha256")
@@ -208,9 +216,12 @@ export class TestAssemblyService {
         status: "queued",
       };
     } catch (enqueueError) {
-      this.logger.warn("Queue service unavailable, falling back to direct DB question assembly", {
-        error: String(enqueueError),
-      });
+      this.logger.warn(
+        "Queue service unavailable, falling back to direct DB question assembly",
+        {
+          error: String(enqueueError),
+        },
+      );
 
       try {
         const { PrismaClient } = await import("@prisma/client");
@@ -221,9 +232,13 @@ export class TestAssemblyService {
         });
         await prisma.$disconnect();
       } catch (updateError) {
-        this.logger.error("Failed to update generation job record after enqueue failure", updateError as Error, {
-          jobId,
-        });
+        this.logger.error(
+          "Failed to update generation job record after enqueue failure",
+          updateError as Error,
+          {
+            jobId,
+          },
+        );
       }
     }
 
@@ -243,22 +258,26 @@ export class TestAssemblyService {
           const mcqData = (q.mcqData as any) || {};
           return {
             id: q.id,
-            questionText: q.questionText || q.text || '',
+            questionText: q.questionText || q.text || "",
             options: mcqData.options || q.options || [],
             answer: q.answer || q.correctAnswer || null,
-            explanation: q.explanation || q.solution || '',
-            difficulty: (q.difficulty || q.difficultyLevel || 'MEDIUM').toUpperCase(),
-            conceptKey: q.conceptKey || q.topicId || 'General',
-            topicId: q.topicId || 'default-topic',
+            explanation: q.explanation || q.solution || "",
+            difficulty: (
+              q.difficulty ||
+              q.difficultyLevel ||
+              "MEDIUM"
+            ).toUpperCase(),
+            conceptKey: q.conceptKey || q.topicId || "General",
+            topicId: q.topicId || "default-topic",
           };
         });
 
         return {
           testId: `asmt_${randomUUID()}`,
-          title: 'Generated Assessment',
-          companyId: 'system',
+          title: "Generated Assessment",
+          companyId: "system",
           examConfigId: body.blueprintId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           questions,
         };
       }

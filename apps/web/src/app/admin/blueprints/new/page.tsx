@@ -72,10 +72,14 @@ export default function CreateBlueprintPage() {
 
   return (
     <div className='container mx-auto space-y-8 max-w-5xl animate-fade-in-up pb-8'>
-      <SectionHeader 
+      <SectionHeader
         title='Create New Blueprint'
         description='Configure an exam blueprint from start to finish.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Blueprints', href: '/admin/blueprints' }, { label: 'New' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Blueprints', href: '/admin/blueprints' },
+          { label: 'New' },
+        ]}
       />
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
@@ -120,7 +124,9 @@ export default function CreateBlueprintPage() {
               <h2 className='text-xl font-semibold border-b pb-4'>3. Allocations</h2>
 
               {sections.map((section: BlueprintSectionPayload) => {
-                const sectionName = configSections?.find((s) => s.id === section.sectionId)?.name || section.sectionId;
+                const sectionName =
+                  configSections?.find((s) => s.id === section.sectionId)?.name ||
+                  section.sectionId;
 
                 return (
                   <div key={section.sectionId} className='space-y-6 pt-4'>

@@ -34,7 +34,8 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
   const selectedBlueprint = blueprints?.find((b) => b.id === selectedBlueprintId);
   const { data: blueprintDetail } = useBlueprint(selectedBlueprintId || '');
 
-  const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
+  const bpRawSections =
+    (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
   const firstBpDiff = bpRawSections[0]?.difficultyAllocation || { easy: 0, medium: 0, hard: 0 };
 
   const [easyPercentage, setEasyPercentage] = useState<number>(0);
@@ -109,7 +110,12 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
     });
   };
 
-  if (isLoading) return <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
+  if (isLoading)
+    return (
+      <div className='flex items-center justify-center h-48'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+      </div>
+    );
 
   return (
     <div className='max-w-2xl mx-auto space-y-8 py-4'>
@@ -121,10 +127,12 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
             </div>
             <div>
               <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
-                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+                Pre-configured by Blueprint:{' '}
+                {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
               </h4>
               <p className='text-xs text-muted-foreground mt-0.5'>
-                Difficulty distribution curve is loaded directly from the blueprint rules in Read-Only Inspection Mode.
+                Difficulty distribution curve is loaded directly from the blueprint rules in
+                Read-Only Inspection Mode.
               </p>
             </div>
           </div>
@@ -134,7 +142,8 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
       <div className='space-y-1'>
         <h3 className='text-2xl font-semibold tracking-tight'>Difficulty Distribution</h3>
         <p className='text-muted-foreground'>
-          Configure difficulty percentages or select <strong>Flexible Pool</strong> to use any available questions automatically.
+          Configure difficulty percentages or select <strong>Flexible Pool</strong> to use any
+          available questions automatically.
         </p>
       </div>
 
@@ -154,7 +163,9 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
 
       <div className='grid gap-6 p-6 border rounded-xl bg-card shadow-sm'>
         <div className='flex items-center gap-4'>
-          <Label htmlFor='easy-percentage' className='w-24 text-right font-medium'>Easy %</Label>
+          <Label htmlFor='easy-percentage' className='w-24 text-right font-medium'>
+            Easy %
+          </Label>
           <div className='flex-1'>
             <Input
               id='easy-percentage'
@@ -169,7 +180,9 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
         </div>
 
         <div className='flex items-center gap-4'>
-          <Label htmlFor='medium-percentage' className='w-24 text-right font-medium'>Medium %</Label>
+          <Label htmlFor='medium-percentage' className='w-24 text-right font-medium'>
+            Medium %
+          </Label>
           <div className='flex-1'>
             <Input
               id='medium-percentage'
@@ -184,7 +197,9 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
         </div>
 
         <div className='flex items-center gap-4'>
-          <Label htmlFor='hard-percentage' className='w-24 text-right font-medium'>Hard %</Label>
+          <Label htmlFor='hard-percentage' className='w-24 text-right font-medium'>
+            Hard %
+          </Label>
           <div className='flex-1'>
             <Input
               id='hard-percentage'
@@ -219,7 +234,12 @@ export function DifficultyDistributionTab({ configId }: DifficultyDistributionTa
             {isValid ? '✓ VALID' : '✗ INVALID'}
           </span>
         </div>
-        <Button onClick={handleSave} disabled={isPending || !isValid} size="lg" className='w-full sm:w-auto font-semibold shadow-sm'>
+        <Button
+          onClick={handleSave}
+          disabled={isPending || !isValid}
+          size='lg'
+          className='w-full sm:w-auto font-semibold shadow-sm'
+        >
           {isPending ? 'Saving...' : 'Save Distribution'}
         </Button>
       </div>

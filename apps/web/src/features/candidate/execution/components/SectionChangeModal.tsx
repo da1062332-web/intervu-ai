@@ -112,9 +112,7 @@ export function SectionChangeModal() {
       {isOpen && (
         <AlertDialog open={isOpen} onOpenChange={(open: any) => !open && cancelSectionChange()}>
           <AlertDialogContent className='overflow-hidden p-0 max-w-md bg-white border border-gray-300 rounded-md shadow-2xl text-gray-800 font-sans select-none z-[9999]'>
-            <div
-              className={`h-2 w-full ${showLockWarning ? 'bg-amber-600' : 'bg-[#26773e]'}`}
-            />
+            <div className={`h-2 w-full ${showLockWarning ? 'bg-amber-600' : 'bg-[#26773e]'}`} />
 
             <div className='p-6'>
               <AlertDialogHeader>
@@ -151,8 +149,9 @@ export function SectionChangeModal() {
                             Lock Warning:
                           </span>
                           Once you proceed, the{' '}
-                          <span className='font-semibold'>{currentSectionName}</span> section will be{' '}
-                          <strong>permanently locked</strong>. You will not be able to return to it later.
+                          <span className='font-semibold'>{currentSectionName}</span> section will
+                          be <strong>permanently locked</strong>. You will not be able to return to
+                          it later.
                         </div>
                       </motion.div>
                     )}
@@ -175,7 +174,7 @@ export function SectionChangeModal() {
                     'font-bold text-xs px-6 py-2.5 h-9 rounded-sm shadow-sm transition-colors flex items-center gap-1.5 m-0 sm:m-0 cursor-pointer shrink-0',
                     showLockWarning
                       ? 'bg-amber-600 hover:bg-amber-700 text-white border border-amber-800'
-                      : 'bg-[#27783f] hover:bg-[#1f6333] text-white border border-[#195028]'
+                      : 'bg-[#27783f] hover:bg-[#1f6333] text-white border border-[#195028]',
                   )}
                 >
                   {isLoading ? (

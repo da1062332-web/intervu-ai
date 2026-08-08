@@ -50,7 +50,7 @@ export default function BlueprintViewPage() {
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Blueprints', href: '/admin/blueprints' },
-          { label: blueprint.name || 'Details' }
+          { label: blueprint.name || 'Details' },
         ]}
         actions={
           <div className='flex items-center gap-3'>
@@ -106,7 +106,10 @@ export default function BlueprintViewPage() {
             <div>
               <dt className='text-sm text-muted-foreground'>Status</dt>
               <dd>
-                <Badge variant={blueprint.isActive ? 'default' : 'secondary'} className={blueprint.isActive ? 'bg-green-100 text-green-800' : ''}>
+                <Badge
+                  variant={blueprint.isActive ? 'default' : 'secondary'}
+                  className={blueprint.isActive ? 'bg-green-100 text-green-800' : ''}
+                >
                   {blueprint.isActive ? 'Active' : 'Draft'}
                 </Badge>
               </dd>

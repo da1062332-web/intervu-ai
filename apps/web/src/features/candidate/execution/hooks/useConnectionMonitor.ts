@@ -39,7 +39,7 @@ export function useConnectionMonitor() {
     // Active pinging
     const pingServer = async () => {
       if (!navigator.onLine) return;
-      
+
       const start = Date.now();
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -50,11 +50,11 @@ export function useConnectionMonitor() {
             'Cache-Control': 'no-cache',
           },
         });
-        
+
         if (res.ok) {
           const latency = Date.now() - start;
           setPing(latency);
-          
+
           if (useExecutionStore.getState().connectionStatus === 'OFFLINE') {
             handleOnline();
           }

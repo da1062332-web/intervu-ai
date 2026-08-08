@@ -58,7 +58,11 @@ export class ObjectiveEvaluatorService {
       const correctAnswer = question.answer || "";
       const type = (question.questionType || "MCQ").toLowerCase();
 
-      const isCorrect = this.compareAnswers(candidateAnswer, correctAnswer, type);
+      const isCorrect = this.compareAnswers(
+        candidateAnswer,
+        correctAnswer,
+        type,
+      );
 
       // No negative marking — score is always 0 or 1
       const score = isCorrect ? 1 : 0;

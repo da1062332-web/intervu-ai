@@ -49,11 +49,11 @@ export class TestsService {
         sumSectionMins > 0
           ? sumSectionMins
           : isExam
-            ? (tc.durationMinutes || 0)
+            ? tc.durationMinutes || 0
             : Math.floor((tc.totalDurationSeconds || 0) / 60);
 
       const totalQuestions =
-        sumSectionQs > 0 ? sumSectionQs : (tc.totalQuestions || 0);
+        sumSectionQs > 0 ? sumSectionQs : tc.totalQuestions || 0;
 
       return {
         configId: tc.id,

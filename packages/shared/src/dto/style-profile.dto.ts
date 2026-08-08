@@ -11,7 +11,13 @@ import {
   ExplanationStyle,
 } from "@intervu-ai/contracts";
 import { z } from "zod";
-import { IsString, IsBoolean, IsOptional, IsObject, IsEnum } from "class-validator";
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  IsObject,
+  IsEnum,
+} from "class-validator";
 
 export class CreateStyleProfileDto implements CreateStyleProfile {
   @ApiProperty({ example: "Campus Placement Profile", maxLength: 150 })
@@ -124,7 +130,9 @@ export class CreateStyleProfileDto implements CreateStyleProfile {
   @IsOptional()
   explanationStyle?: Partial<ExplanationStyle>;
 
-  @ApiPropertyOptional({ example: "Keep instructions simple. Always output JSON." })
+  @ApiPropertyOptional({
+    example: "Keep instructions simple. Always output JSON.",
+  })
   @IsString()
   @IsOptional()
   aiInstructions?: string;
@@ -261,4 +269,3 @@ export class UpdateStyleProfileDto implements UpdateStyleProfile {
     ) as unknown as z.SafeParseReturnType<unknown, UpdateStyleProfileDto>;
   }
 }
-

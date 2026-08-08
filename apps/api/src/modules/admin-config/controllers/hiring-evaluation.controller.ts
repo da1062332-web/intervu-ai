@@ -31,14 +31,20 @@ export class HiringEvaluationController {
   ) {}
 
   @Get("hiring-strategies")
-  @ApiOperation({ summary: "Get all saved hiring evaluation strategies and threshold presets" })
-  @ApiOkResponse({ description: "List of saved evaluation strategies and presets" })
+  @ApiOperation({
+    summary: "Get all saved hiring evaluation strategies and threshold presets",
+  })
+  @ApiOkResponse({
+    description: "List of saved evaluation strategies and presets",
+  })
   async getSavedStrategies() {
     return this.hiringEvaluationService.getAllSavedStrategies();
   }
 
   @Get("configs/:id/hiring-evaluation")
-  @ApiOperation({ summary: "Get hiring evaluation configuration for an exam config" })
+  @ApiOperation({
+    summary: "Get hiring evaluation configuration for an exam config",
+  })
   @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiOkResponse({ description: "Hiring evaluation configuration details" })
   async getHiringConfig(@Param("id") id: string) {
@@ -47,9 +53,13 @@ export class HiringEvaluationController {
 
   @Patch("configs/:id/hiring-evaluation")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update hiring evaluation configuration and section mappings" })
+  @ApiOperation({
+    summary: "Update hiring evaluation configuration and section mappings",
+  })
   @ApiParam({ name: "id", description: "Exam configuration ID" })
-  @ApiOkResponse({ description: "Hiring evaluation configuration updated successfully" })
+  @ApiOkResponse({
+    description: "Hiring evaluation configuration updated successfully",
+  })
   async updateHiringConfig(@Param("id") id: string, @Body() dto: any) {
     return this.hiringEvaluationService.upsertConfig(id, dto);
   }

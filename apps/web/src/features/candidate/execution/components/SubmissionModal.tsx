@@ -52,11 +52,10 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
     <Modal isOpen={isOpen} onClose={isSubmitting ? () => {} : onClose}>
       <div className='space-y-4 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar text-gray-800 font-sans select-none'>
         <div className='border-b pb-3 border-gray-200'>
-          <h2 className='text-xl font-bold text-gray-900 tracking-tight'>
-            Submit Assessment
-          </h2>
+          <h2 className='text-xl font-bold text-gray-900 tracking-tight'>Submit Assessment</h2>
           <p className='text-xs text-gray-600 mt-1'>
-            Please review your question status breakdown before final submission. Once submitted, answers cannot be edited.
+            Please review your question status breakdown before final submission. Once submitted,
+            answers cannot be edited.
           </p>
         </div>
 
@@ -67,7 +66,8 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
             <div className='mt-4 p-3.5 bg-red-50 border border-red-300 text-red-800 text-xs rounded-sm flex items-start gap-2.5 shadow-2xs'>
               <AlertCircle className='w-4 h-4 shrink-0 text-red-600 mt-0.5' />
               <p>
-                Submission failed due to a network error. Please check your connection and try submitting again.
+                Submission failed due to a network error. Please check your connection and try
+                submitting again.
               </p>
             </div>
           )}
@@ -77,7 +77,8 @@ export function SubmissionModal({ isOpen, onClose, testId }: SubmissionModalProp
               <AlertTriangle className='w-4 h-4 shrink-0 text-amber-600 mt-0.5' />
               <p>
                 You have <strong>{unanswered} unanswered</strong>{' '}
-                {unanswered === 1 ? 'question' : 'questions'}. Are you sure you want to proceed with final submission?
+                {unanswered === 1 ? 'question' : 'questions'}. Are you sure you want to proceed with
+                final submission?
               </p>
             </div>
           )}

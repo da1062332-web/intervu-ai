@@ -113,7 +113,10 @@ export default function AssessmentBuilderPage() {
       <SectionHeader
         title='Assessment Generator'
         description='Transform your validated blueprints into complete, ready-to-use assessments powered by AI.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Assessment Generator' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Assessment Generator' },
+        ]}
       />
 
       {step === 'SELECT_CONFIG' && (
@@ -123,7 +126,11 @@ export default function AssessmentBuilderPage() {
             description='Choose the exam configuration to build your assessment from.'
             footer={
               <div className='flex w-full justify-end'>
-                <Button disabled={!selectedConfig} onClick={handleContinueToPreview} className='gap-2'>
+                <Button
+                  disabled={!selectedConfig}
+                  onClick={handleContinueToPreview}
+                  className='gap-2'
+                >
                   Continue to Preview <ChevronRight className='w-4 h-4' />
                 </Button>
               </div>
