@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, HelpCircle, Star, Building2, ChevronRight, Layers } from 'lucide-react';
+import { Clock, HelpCircle, Star, Building2, ChevronRight, Layers, RotateCcw } from 'lucide-react';
 
 interface TestCardProps {
   test: TestConfig;
@@ -136,7 +136,7 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
         </CardDescription>
       </CardHeader>
 
-      <CardContent className='pb-4 pt-0 flex-1 grid grid-cols-3 gap-2.5 border-y border-border/40 py-3.5 bg-muted/20'>
+      <CardContent className='pb-4 pt-0 flex-1 grid grid-cols-4 gap-2.5 border-y border-border/40 py-3.5 bg-muted/20'>
         <div className='flex flex-col items-center justify-center text-center p-2 rounded-lg bg-card/60 border border-border/40'>
           <Clock className='size-4 text-primary/80 mb-1' />
           <span className='text-[11px] font-bold text-foreground'>{displayDuration}</span>
@@ -158,20 +158,38 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
             Sections
           </span>
         </div>
+        <div className='flex flex-col items-center justify-center text-center p-2 rounded-lg bg-card/60 border border-border/40'>
+          <RotateCcw className='size-4 text-orange-500 mb-1' />
+          <span className='text-[11px] font-bold text-foreground'>{test.attemptCount || 0}/{test.maxAttempts || 3}</span>
+          <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider mt-0.5'>
+            Attempts
+          </span>
+        </div>
       </CardContent>
 
       <CardFooter className='p-4 bg-card/40 border-t border-border/40'>
-        <Button
-          asChild
-          variant='default'
-          size='sm'
-          className='w-full font-semibold h-9 text-xs shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5'
-        >
-          <Link href={`/candidate/tests/${test.id}`}>
-            <span>View Assessment</span>
-            <ChevronRight className='size-4 group-hover:translate-x-0.5 transition-transform' />
-          </Link>
-        </Button>
+        {test.canReattempt === false ? (
+          <Button
+            disabled
+            variant='secondary'
+            size='sm'
+            className='w-full font-semibold h-9 text-xs opacity-70 cursor-not-allowed'
+          >
+            <span>Max Attempts Reached</span>
+          </Button>
+        ) : (
+          <Button
+            asChild
+            variant='default'
+            size='sm'
+            className='w-full font-semibold h-9 text-xs shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5'
+          >
+            <Link href={`/candidate/tests/${test.id}`}>
+              <span>View Assessment</span>
+              <ChevronRight className='size-4 group-hover:translate-x-0.5 transition-transform' />
+            </Link>
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

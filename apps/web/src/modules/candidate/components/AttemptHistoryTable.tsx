@@ -21,6 +21,12 @@ interface AttemptItem {
   date: string;
   status: string;
   score: number | null;
+  examConfigId?: string;
+  testConfigId?: string;
+  attemptCount?: number;
+  maxAttempts?: number;
+  remainingAttempts?: number;
+  canReAttempt?: boolean;
 }
 
 interface AttemptHistoryTableProps {
@@ -43,18 +49,29 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
               <Eye className='size-3.5 mr-1.5' /> View
             </Link>
           </Button>
-          <Button
-            size='sm'
-            variant='outline'
-            asChild
-            className='h-8 px-2.5 text-xs font-semibold border-border/60 hover:bg-muted/80 text-primary hover:text-primary'
-          >
-            <Link
-              href={`/candidate/tests/${attempt.testId || attempt.configId || attempt.assessmentId || attempt.instanceId}`}
+          {attempt.canReAttempt !== false ? (
+            <Button
+              size='sm'
+              variant='outline'
+              asChild
+              className='h-8 px-2.5 text-xs font-semibold border-border/60 hover:bg-muted/80 text-primary hover:text-primary'
             >
-              <Play className='size-3.5 mr-1.5' /> Re-Exam
-            </Link>
-          </Button>
+              <Link
+                href={`/candidate/tests/${attempt.examConfigId || attempt.testConfigId || attempt.configId || attempt.testId || attempt.assessmentId}`}
+              >
+                <Play className='size-3.5 mr-1.5' /> Re-Exam
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              size='sm'
+              variant='outline'
+              disabled
+              className='h-8 px-2.5 text-xs font-semibold border-border/60 text-muted-foreground opacity-60 cursor-not-allowed'
+            >
+              Max Attempts Reached
+            </Button>
+          )}
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Button size='sm' variant='default' asChild className='h-8 px-3 text-xs font-semibold'>
@@ -137,6 +154,28 @@ export function AttemptHistoryTable({
       cell: (row) => (
         <span className='font-semibold text-sm text-foreground'>{row.assessmentName}</span>
       ),
+    },
+    {
+      id: 'attempts',
+      header: (
+        <div className='flex items-center gap-1.5 font-bold text-xs uppercase tracking-wide'>
+          Attempts
+        </div>
+      ),
+      cell: (row) => (
+        row.maxAttempts !== undefined && row.attemptCount !== undefined ? (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-semibold text-foreground">
+              {row.attemptCount} / {row.maxAttempts}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {row.remainingAttempts} left
+            </span>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">-</span>
+        )
+      )
     },
     {
       id: 'date',

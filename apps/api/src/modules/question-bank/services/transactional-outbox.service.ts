@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
-export interface DomainEventPayload {
+export interface DomainEventData {
   aggregateType: string;
   aggregateId: string;
   eventType: string;
@@ -20,7 +20,7 @@ export class TransactionalOutboxService {
   /**
    * Writes a domain event to the Transactional Outbox inside an existing Prisma transaction or standard client.
    */
-  async recordEvent(event: DomainEventPayload, tx?: any): Promise<void> {
+  async recordEvent(event: DomainEventData, tx?: any): Promise<void> {
     const client = tx || this.prisma;
 
     await client.transactionalOutbox.create({

@@ -31,13 +31,21 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
   const isCompleted = dashboardData?.completedAttempts?.some((c) => c.testId === testId);
   const isActive = dashboardData?.activeTests?.some((a) => a.testId === testId);
 
-  const enrollmentStatus = isCompleted
-    ? 'COMPLETED'
-    : isActive
-      ? 'STARTED'
-      : enrollment
-        ? enrollment.status
-        : 'AVAILABLE';
+  const availableTest = dashboardData?.availableTests?.find((t) => t.id === testId);
+  
+  const completedCount = dashboardData?.completedAttempts?.filter((c) => c.testId === testId).length || 0;
+  const maxAttempts = availableTest?.maxAttempts ?? test?.ruleFlags?.maxAttempts ?? 3;
+  const canReAttempt = availableTest?.canReattempt ?? (completedCount < maxAttempts);
+
+  const enrollmentStatus = isActive
+    ? 'STARTED'
+    : (isCompleted && !canReAttempt)
+      ? 'COMPLETED'
+      : (isCompleted && canReAttempt)
+        ? 'RE_EXAM'
+        : enrollment
+          ? enrollment.status
+          : 'AVAILABLE';
 
   if (isLoading) {
     return (

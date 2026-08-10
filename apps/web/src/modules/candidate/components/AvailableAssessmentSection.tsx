@@ -106,6 +106,9 @@ export function AvailableAssessmentSection({
             iconType: icons[index % 3],
             iconBg: iconBgList[index % 3],
             badgeStyle: 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800',
+            attemptCount: t.attemptCount,
+            maxAttempts: t.maxAttempts,
+            canReattempt: t.canReattempt,
           };
         })
       : defaultTests;
@@ -158,13 +161,22 @@ export function AvailableAssessmentSection({
               </div>
 
               <div className='flex items-center justify-between pt-6 mt-4 border-t border-border/30'>
-                <span className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground'>
-                  <Clock className='size-3.5 text-muted-foreground/80' />
-                  <span>{test.durationMinutes}m</span>
-                </span>
-                <span className='text-[#6366f1] dark:text-indigo-400 group-hover:translate-x-1 transition-transform font-extrabold'>
-                  <ArrowRight className='size-4' />
-                </span>
+                <div className='flex items-center gap-4'>
+                  <span className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground'>
+                    <Clock className='size-3.5 text-muted-foreground/80' />
+                    <span>{test.durationMinutes}m</span>
+                  </span>
+                  {test.maxAttempts !== undefined && (
+                    <span className='flex items-center gap-1 text-xs font-medium text-muted-foreground border-l border-border/50 pl-4'>
+                      Attempts: {test.attemptCount}/{test.maxAttempts}
+                    </span>
+                  )}
+                </div>
+                {test.canReattempt !== false && (
+                  <span className='text-[#6366f1] dark:text-indigo-400 group-hover:translate-x-1 transition-transform font-extrabold'>
+                    <ArrowRight className='size-4' />
+                  </span>
+                )}
               </div>
             </div>
           );

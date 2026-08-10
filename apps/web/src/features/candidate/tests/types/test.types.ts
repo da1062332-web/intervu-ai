@@ -26,4 +26,7 @@ export interface TestConfig {
   durationMinutes: number | null;
   questionCount?: number;
   sections: TestSection[];
+  attemptCount?: number;
+  maxAttempts?: number;
+  canReattempt?: boolean;
 }

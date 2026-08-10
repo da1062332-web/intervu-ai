@@ -36,6 +36,12 @@ interface AttemptItem {
   status: string;
   score: number | null;
   subtitle?: string;
+  examConfigId?: string;
+  testConfigId?: string;
+  attemptCount?: number;
+  maxAttempts?: number;
+  remainingAttempts?: number;
+  canReAttempt?: boolean;
 }
 
 interface CandidateHistorySectionProps {
@@ -87,13 +93,22 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
             <Download className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
             <span>{downloading ? 'Exporting...' : 'Report'}</span>
           </button>
-          <Link
-            href={`/candidate/tests/${attempt.testId || attempt.configId || attempt.assessmentId || attempt.instanceId}`}
-            className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
-          >
-            <Play className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
-            <span>Re-Exam</span>
-          </Link>
+          {attempt.canReAttempt !== false ? (
+            <Link
+              href={`/candidate/tests/${attempt.examConfigId || attempt.testConfigId || attempt.configId || attempt.testId || attempt.assessmentId}`}
+              className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
+            >
+              <Play className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
+              <span>Re-Exam</span>
+            </Link>
+          ) : (
+            <button
+              disabled
+              className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-background border border-border/80 text-muted-foreground opacity-60 cursor-not-allowed transition-all gap-1.5 shadow-2xs'
+            >
+              Max Attempts Reached
+            </button>
+          )}
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
         <Link
@@ -288,6 +303,11 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
                         ? `Completed on ${format(new Date(row.date), 'MMM d, yyyy')}`
                         : 'Evaluation in progress')}
                   </p>
+                  {row.maxAttempts !== undefined && row.attemptCount !== undefined && (
+                    <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                      Attempt {row.attemptCount} / {row.maxAttempts} • {row.remainingAttempts} remaining
+                    </p>
+                  )}
 
                   <div className='flex items-center justify-between flex-wrap gap-3 pt-1'>
                     <div className='flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground/80'>
@@ -324,6 +344,28 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
       cell: (row) => (
         <span className='font-bold text-sm text-foreground'>{row.assessmentName}</span>
       ),
+    },
+    {
+      id: 'attempts',
+      header: (
+        <div className='flex items-center gap-1.5 font-bold text-xs uppercase tracking-wide'>
+          Attempts
+        </div>
+      ),
+      cell: (row) => (
+        row.maxAttempts !== undefined && row.attemptCount !== undefined ? (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-bold text-foreground">
+              {row.attemptCount} / {row.maxAttempts}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {row.remainingAttempts} left
+            </span>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">-</span>
+        )
+      )
     },
     {
       id: 'date',

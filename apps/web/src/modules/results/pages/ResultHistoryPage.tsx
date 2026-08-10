@@ -187,6 +187,7 @@ export const ResultHistoryPage = () => {
               <option value='COMPLETED'>Completed</option>
               <option value='QUALIFIED'>Qualified</option>
               <option value='NOT_QUALIFIED'>Not Qualified</option>
+              <option value='NOT_APPLICABLE'>Not Applicable</option>
             </select>
 
             <select
@@ -227,7 +228,8 @@ export const ResultHistoryPage = () => {
         ) : (
           filteredData.map((result: any, idx: number) => {
             const perc = Math.round(result.percentage || result.score || 0);
-            const isQual = result.qualification && result.qualification !== 'NOT_QUALIFIED';
+            const isNotApplicable = result.qualification && result.qualification.toUpperCase() === 'NOT_APPLICABLE';
+            const isQual = !isNotApplicable && result.qualification && result.qualification.toUpperCase() !== 'NOT_QUALIFIED';
 
             return (
               <Card
@@ -251,9 +253,11 @@ export const ResultHistoryPage = () => {
                         {result.qualification && (
                           <Badge
                             className={`text-[10px] uppercase font-bold tracking-wider rounded-lg px-2 py-0.5 ${
-                              isQual
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                                : 'bg-destructive/10 text-destructive border-destructive/20'
+                              isNotApplicable
+                                ? 'bg-muted/50 text-muted-foreground border-border'
+                                : isQual
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                  : 'bg-destructive/10 text-destructive border-destructive/20'
                             }`}
                           >
                             {result.qualification.replace('_', ' ')}

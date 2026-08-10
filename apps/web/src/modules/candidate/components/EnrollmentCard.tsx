@@ -50,6 +50,13 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
             Completed
           </div>
         );
+      case 'RE_EXAM':
+        return (
+          <div className='flex items-center text-orange-600 text-sm font-medium'>
+            <PlayCircle className='size-4 mr-2' />
+            Re-Exam Available
+          </div>
+        );
       default:
         return null;
     }
@@ -88,10 +95,13 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
             </Link>
           </Button>
         )}
-        {status === 'COMPLETED' && (
-          <Button className='w-full' variant='secondary' disabled>
-            Already Submitted
-            <CheckCircle2 className='ml-2 size-4' />
+        {/* Removed disabled 'Already Submitted' button per user request */}
+        {status === 'RE_EXAM' && (
+          <Button className='w-full' asChild>
+            <Link href={`/candidate/tests/${testId}/instructions`}>
+              Start Re-Exam
+              <PlayCircle className='ml-2 size-4' />
+            </Link>
           </Button>
         )}
       </CardFooter>

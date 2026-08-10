@@ -6,7 +6,7 @@ import {
 } from "../interfaces/validation-strategy.interface";
 import {
   GenerationContext,
-  HybridPayload,
+  HybridData,
 } from "../interfaces/generation-context.interface";
 
 /**
@@ -23,7 +23,7 @@ export class HybridValidator implements IValidationStrategy {
   ): Promise<ValidationReport> {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const payload = context.payload as HybridPayload;
+    const payload = context.payload as HybridData;
 
     // 1. Question text must not be empty
     if (!question.questionText?.trim()) {

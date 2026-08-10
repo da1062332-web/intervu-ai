@@ -156,6 +156,9 @@ export const dashboardService = {
         questionCount: t.questionCount || 0,
         sections: t.sections || [],
         difficulty: t.difficulty || 'Medium',
+        maxAttempts: t.maxAttempts ?? 3,
+        attemptCount: t.attemptCount ?? 0,
+        canReattempt: t.canReattempt ?? true,
       }));
     }
     return response;

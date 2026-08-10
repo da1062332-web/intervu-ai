@@ -66,6 +66,10 @@ export class PublicTestsService {
               (s.durationSeconds ? Math.floor(s.durationSeconds / 60) : 0),
           })) || [];
 
+        const maxAttempts = (t.ruleFlags && typeof t.ruleFlags === 'object' && 'maxAttempts' in t.ruleFlags) ? Number((t.ruleFlags as any).maxAttempts) : 3;
+        const attemptCount = t.testInstances ? t.testInstances.length : 0;
+        const canReattempt = attemptCount < maxAttempts;
+
         return {
           configId: t.id,
           name: t.isExam ? t.name : t.displayName,
@@ -76,6 +80,9 @@ export class PublicTestsService {
           sections: mappedSections,
           difficulty: t.difficulty || "Medium",
           description: t.description || null,
+          maxAttempts,
+          attemptCount,
+          canReattempt,
         };
       }),
       pagination: {

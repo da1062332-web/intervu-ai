@@ -99,9 +99,14 @@ export class CandidateDashboardRepository {
         this.getCachedTestConfigs(),
       ]);
 
+      const allUserInstances = await this.prisma.testInstance.findMany({
+        where: { userId },
+        select: { examConfigId: true, testConfigId: true }
+      });
+
       // Build per-config attempt counts for the current user
       const attemptsByConfig = new Map<string, number>();
-      completedTests.forEach((t: any) => {
+      allUserInstances.forEach((t: any) => {
         const configId = t.examConfigId || t.testConfigId;
         if (configId) {
           attemptsByConfig.set(

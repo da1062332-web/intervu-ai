@@ -13,7 +13,7 @@ export interface PatternExecutionConfig {
   difficulty?: DifficultyLevel;
 }
 
-export interface PatternExecutionResultPayload {
+export interface PatternExecutionResultData {
   parameters: Record<string, any>;
   generatedInput: Record<string, any>;
   expectedOutput: Record<string, any>;
@@ -40,7 +40,7 @@ export class PatternExecutionService {
   async executePattern(
     config: PatternExecutionConfig,
     seed: number = 42,
-  ): Promise<PatternExecutionResultPayload> {
+  ): Promise<PatternExecutionResultData> {
     // 0. Validate Oracle availability (database active status & backend provider)
     await this.oracleService.validateOracleForUsage(config.oracleKey);
 

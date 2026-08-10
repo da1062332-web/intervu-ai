@@ -167,7 +167,7 @@ export class AuthService {
         sessionId: stored.sessionId,
       },
       {
-        jwtid: require("crypto").randomUUID(),
+        jwtid: randomUUID(),
         expiresIn: "15m",
       },
     );

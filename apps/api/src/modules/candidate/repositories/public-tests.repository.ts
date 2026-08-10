@@ -78,16 +78,8 @@ export class PublicTestsRepository {
       sortOrder,
     } = params;
 
-    const examWhere: Prisma.ExamConfigWhereInput = {
-      testInstances: {
-        none: { userId },
-      },
-    };
-    const testWhere: Prisma.TestConfigWhereInput = {
-      testInstances: {
-        none: { userId },
-      },
-    };
+    const examWhere: Prisma.ExamConfigWhereInput = {};
+    const testWhere: Prisma.TestConfigWhereInput = {};
 
     if (company) {
       testWhere.companyName = { contains: company, mode: "insensitive" };
@@ -120,12 +112,16 @@ export class PublicTestsRepository {
         include: {
           sections: { select: { name: true, questionCount: true } },
           difficultyDistribution: true,
+          ruleFlags: true,
+          testInstances: { where: { userId }, select: { id: true } },
         },
       }),
       this.prisma.testConfig.findMany({
         where: testWhere,
         include: {
           sections: { select: { displayName: true, questionCount: true } },
+          rule: true,
+          testInstances: { where: { userId }, select: { id: true } },
         },
       }),
     ]);
