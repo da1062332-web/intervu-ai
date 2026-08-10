@@ -56,6 +56,9 @@ import { CodingOracleController } from "./controllers/coding-oracle.controller";
 import { CodingPreviewController } from "./controllers/coding-preview.controller";
 import { BaseOracle } from "./interfaces/oracle.interface";
 
+import { CodingPatternSelectorService } from "./services/coding-pattern-selector.service";
+import { CodingStatementGeneratorService } from "./services/coding-statement-generator.service";
+
 const standardOracleProviders = [
   ArrayRotationOracle,
   PalindromeOracle,
@@ -100,6 +103,8 @@ const standardOracleProviders = [
     CodingPatternRegistryService,
     PatternExecutionService,
     PreviewService,
+    CodingPatternSelectorService,
+    CodingStatementGeneratorService,
     SeededParameterGeneratorService,
     TestSuiteGeneratorService,
     ...standardOracleProviders,
@@ -124,6 +129,8 @@ const standardOracleProviders = [
     CodingPatternRegistryService,
     PatternExecutionService,
     PreviewService,
+    CodingPatternSelectorService,
+    CodingStatementGeneratorService,
     OracleRegistry,
   ],
 })

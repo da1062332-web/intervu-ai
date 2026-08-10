@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "GenerationStrategy" ADD VALUE IF NOT EXISTS 'CODING_PATTERN';

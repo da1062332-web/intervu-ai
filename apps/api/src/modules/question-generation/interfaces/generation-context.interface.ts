@@ -28,10 +28,32 @@ export interface HybridPayload {
   };
 }
 
+export interface CodingPatternPayload {
+  patternId: string;
+  patternKey: string;
+  oracleKey: string;
+  seed: number;
+  parameters: Record<string, unknown>;
+  generatedInput: Record<string, unknown>;
+  expectedOutput: Record<string, unknown>;
+  publicTests: Array<{ input: any; expectedOutput: any; explanation?: string }>;
+  hiddenTests: Array<{ input: any; expectedOutput: any }>;
+  stressTests: Array<{ input: any; expectedOutput: any }>;
+  boundaryTests: Array<{ input: any; expectedOutput: any }>;
+  starterCode: Record<string, unknown>;
+  statementSpecification: Record<string, unknown>;
+  aiStatement?: {
+    title?: string;
+    narrative?: string;
+    constraintsDescription?: string;
+  };
+}
+
 export type GenerationPayload =
   | VariablePayload
   | DatasetPayload
-  | HybridPayload;
+  | HybridPayload
+  | CodingPatternPayload;
 
 // ─── Unified GenerationContext ────────────────────────────────────────────────
 

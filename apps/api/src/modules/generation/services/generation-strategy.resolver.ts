@@ -35,12 +35,40 @@ export class GenerationStrategyResolver {
    */
   async resolve(templateId: string): Promise<StrategyResolvedContext> {
     // 1. Fetch template from DB
-    const template = await this.prismaService.template.findUnique({
+    let template = await this.prismaService.template.findUnique({
       where: { id: templateId },
     });
 
     if (!template) {
-      throw new NotFoundException(`Template with ID "${templateId}" not found`);
+      const codingPattern = await this.prismaService.codingPattern.findFirst({
+        where: { OR: [{ id: templateId }, { patternKey: templateId }] },
+      });
+
+      if (codingPattern) {
+        const metaConceptKey = (codingPattern.metadata as any)?.conceptKey || 'ARRYA';
+        template = await this.prismaService.template.upsert({
+          where: { id: codingPattern.id },
+          create: {
+            id: codingPattern.id,
+            templateKey: `cp_tpl_${codingPattern.id}`,
+            name: codingPattern.title,
+            conceptKey: metaConceptKey,
+            generationStrategy: 'CODING_PATTERN' as any,
+            questionType: 'CODING',
+            difficultyLevel: codingPattern.difficulty,
+          },
+          update: {
+            name: codingPattern.title,
+            conceptKey: metaConceptKey,
+            generationStrategy: 'CODING_PATTERN' as any,
+            questionType: 'CODING',
+          },
+        });
+      }
+    }
+
+    if (!template) {
+      throw new NotFoundException(`Template or Coding Pattern with ID "${templateId}" not found`);
     }
 
     const strategy = template.generationStrategy || "VARIABLE";
@@ -126,6 +154,14 @@ export class GenerationStrategyResolver {
           generationStrategy: "HYBRID",
           variables: {},
           logicalGraph,
+        };
+      }
+      case "CODING_PATTERN": {
+        return {
+          templateId: template.id,
+          conceptKey: template.conceptKey,
+          generationStrategy: "CODING_PATTERN",
+          variables: {},
         };
       }
       default:

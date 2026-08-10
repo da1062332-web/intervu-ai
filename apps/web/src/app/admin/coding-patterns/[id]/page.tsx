@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Editor from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,8 @@ import {
 } from '@/services/coding-patterns/hooks';
 import { PatternPreviewResponse } from '@/services/coding-patterns/api';
 import { getCodingOracles, CodingOracleItem } from '@/services/coding-oracles/api';
+import { useTopics } from '@/services/topics';
+import { useConcepts } from '@/services/concept-mapping';
 
 const STEPS = [
   { id: 1, name: 'Basic Information' },
@@ -47,6 +49,11 @@ const STEPS = [
 export default function CodingPatternBuilderPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const queryTopicId = searchParams?.get('topicId') || '';
+  const queryConceptKey = searchParams?.get('conceptKey') || '';
+
   const patternId = (params?.id as string) || 'new';
   const isNew = patternId === 'new';
 
@@ -68,14 +75,64 @@ export default function CodingPatternBuilderPage() {
     status: 'DRAFT',
     version: 1,
     oracleKey: '',
+    topicId: queryTopicId,
+    conceptKey: queryConceptKey,
     statementSpecification: JSON.stringify({ problemType: 'ARRAY', returnType: 'ARRAY' }, null, 2),
     parameterSchema: JSON.stringify({ arraySize: { type: 'integer', min: 5, max: 15 }, k: { type: 'integer', min: 1, max: 10 } }, null, 2),
     constraintSchema: JSON.stringify({ arr: { minSize: 1, maxSize: 100 } }, null, 2),
     starterCode: JSON.stringify({ python: 'def rotate(arr, k):\n    pass\n', javascript: 'function rotate(arr, k) {\n    return [];\n}\n' }, null, 2),
   });
 
+  const { data: topicsData } = useTopics();
+  const topicsList = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.items || [];
+
+  const { data: conceptsData } = useConcepts(formData.topicId && formData.topicId !== 'none' ? formData.topicId : '');
+  const conceptsList = Array.isArray(conceptsData) ? conceptsData : (conceptsData as any)?.items || [];
+
   const [previewResult, setPreviewResult] = useState<PatternPreviewResponse | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedLanguageTab, setSelectedLanguageTab] = useState<'javascript' | 'python' | 'java' | 'cpp'>('javascript');
+  const [starterCodeMode, setStarterCodeMode] = useState<'visual' | 'json'>('visual');
+
+  const updateStarterCodeForLang = (lang: string, code: string) => {
+    try {
+      const currentObj = JSON.parse(formData.starterCode || '{}');
+      const updated = { ...currentObj, [lang]: code };
+      handleChange('starterCode', JSON.stringify(updated, null, 2));
+    } catch {
+      const updated = { [lang]: code };
+      handleChange('starterCode', JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getStarterCodeForLang = (lang: string): string => {
+    try {
+      const currentObj = JSON.parse(formData.starterCode || '{}');
+      return currentObj[lang] || '';
+    } catch {
+      return '';
+    }
+  };
+
+  const autoGenerateStarterCode = () => {
+    if (formData.oracleKey === 'MATH_PRIME_CHECK_ORACLE') {
+      const defaultCode = {
+        python: 'def is_prime(n):\n    # Return True if n is prime, else False\n    pass\n',
+        javascript: 'function isPrime(n) {\n    // Return true if n is prime, else false\n    return false;\n}\n',
+        java: 'class Solution {\n    public boolean isPrime(int n) {\n        return false;\n    }\n}\n',
+        cpp: 'bool isPrime(int n) {\n    return false;\n}\n',
+      };
+      handleChange('starterCode', JSON.stringify(defaultCode, null, 2));
+    } else {
+      const defaultCode = {
+        python: 'def solve(input_data):\n    pass\n',
+        javascript: 'function solve(inputData) {\n    return null;\n}\n',
+        java: 'class Solution {\n    public Object solve() {\n        return null;\n    }\n}\n',
+        cpp: 'auto solve() {\n    return 0;\n}\n',
+      };
+      handleChange('starterCode', JSON.stringify(defaultCode, null, 2));
+    }
+  };
 
   const loadOracles = async () => {
     try {
@@ -103,7 +160,9 @@ export default function CodingPatternBuilderPage() {
 
   useEffect(() => {
     if (existingPattern && !isNew) {
-      setFormData({
+      const meta = (existingPattern.metadata as any) || {};
+      setFormData((prev) => ({
+        ...prev,
         title: existingPattern.title || '',
         slug: existingPattern.slug || '',
         description: existingPattern.description || '',
@@ -111,13 +170,40 @@ export default function CodingPatternBuilderPage() {
         status: existingPattern.status || 'DRAFT',
         version: existingPattern.version || 1,
         oracleKey: existingPattern.oracleKey || '',
+        topicId: meta.topicId || queryTopicId || '',
+        conceptKey: meta.conceptKey || queryConceptKey || '',
         statementSpecification: JSON.stringify(existingPattern.statementSpecification || {}, null, 2),
         parameterSchema: JSON.stringify(existingPattern.parameterSchema || {}, null, 2),
         constraintSchema: JSON.stringify(existingPattern.constraintSchema || {}, null, 2),
         starterCode: JSON.stringify(existingPattern.starterCode || {}, null, 2),
-      });
+      }));
     }
-  }, [existingPattern, isNew]);
+  }, [existingPattern, isNew, queryTopicId, queryConceptKey]);
+
+  // Auto-sync parameterSchema with selected Oracle if empty or matching default placeholder
+  useEffect(() => {
+    const selectedOracle = oracles.find((o) => o.key === formData.oracleKey);
+    if (selectedOracle && selectedOracle.parameterSchema && Object.keys(selectedOracle.parameterSchema).length > 0) {
+      try {
+        const currentParsed = JSON.parse(formData.parameterSchema || '{}');
+        if (
+          !currentParsed ||
+          Object.keys(currentParsed).length === 0 ||
+          (currentParsed.arraySize && selectedOracle.key !== 'ARRAY_ROTATION_ORACLE')
+        ) {
+          setFormData((prev) => ({
+            ...prev,
+            parameterSchema: JSON.stringify(selectedOracle.parameterSchema, null, 2),
+          }));
+        }
+      } catch {
+        setFormData((prev) => ({
+          ...prev,
+          parameterSchema: JSON.stringify(selectedOracle.parameterSchema, null, 2),
+        }));
+      }
+    }
+  }, [oracles, formData.oracleKey]);
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -155,6 +241,11 @@ export default function CodingPatternBuilderPage() {
         parameterSchema: JSON.parse(formData.parameterSchema || '{}'),
         constraintSchema: JSON.parse(formData.constraintSchema || '{}'),
         starterCode: JSON.parse(formData.starterCode || '{}'),
+        metadata: {
+          ...((existingPattern?.metadata as any) || {}),
+          topicId: formData.topicId && formData.topicId !== 'none' ? formData.topicId : undefined,
+          conceptKey: formData.conceptKey && formData.conceptKey !== 'none' ? formData.conceptKey : undefined,
+        },
       };
 
       if (isNew) {
@@ -299,6 +390,59 @@ export default function CodingPatternBuilderPage() {
               />
             </div>
 
+            {/* Topic & Concept Mapping */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Topic (optional)</Label>
+                <Select
+                  value={formData.topicId || 'none'}
+                  onValueChange={(val: string) => {
+                    handleChange('topicId', val === 'none' ? '' : val);
+                    handleChange('conceptKey', '');
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a topic..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-- No Topic --</SelectItem>
+                    {topicsList.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name || t.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Concept (optional)</Label>
+                <Select
+                  value={formData.conceptKey || 'none'}
+                  onValueChange={(val: string) => handleChange('conceptKey', val === 'none' ? '' : val)}
+                  disabled={!formData.topicId || formData.topicId === 'none'}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        formData.topicId && formData.topicId !== 'none'
+                          ? 'Select a concept...'
+                          : 'Select a topic first'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-- No Concept --</SelectItem>
+                    {conceptsList.map((c: any) => (
+                      <SelectItem key={c.id || c.code} value={c.code || c.conceptCode || c.id}>
+                        {c.name || c.conceptName || c.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {/* Dynamic Oracle Key Selector - Full Width */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -320,7 +464,13 @@ export default function CodingPatternBuilderPage() {
               ) : (
                 <Select
                   value={formData.oracleKey}
-                  onValueChange={(val: string) => handleChange('oracleKey', val)}
+                  onValueChange={(val: string) => {
+                    handleChange('oracleKey', val);
+                    const selected = oracles.find((o) => o.key === val);
+                    if (selected && selected.parameterSchema && Object.keys(selected.parameterSchema).length > 0) {
+                      handleChange('parameterSchema', JSON.stringify(selected.parameterSchema, null, 2));
+                    }
+                  }}
                   disabled={loadingOracles || oracles.length === 0}
                 >
                   <SelectTrigger className="w-full h-auto min-h-[44px] py-2 px-3">
@@ -404,7 +554,24 @@ export default function CodingPatternBuilderPage() {
             <h2 className="text-lg font-semibold border-b pb-2">Step 2: Schema Configuration (JSON)</h2>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="font-semibold">Parameter Schema (Generator Controls)</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold">Parameter Schema (Generator Controls)</Label>
+                  {selectedOracle && selectedOracle.parameterSchema && Object.keys(selectedOracle.parameterSchema).length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      type="button"
+                      className="h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                      onClick={() => {
+                        if (selectedOracle.parameterSchema) {
+                          handleChange('parameterSchema', JSON.stringify(selectedOracle.parameterSchema, null, 2));
+                        }
+                      }}
+                    >
+                      <Sparkles className="w-3 h-3" /> Sync with {selectedOracle.name}
+                    </Button>
+                  )}
+                </div>
                 <div className="border rounded-md overflow-hidden">
                   <Editor
                     height="240px"
@@ -434,27 +601,96 @@ export default function CodingPatternBuilderPage() {
 
         {/* STEP 3: Reference Solution */}
         {currentStep === 3 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold border-b pb-2">Step 3: Reference Solution & Starter Skeletons</h2>
-            <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900 flex items-start gap-3">
-              <Info className="w-5 h-5 text-blue-500 mt-0.5" />
-              <div className="text-xs text-muted-foreground">
-                Reference algorithm logic is strictly encapsulated in code inside{' '}
-                <span className="font-mono font-semibold">{formData.oracleKey || 'Selected Oracle'}</span>. Configure language starter skeletons below.
+          <div className="space-y-5">
+            <div className="flex items-center justify-between border-b pb-2">
+              <h2 className="text-lg font-semibold">Step 3: Starter Code Skeletons</h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  type="button"
+                  onClick={autoGenerateStarterCode}
+                  className="h-8 text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Auto-Generate Skeletons
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  type="button"
+                  onClick={() => setStarterCodeMode((prev) => (prev === 'visual' ? 'json' : 'visual'))}
+                  className="h-8 text-xs text-muted-foreground"
+                >
+                  {starterCodeMode === 'visual' ? 'Switch to Raw JSON' : 'Switch to Visual Tabs'}
+                </Button>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="font-semibold">Starter Code Skeletons (JSON per language)</Label>
-              <div className="border rounded-md overflow-hidden">
-                <Editor
-                  height="250px"
-                  defaultLanguage="json"
-                  value={formData.starterCode}
-                  onChange={(val?: string) => handleChange('starterCode', val || '')}
-                  options={{ minimap: { enabled: false }, fontSize: 12 }}
-                />
+
+            <div className="p-3 border rounded-lg bg-slate-50 dark:bg-slate-900 text-xs text-muted-foreground flex items-center justify-between">
+              <div>
+                Candidate solution evaluation is powered by{' '}
+                <span className="font-mono font-semibold text-foreground">{formData.oracleKey || 'Selected Oracle'}</span>.
+                Provide starter skeleton code for candidates below.
               </div>
             </div>
+
+            {starterCodeMode === 'visual' ? (
+              <div className="space-y-3">
+                {/* Language Tabs */}
+                <div className="flex border-b gap-1 bg-muted/30 p-1 rounded-t-lg">
+                  {[
+                    { id: 'javascript', label: 'JavaScript (Node.js)', icon: 'JS' },
+                    { id: 'python', label: 'Python 3', icon: 'PY' },
+                    { id: 'java', label: 'Java', icon: 'JAVA' },
+                    { id: 'cpp', label: 'C++', icon: 'C++' },
+                  ].map((lang) => (
+                    <button
+                      key={lang.id}
+                      type="button"
+                      onClick={() => setSelectedLanguageTab(lang.id as any)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                        selectedLanguageTab === lang.id
+                          ? 'bg-background text-foreground shadow-sm font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span className="font-mono text-[10px] opacity-70">{lang.icon}</span>
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Visual Editor for Active Language */}
+                <div className="border rounded-b-lg overflow-hidden shadow-inner">
+                  <Editor
+                    height="280px"
+                    language={selectedLanguageTab}
+                    value={getStarterCodeForLang(selectedLanguageTab)}
+                    onChange={(val?: string) => updateStarterCodeForLang(selectedLanguageTab, val || '')}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      lineNumbers: 'on',
+                      tabSize: 4,
+                      scrollBeyondLastLine: false,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="font-semibold text-xs">Raw Starter Code Object (JSON per language)</Label>
+                <div className="border rounded-md overflow-hidden">
+                  <Editor
+                    height="280px"
+                    defaultLanguage="json"
+                    value={formData.starterCode}
+                    onChange={(val?: string) => handleChange('starterCode', val || '')}
+                    options={{ minimap: { enabled: false }, fontSize: 12 }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 

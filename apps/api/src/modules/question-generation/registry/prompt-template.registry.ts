@@ -67,6 +67,22 @@ Respond in JSON format:
   "explanation": "..."
 }`;
 
+export const CODING_PATTERN_PROMPT_TEMPLATE = `You are an expert technical interviewer crafting a coding challenge problem statement.
+
+Given the problem specification:
+Title: {{title}}
+Pattern Key: {{patternKey}}
+Parameters: {{parameters}}
+Input Details: {{generatedInput}}
+
+Generate an engaging problem statement, real-world narrative scenario, and constraint explanations.
+Respond in JSON format:
+{
+  "title": "...",
+  "narrative": "...",
+  "constraintsDescription": "..."
+}`;
+
 /**
  * PromptTemplateRegistry
  *

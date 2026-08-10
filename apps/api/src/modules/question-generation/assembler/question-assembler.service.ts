@@ -57,6 +57,7 @@ export class QuestionAssemblerService {
         generatedAt:
           (metadata.generatedAt as string) ?? new Date().toISOString(),
         ...metadata,
+        ...(context.payload as any),
       },
     };
   }
@@ -67,6 +68,8 @@ export class QuestionAssemblerService {
       return `Variable strategy — template: ${meta.templateKey ?? meta.templateId}`;
     } else if (context.strategy === "DATASET") {
       return `Dataset strategy — dataset: ${meta.datasetName}, type: ${meta.datasetType}`;
+    } else if ((context.strategy as string) === "CODING_PATTERN") {
+      return `Coding pattern strategy — pattern: ${meta.patternKey ?? meta.patternId}, oracle: ${meta.oracleKey}`;
     } else {
       return `Hybrid strategy — scenario: ${meta.scenarioName ?? meta.scenarioId}, entities: ${meta.entityCount}`;
     }

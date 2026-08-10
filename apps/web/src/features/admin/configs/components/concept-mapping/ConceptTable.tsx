@@ -10,8 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit2, Trash2, Link } from 'lucide-react';
+import { Edit2, Trash2, Link, Code2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTemplatesByConcept } from '@/services/templates/hooks';
+import { useCodingPatterns } from '@/services/coding-patterns/hooks';
+import { useManualQuestions } from '@/services/manual-questions/hooks';
 
 interface ConceptTableProps {
   concepts: ConceptMapping[];
@@ -20,7 +23,101 @@ interface ConceptTableProps {
   onDeactivate: (concept: ConceptMapping) => void;
   onMapTemplates?: (concept: ConceptMapping) => void;
   onViewManualQuestions?: (concept: ConceptMapping) => void;
+  onViewCodingPatterns?: (concept: ConceptMapping) => void;
   hideTemplatesButton?: boolean;
+}
+
+function ConceptContentCell({
+  concept,
+  onMapTemplates,
+  onViewCodingPatterns,
+  onViewManualQuestions,
+}: {
+  concept: ConceptMapping;
+  onMapTemplates?: (concept: ConceptMapping) => void;
+  onViewCodingPatterns?: (concept: ConceptMapping) => void;
+  onViewManualQuestions?: (concept: ConceptMapping) => void;
+}) {
+  const conceptKey = concept.code || concept.conceptCode || '';
+  const conceptName = concept.name || concept.conceptName || '';
+
+  const { data: tplResponse, isLoading: isTplLoading } = useTemplatesByConcept(conceptKey);
+  const templatesCount = tplResponse?.items?.length || 0;
+
+  const { data: patResponse, isLoading: isPatLoading } = useCodingPatterns(1, 100);
+  const patternsCount = (patResponse?.items || []).filter((p: any) => {
+    const metaConcept = String((p.metadata as any)?.conceptKey || '').trim().toLowerCase();
+    const metaTopic = String((p.metadata as any)?.topicId || '').trim();
+    const slug = (p.slug || '').toLowerCase();
+    const title = (p.title || '').toLowerCase();
+    const cKey = conceptKey.trim().toLowerCase();
+    const cName = conceptName.trim().toLowerCase();
+
+    return (
+      (metaConcept && (metaConcept === cKey || metaConcept === cName)) ||
+      (metaTopic && metaTopic === concept.topicId) ||
+      (cKey && (slug.includes(cKey) || cKey.includes(slug))) ||
+      (cName && (title.includes(cName) || cName.includes(title)))
+    );
+  }).length;
+
+  const { data: mqResponse, isLoading: isMqLoading } = useManualQuestions(concept.topicId ? { topicId: concept.topicId } : undefined);
+  const manualQsCount = (mqResponse?.items || []).filter(
+    (q: any) => q.conceptId === concept.id || q.conceptCode === conceptKey || q.conceptKey === conceptKey,
+  ).length;
+
+  const isLoading = isTplLoading || isPatLoading || isMqLoading;
+
+  if (isLoading) {
+    return <Skeleton className="h-6 w-28" />;
+  }
+
+  const hasAnyMapped = templatesCount > 0 || patternsCount > 0 || manualQsCount > 0;
+
+  if (!hasAnyMapped) {
+    return (
+      <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground bg-muted/20 border-dashed">
+        Unmapped
+      </Badge>
+    );
+  }
+
+  return (
+    <div className="flex gap-1.5 items-center flex-wrap">
+      {templatesCount > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onMapTemplates?.(concept)}
+          className="h-6 text-[11px] px-2 font-medium bg-blue-50/50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200"
+        >
+          <Link className="h-3 w-3 mr-1" /> Templates ({templatesCount})
+        </Button>
+      )}
+
+      {patternsCount > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onViewCodingPatterns?.(concept)}
+          className="h-6 text-[11px] px-2 font-medium bg-purple-50/50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border-purple-200"
+        >
+          <Code2 className="h-3 w-3 mr-1" /> Patterns ({patternsCount})
+        </Button>
+      )}
+
+      {manualQsCount > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onViewManualQuestions?.(concept)}
+          className="h-6 text-[11px] px-2 font-medium bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200"
+        >
+          <Link className="h-3 w-3 mr-1" /> Manual Qs ({manualQsCount})
+        </Button>
+      )}
+    </div>
+  );
 }
 
 export function ConceptTable({
@@ -30,6 +127,7 @@ export function ConceptTable({
   onDeactivate,
   onMapTemplates,
   onViewManualQuestions,
+  onViewCodingPatterns,
   hideTemplatesButton = false,
 }: ConceptTableProps) {
   if (isLoading) {
@@ -87,24 +185,12 @@ export function ConceptTable({
                 </TableCell>
                 {!hideTemplatesButton && (
                   <TableCell>
-                    <div className='flex gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => onMapTemplates?.(concept)}
-                        className='h-7 text-xs px-2'
-                      >
-                        <Link className='h-3 w-3 mr-1' /> Templates
-                      </Button>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => onViewManualQuestions?.(concept)}
-                        className='h-7 text-xs px-2'
-                      >
-                        <Link className='h-3 w-3 mr-1' /> Manual Qs
-                      </Button>
-                    </div>
+                    <ConceptContentCell
+                      concept={concept}
+                      onMapTemplates={onMapTemplates}
+                      onViewCodingPatterns={onViewCodingPatterns}
+                      onViewManualQuestions={onViewManualQuestions}
+                    />
                   </TableCell>
                 )}
                 <TableCell>

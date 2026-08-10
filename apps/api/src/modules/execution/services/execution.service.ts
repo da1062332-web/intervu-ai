@@ -174,7 +174,7 @@ export class ExecutionService {
           startedAt: section.startedAt ? section.startedAt.toISOString() : null,
           questions: section.questions.map((q) => {
             const rawSnapshot = (q.questionSnapshot || {}) as any;
-            const { correctAnswer, solution, ...candidateSafeSnapshot } =
+            const { correctAnswer, answer, solution, ...candidateSafeSnapshot } =
               rawSnapshot;
 
             // Enrich options from mcqData if snapshot has incomplete/missing options (< 4)
@@ -200,6 +200,35 @@ export class ExecutionService {
                   meta.questionStatement;
               if (meta?.instructions)
                 candidateSafeSnapshot.instructions = meta.instructions;
+            }
+
+            // Sanitize codingData for Candidate API boundary (strip hidden/stress/boundary test data & expected outputs)
+            if (candidateSafeSnapshot.codingData) {
+              const {
+                hiddenTests,
+                stressTests,
+                boundaryTests,
+                expectedOutput,
+                answer: codingAnswer,
+                correctAnswer: codingCorrectAnswer,
+                solution: codingSolution,
+                ...safeCodingData
+              } = candidateSafeSnapshot.codingData as any;
+
+              candidateSafeSnapshot.codingData = {
+                patternId: safeCodingData.patternId,
+                oracleKey: safeCodingData.oracleKey,
+                starterCode: safeCodingData.starterCode || {},
+                publicTests: safeCodingData.publicTests || [],
+                statementSpecification: safeCodingData.statementSpecification || {},
+                aiStatement: safeCodingData.aiStatement
+                  ? {
+                      narrative: safeCodingData.aiStatement.narrative,
+                      constraintsDescription: safeCodingData.aiStatement.constraintsDescription,
+                      title: safeCodingData.aiStatement.title,
+                    }
+                  : undefined,
+              };
             }
 
             const templateId =

@@ -135,6 +135,14 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
     setIsManualQuestionsModalOpen(true);
   };
 
+  const handleViewCodingPatterns = (concept: ConceptMapping) => {
+    if (selectedTopicId) {
+      router.push(`/admin/topics/${selectedTopicId}`);
+    } else {
+      router.push('/admin/coding-patterns');
+    }
+  };
+
   if (isLoadingSections) {
     return <Skeleton className='w-full h-64' />;
   }
@@ -253,6 +261,7 @@ export function ConceptsAndTemplatesTab({ configId }: ConceptsAndTemplatesTabPro
                 onDeactivate={handleDeactivateClick}
                 onMapTemplates={handleMapTemplates}
                 onViewManualQuestions={handleViewManualQuestions}
+                onViewCodingPatterns={handleViewCodingPatterns}
                 hideTemplatesButton={false}
               />
             </div>

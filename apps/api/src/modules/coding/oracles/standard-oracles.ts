@@ -399,6 +399,7 @@ export class MathFibonacciOracle extends BaseOracle {
 export class MathPrimeCheckOracle extends BaseOracle {
   readonly key = "MATH_PRIME_CHECK_ORACLE";
   readonly name = "Prime Number Check Oracle";
+  readonly category = "MATH";
   readonly description = "Generates integer n input and checks if n is a prime number.";
   readonly parameterSchema = {
     n: { type: "integer", min: 2, max: 10000, default: 29 },

@@ -23,6 +23,8 @@ export class QuestionRepository {
 
     // Resolve topicId from template/concept if not explicitly provided
     let topicId = assembled.topicId;
+    let conceptId: string | undefined;
+
     if (!topicId && assembled.templateId) {
       const tmpl = await this.prisma.template.findUnique({
         where: { id: assembled.templateId },
@@ -33,6 +35,7 @@ export class QuestionRepository {
         });
         if (concept?.topicId) {
           topicId = concept.topicId;
+          conceptId = concept.id;
         }
       }
     }
@@ -48,6 +51,7 @@ export class QuestionRepository {
       });
       if (concept?.topicId) {
         topicId = concept.topicId;
+        conceptId = conceptId ?? concept.id;   // only overwrite if not already set
       }
     }
 
@@ -57,6 +61,24 @@ export class QuestionRepository {
       );
     }
 
+    const isCoding = assembled.generationStrategy === "CODING_PATTERN";
+    const codingData = isCoding
+      ? {
+          patternId: (assembled.metadata as any)?.patternId,
+          patternKey: (assembled.metadata as any)?.patternKey,
+          oracleKey: (assembled.metadata as any)?.oracleKey,
+          seed: (assembled.metadata as any)?.seed,
+          parameters: (assembled.metadata as any)?.parameters,
+          generatedInput: (assembled.metadata as any)?.generatedInput,
+          expectedOutput: (assembled.metadata as any)?.expectedOutput,
+          publicTests: (assembled.metadata as any)?.publicTests,
+          hiddenTests: (assembled.metadata as any)?.hiddenTests,
+          boundaryTests: (assembled.metadata as any)?.boundaryTests,
+          stressTests: (assembled.metadata as any)?.stressTests,
+          starterCode: (assembled.metadata as any)?.starterCode,
+        }
+      : undefined;
+
     return this.prisma.question.create({
       data: {
         questionText: assembled.questionText,
@@ -64,9 +86,12 @@ export class QuestionRepository {
         explanation: assembled.explanation,
         difficulty: assembled.difficulty,
         source: assembled.source,
+        questionType: isCoding ? "CODING" : "MCQ",
         templateId: assembled.templateId,
         topicId,
+        conceptId,
         sectionId,
+        codingData: codingData as any,
         metadata: assembled.metadata as any,
         status: "DRAFT",
       },

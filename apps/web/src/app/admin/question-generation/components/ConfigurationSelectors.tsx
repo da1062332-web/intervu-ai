@@ -75,18 +75,18 @@ export function ConfigurationSelectors({
         </div>
 
         <div className='space-y-2'>
-          <Label>Template</Label>
+          <Label>Template / Coding Pattern</Label>
           <Select
             value={selectedTemplate}
             onValueChange={setSelectedTemplate}
             disabled={!selectedConcept}
           >
             <SelectTrigger>
-              <SelectValue placeholder='Select a template...' />
+              <SelectValue placeholder='Select a template/coding pattern...' />
             </SelectTrigger>
             <SelectContent>
-              {templates.map((template) => (
-                <SelectItem key={template.id} value={template.id}>
+              {templates.map((template: any) => (
+                <SelectItem key={`${template.type ?? 'item'}-${template.id}`} value={template.id}>
                   {template.name}
                 </SelectItem>
               ))}

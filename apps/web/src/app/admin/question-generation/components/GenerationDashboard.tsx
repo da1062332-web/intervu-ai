@@ -11,6 +11,7 @@ import { useGenerateQuestion, useGenerateBatch } from '@/services/question-gener
 import { useTopics } from '@/services/topics/hooks';
 import { useConcepts } from '@/services/concept-mapping/hooks';
 import { useTemplatesByConcept } from '@/services/templates/hooks';
+import { useCodingPatterns } from '@/services/coding-patterns/hooks';
 import { ConfigurationSelectors } from './ConfigurationSelectors';
 import { BatchProgressWidget } from './BatchProgressWidget';
 import { GenerationHistory } from './GenerationHistory';
@@ -40,6 +41,48 @@ export function GenerationDashboard() {
   const selectedConceptKey = selectedConceptItem?.code || selectedConceptItem?.conceptCode || '';
   const { data: templatesData } = useTemplatesByConcept(selectedConceptKey, 1, 100);
   const templates = templatesData?.items || [];
+
+  const { data: patternsData } = useCodingPatterns(1, 100);
+  const allPatterns = patternsData?.items || [];
+  const matchingPatterns = allPatterns.filter((p: any) => {
+    const metaConcept = String((p.metadata as any)?.conceptKey || '').trim().toLowerCase();
+    const metaTopic = String((p.metadata as any)?.topicId || '').trim();
+    const slug = (p.slug || '').toLowerCase();
+    const title = (p.title || '').toLowerCase();
+    const cKey = selectedConceptKey.trim().toLowerCase();
+    const cName = (selectedConceptItem?.name || selectedConceptItem?.conceptName || '').trim().toLowerCase();
+
+    return (
+      (metaConcept && (metaConcept === cKey || metaConcept === cName)) ||
+      (metaTopic && metaTopic === selectedTopic) ||
+      (cKey && (slug.includes(cKey) || cKey.includes(slug))) ||
+      (cName && (title.includes(cName) || cName.includes(title)))
+    );
+  });
+
+  const combinedRaw = [
+    ...templates.map((t: any) => ({
+      id: t.id,
+      name: t.name,
+      type: 'template' as const,
+    })),
+    ...matchingPatterns.map((p: any) => ({
+      id: p.id,
+      name: p.title || p.name,
+      type: 'coding_pattern' as const,
+    })),
+  ];
+
+  // Deduplicate by ID — if a coding_pattern and a template share the same ID
+  // (due to the ghost-upsert in the backend), keep only the coding_pattern entry.
+  const seenIds = new Set<string>();
+  const combinedItems = combinedRaw
+    .sort((a, b) => (a.type === 'coding_pattern' ? -1 : 1)) // coding_patterns first so they win dedup
+    .filter((item) => {
+      if (seenIds.has(item.id)) return false;
+      seenIds.add(item.id);
+      return true;
+    });
 
   useEffect(() => {
     if (autoTopicId && topics.length > 0) {
@@ -114,7 +157,7 @@ export function GenerationDashboard() {
         setSelectedTemplate={setSelectedTemplate}
         topics={topics}
         concepts={concepts}
-        templates={templates}
+        templates={combinedItems}
       />
 
       <CustomFormCard

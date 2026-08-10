@@ -97,6 +97,8 @@ class SaveOptionStrategyDto {
   scenarioId?: string;
 }
 
+import { Public } from "../../auth/decorators/public.decorator";
+
 @ApiTags("templates")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
@@ -110,6 +112,7 @@ export class TemplateController {
     private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
 
+  @Public()
   @Get()
   @ValidateResponse(TemplatePaginatedSchema)
   @ApiOperation({ summary: "List all templates (paginated)" })

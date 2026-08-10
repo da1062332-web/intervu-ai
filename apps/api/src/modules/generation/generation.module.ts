@@ -13,9 +13,14 @@ import { DatasetLoaderService } from "./services/dataset-loader.service";
 import { EntityGeneratorService } from "./services/entity-generator.service";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
+import { QuestionGenerationModule } from "../question-generation/question-generation.module";
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => GenerationAiModule)],
+  imports: [
+    PrismaModule,
+    forwardRef(() => GenerationAiModule),
+    forwardRef(() => QuestionGenerationModule),
+  ],
   controllers: [GenerationController, QuestionGenerationController],
   providers: [
     GenerationService,

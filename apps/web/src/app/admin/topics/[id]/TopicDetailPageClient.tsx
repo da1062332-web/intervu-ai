@@ -15,6 +15,7 @@ import {
   useCreateTemplate,
   useDeleteTemplate,
 } from '@/services/templates/hooks';
+import { useCodingPatterns, useDeleteCodingPattern } from '@/services/coding-patterns/hooks';
 import { toast } from 'sonner';
 import { ManualQuestionModal } from '@/app/admin/manual-questions/components/ManualQuestionModal';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ import {
   ChevronRight,
   FileText,
   List,
+  Code2,
 } from 'lucide-react';
 import type { ConceptMapping } from '@/services/concept-mapping/types';
 import { Label } from '@/components/ui/label';
@@ -65,33 +67,52 @@ interface ClientProps {
   topicId: string;
 }
 
-// Child component to fetch and render templates for a specific concept
+// Child component to fetch and render templates and coding patterns for a specific concept
 function ConceptTemplatesRow({
   concept,
   onAddTemplate,
+  onAddCodingPattern,
 }: {
   concept: ConceptMapping;
   onAddTemplate: (c: ConceptMapping) => void;
+  onAddCodingPattern: (c: ConceptMapping) => void;
 }) {
-  const conceptKey = concept.code || concept.conceptCode;
-  const { data: response, isLoading, isError } = useTemplatesByConcept(conceptKey);
-  const templates = response?.items || [];
-  const deleteMutation = useDeleteTemplate();
+  const conceptKey = concept.code || concept.conceptCode || '';
+  const conceptName = concept.name || concept.conceptName || '';
 
-  const handleDeleteTemplate = async (templateId: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete template "${name}"?`)) return;
-    try {
-      await deleteMutation.mutateAsync(templateId);
-      toast.success(`Template "${name}" deleted successfully!`);
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to delete template.');
-    }
-  };
+  const { data: response, isLoading: isLoadingTpl, isError } = useTemplatesByConcept(conceptKey);
+  const templates = response?.items || [];
+
+  const { data: patternsData, isLoading: isLoadingPat } = useCodingPatterns(1, 100);
+  const allPatterns = patternsData?.items || [];
+
+  const deleteTemplateMutation = useDeleteTemplate();
+  const deletePatternMutation = useDeleteCodingPattern();
+
+  // Filter coding patterns matching this concept
+  const matchingPatterns = allPatterns.filter((p: any) => {
+    const metaConcept = String((p.metadata as any)?.conceptKey || '').trim().toLowerCase();
+    const metaTopic = String((p.metadata as any)?.topicId || '').trim();
+    const slug = (p.slug || '').toLowerCase();
+    const title = (p.title || '').toLowerCase();
+    const cKey = conceptKey.trim().toLowerCase();
+    const cName = conceptName.trim().toLowerCase();
+
+    return (
+      (metaConcept && (metaConcept === cKey || metaConcept === cName)) ||
+      (metaTopic && metaTopic === concept.topicId) ||
+      (cKey && (slug.includes(cKey) || cKey.includes(slug))) ||
+      (cName && (title.includes(cName) || cName.includes(title)))
+    );
+  });
+
+  const totalCount = templates.length + matchingPatterns.length;
+  const isLoading = isLoadingTpl || isLoadingPat;
 
   if (isLoading) {
     return (
       <TableRow className='bg-muted/5'>
-        <TableCell colSpan={5} className='p-6'>
+        <TableCell colSpan={6} className='p-6'>
           <Skeleton className='h-24 w-full' />
         </TableCell>
       </TableRow>
@@ -101,8 +122,8 @@ function ConceptTemplatesRow({
   if (isError) {
     return (
       <TableRow className='bg-muted/5'>
-        <TableCell colSpan={5} className='p-6 text-center text-red-500'>
-          Error loading templates for this concept.
+        <TableCell colSpan={6} className='p-6 text-center text-red-500'>
+          Error loading templates & coding patterns for this concept.
         </TableCell>
       </TableRow>
     );
@@ -110,37 +131,54 @@ function ConceptTemplatesRow({
 
   return (
     <TableRow className='bg-muted/5 hover:bg-muted/5 border-b-2'>
-      <TableCell colSpan={5} className='p-0'>
-        <div className='border-l-4 border-l-primary/60 m-4 rounded-r-lg bg-background shadow-inner space-y-4'>
+      <TableCell colSpan={6} className='p-0'>
+        <div className='p-6 border-l-4 border-l-primary m-4 rounded-r-xl bg-background shadow-sm space-y-4 w-full'>
           <div className='flex items-center justify-between'>
             <h4 className='font-semibold text-sm flex items-center gap-2'>
               <FileText className='w-4 h-4 text-muted-foreground' />
-              Templates ({templates.length})
+              Templates & Coding Patterns ({totalCount})
             </h4>
-            <Button size='sm' onClick={() => onAddTemplate(concept)}>
-              <Plus className='w-4 h-4 mr-2' /> Add Template
-            </Button>
-          </div>
-
-          {templates.length === 0 ? (
-            <div className='text-center py-8 border-2 border-dashed rounded-lg'>
-              <p className='text-muted-foreground text-sm mb-4'>
-                No templates created for this concept.
-              </p>
-              <Button variant='outline' size='sm' onClick={() => onAddTemplate(concept)}>
-                <Plus className='w-4 h-4 mr-2' /> Create First Template
+            <div className='flex items-center gap-2'>
+              <Button size='sm' variant='outline' onClick={() => onAddCodingPattern(concept)}>
+                <Code2 className='w-4 h-4 mr-2' /> Add Coding Pattern
+              </Button>
+              <Button size='sm' onClick={() => onAddTemplate(concept)}>
+                <Plus className='w-4 h-4 mr-2' /> Add Template
               </Button>
             </div>
+          </div>
+
+          {totalCount === 0 ? (
+            <div className='text-center py-8 border-2 border-dashed rounded-lg space-y-3'>
+              <p className='text-muted-foreground text-sm'>
+                No templates or coding patterns created for this concept.
+              </p>
+              <div className='flex items-center justify-center gap-2'>
+                <Button variant='outline' size='sm' onClick={() => onAddCodingPattern(concept)}>
+                  <Code2 className='w-4 h-4 mr-2' /> Create Coding Pattern
+                </Button>
+                <Button variant='outline' size='sm' onClick={() => onAddTemplate(concept)}>
+                  <Plus className='w-4 h-4 mr-2' /> Create Template
+                </Button>
+              </div>
+            </div>
           ) : (
-            <div className='border rounded-md divide-y'>
+            <div className='border rounded-md divide-y overflow-hidden'>
+              {/* Templates */}
               {templates.map((tpl: any) => (
                 <div
-                  key={tpl.id}
+                  key={`tpl-${tpl.id}`}
                   className='flex items-center justify-between p-3 hover:bg-muted/20 transition-colors'
                 >
                   <div>
-                    <div className='font-medium text-sm'>{tpl.name}</div>
+                    <div className='font-medium text-sm flex items-center gap-2'>
+                      <FileText className='w-4 h-4 text-muted-foreground' />
+                      {tpl.name}
+                    </div>
                     <div className='flex items-center gap-2 mt-1'>
+                      <Badge variant='outline' className='text-[10px] uppercase font-mono'>
+                        TEMPLATE
+                      </Badge>
                       <Badge variant='outline' className='text-[10px] uppercase'>
                         {tpl.difficultyLevel ?? tpl.difficulty ?? 'MEDIUM'}
                       </Badge>
@@ -164,7 +202,7 @@ function ConceptTemplatesRow({
                       destructive
                       onConfirm={async () => {
                         try {
-                          await deleteMutation.mutateAsync(tpl.id);
+                          await deleteTemplateMutation.mutateAsync(tpl.id);
                           toast.success(
                             `Template "${tpl.name || 'Untitled Template'}" deleted successfully!`,
                           );
@@ -177,7 +215,69 @@ function ConceptTemplatesRow({
                           variant='ghost'
                           size='sm'
                           className='h-8 text-red-500 hover:text-red-600'
-                          disabled={deleteMutation.isPending}
+                          disabled={deleteTemplateMutation.isPending}
+                        >
+                          <Trash2 className='w-3.5 h-3.5 mr-1' /> Delete
+                        </Button>
+                      }
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {/* Coding Patterns */}
+              {matchingPatterns.map((pat: any) => (
+                <div
+                  key={`pat-${pat.id}`}
+                  className='flex items-center justify-between p-3 hover:bg-muted/20 transition-colors bg-purple-50/20 dark:bg-purple-950/10'
+                >
+                  <div>
+                    <div className='font-medium text-sm flex items-center gap-2'>
+                      <Code2 className='w-4 h-4 text-primary' />
+                      {pat.title}
+                      <span className='font-mono text-[10px] text-muted-foreground'>({pat.patternKey})</span>
+                    </div>
+                    <div className='flex items-center gap-2 mt-1'>
+                      <Badge variant='secondary' className='text-[10px] font-mono bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'>
+                        {pat.oracleKey}
+                      </Badge>
+                      <Badge variant='outline' className='text-[10px] uppercase'>
+                        {pat.difficulty}
+                      </Badge>
+                      <span
+                        className={`text-[10px] font-medium ${pat.status === 'PUBLISHED' ? 'text-green-600' : 'text-amber-600'}`}
+                      >
+                        {pat.status === 'PUBLISHED' ? 'Published' : pat.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Button variant='ghost' size='sm' asChild className='h-8'>
+                      <Link href={`/admin/coding-patterns/${pat.id}`}>
+                        <Edit2 className='w-3.5 h-3.5 mr-1' /> Edit Pattern
+                      </Link>
+                    </Button>
+                    <ConfirmationDialog
+                      title='Delete Coding Pattern'
+                      description={`Are you sure you want to delete pattern "${pat.title || 'Untitled Pattern'}"?`}
+                      confirmLabel='Delete'
+                      destructive
+                      onConfirm={async () => {
+                        try {
+                          await deletePatternMutation.mutateAsync(pat.id);
+                          toast.success(
+                            `Coding Pattern "${pat.title || 'Untitled Pattern'}" deleted successfully!`,
+                          );
+                        } catch (err: any) {
+                          toast.error(err?.message || 'Failed to delete coding pattern.');
+                        }
+                      }}
+                      trigger={
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='h-8 text-red-500 hover:text-red-600'
+                          disabled={deletePatternMutation.isPending}
                         >
                           <Trash2 className='w-3.5 h-3.5 mr-1' /> Delete
                         </Button>
@@ -579,13 +679,20 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     setIsMqModalOpen(true);
   };
 
+  const handleOpenAddCodingPattern = (concept: ConceptMapping) => {
+    const conceptKey = concept.code || concept.conceptCode;
+    router.push(
+      `/admin/coding-patterns/new?topicId=${topicId}&conceptKey=${encodeURIComponent(conceptKey)}`,
+    );
+  };
+
   const handleOpenAddTemplate = (concept: ConceptMapping) => {
     setSelectedConceptForTemplate(concept);
     setTemplateFormData({
       name: 'New Template',
       questionType: 'CODING',
       difficulty: 'MEDIUM',
-      generationStrategy: 'VARIABLE',
+      generationStrategy: 'CODING_PATTERN',
     });
     setIsTemplateModalOpen(true);
   };
@@ -840,6 +947,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
                           <ConceptTemplatesRow
                             concept={concept}
                             onAddTemplate={handleOpenAddTemplate}
+                            onAddCodingPattern={handleOpenAddCodingPattern}
                           />
                         )}
                         {expandedMqRows.has(concept.id) && (
@@ -1097,6 +1205,8 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
             >
               <option value='VARIABLE'>Variable Generation</option>
               <option value='DATASET'>Dataset-backed</option>
+              <option value='HYBRID'>Hybrid Scenario</option>
+              <option value='CODING_PATTERN'>Coding Pattern & Oracle Engine</option>
             </select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>

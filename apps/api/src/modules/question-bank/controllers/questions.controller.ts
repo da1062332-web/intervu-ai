@@ -346,27 +346,54 @@ export class QuestionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Retrieve a single generated question by ID" })
   async getQuestion(@Param("id") id: string) {
-    const question = await this.prisma.generatedQuestion.findUnique({
+    let question = await this.prisma.generatedQuestion.findUnique({
       where: { id },
     });
-    if (!question) {
+
+    if (question) {
+      return {
+        success: true,
+        data: {
+          id: question.id,
+          templateId: question.templateId,
+          conceptKey: question.conceptKey,
+          questionText: question.questionText,
+          variables: question.metadata,
+          options: question.options,
+          answer: question.correctAnswer,
+          correctAnswer: question.correctAnswer,
+          explanation: question.solution,
+          questionType: question.questionType,
+          status: (question.metadata as any)?.status || "GENERATED",
+          createdAt: question.createdAt,
+        },
+      };
+    }
+
+    const q = await this.prisma.question.findUnique({
+      where: { id },
+    });
+
+    if (!q) {
       throw new NotFoundException(`Question ${id} not found`);
     }
+
     return {
       success: true,
       data: {
-        id: question.id,
-        templateId: question.templateId,
-        conceptKey: question.conceptKey,
-        questionText: question.questionText,
-        variables: question.metadata,
-        options: question.options,
-        answer: question.correctAnswer,
-        correctAnswer: question.correctAnswer,
-        explanation: question.solution,
-        questionType: question.questionType,
-        status: (question.metadata as any)?.status || "GENERATED",
-        createdAt: question.createdAt,
+        id: q.id,
+        templateId: q.templateId,
+        conceptKey: q.conceptId || "ARRYA",
+        questionText: q.questionText,
+        variables: q.metadata,
+        options: (q as any).options || [],
+        answer: q.answer || "",
+        correctAnswer: q.answer || "",
+        explanation: q.explanation || "",
+        questionType: q.questionType,
+        codingData: q.codingData,
+        status: (q.metadata as any)?.status || "GENERATED",
+        createdAt: q.createdAt,
       },
     };
   }
@@ -491,8 +518,29 @@ export class QuestionsController {
     const question = await this.prisma.generatedQuestion.findUnique({
       where: { id },
     });
+
     if (!question) {
-      throw new NotFoundException(`Question ${id} not found`);
+      // Fallback: check the Question table (used by CODING_PATTERN strategy)
+      const codingQuestion = await this.prisma.question.findUnique({ where: { id } });
+      if (!codingQuestion) {
+        throw new NotFoundException(`Question ${id} not found`);
+      }
+
+      // QuestionStatus enum: DRAFT → VALIDATED (approved) → ACTIVE (published) → ARCHIVED
+      // Approve + auto-publish coding question in a single update to ACTIVE
+      await this.prisma.question.update({
+        where: { id },
+        data: {
+          status: "ACTIVE",       // ACTIVE = validated and published in the Question pool
+          metadata: {
+            ...((codingQuestion.metadata as any) || {}),
+            status: "APPROVED",   // kept in metadata for audit trail
+            approvedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      return { success: true, status: "APPROVED" };
     }
 
     const currentMeta = (question.metadata as any) || {};
@@ -922,8 +970,34 @@ export class QuestionsController {
     const question = await this.prisma.generatedQuestion.findUnique({
       where: { id },
     });
+
     if (!question) {
-      throw new NotFoundException(`Question ${id} not found`);
+      // Fallback: check the Question table (used by CODING_PATTERN strategy)
+      const codingQuestion = await this.prisma.question.findUnique({ where: { id } });
+      if (!codingQuestion) {
+        throw new NotFoundException(`Question ${id} not found`);
+      }
+
+      // For coding questions, regeneration resets the Question back to DRAFT status.
+      // (Full re-execution requires the pattern pipeline — use the Generation Dashboard.)
+      await this.prisma.question.update({
+        where: { id },
+        data: {
+          status: "DRAFT",       // DRAFT is the valid QuestionStatus for a re-generated question
+          metadata: {
+            ...((codingQuestion.metadata as any) || {}),
+            status: "GENERATED", // audit metadata can use a richer label
+            regeneratedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      return {
+        success: true,
+        status: "REGENERATED",
+        questionId: id,
+        message: "Coding question status reset to GENERATED. Use the Question Generation dashboard to fully re-run the Oracle pipeline.",
+      };
     }
 
     const currentMeta = (question.metadata as any) || {};

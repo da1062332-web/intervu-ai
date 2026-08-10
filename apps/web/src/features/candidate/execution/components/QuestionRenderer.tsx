@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 
 export function QuestionRenderer() {
   const { currentQuestion, currentQuestionIndex, answers, saveAnswer, testInstance } =
@@ -231,9 +232,14 @@ export function QuestionRenderer() {
         <div className='flex flex-col flex-1 w-full overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar select-text'>
           {/* Question Statement & Constraints */}
           <div className='bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-200 space-y-3 shrink-0'>
-            <div className='text-base sm:text-lg font-semibold leading-relaxed text-slate-900 font-sans break-words'>
-              {currentQuestion.text}
-            </div>
+            {currentQuestion.text ? (
+              <MarkdownRenderer
+                content={currentQuestion.text}
+                className='text-base sm:text-[15px]'
+              />
+            ) : (
+              <p className='text-slate-400 italic text-sm'>No question statement available.</p>
+            )}
 
             {parsedInstructions?.constraints && (
               <div className='p-3.5 rounded-md border border-amber-200 bg-amber-50/70 text-sm'>

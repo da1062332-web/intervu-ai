@@ -66,6 +66,13 @@ export class PromptBuilderService {
           "{{rules}}",
           JSON.stringify(payload.scenario.entitySchema.rules ?? {}, null, 2),
         );
+    } else if (context.strategy === "CODING_PATTERN") {
+      const payload = context.payload as any;
+      filled = filled
+        .replace("{{title}}", payload.aiStatement?.title ?? "")
+        .replace("{{patternKey}}", payload.patternKey ?? "")
+        .replace("{{parameters}}", JSON.stringify(payload.parameters ?? {}, null, 2))
+        .replace("{{generatedInput}}", JSON.stringify(payload.generatedInput ?? {}, null, 2));
     }
 
     const difficulty = (context.metadata?.difficulty as string) || "medium";
@@ -193,6 +200,20 @@ ${aiInstructionsText}
         ],
         correctAnswer: "A",
         explanation: `To find ${a}% of ${b}, compute (${a} / 100) * ${b} = ${ans}.`,
+      };
+    }
+
+    if ((context.strategy as string) === "CODING_PATTERN") {
+      const payload = context.payload as any;
+      const title = payload.aiStatement?.title || "Coding Challenge";
+      const narrative = payload.aiStatement?.narrative || "Write code to solve the given challenge.";
+      const constraints = payload.aiStatement?.constraintsDescription || "Follow standard time & space complexity constraints.";
+
+      return {
+        questionText: `${title}\n\n${narrative}`,
+        options: [],
+        correctAnswer: JSON.stringify(payload.expectedOutput ?? {}),
+        explanation: constraints,
       };
     }
 

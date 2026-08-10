@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useConcepts, type ConceptMapping } from '@/services/concept-mapping';
 import { useTopics } from '@/services/topics/hooks';
 import { ConceptTable } from './ConceptTable';
@@ -11,6 +12,7 @@ import { Plus, Search, RefreshCw, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function ConceptManagementPanel() {
+  const router = useRouter();
   const {
     data: topics = [],
     isLoading: isLoadingTopics,
@@ -159,6 +161,13 @@ export function ConceptManagementPanel() {
           onEdit={handleEditClick}
           onDeactivate={handleDeactivateClick}
           onMapTemplates={handleMapTemplatesClick}
+          onViewCodingPatterns={(concept) => {
+            if (selectedTopicId) {
+              router.push(`/admin/topics/${selectedTopicId}`);
+            } else {
+              router.push('/admin/coding-patterns');
+            }
+          }}
         />
       )}
 
