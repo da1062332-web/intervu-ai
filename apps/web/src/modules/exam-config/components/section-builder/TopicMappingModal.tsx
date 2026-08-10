@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, AlertCircle, Sparkles, Search } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Search, Sparkles } from 'lucide-react';
 
 interface TopicMappingModalProps {
   section: ExamSection | null;
@@ -50,10 +50,16 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
   const [weightages, setWeightages] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Initialize checkboxes & weightages when modal opens or server data updates
   useEffect(() => {
-    if (isOpen && !isLoadingAssigned) {
+    if (!isOpen) {
+      setHasInitialized(false);
+      return;
+    }
+
+    if (isOpen && !isLoadingAssigned && !hasInitialized && !isSaving) {
       const initialSet = new Set(assignedTopicIds);
       setSelectedIds(initialSet);
 
@@ -72,8 +78,9 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
 
       setWeightages(weightageMap);
       setSearchQuery('');
+      setHasInitialized(true);
     }
-  }, [isOpen, isLoadingAssigned, JSON.stringify(assignedTopicIds), weightagesData.length]);
+  }, [isOpen, isLoadingAssigned, assignedTopicIds, weightagesData, hasInitialized, isSaving]);
 
   const filteredTopics = useMemo(() => {
     if (!searchQuery.trim()) return allTopics;
@@ -91,7 +98,7 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
 
     if (isAdding) {
       next.add(topicId);
-      // Initialize weightage to 0 if undefined without auto-rebalancing
+      // Initialize weightage to 0 if undefined
       if (weightages[topicId] === undefined) {
         setWeightages((prev) => ({ ...prev, [topicId]: 0 }));
       }
@@ -110,8 +117,8 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
     }));
   };
 
-  const rebalanceWeightages = (activeSet: Set<string> = selectedIds) => {
-    const activeList = Array.from(activeSet);
+  const handleAutoWeightage = () => {
+    const activeList = Array.from(selectedIds);
     const count = activeList.length;
     if (count === 0) return;
 
@@ -124,7 +131,7 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
     });
 
     setWeightages(newMap);
-    toast.success(`Auto-balanced weightages across ${count} topics! Click Update & Save below to manually save.`);
+    toast.success(`Auto-balanced weightages across ${count} topics!`);
   };
 
   const totalWeightage = Array.from(selectedIds).reduce(
@@ -150,45 +157,30 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
       const toRemove = Array.from(initialIds).filter((id) => !selectedIds.has(id));
 
       // 1. Assign / Remove Topics
-      for (const id of toAdd) {
-        try {
-          await assignTopic.mutateAsync(id);
-        } catch (e) {
-          console.error(`Failed to assign topic ${id}:`, e);
-        }
-      }
-      for (const id of toRemove) {
-        try {
-          await removeTopic.mutateAsync(id);
-        } catch (e) {
-          console.error(`Failed to remove topic ${id}:`, e);
-        }
-      }
+      const assignPromises = toAdd.map((id) => assignTopic.mutateAsync(id).catch(e => console.error(`Failed to assign topic ${id}:`, e)));
+      const removePromises = toRemove.map((id) => removeTopic.mutateAsync(id).catch(e => console.error(`Failed to remove topic ${id}:`, e)));
+      await Promise.all([...assignPromises, ...removePromises]);
 
       // 2. Update / Create Weightages for all currently selected topics
-      for (const topicId of Array.from(selectedIds)) {
+      const weightagePromises = Array.from(selectedIds).map((topicId) => {
         const val = weightages[topicId] ?? 0;
         const existing = weightagesData.find((w) => w.topicId === topicId);
-        try {
-          if (existing) {
-            await updateWeightage.mutateAsync({ id: existing.id, weightagePercentage: val });
-          } else {
-            await createWeightage.mutateAsync({ topicId, weightagePercentage: val });
-          }
-        } catch (e) {
-          console.error(`Failed to save weightage for topic ${topicId}:`, e);
+        if (existing) {
+          return updateWeightage.mutateAsync({ id: existing.id, weightagePercentage: val }).catch(e => console.error(`Failed to update weightage for topic ${topicId}:`, e));
+        } else {
+          return createWeightage.mutateAsync({ topicId, weightagePercentage: val }).catch(e => console.error(`Failed to create weightage for topic ${topicId}:`, e));
         }
-      }
+      });
+      await Promise.all(weightagePromises);
 
       toast.success('All added/removed topics and weightages saved successfully!');
 
       // Invalidate queries to refresh UI state across all tabs
-      await queryClient.invalidateQueries({ queryKey: ['section-topics', sectionId] });
-      await queryClient.invalidateQueries({ queryKey: ['topic-weightages', sectionId] });
-      await queryClient.invalidateQueries({ queryKey: ['config-validation'] });
-      await queryClient.invalidateQueries({ queryKey: ['config-readiness'] });
-      await queryClient.invalidateQueries({ queryKey: ['exam-configs'] });
-      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['section-topics', sectionId] });
+      queryClient.invalidateQueries({ queryKey: ['topic-weightages', sectionId] });
+      queryClient.invalidateQueries({ queryKey: ['config-validation'] });
+      queryClient.invalidateQueries({ queryKey: ['config-readiness'] });
+      queryClient.invalidateQueries({ queryKey: ['exam-configs'] });
 
       onClose();
     } catch (error: any) {
@@ -214,10 +206,10 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => rebalanceWeightages()}
+            onClick={handleAutoWeightage}
             className="text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10 whitespace-nowrap shadow-sm shrink-0"
           >
-            <Sparkles className="w-3.5 h-3.5" /> Auto-Balance (100%)
+            <Sparkles className="w-3.5 h-3.5" /> Auto Weightage
           </Button>
         )}
       </div>
@@ -357,7 +349,7 @@ export function TopicMappingModal({ section, isOpen, onClose }: TopicMappingModa
               {selectedIds.size > 0
                 ? isTotal100
                   ? 'Click Update & Save Mappings for final save of added/removed topics & weights. No auto-save.'
-                  : 'Adjust weightages or use Auto-Balance.'
+                  : 'Adjust weightages to equal 100%.'
                 : 'Select topics to continue.'}
             </span>
             <div className="flex justify-end gap-3">
