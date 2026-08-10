@@ -12,10 +12,7 @@ export function CandidateStatusBadge({ status = 'ACTIVE', className }: Candidate
   const isActive = status?.toUpperCase() === 'ACTIVE';
 
   return (
-    <Badge
-      variant={isActive ? 'success' : 'destructive'}
-      className={className}
-    >
+    <Badge variant={isActive ? 'success' : 'destructive'} className={className}>
       {isActive ? 'Active' : 'Inactive'}
     </Badge>
   );

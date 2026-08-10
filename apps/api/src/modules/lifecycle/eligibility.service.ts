@@ -10,6 +10,7 @@ export interface EligibilityResult {
   reason?: string;
   activeTestId?: string;
   isExamConfig?: boolean;
+  resolvedConfigId?: string;
 }
 
 @Injectable()
@@ -45,7 +46,32 @@ export class EligibilityService {
         where: { id: testConfigId },
         include: { ruleFlags: true },
       });
-      isExamConfig = true;
+      if (config) {
+        isExamConfig = true;
+      }
+    }
+
+    // Fallback: If passed ID is a testInstance ID or assembledTest ID, resolve the parent config ID
+    if (!config) {
+      const testInstance = await this.prisma.testInstance.findUnique({
+        where: { id: testConfigId },
+        select: { examConfigId: true, testConfigId: true },
+      });
+
+      const resolvedConfigId = testInstance?.examConfigId || testInstance?.testConfigId;
+
+      if (resolvedConfigId) {
+        testConfigId = resolvedConfigId;
+        config = await this.prisma.examConfig.findUnique({
+          where: { id: resolvedConfigId },
+          include: { ruleFlags: true },
+        });
+        if (config) {
+          isExamConfig = true;
+        } else {
+          config = await this.testConfigRepository.findById(resolvedConfigId);
+        }
+      }
     }
 
     if (!config) {
@@ -76,7 +102,8 @@ export class EligibilityService {
         return {
           eligible: false,
           errorCode: "TEST_NOT_PUBLISHED",
-          reason: "This assessment is still in DRAFT mode and has not been published by the administrator.",
+          reason:
+            "This assessment is still in DRAFT mode and has not been published by the administrator.",
         };
       }
     }
@@ -99,7 +126,7 @@ export class EligibilityService {
     if (activeTest) {
       await this.prisma.testInstance.update({
         where: { id: activeTest.id },
-        data: { expiresAt: new Date(Date.now() - 1000) }
+        data: { expiresAt: new Date(Date.now() - 1000) },
       });
     }
 
@@ -122,6 +149,6 @@ export class EligibilityService {
       };
     }
 
-    return { eligible: true, isExamConfig };
+    return { eligible: true, isExamConfig, resolvedConfigId: testConfigId };
   }
 }

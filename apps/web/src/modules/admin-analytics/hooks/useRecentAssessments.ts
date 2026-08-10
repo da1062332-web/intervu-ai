@@ -15,7 +15,11 @@ export function useActivateAssessment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return examConfigsApi.updateConfig(id, { isActive: true, status: 'PUBLISHED', isArchived: false } as any);
+      return examConfigsApi.updateConfig(id, {
+        isActive: true,
+        status: 'PUBLISHED',
+        isArchived: false,
+      } as any);
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard', 'recent-assessments'] });
@@ -25,7 +29,8 @@ export function useActivateAssessment() {
       toast.success('Assessment activated successfully');
     },
     onError: (error: any) => {
-      const msg = error?.response?.data?.message || error?.message || 'Failed to activate assessment';
+      const msg =
+        error?.response?.data?.message || error?.message || 'Failed to activate assessment';
       toast.error(msg);
     },
   });
@@ -36,7 +41,11 @@ export function useDeactivateAssessment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return examConfigsApi.updateConfig(id, { isActive: false, status: 'DRAFT', isArchived: false } as any);
+      return examConfigsApi.updateConfig(id, {
+        isActive: false,
+        status: 'DRAFT',
+        isArchived: false,
+      } as any);
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard', 'recent-assessments'] });
@@ -46,7 +55,8 @@ export function useDeactivateAssessment() {
       toast.success('Assessment deactivated successfully');
     },
     onError: (error: any) => {
-      const msg = error?.response?.data?.message || error?.message || 'Failed to deactivate assessment';
+      const msg =
+        error?.response?.data?.message || error?.message || 'Failed to deactivate assessment';
       toast.error(msg);
     },
   });

@@ -15,23 +15,26 @@ export function TabWarningModal() {
         <div className='w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center'>
           <ShieldAlert className='size-8 text-destructive' />
         </div>
-        
+
         <div className='space-y-3'>
-          <h2 className='text-2xl font-bold tracking-tight text-destructive'>Warning: Tab Switched</h2>
+          <h2 className='text-2xl font-bold tracking-tight text-destructive'>
+            Warning: Tab Switched
+          </h2>
           <p className='text-foreground font-medium'>
             You have navigated away from the assessment window. This violates the examination rules.
           </p>
           <p className='text-sm text-muted-foreground'>
-            Violations recorded: <span className='font-bold text-destructive'>{tabHiddenCount}</span>
+            Violations recorded:{' '}
+            <span className='font-bold text-destructive'>{tabHiddenCount}</span>
             <br />
             Further violations may result in the automatic termination of your assessment.
           </p>
         </div>
 
-        <Button 
+        <Button
           variant='destructive'
-          size='lg' 
-          className='w-full text-base py-6 rounded-xl' 
+          size='lg'
+          className='w-full text-base py-6 rounded-xl'
           onClick={dismissWarning}
         >
           I understand, return to assessment

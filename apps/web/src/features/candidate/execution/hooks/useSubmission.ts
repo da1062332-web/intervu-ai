@@ -46,8 +46,12 @@ export function useSubmission(testId: string) {
       const isAlreadySubmitted =
         error?.status === 409 ||
         error?.response?.status === 409 ||
-        String(error?.message || '').toLowerCase().includes('already') ||
-        String(error?.response?.data?.message || '').toLowerCase().includes('already');
+        String(error?.message || '')
+          .toLowerCase()
+          .includes('already') ||
+        String(error?.response?.data?.message || '')
+          .toLowerCase()
+          .includes('already');
 
       if (isAlreadySubmitted) {
         setSubmissionStatus('SUCCESS');

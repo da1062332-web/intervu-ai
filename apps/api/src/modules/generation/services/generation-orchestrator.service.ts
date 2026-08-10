@@ -202,7 +202,14 @@ export class GenerationOrchestratorService {
     MAX_RETRIES: number;
     excludeTemplateIds?: string[];
   }): Promise<{ success: boolean; templateId?: string }> {
-    const { examId, sectionId, topicId, difficulty, MAX_RETRIES, excludeTemplateIds = [] } = params;
+    const {
+      examId,
+      sectionId,
+      topicId,
+      difficulty,
+      MAX_RETRIES,
+      excludeTemplateIds = [],
+    } = params;
     let retryCount = 0;
 
     while (retryCount < MAX_RETRIES) {

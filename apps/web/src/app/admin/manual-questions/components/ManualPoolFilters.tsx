@@ -14,7 +14,10 @@ interface ManualPoolFiltersProps {
 
 export function ManualPoolFilters({ filters, setFilters, onClear }: ManualPoolFiltersProps) {
   const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
-  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(filters.topicId || '', true);
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(
+    filters.topicId || '',
+    true,
+  );
 
   return (
     <div className='flex flex-col gap-4 md:flex-row md:items-end flex-wrap'>
@@ -89,7 +92,12 @@ export function ManualPoolFilters({ filters, setFilters, onClear }: ManualPoolFi
         <select
           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
           value={filters.difficulty || 'ALL'}
-          onChange={(e) => setFilters((prev) => ({ ...prev, difficulty: e.target.value === 'ALL' ? undefined : e.target.value }))}
+          onChange={(e) =>
+            setFilters((prev) => ({
+              ...prev,
+              difficulty: e.target.value === 'ALL' ? undefined : e.target.value,
+            }))
+          }
         >
           <option value='ALL'>All Difficulties</option>
           <option value='EASY'>Easy</option>
@@ -103,7 +111,12 @@ export function ManualPoolFilters({ filters, setFilters, onClear }: ManualPoolFi
         <select
           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
           value={filters.status || 'ALL'}
-          onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value === 'ALL' ? undefined : e.target.value }))}
+          onChange={(e) =>
+            setFilters((prev) => ({
+              ...prev,
+              status: e.target.value === 'ALL' ? undefined : e.target.value,
+            }))
+          }
         >
           <option value='ALL'>All Statuses</option>
           <option value='DRAFT'>Draft</option>

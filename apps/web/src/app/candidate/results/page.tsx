@@ -10,7 +10,10 @@ export default function CandidateResultsRoute() {
       <SectionHeader
         title='Assessment Results & History'
         description='View and track all your completed assessment results, attempt history, and evaluation reports.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Results & History' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/candidate/dashboard' },
+          { label: 'Results & History' },
+        ]}
       />
       <CandidateHistorySection compact={false} />
     </div>

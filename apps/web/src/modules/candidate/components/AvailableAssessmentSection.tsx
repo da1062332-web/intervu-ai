@@ -46,55 +46,69 @@ export function AvailableAssessmentSection({
     {
       id: 'mock-dsa',
       title: 'Data Structures & Algorithms',
-      description: 'Core computer science concepts focusing on arrays, trees, and dynamic programming.',
+      description:
+        'Core computer science concepts focusing on arrays, trees, and dynamic programming.',
       difficulty: 'Medium',
       durationMinutes: 90,
       iconType: 'code',
       badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
-      iconBg: 'bg-[#eff2ff] dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40',
+      iconBg:
+        'bg-[#eff2ff] dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40',
     },
     {
       id: 'mock-ui',
       title: 'UI/UX Principles',
-      description: 'Fundamentals of user-centered design, wireframing, and accessibility standards.',
+      description:
+        'Fundamentals of user-centered design, wireframing, and accessibility standards.',
       difficulty: 'Easy',
       durationMinutes: 45,
       iconType: 'palette',
       badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
-      iconBg: 'bg-[#ecfdf5] dark:bg-emerald-950/50 text-[#10b981] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40',
+      iconBg:
+        'bg-[#ecfdf5] dark:bg-emerald-950/50 text-[#10b981] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40',
     },
     {
       id: 'mock-aws',
       title: 'AWS Architecture',
-      description: 'Advanced scenarios covering VPCs, IAM, and serverless infrastructure deployments.',
+      description:
+        'Advanced scenarios covering VPCs, IAM, and serverless infrastructure deployments.',
       difficulty: 'Hard',
       durationMinutes: 120,
       iconType: 'cloud',
       badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
-      iconBg: 'bg-[#f3e8ff] dark:bg-purple-950/50 text-[#9333ea] dark:text-purple-400 border border-purple-100 dark:border-purple-900/40',
+      iconBg:
+        'bg-[#f3e8ff] dark:bg-purple-950/50 text-[#9333ea] dark:text-purple-400 border border-purple-100 dark:border-purple-900/40',
     },
   ];
 
-  const actualTests = (dashboard.availableTests && dashboard.availableTests.length > 0)
-    ? dashboard.availableTests.slice(0, 3).map((t, index) => {
-        const icons = ['code', 'palette', 'cloud'];
-        const iconBgList = [
-          'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50',
-          'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50',
-          'bg-[#f3e8ff] text-[#9333ea] dark:bg-purple-950/50 dark:text-purple-400 border-purple-100/50',
-        ];
-        return {
-          id: t.id,
-          title: t.title,
-          description: (t as any).description || (index === 0 ? 'Core computer science concepts focusing on practical real-world algorithmic problems.' : index === 1 ? 'Evaluate your front-end layout strategies and component design patterns.' : 'Advanced system design, scalable architecture, and distributed services.'),
-          difficulty: (t as any).difficulty || (index === 0 ? 'Medium' : index === 1 ? 'Easy' : 'Hard'),
-          durationMinutes: t.durationMinutes || (index === 0 ? 90 : index === 1 ? 45 : 120),
-          iconType: icons[index % 3],
-          iconBg: iconBgList[index % 3],
-          badgeStyle: 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800',
-        };
-      })
-    : defaultTests;
+  const actualTests =
+    dashboard.availableTests && dashboard.availableTests.length > 0
+      ? dashboard.availableTests.slice(0, 3).map((t, index) => {
+          const icons = ['code', 'palette', 'cloud'];
+          const iconBgList = [
+            'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50',
+            'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50',
+            'bg-[#f3e8ff] text-[#9333ea] dark:bg-purple-950/50 dark:text-purple-400 border-purple-100/50',
+          ];
+          return {
+            id: t.id,
+            title: t.title,
+            description:
+              (t as any).description ||
+              (index === 0
+                ? 'Core computer science concepts focusing on practical real-world algorithmic problems.'
+                : index === 1
+                  ? 'Evaluate your front-end layout strategies and component design patterns.'
+                  : 'Advanced system design, scalable architecture, and distributed services.'),
+            difficulty:
+              (t as any).difficulty || (index === 0 ? 'Medium' : index === 1 ? 'Easy' : 'Hard'),
+            durationMinutes: t.durationMinutes || (index === 0 ? 90 : index === 1 ? 45 : 120),
+            iconType: icons[index % 3],
+            iconBg: iconBgList[index % 3],
+            badgeStyle: 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800',
+          };
+        })
+      : defaultTests;
 
   return (
     <div className='flex flex-col h-full space-y-4'>
@@ -104,7 +118,7 @@ export function AvailableAssessmentSection({
         </h3>
         {compact && (
           <button
-            type="button"
+            type='button'
             className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
             onClick={() => router.push('/candidate/assessments')}
           >
@@ -115,7 +129,8 @@ export function AvailableAssessmentSection({
 
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 flex-1 items-stretch'>
         {actualTests.map((test) => {
-          const IconComponent = test.iconType === 'palette' ? Palette : test.iconType === 'cloud' ? Cloud : Code;
+          const IconComponent =
+            test.iconType === 'palette' ? Palette : test.iconType === 'cloud' ? Cloud : Code;
           return (
             <div
               key={test.id}
@@ -124,7 +139,9 @@ export function AvailableAssessmentSection({
             >
               <div>
                 <div className='flex items-center justify-between gap-2 mb-5'>
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105 ${test.iconBg}`}>
+                  <div
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105 ${test.iconBg}`}
+                  >
                     <IconComponent className='size-5' />
                   </div>
                   <span className='px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground border border-border/40'>

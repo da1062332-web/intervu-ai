@@ -269,7 +269,9 @@ describe("Test Generation Core (Module 2)", () => {
               range: { min: 110, max: 250, step: 10 },
             },
           ],
-          formulas: ["profit_percent = ((selling_price - cost_price) / cost_price) * 100"],
+          formulas: [
+            "profit_percent = ((selling_price - cost_price) / cost_price) * 100",
+          ],
         },
         constraints: {
           rules: ["selling_price != cost_price"],
@@ -307,7 +309,12 @@ describe("Test Generation Core (Module 2)", () => {
       const metadata = {
         variableSchema: {
           variables: [
-            { name: "principal_amount", type: "integer", min: 10000, max: 10000 },
+            {
+              name: "principal_amount",
+              type: "integer",
+              min: 10000,
+              max: 10000,
+            },
             { name: "annual_rate", type: "integer", min: 5, max: 5 },
             { name: "year_number", type: "integer", min: 3, max: 3 },
           ],
@@ -336,9 +343,7 @@ describe("Test Generation Core (Module 2)", () => {
             { name: "B", type: "integer", min: 4, max: 4 },
           ],
           generationStrategyConfig: {
-            derivedVariables: [
-              { name: "C", expression: "A * B" },
-            ],
+            derivedVariables: [{ name: "C", expression: "A * B" }],
           },
         },
       };
@@ -355,18 +360,24 @@ describe("Test Generation Core (Module 2)", () => {
           variables: [],
           generationStrategyConfig: {
             variables: [
-              { name: "principal_amount", type: "integer", min: 1000, max: 1000 },
+              {
+                name: "principal_amount",
+                type: "integer",
+                min: 1000,
+                max: 1000,
+              },
               { name: "annual_rate", type: "integer", min: 10, max: 10 },
             ],
             derivedVariables: [
-              { name: "interest", expression: "principal_amount * annual_rate / 100" },
+              {
+                name: "interest",
+                expression: "principal_amount * annual_rate / 100",
+              },
             ],
           },
         },
         constraints: {
-          constraints: [
-            { rule: "interest == 100" },
-          ],
+          constraints: [{ rule: "interest == 100" }],
         },
       };
 
@@ -379,13 +390,9 @@ describe("Test Generation Core (Module 2)", () => {
     it("should keep top-level variable precedence over nested generationStrategyConfig variables", () => {
       const metadata = {
         variableSchema: {
-          variables: [
-            { name: "A", type: "integer", min: 5, max: 5 },
-          ],
+          variables: [{ name: "A", type: "integer", min: 5, max: 5 }],
           generationStrategyConfig: {
-            variables: [
-              { name: "A", type: "integer", min: 99, max: 99 },
-            ],
+            variables: [{ name: "A", type: "integer", min: 99, max: 99 }],
           },
         },
       };
@@ -402,9 +409,7 @@ describe("Test Generation Core (Module 2)", () => {
             { name: "B", type: "integer", min: 4, max: 4 },
           ],
           formulas: ["C = A + B"],
-          derivedVariables: [
-            { name: "C", expression: "A * B" },
-          ],
+          derivedVariables: [{ name: "C", expression: "A * B" }],
         },
       };
 
@@ -417,9 +422,7 @@ describe("Test Generation Core (Module 2)", () => {
     it("should support legacy templates with only constraint rules", () => {
       const metadata = {
         variableSchema: {
-          variables: [
-            { name: "A", type: "integer", min: 10, max: 10 },
-          ],
+          variables: [{ name: "A", type: "integer", min: 10, max: 10 }],
         },
         constraints: {
           rules: ["A == 10"],
@@ -433,14 +436,10 @@ describe("Test Generation Core (Module 2)", () => {
     it("should support templates with only structured constraints", () => {
       const metadata = {
         variableSchema: {
-          variables: [
-            { name: "A", type: "integer", min: 10, max: 10 },
-          ],
+          variables: [{ name: "A", type: "integer", min: 10, max: 10 }],
         },
         constraints: {
-          constraints: [
-            { rule: "A == 10" },
-          ],
+          constraints: [{ rule: "A == 10" }],
         },
       };
 
@@ -451,15 +450,11 @@ describe("Test Generation Core (Module 2)", () => {
     it("should prefer structured constraints over stale rules when both exist", () => {
       const metadata = {
         variableSchema: {
-          variables: [
-            { name: "A", type: "integer", min: 10, max: 10 },
-          ],
+          variables: [{ name: "A", type: "integer", min: 10, max: 10 }],
         },
         constraints: {
           rules: ["legacy_missing_variable > 0"],
-          constraints: [
-            { rule: "A == 10" },
-          ],
+          constraints: [{ rule: "A == 10" }],
         },
       };
 
@@ -471,7 +466,12 @@ describe("Test Generation Core (Module 2)", () => {
       const metadata = {
         variableSchema: {
           variables: [
-            { name: "principal_amount", type: "integer", min: 10000, max: 10000 },
+            {
+              name: "principal_amount",
+              type: "integer",
+              min: 10000,
+              max: 10000,
+            },
             { name: "annual_rate", type: "integer", min: 5, max: 5 },
             { name: "year_number", type: "integer", min: 3, max: 3 },
           ],
@@ -490,9 +490,7 @@ describe("Test Generation Core (Module 2)", () => {
             "compound_interest_earned % 1 == 0",
             "principal_amount % 100 == 0",
           ],
-          constraints: [
-            { rule: "principal_amount % 100 == 0" },
-          ],
+          constraints: [{ rule: "principal_amount % 100 == 0" }],
         },
       };
 
@@ -509,11 +507,22 @@ describe("Test Generation Core (Module 2)", () => {
       const metadata = {
         generationStrategyConfig: {
           variables: [
-            { name: "cost_price", type: "number", range: { min: 100, max: 200, step: 10 } },
-            { name: "selling_price", type: "number", range: { min: 110, max: 250, step: 10 } },
+            {
+              name: "cost_price",
+              type: "number",
+              range: { min: 100, max: 200, step: 10 },
+            },
+            {
+              name: "selling_price",
+              type: "number",
+              range: { min: 110, max: 250, step: 10 },
+            },
           ],
           derivedVariables: [
-            { name: "profit_percent", expression: "((selling_price - cost_price) / cost_price) * 100" },
+            {
+              name: "profit_percent",
+              expression: "((selling_price - cost_price) / cost_price) * 100",
+            },
           ],
           constraints: [
             { target: "selling_price", operator: ">", value: "cost_price" },
@@ -617,12 +626,8 @@ describe("Test Generation Core (Module 2)", () => {
 
       const result = instantiator.instantiate({ template, parameters });
 
-      expect(result.questionText).toBe(
-        "Given 13339/39, calculate 342.03.",
-      );
-      expect(result.explanation).toBe(
-        "The fraction 13339/39 gives 342.03.",
-      );
+      expect(result.questionText).toBe("Given 13339/39, calculate 342.03.");
+      expect(result.explanation).toBe("The fraction 13339/39 gives 342.03.");
       expect(result.options).toContain("342.03");
       expect(result.answer).toBe("342.03");
       expect(result.metadata.parameters).toBe(parameters);

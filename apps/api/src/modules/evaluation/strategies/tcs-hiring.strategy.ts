@@ -16,7 +16,8 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
   async evaluate(
     context: HiringEvaluationContext,
   ): Promise<HiringEvaluationResultDto> {
-    const { config, sectionScores, objectiveEvalResults, codingEvalResults } = context;
+    const { config, sectionScores, objectiveEvalResults, codingEvalResults } =
+      context;
 
     // Helper map for section correct counts from sectionScores or objectiveEvalResults
     const sectionCorrectMap = new Map<string, number>();
@@ -29,7 +30,8 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
       }
     });
 
-    const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normalize = (str: string) =>
+      str.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     const categoryAliases: Record<string, string[]> = {
       NUMERICAL: ["numerical", "quant", "quantitative", "aptitude", "math"],
@@ -38,7 +40,11 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
       ADVANCED_APTITUDE: ["advanced", "advaptitude", "advquant", "complex"],
     };
 
-    const getCorrectForSection = (sectionCode: string, sectionName?: string, mappingType?: string) => {
+    const getCorrectForSection = (
+      sectionCode: string,
+      sectionName?: string,
+      mappingType?: string,
+    ) => {
       const codeNorm = normalize(sectionCode);
       const nameNorm = sectionName ? normalize(sectionName) : "";
 
@@ -65,7 +71,10 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
       // 3. Partial match fallback
       for (const [key, val] of sectionCorrectMap.entries()) {
         const keyNorm = normalize(key);
-        if ((codeNorm && keyNorm.includes(codeNorm)) || (codeNorm && codeNorm.includes(keyNorm))) {
+        if (
+          (codeNorm && keyNorm.includes(codeNorm)) ||
+          (codeNorm && codeNorm.includes(keyNorm))
+        ) {
           return val;
         }
       }
@@ -89,7 +98,11 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     let reasoningMin = 0;
 
     for (const mapping of foundationMappings) {
-      const correctCount = getCorrectForSection(mapping.sectionCode, mapping.sectionName || undefined, mapping.mappingType);
+      const correctCount = getCorrectForSection(
+        mapping.sectionCode,
+        mapping.sectionName || undefined,
+        mapping.mappingType,
+      );
       const minRequired = mapping.minimumCorrectAnswers;
       const passed = correctCount >= minRequired;
 
@@ -128,26 +141,34 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     let advancedSectionCode: string | undefined;
     for (const m of advancedMappings) {
       advancedSectionCode = m.sectionCode;
-      advancedScore += getCorrectForSection(m.sectionCode, m.sectionName || undefined, m.mappingType);
+      advancedScore += getCorrectForSection(
+        m.sectionCode,
+        m.sectionName || undefined,
+        m.mappingType,
+      );
     }
 
     // Coding Evaluation
-    const codingProblemsSummaries: CodingProblemSummary[] = codingEvalResults.map((c) => {
-      let status: "SOLVED" | "PARTIAL" | "FAILED" = "FAILED";
-      if (c.score >= 100 || c.isCorrect) {
-        status = "SOLVED";
-      } else if (c.score > 0) {
-        status = "PARTIAL";
-      }
-      return {
-        problemId: c.questionId,
-        scorePercentage: Math.min(100, Math.max(0, c.score)),
-        status,
-      };
-    });
+    const codingProblemsSummaries: CodingProblemSummary[] =
+      codingEvalResults.map((c) => {
+        let status: "SOLVED" | "PARTIAL" | "FAILED" = "FAILED";
+        if (c.score >= 100 || c.isCorrect) {
+          status = "SOLVED";
+        } else if (c.score > 0) {
+          status = "PARTIAL";
+        }
+        return {
+          problemId: c.questionId,
+          scorePercentage: Math.min(100, Math.max(0, c.score)),
+          status,
+        };
+      });
 
-    const codingSolved = codingProblemsSummaries.filter((p) => p.status === "SOLVED").length;
-    const totalCodingProblems = config.codingTotalProblems || codingEvalResults.length;
+    const codingSolved = codingProblemsSummaries.filter(
+      (p) => p.status === "SOLVED",
+    ).length;
+    const totalCodingProblems =
+      config.codingTotalProblems || codingEvalResults.length;
 
     const foundationBreakdown = {
       numericalScore,
@@ -264,9 +285,10 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
       strategy: this.strategyType,
       strategyVersion: 1,
       qualification: "NINJA",
-      qualificationReason: foundationTotal >= config.digitalThreshold
-        ? "Qualified for Ninja (Advanced/Coding criteria for Digital/Prime not met)"
-        : "Qualified for Ninja role",
+      qualificationReason:
+        foundationTotal >= config.digitalThreshold
+          ? "Qualified for Ninja (Advanced/Coding criteria for Digital/Prime not met)"
+          : "Qualified for Ninja role",
       foundationScore: foundationTotal,
       advancedScore,
       codingSolved,

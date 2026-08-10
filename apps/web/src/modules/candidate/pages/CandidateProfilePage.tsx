@@ -131,9 +131,12 @@ export function CandidateProfilePage() {
           <CardHeader className='border-b border-border/40 pb-4'>
             <div className='flex items-center justify-between'>
               <div>
-                <CardTitle className='text-lg font-bold text-foreground'>Personal & Educational Information</CardTitle>
+                <CardTitle className='text-lg font-bold text-foreground'>
+                  Personal & Educational Information
+                </CardTitle>
                 <CardDescription className='text-xs text-muted-foreground font-medium mt-1'>
-                  This credentials summary will be shared with potential recruiters and organization evaluators during assessment verification.
+                  This credentials summary will be shared with potential recruiters and organization
+                  evaluators during assessment verification.
                 </CardDescription>
               </div>
               <div className='p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 hidden sm:block'>
@@ -144,16 +147,19 @@ export function CandidateProfilePage() {
           <CardContent className='p-6 space-y-6'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div className='space-y-2'>
-                <Label htmlFor='email' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                <Label
+                  htmlFor='email'
+                  className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'
+                >
                   Account Email Address
                 </Label>
                 <div className='relative'>
                   <Lock className='absolute left-3 top-2.5 size-4 text-muted-foreground/60' />
-                  <Input 
-                    id='email' 
-                    value={profile?.email || ''} 
-                    disabled 
-                    className='pl-9 bg-muted/50 border-border/60 text-muted-foreground font-medium h-9 text-xs sm:text-sm cursor-not-allowed' 
+                  <Input
+                    id='email'
+                    value={profile?.email || ''}
+                    disabled
+                    className='pl-9 bg-muted/50 border-border/60 text-muted-foreground font-medium h-9 text-xs sm:text-sm cursor-not-allowed'
                   />
                 </div>
                 <p className='text-[11px] text-muted-foreground/80 font-medium'>
@@ -162,24 +168,34 @@ export function CandidateProfilePage() {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='name' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                <Label
+                  htmlFor='name'
+                  className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'
+                >
                   Full Name
                 </Label>
                 <div className='relative'>
                   <User className='absolute left-3 top-2.5 size-4 text-muted-foreground/80' />
-                  <Input 
-                    id='name' 
-                    {...register('name')} 
-                    className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm font-medium' 
-                    placeholder='Enter your full name...' 
+                  <Input
+                    id='name'
+                    {...register('name')}
+                    className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm font-medium'
+                    placeholder='Enter your full name...'
                   />
                 </div>
-                {errors.name && <p className='text-xs text-destructive font-semibold mt-1'>{errors.name.message}</p>}
+                {errors.name && (
+                  <p className='text-xs text-destructive font-semibold mt-1'>
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className='space-y-2 max-w-md'>
-              <Label htmlFor='phone' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+              <Label
+                htmlFor='phone'
+                className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'
+              >
                 Contact Phone Number
               </Label>
               <div className='relative'>
@@ -191,12 +207,19 @@ export function CandidateProfilePage() {
                   placeholder='e.g. +91 9876543210'
                 />
               </div>
-              {errors.phone && <p className='text-xs text-destructive font-semibold mt-1'>{errors.phone.message}</p>}
+              {errors.phone && (
+                <p className='text-xs text-destructive font-semibold mt-1'>
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-border/40'>
               <div className='space-y-2'>
-                <Label htmlFor='college' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                <Label
+                  htmlFor='college'
+                  className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'
+                >
                   College / University Institution
                 </Label>
                 <div className='relative'>
@@ -209,12 +232,17 @@ export function CandidateProfilePage() {
                   />
                 </div>
                 {errors.college && (
-                  <p className='text-xs text-destructive font-semibold mt-1'>{errors.college.message}</p>
+                  <p className='text-xs text-destructive font-semibold mt-1'>
+                    {errors.college.message}
+                  </p>
                 )}
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='graduationYear' className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                <Label
+                  htmlFor='graduationYear'
+                  className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'
+                >
                   Graduation Year
                 </Label>
                 <div className='relative'>
@@ -230,7 +258,9 @@ export function CandidateProfilePage() {
                   />
                 </div>
                 {errors.graduationYear && (
-                  <p className='text-xs text-destructive font-semibold mt-1'>{errors.graduationYear.message}</p>
+                  <p className='text-xs text-destructive font-semibold mt-1'>
+                    {errors.graduationYear.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -239,7 +269,12 @@ export function CandidateProfilePage() {
             <span className='text-xs text-muted-foreground font-medium'>
               {isDirty ? 'Unsaved modifications present' : 'All credentials up to date'}
             </span>
-            <Button type='submit' size='sm' className='font-semibold h-9 px-5' disabled={isPending || !isDirty}>
+            <Button
+              type='submit'
+              size='sm'
+              className='font-semibold h-9 px-5'
+              disabled={isPending || !isDirty}
+            >
               {isPending ? (
                 'Saving...'
               ) : (

@@ -6,9 +6,24 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Database, Settings2, Search, ChevronDown, Check, Link, Eye, Play } from 'lucide-react';
+import {
+  Loader2,
+  Database,
+  Settings2,
+  Search,
+  ChevronDown,
+  Check,
+  Link,
+  Eye,
+  Play,
+} from 'lucide-react';
 import { useDatasets, useDataset, useDatasetSchema } from '@/services/datasets/hooks';
-import { useSaveOptionStrategy, useSaveTemplateDatasetConfig, useTemplateDatasetPreview, useTemplateVariables } from '@/services/templates/hooks';
+import {
+  useSaveOptionStrategy,
+  useSaveTemplateDatasetConfig,
+  useTemplateDatasetPreview,
+  useTemplateVariables,
+} from '@/services/templates/hooks';
 import { useGenerateQuestion } from '@/services/question-generation/hooks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Dataset } from '@/services/datasets/api';
@@ -27,18 +42,20 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
   const isSaving = isSavingConfig || isSavingDataset;
 
   const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
-  
+
   // Track the baseline of what was successfully saved
   const [savedConfig, setSavedConfig] = useState<any>({});
-  
+
   // Generation Settings
-  const [selectionMethod, setSelectionMethod] = useState<'RANDOM' | 'SEQUENTIAL' | 'SPECIFIC'>('RANDOM');
+  const [selectionMethod, setSelectionMethod] = useState<'RANDOM' | 'SEQUENTIAL' | 'SPECIFIC'>(
+    'RANDOM',
+  );
   const [sampleSize, setSampleSize] = useState<number>(1);
   const [shuffle, setShuffle] = useState<boolean>(true);
   const [allowReuse, setAllowReuse] = useState<boolean>(false);
   const [specificItemId, setSpecificItemId] = useState<string>('');
   const [variableMapping, setVariableMapping] = useState<Record<string, string>>({});
-  
+
   // Results
   const [previewResult, setPreviewResult] = useState<any>(null);
   const [generatedQuestion, setGeneratedQuestion] = useState<any>(null);
@@ -64,7 +81,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
       if (dsConfig.allowReuse !== undefined) setAllowReuse(dsConfig.allowReuse);
       if (dsConfig.specificItemId) setSpecificItemId(dsConfig.specificItemId);
       if (dsConfig.variableMapping) setVariableMapping(dsConfig.variableMapping);
-      
+
       configSnapshot = {
         datasetId: initialId,
         selectionMethod: dsConfig.selectionMethod || 'RANDOM',
@@ -72,7 +89,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
         shuffle: dsConfig.shuffle ?? true,
         allowReuse: dsConfig.allowReuse ?? false,
         specificItemId: dsConfig.specificItemId || '',
-        variableMapping: dsConfig.variableMapping || {}
+        variableMapping: dsConfig.variableMapping || {},
       };
     } else {
       configSnapshot = { datasetId: initialId };
@@ -107,15 +124,24 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
 
   const { data: schemaResponse } = useDatasetSchema(selectedDatasetId);
   const datasetSchema = (schemaResponse as any)?.data || schemaResponse;
-  
+
   const { data: varsResponse } = useTemplateVariables(template?.id);
   const templateVarsData = (varsResponse as any)?.data || varsResponse;
-  
+
   const availableColumns = (() => {
     if (!datasetSchema) return [];
-    if (Array.isArray(datasetSchema)) return datasetSchema.map((c: any) => typeof c === 'string' ? c : c.name || c.key || String(c));
-    if (datasetSchema.columns && Array.isArray(datasetSchema.columns)) return datasetSchema.columns.map((c: any) => typeof c === 'string' ? c : c.name || c.key || String(c));
-    if (datasetSchema.fields && Array.isArray(datasetSchema.fields)) return datasetSchema.fields.map((c: any) => typeof c === 'string' ? c : c.name || c.key || String(c));
+    if (Array.isArray(datasetSchema))
+      return datasetSchema.map((c: any) =>
+        typeof c === 'string' ? c : c.name || c.key || String(c),
+      );
+    if (datasetSchema.columns && Array.isArray(datasetSchema.columns))
+      return datasetSchema.columns.map((c: any) =>
+        typeof c === 'string' ? c : c.name || c.key || String(c),
+      );
+    if (datasetSchema.fields && Array.isArray(datasetSchema.fields))
+      return datasetSchema.fields.map((c: any) =>
+        typeof c === 'string' ? c : c.name || c.key || String(c),
+      );
     return [];
   })();
 
@@ -125,80 +151,94 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     if (schemaVars && Array.isArray(schemaVars) && schemaVars.length > 0) {
       return schemaVars.map((v: any) => v.key || v.name || v);
     }
-    
+
     // 2. Try the shared hook output
     if (templateVarsData) {
-      if (Array.isArray(templateVarsData) && templateVarsData.length > 0) return templateVarsData.map((v: any) => v.key || v.name || v);
-      if (templateVarsData.items && Array.isArray(templateVarsData.items) && templateVarsData.items.length > 0) return templateVarsData.items.map((v: any) => v.key || v.name || v);
+      if (Array.isArray(templateVarsData) && templateVarsData.length > 0)
+        return templateVarsData.map((v: any) => v.key || v.name || v);
+      if (
+        templateVarsData.items &&
+        Array.isArray(templateVarsData.items) &&
+        templateVarsData.items.length > 0
+      )
+        return templateVarsData.items.map((v: any) => v.key || v.name || v);
     }
-    
+
     // 3. Fallback to parsing from promptTemplate
-    const templatePrompt = template?.structure?.promptTemplate || "";
+    const templatePrompt = template?.structure?.promptTemplate || '';
     const placeholderRegex = /{{\s*([a-zA-Z0-9_-]+)\s*}}/g;
-    const variables = [...templatePrompt.matchAll(placeholderRegex)].map(match => match[1]).filter(Boolean);
-    
+    const variables = [...templatePrompt.matchAll(placeholderRegex)]
+      .map((match) => match[1])
+      .filter(Boolean);
+
     return Array.from(new Set(variables));
   }, [template?.variableSchema, template?.structure?.promptTemplate, templateVarsData]);
 
-  const isMappingComplete = templateVariables.length === 0 || templateVariables.every((v: any) => !!variableMapping[v]);
+  const isMappingComplete =
+    templateVariables.length === 0 || templateVariables.every((v: any) => !!variableMapping[v]);
   const isSpecificValid = selectionMethod === 'SPECIFIC' ? !!specificItemId : true;
   const canSave = selectedDatasetId && sampleSize > 0 && isMappingComplete && isSpecificValid;
 
   // Track if we have unsaved changes comparing current state to savedConfig
-  const hasUnsavedChanges = 
+  const hasUnsavedChanges =
     selectedDatasetId !== savedConfig.datasetId ||
     selectionMethod !== (savedConfig.selectionMethod || 'RANDOM') ||
     sampleSize !== (savedConfig.sampleSize || 1) ||
     shuffle !== (savedConfig.shuffle ?? true) ||
     allowReuse !== (savedConfig.allowReuse ?? false) ||
-    (selectionMethod === 'SPECIFIC' ? specificItemId : null) !== (savedConfig.specificItemId || null) ||
-    JSON.stringify(templateVariables.length === 0 ? {} : variableMapping) !== JSON.stringify(savedConfig.variableMapping || {});
+    (selectionMethod === 'SPECIFIC' ? specificItemId : null) !==
+      (savedConfig.specificItemId || null) ||
+    JSON.stringify(templateVariables.length === 0 ? {} : variableMapping) !==
+      JSON.stringify(savedConfig.variableMapping || {});
 
   const handleSave = async () => {
     if (!template?.id || !canSave) return;
-    
+
     try {
       await saveOptions({
         templateId: template.id,
         payload: {
           strategy: template?.generationStrategy || 'DATASET',
           datasetId: selectedDatasetId,
-          optionsTemplate: template?.structure?.optionsTemplate || []
-        }
+          optionsTemplate: template?.structure?.optionsTemplate || [],
+        },
       });
 
       const finalMapping = templateVariables.length === 0 ? {} : variableMapping;
 
-      saveDatasetConfig({
-        templateId: template.id,
-        payload: {
-          datasetId: selectedDatasetId,
-          selectionMethod,
-          sampleSize,
-          shuffle,
-          allowReuse,
-          specificItemId: selectionMethod === 'SPECIFIC' ? specificItemId : null,
-          variableMapping: finalMapping
-        }
-      }, {
-        onSuccess: () => {
-          toast.success("Dataset configuration saved successfully");
-          setSavedConfig({
+      saveDatasetConfig(
+        {
+          templateId: template.id,
+          payload: {
             datasetId: selectedDatasetId,
             selectionMethod,
             sampleSize,
             shuffle,
             allowReuse,
             specificItemId: selectionMethod === 'SPECIFIC' ? specificItemId : null,
-            variableMapping: finalMapping
-          });
+            variableMapping: finalMapping,
+          },
         },
-        onError: () => {
-          toast.error("Failed to save dataset configuration");
-        }
-      });
+        {
+          onSuccess: () => {
+            toast.success('Dataset configuration saved successfully');
+            setSavedConfig({
+              datasetId: selectedDatasetId,
+              selectionMethod,
+              sampleSize,
+              shuffle,
+              allowReuse,
+              specificItemId: selectionMethod === 'SPECIFIC' ? specificItemId : null,
+              variableMapping: finalMapping,
+            });
+          },
+          onError: () => {
+            toast.error('Failed to save dataset configuration');
+          },
+        },
+      );
     } catch (error) {
-      toast.error("Failed to link dataset");
+      toast.error('Failed to link dataset');
     }
   };
 
@@ -207,11 +247,11 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     getPreview(template.id, {
       onSuccess: (data: any) => {
         setPreviewResult(data?.data || data);
-        toast.success("Preview generated successfully");
+        toast.success('Preview generated successfully');
       },
       onError: () => {
-        toast.error("Failed to generate preview");
-      }
+        toast.error('Failed to generate preview');
+      },
     });
   };
 
@@ -220,11 +260,11 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     generateQuestion({ templateId: template.id, count: 1 } as any, {
       onSuccess: (data: any) => {
         setGeneratedQuestion(data?.data || data);
-        toast.success("Question generated successfully");
+        toast.success('Question generated successfully');
       },
       onError: (err: any) => {
-        toast.error("Failed to generate question");
-      }
+        toast.error('Failed to generate question');
+      },
     });
   };
 
@@ -248,92 +288,110 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     if (!matchesSearch) return false;
 
     if (hasTopicOrConceptFilter) {
-      const matchesTopic = templateTopicIds.length > 0 && ds.topicId ? templateTopicIds.includes(ds.topicId) : false;
-      const matchesConcept = templateConceptKeys.length > 0 && ds.conceptId ? templateConceptKeys.includes(ds.conceptId) : false;
+      const matchesTopic =
+        templateTopicIds.length > 0 && ds.topicId ? templateTopicIds.includes(ds.topicId) : false;
+      const matchesConcept =
+        templateConceptKeys.length > 0 && ds.conceptId
+          ? templateConceptKeys.includes(ds.conceptId)
+          : false;
       return matchesTopic || matchesConcept;
     }
     return true;
   });
 
-  const filteredDatasets = matchedDatasets.length > 0 || !hasTopicOrConceptFilter
-    ? matchedDatasets
-    : (datasets || []).filter((ds: Dataset) => ds.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredDatasets =
+    matchedDatasets.length > 0 || !hasTopicOrConceptFilter
+      ? matchedDatasets
+      : (datasets || []).filter((ds: Dataset) =>
+          ds.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
 
   const selectedDataset = datasets?.find((ds: Dataset) => ds.id === selectedDatasetId);
   const hasRecords = datasetDetails?.items && datasetDetails.items.length > 0;
 
   return (
     <TemplateSection
-      title="Dataset Configuration"
-      description="Connect a dataset to this template and map variables to dataset columns."
+      title='Dataset Configuration'
+      description='Connect a dataset to this template and map variables to dataset columns.'
       actions={
-        <div className="flex gap-2">
-          <Button onClick={handleSave} disabled={isSaving || !canSave || !hasUnsavedChanges} className="min-w-[120px]">
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <div className='flex gap-2'>
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || !canSave || !hasUnsavedChanges}
+            className='min-w-[120px]'
+          >
+            {isSaving && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
             Save Configuration
           </Button>
         </div>
       }
     >
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Database className="w-4 h-4 text-indigo-500" />
+      <div className='space-y-6'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <div className='space-y-6'>
+            <Card className='shadow-sm'>
+              <CardHeader className='pb-3'>
+                <CardTitle className='text-base flex items-center gap-2'>
+                  <Database className='w-4 h-4 text-indigo-500' />
                   Dataset Selection
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Select Dataset</Label>
-                  <div className="relative w-full" ref={dropdownRef}>
-                    <div 
-                      className="flex items-center justify-between w-full p-3 border rounded-md bg-white dark:bg-gray-950 cursor-pointer hover:border-indigo-500 transition-colors"
+                <div className='space-y-2'>
+                  <Label className='text-sm font-semibold'>Select Dataset</Label>
+                  <div className='relative w-full' ref={dropdownRef}>
+                    <div
+                      className='flex items-center justify-between w-full p-3 border rounded-md bg-white dark:bg-gray-950 cursor-pointer hover:border-indigo-500 transition-colors'
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
-                      <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <div className='flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300'>
                         {selectedDataset ? (
-                          <span className="font-medium">{selectedDataset.name}</span>
+                          <span className='font-medium'>{selectedDataset.name}</span>
                         ) : (
-                          <span className="text-gray-400">Search Dataset...</span>
+                          <span className='text-gray-400'>Search Dataset...</span>
                         )}
                       </div>
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                      <ChevronDown className='w-4 h-4 text-gray-500' />
                     </div>
 
                     {isDropdownOpen && (
-                      <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-950 border rounded-md shadow-lg overflow-hidden">
-                        <div className="p-2 border-b border-gray-100 dark:border-gray-800">
-                          <div className="relative">
-                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input 
-                              placeholder="Search datasets..." 
-                              className="pl-8 h-8 border-none focus-visible:ring-0 shadow-none bg-gray-50 dark:bg-gray-900"
+                      <div className='absolute z-10 w-full mt-1 bg-white dark:bg-gray-950 border rounded-md shadow-lg overflow-hidden'>
+                        <div className='p-2 border-b border-gray-100 dark:border-gray-800'>
+                          <div className='relative'>
+                            <Search className='absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400' />
+                            <Input
+                              placeholder='Search datasets...'
+                              className='pl-8 h-8 border-none focus-visible:ring-0 shadow-none bg-gray-50 dark:bg-gray-900'
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               autoFocus
                             />
                           </div>
                         </div>
-                        <div className="max-h-60 overflow-y-auto p-1">
+                        <div className='max-h-60 overflow-y-auto p-1'>
                           {datasetsLoading ? (
-                            <div className="flex items-center justify-center py-4 text-sm text-gray-500">
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading...
+                            <div className='flex items-center justify-center py-4 text-sm text-gray-500'>
+                              <Loader2 className='w-4 h-4 animate-spin mr-2' /> Loading...
                             </div>
                           ) : filteredDatasets.length === 0 ? (
-                            <div className="p-3 text-sm text-center text-gray-500">No datasets found.</div>
+                            <div className='p-3 text-sm text-center text-gray-500'>
+                              No datasets found.
+                            </div>
                           ) : (
                             filteredDatasets.map((ds: Dataset) => {
-                              const isMatch = (templateTopicIds.length > 0 && ds.topicId ? templateTopicIds.includes(ds.topicId) : false) || 
-                                              (templateConceptKeys.length > 0 && ds.conceptId ? templateConceptKeys.includes(ds.conceptId) : false);
+                              const isMatch =
+                                (templateTopicIds.length > 0 && ds.topicId
+                                  ? templateTopicIds.includes(ds.topicId)
+                                  : false) ||
+                                (templateConceptKeys.length > 0 && ds.conceptId
+                                  ? templateConceptKeys.includes(ds.conceptId)
+                                  : false);
                               return (
-                                <div 
+                                <div
                                   key={ds.id}
                                   className={`flex items-center justify-between p-2 rounded-sm cursor-pointer text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors ${
-                                    selectedDatasetId === ds.id 
-                                      ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-medium' 
+                                    selectedDatasetId === ds.id
+                                      ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-medium'
                                       : isMatch
                                         ? 'bg-emerald-50/50 dark:bg-emerald-950/20 text-gray-800 dark:text-gray-200'
                                         : 'text-gray-700 dark:text-gray-300'
@@ -345,17 +403,19 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                                   }}
                                 >
                                   <div>
-                                    <div className="flex items-center gap-1.5">
+                                    <div className='flex items-center gap-1.5'>
                                       <span>{ds.name}</span>
                                       {isMatch && (
-                                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold">
+                                        <span className='text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold'>
                                           Topic Match
                                         </span>
                                       )}
                                     </div>
-                                    <div className="text-xs text-gray-400 mt-0.5">{ds._count?.items ?? 0} Items</div>
+                                    <div className='text-xs text-gray-400 mt-0.5'>
+                                      {ds._count?.items ?? 0} Items
+                                    </div>
                                   </div>
-                                  {selectedDatasetId === ds.id && <Check className="w-4 h-4" />}
+                                  {selectedDatasetId === ds.id && <Check className='w-4 h-4' />}
                                 </div>
                               );
                             })
@@ -369,132 +429,189 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
             </Card>
 
             {selectedDatasetId && (
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Database className="w-4 h-4 text-indigo-500" />
+              <Card className='shadow-sm'>
+                <CardHeader className='pb-3'>
+                  <CardTitle className='text-base flex items-center gap-2'>
+                    <Database className='w-4 h-4 text-indigo-500' />
                     Dataset Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {datasetLoading ? (
-                    <div className="space-y-3">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-10 w-full" />
+                    <div className='space-y-3'>
+                      <Skeleton className='h-4 w-3/4' />
+                      <Skeleton className='h-10 w-full' />
                     </div>
                   ) : datasetDetails ? (
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                       <div>
-                        <Label className="text-xs text-gray-500 uppercase tracking-wider">Name</Label>
-                        <div className="font-medium mt-1">{datasetDetails.name}</div>
+                        <Label className='text-xs text-gray-500 uppercase tracking-wider'>
+                          Name
+                        </Label>
+                        <div className='font-medium mt-1'>{datasetDetails.name}</div>
                       </div>
                       <div>
-                        <Label className="text-xs text-gray-500 uppercase tracking-wider">Description</Label>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                        <Label className='text-xs text-gray-500 uppercase tracking-wider'>
+                          Description
+                        </Label>
+                        <div className='text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2'>
                           {datasetDetails.description || 'No description provided.'}
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+                      <div className='grid grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-800'>
                         <div>
-                          <Label className="text-xs text-gray-500 uppercase tracking-wider">Records</Label>
-                          <div className="text-lg font-semibold mt-0.5">
+                          <Label className='text-xs text-gray-500 uppercase tracking-wider'>
+                            Records
+                          </Label>
+                          <div className='text-lg font-semibold mt-0.5'>
                             {(datasetDetails.items?.length || 0).toLocaleString()}
                           </div>
                         </div>
                         <div>
-                          <Label className="text-xs text-gray-500 uppercase tracking-wider">Type</Label>
-                          <div className="text-sm font-medium mt-1">
-                            {datasetDetails.type}
-                          </div>
+                          <Label className='text-xs text-gray-500 uppercase tracking-wider'>
+                            Type
+                          </Label>
+                          <div className='text-sm font-medium mt-1'>{datasetDetails.type}</div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-red-500">Failed to load dataset information.</div>
+                    <div className='text-sm text-red-500'>Failed to load dataset information.</div>
                   )}
                 </CardContent>
               </Card>
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className='space-y-6'>
             {selectedDatasetId && (
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Settings2 className="w-4 h-4 text-emerald-500" />
+              <Card className='shadow-sm'>
+                <CardHeader className='pb-3'>
+                  <CardTitle className='text-base flex items-center gap-2'>
+                    <Settings2 className='w-4 h-4 text-emerald-500' />
                     Selection Settings
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold">Selection Method</Label>
-                      <div className="flex flex-col gap-3">
-                        <label className="flex items-center gap-3 text-sm cursor-pointer group">
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectionMethod === 'RANDOM' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}>
-                            {selectionMethod === 'RANDOM' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  <div className='space-y-6'>
+                    <div className='space-y-3'>
+                      <Label className='text-sm font-semibold'>Selection Method</Label>
+                      <div className='flex flex-col gap-3'>
+                        <label className='flex items-center gap-3 text-sm cursor-pointer group'>
+                          <div
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectionMethod === 'RANDOM' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}
+                          >
+                            {selectionMethod === 'RANDOM' && (
+                              <div className='w-2 h-2 rounded-full bg-white' />
+                            )}
                           </div>
-                          <span className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Random Selection</span>
-                          <input type="radio" className="hidden" checked={selectionMethod === 'RANDOM'} onChange={() => setSelectionMethod('RANDOM')} />
-                        </label>
-                        
-                        <label className="flex items-center gap-3 text-sm cursor-pointer group mt-2">
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectionMethod === 'SEQUENTIAL' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}>
-                            {selectionMethod === 'SEQUENTIAL' && <div className="w-2 h-2 rounded-full bg-white" />}
-                          </div>
-                          <span className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Sequential Selection</span>
-                          <input type="radio" className="hidden" checked={selectionMethod === 'SEQUENTIAL'} onChange={() => setSelectionMethod('SEQUENTIAL')} />
+                          <span className='font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors'>
+                            Random Selection
+                          </span>
+                          <input
+                            type='radio'
+                            className='hidden'
+                            checked={selectionMethod === 'RANDOM'}
+                            onChange={() => setSelectionMethod('RANDOM')}
+                          />
                         </label>
 
-                        <label className="flex items-center gap-3 text-sm cursor-pointer group mt-2">
-                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectionMethod === 'SPECIFIC' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}>
-                            {selectionMethod === 'SPECIFIC' && <div className="w-2 h-2 rounded-full bg-white" />}
+                        <label className='flex items-center gap-3 text-sm cursor-pointer group mt-2'>
+                          <div
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectionMethod === 'SEQUENTIAL' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}
+                          >
+                            {selectionMethod === 'SEQUENTIAL' && (
+                              <div className='w-2 h-2 rounded-full bg-white' />
+                            )}
                           </div>
-                          <span className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Specific Item</span>
-                          <input type="radio" className="hidden" checked={selectionMethod === 'SPECIFIC'} onChange={() => setSelectionMethod('SPECIFIC')} />
+                          <span className='font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors'>
+                            Sequential Selection
+                          </span>
+                          <input
+                            type='radio'
+                            className='hidden'
+                            checked={selectionMethod === 'SEQUENTIAL'}
+                            onChange={() => setSelectionMethod('SEQUENTIAL')}
+                          />
                         </label>
-                        
+
+                        <label className='flex items-center gap-3 text-sm cursor-pointer group mt-2'>
+                          <div
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectionMethod === 'SPECIFIC' ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}
+                          >
+                            {selectionMethod === 'SPECIFIC' && (
+                              <div className='w-2 h-2 rounded-full bg-white' />
+                            )}
+                          </div>
+                          <span className='font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors'>
+                            Specific Item
+                          </span>
+                          <input
+                            type='radio'
+                            className='hidden'
+                            checked={selectionMethod === 'SPECIFIC'}
+                            onChange={() => setSelectionMethod('SPECIFIC')}
+                          />
+                        </label>
+
                         {selectionMethod === 'SPECIFIC' && (
-                          <div className="pl-7 mt-1">
-                            <Input 
-                              placeholder="Item ID..." 
-                              value={specificItemId} 
+                          <div className='pl-7 mt-1'>
+                            <Input
+                              placeholder='Item ID...'
+                              value={specificItemId}
                               onChange={(e) => setSpecificItemId(e.target.value)}
-                              className="h-8 text-sm"
+                              className='h-8 text-sm'
                             />
-                            {!specificItemId && <div className="text-xs text-red-500 mt-1">Required for specific selection</div>}
+                            {!specificItemId && (
+                              <div className='text-xs text-red-500 mt-1'>
+                                Required for specific selection
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold flex items-center justify-between">
+                    <div className='grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-gray-800'>
+                      <div className='space-y-2'>
+                        <Label className='text-sm font-semibold flex items-center justify-between'>
                           Shuffle
-                          <input type="checkbox" checked={shuffle} onChange={(e) => setShuffle(e.target.checked)} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                          <input
+                            type='checkbox'
+                            checked={shuffle}
+                            onChange={(e) => setShuffle(e.target.checked)}
+                            className='rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                          />
                         </Label>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold flex items-center justify-between">
+                      <div className='space-y-2'>
+                        <Label className='text-sm font-semibold flex items-center justify-between'>
                           Allow Reuse
-                          <input type="checkbox" checked={allowReuse} onChange={(e) => setAllowReuse(e.target.checked)} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                          <input
+                            type='checkbox'
+                            checked={allowReuse}
+                            onChange={(e) => setAllowReuse(e.target.checked)}
+                            className='rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                          />
                         </Label>
                       </div>
                     </div>
 
-                    <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-                      <Label className="text-sm font-semibold">Sample Size</Label>
-                      <Input 
-                        type="number" 
-                        min={1} 
-                        max={20} 
-                        value={sampleSize} 
+                    <div className='space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800'>
+                      <Label className='text-sm font-semibold'>Sample Size</Label>
+                      <Input
+                        type='number'
+                        min={1}
+                        max={20}
+                        value={sampleSize}
                         onChange={(e) => setSampleSize(parseInt(e.target.value) || 1)}
-                        className="w-full bg-gray-50 dark:bg-gray-900"
+                        className='w-full bg-gray-50 dark:bg-gray-900'
                       />
-                      {sampleSize < 1 && <div className="text-xs text-red-500">Sample size must be greater than 0</div>}
+                      {sampleSize < 1 && (
+                        <div className='text-xs text-red-500'>
+                          Sample size must be greater than 0
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -504,53 +621,78 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
         </div>
 
         {selectedDatasetId && hasRecords && (
-          <Tabs defaultValue={templateVariables.length > 0 ? "mapping" : "preview"} className="mt-6 w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="mapping" disabled={templateVariables.length === 0} className="flex gap-2">
-                <Link className="w-4 h-4"/> Variable Mapping
+          <Tabs
+            defaultValue={templateVariables.length > 0 ? 'mapping' : 'preview'}
+            className='mt-6 w-full'
+          >
+            <TabsList className='grid w-full grid-cols-3'>
+              <TabsTrigger
+                value='mapping'
+                disabled={templateVariables.length === 0}
+                className='flex gap-2'
+              >
+                <Link className='w-4 h-4' /> Variable Mapping
               </TabsTrigger>
-              <TabsTrigger value="preview" className="flex gap-2">
-                <Eye className="w-4 h-4"/> Live Preview
-                {hasUnsavedChanges && <Badge variant="outline" className="ml-2 text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">Unsaved</Badge>}
+              <TabsTrigger value='preview' className='flex gap-2'>
+                <Eye className='w-4 h-4' /> Live Preview
+                {hasUnsavedChanges && (
+                  <Badge
+                    variant='outline'
+                    className='ml-2 text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                  >
+                    Unsaved
+                  </Badge>
+                )}
               </TabsTrigger>
-              <TabsTrigger value="generate" className="flex gap-2">
-                <Play className="w-4 h-4"/> Generate Question
-                {hasUnsavedChanges && <Badge variant="outline" className="ml-2 text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">Unsaved</Badge>}
+              <TabsTrigger value='generate' className='flex gap-2'>
+                <Play className='w-4 h-4' /> Generate Question
+                {hasUnsavedChanges && (
+                  <Badge
+                    variant='outline'
+                    className='ml-2 text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                  >
+                    Unsaved
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
-            
+
             {templateVariables.length > 0 && (
-              <TabsContent value="mapping" className="mt-4">
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800">
-                    <CardTitle className="text-base flex items-center gap-2">
+              <TabsContent value='mapping' className='mt-4'>
+                <Card className='shadow-sm'>
+                  <CardHeader className='pb-3 border-b border-gray-100 dark:border-gray-800'>
+                    <CardTitle className='text-base flex items-center gap-2'>
                       Variable Mapping
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="space-y-4">
+                  <CardContent className='pt-4'>
+                    <div className='space-y-4'>
                       {templateVariables.map((v: any, i: number) => {
                         const varKey = v;
                         const isMapped = !!variableMapping[varKey];
                         return (
-                          <div key={i} className="flex items-center gap-4">
-                            <div className={`w-1/3 text-sm font-medium ${isMapped ? 'text-gray-900 dark:text-gray-100' : 'text-red-500'}`}>
+                          <div key={i} className='flex items-center gap-4'>
+                            <div
+                              className={`w-1/3 text-sm font-medium ${isMapped ? 'text-gray-900 dark:text-gray-100' : 'text-red-500'}`}
+                            >
                               {`{{${varKey}}}`}
                             </div>
-                            <div className="w-2/3">
-                              <select 
+                            <div className='w-2/3'>
+                              <select
                                 className={`w-full p-2 text-sm border rounded-md bg-gray-50 dark:bg-gray-900 focus:ring-1 focus:ring-indigo-500 ${isMapped ? 'border-gray-200 dark:border-gray-800' : 'border-red-300 dark:border-red-800'}`}
                                 value={variableMapping[varKey] || ''}
                                 onChange={(e) => {
                                   setVariableMapping((prev: any) => ({
                                     ...prev,
-                                    [varKey]: e.target.value
+                                    [varKey]: e.target.value,
                                   }));
                                 }}
                               >
-                                <option value="">-- Select Column --</option>
+                                <option value=''>-- Select Column --</option>
                                 {availableColumns.map((col: string, j: number) => (
-                                  <option key={j} value={col}>{col}</option>
+                                  <option key={j} value={col}>
+                                    {col}
+                                  </option>
                                 ))}
                               </select>
                             </div>
@@ -558,7 +700,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                         );
                       })}
                       {!isMappingComplete && (
-                        <div className="text-sm text-red-500 mt-2 font-medium">
+                        <div className='text-sm text-red-500 mt-2 font-medium'>
                           All template variables must be mapped before saving.
                         </div>
                       )}
@@ -567,47 +709,58 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                 </Card>
               </TabsContent>
             )}
-            
-            <TabsContent value="preview" className="mt-4">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800 flex flex-row items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
+
+            <TabsContent value='preview' className='mt-4'>
+              <Card className='shadow-sm'>
+                <CardHeader className='pb-3 border-b border-gray-100 dark:border-gray-800 flex flex-row items-center justify-between'>
+                  <CardTitle className='text-base flex items-center gap-2'>
                     Preview Generation Logic
                   </CardTitle>
-                  <Button size="sm" onClick={handleGeneratePreview} disabled={isGeneratingPreview || hasUnsavedChanges || !selectedDatasetId}>
-                    {isGeneratingPreview ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Eye className="w-4 h-4 mr-2"/>}
+                  <Button
+                    size='sm'
+                    onClick={handleGeneratePreview}
+                    disabled={isGeneratingPreview || hasUnsavedChanges || !selectedDatasetId}
+                  >
+                    {isGeneratingPreview ? (
+                      <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                    ) : (
+                      <Eye className='w-4 h-4 mr-2' />
+                    )}
                     Generate Preview
                   </Button>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className='pt-4'>
                   {hasUnsavedChanges ? (
-                    <div className="text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-md flex items-center justify-center font-medium border border-amber-200 dark:border-amber-900">
+                    <div className='text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-md flex items-center justify-center font-medium border border-amber-200 dark:border-amber-900'>
                       Save configuration to enable preview generation.
                     </div>
                   ) : !previewResult ? (
-                    <div className="text-sm text-gray-500 text-center py-4">Click generate to preview the compiled prompt and dataset variables.</div>
+                    <div className='text-sm text-gray-500 text-center py-4'>
+                      Click generate to preview the compiled prompt and dataset variables.
+                    </div>
                   ) : (
-                    <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className='space-y-4 text-sm text-gray-700 dark:text-gray-300'>
                       {previewResult.variables && (
                         <div>
-                          <span className="font-semibold block mb-1">Injected Variables:</span>
-                          <pre className="p-3 bg-gray-50 dark:bg-gray-900 rounded border overflow-x-auto text-xs">
+                          <span className='font-semibold block mb-1'>Injected Variables:</span>
+                          <pre className='p-3 bg-gray-50 dark:bg-gray-900 rounded border overflow-x-auto text-xs'>
                             {JSON.stringify(previewResult.variables, null, 2)}
                           </pre>
                         </div>
                       )}
                       {previewResult.datasetItem && (
                         <div>
-                          <span className="font-semibold block mb-1">Dataset Item ID:</span>
-                          <div className="p-2 bg-gray-50 dark:bg-gray-900 rounded border text-xs">
-                            {previewResult.datasetItem.id || JSON.stringify(previewResult.datasetItem)}
+                          <span className='font-semibold block mb-1'>Dataset Item ID:</span>
+                          <div className='p-2 bg-gray-50 dark:bg-gray-900 rounded border text-xs'>
+                            {previewResult.datasetItem.id ||
+                              JSON.stringify(previewResult.datasetItem)}
                           </div>
                         </div>
                       )}
                       {previewResult.compiledPrompt && (
                         <div>
-                          <span className="font-semibold block mb-1">Compiled Prompt:</span>
-                          <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 rounded border border-indigo-100 dark:border-indigo-900 whitespace-pre-wrap">
+                          <span className='font-semibold block mb-1'>Compiled Prompt:</span>
+                          <div className='p-3 bg-indigo-50/50 dark:bg-indigo-950/20 rounded border border-indigo-100 dark:border-indigo-900 whitespace-pre-wrap'>
                             {previewResult.compiledPrompt}
                           </div>
                         </div>
@@ -618,64 +771,104 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
               </Card>
             </TabsContent>
 
-            <TabsContent value="generate" className="mt-4">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800 flex flex-row items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
+            <TabsContent value='generate' className='mt-4'>
+              <Card className='shadow-sm'>
+                <CardHeader className='pb-3 border-b border-gray-100 dark:border-gray-800 flex flex-row items-center justify-between'>
+                  <CardTitle className='text-base flex items-center gap-2'>
                     Test Generation
                   </CardTitle>
-                  <Button size="sm" onClick={handleGenerate} disabled={isGenerating || hasUnsavedChanges || !selectedDatasetId}>
-                    {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Play className="w-4 h-4 mr-2"/>}
+                  <Button
+                    size='sm'
+                    onClick={handleGenerate}
+                    disabled={isGenerating || hasUnsavedChanges || !selectedDatasetId}
+                  >
+                    {isGenerating ? (
+                      <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                    ) : (
+                      <Play className='w-4 h-4 mr-2' />
+                    )}
                     Generate Question
                   </Button>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className='pt-4'>
                   {hasUnsavedChanges ? (
-                    <div className="text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-md flex items-center justify-center font-medium border border-amber-200 dark:border-amber-900">
+                    <div className='text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-md flex items-center justify-center font-medium border border-amber-200 dark:border-amber-900'>
                       Save configuration to enable question generation.
                     </div>
                   ) : !generatedQuestion ? (
-                    <div className="text-sm text-gray-500 text-center py-4">Click generate to test the full pipeline and run a live generation.</div>
+                    <div className='text-sm text-gray-500 text-center py-4'>
+                      Click generate to test the full pipeline and run a live generation.
+                    </div>
                   ) : (
-                    <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className='space-y-4 text-sm text-gray-700 dark:text-gray-300'>
                       {generatedQuestion.question && (
                         <div>
-                          <span className="font-semibold block mb-1 text-emerald-700 dark:text-emerald-400">Generated Question:</span>
-                          <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded border border-emerald-200 dark:border-emerald-900 whitespace-pre-wrap">
-                            <h3 className="font-bold text-base mb-2">{generatedQuestion.question.questionText}</h3>
-                            {generatedQuestion.question.options && generatedQuestion.question.options.length > 0 && (
-                              <ul className="list-disc pl-5 mt-2 space-y-1">
-                                {generatedQuestion.question.options.map((opt: string, idx: number) => (
-                                  <li key={idx} className={generatedQuestion.question.correctAnswer === opt ? "font-bold text-emerald-600 dark:text-emerald-400" : ""}>{opt}</li>
-                                ))}
-                              </ul>
-                            )}
-                            <div className="mt-4 text-xs text-gray-500 border-t border-emerald-100 dark:border-emerald-900/50 pt-2">
+                          <span className='font-semibold block mb-1 text-emerald-700 dark:text-emerald-400'>
+                            Generated Question:
+                          </span>
+                          <div className='p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded border border-emerald-200 dark:border-emerald-900 whitespace-pre-wrap'>
+                            <h3 className='font-bold text-base mb-2'>
+                              {generatedQuestion.question.questionText}
+                            </h3>
+                            {generatedQuestion.question.options &&
+                              generatedQuestion.question.options.length > 0 && (
+                                <ul className='list-disc pl-5 mt-2 space-y-1'>
+                                  {generatedQuestion.question.options.map(
+                                    (opt: string, idx: number) => (
+                                      <li
+                                        key={idx}
+                                        className={
+                                          generatedQuestion.question.correctAnswer === opt
+                                            ? 'font-bold text-emerald-600 dark:text-emerald-400'
+                                            : ''
+                                        }
+                                      >
+                                        {opt}
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              )}
+                            <div className='mt-4 text-xs text-gray-500 border-t border-emerald-100 dark:border-emerald-900/50 pt-2'>
                               Explanation: {generatedQuestion.question.explanation}
                             </div>
                           </div>
                         </div>
                       )}
-                      
+
                       {generatedQuestion.validationReport && (
-                        <div className="mt-6 border-t pt-4">
-                          <span className="font-semibold block mb-2">Validation Report</span>
-                          <div className={`p-3 rounded border text-xs flex gap-4 items-start ${generatedQuestion.validationReport.valid ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/30 dark:border-green-900/50' : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50'}`}>
-                            <div className="flex-1">
+                        <div className='mt-6 border-t pt-4'>
+                          <span className='font-semibold block mb-2'>Validation Report</span>
+                          <div
+                            className={`p-3 rounded border text-xs flex gap-4 items-start ${generatedQuestion.validationReport.valid ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/30 dark:border-green-900/50' : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950/30 dark:border-red-900/50'}`}
+                          >
+                            <div className='flex-1'>
                               <strong>Errors:</strong>
                               {generatedQuestion.validationReport.errors?.length ? (
-                                <ul className="list-disc pl-4 mt-1">
-                                  {generatedQuestion.validationReport.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}
+                                <ul className='list-disc pl-4 mt-1'>
+                                  {generatedQuestion.validationReport.errors.map(
+                                    (e: string, i: number) => (
+                                      <li key={i}>{e}</li>
+                                    ),
+                                  )}
                                 </ul>
-                              ) : <span className="ml-2">None</span>}
+                              ) : (
+                                <span className='ml-2'>None</span>
+                              )}
                             </div>
-                            <div className="flex-1 border-l pl-4 border-black/10 dark:border-white/10">
+                            <div className='flex-1 border-l pl-4 border-black/10 dark:border-white/10'>
                               <strong>Warnings:</strong>
                               {generatedQuestion.validationReport.warnings?.length ? (
-                                <ul className="list-disc pl-4 mt-1">
-                                  {generatedQuestion.validationReport.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
+                                <ul className='list-disc pl-4 mt-1'>
+                                  {generatedQuestion.validationReport.warnings.map(
+                                    (w: string, i: number) => (
+                                      <li key={i}>{w}</li>
+                                    ),
+                                  )}
                                 </ul>
-                              ) : <span className="ml-2">None</span>}
+                              ) : (
+                                <span className='ml-2'>None</span>
+                              )}
                             </div>
                           </div>
                         </div>

@@ -73,7 +73,8 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
           conceptName: concept.name || concept.conceptName || '',
           conceptCode: concept.code || concept.conceptCode || '',
           description: concept.description || '',
-          questionSource: (concept.questionSources?.[0] as 'VARIABLE_TEMPLATE' | 'MANUAL') || 'VARIABLE_TEMPLATE',
+          questionSource:
+            (concept.questionSources?.[0] as 'VARIABLE_TEMPLATE' | 'MANUAL') || 'VARIABLE_TEMPLATE',
         });
       } else {
         reset({
@@ -181,11 +182,15 @@ export function ConceptFormModal({ isOpen, onClose, topicId, concept }: ConceptF
                 >
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='VARIABLE_TEMPLATE' id='r1' />
-                    <Label htmlFor='r1' className='font-normal cursor-pointer'>Variable Template</Label>
+                    <Label htmlFor='r1' className='font-normal cursor-pointer'>
+                      Variable Template
+                    </Label>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='MANUAL' id='r2' />
-                    <Label htmlFor='r2' className='font-normal cursor-pointer'>Manual Questions</Label>
+                    <Label htmlFor='r2' className='font-normal cursor-pointer'>
+                      Manual Questions
+                    </Label>
                   </div>
                 </RadioGroup>
               )}

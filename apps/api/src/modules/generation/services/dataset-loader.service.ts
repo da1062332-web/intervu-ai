@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
@@ -13,7 +17,15 @@ export class DatasetLoaderService {
     difficultyLevel: string;
     conceptKey: string;
     datasetConfig?: any;
-  }): Promise<{ id: string; content: string; metadata: any; questionText?: string; options?: string[]; answer?: string; explanation?: string }> {
+  }): Promise<{
+    id: string;
+    content: string;
+    metadata: any;
+    questionText?: string;
+    options?: string[];
+    answer?: string;
+    explanation?: string;
+  }> {
     // 1. Fetch relational configuration
     const config = await this.prismaService.templateDatasetConfig.findUnique({
       where: { templateId: template.id },
@@ -80,7 +92,9 @@ export class DatasetLoaderService {
         };
       }
       if (fallbackPolicy === "FAIL" || fallbackPolicy === "THROW_ERROR") {
-        throw new NotFoundException(`Specific dataset item "${specificItemId}" not found.`);
+        throw new NotFoundException(
+          `Specific dataset item "${specificItemId}" not found.`,
+        );
       }
     }
 
@@ -89,7 +103,9 @@ export class DatasetLoaderService {
       datasetId: dataset.id,
     };
 
-    const targetDifficulty = (difficultyOverride || template.difficultyLevel)?.toUpperCase();
+    const targetDifficulty = (
+      difficultyOverride || template.difficultyLevel
+    )?.toUpperCase();
     if (targetDifficulty) {
       queryConditions.difficulty = targetDifficulty;
     }
@@ -124,7 +140,9 @@ export class DatasetLoaderService {
     }
 
     if (items.length === 0) {
-      throw new NotFoundException(`No items found in dataset "${dataset.name}"`);
+      throw new NotFoundException(
+        `No items found in dataset "${dataset.name}"`,
+      );
     }
 
     // 4. Record Reuse Filter
@@ -140,7 +158,9 @@ export class DatasetLoaderService {
           .filter(Boolean),
       );
 
-      const unusedCandidates = candidates.filter((item) => !usedIds.has(item.id));
+      const unusedCandidates = candidates.filter(
+        (item) => !usedIds.has(item.id),
+      );
       if (unusedCandidates.length > 0) {
         candidates = unusedCandidates;
       }
@@ -158,7 +178,10 @@ export class DatasetLoaderService {
         orderBy: { createdAt: "desc" },
       });
 
-      const lastUsedId = generated.length > 0 ? (generated[0].metadata as any)?.datasetItem?.id : null;
+      const lastUsedId =
+        generated.length > 0
+          ? (generated[0].metadata as any)?.datasetItem?.id
+          : null;
       let nextIndex = 0;
 
       if (lastUsedId) {

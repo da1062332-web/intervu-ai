@@ -46,8 +46,8 @@ describe("RuleFlagsService", () => {
       expect(result.examConfigId).toBe("config-1");
       expect(result.sectionalCutoffEnabled).toBe(false);
       expect(result.allowSectionNavigation).toBe(false);
-      expect(result.candidateNoRepeatEnabled).toBe(false);
-      expect(result.runtimeGenerationOnDeficit).toBe(false);
+      expect((result as any).candidateNoRepeatEnabled).toBe(false);
+      expect((result as any).runtimeGenerationOnDeficit).toBe(false);
     });
 
     it("should return found rule flags", async () => {
@@ -61,15 +61,15 @@ describe("RuleFlagsService", () => {
         runtimeGenerationOnDeficit: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as import("@prisma/client").RuleFlags;
+      } as any as import("@prisma/client").RuleFlags;
       repository.findByConfigId.mockResolvedValue(mockFlags);
 
       const result = await service.getRuleFlags("config-1");
 
       expect(result.sectionalCutoffEnabled).toBe(true);
       expect(result.allowSectionNavigation).toBe(false);
-      expect(result.candidateNoRepeatEnabled).toBe(true);
-      expect(result.runtimeGenerationOnDeficit).toBe(true);
+      expect((result as any).candidateNoRepeatEnabled).toBe(true);
+      expect((result as any).runtimeGenerationOnDeficit).toBe(true);
     });
   });
 

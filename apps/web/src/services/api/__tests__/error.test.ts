@@ -28,6 +28,8 @@ describe('normalizeApiError', () => {
 
     expect(normalized.category).toBe('FORMULA_ERROR');
     expect(normalized.reason).toBe("Unknown variable 'clild_age'");
-    expect((normalized.details as any)?.context?.formula).toBe('parent_age = clild_age + parent_age_difference');
+    expect((normalized.details as any)?.context?.formula).toBe(
+      'parent_age = clild_age + parent_age_difference',
+    );
   });
 });

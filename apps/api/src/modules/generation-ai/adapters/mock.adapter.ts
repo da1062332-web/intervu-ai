@@ -14,20 +14,47 @@ export class MockAdapter implements LLMAdapter {
 
     if (prompt.includes("expert AI assessment evaluator")) {
       return JSON.stringify({
-        summary: "This is an AI generated summary of the candidate's performance, highlighting key areas of excellence and opportunities for growth.",
+        summary:
+          "This is an AI generated summary of the candidate's performance, highlighting key areas of excellence and opportunities for growth.",
         practiceHours: 15,
         strengths: [
-          { title: "Strong Conceptual Foundation", detail: "Demonstrated excellent understanding of core concepts with high accuracy." },
-          { title: "Fast Problem Solving", detail: "Maintained a strong pace throughout the assessment without sacrificing correctness." }
+          {
+            title: "Strong Conceptual Foundation",
+            detail:
+              "Demonstrated excellent understanding of core concepts with high accuracy.",
+          },
+          {
+            title: "Fast Problem Solving",
+            detail:
+              "Maintained a strong pace throughout the assessment without sacrificing correctness.",
+          },
         ],
         weaknesses: [
-          { title: "Advanced Topics", detail: "Struggled with high-difficulty questions in specific technical areas." },
-          { title: "Time Management", detail: "Spent too much time on a few complex questions, affecting overall pacing." }
+          {
+            title: "Advanced Topics",
+            detail:
+              "Struggled with high-difficulty questions in specific technical areas.",
+          },
+          {
+            title: "Time Management",
+            detail:
+              "Spent too much time on a few complex questions, affecting overall pacing.",
+          },
         ],
         recommendations: [
-          { priority: "HIGH", title: "Targeted Drills", action: "Practice advanced difficulty questions in weak areas daily." },
-          { priority: "MEDIUM", title: "Mock Tests", action: "Take timed mock tests to improve pacing and time management." }
-        ]
+          {
+            priority: "HIGH",
+            title: "Targeted Drills",
+            action:
+              "Practice advanced difficulty questions in weak areas daily.",
+          },
+          {
+            priority: "MEDIUM",
+            title: "Mock Tests",
+            action:
+              "Take timed mock tests to improve pacing and time management.",
+          },
+        ],
       });
     }
 

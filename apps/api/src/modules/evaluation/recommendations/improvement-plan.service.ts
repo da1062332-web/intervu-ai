@@ -129,7 +129,8 @@ Ensure the output is ONLY valid JSON. Do not include markdown tags like \`\`\`js
       "LLM plans generation completely failed. Falling back to rule-based plans.",
       {
         attemptId,
-        error: lastError instanceof Error ? lastError.message : String(lastError),
+        error:
+          lastError instanceof Error ? lastError.message : String(lastError),
       },
     );
 
@@ -168,7 +169,10 @@ Ensure the output is ONLY valid JSON. Do not include markdown tags like \`\`\`js
       });
     } catch (error) {
       if (retryCount < 2) {
-        this.logger.warn("Database connection error during savePlans, retrying...", { attemptId, retryCount });
+        this.logger.warn(
+          "Database connection error during savePlans, retrying...",
+          { attemptId, retryCount },
+        );
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return this.savePlans(attemptId, plans, retryCount + 1);
       }

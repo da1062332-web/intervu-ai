@@ -69,9 +69,28 @@ export class GenerationQueueProcessor {
         throw err;
       }
 
+      try {
+        await this.prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: "RUNNING",
+            attemptsMade: job.attemptsMade,
+            maxAttempts: job.opts.attempts,
+          },
+        });
+      } catch (jobStatusError) {
+        this.logger.warn("Failed to update GenerationJob to RUNNING", {
+          error: String(jobStatusError),
+          jobId: job.id,
+        });
+      }
+
       // Map API payload difficulty to worker expected enum
-      let difficulty: "beginner" | "intermediate" | "advanced" | "expert" = "intermediate";
-      const incomingDiff = (parsedPayload.payload.difficulty || "").toUpperCase();
+      let difficulty: "beginner" | "intermediate" | "advanced" | "expert" =
+        "intermediate";
+      const incomingDiff = (
+        parsedPayload.payload.difficulty || ""
+      ).toUpperCase();
       if (incomingDiff === "EASY") {
         difficulty = "beginner";
       } else if (incomingDiff === "MEDIUM") {
@@ -97,9 +116,7 @@ export class GenerationQueueProcessor {
 
       // Persist to Database (wrapped in try/catch to gracefully handle missing Test record)
       const testId = parsedPayload.payload.assemblyId || "test_123";
-      this.logger.info(
-        `Persisting generated questions for testId: ${testId}`,
-      );
+      this.logger.info(`Persisting generated questions for testId: ${testId}`);
       try {
         await this.prisma.test.update({
           where: { id: testId },
@@ -114,6 +131,26 @@ export class GenerationQueueProcessor {
       } catch (dbErr) {
         this.logger.warn(
           `Failed to persist generated questions for testId: ${testId} (record not found). Continuing as success.`,
+        );
+        throw dbErr;
+      }
+
+      try {
+        await this.prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: "COMPLETED",
+            result: aiResponse as Prisma.InputJsonValue,
+            attemptsMade: job.attemptsMade,
+          },
+        });
+      } catch (jobStatusError) {
+        this.logger.warn(
+          "Failed to update GenerationJob to COMPLETED; reconciliation required",
+          {
+            error: jobStatusError instanceof Error ? jobStatusError.message : String(jobStatusError),
+            jobId: job.id,
+          },
         );
       }
 
@@ -137,6 +174,25 @@ export class GenerationQueueProcessor {
         maxAttempts: job.opts.attempts,
         duration,
       });
+
+      try {
+        await this.prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: "FAILED",
+            error: error instanceof Error ? error.message : String(error),
+            attemptsMade: job.attemptsMade,
+          },
+        });
+      } catch (jobStatusError) {
+        this.logger.warn(
+          "Failed to update GenerationJob to FAILED; reconciliation required",
+          {
+            error: jobStatusError instanceof Error ? jobStatusError.message : String(jobStatusError),
+            jobId: job.id,
+          },
+        );
+      }
 
       throw error;
     }

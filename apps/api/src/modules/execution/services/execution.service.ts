@@ -4,7 +4,12 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { TestInstanceRepository } from "../repositories";
 import { ExecutionValidatorService } from "./execution-validator.service";
 
-export type SectionStatus = "UPCOMING" | "ACTIVE" | "COMPLETED" | "EXPIRED" | "LOCKED";
+export type SectionStatus =
+  | "UPCOMING"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "EXPIRED"
+  | "LOCKED";
 
 export interface SectionSnapshot {
   sectionId: string;
@@ -74,14 +79,16 @@ export class ExecutionService {
         where: { id: (testInstance as any).examConfigId },
         include: { ruleFlags: true },
       });
-      sectionTimingEnabled = examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
+      sectionTimingEnabled =
+        examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
     }
 
     // 5. Load execution state for current section index
     const executionState = await this.prisma.executionState.findUnique({
       where: { testInstanceId },
     });
-    const currentSectionIndex = (executionState as any)?.currentSectionIndex ?? 0;
+    const currentSectionIndex =
+      (executionState as any)?.currentSectionIndex ?? 0;
     const currentQuestionIndex = executionState?.currentQuestionIndex ?? 0;
 
     // 5a. Fetch templates to dynamically inject stem and instructions if toggled on
@@ -106,7 +113,14 @@ export class ExecutionService {
     if (questionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
         where: { id: { in: Array.from(questionIds) } },
-        select: { id: true, templateId: true, mcqData: true, metadata: true, questionStatement: true, instructions: true },
+        select: {
+          id: true,
+          templateId: true,
+          mcqData: true,
+          metadata: true,
+          questionStatement: true,
+          instructions: true,
+        },
       });
       for (const q of dbQuestions) {
         if (q.templateId) {
@@ -116,7 +130,10 @@ export class ExecutionService {
         if (q.mcqData) {
           questionMcqDataMap.set(q.id, q.mcqData);
         }
-        questionMetaMap.set(q.id, { questionStatement: q.questionStatement, instructions: q.instructions });
+        questionMetaMap.set(q.id, {
+          questionStatement: q.questionStatement,
+          instructions: q.instructions,
+        });
       }
     }
 
@@ -157,11 +174,13 @@ export class ExecutionService {
           startedAt: section.startedAt ? section.startedAt.toISOString() : null,
           questions: section.questions.map((q) => {
             const rawSnapshot = (q.questionSnapshot || {}) as any;
-            const { correctAnswer, solution, ...candidateSafeSnapshot } = rawSnapshot;
+            const { correctAnswer, solution, ...candidateSafeSnapshot } =
+              rawSnapshot;
 
             // Enrich options from mcqData if snapshot has incomplete/missing options (< 4)
             const snapshotOptions = candidateSafeSnapshot.options;
-            const hasFullOptions = Array.isArray(snapshotOptions) && snapshotOptions.length >= 4;
+            const hasFullOptions =
+              Array.isArray(snapshotOptions) && snapshotOptions.length >= 4;
             if (!hasFullOptions && questionMcqDataMap.has(q.questionId)) {
               const mcqData = questionMcqDataMap.get(q.questionId) as any;
               const mcqOptions = mcqData?.options;
@@ -171,13 +190,20 @@ export class ExecutionService {
             }
 
             // Enrich questionStatement and instructions from Question table if missing
-            if (!candidateSafeSnapshot.questionStatement && questionMetaMap.has(q.questionId)) {
+            if (
+              !candidateSafeSnapshot.questionStatement &&
+              questionMetaMap.has(q.questionId)
+            ) {
               const meta = questionMetaMap.get(q.questionId);
-              if (meta?.questionStatement) candidateSafeSnapshot.questionStatement = meta.questionStatement;
-              if (meta?.instructions) candidateSafeSnapshot.instructions = meta.instructions;
+              if (meta?.questionStatement)
+                candidateSafeSnapshot.questionStatement =
+                  meta.questionStatement;
+              if (meta?.instructions)
+                candidateSafeSnapshot.instructions = meta.instructions;
             }
 
-            const templateId = rawSnapshot.templateId || questionTemplateMap.get(q.questionId);
+            const templateId =
+              rawSnapshot.templateId || questionTemplateMap.get(q.questionId);
             if (templateId && templateMap.has(templateId)) {
               const structure = templateMap.get(templateId) as any;
               if (structure && structure.questionTemplate) {
@@ -218,13 +244,22 @@ export class ExecutionService {
       currentQuestionIndex,
       serverTime: new Date().toISOString(),
       candidateName: snapshot.user?.name || snapshot.user?.email || "Candidate",
-      assessmentName: snapshot.examConfig?.name || snapshot.testConfig?.name || "Candidate Assessment",
+      assessmentName:
+        snapshot.examConfig?.name ||
+        snapshot.testConfig?.name ||
+        "Candidate Assessment",
       sections: sectionsWithStatus,
     };
   }
 
   private _normalizeSectionStatus(raw: string): SectionStatus {
-    const valid: SectionStatus[] = ["UPCOMING", "ACTIVE", "COMPLETED", "EXPIRED", "LOCKED"];
+    const valid: SectionStatus[] = [
+      "UPCOMING",
+      "ACTIVE",
+      "COMPLETED",
+      "EXPIRED",
+      "LOCKED",
+    ];
     const upper = raw.toUpperCase() as SectionStatus;
     return valid.includes(upper) ? upper : "UPCOMING";
   }

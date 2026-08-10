@@ -21,6 +21,8 @@ import {
   GitBranch,
   Users,
   Activity,
+  Code2,
+  Cpu,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -49,6 +51,8 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Topics', route: '/admin/topics', icon: BookOpen },
         { label: 'Templates', route: '/admin/templates', icon: FileText },
+        { label: 'Coding Patterns', route: '/admin/coding-patterns', icon: Code2 },
+        { label: 'Oracle Library', route: '/admin/coding-oracles', icon: Cpu },
         { label: 'Manual Questions', route: '/admin/manual-questions', icon: FileText },
         { label: 'Datasets', route: '/admin/datasets', icon: Database },
       ],
@@ -109,7 +113,6 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
   ],
   secondary: [{ label: 'Settings', route: '/candidate/settings', icon: Settings }],
 };
-
 
 export const NAV_CONFIG = ADMIN_NAV_CONFIG; // For backwards compatibility if any other place imports it
 

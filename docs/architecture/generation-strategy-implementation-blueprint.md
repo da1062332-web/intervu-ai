@@ -31,6 +31,7 @@ The following decisions are now confirmed for the first implementation:
 Build a structured, deterministic generation strategy system for template authoring that improves the current variable and constraint experience while remaining compatible with the existing project architecture.
 
 The outcome should be:
+
 - easier authoring for complex formula-based questions
 - stronger validation before generation
 - better support for derived variables and constraints
@@ -42,6 +43,7 @@ The outcome should be:
 ## 3. Scope for Version 1
 
 ### In scope
+
 - Structured variable definition
 - Derived variable support through formulas
 - Constraint definition using deterministic rules
@@ -51,6 +53,7 @@ The outcome should be:
 - A dedicated UI editor that fits the current admin template experience
 
 ### Out of scope for version 1
+
 - Full AI-driven generation
 - General-purpose symbolic logic engine
 - Fully automatic natural-language question drafting
@@ -136,53 +139,68 @@ This preserves the correct boundary: the engine computes, the AI expresses.
 ## 6. Implementation Phases
 
 ### Phase 1 — Compatibility and contract foundation
+
 Objectives:
+
 - Introduce the richer generation strategy payload structure
 - Keep old template formats working
 - Ensure new data can be saved and retrieved safely
 
 Deliverables:
+
 - DTO and validation updates
 - template service updates to support both legacy and new payload shapes
 - backward-compatible parsing and normalization
 
 ### Phase 2 — Deterministic generation engine upgrade
+
 Objectives:
+
 - Support derived variables and formula-based dependencies
 - Evaluate constraints in a structured way
 - Add validation rules before accepting generated values
 
 Deliverables:
+
 - updates in the parameter generation service
 - updates in the variable generation strategy
 - improved reliability for arithmetic/formula-based templates
 
 ### Phase 3 — Dedicated UI editor
+
 Objectives:
+
 - Replace the current simplistic variable and constraint editing experience with a more structured generation strategy experience
 - Keep the experience consistent with the current admin UI design system
 
 Deliverables:
+
 - enriched variable builder section
 - enriched constraint builder section
 - unified editor flow for the variable strategy module
 - consistent styling and interaction patterns
 
 ### Phase 4 — Preview and validation experience
+
 Objectives:
+
 - Make it easy for authors to preview generated values and spot invalid configurations
 - Improve template author confidence before publishing
 
 Deliverables:
+
 - preview improvements
 - validation warnings and errors
 - clearer author guidance in the UI
 
 ### Phase 5 — Optional AI-assisted drafting layer
+
 Objectives:
+
 - Add AI assistance later, after the deterministic core is stable
 
 Deliverables:
+
 - optional drafting support
 - explanation enhancement
 - wording refinement without replacing the engine
@@ -192,9 +210,11 @@ Deliverables:
 ## 7. Frontend Implementation Plan
 
 ### UI structure
+
 The template editor should remain in the existing admin template flow, but the variable-related sections should be expanded into a more dedicated “Generation Strategy” experience.
 
 Recommended structure:
+
 - Basic Information
 - Question Definition
 - Generation Strategy
@@ -203,7 +223,9 @@ Recommended structure:
 - Preview
 
 ### UI behavior
+
 The Generation Strategy section should include:
+
 - Variables
 - Derived Variables
 - Constraints
@@ -211,12 +233,14 @@ The Generation Strategy section should include:
 - Quality Rules
 
 The styling should follow the current project UI conventions:
+
 - card-based layout
 - table-based variable listing
 - modal-based create/edit flows
 - consistent spacing, typography, and action patterns
 
 ### Design requirement
+
 The new editor must look and behave like a natural extension of the existing template-building experience, not like a completely separate feature.
 
 ---
@@ -224,6 +248,7 @@ The new editor must look and behave like a natural extension of the existing tem
 ## 8. Backend Implementation Plan
 
 ### Core files to update
+
 - template DTOs
 - template service
 - parameter generation service
@@ -231,6 +256,7 @@ The new editor must look and behave like a natural extension of the existing tem
 - preview and validation flow
 
 ### Backend responsibilities
+
 - normalize incoming template strategy payloads
 - validate structure and dependencies
 - generate values deterministically
@@ -242,6 +268,7 @@ The new editor must look and behave like a natural extension of the existing tem
 ## 9. Backward Compatibility Strategy
 
 Version 1 should support both:
+
 - legacy template payloads
 - new generation strategy payloads
 
@@ -254,19 +281,27 @@ This is important because it reduces migration risk and avoids breaking existing
 ## 10. Risk Management
 
 ### Risk 1 — Over-scoping the first version
+
 Mitigation:
+
 - keep version 1 focused on arithmetic/formula-based templates and deterministic authoring
 
 ### Risk 2 — UI drift from existing patterns
+
 Mitigation:
+
 - reuse the existing section layout, styling, and interaction patterns
 
 ### Risk 3 — Breaking old templates
+
 Mitigation:
+
 - implement backward compatibility from day one
 
 ### Risk 4 — Making AI part of the core engine too early
+
 Mitigation:
+
 - keep AI as an optional later layer and preserve deterministic execution as the default path
 
 ---
@@ -274,6 +309,7 @@ Mitigation:
 ## 11. Acceptance Criteria
 
 The implementation is considered successful when:
+
 - authors can define variables and constraints in a more structured way
 - arithmetic/formula-based templates generate deterministically
 - constraints and validation rules are enforced before generation
@@ -297,6 +333,7 @@ The implementation is considered successful when:
 ## 13. Final Recommendation
 
 Proceed with a version 1 that is:
+
 - deterministic
 - manual
 - formula-oriented

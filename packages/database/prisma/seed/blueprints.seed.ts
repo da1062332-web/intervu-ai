@@ -28,7 +28,7 @@ export async function seedBlueprints(prisma: PrismaClient) {
 
   // 2. Create ExamConfig & Sections
   await prisma.examConfig.deleteMany({ where: { code: "TCS_NQT_EXAM" } });
-  
+
   const examConfig = await prisma.examConfig.create({
     data: {
       name: "TCS NQT Exam",
@@ -41,7 +41,7 @@ export async function seedBlueprints(prisma: PrismaClient) {
           easyPercentage: 30,
           mediumPercentage: 50,
           hardPercentage: 20,
-        }
+        },
       },
       sections: {
         create: [
@@ -55,10 +55,10 @@ export async function seedBlueprints(prisma: PrismaClient) {
               create: [
                 {
                   topic: { connect: { id: topicAptitude.id } },
-                  topicWeightage: { create: { weightagePercentage: 100 } }
-                }
-              ]
-            }
+                  topicWeightage: { create: { weightagePercentage: 100 } },
+                },
+              ],
+            },
           },
           {
             name: "Reasoning",
@@ -70,21 +70,25 @@ export async function seedBlueprints(prisma: PrismaClient) {
               create: [
                 {
                   topic: { connect: { id: topicReasoning.id } },
-                  topicWeightage: { create: { weightagePercentage: 100 } }
-                }
-              ]
-            }
-          }
-        ]
-      }
+                  topicWeightage: { create: { weightagePercentage: 100 } },
+                },
+              ],
+            },
+          },
+        ],
+      },
     },
     include: {
-      sections: true
-    }
+      sections: true,
+    },
   });
 
-  const secAptitude = examConfig.sections.find(s => s.code === "TCS_NQT_SEC_APT")!;
-  const secReasoning = examConfig.sections.find(s => s.code === "TCS_NQT_SEC_REA")!;
+  const secAptitude = examConfig.sections.find(
+    (s) => s.code === "TCS_NQT_SEC_APT",
+  )!;
+  const secReasoning = examConfig.sections.find(
+    (s) => s.code === "TCS_NQT_SEC_REA",
+  )!;
 
   // 3. Create BlueprintConfig & BlueprintTopicConfig
   await prisma.blueprintConfig.deleteMany({ where: { code: "BP_TCS_NQT" } });
@@ -115,10 +119,10 @@ export async function seedBlueprints(prisma: PrismaClient) {
             easyCount: 6,
             mediumCount: 10,
             hardCount: 4,
-          }
-        ]
-      }
-    }
+          },
+        ],
+      },
+    },
   });
 
   console.log("Seeded Blueprint Config successfully: " + blueprint.code);

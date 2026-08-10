@@ -39,7 +39,12 @@ export class QuestionRepository {
 
     if (!topicId && (assembled.metadata as any)?.conceptKey) {
       const concept = await this.prisma.concept.findFirst({
-        where: { code: { equals: (assembled.metadata as any).conceptKey, mode: "insensitive" } },
+        where: {
+          code: {
+            equals: (assembled.metadata as any).conceptKey,
+            mode: "insensitive",
+          },
+        },
       });
       if (concept?.topicId) {
         topicId = concept.topicId;
@@ -48,7 +53,7 @@ export class QuestionRepository {
 
     if (!topicId) {
       throw new Error(
-        `Cannot save assembled question: No valid topicId could be resolved for template ${assembled.templateId}`
+        `Cannot save assembled question: No valid topicId could be resolved for template ${assembled.templateId}`,
       );
     }
 

@@ -1,7 +1,8 @@
 const fs = require('fs');
 
 // A 1x1 transparent PNG base64
-const iconBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
+const iconBase64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==';
 
 // Write it to app/icon.png
 const buffer = Buffer.from(iconBase64, 'base64');

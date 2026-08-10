@@ -79,7 +79,7 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
             View Result
           </Link>
           <button
-            type="button"
+            type='button'
             className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-3.5 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
             onClick={handleDownload}
             disabled={downloading}
@@ -103,7 +103,12 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
           <Play className='size-3.5 fill-current' /> Resume
         </Link>
       ) : (
-        <Button size='sm' variant='ghost' disabled className='h-9 px-4 text-xs font-semibold opacity-50 rounded-[14px]'>
+        <Button
+          size='sm'
+          variant='ghost'
+          disabled
+          className='h-9 px-4 text-xs font-semibold opacity-50 rounded-[14px]'
+        >
           Pending
         </Button>
       )}
@@ -228,7 +233,7 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
             Attempt History
           </h3>
           <button
-            type="button"
+            type='button'
             className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
             onClick={() => router.push('/candidate/results')}
           >
@@ -239,17 +244,26 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
         <div className='rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs space-y-6 flex-1 flex flex-col justify-between'>
           {processedAttempts.map((row, index) => {
             const isCompleted = row.status === 'COMPLETED' || row.status === 'SUBMITTED';
-            const iconBg = row.status === 'IN_PROGRESS'
-              ? 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800 border-border/40'
-              : (row.score && row.score >= 90) ? 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/60' : 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-200/60';
+            const iconBg =
+              row.status === 'IN_PROGRESS'
+                ? 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800 border-border/40'
+                : row.score && row.score >= 90
+                  ? 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/60'
+                  : 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-200/60';
 
             return (
               <div
                 key={row.instanceId}
                 className={`flex items-start gap-4 pb-5 ${index !== processedAttempts.length - 1 ? 'border-b border-border/40' : ''}`}
               >
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border mt-0.5 font-bold shadow-2xs ${iconBg}`}>
-                  {row.status === 'IN_PROGRESS' ? <Pause className='size-4' /> : <Check className='size-5' />}
+                <div
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border mt-0.5 font-bold shadow-2xs ${iconBg}`}
+                >
+                  {row.status === 'IN_PROGRESS' ? (
+                    <Pause className='size-4' />
+                  ) : (
+                    <Check className='size-5' />
+                  )}
                 </div>
 
                 <div className='min-w-0 flex-1 space-y-2'>
@@ -262,12 +276,17 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
                         {row.score}%
                       </span>
                     ) : (
-                      <span className='text-muted-foreground font-semibold text-xs sm:text-sm shrink-0'>--</span>
+                      <span className='text-muted-foreground font-semibold text-xs sm:text-sm shrink-0'>
+                        --
+                      </span>
                     )}
                   </div>
 
                   <p className='text-xs text-muted-foreground font-normal leading-normal line-clamp-1'>
-                    {row.subtitle || (isCompleted ? `Completed on ${format(new Date(row.date), 'MMM d, yyyy')}` : 'Evaluation in progress')}
+                    {row.subtitle ||
+                      (isCompleted
+                        ? `Completed on ${format(new Date(row.date), 'MMM d, yyyy')}`
+                        : 'Evaluation in progress')}
                   </p>
 
                   <div className='flex items-center justify-between flex-wrap gap-3 pt-1'>
@@ -302,7 +321,9 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
           Assessment <ArrowUpDown className='size-3 opacity-50' />
         </div>
       ),
-      cell: (row) => <span className='font-bold text-sm text-foreground'>{row.assessmentName}</span>,
+      cell: (row) => (
+        <span className='font-bold text-sm text-foreground'>{row.assessmentName}</span>
+      ),
     },
     {
       id: 'date',
@@ -374,9 +395,12 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
     <Card className='rounded-[24px] border border-border/60 shadow-2xs bg-card overflow-hidden'>
       <CardHeader className='p-6 sm:p-8 border-b border-border/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
         <div>
-          <CardTitle className='text-xl font-bold text-foreground'>Attempt Records & Reports</CardTitle>
+          <CardTitle className='text-xl font-bold text-foreground'>
+            Attempt Records & Reports
+          </CardTitle>
           <CardDescription className='text-xs text-muted-foreground font-medium mt-1'>
-            Detailed overview of all past evaluations, scoring breakdown, and downloadable certificates
+            Detailed overview of all past evaluations, scoring breakdown, and downloadable
+            certificates
           </CardDescription>
         </div>
       </CardHeader>

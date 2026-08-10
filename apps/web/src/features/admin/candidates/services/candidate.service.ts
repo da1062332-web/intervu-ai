@@ -30,7 +30,10 @@ export const adminCandidateService = {
     });
   },
 
-  getCandidateTests(id: string, params: CandidateTestHistoryParams = {}): Promise<CandidateTestHistoryResponse> {
+  getCandidateTests(
+    id: string,
+    params: CandidateTestHistoryParams = {},
+  ): Promise<CandidateTestHistoryResponse> {
     return apiClient.request<CandidateTestHistoryResponse>(`${ADMIN_CANDIDATES_PATH}/${id}/tests`, {
       method: 'GET',
       query: params as any,

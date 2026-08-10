@@ -27,7 +27,8 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
           <div>
             <h3 className='font-bold text-gray-900 mb-2 underline'>1. Question Palette Legend</h3>
             <p className='mb-3 text-gray-700 text-xs'>
-              The palette displayed on the right side of screen indicates the current status of each question using the following geometric symbols:
+              The palette displayed on the right side of screen indicates the current status of each
+              question using the following geometric symbols:
             </p>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs bg-gray-50 p-3 rounded border border-gray-200'>
               <div className='flex items-center gap-2.5'>
@@ -45,7 +46,9 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                 </span>
                 <div>
                   <span className='font-bold block text-gray-800'>Not Answered</span>
-                  <span className='text-[11px] text-gray-500'>Visited without submitting response.</span>
+                  <span className='text-[11px] text-gray-500'>
+                    Visited without submitting response.
+                  </span>
                 </div>
               </div>
               <div className='flex items-center gap-2.5'>
@@ -63,7 +66,9 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                 </span>
                 <div>
                   <span className='font-bold block text-gray-800'>Not Visited</span>
-                  <span className='text-[11px] text-gray-500'>You have not viewed this question.</span>
+                  <span className='text-[11px] text-gray-500'>
+                    You have not viewed this question.
+                  </span>
                 </div>
               </div>
             </div>
@@ -76,13 +81,18 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
             </h3>
             <ul className='list-disc pl-5 space-y-1 text-xs text-gray-700'>
               <li>
-                To record your selected choice, you must click <span className='font-bold text-gray-900'>Save &amp; Next</span>. Moving to another question directly from the palette without clicking Save will discard unsaved choices.
+                To record your selected choice, you must click{' '}
+                <span className='font-bold text-gray-900'>Save &amp; Next</span>. Moving to another
+                question directly from the palette without clicking Save will discard unsaved
+                choices.
               </li>
               <li>
-                Click <span className='font-bold text-gray-900'>Clear Response</span> to deselect any radio button or option you previously chose for the active question.
+                Click <span className='font-bold text-gray-900'>Clear Response</span> to deselect
+                any radio button or option you previously chose for the active question.
               </li>
               <li>
-                Click <span className='font-bold text-purple-700'>Mark for Review &amp; Next</span> if you remain doubtful and wish to revisit the question before final submission.
+                Click <span className='font-bold text-purple-700'>Mark for Review &amp; Next</span>{' '}
+                if you remain doubtful and wish to revisit the question before final submission.
               </li>
             </ul>
           </div>
@@ -94,10 +104,14 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
             </h3>
             <ul className='list-disc pl-5 space-y-1 text-xs text-gray-700'>
               <li>
-                Sections appear at the top fieldset bar. You can navigate between sections by clicking on the section tabs or utilizing the <span className='font-bold text-gray-900'>Next Section</span> button located at the bottom of the question palette.
+                Sections appear at the top fieldset bar. You can navigate between sections by
+                clicking on the section tabs or utilizing the{' '}
+                <span className='font-bold text-gray-900'>Next Section</span> button located at the
+                bottom of the question palette.
               </li>
               <li>
-                Sections marked with a lock icon cannot be entered until the designated sequence or timing criteria are met.
+                Sections marked with a lock icon cannot be entered until the designated sequence or
+                timing criteria are met.
               </li>
             </ul>
           </div>
@@ -108,7 +122,9 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
               4. Examination Timer &amp; Proctoring
             </h3>
             <p className='text-xs text-gray-700'>
-              The countdown timer located above the question palette indicates the remaining assessment duration. Your camera webcam is actively monitored throughout the duration of the test. Ensure your face remains visible inside the frame at all times.
+              The countdown timer located above the question palette indicates the remaining
+              assessment duration. Your camera webcam is actively monitored throughout the duration
+              of the test. Ensure your face remains visible inside the frame at all times.
             </p>
           </div>
         </div>

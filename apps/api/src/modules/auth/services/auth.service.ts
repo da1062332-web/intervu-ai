@@ -75,10 +75,15 @@ export class AuthService {
     return this.buildAuthResponse(user, meta);
   }
 
-  async loginWithGoogle(dto: GoogleLoginDto, meta?: AuthMeta): Promise<AuthResponse> {
+  async loginWithGoogle(
+    dto: GoogleLoginDto,
+    meta?: AuthMeta,
+  ): Promise<AuthResponse> {
     const clientId = this.configService.googleClientId;
     if (!clientId) {
-      throw new UnauthorizedException("Google login is not configured on the server");
+      throw new UnauthorizedException(
+        "Google login is not configured on the server",
+      );
     }
 
     const client = new OAuth2Client(clientId);

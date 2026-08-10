@@ -24,12 +24,14 @@ export function CandidateEmptyState({
   if (error) {
     return (
       <EmptyState
-        variant="error"
+        variant='error'
         title={title || 'Failed to load candidate data'}
-        description={error.message || 'An unexpected server error occurred while loading candidates.'}
+        description={
+          error.message || 'An unexpected server error occurred while loading candidates.'
+        }
         actionLabel={onRetry ? 'Try Again' : undefined}
         onAction={onRetry}
-        className="my-12 py-12 border rounded-lg bg-muted/20"
+        className='my-12 py-12 border rounded-lg bg-muted/20'
       />
     );
   }
@@ -37,23 +39,26 @@ export function CandidateEmptyState({
   if (isSearchOrFilterActive) {
     return (
       <EmptyState
-        variant="no-results"
-        title="No matching candidates found"
+        variant='no-results'
+        title='No matching candidates found'
         description="We couldn't find any candidates matching your search term or active filters. Try clearing filters."
         actionLabel={onResetFilters ? 'Clear Filters' : undefined}
         onAction={onResetFilters}
-        className="my-12 py-12 border rounded-lg bg-muted/20"
+        className='my-12 py-12 border rounded-lg bg-muted/20'
       />
     );
   }
 
   return (
     <EmptyState
-      variant="no-data"
-      icon={<Users className="w-12 h-12 text-muted-foreground/60" />}
+      variant='no-data'
+      icon={<Users className='w-12 h-12 text-muted-foreground/60' />}
       title={title || 'No candidates enrolled yet'}
-      description={description || 'Candidates will automatically appear here once they register or take assessments.'}
-      className="my-12 py-12 border rounded-lg bg-muted/20"
+      description={
+        description ||
+        'Candidates will automatically appear here once they register or take assessments.'
+      }
+      className='my-12 py-12 border rounded-lg bg-muted/20'
     />
   );
 }

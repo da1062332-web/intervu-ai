@@ -95,13 +95,21 @@ export class ResponseValidatorService {
       answerValue &&
       explanation.toLowerCase().includes(answerValue.toLowerCase());
 
-    if (!((hasConcept && hasFormula && hasSteps && hasFinalAnswer) || minimalExplanationOk)) {
+    if (
+      !(
+        (hasConcept && hasFormula && hasSteps && hasFinalAnswer) ||
+        minimalExplanationOk
+      )
+    ) {
       throw new BadRequestException(
         "Explanation must include Concept, Formula / Reasoning, Step-by-Step Solution, and Final Answer sections",
       );
     }
 
-    if (answerValue && !explanation.toLowerCase().includes(answerValue.toLowerCase())) {
+    if (
+      answerValue &&
+      !explanation.toLowerCase().includes(answerValue.toLowerCase())
+    ) {
       throw new BadRequestException(
         `Explanation alignment check failed: The correct answer "${answerValue}" is not referenced in the explanation body.`,
       );
@@ -152,10 +160,11 @@ export class ResponseValidatorService {
       );
     }
 
-    const strategy = template?.generationStrategy ||
-                     question.metadata?.generationStrategy ||
-                     ((question.metadata?.variables as any)?.generationStrategy) ||
-                     "VARIABLE";
+    const strategy =
+      template?.generationStrategy ||
+      question.metadata?.generationStrategy ||
+      (question.metadata?.variables as any)?.generationStrategy ||
+      "VARIABLE";
 
     switch (strategy.toUpperCase()) {
       case "VARIABLE":
@@ -170,17 +179,23 @@ export class ResponseValidatorService {
     }
   }
 
-  private validateVariableStrategy(question: GeneratedQuestionDto, template?: any): void {
+  private validateVariableStrategy(
+    question: GeneratedQuestionDto,
+    template?: any,
+  ): void {
     // 1. Math/Formula correctness: Ensure the LLM's correct answer matches the pre-calculated one.
     const variables = question.metadata?.variables;
     if (variables) {
-      const computedAnswer = (variables as any).correctAnswer || (variables as any).answer;
+      const computedAnswer =
+        (variables as any).correctAnswer || (variables as any).answer;
       if (computedAnswer !== undefined) {
         const cleanComputed = String(computedAnswer).trim().toLowerCase();
-        const cleanLlmAnswer = String(question.correctAnswer || question.answer).trim().toLowerCase();
+        const cleanLlmAnswer = String(question.correctAnswer || question.answer)
+          .trim()
+          .toLowerCase();
         if (!this.answersMatch(cleanLlmAnswer, cleanComputed)) {
           throw new BadRequestException(
-            `Math validation failed: LLM generated answer "${cleanLlmAnswer}" does not match backend computed answer "${cleanComputed}"`
+            `Math validation failed: LLM generated answer "${cleanLlmAnswer}" does not match backend computed answer "${cleanComputed}"`,
           );
         }
       }
@@ -230,16 +245,23 @@ export class ResponseValidatorService {
     return intersection / union;
   }
 
-  private validateDatasetStrategy(question: GeneratedQuestionDto, template?: any): void {
+  private validateDatasetStrategy(
+    question: GeneratedQuestionDto,
+    template?: any,
+  ): void {
     // 1. Placeholder check
     if (question.question.includes("{{") || question.question.includes("}}")) {
-      throw new BadRequestException("Dataset validation failed: Question text contains raw template placeholders.");
+      throw new BadRequestException(
+        "Dataset validation failed: Question text contains raw template placeholders.",
+      );
     }
 
     // 2. Self-containment check
     const qText = (question.question || "").trim();
     if (qText.length < 30) {
-      throw new BadRequestException("Dataset validation failed: Generated question text is too short to be self-contained.");
+      throw new BadRequestException(
+        "Dataset validation failed: Generated question text is too short to be self-contained.",
+      );
     }
 
     // 3. Uniqueness / Anti-Copying check against original dataset reference item
@@ -249,21 +271,25 @@ export class ResponseValidatorService {
       const similarity = this.calculateJaccardSimilarity(qText, dsContent);
       if (similarity > 0.85) {
         throw new BadRequestException(
-          `Dataset validation failed: Generated question is too similar to the source dataset reference item (similarity: ${similarity.toFixed(2)}). The model must generate a new scenario with different entities, wording, and options.`
+          `Dataset validation failed: Generated question is too similar to the source dataset reference item (similarity: ${similarity.toFixed(2)}). The model must generate a new scenario with different entities, wording, and options.`,
         );
       }
     }
   }
 
-  private validateHybridStrategy(question: GeneratedQuestionDto, template?: any): void {
+  private validateHybridStrategy(
+    question: GeneratedQuestionDto,
+    template?: any,
+  ): void {
     // 3. Hybrid checks: Ensure the question text references all the graph entities to prevent logical hallucination.
-    const logicalGraph = question.metadata?.logicalGraph || (template as any)?.logicalGraph;
+    const logicalGraph =
+      question.metadata?.logicalGraph || (template as any)?.logicalGraph;
     if (logicalGraph && Array.isArray(logicalGraph.entities)) {
       for (const entity of logicalGraph.entities) {
         const entityClean = String(entity).trim();
         if (!question.question.includes(entityClean)) {
           throw new BadRequestException(
-            `Logical reasoning validation failed: Question text does not reference entity "${entityClean}" from the relationship graph.`
+            `Logical reasoning validation failed: Question text does not reference entity "${entityClean}" from the relationship graph.`,
           );
         }
       }

@@ -26,10 +26,12 @@ async function run() {
     });
 
     if (!loginRes.ok) {
-      throw new Error(`Authentication failed with status ${loginRes.status}: ${await loginRes.text()}`);
+      throw new Error(
+        `Authentication failed with status ${loginRes.status}: ${await loginRes.text()}`,
+      );
     }
 
-    const loginData = await loginRes.json() as any;
+    const loginData = (await loginRes.json()) as any;
     token = loginData.data?.accessToken || loginData.accessToken;
     if (!token) {
       throw new Error("Access token not found in login response");
@@ -38,8 +40,8 @@ async function run() {
 
     const authHeaders = {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-      "accept": "*/*"
+      Authorization: `Bearer ${token}`,
+      accept: "*/*",
     };
 
     // 2. Create Topic
@@ -50,38 +52,47 @@ async function run() {
       body: JSON.stringify({
         name: "API Test Topic " + Date.now(),
         code: "api_test_topic_" + Date.now(),
-        description: "Programmatic integration test topic"
+        description: "Programmatic integration test topic",
       }),
     });
 
     if (!topicRes.ok) {
-      throw new Error(`Topic creation failed with status ${topicRes.status}: ${await topicRes.text()}`);
+      throw new Error(
+        `Topic creation failed with status ${topicRes.status}: ${await topicRes.text()}`,
+      );
     }
 
-    const topicData = await topicRes.json() as any;
+    const topicData = (await topicRes.json()) as any;
     topicId = topicData.data?.id || topicData.id;
     console.log(`   Topic created successfully. ID: ${topicId}\n`);
 
     // 3. Create Concept Mapping under Topic
     console.log("3. Creating Concept Mapping...");
-    const conceptRes = await fetch(`${API_BASE}/admin/topics/${topicId}/concepts`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        name: "API Test Concept " + Date.now(),
-        code: "api_test_concept_" + Date.now(),
-        description: "Programmatic integration test concept"
-      }),
-    });
+    const conceptRes = await fetch(
+      `${API_BASE}/admin/topics/${topicId}/concepts`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          name: "API Test Concept " + Date.now(),
+          code: "api_test_concept_" + Date.now(),
+          description: "Programmatic integration test concept",
+        }),
+      },
+    );
 
     if (!conceptRes.ok) {
-      throw new Error(`Concept creation failed with status ${conceptRes.status}: ${await conceptRes.text()}`);
+      throw new Error(
+        `Concept creation failed with status ${conceptRes.status}: ${await conceptRes.text()}`,
+      );
     }
 
-    const conceptData = await conceptRes.json() as any;
+    const conceptData = (await conceptRes.json()) as any;
     conceptId = conceptData.data?.id || conceptData.id;
     const conceptCode = conceptData.data?.code || conceptData.code;
-    console.log(`   Concept created successfully. ID: ${conceptId}, Code: ${conceptCode}\n`);
+    console.log(
+      `   Concept created successfully. ID: ${conceptId}, Code: ${conceptCode}\n`,
+    );
 
     // 4. Create Template (Option B: Variable range inside variableSchema JSON)
     console.log("4. Creating Template (Option B)...");
@@ -95,8 +106,9 @@ async function run() {
         questionType: "multiple_choice",
         generationStrategy: "VARIABLE",
         structure: {
-          questionTemplate: "Programmatic test with max connections: {max_connections}.",
-          optionsTemplate: ["{max_connections}", "200", "500"]
+          questionTemplate:
+            "Programmatic test with max connections: {max_connections}.",
+          optionsTemplate: ["{max_connections}", "200", "500"],
         },
         variableSchema: {
           variables: [
@@ -104,44 +116,51 @@ async function run() {
               name: "max_connections",
               type: "integer",
               min: 10,
-              max: 100
-            }
-          ]
+              max: 100,
+            },
+          ],
         },
         constraints: {
           constraints: [
             {
               rule: "max_connections >= 20",
-              severity: "critical"
-            }
-          ]
+              severity: "critical",
+            },
+          ],
         },
         solutionSchema: {
-          finalAnswer: "max_connections"
-        }
+          finalAnswer: "max_connections",
+        },
       }),
     });
 
     if (!templateRes.ok) {
-      throw new Error(`Template creation failed with status ${templateRes.status}: ${await templateRes.text()}`);
+      throw new Error(
+        `Template creation failed with status ${templateRes.status}: ${await templateRes.text()}`,
+      );
     }
 
-    const templateData = await templateRes.json() as any;
+    const templateData = (await templateRes.json()) as any;
     templateId = templateData.data?.id || templateData.id;
     console.log(`   Template created successfully. ID: ${templateId}\n`);
 
     // 5. Assign Template to Concept
     console.log("5. Assigning Template to Concept...");
-    const assignRes = await fetch(`${API_BASE}/admin/concepts/${conceptId}/templates`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        templateIds: [templateId]
-      }),
-    });
+    const assignRes = await fetch(
+      `${API_BASE}/admin/concepts/${conceptId}/templates`,
+      {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          templateIds: [templateId],
+        }),
+      },
+    );
 
     if (!assignRes.ok) {
-      throw new Error(`Template assignment failed with status ${assignRes.status}: ${await assignRes.text()}`);
+      throw new Error(
+        `Template assignment failed with status ${assignRes.status}: ${await assignRes.text()}`,
+      );
     }
     console.log("   Template assigned successfully.\n");
 
@@ -151,22 +170,23 @@ async function run() {
       method: "POST",
       headers: authHeaders,
       body: JSON.stringify({
-        templateId: templateId
+        templateId: templateId,
       }),
     });
 
     if (!previewRes.ok) {
-      throw new Error(`Preview generation failed with status ${previewRes.status}: ${await previewRes.text()}`);
+      throw new Error(
+        `Preview generation failed with status ${previewRes.status}: ${await previewRes.text()}`,
+      );
     }
 
-    const previewData = await previewRes.json() as any;
+    const previewData = (await previewRes.json()) as any;
     console.log("   Preview response acquired successfully.");
     console.log("   --- Generated Question Preview ---");
     console.log(JSON.stringify(previewData.data || previewData, null, 2));
     console.log("   ----------------------------------\n");
 
     console.log("🎉 ALL INTEGRATION STEPS PASSED SUCCESSFULLY!");
-
   } catch (err: any) {
     console.error("\n❌ TEST FAILED:", err.message);
   } finally {

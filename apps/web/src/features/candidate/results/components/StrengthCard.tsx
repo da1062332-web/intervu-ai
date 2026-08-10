@@ -23,11 +23,11 @@ export function StrengthCard({ strengths }: StrengthCardProps) {
             <li key={skill.id} className='flex items-start gap-3'>
               <CheckCircle2 className='w-5 h-5 text-emerald-600 dark:text-emerald-500 shrink-0 mt-0.5' />
               <div>
-                <p className='font-semibold text-foreground'>
-                  {skill.name}
-                </p>
+                <p className='font-semibold text-foreground'>{skill.name}</p>
                 <p className='text-sm text-muted-foreground mt-0.5'>
-                  {skill.feedback?.replace(/\s*\(\s*\d+%\s*accuracy\s*\)/gi, '').replace(/\s*\(\s*0%\s*accuracy\s*\)/gi, '')}
+                  {skill.feedback
+                    ?.replace(/\s*\(\s*\d+%\s*accuracy\s*\)/gi, '')
+                    .replace(/\s*\(\s*0%\s*accuracy\s*\)/gi, '')}
                 </p>
               </div>
             </li>

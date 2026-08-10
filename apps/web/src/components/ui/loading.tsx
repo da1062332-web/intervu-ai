@@ -17,7 +17,7 @@ export function Loading({ size = 'md', message, fullScreen = false }: LoadingPro
   const spinner = (
     <div className='w-full h-full min-h-[400px] flex flex-col items-center justify-center gap-4'>
       <div className={cn('animate-spin', sizeMap[size])}>
-        <Clock className="h-full w-full text-blue-600 dark:text-blue-400" />
+        <Clock className='h-full w-full text-blue-600 dark:text-blue-400' />
       </div>
 
       {message && <p className='text-center text-sm text-gray-600 dark:text-gray-400'>{message}</p>}

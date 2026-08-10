@@ -49,7 +49,11 @@ export class ExecutionValidatorService {
     return testInstance;
   }
 
-  validateOwnership(testInstance: TestInstance, userId: string, userRole?: string) {
+  validateOwnership(
+    testInstance: TestInstance,
+    userId: string,
+    userRole?: string,
+  ) {
     if (userRole === UserRole.ADMIN) {
       return;
     }

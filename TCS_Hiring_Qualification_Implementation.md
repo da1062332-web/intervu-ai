@@ -1,6 +1,7 @@
 # TCS Hiring Qualification Evaluation System - Implementation Report
 
 ## Overview
+
 The **Generic Hiring Evaluation Framework** expands the InterVU AI assessment platform with a scalable, strategy-driven corporate qualification evaluation engine. While fulfilling the **TCS Hiring Qualification Evaluation** requirements (classifying candidates into **`NOT_QUALIFIED`**, **`NINJA`**, **`DIGITAL`**, and **`PRIME`**), the architecture uses a **Strategy Pattern** to support future corporate hiring rulesets (such as **Infosys**, **Accenture**, **Capgemini**, **Cognizant**, or **Custom**) without code changes to the core evaluation engine.
 
 ---
@@ -176,7 +177,8 @@ The **Generic Hiring Evaluation Framework** expands the InterVU AI assessment pl
 ## 8. Future Extensibility
 
 To add a new hiring strategy (e.g. `InfosysHiringStrategy`):
+
 1. Create `InfosysHiringStrategy` implementing `IHiringEvaluationStrategy`.
 2. Register it in `HiringStrategyRegistry`.
 3. Add `INFOSYS` to `HiringStrategyType` enum in `schema.prisma`.
-No changes are required in `HiringEvaluationEngine`, `ResultGeneratorService`, or `ResultStorageService`.
+   No changes are required in `HiringEvaluationEngine`, `ResultGeneratorService`, or `ResultStorageService`.

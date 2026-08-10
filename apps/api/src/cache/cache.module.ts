@@ -19,7 +19,10 @@ import { AppConfigService } from "../config/config.service";
       provide: RedisCacheService,
       inject: [AppConfigService],
       useFactory: (config: AppConfigService): RedisCacheService => {
-        return new RedisCacheService(new AppLogger({ name: "CacheService" }), config);
+        return new RedisCacheService(
+          new AppLogger({ name: "CacheService" }),
+          config,
+        );
       },
     },
   ],

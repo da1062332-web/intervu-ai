@@ -129,7 +129,9 @@ export function useOfflineRecovery() {
           const isConflictOrSubmitted =
             status === 409 ||
             String(err?.message || '').includes('409') ||
-            String(err?.response?.data?.message || '').toLowerCase().includes('already');
+            String(err?.response?.data?.message || '')
+              .toLowerCase()
+              .includes('already');
 
           if ((status && status >= 400 && status < 500) || isConflictOrSubmitted) {
             console.warn(

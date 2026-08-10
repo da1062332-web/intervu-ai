@@ -14,7 +14,7 @@ export function QuestionRenderer() {
       if (!currentQuestion) return;
       saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) });
     },
-    [currentQuestion?.id, saveAnswer]
+    [currentQuestion?.id, saveAnswer],
   );
 
   if (!currentQuestion || !testInstance) return null;
@@ -45,8 +45,12 @@ export function QuestionRenderer() {
         {currentQuestion.options.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
           const optKey = `opt-${currentQuestion.id}-${index}`;
-          const optText = typeof option === 'string' ? option : (option?.text || option?.value || option?.label || '');
-          const optValue = typeof option === 'string' ? option : (option?.text || option?.id || index.toString());
+          const optText =
+            typeof option === 'string'
+              ? option
+              : option?.text || option?.value || option?.label || '';
+          const optValue =
+            typeof option === 'string' ? option : option?.text || option?.id || index.toString();
           const isSelected = selectedOptionId === optValue;
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
@@ -112,8 +116,12 @@ export function QuestionRenderer() {
       <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
         {currentQuestion.options.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
-          const optText = typeof option === 'string' ? option : (option?.text || option?.value || option?.label || '');
-          const optValue = typeof option === 'string' ? option : (option?.text || option?.id || index.toString());
+          const optText =
+            typeof option === 'string'
+              ? option
+              : option?.text || option?.value || option?.label || '';
+          const optValue =
+            typeof option === 'string' ? option : option?.text || option?.id || index.toString();
           const isSelected = selectedOptionIds.includes(optValue);
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
@@ -194,7 +202,9 @@ export function QuestionRenderer() {
           <div className='mt-4 w-full flex-1'>
             <EmbeddedCompiler
               key={currentQuestion.id}
-              onChange={(data) => saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })}
+              onChange={(data) =>
+                saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })
+              }
             />
           </div>
         );
@@ -227,18 +237,19 @@ export function QuestionRenderer() {
 
             {parsedInstructions?.constraints && (
               <div className='p-3.5 rounded-md border border-amber-200 bg-amber-50/70 text-sm'>
-                <h4 className='font-semibold text-amber-900 mb-1 text-xs uppercase tracking-wider'>Constraints</h4>
-                <div className='font-mono text-gray-800 text-xs whitespace-pre-wrap'>{parsedInstructions.constraints}</div>
+                <h4 className='font-semibold text-amber-900 mb-1 text-xs uppercase tracking-wider'>
+                  Constraints
+                </h4>
+                <div className='font-mono text-gray-800 text-xs whitespace-pre-wrap'>
+                  {parsedInstructions.constraints}
+                </div>
               </div>
             )}
           </div>
 
           {/* Full Width Embedded Compiler */}
           <div className='w-full flex-1 min-h-[550px]'>
-            <EmbeddedCompiler
-              key={currentQuestion.id}
-              onChange={handleCompilerChange}
-            />
+            <EmbeddedCompiler key={currentQuestion.id} onChange={handleCompilerChange} />
           </div>
         </div>
       </div>
@@ -264,7 +275,9 @@ export function QuestionRenderer() {
           <div className='max-w-2xl text-gray-800 space-y-5 font-sans'>
             {currentQuestion.stem && (
               <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line'>
-                <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>Question Context / Passage:</h4>
+                <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>
+                  Question Context / Passage:
+                </h4>
                 {currentQuestion.stem}
               </div>
             )}
@@ -277,20 +290,26 @@ export function QuestionRenderer() {
             {parsedInstructions?.constraints && (
               <div className='p-4 rounded-md border border-amber-200 bg-amber-50/50 text-sm'>
                 <h4 className='font-semibold text-amber-900 mb-2'>Constraints</h4>
-                <div className='font-mono text-gray-800 whitespace-pre-wrap'>{parsedInstructions.constraints}</div>
+                <div className='font-mono text-gray-800 whitespace-pre-wrap'>
+                  {parsedInstructions.constraints}
+                </div>
               </div>
             )}
 
             {rawInstructions && (
               <div className='bg-blue-50/80 border-l-4 border-blue-600 p-3.5 text-sm text-gray-800 rounded-r-sm'>
-                <span className='font-bold underline block mb-1 text-blue-950'>Candidate Notice:</span>
+                <span className='font-bold underline block mb-1 text-blue-950'>
+                  Candidate Notice:
+                </span>
                 {rawInstructions}
               </div>
             )}
           </div>
 
           <p className='text-gray-500 text-xs pt-4 mt-6 border-t border-gray-100'>
-            Note: You may click <span className='font-semibold text-gray-700'>Mark for Review & Next</span> if you wish to re-evaluate your response later before completing this section.
+            Note: You may click{' '}
+            <span className='font-semibold text-gray-700'>Mark for Review & Next</span> if you wish
+            to re-evaluate your response later before completing this section.
           </p>
         </div>
 
@@ -306,9 +325,7 @@ export function QuestionRenderer() {
                     : 'Select Response'}
               </span>
             </div>
-            <div className='pt-1'>
-              {renderQuestionContent()}
-            </div>
+            <div className='pt-1'>{renderQuestionContent()}</div>
           </div>
         </div>
       </div>

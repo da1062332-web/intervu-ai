@@ -176,7 +176,8 @@ export async function seedModule1QA(prisma: PrismaClient) {
           explanationLength: "medium",
           highlightFinalAnswer: true,
         },
-        aiInstructions: "Provide deep technical explanations. Use realistic real-world engineering contexts.",
+        aiInstructions:
+          "Provide deep technical explanations. Use realistic real-world engineering contexts.",
       },
     });
     // Characteristics

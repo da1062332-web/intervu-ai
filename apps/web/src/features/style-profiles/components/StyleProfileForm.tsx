@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  useCreateStyleProfile,
-  useUpdateStyleProfile,
-} from '@/services/blueprints/hooks';
+import { useCreateStyleProfile, useUpdateStyleProfile } from '@/services/blueprints/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,7 +29,14 @@ interface StyleProfileFormProps {
   isEdit?: boolean;
 }
 
-type TabType = 'general' | 'language' | 'context' | 'difficulty' | 'distractors' | 'explanation' | 'ai';
+type TabType =
+  | 'general'
+  | 'language'
+  | 'context'
+  | 'difficulty'
+  | 'distractors'
+  | 'explanation'
+  | 'ai';
 
 export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFormProps) {
   const router = useRouter();
@@ -224,40 +228,44 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
   };
 
   const tabs: Array<{ id: TabType; label: string; icon: React.ReactNode }> = [
-    { id: 'general', label: 'General Info', icon: <Settings className="h-4 w-4" /> },
-    { id: 'language', label: 'Language Style', icon: <Languages className="h-4 w-4" /> },
-    { id: 'context', label: 'Contexts', icon: <BookOpen className="h-4 w-4" /> },
-    { id: 'difficulty', label: 'Difficulty Rules', icon: <HelpCircle className="h-4 w-4" /> },
-    { id: 'distractors', label: 'Distractor Rules', icon: <HelpCircle className="h-4 w-4" /> },
-    { id: 'explanation', label: 'Explanation Style', icon: <MessageSquare className="h-4 w-4" /> },
-    { id: 'ai', label: 'AI Instructions', icon: <Sparkles className="h-4 w-4" /> },
+    { id: 'general', label: 'General Info', icon: <Settings className='h-4 w-4' /> },
+    { id: 'language', label: 'Language Style', icon: <Languages className='h-4 w-4' /> },
+    { id: 'context', label: 'Contexts', icon: <BookOpen className='h-4 w-4' /> },
+    { id: 'difficulty', label: 'Difficulty Rules', icon: <HelpCircle className='h-4 w-4' /> },
+    { id: 'distractors', label: 'Distractor Rules', icon: <HelpCircle className='h-4 w-4' /> },
+    { id: 'explanation', label: 'Explanation Style', icon: <MessageSquare className='h-4 w-4' /> },
+    { id: 'ai', label: 'AI Instructions', icon: <Sparkles className='h-4 w-4' /> },
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <form onSubmit={handleSubmit} className='space-y-6'>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
         <SectionHeader
           title={isEdit ? 'Edit Style Profile' : 'New Style Profile'}
-          description="Customize the formatting and quality constraints used for AI question generation."
-          className="!mb-0"
+          description='Customize the formatting and quality constraints used for AI question generation.'
+          className='!mb-0'
         />
-        <div className="flex items-center gap-3 shrink-0">
-          <Button type="button" variant="outline" onClick={() => router.push('/admin/style-profiles')}>
+        <div className='flex items-center gap-3 shrink-0'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => router.push('/admin/style-profiles')}
+          >
             Cancel
           </Button>
-          <Button type="submit" isLoading={updateMutation.isPending || createMutation.isPending}>
-            <Save className="h-4 w-4 mr-2" /> {isEdit ? 'Save Changes' : 'Create Profile'}
+          <Button type='submit' isLoading={updateMutation.isPending || createMutation.isPending}>
+            <Save className='h-4 w-4 mr-2' /> {isEdit ? 'Save Changes' : 'Create Profile'}
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
         {/* Navigation Sidebar */}
-        <div className="flex flex-col gap-1 bg-card border rounded-xl p-3 shadow-sm h-fit">
+        <div className='flex flex-col gap-1 bg-card border rounded-xl p-3 shadow-sm h-fit'>
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              type="button"
+              type='button'
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${
                 activeTab === tab.id
@@ -272,116 +280,126 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
         </div>
 
         {/* Tab Contents */}
-        <Card className="lg:col-span-3">
-          <CardContent className="p-6">
+        <Card className='lg:col-span-3'>
+          <CardContent className='p-6'>
             {activeTab === 'general' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Profile Name *</Label>
+              <div className='space-y-6'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <div className='space-y-2'>
+                    <Label htmlFor='name'>Profile Name *</Label>
                     <Input
-                      id="name"
-                      placeholder="e.g. Campus Placement English Style"
+                      id='name'
+                      placeholder='e.g. Campus Placement English Style'
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Profile Type</Label>
+                  <div className='space-y-2'>
+                    <Label htmlFor='type'>Profile Type</Label>
                     <select
-                      id="type"
+                      id='type'
                       value={profileType}
                       onChange={(e) => setProfileType(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-md bg-background text-sm shadow-sm"
+                      className='w-full h-10 px-3 border rounded-md bg-background text-sm shadow-sm'
                     >
-                      <option value="campus">Campus Recruit</option>
-                      <option value="lateral">Lateral Hire</option>
-                      <option value="executive">Executive Level</option>
-                      <option value="certification">Certification Course</option>
+                      <option value='campus'>Campus Recruit</option>
+                      <option value='lateral'>Lateral Hire</option>
+                      <option value='executive'>Executive Level</option>
+                      <option value='certification'>Certification Course</option>
                     </select>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='description'>Description</Label>
                   <Textarea
-                    id="description"
-                    placeholder="Provide a short summary explaining when this profile should be assigned."
+                    id='description'
+                    placeholder='Provide a short summary explaining when this profile should be assigned.'
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[100px]"
+                    className='min-h-[100px]'
                   />
                 </div>
 
-                <div className="flex flex-col gap-4 border-t pt-4">
-                  <div className="flex items-center justify-between">
+                <div className='flex flex-col gap-4 border-t pt-4'>
+                  <div className='flex items-center justify-between'>
                     <div>
-                      <Label htmlFor="active" className="font-semibold">Active Status</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Inactive profiles cannot be assigned to new blueprints.</p>
+                      <Label htmlFor='active' className='font-semibold'>
+                        Active Status
+                      </Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Inactive profiles cannot be assigned to new blueprints.
+                      </p>
                     </div>
-                    <Switch id="active" checked={active} onCheckedChange={setActive} />
+                    <Switch id='active' checked={active} onCheckedChange={setActive} />
                   </div>
 
-                  <div className="flex items-center justify-between border-t pt-4">
+                  <div className='flex items-center justify-between border-t pt-4'>
                     <div>
-                      <Label htmlFor="default" className="font-semibold">Global Default Profile</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Mark this profile as the default style rule for all standard generation.</p>
+                      <Label htmlFor='default' className='font-semibold'>
+                        Global Default Profile
+                      </Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Mark this profile as the default style rule for all standard generation.
+                      </p>
                     </div>
-                    <Switch id="default" checked={isDefault} onCheckedChange={setIsDefault} />
+                    <Switch id='default' checked={isDefault} onCheckedChange={setIsDefault} />
                   </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'language' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Language Style Options</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Target Language</Label>
+              <div className='space-y-6'>
+                <h3 className='text-lg font-semibold text-foreground border-b pb-2'>
+                  Language Style Options
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                  <div className='space-y-2'>
+                    <Label htmlFor='language'>Target Language</Label>
                     <Input
-                      id="language"
+                      id='language'
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sentence-length">Sentence Length</Label>
+                  <div className='space-y-2'>
+                    <Label htmlFor='sentence-length'>Sentence Length</Label>
                     <select
-                      id="sentence-length"
+                      id='sentence-length'
                       value={sentenceLength}
                       onChange={(e) => setSentenceLength(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                      className='w-full h-10 px-3 border rounded-md bg-background text-sm'
                     >
-                      <option value="short">Short (easy comprehension)</option>
-                      <option value="medium">Medium (standard)</option>
-                      <option value="long">Long (complex / reasoning focused)</option>
+                      <option value='short'>Short (easy comprehension)</option>
+                      <option value='medium'>Medium (standard)</option>
+                      <option value='long'>Long (complex / reasoning focused)</option>
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="vocabulary">Vocabulary Complexity</Label>
+                  <div className='space-y-2'>
+                    <Label htmlFor='vocabulary'>Vocabulary Complexity</Label>
                     <select
-                      id="vocabulary"
+                      id='vocabulary'
                       value={vocabularyLevel}
                       onChange={(e) => setVocabularyLevel(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                      className='w-full h-10 px-3 border rounded-md bg-background text-sm'
                     >
-                      <option value="basic">Basic (plain english)</option>
-                      <option value="intermediate">Intermediate (professional)</option>
-                      <option value="advanced">Advanced (academic / rich vocabulary)</option>
+                      <option value='basic'>Basic (plain english)</option>
+                      <option value='intermediate'>Intermediate (professional)</option>
+                      <option value='advanced'>Advanced (academic / rich vocabulary)</option>
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="grammar">Grammar Style</Label>
+                  <div className='space-y-2'>
+                    <Label htmlFor='grammar'>Grammar Style</Label>
                     <select
-                      id="grammar"
+                      id='grammar'
                       value={grammarStyle}
                       onChange={(e) => setGrammarStyle(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                      className='w-full h-10 px-3 border rounded-md bg-background text-sm'
                     >
-                      <option value="formal">Formal</option>
-                      <option value="casual">Casual</option>
-                      <option value="technical">Technical / Rigorous</option>
+                      <option value='formal'>Formal</option>
+                      <option value='casual'>Casual</option>
+                      <option value='technical'>Technical / Rigorous</option>
                     </select>
                   </div>
                 </div>
@@ -389,116 +407,174 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
             )}
 
             {activeTab === 'context' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Context Settings</h3>
-                <p className="text-sm text-muted-foreground">
-                  Specify industry verticals or scenarios (e.g. "finance", "healthcare") you prefer the AI to build questions around.
+              <div className='space-y-6'>
+                <h3 className='text-lg font-semibold text-foreground border-b pb-2'>
+                  Context Settings
+                </h3>
+                <p className='text-sm text-muted-foreground'>
+                  Specify industry verticals or scenarios (e.g. "finance", "healthcare") you prefer
+                  the AI to build questions around.
                 </p>
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                   <Input
-                    placeholder="e.g. Real Estate, Software Architecture"
+                    placeholder='e.g. Real Estate, Software Architecture'
                     value={newContext}
                     onChange={(e) => setNewContext(e.target.value)}
                   />
-                  <Button type="button" onClick={addContext} variant="secondary" className="shadow-sm">
-                    <Plus className="h-4 w-4 mr-1" /> Add
+                  <Button
+                    type='button'
+                    onClick={addContext}
+                    variant='secondary'
+                    className='shadow-sm'
+                  >
+                    <Plus className='h-4 w-4 mr-1' /> Add
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className='flex flex-wrap gap-2 pt-2'>
                   {preferredContexts.map((ctx, index) => (
                     <span
                       key={index}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20"
+                      className='flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20'
                     >
                       {ctx}
-                      <button type="button" onClick={() => removeContext(index)} className="hover:text-destructive text-primary/70 font-bold">
+                      <button
+                        type='button'
+                        onClick={() => removeContext(index)}
+                        className='hover:text-destructive text-primary/70 font-bold'
+                      >
                         ×
                       </button>
                     </span>
                   ))}
                   {preferredContexts.length === 0 && (
-                    <span className="text-sm text-muted-foreground">No custom contexts defined. Standard scenarios will be used.</span>
+                    <span className='text-sm text-muted-foreground'>
+                      No custom contexts defined. Standard scenarios will be used.
+                    </span>
                   )}
                 </div>
               </div>
             )}
 
             {activeTab === 'difficulty' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Difficulty-Specific Presentation Rules</h3>
-                <div className="bg-muted/30 border rounded-lg p-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
+              <div className='space-y-6'>
+                <h3 className='text-lg font-semibold text-foreground border-b pb-2'>
+                  Difficulty-Specific Presentation Rules
+                </h3>
+                <div className='bg-muted/30 border rounded-lg p-4 space-y-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                    <div className='space-y-2'>
                       <Label>Difficulty Level</Label>
                       <select
                         value={ruleDifficulty}
                         onChange={(e) => setRuleDifficulty(e.target.value as any)}
-                        className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                        className='w-full h-10 px-3 border rounded-md bg-background text-sm'
                       >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
+                        <option value='easy'>Easy</option>
+                        <option value='medium'>Medium</option>
+                        <option value='hard'>Hard</option>
                       </select>
                     </div>
-                    <div className="md:col-span-2 space-y-2">
+                    <div className='md:col-span-2 space-y-2'>
                       <Label>Wording Expectation</Label>
-                      <div className="flex gap-2">
+                      <div className='flex gap-2'>
                         <Input
-                          placeholder="e.g. Use direct phrasing and avoid double negatives"
+                          placeholder='e.g. Use direct phrasing and avoid double negatives'
                           value={newRule}
                           onChange={(e) => setNewRule(e.target.value)}
                         />
-                        <Button type="button" onClick={addRule} variant="secondary" className="shadow-sm">
-                          <Plus className="h-4 w-4 mr-1" /> Add
+                        <Button
+                          type='button'
+                          onClick={addRule}
+                          variant='secondary'
+                          className='shadow-sm'
+                        >
+                          <Plus className='h-4 w-4 mr-1' /> Add
                         </Button>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className='space-y-4'>
                   <div>
-                    <h4 className="font-semibold text-sm text-emerald-600 mb-2">Easy Level Rules</h4>
-                    <div className="space-y-1.5">
+                    <h4 className='font-semibold text-sm text-emerald-600 mb-2'>
+                      Easy Level Rules
+                    </h4>
+                    <div className='space-y-1.5'>
                       {easyRules.map((rule, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 border rounded-lg bg-background text-xs">
+                        <div
+                          key={idx}
+                          className='flex items-center justify-between p-2 border rounded-lg bg-background text-xs'
+                        >
                           <span>{rule}</span>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => removeRule('easy', idx)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-3 w-3" />
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => removeRule('easy', idx)}
+                            className='h-6 w-6 text-muted-foreground hover:text-destructive'
+                          >
+                            <Trash2 className='h-3 w-3' />
                           </Button>
                         </div>
                       ))}
-                      {easyRules.length === 0 && <p className="text-xs text-muted-foreground pl-1">No rules added.</p>}
+                      {easyRules.length === 0 && (
+                        <p className='text-xs text-muted-foreground pl-1'>No rules added.</p>
+                      )}
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-sm text-amber-600 mb-2">Medium Level Rules</h4>
-                    <div className="space-y-1.5">
+                    <h4 className='font-semibold text-sm text-amber-600 mb-2'>
+                      Medium Level Rules
+                    </h4>
+                    <div className='space-y-1.5'>
                       {mediumRules.map((rule, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 border rounded-lg bg-background text-xs">
+                        <div
+                          key={idx}
+                          className='flex items-center justify-between p-2 border rounded-lg bg-background text-xs'
+                        >
                           <span>{rule}</span>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => removeRule('medium', idx)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-3 w-3" />
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => removeRule('medium', idx)}
+                            className='h-6 w-6 text-muted-foreground hover:text-destructive'
+                          >
+                            <Trash2 className='h-3 w-3' />
                           </Button>
                         </div>
                       ))}
-                      {mediumRules.length === 0 && <p className="text-xs text-muted-foreground pl-1">No rules added.</p>}
+                      {mediumRules.length === 0 && (
+                        <p className='text-xs text-muted-foreground pl-1'>No rules added.</p>
+                      )}
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-sm text-rose-600 mb-2">Hard Level Rules</h4>
-                    <div className="space-y-1.5">
+                    <h4 className='font-semibold text-sm text-rose-600 mb-2'>Hard Level Rules</h4>
+                    <div className='space-y-1.5'>
                       {hardRules.map((rule, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 border rounded-lg bg-background text-xs">
+                        <div
+                          key={idx}
+                          className='flex items-center justify-between p-2 border rounded-lg bg-background text-xs'
+                        >
                           <span>{rule}</span>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => removeRule('hard', idx)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-3 w-3" />
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => removeRule('hard', idx)}
+                            className='h-6 w-6 text-muted-foreground hover:text-destructive'
+                          >
+                            <Trash2 className='h-3 w-3' />
                           </Button>
                         </div>
                       ))}
-                      {hardRules.length === 0 && <p className="text-xs text-muted-foreground pl-1">No rules added.</p>}
+                      {hardRules.length === 0 && (
+                        <p className='text-xs text-muted-foreground pl-1'>No rules added.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -506,85 +582,117 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
             )}
 
             {activeTab === 'distractors' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Distractor & Option Constraints</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center justify-between border-b pb-4">
+              <div className='space-y-6'>
+                <h3 className='text-lg font-semibold text-foreground border-b pb-2'>
+                  Distractor & Option Constraints
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Exactly 4 Options</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Enforce a strict 4-options count for multiple choice questions.</p>
+                      <Label className='font-semibold'>Exactly 4 Options</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Enforce a strict 4-options count for multiple choice questions.
+                      </p>
                     </div>
                     <Switch checked={exactlyFourOptions} onCheckedChange={setExactlyFourOptions} />
                   </div>
 
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Exactly 1 Correct Option</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Do not generate questions with multiple correct options.</p>
+                      <Label className='font-semibold'>Exactly 1 Correct Option</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Do not generate questions with multiple correct options.
+                      </p>
                     </div>
                     <Switch checked={oneCorrectAnswer} onCheckedChange={setOneCorrectAnswer} />
                   </div>
 
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Plausible Incorrect Options</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Incorrect choices must be reasonable and make mathematical sense.</p>
+                      <Label className='font-semibold'>Plausible Incorrect Options</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Incorrect choices must be reasonable and make mathematical sense.
+                      </p>
                     </div>
-                    <Switch checked={plausibleIncorrectOptions} onCheckedChange={setPlausibleIncorrectOptions} />
+                    <Switch
+                      checked={plausibleIncorrectOptions}
+                      onCheckedChange={setPlausibleIncorrectOptions}
+                    />
                   </div>
 
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Avoid Obviously Wrong Options</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Filter out options that can be easily discarded without calculation.</p>
+                      <Label className='font-semibold'>Avoid Obviously Wrong Options</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Filter out options that can be easily discarded without calculation.
+                      </p>
                     </div>
-                    <Switch checked={avoidObviouslyWrongOptions} onCheckedChange={setAvoidObviouslyWrongOptions} />
+                    <Switch
+                      checked={avoidObviouslyWrongOptions}
+                      onCheckedChange={setAvoidObviouslyWrongOptions}
+                    />
                   </div>
 
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Avoid Humorous Options</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Ensure options maintain a serious and professional academic tone.</p>
+                      <Label className='font-semibold'>Avoid Humorous Options</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Ensure options maintain a serious and professional academic tone.
+                      </p>
                     </div>
-                    <Switch checked={avoidHumorousOptions} onCheckedChange={setAvoidHumorousOptions} />
+                    <Switch
+                      checked={avoidHumorousOptions}
+                      onCheckedChange={setAvoidHumorousOptions}
+                    />
                   </div>
 
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Represent Common Mistakes</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Formulate distractors that model student slipups (e.g. sign errors).</p>
+                      <Label className='font-semibold'>Represent Common Mistakes</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Formulate distractors that model student slipups (e.g. sign errors).
+                      </p>
                     </div>
-                    <Switch checked={representCommonStudentMistakes} onCheckedChange={setRepresentCommonStudentMistakes} />
+                    <Switch
+                      checked={representCommonStudentMistakes}
+                      onCheckedChange={setRepresentCommonStudentMistakes}
+                    />
                   </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'explanation' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Explanation Formatting Style</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center justify-between border-b pb-4">
+              <div className='space-y-6'>
+                <h3 className='text-lg font-semibold text-foreground border-b pb-2'>
+                  Explanation Formatting Style
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Formula / Rule First</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Begin explanations by stating the core mathematical formula.</p>
+                      <Label className='font-semibold'>Formula / Rule First</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Begin explanations by stating the core mathematical formula.
+                      </p>
                     </div>
                     <Switch checked={formulaFirst} onCheckedChange={setFormulaFirst} />
                   </div>
 
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className='flex items-center justify-between border-b pb-4'>
                     <div>
-                      <Label className="font-semibold">Step-Wise Solution Layout</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Structure solutions in sequentially numbered steps.</p>
+                      <Label className='font-semibold'>Step-Wise Solution Layout</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Structure solutions in sequentially numbered steps.
+                      </p>
                     </div>
                     <Switch checked={stepWiseSolution} onCheckedChange={setStepWiseSolution} />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="max-steps">Max Explanation Steps</Label>
+                  <div className='space-y-2'>
+                    <Label htmlFor='max-steps'>Max Explanation Steps</Label>
                     <Input
-                      id="max-steps"
-                      type="number"
+                      id='max-steps'
+                      type='number'
                       value={maxSteps}
                       min={1}
                       max={10}
@@ -592,42 +700,50 @@ export function StyleProfileForm({ initialData, isEdit = false }: StyleProfileFo
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="exp-length">Explanation Length</Label>
+                  <div className='space-y-2'>
+                    <Label htmlFor='exp-length'>Explanation Length</Label>
                     <select
-                      id="exp-length"
+                      id='exp-length'
                       value={explanationLength}
                       onChange={(e) => setExplanationLength(e.target.value)}
-                      className="w-full h-10 px-3 border rounded-md bg-background text-sm"
+                      className='w-full h-10 px-3 border rounded-md bg-background text-sm'
                     >
-                      <option value="short">Short / Direct</option>
-                      <option value="medium">Medium / Standard</option>
-                      <option value="long">Detailed / Analytical</option>
+                      <option value='short'>Short / Direct</option>
+                      <option value='medium'>Medium / Standard</option>
+                      <option value='long'>Detailed / Analytical</option>
                     </select>
                   </div>
 
-                  <div className="flex items-center justify-between md:col-span-2 pt-2">
+                  <div className='flex items-center justify-between md:col-span-2 pt-2'>
                     <div>
-                      <Label className="font-semibold">Highlight Final Answer</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Explicitly wrap or reference the final correct option at the end.</p>
+                      <Label className='font-semibold'>Highlight Final Answer</Label>
+                      <p className='text-xs text-muted-foreground mt-0.5'>
+                        Explicitly wrap or reference the final correct option at the end.
+                      </p>
                     </div>
-                    <Switch checked={highlightFinalAnswer} onCheckedChange={setHighlightFinalAnswer} />
+                    <Switch
+                      checked={highlightFinalAnswer}
+                      onCheckedChange={setHighlightFinalAnswer}
+                    />
                   </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'ai' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-foreground border-b pb-2">Custom AI System Instructions</h3>
-                <p className="text-sm text-muted-foreground">
-                  Provide custom prompts, vocabulary lists, or style guidelines that will be directly appended to the system prompts.
+              <div className='space-y-6'>
+                <h3 className='text-lg font-semibold text-foreground border-b pb-2'>
+                  Custom AI System Instructions
+                </h3>
+                <p className='text-sm text-muted-foreground'>
+                  Provide custom prompts, vocabulary lists, or style guidelines that will be
+                  directly appended to the system prompts.
                 </p>
                 <Textarea
-                  placeholder="e.g. Prefer Metric units. Do not refer to gender-specific names in word problems. Use variables x, y, z only."
+                  placeholder='e.g. Prefer Metric units. Do not refer to gender-specific names in word problems. Use variables x, y, z only.'
                   value={aiInstructions}
                   onChange={(e) => setAiInstructions(e.target.value)}
-                  className="min-h-[200px]"
+                  className='min-h-[200px]'
                 />
               </div>
             )}

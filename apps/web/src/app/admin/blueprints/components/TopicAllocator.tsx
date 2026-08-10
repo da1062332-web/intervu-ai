@@ -29,7 +29,9 @@ export function TopicAllocator({ sectionId }: TopicAllocatorProps) {
   const sectionState = sectionsState.find((s) => s.sectionId === sectionId) as
     | BlueprintSectionPayload
     | undefined;
-  const hasTopicAllocations = !!(sectionState?.topicAllocations && sectionState.topicAllocations.length > 0);
+  const hasTopicAllocations = !!(
+    sectionState?.topicAllocations && sectionState.topicAllocations.length > 0
+  );
   const allocations = sectionState?.topicAllocations || [];
 
   useEffect(() => {

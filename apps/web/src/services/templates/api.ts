@@ -25,8 +25,12 @@ export interface TemplatePreviewResponse {
 export interface GenerateTemplatePreviewRequest {
   [key: string]: any;
 }
-export const getTemplates = async (page = 1, limit = 10, conceptKey?: string): Promise<TemplateListResponse> => {
-  const url = conceptKey 
+export const getTemplates = async (
+  page = 1,
+  limit = 10,
+  conceptKey?: string,
+): Promise<TemplateListResponse> => {
+  const url = conceptKey
     ? `/templates?conceptKey=${conceptKey}&page=${page}&limit=${limit}`
     : `/templates?page=${page}&limit=${limit}`;
   const data = await apiClient.request<any>(url, { method: 'GET' });
@@ -46,7 +50,9 @@ export const getTemplate = async (id: string): Promise<TemplateResponse> => {
   return data;
 };
 
-export const getSolutionTemplate = async (templateId: string): Promise<SolutionTemplateResponse> => {
+export const getSolutionTemplate = async (
+  templateId: string,
+): Promise<SolutionTemplateResponse> => {
   const data = await apiClient.request<any>(`/templates/${templateId}/solution`, { method: 'GET' });
   return data;
 };
@@ -157,14 +163,14 @@ export const deleteRule = async (ruleId: string): Promise<any> => {
 export const saveTemplateDatasetConfig = async (templateId: string, payload: any): Promise<any> => {
   return await apiClient.request<any>(`/templates/${templateId}/dataset`, {
     method: 'PATCH',
-    body: payload
+    body: payload,
   });
 };
 
 export const getTemplateDatasetPreview = async (templateId: string): Promise<any> => {
   return await apiClient.request<any>(`/question-generation/dataset-preview`, {
     method: 'POST',
-    body: { templateId }
+    body: { templateId },
   });
 };
 

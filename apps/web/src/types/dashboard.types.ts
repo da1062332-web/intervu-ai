@@ -33,7 +33,6 @@ export interface EmptyStateProps {
   compact?: boolean;
 }
 
-
 export interface DashboardStats {
   testsTaken: number;
   averageScore: number;

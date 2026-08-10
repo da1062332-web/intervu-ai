@@ -90,8 +90,6 @@ export class CreateQuestionDto {
   @IsOptional()
   status?: QuestionStatus;
 
-
-
   @ApiProperty({ example: 120, required: false })
   @IsNumber()
   @IsOptional()
@@ -188,8 +186,6 @@ export class UpdateQuestionDto {
   @IsString()
   @IsOptional()
   questionType?: string;
-
-
 
   @ApiProperty({ required: false })
   @IsNumber()

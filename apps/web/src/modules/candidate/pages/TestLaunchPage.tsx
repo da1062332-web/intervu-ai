@@ -93,7 +93,11 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
                 asChild
                 className='shrink-0 hover:bg-muted/80 rounded-full transition-colors'
               >
-                <Link href={isResume ? '/candidate/dashboard' : `/candidate/tests/${testId}/instructions`}>
+                <Link
+                  href={
+                    isResume ? '/candidate/dashboard' : `/candidate/tests/${testId}/instructions`
+                  }
+                >
                   <ChevronLeft className='size-5' />
                 </Link>
               </Button>
@@ -101,11 +105,13 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
                 {isResume ? 'Resume Assessment' : 'Launch Assessment'}
               </h1>
             </div>
-            
+
             {/* Status indicator in header */}
             <div className='hidden sm:flex items-center gap-2'>
               <span className='text-sm font-medium text-muted-foreground'>System Status:</span>
-              <div className={`px-3 py-1 rounded-full text-xs font-bold ${isSystemReady ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-bold ${isSystemReady ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}
+              >
                 {isSystemReady ? 'Ready to Begin' : 'Checks Pending'}
               </div>
             </div>
@@ -122,7 +128,9 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
               <AlertCircle className='size-5 text-amber-600 dark:text-amber-400' />
             </div>
             <div className='relative'>
-              <h3 className='text-sm font-bold text-amber-800 dark:text-amber-300 mb-0.5'>Action Required</h3>
+              <h3 className='text-sm font-bold text-amber-800 dark:text-amber-300 mb-0.5'>
+                Action Required
+              </h3>
               <p className='text-sm font-medium text-amber-700/90 dark:text-amber-400/90'>
                 {isResume
                   ? 'Please verify system readiness before resuming your assessment session. Ensure camera face detection and active microphone are operational.'
@@ -137,7 +145,9 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
               <Play className='size-5 text-green-600 dark:text-green-400' />
             </div>
             <div className='relative'>
-              <h3 className='text-sm font-bold text-green-800 dark:text-green-300 mb-0.5'>All Systems Go</h3>
+              <h3 className='text-sm font-bold text-green-800 dark:text-green-300 mb-0.5'>
+                All Systems Go
+              </h3>
               <p className='text-sm font-medium text-green-700/90 dark:text-green-400/90'>
                 {isResume
                   ? 'Your hardware is verified and ready. You may resume your assessment session whenever you are ready.'
@@ -164,26 +174,30 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
         <div className='flex justify-center pt-8 mt-12'>
           <div className={`relative group ${!isSystemReady ? 'cursor-not-allowed' : ''}`}>
             {isSystemReady && !isStarting && (
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+              <div className='absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500'></div>
             )}
             <Button
               onClick={handleStartAssessment}
               disabled={!isSystemReady || isStarting}
               size='lg'
               className={`relative w-full sm:w-auto px-10 py-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all rounded-xl overflow-hidden ${
-                isSystemReady 
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-0' 
+                isSystemReady
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-0'
                   : 'bg-muted text-muted-foreground border-2 border-dashed border-border'
               }`}
             >
               {isStarting ? (
-                <span className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className='flex items-center gap-3'>
+                  <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
                   {isResume ? 'Resuming Secure Session...' : 'Starting Secure Session...'}
                 </span>
               ) : (
-                <span className="flex items-center gap-3">
-                  {!isSystemReady ? 'Hardware Checks Pending' : isResume ? 'Resume Assessment' : 'Start Assessment'}
+                <span className='flex items-center gap-3'>
+                  {!isSystemReady
+                    ? 'Hardware Checks Pending'
+                    : isResume
+                      ? 'Resume Assessment'
+                      : 'Start Assessment'}
                   {isSystemReady && <Play className='size-6 fill-current animate-pulse' />}
                 </span>
               )}

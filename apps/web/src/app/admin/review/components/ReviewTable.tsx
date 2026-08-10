@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,27 +20,29 @@ import { DataTable, ColumnDef } from '@/components/ui/data-table';
 
 const TopicNameCell = React.memo(function TopicNameCell({ topicId }: { topicId?: string }) {
   const { data: topics = [], isLoading } = useTopics();
-  if (!topicId) return <span className="text-muted-foreground font-mono text-xs">General</span>;
-  if (isLoading) return <Skeleton className="h-4 w-20" />;
+  if (!topicId) return <span className='text-muted-foreground font-mono text-xs'>General</span>;
+  if (isLoading) return <Skeleton className='h-4 w-20' />;
   const topic = topics.find((t: any) => t.id === topicId);
   return <span title={topic?.name || topicId}>{topic?.name || topicId}</span>;
 });
 
 const ConceptNameCell = React.memo(function ConceptNameCell({ topicId, conceptId }: { topicId?: string; conceptId?: string }) {
   const { data: concepts, isLoading } = useConcepts(topicId || '', false);
-  
-  if (!conceptId) return <span className="text-muted-foreground font-mono text-xs">General</span>;
-  if (isLoading) return <Skeleton className="h-4 w-20" />;
-  
-  const conceptsArray = Array.isArray(concepts) 
-    ? concepts 
-    : (concepts as any)?.data 
-      ? (concepts as any).data 
-      : (concepts as any)?.items 
-        ? (concepts as any).items 
+
+  if (!conceptId) return <span className='text-muted-foreground font-mono text-xs'>General</span>;
+  if (isLoading) return <Skeleton className='h-4 w-20' />;
+
+  const conceptsArray = Array.isArray(concepts)
+    ? concepts
+    : (concepts as any)?.data
+      ? (concepts as any).data
+      : (concepts as any)?.items
+        ? (concepts as any).items
         : [];
 
-  const concept = conceptsArray.find((c: any) => c.id === conceptId || c.code === conceptId || c.conceptCode === conceptId);
+  const concept = conceptsArray.find(
+    (c: any) => c.id === conceptId || c.code === conceptId || c.conceptCode === conceptId,
+  );
   return (
     <span title={concept?.name || concept?.conceptName || conceptId}>
       {concept?.name || concept?.conceptName || conceptId}
@@ -64,14 +73,17 @@ export function ReviewTable({
   onApprove,
   onReject,
   onRegenerate,
-  processingId
+  processingId,
 }: ReviewTableProps) {
   const [search, setSearch] = useState('');
   const [selectedTopicId, setSelectedTopicId] = useState<string>('ALL');
   const [selectedConceptId, setSelectedConceptId] = useState<string>('ALL');
 
   const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
-  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(selectedTopicId !== 'ALL' ? selectedTopicId : '', true);
+  const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(
+    selectedTopicId !== 'ALL' ? selectedTopicId : '',
+    true,
+  );
 
   const filtered = React.useMemo(() => questions.filter((q: any) => {
     const isPending =
@@ -86,8 +98,7 @@ export function ReviewTable({
     const matchesConcept = selectedConceptId === 'ALL' || q.conceptId === selectedConceptId;
 
     const matchesSearch =
-      !search ||
-      (q.questionText && q.questionText.toLowerCase().includes(search.toLowerCase()));
+      !search || (q.questionText && q.questionText.toLowerCase().includes(search.toLowerCase()));
 
     return isPending && matchesTopic && matchesConcept && matchesSearch;
   }), [questions, selectedTopicId, selectedConceptId, search]);
@@ -99,14 +110,14 @@ export function ReviewTable({
     {
       id: 'select',
       header: (
-        <Checkbox 
+        <Checkbox
           checked={allSelected}
           onCheckedChange={() => onToggleSelectAll(filteredIds)}
-          aria-label="Select all"
+          aria-label='Select all'
         />
       ),
       cell: (q) => (
-        <Checkbox 
+        <Checkbox
           checked={selectedIds.includes(q.id)}
           onCheckedChange={() => onToggleSelect(q.id)}
           aria-label={`Select ${q.id}`}
@@ -118,7 +129,7 @@ export function ReviewTable({
       id: 'questionText',
       header: 'Question Statement',
       cell: (q) => (
-        <span className="max-w-[320px] truncate block font-medium" title={q.questionText}>
+        <span className='max-w-[320px] truncate block font-medium' title={q.questionText}>
           {q.questionText}
         </span>
       ),
@@ -127,7 +138,7 @@ export function ReviewTable({
       id: 'topic',
       header: 'Topic',
       cell: (q) => (
-        <span className="text-sm text-muted-foreground">
+        <span className='text-sm text-muted-foreground'>
           <TopicNameCell topicId={q.topicId} />
         </span>
       ),
@@ -136,7 +147,7 @@ export function ReviewTable({
       id: 'concept',
       header: 'Concept / Section',
       cell: (q) => (
-        <span className="text-sm text-muted-foreground">
+        <span className='text-sm text-muted-foreground'>
           <ConceptNameCell topicId={q.topicId} conceptId={q.conceptId || (q as any).conceptKey} />
         </span>
       ),
@@ -145,12 +156,12 @@ export function ReviewTable({
       id: 'difficulty',
       header: 'Difficulty',
       cell: (q) => (
-        <Badge 
+        <Badge
           variant={
-            (q.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD' 
-              ? 'destructive' 
-              : (q.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM' 
-                ? 'default' 
+            (q.difficulty?.toUpperCase() || 'MEDIUM') === 'HARD'
+              ? 'destructive'
+              : (q.difficulty?.toUpperCase() || 'MEDIUM') === 'MEDIUM'
+                ? 'default'
                 : 'secondary'
           }
         >
@@ -160,46 +171,43 @@ export function ReviewTable({
     },
     {
       id: 'actions',
-      header: <div className="text-right">Actions</div>,
+      header: <div className='text-right'>Actions</div>,
       className: 'text-right',
       cell: (q) => (
-        <div className="flex items-center justify-end gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="Preview"
-            onClick={() => onPreview(q)}
-          >
-            <Eye className="h-4 w-4" />
+        <div className='flex items-center justify-end gap-2'>
+          <Button variant='ghost' size='icon' title='Preview' onClick={() => onPreview(q)}>
+            <Eye className='h-4 w-4' />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="Regenerate"
+          <Button
+            variant='ghost'
+            size='icon'
+            title='Regenerate'
             onClick={() => onRegenerate(q.id)}
             disabled={processingId === q.id}
           >
-            <RefreshCw className={`h-4 w-4 ${processingId === q.id ? 'animate-spin text-blue-500' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${processingId === q.id ? 'animate-spin text-blue-500' : ''}`}
+            />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="Reject"
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+          <Button
+            variant='ghost'
+            size='icon'
+            title='Reject'
+            className='text-red-500 hover:text-red-600 hover:bg-red-50'
             onClick={() => onReject(q.id)}
             disabled={processingId === q.id}
           >
-            <X className="h-4 w-4" />
+            <X className='h-4 w-4' />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            title="Approve"
-            className="text-green-500 hover:text-green-600 hover:bg-green-50"
+          <Button
+            variant='ghost'
+            size='icon'
+            title='Approve'
+            className='text-green-500 hover:text-green-600 hover:bg-green-50'
             onClick={() => onApprove(q.id)}
             disabled={processingId === q.id}
           >
-            <Check className="h-4 w-4" />
+            <Check className='h-4 w-4' />
           </Button>
         </div>
       ),
@@ -207,20 +215,20 @@ export function ReviewTable({
   ], [allSelected, filteredIds, selectedIds, onToggleSelect, onToggleSelectAll, onPreview, onRegenerate, onReject, onApprove, processingId]);
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {/* Filter Toolbar */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-          <Input 
-            placeholder="Search question statement..." 
+      <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+        <div className='flex flex-1 flex-col gap-3 sm:flex-row sm:items-center'>
+          <Input
+            placeholder='Search question statement...'
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-xs"
+            className='max-w-xs'
           />
 
           {/* Topic Select Filter */}
           <select
-            className="flex h-10 w-full sm:w-44 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className='flex h-10 w-full sm:w-44 rounded-md border border-input bg-background px-3 py-2 text-sm'
             value={selectedTopicId}
             onChange={(e) => {
               setSelectedTopicId(e.target.value);
@@ -228,7 +236,7 @@ export function ReviewTable({
             }}
             disabled={isLoadingTopics}
           >
-            <option value="ALL">{isLoadingTopics ? 'Loading topics...' : 'All Topics'}</option>
+            <option value='ALL'>{isLoadingTopics ? 'Loading topics...' : 'All Topics'}</option>
             {topics.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -238,12 +246,12 @@ export function ReviewTable({
 
           {/* Concept Select Filter */}
           <select
-            className="flex h-10 w-full sm:w-44 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className='flex h-10 w-full sm:w-44 rounded-md border border-input bg-background px-3 py-2 text-sm'
             value={selectedConceptId}
             onChange={(e) => setSelectedConceptId(e.target.value)}
             disabled={selectedTopicId === 'ALL' || isLoadingConcepts}
           >
-            <option value="ALL">
+            <option value='ALL'>
               {selectedTopicId === 'ALL'
                 ? 'Select Topic First'
                 : isLoadingConcepts
@@ -260,21 +268,21 @@ export function ReviewTable({
           {/* Clear Filters Button */}
           {(search || selectedTopicId !== 'ALL' || selectedConceptId !== 'ALL') && (
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => {
                 setSearch('');
                 setSelectedTopicId('ALL');
                 setSelectedConceptId('ALL');
               }}
-              className="h-10 px-3 shrink-0"
-              title="Clear filters"
+              className='h-10 px-3 shrink-0'
+              title='Clear filters'
             >
-              <X className="mr-2 h-4 w-4" /> Clear
+              <X className='mr-2 h-4 w-4' /> Clear
             </Button>
           )}
         </div>
 
-        <div className="text-sm text-muted-foreground whitespace-nowrap">
+        <div className='text-sm text-muted-foreground whitespace-nowrap'>
           Showing {filtered.length} pending review
         </div>
       </div>
@@ -287,7 +295,7 @@ export function ReviewTable({
         hideSrNo
         pageSize={20}
         emptyState={
-          <div className="py-12 text-center text-muted-foreground font-medium">
+          <div className='py-12 text-center text-muted-foreground font-medium'>
             No generated questions pending review.
           </div>
         }

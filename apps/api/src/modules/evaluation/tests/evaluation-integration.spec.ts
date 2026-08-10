@@ -86,7 +86,10 @@ describe("Evaluation Module Integration Tests", () => {
         PerformanceAnalyticsService,
         StrengthWeaknessService,
         RecommendationService,
-        { provide: CodingEvaluatorService, useValue: { evaluateAnswers: jest.fn().mockResolvedValue([]) } },
+        {
+          provide: CodingEvaluatorService,
+          useValue: { evaluateAnswers: jest.fn().mockResolvedValue([]) },
+        },
 
         ExecutionEvaluationIntegration,
         {

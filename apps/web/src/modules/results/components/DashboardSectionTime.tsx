@@ -54,8 +54,8 @@ export const DashboardSectionTime: React.FC<Props> = ({ data }) => {
               section.status === 'Needs Improvement'
                 ? 'bg-destructive'
                 : section.status === 'Excellent'
-                ? 'bg-emerald-500'
-                : 'bg-indigo-500';
+                  ? 'bg-emerald-500'
+                  : 'bg-indigo-500';
 
             return (
               <div
@@ -72,8 +72,8 @@ export const DashboardSectionTime: React.FC<Props> = ({ data }) => {
                           section.accuracy >= 70
                             ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
                             : section.accuracy >= 50
-                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
-                            : 'bg-destructive/10 text-destructive border-destructive/20'
+                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                              : 'bg-destructive/10 text-destructive border-destructive/20'
                         }`}
                       >
                         {Math.round(section.accuracy)}% Accuracy
@@ -115,7 +115,8 @@ export const DashboardSectionTime: React.FC<Props> = ({ data }) => {
                   <div className='bg-muted/40 p-2.5 rounded-xl border border-border/60 flex items-center gap-2'>
                     <Clock className='w-3.5 h-3.5 text-muted-foreground shrink-0' />
                     <span className='text-muted-foreground font-medium'>
-                      Spent: <strong className='text-foreground font-bold'>{section.spentTime}m</strong>
+                      Spent:{' '}
+                      <strong className='text-foreground font-bold'>{section.spentTime}m</strong>
                     </span>
                   </div>
 

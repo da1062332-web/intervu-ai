@@ -65,8 +65,7 @@ export interface CreateDatasetItemPayload {
 }
 
 export const datasetsApi = {
-  getAll: (): Promise<Dataset[]> =>
-    apiClient.request<Dataset[]>('/datasets', { method: 'GET' }),
+  getAll: (): Promise<Dataset[]> => apiClient.request<Dataset[]>('/datasets', { method: 'GET' }),
 
   getById: (id: string): Promise<DatasetWithItems> =>
     apiClient.request<DatasetWithItems>(`/datasets/${id}`, { method: 'GET' }),

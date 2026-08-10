@@ -43,13 +43,11 @@ describe("Workflow E2E — Assembly Versioning & Rollback Safety Gates", () => {
         {
           provide: AssemblyPersistenceService,
           useValue: {
-            getAssembly: jest
-              .fn()
-              .mockResolvedValue({
-                id: "asm-001",
-                configId: "cfg-1",
-                status: "PUBLISHED",
-              }),
+            getAssembly: jest.fn().mockResolvedValue({
+              id: "asm-001",
+              configId: "cfg-1",
+              status: "PUBLISHED",
+            }),
           },
         },
         {

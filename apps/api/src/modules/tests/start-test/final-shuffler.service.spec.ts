@@ -1,4 +1,7 @@
-import { FinalShufflerService, ShufflerSectionData } from "./final-shuffler.service";
+import {
+  FinalShufflerService,
+  ShufflerSectionData,
+} from "./final-shuffler.service";
 
 describe("FinalShufflerService", () => {
   let service: FinalShufflerService;
@@ -62,8 +65,12 @@ describe("FinalShufflerService", () => {
     expect(result[0].questions[0].questionId).toBe("q1");
     expect(result[0].questions[1].questionId).toBe("q2");
     expect(result[0].questions[2].questionId).toBe("q3");
-    
-    expect(result[0].questions[0].questionSnapshot.options).toEqual(["A", "B", "C"]);
+
+    expect(result[0].questions[0].questionSnapshot.options).toEqual([
+      "A",
+      "B",
+      "C",
+    ]);
     // Must return a clone to prevent mutation downstream
     expect(result).not.toBe(input);
   });
@@ -89,7 +96,11 @@ describe("FinalShufflerService", () => {
     expect(result[0].questions[2].questionOrder).toBe(2);
 
     // options must be unchanged
-    expect(result[0].questions[2].questionSnapshot.options).toEqual(["A", "B", "C"]);
+    expect(result[0].questions[2].questionSnapshot.options).toEqual([
+      "A",
+      "B",
+      "C",
+    ]);
   });
 
   it("should shuffle options but not questions when shuffleOptionsEnabled is true", () => {
@@ -101,10 +112,14 @@ describe("FinalShufflerService", () => {
 
     // Question order preserved
     expect(result[0].questions[0].questionId).toBe("q1");
-    
+
     // MCQ Options shuffled
     // original: A, B, C -> B, C, A
-    expect(result[0].questions[0].questionSnapshot.options).toEqual(["B", "C", "A"]);
+    expect(result[0].questions[0].questionSnapshot.options).toEqual([
+      "B",
+      "C",
+      "A",
+    ]);
     expect(result[0].questions[0].questionSnapshot.correctAnswer).toBe("B"); // Correct answer value preserved
 
     // Non-MCQ ignored
@@ -123,14 +138,20 @@ describe("FinalShufflerService", () => {
     expect(result[0].questions[2].questionId).toBe("q1");
 
     // Options shuffled for q1 (now at index 2) -> A, B, C -> B, C, A
-    expect(result[0].questions[2].questionSnapshot.options).toEqual(["B", "C", "A"]);
+    expect(result[0].questions[2].questionSnapshot.options).toEqual([
+      "B",
+      "C",
+      "A",
+    ]);
     expect(result[0].questions[2].questionSnapshot.correctAnswer).toBe("B");
   });
 
   it("should not mutate the input objects", () => {
     const input = getMockSections();
-    const originalQ1Options = [...input[0].questions[0].questionSnapshot.options];
-    
+    const originalQ1Options = [
+      ...input[0].questions[0].questionSnapshot.options,
+    ];
+
     service.shuffleSections(input, {
       shuffleQuestionsEnabled: true,
       shuffleOptionsEnabled: true,
@@ -138,6 +159,8 @@ describe("FinalShufflerService", () => {
 
     // The input object should remain completely unchanged
     expect(input[0].questions[0].questionId).toBe("q1");
-    expect(input[0].questions[0].questionSnapshot.options).toEqual(originalQ1Options);
+    expect(input[0].questions[0].questionSnapshot.options).toEqual(
+      originalQ1Options,
+    );
   });
 });

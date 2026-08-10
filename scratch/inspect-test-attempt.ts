@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
   datasources: {
@@ -9,12 +9,12 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  console.log('--- INSPECTING TEST ATTEMPTS & EVALUATION RUNS ---');
+  console.log("--- INSPECTING TEST ATTEMPTS & EVALUATION RUNS ---");
 
-  const attemptId = 'wurfablihqtln4fbi677172u';
+  const attemptId = "wurfablihqtln4fbi677172u";
 
   const specificAttempt = await prisma.testInstance.findFirst({
-    where: { OR: [{ id: attemptId }, { id: { contains: 'wurfab' } }] },
+    where: { OR: [{ id: attemptId }, { id: { contains: "wurfab" } }] },
     include: {
       candidateResult: true,
       evaluationResult: true,
@@ -24,12 +24,12 @@ async function main() {
     },
   });
 
-  console.log('\n--- Specific Attempt Found ---');
+  console.log("\n--- Specific Attempt Found ---");
   console.log(specificAttempt);
 
   const recentAttempts = await prisma.testInstance.findMany({
     take: 10,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     include: {
       candidateResult: true,
       evaluationResult: true,
@@ -37,7 +37,7 @@ async function main() {
     },
   });
 
-  console.log('\n--- Recent 10 Attempts ---');
+  console.log("\n--- Recent 10 Attempts ---");
   for (const att of recentAttempts) {
     console.log({
       id: att.id,
@@ -50,13 +50,11 @@ async function main() {
 
   const evalRuns = await prisma.evaluationRun.findMany({
     take: 10,
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
-  console.log('\n--- Recent Evaluation Runs ---');
+  console.log("\n--- Recent Evaluation Runs ---");
   console.dir(evalRuns, { depth: null });
-
-
 
   await prisma.$disconnect();
 }

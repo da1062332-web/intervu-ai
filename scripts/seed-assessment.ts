@@ -37,20 +37,25 @@ async function seedAssessment() {
         options: ["'null'", "'undefined'", "'object'", "'string'"],
         correctAnswer: "'object'",
         solution: JSON.stringify({
-          steps: ["In JavaScript, typeof null is a known historical bug that returns 'object'."],
-          finalAnswer: "'object'"
-        })
+          steps: [
+            "In JavaScript, typeof null is a known historical bug that returns 'object'.",
+          ],
+          finalAnswer: "'object'",
+        }),
       },
       {
         questionId: createId(),
-        questionText: "Which keyword is used to declare a block-scoped variable?",
+        questionText:
+          "Which keyword is used to declare a block-scoped variable?",
         options: ["var", "let", "function", "global"],
         correctAnswer: "let",
         solution: JSON.stringify({
-          steps: ["The 'let' keyword allows you to declare variables that are limited to a scope of a block statement, or expression."],
-          finalAnswer: "let"
-        })
-      }
+          steps: [
+            "The 'let' keyword allows you to declare variables that are limited to a scope of a block statement, or expression.",
+          ],
+          finalAnswer: "let",
+        }),
+      },
     ];
 
     for (const q of questionsToSeed) {
@@ -69,7 +74,9 @@ async function seedAssessment() {
           metadata: { tags: ["javascript", "frontend"] },
         },
       });
-      console.log(`✅ Created question: "${q.questionText}" with ${q.options.length} options`);
+      console.log(
+        `✅ Created question: "${q.questionText}" with ${q.options.length} options`,
+      );
     }
 
     // 4. Create Assessment Configuration (TestConfig & TestSection)
@@ -82,7 +89,9 @@ async function seedAssessment() {
         totalQuestions: 2,
       },
     });
-    console.log(`✅ Created assessment (TestConfig): ${testConfig.displayName}`);
+    console.log(
+      `✅ Created assessment (TestConfig): ${testConfig.displayName}`,
+    );
 
     const testSection = await prisma.testSection.create({
       data: {
@@ -105,7 +114,7 @@ async function seedAssessment() {
         durationMinutes: 60,
         totalQuestions: 1,
         isActive: true,
-      }
+      },
     });
     console.log(`✅ Created ExamConfig: ${examConfig.name}`);
 
@@ -117,7 +126,7 @@ async function seedAssessment() {
         questionCount: 1,
         sectionDurationMinutes: 60,
         sectionOrder: 1,
-      }
+      },
     });
     console.log(`✅ Created ExamSection: ${examSection.name}`);
 
@@ -125,7 +134,7 @@ async function seedAssessment() {
       data: {
         name: "JavaScript Basics",
         code: `TOPIC_${Date.now()}`,
-      }
+      },
     });
     console.log(`✅ Created Topic: ${topic.name}`);
 
@@ -133,13 +142,14 @@ async function seedAssessment() {
       data: {
         questionText: "What does 'typeof null' return in JavaScript?",
         answer: "'object'",
-        explanation: "In JavaScript, typeof null is a known historical bug that returns 'object'.",
+        explanation:
+          "In JavaScript, typeof null is a known historical bug that returns 'object'.",
         topicId: topic.id,
         sectionId: examSection.id,
         difficulty: "MEDIUM",
         source: "seed",
         templateId: template.id,
-      }
+      },
     });
     console.log(`✅ Created Question linked to ExamConfig and Template!`);
 

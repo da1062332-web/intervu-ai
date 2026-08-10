@@ -6,7 +6,7 @@ import { SectionHeader } from '@/components/ui/section-header';
 export default function PublishingCenterPage() {
   return (
     <div className='container mx-auto py-8 max-w-7xl'>
-      <SectionHeader 
+      <SectionHeader
         title='Publishing Center'
         description='Manage, publish, and rollback assembled tests globally.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Publishing' }]}

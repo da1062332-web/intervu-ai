@@ -3,8 +3,7 @@ import { scenariosApi, CreateScenarioPayload, UpdateScenarioPayload } from './ap
 
 const QUERY_KEY = 'scenarios';
 
-export const useScenarios = () =>
-  useQuery({ queryKey: [QUERY_KEY], queryFn: scenariosApi.getAll });
+export const useScenarios = () => useQuery({ queryKey: [QUERY_KEY], queryFn: scenariosApi.getAll });
 
 export const useScenario = (id: string) =>
   useQuery({

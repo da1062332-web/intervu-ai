@@ -86,7 +86,8 @@ export class StyleProfileService implements OnModuleInit {
           explanationLength: "short",
           highlightFinalAnswer: true,
         },
-        aiInstructions: "Keep language simple and direct. Avoid verbose phrasing.",
+        aiInstructions:
+          "Keep language simple and direct. Avoid verbose phrasing.",
         characteristics: [
           { name: "questionLength", value: "short" },
           { name: "complexity", value: "low" },
@@ -133,7 +134,8 @@ export class StyleProfileService implements OnModuleInit {
           explanationLength: "medium",
           highlightFinalAnswer: true,
         },
-        aiInstructions: "Provide deep technical explanations. Use realistic real-world engineering contexts.",
+        aiInstructions:
+          "Provide deep technical explanations. Use realistic real-world engineering contexts.",
         characteristics: [
           { name: "questionLength", value: "long" },
           { name: "complexity", value: "high" },
@@ -180,7 +182,8 @@ export class StyleProfileService implements OnModuleInit {
           explanationLength: "long",
           highlightFinalAnswer: true,
         },
-        aiInstructions: "Focus on architectural decisions, team leadership, and strategic execution trade-offs.",
+        aiInstructions:
+          "Focus on architectural decisions, team leadership, and strategic execution trade-offs.",
         characteristics: [
           { name: "questionLength", value: "long" },
           { name: "complexity", value: "high" },
@@ -227,7 +230,8 @@ export class StyleProfileService implements OnModuleInit {
           explanationLength: "medium",
           highlightFinalAnswer: true,
         },
-        aiInstructions: "Adhere closely to certification study guide terms. Ensure options are completely unambiguous.",
+        aiInstructions:
+          "Adhere closely to certification study guide terms. Ensure options are completely unambiguous.",
         characteristics: [
           { name: "questionLength", value: "medium" },
           { name: "complexity", value: "medium" },
@@ -253,7 +257,10 @@ export class StyleProfileService implements OnModuleInit {
     }
   }
 
-  private async handleDefaultProfileReset(isDefault?: boolean, idToSkip?: string) {
+  private async handleDefaultProfileReset(
+    isDefault?: boolean,
+    idToSkip?: string,
+  ) {
     if (isDefault) {
       await this.prisma.styleProfile.updateMany({
         where: {
@@ -338,4 +345,3 @@ export class StyleProfileService implements OnModuleInit {
     );
   }
 }
-

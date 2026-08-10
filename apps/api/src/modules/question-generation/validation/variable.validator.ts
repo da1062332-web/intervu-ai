@@ -4,7 +4,10 @@ import {
   ValidationReport,
   RawQuestion,
 } from "../interfaces/validation-strategy.interface";
-import { GenerationContext, VariablePayload } from "../interfaces/generation-context.interface";
+import {
+  GenerationContext,
+  VariablePayload,
+} from "../interfaces/generation-context.interface";
 
 /**
  * VariableValidator
@@ -29,9 +32,7 @@ export class VariableValidator implements IValidationStrategy {
 
     // 2. Must have exactly 4 options
     if (!question.options || question.options.length !== 4) {
-      errors.push(
-        `Expected 4 options, got ${question.options?.length ?? 0}.`,
-      );
+      errors.push(`Expected 4 options, got ${question.options?.length ?? 0}.`);
     }
 
     // 3. Correct answer must be one of A/B/C/D
@@ -49,7 +50,9 @@ export class VariableValidator implements IValidationStrategy {
 
     // 5. Variables must have been resolved (non-empty)
     if (!payload.variables || Object.keys(payload.variables).length === 0) {
-      errors.push("No variables were resolved for this VARIABLE strategy question.");
+      errors.push(
+        "No variables were resolved for this VARIABLE strategy question.",
+      );
     }
 
     // 6. Warn if the hydrated question still contains unresolved placeholders

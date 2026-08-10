@@ -34,14 +34,18 @@ describe("CandidateProgressService", () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RedisCacheService, useValue: mockCacheService },
         { provide: ReportAuditService, useValue: mockAuditService },
-        { 
-          provide: ResultsService, 
+        {
+          provide: ResultsService,
           useValue: {
             getResultDetails: jest.fn().mockResolvedValue({
               percentage: 80,
-              evaluationAnalytics: { completionRate: 100, topicAccuracy: { "Coding": 80 }, difficultyAccuracy: { "medium": 80 } }
-            })
-          } 
+              evaluationAnalytics: {
+                completionRate: 100,
+                topicAccuracy: { Coding: 80 },
+                difficultyAccuracy: { medium: 80 },
+              },
+            }),
+          },
         },
       ],
     }).compile();
@@ -86,11 +90,11 @@ describe("CandidateProgressService", () => {
         },
         evaluationAnalytics: {
           completionRate: 100,
-          topicAccuracy: { "Coding": 80 },
-          difficultyAccuracy: { "medium": 80 },
+          topicAccuracy: { Coding: 80 },
+          difficultyAccuracy: { medium: 80 },
         },
         testConfig: { displayName: "JS Code", difficultyLevel: "MEDIUM" },
-      }
+      },
     ];
 
     mockPrisma.testInstance.findMany.mockResolvedValue(mockAttempts);

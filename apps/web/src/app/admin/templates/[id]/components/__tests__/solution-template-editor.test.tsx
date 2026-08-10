@@ -16,11 +16,11 @@ describe('SolutionTemplateEditor', () => {
 
     render(
       <SolutionTemplateEditor
-        solutionTemplate=""
-        explanationTemplate=""
+        solutionTemplate=''
+        explanationTemplate=''
         setSolutionTemplate={vi.fn()}
         setExplanationTemplate={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByText(/Solution Template/i)).toBeInTheDocument();

@@ -10,7 +10,12 @@ import { HealthController } from "./controllers/health.controller";
 @Module({
   imports: [TerminusModule],
   controllers: [HealthController],
-  providers: [HealthService, RedisHealthIndicator, WorkerHealthIndicator, KeepAliveService],
+  providers: [
+    HealthService,
+    RedisHealthIndicator,
+    WorkerHealthIndicator,
+    KeepAliveService,
+  ],
   exports: [HealthService],
 })
 export class HealthModule {}

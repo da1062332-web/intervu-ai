@@ -1,4 +1,7 @@
-export function formatCandidateDate(dateString: string | undefined | null, fallback = 'N/A'): string {
+export function formatCandidateDate(
+  dateString: string | undefined | null,
+  fallback = 'N/A',
+): string {
   if (!dateString) return fallback;
   try {
     const date = new Date(dateString);
@@ -13,7 +16,10 @@ export function formatCandidateDate(dateString: string | undefined | null, fallb
   }
 }
 
-export function formatCandidateDateTime(dateString: string | undefined | null, fallback = 'N/A'): string {
+export function formatCandidateDateTime(
+  dateString: string | undefined | null,
+  fallback = 'N/A',
+): string {
   if (!dateString) return fallback;
   try {
     const date = new Date(dateString);

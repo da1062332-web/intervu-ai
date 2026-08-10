@@ -54,7 +54,10 @@ export function TestCatalogPage() {
         <SectionHeader
           title='Available Assessments'
           description='Find and prepare for your assigned and recommended assessments.'
-          breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Assessments' }]}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/candidate/dashboard' },
+            { label: 'Assessments' },
+          ]}
         />
         <Skeleton className='h-40 w-full rounded-xl border border-border/40' />
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2'>
@@ -105,7 +108,10 @@ export function TestCatalogPage() {
       <SectionHeader
         title='Available Assessments'
         description='Find and prepare for your assigned and recommended assessments.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/candidate/dashboard' }, { label: 'Assessments' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/candidate/dashboard' },
+          { label: 'Assessments' },
+        ]}
       />
 
       <TestFilters
@@ -115,7 +121,9 @@ export function TestCatalogPage() {
         onDifficultyChange={handleDifficultyChange}
         showOnlyBookmarked={showOnlyBookmarked}
         onShowOnlyBookmarkedChange={handleBookmarkFilterChange}
-        totalResults={showOnlyBookmarked ? filteredTests.length : (pagination.total ?? filteredTests.length)}
+        totalResults={
+          showOnlyBookmarked ? filteredTests.length : (pagination.total ?? filteredTests.length)
+        }
       />
 
       {filteredTests.length === 0 ? (
@@ -134,4 +142,3 @@ export function TestCatalogPage() {
     </div>
   );
 }
-

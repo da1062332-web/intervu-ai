@@ -3,6 +3,7 @@ import { AppLogger } from "@intervu-ai/shared-logger";
 import { AppConfigService, ConfigModule } from "../config";
 import { QueueFactory } from "./queue-config";
 import { QueueService } from "./queue.service";
+import { PrismaService } from "../prisma/prisma.service";
 
 /**
  * QueueModule — Global NestJS DI wrapper for QueueService and QueueFactory.
@@ -19,7 +20,10 @@ import { QueueService } from "./queue.service";
   providers: [
     {
       provide: QueueService,
-      useFactory: (configService: AppConfigService): QueueService => {
+      useFactory: (
+        configService: AppConfigService,
+        prisma: PrismaService,
+      ): QueueService => {
         const logger = new AppLogger({ name: "QueueService" });
         const redisUrl = new URL(configService.redisUrl);
 
@@ -48,9 +52,9 @@ import { QueueService } from "./queue.service";
         QueueFactory.createQueue("analytics", connection);
         QueueFactory.createQueue("validation", connection);
 
-        return new QueueService(logger);
+        return new QueueService(logger, prisma);
       },
-      inject: [AppConfigService],
+      inject: [AppConfigService, PrismaService],
     },
   ],
   exports: [QueueService],

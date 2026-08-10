@@ -73,7 +73,7 @@ export default function ExportCenterPage() {
 
   return (
     <div className='container mx-auto space-y-6 animate-fade-in-up pb-8'>
-      <SectionHeader 
+      <SectionHeader
         title='Export Center'
         description='Download system data, reports, and analytics'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Exports' }]}

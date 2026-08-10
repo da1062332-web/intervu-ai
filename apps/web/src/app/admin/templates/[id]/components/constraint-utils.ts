@@ -17,9 +17,10 @@ export function parseConstraintRule(item: any, index = 0): ParsedConstraintRule 
     };
   }
 
-  const rawRule = typeof item?.rule === 'string' && item.rule.trim()
-    ? item.rule.trim()
-    : `${item?.target || ''} ${item?.operator || '=='} ${item?.value || ''}`.trim();
+  const rawRule =
+    typeof item?.rule === 'string' && item.rule.trim()
+      ? item.rule.trim()
+      : `${item?.target || ''} ${item?.operator || '=='} ${item?.value || ''}`.trim();
 
   const parsedRule = rawRule.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(>=|<=|!=|==|=|>|<)\s*(.+)$/);
   const constraintId = item?.id || `${item?.target || item?.rule || 'constraint'}-${index}`;
@@ -63,11 +64,13 @@ export function buildConstraintRule(input: { target: string; operator: string; v
 }
 
 export function toConstraintPayload(item: any) {
-  const rule = item?.rule || buildConstraintRule({
-    target: item?.target || '',
-    operator: item?.operator || '==',
-    value: item?.value || '',
-  });
+  const rule =
+    item?.rule ||
+    buildConstraintRule({
+      target: item?.target || '',
+      operator: item?.operator || '==',
+      value: item?.value || '',
+    });
 
   return {
     target: item?.target || '',

@@ -24,12 +24,12 @@ async function run() {
       throw new Error(`Authentication failed: ${await loginRes.text()}`);
     }
 
-    const loginData = await loginRes.json() as any;
+    const loginData = (await loginRes.json()) as any;
     const token = loginData.data?.accessToken || loginData.accessToken;
     const authHeaders = {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-      "accept": "*/*"
+      Authorization: `Bearer ${token}`,
+      accept: "*/*",
     };
     console.log("   Authenticated successfully.\n");
 
@@ -45,23 +45,28 @@ async function run() {
         questionType: "multiple_choice",
         generationStrategy: "VARIABLE",
         structure: {
-          questionTemplate: "Principal: {principal}, Rate: {rate}%, Time: {time} years. Total Interest calculated: ${interest}.",
-          optionsTemplate: ["${interest}", "$100", "$250", "$300"]
+          questionTemplate:
+            "Principal: {principal}, Rate: {rate}%, Time: {time} years. Total Interest calculated: ${interest}.",
+          optionsTemplate: ["${interest}", "$100", "$250", "$300"],
         },
         variableSchema: {
           variables: [
-            { "name": "principal", "type": "integer", "min": 2000, "max": 2000 }, // lock principal to 2000
-            { "name": "rate", "type": "integer", "min": 5, "max": 5 }, // lock rate to 5%
-            { "name": "time", "type": "integer", "min": 3, "max": 3 }, // lock time to 3 years
-            { "name": "interest", "type": "formula", "formula": "(principal * rate * time) / 100" } // Interest formula
-          ]
+            { name: "principal", type: "integer", min: 2000, max: 2000 }, // lock principal to 2000
+            { name: "rate", type: "integer", min: 5, max: 5 }, // lock rate to 5%
+            { name: "time", type: "integer", min: 3, max: 3 }, // lock time to 3 years
+            {
+              name: "interest",
+              type: "formula",
+              formula: "(principal * rate * time) / 100",
+            }, // Interest formula
+          ],
         },
         constraints: {
-          constraints: []
+          constraints: [],
         },
         solutionSchema: {
-          finalAnswer: "interest"
-        }
+          finalAnswer: "interest",
+        },
       }),
     });
 
@@ -69,7 +74,7 @@ async function run() {
       throw new Error(`Template creation failed: ${await templateRes.text()}`);
     }
 
-    const templateData = await templateRes.json() as any;
+    const templateData = (await templateRes.json()) as any;
     const templateId = templateData.data?.id || templateData.id;
     console.log(`   Template created. ID: ${templateId}\n`);
 
@@ -79,7 +84,7 @@ async function run() {
       method: "POST",
       headers: authHeaders,
       body: JSON.stringify({
-        templateId: templateId
+        templateId: templateId,
       }),
     });
 
@@ -87,28 +92,38 @@ async function run() {
       throw new Error(`Preview request failed: ${await previewRes.text()}`);
     }
 
-    const previewData = await previewRes.json() as any;
+    const previewData = (await previewRes.json()) as any;
     console.log("   Preview details acquired successfully.\n");
 
     const data = previewData.data;
     console.log("--- Hydration & Calculation Details ---");
     console.log(`- Hydrated Question: "${data.previewText}"`);
-    console.log(`- Resolved Variables:`, JSON.stringify(data.context.payload.variables, null, 2));
+    console.log(
+      `- Resolved Variables:`,
+      JSON.stringify(data.context.payload.variables, null, 2),
+    );
     console.log(`- Expected Interest Result: (2000 * 5 * 3) / 100 = 300`);
-    console.log(`- Calculated Interest value: ${data.context.payload.variables.interest}`);
+    console.log(
+      `- Calculated Interest value: ${data.context.payload.variables.interest}`,
+    );
     console.log("---------------------------------------\n");
 
     // Assertions
     const calculatedInterest = data.context.payload.variables.interest;
     if (calculatedInterest === 300) {
-      console.log("🎉 SUCCESS: Formula was evaluated and computed correctly on the backend server!");
+      console.log(
+        "🎉 SUCCESS: Formula was evaluated and computed correctly on the backend server!",
+      );
     } else {
-      console.error(`❌ FAILURE: Expected interest to be 300, but got ${calculatedInterest}`);
+      console.error(
+        `❌ FAILURE: Expected interest to be 300, but got ${calculatedInterest}`,
+      );
     }
 
     // 4. Cleanup (Disabled for UI inspection)
-    console.log("\n4. Cleanup skipped to keep template in database for UI inspection.");
-
+    console.log(
+      "\n4. Cleanup skipped to keep template in database for UI inspection.",
+    );
   } catch (err: any) {
     console.error("\n❌ TEST FAILED:", err.message);
   } finally {

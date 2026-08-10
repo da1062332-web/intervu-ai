@@ -3,6 +3,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
   Logger,
+  Optional,
+  Inject,
 } from "@nestjs/common";
 import { StartTestDto } from "./dto/start-test.dto";
 import { EligibilityService } from "../../lifecycle/eligibility.service";
@@ -13,6 +15,7 @@ import { TestInstanceService } from "../test-instance/test-instance.service";
 import { TestInstanceStatus, Prisma } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { FinalShufflerService } from "./final-shuffler.service";
+import { AssemblyService } from "../../assembly/services/test-assembly.service";
 
 @Injectable()
 export class StartTestService {
@@ -26,6 +29,7 @@ export class StartTestService {
     private readonly testInstanceService: TestInstanceService,
     private readonly prisma: PrismaService,
     private readonly finalShufflerService: FinalShufflerService,
+    @Optional() @Inject(AssemblyService) private readonly assemblyService?: AssemblyService,
   ) {}
 
   async startTest(userId: string, input: StartTestDto) {
@@ -35,6 +39,8 @@ export class StartTestService {
       input.testConfigId,
     );
 
+    const targetConfigId = eligibility.resolvedConfigId || input.testConfigId;
+
     if (!eligibility.eligible) {
       if (
         eligibility.errorCode === "ACTIVE_TEST_EXISTS" &&
@@ -43,11 +49,11 @@ export class StartTestService {
         // Return existing active instance for idempotency
         let durationSeconds = 3600;
         if (eligibility.isExamConfig) {
-          const config = await this.prisma.examConfig.findUnique({ where: { id: input.testConfigId } });
+          const config = await this.prisma.examConfig.findUnique({ where: { id: targetConfigId } });
           if (config) durationSeconds = config.durationMinutes * 60;
         } else {
           const config = await this.testConfigRepository.findById(
-            input.testConfigId,
+            targetConfigId,
           );
           if (config) durationSeconds = config.totalDurationSeconds;
         }
@@ -68,23 +74,33 @@ export class StartTestService {
     let config: any;
     if (eligibility.isExamConfig) {
       config = await this.prisma.examConfig.findUnique({
-        where: { id: input.testConfigId },
+        where: { id: targetConfigId },
         include: {
-          sections: { orderBy: { sectionOrder: 'asc' } },
+          sections: { orderBy: { sectionOrder: "asc" } },
           blueprint: true,
           ruleFlags: true,
         },
       });
       if (config) {
         config.totalDurationSeconds = config.durationMinutes * 60;
-        config.sectionTimingEnabled = config.ruleFlags?.sectionTimingEnabled ?? false;
+        config.sectionTimingEnabled =
+          config.ruleFlags?.sectionTimingEnabled ?? false;
         const numSections = config.sections.length || 1;
         config.sections = config.sections.map((s: any, index: number) => {
-          let conceptKey = s.code ? `CONCEPT_${s.code}` : s.name.toLowerCase().replace(/ /g, '_');
+          let conceptKey = s.code
+            ? `CONCEPT_${s.code}`
+            : s.name.toLowerCase().replace(/ /g, "_");
           if (config.blueprint && Array.isArray(config.blueprint.sections)) {
-            const bpSection = config.blueprint.sections.find((bs: any) => bs.sectionId === s.id);
-            if (bpSection && bpSection.topicAllocations?.[0]?.concepts?.[0]?.conceptName) {
-              conceptKey = bpSection.topicAllocations[0].concepts[0].conceptName.replace(/\s+/g, '_').toUpperCase();
+            const bpSection = config.blueprint.sections.find(
+              (bs: any) => bs.sectionId === s.id,
+            );
+            if (
+              bpSection &&
+              bpSection.topicAllocations?.[0]?.concepts?.[0]?.conceptName
+            ) {
+              conceptKey = bpSection.topicAllocations[0].concepts[0].conceptName
+                .replace(/\s+/g, "_")
+                .toUpperCase();
             }
           }
           // Use the explicitly defined section duration if available, otherwise divide total duration evenly.
@@ -102,7 +118,7 @@ export class StartTestService {
       }
     } else {
       config = await this.testConfigRepository.findByIdWithSections(
-        input.testConfigId,
+        targetConfigId,
       );
     }
 
@@ -113,13 +129,38 @@ export class StartTestService {
       });
     }
 
+    // Dynamic candidate-unique assembly ONLY when candidateNoRepeatEnabled flag is active AND candidate is taking a Retest attempt
+    const previousAttempts = await this.prisma.testInstance.findMany({
+      where: {
+        userId,
+        OR: [{ examConfigId: targetConfigId }, { testConfigId: targetConfigId }],
+        status: { in: [TestInstanceStatus.SUBMITTED, TestInstanceStatus.COMPLETED] },
+      },
+    });
+
+    const isRetest = previousAttempts.length > 0;
+    const isCandidateNoRepeat = config.ruleFlags?.candidateNoRepeatEnabled ?? false;
+
+    if (isCandidateNoRepeat && isRetest && this.assemblyService) {
+      const candidateInstanceId = await this.assemblyService.assembleTest(targetConfigId, userId);
+      const instanceRecord = await this.prisma.testInstance.findUnique({
+        where: { id: candidateInstanceId },
+      });
+      return {
+        testInstanceId: candidateInstanceId,
+        status: instanceRecord?.status || TestInstanceStatus.CREATED,
+        instructionsUrl: `/test/${candidateInstanceId}/instructions`,
+        durationSeconds: config.totalDurationSeconds || 3600,
+      };
+    }
+
     // 2. coreLogic(data) -> Assembly
     // Prefer a published AssembledTest snapshot for this configId if available.
     let sectionsData = [];
 
     try {
       const assembly = await this.assembledTestRepository.findByConfigId(
-        input.testConfigId,
+        targetConfigId,
       );
 
       if (assembly) {
@@ -130,7 +171,8 @@ export class StartTestService {
             .map((q) => ({
               questionId: q.questionId,
               questionOrder: q.questionOrder,
-              questionSnapshot: q.questionSnapshot as unknown as Prisma.InputJsonValue,
+              questionSnapshot:
+                q.questionSnapshot as unknown as Prisma.InputJsonValue,
             }));
 
           sectionsData.push({
@@ -145,13 +187,14 @@ export class StartTestService {
       } else {
         // No published snapshot — fall back to live generation
         for (const section of config.sections) {
-          const questions = await this.questionProvider.fetchOrGenerateQuestions([
-            {
-              conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
-              difficultyLevel: "MEDIUM",
-              count: section.questionCount,
-            },
-          ]);
+          const questions =
+            await this.questionProvider.fetchOrGenerateQuestions([
+              {
+                conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
+                difficultyLevel: "MEDIUM",
+                count: section.questionCount,
+              },
+            ]);
 
           sectionsData.push({
             sectionKey: section.sectionKey,
@@ -199,11 +242,15 @@ export class StartTestService {
 
     // Final Shuffle
     const shuffleFlags = {
-      shuffleQuestionsEnabled: config.ruleFlags?.shuffleQuestionsEnabled ?? false,
+      shuffleQuestionsEnabled:
+        config.ruleFlags?.shuffleQuestionsEnabled ?? false,
       shuffleOptionsEnabled: config.ruleFlags?.shuffleOptionsEnabled ?? false,
     };
-    
-    sectionsData = this.finalShufflerService.shuffleSections(sectionsData as any, shuffleFlags);
+
+    sectionsData = this.finalShufflerService.shuffleSections(
+      sectionsData as any,
+      shuffleFlags,
+    );
 
     const testInstance = await this.testInstanceService.createTestInstance({
       userId,

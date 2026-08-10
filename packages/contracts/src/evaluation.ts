@@ -106,7 +106,6 @@ export const CandidateResultDtoSchema = z.object({
   recommendations: z.array(RecommendationDtoSchema).optional(),
   explanations: EvaluationExplanationSchema.optional(),
 
-
   // Enriched result fields
   totalAttempted: z.number().int().nonnegative().optional(),
   totalCorrect: z.number().int().nonnegative().optional(),
@@ -146,12 +145,16 @@ export const HiringSectionMappingDtoSchema = z.object({
   minimumCorrectAnswers: z.number().int().nonnegative().default(0),
 });
 
-export type HiringSectionMappingDto = z.infer<typeof HiringSectionMappingDtoSchema>;
+export type HiringSectionMappingDto = z.infer<
+  typeof HiringSectionMappingDtoSchema
+>;
 
 export const HiringEvaluationConfigDtoSchema = z.object({
   id: z.string().optional(),
   examConfigId: z.string().min(1, "examConfigId is required"),
-  strategy: z.enum(["TCS", "INFOSYS", "ACCENTURE", "CAPGEMINI", "COGNIZANT", "CUSTOM"]).default("TCS"),
+  strategy: z
+    .enum(["TCS", "INFOSYS", "ACCENTURE", "CAPGEMINI", "COGNIZANT", "CUSTOM"])
+    .default("TCS"),
   enabled: z.boolean().default(false),
   ninjaThreshold: z.number().int().nonnegative().default(0),
   digitalThreshold: z.number().int().nonnegative().default(0),
@@ -164,7 +167,9 @@ export const HiringEvaluationConfigDtoSchema = z.object({
   sectionMappings: z.array(HiringSectionMappingDtoSchema).default([]),
 });
 
-export type HiringEvaluationConfigDto = z.infer<typeof HiringEvaluationConfigDtoSchema>;
+export type HiringEvaluationConfigDto = z.infer<
+  typeof HiringEvaluationConfigDtoSchema
+>;
 
 export const SectionPassFailBreakdownSchema = z.object({
   category: z.string(),
@@ -175,7 +180,9 @@ export const SectionPassFailBreakdownSchema = z.object({
   passed: z.boolean(),
 });
 
-export type SectionPassFailBreakdown = z.infer<typeof SectionPassFailBreakdownSchema>;
+export type SectionPassFailBreakdown = z.infer<
+  typeof SectionPassFailBreakdownSchema
+>;
 
 export const FoundationBreakdownDtoSchema = z.object({
   numericalScore: z.number().int().nonnegative(),
@@ -191,7 +198,9 @@ export const FoundationBreakdownDtoSchema = z.object({
   sectionsBreakdown: z.array(SectionPassFailBreakdownSchema),
 });
 
-export type FoundationBreakdownDto = z.infer<typeof FoundationBreakdownDtoSchema>;
+export type FoundationBreakdownDto = z.infer<
+  typeof FoundationBreakdownDtoSchema
+>;
 
 export const AdvancedBreakdownDtoSchema = z.object({
   sectionCode: z.string().optional(),
@@ -242,8 +251,9 @@ export const HiringEvaluationResultDtoSchema = z.object({
   }, z.date()),
 });
 
-export type HiringEvaluationResultDto = z.infer<typeof HiringEvaluationResultDtoSchema>;
-
+export type HiringEvaluationResultDto = z.infer<
+  typeof HiringEvaluationResultDtoSchema
+>;
 
 export const CandidateRankDtoSchema = z.object({
   rank: z.number().int().positive(),

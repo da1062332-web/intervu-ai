@@ -251,11 +251,19 @@ export class AssemblyController {
       );
     }
 
-    const data: AssemblyResponseDto & { examConfig?: any; testConfig?: any; name?: string } = {
+    const data: AssemblyResponseDto & {
+      examConfig?: any;
+      testConfig?: any;
+      name?: string;
+    } = {
       id: instance.id,
       configId: instance.configId ?? instance.testConfigId,
       status: instance.status ?? "CREATED",
-      name: instance.examConfig?.name || instance.testConfig?.displayName || instance.name || null,
+      name:
+        instance.examConfig?.name ||
+        instance.testConfig?.displayName ||
+        instance.name ||
+        null,
       examConfig: instance.examConfig
         ? {
             id: instance.examConfig.id,

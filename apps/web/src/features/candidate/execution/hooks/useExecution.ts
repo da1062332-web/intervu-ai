@@ -41,8 +41,7 @@ export function useExecution(testId: string) {
           else if (err.status === 410) {
             setError('EXPIRED');
             clearAssessmentSandboxStorage(testId);
-          }
-          else if (err.status === 500) setError('SERVER_ERROR');
+          } else if (err.status === 500) setError('SERVER_ERROR');
           else setError(err instanceof Error ? err.message : 'Failed to load assessment');
           setLoading(false);
           useExecutionStore.getState().cleanupRuntime();
@@ -73,10 +72,10 @@ export function useExecution(testId: string) {
       e.preventDefault();
       e.returnValue = ''; // Standard way to trigger the browser's "Leave site?" warning
     };
-    
+
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('beforeunload', handleBeforeUnload);

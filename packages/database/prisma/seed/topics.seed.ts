@@ -73,7 +73,7 @@ export async function seedTopics(prisma: PrismaClient) {
     { name: "Verbal Ability", code: "VERBAL_ABILITY" },
     { name: "Reasoning Ability", code: "REASONING_ABILITY" },
     { name: "Advanced Aptitude", code: "ADVANCED_APTITUDE" },
-    { name: "Coding", code: "CODING" }
+    { name: "Coding", code: "CODING" },
   ];
 
   for (const t of extraTopics) {

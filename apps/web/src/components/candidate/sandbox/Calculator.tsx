@@ -78,7 +78,21 @@ export function Calculator() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isMinimized, showHistory, showResetConfirm, display, expression, inputDigit, inputDecimal, performOperation, calculatePercentage, equals, backspace, clear]);
+  }, [
+    isOpen,
+    isMinimized,
+    showHistory,
+    showResetConfirm,
+    display,
+    expression,
+    inputDigit,
+    inputDecimal,
+    performOperation,
+    calculatePercentage,
+    equals,
+    backspace,
+    clear,
+  ]);
 
   return (
     <div className='flex flex-col h-full w-full bg-slate-900 text-white rounded-b-lg font-mono select-none overflow-hidden border-t border-slate-800 shadow-inner relative'>
@@ -95,7 +109,10 @@ export function Calculator() {
             <span className='font-semibold'>History ({history.length})</span>
             {showHistory ? <ChevronUp className='size-3' /> : <ChevronDown className='size-3' />}
           </button>
-          <span className='truncate ml-2 text-slate-400 font-medium tracking-wide text-xs' title={expression || ''}>
+          <span
+            className='truncate ml-2 text-slate-400 font-medium tracking-wide text-xs'
+            title={expression || ''}
+          >
             {expression || '\u00A0'}
           </span>
         </div>
@@ -324,7 +341,7 @@ export function Calculator() {
 
       {/* In-App Confirmation Modal (No native browser alert/confirm to preserve Fullscreen Mode) */}
       {showResetConfirm && (
-        <div 
+        <div
           className='absolute inset-0 z-[200] bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans'
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}

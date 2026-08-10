@@ -1,7 +1,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PerformanceDashboardResponse } from '../types/results.types';
-import { Calculator, Brain, BookOpen, Code2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import {
+  Calculator,
+  Brain,
+  BookOpen,
+  Code2,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react';
 
 interface Props {
   data: PerformanceDashboardResponse;
@@ -106,7 +114,7 @@ export const DashboardSectionAccuracy: React.FC<Props> = ({ data }) => {
                 const totalQ =
                   sec.questionCount ??
                   matchedSecTime?.questionCount ??
-                  (sec.correct + sec.wrong + (sec.skipped || 0));
+                  sec.correct + sec.wrong + (sec.skipped || 0);
 
                 return (
                   <tr key={idx} className='hover:bg-muted/30 transition-colors'>
@@ -131,14 +139,16 @@ export const DashboardSectionAccuracy: React.FC<Props> = ({ data }) => {
                           acc >= 70
                             ? 'text-emerald-600 dark:text-emerald-400'
                             : acc >= 50
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-destructive'
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-destructive'
                         }
                       >
                         {acc}%
                       </span>
                     </td>
-                    <td className='py-4 px-6 text-right'>{getStatusBadge(acc, totalQ, sec.correct)}</td>
+                    <td className='py-4 px-6 text-right'>
+                      {getStatusBadge(acc, totalQ, sec.correct)}
+                    </td>
                   </tr>
                 );
               })}

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
   datasources: {
@@ -9,7 +9,9 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  console.log('--- CHECKING UNCREATED APPROVED/PUBLISHED GENERATED QUESTIONS ---');
+  console.log(
+    "--- CHECKING UNCREATED APPROVED/PUBLISHED GENERATED QUESTIONS ---",
+  );
 
   const generatedQuestions = await prisma.generatedQuestion.findMany();
   console.log(`Total Generated Questions: ${generatedQuestions.length}`);
@@ -22,18 +24,15 @@ async function main() {
     const meta = (gq.metadata as any) || {};
     const status = meta.status;
 
-    if (status === 'APPROVED' || status === 'PUBLISHED') {
-      if (status === 'APPROVED') approvedCount++;
-      if (status === 'PUBLISHED') publishedCount++;
+    if (status === "APPROVED" || status === "PUBLISHED") {
+      if (status === "APPROVED") approvedCount++;
+      if (status === "PUBLISHED") publishedCount++;
 
       // Check if present in Question table
       const inMainTable = await prisma.question.findFirst({
         where: {
-          OR: [
-            { questionText: gq.questionText },
-            { id: gq.id }
-          ]
-        }
+          OR: [{ questionText: gq.questionText }, { id: gq.id }],
+        },
       });
 
       if (!inMainTable) {

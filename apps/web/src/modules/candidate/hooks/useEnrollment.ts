@@ -13,7 +13,7 @@ export const useEnrollment = () => {
       queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
       queryClient.invalidateQueries({ queryKey: ['candidate-enrollments'] });
       queryClient.invalidateQueries({ queryKey: ['public-tests'] });
-      
+
       router.push(`/candidate/tests/${testId}/instructions`);
     },
   });

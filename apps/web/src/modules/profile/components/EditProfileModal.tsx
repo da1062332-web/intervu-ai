@@ -72,8 +72,8 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
           <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4 py-2'>
             <CustomFormField
               control={form.control}
-              name="name"
-              label="Full Name"
+              name='name'
+              label='Full Name'
               render={({ field }) => (
                 <Input
                   {...field}
@@ -92,8 +92,8 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
               >
                 Cancel
               </Button>
-              <Button 
-                type='submit' 
+              <Button
+                type='submit'
                 isLoading={updateProfile.isPending}
                 disabled={!form.formState.isValid}
               >

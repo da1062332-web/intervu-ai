@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
   datasources: {
@@ -9,7 +9,9 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  console.log('--- SYNCING APPROVED/PUBLISHED GENERATED QUESTIONS TO QUESTION TABLE ---');
+  console.log(
+    "--- SYNCING APPROVED/PUBLISHED GENERATED QUESTIONS TO QUESTION TABLE ---",
+  );
 
   const generatedQuestions = await prisma.generatedQuestion.findMany();
 
@@ -17,8 +19,10 @@ async function main() {
     const currentMeta = (gq.metadata as any) || {};
     const status = currentMeta.status;
 
-    if (status === 'APPROVED' || status === 'PUBLISHED') {
-      console.log(`Processing GQ ${gq.id} (conceptKey: ${gq.conceptKey}, status: ${status})...`);
+    if (status === "APPROVED" || status === "PUBLISHED") {
+      console.log(
+        `Processing GQ ${gq.id} (conceptKey: ${gq.conceptKey}, status: ${status})...`,
+      );
 
       // 1. Resolve Topic ID
       let topicId: string | undefined;
@@ -27,8 +31,8 @@ async function main() {
         where: {
           OR: [
             { id: gq.conceptKey },
-            { code: { equals: gq.conceptKey, mode: 'insensitive' } },
-            { name: { equals: gq.conceptKey, mode: 'insensitive' } },
+            { code: { equals: gq.conceptKey, mode: "insensitive" } },
+            { name: { equals: gq.conceptKey, mode: "insensitive" } },
           ],
         },
       });
@@ -37,7 +41,7 @@ async function main() {
         topicId = topicCheck.id;
       } else {
         const concept = await prisma.concept.findFirst({
-          where: { code: { equals: gq.conceptKey, mode: 'insensitive' } },
+          where: { code: { equals: gq.conceptKey, mode: "insensitive" } },
         });
 
         if (concept?.topicId) {
@@ -65,9 +69,9 @@ async function main() {
         if (!examConfig) {
           examConfig = await prisma.examConfig.create({
             data: {
-              code: 'default_config',
-              name: 'Default Config',
-              role: 'BACKEND',
+              code: "default_config",
+              name: "Default Config",
+              role: "BACKEND",
               durationMinutes: 60,
               totalQuestions: 10,
             },
@@ -76,8 +80,8 @@ async function main() {
         section = await prisma.examSection.create({
           data: {
             examConfigId: examConfig.id,
-            name: 'Default Section',
-            code: 'default_section',
+            name: "Default Section",
+            code: "default_section",
             questionCount: 10,
             sectionDurationMinutes: 60,
             sectionOrder: 1,
@@ -88,21 +92,20 @@ async function main() {
       // 3. Upsert Question in main pool
       const existing = await prisma.question.findFirst({
         where: {
-          OR: [
-            { questionText: gq.questionText },
-            { id: gq.id },
-          ],
+          OR: [{ questionText: gq.questionText }, { id: gq.id }],
         },
       });
 
       if (existing) {
-        console.log(`Question already exists in Question table (id: ${existing.id}), updating topicId to ${topicId}...`);
+        console.log(
+          `Question already exists in Question table (id: ${existing.id}), updating topicId to ${topicId}...`,
+        );
         await prisma.question.update({
           where: { id: existing.id },
           data: {
             topicId,
             sectionId: section.id,
-            status: 'ACTIVE',
+            status: "ACTIVE",
           },
         });
       } else {
@@ -110,32 +113,34 @@ async function main() {
           data: {
             questionText: gq.questionText,
             answer: gq.correctAnswer as string,
-            explanation: (gq.solution || '') as string,
+            explanation: (gq.solution || "") as string,
             topicId,
             sectionId: section.id,
             difficulty: gq.difficultyLevel,
-            source: 'GENERATED',
+            source: "GENERATED",
             templateId: gq.templateId,
             version: 1,
-            status: 'ACTIVE',
+            status: "ACTIVE",
             metadata: {
               options: gq.options,
               _generatedQuestionId: gq.id,
             },
           },
         });
-        console.log(`CREATED question in Question table (id: ${created.id}, topicId: ${topicId})`);
+        console.log(
+          `CREATED question in Question table (id: ${created.id}, topicId: ${topicId})`,
+        );
       }
 
       // 4. Ensure metadata status is PUBLISHED
-      if (status !== 'PUBLISHED') {
+      if (status !== "PUBLISHED") {
         const updatedMeta = {
           ...currentMeta,
-          status: 'PUBLISHED',
+          status: "PUBLISHED",
           statusHistory: [
             ...(currentMeta.statusHistory || []),
             {
-              status: 'PUBLISHED',
+              status: "PUBLISHED",
               updatedAt: new Date().toISOString(),
             },
           ],
@@ -148,7 +153,7 @@ async function main() {
     }
   }
 
-  console.log('\n--- SYNC COMPLETE ---');
+  console.log("\n--- SYNC COMPLETE ---");
   await prisma.$disconnect();
 }
 

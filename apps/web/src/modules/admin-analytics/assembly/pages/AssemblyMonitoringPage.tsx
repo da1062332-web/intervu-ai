@@ -1,15 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Layers,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  Eye,
-  Play,
-  Loader2,
-} from 'lucide-react';
+import { Layers, CheckCircle, AlertTriangle, Clock, Eye, Play, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Button } from '@/components/ui/button';
@@ -59,7 +51,7 @@ export function AssemblyMonitoringPage() {
     {
       id: 'assessment',
       header: 'Assessment Name',
-      cell: (row) => <span className="font-medium text-foreground">{row.assessment}</span>,
+      cell: (row) => <span className='font-medium text-foreground'>{row.assessment}</span>,
     },
     {
       id: 'status',
@@ -81,24 +73,28 @@ export function AssemblyMonitoringPage() {
     {
       id: 'version',
       header: 'Version',
-      cell: (row) => <span className="text-muted-foreground">v{row.version}</span>,
+      cell: (row) => <span className='text-muted-foreground'>v{row.version}</span>,
     },
     {
       id: 'questions',
       header: 'Total Questions',
-      cell: (row) => <span className="text-muted-foreground">{row.totalQuestions} items</span>,
+      cell: (row) => <span className='text-muted-foreground'>{row.totalQuestions} items</span>,
     },
     {
       id: 'date',
       header: 'Created Date',
-      cell: (row) => <span className="text-muted-foreground">{new Date(row.createdAt).toLocaleDateString()}</span>,
+      cell: (row) => (
+        <span className='text-muted-foreground'>
+          {new Date(row.createdAt).toLocaleDateString()}
+        </span>
+      ),
     },
     {
       id: 'actions',
       header: '',
       className: 'text-right',
       cell: (row) => (
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Button asChild size='sm' variant='outline'>
             <Link href={`/admin/assembly/${row.id}`}>
               <Eye className='size-3.5 mr-1.5' />
@@ -117,7 +113,10 @@ export function AssemblyMonitoringPage() {
       <SectionHeader
         title='Assembly Pipeline Monitoring'
         description='Track completed test assemblies, draft vs. published configs, failed runs, and details per version.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Assembly Monitor' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Assembly Monitor' },
+        ]}
         actions={
           <div className='flex gap-3'>
             <Button asChild>
@@ -172,7 +171,8 @@ export function AssemblyMonitoringPage() {
             Assembled Exam History
           </CardTitle>
           <CardDescription>
-            Detailed register of all generated test instances, versions, status, and config references.
+            Detailed register of all generated test instances, versions, status, and config
+            references.
           </CardDescription>
         </CardHeader>
         <CardContent className='p-0 border-t border-border/40'>

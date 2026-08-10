@@ -40,12 +40,40 @@ describe("OverallScoreService Unit Tests", () => {
 
     // 3 objective eval results, 0 coding eval results
     const objectiveEvalResults = [
-      { questionId: "q1", isCorrect: true, score: 1, maxMarks: 1, candidateAnswer: "a", correctAnswer: "a", timeSpentSeconds: 10 },
-      { questionId: "q2", isCorrect: false, score: 0, maxMarks: 1, candidateAnswer: "b", correctAnswer: "a", timeSpentSeconds: 5 },
-      { questionId: "q3", isCorrect: true, score: 1, maxMarks: 1, candidateAnswer: "c", correctAnswer: "c", timeSpentSeconds: 8 },
+      {
+        questionId: "q1",
+        isCorrect: true,
+        score: 1,
+        maxMarks: 1,
+        candidateAnswer: "a",
+        correctAnswer: "a",
+        timeSpentSeconds: 10,
+      },
+      {
+        questionId: "q2",
+        isCorrect: false,
+        score: 0,
+        maxMarks: 1,
+        candidateAnswer: "b",
+        correctAnswer: "a",
+        timeSpentSeconds: 5,
+      },
+      {
+        questionId: "q3",
+        isCorrect: true,
+        score: 1,
+        maxMarks: 1,
+        candidateAnswer: "c",
+        correctAnswer: "c",
+        timeSpentSeconds: 8,
+      },
     ];
 
-    const overall = service.calculateOverallScore(sectionScores, objectiveEvalResults, []);
+    const overall = service.calculateOverallScore(
+      sectionScores,
+      objectiveEvalResults,
+      [],
+    );
 
     // Total marks: 3 + 4 = 7, maxMarks: 10
     expect(overall.totalMarks).toBe(7);

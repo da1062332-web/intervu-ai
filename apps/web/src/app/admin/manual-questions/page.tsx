@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react';
 import { useManualQuestions } from '@/services/manual-questions/hooks';
-import { ManualQuestionFilters as FilterType, ManualQuestion } from '@/services/manual-questions/types';
+import {
+  ManualQuestionFilters as FilterType,
+  ManualQuestion,
+} from '@/services/manual-questions/types';
 import { ManualPoolFilters } from './components/ManualPoolFilters';
 import { ManualQuestionTable } from './components/ManualQuestionTable';
 import { Button } from '@/components/ui/button';
@@ -32,10 +35,13 @@ export default function ManualQuestionsPage() {
       <SectionHeader
         title='Manual Questions'
         description='Manage manual questions that can be mapped directly to concepts.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Manual Questions' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Manual Questions' },
+        ]}
         actions={
           <Button onClick={() => router.push('/admin/manual-questions/create')}>
-            <Plus className="mr-2 h-4 w-4" /> Add Questions (Batch)
+            <Plus className='mr-2 h-4 w-4' /> Add Questions (Batch)
           </Button>
         }
       />
@@ -43,18 +49,14 @@ export default function ManualQuestionsPage() {
       <ManualPoolFilters filters={filters} setFilters={setFilters} onClear={handleClearFilters} />
 
       <div className='mt-6'>
-        <ManualQuestionTable
-          questions={questions}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-        />
+        <ManualQuestionTable questions={questions} isLoading={isLoading} onEdit={handleEdit} />
       </div>
 
       {editingQuestion && (
-        <ManualQuestionModal 
-          isOpen={true} 
+        <ManualQuestionModal
+          isOpen={true}
           question={editingQuestion}
-          onClose={() => setEditingQuestion(null)} 
+          onClose={() => setEditingQuestion(null)}
         />
       )}
     </div>

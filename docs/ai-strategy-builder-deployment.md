@@ -5,6 +5,7 @@
 ### 1. Code Quality Checks
 
 #### ✓ Backend Services
+
 - [x] StrategyDraftingService created and compiles without errors
 - [x] All required methods implemented (draftStrategy, parseAndValidateResponse, normalizeStrategy, collectWarnings, buildDraftingPrompt)
 - [x] Proper error handling and validation
@@ -19,6 +20,7 @@ npm run build
 ```
 
 #### ✓ Backend DTOs
+
 - [x] All DTOs created with Swagger decorators
   - DraftStrategyRequestDto
   - DraftStrategyResponseDto
@@ -33,6 +35,7 @@ npm run build
 - [x] Validation decorators applied (IsString, MinLength, MaxLength, etc.)
 
 #### ✓ Backend Controllers
+
 - [x] Three new endpoints added to template.controller.ts
   - POST /:id/ai/strategy/draft
   - POST /:id/ai/strategy/preview
@@ -43,6 +46,7 @@ npm run build
 - [x] Input validation and error handling
 
 #### ✓ Frontend Components
+
 - [x] GenerationStrategySection.tsx updated with AI section
 - [x] All required imports present
 - [x] useState hooks for state management
@@ -55,6 +59,7 @@ npm run build
 - [x] Toast notifications for user feedback
 
 #### ✓ Frontend API Services
+
 - [x] Three new API methods in templates/api.ts
   - draftStrategy
   - previewStrategy
@@ -64,6 +69,7 @@ npm run build
 - [x] Request/response body structure
 
 #### ✓ Frontend Hooks
+
 - [x] Three new React Query hooks in templates/hooks.ts
   - useDraftStrategy
   - usePreviewStrategy
@@ -75,6 +81,7 @@ npm run build
 ### 2. Testing Coverage
 
 #### ✓ Unit Tests
+
 - [x] strategy-drafting.service.spec.ts created
 - [x] Test cases for:
   - ✓ Successful strategy drafting
@@ -94,6 +101,7 @@ npm run test -- strategy-drafting.service.spec.ts
 ```
 
 #### ✓ Integration Tests
+
 - [x] template-strategy.integration.spec.ts created
 - [x] Test cases for:
   - ✓ Full endpoint workflow (draft → preview → apply)
@@ -130,6 +138,7 @@ npx prisma migrate status
 ### 4. API Integration Verification
 
 #### Test Draft Endpoint
+
 ```bash
 curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/draft \
   -H "Authorization: Bearer JWT_TOKEN" \
@@ -142,6 +151,7 @@ curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/draft \
 ```
 
 #### Test Preview Endpoint
+
 ```bash
 curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/preview \
   -H "Authorization: Bearer JWT_TOKEN" \
@@ -159,6 +169,7 @@ curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/preview \
 ```
 
 #### Test Apply Endpoint
+
 ```bash
 curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/apply \
   -H "Authorization: Bearer JWT_TOKEN" \
@@ -173,6 +184,7 @@ curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/apply \
 ### 5. Frontend Verification
 
 #### UI Component Tests
+
 - [ ] Quick Start section renders correctly
 - [ ] AI prompt textarea accepts input
 - [ ] "Generate Draft" button triggers API call
@@ -186,6 +198,7 @@ curl -X POST http://localhost:3000/templates/TEMPLATE_ID/ai/strategy/apply \
 - [ ] Toast notifications appear on success/error
 
 #### User Flow Testing
+
 - [ ] User can enter prompt and generate draft
 - [ ] User can edit individual variables in draft
 - [ ] User can edit constraints in draft
@@ -237,18 +250,21 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
 ### Setup Phase
 
 - [ ] Clone repo and install dependencies
+
   ```bash
   cd c:\code\intervu-ai
   npm install
   ```
 
 - [ ] Configure environment
+
   ```bash
   cp .env.example .env.local
   # Edit .env.local with actual values
   ```
 
 - [ ] Setup database
+
   ```bash
   npx prisma generate
   npx prisma migrate deploy
@@ -262,6 +278,7 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
 ### Backend Testing
 
 - [ ] Start backend in Terminal 1
+
   ```bash
   cd apps/api
   npm run dev
@@ -269,6 +286,7 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
   ```
 
 - [ ] Verify Swagger docs accessible
+
   ```
   http://localhost:3000/api/swagger
   # Should show 3 new endpoints
@@ -279,6 +297,7 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
 ### Frontend Testing
 
 - [ ] Start frontend in Terminal 2
+
   ```bash
   cd apps/web
   npm run dev
@@ -322,21 +341,25 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
 ### Pre-Deployment
 
 - [ ] All tests passing
+
   ```bash
   npm run test
   ```
 
 - [ ] Build successful
+
   ```bash
   npm run build
   ```
 
 - [ ] No TypeScript errors
+
   ```bash
   npm run type-check
   ```
 
 - [ ] No ESLint errors
+
   ```bash
   npm run lint
   ```
@@ -349,6 +372,7 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
 ### Deployment Steps
 
 1. **Create deployment branch**
+
    ```bash
    git checkout -b feature/ai-strategy-builder
    git add .
@@ -356,11 +380,13 @@ NEXT_PUBLIC_API_URL="http://localhost:3000"
    ```
 
 2. **Push to staging environment**
+
    ```bash
    git push origin feature/ai-strategy-builder
    ```
 
 3. **Run staging tests**
+
    ```bash
    # On staging server
    npm install
@@ -401,11 +427,11 @@ If deployment fails:
 
 ### Expected Response Times
 
-| Endpoint | P50   | P95   | P99   | Notes |
-|----------|-------|-------|-------|-------|
-| Draft    | 2-3s  | 4-5s  | 5-8s  | Depends on OpenAI API |
-| Preview  | <100ms| <200ms| <500ms| Local processing only |
-| Apply    | 200-500ms | 1s | 2s | Includes DB write |
+| Endpoint | P50       | P95    | P99    | Notes                 |
+| -------- | --------- | ------ | ------ | --------------------- |
+| Draft    | 2-3s      | 4-5s   | 5-8s   | Depends on OpenAI API |
+| Preview  | <100ms    | <200ms | <500ms | Local processing only |
+| Apply    | 200-500ms | 1s     | 2s     | Includes DB write     |
 
 ### Resource Usage
 
@@ -447,15 +473,19 @@ If deployment fails:
 ### Common Issues & Resolutions
 
 **Issue**: OpenAI API key not working
+
 - **Resolution**: Verify key format and expiration on OpenAI dashboard
 
 **Issue**: Database connection timeout
+
 - **Resolution**: Check PostgreSQL is running and CONNECTION_STRING is correct
 
 **Issue**: Strategy not persisting
+
 - **Resolution**: Check template update logs, verify permissions, check database storage
 
 **Issue**: AI generating invalid JSON
+
 - **Resolution**: Improve prompt clarity, add more specific requirements
 
 ### Escalation Path
@@ -469,6 +499,7 @@ If deployment fails:
 ## Success Criteria
 
 ✓ **Implementation Complete** when:
+
 - [x] All code deployed and tested
 - [x] All unit & integration tests passing
 - [x] All three API endpoints functional
@@ -489,4 +520,3 @@ If deployment fails:
 - [ ] DevOps: Environment configured
 - [ ] Product: Feature meets requirements
 - [ ] Documentation: Complete and tested
-

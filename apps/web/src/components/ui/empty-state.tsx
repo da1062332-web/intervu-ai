@@ -27,7 +27,7 @@ export function EmptyState({
 }: EmptyStateExtended) {
   let DefaultIcon = Inbox;
   let iconColor = 'text-muted-foreground';
-  
+
   if (variant === 'no-results') {
     DefaultIcon = SearchX;
   } else if (variant === 'error') {
@@ -56,7 +56,15 @@ export function EmptyState({
         )}
         aria-hidden='true'
       >
-        {icon ?? <DefaultIcon className={cn(iconColor, compact ? 'size-5' : 'size-7', variant === 'error' && 'text-destructive')} />}
+        {icon ?? (
+          <DefaultIcon
+            className={cn(
+              iconColor,
+              compact ? 'size-5' : 'size-7',
+              variant === 'error' && 'text-destructive',
+            )}
+          />
+        )}
       </div>
 
       {/* Text */}

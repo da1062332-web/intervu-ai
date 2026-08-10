@@ -65,18 +65,48 @@ describe("HiringEvaluationEngine", () => {
       codingDigitalMinSolved: 1,
       codingPrimeMinSolved: 2,
       sectionMappings: [
-        { sectionCode: "SEC_NUM", sectionName: "Numerical", mappingType: "NUMERICAL", minimumCorrectAnswers: 3 },
-        { sectionCode: "SEC_VERB", sectionName: "Verbal", mappingType: "VERBAL", minimumCorrectAnswers: 3 },
-        { sectionCode: "SEC_REAS", sectionName: "Reasoning", mappingType: "REASONING", minimumCorrectAnswers: 3 },
+        {
+          sectionCode: "SEC_NUM",
+          sectionName: "Numerical",
+          mappingType: "NUMERICAL",
+          minimumCorrectAnswers: 3,
+        },
+        {
+          sectionCode: "SEC_VERB",
+          sectionName: "Verbal",
+          mappingType: "VERBAL",
+          minimumCorrectAnswers: 3,
+        },
+        {
+          sectionCode: "SEC_REAS",
+          sectionName: "Reasoning",
+          mappingType: "REASONING",
+          minimumCorrectAnswers: 3,
+        },
       ],
     });
 
     const result = await engine.evaluateAttempt(
       "att_1",
       [
-        { sectionKey: "SEC_NUM", sectionName: "Numerical", correct: 5, incorrect: 0 },
-        { sectionKey: "SEC_VERB", sectionName: "Verbal", correct: 5, incorrect: 0 },
-        { sectionKey: "SEC_REAS", sectionName: "Reasoning", correct: 5, incorrect: 0 },
+        {
+          sectionKey: "SEC_NUM",
+          sectionName: "Numerical",
+          correct: 5,
+          incorrect: 0,
+        },
+        {
+          sectionKey: "SEC_VERB",
+          sectionName: "Verbal",
+          correct: 5,
+          incorrect: 0,
+        },
+        {
+          sectionKey: "SEC_REAS",
+          sectionName: "Reasoning",
+          correct: 5,
+          incorrect: 0,
+        },
       ],
       [],
       [],

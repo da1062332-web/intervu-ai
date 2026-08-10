@@ -18,7 +18,7 @@ export function QuestionPoolTable({
   isLoading,
   selectedIds,
   onToggleSelect,
-  onToggleSelectAll
+  onToggleSelectAll,
 }: QuestionPoolTableProps) {
   // We only show Approved and Published in the Bank
   const poolQuestions = questions.filter(
@@ -28,34 +28,32 @@ export function QuestionPoolTable({
       q.status === 'PUBLISHED' ||
       q.status === 'Published' ||
       q.rawStatus === 'APPROVED' ||
-      q.rawStatus === 'PUBLISHED'
+      q.rawStatus === 'PUBLISHED',
   );
-  
+
   // Exclude Published from selection for Publishing
   const selectableQuestions = poolQuestions.filter(
-    (q: any) =>
-      q.status === 'APPROVED' ||
-      q.status === 'Approved' ||
-      q.rawStatus === 'APPROVED'
+    (q: any) => q.status === 'APPROVED' || q.status === 'Approved' || q.rawStatus === 'APPROVED',
   );
-  
-  const allSelected = selectableQuestions.length > 0 && 
-                      selectedIds.length === selectableQuestions.length;
+
+  const allSelected =
+    selectableQuestions.length > 0 && selectedIds.length === selectableQuestions.length;
 
   const columns: ColumnDef<any>[] = [
     {
       id: 'select',
       header: (
-        <Checkbox 
+        <Checkbox
           checked={allSelected}
           onCheckedChange={onToggleSelectAll}
-          aria-label="Select all approved"
+          aria-label='Select all approved'
         />
       ),
       cell: (item: any) => {
-        const isApproved = item.status === 'Approved' || item.status === 'APPROVED' || item.rawStatus === 'APPROVED';
+        const isApproved =
+          item.status === 'Approved' || item.status === 'APPROVED' || item.rawStatus === 'APPROVED';
         return isApproved ? (
-          <Checkbox 
+          <Checkbox
             checked={selectedIds.includes(item.id)}
             onCheckedChange={() => onToggleSelect(item.id)}
             aria-label={`Select ${item.id}`}
@@ -67,7 +65,10 @@ export function QuestionPoolTable({
       id: 'questionText',
       header: 'Question Statement',
       cell: (item: any) => (
-        <span className="max-w-[400px] truncate block font-medium text-foreground" title={item.questionText || item.content}>
+        <span
+          className='max-w-[400px] truncate block font-medium text-foreground'
+          title={item.questionText || item.content}
+        >
           {item.questionText || item.content}
         </span>
       ),
@@ -78,7 +79,7 @@ export function QuestionPoolTable({
       cell: (item: any) => {
         const strategy = item.generationStrategy || item.metadata?.generationStrategy || 'UNKNOWN';
         return (
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <span className='text-xs font-medium text-muted-foreground uppercase tracking-wider'>
             {String(strategy).toUpperCase()}
           </span>
         );
@@ -90,14 +91,8 @@ export function QuestionPoolTable({
       cell: (item: any) => {
         const diff = (item.difficulty || item.difficultyLevel || 'MEDIUM').toUpperCase();
         return (
-          <Badge 
-            variant={
-              diff === 'HARD' 
-                ? 'destructive' 
-                : diff === 'MEDIUM' 
-                  ? 'default' 
-                  : 'secondary'
-            }
+          <Badge
+            variant={diff === 'HARD' ? 'destructive' : diff === 'MEDIUM' ? 'default' : 'secondary'}
           >
             {item.difficulty || item.difficultyLevel || 'Medium'}
           </Badge>
@@ -108,7 +103,15 @@ export function QuestionPoolTable({
       id: 'status',
       header: 'Status',
       cell: (item: any) => (
-        <Badge variant={item.status === 'Published' || item.status === 'PUBLISHED' || item.rawStatus === 'PUBLISHED' ? 'default' : 'secondary'}>
+        <Badge
+          variant={
+            item.status === 'Published' ||
+            item.status === 'PUBLISHED' ||
+            item.rawStatus === 'PUBLISHED'
+              ? 'default'
+              : 'secondary'
+          }
+        >
           {item.status}
         </Badge>
       ),
@@ -116,7 +119,7 @@ export function QuestionPoolTable({
   ];
 
   return (
-    <div className="border rounded-xl bg-card shadow-sm mt-4">
+    <div className='border rounded-xl bg-card shadow-sm mt-4'>
       <DataTable
         columns={columns}
         data={poolQuestions || []}
@@ -124,9 +127,9 @@ export function QuestionPoolTable({
         pageSize={20}
         emptyState={
           <EmptyState
-            title="No Questions Found"
-            description="No approved or published questions found."
-            className="py-12 border-0"
+            title='No Questions Found'
+            description='No approved or published questions found.'
+            className='py-12 border-0'
           />
         }
       />

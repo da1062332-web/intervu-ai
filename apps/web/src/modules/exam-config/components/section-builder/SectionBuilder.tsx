@@ -29,20 +29,21 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
 
   const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections;
 
-  const displaySections: ExamSection[] = (selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0)
-    ? bpRawSections.map((sec: any, idx: number) => ({
-        id: sec.sectionId || sec.id || `bp_sec_${idx}`,
-        name: sec.displayName || sec.name || `Section ${idx + 1}`,
-        code: sec.sectionKey || sec.code || `SEC_${idx + 1}`,
-        questionCount: sec.questionCount || 10,
-        sectionOrder: idx + 1,
-        sectionDurationMinutes: sec.sectionDurationMinutes || 15,
-        isRequired: true,
-        createdAt: sec.createdAt || new Date().toISOString(),
-        updatedAt: sec.updatedAt || new Date().toISOString(),
-        examConfigId: configId,
-      }))
-    : (sections || []);
+  const displaySections: ExamSection[] =
+    selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0
+      ? bpRawSections.map((sec: any, idx: number) => ({
+          id: sec.sectionId || sec.id || `bp_sec_${idx}`,
+          name: sec.displayName || sec.name || `Section ${idx + 1}`,
+          code: sec.sectionKey || sec.code || `SEC_${idx + 1}`,
+          questionCount: sec.questionCount || 10,
+          sectionOrder: idx + 1,
+          sectionDurationMinutes: sec.sectionDurationMinutes || 15,
+          isRequired: true,
+          createdAt: sec.createdAt || new Date().toISOString(),
+          updatedAt: sec.updatedAt || new Date().toISOString(),
+          examConfigId: configId,
+        }))
+      : sections || [];
 
   const createSection = useCreateSection(configId);
   const updateSection = useUpdateSection(configId);
@@ -147,10 +148,12 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
             </div>
             <div>
               <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
-                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+                Pre-configured by Blueprint:{' '}
+                {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
               </h4>
               <p className='text-xs text-muted-foreground mt-0.5'>
-                Sections and question allocations are loaded directly from the blueprint rules in Read-Only Inspection Mode.
+                Sections and question allocations are loaded directly from the blueprint rules in
+                Read-Only Inspection Mode.
               </p>
             </div>
           </div>
@@ -167,7 +170,9 @@ export function SectionBuilder({ configId }: SectionBuilderProps) {
           </p>
         </div>
         {!selectedBlueprintId && (
-          <Button onClick={handleOpenCreateModal} className='shadow-sm shrink-0'>+ Add Section</Button>
+          <Button onClick={handleOpenCreateModal} className='shadow-sm shrink-0'>
+            + Add Section
+          </Button>
         )}
       </div>
 

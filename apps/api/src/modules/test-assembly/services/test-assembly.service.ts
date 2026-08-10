@@ -4,7 +4,7 @@ import { TestRepository } from "../repositories/test.repository";
 import { AssembledTestRepository } from "../../assembly/repositories/assembled-test.repository";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { GenerationRequest } from "@intervu-ai/contracts";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
 @Injectable()
 export class TestAssemblyService {
@@ -24,7 +24,9 @@ export class TestAssemblyService {
     // If a published/created assembled test exists for this blueprint, return it directly
     try {
       if (body.blueprintId) {
-        const existing = await this.assembledRepo.findByConfigId(body.blueprintId);
+        const existing = await this.assembledRepo.findByConfigId(
+          body.blueprintId,
+        );
         if (existing) {
           // Map assembledTest -> Assessment-like result used by frontend
           const questions: any[] = [];
@@ -33,11 +35,15 @@ export class TestAssemblyService {
               const snap = (q.questionSnapshot as any) || {};
               questions.push({
                 id: q.questionId,
-                questionText: snap.questionText || snap.text || '',
+                questionText: snap.questionText || snap.text || "",
                 options: snap.options || [],
                 answer: snap.correctAnswer || snap.correct_answer || null,
-                explanation: snap.solution || snap.explanation || '',
-                difficulty: (snap.difficultyLevel || snap.difficulty || 'MEDIUM').toUpperCase(),
+                explanation: snap.solution || snap.explanation || "",
+                difficulty: (
+                  snap.difficultyLevel ||
+                  snap.difficulty ||
+                  "MEDIUM"
+                ).toUpperCase(),
                 conceptKey: snap.conceptKey || null,
                 topicId: snap.conceptKey || null,
               });
@@ -46,10 +52,10 @@ export class TestAssemblyService {
 
           const result = {
             testId: existing.id,
-            title: existing.configId || 'Published Assessment',
-            companyId: 'system',
+            title: existing.configId || "Published Assessment",
+            companyId: "system",
             examConfigId: existing.configId,
-            status: existing.status || 'PUBLISHED',
+            status: existing.status || "PUBLISHED",
             sections:
               existing.sections?.map((s: any) => {
                 return {
@@ -59,10 +65,10 @@ export class TestAssemblyService {
                     const snap = (q.questionSnapshot as any) || {};
                     return {
                       id: q.questionId,
-                      questionText: snap.questionText || '',
+                      questionText: snap.questionText || "",
                       options: snap.options || [],
                       answer: snap.correctAnswer || null,
-                      explanation: snap.solution || '',
+                      explanation: snap.solution || "",
                     };
                   }),
                 };
@@ -75,7 +81,55 @@ export class TestAssemblyService {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn('Failed to lookup existing assembled test', { error: message });
+      this.logger.warn("Failed to lookup existing assembled test", {
+        error: message,
+      });
+    }
+
+    const idempotencyKey = createHash("sha256")
+      .update(
+        [
+          body.blueprintId || "",
+          body.sectionId || "",
+          body.topicId || "",
+          body.conceptId || "",
+          body.templateId || "",
+          body.difficulty || "",
+          String(body.quantity ?? ""),
+        ].join("|"),
+      )
+      .digest("hex");
+
+    try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+      const existingActiveJob = await prisma.generationJob.findFirst({
+        where: {
+          idempotencyKey,
+          status: { in: ["QUEUED", "RUNNING"] },
+        },
+      });
+      await prisma.$disconnect();
+
+      if (existingActiveJob) {
+        this.logger.info("Reusing active generation job for identical request", {
+          idempotencyKey,
+          existingJobId: existingActiveJob.id,
+          status: existingActiveJob.status,
+        });
+        return {
+          jobId: existingActiveJob.id,
+          topic: existingActiveJob.topic || body.topicId,
+          difficulty: existingActiveJob.difficulty || body.difficulty,
+          count: existingActiveJob.count || body.quantity,
+          status: "queued",
+        };
+      }
+    } catch (dedupeError) {
+      this.logger.warn("Failed to evaluate existing active generation job", {
+        error: dedupeError instanceof Error ? dedupeError.message : String(dedupeError),
+        idempotencyKey,
+      });
     }
 
     const jobId = randomUUID();
@@ -116,6 +170,32 @@ export class TestAssemblyService {
     );
 
     try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+      await prisma.generationJob.create({
+        data: {
+          id: jobId,
+          topic: topicId || body.topicId || "default-topic",
+          count: body.quantity || 0,
+          status: "QUEUED",
+          difficulty: body.difficulty as string,
+          idempotencyKey,
+        },
+      });
+      await prisma.$disconnect();
+    } catch (persistError) {
+      const errorMessage =
+        persistError instanceof Error ? persistError.message : String(persistError);
+      this.logger.error(
+        "Failed to persist generation job record before enqueue; aborting queue submission",
+        { error: errorMessage, jobId },
+      );
+      throw new Error(
+        `Failed to persist generation job record before enqueue: ${errorMessage}`,
+      );
+    }
+
+    try {
       await this.queueService.enqueueGeneration({
         jobId,
         correlationId,
@@ -136,9 +216,30 @@ export class TestAssemblyService {
         status: "queued",
       };
     } catch (enqueueError) {
-      this.logger.warn("Queue service unavailable, falling back to direct DB question assembly", {
-        error: String(enqueueError),
-      });
+      this.logger.warn(
+        "Queue service unavailable, falling back to direct DB question assembly",
+        {
+          error: String(enqueueError),
+        },
+      );
+
+      try {
+        const { PrismaClient } = await import("@prisma/client");
+        const prisma = new PrismaClient();
+        await prisma.generationJob.update({
+          where: { id: jobId },
+          data: { status: "FALLBACK" },
+        });
+        await prisma.$disconnect();
+      } catch (updateError) {
+        this.logger.error(
+          "Failed to update generation job record after enqueue failure",
+          updateError as Error,
+          {
+            jobId,
+          },
+        );
+      }
     }
 
     // Direct DB Question Assembly Fallback
@@ -157,22 +258,26 @@ export class TestAssemblyService {
           const mcqData = (q.mcqData as any) || {};
           return {
             id: q.id,
-            questionText: q.questionText || q.text || '',
+            questionText: q.questionText || q.text || "",
             options: mcqData.options || q.options || [],
             answer: q.answer || q.correctAnswer || null,
-            explanation: q.explanation || q.solution || '',
-            difficulty: (q.difficulty || q.difficultyLevel || 'MEDIUM').toUpperCase(),
-            conceptKey: q.conceptKey || q.topicId || 'General',
-            topicId: q.topicId || 'default-topic',
+            explanation: q.explanation || q.solution || "",
+            difficulty: (
+              q.difficulty ||
+              q.difficultyLevel ||
+              "MEDIUM"
+            ).toUpperCase(),
+            conceptKey: q.conceptKey || q.topicId || "General",
+            topicId: q.topicId || "default-topic",
           };
         });
 
         return {
           testId: `asmt_${randomUUID()}`,
-          title: 'Generated Assessment',
-          companyId: 'system',
+          title: "Generated Assessment",
+          companyId: "system",
           examConfigId: body.blueprintId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
           questions,
         };
       }
@@ -190,6 +295,32 @@ export class TestAssemblyService {
   }
 
   async getJobStatus(jobId: string) {
+    try {
+      const { PrismaClient } = await import("@prisma/client");
+      const prisma = new PrismaClient();
+      const dbJob = await prisma.generationJob.findUnique({
+        where: { id: jobId },
+      });
+      await prisma.$disconnect();
+
+      if (dbJob) {
+        return {
+          id: dbJob.id,
+          status: dbJob.status || "unknown",
+          progress: 0,
+          result: dbJob.result ?? null,
+          failedReason: dbJob.error || null,
+        };
+      }
+    } catch (dbError) {
+      this.logger.warn(
+        "Failed to read generation job record from DB. Falling back to queue state.",
+        {
+          error: String(dbError),
+        },
+      );
+    }
+
     const job = await this.queueService.getJob(QueueType.GENERATION, jobId);
     const state = await this.queueService.getJobState(
       QueueType.GENERATION,

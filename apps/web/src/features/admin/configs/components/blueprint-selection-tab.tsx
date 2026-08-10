@@ -20,7 +20,8 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
   const selectedBlueprintId = useConfigWizardStore((state) => state.getBlueprintId(configId));
   const queryClient = useQueryClient();
   const setBlueprintId = useConfigWizardStore((state) => state.setBlueprintId);
-  const selectedStyleProfileId = useConfigWizardStore((state) => state.getStyleProfileId(configId)) || '';
+  const selectedStyleProfileId =
+    useConfigWizardStore((state) => state.getStyleProfileId(configId)) || '';
   const setStyleProfileId = useConfigWizardStore((state) => state.setStyleProfileId);
 
   const handleBlueprintChange = async (bpId: string) => {
@@ -53,8 +54,8 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='flex items-center justify-center h-48'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
@@ -78,12 +79,13 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
             value={selectedBlueprintId || ''}
             onChange={(e) => handleBlueprintChange(e.target.value)}
           >
-            <option value=''>
-              ✨ Auto-Generate Blueprint Matching Sections (Default)
-            </option>
+            <option value=''>✨ Auto-Generate Blueprint Matching Sections (Default)</option>
             {blueprints?.map((bp) => (
               <option key={bp.id} value={bp.id}>
-                {bp.name || (bp as any).displayName || (bp as any).title || `Blueprint (${bp.id.slice(0, 8)})`}
+                {bp.name ||
+                  (bp as any).displayName ||
+                  (bp as any).title ||
+                  `Blueprint (${bp.id.slice(0, 8)})`}
               </option>
             ))}
           </select>
@@ -96,7 +98,8 @@ export function BlueprintSelectionTab({ configId }: BlueprintSelectionTabProps) 
                 ✨ Auto-Generate Blueprint Mode
               </h4>
               <p className='text-sm text-muted-foreground mt-1'>
-                The system will automatically build and bind a blueprint matching your section structure and topic allocations upon publishing.
+                The system will automatically build and bind a blueprint matching your section
+                structure and topic allocations upon publishing.
               </p>
             </div>
             <div className='pt-2 max-w-md'>

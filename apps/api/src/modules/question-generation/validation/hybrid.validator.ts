@@ -4,7 +4,10 @@ import {
   ValidationReport,
   RawQuestion,
 } from "../interfaces/validation-strategy.interface";
-import { GenerationContext, HybridPayload } from "../interfaces/generation-context.interface";
+import {
+  GenerationContext,
+  HybridPayload,
+} from "../interfaces/generation-context.interface";
 
 /**
  * HybridValidator
@@ -29,9 +32,7 @@ export class HybridValidator implements IValidationStrategy {
 
     // 2. Must have exactly 4 options
     if (!question.options || question.options.length !== 4) {
-      errors.push(
-        `Expected 4 options, got ${question.options?.length ?? 0}.`,
-      );
+      errors.push(`Expected 4 options, got ${question.options?.length ?? 0}.`);
     }
 
     // 3. Correct answer must be one of A/B/C/D
@@ -45,7 +46,9 @@ export class HybridValidator implements IValidationStrategy {
     // 4. Validate graph is present and non-empty
     const graph = payload.relationshipGraph;
     if (!graph || Object.keys(graph).length === 0) {
-      errors.push("Relationship graph is empty — cannot generate hybrid question.");
+      errors.push(
+        "Relationship graph is empty — cannot generate hybrid question.",
+      );
     }
 
     // 5. Validate entities exist in the graph

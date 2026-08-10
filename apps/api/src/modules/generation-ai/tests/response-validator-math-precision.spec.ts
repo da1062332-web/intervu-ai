@@ -17,8 +17,7 @@ describe("ResponseValidatorService math precision", () => {
     options,
     correctAnswer,
     answer: correctAnswer,
-    explanation:
-      `Concept\nInterest calculation.\n\nFormula / Reasoning\nUse the backend value.\n\nStep-by-Step Solution\nThe calculated value rounds to ${correctAnswer}.\n\nFinal Answer\n${correctAnswer}`,
+    explanation: `Concept\nInterest calculation.\n\nFormula / Reasoning\nUse the backend value.\n\nStep-by-Step Solution\nThe calculated value rounds to ${correctAnswer}.\n\nFinal Answer\n${correctAnswer}`,
     difficulty: "medium",
     topic: "interest",
     metadata: {
@@ -49,7 +48,9 @@ describe("ResponseValidatorService math precision", () => {
     ]);
 
     expect(question.options).toContain(question.correctAnswer);
-    expect(() => service.validate(question, "medium", "interest")).not.toThrow();
+    expect(() =>
+      service.validate(question, "medium", "interest"),
+    ).not.toThrow();
   });
 
   it("still rejects numeric answers outside tolerance", () => {

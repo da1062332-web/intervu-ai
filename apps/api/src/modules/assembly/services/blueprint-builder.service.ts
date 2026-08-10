@@ -11,7 +11,8 @@ export class BlueprintBuilderService {
   ) {}
 
   async generateBlueprint(configId: string): Promise<BlueprintDto> {
-    const cached = await this.redisCacheService.getBlueprint<BlueprintDto>(configId);
+    const cached =
+      await this.redisCacheService.getBlueprint<BlueprintDto>(configId);
     if (cached) {
       return cached;
     }
@@ -103,7 +104,10 @@ export class BlueprintBuilderService {
       sections,
     };
 
-    const ttl = parseInt(process.env.ASSEMBLY_BLUEPRINT_CACHE_TTL_SECONDS || '3600', 10);
+    const ttl = parseInt(
+      process.env.ASSEMBLY_BLUEPRINT_CACHE_TTL_SECONDS || "3600",
+      10,
+    );
     await this.redisCacheService.setBlueprint(configId, blueprint, ttl);
 
     return blueprint;

@@ -56,7 +56,9 @@ export function TestFilters({
                   size='sm'
                   onClick={() => onDifficultyChange(diff)}
                   className={`text-xs h-7 px-3 rounded-md font-medium transition-all ${
-                    difficultyFilter === diff ? 'shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                    difficultyFilter === diff
+                      ? 'shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {diff}
@@ -68,14 +70,14 @@ export function TestFilters({
 
         {/* Right Side: Bookmarked Switch & Match Count */}
         <div className='flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border/40'>
-          <div 
-            className='flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors cursor-pointer select-none' 
+          <div
+            className='flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors cursor-pointer select-none'
             onClick={() => onShowOnlyBookmarkedChange(!showOnlyBookmarked)}
           >
-            <Star className={`size-3.5 transition-transform ${showOnlyBookmarked ? 'fill-yellow-500 text-yellow-500 scale-105' : 'text-muted-foreground'}`} />
-            <span className='text-xs font-medium text-foreground'>
-              Bookmarked only
-            </span>
+            <Star
+              className={`size-3.5 transition-transform ${showOnlyBookmarked ? 'fill-yellow-500 text-yellow-500 scale-105' : 'text-muted-foreground'}`}
+            />
+            <span className='text-xs font-medium text-foreground'>Bookmarked only</span>
             <Switch
               id='bookmark-toggle'
               checked={showOnlyBookmarked}
@@ -85,7 +87,10 @@ export function TestFilters({
             />
           </div>
 
-          <Badge variant='secondary' className='text-xs font-semibold px-3 py-1 h-8 flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 shrink-0'>
+          <Badge
+            variant='secondary'
+            className='text-xs font-semibold px-3 py-1 h-8 flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 shrink-0'
+          >
             {totalResults} {totalResults === 1 ? 'assessment' : 'assessments'}
           </Badge>
         </div>

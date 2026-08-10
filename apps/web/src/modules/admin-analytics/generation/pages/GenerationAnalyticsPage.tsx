@@ -70,7 +70,11 @@ export function GenerationAnalyticsPage() {
       <SectionHeader
         title='Generation Analytics'
         description='Observe the health, speed, volume, and success rates of our automated AI question generation pipelines.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Analytics', href: '/admin/analytics' }, { label: 'Generation' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Analytics', href: '/admin/analytics' },
+          { label: 'Generation' },
+        ]}
         actions={
           <div className='flex gap-3'>
             <Button asChild variant='outline'>
@@ -90,17 +94,17 @@ export function GenerationAnalyticsPage() {
       />
 
       {loading ? (
-        <div className="space-y-8 w-full mt-8">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className='space-y-8 w-full mt-8'>
+          <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
             {Array.from({ length: 4 }).map((_, i) => (
-              <CardSkeleton key={i} className="h-[104px]" />
+              <CardSkeleton key={i} className='h-[104px]' />
             ))}
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <ChartSkeleton className="md:col-span-2 h-[400px]" />
-            <ChartSkeleton className="h-[400px]" />
+          <div className='grid gap-6 md:grid-cols-3'>
+            <ChartSkeleton className='md:col-span-2 h-[400px]' />
+            <ChartSkeleton className='h-[400px]' />
           </div>
-          <CardSkeleton className="h-[300px]" />
+          <CardSkeleton className='h-[300px]' />
         </div>
       ) : (
         <>
@@ -189,16 +193,13 @@ export function GenerationAnalyticsPage() {
                   const successPct = (t.success / maxTrendVal) * 100;
                   const failurePct = (t.failure / maxTrendVal) * 100;
                   return (
-                    <div
-                      key={idx}
-                      className='flex-1 flex flex-col items-center gap-2 h-full'
-                    >
+                    <div key={idx} className='flex-1 flex flex-col items-center gap-2 h-full'>
                       {/* Track */}
                       <div className='w-full max-w-[48px] bg-muted/40 rounded-t-md relative flex-1 overflow-hidden group'>
                         {/* Tooltip on hover (simplistic) */}
-                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm text-[10px] font-medium text-center p-1">
-                          <span className="text-emerald-500">{t.success} OK</span>
-                          <span className="text-red-500">{t.failure} ERR</span>
+                        <div className='absolute inset-0 z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm text-[10px] font-medium text-center p-1'>
+                          <span className='text-emerald-500'>{t.success} OK</span>
+                          <span className='text-red-500'>{t.failure} ERR</span>
                         </div>
                         {/* Stack Container */}
                         <div className='absolute bottom-0 w-full flex flex-col justify-end h-full'>

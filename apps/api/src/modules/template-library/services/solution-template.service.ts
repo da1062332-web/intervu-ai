@@ -102,7 +102,9 @@ export class SolutionTemplateService {
         where: { templateId: template.id },
       });
       if (!config) {
-        throw new BadRequestException("Dataset configuration not found for this template");
+        throw new BadRequestException(
+          "Dataset configuration not found for this template",
+        );
       }
 
       // Fetch a dataset item
@@ -131,7 +133,9 @@ export class SolutionTemplateService {
       }
 
       if (items.length === 0) {
-        throw new BadRequestException(`No items found in selected dataset: ${config.datasetId}`);
+        throw new BadRequestException(
+          `No items found in selected dataset: ${config.datasetId}`,
+        );
       }
 
       const item = items[Math.floor(Math.random() * items.length)];

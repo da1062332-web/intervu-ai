@@ -30,8 +30,14 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
   const enrollment = enrollmentsData?.enrollments?.find((e: any) => e.testId === testId);
   const isCompleted = dashboardData?.completedAttempts?.some((c) => c.testId === testId);
   const isActive = dashboardData?.activeTests?.some((a) => a.testId === testId);
-  
-  const enrollmentStatus = isCompleted ? 'COMPLETED' : isActive ? 'STARTED' : enrollment ? enrollment.status : 'AVAILABLE';
+
+  const enrollmentStatus = isCompleted
+    ? 'COMPLETED'
+    : isActive
+      ? 'STARTED'
+      : enrollment
+        ? enrollment.status
+        : 'AVAILABLE';
 
   if (isLoading) {
     return (
@@ -118,4 +124,3 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
     </div>
   );
 }
-

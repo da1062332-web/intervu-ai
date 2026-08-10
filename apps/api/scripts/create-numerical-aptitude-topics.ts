@@ -85,14 +85,12 @@ const topics: TopicDefinition[] = [
   {
     name: "Area",
     code: "AREA",
-    description:
-      "Questions related to area and surface area calculations.",
+    description: "Questions related to area and surface area calculations.",
   },
   {
     name: "Ages",
     code: "AGES",
-    description:
-      "Questions involving age-based equations and relationships.",
+    description: "Questions involving age-based equations and relationships.",
   },
   {
     name: "Probability",
@@ -510,7 +508,8 @@ async function bootstrap() {
 
   let createdTopicCount = 0;
   let createdConceptCount = 0;
-  const results: Array<{ topic: string; created: boolean; error?: string }> = [];
+  const results: Array<{ topic: string; created: boolean; error?: string }> =
+    [];
 
   try {
     const createdTopics = new Map<string, string>();
@@ -536,7 +535,9 @@ async function bootstrap() {
     for (const topic of topics) {
       const topicId = createdTopics.get(topic.code);
       if (!topicId) {
-        console.warn(`Skipping concepts for ${topic.code} because the topic was not created.`);
+        console.warn(
+          `Skipping concepts for ${topic.code} because the topic was not created.`,
+        );
         continue;
       }
 
@@ -555,9 +556,13 @@ async function bootstrap() {
           });
           createdConceptCount += 1;
         } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           results.push({ topic: topic.code, created: false, error: message });
-          console.error(`Concept creation failed for ${concept.code} under ${topic.code}:`, message);
+          console.error(
+            `Concept creation failed for ${concept.code} under ${topic.code}:`,
+            message,
+          );
         }
       }
     }

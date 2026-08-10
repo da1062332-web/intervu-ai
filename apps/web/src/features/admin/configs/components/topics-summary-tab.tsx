@@ -35,17 +35,19 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
     return map;
   }, [allTopics]);
 
-  const bpRawSections = (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
+  const bpRawSections =
+    (blueprintDetail as any)?.sections || (selectedBlueprint as any)?.sections || [];
 
-  const displaySections = (selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0)
-    ? bpRawSections.map((sec: any, idx: number) => ({
-        id: sec.sectionId || sec.id || `bp_sec_${idx}`,
-        name: sec.displayName || sec.name || `Section ${idx + 1}`,
-      }))
-    : sections;
+  const displaySections =
+    selectedBlueprintId && Array.isArray(bpRawSections) && bpRawSections.length > 0
+      ? bpRawSections.map((sec: any, idx: number) => ({
+          id: sec.sectionId || sec.id || `bp_sec_${idx}`,
+          name: sec.displayName || sec.name || `Section ${idx + 1}`,
+        }))
+      : sections;
 
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
-  
+
   // Auto-select first section
   useEffect(() => {
     if (displaySections.length > 0 && !selectedSectionId) {
@@ -58,28 +60,31 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
   const topics = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.data || [];
 
   const currentBpSec = Array.isArray(bpRawSections)
-    ? bpRawSections.find((s: any) => (s.sectionId || s.id) === selectedSectionId) || bpRawSections[0]
+    ? bpRawSections.find((s: any) => (s.sectionId || s.id) === selectedSectionId) ||
+      bpRawSections[0]
     : null;
 
-  const sectionBpTopics = currentBpSec?.topicAllocations || currentBpSec?.sectionTopics || currentBpSec?.topics || [];
+  const sectionBpTopics =
+    currentBpSec?.topicAllocations || currentBpSec?.sectionTopics || currentBpSec?.topics || [];
   const allBpTopics = Array.isArray(bpRawSections)
     ? bpRawSections.flatMap((s: any) => s.topicAllocations || s.sectionTopics || s.topics || [])
     : [];
 
   const bpTopics = sectionBpTopics.length > 0 ? sectionBpTopics : allBpTopics;
 
-  const displayTopics = (selectedBlueprintId && Array.isArray(bpTopics) && bpTopics.length > 0)
-    ? bpTopics.map((ta: any) => {
-        const id = ta.topicId || ta.id;
-        const name = ta.topicName || ta.name || topicNameMap[id] || id;
-        const percentage = ta.percentage ?? ta.weightagePercentage ?? ta.weightage ?? 50;
-        return {
-          topicId: id,
-          topicName: name,
-          percentage,
-        };
-      })
-    : topics;
+  const displayTopics =
+    selectedBlueprintId && Array.isArray(bpTopics) && bpTopics.length > 0
+      ? bpTopics.map((ta: any) => {
+          const id = ta.topicId || ta.id;
+          const name = ta.topicName || ta.name || topicNameMap[id] || id;
+          const percentage = ta.percentage ?? ta.weightagePercentage ?? ta.weightage ?? 50;
+          return {
+            topicId: id,
+            topicName: name,
+            percentage,
+          };
+        })
+      : topics;
 
   const weightageMap = selectedBlueprintId
     ? (bpTopics || []).reduce((map: Record<string, number>, ta: any) => {
@@ -104,14 +109,14 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
   }, [topics, selectedTopicId]);
 
   if (isLoadingSections) {
-    return <Skeleton className="w-full h-64" />;
+    return <Skeleton className='w-full h-64' />;
   }
 
   if (displaySections.length === 0 && !selectedBlueprintId) {
     return (
       <EmptyState
-        title="No Sections"
-        description="You must create sections and assign topics to them before managing concepts."
+        title='No Sections'
+        description='You must create sections and assign topics to them before managing concepts.'
       />
     );
   }
@@ -126,10 +131,12 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
             </div>
             <div>
               <h4 className='text-sm font-semibold text-indigo-950 dark:text-indigo-200'>
-                Pre-configured by Blueprint: {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
+                Pre-configured by Blueprint:{' '}
+                {selectedBlueprint?.name || selectedBlueprint?.displayName || 'Selected Blueprint'}
               </h4>
               <p className='text-xs text-muted-foreground mt-0.5'>
-                Topics and topic weightages are loaded directly from the blueprint rules in Read-Only Inspection Mode.
+                Topics and topic weightages are loaded directly from the blueprint rules in
+                Read-Only Inspection Mode.
               </p>
             </div>
           </div>
@@ -148,14 +155,14 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
         <div className='flex-1 p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-6 gap-4 border-b pb-4'>
             <h3 className='font-semibold text-lg whitespace-nowrap'>Assigned Topics</h3>
-            
+
             {/* Section Filter Dropdown */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground font-medium">Section:</span>
+            <div className='flex items-center gap-3'>
+              <span className='text-sm text-muted-foreground font-medium'>Section:</span>
               <select
                 value={selectedSectionId}
                 onChange={(e) => setSelectedSectionId(e.target.value)}
-                className="flex h-9 min-w-[200px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className='flex h-9 min-w-[200px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
               >
                 {displaySections.map((section) => (
                   <option key={section.id} value={section.id}>
@@ -175,7 +182,9 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
           ) : displayTopics.length === 0 ? (
             <div className='flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg bg-muted/5 p-8 text-center'>
               <p className='text-muted-foreground font-medium'>No topics mapped to this section.</p>
-              <p className='text-sm text-muted-foreground mt-1'>Topics must be assigned in the Blueprint tab.</p>
+              <p className='text-sm text-muted-foreground mt-1'>
+                Topics must be assigned in the Blueprint tab.
+              </p>
             </div>
           ) : (
             <div className='grid gap-3'>
@@ -184,19 +193,26 @@ export function TopicsSummaryTab({ configId }: TopicsSummaryTabProps) {
                 const topicName = topic.topicName || topic.topic || topic.name || 'Unnamed Topic';
 
                 return (
-                  <div key={topicId} className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'>
+                  <div
+                    key={topicId}
+                    className='p-4 border rounded-lg bg-background flex justify-between items-center shadow-sm hover:shadow transition-shadow'
+                  >
                     <div>
                       <p className='font-medium text-base'>{topicName}</p>
-                      <p className='text-sm text-muted-foreground mt-0.5'>Weightage: {weightageMap[topicId] ?? 0}%</p>
+                      <p className='text-sm text-muted-foreground mt-0.5'>
+                        Weightage: {weightageMap[topicId] ?? 0}%
+                      </p>
                     </div>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 text-xs font-medium text-primary border-primary/30 hover:bg-primary/5"
-                      onClick={() => window.open(`/admin/topics/${topicId}`, '_blank', 'noopener,noreferrer')}
+                      variant='outline'
+                      size='sm'
+                      className='gap-1.5 text-xs font-medium text-primary border-primary/30 hover:bg-primary/5'
+                      onClick={() =>
+                        window.open(`/admin/topics/${topicId}`, '_blank', 'noopener,noreferrer')
+                      }
                     >
                       <span>Topic Details</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className='w-3.5 h-3.5' />
                     </Button>
                   </div>
                 );

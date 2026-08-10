@@ -25,8 +25,12 @@ export const ScoreTrendChart = React.memo(function ScoreTrendChart({
         className='flex flex-col items-center justify-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/60 p-6 text-center'
         style={{ height }}
       >
-        <p className='text-sm font-semibold text-foreground/80'>No score trend data available yet</p>
-        <p className='text-xs text-muted-foreground mt-1'>Complete assessments to view your historical performance timeline.</p>
+        <p className='text-sm font-semibold text-foreground/80'>
+          No score trend data available yet
+        </p>
+        <p className='text-xs text-muted-foreground mt-1'>
+          Complete assessments to view your historical performance timeline.
+        </p>
       </div>
     );
   }
@@ -46,10 +50,8 @@ export const ScoreTrendChart = React.memo(function ScoreTrendChart({
     <div className='w-full flex flex-col space-y-2 select-none'>
       {/* Main Chart Canvas Container */}
       <div className='relative w-full bg-muted/10 rounded-xl border border-border/40 p-4 pt-6 overflow-hidden'>
-        
         {/* Y-Axis Grid Canvas (Height = 200px) */}
         <div className='relative w-full h-[200px]'>
-          
           {/* Y-Axis Grid Lines & Tick Labels */}
           <div className='absolute inset-0 flex flex-col justify-between pointer-events-none z-0'>
             {yTicks.map((tick) => (
@@ -98,16 +100,18 @@ export const ScoreTrendChart = React.memo(function ScoreTrendChart({
                   {/* Floating Hover Tooltip */}
                   {isHovered && (
                     <div className='absolute -top-12 z-30 bg-popover text-popover-foreground text-xs px-3 py-1.5 rounded-lg shadow-lg border border-border/80 flex flex-col items-center animate-in fade-in zoom-in-95 duration-150 whitespace-nowrap pointer-events-none'>
-                      <span className='font-bold text-foreground'>{point.label || 'Assessment'}</span>
+                      <span className='font-bold text-foreground'>
+                        {point.label || 'Assessment'}
+                      </span>
                       <span className='text-[11px] text-muted-foreground'>
-                        Score: <strong className='text-foreground'>{rawScore}%</strong> • {formattedDate}
+                        Score: <strong className='text-foreground'>{rawScore}%</strong> •{' '}
+                        {formattedDate}
                       </span>
                     </div>
                   )}
 
                   {/* Outer Bar Track (Spans EXACT 100% of 200px Grid Canvas Height) */}
                   <div className='w-full max-w-[36px] h-full relative flex items-end bg-muted/30 rounded-t-md overflow-visible border-x border-t border-border/40'>
-                    
                     {/* Floating Score Pill Badge positioned directly at bar top */}
                     <div
                       className={`absolute left-1/2 -translate-x-1/2 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md transition-all duration-200 shadow-2xs z-20 whitespace-nowrap ${badgeBg} ${
@@ -155,5 +159,3 @@ export const ScoreTrendChart = React.memo(function ScoreTrendChart({
     </div>
   );
 });
-
-

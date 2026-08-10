@@ -54,7 +54,8 @@ export class QuestionAssemblerService {
       metadata: {
         strategy: context.strategy,
         contextSummary: this.buildContextSummary(context),
-        generatedAt: (metadata.generatedAt as string) ?? new Date().toISOString(),
+        generatedAt:
+          (metadata.generatedAt as string) ?? new Date().toISOString(),
         ...metadata,
       },
     };

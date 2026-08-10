@@ -79,7 +79,12 @@ export class ResultsController {
       return attempt;
     }
 
-    if (user && user.role !== UserRole.ADMIN && attempt.userId && attempt.userId !== user.id) {
+    if (
+      user &&
+      user.role !== UserRole.ADMIN &&
+      attempt.userId &&
+      attempt.userId !== user.id
+    ) {
       this.logger.warn("SEC-001: Unauthorized result access attempt", {
         attemptId,
         requestingUserId: user?.id,
@@ -161,7 +166,9 @@ export class ResultsController {
 
   @Public()
   @Get(":attemptId/ai-analysis")
-  @ApiOperation({ summary: "Get AI-generated strengths, weaknesses, and recommendations" })
+  @ApiOperation({
+    summary: "Get AI-generated strengths, weaknesses, and recommendations",
+  })
   @ApiParam({ name: "attemptId", required: true })
   async getAiAnalysis(
     @CurrentUser() user: { id: string; role: string },
@@ -232,7 +239,9 @@ export class ResultsController {
     if (!attemptWithResult?.candidateResult) {
       throw new NotFoundException(`Attempt results not generated yet`);
     }
-    return this.rankingService.calculateRanking(attemptWithResult.candidateResult as any);
+    return this.rankingService.calculateRanking(
+      attemptWithResult.candidateResult as any,
+    );
   }
 
   @Public()
@@ -254,7 +263,7 @@ export class ResultsController {
     const insightRecord = await this.prisma.evaluationInsight.findUnique({
       where: { attemptId },
     });
-    const insights = insightRecord?.insights as string[] || [];
+    const insights = (insightRecord?.insights as string[]) || [];
 
     const planRecord = await this.prisma.improvementPlan.findUnique({
       where: { attemptId },

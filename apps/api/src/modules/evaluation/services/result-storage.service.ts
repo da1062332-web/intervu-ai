@@ -35,7 +35,9 @@ export class ResultStorageService {
             advancedScore: result.advancedScore ?? null,
             codingSolved: result.codingSolved ?? null,
             qualificationDetails: result.qualificationDetails || null,
-            evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
+            evaluatedAt: result.evaluatedAt
+              ? new Date(result.evaluatedAt)
+              : null,
             createdAt: new Date(),
           },
           create: {
@@ -51,7 +53,9 @@ export class ResultStorageService {
             advancedScore: result.advancedScore ?? null,
             codingSolved: result.codingSolved ?? null,
             qualificationDetails: result.qualificationDetails || null,
-            evaluatedAt: result.evaluatedAt ? new Date(result.evaluatedAt) : null,
+            evaluatedAt: result.evaluatedAt
+              ? new Date(result.evaluatedAt)
+              : null,
             createdAt: new Date(),
           },
         });

@@ -37,7 +37,7 @@ interface ExecutionState {
 
   // Section Change State
   pendingSectionChangeTarget: number | null;
-  
+
   // Fullscreen Block State
   isInteractionBlocked: boolean;
   setInteractionBlocked: (blocked: boolean) => void;
@@ -72,7 +72,11 @@ interface ExecutionState {
   setLoading: (loading: boolean) => void;
 
   // Section advance (Feature 7 & 8)
-  advanceSectionLocally: (nextSectionIndex: number, lockedKeys: string[], sectionStartedAt: string | null) => void;
+  advanceSectionLocally: (
+    nextSectionIndex: number,
+    lockedKeys: string[],
+    sectionStartedAt: string | null,
+  ) => void;
 
   // Day 4 Actions
   setAutosaveStatus: (status: AutosaveStatus) => void;
@@ -170,14 +174,18 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
   initializeTest: (testInstance) => {
     const allQuestions = testInstance.sections.flatMap((s) => s.questions);
-    const initialPalette = allQuestions.map((_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED') as QuestionStatus);
+    const initialPalette = allQuestions.map(
+      (_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED') as QuestionStatus,
+    );
 
     // Derive current section index from backend
     const serverSectionIndex = testInstance.currentSectionIndex ?? 0;
 
     // Derive locked sections: all sections before currentSectionIndex with status LOCKED or COMPLETED
     const lockedKeys = testInstance.sections
-      .filter((s, idx) => idx < serverSectionIndex || s.status === 'LOCKED' || s.status === 'COMPLETED')
+      .filter(
+        (s, idx) => idx < serverSectionIndex || s.status === 'LOCKED' || s.status === 'COMPLETED',
+      )
       .map((s) => s.sectionKey);
 
     // Compute initial section remaining time from server clock + startedAt
@@ -185,7 +193,9 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     if (testInstance.sectionTimingEnabled) {
       const activeSection = testInstance.sections[serverSectionIndex];
       if (activeSection?.startedAt && activeSection?.durationSeconds) {
-        const serverNow = testInstance.serverTime ? new Date(testInstance.serverTime).getTime() : Date.now();
+        const serverNow = testInstance.serverTime
+          ? new Date(testInstance.serverTime).getTime()
+          : Date.now();
         const sectionStarted = new Date(activeSection.startedAt).getTime();
         const elapsed = Math.floor((serverNow - sectionStarted) / 1000);
         sectionRemainingTime = Math.max(0, activeSection.durationSeconds - elapsed);
@@ -196,7 +206,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
     // Figure out the starting question index (first question of active section, unless backend provided an index)
     let startingQuestionIndex = testInstance.currentQuestionIndex ?? 0;
-    
+
     // If backend didn't provide a valid question index for the current section, calculate the first question of the current section
     if (startingQuestionIndex === 0) {
       let runningCount = 0;
@@ -270,7 +280,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     } catch (e) {
       console.error('Failed to exit fullscreen during cleanup:', e);
     }
-    
+
     try {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('intervu-cleanup-runtime'));
@@ -279,7 +289,6 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       console.error('Failed to dispatch cleanup event:', e);
     }
   },
-
 
   jumpToQuestion: (index) => {
     const state = get();
@@ -312,10 +321,22 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     }
 
     set((state) => ({
-      ...applyPaletteUpdate(state.palette, state.currentQuestionIndex, index, state.answers, state.questions),
+      ...applyPaletteUpdate(
+        state.palette,
+        state.currentQuestionIndex,
+        index,
+        state.answers,
+        state.questions,
+      ),
       currentQuestionIndex: index,
       currentQuestion: state.questions[index],
-      palette: applyPaletteUpdate(state.palette, state.currentQuestionIndex, index, state.answers, state.questions),
+      palette: applyPaletteUpdate(
+        state.palette,
+        state.currentQuestionIndex,
+        index,
+        state.answers,
+        state.questions,
+      ),
       hasUnsavedChanges: true,
       pendingSectionChangeTarget: null,
     }));

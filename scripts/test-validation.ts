@@ -19,29 +19,29 @@ test({
   sampleSize: 1,
   shuffle: true,
   allowReuse: true,
-  variableMapping: { "role": "jobTitle" }
+  variableMapping: { role: "jobTitle" },
 });
 
 // Test 2: Missing datasetId (required)
 test({
   selectionMethod: "RANDOM",
-  sampleSize: 1
+  sampleSize: 1,
 });
 
 // Test 3: Null selectionMethod
 test({
   datasetId: "cmrdb07ma005x94gqjnydv8em",
-  selectionMethod: null
+  selectionMethod: null,
 });
 
 // Test 4: Array in variableMapping (invalid, should be object with string values)
 test({
   datasetId: "cmrdb07ma005x94gqjnydv8em",
-  variableMapping: ["role", "jobTitle"]
+  variableMapping: ["role", "jobTitle"],
 });
 
 // Test 5: Number values in variableMapping
 test({
   datasetId: "cmrdb07ma005x94gqjnydv8em",
-  variableMapping: { "role": 123 }
+  variableMapping: { role: 123 },
 });

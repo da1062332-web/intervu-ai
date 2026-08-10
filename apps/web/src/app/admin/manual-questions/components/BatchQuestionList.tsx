@@ -33,7 +33,7 @@ export function BatchQuestionList({ disabled }: BatchQuestionListProps) {
   }, [getValues, insert]);
 
   return (
-    <div className="space-y-8">
+    <div className='space-y-8'>
       {fields.map((field, index) => (
         <QuestionCard
           key={field.id}
@@ -44,15 +44,15 @@ export function BatchQuestionList({ disabled }: BatchQuestionListProps) {
         />
       ))}
 
-      <div className="flex justify-center pt-4 border-t border-dashed">
+      <div className='flex justify-center pt-4 border-t border-dashed'>
         <Button
-          type="button"
-          variant="outline"
+          type='button'
+          variant='outline'
           onClick={handleAddQuestion}
           disabled={disabled}
-          className="border-dashed hover:border-solid bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800"
+          className='border-dashed hover:border-solid bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800'
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className='w-4 h-4 mr-2' />
           Add Question
         </Button>
       </div>

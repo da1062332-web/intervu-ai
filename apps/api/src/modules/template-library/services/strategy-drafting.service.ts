@@ -1,9 +1,17 @@
-import { Injectable, BadRequestException, InternalServerErrorException, Inject } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+  Inject,
+} from "@nestjs/common";
 import { parse } from "mathjs";
 import { LLMAdapter } from "../../generation-ai/adapters/llm-adapter.interface";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { StrategyCanonicalizationService } from "./strategy-canonicalization.service";
-import { analyzeMathjsExpression, getUnsupportedMathjsFunctions } from "./expression-utils";
+import {
+  analyzeMathjsExpression,
+  getUnsupportedMathjsFunctions,
+} from "./expression-utils";
 
 export interface VariableDraft {
   name: string;
@@ -179,13 +187,11 @@ Critical output rules:
    */
   private parseAndValidateResponse(response: string): any {
     try {
-      const cleaned = response
-        .replace(/```(?:json)?/gi, '')
-        .trim();
+      const cleaned = response.replace(/```(?:json)?/gi, "").trim();
 
       const jsonText = this.extractFirstJsonObject(cleaned);
       if (!jsonText) {
-        throw new Error('No JSON object found in response');
+        throw new Error("No JSON object found in response");
       }
 
       const parsed = JSON.parse(jsonText);
@@ -227,7 +233,7 @@ Critical output rules:
       if (inString) {
         if (escape) {
           escape = false;
-        } else if (char === '\\') {
+        } else if (char === "\\") {
           escape = true;
         } else if (char === '"') {
           inString = false;
@@ -240,7 +246,7 @@ Critical output rules:
         continue;
       }
 
-      if (char === '{') {
+      if (char === "{") {
         if (depth === 0) {
           startIndex = index;
         }
@@ -248,7 +254,7 @@ Critical output rules:
         continue;
       }
 
-      if (char === '}') {
+      if (char === "}") {
         if (depth > 0) {
           depth -= 1;
           if (depth === 0 && startIndex >= 0) {
@@ -300,7 +306,8 @@ Critical output rules:
 
         if (min !== undefined) normalizedVar.min = min;
         if (max !== undefined) normalizedVar.max = max;
-        if (defaultValue !== undefined) normalizedVar.defaultValue = defaultValue;
+        if (defaultValue !== undefined)
+          normalizedVar.defaultValue = defaultValue;
 
         normalized.variables.push(normalizedVar);
       }
@@ -327,7 +334,9 @@ Critical output rules:
         if (!c?.rule || typeof c.rule !== "string") continue;
 
         normalized.constraints.push({
-          rule: this.canonicalizationService.normalizeConstraintRule(c.rule.trim()),
+          rule: this.canonicalizationService.normalizeConstraintRule(
+            c.rule.trim(),
+          ),
           severity: c.severity === "warning" ? "warning" : "critical",
         });
       }
@@ -378,7 +387,9 @@ Critical output rules:
     const warnings: string[] = [];
 
     if (strategy.variables.length === 0) {
-      warnings.push("No variables were detected. Manual editing may be needed.");
+      warnings.push(
+        "No variables were detected. Manual editing may be needed.",
+      );
     }
 
     if (strategy.variables.length > 20) {
@@ -396,7 +407,9 @@ Critical output rules:
 
     for (const derived of strategy.derivedVariables) {
       if (!derived.expression) {
-        warnings.push(`Derived variable "${derived.name}" has an empty expression.`);
+        warnings.push(
+          `Derived variable "${derived.name}" has an empty expression.`,
+        );
         continue;
       }
 
@@ -406,17 +419,20 @@ Critical output rules:
         `Derived variable "${derived.name}"`,
       );
 
-      const unsupportedFunctions = getUnsupportedMathjsFunctions(derived.expression);
+      const unsupportedFunctions = getUnsupportedMathjsFunctions(
+        derived.expression,
+      );
       if (unsupportedFunctions.length > 0) {
         warnings.push(
           `Derived variable "${derived.name}" uses unsupported function(s): ${unsupportedFunctions.join(", ")}`,
         );
       }
 
-      const mentioned = analyzeMathjsExpression(derived.expression).identifiers.map((name) => name.toLowerCase());
+      const mentioned = analyzeMathjsExpression(
+        derived.expression,
+      ).identifiers.map((name) => name.toLowerCase());
       const orphaned = mentioned.filter(
-        (name) =>
-          !baseVarNames.has(name) && !derivedVarNames.has(name),
+        (name) => !baseVarNames.has(name) && !derivedVarNames.has(name),
       );
       if (orphaned.length > 0) {
         warnings.push(
@@ -438,17 +454,16 @@ Critical output rules:
         continue;
       }
 
-      this.validateExpressionSyntax(
-        constraint.rule,
-        true,
-        `Constraint rule`,
-      );
+      this.validateExpressionSyntax(constraint.rule, true, `Constraint rule`);
 
-      const normalizedRule = this.normalizeConstraintRuleForParsing(constraint.rule);
-      const mentioned = analyzeMathjsExpression(normalizedRule).identifiers.map((name) => name.toLowerCase());
+      const normalizedRule = this.normalizeConstraintRuleForParsing(
+        constraint.rule,
+      );
+      const mentioned = analyzeMathjsExpression(normalizedRule).identifiers.map(
+        (name) => name.toLowerCase(),
+      );
       const undefinedVars = mentioned.filter(
-        (name) =>
-          !baseVarNames.has(name) && !derivedVarNames.has(name),
+        (name) => !baseVarNames.has(name) && !derivedVarNames.has(name),
       );
       if (undefinedVars.length > 0) {
         warnings.push(
@@ -458,7 +473,7 @@ Critical output rules:
     }
 
     for (const variable of strategy.variables) {
-      const generator = variable.generator || 'random';
+      const generator = variable.generator || "random";
 
       if (
         (variable.type === "string" || variable.type === "boolean") &&
@@ -469,26 +484,23 @@ Critical output rules:
         );
       }
 
-      if (variable.type === "decimal" && ["prime", "even", "odd"].includes(generator)) {
+      if (
+        variable.type === "decimal" &&
+        ["prime", "even", "odd"].includes(generator)
+      ) {
         warnings.push(
           `Generator "${generator}" is only valid for integer variables. Variable "${variable.name}" is decimal.`,
         );
       }
 
       if (variable.type === "integer") {
-        if (
-          variable.min !== undefined &&
-          !Number.isInteger(variable.min)
-        ) {
+        if (variable.min !== undefined && !Number.isInteger(variable.min)) {
           warnings.push(
             `Variable "${variable.name}" is integer type but min is not an integer.`,
           );
         }
 
-        if (
-          variable.max !== undefined &&
-          !Number.isInteger(variable.max)
-        ) {
+        if (variable.max !== undefined && !Number.isInteger(variable.max)) {
           warnings.push(
             `Variable "${variable.name}" is integer type but max is not an integer.`,
           );
@@ -541,8 +553,7 @@ Critical output rules:
     for (const derived of derivedVariables) {
       const name = derived.name.toLowerCase();
       const references = analyzeMathjsExpression(derived.expression)
-        .identifiers
-        .map((token) => token.toLowerCase())
+        .identifiers.map((token) => token.toLowerCase())
         .filter((token) => derivedNames.has(token) && token !== name);
       graph.set(name, references);
     }
@@ -606,9 +617,7 @@ Critical output rules:
   /**
    * Normalize generator mode
    */
-  private normalizeGenerator(
-    generator: unknown,
-  ): string {
+  private normalizeGenerator(generator: unknown): string {
     if (typeof generator !== "string") return "random";
 
     const lower = generator.toLowerCase();
@@ -640,11 +649,15 @@ Critical output rules:
 
     // Check for potentially problematic patterns
     if (strategy.variables.length === 0) {
-      warnings.push("No variables were detected. Manual editing may be needed.");
+      warnings.push(
+        "No variables were detected. Manual editing may be needed.",
+      );
     }
 
     if (strategy.variables.length > 20) {
-      warnings.push(`High number of variables (${strategy.variables.length}). Ensure question is not overly complex.`);
+      warnings.push(
+        `High number of variables (${strategy.variables.length}). Ensure question is not overly complex.`,
+      );
     }
 
     // Check for derived variables without matching base variables
@@ -655,7 +668,9 @@ Critical output rules:
       strategy.derivedVariables.map((d) => d.name.toLowerCase()),
     );
     for (const derived of strategy.derivedVariables) {
-      const mentioned = analyzeMathjsExpression(derived.expression).identifiers.map((name) => name.toLowerCase());
+      const mentioned = analyzeMathjsExpression(
+        derived.expression,
+      ).identifiers.map((name) => name.toLowerCase());
       const orphaned = mentioned.filter(
         (name) => !baseVarNames.has(name.toLowerCase()),
       );
@@ -668,7 +683,9 @@ Critical output rules:
 
     // Check for constraints on undefined variables
     for (const constraint of strategy.constraints) {
-      const mentioned = analyzeMathjsExpression(this.normalizeConstraintRuleForParsing(constraint.rule)).identifiers.map((name) => name.toLowerCase());
+      const mentioned = analyzeMathjsExpression(
+        this.normalizeConstraintRuleForParsing(constraint.rule),
+      ).identifiers.map((name) => name.toLowerCase());
       const undefined_vars = mentioned.filter(
         (name) =>
           !baseVarNames.has(name.toLowerCase()) &&

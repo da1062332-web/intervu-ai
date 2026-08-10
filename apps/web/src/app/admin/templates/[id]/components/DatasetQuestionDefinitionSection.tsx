@@ -103,9 +103,17 @@ export function DatasetQuestionDefinitionSection({
               Question Stem
             </h3>
             <div className='flex items-center space-x-2'>
-              <Label htmlFor='show-stem' className='text-sm text-muted-foreground font-normal flex items-center space-x-2 cursor-pointer'>
+              <Label
+                htmlFor='show-stem'
+                className='text-sm text-muted-foreground font-normal flex items-center space-x-2 cursor-pointer'
+              >
                 <span>Show to candidate</span>
-                <Switch id='show-stem' checked={showStem} onCheckedChange={setShowStem} aria-label='Show stem to candidate' />
+                <Switch
+                  id='show-stem'
+                  checked={showStem}
+                  onCheckedChange={setShowStem}
+                  aria-label='Show stem to candidate'
+                />
               </Label>
             </div>
           </div>

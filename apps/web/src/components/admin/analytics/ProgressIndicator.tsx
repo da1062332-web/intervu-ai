@@ -19,7 +19,10 @@ export function ProgressIndicator({ label, progress, color, className }: Progres
       </div>
       <div className='h-2.5 w-full bg-muted/60 rounded-full overflow-hidden'>
         <div
-          className={cn('h-full rounded-full transition-all duration-700 ease-out shadow-sm', color || 'bg-primary')}
+          className={cn(
+            'h-full rounded-full transition-all duration-700 ease-out shadow-sm',
+            color || 'bg-primary',
+          )}
           style={{ width: `${normalizedProgress}%` }}
         />
       </div>

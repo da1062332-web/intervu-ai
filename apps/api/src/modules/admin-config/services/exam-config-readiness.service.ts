@@ -25,7 +25,9 @@ export interface ExamConfigReadinessResponse {
 
 @Injectable()
 export class ExamConfigReadinessService {
-  private readonly logger = new AppLogger({ name: "ExamConfigReadinessService" });
+  private readonly logger = new AppLogger({
+    name: "ExamConfigReadinessService",
+  });
 
   constructor(
     private readonly prisma: PrismaService,
@@ -82,7 +84,8 @@ export class ExamConfigReadinessService {
         (sum, s) => sum + (s.questionCount || 0),
         0,
       );
-      const isQuestionCountMatch = sectionTotalQuestions === config.totalQuestions;
+      const isQuestionCountMatch =
+        sectionTotalQuestions === config.totalQuestions;
 
       if (isQuestionCountMatch) {
         passedCount++;
@@ -146,7 +149,8 @@ export class ExamConfigReadinessService {
       checks.push({
         name: "Difficulty Distribution",
         status: "PASS",
-        message: "Flexible pool distribution (No rigid difficulty percentages enforced).",
+        message:
+          "Flexible pool distribution (No rigid difficulty percentages enforced).",
       });
     }
 
@@ -221,15 +225,17 @@ export class ExamConfigReadinessService {
       }
     }
 
-    const score = Math.round((passedCount / Math.max(1, totalChecksCount)) * 100);
+    const score = Math.round(
+      (passedCount / Math.max(1, totalChecksCount)) * 100,
+    );
     const hasFails = checks.some((c) => c.status === "FAIL");
     const hasWarns = checks.some((c) => c.status === "WARN");
 
     const status: "READY" | "WARNING" | "NOT_READY" = hasFails
       ? "NOT_READY"
       : hasWarns
-      ? "WARNING"
-      : "READY";
+        ? "WARNING"
+        : "READY";
 
     return {
       configId,

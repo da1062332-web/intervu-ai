@@ -36,15 +36,30 @@ async function run() {
     promptConfig: customConfig as any,
   });
 
-  console.log("System Prompt matches custom system prompt?", compiledPrompt1.includes(customConfig.systemPrompt) ? "✅ YES" : "❌ NO");
-  console.log("User Prompt matches custom user prompt?", compiledPrompt1.includes("USER: Write a question about superb.") ? "✅ YES" : "❌ NO");
-  console.log("Instructions matches custom instructions?", compiledPrompt1.includes("CUSTOM INSTRUCTIONS:") ? "❌ YES (Mismatched)" : "✅ YES (Using custom)");
+  console.log(
+    "System Prompt matches custom system prompt?",
+    compiledPrompt1.includes(customConfig.systemPrompt) ? "✅ YES" : "❌ NO",
+  );
+  console.log(
+    "User Prompt matches custom user prompt?",
+    compiledPrompt1.includes("USER: Write a question about superb.")
+      ? "✅ YES"
+      : "❌ NO",
+  );
+  console.log(
+    "Instructions matches custom instructions?",
+    compiledPrompt1.includes("CUSTOM INSTRUCTIONS:")
+      ? "❌ YES (Mismatched)"
+      : "✅ YES (Using custom)",
+  );
   console.log("\n");
 
   // --------------------------------------------------------------------------------
   // Scenario 2: No Saved Prompt Configuration (Fallback to Defaults)
   // --------------------------------------------------------------------------------
-  console.log("--- Scenario 2: No Saved Prompt Configuration (Fallback to Defaults) ---");
+  console.log(
+    "--- Scenario 2: No Saved Prompt Configuration (Fallback to Defaults) ---",
+  );
   const compiledPrompt2 = promptBuilder.buildPrompt({
     template: { ...template, generationStrategy: "DATASET" } as any,
     variableValues: { synonym_placeholder: "superb" },
@@ -52,8 +67,18 @@ async function run() {
     promptConfig: undefined, // Simulates a template that doesn't have custom configs in DB
   });
 
-  console.log("Uses default system prompt fallback?", compiledPrompt2.includes("You are an expert AI Assessment Question Generator") ? "✅ YES" : "❌ NO");
-  console.log("Uses default user instructions fallback?", compiledPrompt2.includes("Generate a high-quality") ? "✅ YES" : "❌ NO");
+  console.log(
+    "Uses default system prompt fallback?",
+    compiledPrompt2.includes(
+      "You are an expert AI Assessment Question Generator",
+    )
+      ? "✅ YES"
+      : "❌ NO",
+  );
+  console.log(
+    "Uses default user instructions fallback?",
+    compiledPrompt2.includes("Generate a high-quality") ? "✅ YES" : "❌ NO",
+  );
   console.log("\n");
 
   // --------------------------------------------------------------------------------
@@ -69,13 +94,20 @@ async function run() {
     datasetItem: { content: "Sample content." },
     promptConfig: {
       systemPrompt: "SYSTEM: Synonym validator",
-      userPrompt: "USER: Validate synonym: '{{synonym_placeholder}}' and '{{missing_placeholder}}'",
+      userPrompt:
+        "USER: Validate synonym: '{{synonym_placeholder}}' and '{{missing_placeholder}}'",
       instructions: "INSTRUCTIONS: Output JSON.",
     } as any,
   });
 
-  console.log("Interpolated null variables safely?", compiledPrompt3.includes("Validate synonym: 'null'") ? "✅ YES" : "❌ NO");
-  console.log("Preserved missing placeholder tags safely?", compiledPrompt3.includes("'{{missing_placeholder}}'") ? "✅ YES" : "❌ NO");
+  console.log(
+    "Interpolated null variables safely?",
+    compiledPrompt3.includes("Validate synonym: 'null'") ? "✅ YES" : "❌ NO",
+  );
+  console.log(
+    "Preserved missing placeholder tags safely?",
+    compiledPrompt3.includes("'{{missing_placeholder}}'") ? "✅ YES" : "❌ NO",
+  );
   console.log("\n");
 
   console.log("🎉 ALL SCENARIO CHECKS PASSED SUCCESSFULLY!");

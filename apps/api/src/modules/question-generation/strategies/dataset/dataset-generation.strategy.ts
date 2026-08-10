@@ -39,7 +39,8 @@ export class DatasetGenerationStrategy implements IQuestionGenerationStrategy {
       tags = config.tags || [];
     } else {
       // Fallback to legacy JSON config for backward compatibility
-      const legacyConfig = (template.datasetConfig as Record<string, unknown>) ?? {};
+      const legacyConfig =
+        (template.datasetConfig as Record<string, unknown>) ?? {};
       const datasetType = (legacyConfig.datasetType as string) || undefined;
       topic = (legacyConfig.topic as string) || undefined;
       difficulty = (legacyConfig.difficulty as string) || undefined;
@@ -67,8 +68,8 @@ export class DatasetGenerationStrategy implements IQuestionGenerationStrategy {
 
     // 3. Resolve Custom Variables from Mapping config
     const resolvedVariables: Record<string, any> = {};
-    const mapping = config?.variableMapping as Record<string, string> || {};
-    const itemMetadata = item.metadata as Record<string, any> || {};
+    const mapping = (config?.variableMapping as Record<string, string>) || {};
+    const itemMetadata = (item.metadata as Record<string, any>) || {};
 
     for (const [tplVar, dsField] of Object.entries(mapping)) {
       resolvedVariables[tplVar] = itemMetadata[dsField] ?? null;

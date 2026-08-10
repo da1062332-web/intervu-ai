@@ -150,5 +150,12 @@ export function useSectionTimer(testId: string | undefined) {
 
     return () => clearInterval(interval);
     // Re-run when section changes (currentSectionIndex changes after advance)
-  }, [sectionTimingEnabled, testId, currentSectionIndex, handleSectionExpiry, setSectionTimer, sectionRemainingTime]);
+  }, [
+    sectionTimingEnabled,
+    testId,
+    currentSectionIndex,
+    handleSectionExpiry,
+    setSectionTimer,
+    sectionRemainingTime,
+  ]);
 }

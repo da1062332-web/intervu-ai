@@ -75,16 +75,15 @@ export const useCalculator = create<CalculatorState>((set, get) => {
       history: nextState.history,
     });
 
-    safeSetItem(
-      `candidate:${assessmentId}:calculator`,
-      payload,
-      () => {
-        if (!nextState.hasQuotaFailed) {
-          set({ hasQuotaFailed: true });
-          toast.error('Unable to save locally. Your calculations will remain until this session ends.', { id: 'calculator-quota' });
-        }
+    safeSetItem(`candidate:${assessmentId}:calculator`, payload, () => {
+      if (!nextState.hasQuotaFailed) {
+        set({ hasQuotaFailed: true });
+        toast.error(
+          'Unable to save locally. Your calculations will remain until this session ends.',
+          { id: 'calculator-quota' },
+        );
       }
-    );
+    });
   };
 
   const compute = (prev: number, curr: number, op: string): number => {
@@ -164,10 +163,7 @@ export const useCalculator = create<CalculatorState>((set, get) => {
             if (parsedPos.viewport) {
               viewport = parsedPos.viewport;
               // Monitor boundary check
-              if (
-                window.innerWidth < parsedPos.x + 40 ||
-                window.innerHeight < parsedPos.y + 40
-              ) {
+              if (window.innerWidth < parsedPos.x + 40 || window.innerHeight < parsedPos.y + 40) {
                 position = null;
                 viewport = null;
               }
@@ -216,7 +212,12 @@ export const useCalculator = create<CalculatorState>((set, get) => {
         return;
       }
 
-      let newOperand = currentOperand === '0' && digit !== '0' ? digit : currentOperand === '0' ? '0' : currentOperand + digit;
+      let newOperand =
+        currentOperand === '0' && digit !== '0'
+          ? digit
+          : currentOperand === '0'
+            ? '0'
+            : currentOperand + digit;
       // Prevent overflowing screen length
       if (newOperand.length > 15) return;
 
@@ -297,7 +298,13 @@ export const useCalculator = create<CalculatorState>((set, get) => {
         set(newState);
         saveState(newState);
       } catch (e) {
-        set({ display: 'Error', currentOperand: '0', previousOperand: null, operation: null, expression: '' });
+        set({
+          display: 'Error',
+          currentOperand: '0',
+          previousOperand: null,
+          operation: null,
+          expression: '',
+        });
       }
     },
 
@@ -324,7 +331,13 @@ export const useCalculator = create<CalculatorState>((set, get) => {
         set(newState);
         saveState(newState);
       } catch (e) {
-        set({ display: 'Error', expression: '', previousOperand: null, currentOperand: '0', operation: null });
+        set({
+          display: 'Error',
+          expression: '',
+          previousOperand: null,
+          currentOperand: '0',
+          operation: null,
+        });
       }
     },
 
@@ -435,7 +448,13 @@ export const useCalculator = create<CalculatorState>((set, get) => {
       set({ position: pos, viewport: vp || null });
       const { assessmentId } = get();
       if (assessmentId && typeof window !== 'undefined') {
-        const payload = JSON.stringify({ x: pos.x, y: pos.y, width: pos.width, height: pos.height, viewport: vp });
+        const payload = JSON.stringify({
+          x: pos.x,
+          y: pos.y,
+          width: pos.width,
+          height: pos.height,
+          viewport: vp,
+        });
         safeSetItem(`candidate:${assessmentId}:calculator:position`, payload, () => {});
       }
     },
@@ -471,6 +490,13 @@ export function clearAssessmentSandboxStorage(assessmentId: string) {
 
   const calcState = useCalculator.getState();
   if (calcState.assessmentId === assessmentId) {
-    useCalculator.setState({ display: '0', expression: '', history: [], isOpen: false, previousOperand: null, operation: null });
+    useCalculator.setState({
+      display: '0',
+      expression: '',
+      history: [],
+      isOpen: false,
+      previousOperand: null,
+      operation: null,
+    });
   }
 }

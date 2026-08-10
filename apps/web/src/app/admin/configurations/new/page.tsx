@@ -14,7 +14,11 @@ export default function NewConfigPage() {
       <SectionHeader
         title='Create Configuration'
         description='Set up a new exam configuration with duration, role, and questions.'
-        breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Configurations', href: '/admin/configurations' }, { label: 'New' }]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin/dashboard' },
+          { label: 'Configurations', href: '/admin/configurations' },
+          { label: 'New' },
+        ]}
       />
       <Card className='mt-8 p-6'>
         <ConfigForm />

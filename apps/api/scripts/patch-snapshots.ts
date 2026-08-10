@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -20,7 +20,7 @@ async function main() {
           snapshot.options = mcq.options;
           await prisma.testInstanceQuestion.update({
             where: { id: tiq.id },
-            data: { questionSnapshot: snapshot }
+            data: { questionSnapshot: snapshot },
           });
           updatedTIQ++;
         }
@@ -43,7 +43,7 @@ async function main() {
           snapshot.options = mcq.options;
           await prisma.assembledTestQuestion.update({
             where: { id: atq.id },
-            data: { questionSnapshot: snapshot }
+            data: { questionSnapshot: snapshot },
           });
           updatedATQ++;
         }

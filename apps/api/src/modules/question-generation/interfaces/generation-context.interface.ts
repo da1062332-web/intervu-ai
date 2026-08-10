@@ -28,7 +28,10 @@ export interface HybridPayload {
   };
 }
 
-export type GenerationPayload = VariablePayload | DatasetPayload | HybridPayload;
+export type GenerationPayload =
+  | VariablePayload
+  | DatasetPayload
+  | HybridPayload;
 
 // ─── Unified GenerationContext ────────────────────────────────────────────────
 
