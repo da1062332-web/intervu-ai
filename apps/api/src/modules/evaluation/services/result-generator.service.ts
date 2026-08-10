@@ -320,7 +320,10 @@ export class ResultGeneratorService {
             qualificationDetails: hiringOutcome,
             evaluatedAt: hiringOutcome.evaluatedAt,
           }
-        : {}),
+        : {
+            qualification: "NOT_APPLICABLE",
+            qualificationReason: "No qualification criteria configured for this assessment",
+          }),
     };
   }
 }

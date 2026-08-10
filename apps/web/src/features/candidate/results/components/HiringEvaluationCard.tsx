@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   ShieldCheck,
   Trophy,
+  Info,
 } from 'lucide-react';
 
 interface SectionBreakdownItem {
@@ -63,7 +64,7 @@ interface HiringEvaluationCardProps {
 }
 
 export function HiringEvaluationCard({
-  qualification = 'NOT_QUALIFIED',
+  qualification = 'NOT_APPLICABLE',
   qualificationReason = 'N/A',
   evaluationStrategy = 'TCS',
   foundationScore = 0,
@@ -79,6 +80,8 @@ export function HiringEvaluationCard({
         return 'bg-purple-500/10 text-purple-600 border-purple-500/30 hover:bg-purple-500/20';
       case 'NINJA':
         return 'bg-blue-500/10 text-blue-600 border-blue-500/30 hover:bg-blue-500/20';
+      case 'NOT_APPLICABLE':
+        return 'bg-muted/50 text-muted-foreground border-border hover:bg-muted/70';
       case 'NOT_QUALIFIED':
       default:
         return 'bg-red-500/10 text-red-600 border-red-500/30 hover:bg-red-500/20';
@@ -119,7 +122,9 @@ export function HiringEvaluationCard({
         {/* Decision & Reason Banner */}
         <div
           className={`p-4 md:p-5 rounded-xl border flex items-start gap-3.5 shadow-sm transition-all ${
-            qualification === 'NOT_QUALIFIED'
+            qualification === 'NOT_APPLICABLE'
+              ? 'bg-muted/50 border-border text-muted-foreground'
+              : qualification === 'NOT_QUALIFIED'
               ? 'bg-red-50/70 border-red-200 text-red-900'
               : qualification === 'PRIME'
                 ? 'bg-gradient-to-r from-amber-500/15 via-amber-50/80 to-amber-500/10 border-amber-300 text-amber-950'
@@ -128,14 +133,18 @@ export function HiringEvaluationCard({
                   : 'bg-gradient-to-r from-emerald-500/15 via-emerald-50/80 to-emerald-500/10 border-emerald-300 text-emerald-950'
           }`}
         >
-          {qualification === 'NOT_QUALIFIED' ? (
+          {qualification === 'NOT_APPLICABLE' ? (
+            <Info className='h-6 w-6 text-muted-foreground shrink-0 mt-0.5' />
+          ) : qualification === 'NOT_QUALIFIED' ? (
             <AlertTriangle className='h-6 w-6 text-red-600 shrink-0 mt-0.5' />
           ) : (
             <Trophy className='h-6 w-6 text-emerald-600 shrink-0 mt-0.5' />
           )}
           <div className='space-y-1'>
             <h3 className='font-bold text-base md:text-lg tracking-tight'>
-              {qualification === 'NOT_QUALIFIED'
+              {qualification === 'NOT_APPLICABLE'
+                ? 'Status: NOT APPLICABLE'
+                : qualification === 'NOT_QUALIFIED'
                 ? 'Status: NOT QUALIFIED'
                 : `🎉 Congratulations! You have qualified for ${
                     qualification === 'NINJA'

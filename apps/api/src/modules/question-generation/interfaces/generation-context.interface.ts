@@ -2,13 +2,13 @@ import { GenerationStrategy } from "@prisma/client";
 
 // ─── Per-strategy payload shapes ─────────────────────────────────────────────
 
-export interface VariablePayload {
+export interface VariableData {
   variables: Record<string, unknown>;
   derivedVariables: Record<string, unknown>;
   hydratedQuestion?: string;
 }
 
-export interface DatasetPayload {
+export interface DatasetData {
   passage: string;
   datasetMetadata: {
     datasetId: string;
@@ -19,7 +19,7 @@ export interface DatasetPayload {
   };
 }
 
-export interface HybridPayload {
+export interface HybridData {
   relationshipGraph: Record<string, unknown>;
   scenario: {
     scenarioId: string;
@@ -50,9 +50,9 @@ export interface CodingPatternPayload {
 }
 
 export type GenerationPayload =
-  | VariablePayload
-  | DatasetPayload
-  | HybridPayload
+  | VariableData
+  | DatasetData
+  | HybridData
   | CodingPatternPayload;
 
 // ─── Unified GenerationContext ────────────────────────────────────────────────

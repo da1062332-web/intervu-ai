@@ -237,7 +237,7 @@ export type CodingBreakdownDto = z.infer<typeof CodingBreakdownDtoSchema>;
 export const HiringEvaluationResultDtoSchema = z.object({
   strategy: z.string(),
   strategyVersion: z.number().int().default(1),
-  qualification: z.enum(["NOT_QUALIFIED", "NINJA", "DIGITAL", "PRIME"]),
+  qualification: z.enum(["NOT_QUALIFIED", "NINJA", "DIGITAL", "PRIME", "NOT_APPLICABLE"]),
   qualificationReason: z.string(),
   foundationScore: z.number().int().nonnegative(),
   advancedScore: z.number().int().nonnegative(),

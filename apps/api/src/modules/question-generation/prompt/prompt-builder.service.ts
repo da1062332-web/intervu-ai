@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { PromptTemplateRegistry } from "../registry/prompt-template.registry";
 import {
   GenerationContext,
-  VariablePayload,
-  DatasetPayload,
-  HybridPayload,
+  VariableData,
+  DatasetData,
+  HybridData,
 } from "../interfaces/generation-context.interface";
 import { RawQuestion } from "../interfaces/validation-strategy.interface";
 
@@ -37,12 +37,12 @@ export class PromptBuilderService {
     let filled = template;
 
     if (context.strategy === "VARIABLE") {
-      const payload = context.payload as VariablePayload;
+      const payload = context.payload as VariableData;
       filled = filled
         .replace("{{variables}}", JSON.stringify(payload.variables, null, 2))
         .replace("{{hydratedQuestion}}", payload.hydratedQuestion ?? "");
     } else if (context.strategy === "DATASET") {
-      const payload = context.payload as DatasetPayload;
+      const payload = context.payload as DatasetData;
       const variables =
         (context.metadata?.variables as Record<string, any>) || {};
       filled = filled
@@ -54,7 +54,7 @@ export class PromptBuilderService {
         passage: payload.passage,
       });
     } else if (context.strategy === "HYBRID") {
-      const payload = context.payload as HybridPayload;
+      const payload = context.payload as HybridData;
       const graph = payload.relationshipGraph;
       filled = filled
         .replace("{{entities}}", JSON.stringify(graph.entities ?? [], null, 2))
@@ -185,7 +185,7 @@ ${aiInstructionsText}
     context: GenerationContext,
   ): Promise<RawQuestion> {
     if (context.strategy === "VARIABLE") {
-      const payload = context.payload as VariablePayload;
+      const payload = context.payload as VariableData;
       const a = Number(payload.variables.a ?? 0);
       const b = Number(payload.variables.b ?? 0);
       const ans = Math.round((a / 100) * b);

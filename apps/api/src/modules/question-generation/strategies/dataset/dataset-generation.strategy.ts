@@ -4,7 +4,7 @@ import { PrismaService } from "../../../../prisma/prisma.service";
 import { IQuestionGenerationStrategy } from "../../interfaces/generation-strategy.interface";
 import {
   GenerationContext,
-  DatasetPayload,
+  DatasetData,
 } from "../../interfaces/generation-context.interface";
 import { DatasetLoaderService } from "../../../generation/services/dataset-loader.service";
 
@@ -75,7 +75,7 @@ export class DatasetGenerationStrategy implements IQuestionGenerationStrategy {
       resolvedVariables[tplVar] = itemMetadata[dsField] ?? null;
     }
 
-    const payload: DatasetPayload = {
+    const payload: DatasetData = {
       passage: item.content,
       datasetMetadata: {
         datasetId: dataset.id,

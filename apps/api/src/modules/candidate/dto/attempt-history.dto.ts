@@ -28,6 +28,24 @@ export class AttemptItemDto {
     description: "Duration in seconds",
   })
   durationSeconds!: number | null;
+
+  @ApiPropertyOptional({ example: "cm_exam_123" })
+  examConfigId?: string;
+
+  @ApiPropertyOptional({ example: "cm_test_123" })
+  testConfigId?: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  attemptCount?: number;
+
+  @ApiPropertyOptional({ example: 3 })
+  maxAttempts?: number;
+
+  @ApiPropertyOptional({ example: 2 })
+  remainingAttempts?: number;
+
+  @ApiPropertyOptional({ example: true })
+  canReAttempt?: boolean;
 }
 
 /**

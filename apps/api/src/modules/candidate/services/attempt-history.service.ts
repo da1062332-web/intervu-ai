@@ -23,8 +23,8 @@ export class AttemptHistoryService {
 
     const totalPages = Math.ceil(result.total / limit);
 
-    return {
-      attempts: result.items.map((t: any, index) => {
+    const attemptsWithCounts = await Promise.all(
+      result.items.map(async (t: any, index: number) => {
         const rawScore =
           t.candidateResult?.percentage ??
           t.candidateResult?.score ??
@@ -38,7 +38,7 @@ export class AttemptHistoryService {
               : Math.round(rawScore)
             : null;
 
-        // If attempt is completed or submitted, fallback missing score to 0 (e.g. all questions skipped = 0% score & FAIL)
+        // If attempt is completed or submitted, fallback missing score to 0
         if (
           score === null &&
           (t.status === "COMPLETED" || t.status === "SUBMITTED")
@@ -46,7 +46,6 @@ export class AttemptHistoryService {
           score = 0;
         }
 
-        // Once the result/score is evaluated and generated, mark the status as COMPLETED
         const status =
           (Boolean(t.evaluationResult) ||
             Boolean(t.candidateResult) ||
@@ -55,9 +54,15 @@ export class AttemptHistoryService {
             ? "COMPLETED"
             : t.status;
 
+        const maxAttempts = (t.examConfig?.ruleFlags?.maxAttempts as number) || 3;
+        const attemptCount = await this.attemptHistoryRepository.countAttemptsByConfig(userId, t.examConfigId, t.testConfigId);
+        const remainingAttempts = Math.max(0, maxAttempts - attemptCount);
+        const canReAttempt = remainingAttempts > 0;
+
         return {
           instanceId: t.id,
           attemptId: t.id,
+          examConfigId: t.examConfigId,
           testConfigId: t.testConfigId,
           testName:
             t.testConfig?.displayName ||
@@ -76,7 +81,11 @@ export class AttemptHistoryService {
           maxScore: 100,
           evaluationId: t.evaluationResult ? `eval_${t.id}` : null,
           status,
-          attemptNumber: result.total - (skip + index),
+          attemptNumber: attemptCount, // Overwrite with actual attempt count for this specific config
+          attemptCount,
+          maxAttempts,
+          remainingAttempts,
+          canReAttempt,
           durationSeconds:
             t.startedAt && t.submittedAt
               ? Math.floor(
@@ -90,7 +99,11 @@ export class AttemptHistoryService {
                 )
               : 3600,
         };
-      }),
+      })
+    );
+
+    return {
+      attempts: attemptsWithCounts,
       pagination: {
         page,
         limit,

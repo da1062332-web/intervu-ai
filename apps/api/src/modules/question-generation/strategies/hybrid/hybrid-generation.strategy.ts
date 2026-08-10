@@ -4,7 +4,7 @@ import { PrismaService } from "../../../../prisma/prisma.service";
 import { IQuestionGenerationStrategy } from "../../interfaces/generation-strategy.interface";
 import {
   GenerationContext,
-  HybridPayload,
+  HybridData,
 } from "../../interfaces/generation-context.interface";
 
 /**
@@ -48,7 +48,7 @@ export class HybridGenerationStrategy implements IQuestionGenerationStrategy {
       config,
     );
 
-    const payload: HybridPayload = {
+    const payload: HybridData = {
       relationshipGraph,
       scenario: {
         scenarioId: scenario.id,

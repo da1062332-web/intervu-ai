@@ -82,7 +82,7 @@ export class StartTestService {
         },
       });
       if (config) {
-        config.totalDurationSeconds = config.durationMinutes * 60;
+        config.totalDurationSeconds = (config.durationMinutes || 60) * 60;
         config.sectionTimingEnabled =
           config.ruleFlags?.sectionTimingEnabled ?? false;
         const numSections = config.sections.length || 1;
@@ -120,6 +120,9 @@ export class StartTestService {
       config = await this.testConfigRepository.findByIdWithSections(
         targetConfigId,
       );
+      if (config && (!config.totalDurationSeconds || config.totalDurationSeconds <= 0)) {
+        config.totalDurationSeconds = 3600; // Default to 1 hour if not set or 0
+      }
     }
 
     if (!config) {

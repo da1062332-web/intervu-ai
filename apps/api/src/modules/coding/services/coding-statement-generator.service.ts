@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from "@nestjs/common";
 import { CodingPattern } from "@prisma/client";
-import { PatternExecutionResultPayload } from "./pattern-execution.service";
+import { PatternExecutionResultData } from "./pattern-execution.service";
 
 export interface AIStatementResult {
   title: string;
@@ -11,7 +11,9 @@ export interface AIStatementResult {
 @Injectable()
 export class CodingStatementGeneratorService {
   constructor(
-    @Optional() @Inject("LLM_ADAPTER") private readonly llmAdapter?: { generate(prompt: string): Promise<string> },
+    @Optional()
+    @Inject("LLM_ADAPTER")
+    private readonly llmAdapter?: { generate(prompt: string): Promise<string> },
   ) {}
 
   /**
@@ -21,15 +23,19 @@ export class CodingStatementGeneratorService {
    */
   async generateStatement(
     pattern: CodingPattern,
-    executionResult: PatternExecutionResultPayload,
+    executionResult: PatternExecutionResultData,
   ): Promise<AIStatementResult> {
     const oracleKey = (pattern.oracleKey || "").toUpperCase();
     const defaultTitle = pattern.title || "Coding Challenge";
 
     let defaultNarrative = "";
-    let defaultConstraints = "Follow standard time O(N) and space O(1) efficiency guidelines.";
+    let defaultConstraints =
+      "Follow standard time O(N) and space O(1) efficiency guidelines.";
 
-    if (oracleKey === "MATH_PRIME_CHECK_ORACLE" || oracleKey.includes("PRIME")) {
+    if (
+      oracleKey === "MATH_PRIME_CHECK_ORACLE" ||
+      oracleKey.includes("PRIME")
+    ) {
       const sampleN = executionResult.generatedInput?.n ?? 29;
       const sampleRes = executionResult.expectedOutput?.result ?? true;
       defaultNarrative = `Write a function to determine if a given integer \`n\` is a prime number.
@@ -48,11 +54,19 @@ A prime number is a natural number greater than 1 that has no positive divisors 
 ### Example Walkthrough
 - Input: \`n = ${sampleN}\`
 - Output: \`${sampleRes}\``;
-      defaultConstraints = "2 <= n <= 10^6. Time Complexity: O(sqrt(N)), Space Complexity: O(1).";
-    } else if (oracleKey === "ARRAY_ROTATION_ORACLE" || oracleKey.includes("ROTAT")) {
-      const sampleArr = JSON.stringify(executionResult.generatedInput?.arr || [1, 2, 3, 4, 5]);
+      defaultConstraints =
+        "2 <= n <= 10^6. Time Complexity: O(sqrt(N)), Space Complexity: O(1).";
+    } else if (
+      oracleKey === "ARRAY_ROTATION_ORACLE" ||
+      oracleKey.includes("ROTAT")
+    ) {
+      const sampleArr = JSON.stringify(
+        executionResult.generatedInput?.arr || [1, 2, 3, 4, 5],
+      );
       const sampleK = executionResult.generatedInput?.k ?? 2;
-      const sampleRes = JSON.stringify(executionResult.expectedOutput?.result || [4, 5, 1, 2, 3]);
+      const sampleRes = JSON.stringify(
+        executionResult.expectedOutput?.result || [4, 5, 1, 2, 3],
+      );
       defaultNarrative = `Write a function to rotate an array of integers \`arr\` to the right by \`k\` steps.
 
 ### Function Signature
@@ -68,7 +82,8 @@ A prime number is a natural number greater than 1 that has no positive divisors 
 ### Example Walkthrough
 - Input: \`arr = ${sampleArr}, k = ${sampleK}\`
 - Output: \`${sampleRes}\``;
-      defaultConstraints = "1 <= arr.length <= 10^5, 0 <= k <= 10^5. Time Complexity: O(N), Space Complexity: O(1).";
+      defaultConstraints =
+        "1 <= arr.length <= 10^5, 0 <= k <= 10^5. Time Complexity: O(N), Space Complexity: O(1).";
     } else {
       defaultNarrative =
         pattern.description ||
@@ -103,13 +118,26 @@ Generate JSON with fields:
 }`;
 
       const responseText = await this.llmAdapter.generate(prompt);
-      const cleanedJson = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      const cleanedJson = responseText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
       const parsed = JSON.parse(cleanedJson);
 
       return {
-        title: typeof parsed.title === "string" && parsed.title.trim() ? parsed.title.trim() : defaultTitle,
-        narrative: typeof parsed.narrative === "string" && parsed.narrative.trim() ? parsed.narrative.trim() : defaultNarrative,
-        constraintsDescription: typeof parsed.constraintsDescription === "string" && parsed.constraintsDescription.trim() ? parsed.constraintsDescription.trim() : defaultConstraints,
+        title:
+          typeof parsed.title === "string" && parsed.title.trim()
+            ? parsed.title.trim()
+            : defaultTitle,
+        narrative:
+          typeof parsed.narrative === "string" && parsed.narrative.trim()
+            ? parsed.narrative.trim()
+            : defaultNarrative,
+        constraintsDescription:
+          typeof parsed.constraintsDescription === "string" &&
+          parsed.constraintsDescription.trim()
+            ? parsed.constraintsDescription.trim()
+            : defaultConstraints,
       };
     } catch {
       // Fallback to pattern default values on AI failure/timeout/invalid format

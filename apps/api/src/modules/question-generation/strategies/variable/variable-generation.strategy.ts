@@ -9,7 +9,7 @@ import {
 import { IQuestionGenerationStrategy } from "../../interfaces/generation-strategy.interface";
 import {
   GenerationContext,
-  VariablePayload,
+  VariableData,
 } from "../../interfaces/generation-context.interface";
 import { PrismaService } from "../../../../prisma/prisma.service";
 
@@ -150,7 +150,7 @@ export class VariableGenerationStrategy implements IQuestionGenerationStrategy {
       }
     }
 
-    const payload: VariablePayload = {
+    const payload: VariableData = {
       variables: variables as Record<string, unknown>,
       derivedVariables,
       hydratedQuestion,
