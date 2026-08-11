@@ -18,16 +18,21 @@ export interface GeneratedTestSuite {
   boundaryTests: GeneratedTestCase[];
 }
 
+export type GeneratorMode = "STANDARD" | "BOUNDARY" | "STRESS";
+
 @Injectable()
 export class TestSuiteGeneratorService {
   /**
    * Generates a complete test suite (Public, Hidden, Stress, Boundary) using stateless Oracle methods.
-   * Guarantees non-duplicate inputs, category-specific parameter variations, and deterministic generation.
+   * Guarantees 100% non-duplicate inputs, category-specific parameter variations, and deterministic generation.
+   * Every generated test case independently generates a fresh, valid input from the resolved parameter schema/overrides,
+   * without mutating or appending to the primary input, and recalculates expectedOutput from each test's own input.
    */
   generateTestSuite(
     oracle: BaseOracle,
-    parameters: Record<string, any>,
+    baseParameters: Record<string, any> = {},
     baseSeed: number = 42,
+    parameterSchemaOverrides?: Record<string, any>,
   ): GeneratedTestSuite {
     const publicTests: GeneratedTestCase[] = [];
     const hiddenTests: GeneratedTestCase[] = [];
@@ -36,83 +41,69 @@ export class TestSuiteGeneratorService {
 
     const seenInputHashes = new Set<string>();
 
-    const hashInput = (input: Record<string, any>): string => {
-      try {
-        return JSON.stringify(input);
-      } catch {
-        return String(input);
-      }
+    // Combine parameter schema: oracle.parameterSchema + overrides + inferred from baseParameters
+    const resolvedSchema = this.resolveParameterSchema(
+      oracle.parameterSchema,
+      parameterSchemaOverrides,
+      baseParameters,
+    );
+
+    // Helper to generate a single unique test case
+    const createTestCase = (
+      mode: GeneratorMode,
+      testIndex: number,
+      categorySeedOffset: number,
+      isPublic: boolean,
+      isBoundary: boolean,
+      isStress: boolean,
+      explanation: string,
+    ): GeneratedTestCase => {
+      const testSeed = baseSeed + categorySeedOffset + testIndex * 137;
+      const { input, expectedOutput } = this.generateUniqueInputAndOutput(
+        oracle,
+        resolvedSchema,
+        baseParameters,
+        testSeed,
+        mode,
+        seenInputHashes,
+      );
+
+      return {
+        input,
+        expectedOutput,
+        isPublic,
+        isBoundary,
+        isStress,
+        explanation,
+      };
     };
 
-    // 1. Primary Public Test (Sample input generated from base parameters)
-    const primaryInput = oracle.generateInput(parameters);
-    const primaryOutput = oracle.generateExpectedOutput(primaryInput);
-    const primaryHash = hashInput(primaryInput);
-    seenInputHashes.add(primaryHash);
+    // 1. Primary Public Test Case (Standard sample)
+    publicTests.push(
+      createTestCase("STANDARD", 0, 100, true, false, false, "Primary public sample test case generated from pattern parameters."),
+    );
 
-    publicTests.push({
-      input: primaryInput,
-      expectedOutput: primaryOutput,
-      isPublic: true,
-      isStress: false,
-      isBoundary: false,
-      explanation: "Primary public sample test case generated from pattern parameters.",
-    });
+    // 2. Secondary Public Test Case (Standard varied sample)
+    publicTests.push(
+      createTestCase("STANDARD", 1, 150, true, false, false, "Secondary public sample test case with varied parameters."),
+    );
 
-    // 2. Secondary Public Test (Vary parameters with seed offset)
-    const public2Params = this.generateVariedParams(oracle, parameters, baseSeed + 101, "STANDARD");
-    const public2Input = this.generateUniqueInput(oracle, public2Params, baseSeed + 102, seenInputHashes, "STANDARD");
-    const public2Output = oracle.generateExpectedOutput(public2Input);
-    publicTests.push({
-      input: public2Input,
-      expectedOutput: public2Output,
-      isPublic: true,
-      isStress: false,
-      isBoundary: false,
-      explanation: "Secondary public sample test case with varied parameters.",
-    });
-
-    // 3. Hidden Tests (3 distinct variants)
+    // 3. Hidden Tests (3 distinct evaluation test cases)
     for (let i = 0; i < 3; i++) {
-      const hiddenParams = this.generateVariedParams(oracle, parameters, baseSeed + 201 + i * 37, "STANDARD");
-      const hiddenInput = this.generateUniqueInput(oracle, hiddenParams, baseSeed + 250 + i * 37, seenInputHashes, "STANDARD");
-      const hiddenOutput = oracle.generateExpectedOutput(hiddenInput);
-
-      hiddenTests.push({
-        input: hiddenInput,
-        expectedOutput: hiddenOutput,
-        isPublic: false,
-        isStress: false,
-        isBoundary: false,
-        explanation: `Hidden evaluation test case #${i + 1}.`,
-      });
+      hiddenTests.push(
+        createTestCase("STANDARD", i, 200, false, false, false, `Hidden evaluation test case #${i + 1}.`),
+      );
     }
 
-    // 4. Boundary Test (Minimal / Edge-case input)
-    const boundaryParams = this.generateVariedParams(oracle, parameters, baseSeed + 301, "BOUNDARY");
-    const boundaryInput = this.generateUniqueInput(oracle, boundaryParams, baseSeed + 302, seenInputHashes, "BOUNDARY");
-    const boundaryOutput = oracle.generateExpectedOutput(boundaryInput);
-    boundaryTests.push({
-      input: boundaryInput,
-      expectedOutput: boundaryOutput,
-      isPublic: false,
-      isStress: false,
-      isBoundary: true,
-      explanation: "Boundary condition test case (minimal/edge input values).",
-    });
+    // 4. Boundary Test Case (Minimal / edge-case parameter values)
+    boundaryTests.push(
+      createTestCase("BOUNDARY", 0, 300, false, true, false, "Boundary condition test case (minimal/edge input values)."),
+    );
 
-    // 5. Stress Test (Large input / Heavy load)
-    const stressParams = this.generateVariedParams(oracle, parameters, baseSeed + 401, "STRESS");
-    const stressInput = this.generateUniqueInput(oracle, stressParams, baseSeed + 402, seenInputHashes, "STRESS");
-    const stressOutput = oracle.generateExpectedOutput(stressInput);
-    stressTests.push({
-      input: stressInput,
-      expectedOutput: stressOutput,
-      isPublic: false,
-      isStress: true,
-      isBoundary: false,
-      explanation: "Stress load test case (large bounds input).",
-    });
+    // 5. Stress Test Case (Large input / heavy load parameters)
+    stressTests.push(
+      createTestCase("STRESS", 0, 400, false, false, true, "Stress load test case (large bounds input)."),
+    );
 
     return {
       publicTests,
@@ -122,96 +113,277 @@ export class TestSuiteGeneratorService {
     };
   }
 
-  private generateVariedParams(
+  private generateUniqueInputAndOutput(
     oracle: BaseOracle,
+    schema: Record<string, any>,
     baseParams: Record<string, any>,
-    seed: number,
-    mode: "STANDARD" | "BOUNDARY" | "STRESS",
-  ): Record<string, any> {
-    const prng = new SeededPRNG(seed);
-    const varied: Record<string, any> = { ...baseParams };
-    const schema = oracle.parameterSchema || {};
+    initialSeed: number,
+    mode: GeneratorMode,
+    seenHashes: Set<string>,
+  ): { input: Record<string, any>; expectedOutput: Record<string, any> } {
+    let attempts = 0;
+    const maxAttempts = 200;
+    let currentSeed = initialSeed;
 
-    if (mode === "BOUNDARY") {
-      for (const key of Object.keys(varied)) {
-        if (typeof varied[key] === "number") {
-          const specMin = schema[key]?.min;
-          varied[key] = typeof specMin === "number" ? specMin : key === "n" || key === "num" || key === "val" ? 2 : 1;
-        } else if (typeof varied[key] === "string") {
-          varied[key] = "a";
+    while (attempts < maxAttempts) {
+      attempts++;
+      const prng = new SeededPRNG(currentSeed);
+      const generatedParams = this.generateParamsForMode(
+        schema,
+        baseParams,
+        prng,
+        mode,
+        attempts,
+      );
+
+      const input = oracle.generateInput(generatedParams);
+      const hash = this.hashInput(input);
+
+      if (!seenHashes.has(hash)) {
+        const validationErrors = oracle.validateInput ? oracle.validateInput(input) : [];
+        if (validationErrors.length === 0 || mode !== "BOUNDARY") {
+          seenHashes.add(hash);
+          const expectedOutput = oracle.generateExpectedOutput(input);
+          return { input, expectedOutput };
         }
       }
-      if (schema.n) varied.n = schema.n.min ?? 2;
-      if (schema.arraySize) varied.arraySize = schema.arraySize.min ?? 2;
-      if (schema.k) varied.k = schema.k.min ?? 0;
-      if (varied.n === undefined && typeof baseParams.n === "number") varied.n = 2;
-      if (varied.arraySize === undefined && typeof baseParams.arraySize === "number") varied.arraySize = 2;
-      if (varied.k === undefined && typeof baseParams.k === "number") varied.k = 0;
-      if (varied.word === undefined && typeof baseParams.word === "string") varied.word = "a";
-      return varied;
+
+      currentSeed = initialSeed + attempts * 1009 + attempts * 31;
     }
 
-    if (mode === "STRESS") {
-      for (const key of Object.keys(varied)) {
-        if (typeof varied[key] === "number") {
-          const specMax = schema[key]?.max;
-          varied[key] = typeof specMax === "number" ? specMax : key === "n" || key === "num" ? 9973 : 100;
-        } else if (typeof varied[key] === "string") {
-          varied[key] = "a".repeat(50);
-        }
-      }
-      if (schema.n) varied.n = schema.n.max ?? 9973;
-      if (schema.arraySize) varied.arraySize = schema.arraySize.max ?? 100;
-      if (schema.k) varied.k = schema.k.max ?? 50;
-      if (varied.n === undefined && typeof baseParams.n === "number") varied.n = 9973;
-      if (varied.arraySize === undefined && typeof baseParams.arraySize === "number") varied.arraySize = 100;
-      if (varied.k === undefined && typeof baseParams.k === "number") varied.k = 50;
-      if (varied.word === undefined && typeof baseParams.word === "string") varied.word = "a".repeat(50);
-      return varied;
-    }
-
-    // Standard Mode: generate varied parameters using PRNG
-    const primeSamples = [2, 3, 4, 5, 7, 10, 11, 15, 17, 21, 29, 31, 42, 50, 73, 89, 97];
-    const wordSamples = ["hello", "world", "racecar", "level", "radar", "deified", "civic", "algorithm", "python", "matrix"];
-
-    for (const key of Object.keys(varied)) {
-      if (key === "n" || key === "num" || key === "val") {
-        varied[key] = prng.choice(primeSamples);
-      } else if (key === "arraySize") {
-        varied[key] = prng.nextInt(3, 12);
-      } else if (key === "k") {
-        varied[key] = prng.nextInt(1, 8);
-      } else if (key === "word" || key === "str" || key === "text") {
-        varied[key] = prng.choice(wordSamples);
-      } else if (typeof varied[key] === "number") {
-        varied[key] = prng.nextInt(1, 100);
-      }
-    }
-
-    return varied;
+    throw new Error(
+      `Failed to generate unique input for oracle ${oracle.key} under mode ${mode} after ${maxAttempts} attempts.`,
+    );
   }
 
-  private generateUniqueInput(
-    oracle: BaseOracle,
-    initialParams: Record<string, any>,
-    seed: number,
-    seenHashes: Set<string>,
-    mode: "STANDARD" | "BOUNDARY" | "STRESS" = "STANDARD",
+  private generateParamsForMode(
+    schema: Record<string, any>,
+    baseParams: Record<string, any>,
+    prng: SeededPRNG,
+    mode: GeneratorMode,
+    attempt: number,
   ): Record<string, any> {
-    let currentParams = { ...initialParams };
-    let input = oracle.generateInput(currentParams);
-    let hash = JSON.stringify(input);
-    let attempts = 0;
+    const result: Record<string, any> = {};
+    const keys = new Set([...Object.keys(schema), ...Object.keys(baseParams)]);
 
-    while (seenHashes.has(hash) && attempts < 25) {
-      attempts++;
-      const offsetSeed = seed + attempts * 19;
-      currentParams = this.generateVariedParams(oracle, currentParams, offsetSeed, mode);
-      input = oracle.generateInput(currentParams);
-      hash = JSON.stringify(input);
+    for (const key of keys) {
+      const spec = schema[key] || {};
+      const baseVal = baseParams[key];
+      const type = (spec.type || this.inferType(baseVal, key)).toLowerCase();
+
+      switch (type) {
+        case "integer":
+        case "int": {
+          const defaultMin = typeof baseVal === "number" ? Math.max(1, Math.floor(baseVal / 5)) : 1;
+          const defaultMax = typeof baseVal === "number" ? Math.max(100, baseVal * 2) : 100;
+          let min = typeof spec.min === "number" ? spec.min : defaultMin;
+          let max = typeof spec.max === "number" ? spec.max : defaultMax;
+          if (min > max) [min, max] = [max, min];
+
+          if (mode === "BOUNDARY") {
+            if (key === "n" || key === "num" || key === "val") {
+              const boundaryChoices = [min, Math.max(min, 2), 3, 4, 0, 1];
+              result[key] = boundaryChoices[(attempt - 1) % boundaryChoices.length];
+            } else if (key === "arraySize" || key === "length" || key === "size") {
+              const boundarySizes = [min, Math.max(min, 2), 3];
+              result[key] = boundarySizes[(attempt - 1) % boundarySizes.length];
+            } else if (key === "k") {
+              result[key] = Math.max(0, min) + ((attempt - 1) % 3);
+            } else {
+              result[key] = min + ((attempt - 1) % 5);
+            }
+          } else if (mode === "STRESS") {
+            const stressMax = typeof spec.max === "number" ? spec.max : (key === "n" || key === "num" ? 9973 : 100);
+            if (key === "n" || key === "num") {
+              const stressPrimes = [9973, 7919, 65537, 10000, 9999];
+              result[key] = stressPrimes[(attempt - 1) % stressPrimes.length];
+            } else {
+              result[key] = stressMax - ((attempt - 1) % 5);
+            }
+          } else {
+            // STANDARD mode: vary parameters using PRNG
+            if (key === "n" || key === "num" || key === "val") {
+              const primeSamples = [2, 3, 4, 5, 7, 10, 11, 13, 15, 17, 19, 23, 29, 31, 37, 41, 42, 43, 47, 50, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
+              result[key] = prng.choice(primeSamples);
+            } else {
+              result[key] = prng.nextInt(min, max);
+            }
+          }
+          break;
+        }
+
+        case "float":
+        case "number": {
+          const min = typeof spec.min === "number" ? spec.min : 0.0;
+          const max = typeof spec.max === "number" ? spec.max : 100.0;
+          const decimals = typeof spec.decimals === "number" ? spec.decimals : 2;
+
+          if (mode === "BOUNDARY") {
+            const val = min + ((attempt - 1) * 0.1);
+            result[key] = parseFloat(val.toFixed(decimals));
+          } else if (mode === "STRESS") {
+            const val = max - ((attempt - 1) * 0.1);
+            result[key] = parseFloat(val.toFixed(decimals));
+          } else {
+            const val = prng.nextFloat() * (max - min) + min;
+            result[key] = parseFloat(val.toFixed(decimals));
+          }
+          break;
+        }
+
+        case "boolean": {
+          if (mode === "BOUNDARY") {
+            result[key] = attempt % 2 === 1 ? false : true;
+          } else if (mode === "STRESS") {
+            result[key] = attempt % 2 === 1 ? true : false;
+          } else {
+            result[key] = prng.nextFloat() > 0.5;
+          }
+          break;
+        }
+
+        case "enum":
+        case "choice": {
+          const options = Array.isArray(spec.options) ? spec.options : [];
+          if (options.length > 0) {
+            if (mode === "BOUNDARY") {
+              result[key] = options[(attempt - 1) % options.length];
+            } else if (mode === "STRESS") {
+              result[key] = options[(options.length - 1 - (attempt - 1)) % options.length];
+            } else {
+              result[key] = prng.choice(options);
+            }
+          } else {
+            result[key] = baseVal ?? null;
+          }
+          break;
+        }
+
+        case "string": {
+          const wordSamples = [
+            "hello", "world", "racecar", "level", "radar", "deified", "civic",
+            "algorithm", "python", "matrix", "kayak", "madam", "rotor", "noon", "reviver"
+          ];
+
+          if (mode === "BOUNDARY") {
+            const minLen = typeof spec.minLength === "number" ? spec.minLength : 1;
+            const options = Array.isArray(spec.options) ? spec.options : [];
+            if (options.length > 0 && attempt <= options.length) {
+              result[key] = options[attempt - 1];
+            } else if (attempt === 1 && minLen === 0) {
+              result[key] = "";
+            } else if (attempt === 1) {
+              result[key] = "a".repeat(minLen);
+            } else {
+              const sampleIndex = (attempt - 1) % wordSamples.length;
+              result[key] = wordSamples[sampleIndex];
+            }
+          } else if (mode === "STRESS") {
+            const maxLen = typeof spec.maxLength === "number" ? spec.maxLength : 50;
+            const char = key === "word" || key === "str" ? "a" : "x";
+            const len = Math.max(5, maxLen - ((attempt - 1) % 5));
+            result[key] = char.repeat(len) + (attempt > 1 ? String(attempt) : "");
+          } else {
+            if (Array.isArray(spec.options) && spec.options.length > 0) {
+              result[key] = prng.choice(spec.options);
+            } else {
+              result[key] = prng.choice(wordSamples);
+            }
+          }
+          break;
+        }
+
+        case "array":
+        case "list": {
+          const minLen = typeof spec.minLength === "number" ? spec.minLength : 2;
+          const maxLen = typeof spec.maxLength === "number" ? spec.maxLength : 20;
+          const itemMin = typeof spec.min === "number" ? spec.min : 1;
+          const itemMax = typeof spec.max === "number" ? spec.max : 100;
+
+          let targetLen = 5;
+          if (mode === "BOUNDARY") {
+            targetLen = Math.max(1, minLen + ((attempt - 1) % 3));
+          } else if (mode === "STRESS") {
+            targetLen = Math.max(5, maxLen - ((attempt - 1) % 5));
+          } else {
+            targetLen = prng.nextInt(minLen, Math.min(maxLen, 12));
+          }
+
+          const arr: number[] = [];
+          for (let idx = 0; idx < targetLen; idx++) {
+            const val = mode === "BOUNDARY"
+              ? itemMin + ((idx + attempt - 1) % 5)
+              : mode === "STRESS"
+                ? itemMax - ((idx + attempt - 1) % 5)
+                : prng.nextInt(itemMin, itemMax);
+            arr.push(val);
+          }
+          result[key] = arr;
+          break;
+        }
+
+        default:
+          result[key] = baseVal !== undefined ? baseVal : null;
+      }
     }
 
-    seenHashes.add(hash);
-    return input;
+    return result;
+  }
+
+  private hashInput(input: Record<string, any>): string {
+    if (!input || typeof input !== "object") {
+      return String(input);
+    }
+    const sortObject = (obj: any): any => {
+      if (Array.isArray(obj)) {
+        return obj.map(sortObject);
+      } else if (obj !== null && typeof obj === "object") {
+        return Object.keys(obj)
+          .sort()
+          .reduce((acc: Record<string, any>, k: string) => {
+            acc[k] = sortObject(obj[k]);
+            return acc;
+          }, {});
+      }
+      return obj;
+    };
+    return JSON.stringify(sortObject(input));
+  }
+
+  private resolveParameterSchema(
+    oracleSchema?: Record<string, any>,
+    overrideSchema?: Record<string, any>,
+    baseParameters?: Record<string, any>,
+  ): Record<string, any> {
+    const combined: Record<string, any> = {
+      ...(oracleSchema || {}),
+      ...(overrideSchema || {}),
+    };
+
+    if (baseParameters && typeof baseParameters === "object") {
+      for (const [key, val] of Object.entries(baseParameters)) {
+        if (!combined[key]) {
+          combined[key] = {
+            type: this.inferType(val, key),
+            default: val,
+          };
+        }
+      }
+    }
+
+    return combined;
+  }
+
+  private inferType(val: any, key: string): string {
+    if (typeof val === "number") {
+      return Number.isInteger(val) ? "integer" : "float";
+    }
+    if (typeof val === "boolean") return "boolean";
+    if (typeof val === "string") return "string";
+    if (Array.isArray(val)) return "array";
+    if (key === "n" || key === "num" || key === "val" || key === "k" || key === "arraySize") return "integer";
+    if (key === "word" || key === "str" || key === "text") return "string";
+    if (key === "arr" || key === "nums" || key === "array") return "array";
+    return "string";
   }
 }

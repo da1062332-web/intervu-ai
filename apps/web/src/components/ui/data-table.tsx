@@ -28,7 +28,7 @@ export interface DataTableProps<T> {
   emptyState?: React.ReactNode;
   pagination?: React.ReactNode;
   search?: React.ReactNode;
-  rowKey?: (row: T) => string | number;
+  rowKey?: (row: T, index: number) => string | number;
   containerClassName?: string;
   disablePagination?: boolean;
   hideSrNo?: boolean;
@@ -130,7 +130,7 @@ function DataTableInner<T>({
             ) : (
               paginatedData.map((row, i) => (
                 <TableRow
-                  key={rowKey ? rowKey(row) : i}
+                  key={rowKey ? rowKey(row, i) : i}
                   className='group transition-colors hover:bg-muted/40 border-b border-border/40'
                 >
                   {!hideSrNo && (

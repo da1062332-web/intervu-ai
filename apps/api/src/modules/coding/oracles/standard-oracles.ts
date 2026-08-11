@@ -34,6 +34,11 @@ export class ArrayReverseOracle extends BaseOracle {
   readonly name = "Reverse an Array";
   readonly category = "ARRAY";
   readonly description = "Generates array input and produces the reversed array as expected output.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -52,6 +57,11 @@ export class ArrayMaxOracle extends BaseOracle {
   readonly name = "Find Maximum in Array";
   readonly category = "ARRAY";
   readonly description = "Generates array input and computes the maximum element.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -71,6 +81,11 @@ export class ArrayMinOracle extends BaseOracle {
   readonly name = "Find Minimum in Array";
   readonly category = "ARRAY";
   readonly description = "Generates array input and computes the minimum element.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -90,6 +105,11 @@ export class ArraySumOracle extends BaseOracle {
   readonly name = "Sum of Array Elements";
   readonly category = "ARRAY";
   readonly description = "Generates array input and computes the sum of all elements.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -107,7 +127,13 @@ export class ArraySumOracle extends BaseOracle {
 export class ArrayCountEvenOracle extends BaseOracle {
   readonly key = "ARRAY_COUNT_EVEN_ORACLE";
   readonly name = "Count Even Numbers Oracle";
+  readonly category = "ARRAY";
   readonly description = "Generates array input and counts the number of even integers.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -125,7 +151,14 @@ export class ArrayCountEvenOracle extends BaseOracle {
 export class LinearSearchOracle extends BaseOracle {
   readonly key = "LINEAR_SEARCH_ORACLE";
   readonly name = "Linear Search Oracle";
+  readonly category = "ARRAY";
   readonly description = "Generates array and target value input, returning index or -1.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 4, max: 15, default: 5 },
+    target: { type: "integer", min: 1, max: 100, default: 15 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const arr = getArrayParam(parameters, "arr", 5);
@@ -149,7 +182,13 @@ export { ArrayRotationOracle } from "./array-rotation.oracle";
 export class ArraySortedCheckOracle extends BaseOracle {
   readonly key = "ARRAY_SORTED_CHECK_ORACLE";
   readonly name = "Check Sorted Array Oracle";
+  readonly category = "ARRAY";
   readonly description = "Generates array input and checks if it is sorted in non-decreasing order.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -173,7 +212,13 @@ export class ArraySortedCheckOracle extends BaseOracle {
 export class ArrayRemoveDuplicatesOracle extends BaseOracle {
   readonly key = "ARRAY_REMOVE_DUPLICATES_ORACLE";
   readonly name = "Remove Duplicates Oracle";
+  readonly category = "ARRAY";
   readonly description = "Generates array input and returns an array with duplicate values removed.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 5, max: 20, default: 8 },
+    minVal: { type: "integer", min: 1, max: 5, default: 1 },
+    maxVal: { type: "integer", min: 5, max: 15, default: 10 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -190,7 +235,13 @@ export class ArrayRemoveDuplicatesOracle extends BaseOracle {
 export class ArraySecondLargestOracle extends BaseOracle {
   readonly key = "ARRAY_SECOND_LARGEST_ORACLE";
   readonly name = "Second Largest Element Oracle";
+  readonly category = "ARRAY";
   readonly description = "Generates array input and finds the second distinct largest element.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 4, max: 15, default: 6 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -209,7 +260,18 @@ export class ArraySecondLargestOracle extends BaseOracle {
 export class StringReverseOracle extends BaseOracle {
   readonly key = "STRING_REVERSE_ORACLE";
   readonly name = "Reverse a String Oracle";
+  readonly category = "STRING";
   readonly description = "Generates string input and produces the reversed string.";
+  readonly parameterSchema = {
+    str: {
+      type: "string",
+      options: [
+        "hello", "world", "algorithm", "javascript", "intervu",
+        "frontend", "backend", "fullstack", "typescript", "architecture"
+      ],
+      default: "hello",
+    },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { str: getStringParam(parameters, "str", "hello") };
@@ -229,7 +291,18 @@ export { PalindromeOracle } from "./palindrome.oracle";
 export class StringCountVowelsOracle extends BaseOracle {
   readonly key = "STRING_COUNT_VOWELS_ORACLE";
   readonly name = "Count Vowels Oracle";
+  readonly category = "STRING";
   readonly description = "Generates string input and counts the total number of vowels (a, e, i, o, u).";
+  readonly parameterSchema = {
+    str: {
+      type: "string",
+      options: [
+        "hello world", "education", "programming", "intervu ai", "developer",
+        "typescript", "architecture", "algorithm design"
+      ],
+      default: "hello world",
+    },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { str: getStringParam(parameters, "str", "hello world") };
@@ -247,7 +320,18 @@ export class StringCountVowelsOracle extends BaseOracle {
 export class StringCharacterCountOracle extends BaseOracle {
   readonly key = "STRING_CHARACTER_COUNT_ORACLE";
   readonly name = "Count Characters Oracle";
+  readonly category = "STRING";
   readonly description = "Generates string input and returns character frequency counts.";
+  readonly parameterSchema = {
+    str: {
+      type: "string",
+      options: [
+        "hello", "banana", "mississippi", "intervu", "assessment",
+        "developer", "engineering", "optimization"
+      ],
+      default: "hello",
+    },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { str: getStringParam(parameters, "str", "hello") };
@@ -268,7 +352,24 @@ export class StringCharacterCountOracle extends BaseOracle {
 export class StringRemoveSpacesOracle extends BaseOracle {
   readonly key = "STRING_REMOVE_SPACES_ORACLE";
   readonly name = "Remove Spaces Oracle";
+  readonly category = "STRING";
   readonly description = "Generates string input and removes all whitespace characters.";
+  readonly parameterSchema = {
+    str: {
+      type: "string",
+      options: [
+        "hello world extra spaces",
+        "  remove   leading trailing  ",
+        "coding  pattern   execution",
+        "intervu   ai   platform",
+        "  clean   formatted   string  ",
+        "multiple   spaces   between   words",
+        "  tab   and   space   mix  ",
+        "automated   assessment   engine"
+      ],
+      default: "hello world extra spaces",
+    },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { str: getStringParam(parameters, "str", "hello world extra spaces") };
@@ -285,7 +386,12 @@ export class StringRemoveSpacesOracle extends BaseOracle {
 export class StringAnagramOracle extends BaseOracle {
   readonly key = "STRING_ANAGRAM_ORACLE";
   readonly name = "Check Anagram Oracle";
+  readonly category = "STRING";
   readonly description = "Generates two string inputs and checks if they are anagrams.";
+  readonly parameterSchema = {
+    str1: { type: "string", default: "listen" },
+    str2: { type: "string", default: "silent" },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const str1 = typeof parameters.str1 === "string" ? parameters.str1 : "listen";
@@ -307,7 +413,24 @@ export class StringAnagramOracle extends BaseOracle {
 export class StringWordCountOracle extends BaseOracle {
   readonly key = "STRING_WORD_COUNT_ORACLE";
   readonly name = "Count Words Oracle";
+  readonly category = "STRING";
   readonly description = "Generates string input and counts the total number of words.";
+  readonly parameterSchema = {
+    str: {
+      type: "string",
+      options: [
+        "The quick brown fox jumps over the lazy dog",
+        "Coding interview patterns and algorithms",
+        "InterVu AI automated technical assessment platform",
+        "Software engineering core fundamentals and concepts",
+        "Full stack web development tutorial series",
+        "System design scalability principles and patterns",
+        "Database indexing and query performance optimization",
+        "Cloud infrastructure deployment and monitoring tools"
+      ],
+      default: "The quick brown fox jumps",
+    },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { str: getStringParam(parameters, "str", "The quick brown fox jumps") };
@@ -327,7 +450,24 @@ export class StringWordCountOracle extends BaseOracle {
 export class StringLargestWordOracle extends BaseOracle {
   readonly key = "STRING_LARGEST_WORD_ORACLE";
   readonly name = "Find Largest Word Oracle";
+  readonly category = "STRING";
   readonly description = "Generates text input and returns the longest word.";
+  readonly parameterSchema = {
+    str: {
+      type: "string",
+      options: [
+        "Coding interview patterns and algorithms",
+        "Artificial intelligence automated candidate evaluation",
+        "Web application architecture performance optimization",
+        "Microservices infrastructure orchestration deployment",
+        "Distributed database replication sharding consistency",
+        "Object oriented programming encapsulation polymorphism",
+        "Asynchronous event driven nonblocking stream processing",
+        "Containerized application continuous integration pipeline"
+      ],
+      default: "Coding interview patterns and algorithms",
+    },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { str: getStringParam(parameters, "str", "Coding interview patterns and algorithms") };
@@ -351,7 +491,11 @@ export class StringLargestWordOracle extends BaseOracle {
 export class MathFactorialOracle extends BaseOracle {
   readonly key = "MATH_FACTORIAL_ORACLE";
   readonly name = "Factorial Oracle";
+  readonly category = "MATH";
   readonly description = "Generates integer n input and computes factorial n!.";
+  readonly parameterSchema = {
+    n: { type: "integer", min: 1, max: 12, default: 5 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const n = typeof parameters.n === "number" ? parameters.n : 5;
@@ -373,7 +517,11 @@ export class MathFactorialOracle extends BaseOracle {
 export class MathFibonacciOracle extends BaseOracle {
   readonly key = "MATH_FIBONACCI_ORACLE";
   readonly name = "Fibonacci Series Oracle";
+  readonly category = "MATH";
   readonly description = "Generates integer n input and computes the n-th Fibonacci number or series.";
+  readonly parameterSchema = {
+    n: { type: "integer", min: 1, max: 30, default: 7 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const n = typeof parameters.n === "number" ? parameters.n : 7;
@@ -431,7 +579,12 @@ export class MathPrimeCheckOracle extends BaseOracle {
 export class MathGcdOracle extends BaseOracle {
   readonly key = "MATH_GCD_ORACLE";
   readonly name = "GCD of Two Numbers Oracle";
+  readonly category = "MATH";
   readonly description = "Generates two integers (a, b) and computes Greatest Common Divisor.";
+  readonly parameterSchema = {
+    a: { type: "integer", min: 1, max: 500, default: 48 },
+    b: { type: "integer", min: 1, max: 500, default: 18 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const a = typeof parameters.a === "number" ? parameters.a : 48;
@@ -456,7 +609,12 @@ export class MathGcdOracle extends BaseOracle {
 export class MathLcmOracle extends BaseOracle {
   readonly key = "MATH_LCM_ORACLE";
   readonly name = "LCM of Two Numbers Oracle";
+  readonly category = "MATH";
   readonly description = "Generates two integers (a, b) and computes Least Common Multiple.";
+  readonly parameterSchema = {
+    a: { type: "integer", min: 1, max: 200, default: 12 },
+    b: { type: "integer", min: 1, max: 200, default: 18 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const a = typeof parameters.a === "number" ? parameters.a : 12;
@@ -485,7 +643,11 @@ export class MathLcmOracle extends BaseOracle {
 export class MathDigitSumOracle extends BaseOracle {
   readonly key = "MATH_DIGIT_SUM_ORACLE";
   readonly name = "Sum of Digits Oracle";
+  readonly category = "MATH";
   readonly description = "Generates integer n input and computes the sum of its digits.";
+  readonly parameterSchema = {
+    n: { type: "integer", min: 10, max: 999999, default: 12345 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const n = typeof parameters.n === "number" ? parameters.n : 12345;
@@ -504,7 +666,11 @@ export class MathDigitSumOracle extends BaseOracle {
 export class MathNumberReverseOracle extends BaseOracle {
   readonly key = "MATH_NUMBER_REVERSE_ORACLE";
   readonly name = "Reverse a Number Oracle";
+  readonly category = "MATH";
   readonly description = "Generates integer n input and produces the digit-reversed integer.";
+  readonly parameterSchema = {
+    n: { type: "integer", min: 10, max: 999999, default: 98765 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const n = typeof parameters.n === "number" ? parameters.n : 98765;
@@ -525,7 +691,11 @@ export class MathNumberReverseOracle extends BaseOracle {
 export class MathDigitCountOracle extends BaseOracle {
   readonly key = "MATH_DIGIT_COUNT_ORACLE";
   readonly name = "Count Digits Oracle";
+  readonly category = "MATH";
   readonly description = "Generates integer n input and counts the total number of digits.";
+  readonly parameterSchema = {
+    n: { type: "integer", min: 1, max: 9999999, default: 456789 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const n = typeof parameters.n === "number" ? parameters.n : 456789;
@@ -543,7 +713,14 @@ export class MathDigitCountOracle extends BaseOracle {
 export class BinarySearchOracle extends BaseOracle {
   readonly key = "BINARY_SEARCH_ORACLE";
   readonly name = "Binary Search Oracle";
+  readonly category = "SEARCH";
   readonly description = "Generates a sorted array and target input, computing index via binary search.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 5, max: 20, default: 6 },
+    target: { type: "integer", min: 1, max: 100, default: 15 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const arr = getArrayParam(parameters, "arr", 6).sort((a, b) => a - b);
@@ -575,7 +752,13 @@ export class BinarySearchOracle extends BaseOracle {
 export class BubbleSortOracle extends BaseOracle {
   readonly key = "BUBBLE_SORT_ORACLE";
   readonly name = "Bubble Sort Oracle";
+  readonly category = "SORT";
   readonly description = "Generates unsorted array input and returns sorted array as expected output.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -592,7 +775,13 @@ export class BubbleSortOracle extends BaseOracle {
 export class SelectionSortOracle extends BaseOracle {
   readonly key = "SELECTION_SORT_ORACLE";
   readonly name = "Selection Sort Oracle";
+  readonly category = "SORT";
   readonly description = "Generates unsorted array input and returns sorted array as expected output.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 3, max: 15, default: 5 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 100 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     return { arr: getArrayParam(parameters, "arr", 5) };
@@ -609,7 +798,13 @@ export class SelectionSortOracle extends BaseOracle {
 export class MergeSortedArraysOracle extends BaseOracle {
   readonly key = "MERGE_SORTED_ARRAYS_ORACLE";
   readonly name = "Merge Two Sorted Arrays Oracle";
+  readonly category = "SORT";
   readonly description = "Generates two sorted array inputs and merges them into a single sorted array.";
+  readonly parameterSchema = {
+    arraySize: { type: "integer", min: 2, max: 10, default: 4 },
+    minVal: { type: "integer", min: 1, max: 10, default: 1 },
+    maxVal: { type: "integer", min: 20, max: 100, default: 50 },
+  };
 
   generateInput(parameters: Record<string, any>): Record<string, any> {
     const arr1 = getArrayParam(parameters, "arr1", 4).sort((a, b) => a - b);
@@ -624,3 +819,4 @@ export class MergeSortedArraysOracle extends BaseOracle {
     return { result: merged };
   }
 }
+

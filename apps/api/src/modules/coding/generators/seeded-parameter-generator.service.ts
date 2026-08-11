@@ -40,13 +40,17 @@ export class SeededPRNG {
 @Injectable()
 export class SeededParameterGeneratorService {
   /**
-   * Generates a parameters record dynamically evaluating parameterSchema with a deterministic PRNG seed.
+   * Generates a parameters record dynamically evaluating parameterSchema with a deterministic PRNG seed and difficulty tier.
    */
   generateParameters(
     parameterSchema: Record<string, any>,
     seed: number = 42,
+    difficulty?: string,
   ): Record<string, any> {
-    const prng = new SeededPRNG(seed);
+    const diffUpper = (difficulty || "").toUpperCase();
+    // Factor difficulty into seed offset so EASY, MEDIUM, and HARD generate distinct parameter sets for the same base seed
+    const diffSeedOffset = diffUpper === "EASY" ? 1000 : diffUpper === "HARD" ? 3000 : 2000;
+    const prng = new SeededPRNG(seed + diffSeedOffset);
     const result: Record<string, any> = {};
 
     if (!parameterSchema || typeof parameterSchema !== "object") {
@@ -64,18 +68,43 @@ export class SeededParameterGeneratorService {
       switch (type.toLowerCase()) {
         case "integer":
         case "int": {
-          const min = typeof spec.min === "number" ? spec.min : 1;
-          const max = typeof spec.max === "number" ? spec.max : 100;
+          const rawMin = typeof spec.min === "number" ? spec.min : 1;
+          const rawMax = typeof spec.max === "number" ? spec.max : 100;
+          let min = rawMin;
+          let max = rawMax;
+
+          if (diffUpper === "EASY") {
+            max = Math.max(min + 1, Math.floor(min + (rawMax - min) * 0.35));
+          } else if (diffUpper === "HARD") {
+            min = Math.floor(min + (rawMax - min) * 0.5);
+            max = rawMax;
+          } else if (diffUpper === "MEDIUM") {
+            min = Math.floor(min + (rawMax - min) * 0.2);
+            max = Math.floor(min + (rawMax - min) * 0.75);
+          }
+
+          if (min > max) [min, max] = [max, min];
           result[key] = prng.nextInt(min, max);
           break;
         }
         case "float":
         case "number": {
-          const min = typeof spec.min === "number" ? spec.min : 0.0;
-          const max = typeof spec.max === "number" ? spec.max : 1.0;
+          const rawMin = typeof spec.min === "number" ? spec.min : 0.0;
+          const rawMax = typeof spec.max === "number" ? spec.max : 100.0;
+          let min = rawMin;
+          let max = rawMax;
+
+          if (diffUpper === "EASY") {
+            max = min + (rawMax - min) * 0.35;
+          } else if (diffUpper === "HARD") {
+            min = min + (rawMax - min) * 0.5;
+          } else if (diffUpper === "MEDIUM") {
+            min = min + (rawMax - min) * 0.2;
+            max = min + (rawMax - min) * 0.75;
+          }
+
           const raw = prng.nextFloat() * (max - min) + min;
-          const decimals =
-            typeof spec.decimals === "number" ? spec.decimals : 2;
+          const decimals = typeof spec.decimals === "number" ? spec.decimals : 2;
           result[key] = parseFloat(raw.toFixed(decimals));
           break;
         }
@@ -84,15 +113,22 @@ export class SeededParameterGeneratorService {
           break;
         }
         case "enum":
-        case "choice": {
-          const options = Array.isArray(spec.options) ? spec.options : [];
-          result[key] =
-            options.length > 0 ? prng.choice(options) : (spec.default ?? null);
-          break;
-        }
+        case "choice":
         case "string": {
-          if (Array.isArray(spec.options) && spec.options.length > 0) {
-            result[key] = prng.choice(spec.options);
+          const options = Array.isArray(spec.options) ? spec.options : [];
+          if (options.length > 0) {
+            let sliceOptions = options;
+            if (diffUpper === "EASY" && options.length >= 3) {
+              sliceOptions = options.slice(0, Math.ceil(options.length / 3));
+            } else if (diffUpper === "HARD" && options.length >= 3) {
+              sliceOptions = options.slice(Math.floor((options.length * 2) / 3));
+            } else if (diffUpper === "MEDIUM" && options.length >= 3) {
+              sliceOptions = options.slice(
+                Math.floor(options.length / 4),
+                Math.ceil((options.length * 3) / 4),
+              );
+            }
+            result[key] = prng.choice(sliceOptions.length > 0 ? sliceOptions : options);
           } else {
             result[key] = spec.default || "sample_string";
           }

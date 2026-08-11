@@ -8,7 +8,6 @@ export default function CandidateTestInstructionsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // @ts-expect-error - React.use is not in current types
   const { id } = React.use(params);
 
   return (

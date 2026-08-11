@@ -166,13 +166,13 @@ export function AvailableAssessmentSection({
                     <Clock className='size-3.5 text-muted-foreground/80' />
                     <span>{test.durationMinutes}m</span>
                   </span>
-                  {test.maxAttempts !== undefined && (
+                  {(test as any).maxAttempts !== undefined && (
                     <span className='flex items-center gap-1 text-xs font-medium text-muted-foreground border-l border-border/50 pl-4'>
-                      Attempts: {test.attemptCount}/{test.maxAttempts}
+                      Attempts: {(test as any).attemptCount}/{(test as any).maxAttempts}
                     </span>
                   )}
                 </div>
-                {test.canReattempt !== false && (
+                {(test as any).canReattempt !== false && (
                   <span className='text-[#6366f1] dark:text-indigo-400 group-hover:translate-x-1 transition-transform font-extrabold'>
                     <ArrowRight className='size-4' />
                   </span>

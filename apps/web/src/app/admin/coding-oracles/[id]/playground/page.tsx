@@ -38,6 +38,16 @@ import {
 } from '@/services/coding-oracles/hooks';
 import { CodingOracleItem } from '@/services/coding-oracles/api';
 
+function getSeedForOracleKey(oracleKey: string): number {
+  if (!oracleKey) return 42;
+  let hash = 0;
+  for (let i = 0; i < oracleKey.length; i++) {
+    hash = (hash << 5) - hash + oracleKey.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash % 90000) + 10000;
+}
+
 export default function OraclePlaygroundPage() {
   const params = useParams();
   const router = useRouter();
@@ -57,30 +67,27 @@ export default function OraclePlaygroundPage() {
   const [parameterSchemaJson, setParameterSchemaJson] = useState<string>('{}');
   const [testResult, setTestResult] = useState<any>(null);
   const [jsonError, setJsonError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (selectedOracle) {
-      setParameterSchemaJson(
-        JSON.stringify(selectedOracle.parameterSchema || {}, null, 2)
-      );
-    }
-  }, [selectedOracle]);
-
   const handleOracleChange = (newKeyOrId: string) => {
     router.push(`/admin/coding-oracles/${newKeyOrId}/playground`);
   };
 
   const handleRandomizeSeed = () => {
-    setSeed(Math.floor(Math.random() * 100000));
+    const newSeed = Math.floor(Math.random() * 100000);
+    setSeed(newSeed);
+    handleExecute(newSeed);
   };
 
-  const handleExecute = async () => {
+  const handleExecute = async (overrideSeed?: number, overrideDiff?: string, overrideSchemaJson?: string) => {
     if (!selectedOracle) return;
     setJsonError(null);
 
+    const activeSeed = overrideSeed !== undefined ? overrideSeed : Number(seed);
+    const activeDiff = overrideDiff !== undefined ? overrideDiff : difficulty;
+    const activeSchemaJson = overrideSchemaJson !== undefined ? overrideSchemaJson : parameterSchemaJson;
+
     let parsedSchema = {};
     try {
-      parsedSchema = JSON.parse(parameterSchemaJson || '{}');
+      parsedSchema = JSON.parse(activeSchemaJson || '{}');
     } catch {
       setJsonError('Invalid JSON in Parameter Schema override editor.');
       return;
@@ -91,15 +98,27 @@ export default function OraclePlaygroundPage() {
         idOrKey: selectedOracle.id,
         payload: {
           parameterSchema: parsedSchema,
-          difficulty,
-          seed: Number(seed),
+          difficulty: activeDiff,
+          seed: activeSeed,
         },
       });
       setTestResult(result);
     } catch (err: any) {
-      alert(`Oracle execution failed: ${err.message}`);
+      console.error('Oracle execution failed:', err);
     }
   };
+
+  useEffect(() => {
+    if (selectedOracle) {
+      const schemaString = JSON.stringify(selectedOracle.parameterSchema || {}, null, 2);
+      const computedSeed = getSeedForOracleKey(selectedOracle.key);
+      setParameterSchemaJson(schemaString);
+      setSeed(computedSeed);
+
+      // Auto-execute on oracle load so results display immediately
+      handleExecute(computedSeed, difficulty, schemaString);
+    }
+  }, [selectedOracle?.id]);
 
   if (isLoadingOracle) {
     return (
@@ -265,7 +284,7 @@ export default function OraclePlaygroundPage() {
               </div>
 
               <Button
-                onClick={handleExecute}
+                onClick={() => handleExecute()}
                 disabled={testMutation.isPending || !selectedOracle?.isProviderAvailable}
                 className="w-full gap-2 shadow-md py-5 text-sm font-semibold"
               >
