@@ -158,6 +158,7 @@ export class ExamConfigReadinessService {
     let totalRequired = 0;
     let availableUnusedCapacity = 0;
     let conflictingTopicsCount = 0;
+    const isManualDifficultyMode = easy + medium + hard === 100;
 
     for (const section of config.sections) {
       const sectionTopics = section.sectionTopics;
@@ -165,62 +166,123 @@ export class ExamConfigReadinessService {
       if (topicCount === 0) continue;
 
       const questionsPerTopic = Math.ceil(section.questionCount / topicCount);
+      const diffBreakdown = this.calculateDifficultyBreakdown(
+        questionsPerTopic,
+        easy,
+        medium,
+        hard,
+      );
 
       for (const st of sectionTopics) {
         if (!st.topic) continue;
 
-        totalChecksCount++;
-        totalRequired += questionsPerTopic;
+        if (isManualDifficultyMode) {
+          const tiers: Array<{
+            level: "EASY" | "MEDIUM" | "HARD";
+            required: number;
+          }> = (
+            [
+              { level: "EASY", required: diffBreakdown.reqEasy },
+              { level: "MEDIUM", required: diffBreakdown.reqMedium },
+              { level: "HARD", required: diffBreakdown.reqHard },
+            ] as const
+          ).filter((t) => t.required > 0);
 
-        const totalTopicCount = await this.usageService.getUnusedPoolCount(
-          configId,
-          st.topic.id,
-          undefined,
-        );
+          let allTiersPass = true;
+          const missingTierMsgs: string[] = [];
 
-        availableUnusedCapacity += totalTopicCount;
+          for (const tier of tiers) {
+            totalChecksCount++;
+            totalRequired += tier.required;
 
-        if (totalTopicCount >= questionsPerTopic) {
-          passedCount++;
-          checks.push({
-            name: `Question Pool (${st.topic.name})`,
-            status: "PASS",
-            message: `${totalTopicCount} active question(s) available in pool for topic '${st.topic.name}' (Required: ${questionsPerTopic}).`,
-          });
-        } else {
-          conflictingTopicsCount++;
-          const conflictingConfigNames =
-            await this.usageService.findConflictingConfigsForTopic(
+            const poolCount = await this.usageService.getUnusedPoolCount(
               configId,
               st.topic.id,
+              tier.level,
             );
+            availableUnusedCapacity += poolCount;
 
-          let message = "";
-          if (totalTopicCount === 0) {
-            message = `Topic '${st.topic.name}' has no active questions in pool. Required: ${questionsPerTopic} question(s).`;
-          } else {
-            const conflictMsg =
-              conflictingConfigNames.length > 0
-                ? ` (used by exam '${conflictingConfigNames.join(", ")}')`
-                : "";
-            message = `Topic '${st.topic.name}' has only ${totalTopicCount} question(s) in pool${conflictMsg}. Required: ${questionsPerTopic} question(s).`;
+            if (poolCount >= tier.required) {
+              passedCount++;
+            } else {
+              allTiersPass = false;
+              missingTierMsgs.push(
+                `Missing ${tier.required - poolCount} ${tier.level} question(s) (Available: ${poolCount}, Required: ${tier.required})`,
+              );
+            }
           }
 
-          checks.push({
-            name: `Question Pool (${st.topic.name})`,
-            status: "WARN",
-            message,
-            details: {
-              topicId: st.topic.id,
-              topicName: st.topic.name,
-              topicCode: st.topic.code,
-              requiredCount: questionsPerTopic,
-              availableUnusedCount: totalTopicCount,
-              totalTopicCount,
-              conflictingConfigNames,
-              shortcutUrl: `/admin/question-generation?topicId=${st.topic.id}`,
-            },
-          });
+          if (allTiersPass) {
+            checks.push({
+              name: `Question Pool (${st.topic.name})`,
+              status: "PASS",
+              message: `Active questions available in pool for topic '${st.topic.name}' across all required difficulty tiers (${tiers.map((t) => `${t.level}: ${t.required}`).join(", ")}).`,
+            });
+          } else {
+            conflictingTopicsCount++;
+            const conflictingConfigNames =
+              await this.usageService.findConflictingConfigsForTopic(
+                configId,
+                st.topic.id,
+              );
+
+            checks.push({
+              name: `Question Pool (${st.topic.name})`,
+              status: "FAIL",
+              message: `Topic '${st.topic.name}' is under-stocked in Question Bank: ${missingTierMsgs.join("; ")}.`,
+              details: {
+                topicId: st.topic.id,
+                topicName: st.topic.name,
+                topicCode: st.topic.code,
+                missingTierMsgs,
+                conflictingConfigNames,
+                shortcutUrl: `/admin/question-generation?topicId=${st.topic.id}`,
+              },
+            });
+          }
+        } else {
+          totalChecksCount++;
+          totalRequired += questionsPerTopic;
+
+          const totalTopicCount = await this.usageService.getUnusedPoolCount(
+            configId,
+            st.topic.id,
+            undefined,
+          );
+
+          availableUnusedCapacity += totalTopicCount;
+
+          if (totalTopicCount >= questionsPerTopic) {
+            passedCount++;
+            checks.push({
+              name: `Question Pool (${st.topic.name})`,
+              status: "PASS",
+              message: `${totalTopicCount} active question(s) available in pool for topic '${st.topic.name}' (Required: ${questionsPerTopic}).`,
+            });
+          } else {
+            conflictingTopicsCount++;
+            const conflictingConfigNames =
+              await this.usageService.findConflictingConfigsForTopic(
+                configId,
+                st.topic.id,
+              );
+
+            checks.push({
+              name: `Question Pool (${st.topic.name})`,
+              status: "FAIL",
+              message: `Topic '${st.topic.name}' has only ${totalTopicCount} question(s) in pool. Required: ${questionsPerTopic} question(s).`,
+              details: {
+                topicId: st.topic.id,
+                topicName: st.topic.name,
+                topicCode: st.topic.code,
+                requiredCount: questionsPerTopic,
+                availableUnusedCount: totalTopicCount,
+                totalTopicCount,
+                conflictingConfigNames,
+                shortcutUrl: `/admin/question-generation?topicId=${st.topic.id}`,
+              },
+            });
+          }
         }
       }
     }
