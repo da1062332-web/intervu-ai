@@ -152,6 +152,14 @@ export const useConfigPreview = (configId: string) => {
   });
 };
 
+export const useConfigReadiness = (configId: string) => {
+  return useQuery({
+    queryKey: ['config-readiness', configId],
+    queryFn: () => examConfigsApi.getReadiness(configId),
+    enabled: !!configId,
+  });
+};
+
 export const useConfigVersions = (configId: string) => {
   return useQuery({
     queryKey: ['config-versions', configId],

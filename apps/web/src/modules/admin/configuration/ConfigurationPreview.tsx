@@ -6,6 +6,7 @@ import {
   usePublishConfig,
   useValidateConfig,
   useConfigValidation,
+  useConfigReadiness,
 } from '@/services/exam-configs';
 import { ExamSummary } from './ExamSummary';
 import { SectionSummary } from './SectionSummary';
@@ -13,7 +14,7 @@ import { DifficultySummary } from './DifficultySummary';
 import { TopicSummary } from './TopicSummary';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle2, Upload, Loader2, AlertTriangle, XCircle } from 'lucide-react';
+import { CheckCircle2, Upload, Loader2, AlertTriangle, XCircle, ShieldAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useConfig } from '@/services/exam-configs';
 import { Modal } from '@/components/ui/modal';
@@ -30,6 +31,7 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
   const router = useRouter();
   const { data: preview, isLoading: isLoadingPreview } = useConfigPreview(configId);
   const { data: config } = useConfig(configId);
+  const { data: readiness } = useConfigReadiness(configId);
   const validateMutation = useValidateConfig(configId);
   const publishMutation = usePublishConfig(configId);
 
@@ -92,6 +94,55 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
       {/* Topics */}
       <TopicSummary sections={preview.sectionBreakdown} />
 
+      {/* Readiness Gate Banner */}
+      {readiness && !isPublished && (
+        <div
+          className={`rounded-xl border p-4 ${
+            readiness.score === 100
+              ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/10'
+              : 'border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/10'
+          }`}
+        >
+          <div className='flex items-center justify-between gap-2 mb-2'>
+            <div className='flex items-center gap-2'>
+              <ShieldAlert
+                className={`w-5 h-5 ${
+                  readiness.score === 100
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-amber-600 dark:text-amber-400'
+                }`}
+              />
+              <span className='text-sm font-semibold'>
+                Readiness Score: {readiness.score}% ({readiness.status})
+              </span>
+            </div>
+            <span className='text-xs font-mono px-2 py-0.5 rounded bg-background border'>
+              {readiness.score === 100 ? '100% READY' : 'PUBLISH BLOCKED'}
+            </span>
+          </div>
+
+          {readiness.score < 100 && (
+            <div className='mt-2 space-y-1'>
+              <p className='text-xs text-amber-700 dark:text-amber-300 font-medium'>
+                Publishing requires a 100% readiness score. Unresolved checks:
+              </p>
+              <ul className='space-y-1 pl-1'>
+                {readiness.checks
+                  ?.filter((c: any) => c.status !== 'PASS')
+                  ?.map((check: any, idx: number) => (
+                    <li key={idx} className='text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5'>
+                      <AlertTriangle className='w-3.5 h-3.5 shrink-0 text-amber-500' />
+                      <span>
+                        <strong>{check.name}:</strong> {check.message}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Validation Result */}
       {validationResult && (
         <div
@@ -111,7 +162,7 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
               className={`text-sm font-semibold ${validationResult.valid ? 'text-green-700 dark:text-green-400' : 'text-red-600'}`}
             >
               {validationResult.valid
-                ? 'Configuration is valid — ready to publish'
+                ? 'Configuration structure is valid'
                 : 'Validation failed'}
             </span>
           </div>
@@ -169,7 +220,8 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
               publishMutation.isPending ||
               isPublished ||
               !validationResult ||
-              !validationResult.valid
+              !validationResult.valid ||
+              (readiness && readiness.score < 100)
             }
             className='gap-2'
             size='lg'
@@ -185,7 +237,12 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
                 ? 'Publishing...'
                 : 'Publish Configuration'}
           </Button>
-          {!isPublished && !validationResult && (
+          {!isPublished && readiness && readiness.score < 100 && (
+            <span className='text-xs text-amber-600 dark:text-amber-400 ml-1 font-medium'>
+              100% readiness score required to publish.
+            </span>
+          )}
+          {!isPublished && !validationResult && (!readiness || readiness.score === 100) && (
             <span className='text-xs text-muted-foreground ml-1'>
               Run validation before publishing.
             </span>

@@ -7,9 +7,12 @@ import { ConfigDependencyValidatorService } from "../validators/config-dependenc
 import { ConfigVersionService } from "../versioning/config-version.service";
 import { FullExamConfig } from "../types";
 
+import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
+
 const mockTransaction = {
   examConfig: { update: jest.fn() },
   configPublishLog: { create: jest.fn() },
+  blueprint: { findUnique: jest.fn().mockResolvedValue({ id: "bp-1" }), create: jest.fn() },
 };
 
 const mockPrisma = {
@@ -18,6 +21,7 @@ const mockPrisma = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  blueprint: { findUnique: jest.fn().mockResolvedValue({ id: "bp-1" }), create: jest.fn() },
 };
 
 const mockValidator = {
@@ -30,6 +34,10 @@ const mockDepValidator = {
 
 const mockVersionService = {
   createVersion: jest.fn(),
+};
+
+const mockReadinessService = {
+  checkReadiness: jest.fn(),
 };
 
 const DRAFT_CONFIG = {
@@ -53,6 +61,7 @@ describe("ConfigPublisherService", () => {
           useValue: mockDepValidator,
         },
         { provide: ConfigVersionService, useValue: mockVersionService },
+        { provide: ExamConfigReadinessService, useValue: mockReadinessService },
       ],
     }).compile();
 
@@ -65,7 +74,7 @@ describe("ConfigPublisherService", () => {
   });
 
   describe("publish", () => {
-    it("should successfully publish a valid configuration", async () => {
+    it("should successfully publish a valid configuration with 100% readiness", async () => {
       mockPrisma.examConfig.findUnique.mockResolvedValue(DRAFT_CONFIG);
       mockValidator.validate.mockResolvedValue({
         valid: true,
@@ -76,6 +85,11 @@ describe("ConfigPublisherService", () => {
         valid: true,
         errors: [],
         warnings: [],
+      });
+      mockReadinessService.checkReadiness.mockResolvedValue({
+        score: 100,
+        status: "READY",
+        checks: [],
       });
       mockVersionService.createVersion.mockResolvedValue({
         id: "ver-1",
@@ -100,6 +114,30 @@ describe("ConfigPublisherService", () => {
         }),
       );
       expect(mockTransaction.configPublishLog.create).toHaveBeenCalled();
+    });
+
+    it("should throw BadRequestException when readiness score is under 100%", async () => {
+      mockPrisma.examConfig.findUnique.mockResolvedValue(DRAFT_CONFIG);
+      mockValidator.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+      });
+      mockDepValidator.validateDependencies.mockResolvedValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+      });
+      mockReadinessService.checkReadiness.mockResolvedValue({
+        score: 80,
+        status: "WARNING",
+        checks: [{ name: "Question Pool", status: "WARN", message: "Low capacity" }],
+      });
+
+      await expect(service.publish("config-1", "admin-1")).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(mockVersionService.createVersion).not.toHaveBeenCalled();
     });
 
     it("should throw NotFoundException when config does not exist", async () => {
