@@ -16,7 +16,6 @@ export class CandidateDashboardRepository {
         completedTests,
         enrollments,
         examConfigs,
-        testConfigs,
       ] = await Promise.all([
         // Active attempts (IN_PROGRESS or CREATED)
         this.prisma.testInstance.findMany({
@@ -24,6 +23,11 @@ export class CandidateDashboardRepository {
             userId,
             status: { in: ["IN_PROGRESS", "CREATED"] },
             expiresAt: { gt: new Date() },
+            examConfig: {
+              status: "PUBLISHED",
+              isActive: true,
+              isArchived: false,
+            },
           },
           include: {
             testConfig: {
@@ -45,6 +49,11 @@ export class CandidateDashboardRepository {
           where: {
             userId,
             status: { in: ["COMPLETED", "SUBMITTED"] },
+            examConfig: {
+              status: "PUBLISHED",
+              isActive: true,
+              isArchived: false,
+            },
           },
           include: {
             testConfig: {
@@ -70,7 +79,14 @@ export class CandidateDashboardRepository {
 
         // User's enrollments – PERF-001: limit to 20 most recent
         this.prisma.candidateEnrollment.findMany({
-          where: { candidateId: userId },
+          where: {
+            candidateId: userId,
+            examConfig: {
+              status: "PUBLISHED",
+              isActive: true,
+              isArchived: false,
+            },
+          },
           include: {
             testConfig: {
               select: {
@@ -96,7 +112,6 @@ export class CandidateDashboardRepository {
         }),
 
         this.getCachedExamConfigs(),
-        this.getCachedTestConfigs(),
       ]);
 
       const allUserInstances = await this.prisma.testInstance.findMany({
@@ -116,19 +131,13 @@ export class CandidateDashboardRepository {
         }
       });
 
-      const upcomingTests = [
-        ...examConfigs.map((ec: any) => ({
+      const upcomingTests = examConfigs
+        .map((ec: any) => ({
           ...ec,
           isExam: true,
           createdAt: new Date(ec.createdAt),
-        })),
-        ...testConfigs.map((tc: any) => ({
-          ...tc,
-          isExam: false,
-          createdAt: new Date(tc.createdAt),
-        })),
-      ]
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        }))
+        .sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime())
         .slice(0, 8);
 
       return {
@@ -154,11 +163,11 @@ export class CandidateDashboardRepository {
   }
 
   private async getCachedExamConfigs() {
-    const key = "dashboard:examConfigs:available";
+    const key = "dashboard:examConfigs:available:v2";
     let data = await this.cacheService.get<any>(key);
     if (!data) {
       data = await this.prisma.examConfig.findMany({
-        where: { isActive: true },
+        where: { isArchived: false, isActive: true, status: "PUBLISHED" },
         take: 10,
         orderBy: { createdAt: "desc" },
         select: {
@@ -182,32 +191,5 @@ export class CandidateDashboardRepository {
     return data;
   }
 
-  private async getCachedTestConfigs() {
-    const key = "dashboard:testConfigs:available";
-    let data = await this.cacheService.get<any>(key);
-    if (!data) {
-      data = await this.prisma.testConfig.findMany({
-        where: { isActive: true },
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          displayName: true,
-          companyName: true,
-          totalDurationSeconds: true,
-          totalQuestions: true,
-          sections: {
-            select: {
-              displayName: true,
-              questionCount: true,
-              durationSeconds: true,
-            },
-          },
-          createdAt: true,
-        },
-      });
-      await this.cacheService.set(key, data, { ttl: 300 });
-    }
-    return data;
-  }
+
 }

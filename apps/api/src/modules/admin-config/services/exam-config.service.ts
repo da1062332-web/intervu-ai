@@ -109,6 +109,7 @@ export class ExamConfigService {
 
     const updated = await this.examConfigRepository.update(id, dto);
     await this.redisCacheService.invalidateBlueprint(id);
+    await this.redisCacheService.delete("dashboard:examConfigs:available:v2");
     return updated;
   }
 
@@ -123,6 +124,7 @@ export class ExamConfigService {
       status: "ARCHIVED",
     });
     await this.redisCacheService.invalidateBlueprint(id);
+    await this.redisCacheService.delete("dashboard:examConfigs:available:v2");
     return archived;
   }
 }

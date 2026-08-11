@@ -91,19 +91,11 @@ export class EligibilityService {
     }
 
     if (isExamConfig) {
-      const publishedAssembly = await this.prisma.assembledTest.findFirst({
-        where: {
-          configId: testConfigId,
-          status: "PUBLISHED",
-        },
-      });
-
-      if (!publishedAssembly && config.status === "DRAFT") {
+      if (config.status !== "PUBLISHED") {
         return {
           eligible: false,
           errorCode: "TEST_NOT_PUBLISHED",
-          reason:
-            "This assessment is still in DRAFT mode and has not been published by the administrator.",
+          reason: "This assessment is not published and is unavailable.",
         };
       }
     }

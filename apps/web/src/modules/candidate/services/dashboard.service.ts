@@ -60,21 +60,21 @@ export const dashboardService = {
 
       // Merge upcomingTests (enrolled) + recommendedTests into available list
       const allAvailable = [...(data.upcomingTests || []), ...(data.recommendedTests || [])].filter(
-        (v: any, i: number, a: any[]) => a.findIndex((t) => t.configId === v.configId) === i,
+        (v: any, i: number, a: any[]) => a.findIndex((t) => (t.id || t.configId) === (v.id || v.configId)) === i,
       );
 
       const availableTests: DashboardTestItem[] = allAvailable.map((t: any) => ({
-        id: t.configId,
+        id: t.id || t.configId,
         title: t.name,
         company: t.company || 'Unknown',
-        durationMinutes: Math.floor((t.durationSeconds || 0) / 60),
+        durationMinutes: t.durationMinutes ?? Math.floor((t.durationSeconds || 0) / 60),
         sections: t.sections || [],
         status: t.enrollmentStatus || 'AVAILABLE',
-        attemptCount: t.attemptCount ?? 0,
+        attemptCount: data.attemptsByConfig?.[t.id || t.configId] ?? t.attemptCount ?? 0,
         maxAttempts: t.maxAttempts ?? 3,
         canReattempt: t.canReattempt ?? true,
         hasActiveAttempt: t.hasActiveAttempt ?? false,
-        questionCount: t.questionCount ?? 0,
+        questionCount: t.totalQuestions ?? t.questionCount ?? 0,
       }));
 
       const activeTests: DashboardActiveTest[] = (data.activeAttempts || []).map((a: any) => ({
@@ -148,12 +148,12 @@ export const dashboardService = {
     const response = await apiClient.request<any>(`/candidate/tests${query}`);
     if (response && response.tests) {
       response.tests = response.tests.map((t: any) => ({
-        id: t.configId,
-        title: t.name,
+        id: t.id || t.configId,
+        title: t.name || t.displayName,
         company: t.company || null,
         description: t.description || t.summary || null,
-        durationMinutes: t.durationMinutes || (t.duration ? Math.floor(t.duration / 60) : 0),
-        questionCount: t.questionCount || 0,
+        durationMinutes: t.durationMinutes ?? (t.duration ? Math.floor(t.duration / 60) : t.totalDurationSeconds ? Math.floor(t.totalDurationSeconds / 60) : 0),
+        questionCount: t.totalQuestions ?? t.questionCount ?? 0,
         sections: t.sections || [],
         difficulty: t.difficulty || 'Medium',
         maxAttempts: t.maxAttempts ?? 3,

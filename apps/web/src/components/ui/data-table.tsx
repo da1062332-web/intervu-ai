@@ -130,7 +130,15 @@ function DataTableInner<T>({
             ) : (
               paginatedData.map((row, i) => (
                 <TableRow
-                  key={rowKey ? rowKey(row) : i}
+                  key={
+                    rowKey
+                      ? rowKey(row)
+                      : (row as any).id
+                        ? String((row as any).id)
+                        : (row as any)._id
+                          ? String((row as any)._id)
+                          : i
+                  }
                   className='group transition-colors hover:bg-muted/40 border-b border-border/40'
                 >
                   {!hideSrNo && (

@@ -54,6 +54,9 @@ export function AvailableAssessmentSection({
       badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
       iconBg:
         'bg-[#eff2ff] dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40',
+      attemptCount: 0,
+      maxAttempts: 3,
+      canReattempt: true,
     },
     {
       id: 'mock-ui',
@@ -66,6 +69,9 @@ export function AvailableAssessmentSection({
       badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
       iconBg:
         'bg-[#ecfdf5] dark:bg-emerald-950/50 text-[#10b981] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40',
+      attemptCount: 0,
+      maxAttempts: 3,
+      canReattempt: true,
     },
     {
       id: 'mock-aws',
@@ -78,6 +84,9 @@ export function AvailableAssessmentSection({
       badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
       iconBg:
         'bg-[#f3e8ff] dark:bg-purple-950/50 text-[#9333ea] dark:text-purple-400 border border-purple-100 dark:border-purple-900/40',
+      attemptCount: 0,
+      maxAttempts: 3,
+      canReattempt: true,
     },
   ];
 
