@@ -189,12 +189,12 @@ export class GenerationContextService {
     }));
 
     let styleProfile = (examConfig as any)?.blueprint?.styleProfile || null;
-    if (!styleProfile) {
+    if (!styleProfile && this.prismaService?.styleProfile) {
       styleProfile = await this.prismaService.styleProfile.findFirst({
         where: { isDefault: true, active: true },
       });
     }
-    if (!styleProfile) {
+    if (!styleProfile && this.prismaService?.styleProfile) {
       styleProfile = await this.prismaService.styleProfile.findFirst({
         where: { status: "ACTIVE", active: true },
       });
