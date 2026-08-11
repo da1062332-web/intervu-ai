@@ -54,6 +54,7 @@ export class CodingOracleRepository {
           "MEDIUM",
           "HARD",
         ],
+        parameterSchema: data.parameterSchema || {},
       },
     });
   }

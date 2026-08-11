@@ -42,9 +42,9 @@ require(path.join(__dirname, "../apps/api/dist/apps/api/src/main"));
 
 // 4. Poll API Health check to confirm startup before loading the Worker (Item 4)
 const port = process.env.PORT || 7860;
-const healthUrl = `http://localhost:${port}/api/v1/health`;
+const healthUrl = `http://127.0.0.1:${port}/api/v1/health`;
 let attempts = 0;
-const maxAttempts = 30; // 30 seconds max timeout
+const maxAttempts = 90; // 90 seconds max timeout (Render free-tier cold start)
 
 function pollAPI() {
   attempts++;
@@ -65,7 +65,7 @@ function pollAPI() {
 function retry() {
   if (attempts >= maxAttempts) {
     console.error(
-      "❌ API failed to become healthy within 30 seconds. Exiting.",
+      `❌ API failed to become healthy within ${maxAttempts} seconds. Exiting.`,
     );
     process.exit(1);
   }

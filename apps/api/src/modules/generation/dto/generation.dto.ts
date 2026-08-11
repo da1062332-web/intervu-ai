@@ -59,6 +59,7 @@ export class GenerationContextDto {
   topics!: TopicDto[];
   templates!: TemplateDto[];
   difficultyDistribution!: any;
+  styleProfile?: any;
 }
 
 export class TemplateSelectionRequest {

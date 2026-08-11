@@ -1,0 +1,38 @@
+x-logging:
+  &default-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100M
+
+services:
+  server:
+    image: judge0/judge0:latest
+    container_name: judge0-server
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    ports:
+      - "2358:2358"
+    privileged: true
+    <<: *default-logging
+    restart: always
+    networks:
+      - docker_default
+
+  worker:
+    image: judge0/judge0:latest
+    container_name: judge0-worker
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    privileged: true
+    <<: *default-logging
+    restart: always
+    networks:
+      - docker_default
+
+networks:
+  docker_default:
+    external: true

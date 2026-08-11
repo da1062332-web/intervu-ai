@@ -71,6 +71,9 @@ export class QuestionGenerationController {
   async generateQuestion(
     @Body("templateId") templateId: string,
     @Body("count") count?: number,
+    @Body("options") options?: any,
+    @Body("blueprintId") blueprintId?: string,
+    @Body("styleProfileId") styleProfileId?: string,
   ) {
     const loopCount = count || 1;
     const generated: any[] = [];
@@ -79,6 +82,12 @@ export class QuestionGenerationController {
       errors: [] as string[],
       warnings: [] as string[],
     };
+
+    const resolvedStyleProfile = await this.resolveStyleProfile(
+      options,
+      blueprintId,
+      styleProfileId,
+    );
 
     // 1. Load the template or fallback to coding pattern
     let template = await this.prisma.template.findUnique({
@@ -217,6 +226,7 @@ export class QuestionGenerationController {
           {
             datasetItem: context.datasetItem,
             logicalGraph: context.logicalGraph,
+            styleProfile: resolvedStyleProfile,
           },
         );
 
@@ -258,6 +268,7 @@ export class QuestionGenerationController {
             solution: result.question.explanation,
             metadata: {
               status: "GENERATED",
+              styleProfileSnapshot: resolvedStyleProfile,
               generationStrategy: context.generationStrategy,
               datasetGenerationMode:
                 result.question.metadata?.datasetGenerationMode ??
@@ -371,7 +382,17 @@ export class QuestionGenerationController {
       required: ["templateId"],
     },
   })
-  async previewQuestion(@Body("templateId") templateId: string) {
+  async previewQuestion(
+    @Body("templateId") templateId: string,
+    @Body("options") options?: any,
+    @Body("blueprintId") blueprintId?: string,
+    @Body("styleProfileId") styleProfileId?: string,
+  ) {
+    const resolvedStyleProfile = await this.resolveStyleProfile(
+      options,
+      blueprintId,
+      styleProfileId,
+    );
     let template = await this.prisma.template.findUnique({
       where: { id: templateId },
     });
@@ -461,6 +482,7 @@ export class QuestionGenerationController {
       {
         datasetItem: context.datasetItem,
         logicalGraph: context.logicalGraph,
+        styleProfile: resolvedStyleProfile,
       },
     );
 
@@ -478,8 +500,49 @@ export class QuestionGenerationController {
         variables: context.variables,
         datasetItem: context.datasetItem,
         logicalGraph: context.logicalGraph,
+        styleProfile: resolvedStyleProfile,
       },
     };
+  }
+
+  private async resolveStyleProfile(
+    options?: any,
+    blueprintId?: string,
+    styleProfileId?: string,
+  ) {
+    const effectiveBlueprintId = blueprintId || options?.blueprintId;
+    const effectiveStyleProfileId = styleProfileId || options?.styleProfileId;
+    let resolvedStyleProfile = options?.styleProfile || null;
+
+    if (!resolvedStyleProfile && effectiveStyleProfileId) {
+      resolvedStyleProfile = await this.prisma.styleProfile.findUnique({
+        where: { id: effectiveStyleProfileId },
+      });
+    }
+
+    if (!resolvedStyleProfile && effectiveBlueprintId) {
+      const bp = await this.prisma.blueprint.findUnique({
+        where: { id: effectiveBlueprintId },
+        include: { styleProfile: true },
+      });
+      if (bp?.styleProfile) {
+        resolvedStyleProfile = bp.styleProfile;
+      }
+    }
+
+    if (!resolvedStyleProfile) {
+      resolvedStyleProfile = await this.prisma.styleProfile.findFirst({
+        where: { isDefault: true, active: true },
+      });
+    }
+
+    if (!resolvedStyleProfile) {
+      resolvedStyleProfile = await this.prisma.styleProfile.findFirst({
+        where: { status: "ACTIVE", active: true },
+      });
+    }
+
+    return resolvedStyleProfile;
   }
 
   @Post("dataset-preview")

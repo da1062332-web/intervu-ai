@@ -57,6 +57,7 @@ export class PatternExecutionService {
     const generatedParameters = this.paramGenerator.generateParameters(
       parameterSchema,
       seed,
+      config.difficulty,
     );
 
     // 4. Generate input & expected output via Oracle
@@ -66,11 +67,12 @@ export class PatternExecutionService {
     // Merge parameters so parameters returned in payload reflects actual parameter set used for primary generated input
     const parameters = { ...generatedInput, ...generatedParameters };
 
-    // 5. Generate Test Suite with seed
+    // 5. Generate Test Suite with seed and parameter schema
     const testSuite = this.testSuiteGenerator.generateTestSuite(
       oracle,
       parameters,
       seed,
+      parameterSchema,
     );
 
     // 6. Run validation pipeline

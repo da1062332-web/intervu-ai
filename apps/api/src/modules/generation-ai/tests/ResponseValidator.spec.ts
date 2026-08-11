@@ -54,7 +54,7 @@ describe("ResponseValidatorService", () => {
 
   it("should throw error if there are raw curly brace placeholder leakage in question", () => {
     const q = getValidMcq();
-    q.question = "What is the sum of {a} and 7?";
+    q.question = "What is the sum of {{a}} and 7?";
 
     expect(() => service.validate(q, "easy", "addition")).toThrow(
       "Question text contains unresolved template placeholder tokens",

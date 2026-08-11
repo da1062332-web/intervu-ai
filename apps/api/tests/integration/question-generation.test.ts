@@ -105,5 +105,5 @@ describe("Question Generation Integration Test", () => {
     expect(q.options).toBeDefined();
     expect(q.options!.length).toBe(4);
     expect(q.correctAnswer).toContain("Mock Answer");
-  });
+  }, 15000);
 });

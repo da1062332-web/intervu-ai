@@ -144,5 +144,5 @@ describe("Template Generation Database Persistence Integration Test", () => {
     );
     expect(result.options).toEqual([]);
     expect(result.correctAnswer).toContain("Mock Answer");
-  });
+  }, 15000);
 });

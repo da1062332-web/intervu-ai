@@ -90,7 +90,15 @@ export class ExamConfigController {
   @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiBody({ type: UpdateExamConfigDto })
   @ApiOkResponse({ description: "Configuration updated successfully" })
-  async update(@Param("id") id: string, @Body() dto: UpdateExamConfigDto) {
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateExamConfigDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    if ((dto as any).status === "PUBLISHED") {
+      await this.configPublisher.publish(id, user?.id);
+      return this.examConfigService.findOne(id);
+    }
     return this.examConfigService.update(id, dto);
   }
 

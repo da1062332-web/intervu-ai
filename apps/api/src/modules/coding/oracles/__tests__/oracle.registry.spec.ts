@@ -72,3 +72,4 @@ describe("OracleRegistry", () => {
     expect(() => registry.getOracle("NON_EXISTENT_ORACLE")).toThrow();
   });
 });
+

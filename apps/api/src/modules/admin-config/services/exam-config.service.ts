@@ -35,13 +35,14 @@ export class ExamConfigService {
 
   async findAll(): Promise<ExamConfig[]> {
     return this.examConfigRepository.findAll({
+      isActive: true,
       isArchived: false,
     });
   }
 
   async findOne(id: string): Promise<any> {
     const config = await this.examConfigRepository.findById(id);
-    if (!config || config.isArchived) {
+    if (!config || config.isArchived || (config as any).isActive === false) {
       throw new NotFoundException(
         `Exam config with ID "${id}" not found or archived`,
       );
