@@ -60,6 +60,13 @@ export class GenerationRetryService {
     topic: string,
     difficulty: string,
     maxAttempts: number = 3,
+    options?: {
+      datasetItem?: any;
+      logicalGraph?: any;
+      correctAnswer?: string;
+      styleProfile?: any;
+      styleProfileId?: string;
+    },
   ): Promise<RetryResult> {
     const normDiff = difficulty.toUpperCase();
     const cleanTopic = topic.trim();
@@ -221,7 +228,7 @@ export class GenerationRetryService {
       templateData,
       variableValues,
       maxAttempts,
-      { datasetItem, logicalGraph },
+      { datasetItem, logicalGraph, ...(options || {}) },
     );
   }
 
@@ -232,7 +239,13 @@ export class GenerationRetryService {
     template: any,
     variableValues: Record<string, unknown>,
     maxAttempts: number = 3,
-    options?: { datasetItem?: any; logicalGraph?: any; correctAnswer?: string },
+    options?: {
+      datasetItem?: any;
+      logicalGraph?: any;
+      correctAnswer?: string;
+      styleProfile?: any;
+      styleProfileId?: string;
+    },
   ): Promise<RetryResult> {
     let attempts = 0;
     const errors: string[] = [];
@@ -251,6 +264,11 @@ export class GenerationRetryService {
 
     // Resolve styleProfile from options or load default
     let styleProfile = (options as any)?.styleProfile;
+    if (!styleProfile && (options as any)?.styleProfileId) {
+      styleProfile = await this.prisma.styleProfile.findUnique({
+        where: { id: (options as any).styleProfileId },
+      });
+    }
     if (!styleProfile) {
       styleProfile = await this.prisma.styleProfile.findFirst({
         where: { isDefault: true, active: true },
@@ -275,7 +293,10 @@ export class GenerationRetryService {
       try {
         // For VARIABLE strategy, regenerate parameter values for each attempt
         let attemptVariables = variableValues;
-        if ((template as any)?.generationStrategy === "VARIABLE") {
+        if (
+          (template as any)?.generationStrategy === "VARIABLE" &&
+          (!variableValues || Object.keys(variableValues).length === 0)
+        ) {
           try {
             attemptVariables = this.parameterGenerator.generateParameters(
               template as any,
@@ -442,11 +463,22 @@ export class GenerationRetryService {
           }
         }
 
-        if ((!parsedQuestion.question || parsedQuestion.question.trim().length === 0) && (template as any)?.generationStrategy === "VARIABLE") {
-          parsedQuestion.question = this.hydrateCanonicalQuestion(
+        if ((template as any)?.generationStrategy === "VARIABLE") {
+          const canonical = this.hydrateCanonicalQuestion(
             template,
             attemptVariables,
           );
+          if (canonical && canonical.trim().length > 0) {
+            if (
+              !parsedQuestion.question ||
+              parsedQuestion.question.trim().length === 0 ||
+              parsedQuestion.question.includes("{{") ||
+              parsedQuestion.question.includes("{") ||
+              !parsedQuestion.question.includes("Mock question about")
+            ) {
+              parsedQuestion.question = canonical;
+            }
+          }
         }
 
         parsedQuestion = normalizeDisplayQuestion(parsedQuestion);

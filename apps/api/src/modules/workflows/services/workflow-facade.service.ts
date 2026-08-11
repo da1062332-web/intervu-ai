@@ -18,6 +18,7 @@ import {
   toWorkflowStatusDto,
 } from "../dto/workflow-mapper";
 import { AssemblyPublisherService } from "../../assembly/services/assembly-publisher.service";
+import { ConfigPublisherService } from "../../admin-config/publishing/config-publisher.service";
 
 @Injectable()
 export class WorkflowFacadeService {
@@ -29,6 +30,7 @@ export class WorkflowFacadeService {
     private readonly orchestrator: ExamWorkflowOrchestrator,
     private readonly repository: WorkflowRepository,
     private readonly assemblyPublisher: AssemblyPublisherService,
+    private readonly configPublisher: ConfigPublisherService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -159,6 +161,9 @@ export class WorkflowFacadeService {
         if (testInstance && testInstance.status !== "PUBLISHED") {
           // If there's an assembled test, publish it properly
           await this.assemblyPublisher.publishAssembly(testInstance.id, userId);
+        } else if (!testInstance) {
+          // If no assembled test exists, publish config directly (enforces 100% readiness gate)
+          await this.configPublisher.publish(examId, userId);
         }
 
         // Always advance the workflow to COMPLETED

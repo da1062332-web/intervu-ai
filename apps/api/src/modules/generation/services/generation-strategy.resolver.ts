@@ -18,6 +18,7 @@ export interface StrategyResolvedContext {
     entities: string[];
     relations: any[];
   };
+  styleProfile?: any;
 }
 
 @Injectable()

@@ -161,6 +161,38 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
       examSection: {
         findFirst: vi.fn().mockResolvedValue({ id: "E2E_QA_SECTION" }),
       },
+      concept: {
+        findMany: vi
+          .fn()
+          .mockResolvedValue([{ id: "concept-1", code: "Concept 1" }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: "concept-1",
+          code: "Concept 1",
+          name: "Concept 1",
+          topicId: "topic-1",
+        }),
+      },
+      examConfig: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "exam-config-e2e-id",
+          name: "E2E Config",
+        }),
+      },
+      generationJob: {
+        create: vi.fn().mockResolvedValue({ id: "job-1", status: "RUNNING" }),
+        update: vi.fn().mockResolvedValue({ id: "job-1", status: "COMPLETED" }),
+      },
+      generationLog: {
+        create: vi.fn().mockResolvedValue({ id: "log-1" }),
+      },
+      generatedQuestion: {
+        create: vi.fn().mockImplementation((args) =>
+          Promise.resolve({
+            id: "gq-1",
+            ...args.data,
+          }),
+        ),
+      },
       question: {
         create: vi.fn().mockResolvedValue({
           id: "q-saved-id",
@@ -176,6 +208,7 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
           version: 1,
           status: "ACTIVE",
         }),
+        count: vi.fn().mockResolvedValue(5),
       },
     };
 
@@ -225,6 +258,20 @@ describe("E2E Style Profile & Question Generation Integration Flow", () => {
 
     mockTemplateRepository = {
       findAll: vi.fn().mockResolvedValue([
+        {
+          id: "template-e2e-id",
+          isActive: true,
+          difficultyLevel: "EASY",
+          conceptKey: "Concept 1",
+        },
+        {
+          id: "template-e2e-medium-id",
+          isActive: true,
+          difficultyLevel: "MEDIUM",
+          conceptKey: "Concept 1",
+        },
+      ]),
+      findMany: vi.fn().mockResolvedValue([
         {
           id: "template-e2e-id",
           isActive: true,

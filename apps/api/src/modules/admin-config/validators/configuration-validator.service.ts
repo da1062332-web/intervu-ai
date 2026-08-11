@@ -156,6 +156,8 @@ export class ConfigurationValidatorService {
           `Difficulty distribution must total 100% or 0% (currently ${total}%: Easy ${easyPercentage}% + Medium ${mediumPercentage}% + Hard ${hardPercentage}%)`,
         );
       }
+    } else {
+      errors.push("Exam configuration must have a difficulty distribution configured");
     }
 
     // ─── Template Layer (advisory) ───────────────────────────────────────────

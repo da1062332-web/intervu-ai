@@ -9,6 +9,8 @@ import { ConfigDependencyValidatorService } from "../validators/config-dependenc
 import { ConfigVersionService } from "../versioning/config-version.service";
 import { ConfigurationValidationResult } from "../validators/configuration-validator.service";
 
+import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
+
 export interface PublishResult {
   configId: string;
   status: string;
@@ -23,9 +25,10 @@ export interface PublishResult {
  * Orchestrates the full publish flow:
  *   1. Validate (blocks if invalid)
  *   2. Validate Dependencies
- *   3. Create Version (history entry containing full snapshot)
- *   4. Update status → PUBLISHED
- *   5. Write PublishLog
+ *   3. Enforce 100% Readiness Gate (blocks if score < 100%)
+ *   4. Create Version (history entry containing full snapshot)
+ *   5. Update status → PUBLISHED
+ *   6. Write PublishLog
  *
  * Execution is wrapped in a Prisma $transaction for safety.
  * Only DRAFT or VALIDATED configs can be published.
@@ -38,6 +41,7 @@ export class ConfigPublisherService {
     private readonly validator: ConfigurationValidatorService,
     private readonly dependencyValidator: ConfigDependencyValidatorService,
     private readonly versionService: ConfigVersionService,
+    private readonly readinessService: ExamConfigReadinessService,
   ) {}
 
   async publish(
@@ -105,6 +109,25 @@ export class ConfigPublisherService {
           "Dependency validation failed — resolve dependency issues before publishing",
         errors: depResult.errors,
         warnings: depResult.warnings,
+      });
+    }
+
+    // ─── Step 3: Readiness Gate (100% Score Enforcement) ─────────────────────
+    const readinessResult =
+      await this.readinessService.checkReadiness(configId);
+
+    if (readinessResult.score < 100 || readinessResult.status !== "READY") {
+      const failedChecks = readinessResult.checks
+        .filter((c) => c.status !== "PASS")
+        .map((c) => `${c.name}: ${c.message}`);
+
+      throw new BadRequestException({
+        code: "READINESS_GATE_FAILED",
+        message: `Publish blocked — Readiness score is ${readinessResult.score}% (must be 100% READY)`,
+        score: readinessResult.score,
+        status: readinessResult.status,
+        errors: failedChecks,
+        warnings: [],
       });
     }
 
