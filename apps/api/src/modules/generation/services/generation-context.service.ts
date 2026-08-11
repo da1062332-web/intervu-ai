@@ -20,6 +20,11 @@ export class GenerationContextService {
     const examConfig = await this.prismaService.examConfig.findUnique({
       where: { id: examId },
       include: {
+        blueprint: {
+          include: {
+            styleProfile: true,
+          },
+        },
         difficultyDistribution: true,
         sections: {
           include: {
@@ -183,6 +188,18 @@ export class GenerationContextService {
       hybridConfig: t.hybridConfig,
     }));
 
+    let styleProfile = (examConfig as any)?.blueprint?.styleProfile || null;
+    if (!styleProfile) {
+      styleProfile = await this.prismaService.styleProfile.findFirst({
+        where: { isDefault: true, active: true },
+      });
+    }
+    if (!styleProfile) {
+      styleProfile = await this.prismaService.styleProfile.findFirst({
+        where: { status: "ACTIVE", active: true },
+      });
+    }
+
     return {
       examId,
       sections: sectionDtos,
@@ -193,6 +210,7 @@ export class GenerationContextService {
         medium: dist.mediumPercentage,
         hard: dist.hardPercentage,
       },
+      styleProfile,
     };
   }
 }

@@ -92,6 +92,7 @@ export class GenerationOrchestratorService {
           difficulty,
           MAX_RETRIES: 3,
           excludeTemplateIds: batchSelectedTemplateIds,
+          styleProfile: context.styleProfile,
         });
 
         if (result.success) {
@@ -201,6 +202,7 @@ export class GenerationOrchestratorService {
     difficulty: string;
     MAX_RETRIES: number;
     excludeTemplateIds?: string[];
+    styleProfile?: any;
   }): Promise<{ success: boolean; templateId?: string }> {
     const {
       examId,
@@ -209,6 +211,7 @@ export class GenerationOrchestratorService {
       difficulty,
       MAX_RETRIES,
       excludeTemplateIds = [],
+      styleProfile,
     } = params;
     let retryCount = 0;
 
@@ -302,7 +305,10 @@ export class GenerationOrchestratorService {
                   templateId: selectedTemplate.templateId,
                   version: 1,
                   status: "DRAFT",
-                  metadata: { options: instantiated.options },
+                  metadata: {
+                    options: instantiated.options,
+                    styleProfileSnapshot: styleProfile,
+                  },
                 },
               });
 

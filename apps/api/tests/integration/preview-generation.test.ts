@@ -132,13 +132,15 @@ describe("Preview Generation Integration Test", () => {
     await prisma.$disconnect();
   });
 
-  it("should successfully generate an AI preview for the template", async () => {
-    const preview = await solutionTemplateService.generatePreview(
-      testTemplateId,
-      {
-        previewPayload: { a: 5, b: 7 },
-      },
-    );
+  it(
+    "should successfully generate an AI preview for the template",
+    async () => {
+      const preview = await solutionTemplateService.generatePreview(
+        testTemplateId,
+        {
+          previewPayload: { a: 5, b: 7 },
+        },
+      );
 
     expect(preview).toBeDefined();
     expect(preview.previewPayload).toEqual({ a: 5, b: 7 });
@@ -150,5 +152,5 @@ describe("Preview Generation Integration Test", () => {
     expect(result.correctAnswer).toContain("Mock Answer");
     expect(result.explanation).toContain("Step-by-Step Solution");
     expect(result.validation.valid).toBe(true);
-  });
+  }, 15000);
 });

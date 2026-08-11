@@ -607,6 +607,25 @@ export class QuestionAllocatorService {
       });
       const topicDisplayName = topicRecord?.name || topicId;
 
+      let styleProfile = null;
+      if (examId) {
+        const bp = await this.prisma.blueprint.findUnique({
+          where: { configId: examId },
+          include: { styleProfile: true },
+        });
+        styleProfile = bp?.styleProfile || null;
+      }
+      if (!styleProfile) {
+        styleProfile = await this.prisma.styleProfile.findFirst({
+          where: { isDefault: true, active: true },
+        });
+      }
+      if (!styleProfile) {
+        styleProfile = await this.prisma.styleProfile.findFirst({
+          where: { status: "ACTIVE", active: true },
+        });
+      }
+
       const generatedAllocations: AllocatedQuestionDto[] = [];
       for (let i = 0; i < deficit; i++) {
         const currentQuestionNumber = orderCounter + i + 1;
@@ -619,7 +638,8 @@ export class QuestionAllocatorService {
               topic: topicDisplayName,
               count: 1,
               difficulty: difficulty,
-            });
+              styleProfile,
+            } as any);
             if (aiRes.questions && aiRes.questions.length > 0) {
               questionData = aiRes.questions[0];
             }
@@ -648,7 +668,11 @@ export class QuestionAllocatorService {
             options,
             correctAnswer,
             solution,
-            metadata: { source: "RUNTIME_AI_GENERATED", examId },
+            metadata: {
+              source: "RUNTIME_AI_GENERATED",
+              examId,
+              styleProfileSnapshot: styleProfile,
+            },
           },
         });
 
@@ -672,7 +696,11 @@ export class QuestionAllocatorService {
                 questionType: "MULTIPLE_CHOICE",
                 status: "ACTIVE" as any,
                 mcqData: { options },
-                metadata: { source: "RUNTIME_AI_GENERATED", examId },
+                metadata: {
+                  source: "RUNTIME_AI_GENERATED",
+                  examId,
+                  styleProfileSnapshot: styleProfile,
+                },
               },
             });
           }
