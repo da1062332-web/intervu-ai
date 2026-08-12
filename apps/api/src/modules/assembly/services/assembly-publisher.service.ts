@@ -125,13 +125,13 @@ export class AssemblyPublisherService {
       publishedAssembly = { ...assembly, status: "PUBLISHED" };
     }
 
-    // Sync parent ExamConfig status to ACTIVE in database
+    // Sync parent ExamConfig status to PUBLISHED in database
     const targetConfigId = assembly.configId || assembly.testConfigId;
     if (targetConfigId) {
       try {
         await this.prisma.examConfig.update({
           where: { id: targetConfigId },
-          data: { status: "ACTIVE" },
+          data: { status: "PUBLISHED" },
         });
       } catch (err) {
         console.warn(

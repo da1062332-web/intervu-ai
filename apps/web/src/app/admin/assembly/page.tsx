@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Plus, FileText, Play, ArrowLeft, Info } from 'lucide-react';
+import { Plus, FileText, Play, ArrowLeft, Info, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/services/api/client';
 import Link from 'next/link';
@@ -180,7 +180,7 @@ export default function AssemblyDashboardPage() {
                   <p>Role: {config.role || 'N/A'}</p>
                 </div>
               </CardContent>
-              <CardFooter className='pt-4 border-t bg-muted/20'>
+              <CardFooter className='flex-col gap-2 pt-4 border-t bg-muted/20'>
                 <Button
                   className='w-full gap-2'
                   onClick={() => generateAssembly(config.id)}
@@ -189,6 +189,14 @@ export default function AssemblyDashboardPage() {
                 >
                   {generating !== config.id && <Play className='h-4 w-4' />}
                   {generating === config.id ? 'Assembling...' : 'Generate Test Assembly'}
+                </Button>
+                <Button
+                  variant='outline'
+                  className='w-full gap-2'
+                  onClick={() => router.push(`/admin/assessment-builder?configId=${config.id}`)}
+                >
+                  <Sparkles className='h-4 w-4' />
+                  Open Assessment Generator
                 </Button>
               </CardFooter>
             </Card>

@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useConfig } from '@/services/exam-configs';
 import { ConfigurationSelection } from '@/features/assessment-builder/components/ConfigurationSelection';
 import { BlueprintPreview } from '@/features/assessment-builder/components/BlueprintPreview';
 import { GenerationProgress } from '@/features/assessment-builder/components/GenerationProgress';
@@ -18,11 +20,24 @@ import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/section-header';
 import { CustomFormCard } from '@/components/ui/custom-form-card';
 
-export default function AssessmentBuilderPage() {
+function AssessmentBuilderContent() {
+  const searchParams = useSearchParams();
+  const configId = searchParams.get('configId');
+
   const [step, setStep] = useState<'SELECT_CONFIG' | 'PREVIEW_BLUEPRINT' | 'GENERATING' | 'RESULT'>(
     'SELECT_CONFIG',
   );
   const [selectedConfig, setSelectedConfig] = useState<ExamConfig | null>(null);
+
+  const { data: configFromUrl, isLoading: isConfigLoading } = useConfig(configId || '');
+  const isInitializingUrlConfig = !!configId && isConfigLoading;
+
+  React.useEffect(() => {
+    if (configId && configFromUrl && step === 'SELECT_CONFIG') {
+      setSelectedConfig(configFromUrl);
+      setStep('PREVIEW_BLUEPRINT');
+    }
+  }, [configId, configFromUrl, step]);
 
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
@@ -119,7 +134,11 @@ export default function AssessmentBuilderPage() {
         ]}
       />
 
-      {step === 'SELECT_CONFIG' && (
+      {isInitializingUrlConfig ? (
+        <div className='py-12 flex justify-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600'></div>
+        </div>
+      ) : step === 'SELECT_CONFIG' && (
         <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
           <CustomFormCard
             title='1. Select Configuration'
@@ -211,5 +230,13 @@ export default function AssessmentBuilderPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AssessmentBuilderPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading Assessment Generator...</div>}>
+      <AssessmentBuilderContent />
+    </Suspense>
   );
 }
