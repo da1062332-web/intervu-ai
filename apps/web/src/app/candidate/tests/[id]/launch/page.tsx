@@ -4,7 +4,7 @@ import * as React from 'react';
 import { TestLaunchPage } from '@/modules/candidate/pages/TestLaunchPage';
 
 export default function CandidateTestLaunchPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id } = (React as any).use(params);
 
   return (
     <React.Suspense

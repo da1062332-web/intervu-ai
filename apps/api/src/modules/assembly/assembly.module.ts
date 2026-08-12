@@ -33,6 +33,7 @@ import { AssemblyValidationV2Service } from "./services/assembly-validation-v2.s
 import { TestPackageService } from "./services/test-package.service";
 import { PublishReadinessService } from "./services/publish-readiness.service";
 import { AssessmentVersionValidatorService } from "./services/assessment-version-validator.service";
+import { ProgressiveAssemblyWorkerService } from "./services/progressive-assembly-worker.service";
 
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 
@@ -66,6 +67,7 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
     DistributionAnalyticsService,
     AssemblyPublisherService,
     BlueprintSimulationService,
+    ProgressiveAssemblyWorkerService,
     // --- New Integration Layer Services ---
     QuestionBankSource,
     DuplicateDetectionService,
@@ -99,6 +101,7 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
     PublishReadinessService,
     AssemblyValidationV2Service,
     DuplicateDetectionService,
+    ProgressiveAssemblyWorkerService,
   ],
 })
 export class AssemblyModule {}

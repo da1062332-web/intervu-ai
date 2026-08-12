@@ -37,28 +37,28 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
     );
   }
 
-  const bestScore = metrics?.bestScore ?? 92;
-  const avgAccuracy = metrics?.averageAccuracy ? Math.round(metrics.averageAccuracy) : 88;
-  const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 12;
-  const totalAssessments = dashboard?.availableTests?.length ?? 45;
+  const bestScore = metrics?.bestScore ?? 0;
+  const avgAccuracy = metrics?.averageAccuracy ? Math.round(metrics.averageAccuracy) : 0;
+  const attempts = metrics?.attemptCount ?? (dashboard as any)?.completedTests?.length ?? (dashboard as any)?.completedAttempts?.length ?? 0;
+  const totalAssessments = (dashboard as any)?.recommendedTests?.length ?? dashboard?.availableTests?.length ?? 0;
 
   const cards = [
     {
       label: 'Best Score',
-      value: `${bestScore}%`,
+      value: attempts > 0 ? `${bestScore}%` : '0%',
       icon: Trophy,
       iconStyle:
         'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50 dark:border-indigo-900/40',
-      subtitle: '+4% from last attempt',
+      subtitle: attempts > 0 ? 'Highest achieved score' : 'No attempt recorded yet',
       glow: 'bg-[#eff2ff]/80 dark:bg-indigo-900/20',
     },
     {
       label: 'Average Accuracy',
-      value: `${avgAccuracy}%`,
+      value: attempts > 0 ? `${avgAccuracy}%` : '0%',
       icon: Target,
       iconStyle:
         'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-100/50 dark:border-amber-900/40',
-      subtitle: 'Top 15% of candidates',
+      subtitle: attempts > 0 ? 'Across completed evaluations' : 'Complete a test to track',
       glow: 'bg-[#fff7ed]/80 dark:bg-amber-900/10',
     },
     {
@@ -67,7 +67,7 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       icon: CheckCircle2,
       iconStyle:
         'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50 dark:border-emerald-900/40',
-      subtitle: 'Across 3 categories',
+      subtitle: attempts > 0 ? 'Total evaluations completed' : 'No tests submitted yet',
       glow: 'bg-[#ecfdf5]/80 dark:bg-emerald-900/10',
     },
     {
@@ -76,7 +76,7 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       icon: Layers,
       iconStyle:
         'bg-[#eff2ff] text-[#3b82f6] dark:bg-blue-950/50 dark:text-blue-400 border-blue-100/50 dark:border-blue-900/40',
-      subtitle: 'Unlocked assessments',
+      subtitle: 'Available assessments',
       glow: 'bg-[#eff2ff]/80 dark:bg-blue-900/10',
     },
   ];

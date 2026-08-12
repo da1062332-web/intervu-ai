@@ -15,6 +15,8 @@ import { AssemblyValidatorService } from "../validators/assembly-validator.servi
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { ProgressiveAssemblyWorkerService } from "./progressive-assembly-worker.service";
+import { Optional } from "@nestjs/common";
 
 @Injectable()
 export class AssemblyService {
@@ -33,12 +35,15 @@ export class AssemblyService {
     private readonly validator: AssemblyValidatorService,
     private readonly poolRepository: QuestionPoolRepository,
     private readonly assembledTestRepository: AssembledTestRepository,
+    @Optional()
+    private readonly progressiveWorker?: ProgressiveAssemblyWorkerService,
   ) {}
 
   async assembleTest(
     configId: string,
     userId: string = "system-user",
-    forceNew: boolean = false
+    forceNew: boolean = false,
+    options?: { progressive?: boolean; isRetest?: boolean },
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
 
@@ -83,6 +88,64 @@ export class AssemblyService {
     const historyIds =
       await this.poolRepository.findRecentUsedQuestions(userId);
 
+    const isRetestOrProgressive =
+      options?.progressive === true || options?.isRetest === true;
+
+    if (isRetestOrProgressive && this.progressiveWorker) {
+      // --- Progressive Retest Mode ---
+      // 1. Allocate & build Section 1 (index 0) synchronously for instant candidate test start (< 0.4s)
+      const sec1Blueprint = blueprint.sections[0];
+      const sec1Questions = await this.allocator.allocateQuestions(
+        sec1Blueprint,
+        allocatedQuestionIds,
+        historyIds,
+        this.DEFAULT_ALLOCATION_CONFIG,
+        configId,
+      );
+      const sec1 = this.sectionBuilder.buildSection(sec1Blueprint, sec1Questions);
+      sections.push(sec1);
+
+      // 2. Add placeholder section wrappers for remaining sections
+      for (let i = 1; i < blueprint.sections.length; i++) {
+        const remainingBpSec = blueprint.sections[i];
+        sections.push({
+          sectionKey: remainingBpSec.sectionKey,
+          displayName: remainingBpSec.displayName,
+          durationSeconds: remainingBpSec.durationSeconds,
+          questionCount: remainingBpSec.questionCount,
+          orderIndex: remainingBpSec.orderIndex,
+          questions: [],
+        });
+      }
+
+      // 3. Save initial test instance with Section 1 ready
+      const testInstanceId = await this.persistenceService.saveAssembly(
+        configId,
+        sections,
+        userId,
+      );
+
+      // 4. Kick off background worker to populate Sections 2..N asynchronously
+      const remainingBpSections = blueprint.sections.slice(1);
+      setImmediate(() => {
+        this.progressiveWorker!
+          .populateRemainingSections(
+            testInstanceId,
+            configId,
+            userId,
+            remainingBpSections,
+            allocatedQuestionIds,
+            historyIds,
+          )
+          .catch((err) =>
+            console.error("Progressive section background worker error:", err),
+          );
+      });
+
+      return testInstanceId;
+    }
+
+    // --- Standard Full Assembly Mode ---
     for (const blueprintSection of blueprint.sections) {
       const allocatedQuestions = await this.allocator.allocateQuestions(
         blueprintSection,

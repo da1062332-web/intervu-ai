@@ -100,13 +100,39 @@ export class AntiRepetitionService {
     historyIds: string[],
     activeIds: string[],
   ): Promise<T[]> {
-    const historyQuestions =
-      await this.poolRepository.getQuestionsByIds(historyIds);
-    const activeQuestions =
-      await this.poolRepository.getQuestionsByIds(activeIds);
+    if (!pool || pool.length === 0) return [];
 
+    // O(1) Set lookups for fast Level 1 & Level 2 exact match filtering
+    const historySet = new Set(historyIds.filter((id) => Boolean(id)));
+    const activeSet = new Set(activeIds.filter((id) => Boolean(id)));
+
+    const candidatesForSemanticCheck: T[] = [];
     const validQuestions: T[] = [];
+
     for (const q of pool) {
+      if (!q || !q.id) continue;
+      if ((historySet.size > 0 && historySet.has(q.id)) || (activeSet.size > 0 && activeSet.has(q.id))) {
+        // Instant Level 1/2 filter out without DB query or string comparison
+        continue;
+      }
+      candidatesForSemanticCheck.push(q);
+    }
+
+    if (candidatesForSemanticCheck.length === 0) {
+      return [];
+    }
+
+    // Only fetch full objects from DB if semantic check is needed for remaining questions
+    const historyQuestions =
+      historyIds.length > 0
+        ? await this.poolRepository.getQuestionsByIds(historyIds)
+        : [];
+    const activeQuestions =
+      activeIds.length > 0
+        ? await this.poolRepository.getQuestionsByIds(activeIds)
+        : [];
+
+    for (const q of candidatesForSemanticCheck) {
       const check = await this.checkDuplicate(
         q,
         historyQuestions,
@@ -116,6 +142,7 @@ export class AntiRepetitionService {
         validQuestions.push(q);
       }
     }
+
     return validQuestions;
   }
 }

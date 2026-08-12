@@ -42,9 +42,10 @@ export const ResultDetailsPage = () => {
       toast.info('Preparing your PDF report... Please hold on.', { duration: 3000 });
       await new Promise((r) => setTimeout(r, 150)); // Allow UI notifications to settle
 
-      const html2canvasModule = await import('html2canvas');
-      const html2canvas = html2canvasModule.default;
-      const { jsPDF } = await import('jspdf');
+      const html2canvasModule: any = await import('html2canvas' as any);
+      const html2canvas = html2canvasModule.default || html2canvasModule;
+      const jspdfModule: any = await import('jspdf' as any);
+      const jsPDF = jspdfModule.jsPDF || jspdfModule.default || jspdfModule;
 
       const sections = document.querySelectorAll('.pdf-section');
       if (!sections.length) {

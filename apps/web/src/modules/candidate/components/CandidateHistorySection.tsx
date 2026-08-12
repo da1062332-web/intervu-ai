@@ -155,46 +155,7 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
   );
 
   const processedAttempts = useMemo(() => {
-    let raw = data?.attempts || [];
-    // Fallback demonstration items matching exact mockup list if empty
-    if (raw.length === 0 && compact) {
-      raw = [
-        {
-          instanceId: 'attempt-react',
-          assessmentName: 'React.js Advanced',
-          date: '2026-10-20T14:30:00.000Z',
-          status: 'COMPLETED',
-          score: 96,
-          subtitle: 'Completed successfully. Top 5% percentile.',
-        },
-        {
-          instanceId: 'attempt-sys',
-          assessmentName: 'System Design Basics',
-          date: '2026-10-18T11:00:00.000Z',
-          status: 'IN_PROGRESS',
-          score: null,
-          subtitle: 'Paused at Q14/30. Time remaining: 22m.',
-        },
-        {
-          instanceId: 'attempt-ts',
-          assessmentName: 'TypeScript Fundamentals',
-          date: '2026-10-10T09:15:00.000Z',
-          status: 'COMPLETED',
-          score: 82,
-          subtitle: 'Completed. Review recommended for Generics.',
-        },
-        {
-          instanceId: 'attempt-css',
-          assessmentName: 'CSS Grid & Flexbox',
-          date: '2026-09-28T16:45:00.000Z',
-          status: 'COMPLETED',
-          score: 100,
-          subtitle: 'Perfect score.',
-        },
-      ] as any;
-    }
-
-    let result = [...raw] as AttemptItem[];
+    let result = [...(data?.attempts || [])] as AttemptItem[];
 
     if (!compact) {
       if (search) {
@@ -238,7 +199,24 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
     }
 
     if (!processedAttempts || processedAttempts.length === 0) {
-      return null;
+      return (
+        <div className='flex flex-col h-full space-y-4'>
+          <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
+            <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
+              Attempt History
+            </h3>
+          </div>
+          <div className='rounded-[28px] border border-border/60 bg-card p-8 text-center flex flex-col items-center justify-center flex-1 min-h-[300px] shadow-2xs'>
+            <div className='p-3.5 bg-muted/50 rounded-2xl mb-3 text-muted-foreground'>
+              <History className='size-6' />
+            </div>
+            <h4 className='text-base font-bold text-foreground'>No Evaluation History</h4>
+            <p className='text-xs text-muted-foreground max-w-xs mt-1.5 font-normal leading-relaxed'>
+              You have not initiated or submitted any assessments yet. Start an assessment from the catalog to build your history.
+            </p>
+          </div>
+        </div>
+      );
     }
 
     return (
