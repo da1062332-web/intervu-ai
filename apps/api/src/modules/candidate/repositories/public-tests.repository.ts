@@ -78,19 +78,16 @@ export class PublicTestsRepository {
       sortOrder,
     } = params;
 
-    const examWhere: Prisma.ExamConfigWhereInput = {};
-    const testWhere: Prisma.TestConfigWhereInput = {};
-
-    if (company) {
-      testWhere.companyName = { contains: company, mode: "insensitive" };
-    }
+    const examWhere: Prisma.ExamConfigWhereInput = { 
+      status: "PUBLISHED",
+      isArchived: false,
+      isActive: true,
+    };
 
     if (status === "active") {
       examWhere.isActive = true;
-      testWhere.isActive = true;
     } else if (status === "inactive") {
       examWhere.isActive = false;
-      testWhere.isActive = false;
     }
 
     if (search) {
@@ -99,45 +96,23 @@ export class PublicTestsRepository {
         { role: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
       ];
-      testWhere.OR = [
-        { displayName: { contains: search, mode: "insensitive" } },
-        { companyName: { contains: search, mode: "insensitive" } },
-        { configKey: { contains: search, mode: "insensitive" } },
-      ];
     }
 
-    const [exams, tests] = await Promise.all([
-      this.prisma.examConfig.findMany({
-        where: examWhere,
-        include: {
-          sections: { select: { name: true, questionCount: true } },
-          difficultyDistribution: true,
-          ruleFlags: true,
-          testInstances: { where: { userId }, select: { id: true } },
-        },
-      }),
-      this.prisma.testConfig.findMany({
-        where: testWhere,
-        include: {
-          sections: { select: { displayName: true, questionCount: true } },
-          rule: true,
-          testInstances: { where: { userId }, select: { id: true } },
-        },
-      }),
-    ]);
+    const exams = await this.prisma.examConfig.findMany({
+      where: examWhere,
+      include: {
+        sections: { select: { name: true, questionCount: true } },
+        difficultyDistribution: true,
+        ruleFlags: true,
+        testInstances: { where: { userId }, select: { id: true } },
+      },
+    });
 
-    let combined = [
-      ...exams.map((e) => ({
-        ...e,
-        isExam: true,
-        difficulty: computeDifficulty(e, true),
-      })),
-      ...tests.map((t) => ({
-        ...t,
-        isExam: false,
-        difficulty: computeDifficulty(t, false),
-      })),
-    ];
+    let combined = exams.map((e) => ({
+      ...e,
+      isExam: true,
+      difficulty: computeDifficulty(e, true),
+    }));
 
     if (difficulty && difficulty.toLowerCase() !== "all") {
       combined = combined.filter(

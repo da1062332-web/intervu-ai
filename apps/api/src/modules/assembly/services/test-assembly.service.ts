@@ -38,13 +38,14 @@ export class AssemblyService {
   async assembleTest(
     configId: string,
     userId: string = "system-user",
+    forceNew: boolean = false
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
 
     const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
     const isCandidateNoRepeat = (reusableAssembly as any)?.examConfig?.ruleFlags?.candidateNoRepeatEnabled ?? false;
 
-    if (reusableAssembly && !isCandidateNoRepeat) {
+    if (!forceNew && reusableAssembly && !isCandidateNoRepeat) {
       const assemblyUpdatedAt = reusableAssembly.updatedAt ?? reusableAssembly.createdAt;
       const configUpdatedAt = (reusableAssembly as any)?.examConfig?.updatedAt ?? null;
 

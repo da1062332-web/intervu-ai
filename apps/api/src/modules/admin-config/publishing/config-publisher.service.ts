@@ -7,6 +7,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { ConfigurationValidatorService } from "../validators/configuration-validator.service";
 import { ConfigDependencyValidatorService } from "../validators/config-dependency-validator.service";
 import { ConfigVersionService } from "../versioning/config-version.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { ConfigurationValidationResult } from "../validators/configuration-validator.service";
 
 import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
@@ -42,6 +43,7 @@ export class ConfigPublisherService {
     private readonly dependencyValidator: ConfigDependencyValidatorService,
     private readonly versionService: ConfigVersionService,
     private readonly readinessService: ExamConfigReadinessService,
+    private readonly cacheService: RedisCacheService,
   ) {}
 
   async publish(
@@ -165,6 +167,8 @@ export class ConfigPublisherService {
         },
       });
     });
+
+    await this.cacheService.delete("dashboard:examConfigs:available:v2");
 
     return {
       configId,

@@ -1,10 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { ExamConfigReadinessService } from "./exam-config-readiness.service";
 
 export interface ConfigPreviewResponse {
   configId: string;
   name: string;
   role: string;
+  status: string;
+  readinessScore: number;
+  readinessStatus: string;
   durationMinutes: number;
   sections: number;
   questions: number;
@@ -35,7 +39,11 @@ export interface ConfigPreviewResponse {
  */
 @Injectable()
 export class ConfigPreviewService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional()
+    private readonly readinessService?: ExamConfigReadinessService,
+  ) {}
 
   async getPreview(configId: string): Promise<ConfigPreviewResponse> {
     const config = await this.prisma.examConfig.findUniqueOrThrow({
@@ -59,6 +67,23 @@ export class ConfigPreviewService {
       },
     });
 
+    let readinessScore = 100;
+    let readinessStatus = "READY";
+
+    if (this.readinessService) {
+      try {
+        const readinessRes =
+          await this.readinessService.checkReadiness(configId);
+        readinessScore = readinessRes.score;
+        readinessStatus = readinessRes.status;
+      } catch (err) {
+        console.warn(
+          `ConfigPreviewService: checkReadiness fallback for ${configId}:`,
+          err,
+        );
+      }
+    }
+
     const sectionBreakdown = config.sections.map((section) => ({
       name: section.name,
       code: section.code,
@@ -73,15 +98,37 @@ export class ConfigPreviewService {
       hard: config.difficultyDistribution?.hardPercentage ?? 0,
     };
 
-    const difficultyValid =
-      difficulty.easy + difficulty.medium + difficulty.hard === 100;
+    const totalPct = difficulty.easy + difficulty.medium + difficulty.hard;
+    const difficultyValid = totalPct === 100 || totalPct === 0;
 
     const isReadyToPublish =
       config.sections.length > 0 &&
       config.totalQuestions > 0 &&
       config.durationMinutes > 0 &&
       difficultyValid &&
+      readinessScore === 100 &&
       !config.isArchived;
+
+    let computedStatus: string = config.status;
+    if (config.isArchived || config.status === "ARCHIVED") {
+      computedStatus = "ARCHIVED";
+    } else if (
+      !difficultyValid ||
+      config.sections.length === 0 ||
+      config.totalQuestions <= 0 ||
+      config.durationMinutes <= 0
+    ) {
+      computedStatus = "INVALID";
+    } else if (readinessScore < 100) {
+      computedStatus = "INCOMPLETE_POOL_UNDERSTOCKED";
+    } else if (
+      isReadyToPublish &&
+      (config.status === "PUBLISHED" || config.status === "VALIDATED")
+    ) {
+      computedStatus = "READY_TO_ASSEMBLE";
+    } else if (config.status === "DRAFT") {
+      computedStatus = "DRAFT_UNVALIDATED";
+    }
 
     // Calculate unique topics and templates
     const uniqueTopics = new Set<string>();
@@ -133,6 +180,9 @@ export class ConfigPreviewService {
       configId: config.id,
       name: config.name,
       role: config.role,
+      status: computedStatus,
+      readinessScore,
+      readinessStatus,
       durationMinutes: config.durationMinutes,
       sections: config.sections.length,
       questions: config.totalQuestions,

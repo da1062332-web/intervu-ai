@@ -157,117 +157,36 @@ export class StartTestService {
       };
     }
 
-    // 2. coreLogic(data) -> Assembly
-    // Prefer a published AssembledTest snapshot for this configId if available.
-    let sectionsData = [];
-
-    try {
-      const assembly = await this.assembledTestRepository.findByConfigId(
-        targetConfigId,
-      );
-
-      if (assembly) {
-        // Use persisted snapshot directly
-        for (const section of assembly.sections || []) {
-          const questions = (section.questions || [])
-            .sort((a, b) => a.questionOrder - b.questionOrder)
-            .map((q) => ({
-              questionId: q.questionId,
-              questionOrder: q.questionOrder,
-              questionSnapshot:
-                q.questionSnapshot as unknown as Prisma.InputJsonValue,
-            }));
-
-          sectionsData.push({
-            sectionKey: section.sectionKey,
-            sectionName: section.sectionName,
-            durationSeconds: section.durationSeconds,
-            questionCount: section.questionCount,
-            orderIndex: section.orderIndex,
-            questions,
-          });
-        }
-      } else {
-        // No published snapshot — fall back to live generation
-        for (const section of config.sections) {
-          const questions =
-            await this.questionProvider.fetchOrGenerateQuestions([
-              {
-                conceptKey: section.sectionKey, // MVP: assume sectionKey acts as conceptKey
-                difficultyLevel: "MEDIUM",
-                count: section.questionCount,
-              },
-            ]);
-
-          sectionsData.push({
-            sectionKey: section.sectionKey,
-            sectionName: section.displayName,
-            durationSeconds: section.durationSeconds,
-            questionCount: section.questionCount,
-            orderIndex: section.orderIndex,
-            questions: questions.map((q, index) => ({
-              questionId: q.id,
-              questionOrder: index,
-              questionSnapshot: q as unknown as Prisma.InputJsonValue,
-            })),
-          });
-        }
-      }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.error(
-        `Failed assembling test sections for configId: ${input.testConfigId}. Cause: ${errorMsg}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-
-      if (error instanceof InternalServerErrorException) {
-        const res = error.getResponse();
-        if (
-          res &&
-          typeof res === "object" &&
-          "code" in res &&
-          (res as { code: string }).code === "QUESTION_POOL_EMPTY"
-        ) {
-          throw error;
-        }
-        if (typeof res === "string" && res.includes("QUESTION_POOL_EMPTY")) {
-          throw error;
-        }
-      }
+    // 2. Assembly
+    // For candidate delivery, ALWAYS use candidate-specific dynamic assembly.
+    // We pass `forceNew = true` to bypass any existing config-level static snapshots.
+    if (!this.assemblyService) {
       throw new InternalServerErrorException({
-        code: "ASSEMBLY_FAILED",
-        message: `Failed to assemble test sections: ${errorMsg}`,
+        code: "ASSEMBLY_SERVICE_UNAVAILABLE",
+        message: "Assembly service is required for dynamic candidate test creation.",
       });
     }
 
-    const expiresAt = new Date();
-    expiresAt.setSeconds(expiresAt.getSeconds() + config.totalDurationSeconds);
+    let testInstanceId: string;
+    try {
+      testInstanceId = await this.assemblyService.assembleTest(targetConfigId, userId, true);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Failed assembling test for candidate ${userId}, configId: ${targetConfigId}. Cause: ${errorMsg}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerErrorException({
+        code: "ASSEMBLY_FAILED",
+        message: `Failed to dynamically assemble test: ${errorMsg}`,
+      });
+    }
 
-    // Final Shuffle
-    const shuffleFlags = {
-      shuffleQuestionsEnabled:
-        config.ruleFlags?.shuffleQuestionsEnabled ?? false,
-      shuffleOptionsEnabled: config.ruleFlags?.shuffleOptionsEnabled ?? false,
-    };
-
-    sectionsData = this.finalShufflerService.shuffleSections(
-      sectionsData as any,
-      shuffleFlags,
-    );
-
-    const testInstance = await this.testInstanceService.createTestInstance({
-      userId,
-      testConfigId: eligibility.isExamConfig ? undefined : config.id,
-      examConfigId: eligibility.isExamConfig ? config.id : undefined,
-      status: TestInstanceStatus.CREATED,
-      expiresAt,
-      sections: sectionsData,
-    });
-
+    const testInstance = await this.testInstanceService.getTestInstance(testInstanceId);
     if (!testInstance) {
       throw new InternalServerErrorException({
         code: "TEST_INSTANCE_CREATION_FAILED",
-        message: "Failed to fetch created test instance",
+        message: "Failed to fetch created test instance after assembly",
       });
     }
 

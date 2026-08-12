@@ -141,7 +141,7 @@ export function RecentTestAttemptsTable() {
           data={data ?? []}
           isLoading={isLoading}
           disablePagination
-          rowKey={(row, i) => row.id || row.attemptId || `${row.candidateName}-${row.submittedAt}-${i}`}
+          rowKey={(row) => (row.id || row.attemptId) as string}
           containerClassName='h-full border-0 rounded-none'
           emptyState={
             <div className='py-12'>
