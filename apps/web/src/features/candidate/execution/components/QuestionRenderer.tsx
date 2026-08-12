@@ -38,12 +38,24 @@ export function QuestionRenderer() {
     }
   }
 
+  const getOptionsList = (q: any): any[] => {
+    if (Array.isArray(q.options) && q.options.length > 0) return q.options;
+    if (Array.isArray(q.mcqData?.options) && q.mcqData.options.length > 0) return q.mcqData.options;
+    if (Array.isArray(q.mcqData?.choices) && q.mcqData.choices.length > 0) return q.mcqData.choices;
+    return [];
+  };
+
   const renderMCQ = () => {
     const selectedOptionId = currentAnswer?.selectedOptionId;
+    const optionsList = getOptionsList(currentQuestion);
+
+    if (optionsList.length === 0) {
+      return renderNumeric();
+    }
 
     return (
       <div className='space-y-2 mt-4' role='radiogroup' aria-label='Select an option'>
-        {currentQuestion.options.map((option: any, index: number) => {
+        {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
           const optKey = `opt-${currentQuestion.id}-${index}`;
           const optText =
@@ -104,6 +116,11 @@ export function QuestionRenderer() {
 
   const renderMSQ = () => {
     const selectedOptionIds = currentAnswer?.selectedOptionIds || [];
+    const optionsList = getOptionsList(currentQuestion);
+
+    if (optionsList.length === 0) {
+      return renderNumeric();
+    }
 
     const handleToggle = (optionId: string) => {
       const isSelected = selectedOptionIds.includes(optionId);
@@ -115,7 +132,7 @@ export function QuestionRenderer() {
 
     return (
       <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
-        {currentQuestion.options.map((option: any, index: number) => {
+        {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
           const optText =
             typeof option === 'string'
@@ -255,7 +272,12 @@ export function QuestionRenderer() {
 
           {/* Full Width Embedded Compiler */}
           <div className='w-full flex-1 min-h-[550px]'>
-            <EmbeddedCompiler key={currentQuestion.id} onChange={handleCompilerChange} />
+            <EmbeddedCompiler
+              key={currentQuestion.id}
+              questionId={currentQuestion.id}
+              testInstanceId={testInstance.id}
+              onChange={handleCompilerChange}
+            />
           </div>
         </div>
       </div>
