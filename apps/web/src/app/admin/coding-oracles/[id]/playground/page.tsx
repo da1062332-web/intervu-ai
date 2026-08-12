@@ -432,21 +432,7 @@ export default function OraclePlaygroundPage() {
                 </div>
               )}
 
-              {/* Starter Code Skeleton Panel */}
-              <div className="bg-card border rounded-xl p-5 shadow-sm space-y-3">
-                <h3 className="font-semibold text-sm flex items-center gap-2 border-b pb-2">
-                  <FileCode className="w-4 h-4 text-primary" /> Starter Code Skeleton
-                </h3>
-                {testResult.aiPreview?.codeSkeletons ? (
-                  <pre className="bg-slate-950 text-slate-200 p-3 rounded-lg text-xs font-mono overflow-x-auto">
-                    {JSON.stringify(testResult.aiPreview.codeSkeletons, null, 2)}
-                  </pre>
-                ) : (
-                  <p className="text-xs text-muted-foreground italic">
-                    Not configured for standalone Oracle preview (Code skeletons are configured during Coding Pattern authoring).
-                  </p>
-                )}
-              </div>
+
             </div>
           ) : (
             <div className="bg-card border rounded-xl p-12 text-center space-y-3 shadow-sm">

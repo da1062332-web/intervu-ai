@@ -175,6 +175,22 @@ CMD ["npm", "run", "--workspace=@intervu-ai/worker", "start"]
   - `ENABLE_ANALYTICS_QUEUE=true`
   - `WORKER_CONCURRENCY=5`
 
+**Judge0 Server**
+
+- Image: `judge0/judge0:latest`
+- Port: `2358`
+- Depends on: PostgreSQL, Redis
+- Configuration: `./judge0/judge0-master/judge0.conf`
+- Capabilities: `privileged: true`
+
+**Judge0 Worker**
+
+- Image: `judge0/judge0:latest`
+- Command: `["./scripts/workers"]`
+- Depends on: PostgreSQL, Redis
+- Configuration: `./judge0/judge0-master/judge0.conf`
+- Capabilities: `privileged: true`
+
 ### 7. Logger System
 
 **Location**: `packages/shared-logger/`
