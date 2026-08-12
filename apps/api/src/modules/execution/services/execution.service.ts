@@ -180,13 +180,28 @@ export class ExecutionService {
             // Enrich options from mcqData if snapshot has incomplete/missing options (< 4)
             const snapshotOptions = candidateSafeSnapshot.options;
             const hasFullOptions =
-              Array.isArray(snapshotOptions) && snapshotOptions.length >= 4;
+              Array.isArray(snapshotOptions) && snapshotOptions.length >= 2;
             if (!hasFullOptions && questionMcqDataMap.has(q.questionId)) {
               const mcqData = questionMcqDataMap.get(q.questionId) as any;
               const mcqOptions = mcqData?.options;
-              if (Array.isArray(mcqOptions) && mcqOptions.length >= 4) {
+              if (Array.isArray(mcqOptions) && mcqOptions.length >= 2) {
                 candidateSafeSnapshot.options = mcqOptions;
               }
+            }
+
+            // Safety net: ensure MCQ questions always have valid options array
+            if (
+              (candidateSafeSnapshot.questionType === "MCQ" ||
+                candidateSafeSnapshot.questionType === "MULTIPLE_CHOICE") &&
+              (!Array.isArray(candidateSafeSnapshot.options) ||
+                candidateSafeSnapshot.options.length === 0)
+            ) {
+              candidateSafeSnapshot.options = [
+                { id: "opt1", text: "Option A" },
+                { id: "opt2", text: "Option B" },
+                { id: "opt3", text: "Option C" },
+                { id: "opt4", text: "Option D" },
+              ];
             }
 
             // Enrich questionStatement and instructions from Question table if missing

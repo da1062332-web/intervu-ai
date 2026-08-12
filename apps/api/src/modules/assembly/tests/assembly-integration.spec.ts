@@ -9,6 +9,7 @@ import { QuestionRotationService } from "../../question-bank/services/question-r
 import { QUESTION_SOURCE_TOKEN } from "../services/question-source.interface";
 import { BlueprintBuilderService } from "../services/blueprint-builder.service";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AssemblyVersionRepository } from "../repositories/assembly-version.repository";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
@@ -41,6 +42,7 @@ const mockVersionRepo = {
 
 const mockPoolRepo = {
   findMany: jest.fn(),
+  fetchQuestions: jest.fn().mockResolvedValue([]),
 };
 
 const mockBlueprintBuilder = {
@@ -73,6 +75,7 @@ describe("Assembly Module Integration Layer - End to End", () => {
         { provide: QuestionRotationService, useValue: mockRotationService },
         { provide: QUESTION_SOURCE_TOKEN, useExisting: QuestionBankSource },
         { provide: AssembledTestRepository, useValue: mockAssembledTestRepo },
+        { provide: AssemblyRepository, useValue: { findById: jest.fn() } },
         { provide: BlueprintRepository, useValue: mockBlueprintRepo },
         { provide: AssemblyVersionRepository, useValue: mockVersionRepo },
         { provide: QuestionPoolRepository, useValue: mockPoolRepo },
@@ -83,6 +86,8 @@ describe("Assembly Module Integration Layer - End to End", () => {
           useValue: {
             topic: { findUnique: jest.fn().mockResolvedValue(null) },
             concept: { findFirst: jest.fn().mockResolvedValue(null) },
+            question: { count: jest.fn().mockResolvedValue(0) },
+            template: { count: jest.fn().mockResolvedValue(0) },
           },
         },
       ],

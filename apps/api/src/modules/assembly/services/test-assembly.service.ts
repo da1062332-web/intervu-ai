@@ -60,6 +60,23 @@ export class AssemblyService {
 
     const blueprint = await this.blueprintBuilder.generateBlueprint(configId);
 
+    // Pre-Assembly Hard Gate: Validate blueprint & config readiness before question allocation
+    if (!blueprint || !blueprint.sections || blueprint.sections.length === 0) {
+      throw new BadRequestException({
+        code: "PRE_ASSEMBLY_READINESS_FAILED",
+        message:
+          "Pre-assembly readiness check failed: Exam configuration has no sections defined.",
+      });
+    }
+
+    if ((blueprint.totalQuestions ?? 0) <= 0) {
+      throw new BadRequestException({
+        code: "PRE_ASSEMBLY_READINESS_FAILED",
+        message:
+          "Pre-assembly readiness check failed: Exam configuration total question count must be greater than 0.",
+      });
+    }
+
     const sections: SectionDto[] = [];
     const allocatedQuestionIds = new Set<string>();
 
@@ -102,6 +119,23 @@ export class AssemblyService {
     if (!configId) throw new BadRequestException("configId is required");
 
     const blueprint = await this.blueprintBuilder.generateBlueprint(configId);
+
+    // Pre-Assembly Hard Gate: Validate blueprint & config readiness before question allocation
+    if (!blueprint || !blueprint.sections || blueprint.sections.length === 0) {
+      throw new BadRequestException({
+        code: "PRE_ASSEMBLY_READINESS_FAILED",
+        message:
+          "Pre-assembly readiness check failed: Exam configuration has no sections defined.",
+      });
+    }
+
+    if ((blueprint.totalQuestions ?? 0) <= 0) {
+      throw new BadRequestException({
+        code: "PRE_ASSEMBLY_READINESS_FAILED",
+        message:
+          "Pre-assembly readiness check failed: Exam configuration total question count must be greater than 0.",
+      });
+    }
 
     const sections: SectionDto[] = [];
     const allocatedQuestionIds = new Set<string>();

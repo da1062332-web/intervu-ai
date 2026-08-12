@@ -122,6 +122,52 @@ export class AssemblyValidationV2Service {
         );
       }
 
+      // AVL-014, AVL-015, AVL-016: Question Content, Options, Answer Key & Manual Question Audit
+      for (const q of section.questions) {
+        const snap = (q.questionSnapshot as Record<string, unknown>) ?? {};
+        const qType = (snap.questionType as string) || q.questionType || "MULTIPLE_CHOICE";
+        const qText = (snap.stem as string) || (snap.questionText as string) || (snap.title as string) || "";
+        const options = (snap.options as unknown[]) || [];
+        const isManual = snap.source === "MANUAL" || snap.isManual === true || (snap.tags as string[])?.includes("manual");
+
+        // AVL-014: Question text and options count
+        if (["MULTIPLE_CHOICE", "MULTI_SELECT", "MCQ"].includes(qType)) {
+          if (Array.isArray(snap.options) && snap.options.length > 0 && snap.options.length < 2) {
+            errors.push(
+              `AVL-014: Question ${q.questionId} in section ${section.sectionKey} is ${qType} but has fewer than 2 options (${snap.options.length} provided)`,
+            );
+          }
+        }
+
+        // AVL-015: Answer key check for objective questions
+        if (["MULTIPLE_CHOICE", "MULTI_SELECT", "MCQ", "TRUE_FALSE"].includes(qType)) {
+          const hasOptionCorrect = options.some(
+            (opt) => typeof opt === "object" && opt !== null && (opt as any).isCorrect === true,
+          );
+          const hasAnswerKey =
+            snap.correctAnswer !== undefined ||
+            snap.correctOption !== undefined ||
+            snap.answerKey !== undefined ||
+            hasOptionCorrect;
+
+          if (!hasAnswerKey) {
+            warnings.push(
+              `AVL-015: Question ${q.questionId} in section ${section.sectionKey} lacks explicit correct answer key in snapshot`,
+            );
+          }
+        }
+
+        // AVL-016: Manual question audit check
+        if (isManual) {
+          const diff = (snap.difficultyLevel as string) || q.difficultyLevel;
+          if (!["EASY", "MEDIUM", "HARD"].includes(diff)) {
+            errors.push(
+              `AVL-016: Manual question ${q.questionId} in section ${section.sectionKey} has invalid difficulty level "${diff}"`,
+            );
+          }
+        }
+      }
+
       // --- Difficulty accuracy ---
       const sectionDiffAccuracy = this.calcDifficultyAccuracy(
         section,
@@ -196,7 +242,10 @@ export class AssemblyValidationV2Service {
     warnings: string[],
   ): number {
     const diffConfig = bp.difficultyDistribution;
-    if (!diffConfig || section.questionCount === 0) return 100;
+    const isExplicitMode =
+      diffConfig &&
+      diffConfig.EASY + diffConfig.MEDIUM + diffConfig.HARD === 100;
+    if (!isExplicitMode || section.questionCount === 0) return 100;
 
     const expected = {
       EASY: (diffConfig.EASY / 100) * bp.questionCount,
