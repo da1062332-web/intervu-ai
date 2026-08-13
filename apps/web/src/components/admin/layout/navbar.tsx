@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -12,6 +13,7 @@ import { useLayoutStore } from '@/store/layout.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
 import { Button } from '@/components/ui/button';
 import { MobileNavTrigger } from '@/components/admin/layout/mobile-nav';
+import { Loading } from '@/components/ui/loading';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,13 +33,24 @@ export function Navbar() {
   const { pageTitle } = useActiveRoute();
   const collapsed = useLayoutStore((state) => state.sidebarCollapsed);
   const toggleCollapsed = useLayoutStore((state) => state.toggleSidebarCollapsed);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isCandidate = user?.role === 'CANDIDATE' || pathname?.startsWith('/candidate');
 
   const handleLogout = async () => {
-    await authApi.logout();
-    notifySuccess('You have been logged out.');
-    router.replace('/login');
+    setIsLoggingOut(true);
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      notifySuccess('You have been logged out.');
+      window.location.href = '/login';
+    }
   };
 
   const toggleTheme = () => {
@@ -56,15 +69,17 @@ export function Navbar() {
   const userEmail = user?.email ?? '';
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-30 h-16 shrink-0',
-        'flex items-center justify-between gap-4 px-4 sm:px-6',
-        'border-b border-border bg-background/80 backdrop-blur-md',
-        'transition-all duration-300',
-      )}
-      role='banner'
-    >
+    <>
+      {isLoggingOut && <Loading fullScreen message="Logging out..." />}
+      <header
+        className={cn(
+          'sticky top-0 z-30 h-16 shrink-0',
+          'flex items-center justify-between gap-4 px-4 sm:px-6',
+          'border-b border-border bg-background/80 backdrop-blur-md',
+          'transition-all duration-300',
+        )}
+        role='banner'
+      >
       {/* ── Left: Sidebar toggle (desktop) + Mobile trigger + Page title ── */}
       <div className='flex items-center gap-1'>
         {/* Mobile hamburger — only visible on mobile when not in candidate layout */}
@@ -208,5 +223,6 @@ export function Navbar() {
         </DropdownMenu>
       </div>
     </header>
+    </>
   );
 }

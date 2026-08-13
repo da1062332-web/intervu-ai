@@ -15,6 +15,8 @@ export interface DashboardTestItem {
   canReattempt: boolean;
   hasActiveAttempt: boolean;
   questionCount: number;
+  difficulty?: string | null;
+  description?: string | null;
 }
 
 export interface DashboardActiveTest {
@@ -75,6 +77,8 @@ export const dashboardService = {
         canReattempt: t.canReattempt ?? true,
         hasActiveAttempt: t.hasActiveAttempt ?? false,
         questionCount: t.totalQuestions ?? t.questionCount ?? 0,
+        difficulty: t.difficulty || null,
+        description: t.description || null,
       }));
 
       const activeTests: DashboardActiveTest[] = (data.activeAttempts || []).map((a: any) => ({

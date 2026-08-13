@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAttemptHistory } from '../hooks/useAttemptHistory';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { DataTable, ColumnDef } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
@@ -133,6 +134,7 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
 
 export function CandidateHistorySection({ compact = true }: CandidateHistorySectionProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -140,7 +142,7 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
   const [sortAsc, setSortAsc] = useState(false);
 
   const limit = compact ? 4 : 15;
-  const { data, isLoading } = useAttemptHistory(page, limit);
+  const { data, isLoading } = useAttemptHistory(user?.id, page, limit);
 
   const toggleSort = useCallback(
     (field: keyof AttemptItem) => {
@@ -156,43 +158,6 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
 
   const processedAttempts = useMemo(() => {
     let raw = data?.attempts || [];
-    // Fallback demonstration items matching exact mockup list if empty
-    if (raw.length === 0 && compact) {
-      raw = [
-        {
-          instanceId: 'attempt-react',
-          assessmentName: 'React.js Advanced',
-          date: '2026-10-20T14:30:00.000Z',
-          status: 'COMPLETED',
-          score: 96,
-          subtitle: 'Completed successfully. Top 5% percentile.',
-        },
-        {
-          instanceId: 'attempt-sys',
-          assessmentName: 'System Design Basics',
-          date: '2026-10-18T11:00:00.000Z',
-          status: 'IN_PROGRESS',
-          score: null,
-          subtitle: 'Paused at Q14/30. Time remaining: 22m.',
-        },
-        {
-          instanceId: 'attempt-ts',
-          assessmentName: 'TypeScript Fundamentals',
-          date: '2026-10-10T09:15:00.000Z',
-          status: 'COMPLETED',
-          score: 82,
-          subtitle: 'Completed. Review recommended for Generics.',
-        },
-        {
-          instanceId: 'attempt-css',
-          assessmentName: 'CSS Grid & Flexbox',
-          date: '2026-09-28T16:45:00.000Z',
-          status: 'COMPLETED',
-          score: 100,
-          subtitle: 'Perfect score.',
-        },
-      ] as any;
-    }
 
     let result = [...raw] as AttemptItem[];
 
@@ -238,7 +203,22 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
     }
 
     if (!processedAttempts || processedAttempts.length === 0) {
-      return null;
+      return (
+        <div className='flex flex-col h-full space-y-4'>
+          <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
+            <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
+              Attempt History
+            </h3>
+          </div>
+          <Card className='rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs flex-1 flex flex-col items-center justify-center min-h-[300px] text-center'>
+            <History className='size-8 text-muted-foreground mb-3' />
+            <h4 className='font-bold text-base text-foreground'>No attempts yet</h4>
+            <p className='text-xs text-muted-foreground mt-1 max-w-xs'>
+              You have not started or completed any assessments.
+            </p>
+          </Card>
+        </div>
+      );
     }
 
     return (

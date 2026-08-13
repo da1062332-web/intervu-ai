@@ -2,11 +2,13 @@ import { useRouter } from 'next/navigation';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
 import { clearAssessmentSandboxStorage } from '@/components/candidate/sandbox/useCalculator';
+import { useQueryClient } from '@tanstack/react-query';
 
 const STORAGE_KEY = 'intervu_execution_autosave';
 
 export function useSubmission(testId: string) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setSubmissionStatus, connectionStatus } = useExecutionStore();
 
   const submitAssessment = async (options?: { autoSubmit?: boolean; allowPartial?: boolean }) => {
@@ -33,6 +35,12 @@ export function useSubmission(testId: string) {
       localStorage.removeItem(`${STORAGE_KEY}_${testId}`);
       clearAssessmentSandboxStorage(testId);
 
+      // Invalidate candidate query caches
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-attempts'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-progress'] });
+
       setSubmissionStatus('SUCCESS');
 
       // Exit fullscreen if active
@@ -54,6 +62,12 @@ export function useSubmission(testId: string) {
           .includes('already');
 
       if (isAlreadySubmitted) {
+        // Invalidate candidate query caches
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-attempts'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-progress'] });
+
         setSubmissionStatus('SUCCESS');
         localStorage.removeItem(`${STORAGE_KEY}_${testId}`);
         clearAssessmentSandboxStorage(testId);

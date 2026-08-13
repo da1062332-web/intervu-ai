@@ -42,13 +42,14 @@ export class ResultsService {
     const evaluation = await this.getEvaluation(idOrAttemptId);
 
     if (userId && evaluation.userId && evaluation.userId !== userId) {
-      this.logger.warn(
-        "SEC-001: Unauthorized result access attempt (BYPASSED for candidate result view)",
+      this.logger.error(
+        "SEC-001: Unauthorized result access attempt",
         {
           evaluationUserId: evaluation.userId,
           requestUserId: userId,
         },
       );
+      throw new UnauthorizedResultAccessError();
     }
 
     const testInstanceId = evaluation.testInstanceId;

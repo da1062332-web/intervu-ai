@@ -9,6 +9,7 @@ import { SectionBreakdown } from '../components/SectionBreakdown';
 import { EligibilityInfo } from '../components/EligibilityInfo';
 import { EnrollmentCard } from '../components/EnrollmentCard';
 import { useEnrollments } from '../hooks/useEnrollments';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
   TestDetailsSkeleton,
@@ -22,10 +23,11 @@ interface TestDetailsPageProps {
 }
 
 export function TestDetailsPage({ testId }: TestDetailsPageProps) {
+  const { user } = useAuth();
   const { data: test, isLoading, error, refetch } = useTestDetails(testId);
-  const { data: enrollmentsData } = useEnrollments();
+  const { data: enrollmentsData } = useEnrollments(user?.id);
 
-  const { data: dashboardData } = useCandidateDashboard();
+  const { data: dashboardData } = useCandidateDashboard(user?.id);
 
   const enrollment = enrollmentsData?.enrollments?.find((e: any) => e.testId === testId);
   const isCompleted = dashboardData?.completedAttempts?.some((c) => c.testId === testId);

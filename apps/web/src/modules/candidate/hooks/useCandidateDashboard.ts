@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardService } from '../services/dashboard.service';
 
-export function useCandidateDashboard() {
+export function useCandidateDashboard(candidateId?: string) {
   const query = useQuery({
-    queryKey: ['candidate-dashboard-modular'],
+    queryKey: ['candidate-dashboard-modular', candidateId],
     queryFn: dashboardService.getDashboard,
+    enabled: !!candidateId,
   });
 
   return {
@@ -15,10 +16,11 @@ export function useCandidateDashboard() {
   };
 }
 
-export function useCandidateDashboardMetrics() {
+export function useCandidateDashboardMetrics(candidateId?: string) {
   const query = useQuery({
-    queryKey: ['candidate-dashboard-metrics'],
+    queryKey: ['candidate-dashboard-metrics', candidateId],
     queryFn: dashboardService.getDashboardMetrics,
+    enabled: !!candidateId,
   });
 
   return {

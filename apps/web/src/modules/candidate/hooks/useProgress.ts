@@ -18,9 +18,9 @@ export interface ProgressData {
   };
 }
 
-export const useProgress = () => {
+export const useProgress = (candidateId?: string) => {
   return useQuery({
-    queryKey: ['candidate-progress'],
+    queryKey: ['candidate-progress', candidateId],
     queryFn: async (): Promise<ProgressData> => {
       try {
         const response = await apiClient.request<ProgressData>('/reports/progress');
@@ -30,5 +30,6 @@ export const useProgress = () => {
         throw error;
       }
     },
+    enabled: !!candidateId,
   });
 };

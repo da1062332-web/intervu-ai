@@ -36,6 +36,9 @@ import {
 } from '@/services/templates/hooks';
 import { buildConstraintRule, parseConstraintRule, toConstraintPayload } from './constraint-utils';
 import toast from 'react-hot-toast';
+import { detectCircularDependencies } from './formula-dependency-validator';
+
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
 
 interface VariableDefinition {
   name: string;
@@ -162,16 +165,23 @@ export function GenerationStrategySection() {
   const [editingVariable, setEditingVariable] = useState<VariableDefinition | null>(null);
   const [editingDerived, setEditingDerived] = useState<DerivedVariableDefinition | null>(null);
   const [editingConstraint, setEditingConstraint] = useState<ConstraintDefinition | null>(null);
-  const [variableForm, setVariableForm] = useState({
-    name: '',
-    type: 'number',
-    min: '',
-    max: '',
-    defaultValue: '',
-    generator: 'random',
-  });
-  const [derivedForm, setDerivedForm] = useState({ name: '', expression: '' });
-  const [constraintForm, setConstraintForm] = useState({ target: '', operator: '>', value: '' });
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const variableForm = draftState.variableForm;
+  const setVariableForm = (val: any) => {
+    updateDraftState({ variableForm: typeof val === 'function' ? val(variableForm) : val });
+  };
+
+  const derivedForm = draftState.derivedForm;
+  const setDerivedForm = (val: any) => {
+    updateDraftState({ derivedForm: typeof val === 'function' ? val(derivedForm) : val });
+  };
+
+  const constraintForm = draftState.constraintForm;
+  const setConstraintForm = (val: any) => {
+    updateDraftState({ constraintForm: typeof val === 'function' ? val(constraintForm) : val });
+  };
+
   const [error, setError] = useState<string | null>(null);
 
   // AI Assistant State
@@ -350,6 +360,21 @@ export function GenerationStrategySection() {
       nextDerived[exists] = normalized;
     } else {
       nextDerived.push(normalized);
+    }
+
+    const validation = detectCircularDependencies(nextDerived);
+    if (validation.hasCycle) {
+      if (validation.cycle && validation.cycle.length > 0) {
+        const isSelf = validation.cycle.length === 2 && validation.cycle[0] === validation.cycle[1];
+        if (isSelf) {
+          setError(`Variable "${validation.cycle[0]}" cannot reference itself.`);
+        } else {
+          setError(`Circular dependency detected:\n${validation.cycle.join(' → ')}`);
+        }
+      } else {
+        setError('Circular dependency detected in formulas.');
+      }
+      return;
     }
 
     const payload = {
@@ -1229,6 +1254,11 @@ export function GenerationStrategySection() {
           <h2 className='text-xl font-semibold'>
             {editingDerived ? 'Edit Derived Variable' : 'Add Derived Variable'}
           </h2>
+          {error && (
+            <div className='rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 whitespace-pre-line'>
+              {error}
+            </div>
+          )}
           <div className='space-y-2'>
             <Label htmlFor='derivedName'>Name</Label>
             <Input

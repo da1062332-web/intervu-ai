@@ -40,8 +40,9 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function CandidateProfilePage() {
-  const { data: profile, isLoading } = useCandidateProfile();
-  const { mutate: updateProfile, isPending } = useUpdateCandidateProfile();
+  const user = useAuthStore((state) => state.user);
+  const { data: profile, isLoading } = useCandidateProfile(user?.id);
+  const { mutate: updateProfile, isPending } = useUpdateCandidateProfile(user?.id);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),

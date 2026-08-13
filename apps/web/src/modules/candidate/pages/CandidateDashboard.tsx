@@ -5,6 +5,7 @@ import {
   useCandidateDashboard,
   useCandidateDashboardMetrics,
 } from '../hooks/useCandidateDashboard';
+import { useAuth } from '@/hooks/use-auth';
 import { CandidateOverviewCard } from '../components/CandidateOverviewCard';
 import { CandidateKpiSection } from '../components/CandidateKpiSection';
 import { AvailableAssessmentSection } from '../components/AvailableAssessmentSection';
@@ -12,12 +13,13 @@ import { CandidateHistorySection } from '../components/CandidateHistorySection';
 import { CandidateProgressSection } from '../components/CandidateProgressSection';
 
 export function CandidateDashboard() {
+  const { user } = useAuth();
   const {
     data: dashboard,
     isLoading: isDashboardLoading,
     error: dashboardError,
-  } = useCandidateDashboard();
-  const { data: metrics, isLoading: isMetricsLoading } = useCandidateDashboardMetrics();
+  } = useCandidateDashboard(user?.id);
+  const { data: metrics, isLoading: isMetricsLoading } = useCandidateDashboardMetrics(user?.id);
 
   return (
     <div className='mx-auto w-full max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-16 py-6 md:py-8 space-y-7 md:space-y-8 animate-fade-in-up'>

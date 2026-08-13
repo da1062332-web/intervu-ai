@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useProgress } from '../hooks/useProgress';
+import { useAuth } from '@/hooks/use-auth';
 import dynamic from 'next/dynamic';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -92,7 +93,8 @@ interface CandidateProgressSectionProps {
 
 export function CandidateProgressSection({ compact = true }: CandidateProgressSectionProps) {
   const router = useRouter();
-  const { data, isLoading, error } = useProgress();
+  const { user } = useAuth();
+  const { data, isLoading, error } = useProgress(user?.id);
 
   if (isLoading) {
     return (

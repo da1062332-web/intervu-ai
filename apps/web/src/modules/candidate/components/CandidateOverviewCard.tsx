@@ -77,12 +77,12 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
     latestAssessment?.title ||
     activeAttempt?.testName ||
     activeAttempt?.title ||
-    'Senior Frontend Engineer Assessment';
+    'Assessment';
   const durationMinutes =
-    latestAssessment?.durationMinutes || activeAttempt?.remainingMinutes || 60;
-  const questionCount = latestAssessment?.questionCount || 30;
+    latestAssessment?.durationMinutes ?? (activeAttempt?.remainingMinutes !== undefined ? activeAttempt.remainingMinutes : undefined);
+  const questionCount = latestAssessment?.questionCount;
   const isInProgress = Boolean(latestAssessment?.hasActiveAttempt || activeAttempt);
-  const difficulty = (latestAssessment as any)?.difficulty || 'Hard';
+  const difficulty = (latestAssessment as any)?.difficulty || 'N/A';
 
   const handleAction = () => {
     if (isInProgress) {
@@ -97,7 +97,7 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
     <div className='rounded-[28px] border border-indigo-100/80 dark:border-indigo-900/40 bg-gradient-to-r from-[#eff2ff] via-[#f7eefe] to-[#f4ebff] dark:from-purple-950/30 dark:via-indigo-950/20 dark:to-purple-950/30 p-7 sm:p-9 shadow-sm transition-all hover:shadow-md relative overflow-hidden'>
       <div className='flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10'>
         <div className='space-y-4 min-w-0 flex-1'>
-          <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#fff3e0] dark:bg-amber-900/40 text-[#d97706] dark:text-amber-300 text-[11px] font-bold border border-amber-200/50 dark:border-amber-800/40'>
+          <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#fff3e0] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 text-[11px] font-bold border border-amber-200/50 dark:border-amber-800/40'>
             <Sparkles className='size-3.5 fill-current' />
             <span>{isInProgress ? 'Active Assessment in Progress' : 'Recommended Next Step'}</span>
           </div>
@@ -111,14 +111,18 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
               <BarChart2 className='size-3.5 text-muted-foreground/80' />
               Difficulty: <strong className='text-foreground font-bold ml-0.5'>{difficulty}</strong>
             </span>
-            <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
-              <Clock className='size-3.5 text-muted-foreground/80' />
-              <strong className='text-foreground font-bold'>{durationMinutes}m</strong>
-            </span>
-            <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
-              <HelpCircle className='size-3.5 text-muted-foreground/80' />
-              <strong className='text-foreground font-bold'>{questionCount} Questions</strong>
-            </span>
+            {durationMinutes !== undefined && (
+              <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
+                <Clock className='size-3.5 text-muted-foreground/80' />
+                <strong className='text-foreground font-bold'>{durationMinutes}m</strong>
+              </span>
+            )}
+            {questionCount !== undefined && (
+              <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
+                <HelpCircle className='size-3.5 text-muted-foreground/80' />
+                <strong className='text-foreground font-bold'>{questionCount} Questions</strong>
+              </span>
+            )}
           </div>
         </div>
 

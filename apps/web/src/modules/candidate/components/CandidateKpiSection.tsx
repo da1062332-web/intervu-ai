@@ -37,28 +37,31 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
     );
   }
 
-  const bestScore = metrics?.bestScore ?? 92;
-  const avgAccuracy = metrics?.averageAccuracy ? Math.round(metrics.averageAccuracy) : 88;
-  const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 12;
-  const totalAssessments = dashboard?.availableTests?.length ?? 45;
+  const hasAttempts = (metrics?.attemptCount ?? 0) > 0 || (dashboard?.completedAttempts?.length ?? 0) > 0;
+  const bestScoreVal = metrics?.bestScore;
+  const bestScore = bestScoreVal !== undefined && bestScoreVal !== null ? `${Math.round(bestScoreVal)}%` : 'No score yet';
+  const avgAccuracyVal = metrics?.averageAccuracy;
+  const avgAccuracy = avgAccuracyVal !== undefined && avgAccuracyVal !== null ? `${Math.round(avgAccuracyVal)}%` : '0%';
+  const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 0;
+  const totalAssessments = dashboard?.availableTests?.length ?? 0;
 
   const cards = [
     {
       label: 'Best Score',
-      value: `${bestScore}%`,
+      value: bestScore,
       icon: Trophy,
       iconStyle:
         'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50 dark:border-indigo-900/40',
-      subtitle: '+4% from last attempt',
+      subtitle: undefined,
       glow: 'bg-[#eff2ff]/80 dark:bg-indigo-900/20',
     },
     {
       label: 'Average Accuracy',
-      value: `${avgAccuracy}%`,
+      value: avgAccuracy,
       icon: Target,
       iconStyle:
         'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-100/50 dark:border-amber-900/40',
-      subtitle: 'Top 15% of candidates',
+      subtitle: undefined,
       glow: 'bg-[#fff7ed]/80 dark:bg-amber-900/10',
     },
     {
@@ -67,7 +70,7 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       icon: CheckCircle2,
       iconStyle:
         'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50 dark:border-emerald-900/40',
-      subtitle: 'Across 3 categories',
+      subtitle: undefined,
       glow: 'bg-[#ecfdf5]/80 dark:bg-emerald-900/10',
     },
     {
@@ -107,9 +110,11 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
               <div className='text-3xl font-extrabold text-foreground mt-1 tracking-tight'>
                 {card.value}
               </div>
-              <p className='text-xs text-muted-foreground/70 mt-1.5 font-normal truncate'>
-                {card.subtitle}
-              </p>
+              {card.subtitle && (
+                <p className='text-xs text-muted-foreground/70 mt-1.5 font-normal truncate'>
+                  {card.subtitle}
+                </p>
+              )}
             </div>
           </div>
         );

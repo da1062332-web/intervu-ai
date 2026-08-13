@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAttemptHistory } from '../hooks/useAttemptHistory';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { DataTable, ColumnDef } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
@@ -90,6 +91,7 @@ export function AttemptHistoryTable({
   showFilters = false,
   defaultLimit = 5,
 }: AttemptHistoryTableProps) {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -97,7 +99,7 @@ export function AttemptHistoryTable({
   const [sortAsc, setSortAsc] = useState(false);
 
   const limit = showFilters ? 20 : defaultLimit;
-  const { data, isLoading } = useAttemptHistory(page, limit);
+  const { data, isLoading } = useAttemptHistory(user?.id, page, limit);
 
   const toggleSort = useCallback(
     (field: keyof AttemptItem) => {

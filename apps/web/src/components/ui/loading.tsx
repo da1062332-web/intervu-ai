@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +12,12 @@ export interface LoadingProps {
 }
 
 export function Loading({ size = 'md', message, fullScreen = false }: LoadingProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const sizeMap = {
     sm: 'w-6 h-6',
     md: 'w-8 h-8',
@@ -25,11 +35,17 @@ export function Loading({ size = 'md', message, fullScreen = false }: LoadingPro
   );
 
   if (fullScreen) {
-    return (
-      <div className='fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80'>
+    const overlay = (
+      <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-white/60 dark:bg-gray-900/60 backdrop-blur-md'>
         {spinner}
       </div>
     );
+
+    if (mounted && typeof document !== 'undefined') {
+      return createPortal(overlay, document.body);
+    }
+
+    return overlay;
   }
 
   return spinner;
