@@ -32,13 +32,24 @@ export class QuestionBankSource implements IQuestionSource {
   ) {}
 
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
-    const inputConceptKey = filters.conceptKey || "";
+    const inputConceptKey = (filters.conceptKey || "").replace(/^"|"$/g, "").trim();
 
-    // 1. Resolve UUID to Code if necessary
+    // 1. Resolve UUID, Code, or Name
     let resolvedCode = inputConceptKey;
-    const topic = await this.prisma.topic.findUnique({
+    let topic = await this.prisma.topic.findUnique({
       where: { id: inputConceptKey },
     });
+    if (!topic) {
+      topic = await this.prisma.topic.findFirst({
+        where: {
+          OR: [
+            { code: inputConceptKey },
+            { name: { equals: inputConceptKey, mode: "insensitive" } },
+            { name: { contains: inputConceptKey, mode: "insensitive" } },
+          ],
+        },
+      });
+    }
     if (topic) {
       resolvedCode = topic.code;
     }
@@ -56,18 +67,45 @@ export class QuestionBankSource implements IQuestionSource {
       | "MEDIUM"
       | "HARD";
 
+    const isCodingTopic =
+      inputConceptKey.toLowerCase().includes("coding") ||
+      (topic?.name && topic.name.toLowerCase().includes("coding")) ||
+      filters.questionType === "CODING";
+
+    let effectiveExcludeIds = excludeIds;
+    if (isCodingTopic && excludeIds.length > 0) {
+      const initialCount = await this.prisma.question.count({
+        where: {
+          status: "ACTIVE",
+          ...(hasExplicitDifficulty ? { difficulty } : {}),
+          OR: [
+            { questionType: "CODING" },
+            { topicId: topicId },
+            { topicId: resolvedCode },
+            { topic: { name: { contains: "coding", mode: "insensitive" } } },
+          ],
+          id: { notIn: excludeIds },
+        },
+      });
+      // Allow question re-use for coding questions if strict exclusion yields 0
+      if (initialCount === 0) {
+        effectiveExcludeIds = [];
+      }
+    }
+
     // 1. Calculate available active Manual questions count matching requested difficulty (or all if flexible)
     const manualCount = await this.prisma.question.count({
       where: {
         status: "ACTIVE",
         ...(hasExplicitDifficulty ? { difficulty } : {}),
         OR: [
+          ...(isCodingTopic ? [{ questionType: "CODING" }] : []),
           { topicId: topicId },
           { topicId: resolvedCode },
           { concept: { topicId: topicId } },
           { concept: { code: resolvedCode.toUpperCase() } },
         ],
-        id: { notIn: excludeIds },
+        ...(effectiveExcludeIds.length > 0 ? { id: { notIn: effectiveExcludeIds } } : {}),
       },
     });
 
@@ -98,7 +136,7 @@ export class QuestionBankSource implements IQuestionSource {
       this.logger.warn(
         `Pool count 0 or real bank disabled for topic=${topicId} difficulty=${hasExplicitDifficulty ? difficulty : "FLEXIBLE"}. Using legacy template pool.`,
       );
-      return this.fetchFromLegacyPool(resolvedFilters, excludeIds, topicId);
+      return this.fetchFromLegacyPool(resolvedFilters, effectiveExcludeIds, topicId);
     }
 
     // 3. Calculate Proportional Natural Ratios (Manual vs Template)

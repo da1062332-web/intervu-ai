@@ -8,6 +8,7 @@ import { Loader2, Zap } from 'lucide-react';
 import { useUpdateTemplate } from '@/services/templates/hooks';
 import type { GenerationStrategy } from '@/services/question-generation/types';
 import { useStrategyConfigStore } from '@/store/strategy-config.store';
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
 import { STRATEGY_LABELS, STRATEGY_DESCRIPTIONS } from '../registry/strategy-panel.registry';
 
 interface BasicInfoForm {
@@ -29,6 +30,24 @@ interface BasicInfoSectionProps {
 export function BasicInfoSection({ template }: BasicInfoSectionProps) {
   const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
   const { currentStrategy, setStrategy } = useStrategyConfigStore();
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  // Initialize default values either from context draft or template API
+  const defaultFormValues = draftState.basicInfo || {
+    name: template?.name || '',
+    description: template?.description || '',
+    conceptKey: template?.conceptKey || '',
+    difficulty: template?.difficultyLevel || template?.difficulty || 'MEDIUM',
+    questionType: template?.questionType || 'coding',
+    status: template?.isActive ? 'Active' : 'Draft',
+    tags: '',
+    generationStrategy: template?.generationStrategy || 'VARIABLE',
+    datasetGenerationMode:
+      template?.datasetGenerationMode ||
+      template?.config?.datasetGenerationMode ||
+      template?.datasetConfig?.datasetGenerationMode ||
+      'AI',
+  };
 
   const {
     register,
@@ -37,33 +56,25 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
     watch,
     formState: { errors },
   } = useForm<BasicInfoForm>({
-    defaultValues: {
-      name: template?.name || '',
-      description: template?.description || '',
-      conceptKey: template?.conceptKey || '',
-      difficulty: template?.difficultyLevel || template?.difficulty || 'MEDIUM',
-      questionType: template?.questionType || 'coding',
-      status: template?.isActive ? 'Active' : 'Draft',
-      tags: '',
-      generationStrategy: template?.generationStrategy || 'VARIABLE',
-      datasetGenerationMode:
-        template?.datasetGenerationMode ||
-        template?.config?.datasetGenerationMode ||
-        template?.datasetConfig?.datasetGenerationMode ||
-        'AI',
-    },
+    defaultValues: defaultFormValues,
   });
 
+  // Sync entire form back to draft state as user types
+  const watchedForm = watch();
+  React.useEffect(() => {
+    updateDraftState({ basicInfo: watchedForm });
+  }, [watchedForm, updateDraftState]);
+
   // Sync Zustand store when strategy field changes
-  const watchedStrategy = watch('generationStrategy');
+  const watchedStrategy = watchedForm.generationStrategy;
   React.useEffect(() => {
     if (watchedStrategy && watchedStrategy !== currentStrategy) {
       setStrategy(watchedStrategy as GenerationStrategy);
     }
-  }, [watchedStrategy]);
+  }, [watchedStrategy, currentStrategy, setStrategy]);
 
   useEffect(() => {
-    if (template) {
+    if (template && !draftState.basicInfo) {
       reset({
         name: template.name || '',
         description: template.description || '',
@@ -80,7 +91,7 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
           'AI',
       });
     }
-  }, [template, reset]);
+  }, [template, reset, draftState.basicInfo]);
 
   const onSubmit = (data: BasicInfoForm) => {
     if (!template?.id) return;

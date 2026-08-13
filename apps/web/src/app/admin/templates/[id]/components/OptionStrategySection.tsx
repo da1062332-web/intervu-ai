@@ -6,52 +6,26 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useSaveOptionStrategy } from '@/services/templates/hooks';
 import toast from 'react-hot-toast';
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
 
 interface OptionStrategySectionProps {
   template: any;
 }
 
 export function OptionStrategySection({ template }: OptionStrategySectionProps) {
-  const [strategy, setStrategy] = useState('static');
-  const [options, setOptions] = useState<string[]>(['', '', '', '']);
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+  const strategy = draftState.optionStrategy?.strategy || 'static';
+  const options = draftState.optionStrategy?.options || ['', '', '', ''];
+
+  const setStrategy = (val: string) => {
+    updateDraftState({ optionStrategy: { strategy: val, options } });
+  };
+  const setOptions = (val: string[] | ((prev: string[]) => string[])) => {
+    const nextOptions = typeof val === 'function' ? val(options) : val;
+    updateDraftState({ optionStrategy: { strategy, options: nextOptions } });
+  };
 
   const { mutate: saveOptionStrategy, isPending: isSaving } = useSaveOptionStrategy();
-
-  useEffect(() => {
-    try {
-      const optionsTemplate = template?.structure?.optionsTemplate;
-      if (optionsTemplate && Array.isArray(optionsTemplate) && optionsTemplate.length > 0) {
-        // Check if it was serialized as JSON in the first element (technical debt approach)
-        if (optionsTemplate.length === 1 && optionsTemplate[0].startsWith('{')) {
-          const parsed = JSON.parse(optionsTemplate[0]);
-          if (parsed.strategy) setStrategy(parsed.strategy);
-          if (parsed.options) setOptions(parsed.options);
-        } else {
-          // It's just a regular array of options
-          setOptions(
-            optionsTemplate.length === 4
-              ? optionsTemplate
-              : [...optionsTemplate, '', '', '', ''].slice(0, 4),
-          );
-          // Infer strategy based on existing config or default to static
-          setStrategy(template?.config?.optionStrategy || 'static');
-        }
-      } else {
-        // Fallback to config if structure is empty
-        if (template?.config?.optionStrategy) {
-          setStrategy(template.config.optionStrategy);
-        }
-        if (template?.config?.staticOptions && template.config.optionStrategy === 'static') {
-          setOptions(template.config.staticOptions);
-        }
-        if (template?.config?.formulas && template.config.optionStrategy === 'formula') {
-          setOptions(template.config.formulas);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to parse options template', e);
-    }
-  }, [template]);
 
   const handleSave = () => {
     if (!template?.id) return;

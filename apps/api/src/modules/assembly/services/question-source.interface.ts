@@ -8,6 +8,7 @@ export interface QuestionFilters {
   excludeIds?: string[];
   limit?: number;
   examId?: string;
+  questionType?: string;
 }
 
 export interface IQuestionSource {
