@@ -21,9 +21,24 @@ export class QuestionRepository {
       sectionId = section?.id ?? "default";
     }
 
-    // Resolve topicId from template/concept if not explicitly provided
+    // Resolve topicId and conceptId from template/concept if not explicitly provided
     let topicId = assembled.topicId;
     let conceptId: string | undefined;
+
+    if ((assembled.metadata as any)?.conceptKey) {
+      const concept = await this.prisma.concept.findFirst({
+        where: {
+          code: {
+            equals: (assembled.metadata as any).conceptKey,
+            mode: "insensitive",
+          },
+        },
+      });
+      if (concept) {
+        conceptId = concept.id;
+        if (!topicId) topicId = concept.topicId;
+      }
+    }
 
     if (!topicId && assembled.templateId) {
       const tmpl = await this.prisma.template.findUnique({
@@ -33,25 +48,10 @@ export class QuestionRepository {
         const concept = await this.prisma.concept.findFirst({
           where: { code: { equals: tmpl.conceptKey, mode: "insensitive" } },
         });
-        if (concept?.topicId) {
-          topicId = concept.topicId;
+        if (concept) {
           conceptId = concept.id;
+          if (!topicId) topicId = concept.topicId;
         }
-      }
-    }
-
-    if (!topicId && (assembled.metadata as any)?.conceptKey) {
-      const concept = await this.prisma.concept.findFirst({
-        where: {
-          code: {
-            equals: (assembled.metadata as any).conceptKey,
-            mode: "insensitive",
-          },
-        },
-      });
-      if (concept?.topicId) {
-        topicId = concept.topicId;
-        conceptId = conceptId ?? concept.id;   // only overwrite if not already set
       }
     }
 
@@ -61,39 +61,117 @@ export class QuestionRepository {
       );
     }
 
-    const isCoding = assembled.generationStrategy === "CODING_PATTERN";
+    const meta = (assembled.metadata as Record<string, any>) || {};
+    const oracleKey = meta.oracleKey || (meta.codingData as any)?.oracleKey;
+    const isCoding = assembled.generationStrategy === "CODING_PATTERN" || !!oracleKey;
+
+    let oracleInfo: any = null;
+    if (oracleKey) {
+      try {
+        oracleInfo = await this.prisma.codingOracle.findUnique({
+          where: { key: oracleKey },
+        });
+      } catch {
+        // Continue if oracle lookup fails
+      }
+    }
+
     const codingData = isCoding
       ? {
-          patternId: (assembled.metadata as any)?.patternId,
-          patternKey: (assembled.metadata as any)?.patternKey,
-          oracleKey: (assembled.metadata as any)?.oracleKey,
-          seed: (assembled.metadata as any)?.seed,
-          parameters: (assembled.metadata as any)?.parameters,
-          generatedInput: (assembled.metadata as any)?.generatedInput,
-          expectedOutput: (assembled.metadata as any)?.expectedOutput,
-          publicTests: (assembled.metadata as any)?.publicTests,
-          hiddenTests: (assembled.metadata as any)?.hiddenTests,
-          boundaryTests: (assembled.metadata as any)?.boundaryTests,
-          stressTests: (assembled.metadata as any)?.stressTests,
-          starterCode: (assembled.metadata as any)?.starterCode,
+          patternId: meta.patternId,
+          patternKey: meta.patternKey,
+          oracleKey: oracleKey,
+          seed: meta.seed,
+          parameters: meta.parameters,
+          generatedInput: meta.generatedInput,
+          expectedOutput: meta.expectedOutput,
+          publicTests: meta.publicTests,
+          hiddenTests: meta.hiddenTests,
+          boundaryTests: meta.boundaryTests,
+          stressTests: meta.stressTests,
+          starterCode: meta.starterCode || {},
         }
+      : undefined;
+
+    const mergedMetadata = {
+      ...meta,
+      ...(oracleInfo
+        ? {
+            oracleName: oracleInfo.name,
+            oracleCategory: oracleInfo.category,
+            oracleDescription: oracleInfo.description,
+          }
+        : {}),
+    };
+
+    const aiStatement = meta.aiStatement;
+    const title = aiStatement?.title || meta.title || meta.questionTitle;
+    const statement = aiStatement?.narrative || meta.narrative || meta.questionStatement;
+
+    let templateIdToSave: string | undefined = assembled.templateId;
+    if (isCoding) {
+      if (meta.conceptKey && !templateIdToSave) {
+        try {
+          const tmpl = await this.prisma.template.findFirst({
+            where: { conceptKey: { equals: meta.conceptKey, mode: "insensitive" } },
+          });
+          templateIdToSave = tmpl?.id;
+        } catch {}
+      } else if (assembled.templateId) {
+        // Verify templateId exists in Template table before saving to prevent foreign key violation
+        try {
+          const exists = await this.prisma.template.findUnique({
+            where: { id: assembled.templateId },
+          });
+          if (!exists) templateIdToSave = undefined;
+        } catch {
+          templateIdToSave = undefined;
+        }
+      }
+    }
+
+    const instructions = isCoding
+      ? JSON.stringify({
+          constraints:
+            aiStatement?.constraintsDescription ||
+            "Standard time O(N) and space O(1) constraints apply.",
+          testCases: JSON.stringify(
+            (meta.publicTests || []).map((t: any) => ({
+              input:
+                typeof t.input === "object"
+                  ? JSON.stringify(t.input)
+                  : String(t.input),
+              output:
+                typeof t.expectedOutput === "object" &&
+                t.expectedOutput.result !== undefined
+                  ? String(t.expectedOutput.result)
+                  : JSON.stringify(t.expectedOutput),
+            })),
+            null,
+            2,
+          ),
+        })
       : undefined;
 
     return this.prisma.question.create({
       data: {
         questionText: assembled.questionText,
+        questionTitle: title,
+        questionStatement: statement,
+        instructions,
         answer: assembled.correctAnswer,
         explanation: assembled.explanation,
         difficulty: assembled.difficulty,
         source: assembled.source,
         questionType: isCoding ? "CODING" : "MCQ",
-        templateId: assembled.templateId,
+        templateId: templateIdToSave,
         topicId,
         conceptId,
         sectionId,
         codingData: codingData as any,
-        metadata: assembled.metadata as any,
-        status: "DRAFT",
+        mcqData: !isCoding && assembled.options?.length ? { options: assembled.options } : undefined,
+        metadata: mergedMetadata as any,
+        status: isCoding ? "ACTIVE" : "DRAFT",
       },
     });
   }

@@ -143,7 +143,10 @@ export class EvaluationQueueService {
 
     const answersMap: Record<string, string> = {};
     answers.forEach((ans) => {
-      answersMap[ans.questionId] = String(ans.answer);
+      answersMap[ans.questionId] =
+        typeof ans.answer === "object" && ans.answer !== null
+          ? JSON.stringify(ans.answer)
+          : String(ans.answer || "");
     });
 
     // Reset error, increment retryCount, and enqueue

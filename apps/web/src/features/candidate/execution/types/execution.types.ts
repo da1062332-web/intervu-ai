@@ -12,6 +12,10 @@ export interface QuestionOption {
 }
 
 export interface Question {
+  questionTitle?: string;
+  instructions?: any;
+  questionSnapshot?: any;
+  codingData?: any;
   id: string;
   questionHash: string;
   type: QuestionType;
@@ -23,7 +27,7 @@ export interface Question {
 }
 
 export interface Section {
-  sectionName: string;
+  sectionName?: string;
   id: string;
   sectionKey: string;
   title: string;

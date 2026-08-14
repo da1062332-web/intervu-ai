@@ -49,6 +49,15 @@ export function ExecutionLayout() {
   });
 
   const handleCopyPaste = (e: React.ClipboardEvent) => {
+    const target = e.target as HTMLElement | null;
+    const isEditable =
+      target?.closest?.('.monaco-editor, textarea, input, [contenteditable="true"]') !== null;
+
+    if (isEditable) {
+      // Allow copy, cut, and paste inside embedded compiler and text inputs
+      return;
+    }
+
     e.preventDefault();
   };
 

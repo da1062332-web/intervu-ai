@@ -21,7 +21,11 @@ describe("CodingPatternService - Oracle Validation & Publishing Invariant", () =
       validateOracleForUsage: jest.fn(),
     };
 
-    service = new CodingPatternService(mockPatternRepo, mockOracleService);
+    const mockEventEmitter = {
+      emit: jest.fn(),
+    };
+
+    service = new CodingPatternService(mockPatternRepo, mockOracleService, mockEventEmitter as any);
   });
 
   it("should create draft pattern cleanly when Oracle is valid", async () => {

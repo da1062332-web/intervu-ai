@@ -66,6 +66,6 @@ describe('QuestionRenderer', () => {
     });
 
     render(<QuestionRenderer />);
-    expect(screen.getByTitle('OneCompiler')).toBeInTheDocument();
+    expect(screen.getByTitle('Code Compiler')).toBeInTheDocument();
   });
 });

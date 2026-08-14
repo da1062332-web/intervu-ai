@@ -9,12 +9,14 @@ import { CodingOracleService } from "./coding-oracle.service";
 import { CreateCodingPatternDto } from "../dto/create-coding-pattern.dto";
 import { UpdateCodingPatternDto } from "../dto/update-coding-pattern.dto";
 import { CodingPattern, CodingPatternStatus, DifficultyLevel } from "@prisma/client";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class CodingPatternService {
   constructor(
     private readonly patternRepo: CodingPatternRepository,
     private readonly oracleService: CodingOracleService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createPattern(dto: CreateCodingPatternDto, creatorId?: string): Promise<CodingPattern> {
@@ -25,7 +27,7 @@ export class CodingPatternService {
       throw new ConflictException(`Coding Pattern with slug "${dto.slug}" already exists.`);
     }
 
-    return this.patternRepo.create({
+    const pattern = await this.patternRepo.create({
       title: dto.title,
       slug: dto.slug,
       description: dto.description,
@@ -41,6 +43,14 @@ export class CodingPatternService {
       metadata: dto.metadata ?? {},
       creatorId,
     });
+
+    // Automatically trigger question generation for this pattern asynchronously
+    this.eventEmitter.emit("coding_pattern.created", {
+      patternId: pattern.id,
+      oracleKey: pattern.oracleKey,
+    });
+
+    return pattern;
   }
 
   async getPatternById(id: string): Promise<CodingPattern> {
@@ -109,7 +119,16 @@ export class CodingPatternService {
       delete updateData.isPublished;
     }
 
-    return this.patternRepo.update(id, updateData);
+    const updated = await this.patternRepo.update(id, updateData);
+
+    if (isBecomingPublished) {
+      this.eventEmitter.emit("coding_pattern.created", {
+        patternId: updated.id,
+        oracleKey: updated.oracleKey,
+      });
+    }
+
+    return updated;
   }
 
   async deletePattern(id: string): Promise<CodingPattern> {

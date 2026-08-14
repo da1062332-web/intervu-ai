@@ -49,83 +49,49 @@ interface CandidateHistorySectionProps {
 }
 
 const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
-  const [downloading, setDownloading] = useState(false);
-
-  const handleDownload = async () => {
-    try {
-      setDownloading(true);
-      const blob = await import('@/services/api/client').then((m) =>
-        m.apiClient.request<Blob>(`/reports/export/pdf/${attempt.instanceId}`, {
-          responseType: 'blob',
-        }),
-      );
-      const url = URL.createObjectURL(blob as any);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Report-${attempt.instanceId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   return (
-    <div className='flex items-center gap-2 flex-wrap'>
+    <div className='flex items-center justify-end gap-2.5 whitespace-nowrap shrink-0'>
       {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
         <>
-          <Link
-            href={`/candidate/results/${attempt.instanceId}`}
-            className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-[#f3e8ff] hover:bg-[#e7d4ff] text-[#7e22ce] dark:bg-purple-950/60 dark:text-purple-300 dark:hover:bg-purple-900/70 transition-all border border-purple-200/60 dark:border-purple-800/50 shadow-2xs'
+          <Button
+            size='sm'
+            variant='secondary'
+            asChild
+            className='h-8 px-3 text-xs font-bold rounded-lg'
           >
-            View Result
-          </Link>
-          <button
-            type='button'
-            className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-3.5 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
-            onClick={handleDownload}
-            disabled={downloading}
-          >
-            <Download className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
-            <span>{downloading ? 'Exporting...' : 'Report'}</span>
-          </button>
-          {attempt.canReAttempt !== false ? (
-            <Link
-              href={`/candidate/tests/${attempt.examConfigId || attempt.testConfigId || attempt.configId || attempt.testId || attempt.assessmentId}`}
-              className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-background border border-border/80 hover:bg-muted/60 text-foreground transition-all gap-1.5 shadow-2xs group'
-            >
-              <Play className='size-3.5 text-muted-foreground group-hover:text-foreground transition-colors' />
-              <span>Re-Exam</span>
+            <Link href={`/candidate/results/${attempt.instanceId}`}>
+              View Result
             </Link>
-          ) : (
-            <button
-              disabled
-              className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-4 bg-background border border-border/80 text-muted-foreground opacity-60 cursor-not-allowed transition-all gap-1.5 shadow-2xs'
+          </Button>
+          {attempt.canReAttempt !== false ? (
+            <Button
+              size='sm'
+              variant='outline'
+              asChild
+              className='h-8 px-3 text-xs font-semibold rounded-lg gap-1.5'
             >
-              Max Attempts Reached
-            </button>
-          )}
+              <Link
+                href={`/candidate/tests/${attempt.examConfigId || attempt.testConfigId || attempt.configId || attempt.testId || attempt.assessmentId}`}
+              >
+                <Play className='size-3 text-muted-foreground' />
+                <span>Re-Exam</span>
+              </Link>
+            </Button>
+          ) : null}
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
-        <Link
-          href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}
-          className='inline-flex items-center justify-center rounded-[14px] font-bold text-xs h-9 px-6 bg-[#6366f1] hover:bg-[#4f46e5] text-white transition-all shadow-md gap-1.5'
-        >
-          <Play className='size-3.5 fill-current' /> Resume
-        </Link>
-      ) : (
         <Button
           size='sm'
-          variant='ghost'
-          disabled
-          className='h-9 px-4 text-xs font-semibold opacity-50 rounded-[14px]'
+          variant='default'
+          asChild
+          className='h-8 px-4 text-xs font-bold rounded-lg gap-1.5'
         >
-          Pending
+          <Link href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}>
+            <Play className='size-3 fill-current' /> Resume
+          </Link>
         </Button>
+      ) : (
+        <span className='text-xs font-medium text-muted-foreground px-2'>-</span>
       )}
     </div>
   );
@@ -304,8 +270,9 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
                         : 'Evaluation in progress')}
                   </p>
                   {row.maxAttempts !== undefined && row.attemptCount !== undefined && (
-                    <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                      Attempt {row.attemptCount} / {row.maxAttempts} • {row.remainingAttempts} remaining
+                    <p className='text-[11px] text-muted-foreground font-medium mt-0.5'>
+                      Attempt {row.attemptCount} / {row.maxAttempts} • {row.remainingAttempts}{' '}
+                      remaining
                     </p>
                   )}
 
@@ -346,28 +313,6 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
       ),
     },
     {
-      id: 'attempts',
-      header: (
-        <div className='flex items-center gap-1.5 font-bold text-xs uppercase tracking-wide'>
-          Attempts
-        </div>
-      ),
-      cell: (row) => (
-        row.maxAttempts !== undefined && row.attemptCount !== undefined ? (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-bold text-foreground">
-              {row.attemptCount} / {row.maxAttempts}
-            </span>
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {row.remainingAttempts} left
-            </span>
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground">-</span>
-        )
-      )
-    },
-    {
       id: 'date',
       header: (
         <div
@@ -382,31 +327,6 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
           {format(new Date(row.date), 'MMM d, yyyy • HH:mm a')}
         </span>
       ),
-    },
-    {
-      id: 'status',
-      header: (
-        <div
-          className='flex items-center gap-1.5 cursor-pointer hover:text-foreground select-none font-bold text-xs uppercase tracking-wide'
-          onClick={() => toggleSort('status')}
-        >
-          Status <ArrowUpDown className='size-3 opacity-50' />
-        </div>
-      ),
-      cell: (row) => {
-        if (row.status === 'COMPLETED' || row.status === 'SUBMITTED') {
-          return (
-            <span className='inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#ecfdf5] text-[#047857] dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-bold border border-emerald-200/50'>
-              <CheckCircle2 className='size-3.5 text-[#10b981]' /> Success
-            </span>
-          );
-        }
-        return (
-          <span className='inline-flex items-center px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-bold'>
-            {row.status.replace('_', ' ')}
-          </span>
-        );
-      },
     },
     {
       id: 'score',

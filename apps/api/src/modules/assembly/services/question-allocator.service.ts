@@ -613,57 +613,108 @@ export class QuestionAllocatorService {
 
       const isCodingTopic =
         topicId.toLowerCase().includes("coding") ||
-        topicDisplayName.toLowerCase().includes("coding");
+        topicDisplayName.toLowerCase().includes("coding") ||
+        topicRecord?.code?.toLowerCase().includes("coding");
 
-      // For coding questions: allow question re-use by picking existing active coding questions from DB
+      // For coding questions: accurately match requested topic and preserve test cases
       if (isCodingTopic) {
-        const existingCodingQuestions = await this.prisma.question.findMany({
+        let existingCodingQuestions = await this.prisma.question.findMany({
           where: {
             status: "ACTIVE",
+            questionType: "CODING",
             OR: [
-              { questionType: "CODING" },
               { topicId: topicRecord?.id || topicId },
-              { topic: { name: { contains: "coding", mode: "insensitive" } } },
+              { conceptId: topicRecord?.id || topicId },
             ],
           },
           take: deficit,
         });
 
-        if (existingCodingQuestions.length > 0) {
-          return existingCodingQuestions.map((q, idx) => ({
-            questionId: q.id,
-            questionHash: q.id,
-            conceptKey: q.topicId,
-            difficultyLevel: (q.difficulty || difficulty) as any,
-            questionType: "CODING" as any,
-            questionOrder: orderCounter + idx,
-            questionSnapshot: {
-              id: q.id,
-              conceptKey: q.topicId,
-              difficultyLevel: q.difficulty || difficulty,
+        if (existingCodingQuestions.length === 0 && topicRecord) {
+          existingCodingQuestions = await this.prisma.question.findMany({
+            where: {
+              status: "ACTIVE",
               questionType: "CODING",
-              questionText: q.questionText,
-              options: [],
-              codingData: (q.codingData as any) || {
-                patternId: "ARRAY_ROTATION",
-                oracleKey: "ARRAY_ROTATION_ORACLE",
-                publicTests: [
-                  {
-                    input: { arr: [1, 2, 3, 4, 5], k: 2 },
-                    expectedOutput: { result: [4, 5, 1, 2, 3] },
-                  },
-                ],
-                hiddenTests: [
-                  {
-                    input: { arr: [10, 20, 30], k: 1 },
-                    expectedOutput: { result: [30, 10, 20] },
-                  },
+              topic: {
+                OR: [
+                  { id: topicRecord.id },
+                  { code: topicRecord.code },
+                  { name: { equals: topicRecord.name, mode: "insensitive" } },
                 ],
               },
-              correctAnswer: q.answer || "",
-              solution: q.explanation || "",
-            } as any,
-          }));
+            },
+            take: deficit,
+          });
+        }
+
+        if (existingCodingQuestions.length === 0) {
+          existingCodingQuestions = await this.prisma.question.findMany({
+            where: {
+              status: "ACTIVE",
+              questionType: "CODING",
+            },
+            take: deficit,
+          });
+        }
+
+        if (existingCodingQuestions.length > 0) {
+          return existingCodingQuestions.map((q, idx) => {
+            let parsedInstructions: any = null;
+            if (q.instructions) {
+              try {
+                parsedInstructions =
+                  typeof q.instructions === "string"
+                    ? JSON.parse(q.instructions)
+                    : q.instructions;
+              } catch {
+                parsedInstructions = { constraints: q.instructions };
+              }
+            }
+
+            let parsedTestCases: any[] = [];
+            if (parsedInstructions?.testCases) {
+              try {
+                parsedTestCases =
+                  typeof parsedInstructions.testCases === "string"
+                    ? JSON.parse(parsedInstructions.testCases)
+                    : parsedInstructions.testCases;
+              } catch {
+                parsedTestCases = [];
+              }
+            }
+
+            return {
+              questionId: q.id,
+              questionHash: q.id,
+              conceptKey: q.topicId,
+              difficultyLevel: (q.difficulty || difficulty) as any,
+              questionType: "CODING" as any,
+              questionOrder: orderCounter + idx,
+              questionSnapshot: {
+                id: q.id,
+                conceptKey: q.topicId,
+                difficultyLevel: q.difficulty || difficulty,
+                questionType: "CODING",
+                questionText: q.questionText || q.questionStatement || "",
+                questionTitle: q.questionTitle || "Coding Problem",
+                questionStatement: q.questionStatement || q.questionText || "",
+                instructions: q.instructions || "",
+                testCases: parsedTestCases,
+                constraints: parsedInstructions?.constraints || null,
+                options: [],
+                codingData: (q.codingData as any) || {
+                  examples: parsedTestCases.slice(0, 3).map((tc: any) => ({
+                    input: tc.input,
+                    output: tc.output || tc.expectedOutput,
+                    explanation: tc.explanation || null,
+                  })),
+                  constraints: parsedInstructions?.constraints || null,
+                },
+                correctAnswer: q.answer || "",
+                solution: q.explanation || "",
+              } as any,
+            };
+          });
         }
       }
 

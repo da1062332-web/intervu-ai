@@ -71,9 +71,15 @@ export const resultApi = {
   },
 
   exportToPdf: async (attemptId: string): Promise<Blob> => {
-    return apiClient.request<Blob>(`/reports/export/pdf/${attemptId}`, {
-      responseType: 'blob',
-    });
+    try {
+      return await apiClient.request<Blob>(`${BASE_PATH}/${attemptId}/export/pdf`, {
+        responseType: 'blob',
+      });
+    } catch {
+      return await apiClient.request<Blob>(`/reports/export/pdf/${attemptId}`, {
+        responseType: 'blob',
+      });
+    }
   },
 
   exportToJson: async (attemptId: string): Promise<any> => {
