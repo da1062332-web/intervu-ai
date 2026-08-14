@@ -37,6 +37,8 @@ import {
 import { buildConstraintRule, parseConstraintRule, toConstraintPayload } from './constraint-utils';
 import toast from 'react-hot-toast';
 
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+
 interface VariableDefinition {
   name: string;
   type: string;
@@ -162,16 +164,23 @@ export function GenerationStrategySection() {
   const [editingVariable, setEditingVariable] = useState<VariableDefinition | null>(null);
   const [editingDerived, setEditingDerived] = useState<DerivedVariableDefinition | null>(null);
   const [editingConstraint, setEditingConstraint] = useState<ConstraintDefinition | null>(null);
-  const [variableForm, setVariableForm] = useState({
-    name: '',
-    type: 'number',
-    min: '',
-    max: '',
-    defaultValue: '',
-    generator: 'random',
-  });
-  const [derivedForm, setDerivedForm] = useState({ name: '', expression: '' });
-  const [constraintForm, setConstraintForm] = useState({ target: '', operator: '>', value: '' });
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const variableForm = draftState.variableForm;
+  const setVariableForm = (val: any) => {
+    updateDraftState({ variableForm: typeof val === 'function' ? val(variableForm) : val });
+  };
+
+  const derivedForm = draftState.derivedForm;
+  const setDerivedForm = (val: any) => {
+    updateDraftState({ derivedForm: typeof val === 'function' ? val(derivedForm) : val });
+  };
+
+  const constraintForm = draftState.constraintForm;
+  const setConstraintForm = (val: any) => {
+    updateDraftState({ constraintForm: typeof val === 'function' ? val(constraintForm) : val });
+  };
+
   const [error, setError] = useState<string | null>(null);
 
   // AI Assistant State
