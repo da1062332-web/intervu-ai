@@ -237,26 +237,6 @@ Rules:
       }
     }
 
-    // Smart Fallback for valid code
-    const hasValidCodeStructure =
-      submittedCode.includes("return") ||
-      submittedCode.includes("public") ||
-      submittedCode.includes("class") ||
-      submittedCode.includes("def ") ||
-      submittedCode.includes("function");
-
-    if (hasValidCodeStructure) {
-      return {
-        isCorrect: true,
-        score: 1,
-        passed: true,
-        constraintValidation: "PASSED",
-        syntaxError: false,
-        compilationError: false,
-        explanation: "Code passed functional correctness.",
-      };
-    }
-
     return {
       isCorrect: false,
       score: 0,
@@ -264,7 +244,7 @@ Rules:
       constraintValidation: "NOT_CHECKED",
       syntaxError: false,
       compilationError: false,
-      explanation: "Evaluation could not be completed due to a service error.",
+      explanation: "Evaluation could not be completed due to an evaluation service error.",
     };
   }
 }

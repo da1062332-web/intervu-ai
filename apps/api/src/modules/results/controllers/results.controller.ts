@@ -79,8 +79,11 @@ export class ResultsController {
       return attempt;
     }
 
+    if (!user) {
+      throw new ForbiddenException("Authentication required to access assessment attempt");
+    }
+
     if (
-      user &&
       user.role !== UserRole.ADMIN &&
       attempt.userId &&
       attempt.userId !== user.id
@@ -90,9 +93,9 @@ export class ResultsController {
         requestingUserId: user?.id,
         ownerUserId: attempt.userId,
       });
-      if (user.id !== attempt.userId) {
-        return attempt;
-      }
+      throw new ForbiddenException(
+        "Access denied: you do not have permission to view this assessment result",
+      );
     }
 
     return attempt;
@@ -136,7 +139,6 @@ export class ResultsController {
     return this.resultQueryService.getDashboardWidgets(user.id);
   }
 
-  @Public()
   @Get("status/:attemptId")
   @ApiOperation({ summary: "Get result evaluation status" })
   @ApiParam({ name: "attemptId", required: true })
@@ -144,11 +146,10 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     return this.resultQueryService.getStatus(attemptId);
   }
 
-  @Public()
   @Get(":attemptId/recommendations")
   @ApiOperation({ summary: "Get assessment recommendations" })
   @ApiParam({ name: "attemptId", required: true })
@@ -160,11 +161,10 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     return this.resultQueryService.getRecommendations(attemptId);
   }
 
-  @Public()
   @Get(":attemptId/ai-analysis")
   @ApiOperation({
     summary: "Get AI-generated strengths, weaknesses, and recommendations",
@@ -174,11 +174,10 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     return this.aiAnalysisService.generateAnalysis(attemptId);
   }
 
-  @Public()
   @Get(":attemptId/performance-dashboard")
   @ApiOperation({ summary: "Get aggregated performance dashboard metrics" })
   @ApiParam({ name: "attemptId", required: true })
@@ -186,7 +185,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     return this.resultQueryService.getPerformanceDashboard(attemptId);
   }
 
@@ -198,7 +197,7 @@ export class ResultsController {
     @Param("attemptId") attemptId: string,
     @Res() res: import("express").Response,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     const pdfBuffer = await this.resultExportService.exportToPdf(attemptId);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -215,11 +214,10 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     return this.resultExportService.exportToJson(attemptId);
   }
 
-  @Public()
   @Get(":attemptId/rank")
   @ApiOperation({ summary: "Get candidate ranking details" })
   @ApiParam({
@@ -231,7 +229,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
     const attemptWithResult = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
       include: { candidateResult: true },
@@ -244,7 +242,6 @@ export class ResultsController {
     );
   }
 
-  @Public()
   @Get(":attemptId/insights")
   @ApiOperation({
     summary: "Get candidate evaluation insights and improvement plans",
@@ -258,7 +255,7 @@ export class ResultsController {
     @CurrentUser() user: { id: string; role: string },
     @Param("attemptId") attemptId: string,
   ) {
-    await this.assertAttemptOwnership(attemptId, user, true);
+    await this.assertAttemptOwnership(attemptId, user);
 
     const insightRecord = await this.prisma.evaluationInsight.findUnique({
       where: { attemptId },
@@ -282,7 +279,6 @@ export class ResultsController {
     };
   }
 
-  @Public()
   @Get(":id")
   @ApiOperation({
     summary: "Get assessment result details by attempt ID or evaluation ID",
@@ -305,7 +301,7 @@ export class ResultsController {
   ) {
     try {
       const result = await this.resultQueryService.getResult(id);
-      await this.assertAttemptOwnership(result.attemptId, user, true);
+      await this.assertAttemptOwnership(result.attemptId, user);
       return result;
     } catch (err: any) {
       if (err?.status === 403) throw err;
