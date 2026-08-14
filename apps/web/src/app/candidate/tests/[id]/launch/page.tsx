@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import { useParams } from 'next/navigation';
 import { TestLaunchPage } from '@/modules/candidate/pages/TestLaunchPage';
 
-export default function CandidateTestLaunchPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = (React as any).use(params);
+export default function CandidateTestLaunchPage() {
+  const params = useParams();
+  const id = (params?.id as string) || '';
 
   return (
     <React.Suspense
