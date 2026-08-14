@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useConfig } from '@/services/exam-configs';
 import { ConfigurationSelection } from '@/features/assessment-builder/components/ConfigurationSelection';
 import { BlueprintPreview } from '@/features/assessment-builder/components/BlueprintPreview';
 import { GenerationProgress } from '@/features/assessment-builder/components/GenerationProgress';
@@ -18,18 +20,46 @@ import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/section-header';
 import { CustomFormCard } from '@/components/ui/custom-form-card';
 
-export default function AssessmentBuilderPage() {
+function AssessmentBuilderContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  const configId = searchParams.get('configId');
+  const urlJobId = searchParams.get('jobId');
+
   const [step, setStep] = useState<'SELECT_CONFIG' | 'PREVIEW_BLUEPRINT' | 'GENERATING' | 'RESULT'>(
-    'SELECT_CONFIG',
+    urlJobId ? 'GENERATING' : 'SELECT_CONFIG',
   );
   const [selectedConfig, setSelectedConfig] = useState<ExamConfig | null>(null);
 
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const { data: configFromUrl, isLoading: isConfigLoading } = useConfig(configId || '');
+  const isInitializingUrlConfig = !!configId && isConfigLoading;
+
+  React.useEffect(() => {
+    if (configId && configFromUrl && (step === 'SELECT_CONFIG' || step === 'GENERATING')) {
+      setSelectedConfig(configFromUrl);
+      if (step === 'SELECT_CONFIG' && !urlJobId) {
+        setStep('PREVIEW_BLUEPRINT');
+      }
+    }
+  }, [configId, configFromUrl, step, urlJobId]);
+
+  const [activeJobId, setActiveJobId] = useState<string | null>(urlJobId);
+
+  React.useEffect(() => {
+    if (activeJobId && searchParams.get('jobId') !== activeJobId) {
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set('jobId', activeJobId);
+      router.replace(`${pathname}?${newParams.toString()}`);
+    }
+  }, [activeJobId, pathname, router, searchParams]);
 
   const {
     mutate: generateAssessment,
     isPending: isMutationPending,
     isError: isMutationError,
+    reset: resetMutation,
   } = useGenerateAssessment();
   const { data: jobStatus, isError: isJobError } = useJobPolling(activeJobId);
 
@@ -48,10 +78,15 @@ export default function AssessmentBuilderPage() {
       setGeneratedAssessment(assessmentData);
       const validation = validateAssessment(selectedConfig, assessmentData);
       setValidationResult(validation);
-      const timer = setTimeout(() => setStep('RESULT'), 1500);
+      const timer = setTimeout(() => {
+        setStep('RESULT');
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.delete('jobId');
+        router.replace(`${pathname}?${newParams.toString()}`);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [jobStatus?.status, jobStatus?.result, selectedConfig]);
+  }, [jobStatus?.status, jobStatus?.result, selectedConfig, pathname, router, searchParams]);
 
   const handleConfigSelect = (config: ExamConfig) => {
     setSelectedConfig(config);
@@ -108,6 +143,21 @@ export default function AssessmentBuilderPage() {
     );
   };
 
+  const handleRetry = () => {
+    resetMutation();
+    setActiveJobId(null);
+    handleGenerate();
+  };
+
+  const handleGoBack = () => {
+    resetMutation();
+    setActiveJobId(null);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete('jobId');
+    router.replace(`${pathname}?${newParams.toString()}`);
+    setStep('PREVIEW_BLUEPRINT');
+  };
+
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in'>
       <SectionHeader
@@ -119,7 +169,11 @@ export default function AssessmentBuilderPage() {
         ]}
       />
 
-      {step === 'SELECT_CONFIG' && (
+      {isInitializingUrlConfig ? (
+        <div className='py-12 flex justify-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600'></div>
+        </div>
+      ) : step === 'SELECT_CONFIG' && (
         <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
           <CustomFormCard
             title='1. Select Configuration'
@@ -176,10 +230,10 @@ export default function AssessmentBuilderPage() {
           />
           {isError && (
             <div className='mt-6 flex justify-center gap-4'>
-              <Button variant='outline' onClick={() => setStep('PREVIEW_BLUEPRINT')}>
+              <Button variant='outline' onClick={handleGoBack}>
                 Go Back
               </Button>
-              <Button onClick={handleGenerate}>Retry Generation</Button>
+              <Button onClick={handleRetry}>Retry Generation</Button>
             </div>
           )}
         </div>
@@ -211,5 +265,13 @@ export default function AssessmentBuilderPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AssessmentBuilderPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading Assessment Generator...</div>}>
+      <AssessmentBuilderContent />
+    </Suspense>
   );
 }

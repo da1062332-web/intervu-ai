@@ -22,6 +22,7 @@ import { SolutionLogicSection } from './components/SolutionLogicSection';
 import { DatasetConfigurationSection } from './components/DatasetConfigurationSection';
 import { PreviewSection } from './components/PreviewSection';
 import { DatasetQuestionDefinitionSection } from './components/DatasetQuestionDefinitionSection';
+import { TemplateBuilderProvider, useTemplateBuilderContext } from './context/TemplateBuilderContext';
 
 type SectionType =
   | 'basic'
@@ -39,9 +40,19 @@ type SectionType =
   | 'analytics';
 
 export default function TemplatePage() {
+  return (
+    <TemplateBuilderProvider>
+      <TemplateEditorContent />
+    </TemplateBuilderProvider>
+  );
+}
+
+function TemplateEditorContent() {
   const params = useParams();
   const id = params.id as string;
   const [activeSection, setActiveSection] = useState<SectionType>('basic');
+  
+  const { initializeDraft, isInitialized } = useTemplateBuilderContext();
 
   // Fetch the full template details
   const { data: response, isLoading, isError } = useTemplate(id);
@@ -56,6 +67,10 @@ export default function TemplatePage() {
         <DetailPageSkeleton />
       </div>
     );
+  }
+
+  if (template && !isInitialized) {
+    initializeDraft(template);
   }
 
   if (isError || !template) {

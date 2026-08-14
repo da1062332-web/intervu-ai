@@ -327,6 +327,7 @@ export class QuestionAllocatorService {
           limit: topicCount * 5,
           excludeIds: Array.from(currentlyExcludedIds),
           examId,
+          questionType: "",
         });
 
         const filtered = await this.antiRepetitionService.filterPool(
@@ -437,6 +438,7 @@ export class QuestionAllocatorService {
             limit: shortage * 5,
             excludeIds: Array.from(currentlyExcludedIds),
             examId,
+            questionType: "",
           });
 
           for (const q of questions) {
@@ -489,6 +491,7 @@ export class QuestionAllocatorService {
                   limit: shortage * 5,
                   excludeIds: Array.from(currentlyExcludedIds),
                   examId,
+                  questionType: "",
                 });
 
               for (const q of fallbackQuestions) {
@@ -529,7 +532,13 @@ export class QuestionAllocatorService {
             (section as any).name ||
             section.sectionKey ||
             "Section";
-          const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
+          const topicName = (
+            (topicAlloc as any).topicName ||
+            topicAlloc.topicId ||
+            ""
+          )
+            .replace(/^"|"$/g, "")
+            .trim();
           const deficit = requiredForTopic - selectedForTopic.length;
 
           const runtimeGenerated = await this.handleDeficitGeneration(
@@ -580,32 +589,103 @@ export class QuestionAllocatorService {
 
   private async handleDeficitGeneration(
     deficit: number,
-    topicId: string,
+    rawTopicId: string,
     difficulty: DifficultyLevel,
     allocatedQuestionIds: Set<string>,
     orderCounter: number,
     examId?: string,
   ): Promise<AllocatedQuestionDto[]> {
     if (!examId || !this.prisma) return [];
+    const topicId = (rawTopicId || "").replace(/^"|"$/g, "").trim();
 
     try {
+      const topicRecord = await this.prisma.topic.findFirst({
+        where: {
+          OR: [
+            { id: topicId },
+            { code: topicId },
+            { name: { equals: topicId, mode: "insensitive" } },
+            { name: { contains: topicId, mode: "insensitive" } },
+          ],
+        },
+      });
+      const topicDisplayName = topicRecord?.name || topicId;
+
+      const isCodingTopic =
+        topicId.toLowerCase().includes("coding") ||
+        topicDisplayName.toLowerCase().includes("coding");
+
+      // For coding questions: allow question re-use by picking existing active coding questions from DB
+      if (isCodingTopic) {
+        const existingCodingQuestions = await this.prisma.question.findMany({
+          where: {
+            status: "ACTIVE",
+            OR: [
+              { questionType: "CODING" },
+              { topicId: topicRecord?.id || topicId },
+              { topic: { name: { contains: "coding", mode: "insensitive" } } },
+            ],
+          },
+          take: deficit,
+        });
+
+        if (existingCodingQuestions.length > 0) {
+          return existingCodingQuestions.map((q, idx) => ({
+            questionId: q.id,
+            questionHash: q.id,
+            conceptKey: q.topicId,
+            difficultyLevel: (q.difficulty || difficulty) as any,
+            questionType: "CODING" as any,
+            questionOrder: orderCounter + idx,
+            questionSnapshot: {
+              id: q.id,
+              conceptKey: q.topicId,
+              difficultyLevel: q.difficulty || difficulty,
+              questionType: "CODING",
+              questionText: q.questionText,
+              options: [],
+              codingData: (q.codingData as any) || {
+                patternId: "ARRAY_ROTATION",
+                oracleKey: "ARRAY_ROTATION_ORACLE",
+                publicTests: [
+                  {
+                    input: { arr: [1, 2, 3, 4, 5], k: 2 },
+                    expectedOutput: { result: [4, 5, 1, 2, 3] },
+                  },
+                ],
+                hiddenTests: [
+                  {
+                    input: { arr: [10, 20, 30], k: 1 },
+                    expectedOutput: { result: [30, 10, 20] },
+                  },
+                ],
+              },
+              correctAnswer: q.answer || "",
+              solution: q.explanation || "",
+            } as any,
+          }));
+        }
+      }
+
       const ruleFlags = await this.prisma.ruleFlags.findUnique({
         where: { examConfigId: examId },
       });
 
-      const isCandidateNoRepeat = (ruleFlags as any)?.candidateNoRepeatEnabled ?? false;
-      const isRuntimeGen = (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
+      const isCandidateNoRepeat =
+        (ruleFlags as any)?.candidateNoRepeatEnabled ?? false;
+      const isRuntimeGen =
+        (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
 
       // Allow runtime AI generation if runtimeGenerationOnDeficit or candidateNoRepeat is true, or fallback to auto-recovery on deficit
-      if (ruleFlags && !isRuntimeGen && !isCandidateNoRepeat) {
+      if (
+        ruleFlags &&
+        !isRuntimeGen &&
+        !isCandidateNoRepeat &&
+        !isCodingTopic
+      ) {
         // If explicitly both turned off by admin, return empty array
         return [];
       }
-
-      const topicRecord = await this.prisma.topic.findFirst({
-        where: { OR: [{ id: topicId }, { code: topicId }] },
-      });
-      const topicDisplayName = topicRecord?.name || topicId;
 
       let styleProfile = null;
       if (examId) {
@@ -648,10 +728,23 @@ export class QuestionAllocatorService {
           }
         }
 
-        const questionText = questionData?.questionText || questionData?.question || `${topicDisplayName}: Question ${currentQuestionNumber} (${difficulty} assessment problem)`;
-        const options = (questionData?.mcqData as any)?.options || questionData?.options || ["Option A", "Option B", "Option C", "Option D"];
-        const correctAnswer = questionData?.correctAnswer || questionData?.answer || "Option A";
-        const solution = questionData?.explanation || questionData?.solution || `Auto-generated step-by-step solution for ${topicDisplayName} question ${currentQuestionNumber}.`;
+        const questionText =
+          questionData?.questionText ||
+          questionData?.question ||
+          `${topicDisplayName}: Question ${currentQuestionNumber} (${difficulty} assessment problem)`;
+        const options = (questionData?.mcqData as any)?.options ||
+          questionData?.options || [
+            "Option A",
+            "Option B",
+            "Option C",
+            "Option D",
+          ];
+        const correctAnswer =
+          questionData?.correctAnswer || questionData?.answer || "Option A";
+        const solution =
+          questionData?.explanation ||
+          questionData?.solution ||
+          `Auto-generated step-by-step solution for ${topicDisplayName} question ${currentQuestionNumber}.`;
 
         const defaultTemplate = await this.prisma.template.findFirst({
           select: { id: true },

@@ -177,14 +177,14 @@ export class ExecutionService {
             const { correctAnswer, answer, solution, ...candidateSafeSnapshot } =
               rawSnapshot;
 
-            // Enrich options from mcqData if snapshot has incomplete/missing options (< 4)
-            const snapshotOptions = candidateSafeSnapshot.options;
-            const hasFullOptions =
+            // Enrich options from mcqData if snapshot has incomplete/missing options (< 2)
+            let snapshotOptions = candidateSafeSnapshot.options;
+            const hasOptions =
               Array.isArray(snapshotOptions) && snapshotOptions.length >= 2;
-            if (!hasFullOptions && questionMcqDataMap.has(q.questionId)) {
+            if (!hasOptions && questionMcqDataMap.has(q.questionId)) {
               const mcqData = questionMcqDataMap.get(q.questionId) as any;
-              const mcqOptions = mcqData?.options;
-              if (Array.isArray(mcqOptions) && mcqOptions.length >= 2) {
+              const mcqOptions = mcqData?.options || mcqData?.choices;
+              if (Array.isArray(mcqOptions) && mcqOptions.length > 0) {
                 candidateSafeSnapshot.options = mcqOptions;
               }
             }
