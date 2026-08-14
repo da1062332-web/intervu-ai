@@ -34,6 +34,7 @@ import { QuestionAssemblerService } from "./assembler/question-assembler.service
 import { QuestionRepository } from "./repository/question.repository";
 import { GenerationTrackingService } from "./services/generation-tracking.service";
 import { StyleValidationService } from "./services/style-validation.service";
+import { CodingPatternListener } from "./listeners/coding-pattern.listener";
 
 const PROVIDERS = [
   // Registries
@@ -60,6 +61,7 @@ const PROVIDERS = [
   QuestionRepository,
   GenerationTrackingService,
   StyleValidationService,
+  CodingPatternListener,
 ];
 
 @Module({

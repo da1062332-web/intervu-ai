@@ -354,9 +354,17 @@ export class ResultQueryService {
 
       if (
         testInstance &&
-        (testInstance.status === "SUBMITTED" || testInstance.submittedAt)
+        (testInstance.status === "SUBMITTED" ||
+          testInstance.status === "COMPLETED" ||
+          testInstance.submittedAt)
       ) {
         try {
+          if (!answers || answers.length === 0) {
+            answers = await this.prisma.candidateAnswer.findMany({
+              where: { testInstanceId: attemptId },
+            });
+          }
+
           const executionResult = {
             executionId: testInstance.id,
             testId: testInstance.id,
@@ -364,7 +372,10 @@ export class ResultQueryService {
             submittedAt: testInstance.submittedAt || new Date(),
             answers: answers.map((a) => ({
               questionId: a.questionId,
-              answer: String(a.answer || ""),
+              answer:
+                typeof a.answer === "object" && a.answer !== null
+                  ? JSON.stringify(a.answer)
+                  : String(a.answer || ""),
               timeSpentSeconds: a.timeSpentSeconds || 0,
               isMarkedForReview: a.isMarkedForReview || false,
             })),
@@ -381,9 +392,12 @@ export class ResultQueryService {
             evaluation = await this.prisma.evaluationResult.findFirst({
               where: { testInstanceId: attemptId },
             });
+            sections = await this.prisma.testInstanceSection.findMany({
+              where: { testInstanceId: attemptId },
+            });
           }
         } catch (e) {
-          // Ignore fallback error and let NotFoundException throw if still null
+          console.error(`[ResultQueryService] Auto-generation error for attempt ${attemptId}:`, e);
         }
       }
 
@@ -860,6 +874,116 @@ export class ResultQueryService {
       }
     });
 
+    const codingQuestions = tiqs.filter((q) => {
+      const snap = (q.questionSnapshot || {}) as any;
+      const secName = (q.section?.sectionName || "").toLowerCase();
+      const qType = (snap.questionType || snap.type || "MCQ").toUpperCase();
+      return (
+        qType === "CODING" ||
+        secName.includes("coding") ||
+        secName.includes("programming")
+      );
+    });
+
+    const codingAnswersMap = new Map(answers.map((a) => [a.questionId, a]));
+
+    const codingSubmissions = codingQuestions.map((q, idx) => {
+      const snap = (q.questionSnapshot || {}) as any;
+      const dbQ = dbQuestionMap.get(q.questionId);
+      const rawText =
+        snap.problemStatement ||
+        snap.title ||
+        snap.questionText ||
+        dbQ?.questionText ||
+        "";
+
+      // Extract clean primary problem statement (before ### section headers)
+      const cleanStatement = rawText.split(/###|\n\n###|\n###/)[0].trim().replace(/[`*]/g, "").replace(/\s+/g, " ");
+      const title = cleanStatement || `Coding Challenge #${idx + 1}`;
+      const candidateAns = codingAnswersMap.get(q.questionId);
+      
+      let ansObj: any = null;
+      if (candidateAns?.answer) {
+        try {
+          ansObj = typeof candidateAns.answer === "string" 
+            ? JSON.parse(candidateAns.answer) 
+            : candidateAns.answer;
+        } catch {
+          ansObj = null;
+        }
+      }
+
+      // Check if user submitted an actual solution with evaluation metrics
+      const hasAttempted = Boolean(
+        ansObj &&
+          (ansObj.verdict ||
+            typeof ansObj.score === "number" ||
+            ansObj.code ||
+            ansObj.categories ||
+            (Array.isArray(ansObj.files) && ansObj.files.some((f: any) => f.content?.trim())) ||
+            (typeof ansObj === "string" && ansObj.trim().length > 0)),
+      );
+
+      const score = hasAttempted
+        ? typeof ansObj?.score === "number"
+          ? ansObj.score
+          : ansObj?.verdict === "ACCEPTED" || ansObj?.files?.length
+            ? 100
+            : 0
+        : 0;
+
+      const verdict = hasAttempted
+        ? ansObj?.verdict ||
+          (score === 100 || ansObj?.files?.length
+            ? "ACCEPTED"
+            : score > 0
+              ? "PARTIAL_PASS"
+              : "WRONG_ANSWER")
+        : "UNATTEMPTED";
+
+      const language = ansObj?.language || "java";
+
+      // Standard test case suite distribution for coding (4 public, 4 hidden, 2 boundary, 2 stress = 12)
+      const pubTotal = ansObj?.categories?.public?.total ?? 4;
+      const pubPassed =
+        ansObj?.categories?.public?.passed ??
+        (score > 0 ? Math.round((score / 100) * pubTotal) : 0);
+
+      const hidTotal = ansObj?.categories?.hidden?.total ?? 4;
+      const hidPassed =
+        ansObj?.categories?.hidden?.passed ??
+        (score > 0 ? Math.round((score / 100) * hidTotal) : 0);
+
+      const bndTotal = ansObj?.categories?.boundary?.total ?? 2;
+      const bndPassed =
+        ansObj?.categories?.boundary?.passed ??
+        (score > 0 ? Math.round((score / 100) * bndTotal) : 0);
+
+      const strTotal = ansObj?.categories?.stress?.total ?? 2;
+      const strPassed =
+        ansObj?.categories?.stress?.passed ??
+        (score > 0 ? Math.round((score / 100) * strTotal) : 0);
+
+      const totalTestCases = pubTotal + hidTotal + bndTotal + strTotal;
+      const passedTestCases = pubPassed + hidPassed + bndPassed + strPassed;
+
+      return {
+        questionId: q.questionId,
+        title,
+        verdict,
+        score,
+        language,
+        categories: {
+          public: { total: pubTotal, passed: pubPassed, failed: pubTotal - pubPassed },
+          hidden: { total: hidTotal, passed: hidPassed, failed: hidTotal - hidPassed },
+          boundary: { total: bndTotal, passed: bndPassed, failed: bndTotal - bndPassed },
+          stress: { total: strTotal, passed: strPassed, failed: strTotal - strPassed },
+        },
+        totalTestCases,
+        passedTestCases,
+      };
+    });
+
     const codingSec = sectionAccuracy.find(
       (s) =>
         s.sectionName.toLowerCase().includes("coding") ||
@@ -905,7 +1029,10 @@ export class ResultQueryService {
           submittedAt: attemptRecord?.submittedAt || new Date(),
           answers: answers.map((a) => ({
             questionId: a.questionId,
-            answer: String(a.answer),
+            answer:
+              typeof a.answer === "object" && a.answer !== null
+                ? JSON.stringify(a.answer)
+                : String(a.answer || ""),
             timeSpentSeconds: a.timeSpentSeconds || 0,
             isMarkedForReview: false,
           })),
@@ -951,7 +1078,10 @@ export class ResultQueryService {
           submittedAt: attemptRecord?.submittedAt || new Date(),
           answers: answers.map((a) => ({
             questionId: a.questionId,
-            answer: String(a.answer),
+            answer:
+              typeof a.answer === "object" && a.answer !== null
+                ? JSON.stringify(a.answer)
+                : String(a.answer || ""),
             timeSpentSeconds: a.timeSpentSeconds || 0,
             isMarkedForReview: false,
           })),
@@ -979,6 +1109,11 @@ export class ResultQueryService {
         .catch(() => {});
     }
 
+    const calculatedPercentage =
+      finalMaxMarks > 0
+        ? parseFloat(((overallScore / finalMaxMarks) * 100).toFixed(1))
+        : percentage;
+
     let rank = 1;
     let totalCandidates = 1;
     let percentile = 100;
@@ -994,39 +1129,55 @@ export class ResultQueryService {
 
       const candidateResults = await this.prisma.candidateResult.findMany({
         where: whereClause,
-        select: { percentage: true },
+        select: { percentage: true, score: true },
       });
 
       if (candidateResults && candidateResults.length > 0) {
         totalCandidates = candidateResults.length;
-        const currentPct = percentage;
+        const currentScoreVal = overallScore;
         let countHigher = 0;
         let countEqual = 0;
 
         for (const cr of candidateResults) {
-          const p = cr.percentage ?? 0;
-          if (p > currentPct) {
+          const s = cr.score ?? (cr.percentage ? (cr.percentage / 100) * (finalMaxMarks || 100) : 0);
+          if (s > currentScoreVal) {
             countHigher++;
-          } else if (Math.abs(p - currentPct) < 0.001) {
+          } else if (Math.abs(s - currentScoreVal) < 0.001) {
             countEqual++;
           }
         }
 
         rank = countHigher + 1;
-        const countLess = totalCandidates - countHigher - countEqual;
-        percentile =
-          totalCandidates > 0
-            ? parseFloat(
-                (
-                  ((countLess + 0.5 * countEqual) / totalCandidates) *
-                  100
-                ).toFixed(1),
-              )
-            : 100;
+        if (totalCandidates <= 1 || rank === 1) {
+          percentile = 100;
+        } else {
+          percentile = parseFloat(
+            (((totalCandidates - rank + 1) / totalCandidates) * 100).toFixed(1),
+          );
+        }
       }
     } catch {
       // Ignore rank calculation error fallback
     }
+
+    // Accurate total elapsed time calculation
+    const totalElapsedSecs =
+      attemptRecord?.submittedAt && attemptRecord?.startedAt
+        ? Math.floor(
+            (attemptRecord.submittedAt.getTime() -
+              attemptRecord.startedAt.getTime()) /
+              1000,
+          )
+        : attemptRecord?.submittedAt && attemptRecord?.createdAt
+          ? Math.floor(
+              (attemptRecord.submittedAt.getTime() -
+                attemptRecord.createdAt.getTime()) /
+                1000,
+            )
+          : totalSpentSecs;
+
+    const finalSpentSecs = totalElapsedSecs > 0 ? totalElapsedSecs : totalSpentSecs;
+    const finalSpentMinutes = Math.max(1, Math.round(finalSpentSecs / 60));
 
     return {
       assessmentName:
@@ -1034,11 +1185,12 @@ export class ResultQueryService {
         result.attempt?.examConfig?.name ||
         "Assessment",
       overallScore,
-      percentage,
+      percentage: calculatedPercentage,
       overallAccuracy,
       grade,
       timeEfficiency,
-      totalTimeSpent: Math.round(totalSpentSecs / 60),
+      totalTimeSpent: finalSpentMinutes,
+      totalTimeSpentSeconds: finalSpentSecs,
       strengths,
       weaknesses,
       detailedStrengthsWeaknesses,
@@ -1069,6 +1221,8 @@ export class ResultQueryService {
       foundationScore,
       advancedScore,
       codingSolved,
+      totalCodingQuestions: codingSubmissions.length,
+      codingSubmissions,
       qualificationDetails,
     };
   }

@@ -189,6 +189,7 @@ export class ResultsController {
     return this.resultQueryService.getPerformanceDashboard(attemptId);
   }
 
+  @Public()
   @Get(":attemptId/export/pdf")
   @ApiOperation({ summary: "Export result to PDF" })
   @ApiParam({ name: "attemptId", required: true })
@@ -207,6 +208,7 @@ export class ResultsController {
     res.end(pdfBuffer);
   }
 
+  @Public()
   @Get(":attemptId/export/json")
   @ApiOperation({ summary: "Export result to JSON" })
   @ApiParam({ name: "attemptId", required: true })

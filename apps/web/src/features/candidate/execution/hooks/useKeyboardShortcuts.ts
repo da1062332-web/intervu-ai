@@ -17,7 +17,8 @@ export function useKeyboardShortcuts({ onSubmit, disabled }: KeyboardShortcutPro
       const isInput =
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
-        (document.activeElement as HTMLElement)?.isContentEditable;
+        (document.activeElement as HTMLElement)?.isContentEditable ||
+        (document.activeElement as HTMLElement)?.closest('.monaco-editor') !== null;
 
       // Aggressively block all function keys (F1-F12) and the Escape key
       if ((e.key.startsWith('F') && e.key.length > 1) || e.key === 'Escape') {

@@ -18,6 +18,7 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -116,6 +117,8 @@ services:
   judge0-server:
     image: judge0/judge0:latest
     container_name: judge0-server
+    environment:
+      - JAVA_TOOL_OPTIONS=-XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=128m -Xmx256m
     volumes:
       - ./judge0/judge0-master/judge0.conf:/judge0.conf:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
@@ -133,6 +136,8 @@ services:
     image: judge0/judge0:latest
     container_name: judge0-worker
     command: ["./scripts/workers"]
+    environment:
+      - JAVA_TOOL_OPTIONS=-XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=128m -Xmx256m
     volumes:
       - ./judge0/judge0-master/judge0.conf:/judge0.conf:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:rw

@@ -278,6 +278,7 @@ export class ResultGeneratorService {
       (r) => r.candidateAnswer && r.candidateAnswer.trim() !== "",
     ).length;
     const totalIncorrect = totalAttempted - totalCorrect;
+    const codingSolvedCount = codingEvalResults.filter((r) => r.passed || r.isCorrect).length;
 
     // 13. Evaluate Generic Hiring Qualification if enabled
     const hiringOutcome = await this.hiringEngine.evaluateAttempt(
@@ -307,6 +308,7 @@ export class ResultGeneratorService {
       maxMarks: overallScore.maxMarks,
       objectiveScore: overallScore.objectiveScore,
       codingScore: overallScore.codingScore,
+      codingSolved: hiringOutcome?.codingSolved ?? codingSolvedCount,
       passed: overallScore.passed,
       // Hiring Evaluation fields
       ...(hiringOutcome
@@ -316,7 +318,6 @@ export class ResultGeneratorService {
             qualificationReason: hiringOutcome.qualificationReason,
             foundationScore: hiringOutcome.foundationScore,
             advancedScore: hiringOutcome.advancedScore,
-            codingSolved: hiringOutcome.codingSolved,
             qualificationDetails: hiringOutcome,
             evaluatedAt: hiringOutcome.evaluatedAt,
           }
