@@ -59,6 +59,27 @@ export class JudgeService {
     return url.replace(/\/$/, "");
   }
 
+  getJudge0Headers(): Record<string, string> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const apiKey = process.env.JUDGE0_API_KEY || process.env.RAPIDAPI_KEY;
+    const apiHost = process.env.JUDGE0_API_HOST || process.env.RAPIDAPI_HOST;
+    const authToken = process.env.JUDGE0_AUTH_TOKEN;
+
+    if (apiKey) {
+      headers["X-RapidAPI-Key"] = apiKey;
+      headers["X-Auth-Key"] = apiKey;
+    }
+    if (apiHost) {
+      headers["X-RapidAPI-Host"] = apiHost;
+    }
+    if (authToken) {
+      headers["X-Auth-Token"] = authToken;
+    }
+    return headers;
+  }
+
   mapLanguageToId(language: string | number): number {
     if (typeof language === "number") {
       return language;
@@ -129,7 +150,7 @@ export class JudgeService {
           `${judge0Url}/submissions?base64_encoded=true&wait=true`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: this.getJudge0Headers(),
             body: JSON.stringify(payload),
           },
         );
@@ -190,6 +211,9 @@ export class JudgeService {
       try {
         const pollRes = await fetch(
           `${judge0Url}/submissions/${token}?base64_encoded=true`,
+          {
+            headers: this.getJudge0Headers(),
+          },
         );
         if (pollRes.ok) {
           responseData = await pollRes.json();
@@ -217,6 +241,7 @@ export class JudgeService {
     try {
       await fetch(`${this.getJudge0Url()}/submissions/${token}`, {
         method: "DELETE",
+        headers: this.getJudge0Headers(),
       });
     } catch {
       // Ignore background cleanup failure
