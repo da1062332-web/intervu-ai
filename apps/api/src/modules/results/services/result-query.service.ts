@@ -943,41 +943,65 @@ export class ResultQueryService {
 
       const language = ansObj?.language || "java";
 
-      // Standard test case suite distribution for coding (4 public, 4 hidden, 2 boundary, 2 stress = 12)
+      // Extract exact numbers from categories if recorded by the test-runner
       const pubTotal = ansObj?.categories?.public?.total ?? 4;
       const pubPassed =
-        ansObj?.categories?.public?.passed ??
-        (score > 0 ? Math.round((score / 100) * pubTotal) : 0);
+        ansObj?.categories?.public?.passed !== undefined
+          ? ansObj.categories.public.passed
+          : score > 0 && ansObj?.verdict === "ACCEPTED"
+            ? pubTotal
+            : 0;
 
       const hidTotal = ansObj?.categories?.hidden?.total ?? 4;
       const hidPassed =
-        ansObj?.categories?.hidden?.passed ??
-        (score > 0 ? Math.round((score / 100) * hidTotal) : 0);
+        ansObj?.categories?.hidden?.passed !== undefined
+          ? ansObj.categories.hidden.passed
+          : score > 0 && ansObj?.verdict === "ACCEPTED"
+            ? hidTotal
+            : 0;
 
       const bndTotal = ansObj?.categories?.boundary?.total ?? 2;
       const bndPassed =
-        ansObj?.categories?.boundary?.passed ??
-        (score > 0 ? Math.round((score / 100) * bndTotal) : 0);
+        ansObj?.categories?.boundary?.passed !== undefined
+          ? ansObj.categories.boundary.passed
+          : score > 0 && ansObj?.verdict === "ACCEPTED"
+            ? bndTotal
+            : 0;
 
       const strTotal = ansObj?.categories?.stress?.total ?? 2;
       const strPassed =
-        ansObj?.categories?.stress?.passed ??
-        (score > 0 ? Math.round((score / 100) * strTotal) : 0);
+        ansObj?.categories?.stress?.passed !== undefined
+          ? ansObj.categories.stress.passed
+          : score > 0 && ansObj?.verdict === "ACCEPTED"
+            ? strTotal
+            : 0;
 
       const totalTestCases = pubTotal + hidTotal + bndTotal + strTotal;
       const passedTestCases = pubPassed + hidPassed + bndPassed + strPassed;
+      const finalScore =
+        typeof ansObj?.score === "number"
+          ? ansObj.score
+          : Math.round((passedTestCases / (totalTestCases || 1)) * 100);
+
+      const finalVerdict =
+        ansObj?.verdict ||
+        (passedTestCases === totalTestCases
+          ? "ACCEPTED"
+          : passedTestCases > 0
+            ? "PARTIAL_PASS"
+            : "WRONG_ANSWER");
 
       return {
         questionId: q.questionId,
         title,
-        verdict,
-        score,
+        verdict: finalVerdict,
+        score: finalScore,
         language,
         categories: {
-          public: { total: pubTotal, passed: pubPassed, failed: pubTotal - pubPassed },
-          hidden: { total: hidTotal, passed: hidPassed, failed: hidTotal - hidPassed },
-          boundary: { total: bndTotal, passed: bndPassed, failed: bndTotal - bndPassed },
-          stress: { total: strTotal, passed: strPassed, failed: strTotal - strPassed },
+          public: { total: pubTotal, passed: pubPassed, failed: Math.max(0, pubTotal - pubPassed) },
+          hidden: { total: hidTotal, passed: hidPassed, failed: Math.max(0, hidTotal - hidPassed) },
+          boundary: { total: bndTotal, passed: bndPassed, failed: Math.max(0, bndTotal - bndPassed) },
+          stress: { total: strTotal, passed: strPassed, failed: Math.max(0, strTotal - strPassed) },
         },
         totalTestCases,
         passedTestCases,
@@ -990,18 +1014,9 @@ export class ResultQueryService {
         s.sectionName.toLowerCase().includes("programming"),
     );
 
-    let computedCodingScore = evaluation?.technicalScore;
-    if (computedCodingScore === undefined || computedCodingScore === null) {
-      if (codingSec && codingMaxMarks > 0) {
-        computedCodingScore = Math.round(
-          (codingSec.accuracy / 100) * codingMaxMarks,
-        );
-      } else if (codingSec) {
-        computedCodingScore = Math.round(codingSec.accuracy);
-      } else {
-        computedCodingScore = 0;
-      }
-    }
+    const totalCodingSolved = codingSubmissions.filter(
+      (s) => s.verdict === "ACCEPTED" || s.score === 100,
+    ).length;
 
     const calculatedMax = objectiveMaxMarks + codingMaxMarks;
     const finalMaxMarks =
@@ -1010,6 +1025,28 @@ export class ResultQueryService {
         : percentage > 0
           ? Math.round((overallScore / percentage) * 100)
           : overallScore;
+
+    // Normalize overallScore so fractional 1.2 from past evaluations displays as clean whole marks
+    let normalizedOverallScore = overallScore;
+    if (codingSubmissions.length > 0 && finalMaxMarks === codingSubmissions.length) {
+      normalizedOverallScore = totalCodingSolved;
+    } else if (typeof overallScore === "number" && !Number.isInteger(overallScore)) {
+      normalizedOverallScore = Math.round(overallScore);
+    }
+
+    const calculatedPercentage =
+      finalMaxMarks > 0
+        ? Math.round((normalizedOverallScore / finalMaxMarks) * 100)
+        : Math.round(percentage);
+
+    if (codingSec && codingSubmissions.length > 0) {
+      const codingAccuracy = Math.round((totalCodingSolved / codingSubmissions.length) * 100);
+      codingSec.accuracy = codingAccuracy;
+      codingSec.correct = totalCodingSolved;
+      codingSec.wrong = codingSubmissions.length - totalCodingSolved;
+    }
+
+    let computedCodingScore = totalCodingSolved;
 
     let qualification: string | null = result.qualification;
     let qualificationReason: string | null = result.qualificationReason;
@@ -1109,14 +1146,9 @@ export class ResultQueryService {
         .catch(() => {});
     }
 
-    const calculatedPercentage =
-      finalMaxMarks > 0
-        ? parseFloat(((overallScore / finalMaxMarks) * 100).toFixed(1))
-        : percentage;
-
     let rank = 1;
     let totalCandidates = 1;
-    let percentile = 100;
+    let percentile = calculatedPercentage;
 
     try {
       const testConfigId = attemptRecord?.testConfigId;
@@ -1184,9 +1216,10 @@ export class ResultQueryService {
         result.attempt?.testConfig?.displayName ||
         result.attempt?.examConfig?.name ||
         "Assessment",
-      overallScore,
+      overallScore: normalizedOverallScore,
+      score: normalizedOverallScore,
       percentage: calculatedPercentage,
-      overallAccuracy,
+      overallAccuracy: calculatedPercentage,
       grade,
       timeEfficiency,
       totalTimeSpent: finalSpentMinutes,

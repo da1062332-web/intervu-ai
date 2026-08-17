@@ -104,15 +104,18 @@ export class CodingEvaluatorService {
 
     // If deterministic evaluation result is present from candidate submission
     if (deterministicScore !== null && verdict !== null) {
-      const normScore = deterministicScore > 1 ? Math.round((deterministicScore / 100) * 100) / 100 : deterministicScore;
-      const isPass = verdict === "ACCEPTED" || normScore >= 0.8;
+      const isPass = verdict === "ACCEPTED" || deterministicScore === 100;
+      const finalScore = isPass ? 1 : 0;
       const isCompileErr = verdict === "COMPILE_ERROR";
-      const isRuntimeErr = verdict === "RUNTIME_ERROR" || verdict === "TIME_LIMIT_EXCEEDED" || verdict === "MEMORY_LIMIT_EXCEEDED";
+      const isRuntimeErr =
+        verdict === "RUNTIME_ERROR" ||
+        verdict === "TIME_LIMIT_EXCEEDED" ||
+        verdict === "MEMORY_LIMIT_EXCEEDED";
 
       return {
         questionId: question.id,
         isCorrect: isPass,
-        score: normScore,
+        score: finalScore,
         maxMarks: 1,
         candidateAnswer: submittedCode,
         correctAnswer: "",
@@ -121,9 +124,9 @@ export class CodingEvaluatorService {
         constraintValidation: "PASSED",
         syntaxError: isCompileErr,
         compilationError: isCompileErr || isRuntimeErr,
-        codingFeedback: verdict === "ACCEPTED"
+        codingFeedback: isPass
           ? "Solution passed all public, hidden, boundary, and stress test cases."
-          : `Deterministic evaluation verdict: ${verdict} (Score: ${Math.round(normScore * 100)}%)`,
+          : `Deterministic evaluation verdict: ${verdict} (Score: ${Math.round(deterministicScore)}%)`,
       };
     }
 

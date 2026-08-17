@@ -81,9 +81,9 @@ export interface EmbeddedCompilerProps {
 }
 
 const SUPPORTED_LANGUAGES = [
-  { id: 'java', label: 'Java (OpenJDK 13)', monacoLang: 'java' },
-  { id: 'python', label: 'Python 3 (3.8.1)', monacoLang: 'python' },
-  { id: 'cpp', label: 'C++ (GCC 9.2.0)', monacoLang: 'cpp' },
+  { id: 'java', label: 'Java', monacoLang: 'java' },
+  { id: 'python', label: 'Python', monacoLang: 'python' },
+  { id: 'cpp', label: 'C++', monacoLang: 'cpp' },
 ];
 
 const DEFAULT_STARTER_CODE: Record<string, string> = {
@@ -172,6 +172,27 @@ export function EmbeddedCompiler({
         },
       });
       setRunResponse(response);
+      if (onChange) {
+        onChange({
+          code,
+          language,
+          hasRunPublic: true,
+          categories: {
+            public: {
+              total: response.summary.total,
+              passed: response.summary.passed,
+              failed: response.summary.failed,
+            },
+            hidden: { total: 4, passed: 0, failed: 4 },
+            boundary: { total: 2, passed: 0, failed: 2 },
+            stress: { total: 2, passed: 0, failed: 2 },
+          },
+          score: Math.round((response.summary.passed / (response.summary.total + 8)) * 100),
+          verdict: response.summary.passed === response.summary.total ? 'PARTIAL_PASS' : 'WRONG_ANSWER',
+          totalTests: response.summary.total + 8,
+          passedTests: response.summary.passed,
+        });
+      }
     } catch (err: any) {
       const msg = err?.message || err?.error || 'Failed to execute code against Judge0 service.';
       setExecutionError(msg);
@@ -179,7 +200,7 @@ export function EmbeddedCompiler({
     } finally {
       setIsRunning(false);
     }
-  }, [activeQuestionId, activeTestInstanceId, code, language]);
+  }, [activeQuestionId, activeTestInstanceId, code, language, onChange]);
 
   const handleFinalSubmit = useCallback(async () => {
     if (!activeQuestionId) {
@@ -205,6 +226,19 @@ export function EmbeddedCompiler({
       });
 
       setSubmitResponse(response);
+      if (onChange) {
+        onChange({
+          code,
+          language,
+          submissionId: response.submissionId,
+          score: response.score,
+          verdict: response.verdict,
+          categories: response.summary?.categories,
+          totalTests: response.summary?.total,
+          passedTests: response.summary?.passed,
+          errorMessage: response.errorMessage,
+        });
+      }
     } catch (err: any) {
       const msg = err?.message || err?.error || 'Failed to complete full evaluation submission.';
       setExecutionError(msg);
@@ -212,7 +246,7 @@ export function EmbeddedCompiler({
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeQuestionId, activeTestInstanceId, code, language]);
+  }, [activeQuestionId, activeTestInstanceId, code, language, onChange]);
 
   const selectedMonacoLang =
     SUPPORTED_LANGUAGES.find((l) => l.id === language)?.monacoLang || 'python';
@@ -267,29 +301,6 @@ export function EmbeddedCompiler({
 
         {/* Action Controls & Navigation */}
         <div className='flex items-center space-x-3'>
-          {/* Theme Mode Toggle Button */}
-          <button
-            onClick={() => setThemeMode(themeMode === 'light' ? 'dark' : 'light')}
-            title={themeMode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-            className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              themeMode === 'light'
-                ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-                : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
-            }`}
-          >
-            {themeMode === 'light' ? (
-              <>
-                <Sun className='w-4 h-4 text-amber-500 fill-amber-500' />
-                <span className='hidden sm:inline text-[11px]'>Light</span>
-              </>
-            ) : (
-              <>
-                <Moon className='w-4 h-4 text-indigo-400 fill-indigo-400' />
-                <span className='hidden sm:inline text-[11px]'>Dark</span>
-              </>
-            )}
-          </button>
-
           <div
             className={`flex p-1 rounded-lg border text-xs font-medium ${
               themeMode === 'light'
@@ -766,6 +777,47 @@ export function EmbeddedCompiler({
             )}
           </div>
         )}
+      </div>
+
+      {/* Bottom Status / Utility Footer Bar */}
+      <div
+        className={`flex items-center justify-between px-4 py-2 border-t shrink-0 text-xs select-none transition-colors duration-200 ${
+          themeMode === 'light'
+            ? 'bg-slate-100/90 border-slate-200 text-slate-600'
+            : 'bg-slate-900 border-slate-800 text-slate-400'
+        }`}
+      >
+        <div className='flex items-center space-x-3 text-[11px] font-medium'>
+          <span className='flex items-center gap-1.5'>
+            <span className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse' />
+            {SUPPORTED_LANGUAGES.find((l) => l.id === language)?.label || 'Java'} Environment
+          </span>
+          <span className='text-slate-300 dark:text-slate-700'>|</span>
+          <span className='text-muted-foreground'>Ctrl + Enter to Run</span>
+        </div>
+
+        {/* Theme Toggle Button at Bottom */}
+        <button
+          onClick={() => setThemeMode(themeMode === 'light' ? 'dark' : 'light')}
+          title={themeMode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          className={`px-2.5 py-1 rounded-md border text-xs font-medium flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer ${
+            themeMode === 'light'
+              ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+              : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+          }`}
+        >
+          {themeMode === 'light' ? (
+            <>
+              <Moon className='w-3.5 h-3.5 text-slate-600' />
+              <span className='text-[11px] font-semibold'>Dark Mode</span>
+            </>
+          ) : (
+            <>
+              <Sun className='w-3.5 h-3.5 text-amber-400 fill-amber-400' />
+              <span className='text-[11px] font-semibold'>Light Mode</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
