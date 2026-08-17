@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
+import { createHash } from "crypto";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { GenerationContextService } from "./generation-context.service";
 import { TemplateSelectorService } from "./template-selector.service";
@@ -73,11 +74,14 @@ export class GenerationOrchestratorService {
       const { sectionId: targetSecId, difficulty, count: targetCount } = dist;
 
       // Resolve topic list for this section
-      const sectionTopics = context.topics.filter(
+      const targetSection = context.sections.find((s) => s.id === targetSecId);
+      const matchedTopics = context.topics.filter(
         (t) =>
-          context.sections.find((s) => s.id === targetSecId)?.code === t.code ||
-          true,
-      ); // fallback or direct link
+          targetSection?.topicIds?.includes(t.id) ||
+          targetSection?.code === t.code,
+      );
+      const sectionTopics =
+        matchedTopics.length > 0 ? matchedTopics : context.topics;
 
       if (sectionTopics.length === 0) continue;
 
@@ -339,10 +343,16 @@ export class GenerationOrchestratorService {
 
               // Replicate to GeneratedQuestion for legacy compatibility if required
               if (tx.generatedQuestion) {
+                const questionHash = createHash("sha256")
+                  .update(
+                    `${instantiated.questionText}|${JSON.stringify(instantiated.options)}|${instantiated.answer}`,
+                  )
+                  .digest("hex");
+
                 await tx.generatedQuestion.create({
                   data: {
                     templateId: selectedTemplate.templateId,
-                    questionHash: Math.random().toString(36).substring(7), // dummy random hash for schema constraint
+                    questionHash,
                     conceptKey: selectedTemplate.metadata.conceptKey,
                     difficultyLevel: selectedTemplate.metadata.difficultyLevel,
                     questionType: selectedTemplate.metadata.questionType,

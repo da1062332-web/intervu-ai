@@ -47,7 +47,6 @@ export class QuestionsController {
     private readonly generationOrchestrator?: GenerationOrchestratorService,
   ) {}
 
-  @Public()
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

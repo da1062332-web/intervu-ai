@@ -41,86 +41,36 @@ export function AvailableAssessmentSection({
     return null;
   }
 
-  // Fallback items matching exact design mockup if empty in demo/test
-  const defaultTests = [
-    {
-      id: 'mock-dsa',
-      title: 'Data Structures & Algorithms',
-      description:
-        'Core computer science concepts focusing on arrays, trees, and dynamic programming.',
-      difficulty: 'Medium',
-      durationMinutes: 90,
-      iconType: 'code',
-      badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
-      iconBg:
-        'bg-[#eff2ff] dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40',
-      attemptCount: 0,
-      maxAttempts: 3,
-      canReattempt: true,
-    },
-    {
-      id: 'mock-ui',
-      title: 'UI/UX Principles',
-      description:
-        'Fundamentals of user-centered design, wireframing, and accessibility standards.',
-      difficulty: 'Easy',
-      durationMinutes: 45,
-      iconType: 'palette',
-      badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
-      iconBg:
-        'bg-[#ecfdf5] dark:bg-emerald-950/50 text-[#10b981] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40',
-      attemptCount: 0,
-      maxAttempts: 3,
-      canReattempt: true,
-    },
-    {
-      id: 'mock-aws',
-      title: 'AWS Architecture',
-      description:
-        'Advanced scenarios covering VPCs, IAM, and serverless infrastructure deployments.',
-      difficulty: 'Hard',
-      durationMinutes: 120,
-      iconType: 'cloud',
-      badgeStyle: 'bg-[#f1f5f9] text-[#64748b] dark:bg-slate-800 dark:text-slate-300',
-      iconBg:
-        'bg-[#f3e8ff] dark:bg-purple-950/50 text-[#9333ea] dark:text-purple-400 border border-purple-100 dark:border-purple-900/40',
-      attemptCount: 0,
-      maxAttempts: 3,
-      canReattempt: true,
-    },
-  ];
+  const rawTests = (dashboard.availableTests && dashboard.availableTests.length > 0)
+    ? dashboard.availableTests
+    : (dashboard.recommendedTests && dashboard.recommendedTests.length > 0)
+      ? dashboard.recommendedTests
+      : [];
 
-  const actualTests =
-    dashboard.availableTests && dashboard.availableTests.length > 0
-      ? dashboard.availableTests.slice(0, 3).map((t, index) => {
-          const icons = ['code', 'palette', 'cloud'];
-          const iconBgList = [
-            'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50',
-            'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50',
-            'bg-[#f3e8ff] text-[#9333ea] dark:bg-purple-950/50 dark:text-purple-400 border-purple-100/50',
-          ];
-          return {
-            id: t.id,
-            title: t.title,
-            description:
-              (t as any).description ||
-              (index === 0
-                ? 'Core computer science concepts focusing on practical real-world algorithmic problems.'
-                : index === 1
-                  ? 'Evaluate your front-end layout strategies and component design patterns.'
-                  : 'Advanced system design, scalable architecture, and distributed services.'),
-            difficulty:
-              (t as any).difficulty || (index === 0 ? 'Medium' : index === 1 ? 'Easy' : 'Hard'),
-            durationMinutes: t.durationMinutes || (index === 0 ? 90 : index === 1 ? 45 : 120),
-            iconType: icons[index % 3],
-            iconBg: iconBgList[index % 3],
-            badgeStyle: 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800',
-            attemptCount: t.attemptCount,
-            maxAttempts: t.maxAttempts,
-            canReattempt: t.canReattempt,
-          };
-        })
-      : defaultTests;
+  const actualTests = rawTests.slice(0, 3).map((t: any, index: number) => {
+    const icons = ['code', 'palette', 'cloud'];
+    const iconBgList = [
+      'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50',
+      'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50',
+      'bg-[#f3e8ff] text-[#9333ea] dark:bg-purple-950/50 dark:text-purple-400 border-purple-100/50',
+    ];
+    return {
+      id: t.id || (t as any).configId,
+      title: t.title || (t as any).name || 'Evaluation Assessment',
+      description:
+        (t as any).description ||
+        (t as any).summary ||
+        'Standard evaluation assessment for technical skills and competency verification.',
+      difficulty: (t as any).difficulty || 'Medium',
+      durationMinutes: t.durationMinutes || (t as any).durationSeconds ? Math.floor((t as any).durationSeconds / 60) : 60,
+      iconType: icons[index % 3],
+      iconBg: iconBgList[index % 3],
+      badgeStyle: 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800',
+      attemptCount: t.attemptCount ?? 0,
+      maxAttempts: t.maxAttempts ?? 3,
+      canReattempt: t.canReattempt ?? true,
+    };
+  });
 
   return (
     <div className='flex flex-col h-full space-y-4'>
@@ -140,7 +90,7 @@ export function AvailableAssessmentSection({
       </div>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 flex-1 items-stretch'>
-        {actualTests.map((test) => {
+        {actualTests.map((test: any) => {
           const IconComponent =
             test.iconType === 'palette' ? Palette : test.iconType === 'cloud' ? Cloud : Code;
           return (

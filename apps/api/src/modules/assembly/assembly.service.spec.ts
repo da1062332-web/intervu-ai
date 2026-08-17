@@ -99,14 +99,37 @@ describe("AssemblyService", () => {
 
   it("ASM-008 Persistence Success", async () => {
     blueprintBuilder.generateBlueprint.mockResolvedValueOnce({
-      sections: [],
+      totalQuestions: 5,
+      sections: [
+        {
+          sectionKey: "s1",
+          displayName: "Section 1",
+          durationSeconds: 1200,
+          questionCount: 5,
+          orderIndex: 0,
+          topicAllocations: [],
+        },
+      ],
     } as unknown as BlueprintDto);
+    allocator.allocateQuestions.mockResolvedValueOnce([]);
+    sectionBuilder.buildSection.mockReturnValueOnce(
+      {} as unknown as SectionDto,
+    );
     validator.validate.mockReturnValueOnce({ valid: true, errors: [] });
     persistenceService.saveAssembly.mockResolvedValueOnce("success-uuid");
 
     const result = await service.assembleTest("config-1");
     expect(persistenceService.saveAssembly).toHaveBeenCalled();
     expect(result).toBe("success-uuid");
+  });
+
+  it("throws BadRequestException when pre-assembly readiness check fails (no sections)", async () => {
+    blueprintBuilder.generateBlueprint.mockResolvedValueOnce({
+      totalQuestions: 5,
+      sections: [],
+    } as unknown as BlueprintDto);
+
+    await expect(service.assembleTest("config-empty")).rejects.toThrow();
   });
 
   it("reuses an existing published assembly snapshot when available", async () => {

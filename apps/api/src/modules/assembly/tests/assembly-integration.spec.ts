@@ -9,6 +9,7 @@ import { QuestionRotationService } from "../../question-bank/services/question-r
 import { QUESTION_SOURCE_TOKEN } from "../services/question-source.interface";
 import { BlueprintBuilderService } from "../services/blueprint-builder.service";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AssemblyVersionRepository } from "../repositories/assembly-version.repository";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
@@ -41,6 +42,8 @@ const mockVersionRepo = {
 
 const mockPoolRepo = {
   findMany: jest.fn(),
+  fetchQuestions: jest.fn().mockResolvedValue([]),
+  getQuestionsByIds: jest.fn().mockResolvedValue([]),
 };
 
 const mockBlueprintBuilder = {
@@ -73,6 +76,7 @@ describe("Assembly Module Integration Layer - End to End", () => {
         { provide: QuestionRotationService, useValue: mockRotationService },
         { provide: QUESTION_SOURCE_TOKEN, useExisting: QuestionBankSource },
         { provide: AssembledTestRepository, useValue: mockAssembledTestRepo },
+        { provide: AssemblyRepository, useValue: { findById: jest.fn() } },
         { provide: BlueprintRepository, useValue: mockBlueprintRepo },
         { provide: AssemblyVersionRepository, useValue: mockVersionRepo },
         { provide: QuestionPoolRepository, useValue: mockPoolRepo },
@@ -81,8 +85,11 @@ describe("Assembly Module Integration Layer - End to End", () => {
         {
           provide: PrismaService,
           useValue: {
-            topic: { findUnique: jest.fn().mockResolvedValue(null) },
+            topic: { findUnique: jest.fn().mockResolvedValue(null), findFirst: jest.fn().mockResolvedValue(null) },
             concept: { findFirst: jest.fn().mockResolvedValue(null) },
+            question: { count: jest.fn().mockResolvedValue(10), findMany: jest.fn().mockResolvedValue([]) },
+            generatedQuestion: { findMany: jest.fn().mockResolvedValue([]) },
+            template: { count: jest.fn().mockResolvedValue(0) },
           },
         },
       ],
@@ -100,6 +107,52 @@ describe("Assembly Module Integration Layer - End to End", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    const distinctTexts: Record<string, string> = {
+      EASY: "Algebra simple arithmetic calculation question for numerical section EASY",
+      MEDIUM: "Geometry triangle trigonometry theorem question for math section MEDIUM",
+      HARD: "Calculus derivative integration proof question for advanced section HARD",
+    };
+
+    mockRotationService.checkAvailability.mockResolvedValue({
+      status: "AVAILABLE",
+      available: 1,
+    });
+
+    mockRotationService.retrieveAndReserve.mockImplementation(
+      (req: {
+        count?: number;
+        difficultyDistribution: Record<string, number>;
+        examId: string;
+      }) => {
+        const qs = [];
+        const count = req.count || 1;
+        const requestedDiff =
+          Object.keys(req.difficultyDistribution || {}).find(
+            (k) => req.difficultyDistribution[k] > 0,
+          ) || "MEDIUM";
+
+        for (let i = 0; i < count; i++) {
+          const uniqueId = `q-int-${requestedDiff}-${i + 1}-${Math.random().toString(36).substr(2, 5)}`;
+          const text = distinctTexts[requestedDiff] || `Unique question stem for ${requestedDiff}`;
+          const q = {
+            id: uniqueId,
+            assemblyId: "bank-asm-1",
+            versionId: "v1",
+            difficultyLevel: requestedDiff,
+            questionType: "MULTIPLE_CHOICE",
+            questionText: `${text} ${i + 1}`,
+            questionHash: `hash-${uniqueId}`,
+            metadata: {},
+          };
+          qs.push(q);
+        }
+        return Promise.resolve({
+          assemblyId: req.examId,
+          questions: qs,
+        });
+      },
+    );
   });
 
   it("should execute the full assembly flow from allocation to publish readiness", async () => {
@@ -124,39 +177,6 @@ describe("Assembly Module Integration Layer - End to End", () => {
       status: "AVAILABLE",
       available: 1,
     });
-
-    let order = 1;
-    mockRotationService.retrieveAndReserve.mockImplementation(
-      (req: {
-        count?: number;
-        difficultyDistribution: Record<string, number>;
-        examId: string;
-      }) => {
-        const qs = [];
-        const count = req.count || 1;
-        for (let i = 0; i < count; i++) {
-          const q = {
-            id: `q-int-${order}`,
-            assemblyId: "bank-asm-1",
-            versionId: "v1",
-            difficultyLevel:
-              Object.keys(req.difficultyDistribution).find(
-                (k) => req.difficultyDistribution[k] > 0,
-              ) || "MEDIUM",
-            questionType: "MULTIPLE_CHOICE",
-            questionText: `Integration test question ${order}`,
-            questionHash: `hash-${order}`,
-            metadata: {},
-          };
-          qs.push(q);
-          order++;
-        }
-        return Promise.resolve({
-          assemblyId: req.examId,
-          questions: qs,
-        });
-      },
-    );
 
     // STEP 1: Allocate Section
     const allocationResult = await allocationService.allocateSection(

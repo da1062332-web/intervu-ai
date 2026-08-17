@@ -41,6 +41,8 @@ export interface CandidateDashboardData {
   availableTests: DashboardTestItem[];
   activeTests: DashboardActiveTest[];
   completedAttempts: DashboardCompletedAttempt[];
+  completedTests?: any[];
+  recommendedTests?: any[];
   recommendations: CandidateRecommendations | null;
   skillProgress: never[];
 }

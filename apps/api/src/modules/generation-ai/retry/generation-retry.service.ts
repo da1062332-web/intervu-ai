@@ -469,15 +469,7 @@ export class GenerationRetryService {
             attemptVariables,
           );
           if (canonical && canonical.trim().length > 0) {
-            if (
-              !parsedQuestion.question ||
-              parsedQuestion.question.trim().length === 0 ||
-              parsedQuestion.question.includes("{{") ||
-              parsedQuestion.question.includes("{") ||
-              !parsedQuestion.question.includes("Mock question about")
-            ) {
-              parsedQuestion.question = canonical;
-            }
+            parsedQuestion.question = canonical;
           }
         }
 

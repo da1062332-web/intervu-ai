@@ -7,6 +7,7 @@ import { AssemblyAuditService } from "./assembly-audit.service";
 import { AssemblyVersionService } from "./assembly-version.service";
 import { BlueprintBuilderService } from "./blueprint-builder.service";
 import { PublishReadinessService } from "./publish-readiness.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { BadRequestException } from "@nestjs/common";
 
 describe("AssemblyPublisherService", () => {
@@ -68,6 +69,14 @@ describe("AssemblyPublisherService", () => {
           provide: PublishReadinessService,
           useValue: {
             check: jest.fn().mockResolvedValue({ ready: true, checks: [] }),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            examConfig: {
+              update: jest.fn().mockResolvedValue({}),
+            },
           },
         },
       ],

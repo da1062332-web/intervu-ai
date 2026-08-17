@@ -132,7 +132,7 @@ function DataTableInner<T>({
                 <TableRow
                   key={
                     rowKey
-                      ? rowKey(row)
+                      ? (rowKey as any)(row, i)
                       : (row as any).id
                         ? String((row as any).id)
                         : (row as any)._id
