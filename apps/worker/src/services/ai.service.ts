@@ -17,58 +17,66 @@ export class AiWorkerService {
       count: request.count,
     });
 
-    // 1. Mock sending prompt to OpenAI / Claude
-    const rawAiResponse = await this.mockAiCall(request);
+    // Fetch questions from the DB question bank (the authoritative source).
+    // Throws a retryable error if no questions are available — BullMQ will
+    // retry automatically per queue backoff config.
+    const rawAiResponse = await this.fetchQuestionsFromSource(request);
 
-    // 2. Validate AI output using the contract schema
+    // Validate output shape against the contract schema
     const validationResult = AIResponseSchema.safeParse(rawAiResponse);
 
     if (!validationResult.success) {
       this.logger.error(
-        "AI Runtime returned invalid payload shape",
+        "Question source returned invalid payload shape",
         validationResult.error,
         { correlationId },
       );
-      throw new Error("AI Provider returned malformed response");
+      throw new Error("Question source returned malformed response");
     }
 
     return validationResult.data;
   }
 
-  private async mockAiCall(request: LegacyGenerationRequest): Promise<unknown> {
+  /**
+   * Fetches questions for the generation job from the DB question bank.
+   *
+   * Strategy:
+   *  1. Resolve topic name and detect subject type from the DB.
+   *  2. Query published (ACTIVE) questions matching topic + difficulty.
+   *  3. If questions found → return them (DB-bank source).
+   *  4. If no questions found → throw a retryable Error so BullMQ retries
+   *     the job rather than silently persisting placeholder/fake data.
+   */
+  private async fetchQuestionsFromSource(
+    request: LegacyGenerationRequest,
+  ): Promise<unknown> {
     const count = request.count || 10;
-
-    // Check if topic is a math topic
-    let isMathTopic = false;
     let topicName = request.topic;
 
+    const difficultyMap: Record<string, string> = {
+      beginner: "EASY",
+      intermediate: "MEDIUM",
+      advanced: "HARD",
+      expert: "HARD",
+    };
+    const dbDifficulty = difficultyMap[request.difficulty] || "MEDIUM";
+
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
+      // 1. Resolve topic record
       const topicRecord = await prisma.topic.findFirst({
         where: {
           OR: [{ id: request.topic }, { code: request.topic }],
         },
       });
+
       if (topicRecord) {
         topicName = topicRecord.name;
-        if (
-          topicRecord.code.includes("MATH") ||
-          topicRecord.name.toLowerCase().includes("math")
-        ) {
-          isMathTopic = true;
-        }
       }
-      // Attempt to find published questions for this topic first
-      const difficultyMap: Record<string, string> = {
-        beginner: "EASY",
-        intermediate: "MEDIUM",
-        advanced: "HARD",
-        expert: "HARD",
-      };
 
-      const dbDifficulty = difficultyMap[request.difficulty] || "MEDIUM";
-
+      // 2. Query ACTIVE questions from the question bank
       const bankQuestions = await prisma.question.findMany({
         where: {
           topicId: request.topic,
@@ -80,6 +88,11 @@ export class AiWorkerService {
       });
 
       if (bankQuestions && bankQuestions.length > 0) {
+        this.logger.info(
+          `Resolved ${bankQuestions.length} questions from DB question bank`,
+          { topic: request.topic, difficulty: dbDifficulty },
+        );
+
         const questions = bankQuestions.map((q) => ({
           text: q.questionText,
           options: (q.metadata && (q.metadata as any).options) || [q.answer],
@@ -89,8 +102,6 @@ export class AiWorkerService {
           topic: topicName,
           tags: [topicName],
         }));
-
-        await prisma.$disconnect();
 
         return {
           questions,
@@ -102,51 +113,15 @@ export class AiWorkerService {
         };
       }
 
+      // 3. No questions available — throw retryable error.
+      // BullMQ will retry up to the configured attempts (3) with exponential backoff.
+      // Do NOT fall back to placeholder/fake data to avoid silently corrupting results.
+      throw new Error(
+        `No ACTIVE questions found in question bank for topic "${request.topic}" ` +
+          `at difficulty "${dbDifficulty}". Job will be retried.`,
+      );
+    } finally {
       await prisma.$disconnect();
-    } catch {
-      if (request.topic.toLowerCase().includes("math")) {
-        isMathTopic = true;
-      }
     }
-
-    const questions = Array.from({ length: count }, (_, i) => {
-      if (isMathTopic) {
-        const a = 10 + Math.floor(Math.random() * 9) * 10; // 10, 20, ..., 90
-        const b = 100 + Math.floor(Math.random() * 10) * 100; // 100, 200, ..., 1000
-        const ans = Math.round((a / 100) * b);
-
-        return {
-          text: `What is ${a}% of ${b}?`,
-          options: [
-            `Option A: ${ans}`,
-            `Option B: ${ans + 50}`,
-            `Option C: ${ans - 25}`,
-            `Option D: ${ans * 2}`,
-          ],
-          correctAnswer: "Option A",
-          difficulty: request.difficulty,
-          topic: topicName,
-          tags: [topicName],
-        };
-      }
-
-      return {
-        text: `Sample ${topicName} question ${i + 1}`,
-        options: ["Option A", "Option B", "Option C", "Option D"],
-        correctAnswer: "Option A",
-        difficulty: request.difficulty,
-        topic: topicName,
-        tags: [topicName],
-      };
-    });
-
-    return {
-      questions,
-      metadata: {
-        model: "gpt-4o",
-        tokensUsed: 150 * count,
-        generationTimeMs: 1200,
-      },
-    };
   }
 }
