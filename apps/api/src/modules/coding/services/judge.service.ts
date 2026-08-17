@@ -62,6 +62,8 @@ export class JudgeService {
   getJudge0Headers(): Record<string, string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+      "User-Agent": "intervu-ai",
     };
     const apiKey = process.env.JUDGE0_API_KEY || process.env.RAPIDAPI_KEY;
     const apiHost = process.env.JUDGE0_API_HOST || process.env.RAPIDAPI_HOST;
