@@ -400,6 +400,14 @@ export function EmbeddedCompiler({
                 padding: { top: 12, bottom: 12 },
                 contextmenu: true,
                 copyWithSyntaxHighlighting: true,
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  alwaysConsumeMouseWheel: false,
+                  handleMouseWheel: true,
+                },
+                smoothScrolling: true,
+                mouseWheelScrollSensitivity: 1,
               }}
             />
           </div>

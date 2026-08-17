@@ -109,19 +109,23 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
   const totalTestCasesOverall = submissions.reduce(
     (acc: number, sub: any) =>
       acc +
-      (sub.categories?.public?.total || 2) +
-      (sub.categories?.hidden?.total || 4) +
-      (sub.categories?.boundary?.total || 4) +
-      (sub.categories?.stress?.total || 2),
+      (sub.totalTests || (
+        (sub.categories?.public?.total ?? (sub.categories?.public ? (sub.categories.public.passed || 0) + (sub.categories.public.failed || 0) : 4)) +
+        (sub.categories?.hidden?.total ?? (sub.categories?.hidden ? (sub.categories.hidden.passed || 0) + (sub.categories.hidden.failed || 0) : 4)) +
+        (sub.categories?.boundary?.total ?? (sub.categories?.boundary ? (sub.categories.boundary.passed || 0) + (sub.categories.boundary.failed || 0) : 2)) +
+        (sub.categories?.stress?.total ?? (sub.categories?.stress ? (sub.categories.stress.passed || 0) + (sub.categories.stress.failed || 0) : 2))
+      )),
     0,
   );
   const passedTestCasesOverall = submissions.reduce(
     (acc: number, sub: any) =>
       acc +
-      (sub.categories?.public?.passed || 0) +
-      (sub.categories?.hidden?.passed || 0) +
-      (sub.categories?.boundary?.passed || 0) +
-      (sub.categories?.stress?.passed || 0),
+      (sub.passedTests !== undefined ? sub.passedTests : (
+        (sub.categories?.public?.passed || 0) +
+        (sub.categories?.hidden?.passed || 0) +
+        (sub.categories?.boundary?.passed || 0) +
+        (sub.categories?.stress?.passed || 0)
+      )),
     0,
   );
   const performanceRating =
@@ -280,11 +284,21 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
 
           <div className='space-y-4'>
             {submissions.map((sub: any, subIdx: number) => {
-              const pCount = sub.categories?.public?.passed ?? 2;
-              const hCount = sub.categories?.hidden?.passed ?? 4;
-              const bCount = sub.categories?.boundary?.passed ?? 4;
-              const sCount = sub.categories?.stress?.passed ?? 2;
-              const subTotal = pCount + hCount + bCount + sCount;
+              const pPassed = sub.categories?.public?.passed ?? 0;
+              const pTotal = sub.categories?.public?.total ?? (sub.categories?.public?.failed !== undefined ? (pPassed + sub.categories.public.failed) : 4);
+
+              const hPassed = sub.categories?.hidden?.passed ?? 0;
+              const hTotal = sub.categories?.hidden?.total ?? (sub.categories?.hidden?.failed !== undefined ? (hPassed + sub.categories.hidden.failed) : 4);
+
+              const bPassed = sub.categories?.boundary?.passed ?? 0;
+              const bTotal = sub.categories?.boundary?.total ?? (sub.categories?.boundary?.failed !== undefined ? (bPassed + sub.categories.boundary.failed) : 2);
+
+              const sPassed = sub.categories?.stress?.passed ?? 0;
+              const sTotal = sub.categories?.stress?.total ?? (sub.categories?.stress?.failed !== undefined ? (sPassed + sub.categories.stress.failed) : 2);
+
+              const subEvaluated = sub.totalTests || (pTotal + hTotal + bTotal + sTotal);
+              const subPassed = sub.passedTests !== undefined ? sub.passedTests : (pPassed + hPassed + bPassed + sPassed);
+              const subScore = sub.score !== undefined ? Math.round(sub.score) : Math.round((subPassed / (subEvaluated || 1)) * 100);
 
               return (
                 <div
@@ -302,14 +316,14 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
                           {sub.title ? sub.title.split(/###|\n\n###|\n###/)[0].trim().replace(/[`*]/g, '').replace(/\s+/g, ' ') : `Coding Challenge #${subIdx + 1}`}
                         </h4>
                         <span className='text-[11px] text-muted-foreground font-medium capitalize'>
-                          Language: {sub.language || 'python'} • 12 Test Cases Evaluated
+                          Language: {sub.language || 'python'} • {subEvaluated} Test Cases Evaluated
                         </span>
                       </div>
                     </div>
 
                     <div className='flex items-center gap-3'>
                       <span className='text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full'>
-                        {subTotal} / 12 Test Cases Passed ({sub.score}%)
+                        {subPassed} / {subEvaluated} Test Cases Passed ({subScore}%)
                       </span>
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${
@@ -334,13 +348,13 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
                           Public Tests
                         </span>
                         <span className='text-emerald-600 dark:text-emerald-400 font-mono'>
-                          {pCount} / 2
+                          {pPassed} / {pTotal}
                         </span>
                       </div>
                       <div className='w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden'>
                         <div
                           className='bg-blue-500 h-full rounded-full transition-all duration-500'
-                          style={{ width: `${(pCount / 2) * 100}%` }}
+                          style={{ width: `${pTotal > 0 ? Math.min(100, Math.round((pPassed / pTotal) * 100)) : 0}%` }}
                         />
                       </div>
                       <p className='text-[10px] text-muted-foreground'>Sample & input validation</p>
@@ -354,13 +368,13 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
                           Hidden Tests
                         </span>
                         <span className='text-emerald-600 dark:text-emerald-400 font-mono'>
-                          {hCount} / 4
+                          {hPassed} / {hTotal}
                         </span>
                       </div>
                       <div className='w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden'>
                         <div
                           className='bg-indigo-500 h-full rounded-full transition-all duration-500'
-                          style={{ width: `${(hCount / 4) * 100}%` }}
+                          style={{ width: `${hTotal > 0 ? Math.min(100, Math.round((hPassed / hTotal) * 100)) : 0}%` }}
                         />
                       </div>
                       <p className='text-[10px] text-muted-foreground'>
@@ -376,13 +390,13 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
                           Boundary Tests
                         </span>
                         <span className='text-emerald-600 dark:text-emerald-400 font-mono'>
-                          {bCount} / 4
+                          {bPassed} / {bTotal}
                         </span>
                       </div>
                       <div className='w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden'>
                         <div
                           className='bg-purple-500 h-full rounded-full transition-all duration-500'
-                          style={{ width: `${(bCount / 4) * 100}%` }}
+                          style={{ width: `${bTotal > 0 ? Math.min(100, Math.round((bPassed / bTotal) * 100)) : 0}%` }}
                         />
                       </div>
                       <p className='text-[10px] text-muted-foreground'>Edge cases & limits</p>
@@ -396,13 +410,13 @@ export const DashboardCodingCard: React.FC<Props> = ({ data }) => {
                           Stress Tests
                         </span>
                         <span className='text-emerald-600 dark:text-emerald-400 font-mono'>
-                          {sCount} / 2
+                          {sPassed} / {sTotal}
                         </span>
                       </div>
                       <div className='w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden'>
                         <div
                           className='bg-amber-500 h-full rounded-full transition-all duration-500'
-                          style={{ width: `${(sCount / 2) * 100}%` }}
+                          style={{ width: `${sTotal > 0 ? Math.min(100, Math.round((sPassed / sTotal) * 100)) : 0}%` }}
                         />
                       </div>
                       <p className='text-[10px] text-muted-foreground'>Large scale & time limits</p>

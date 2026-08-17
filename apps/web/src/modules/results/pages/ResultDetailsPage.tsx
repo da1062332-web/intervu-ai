@@ -65,11 +65,11 @@ export const ResultDetailsPage = () => {
 
       // 2. Client-side fallback using jsPDF + html2canvas
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error — html2canvas types are not installed; dynamic import works at runtime
+      // @ts-ignore
       const html2canvasModule = await import('html2canvas');
-      const html2canvas = html2canvasModule.default;
+      const html2canvas = html2canvasModule.default || html2canvasModule;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error — jspdf types are not installed; dynamic import works at runtime
+      // @ts-ignore
       const { jsPDF } = await import('jspdf');
 
       const sections = document.querySelectorAll('.pdf-section');
