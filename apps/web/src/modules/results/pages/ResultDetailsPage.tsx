@@ -64,8 +64,12 @@ export const ResultDetailsPage = () => {
       }
 
       // 2. Client-side fallback using jsPDF + html2canvas
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error — html2canvas types are not installed; dynamic import works at runtime
       const html2canvasModule = await import('html2canvas');
       const html2canvas = html2canvasModule.default;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error — jspdf types are not installed; dynamic import works at runtime
       const { jsPDF } = await import('jspdf');
 
       const sections = document.querySelectorAll('.pdf-section');
@@ -90,9 +94,9 @@ export const ResultDetailsPage = () => {
           logging: false,
           backgroundColor: '#ffffff',
           allowTaint: true,
-          onclone: (clonedDoc) => {
+          onclone: (clonedDoc: Document) => {
             const allElements = clonedDoc.querySelectorAll('*');
-            allElements.forEach((node) => {
+            allElements.forEach((node: Element) => {
               const el = node as HTMLElement;
               if (el && el.style) {
                 const props = [

@@ -80,6 +80,10 @@ describe("Coding Assessment Generation Pipeline (Phase 2)", () => {
     },
     template: {
       findUnique: jest.fn().mockResolvedValue({ conceptKey: "array" }),
+      findFirst: jest.fn().mockResolvedValue({ id: "tmpl_1", conceptKey: "array" }),
+    },
+    concept: {
+      findFirst: jest.fn().mockResolvedValue(null),
     },
   };
 
