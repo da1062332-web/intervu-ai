@@ -53,8 +53,8 @@ export class PreviewService {
       seed,
     );
 
-    let aiPreviewNarrative = "[AI Narrative Statement Preview will be generated in Phase 3]";
-    if (dto.generateStatement) {
+    let aiPreviewNarrative = "";
+    if (dto.generateStatement !== false) {
       try {
         const aiStatement = await this.statementGenerator.generateStatement(
           {
@@ -69,7 +69,7 @@ export class PreviewService {
         );
         aiPreviewNarrative = aiStatement.narrative;
       } catch (err) {
-        aiPreviewNarrative = "[Failed to generate AI statement preview. Try again.]";
+        aiPreviewNarrative = `Write a function to solve the problem for the given input parameters and return the expected result.\n\n### Sample Input\n\`\`\`json\n${JSON.stringify(result.generatedInput, null, 2)}\n\`\`\`\n\n### Expected Output\n\`\`\`json\n${JSON.stringify(result.expectedOutput, null, 2)}\n\`\`\``;
       }
     }
 

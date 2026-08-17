@@ -1,5 +1,6 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 import { CodingPatternRepository } from "./repositories/coding-pattern.repository";
 import { CodingOracleRepository } from "./repositories/coding-oracle.repository";
 import { CodingPatternService } from "./services/coding-pattern.service";
@@ -102,7 +103,7 @@ const standardOracleProviders = [
 ];
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, forwardRef(() => GenerationAiModule)],
   controllers: [
     CodingPatternController,
     CodingOracleController,
