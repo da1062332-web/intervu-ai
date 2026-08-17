@@ -20,6 +20,7 @@ export const envSchema = z.object({
   DEFAULT_TTL: z.coerce.number().default(60000), // 60s
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  CORS_ALLOWED_ORIGINS: z.string().optional().describe("Comma-separated list of allowed CORS origins"),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

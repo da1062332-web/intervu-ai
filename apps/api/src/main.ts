@@ -60,23 +60,49 @@ async function bootstrap() {
     new ObservabilityInterceptor(),
   );
 
-  // CORS
-  const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-    ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-    : [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-      ];
+  // CORS configuration
+  const defaultAllowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "https://intervu-frontend.vercel.app",
+    "https://*.vercel.app",
+  ];
+
+  const envOrigins = configService.corsAllowedOrigins;
+  const allowedOrigins = Array.from(
+    new Set([...defaultAllowedOrigins, ...envOrigins]),
+  );
+
+  const isOriginAllowed = (origin: string): boolean => {
+    return allowedOrigins.some((allowed) => {
+      if (allowed === "*") return true;
+      if (allowed === origin) return true;
+      if (allowed.includes("*")) {
+        const pattern = new RegExp(
+          "^" +
+            allowed
+              .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+              .replace(/\\\*/g, ".*") +
+            "$",
+        );
+        return pattern.test(origin);
+      }
+      return false;
+    });
+  };
 
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || configService.isDevelopment || allowedOrigins.includes(origin)) {
+      if (!origin || configService.isDevelopment || isOriginAllowed(origin)) {
         callback(null, true);
       } else {
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
+        bootstrapLogger.warn(
+          `Blocked CORS request from disallowed origin: ${origin}`,
+        );
+        callback(null, false);
       }
     },
     credentials: true,
