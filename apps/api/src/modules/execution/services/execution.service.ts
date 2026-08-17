@@ -189,6 +189,21 @@ export class ExecutionService {
               }
             }
 
+            // Safety net: ensure MCQ questions always have valid options array
+            if (
+              (candidateSafeSnapshot.questionType === "MCQ" ||
+                candidateSafeSnapshot.questionType === "MULTIPLE_CHOICE") &&
+              (!Array.isArray(candidateSafeSnapshot.options) ||
+                candidateSafeSnapshot.options.length === 0)
+            ) {
+              candidateSafeSnapshot.options = [
+                { id: "opt1", text: "Option A" },
+                { id: "opt2", text: "Option B" },
+                { id: "opt3", text: "Option C" },
+                { id: "opt4", text: "Option D" },
+              ];
+            }
+
             // Enrich questionStatement and instructions from Question table if missing
             if (
               !candidateSafeSnapshot.questionStatement &&

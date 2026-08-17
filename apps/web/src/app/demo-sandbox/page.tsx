@@ -173,6 +173,71 @@ const mockTestInstance: TestInstance = {
         },
       ],
     },
+    {
+      id: 'sec-4',
+      sectionKey: 'coding',
+      sectionName: 'Hands-On Coding & Algorithms',
+      title: 'Hands-On Coding & Algorithms',
+      questions: [
+        {
+          id: 'q10',
+          questionHash: 'hash-q10',
+          type: 'CODING',
+          orderIndex: 9,
+          stem: '### Pattern: Math & Number Theory (Trial Division / Primality Testing)\n\nGiven an integer `n`, write an efficient algorithm to determine whether `n` is a prime number. A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.',
+          text: 'Write a function `isPrime(n)` that returns `true` if `n` is a prime number, and `false` otherwise.',
+          options: [],
+          candidateInstructions:
+            'Consider edge cases such as negative numbers, 0, 1, and large prime values up to 10^9.',
+          codingData: {
+            patternKey: 'MATH_PRIME_CHECK',
+            oracleKey: 'MATH_PRIME_CHECK_ORACLE',
+            functionSignature: 'isPrime(n: number): boolean',
+            inputDescription: 'n : An integer value where -10^9 <= n <= 10^9.',
+            outputDescription: 'Returns true if n is prime, otherwise returns false.',
+            constraints: '-10^9 \u2264 n \u2264 10^9\nTime Complexity Goal: O(sqrt(n))\nSpace Complexity Goal: O(1)',
+            exampleWalkthrough: [
+              { input: 'n = 7', output: 'true' },
+              { input: 'n = 10', output: 'false' },
+              { input: 'n = 527', output: 'false (527 = 17 * 31)' },
+            ],
+            publicTests: [
+              { input: { n: 7 }, expectedOutput: { result: true } },
+              { input: { n: 10 }, expectedOutput: { result: false } },
+            ],
+          },
+        },
+        {
+          id: 'q11',
+          questionHash: 'hash-q11',
+          type: 'CODING',
+          orderIndex: 10,
+          stem: '### Pattern: Array Reversal & Cyclic Shift\n\nGiven an array of integers `arr` and a non-negative integer `k`, rotate the array to the right by `k` steps. The algorithm should handle cases where `k` is larger than the size of the array.',
+          text: 'Write an algorithm to rotate array `arr` right by `k` positions and return the rotated array.',
+          options: [],
+          candidateInstructions:
+            'Perform the rotation efficiently. Try to optimize space to O(1) extra memory using the triple-reversal pattern.',
+          codingData: {
+            patternKey: 'ARRAY_CYCLIC_ROTATION',
+            oracleKey: 'ARRAY_ROTATION_ORACLE',
+            functionSignature: 'rotateArray(arr: number[], k: number): number[]',
+            inputDescription: 'arr : An array of integers. k : Non-negative number of steps to rotate right.',
+            outputDescription: 'Returns the array rotated right by k positions.',
+            constraints: '1 \u2264 arr.length \u2264 10^5\n0 \u2264 k \u2264 10^9\nTime Complexity Goal: O(N)\nSpace Complexity Goal: O(1)',
+            exampleWalkthrough: [
+              { input: 'arr = [1, 2, 3, 4, 5], k = 2', output: '[4, 5, 1, 2, 3]' },
+              { input: 'arr = [10, 20, 30], k = 1', output: '[30, 10, 20]' },
+            ],
+            publicTests: [
+              {
+                input: { arr: [1, 2, 3, 4, 5], k: 2 },
+                expectedOutput: { result: [4, 5, 1, 2, 3] },
+              },
+            ],
+          },
+        },
+      ],
+    },
   ],
 };
 

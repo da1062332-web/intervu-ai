@@ -27,6 +27,7 @@ export class SectionDto {
   durationMinutes!: number;
   orderIndex!: number;
   code!: string;
+  topicIds?: string[];
 }
 
 export class TopicDto {

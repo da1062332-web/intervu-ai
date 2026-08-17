@@ -7,8 +7,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TestCardGridProps {
   tests: TestConfig[];
-  bookmarkedIds: string[];
-  onToggleBookmark: (id: string) => void;
   currentPage: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
@@ -17,8 +15,6 @@ interface TestCardGridProps {
 
 export function TestCardGrid({
   tests,
-  bookmarkedIds,
-  onToggleBookmark,
   currentPage,
   itemsPerPage,
   onPageChange,
@@ -45,8 +41,6 @@ export function TestCardGrid({
           <TestCard
             key={`${test.id || (test as any).configId || 'test'}-${idx}`}
             test={test}
-            isBookmarked={bookmarkedIds.includes(test.id)}
-            onToggleBookmark={() => onToggleBookmark(test.id)}
           />
         ))}
       </div>

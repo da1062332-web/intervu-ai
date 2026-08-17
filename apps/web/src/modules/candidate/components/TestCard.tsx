@@ -12,16 +12,13 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, HelpCircle, Star, Building2, ChevronRight, Layers, RotateCcw } from 'lucide-react';
+import { Clock, HelpCircle, Building2, ChevronRight, Layers, RotateCcw } from 'lucide-react';
 
 interface TestCardProps {
   test: TestConfig;
-  isBookmarked: boolean;
-  onToggleBookmark: () => void;
 }
 
-export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps) {
+export function TestCard({ test }: TestCardProps) {
   const difficultyColors: Record<string, string> = {
     Easy: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
     Medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
@@ -101,30 +98,6 @@ export function TestCard({ test, isBookmarked, onToggleBookmark }: TestCardProps
             >
               {test.difficulty || 'Standard'}
             </Badge>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    className='size-8 rounded-full text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 shrink-0'
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onToggleBookmark();
-                    }}
-                    aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark test'}
-                  >
-                    <Star
-                      className={`size-4 transition-transform group-hover:scale-105 ${isBookmarked ? 'fill-yellow-500 text-yellow-500' : ''}`}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isBookmarked ? 'Remove Bookmark' : 'Save to Bookmarks'}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </div>
 

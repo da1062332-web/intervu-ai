@@ -1,6 +1,7 @@
 import { Injectable, Inject, Optional } from "@nestjs/common";
 import { CodingPattern } from "@prisma/client";
 import { PatternExecutionResultData } from "./pattern-execution.service";
+import { OracleRegistry } from "../oracles/oracle.registry";
 
 export interface AIStatementResult {
   title: string;
@@ -14,6 +15,7 @@ export class CodingStatementGeneratorService {
     @Optional()
     @Inject("LLM_ADAPTER")
     private readonly llmAdapter?: { generate(prompt: string): Promise<string> },
+    private readonly oracleRegistry?: OracleRegistry,
   ) {}
 
   /**
@@ -32,69 +34,26 @@ export class CodingStatementGeneratorService {
     let defaultConstraints =
       "Follow standard time O(N) and space O(1) efficiency guidelines.";
 
-    if (
-      oracleKey === "MATH_PRIME_CHECK_ORACLE" ||
-      oracleKey.includes("PRIME")
-    ) {
-      const sampleN = executionResult.generatedInput?.n ?? 29;
-      const sampleRes = executionResult.expectedOutput?.result ?? true;
-      defaultNarrative = `Write a function to determine if a given integer \`n\` is a prime number.
+    let oracleDescription = pattern.description || "process the input parameters and return the result matching the problem specification";
+    
+    if (this.oracleRegistry && oracleKey) {
+      try {
+        const oracle = this.oracleRegistry.getOracle(oracleKey);
+        if (oracle.description) {
+          oracleDescription = oracle.description;
+        }
+      } catch (e) {
+        // Fallback if oracle is not found in registry
+      }
+    }
 
-A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.
-
-### Function Signature
-\`isPrime(n)\`
-
-### Input
-- \`n\`: An integer value.
-
-### Output
-- Returns \`true\` if \`n\` is prime, otherwise returns \`false\`.
-
-### Example Walkthrough
-- Input: \`n = ${sampleN}\`
-- Output: \`${sampleRes}\``;
-      defaultConstraints =
-        "2 <= n <= 10^6. Time Complexity: O(sqrt(N)), Space Complexity: O(1).";
-    } else if (
-      oracleKey === "ARRAY_ROTATION_ORACLE" ||
-      oracleKey.includes("ROTAT")
-    ) {
-      const sampleArr = JSON.stringify(
-        executionResult.generatedInput?.arr || [1, 2, 3, 4, 5],
-      );
-      const sampleK = executionResult.generatedInput?.k ?? 2;
-      const sampleRes = JSON.stringify(
-        executionResult.expectedOutput?.result || [4, 5, 1, 2, 3],
-      );
-      defaultNarrative = `Write a function to rotate an array of integers \`arr\` to the right by \`k\` steps.
-
-### Function Signature
-\`rotate(arr, k)\`
-
-### Input
-- \`arr\`: An array of integers.
-- \`k\`: An integer representing the rotation count.
-
-### Output
-- Returns the array rotated right by \`k\` steps.
-
-### Example Walkthrough
-- Input: \`arr = ${sampleArr}, k = ${sampleK}\`
-- Output: \`${sampleRes}\``;
-      defaultConstraints =
-        "1 <= arr.length <= 10^5, 0 <= k <= 10^5. Time Complexity: O(N), Space Complexity: O(1).";
-    } else {
-      defaultNarrative =
-        pattern.description ||
-        `Write a function to process the input parameters and return the result matching the problem specification.
+    defaultNarrative = `Write a function to ${oracleDescription}.
 
 ### Sample Input
-${JSON.stringify(executionResult.generatedInput)}
+${JSON.stringify(executionResult.generatedInput, null, 2)}
 
 ### Expected Output
-${JSON.stringify(executionResult.expectedOutput)}`;
-    }
+${JSON.stringify(executionResult.expectedOutput, null, 2)}`;
 
     if (!this.llmAdapter) {
       return {
@@ -107,14 +66,19 @@ ${JSON.stringify(executionResult.expectedOutput)}`;
     try {
       const prompt = `You are an expert technical interviewer writing a coding problem statement.
 Problem Title: ${pattern.title}
+Difficulty Level: ${pattern.difficulty}
 Pattern Oracle Key: ${pattern.oracleKey}
+Oracle Description: ${oracleDescription}
+Pattern Description: ${pattern.description || "N/A"}
+Parameter Schema: ${JSON.stringify(pattern.parameterSchema)}
 Sample Input: ${JSON.stringify(executionResult.generatedInput)}
+Expected Output: ${JSON.stringify(executionResult.expectedOutput)}
 
 Generate JSON with fields:
 {
   "title": "A compelling title",
-  "narrative": "A clear problem description explaining what function to implement and what output is expected.",
-  "constraintsDescription": "Input bounds and constraints."
+  "narrative": "A clear problem description explaining what function to implement, what the inputs are, and what output is expected. Use markdown.",
+  "constraintsDescription": "Input bounds and constraints based on the parameter schema and difficulty."
 }`;
 
       const responseText = await this.llmAdapter.generate(prompt);

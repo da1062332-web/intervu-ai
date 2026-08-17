@@ -42,7 +42,13 @@ const makeSection = (
     difficultyLevel: i % 2 === 0 ? "EASY" : "MEDIUM",
     questionType: "MULTIPLE_CHOICE",
     questionOrder: i + 1,
-    questionSnapshot: {},
+    questionSnapshot: {
+      options: [
+        { text: "Option A", isCorrect: true },
+        { text: "Option B", isCorrect: false },
+      ],
+      correctAnswer: "Option A",
+    },
   })),
 });
 
@@ -129,5 +135,98 @@ describe("AssemblyValidationV2Service", () => {
     expect(result.sectionBreakdown).toBeDefined();
     expect(result.sectionBreakdown!.length).toBe(1);
     expect(result.sectionBreakdown![0].sectionKey).toBe("SEC-A");
+  });
+
+  it("fails validation (AVL-014) if MCQ question has fewer than 2 options", () => {
+    const bp = makeBlueprint({ totalQuestions: 1 });
+    const section: AllocatedSectionDto = {
+      sectionKey: "SEC-A",
+      displayName: "Section A",
+      durationSeconds: 1800,
+      questionCount: 1,
+      orderIndex: 0,
+      questions: [
+        {
+          questionId: "q-bad",
+          questionHash: "q-bad",
+          conceptKey: "math",
+          difficultyLevel: "EASY",
+          questionType: "MULTIPLE_CHOICE",
+          questionOrder: 1,
+          questionSnapshot: {
+            questionType: "MULTIPLE_CHOICE",
+            options: [{ text: "Only One Option", isCorrect: true }], // Less than 2 options
+          },
+        },
+      ],
+    };
+    const result = service.validate(
+      makeBlueprint({ sections: [{ ...bp.sections[0], questionCount: 1 }] }),
+      [section],
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("AVL-014"))).toBe(true);
+  });
+
+  it("issues warning (AVL-015) if objective question lacks explicit answer key", () => {
+    const bp = makeBlueprint({ totalQuestions: 1 });
+    const section: AllocatedSectionDto = {
+      sectionKey: "SEC-A",
+      displayName: "Section A",
+      durationSeconds: 1800,
+      questionCount: 1,
+      orderIndex: 0,
+      questions: [
+        {
+          questionId: "q-no-key",
+          questionHash: "q-no-key",
+          conceptKey: "math",
+          difficultyLevel: "EASY",
+          questionType: "MULTIPLE_CHOICE",
+          questionOrder: 1,
+          questionSnapshot: {
+            questionType: "MULTIPLE_CHOICE",
+            options: [{ text: "Option A" }, { text: "Option B" }], // missing isCorrect
+          },
+        },
+      ],
+    };
+    const result = service.validate(
+      makeBlueprint({ sections: [{ ...bp.sections[0], questionCount: 1 }] }),
+      [section],
+    );
+    expect(result.warnings.some((w) => w.includes("AVL-015"))).toBe(true);
+  });
+
+  it("fails validation (AVL-016) if manual question has invalid difficulty level", () => {
+    const bp = makeBlueprint({ totalQuestions: 1 });
+    const section: AllocatedSectionDto = {
+      sectionKey: "SEC-A",
+      displayName: "Section A",
+      durationSeconds: 1800,
+      questionCount: 1,
+      orderIndex: 0,
+      questions: [
+        {
+          questionId: "q-manual-bad",
+          questionHash: "q-manual-bad",
+          conceptKey: "math",
+          difficultyLevel: "EXTREME", // Invalid level
+          questionType: "MULTIPLE_CHOICE",
+          questionOrder: 1,
+          questionSnapshot: {
+            source: "MANUAL",
+            difficultyLevel: "EXTREME",
+            options: [{ text: "A" }, { text: "B" }],
+          },
+        },
+      ],
+    };
+    const result = service.validate(
+      makeBlueprint({ sections: [{ ...bp.sections[0], questionCount: 1 }] }),
+      [section],
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("AVL-016"))).toBe(true);
   });
 });

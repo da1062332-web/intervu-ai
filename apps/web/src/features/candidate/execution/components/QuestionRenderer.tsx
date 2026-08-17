@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import React, { useCallback, Fragment } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
@@ -18,23 +18,25 @@ export function QuestionRenderer() {
     [currentQuestion?.id, saveAnswer],
   );
 
-  if (!currentQuestion || !testInstance) return null;
+  if (!currentQuestion) {
+    return (
+      <div className='flex items-center justify-center h-64 text-slate-400 text-sm'>
+        No active question selected.
+      </div>
+    );
+  }
 
   const currentAnswer = answers[currentQuestion.id];
-
-  let parsedInstructions: { constraints?: string; testCases?: string } | null = null;
-  let rawInstructions = '';
-
-  if (currentQuestion.candidateInstructions) {
-    try {
-      const parsed = JSON.parse(currentQuestion.candidateInstructions);
-      if (typeof parsed === 'object' && parsed !== null) {
-        parsedInstructions = parsed;
-      } else {
-        rawInstructions = currentQuestion.candidateInstructions;
+  let parsedInstructions: any = null;
+  if (currentQuestion.instructions) {
+    if (typeof currentQuestion.instructions === 'string') {
+      try {
+        parsedInstructions = JSON.parse(currentQuestion.instructions);
+      } catch {
+        parsedInstructions = { constraints: currentQuestion.instructions };
       }
-    } catch {
-      rawInstructions = currentQuestion.candidateInstructions;
+    } else {
+      parsedInstructions = currentQuestion.instructions;
     }
   }
 
@@ -234,37 +236,226 @@ export function QuestionRenderer() {
   const isCoding = currentQuestion.type?.toUpperCase() === 'CODING';
 
   if (isCoding) {
+    const qSnapshot = (currentQuestion as any).questionSnapshot || {};
+    const codingData =
+      (currentQuestion as any).codingData ||
+      qSnapshot.codingData ||
+      {};
+
+    const qText = (
+      currentQuestion.text ||
+      (currentQuestion as any).questionStatement ||
+      qSnapshot.questionStatement ||
+      qSnapshot.questionText ||
+      ''
+    ).trim();
+
+    const qTitle =
+      (currentQuestion as any).questionTitle ||
+      qSnapshot.questionTitle ||
+      codingData.title ||
+      '';
+
+    const funcSig =
+      codingData.functionSignature ||
+      codingData.signature ||
+      qSnapshot.functionSignature ||
+      null;
+
+    const inputDesc =
+      codingData.inputDescription ||
+      qSnapshot.inputDescription ||
+      null;
+
+    const outputDesc =
+      codingData.outputDescription ||
+      qSnapshot.outputDescription ||
+      null;
+
+    // Collect all possible sample test cases
+    let rawTestCases: any[] = [];
+    if (parsedInstructions?.testCases) {
+      if (typeof parsedInstructions.testCases === 'string') {
+        try {
+          rawTestCases = JSON.parse(parsedInstructions.testCases);
+        } catch {
+          rawTestCases = [];
+        }
+      } else if (Array.isArray(parsedInstructions.testCases)) {
+        rawTestCases = parsedInstructions.testCases;
+      }
+    }
+
+    if (rawTestCases.length === 0) {
+      const candidates =
+        codingData.examples ||
+        codingData.exampleWalkthrough ||
+        codingData.sampleTestCases ||
+        (currentQuestion as any).testCases ||
+        (currentQuestion as any).sampleTestCases ||
+        qSnapshot.testCases ||
+        qSnapshot.sampleTestCases ||
+        [];
+      if (Array.isArray(candidates)) {
+        rawTestCases = candidates;
+      }
+    }
+
+    const sampleCases = rawTestCases.map((tc: any) => {
+      let inp = tc.input;
+      if (typeof inp === 'object' && inp !== null) {
+        try {
+          inp = JSON.stringify(inp, null, 2);
+        } catch {
+          inp = String(inp);
+        }
+      }
+      let out = tc.output ?? tc.expectedOutput ?? tc.result;
+      if (typeof out === 'object' && out !== null) {
+        try {
+          out = JSON.stringify(out, null, 2);
+        } catch {
+          out = String(out);
+        }
+      }
+      return {
+        input: String(inp ?? ''),
+        output: String(out ?? ''),
+        explanation: tc.explanation || null,
+      };
+    });
+
+    const constraints =
+      parsedInstructions?.constraints ||
+      codingData.constraints ||
+      qSnapshot.constraints ||
+      (currentQuestion as any).constraints ||
+      null;
+
+    // Check if qText already embeds "### Sample Input" to avoid redundant duplication
+    const hasEmbeddedSamples =
+      qText.toLowerCase().includes('### sample input') ||
+      qText.toLowerCase().includes('sample input:');
+
     return (
       <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
         {/* Question Number Header Bar */}
         <div className='bg-white px-4 py-3 border-b border-gray-300 flex items-center justify-between shrink-0'>
-          <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
-            Question No {currentQuestionIndex + 1}
-          </h2>
+          <div className='flex items-center gap-3'>
+            <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
+              Question No {currentQuestionIndex + 1}
+            </h2>
+            {qTitle && (
+              <span className='text-xs font-semibold text-slate-500 hidden sm:inline'>
+                • {qTitle}
+              </span>
+            )}
+          </div>
           <span className='text-xs font-bold text-gray-600 bg-gray-100 border border-gray-300 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
             {currentQuestion.type}
           </span>
         </div>
 
-        <div className='flex flex-col flex-1 w-full overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar select-text'>
-          {/* Question Statement & Constraints */}
-          <div className='bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-200 space-y-3 shrink-0'>
-            {currentQuestion.text ? (
+        <div className='flex flex-col flex-1 w-full overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar select-text'>
+          {/* Structured Coding Problem Statement Card */}
+          <div className='bg-white p-5 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4 shrink-0 text-slate-800 font-sans'>
+            {qText ? (
               <MarkdownRenderer
-                content={currentQuestion.text}
-                className='text-base sm:text-[15px]'
+                content={qText}
+                className='text-sm sm:text-base font-normal leading-relaxed text-slate-700'
               />
             ) : (
               <p className='text-slate-400 italic text-sm'>No question statement available.</p>
             )}
 
-            {parsedInstructions?.constraints && (
-              <div className='p-3.5 rounded-md border border-amber-200 bg-amber-50/70 text-sm'>
-                <h4 className='font-semibold text-amber-900 mb-1 text-xs uppercase tracking-wider'>
-                  Constraints
+            {/* FUNCTION SIGNATURE */}
+            {funcSig && (
+              <div className='space-y-1.5 pt-1'>
+                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
+                  FUNCTION SIGNATURE
                 </h4>
-                <div className='font-mono text-gray-800 text-xs whitespace-pre-wrap'>
-                  {parsedInstructions.constraints}
+                <div className='inline-block bg-indigo-50 border border-indigo-100 text-indigo-700 font-mono text-xs sm:text-sm font-semibold px-3 py-1 rounded-md shadow-2xs'>
+                  {funcSig}
+                </div>
+              </div>
+            )}
+
+            {/* INPUT DESCRIPTION */}
+            {inputDesc && (
+              <div className='space-y-1.5'>
+                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
+                  INPUT FORMAT
+                </h4>
+                <div className='text-xs sm:text-sm text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80'>
+                  {inputDesc}
+                </div>
+              </div>
+            )}
+
+            {/* OUTPUT DESCRIPTION */}
+            {outputDesc && (
+              <div className='space-y-1.5'>
+                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
+                  OUTPUT FORMAT
+                </h4>
+                <div className='text-xs sm:text-sm text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80'>
+                  {outputDesc}
+                </div>
+              </div>
+            )}
+
+            {/* SAMPLE TEST CASES / EXAMPLES */}
+            {!hasEmbeddedSamples && sampleCases.length > 0 && (
+              <div className='space-y-3 pt-2'>
+                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
+                  SAMPLE TEST CASES
+                </h4>
+                <div className='space-y-3'>
+                  {sampleCases.map((sample, idx) => (
+                    <div
+                      key={idx}
+                      className='rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2.5 text-xs font-sans'
+                    >
+                      <span className='font-bold text-slate-700'>
+                        Sample Case #{idx + 1}
+                      </span>
+                      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <div className='space-y-1'>
+                          <span className='text-[10px] font-bold uppercase tracking-wider text-slate-500'>
+                            Sample Input:
+                          </span>
+                          <pre className='bg-white p-2.5 rounded-lg border border-slate-200 font-mono text-xs text-slate-800 overflow-x-auto whitespace-pre-wrap select-all'>
+                            {sample.input || '(empty)'}
+                          </pre>
+                        </div>
+                        <div className='space-y-1'>
+                          <span className='text-[10px] font-bold uppercase tracking-wider text-slate-500'>
+                            Sample Output:
+                          </span>
+                          <pre className='bg-white p-2.5 rounded-lg border border-slate-200 font-mono text-xs text-slate-800 overflow-x-auto whitespace-pre-wrap select-all'>
+                            {sample.output || '(empty)'}
+                          </pre>
+                        </div>
+                      </div>
+                      {sample.explanation && (
+                        <p className='text-slate-600 text-xs italic pt-0.5'>
+                          <span className='font-semibold'>Explanation:</span> {sample.explanation}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CONSTRAINTS CARD */}
+            {constraints && (
+              <div className='p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/60 text-xs space-y-1.5 mt-2'>
+                <h4 className='font-bold text-amber-900 text-[11px] uppercase tracking-wider'>
+                  CONSTRAINTS
+                </h4>
+                <div className='font-mono text-slate-800 text-xs font-semibold whitespace-pre-wrap'>
+                  {constraints}
                 </div>
               </div>
             )}
@@ -275,7 +466,7 @@ export function QuestionRenderer() {
             <EmbeddedCompiler
               key={currentQuestion.id}
               questionId={currentQuestion.id}
-              testInstanceId={testInstance.id}
+              testInstanceId={testInstance?.id}
               onChange={handleCompilerChange}
             />
           </div>
@@ -321,15 +512,6 @@ export function QuestionRenderer() {
                 <div className='font-mono text-gray-800 whitespace-pre-wrap'>
                   {parsedInstructions.constraints}
                 </div>
-              </div>
-            )}
-
-            {rawInstructions && (
-              <div className='bg-blue-50/80 border-l-4 border-blue-600 p-3.5 text-sm text-gray-800 rounded-r-sm'>
-                <span className='font-bold underline block mb-1 text-blue-950'>
-                  Candidate Notice:
-                </span>
-                {rawInstructions}
               </div>
             )}
           </div>

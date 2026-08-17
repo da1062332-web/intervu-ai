@@ -113,4 +113,17 @@ export class AppConfigService {
   get googleClientSecret(): string {
     return this.configService.get<string>("GOOGLE_CLIENT_SECRET", "") || "";
   }
+
+  get corsAllowedOrigins(): string[] {
+    const raw =
+      this.configService?.get<string>("CORS_ALLOWED_ORIGINS") ||
+      process.env.CORS_ALLOWED_ORIGINS;
+    if (raw) {
+      return raw
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }
 }

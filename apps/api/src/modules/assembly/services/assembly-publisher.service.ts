@@ -131,7 +131,7 @@ export class AssemblyPublisherService {
       try {
         await this.prisma.examConfig.update({
           where: { id: targetConfigId },
-          data: { status: "PUBLISHED" },
+          data: { status: "PUBLISHED", isActive: true },
         });
       } catch (err) {
         console.warn(

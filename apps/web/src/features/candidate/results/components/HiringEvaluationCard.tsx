@@ -72,6 +72,10 @@ export function HiringEvaluationCard({
   codingSolved = 0,
   qualificationDetails,
 }: HiringEvaluationCardProps) {
+  if (!qualification || qualification === 'NOT_APPLICABLE' || qualification === 'N/A') {
+    return null;
+  }
+
   const getBadgeStyle = (q: string) => {
     switch (q.toUpperCase()) {
       case 'PRIME':

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, ArrowRight, Code, Palette, Cloud, Compass } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
+import { useTestCatalog } from '../hooks/useTestCatalog';
 
 interface AvailableAssessmentSectionProps {
   dashboard?: CandidateDashboardData | null;
@@ -20,6 +21,8 @@ export function AvailableAssessmentSection({
   compact = true,
 }: AvailableAssessmentSectionProps) {
   const router = useRouter();
+  const { pagination } = useTestCatalog({ limit: 1 });
+  const totalCount = pagination?.total || 0;
 
   if (isLoading) {
     return (
@@ -113,7 +116,7 @@ export function AvailableAssessmentSection({
       </div>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 flex-1 items-stretch'>
-        {actualTests.map((test) => {
+        {actualTests.map((test: any) => {
           const IconComponent =
             test.iconType === 'palette' ? Palette : test.iconType === 'cloud' ? Cloud : Code;
           return (
@@ -176,7 +179,13 @@ export function AvailableAssessmentSection({
             Explore Catalog
           </h4>
           <p className='text-xs text-muted-foreground font-normal mt-1.5 max-w-[200px] leading-relaxed'>
-            Discover 40+ more assessments tailored to your skills.
+            {(() => {
+              const displayCount = Math.floor(totalCount / 5) * 5;
+              if (displayCount >= 5) {
+                return `Discover ${displayCount}+ more assessments tailored to your skills.`;
+              }
+              return 'Discover more assessments tailored to your skills.';
+            })()}
           </p>
         </div>
       </div>

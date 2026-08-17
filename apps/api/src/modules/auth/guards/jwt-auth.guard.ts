@@ -14,16 +14,21 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  async canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
     if (isPublic) {
-      // Try to resolve user from token if present, but don't block if absent
-      return super.canActivate(context) as Promise<boolean> | boolean;
+      // Try to resolve user from token if present, but don't block if absent or invalid
+      try {
+        const can = await super.canActivate(context);
+        return Boolean(can);
+      } catch {
+        return true;
+      }
     }
-    return super.canActivate(context);
+    return super.canActivate(context) as Promise<boolean> | boolean;
   }
 
   handleRequest<TUser = unknown>(

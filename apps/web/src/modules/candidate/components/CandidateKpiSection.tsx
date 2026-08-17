@@ -4,6 +4,7 @@ import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Target, CheckCircle2, Layers } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
+import { useTestCatalog } from '../hooks/useTestCatalog';
 
 interface CandidateKpiSectionProps {
   dashboard?: CandidateDashboardData | null;
@@ -20,7 +21,9 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
   metrics,
   isLoading,
 }: CandidateKpiSectionProps) {
-  if (isLoading) {
+  const { pagination, isLoading: isCatalogLoading } = useTestCatalog({ limit: 1 });
+
+  if (isLoading || isCatalogLoading) {
     return (
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6'>
         {[1, 2, 3, 4].map((i) => (
@@ -43,7 +46,7 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
   const avgAccuracyVal = metrics?.averageAccuracy;
   const avgAccuracy = avgAccuracyVal !== undefined && avgAccuracyVal !== null ? `${Math.round(avgAccuracyVal)}%` : '0%';
   const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 0;
-  const totalAssessments = dashboard?.availableTests?.length ?? 0;
+  const totalAssessments = pagination?.total || 0;
 
   const cards = [
     {
@@ -79,7 +82,7 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       icon: Layers,
       iconStyle:
         'bg-[#eff2ff] text-[#3b82f6] dark:bg-blue-950/50 dark:text-blue-400 border-blue-100/50 dark:border-blue-900/40',
-      subtitle: 'Unlocked assessments',
+      subtitle: 'Available assessments',
       glow: 'bg-[#eff2ff]/80 dark:bg-blue-900/10',
     },
   ];

@@ -45,11 +45,18 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resul
   const d = data as any;
   const qual = d?.qualification || resultDetails?.qualification;
   const qualReason = d?.qualificationReason || resultDetails?.qualificationReason;
-  const evalStrategy = d?.evaluationStrategy || resultDetails?.evaluationStrategy || 'TCS';
+  const evalStrategy = d?.evaluationStrategy || resultDetails?.evaluationStrategy;
   const foundationScore = d?.foundationScore ?? resultDetails?.foundationScore ?? 0;
   const advancedScore = d?.advancedScore ?? resultDetails?.advancedScore ?? 0;
   const codingSolved = d?.codingSolved ?? resultDetails?.codingSolved ?? 0;
   const qualificationDetails = d?.qualificationDetails || resultDetails?.qualificationDetails;
+
+  const isHiringEvalActive = Boolean(
+    qual &&
+      qual !== 'NOT_APPLICABLE' &&
+      qual !== 'N/A' &&
+      (evalStrategy || qualificationDetails),
+  );
 
   return (
     <div className='space-y-10 py-2'>
@@ -64,12 +71,12 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resul
           <DashboardScoreCard data={data} resultDetails={resultDetails} />
         </div>
 
-        {(qual || qualificationDetails) && (
+        {isHiringEvalActive && (
           <div className='pdf-section pt-2'>
             <HiringEvaluationCard
               qualification={qual}
               qualificationReason={qualReason}
-              evaluationStrategy={evalStrategy}
+              evaluationStrategy={evalStrategy || 'TCS'}
               foundationScore={foundationScore}
               advancedScore={advancedScore}
               codingSolved={codingSolved}

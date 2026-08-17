@@ -35,9 +35,9 @@ export class SectionScoringService {
 
       for (const result of sectionResults) {
         maxMarks += result.maxMarks;
+        marksObtained += result.score;
         if (result.isCorrect) {
           correct += 1;
-          marksObtained += result.score;
         } else if (
           !result.candidateAnswer ||
           result.candidateAnswer.trim() === ""

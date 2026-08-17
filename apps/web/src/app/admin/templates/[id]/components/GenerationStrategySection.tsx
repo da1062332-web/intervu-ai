@@ -40,6 +40,8 @@ import { detectCircularDependencies } from './formula-dependency-validator';
 
 import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
 
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+
 interface VariableDefinition {
   name: string;
   type: string;

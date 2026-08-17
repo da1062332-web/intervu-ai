@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsObject, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsInt, IsObject, IsOptional, IsString, IsBoolean } from "class-validator";
 import { DifficultyLevel } from "@prisma/client";
 
 export class PreviewCodingPatternDto {
@@ -25,4 +25,8 @@ export class PreviewCodingPatternDto {
   @IsEnum(DifficultyLevel)
   @IsOptional()
   difficulty?: DifficultyLevel;
+
+  @IsBoolean()
+  @IsOptional()
+  generateStatement?: boolean;
 }

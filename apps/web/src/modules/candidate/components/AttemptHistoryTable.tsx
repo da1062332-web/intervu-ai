@@ -37,17 +37,17 @@ interface AttemptHistoryTableProps {
 
 const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
   return (
-    <div className='flex items-center justify-end gap-2'>
+    <div className='flex items-center justify-end gap-2 whitespace-nowrap shrink-0'>
       {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
         <>
           <Button
             size='sm'
-            variant='ghost'
+            variant='secondary'
             asChild
-            className='h-8 px-2.5 text-xs font-semibold hover:bg-muted/80'
+            className='h-8 px-3 text-xs font-bold rounded-lg'
           >
             <Link href={`/candidate/results/${attempt.instanceId}`}>
-              <Eye className='size-3.5 mr-1.5' /> View
+              View Result
             </Link>
           </Button>
           {attempt.canReAttempt !== false ? (
@@ -55,33 +55,30 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
               size='sm'
               variant='outline'
               asChild
-              className='h-8 px-2.5 text-xs font-semibold border-border/60 hover:bg-muted/80 text-primary hover:text-primary'
+              className='h-8 px-3 text-xs font-semibold rounded-lg gap-1.5'
             >
               <Link
                 href={`/candidate/tests/${attempt.examConfigId || attempt.testConfigId || attempt.configId || attempt.testId || attempt.assessmentId}`}
               >
-                <Play className='size-3.5 mr-1.5' /> Re-Exam
+                <Play className='size-3 text-muted-foreground' />
+                <span>Re-Exam</span>
               </Link>
             </Button>
-          ) : (
-            <Button
-              size='sm'
-              variant='outline'
-              disabled
-              className='h-8 px-2.5 text-xs font-semibold border-border/60 text-muted-foreground opacity-60 cursor-not-allowed'
-            >
-              Max Attempts Reached
-            </Button>
-          )}
+          ) : null}
         </>
       ) : attempt.status === 'IN_PROGRESS' ? (
-        <Button size='sm' variant='default' asChild className='h-8 px-3 text-xs font-semibold'>
+        <Button
+          size='sm'
+          variant='default'
+          asChild
+          className='h-8 px-4 text-xs font-bold rounded-lg gap-1.5'
+        >
           <Link href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}>
-            <Play className='size-3.5 mr-1.5' /> Resume
+            <Play className='size-3 fill-current' /> Resume
           </Link>
         </Button>
       ) : (
-        <span className='text-xs font-medium text-muted-foreground'>-</span>
+        <span className='text-xs font-medium text-muted-foreground px-2'>-</span>
       )}
     </div>
   );
@@ -158,28 +155,6 @@ export function AttemptHistoryTable({
       ),
     },
     {
-      id: 'attempts',
-      header: (
-        <div className='flex items-center gap-1.5 font-bold text-xs uppercase tracking-wide'>
-          Attempts
-        </div>
-      ),
-      cell: (row) => (
-        row.maxAttempts !== undefined && row.attemptCount !== undefined ? (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-semibold text-foreground">
-              {row.attemptCount} / {row.maxAttempts}
-            </span>
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {row.remainingAttempts} left
-            </span>
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground">-</span>
-        )
-      )
-    },
-    {
       id: 'date',
       header: (
         <div
@@ -194,32 +169,6 @@ export function AttemptHistoryTable({
           {format(new Date(row.date), 'MMM d, yyyy')}
         </span>
       ),
-    },
-    {
-      id: 'status',
-      header: (
-        <div
-          className='flex items-center gap-1.5 cursor-pointer hover:text-foreground select-none font-bold text-xs uppercase tracking-wide'
-          onClick={() => toggleSort('status')}
-        >
-          Status <ArrowUpDown className='size-3 opacity-50' />
-        </div>
-      ),
-      cell: (row) => {
-        let variant: 'default' | 'success' | 'warning' | 'destructive' | 'outline' = 'default';
-        if (row.status === 'COMPLETED' || row.status === 'SUBMITTED') variant = 'success';
-        else if (row.status === 'IN_PROGRESS') variant = 'default';
-        else variant = 'outline';
-
-        return (
-          <Badge
-            variant={variant}
-            className='rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider'
-          >
-            {row.status.replace('_', ' ')}
-          </Badge>
-        );
-      },
     },
     {
       id: 'result',

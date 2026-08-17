@@ -58,6 +58,14 @@ export class MockAdapter implements LLMAdapter {
       });
     }
 
+    if (prompt.includes("expert technical interviewer writing a coding problem statement")) {
+      return JSON.stringify({
+        title: "Mock AI Coding Challenge",
+        narrative: "This is a mock AI-generated problem statement. Write a function that takes the inputs and produces the correct output. Ensure you handle all edge cases optimally.\n\n### Requirements\n- Must run efficiently.\n- Return the correct type.",
+        constraintsDescription: "Time: O(N), Space: O(1). Inputs are within standard 32-bit limits."
+      });
+    }
+
     // Detect topic and difficulty from prompt to return a matching mock question
     let topic = "General";
     const topicMatch = prompt.match(/- Concept Area:\s*([^\r\n]+)/i);

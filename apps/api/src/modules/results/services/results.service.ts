@@ -218,7 +218,7 @@ export class ResultsService {
       score: r.score,
       percentage: r.percentage,
       evaluationStrategy: r.evaluationStrategy || undefined,
-      qualification: r.qualification || "NOT_APPLICABLE",
+      qualification: r.qualification || undefined,
       qualificationReason: r.qualificationReason || undefined,
       foundationScore: r.foundationScore ?? undefined,
       advancedScore: r.advancedScore ?? undefined,

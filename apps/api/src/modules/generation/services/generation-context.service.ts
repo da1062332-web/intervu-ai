@@ -101,6 +101,9 @@ export class GenerationContextService {
       durationMinutes: s.sectionDurationMinutes,
       orderIndex: s.sectionOrder,
       code: s.code,
+      topicIds: (s.sectionTopics || [])
+        .map((st: any) => st.topicId || st.topic?.id)
+        .filter(Boolean),
     }));
 
     // 5. Resolve Topics & Concepts DTO

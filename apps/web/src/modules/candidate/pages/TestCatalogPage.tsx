@@ -22,14 +22,10 @@ export function TestCatalogPage() {
   const {
     searchQuery,
     difficultyFilter,
-    bookmarkedIds,
     currentPage,
     itemsPerPage,
-    showOnlyBookmarked,
     setSearchQuery,
     setDifficultyFilter,
-    setShowOnlyBookmarked,
-    toggleBookmark,
     setCurrentPage,
     resetFilters,
   } = useTestCatalogStore();
@@ -78,12 +74,6 @@ export function TestCatalogPage() {
     );
   }
 
-  // Bookmark filtering is still client-side since bookmarks are local in this MVP
-  const filteredTests = tests.filter((test: TestItem) => {
-    const matchesBookmark = !showOnlyBookmarked || bookmarkedIds.includes(test.configId || test.id);
-    return matchesBookmark;
-  });
-
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     if (currentPage !== 1) setCurrentPage(1);
@@ -91,11 +81,6 @@ export function TestCatalogPage() {
 
   const handleDifficultyChange = (diff: 'All' | 'Easy' | 'Medium' | 'Hard') => {
     setDifficultyFilter(diff);
-    if (currentPage !== 1) setCurrentPage(1);
-  };
-
-  const handleBookmarkFilterChange = (val: boolean) => {
-    setShowOnlyBookmarked(val);
     if (currentPage !== 1) setCurrentPage(1);
   };
 
@@ -119,24 +104,18 @@ export function TestCatalogPage() {
         onSearchChange={handleSearchChange}
         difficultyFilter={difficultyFilter}
         onDifficultyChange={handleDifficultyChange}
-        showOnlyBookmarked={showOnlyBookmarked}
-        onShowOnlyBookmarkedChange={handleBookmarkFilterChange}
-        totalResults={
-          showOnlyBookmarked ? filteredTests.length : (pagination.total ?? filteredTests.length)
-        }
+        totalResults={pagination.total ?? tests.length}
       />
 
-      {filteredTests.length === 0 ? (
+      {tests.length === 0 ? (
         <EmptyState onReset={handleReset} />
       ) : (
         <TestCardGrid
-          tests={filteredTests}
-          bookmarkedIds={bookmarkedIds}
-          onToggleBookmark={toggleBookmark}
+          tests={tests}
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
-          totalItems={showOnlyBookmarked ? undefined : pagination.total}
+          totalItems={pagination.total}
         />
       )}
     </div>

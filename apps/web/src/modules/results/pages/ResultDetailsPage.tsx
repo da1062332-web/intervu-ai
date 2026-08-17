@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { ArrowLeft, Download, Share2, CheckCircle2, Target, XCircle } from 'lucide-react';
 import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsDashboard';
 
+import { resultApi } from '../api/results.api';
+
 export const ResultDetailsPage = () => {
   const params = useParams();
   const attemptId = params?.attemptId as string;
@@ -40,10 +42,34 @@ export const ResultDetailsPage = () => {
     try {
       setIsExportingPdf(true);
       toast.info('Preparing your PDF report... Please hold on.', { duration: 3000 });
-      await new Promise((r) => setTimeout(r, 150)); // Allow UI notifications to settle
 
+      // 1. Try server-side vector PDF generation (instant, sharp, no CSS/canvas issues)
+      try {
+        const pdfBlob = await resultApi.exportToPdf(attemptId);
+        if (pdfBlob && (pdfBlob as any).size > 0) {
+          const blob = new Blob([pdfBlob], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `Assessment_Report_${attemptId.slice(0, 8)}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode?.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          toast.success('PDF downloaded successfully');
+          return;
+        }
+      } catch (backendErr) {
+        console.warn('Backend PDF export fallback to client rendering:', backendErr);
+      }
+
+      // 2. Client-side fallback using jsPDF + html2canvas
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error — html2canvas types are not installed; dynamic import works at runtime
       const html2canvasModule = await import('html2canvas');
       const html2canvas = html2canvasModule.default;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error — jspdf types are not installed; dynamic import works at runtime
       const { jsPDF } = await import('jspdf');
 
       const sections = document.querySelectorAll('.pdf-section');
@@ -68,6 +94,31 @@ export const ResultDetailsPage = () => {
           logging: false,
           backgroundColor: '#ffffff',
           allowTaint: true,
+          onclone: (clonedDoc: Document) => {
+            const allElements = clonedDoc.querySelectorAll('*');
+            allElements.forEach((node: Element) => {
+              const el = node as HTMLElement;
+              if (el && el.style) {
+                const props = [
+                  'color',
+                  'backgroundColor',
+                  'borderColor',
+                  'outlineColor',
+                  'fill',
+                  'stroke',
+                ];
+                props.forEach((prop) => {
+                  const val = (el.style as any)[prop];
+                  if (
+                    val &&
+                    (val.includes('lab(') || val.includes('oklch(') || val.includes('color('))
+                  ) {
+                    (el.style as any)[prop] = '';
+                  }
+                });
+              }
+            });
+          },
         });
 
         if (!canvas || canvas.width === 0 || canvas.height === 0) continue;
@@ -169,7 +220,8 @@ export const ResultDetailsPage = () => {
   }
 
   const initial = (result.assessmentName || 'Assessment').charAt(0).toUpperCase();
-  const isNotApplicable = !result.qualification || result.qualification.toUpperCase() === 'NOT_APPLICABLE';
+  const isNotApplicable =
+    !result.qualification || result.qualification.toUpperCase() === 'NOT_APPLICABLE';
   const isQualified = !isNotApplicable && result.qualification?.toUpperCase() !== 'NOT_QUALIFIED';
   const formattedDate = new Date(result.submittedAt).toLocaleDateString('en-US', {
     day: 'numeric',
@@ -249,19 +301,19 @@ export const ResultDetailsPage = () => {
               </div>
             </div>
 
-            {/* Qualification Banner */}
+            {/* Status / Qualification Banner */}
             <div className='flex items-center gap-3 w-full md:w-auto justify-end'>
               {isNotApplicable ? (
-                <div className='w-full md:w-auto p-4 rounded-2xl bg-muted/50 border border-border text-muted-foreground flex items-center gap-3'>
-                  <div className='p-2 rounded-xl bg-muted shrink-0'>
-                    <CheckCircle2 className='w-5 h-5 opacity-50' />
+                <div className='w-full md:w-auto p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center gap-3'>
+                  <div className='p-2 rounded-xl bg-primary/20 shrink-0'>
+                    <CheckCircle2 className='w-5 h-5 text-primary' />
                   </div>
                   <div>
                     <span className='text-xs font-extrabold uppercase tracking-wider block'>
-                      NOT APPLICABLE
+                      ASSESSMENT COMPLETED
                     </span>
                     <span className='text-[11px] opacity-80 font-medium'>
-                      {result.qualificationReason || 'No qualification criteria configured for this assessment.'}
+                      Percentage {Math.round(result.percentage ?? 0)}%
                     </span>
                   </div>
                 </div>

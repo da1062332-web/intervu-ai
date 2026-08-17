@@ -170,7 +170,10 @@ export class SubmissionService {
             submittedAt: new Date(),
             answers: answers.map((a) => ({
               questionId: a.questionId,
-              answer: String(a.answer), // assuming scalar for now
+              answer:
+                typeof a.answer === "object" && a.answer !== null
+                  ? JSON.stringify(a.answer)
+                  : String(a.answer || ""),
               timeSpentSeconds: a.timeSpentSeconds,
               isMarkedForReview: a.isMarkedForReview,
             })),

@@ -4,6 +4,7 @@ import { CodingPatternRegistryService } from "./coding-pattern-registry.service"
 import { CodingOracleService } from "./coding-oracle.service";
 import { PreviewCodingPatternDto } from "../dto/preview-coding-pattern.dto";
 import { PatternPreviewResponseDto } from "../dto/pattern-preview-response.dto";
+import { CodingStatementGeneratorService } from "./coding-statement-generator.service";
 
 @Injectable()
 export class PreviewService {
@@ -11,6 +12,7 @@ export class PreviewService {
     private readonly executionService: PatternExecutionService,
     private readonly registryService: CodingPatternRegistryService,
     private readonly oracleService: CodingOracleService,
+    private readonly statementGenerator: CodingStatementGeneratorService,
   ) {}
 
   async generatePreview(dto: PreviewCodingPatternDto): Promise<PatternPreviewResponseDto> {
@@ -20,9 +22,10 @@ export class PreviewService {
     let difficulty = dto.difficulty;
 
     let starterCode: Record<string, any> | null = null;
+    let pattern: any = null;
 
     if (dto.patternId) {
-      const pattern = await this.registryService.resolvePattern(dto.patternId);
+      pattern = await this.registryService.resolvePattern(dto.patternId);
       oracleKey = oracleKey || pattern.oracleKey || undefined;
       parameterSchema = parameterSchema || (pattern.parameterSchema as Record<string, any>);
       constraintSchema = constraintSchema || (pattern.constraintSchema as Record<string, any>);
@@ -50,6 +53,26 @@ export class PreviewService {
       seed,
     );
 
+    let aiPreviewNarrative = "";
+    if (dto.generateStatement !== false) {
+      try {
+        const aiStatement = await this.statementGenerator.generateStatement(
+          {
+            oracleKey,
+            title: pattern?.title || "Coding Challenge",
+            difficulty: difficulty || "MEDIUM",
+            parameterSchema: parameterSchema || {},
+            constraintSchema: constraintSchema || {},
+            description: pattern?.description || "",
+          } as any,
+          result,
+        );
+        aiPreviewNarrative = aiStatement.narrative;
+      } catch (err) {
+        aiPreviewNarrative = `Write a function to solve the problem for the given input parameters and return the expected result.\n\n### Sample Input\n\`\`\`json\n${JSON.stringify(result.generatedInput, null, 2)}\n\`\`\`\n\n### Expected Output\n\`\`\`json\n${JSON.stringify(result.expectedOutput, null, 2)}\n\`\`\``;
+      }
+    }
+
     return {
       parameters: result.parameters,
       generatedInput: result.generatedInput,
@@ -60,7 +83,7 @@ export class PreviewService {
       boundaryTests: result.boundaryTests,
       validation: result.validation,
       aiPreview: {
-        narrative: "[AI Narrative Statement Preview will be generated in Phase 3]",
+        narrative: aiPreviewNarrative,
         codeSkeletons: starterCode,
       },
     };

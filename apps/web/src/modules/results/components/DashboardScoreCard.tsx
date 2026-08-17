@@ -13,21 +13,35 @@ export const DashboardScoreCard: React.FC<Props> = ({ data, resultDetails }) => 
   const score = data.overallScore ?? resultDetails?.score ?? 0;
   const maxMarks = data.maxMarks ?? resultDetails?.maxMarks ?? (score > 0 ? 100 : 0);
   const percentage =
-    data.percentage !== undefined && data.percentage !== null
-      ? Math.round(data.percentage * 10) / 10
-      : maxMarks > 0
-        ? Math.round((score / maxMarks) * 1000) / 10
+    maxMarks > 0
+      ? Math.round((score / maxMarks) * 1000) / 10
+      : data.percentage !== undefined && data.percentage !== null
+        ? Math.round(data.percentage * 10) / 10
         : 0;
 
   const percentile =
-    data.percentile ?? resultDetails?.percentile ?? Math.min(100, Math.round(percentage * 10) / 10);
+    data.percentile ?? resultDetails?.percentile ?? 100;
   const rank = data.rank ?? resultDetails?.rank ?? 1;
   const totalCandidates = data.totalCandidates ?? resultDetails?.totalCandidates ?? 1;
 
-  const minutesSpent = data.totalTimeSpent ?? 0;
+  const totalSeconds =
+    (data as any).totalTimeSpentSeconds ??
+    (data.totalTimeSpent ? data.totalTimeSpent * 60 : 0);
+  const minutesSpent = Math.floor(totalSeconds / 60);
+  const secondsSpent = totalSeconds % 60;
   const hoursSpent = Math.floor(minutesSpent / 60);
   const remMinutes = minutesSpent % 60;
-  const formattedTimeTaken = hoursSpent > 0 ? `${hoursSpent}h ${remMinutes}m` : `${minutesSpent}m`;
+
+  const formattedTimeTaken =
+    hoursSpent > 0
+      ? `${hoursSpent}h ${remMinutes}m`
+      : minutesSpent > 0
+        ? secondsSpent > 0
+          ? `${minutesSpent}m ${secondsSpent}s`
+          : `${minutesSpent}m`
+        : totalSeconds > 0
+          ? `${secondsSpent}s`
+          : '< 1m';
 
   // Calculate total allowed duration dynamically from section time expectations or assessment config
   const totalAllowedMinutes = (data.sectionTime || []).reduce(

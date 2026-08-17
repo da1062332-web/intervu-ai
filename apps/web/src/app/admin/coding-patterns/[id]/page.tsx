@@ -26,7 +26,15 @@ import {
   Check,
   Loader2,
   RefreshCw,
+  Code2,
+  FileText,
+  Terminal,
+  ShieldCheck,
+  Cpu,
+  Sliders,
+  Layers,
 } from 'lucide-react';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import {
   useCodingPattern,
   useCreateCodingPattern,
@@ -78,20 +86,39 @@ export default function CodingPatternBuilderPage() {
     topicId: queryTopicId,
     conceptKey: queryConceptKey,
     statementSpecification: JSON.stringify({ problemType: 'ARRAY', returnType: 'ARRAY' }, null, 2),
-    parameterSchema: JSON.stringify({ arraySize: { type: 'integer', min: 5, max: 15 }, k: { type: 'integer', min: 1, max: 10 } }, null, 2),
+    parameterSchema: JSON.stringify(
+      { arraySize: { type: 'integer', min: 5, max: 15 }, k: { type: 'integer', min: 1, max: 10 } },
+      null,
+      2,
+    ),
     constraintSchema: JSON.stringify({ arr: { minSize: 1, maxSize: 100 } }, null, 2),
-    starterCode: JSON.stringify({ python: 'def rotate(arr, k):\n    pass\n', javascript: 'function rotate(arr, k) {\n    return [];\n}\n' }, null, 2),
+    starterCode: JSON.stringify(
+      {
+        python: 'def rotate(arr, k):\n    pass\n',
+        java: 'class Solution {\n    public int[] rotate(int[] arr, int k) {\n        return new int[0];\n    }\n}\n',
+        cpp: '#include <vector>\nusing namespace std;\n\nvector<int> rotate(vector<int>& arr, int k) {\n    return {};\n}\n',
+      },
+      null,
+      2,
+    ),
   });
 
   const { data: topicsData } = useTopics();
   const topicsList = Array.isArray(topicsData) ? topicsData : (topicsData as any)?.items || [];
 
-  const { data: conceptsData } = useConcepts(formData.topicId && formData.topicId !== 'none' ? formData.topicId : '');
-  const conceptsList = Array.isArray(conceptsData) ? conceptsData : (conceptsData as any)?.items || [];
+  const { data: conceptsData } = useConcepts(
+    formData.topicId && formData.topicId !== 'none' ? formData.topicId : '',
+  );
+  const conceptsList = Array.isArray(conceptsData)
+    ? conceptsData
+    : (conceptsData as any)?.items || [];
 
   const [previewResult, setPreviewResult] = useState<PatternPreviewResponse | null>(null);
+  const [generateStatement, setGenerateStatement] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedLanguageTab, setSelectedLanguageTab] = useState<'javascript' | 'python' | 'java' | 'cpp'>('javascript');
+  const [selectedLanguageTab, setSelectedLanguageTab] = useState<
+    'python' | 'java' | 'cpp'
+  >('python');
   const [starterCodeMode, setStarterCodeMode] = useState<'visual' | 'json'>('visual');
 
   const updateStarterCodeForLang = (lang: string, code: string) => {
@@ -115,23 +142,27 @@ export default function CodingPatternBuilderPage() {
   };
 
   const autoGenerateStarterCode = () => {
-    if (formData.oracleKey === 'MATH_PRIME_CHECK_ORACLE') {
-      const defaultCode = {
-        python: 'def is_prime(n):\n    # Return True if n is prime, else False\n    pass\n',
-        javascript: 'function isPrime(n) {\n    // Return true if n is prime, else false\n    return false;\n}\n',
-        java: 'class Solution {\n    public boolean isPrime(int n) {\n        return false;\n    }\n}\n',
-        cpp: 'bool isPrime(int n) {\n    return false;\n}\n',
-      };
-      handleChange('starterCode', JSON.stringify(defaultCode, null, 2));
-    } else {
-      const defaultCode = {
-        python: 'def solve(input_data):\n    pass\n',
-        javascript: 'function solve(inputData) {\n    return null;\n}\n',
-        java: 'class Solution {\n    public Object solve() {\n        return null;\n    }\n}\n',
-        cpp: 'auto solve() {\n    return 0;\n}\n',
-      };
-      handleChange('starterCode', JSON.stringify(defaultCode, null, 2));
-    }
+    let args = 'inputData';
+    let javaArgs = 'Object inputData';
+    let cppArgs = 'auto inputData';
+
+    try {
+      const parsedSchema = JSON.parse(formData.parameterSchema || '{}');
+      const keys = Object.keys(parsedSchema);
+      if (keys.length > 0) {
+        args = keys.join(', ');
+        javaArgs = keys.map((k) => `Object ${k}`).join(', ');
+        cppArgs = keys.map((k) => `auto ${k}`).join(', ');
+      }
+    } catch {}
+
+    const defaultCode = {
+      python: `def solve(${args}):\n    pass\n`,
+      java: `class Solution {\n    public Object solve(${javaArgs}) {\n        return null;\n    }\n}\n`,
+      cpp: `auto solve(${cppArgs}) {\n    return 0;\n}\n`,
+    };
+
+    handleChange('starterCode', JSON.stringify(defaultCode, null, 2));
   };
 
   const loadOracles = async () => {
@@ -172,7 +203,11 @@ export default function CodingPatternBuilderPage() {
         oracleKey: existingPattern.oracleKey || '',
         topicId: meta.topicId || queryTopicId || '',
         conceptKey: meta.conceptKey || queryConceptKey || '',
-        statementSpecification: JSON.stringify(existingPattern.statementSpecification || {}, null, 2),
+        statementSpecification: JSON.stringify(
+          existingPattern.statementSpecification || {},
+          null,
+          2,
+        ),
         parameterSchema: JSON.stringify(existingPattern.parameterSchema || {}, null, 2),
         constraintSchema: JSON.stringify(existingPattern.constraintSchema || {}, null, 2),
         starterCode: JSON.stringify(existingPattern.starterCode || {}, null, 2),
@@ -183,7 +218,11 @@ export default function CodingPatternBuilderPage() {
   // Auto-sync parameterSchema with selected Oracle if empty or matching default placeholder
   useEffect(() => {
     const selectedOracle = oracles.find((o) => o.key === formData.oracleKey);
-    if (selectedOracle && selectedOracle.parameterSchema && Object.keys(selectedOracle.parameterSchema).length > 0) {
+    if (
+      selectedOracle &&
+      selectedOracle.parameterSchema &&
+      Object.keys(selectedOracle.parameterSchema).length > 0
+    ) {
       try {
         const currentParsed = JSON.parse(formData.parameterSchema || '{}');
         if (
@@ -209,6 +248,11 @@ export default function CodingPatternBuilderPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const selectedOracle = oracles.find((o) => o.key === formData.oracleKey);
+  const isOracleInactive = selectedOracle && selectedOracle.isActive === false;
+  const isOracleProviderMissing = selectedOracle && selectedOracle.isProviderAvailable === false;
+  const isOracleUnavailable = Boolean(isOracleInactive || isOracleProviderMissing);
+
   const handleRunPreview = async () => {
     try {
       const payload = {
@@ -225,6 +269,7 @@ export default function CodingPatternBuilderPage() {
           }
           return Math.abs(hash % 90000) + 10000;
         })(),
+        generateStatement,
       };
       const res = await previewMutation.mutateAsync(payload);
       setPreviewResult(res);
@@ -232,6 +277,19 @@ export default function CodingPatternBuilderPage() {
       alert(`Preview generation failed: ${err.message}`);
     }
   };
+
+  // Auto-run preview on entering Step 4 if not already loaded
+  useEffect(() => {
+    if (
+      currentStep === 4 &&
+      !previewResult &&
+      formData.oracleKey &&
+      !isOracleUnavailable &&
+      !previewMutation.isPending
+    ) {
+      handleRunPreview();
+    }
+  }, [currentStep, formData.oracleKey, previewResult, isOracleUnavailable]);
 
   const handleSave = async (publish: boolean = false) => {
     setIsSaving(true);
@@ -251,7 +309,8 @@ export default function CodingPatternBuilderPage() {
         metadata: {
           ...((existingPattern?.metadata as any) || {}),
           topicId: formData.topicId && formData.topicId !== 'none' ? formData.topicId : undefined,
-          conceptKey: formData.conceptKey && formData.conceptKey !== 'none' ? formData.conceptKey : undefined,
+          conceptKey:
+            formData.conceptKey && formData.conceptKey !== 'none' ? formData.conceptKey : undefined,
         },
       };
 
@@ -271,40 +330,38 @@ export default function CodingPatternBuilderPage() {
 
   if (isLoading && !isNew) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="w-5 h-5 animate-spin" /> Loading Coding Pattern...
+      <div className='p-8 flex items-center justify-center min-h-[400px]'>
+        <div className='flex items-center gap-2 text-muted-foreground'>
+          <Loader2 className='w-5 h-5 animate-spin' /> Loading Coding Pattern...
         </div>
       </div>
     );
   }
 
-  const selectedOracle = oracles.find((o) => o.key === formData.oracleKey);
-  const isOracleInactive = selectedOracle && selectedOracle.isActive === false;
-  const isOracleProviderMissing = selectedOracle && selectedOracle.isProviderAvailable === false;
-  const isOracleUnavailable = Boolean(isOracleInactive || isOracleProviderMissing);
-
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto pb-24">
+    <div className='p-6 space-y-6 max-w-6xl mx-auto pb-24'>
       {/* Oracle Warning Banner */}
       {isOracleUnavailable && (
-        <div className="p-4 border border-red-300 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 text-xs flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+        <div className='p-4 border border-red-300 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 text-xs flex items-center justify-between shadow-sm'>
+          <div className='flex items-center gap-3'>
+            <AlertTriangle className='w-5 h-5 text-red-600 shrink-0' />
             <div>
-              <span className="font-semibold text-sm block">Referenced Oracle is Unavailable</span>
-              <p className="text-xs text-red-700 dark:text-red-300">
-                {isOracleInactive && `Oracle "${selectedOracle?.name}" (${selectedOracle?.key}) is set to INACTIVE by admin.`}
-                {isOracleProviderMissing && `Oracle "${selectedOracle?.name}" (${selectedOracle?.key}) has no registered executable backend provider.`}
-                {' '}Draft saving is permitted, but Pattern Preview and Publishing are strictly disabled until the Oracle is active and registered.
+              <span className='font-semibold text-sm block'>Referenced Oracle is Unavailable</span>
+              <p className='text-xs text-red-700 dark:text-red-300'>
+                {isOracleInactive &&
+                  `Oracle "${selectedOracle?.name}" (${selectedOracle?.key}) is set to INACTIVE by admin.`}
+                {isOracleProviderMissing &&
+                  `Oracle "${selectedOracle?.name}" (${selectedOracle?.key}) has no registered executable backend provider.`}{' '}
+                Draft saving is permitted, but Pattern Preview and Publishing are strictly disabled
+                until the Oracle is active and registered.
               </p>
             </div>
           </div>
           <Button
-            size="sm"
-            variant="outline"
+            size='sm'
+            variant='outline'
             onClick={() => router.push('/admin/coding-oracles')}
-            className="text-xs shrink-0 border-red-300 hover:bg-red-100"
+            className='text-xs shrink-0 border-red-300 hover:bg-red-100'
           >
             Manage Oracles
           </Button>
@@ -312,39 +369,26 @@ export default function CodingPatternBuilderPage() {
       )}
 
       {/* Top Navigation */}
-      <div className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/admin/coding-patterns')}>
-            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+      <div className='flex items-center justify-between border-b pb-4'>
+        <div className='flex items-center gap-4'>
+          <Button variant='ghost' size='sm' onClick={() => router.push('/admin/coding-patterns')}>
+            <ArrowLeft className='w-4 h-4 mr-1' /> Back
           </Button>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              {isNew ? 'Create New Coding Pattern' : `Edit Pattern: ${formData.title || 'Untitled'}`}
+            <h1 className='text-xl font-bold tracking-tight'>
+              {isNew
+                ? 'Create New Coding Pattern'
+                : `Edit Pattern: ${formData.title || 'Untitled'}`}
             </h1>
-            <p className="text-xs text-muted-foreground font-mono">
+            <p className='text-xs text-muted-foreground font-mono'>
               {isNew ? 'New Pattern Draft' : `ID: ${patternId}`}
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={isSaving}>
-            <Save className="w-4 h-4 mr-1" /> Save Draft
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => handleSave(true)}
-            disabled={isSaving || isOracleUnavailable}
-            title={isOracleUnavailable ? 'Cannot publish pattern when referenced Oracle is inactive or missing backend provider' : ''}
-            className="gap-1"
-          >
-            <CheckCircle2 className="w-4 h-4" /> Publish Pattern
-          </Button>
-        </div>
       </div>
 
       {/* Wizard Step Indicator */}
-      <div className="grid grid-cols-5 gap-2 border-b pb-4">
+      <div className='grid grid-cols-5 gap-2 border-b pb-4'>
         {STEPS.map((step) => {
           const active = currentStep === step.id;
           const completed = currentStep > step.id;
@@ -356,50 +400,52 @@ export default function CodingPatternBuilderPage() {
                 active
                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
                   : completed
-                  ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20'
-                  : 'border-slate-200 opacity-60'
+                    ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20'
+                    : 'border-slate-200 opacity-60'
               }`}
             >
-              <div className="flex items-center justify-between text-xs font-semibold">
+              <div className='flex items-center justify-between text-xs font-semibold'>
                 <span>Step {step.id}</span>
-                {completed && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                {completed && <Check className='w-3.5 h-3.5 text-emerald-600' />}
               </div>
-              <div className="text-xs truncate font-medium mt-0.5">{step.name}</div>
+              <div className='text-xs truncate font-medium mt-0.5'>{step.name}</div>
             </button>
           );
         })}
       </div>
 
       {/* Step Content */}
-      <div className="bg-card border rounded-xl p-6 shadow-sm min-h-[420px]">
+      <div className='bg-card border rounded-xl p-6 shadow-sm min-h-[420px]'>
         {/* STEP 1: Basic Information */}
         {currentStep === 1 && (
-          <div className="space-y-5 max-w-4xl">
-            <h2 className="text-lg font-semibold border-b pb-2">Step 1: Basic Information & Oracle Engine</h2>
-            
-            <div className="space-y-2">
+          <div className='space-y-5 max-w-4xl'>
+            <h2 className='text-lg font-semibold border-b pb-2'>
+              Step 1: Basic Information & Oracle Engine
+            </h2>
+
+            <div className='space-y-2'>
               <Label>Pattern Title</Label>
               <Input
-                placeholder="e.g. Array Right Rotation by K Positions"
+                placeholder='e.g. Array Right Rotation by K Positions'
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                className="w-full"
+                className='w-full'
               />
             </div>
 
-            <div className="space-y-2">
+            <div className='space-y-2'>
               <Label>URL Slug</Label>
               <Input
-                placeholder="e.g. array-right-rotation"
+                placeholder='e.g. array-right-rotation'
                 value={formData.slug}
                 onChange={(e) => handleChange('slug', e.target.value)}
-                className="w-full"
+                className='w-full'
               />
             </div>
 
             {/* Topic & Concept Mapping */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='space-y-2'>
                 <Label>Topic (optional)</Label>
                 <Select
                   value={formData.topicId || 'none'}
@@ -408,11 +454,11 @@ export default function CodingPatternBuilderPage() {
                     handleChange('conceptKey', '');
                   }}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a topic..." />
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='Select a topic...' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">-- No Topic --</SelectItem>
+                    <SelectItem value='none'>-- No Topic --</SelectItem>
                     {topicsList.map((t: any) => (
                       <SelectItem key={t.id} value={t.id}>
                         {t.name || t.code}
@@ -422,14 +468,16 @@ export default function CodingPatternBuilderPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Concept (optional)</Label>
                 <Select
                   value={formData.conceptKey || 'none'}
-                  onValueChange={(val: string) => handleChange('conceptKey', val === 'none' ? '' : val)}
+                  onValueChange={(val: string) =>
+                    handleChange('conceptKey', val === 'none' ? '' : val)
+                  }
                   disabled={!formData.topicId || formData.topicId === 'none'}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className='w-full'>
                     <SelectValue
                       placeholder={
                         formData.topicId && formData.topicId !== 'none'
@@ -439,7 +487,7 @@ export default function CodingPatternBuilderPage() {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">-- No Concept --</SelectItem>
+                    <SelectItem value='none'>-- No Concept --</SelectItem>
                     {conceptsList.map((c: any) => (
                       <SelectItem key={c.id || c.code} value={c.code || c.conceptCode || c.id}>
                         {c.name || c.conceptName || c.code}
@@ -451,21 +499,21 @@ export default function CodingPatternBuilderPage() {
             </div>
 
             {/* Dynamic Oracle Key Selector - Full Width */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
+            <div className='space-y-2'>
+              <div className='flex items-center justify-between'>
                 <Label>Oracle Engine Key</Label>
                 {loadingOracles && (
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Fetching backend Oracles...
+                  <span className='text-[10px] text-muted-foreground flex items-center gap-1'>
+                    <Loader2 className='w-3 h-3 animate-spin' /> Fetching backend Oracles...
                   </span>
                 )}
               </div>
 
               {oracleError ? (
-                <div className="p-3 border border-red-200 rounded-md bg-red-50 text-red-700 text-xs flex items-center justify-between">
+                <div className='p-3 border border-red-200 rounded-md bg-red-50 text-red-700 text-xs flex items-center justify-between'>
                   <span>{oracleError}</span>
-                  <Button size="sm" variant="outline" onClick={loadOracles} className="h-7 text-xs">
-                    <RefreshCw className="w-3 h-3 mr-1" /> Retry
+                  <Button size='sm' variant='outline' onClick={loadOracles} className='h-7 text-xs'>
+                    <RefreshCw className='w-3 h-3 mr-1' /> Retry
                   </Button>
                 </div>
               ) : (
@@ -474,24 +522,35 @@ export default function CodingPatternBuilderPage() {
                   onValueChange={(val: string) => {
                     handleChange('oracleKey', val);
                     const selected = oracles.find((o) => o.key === val);
-                    if (selected && selected.parameterSchema && Object.keys(selected.parameterSchema).length > 0) {
-                      handleChange('parameterSchema', JSON.stringify(selected.parameterSchema, null, 2));
+                    if (
+                      selected &&
+                      selected.parameterSchema &&
+                      Object.keys(selected.parameterSchema).length > 0
+                    ) {
+                      handleChange(
+                        'parameterSchema',
+                        JSON.stringify(selected.parameterSchema, null, 2),
+                      );
                     }
                   }}
                   disabled={loadingOracles || oracles.length === 0}
                 >
-                  <SelectTrigger className="w-full h-auto min-h-[44px] py-2 px-3">
-                    <SelectValue placeholder={loadingOracles ? 'Loading Oracles...' : 'Select Oracle Engine'} />
+                  <SelectTrigger className='w-full h-auto min-h-[44px] py-2 px-3'>
+                    <SelectValue
+                      placeholder={loadingOracles ? 'Loading Oracles...' : 'Select Oracle Engine'}
+                    />
                   </SelectTrigger>
-                  <SelectContent className="max-h-64 overflow-y-auto w-[var(--radix-select-trigger-width)]">
+                  <SelectContent className='max-h-64 overflow-y-auto w-[var(--radix-select-trigger-width)]'>
                     {oracles.map((oracle) => (
                       <SelectItem key={oracle.key} value={oracle.key}>
-                        <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
-                          <span className="font-mono font-semibold text-[11px] text-primary shrink-0">
+                        <div className='flex items-center gap-2 flex-nowrap whitespace-nowrap'>
+                          <span className='font-mono font-semibold text-[11px] text-primary shrink-0'>
                             {oracle.category}
                           </span>
-                          <span className="font-medium">{oracle.name}</span>
-                          <span className="text-muted-foreground text-[10px] font-mono shrink-0">({oracle.key})</span>
+                          <span className='font-medium'>{oracle.name}</span>
+                          <span className='text-muted-foreground text-[10px] font-mono shrink-0'>
+                            ({oracle.key})
+                          </span>
                         </div>
                       </SelectItem>
                     ))}
@@ -499,34 +558,44 @@ export default function CodingPatternBuilderPage() {
                 </Select>
               )}
 
-                {/* Selected Oracle Metadata Card */}
-                {selectedOracle && (
-                  <div className="p-3 border rounded-lg bg-slate-50 dark:bg-slate-900 text-xs space-y-1.5 mt-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-mono text-[10px] bg-primary/10 text-primary border-primary/30">
-                        {selectedOracle.category}
-                      </Badge>
-                      <span className="font-semibold text-foreground">{selectedOracle.name}</span>
-                    </div>
-                    {selectedOracle.description && (
-                      <p className="text-muted-foreground">{selectedOracle.description}</p>
-                    )}
-                    {selectedOracle.supportedDifficulties && selectedOracle.supportedDifficulties.length > 0 && (
-                      <div className="flex items-center gap-1 pt-1">
-                        <span className="text-[11px] text-muted-foreground">Supported Difficulties:</span>
+              {/* Selected Oracle Metadata Card */}
+              {selectedOracle && (
+                <div className='p-3 border rounded-lg bg-slate-50 dark:bg-slate-900 text-xs space-y-1.5 mt-2'>
+                  <div className='flex items-center gap-2'>
+                    <Badge
+                      variant='outline'
+                      className='font-mono text-[10px] bg-primary/10 text-primary border-primary/30'
+                    >
+                      {selectedOracle.category}
+                    </Badge>
+                    <span className='font-semibold text-foreground'>{selectedOracle.name}</span>
+                  </div>
+                  {selectedOracle.description && (
+                    <p className='text-muted-foreground'>{selectedOracle.description}</p>
+                  )}
+                  {selectedOracle.supportedDifficulties &&
+                    selectedOracle.supportedDifficulties.length > 0 && (
+                      <div className='flex items-center gap-1 pt-1'>
+                        <span className='text-[11px] text-muted-foreground'>
+                          Supported Difficulties:
+                        </span>
                         {selectedOracle.supportedDifficulties.map((diff) => (
-                          <Badge key={diff} variant="secondary" className="text-[10px] px-1.5 py-0 font-mono">
+                          <Badge
+                            key={diff}
+                            variant='secondary'
+                            className='text-[10px] px-1.5 py-0 font-mono'
+                          >
                             {diff}
                           </Badge>
                         ))}
                       </div>
                     )}
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
                 <Label>Target Difficulty</Label>
                 <Select
                   value={formData.difficulty}
@@ -536,17 +605,17 @@ export default function CodingPatternBuilderPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EASY">EASY</SelectItem>
-                    <SelectItem value="MEDIUM">MEDIUM</SelectItem>
-                    <SelectItem value="HARD">HARD</SelectItem>
+                    <SelectItem value='EASY'>EASY</SelectItem>
+                    <SelectItem value='MEDIUM'>MEDIUM</SelectItem>
+                    <SelectItem value='HARD'>HARD</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Description</Label>
                 <Input
-                  placeholder="Short description of the pattern..."
+                  placeholder='Short description of the pattern...'
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                 />
@@ -557,32 +626,39 @@ export default function CodingPatternBuilderPage() {
 
         {/* STEP 2: Problem Configuration */}
         {currentStep === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold border-b pb-2">Step 2: Schema Configuration (JSON)</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="font-semibold">Parameter Schema (Generator Controls)</Label>
-                  {selectedOracle && selectedOracle.parameterSchema && Object.keys(selectedOracle.parameterSchema).length > 0 && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      type="button"
-                      className="h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
-                      onClick={() => {
-                        if (selectedOracle.parameterSchema) {
-                          handleChange('parameterSchema', JSON.stringify(selectedOracle.parameterSchema, null, 2));
-                        }
-                      }}
-                    >
-                      <Sparkles className="w-3 h-3" /> Sync with {selectedOracle.name}
-                    </Button>
-                  )}
+          <div className='space-y-4'>
+            <h2 className='text-lg font-semibold border-b pb-2'>
+              Step 2: Schema Configuration (JSON)
+            </h2>
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between'>
+                  <Label className='font-semibold'>Parameter Schema (Generator Controls)</Label>
+                  {selectedOracle &&
+                    selectedOracle.parameterSchema &&
+                    Object.keys(selectedOracle.parameterSchema).length > 0 && (
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        type='button'
+                        className='h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10'
+                        onClick={() => {
+                          if (selectedOracle.parameterSchema) {
+                            handleChange(
+                              'parameterSchema',
+                              JSON.stringify(selectedOracle.parameterSchema, null, 2),
+                            );
+                          }
+                        }}
+                      >
+                        <Sparkles className='w-3 h-3' /> Sync with {selectedOracle.name}
+                      </Button>
+                    )}
                 </div>
-                <div className="border rounded-md overflow-hidden">
+                <div className='border rounded-md overflow-hidden'>
                   <Editor
-                    height="240px"
-                    defaultLanguage="json"
+                    height='240px'
+                    defaultLanguage='json'
                     value={formData.parameterSchema}
                     onChange={(val?: string) => handleChange('parameterSchema', val || '')}
                     options={{ minimap: { enabled: false }, fontSize: 12 }}
@@ -590,12 +666,12 @@ export default function CodingPatternBuilderPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="font-semibold">Constraint Schema (Input Validation Bounds)</Label>
-                <div className="border rounded-md overflow-hidden">
+              <div className='space-y-2'>
+                <Label className='font-semibold'>Constraint Schema (Input Validation Bounds)</Label>
+                <div className='border rounded-md overflow-hidden'>
                   <Editor
-                    height="240px"
-                    defaultLanguage="json"
+                    height='240px'
+                    defaultLanguage='json'
                     value={formData.constraintSchema}
                     onChange={(val?: string) => handleChange('constraintSchema', val || '')}
                     options={{ minimap: { enabled: false }, fontSize: 12 }}
@@ -608,52 +684,55 @@ export default function CodingPatternBuilderPage() {
 
         {/* STEP 3: Reference Solution */}
         {currentStep === 3 && (
-          <div className="space-y-5">
-            <div className="flex items-center justify-between border-b pb-2">
-              <h2 className="text-lg font-semibold">Step 3: Starter Code Skeletons</h2>
-              <div className="flex items-center gap-2">
+          <div className='space-y-5'>
+            <div className='flex items-center justify-between border-b pb-2'>
+              <h2 className='text-lg font-semibold'>Step 3: Starter Code Skeletons</h2>
+              <div className='flex items-center gap-2'>
                 <Button
-                  size="sm"
-                  variant="outline"
-                  type="button"
+                  size='sm'
+                  variant='outline'
+                  type='button'
                   onClick={autoGenerateStarterCode}
-                  className="h-8 text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                  className='h-8 text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary/10'
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Auto-Generate Skeletons
+                  <Sparkles className='w-3.5 h-3.5' /> Auto-Generate Skeletons
                 </Button>
                 <Button
-                  size="sm"
-                  variant="ghost"
-                  type="button"
-                  onClick={() => setStarterCodeMode((prev) => (prev === 'visual' ? 'json' : 'visual'))}
-                  className="h-8 text-xs text-muted-foreground"
+                  size='sm'
+                  variant='ghost'
+                  type='button'
+                  onClick={() =>
+                    setStarterCodeMode((prev) => (prev === 'visual' ? 'json' : 'visual'))
+                  }
+                  className='h-8 text-xs text-muted-foreground'
                 >
                   {starterCodeMode === 'visual' ? 'Switch to Raw JSON' : 'Switch to Visual Tabs'}
                 </Button>
               </div>
             </div>
 
-            <div className="p-3 border rounded-lg bg-slate-50 dark:bg-slate-900 text-xs text-muted-foreground flex items-center justify-between">
+            <div className='p-3 border rounded-lg bg-slate-50 dark:bg-slate-900 text-xs text-muted-foreground flex items-center justify-between'>
               <div>
                 Candidate solution evaluation is powered by{' '}
-                <span className="font-mono font-semibold text-foreground">{formData.oracleKey || 'Selected Oracle'}</span>.
-                Provide starter skeleton code for candidates below.
+                <span className='font-mono font-semibold text-foreground'>
+                  {formData.oracleKey || 'Selected Oracle'}
+                </span>
+                . Provide starter skeleton code for candidates below.
               </div>
             </div>
 
             {starterCodeMode === 'visual' ? (
-              <div className="space-y-3">
+              <div className='space-y-3'>
                 {/* Language Tabs */}
-                <div className="flex border-b gap-1 bg-muted/30 p-1 rounded-t-lg">
+                <div className='flex border-b gap-1 bg-muted/30 p-1 rounded-t-lg'>
                   {[
-                    { id: 'javascript', label: 'JavaScript (Node.js)', icon: 'JS' },
                     { id: 'python', label: 'Python 3', icon: 'PY' },
                     { id: 'java', label: 'Java', icon: 'JAVA' },
                     { id: 'cpp', label: 'C++', icon: 'C++' },
                   ].map((lang) => (
                     <button
                       key={lang.id}
-                      type="button"
+                      type='button'
                       onClick={() => setSelectedLanguageTab(lang.id as any)}
                       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
                         selectedLanguageTab === lang.id
@@ -661,19 +740,21 @@ export default function CodingPatternBuilderPage() {
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <span className="font-mono text-[10px] opacity-70">{lang.icon}</span>
+                      <span className='font-mono text-[10px] opacity-70'>{lang.icon}</span>
                       {lang.label}
                     </button>
                   ))}
                 </div>
 
                 {/* Visual Editor for Active Language */}
-                <div className="border rounded-b-lg overflow-hidden shadow-inner">
+                <div className='border rounded-b-lg overflow-hidden shadow-inner'>
                   <Editor
-                    height="280px"
+                    height='280px'
                     language={selectedLanguageTab}
                     value={getStarterCodeForLang(selectedLanguageTab)}
-                    onChange={(val?: string) => updateStarterCodeForLang(selectedLanguageTab, val || '')}
+                    onChange={(val?: string) =>
+                      updateStarterCodeForLang(selectedLanguageTab, val || '')
+                    }
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,
@@ -685,12 +766,14 @@ export default function CodingPatternBuilderPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label className="font-semibold text-xs">Raw Starter Code Object (JSON per language)</Label>
-                <div className="border rounded-md overflow-hidden">
+              <div className='space-y-2'>
+                <Label className='font-semibold text-xs'>
+                  Raw Starter Code Object (JSON per language)
+                </Label>
+                <div className='border rounded-md overflow-hidden'>
                   <Editor
-                    height="280px"
-                    defaultLanguage="json"
+                    height='280px'
+                    defaultLanguage='json'
                     value={formData.starterCode}
                     onChange={(val?: string) => handleChange('starterCode', val || '')}
                     options={{ minimap: { enabled: false }, fontSize: 12 }}
@@ -703,110 +786,501 @@ export default function CodingPatternBuilderPage() {
 
         {/* STEP 4: Preview & Validation */}
         {currentStep === 4 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b pb-2">
-              <h2 className="text-lg font-semibold">Step 4: Realtime Materialization & Validation Preview</h2>
-              <Button
-                size="sm"
-                onClick={handleRunPreview}
-                disabled={previewMutation.isPending || isOracleUnavailable}
-                title={isOracleUnavailable ? 'Cannot run preview when referenced Oracle is inactive or missing backend provider' : ''}
-                className="gap-2"
-              >
-                {previewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-                Run Oracle Preview
-              </Button>
+          <div className='space-y-4'>
+            <div className='flex items-center justify-between border-b pb-2'>
+              <h2 className='text-lg font-semibold'>
+                Step 4: Realtime Materialization & Validation Preview
+              </h2>
+              <div className='flex items-center'>
+                <div className='flex items-center space-x-2 mr-6'>
+                  <input
+                    type='checkbox'
+                    id='generate-statement'
+                    checked={generateStatement}
+                    onChange={(e) => setGenerateStatement(e.target.checked)}
+                    className='w-4 h-4 cursor-pointer rounded border-gray-300'
+                    disabled={previewMutation.isPending}
+                  />
+                  <Label
+                    htmlFor='generate-statement'
+                    className='text-xs font-normal cursor-pointer text-muted-foreground'
+                  >
+                    Generate AI Problem Statement (slower)
+                  </Label>
+                </div>
+                <Button
+                  size='sm'
+                  onClick={handleRunPreview}
+                  disabled={previewMutation.isPending || isOracleUnavailable}
+                  title={
+                    isOracleUnavailable
+                      ? 'Cannot run preview when referenced Oracle is inactive or missing backend provider'
+                      : ''
+                  }
+                  className='gap-2'
+                >
+                  {previewMutation.isPending ? (
+                    <Loader2 className='w-4 h-4 animate-spin' />
+                  ) : (
+                    <RefreshCw className='w-4 h-4' />
+                  )}
+                  Regenerate Preview
+                </Button>
+              </div>
             </div>
 
-            {previewResult ? (
-              <div className="space-y-4 text-xs">
-                <div className="flex items-center gap-2">
-                  <Badge variant={previewResult.validation.valid ? 'default' : 'destructive'}>
-                    {previewResult.validation.valid ? 'Valid Execution' : 'Validation Errors Detected'}
-                  </Badge>
-                  {previewResult.validation.warnings.length > 0 && (
-                    <Badge variant="outline" className="border-amber-400 text-amber-600">
-                      {previewResult.validation.warnings.length} Warning(s)
+            {previewMutation.isPending ? (
+              <div className='p-12 flex flex-col items-center justify-center border border-dashed rounded-xl space-y-3 bg-slate-50/50 dark:bg-slate-900/50'>
+                <Loader2 className='w-8 h-8 animate-spin text-primary' />
+                <span className='text-sm font-semibold text-foreground'>
+                  Generating realtime problem statement & test suites...
+                </span>
+                <span className='text-xs text-muted-foreground'>
+                  Executing Oracle engine & synthesizing AI problem narrative
+                </span>
+              </div>
+            ) : previewResult ? (
+              <div className='space-y-6'>
+                {/* Candidate Exam Simulation Card */}
+                <div className='border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs bg-white dark:bg-slate-950'>
+                  {/* Candidate Exam Header Bar */}
+                  <div className='bg-slate-50 dark:bg-slate-900 px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between'>
+                    <div className='flex items-center gap-2.5'>
+                      <Code2 className='w-5 h-5 text-indigo-600 dark:text-indigo-400' />
+                      <h3 className='text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans'>
+                        Question No 1: {formData.title || 'Coding Problem'}
+                      </h3>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <Badge
+                        variant='outline'
+                        className='text-[11px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                      >
+                        CODING
+                      </Badge>
+                      <Badge variant='secondary' className='text-[11px] font-semibold'>
+                        {formData.difficulty}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Candidate Problem Body */}
+                  <div className='p-6 space-y-6 text-slate-800 dark:text-slate-200'>
+                    {/* Problem Statement Markdown */}
+                    <div className='space-y-2'>
+                      <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500 flex items-center gap-1.5'>
+                        <FileText className='w-3.5 h-3.5 text-indigo-500' /> PROBLEM STATEMENT
+                      </h4>
+                      <div className='p-5 bg-slate-50/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm leading-relaxed font-sans'>
+                        {previewResult.aiPreview?.narrative ? (
+                          <MarkdownRenderer content={previewResult.aiPreview.narrative} />
+                        ) : (
+                          <p className='text-muted-foreground italic text-xs'>
+                            No problem statement generated.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Candidate Instructions & Constraints Alert */}
+                    <div className='p-4 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200 text-xs space-y-2'>
+                      <div className='flex items-center gap-2 font-semibold text-blue-800 dark:text-blue-300'>
+                        <Info className='w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400' />
+                        <span className='text-xs uppercase tracking-wider'>
+                          Candidate Instructions & Constraints
+                        </span>
+                      </div>
+                      <p className='text-[12px] leading-relaxed text-blue-800/90 dark:text-blue-200/90 pl-6'>
+                        Write an efficient algorithm to solve the problem. Ensure your solution
+                        handles all edge cases and boundary conditions.
+                      </p>
+                      <div className='pl-6 pt-1 flex flex-wrap gap-2 text-[11px] font-mono'>
+                        <span className='bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800'>
+                          Time Limit: 2.0s
+                        </span>
+                        <span className='bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800'>
+                          Memory Limit: 256MB
+                        </span>
+                        <span className='bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800'>
+                          Complexity: Standard O(N) Time / O(1) Space
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Public Sample Test Cases */}
+                    {previewResult.publicTests && previewResult.publicTests.length > 0 && (
+                      <div className='space-y-3'>
+                        <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500 flex items-center gap-1.5'>
+                          <Terminal className='w-3.5 h-3.5 text-emerald-500' /> PUBLIC SAMPLE TEST
+                          CASES
+                        </h4>
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                          {previewResult.publicTests.map((tc: any, index: number) => (
+                            <div
+                              key={`pub-tc-${index}`}
+                              className='p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/40 space-y-2 text-xs'
+                            >
+                              <div className='flex items-center justify-between text-[11px] font-semibold text-slate-600 dark:text-slate-400'>
+                                <span>Sample Test Case #{index + 1}</span>
+                                <Badge
+                                  variant='outline'
+                                  className='text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
+                                >
+                                  Public
+                                </Badge>
+                              </div>
+                              <div className='space-y-1 font-mono text-[11px]'>
+                                <div className='text-muted-foreground text-[10px] uppercase font-bold'>
+                                  Input
+                                </div>
+                                <pre className='p-2.5 bg-slate-900 text-slate-100 rounded-lg text-[11px] overflow-x-auto'>
+                                  {JSON.stringify(tc.input, null, 2)}
+                                </pre>
+                              </div>
+                              <div className='space-y-1 font-mono text-[11px]'>
+                                <div className='text-muted-foreground text-[10px] uppercase font-bold'>
+                                  Expected Output
+                                </div>
+                                <pre className='p-2.5 bg-slate-900 text-slate-100 rounded-lg text-[11px] overflow-x-auto'>
+                                  {JSON.stringify(tc.expectedOutput, null, 2)}
+                                </pre>
+                              </div>
+                              {tc.explanation && (
+                                <p className='text-[11px] text-muted-foreground italic pt-1'>
+                                  {tc.explanation}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Test Suites Verification Matrix */}
+                <div className='p-4 border rounded-xl bg-slate-50 dark:bg-slate-900/60 space-y-3'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-2'>
+                      <ShieldCheck className='w-4 h-4 text-emerald-600' />
+                      <span className='font-semibold text-xs text-foreground'>
+                        Generated Test Case Matrix
+                      </span>
+                    </div>
+                    <Badge
+                      variant={previewResult.validation.valid ? 'default' : 'destructive'}
+                      className='text-[11px]'
+                    >
+                      {previewResult.validation.valid
+                        ? 'All Suites Validated'
+                        : 'Validation Issues Detected'}
                     </Badge>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 border rounded bg-slate-900 text-slate-100 font-mono space-y-1">
-                    <div className="text-slate-400 text-[10px] uppercase font-bold">Generated Input</div>
-                    <pre className="overflow-x-auto">{JSON.stringify(previewResult.generatedInput, null, 2)}</pre>
                   </div>
-                  <div className="p-3 border rounded bg-slate-900 text-slate-100 font-mono space-y-1">
-                    <div className="text-slate-400 text-[10px] uppercase font-bold">Expected Output</div>
-                    <pre className="overflow-x-auto">{JSON.stringify(previewResult.expectedOutput, null, 2)}</pre>
-                  </div>
-                </div>
-
-                <div className="p-3 border rounded bg-slate-50 dark:bg-slate-900">
-                  <div className="font-semibold mb-1">Generated Test Suites</div>
-                  <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
-                    <div className="p-2 border rounded bg-background">Public Tests: {previewResult.publicTests.length}</div>
-                    <div className="p-2 border rounded bg-background">Hidden Tests: {previewResult.hiddenTests.length}</div>
-                    <div className="p-2 border rounded bg-background">Stress Tests: {previewResult.stressTests.length}</div>
-                    <div className="p-2 border rounded bg-background">Boundary Tests: {previewResult.boundaryTests.length}</div>
+                  <div className='grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs'>
+                    <div className='p-3 border rounded-lg bg-background shadow-2xs'>
+                      <div className='text-muted-foreground text-[10px] uppercase font-semibold'>
+                        Public Tests
+                      </div>
+                      <div className='text-base font-bold text-foreground mt-1'>
+                        {previewResult.publicTests.length}
+                      </div>
+                    </div>
+                    <div className='p-3 border rounded-lg bg-background shadow-2xs'>
+                      <div className='text-muted-foreground text-[10px] uppercase font-semibold'>
+                        Hidden Tests
+                      </div>
+                      <div className='text-base font-bold text-foreground mt-1'>
+                        {previewResult.hiddenTests.length}
+                      </div>
+                    </div>
+                    <div className='p-3 border rounded-lg bg-background shadow-2xs'>
+                      <div className='text-muted-foreground text-[10px] uppercase font-semibold'>
+                        Stress Tests
+                      </div>
+                      <div className='text-base font-bold text-foreground mt-1'>
+                        {previewResult.stressTests.length}
+                      </div>
+                    </div>
+                    <div className='p-3 border rounded-lg bg-background shadow-2xs'>
+                      <div className='text-muted-foreground text-[10px] uppercase font-semibold'>
+                        Boundary Tests
+                      </div>
+                      <div className='text-base font-bold text-foreground mt-1'>
+                        {previewResult.boundaryTests.length}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="p-8 border border-dashed rounded-lg text-center text-muted-foreground text-xs">
-                Click <strong>Run Oracle Preview</strong> to generate test inputs, outputs, and validation metrics using the selected Oracle engine.
+              <div className='p-8 border border-dashed rounded-lg text-center text-muted-foreground text-xs'>
+                Click <strong>Run Oracle Preview</strong> to generate test inputs, outputs, and
+                validation metrics using the selected Oracle engine.
               </div>
             )}
           </div>
         )}
 
-        {/* STEP 5: Publish */}
+        {/* STEP 5: Publish & Review All Details */}
         {currentStep === 5 && (
-          <div className="space-y-6 max-w-xl">
-            <h2 className="text-lg font-semibold border-b pb-2">Step 5: Review & Publish</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between border-b py-2">
-                <span className="text-muted-foreground">Title:</span>
-                <span className="font-semibold">{formData.title || 'Untitled'}</span>
+          <div className='space-y-6'>
+            {/* Clean Header & Action Bar */}
+            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4'>
+              <div>
+                <h2 className='text-xl font-bold tracking-tight text-foreground'>
+                  Review & Publish Pattern
+                </h2>
+                <p className='text-xs text-muted-foreground mt-0.5'>
+                  Verify the question narrative, evaluation test suites, and configuration before publishing.
+                </p>
               </div>
-              <div className="flex justify-between border-b py-2">
-                <span className="text-muted-foreground">Oracle Key:</span>
-                <span className="font-mono">{formData.oracleKey || 'None'}</span>
-              </div>
-              <div className="flex justify-between border-b py-2">
-                <span className="text-muted-foreground">Difficulty:</span>
-                <Badge variant="outline">{formData.difficulty}</Badge>
-              </div>
-              <div className="flex justify-between border-b py-2">
-                <span className="text-muted-foreground">Status:</span>
-                <Badge>{formData.status}</Badge>
+
+              <div className='flex items-center gap-2.5 shrink-0'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='text-xs h-9 px-4'
+                  disabled={isSaving}
+                  onClick={() => handleSave(false)}
+                >
+                  <Save className='w-3.5 h-3.5 mr-1.5' /> Save as Draft
+                </Button>
+                <Button
+                  size='sm'
+                  className='bg-primary text-primary-foreground text-xs font-semibold h-9 px-5'
+                  disabled={isSaving || isOracleUnavailable}
+                  onClick={() => handleSave(true)}
+                >
+                  {isSaving ? (
+                    <Loader2 className='w-3.5 h-3.5 animate-spin mr-1.5' />
+                  ) : (
+                    <CheckCircle2 className='w-3.5 h-3.5 mr-1.5' />
+                  )}
+                  Publish Pattern
+                </Button>
               </div>
             </div>
-            <div className="pt-4 flex gap-4">
-              <Button variant="outline" className="flex-1" onClick={() => handleSave(false)}>
-                Save as Draft
-              </Button>
-              <Button className="flex-1 gap-2" onClick={() => handleSave(true)}>
-                <CheckCircle2 className="w-4 h-4" /> Publish Now
-              </Button>
+
+            {/* Overview Metric Cards Bar */}
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+              <div className='p-4 border rounded-xl bg-card shadow-2xs space-y-1'>
+                <span className='text-[11px] text-muted-foreground font-medium uppercase tracking-wider block'>
+                  Target Difficulty
+                </span>
+                <div className='flex items-center gap-2'>
+                  <Badge variant='outline' className='font-semibold text-xs'>
+                    {formData.difficulty}
+                  </Badge>
+                  <Badge variant={formData.status === 'PUBLISHED' ? 'default' : 'secondary'} className='text-[10px]'>
+                    {formData.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className='p-4 border rounded-xl bg-card shadow-2xs space-y-1'>
+                <span className='text-[11px] text-muted-foreground font-medium uppercase tracking-wider block'>
+                  Topic & Concept
+                </span>
+                <p className='text-xs font-semibold text-foreground truncate'>
+                  {topicsList.find((t: any) => t.id === formData.topicId)?.name || 'General'}
+                  <span className='text-muted-foreground font-normal ml-1 font-mono text-[11px]'>
+                    ({formData.conceptKey || 'CODING'})
+                  </span>
+                </p>
+              </div>
+
+              <div className='p-4 border rounded-xl bg-card shadow-2xs space-y-1'>
+                <span className='text-[11px] text-muted-foreground font-medium uppercase tracking-wider block'>
+                  Oracle Engine
+                </span>
+                <p className='text-xs font-mono font-semibold text-primary truncate' title={formData.oracleKey}>
+                  {formData.oracleKey || 'None'}
+                </p>
+              </div>
+
+              <div className='p-4 border rounded-xl bg-card shadow-2xs space-y-1'>
+                <span className='text-[11px] text-muted-foreground font-medium uppercase tracking-wider block'>
+                  Verified Test Suites
+                </span>
+                <p className='text-xs font-semibold text-foreground'>
+                  {previewResult ? (
+                    <span>
+                      <strong className='text-emerald-600 dark:text-emerald-400'>
+                        {previewResult.publicTests.length + previewResult.hiddenTests.length + previewResult.stressTests.length + previewResult.boundaryTests.length}
+                      </strong>{' '}
+                      Cases Total
+                    </span>
+                  ) : (
+                    <span className='text-muted-foreground italic font-normal'>Pending execution</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Generated Problem Statement (Exam View) */}
+            <div className='border rounded-xl bg-card overflow-hidden shadow-2xs'>
+              <div className='px-5 py-3.5 bg-muted/40 border-b flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <FileText className='w-4 h-4 text-primary' />
+                  <h3 className='font-semibold text-sm text-foreground'>Generated Problem Statement</h3>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <Badge variant='outline' className='text-[11px] font-medium bg-background'>
+                    <Sparkles className='w-3 h-3 mr-1 text-primary' /> AI Generated
+                  </Badge>
+                  <Badge variant='secondary' className='text-[11px]'>
+                    CODING
+                  </Badge>
+                </div>
+              </div>
+
+              <div className='p-6 text-sm leading-relaxed font-sans'>
+                {previewResult?.aiPreview?.narrative ? (
+                  <MarkdownRenderer content={previewResult.aiPreview.narrative} />
+                ) : (
+                  <div className='text-muted-foreground italic text-xs py-2'>
+                    Problem statement narrative will be automatically generated upon preview execution or publication.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Two-Column Specification & Test Breakdown */}
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+              {/* Test Suites Type-Wise Matrix */}
+              <div className='border rounded-xl bg-card p-5 space-y-4 shadow-2xs'>
+                <div className='flex items-center justify-between border-b pb-3'>
+                  <div className='flex items-center gap-2'>
+                    <ShieldCheck className='w-4 h-4 text-emerald-600 dark:text-emerald-400' />
+                    <h3 className='font-semibold text-sm text-foreground'>Test Suites Breakdown</h3>
+                  </div>
+                  {previewResult && (
+                    <Badge variant='outline' className='font-mono text-[11px]'>
+                      {previewResult.publicTests.length + previewResult.hiddenTests.length + previewResult.stressTests.length + previewResult.boundaryTests.length} cases
+                    </Badge>
+                  )}
+                </div>
+
+                {previewResult ? (
+                  <div className='grid grid-cols-2 gap-3 text-xs'>
+                    <div className='p-3.5 rounded-lg border bg-muted/20 space-y-1'>
+                      <div className='flex justify-between items-center'>
+                        <span className='font-semibold text-foreground flex items-center gap-1.5'>
+                          <Terminal className='w-3.5 h-3.5 text-emerald-600' /> Public Tests
+                        </span>
+                        <Badge variant='secondary' className='font-mono text-xs font-semibold'>
+                          {previewResult.publicTests.length}
+                        </Badge>
+                      </div>
+                      <p className='text-[11px] text-muted-foreground'>Visible sample cases for candidates</p>
+                    </div>
+
+                    <div className='p-3.5 rounded-lg border bg-muted/20 space-y-1'>
+                      <div className='flex justify-between items-center'>
+                        <span className='font-semibold text-foreground flex items-center gap-1.5'>
+                          <ShieldCheck className='w-3.5 h-3.5 text-blue-600' /> Hidden Tests
+                        </span>
+                        <Badge variant='secondary' className='font-mono text-xs font-semibold'>
+                          {previewResult.hiddenTests.length}
+                        </Badge>
+                      </div>
+                      <p className='text-[11px] text-muted-foreground'>Automated evaluation test cases</p>
+                    </div>
+
+                    <div className='p-3.5 rounded-lg border bg-muted/20 space-y-1'>
+                      <div className='flex justify-between items-center'>
+                        <span className='font-semibold text-foreground flex items-center gap-1.5'>
+                          <Cpu className='w-3.5 h-3.5 text-amber-600' /> Stress Tests
+                        </span>
+                        <Badge variant='secondary' className='font-mono text-xs font-semibold'>
+                          {previewResult.stressTests.length}
+                        </Badge>
+                      </div>
+                      <p className='text-[11px] text-muted-foreground'>High volume complexity tests</p>
+                    </div>
+
+                    <div className='p-3.5 rounded-lg border bg-muted/20 space-y-1'>
+                      <div className='flex justify-between items-center'>
+                        <span className='font-semibold text-foreground flex items-center gap-1.5'>
+                          <Sliders className='w-3.5 h-3.5 text-purple-600' /> Boundary Tests
+                        </span>
+                        <Badge variant='secondary' className='font-mono text-xs font-semibold'>
+                          {previewResult.boundaryTests.length}
+                        </Badge>
+                      </div>
+                      <p className='text-[11px] text-muted-foreground'>Edge and extremity test bounds</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className='text-xs text-muted-foreground italic py-4 text-center'>
+                    Run preview to display test suite breakdown.
+                  </p>
+                )}
+              </div>
+
+              {/* Starter Code Skeleton Preview */}
+              <div className='border rounded-xl bg-card p-5 space-y-4 shadow-2xs'>
+                <div className='flex items-center justify-between border-b pb-3'>
+                  <div className='flex items-center gap-2'>
+                    <Code2 className='w-4 h-4 text-primary' />
+                    <h3 className='font-semibold text-sm text-foreground'>Starter Code Skeletons</h3>
+                  </div>
+                  <div className='flex items-center gap-1 bg-muted p-0.5 rounded-md'>
+                    {[
+                      { id: 'python', label: 'Python' },
+                      { id: 'java', label: 'Java' },
+                      { id: 'cpp', label: 'C++' },
+                    ].map((lang) => (
+                      <button
+                        key={lang.id}
+                        type='button'
+                        onClick={() => setSelectedLanguageTab(lang.id as any)}
+                        className={`px-2.5 py-0.5 text-xs font-medium rounded transition-all ${
+                          selectedLanguageTab === lang.id
+                            ? 'bg-background text-foreground shadow-2xs font-semibold'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className='border rounded-lg overflow-hidden'>
+                  <Editor
+                    height='160px'
+                    language={selectedLanguageTab}
+                    value={getStarterCodeForLang(selectedLanguageTab)}
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      fontSize: 12,
+                      lineNumbers: 'on',
+                      tabSize: 4,
+                      scrollBeyondLastLine: false,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between border-t pt-4">
+      <div className='flex items-center justify-between border-t pt-4'>
         <Button
-          variant="outline"
+          variant='outline'
           onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
           disabled={currentStep === 1}
         >
-          <ArrowLeft className="w-4 h-4 mr-1" /> Previous
+          <ArrowLeft className='w-4 h-4 mr-1' /> Previous
         </Button>
 
         {currentStep < 5 && (
           <Button onClick={() => setCurrentStep((prev) => Math.min(5, prev + 1))}>
-            Next <ArrowRight className="w-4 h-4 ml-1" />
+            Next <ArrowRight className='w-4 h-4 ml-1' />
           </Button>
         )}
       </div>

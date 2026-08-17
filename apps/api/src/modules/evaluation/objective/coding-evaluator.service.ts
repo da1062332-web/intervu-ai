@@ -55,9 +55,15 @@ export class CodingEvaluatorService {
     candidateAnsObj: AnswerDto | undefined,
   ): Promise<QuestionEvaluationResult> {
     const timeSpentSeconds = candidateAnsObj?.timeSpentSeconds || 0;
-    const candidateAnswer = candidateAnsObj?.textResponse || "";
+    let rawTextResponse: any = candidateAnsObj?.textResponse;
 
-    if (!candidateAnswer || candidateAnswer.trim() === "") {
+    if (typeof rawTextResponse === "object" && rawTextResponse !== null) {
+      rawTextResponse = JSON.stringify(rawTextResponse);
+    } else if (typeof rawTextResponse !== "string") {
+      rawTextResponse = "";
+    }
+
+    if (!rawTextResponse || rawTextResponse.trim() === "" || rawTextResponse === "[object Object]") {
       return {
         questionId: question.id,
         isCorrect: false,
@@ -74,14 +80,62 @@ export class CodingEvaluatorService {
       };
     }
 
-    const aiResult = await this.evaluateWithAI(question, candidateAnswer);
+    // 1. Try parsing deterministic Phase 5/6 test-suite submission payload
+    let submittedCode = rawTextResponse;
+    let deterministicScore: number | null = null;
+    let verdict: string | null = null;
+
+    try {
+      let parsed: any = rawTextResponse;
+      if (typeof rawTextResponse === "string") {
+        const trimmed = rawTextResponse.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          parsed = JSON.parse(rawTextResponse);
+        }
+      }
+      if (typeof parsed === "object" && parsed !== null) {
+        if (parsed.code) submittedCode = parsed.code;
+        if (typeof parsed.score === "number") deterministicScore = parsed.score;
+        if (typeof parsed.verdict === "string") verdict = parsed.verdict;
+      }
+    } catch {
+      submittedCode = rawTextResponse;
+    }
+
+    // If deterministic evaluation result is present from candidate submission
+    if (deterministicScore !== null && verdict !== null) {
+      const normScore = deterministicScore > 1 ? Math.round((deterministicScore / 100) * 100) / 100 : deterministicScore;
+      const isPass = verdict === "ACCEPTED" || normScore >= 0.8;
+      const isCompileErr = verdict === "COMPILE_ERROR";
+      const isRuntimeErr = verdict === "RUNTIME_ERROR" || verdict === "TIME_LIMIT_EXCEEDED" || verdict === "MEMORY_LIMIT_EXCEEDED";
+
+      return {
+        questionId: question.id,
+        isCorrect: isPass,
+        score: normScore,
+        maxMarks: 1,
+        candidateAnswer: submittedCode,
+        correctAnswer: "",
+        timeSpentSeconds,
+        passed: isPass,
+        constraintValidation: "PASSED",
+        syntaxError: isCompileErr,
+        compilationError: isCompileErr || isRuntimeErr,
+        codingFeedback: verdict === "ACCEPTED"
+          ? "Solution passed all public, hidden, boundary, and stress test cases."
+          : `Deterministic evaluation verdict: ${verdict} (Score: ${Math.round(normScore * 100)}%)`,
+      };
+    }
+
+    // 2. Fallback to AI heuristic evaluation if no pre-evaluated submission snapshot was recorded
+    const aiResult = await this.evaluateWithAI(question, rawTextResponse);
 
     return {
       questionId: question.id,
       isCorrect: aiResult.isCorrect,
       score: aiResult.score,
       maxMarks: 1,
-      candidateAnswer,
+      candidateAnswer: submittedCode,
       correctAnswer: "",
       timeSpentSeconds,
       passed: aiResult.passed,
@@ -237,26 +291,6 @@ Rules:
       }
     }
 
-    // Smart Fallback for valid code
-    const hasValidCodeStructure =
-      submittedCode.includes("return") ||
-      submittedCode.includes("public") ||
-      submittedCode.includes("class") ||
-      submittedCode.includes("def ") ||
-      submittedCode.includes("function");
-
-    if (hasValidCodeStructure) {
-      return {
-        isCorrect: true,
-        score: 1,
-        passed: true,
-        constraintValidation: "PASSED",
-        syntaxError: false,
-        compilationError: false,
-        explanation: "Code passed functional correctness.",
-      };
-    }
-
     return {
       isCorrect: false,
       score: 0,
@@ -264,7 +298,7 @@ Rules:
       constraintValidation: "NOT_CHECKED",
       syntaxError: false,
       compilationError: false,
-      explanation: "Evaluation could not be completed due to a service error.",
+      explanation: "Evaluation could not be completed due to an evaluation service error.",
     };
   }
 }

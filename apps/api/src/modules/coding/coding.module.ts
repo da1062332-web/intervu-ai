@@ -1,5 +1,6 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 import { CodingPatternRepository } from "./repositories/coding-pattern.repository";
 import { CodingOracleRepository } from "./repositories/coding-oracle.repository";
 import { CodingPatternService } from "./services/coding-pattern.service";
@@ -58,6 +59,15 @@ import { BaseOracle } from "./interfaces/oracle.interface";
 
 import { CodingPatternSelectorService } from "./services/coding-pattern-selector.service";
 import { CodingStatementGeneratorService } from "./services/coding-statement-generator.service";
+import { JudgeService } from "./services/judge.service";
+import { CodingExecutionService } from "./services/coding-execution.service";
+import { CodingExecutionController } from "./controllers/coding-execution.controller";
+
+import { CodingContextResolverService } from "./services/coding-context-resolver.service";
+
+import { SubmissionEvaluatorService } from "./services/submission-evaluator.service";
+
+import { AdminCodingSubmissionController } from "./controllers/admin-coding-submission.controller";
 
 const standardOracleProviders = [
   ArrayRotationOracle,
@@ -93,8 +103,14 @@ const standardOracleProviders = [
 ];
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [CodingPatternController, CodingOracleController, CodingPreviewController],
+  imports: [PrismaModule, forwardRef(() => GenerationAiModule)],
+  controllers: [
+    CodingPatternController,
+    CodingOracleController,
+    CodingPreviewController,
+    CodingExecutionController,
+    AdminCodingSubmissionController,
+  ],
   providers: [
     CodingPatternRepository,
     CodingOracleRepository,
@@ -107,6 +123,10 @@ const standardOracleProviders = [
     CodingStatementGeneratorService,
     SeededParameterGeneratorService,
     TestSuiteGeneratorService,
+    JudgeService,
+    SubmissionEvaluatorService,
+    CodingContextResolverService,
+    CodingExecutionService,
     ...standardOracleProviders,
     {
       provide: ORACLE_PROVIDERS_TOKEN,
@@ -132,6 +152,10 @@ const standardOracleProviders = [
     CodingPatternSelectorService,
     CodingStatementGeneratorService,
     OracleRegistry,
+    JudgeService,
+    SubmissionEvaluatorService,
+    CodingContextResolverService,
+    CodingExecutionService,
   ],
 })
 export class CodingModule {}

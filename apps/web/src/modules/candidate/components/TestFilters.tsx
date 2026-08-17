@@ -1,20 +1,16 @@
 'use client';
 
-import { type MouseEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface TestFiltersProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   difficultyFilter: 'All' | 'Easy' | 'Medium' | 'Hard';
   onDifficultyChange: (difficulty: 'All' | 'Easy' | 'Medium' | 'Hard') => void;
-  showOnlyBookmarked: boolean;
-  onShowOnlyBookmarkedChange: (val: boolean) => void;
   totalResults: number;
 }
 
@@ -23,8 +19,6 @@ export function TestFilters({
   onSearchChange,
   difficultyFilter,
   onDifficultyChange,
-  showOnlyBookmarked,
-  onShowOnlyBookmarkedChange,
   totalResults,
 }: TestFiltersProps) {
   const difficulties: ('All' | 'Easy' | 'Medium' | 'Hard')[] = ['All', 'Easy', 'Medium', 'Hard'];
@@ -68,25 +62,8 @@ export function TestFilters({
           </div>
         </div>
 
-        {/* Right Side: Bookmarked Switch & Match Count */}
+        {/* Right Side: Match Count */}
         <div className='flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border/40'>
-          <div
-            className='flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors cursor-pointer select-none'
-            onClick={() => onShowOnlyBookmarkedChange(!showOnlyBookmarked)}
-          >
-            <Star
-              className={`size-3.5 transition-transform ${showOnlyBookmarked ? 'fill-yellow-500 text-yellow-500 scale-105' : 'text-muted-foreground'}`}
-            />
-            <span className='text-xs font-medium text-foreground'>Bookmarked only</span>
-            <Switch
-              id='bookmark-toggle'
-              checked={showOnlyBookmarked}
-              onCheckedChange={onShowOnlyBookmarkedChange}
-              className='scale-90 ml-0.5'
-              onClick={(e: MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
-            />
-          </div>
-
           <Badge
             variant='secondary'
             className='text-xs font-semibold px-3 py-1 h-8 flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 shrink-0'

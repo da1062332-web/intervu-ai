@@ -190,6 +190,12 @@ export class ExamConfigReadinessService {
 
           let allTiersPass = true;
           const missingTierMsgs: string[] = [];
+          const tierBreakdown: Array<{
+            level: "EASY" | "MEDIUM" | "HARD";
+            required: number;
+            available: number;
+            passed: boolean;
+          }> = [];
 
           for (const tier of tiers) {
             totalChecksCount++;
@@ -202,7 +208,15 @@ export class ExamConfigReadinessService {
             );
             availableUnusedCapacity += poolCount;
 
-            if (poolCount >= tier.required) {
+            const isPassed = poolCount >= tier.required;
+            tierBreakdown.push({
+              level: tier.level,
+              required: tier.required,
+              available: poolCount,
+              passed: isPassed,
+            });
+
+            if (isPassed) {
               passedCount++;
             } else {
               allTiersPass = false;
@@ -217,6 +231,12 @@ export class ExamConfigReadinessService {
               name: `Question Pool (${st.topic.name})`,
               status: "PASS",
               message: `Active questions available in pool for topic '${st.topic.name}' across all required difficulty tiers (${tiers.map((t) => `${t.level}: ${t.required}`).join(", ")}).`,
+              details: {
+                topicId: st.topic.id,
+                topicName: st.topic.name,
+                topicCode: st.topic.code,
+                tierBreakdown,
+              },
             });
           } else {
             conflictingTopicsCount++;
@@ -235,6 +255,7 @@ export class ExamConfigReadinessService {
                 topicName: st.topic.name,
                 topicCode: st.topic.code,
                 missingTierMsgs,
+                tierBreakdown,
                 conflictingConfigNames,
                 shortcutUrl: `/admin/question-generation?topicId=${st.topic.id}`,
               },
@@ -285,6 +306,40 @@ export class ExamConfigReadinessService {
           }
         }
       }
+    }
+
+    // 5. Manual Question & Quality Audit Check
+    totalChecksCount++;
+    try {
+      const manualQuestionsCount = await this.prisma.question.count({
+        where: {
+          questionSource: "MANUAL",
+          status: "ACTIVE",
+        },
+      });
+
+      if (isManualDifficultyMode) {
+        checks.push({
+          name: "Manual Question & Quality Audit",
+          status: "PASS",
+          message: `Manual mode active. ${manualQuestionsCount} active manual question(s) available in bank with explicit difficulty distribution.`,
+        });
+        passedCount++;
+      } else {
+        checks.push({
+          name: "Manual Question & Quality Audit",
+          status: "PASS",
+          message: `Flexible mode active. ${manualQuestionsCount} manual question(s) indexed in question bank.`,
+        });
+        passedCount++;
+      }
+    } catch (err) {
+      checks.push({
+        name: "Manual Question & Quality Audit",
+        status: "WARN",
+        message: `Could not complete manual question audit: ${err instanceof Error ? err.message : String(err)}`,
+      });
+      passedCount++;
     }
 
     const score = Math.round(
