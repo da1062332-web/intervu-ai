@@ -2,7 +2,6 @@
 
 import React, { useState, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useConfig } from '@/services/exam-configs';
 import { ConfigurationSelection } from '@/features/assessment-builder/components/ConfigurationSelection';
 import { BlueprintPreview } from '@/features/assessment-builder/components/BlueprintPreview';
@@ -30,10 +29,8 @@ function AssessmentBuilderContent() {
   
   const configId = searchParams.get('configId');
   const urlJobId = searchParams.get('jobId');
-  const urlJobId = searchParams.get('jobId');
 
   const [step, setStep] = useState<'SELECT_CONFIG' | 'PREVIEW_BLUEPRINT' | 'GENERATING' | 'RESULT'>(
-    urlJobId ? 'GENERATING' : 'SELECT_CONFIG',
     urlJobId ? 'GENERATING' : 'SELECT_CONFIG',
   );
   const [selectedConfig, setSelectedConfig] = useState<ExamConfig | null>(null);
@@ -43,27 +40,13 @@ function AssessmentBuilderContent() {
 
   React.useEffect(() => {
     if (configId && configFromUrl && (step === 'SELECT_CONFIG' || step === 'GENERATING')) {
-    if (configId && configFromUrl && (step === 'SELECT_CONFIG' || step === 'GENERATING')) {
       setSelectedConfig(configFromUrl);
       if (step === 'SELECT_CONFIG' && !urlJobId) {
         setStep('PREVIEW_BLUEPRINT');
       }
-      if (step === 'SELECT_CONFIG' && !urlJobId) {
-        setStep('PREVIEW_BLUEPRINT');
-      }
     }
   }, [configId, configFromUrl, step, urlJobId]);
-  }, [configId, configFromUrl, step, urlJobId]);
 
-  const [activeJobId, setActiveJobId] = useState<string | null>(urlJobId);
-
-  React.useEffect(() => {
-    if (activeJobId && searchParams.get('jobId') !== activeJobId) {
-      const newParams = new URLSearchParams(searchParams.toString());
-      newParams.set('jobId', activeJobId);
-      router.replace(`${pathname}?${newParams.toString()}`);
-    }
-  }, [activeJobId, pathname, router, searchParams]);
   const [activeJobId, setActiveJobId] = useState<string | null>(urlJobId);
 
   React.useEffect(() => {
@@ -78,7 +61,6 @@ function AssessmentBuilderContent() {
     mutate: generateAssessment,
     isPending: isMutationPending,
     isError: isMutationError,
-    reset: resetMutation,
     reset: resetMutation,
   } = useGenerateAssessment();
   const { data: jobStatus, isError: isJobError } = useJobPolling(activeJobId);
@@ -104,15 +86,8 @@ function AssessmentBuilderContent() {
         newParams.delete('jobId');
         router.replace(`${pathname}?${newParams.toString()}`);
       }, 1500);
-      const timer = setTimeout(() => {
-        setStep('RESULT');
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete('jobId');
-        router.replace(`${pathname}?${newParams.toString()}`);
-      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [jobStatus?.status, jobStatus?.result, selectedConfig, pathname, router, searchParams]);
   }, [jobStatus?.status, jobStatus?.result, selectedConfig, pathname, router, searchParams]);
 
   const handleConfigSelect = (config: ExamConfig) => {
@@ -274,10 +249,8 @@ function AssessmentBuilderContent() {
           {isError && (
             <div className='mt-6 flex justify-center gap-4'>
               <Button variant='outline' onClick={handleGoBack}>
-              <Button variant='outline' onClick={handleGoBack}>
                 Go Back
               </Button>
-              <Button onClick={handleRetry}>Retry Generation</Button>
               <Button onClick={handleRetry}>Retry Generation</Button>
             </div>
           )}
