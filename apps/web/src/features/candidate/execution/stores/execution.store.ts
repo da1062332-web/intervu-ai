@@ -377,17 +377,33 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     const targetIndex = state.pendingSectionChangeTarget;
     if (targetIndex === null) return;
 
+    let targetSectionIdx = targetIndex;
+    let targetQuestionIdx = targetIndex;
+
+    if (state.testInstance && targetIndex < state.testInstance.sections.length) {
+      let runningCount = 0;
+      for (let i = 0; i < state.testInstance.sections.length; i++) {
+        if (i === targetIndex) {
+          targetQuestionIdx = runningCount;
+          targetSectionIdx = i;
+          break;
+        }
+        runningCount += state.testInstance.sections[i].questions.length;
+      }
+    }
+
     const newPalette = applyPaletteUpdate(
       state.palette,
       state.currentQuestionIndex,
-      targetIndex,
+      targetQuestionIdx,
       state.answers,
       state.questions,
     );
 
     set({
-      currentQuestionIndex: targetIndex,
-      currentQuestion: state.questions[targetIndex],
+      currentSectionIndex: targetSectionIdx,
+      currentQuestionIndex: targetQuestionIdx,
+      currentQuestion: state.questions[targetQuestionIdx] || null,
       palette: newPalette,
       hasUnsavedChanges: true,
       pendingSectionChangeTarget: null,

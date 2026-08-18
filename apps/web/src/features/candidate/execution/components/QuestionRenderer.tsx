@@ -110,11 +110,11 @@ export function QuestionRenderer() {
               key={optKey}
               htmlFor={htmlId}
               className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-xs
+                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
                 ${
                   isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 bg-white dark:bg-slate-900'
+                    ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-500 text-blue-950 font-medium'
+                    : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50 bg-white text-slate-800'
                 }
               `}
             >
@@ -130,18 +130,18 @@ export function QuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium shrink-0
+                flex items-center justify-center w-7 h-7 rounded-full border mr-3.5 text-xs font-bold shrink-0
                 ${
                   isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 border-slate-300 text-slate-700'
                 }
               `}
                 aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-medium leading-relaxed break-words text-slate-900 dark:text-slate-100'>
+              <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
                 {optText}
               </span>
             </label>
@@ -186,11 +186,11 @@ export function QuestionRenderer() {
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-xs
+                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
                 ${
                   isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 bg-white dark:bg-slate-900'
+                    ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-500 text-blue-950 font-medium'
+                    : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50 bg-white text-slate-800'
                 }
               `}
             >
@@ -204,18 +204,18 @@ export function QuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded border mr-4 text-sm font-medium shrink-0
+                flex items-center justify-center w-7 h-7 rounded border mr-3.5 text-xs font-bold shrink-0
                 ${
                   isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 border-slate-300 text-slate-700'
                 }
               `}
                 aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-medium leading-relaxed break-words text-slate-900 dark:text-slate-100'>
+              <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
                 {optText}
               </span>
             </label>

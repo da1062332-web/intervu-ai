@@ -30,6 +30,7 @@ import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalcu
 export function ExecutionLayout() {
   const { testInstance, isInteractionBlocked, submissionStatus } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   // Initialize day 4 hooks
   useConnectionMonitor();
@@ -111,7 +112,7 @@ export function ExecutionLayout() {
 
           {/* Mobile Drawer Button (< lg screens) */}
           <div className='lg:hidden flex items-center justify-between mx-3 my-2 shrink-0'>
-            <Sheet>
+            <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
               <SheetTrigger asChild>
                 <button className='w-full bg-[#d6eafb] hover:bg-[#c2e0f5] text-[#1c3e66] border border-[#96bae0] font-bold text-sm py-2.5 px-4 rounded-sm shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer'>
                   <LayoutGrid className='size-4' />
@@ -125,7 +126,9 @@ export function ExecutionLayout() {
                 <div className='p-3.5 bg-white border-b border-gray-300 flex items-center justify-between shrink-0'>
                   <div className='flex flex-col items-center w-24 shrink-0'>
                     <div className='w-20 h-20 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
-                      <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                      {isMobileSheetOpen && (
+                        <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                      )}
                     </div>
                     <span className='text-[9px] text-gray-700 font-bold mt-1 truncate max-w-full text-center'>
                       {testInstance?.candidateName || 'Your photo appears here'}
