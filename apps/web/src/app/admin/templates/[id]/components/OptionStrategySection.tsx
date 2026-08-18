@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useSaveOptionStrategy } from '@/services/templates/hooks';
 import toast from 'react-hot-toast';
 import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
@@ -25,10 +25,36 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
     updateDraftState({ optionStrategy: { strategy, options: nextOptions } });
   };
 
+  const handleAddOption = () => {
+    if (options.length < 8) {
+      setOptions([...options, '']);
+    } else {
+      toast.error('Maximum 8 options allowed');
+    }
+  };
+
+  const handleRemoveOption = (indexToRemove: number) => {
+    if (options.length > 2) {
+      setOptions(options.filter((_, idx) => idx !== indexToRemove));
+    } else {
+      toast.error('A minimum of 2 options is required');
+    }
+  };
+
   const { mutate: saveOptionStrategy, isPending: isSaving } = useSaveOptionStrategy();
 
   const handleSave = () => {
     if (!template?.id) return;
+
+    if (options.length < 2) {
+      toast.error('At least 2 options are required');
+      return;
+    }
+
+    if (options.length > 8) {
+      toast.error('At most 8 options are allowed');
+      return;
+    }
 
     const cleanOptions = options.filter((o) => typeof o === 'string' && o.trim().length > 0);
 
@@ -147,28 +173,52 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
         {/* Dynamic Config Sections */}
         {strategy === 'static' && (
           <div className='space-y-4 p-5 border rounded-lg bg-gray-50/50 dark:bg-gray-900/50 animate-in fade-in slide-in-from-top-2'>
-            <div>
-              <Label className='text-base font-semibold'>Static Options Configuration</Label>
-              <p className='text-sm text-muted-foreground mt-1'>
-                Provide exactly 4 fixed options. (e.g. for simple non-variable templates)
-              </p>
+            <div className='flex items-center justify-between'>
+              <div>
+                <Label className='text-base font-semibold'>Static Options Configuration</Label>
+                <p className='text-sm text-muted-foreground mt-1'>
+                  Provide 2 to 8 fixed options. Option A is the correct answer.
+                </p>
+              </div>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={handleAddOption}
+                disabled={options.length >= 8}
+                className='gap-1.5'
+              >
+                <Plus className='w-4 h-4' /> Add Option
+              </Button>
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {[0, 1, 2, 3].map((index) => (
+              {options.map((optionValue, index) => (
                 <div key={index} className='space-y-2'>
-                  <Label>
-                    Option {String.fromCharCode(65 + index)}{' '}
-                    {index === 0 && (
-                      <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
-                        (Correct)
-                      </span>
+                  <div className='flex items-center justify-between'>
+                    <Label>
+                      Option {String.fromCharCode(65 + index)}{' '}
+                      {index === 0 && (
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                          (Correct)
+                        </span>
+                      )}
+                    </Label>
+                    {options.length > 2 && (
+                      <button
+                        type='button'
+                        onClick={() => handleRemoveOption(index)}
+                        className='text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors'
+                        title={`Remove Option ${String.fromCharCode(65 + index)}`}
+                      >
+                        <Trash2 className='w-3.5 h-3.5' /> Remove
+                      </button>
                     )}
-                  </Label>
+                  </div>
                   <div className='flex items-center gap-2'>
                     <input
                       type='text'
                       className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                      value={options[index] || ''}
+                      value={optionValue || ''}
                       placeholder={index === 0 ? 'Correct Answer' : 'Distractor'}
                       onChange={(e) => {
                         const newOps = [...options];
@@ -180,29 +230,63 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
                 </div>
               ))}
             </div>
+            {options.length >= 8 && (
+              <p className='text-xs text-muted-foreground italic'>
+                Maximum 8 options reached.
+              </p>
+            )}
+            {options.length <= 2 && (
+              <p className='text-xs text-muted-foreground italic'>
+                Minimum 2 options required.
+              </p>
+            )}
           </div>
         )}
 
         {strategy === 'formula' && (
           <div className='space-y-4 p-5 border rounded-lg bg-gray-50/50 dark:bg-gray-900/50 animate-in fade-in slide-in-from-top-2'>
-            <div>
-              <Label className='text-base font-semibold'>Formula Based Configuration</Label>
-              <p className='text-sm text-muted-foreground mt-1'>
-                Define mathematical formulas to generate options using variables (e.g.{' '}
-                <code>answer + 10</code>, <code>answer * 2</code>)
-              </p>
+            <div className='flex items-center justify-between'>
+              <div>
+                <Label className='text-base font-semibold'>Formula Based Configuration</Label>
+                <p className='text-sm text-muted-foreground mt-1'>
+                  Define mathematical formulas to generate 2 to 8 options using variables (e.g.{' '}
+                  <code>answer + 10</code>, <code>answer * 2</code>).
+                </p>
+              </div>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={handleAddOption}
+                disabled={options.length >= 8}
+                className='gap-1.5'
+              >
+                <Plus className='w-4 h-4' /> Add Option
+              </Button>
             </div>
             <div className='grid grid-cols-1 gap-4'>
-              {[0, 1, 2, 3].map((index) => (
+              {options.map((optionValue, index) => (
                 <div key={index} className='space-y-2'>
-                  <Label>
-                    Option {String.fromCharCode(65 + index)}{' '}
-                    {index === 0 && (
-                      <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
-                        (Correct)
-                      </span>
+                  <div className='flex items-center justify-between'>
+                    <Label>
+                      Option {String.fromCharCode(65 + index)}{' '}
+                      {index === 0 && (
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium'>
+                          (Correct)
+                        </span>
+                      )}
+                    </Label>
+                    {options.length > 2 && (
+                      <button
+                        type='button'
+                        onClick={() => handleRemoveOption(index)}
+                        className='text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors'
+                        title={`Remove Option ${String.fromCharCode(65 + index)}`}
+                      >
+                        <Trash2 className='w-3.5 h-3.5' /> Remove
+                      </button>
                     )}
-                  </Label>
+                  </div>
                   <div className='flex items-center gap-2'>
                     <span className='font-mono text-sm px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-md border text-muted-foreground'>
                       ƒ(x) ={' '}
@@ -210,7 +294,7 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
                     <input
                       type='text'
                       className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring font-mono'
-                      value={options[index] || ''}
+                      value={optionValue || ''}
                       placeholder={index === 0 ? 'answer' : 'answer + (variable * 2)'}
                       onChange={(e) => {
                         const newForms = [...options];
@@ -222,6 +306,16 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
                 </div>
               ))}
             </div>
+            {options.length >= 8 && (
+              <p className='text-xs text-muted-foreground italic'>
+                Maximum 8 options reached.
+              </p>
+            )}
+            {options.length <= 2 && (
+              <p className='text-xs text-muted-foreground italic'>
+                Minimum 2 options required.
+              </p>
+            )}
           </div>
         )}
 

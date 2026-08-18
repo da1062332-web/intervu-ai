@@ -29,6 +29,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Dataset } from '@/services/datasets/api';
 import toast from 'react-hot-toast';
 
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+
 interface DatasetConfigurationSectionProps {
   template: any;
 }
@@ -41,20 +43,131 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
   const { mutate: generateQuestion, isPending: isGenerating } = useGenerateQuestion();
   const isSaving = isSavingConfig || isSavingDataset;
 
-  const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const selectedDatasetId = draftState.datasetConfig?.selectedDatasetId ?? '';
+  const selectionMethod = draftState.datasetConfig?.selectionMethod ?? 'RANDOM';
+  const sampleSize = draftState.datasetConfig?.sampleSize ?? 1;
+  const shuffle = draftState.datasetConfig?.shuffle ?? true;
+  const allowReuse = draftState.datasetConfig?.allowReuse ?? false;
+  const specificItemId = draftState.datasetConfig?.specificItemId ?? '';
+  const variableMapping = draftState.datasetConfig?.variableMapping ?? {};
+
+  const setSelectedDatasetId = (val: string) => {
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectionMethod: 'RANDOM',
+          sampleSize: 1,
+          shuffle: true,
+          allowReuse: false,
+          specificItemId: '',
+          variableMapping: {},
+        }),
+        selectedDatasetId: val,
+      },
+    });
+  };
+
+  const setSelectionMethod = (val: 'RANDOM' | 'SEQUENTIAL' | 'SPECIFIC') => {
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectedDatasetId: '',
+          sampleSize: 1,
+          shuffle: true,
+          allowReuse: false,
+          specificItemId: '',
+          variableMapping: {},
+        }),
+        selectionMethod: val,
+      },
+    });
+  };
+
+  const setSampleSize = (val: number) => {
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectedDatasetId: '',
+          selectionMethod: 'RANDOM',
+          shuffle: true,
+          allowReuse: false,
+          specificItemId: '',
+          variableMapping: {},
+        }),
+        sampleSize: val,
+      },
+    });
+  };
+
+  const setShuffle = (val: boolean) => {
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectedDatasetId: '',
+          selectionMethod: 'RANDOM',
+          sampleSize: 1,
+          allowReuse: false,
+          specificItemId: '',
+          variableMapping: {},
+        }),
+        shuffle: val,
+      },
+    });
+  };
+
+  const setAllowReuse = (val: boolean) => {
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectedDatasetId: '',
+          selectionMethod: 'RANDOM',
+          sampleSize: 1,
+          shuffle: true,
+          specificItemId: '',
+          variableMapping: {},
+        }),
+        allowReuse: val,
+      },
+    });
+  };
+
+  const setSpecificItemId = (val: string) => {
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectedDatasetId: '',
+          selectionMethod: 'RANDOM',
+          sampleSize: 1,
+          shuffle: true,
+          allowReuse: false,
+          variableMapping: {},
+        }),
+        specificItemId: val,
+      },
+    });
+  };
+
+  const setVariableMapping = (val: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) => {
+    const nextMapping = typeof val === 'function' ? val(variableMapping) : val;
+    updateDraftState({
+      datasetConfig: {
+        ...(draftState.datasetConfig || {
+          selectedDatasetId: '',
+          selectionMethod: 'RANDOM',
+          sampleSize: 1,
+          shuffle: true,
+          allowReuse: false,
+          specificItemId: '',
+        }),
+        variableMapping: nextMapping,
+      },
+    });
+  };
 
   // Track the baseline of what was successfully saved
   const [savedConfig, setSavedConfig] = useState<any>({});
-
-  // Generation Settings
-  const [selectionMethod, setSelectionMethod] = useState<'RANDOM' | 'SEQUENTIAL' | 'SPECIFIC'>(
-    'RANDOM',
-  );
-  const [sampleSize, setSampleSize] = useState<number>(1);
-  const [shuffle, setShuffle] = useState<boolean>(true);
-  const [allowReuse, setAllowReuse] = useState<boolean>(false);
-  const [specificItemId, setSpecificItemId] = useState<string>('');
-  const [variableMapping, setVariableMapping] = useState<Record<string, string>>({});
 
   // Results
   const [previewResult, setPreviewResult] = useState<any>(null);
@@ -71,17 +184,9 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
     let configSnapshot: any = {};
     if (template?.datasetId || template?.config?.datasetId) {
       initialId = template.datasetId || template.config.datasetId;
-      setSelectedDatasetId(initialId);
     }
     const dsConfig = template?.config?.datasetConfig;
     if (dsConfig) {
-      if (dsConfig.selectionMethod) setSelectionMethod(dsConfig.selectionMethod);
-      if (dsConfig.sampleSize) setSampleSize(dsConfig.sampleSize);
-      if (dsConfig.shuffle !== undefined) setShuffle(dsConfig.shuffle);
-      if (dsConfig.allowReuse !== undefined) setAllowReuse(dsConfig.allowReuse);
-      if (dsConfig.specificItemId) setSpecificItemId(dsConfig.specificItemId);
-      if (dsConfig.variableMapping) setVariableMapping(dsConfig.variableMapping);
-
       configSnapshot = {
         datasetId: initialId,
         selectionMethod: dsConfig.selectionMethod || 'RANDOM',
@@ -95,7 +200,21 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
       configSnapshot = { datasetId: initialId };
     }
     setSavedConfig(configSnapshot);
-  }, [template]);
+
+    if (template && !draftState.datasetConfig) {
+      updateDraftState({
+        datasetConfig: {
+          selectedDatasetId: initialId,
+          selectionMethod: dsConfig?.selectionMethod || 'RANDOM',
+          sampleSize: dsConfig?.sampleSize || 1,
+          shuffle: dsConfig?.shuffle ?? true,
+          allowReuse: dsConfig?.allowReuse ?? false,
+          specificItemId: dsConfig?.specificItemId || '',
+          variableMapping: dsConfig?.variableMapping || {},
+        },
+      });
+    }
+  }, [template, draftState.datasetConfig, updateDraftState]);
 
   // Handle Dataset Change Reset
   useEffect(() => {

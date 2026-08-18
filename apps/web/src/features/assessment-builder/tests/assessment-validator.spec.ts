@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { validateAssessment } from '../validators/assessment-validator';
 import type { ExamConfig } from '@/services/exam-configs/types';
 import type { Assessment, GeneratedQuestion } from '../types';

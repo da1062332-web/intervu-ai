@@ -40,8 +40,6 @@ import { detectCircularDependencies } from './formula-dependency-validator';
 
 import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
 
-import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
-
 interface VariableDefinition {
   name: string;
   type: string;
@@ -161,13 +159,65 @@ export function GenerationStrategySection() {
     });
   }, [normalizedConstraintCollection]);
 
-  const [variableModalOpen, setVariableModalOpen] = useState(false);
-  const [constraintModalOpen, setConstraintModalOpen] = useState(false);
-  const [derivedModalOpen, setDerivedModalOpen] = useState(false);
-  const [editingVariable, setEditingVariable] = useState<VariableDefinition | null>(null);
-  const [editingDerived, setEditingDerived] = useState<DerivedVariableDefinition | null>(null);
-  const [editingConstraint, setEditingConstraint] = useState<ConstraintDefinition | null>(null);
   const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const uiState = draftState.generationStrategyUI || {
+    variableModalOpen: false,
+    constraintModalOpen: false,
+    derivedModalOpen: false,
+    editingVariable: null,
+    editingDerived: null,
+    editingConstraint: null,
+    aiPrompt: '',
+    draftedStrategy: null,
+    showAiSection: true,
+    validationWarnings: [],
+  };
+
+  const updateUIState = (updates: Partial<typeof uiState>) => {
+    updateDraftState({
+      generationStrategyUI: {
+        ...uiState,
+        ...updates,
+      },
+    });
+  };
+
+  const variableModalOpen = uiState.variableModalOpen;
+  const setVariableModalOpen = (val: boolean) => updateUIState({ variableModalOpen: val });
+
+  const constraintModalOpen = uiState.constraintModalOpen;
+  const setConstraintModalOpen = (val: boolean) => updateUIState({ constraintModalOpen: val });
+
+  const derivedModalOpen = uiState.derivedModalOpen;
+  const setDerivedModalOpen = (val: boolean) => updateUIState({ derivedModalOpen: val });
+
+  const editingVariable = uiState.editingVariable;
+  const setEditingVariable = (val: VariableDefinition | null) => updateUIState({ editingVariable: val });
+
+  const editingDerived = uiState.editingDerived;
+  const setEditingDerived = (val: DerivedVariableDefinition | null) => updateUIState({ editingDerived: val });
+
+  const editingConstraint = uiState.editingConstraint;
+  const setEditingConstraint = (val: ConstraintDefinition | null) => updateUIState({ editingConstraint: val });
+
+  const aiPrompt = uiState.aiPrompt;
+  const setAiPrompt = (val: string | ((prev: string) => string)) => {
+    const nextVal = typeof val === 'function' ? val(aiPrompt) : val;
+    updateUIState({ aiPrompt: nextVal });
+  };
+
+  const draftedStrategy = uiState.draftedStrategy;
+  const setDraftedStrategy = (val: DraftedStrategy | null) => updateUIState({ draftedStrategy: val });
+
+  const showAiSection = uiState.showAiSection;
+  const setShowAiSection = (val: boolean) => updateUIState({ showAiSection: val });
+
+  const validationWarnings = uiState.validationWarnings;
+  const setValidationWarnings = (val: string[] | ((prev: string[]) => string[])) => {
+    const nextVal = typeof val === 'function' ? val(validationWarnings) : val;
+    updateUIState({ validationWarnings: nextVal });
+  };
 
   const variableForm = draftState.variableForm;
   const setVariableForm = (val: any) => {
@@ -185,12 +235,6 @@ export function GenerationStrategySection() {
   };
 
   const [error, setError] = useState<string | null>(null);
-
-  // AI Assistant State
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [draftedStrategy, setDraftedStrategy] = useState<DraftedStrategy | null>(null);
-  const [showAiSection, setShowAiSection] = useState(true);
-  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 
   const resetVariableForm = () => {
     setVariableForm({
