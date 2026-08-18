@@ -1,14 +1,45 @@
 'use client';
 
-import React, { useCallback, Fragment } from 'react';
+import React, { useCallback, Fragment, useEffect } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { executionService } from '../services/execution.service';
 
 export function QuestionRenderer() {
-  const { currentQuestion, currentQuestionIndex, answers, saveAnswer, testInstance } =
-    useExecutionStore();
+  const {
+    currentQuestion,
+    currentQuestionIndex,
+    answers,
+    saveAnswer,
+    testInstance,
+    currentSectionIndex,
+    syncQuestionsFromInstance,
+  } = useExecutionStore();
+
+  useEffect(() => {
+    if (!currentQuestion && testInstance?.id) {
+      let isMounted = true;
+      const timer = setTimeout(async () => {
+        try {
+          const latest = await executionService.getTestInstance(testInstance.id);
+          if (latest && isMounted) {
+            const currentSec = latest.sections[currentSectionIndex];
+            if (currentSec && currentSec.questions && currentSec.questions.length > 0) {
+              syncQuestionsFromInstance(latest);
+            }
+          }
+        } catch (err) {
+          console.warn('Auto-sync questions failed:', err);
+        }
+      }, 600);
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
+    }
+  }, [currentQuestion, testInstance?.id, currentSectionIndex, syncQuestionsFromInstance]);
 
   const handleCompilerChange = useCallback(
     (data: any) => {
@@ -20,8 +51,12 @@ export function QuestionRenderer() {
 
   if (!currentQuestion) {
     return (
-      <div className='flex items-center justify-center h-64 text-slate-400 text-sm'>
-        No active question selected.
+      <div className='flex flex-col items-center justify-center h-80 text-center px-4'>
+        <div className='w-9 h-9 border-3 border-[#27783f] border-t-transparent rounded-full animate-spin mb-3' />
+        <h3 className='text-sm font-semibold text-gray-800 mb-1'>Loading Section Questions...</h3>
+        <p className='text-xs text-gray-500 max-w-sm'>
+          Preparing questions for this section. Please wait a moment.
+        </p>
       </div>
     );
   }
@@ -75,11 +110,11 @@ export function QuestionRenderer() {
               key={optKey}
               htmlFor={htmlId}
               className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-xs
+                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
                 ${
                   isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 bg-white dark:bg-slate-900'
+                    ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-500 text-blue-950 font-medium'
+                    : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50 bg-white text-slate-800'
                 }
               `}
             >
@@ -95,18 +130,18 @@ export function QuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded-full border mr-4 text-sm font-medium shrink-0
+                flex items-center justify-center w-7 h-7 rounded-full border mr-3.5 text-xs font-bold shrink-0
                 ${
                   isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 border-slate-300 text-slate-700'
                 }
               `}
                 aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-medium leading-relaxed break-words text-slate-900 dark:text-slate-100'>
+              <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
                 {optText}
               </span>
             </label>
@@ -151,11 +186,11 @@ export function QuestionRenderer() {
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
-                flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 shadow-xs
+                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
                 ${
                   isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 bg-white dark:bg-slate-900'
+                    ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-500 text-blue-950 font-medium'
+                    : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50 bg-white text-slate-800'
                 }
               `}
             >
@@ -169,18 +204,18 @@ export function QuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded border mr-4 text-sm font-medium shrink-0
+                flex items-center justify-center w-7 h-7 rounded border mr-3.5 text-xs font-bold shrink-0
                 ${
                   isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 border-slate-300 text-slate-700'
                 }
               `}
                 aria-hidden='true'
               >
                 {letter}
               </div>
-              <span className='text-base font-medium leading-relaxed break-words text-slate-900 dark:text-slate-100'>
+              <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
                 {optText}
               </span>
             </label>

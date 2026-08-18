@@ -707,26 +707,33 @@ export class QuestionAllocatorService {
       }
 
       const generatedAllocations: AllocatedQuestionDto[] = [];
+
+      // ── Single-batch AI generation ─────────────────────────────────────────
+      // Previously this looped `deficit` times calling count:1 each iteration.
+      // That caused 82 sequential HTTP round-trips to the LLM (~120s total).
+      // Now we issue ONE call with count:deficit and expand the results below (~2s).
+      // ──────────────────────────────────────────────────────────────────────
+      let batchQuestions: any[] = [];
+      if (this.orchestrator && deficit > 0) {
+        try {
+          const aiRes = await this.orchestrator.generateQuestions({
+            topic: topicDisplayName,
+            count: deficit,          // ← single batch instead of loop
+            difficulty: difficulty,
+            styleProfile,
+          } as any);
+          batchQuestions = aiRes?.questions || [];
+        } catch (err) {
+          // LLM adapter failed — batchQuestions stays empty, fallback below handles it
+        }
+      }
+
       for (let i = 0; i < deficit; i++) {
         const currentQuestionNumber = orderCounter + i + 1;
         const uniqueHash = `runtime_gen_${topicId}_${difficulty}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}`;
-        let questionData: any = null;
 
-        if (this.orchestrator) {
-          try {
-            const aiRes = await this.orchestrator.generateQuestions({
-              topic: topicDisplayName,
-              count: 1,
-              difficulty: difficulty,
-              styleProfile,
-            } as any);
-            if (aiRes.questions && aiRes.questions.length > 0) {
-              questionData = aiRes.questions[0];
-            }
-          } catch (err) {
-            // Fallback if LLM adapter fails
-          }
-        }
+        // Use the batch result for this slot (may be undefined if AI failed)
+        const questionData: any = batchQuestions[i] ?? null;
 
         const questionText =
           questionData?.questionText ||

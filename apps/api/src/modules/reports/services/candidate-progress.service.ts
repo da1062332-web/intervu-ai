@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { ReportAuditService } from "./report-audit.service";

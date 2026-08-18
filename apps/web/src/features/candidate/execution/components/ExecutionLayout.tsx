@@ -28,8 +28,9 @@ import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScrat
 import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalculator';
 
 export function ExecutionLayout() {
-  const { testInstance, isInteractionBlocked } = useExecutionStore();
+  const { testInstance, isInteractionBlocked, submissionStatus } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   // Initialize day 4 hooks
   useConnectionMonitor();
@@ -45,7 +46,7 @@ export function ExecutionLayout() {
 
   useKeyboardShortcuts({
     onSubmit: handleSubmit,
-    disabled: isInteractionBlocked,
+    disabled: isInteractionBlocked || submissionStatus === 'SUBMITTING' || submissionStatus === 'SUCCESS',
   });
 
   const handleCopyPaste = (e: React.ClipboardEvent) => {
@@ -61,14 +62,27 @@ export function ExecutionLayout() {
     e.preventDefault();
   };
 
+  const isSubmitting = submissionStatus === 'SUBMITTING' || submissionStatus === 'SUCCESS';
+
   return (
     <div
       className='min-h-screen lg:h-screen bg-[#f1f5f9] lg:flex lg:flex-col lg:overflow-hidden relative select-none font-sans'
       onCopy={handleCopyPaste}
       onCut={handleCopyPaste}
       onPaste={handleCopyPaste}
-      style={isInteractionBlocked ? { pointerEvents: 'none' } : undefined}
+      style={isInteractionBlocked || isSubmitting ? { pointerEvents: 'none' } : undefined}
     >
+      {/* Full-Screen Submission Overlay */}
+      {isSubmitting && (
+        <div className='fixed inset-0 z-100 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
+          <div className='w-14 h-14 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-5 shadow-lg' />
+          <h2 className='text-2xl font-bold tracking-tight'>Assessment Submitted</h2>
+          <p className='text-slate-300 text-sm mt-2 max-w-sm'>
+            Your answers have been securely submitted. Finalizing evaluation and redirecting to results...
+          </p>
+        </div>
+      )}
+
       <FullscreenOverlay />
       <TabWarningModal />
 
@@ -98,7 +112,7 @@ export function ExecutionLayout() {
 
           {/* Mobile Drawer Button (< lg screens) */}
           <div className='lg:hidden flex items-center justify-between mx-3 my-2 shrink-0'>
-            <Sheet>
+            <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
               <SheetTrigger asChild>
                 <button className='w-full bg-[#d6eafb] hover:bg-[#c2e0f5] text-[#1c3e66] border border-[#96bae0] font-bold text-sm py-2.5 px-4 rounded-sm shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer'>
                   <LayoutGrid className='size-4' />
@@ -112,7 +126,9 @@ export function ExecutionLayout() {
                 <div className='p-3.5 bg-white border-b border-gray-300 flex items-center justify-between shrink-0'>
                   <div className='flex flex-col items-center w-24 shrink-0'>
                     <div className='w-20 h-20 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
-                      <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                      {isMobileSheetOpen && (
+                        <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                      )}
                     </div>
                     <span className='text-[9px] text-gray-700 font-bold mt-1 truncate max-w-full text-center'>
                       {testInstance?.candidateName || 'Your photo appears here'}

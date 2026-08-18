@@ -179,7 +179,19 @@ export class AssembledTestRepository {
     return this.prisma.assembledTest.findFirst({
       where: {
         configId,
-        status: AssemblyStatus.PUBLISHED,
+        totalQuestions: { gt: 0 },
+        // Match PUBLISHED or complete DRAFT assemblies that have all questions attached
+        status: { in: [AssemblyStatus.PUBLISHED, AssemblyStatus.DRAFT] },
+        sections: {
+          // At least one section must exist with questions
+          some: {
+            questions: { some: {} },
+          },
+          // No section is allowed to have zero questions (strictly rejects empty drafts)
+          none: {
+            questions: { none: {} },
+          },
+        },
       },
       select: {
         id: true,
@@ -190,18 +202,14 @@ export class AssembledTestRepository {
         examConfig: {
           select: {
             updatedAt: true,
-            ruleFlags: {
-              select: {
-                candidateNoRepeatEnabled: true,
-                runtimeGenerationOnDeficit: true,
-              } as any,
-            },
+            ruleFlags: true,
           },
         },
       },
       orderBy: { createdAt: "desc" },
     });
   }
+
 
   async updateStatus(id: string, status: AssemblyStatus) {
     return this.prisma.assembledTest.update({

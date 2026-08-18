@@ -58,9 +58,17 @@ export function useSectionTimer(testId: string | undefined) {
       }
 
       if (result.nextSectionIndex !== null) {
+        let updatedInstance = testInstance;
+        try {
+          const latest = await executionService.getTestInstance(testId);
+          if (latest) updatedInstance = latest;
+        } catch (e) {
+          // fallback
+        }
+
         const newLockedKeys =
-          testInstance?.sections.slice(0, result.nextSectionIndex).map((s) => s.sectionKey) ?? [];
-        advanceSectionLocally(result.nextSectionIndex, newLockedKeys, result.serverTime);
+          updatedInstance?.sections.slice(0, result.nextSectionIndex).map((s) => s.sectionKey) ?? [];
+        advanceSectionLocally(result.nextSectionIndex, newLockedKeys, result.serverTime, updatedInstance ?? undefined);
       }
     } catch (err: any) {
       const status = err?.statusCode || err?.status;

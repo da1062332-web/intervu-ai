@@ -119,7 +119,7 @@ Create `apps/api/.env` with values similar to:
 ```env
 NODE_ENV=development
 PORT=4000
-DATABASE_URL=postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/intervu_ai
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=replace-with-a-long-secret-at-least-32-chars
 JWT_REFRESH_SECRET=replace-with-another-long-secret-at-least-32-chars

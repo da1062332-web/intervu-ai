@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  Logger,
 } from "@nestjs/common";
 
 import { AssemblyPersistenceService } from "./assembly-persistence.service";
@@ -20,6 +21,7 @@ import { Optional } from "@nestjs/common";
 
 @Injectable()
 export class AssemblyService {
+  private readonly logger = new Logger(AssemblyService.name);
   private readonly DEFAULT_ALLOCATION_CONFIG: AllocationConfig = {
     distribution: {
       EASY: 40,
@@ -47,19 +49,34 @@ export class AssemblyService {
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
 
+    const tStart = Date.now();
+    this.logger.log(`  [ASSEMBLY ⏱️] Step A: Querying published reusable assembly for configId: ${configId}...`);
     const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
     const isCandidateNoRepeat = (reusableAssembly as any)?.examConfig?.ruleFlags?.candidateNoRepeatEnabled ?? false;
+    this.logger.log(`  [ASSEMBLY ✅] Step A: Found reusable assembly in ${Date.now() - tStart}ms -> AssemblyId: ${reusableAssembly ? reusableAssembly.id : 'NONE'}, candidateNoRepeat: ${isCandidateNoRepeat}`);
 
+    // Flow 1: Standard Exam — instantly clone the pre-assembled PUBLISHED questions (< 50ms).
+    // Only skipped when forceNew=true or admin has enabled candidateNoRepeat AI rule.
     if (!forceNew && reusableAssembly && !isCandidateNoRepeat) {
-      const assemblyUpdatedAt = reusableAssembly.updatedAt ?? reusableAssembly.createdAt;
-      const configUpdatedAt = (reusableAssembly as any)?.examConfig?.updatedAt ?? null;
-
-      if (
-        !configUpdatedAt ||
-        !assemblyUpdatedAt ||
-        assemblyUpdatedAt >= configUpdatedAt
-      ) {
-        return reusableAssembly.id;
+      this.logger.log(`  [ASSEMBLY ⚡] FLOW 1 ACTIVE: Standard Exam with pre-assembled questions. Cloning assembly ${reusableAssembly.id}...`);
+      try {
+        const tClone = Date.now();
+        const instanceId = await this.persistenceService.cloneReusableAssemblyForCandidate(
+          reusableAssembly.id,
+          configId,
+          userId,
+        );
+        this.logger.log(`  [ASSEMBLY ⚡✅] FLOW 1 CLONE COMPLETE in ${Date.now() - tClone}ms -> Candidate Instance: ${instanceId}`);
+        return instanceId;
+      } catch (cloneErr) {
+        // If clone unexpectedly fails (e.g. race condition), log a warning and
+        // fall through to blueprint-based assembly below — never silently invoke AI.
+        this.logger.warn(
+          `  [ASSEMBLY ⚠️] Clone of reusable assembly ${reusableAssembly.id} failed — ` +
+          `falling back to full blueprint assembly. Reason: ${
+            cloneErr instanceof Error ? cloneErr.message : String(cloneErr)
+          }`,
+        );
       }
     }
 

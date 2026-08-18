@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { EvaluationRepository } from "../repositories/evaluation.repository";
 import { ResultMapper } from "../mappers/result.mapper";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import {
   ResultNotFoundError,
   UnauthorizedResultAccessError,

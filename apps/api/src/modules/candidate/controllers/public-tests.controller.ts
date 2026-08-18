@@ -11,8 +11,8 @@ import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 import { PublicTestsService } from "../services/public-tests.service";
 import { PublicTestsQueryDto } from "../dto/public-tests-query.dto";
-import { CurrentUser } from "@/modules/auth";
-import { AuthUser } from "@/modules/auth/interfaces/auth-user.interface";
+import { CurrentUser } from "../../auth";
+import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 
 @ApiTags("tests")
 @ApiBearerAuth("jwt-auth")

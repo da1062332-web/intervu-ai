@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { AssessmentAuditService } from "../../execution/services/assessment-audit.service";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
 @Injectable()

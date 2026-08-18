@@ -1,10 +1,11 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionAllocatorService, AllocationConfig } from "./question-allocator.service";
 import { SectionBuilderService } from "./section-builder.service";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { BlueprintSectionDto, AllocatedQuestionDto, AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { Prisma } from "@prisma/client";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class ProgressiveAssemblyWorkerService {
@@ -18,6 +19,7 @@ export class ProgressiveAssemblyWorkerService {
     private readonly allocator: QuestionAllocatorService,
     private readonly sectionBuilder: SectionBuilderService,
     private readonly poolRepository: QuestionPoolRepository,
+    @Optional() private readonly cacheService?: RedisCacheService,
   ) {}
 
   /**
@@ -52,27 +54,34 @@ export class ProgressiveAssemblyWorkerService {
           allocatedQuestions,
         );
 
-        // Persist to AssembledTestSection & AssembledTestQuestion
-        const assembledSection = await this.prisma.assembledTestSection.create({
-          data: {
-            assemblyId,
-            sectionKey: section.sectionKey,
-            sectionName: section.displayName,
-            durationSeconds: section.durationSeconds,
-            questionCount: section.questionCount,
-            orderIndex: section.orderIndex,
-          },
+        // Find or create AssembledTestSection
+        let assembledSection = await this.prisma.assembledTestSection.findFirst({
+          where: { assemblyId, sectionKey: section.sectionKey },
         });
+
+        if (!assembledSection) {
+          assembledSection = await this.prisma.assembledTestSection.create({
+            data: {
+              assemblyId,
+              sectionKey: section.sectionKey,
+              sectionName: section.displayName,
+              durationSeconds: section.durationSeconds,
+              questionCount: section.questionCount,
+              orderIndex: section.orderIndex,
+            },
+          });
+        }
 
         if (section.questions && section.questions.length > 0) {
           await this.prisma.assembledTestQuestion.createMany({
             data: section.questions.map((q: AllocatedQuestionDto) => ({
               assemblyId,
-              sectionId: assembledSection.id,
+              sectionId: assembledSection!.id,
               questionId: q.questionId,
               questionOrder: q.questionOrder,
               questionSnapshot: q.questionSnapshot as Prisma.InputJsonValue,
             })),
+            skipDuplicates: true,
           });
         }
 
@@ -105,6 +114,14 @@ export class ProgressiveAssemblyWorkerService {
             })),
             skipDuplicates: true,
           });
+        }
+
+        // Invalidate Redis snapshot cache for this test instance so questions appear immediately
+        if (this.cacheService) {
+          await Promise.allSettled([
+            this.cacheService.delete(`assessment-snapshot:${assemblyId}`),
+            this.cacheService.delete(`test-instance:meta:${assemblyId}`),
+          ]);
         }
 
         this.logger.log(

@@ -117,6 +117,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
 
     import('@vladmandic/face-api').then((faceapi) => {
       faceapiModule = faceapi;
+      const gracePeriodEndTime = Date.now() + 15000; // 15s warmup grace period
 
       const options = new faceapi.TinyFaceDetectorOptions({
         inputSize: 224, // Optimized for smooth, lenient face tracking without false positives
@@ -184,9 +185,15 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
           } else if (detections.length === 0) {
             // ❌ No face
             multiFaceSecondsRef.current = 0;
+            
+            // Do not record violations during initial warmup grace period
+            if (Date.now() < gracePeriodEndTime) {
+              return;
+            }
+
             noFaceSecondsRef.current += 1;
 
-            if (noFaceSecondsRef.current >= 8 && !inNoFaceViolationRef.current) {
+            if (noFaceSecondsRef.current >= 12 && !inNoFaceViolationRef.current) {
               inNoFaceViolationRef.current = true;
               setIsFaceDetected(false);
 

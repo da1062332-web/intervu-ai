@@ -6,8 +6,16 @@ import { InstructionsModal } from './InstructionsModal';
 import { useCallback, memo, useMemo, useState } from 'react';
 
 export const QuestionPalette = memo(function QuestionPalette() {
-  const { palette, jumpToQuestion, answers, questions, testInstance, currentQuestionIndex } =
-    useExecutionStore();
+  const {
+    palette,
+    jumpToQuestion,
+    requestNextSection,
+    answers,
+    questions,
+    testInstance,
+    currentQuestionIndex,
+    currentSectionIndex,
+  } = useExecutionStore();
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
   const handleJump = useCallback(
@@ -17,26 +25,25 @@ export const QuestionPalette = memo(function QuestionPalette() {
     [jumpToQuestion],
   );
 
-  // Compute boundaries and active section index for the current question
+  // Compute boundaries and active section index from the authoritative currentSectionIndex
   const { startIndex, endIndex, currentSectionTitle, activeSectionIdx } = useMemo(() => {
     let start = 0;
     let end = questions.length;
     let title = 'General';
-    let secIdx = 0;
+    let secIdx = typeof currentSectionIndex === 'number' ? currentSectionIndex : 0;
 
-    if (testInstance?.sections) {
+    if (testInstance?.sections && testInstance.sections.length > 0) {
+      if (secIdx >= testInstance.sections.length || secIdx < 0) {
+        secIdx = 0;
+      }
       let runningCount = 0;
       for (let i = 0; i < testInstance.sections.length; i++) {
         const section = testInstance.sections[i];
         const sectionLength = section.questions.length;
-        if (
-          currentQuestionIndex >= runningCount &&
-          currentQuestionIndex < runningCount + sectionLength
-        ) {
+        if (i === secIdx) {
           start = runningCount;
           end = runningCount + sectionLength;
-          title = section.title || section.sectionName || 'Section';
-          secIdx = i;
+          title = section.title || (section as any).sectionName || `Section ${i + 1}`;
           break;
         }
         runningCount += sectionLength;
@@ -48,7 +55,7 @@ export const QuestionPalette = memo(function QuestionPalette() {
       currentSectionTitle: title,
       activeSectionIdx: secIdx,
     };
-  }, [testInstance, currentQuestionIndex, questions.length]);
+  }, [testInstance, currentSectionIndex, questions.length]);
 
   const visiblePalette = palette.slice(startIndex, endIndex);
 
@@ -102,15 +109,7 @@ export const QuestionPalette = memo(function QuestionPalette() {
   );
 
   const handleNextSectionClick = () => {
-    if (!testInstance || !testInstance.sections) return;
-    if (activeSectionIdx + 1 < testInstance.sections.length) {
-      let runningCount = 0;
-      for (let i = 0; i <= activeSectionIdx; i++) {
-        runningCount += testInstance.sections[i].questions.length;
-      }
-      jumpToQuestion(runningCount);
-    }
-    // Note: NEVER submit assessment or open submission modal here!
+    requestNextSection();
   };
 
   return (
@@ -160,43 +159,49 @@ export const QuestionPalette = memo(function QuestionPalette() {
           <div className='relative flex flex-1 overflow-hidden mt-1'>
             <div className='flex-1 overflow-y-auto custom-scrollbar max-h-full py-1'>
               <div className='grid grid-cols-4 gap-2.5 px-1 pb-4'>
-                {visiblePalette.map((status, relativeIndex) => {
-                  const absoluteIndex = startIndex + relativeIndex;
-                  const questionId = questions[absoluteIndex]?.id;
-                  const ans = answers[questionId];
-                  const isAnswered = questionId
-                    ? !!(
-                        ans?.selectedOptionId ||
-                        (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
-                        ans?.textResponse
-                      )
-                    : false;
+                {visiblePalette.length === 0 ? (
+                  <div className='col-span-4 text-center py-6 text-xs text-gray-400 font-medium'>
+                    Loading questions...
+                  </div>
+                ) : (
+                  visiblePalette.map((status, relativeIndex) => {
+                    const absoluteIndex = startIndex + relativeIndex;
+                    const questionId = questions[absoluteIndex]?.id;
+                    const ans = answers[questionId];
+                    const isAnswered = questionId
+                      ? !!(
+                          ans?.selectedOptionId ||
+                          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+                          ans?.textResponse
+                        )
+                      : false;
 
-                  let displayState: 'ANSWERED' | 'NOT_ANSWERED' | 'MARKED' | 'NOT_VISITED' =
-                    'NOT_VISITED';
-                  if (ans?.status === 'MARKED_FOR_REVIEW' || status === 'MARKED_FOR_REVIEW') {
-                    displayState = 'MARKED';
-                  } else if (isAnswered) {
-                    displayState = 'ANSWERED';
-                  } else if (absoluteIndex <= currentQuestionIndex || status === 'CURRENT') {
-                    displayState = 'NOT_ANSWERED';
-                  } else {
-                    displayState = 'NOT_VISITED';
-                  }
+                    let displayState: 'ANSWERED' | 'NOT_ANSWERED' | 'MARKED' | 'NOT_VISITED' =
+                      'NOT_VISITED';
+                    if (ans?.status === 'MARKED_FOR_REVIEW' || status === 'MARKED_FOR_REVIEW') {
+                      displayState = 'MARKED';
+                    } else if (isAnswered) {
+                      displayState = 'ANSWERED';
+                    } else if (absoluteIndex <= currentQuestionIndex || status === 'CURRENT') {
+                      displayState = 'NOT_ANSWERED';
+                    } else {
+                      displayState = 'NOT_VISITED';
+                    }
 
-                  return (
-                    <QuestionStatusBadge
-                      key={`palette-${absoluteIndex}`}
-                      index={absoluteIndex}
-                      displayIndex={relativeIndex + 1}
-                      status={status}
-                      isAnswered={isAnswered}
-                      onClick={handleJump}
-                      isCurrent={absoluteIndex === currentQuestionIndex}
-                      displayState={displayState}
-                    />
-                  );
-                })}
+                    return (
+                      <QuestionStatusBadge
+                        key={`palette-${absoluteIndex}`}
+                        index={absoluteIndex}
+                        displayIndex={relativeIndex + 1}
+                        status={status}
+                        isAnswered={isAnswered}
+                        onClick={handleJump}
+                        isCurrent={absoluteIndex === currentQuestionIndex}
+                        displayState={displayState}
+                      />
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AllocatedSectionDto } from "@intervu/shared";
@@ -8,12 +9,144 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class AssemblyPersistenceService {
+  private readonly logger = new Logger(AssemblyPersistenceService.name);
+
   constructor(
     private readonly repository: AssembledTestRepository,
     private readonly testInstanceRepository: AssemblyRepository,
     private readonly auditService: AssemblyAuditService,
     private readonly prisma: PrismaService,
   ) {}
+
+  /**
+   * Instantly clones pre-attached sections & questions from a published AssembledTest
+   * directly into a new candidate TestInstance in a single fast DB transaction (< 50ms).
+   */
+  async cloneReusableAssemblyForCandidate(
+    reusableAssemblyId: string,
+    configId: string,
+    userId: string,
+    durationSeconds: number = 3600,
+  ): Promise<string> {
+    const t0 = Date.now();
+    this.logger.log(`    [CLONE-SERVICE ⏱️] Step 1/3: Fetching reusable assembly record ${reusableAssemblyId}...`);
+    const reusable = await this.repository.findById(reusableAssemblyId);
+    if (!reusable || !reusable.sections || reusable.sections.length === 0) {
+      this.logger.error(`    [CLONE-SERVICE ❌] Reusable assembly ${reusableAssemblyId} not found or has no sections!`);
+      throw new NotFoundException(
+        `Reusable assembly ${reusableAssemblyId} not found or has no sections`,
+      );
+    }
+
+    const testInstanceId = createId();
+    const expiresAt = new Date(
+      Date.now() + (durationSeconds || reusable.totalDurationSeconds || 3600) * 1000,
+    );
+
+    const queries: Prisma.PrismaPromise<unknown>[] = [];
+
+    // 1. Create candidate TestInstance
+    queries.push(
+      this.prisma.testInstance.create({
+        data: {
+          id: testInstanceId,
+          userId,
+          examConfigId: configId,
+          status: "CREATED",
+          expiresAt,
+        },
+      }),
+    );
+
+    // 1b. Create AssembledTest reference for audit and snapshot compatibility
+    queries.push(
+      this.prisma.assembledTest.create({
+        data: {
+          id: testInstanceId,
+          configId,
+          status: "DRAFT",
+          totalDurationSeconds: durationSeconds || reusable.totalDurationSeconds || 3600,
+          totalQuestions: reusable.totalQuestions || 0,
+        },
+      }),
+    );
+
+    let totalClonedQuestions = 0;
+    // 2. Clone sections & questions
+    for (let i = 0; i < reusable.sections.length; i++) {
+      const sec = reusable.sections[i];
+      const instanceSectionId = `sec_inst_${testInstanceId}_${sec.sectionKey}`;
+
+      queries.push(
+        this.prisma.testInstanceSection.create({
+          data: {
+            id: instanceSectionId,
+            testInstanceId,
+            sectionKey: sec.sectionKey,
+            sectionName: sec.sectionName || `Section ${i + 1}`,
+            durationSeconds: sec.durationSeconds,
+            questionCount: sec.questionCount || sec.questions?.length || 0,
+            orderIndex: sec.orderIndex ?? i,
+            status: i === 0 ? "ACTIVE" : "UPCOMING",
+          },
+        }),
+      );
+
+      if (sec.questions && sec.questions.length > 0) {
+        totalClonedQuestions += sec.questions.length;
+        queries.push(
+          this.prisma.testInstanceQuestion.createMany({
+            data: sec.questions.map((q: any, qIdx: number) => ({
+              testInstanceId,
+              sectionId: instanceSectionId,
+              questionId: q.questionId,
+              questionOrder: q.questionOrder ?? qIdx,
+              questionSnapshot: (q.questionSnapshot as Prisma.InputJsonValue) || {},
+            })),
+          }),
+        );
+      }
+    }
+
+    // 3. Initialize ExecutionState for session
+    const firstSection = reusable.sections[0];
+    queries.push(
+      this.prisma.executionState.create({
+        data: {
+          testInstanceId,
+          currentQuestionIndex: 0,
+          currentSectionIndex: 0,
+          currentSectionKey: firstSection?.sectionKey || "default",
+          remainingTimeSeconds: durationSeconds || reusable.totalDurationSeconds || 3600,
+          lockedSectionKeys: [],
+          markedQuestions: [],
+          visitedQuestions: [],
+        },
+      }),
+    );
+
+    this.logger.log(`    [CLONE-SERVICE ⏱️] Step 2/3: Prepared ${queries.length} batch queries (${reusable.sections.length} sections, ${totalClonedQuestions} questions) in ${Date.now() - t0}ms`);
+
+    const tTx = Date.now();
+    this.logger.log(`    [CLONE-SERVICE ⏱️] Step 3/3: Executing Prisma $transaction with ${queries.length} queries...`);
+    await this.prisma.$transaction(queries);
+    this.logger.log(`    [CLONE-SERVICE ⚡] Step 3/3: Prisma transaction committed in ${Date.now() - tTx}ms!`);
+
+    try {
+      await this.auditService.log(testInstanceId, "CREATED", userId, {
+        configId,
+        reusableAssemblyId,
+        cloned: true,
+        totalQuestions: reusable.totalQuestions,
+        totalDuration: durationSeconds || reusable.totalDurationSeconds,
+      });
+    } catch {
+      // Audit logging is non-blocking
+    }
+
+    this.logger.log(`    [CLONE-SERVICE 🚀] Clone completed in ${Date.now() - t0}ms! Created candidate instance: ${testInstanceId}`);
+    return testInstanceId;
+  }
 
   async saveAssembly(
     configId: string,

@@ -31,7 +31,7 @@ function AssessmentBuilderContent() {
   const urlJobId = searchParams.get('jobId');
 
   const [step, setStep] = useState<'SELECT_CONFIG' | 'PREVIEW_BLUEPRINT' | 'GENERATING' | 'RESULT'>(
-    urlJobId ? 'GENERATING' : 'SELECT_CONFIG'
+    urlJobId ? 'GENERATING' : 'SELECT_CONFIG',
   );
   const [selectedConfig, setSelectedConfig] = useState<ExamConfig | null>(null);
 
