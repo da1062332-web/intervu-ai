@@ -328,7 +328,6 @@ export class QuestionAllocatorService {
           excludeIds: Array.from(currentlyExcludedIds),
           examId,
           questionType: "",
-          questionType: "",
         });
 
         const filtered = await this.antiRepetitionService.filterPool(
@@ -440,7 +439,6 @@ export class QuestionAllocatorService {
             excludeIds: Array.from(currentlyExcludedIds),
             examId,
             questionType: "",
-            questionType: "",
           });
 
           for (const q of questions) {
@@ -494,7 +492,6 @@ export class QuestionAllocatorService {
                   excludeIds: Array.from(currentlyExcludedIds),
                   examId,
                   questionType: "",
-                  questionType: "",
                 });
 
               for (const q of fallbackQuestions) {
@@ -535,13 +532,6 @@ export class QuestionAllocatorService {
             (section as any).name ||
             section.sectionKey ||
             "Section";
-          const topicName = (
-            (topicAlloc as any).topicName ||
-            topicAlloc.topicId ||
-            ""
-          )
-            .replace(/^"|"$/g, "")
-            .trim();
           const topicName = (
             (topicAlloc as any).topicName ||
             topicAlloc.topicId ||
@@ -599,7 +589,6 @@ export class QuestionAllocatorService {
 
   private async handleDeficitGeneration(
     deficit: number,
-    rawTopicId: string,
     rawTopicId: string,
     difficulty: DifficultyLevel,
     allocatedQuestionIds: Set<string>,
@@ -686,18 +675,8 @@ export class QuestionAllocatorService {
         (ruleFlags as any)?.candidateNoRepeatEnabled ?? false;
       const isRuntimeGen =
         (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
-      const isCandidateNoRepeat =
-        (ruleFlags as any)?.candidateNoRepeatEnabled ?? false;
-      const isRuntimeGen =
-        (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
 
       // Allow runtime AI generation if runtimeGenerationOnDeficit or candidateNoRepeat is true, or fallback to auto-recovery on deficit
-      if (
-        ruleFlags &&
-        !isRuntimeGen &&
-        !isCandidateNoRepeat &&
-        !isCodingTopic
-      ) {
       if (
         ruleFlags &&
         !isRuntimeGen &&
@@ -749,23 +728,6 @@ export class QuestionAllocatorService {
           }
         }
 
-        const questionText =
-          questionData?.questionText ||
-          questionData?.question ||
-          `${topicDisplayName}: Question ${currentQuestionNumber} (${difficulty} assessment problem)`;
-        const options = (questionData?.mcqData as any)?.options ||
-          questionData?.options || [
-            "Option A",
-            "Option B",
-            "Option C",
-            "Option D",
-          ];
-        const correctAnswer =
-          questionData?.correctAnswer || questionData?.answer || "Option A";
-        const solution =
-          questionData?.explanation ||
-          questionData?.solution ||
-          `Auto-generated step-by-step solution for ${topicDisplayName} question ${currentQuestionNumber}.`;
         const questionText =
           questionData?.questionText ||
           questionData?.question ||
