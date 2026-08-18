@@ -15,7 +15,7 @@ import { RolesGuard } from "../../auth/guards/roles.guard";
 import { Public } from "../../auth/decorators/public.decorator";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import {
   CandidateReportService,
   CandidateProgressService,

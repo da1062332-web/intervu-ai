@@ -11,6 +11,8 @@ export function useAutosave(testId: string) {
   const {
     answers,
     currentQuestionIndex,
+    currentSectionIndex,
+    lockedSectionKeys,
     remainingTime,
     hasUnsavedChanges,
     connectionStatus,
@@ -35,6 +37,8 @@ export function useAutosave(testId: string) {
       const stateToSave = {
         answers,
         currentQuestionIndex,
+        currentSectionIndex,
+        lockedSectionKeys,
         remainingTime,
         timestamp: new Date().toISOString(),
       };

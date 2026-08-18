@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import PDFDocument from "pdfkit";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { ResultQueryService } from "./result-query.service";
 
 @Injectable()

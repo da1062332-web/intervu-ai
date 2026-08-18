@@ -21,7 +21,7 @@ import {
 } from "../interfaces/evaluation-adapter.interface";
 
 import { ExecutionResultDto } from "../dto";
-import { RedisCacheService } from "@/cache/redis-cache.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class SubmissionService {
@@ -196,6 +196,7 @@ export class SubmissionService {
       await Promise.allSettled([
         this.cacheService.delete(`test-instance:meta:${testInstanceId}`),
         this.cacheService.delete(`execution-state:${testInstanceId}`),
+        this.cacheService.delete(`assessment-snapshot:${testInstanceId}`),
       ]);
       // 8. Convert answers array to map for the queue
       const answersMap: Record<string, string> = {};

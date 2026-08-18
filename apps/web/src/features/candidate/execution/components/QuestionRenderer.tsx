@@ -1,14 +1,45 @@
 'use client';
 
-import React, { useCallback, Fragment } from 'react';
+import React, { useCallback, Fragment, useEffect } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { executionService } from '../services/execution.service';
 
 export function QuestionRenderer() {
-  const { currentQuestion, currentQuestionIndex, answers, saveAnswer, testInstance } =
-    useExecutionStore();
+  const {
+    currentQuestion,
+    currentQuestionIndex,
+    answers,
+    saveAnswer,
+    testInstance,
+    currentSectionIndex,
+    syncQuestionsFromInstance,
+  } = useExecutionStore();
+
+  useEffect(() => {
+    if (!currentQuestion && testInstance?.id) {
+      let isMounted = true;
+      const timer = setTimeout(async () => {
+        try {
+          const latest = await executionService.getTestInstance(testInstance.id);
+          if (latest && isMounted) {
+            const currentSec = latest.sections[currentSectionIndex];
+            if (currentSec && currentSec.questions && currentSec.questions.length > 0) {
+              syncQuestionsFromInstance(latest);
+            }
+          }
+        } catch (err) {
+          console.warn('Auto-sync questions failed:', err);
+        }
+      }, 600);
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
+    }
+  }, [currentQuestion, testInstance?.id, currentSectionIndex, syncQuestionsFromInstance]);
 
   const handleCompilerChange = useCallback(
     (data: any) => {
@@ -20,8 +51,12 @@ export function QuestionRenderer() {
 
   if (!currentQuestion) {
     return (
-      <div className='flex items-center justify-center h-64 text-slate-400 text-sm'>
-        No active question selected.
+      <div className='flex flex-col items-center justify-center h-80 text-center px-4'>
+        <div className='w-9 h-9 border-3 border-[#27783f] border-t-transparent rounded-full animate-spin mb-3' />
+        <h3 className='text-sm font-semibold text-gray-800 mb-1'>Loading Section Questions...</h3>
+        <p className='text-xs text-gray-500 max-w-sm'>
+          Preparing questions for this section. Please wait a moment.
+        </p>
       </div>
     );
   }

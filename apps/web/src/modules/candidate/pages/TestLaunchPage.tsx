@@ -66,15 +66,22 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   }
 
   const handleStartAssessment = async () => {
+    const t0 = Date.now();
+    console.log(`[CLIENT-LAUNCH 🚀] User clicked "Start Assessment" for testId: ${testId}`);
     try {
       setIsStarting(true);
       if (isResume) {
+        console.log(`[CLIENT-LAUNCH ℹ️] Resuming existing session -> Navigating to /candidate/tests/${testId}/execution`);
         router.push(`/candidate/tests/${testId}/execution`);
         return;
       }
+      console.log(`[CLIENT-LAUNCH ⏱️] Sending POST /tests/start API request...`);
       const { testInstanceId } = await testService.startTest(testId);
+      const elapsed = Date.now() - t0;
+      console.log(`[CLIENT-LAUNCH ⚡✅] Received testInstanceId (${testInstanceId}) in ${elapsed}ms! Navigating to execution UI...`);
       router.push(`/candidate/tests/${testInstanceId}/execution`);
     } catch (err) {
+      console.error(`[CLIENT-LAUNCH ❌] Failed to start assessment:`, err);
       // The API client automatically shows a toast for this error.
       // We just need to reset the loading state.
       setIsStarting(false);

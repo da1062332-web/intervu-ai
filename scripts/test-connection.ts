@@ -1,14 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 const URLS = [
-  "postgresql://postgres:postgres@localhost:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace@localhost:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace@77090@localhost:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace%4077090@localhost:5432/intervu_ai",
+  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/intervu_ai",
   "postgresql://postgres:postgres@127.0.0.1:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace@127.0.0.1:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace@77090@127.0.0.1:5432/intervu_ai",
-  "postgresql://postgres:MARVEL7ace%4077090@127.0.0.1:5432/intervu_ai",
 ];
 
 async function testConnections() {
