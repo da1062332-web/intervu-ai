@@ -88,20 +88,27 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     };
   }, []); // run once on mount — independent of model state
 
-  // ─── Phase 2: Load the model (dynamic import to avoid SSR issues) ─────────
+  const cleanSingleFaceSecondsRef = useRef(0);
+
+  // ─── Phase 2: Load models (dynamic import to avoid SSR issues) ────────────
   useEffect(() => {
     let cancelled = false;
-    import('@vladmandic/face-api').then((faceapi) => {
+    import('@vladmandic/face-api').then(async (faceapi) => {
       if (cancelled) return;
-      faceapi.nets.tinyFaceDetector
-        .loadFromUri('/models')
-        .then(() => {
-          if (!cancelled) {
-            console.log('[FaceTracker] Model loaded');
-            setIsModelLoaded(true);
-          }
-        })
-        .catch((err: unknown) => console.error('[FaceTracker] Model load error', err));
+      try {
+        // Load SSD MobileNet V1 (high accuracy for multi-face, tilted/angled heads)
+        // and TinyFaceDetector as fallback
+        await Promise.allSettled([
+          faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+          faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+        ]);
+        if (!cancelled) {
+          console.log('[FaceTracker] Models loaded (SSD MobileNet V1 & TinyFaceDetector)');
+          setIsModelLoaded(true);
+        }
+      } catch (err: unknown) {
+        console.error('[FaceTracker] Model load error', err);
+      }
     });
     return () => {
       cancelled = true;
@@ -118,10 +125,11 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     import('@vladmandic/face-api').then((faceapi) => {
       faceapiModule = faceapi;
 
-      const options = new faceapi.TinyFaceDetectorOptions({
-        inputSize: 224, // Optimized for smooth, lenient face tracking without false positives
-        scoreThreshold: 0.15, // Lower threshold so movement or side angles aren't strictly penalized
-      });
+      // Prefer SsdMobilenetv1 if weights loaded, otherwise use TinyFaceDetector
+      const isSsdReady = faceapi.nets.ssdMobilenetv1.isLoaded;
+      const options = isSsdReady
+        ? new faceapi.SsdMobilenetv1Options({ minConfidence: 0.18 })
+        : new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.1 });
 
       intervalId = setInterval(async () => {
         const video = videoRef.current;
@@ -162,38 +170,41 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
           const scaleX = vw / imgW;
           const scaleY = vh / imgH;
 
-          if (detections.length === 1) {
-            // ✅ Exactly one face — good
+          if (detections.length > 1) {
+            // ⚠️ Multiple faces (> 1) detected
             noFaceSecondsRef.current = 0;
-            multiFaceSecondsRef.current = 0;
+            cleanSingleFaceSecondsRef.current = 0;
+            multiFaceSecondsRef.current += 1;
 
-            if (inNoFaceViolationRef.current) {
-              inNoFaceViolationRef.current = false;
-              setIsFaceDetected(true);
-            }
-            if (inMultiFaceViolationRef.current) {
-              inMultiFaceViolationRef.current = false;
-              setIsMultipleFaces(false);
-            }
+            // Trigger visual warning state immediately when multiple faces are detected
+            setIsMultipleFaces(true);
 
-            // Green box when face detected
-            const { x, y, width, height } = detections[0].box;
-            ctx.strokeStyle = '#22cc22';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x * scaleX, y * scaleY, width * scaleX, height * scaleY);
-          } else if (detections.length === 0) {
-            // ❌ No face
-            multiFaceSecondsRef.current = 0;
-            noFaceSecondsRef.current += 1;
+            // Draw orange bounding boxes and face indexes on all detected faces
+            detections.forEach((det, idx) => {
+              const { x, y, width, height } = det.box;
+              const bx = x * scaleX;
+              const by = y * scaleY;
+              const bw = width * scaleX;
+              const bh = height * scaleY;
 
-            if (noFaceSecondsRef.current >= 8 && !inNoFaceViolationRef.current) {
-              inNoFaceViolationRef.current = true;
-              setIsFaceDetected(false);
+              ctx.strokeStyle = '#f97316';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(bx, by, bw, bh);
+
+              // Draw label above face box
+              ctx.fillStyle = '#f97316';
+              ctx.font = 'bold 11px sans-serif';
+              ctx.fillText(`Face ${idx + 1}`, bx, Math.max(12, by - 4));
+            });
+
+            // Count formal violation after 3 seconds of sustained multi-face detection
+            if (multiFaceSecondsRef.current >= 3 && !inMultiFaceViolationRef.current) {
+              inMultiFaceViolationRef.current = true;
 
               const next = violationsRef.current + 1;
               violationsRef.current = next;
               setViolations(next);
-              console.log(`[FaceTracker] Violation #${next} — no face`);
+              console.log(`[FaceTracker] Violation #${next} — multiple faces`);
 
               if (next >= maxViolations) {
                 isSubmittedRef.current = true;
@@ -201,27 +212,58 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
                 onSubmitRef.current();
               }
             }
-          } else {
-            // ⚠️ Multiple faces
+          } else if (detections.length === 1) {
+            // ✅ One face detected in current frame
             noFaceSecondsRef.current = 0;
-            multiFaceSecondsRef.current += 1;
+            cleanSingleFaceSecondsRef.current += 1;
 
-            // Draw orange boxes on all faces
-            detections.forEach((det) => {
-              const { x, y, width, height } = det.box;
-              ctx.strokeStyle = '#ff8800';
-              ctx.lineWidth = 2;
-              ctx.strokeRect(x * scaleX, y * scaleY, width * scaleX, height * scaleY);
-            });
+            // HYSTERESIS LATCH: Require 3 consecutive clean seconds of 1 face
+            // before clearing the multi-face warning. This prevents UI flickering
+            // if a secondary face turns away or gets briefly obscured.
+            if (cleanSingleFaceSecondsRef.current >= 3) {
+              multiFaceSecondsRef.current = 0;
+              if (inMultiFaceViolationRef.current || isMultipleFaces) {
+                inMultiFaceViolationRef.current = false;
+                setIsMultipleFaces(false);
+              }
+            }
 
-            if (multiFaceSecondsRef.current >= 8 && !inMultiFaceViolationRef.current) {
-              inMultiFaceViolationRef.current = true;
-              setIsMultipleFaces(true);
+            if (inNoFaceViolationRef.current || !isFaceDetected) {
+              inNoFaceViolationRef.current = false;
+              setIsFaceDetected(true);
+            }
+
+            // Draw bounding box: Orange if still latched in multi-face warning, Green if clean single-face
+            const isLatchedWarning = cleanSingleFaceSecondsRef.current < 3 && multiFaceSecondsRef.current > 0;
+            const { x, y, width, height } = detections[0].box;
+            const bx = x * scaleX;
+            const by = y * scaleY;
+            const bw = width * scaleX;
+            const bh = height * scaleY;
+
+            ctx.strokeStyle = isLatchedWarning ? '#f97316' : '#22cc22';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(bx, by, bw, bh);
+
+            if (isLatchedWarning) {
+              ctx.fillStyle = '#f97316';
+              ctx.font = 'bold 11px sans-serif';
+              ctx.fillText('Face 1 (Warning Active)', bx, Math.max(12, by - 4));
+            }
+          } else {
+            // ❌ No face detected
+            cleanSingleFaceSecondsRef.current = 0;
+            multiFaceSecondsRef.current = 0;
+            noFaceSecondsRef.current += 1;
+
+            if (noFaceSecondsRef.current >= 5 && !inNoFaceViolationRef.current) {
+              inNoFaceViolationRef.current = true;
+              setIsFaceDetected(false);
 
               const next = violationsRef.current + 1;
               violationsRef.current = next;
               setViolations(next);
-              console.log(`[FaceTracker] Violation #${next} — multiple faces`);
+              console.log(`[FaceTracker] Violation #${next} — no face`);
 
               if (next >= maxViolations) {
                 isSubmittedRef.current = true;
