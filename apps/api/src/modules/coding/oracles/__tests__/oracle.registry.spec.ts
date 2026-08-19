@@ -1,17 +1,16 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { OracleRegistry } from "../oracle.registry";
 import { ORACLE_PROVIDERS_TOKEN } from "../oracle.constants";
-import { ArrayRotationOracle } from "../array-rotation.oracle";
-import { PalindromeOracle } from "../palindrome.oracle";
+import * as StandardOracles from "../standard-oracles";
 import { BaseOracle } from "../base.oracle";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-class CustomTestOracle extends BaseOracle {
-  readonly key = "CUSTOM_TEST_ORACLE";
-  readonly name = "Custom Test Oracle";
-  readonly category = "TREE";
-  readonly description = "Custom oracle created during unit testing.";
+class CustomDynamicOracle extends BaseOracle {
+  readonly key = "CUSTOM_DYNAMIC_TEST_ORACLE";
+  readonly name = "Custom Dynamic Test Oracle";
+  readonly category = "GENERAL";
+  readonly description = "Custom dynamic oracle created during registry testing.";
 
   generateInput(): Record<string, any> {
     return { val: 42 };
@@ -25,14 +24,18 @@ class CustomTestOracle extends BaseOracle {
 describe("OracleRegistry", () => {
   let registry: OracleRegistry;
 
-  const testOracles = [new ArrayRotationOracle(), new PalindromeOracle(), new CustomTestOracle()];
-
   beforeEach(async () => {
+    const oracleClasses = Object.values(StandardOracles).filter(
+      (item) => typeof item === "function" && item.prototype,
+    ) as any[];
+
+    const providersList = oracleClasses.map((Cls) => new Cls());
+
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
         {
           provide: ORACLE_PROVIDERS_TOKEN,
-          useValue: testOracles,
+          useValue: providersList,
         },
         OracleRegistry,
       ],
@@ -41,30 +44,52 @@ describe("OracleRegistry", () => {
     registry = moduleRef.get<OracleRegistry>(OracleRegistry);
   });
 
-  it("should discover all injected oracles via ORACLE_PROVIDERS_TOKEN", () => {
-    expect(registry.hasOracle("ARRAY_ROTATION_ORACLE")).toBe(true);
-    expect(registry.hasOracle("PALINDROME_ORACLE")).toBe(true);
-    expect(registry.hasOracle("CUSTOM_TEST_ORACLE")).toBe(true);
+  it("should discover all 95 catalog oracles via ORACLE_PROVIDERS_TOKEN", () => {
+    expect(registry.getAllOracles().length).toBe(95);
+    expect(registry.hasOracle("BASIC_GRADE_CALCULATOR_ORACLE")).toBe(true);
+    expect(registry.hasOracle("BASIC_ELIGIBILITY_CHECK_ORACLE")).toBe(true);
+    expect(registry.hasOracle("STRING_PALINDROME_ORACLE")).toBe(true);
+    expect(registry.hasOracle("ARRAY_SUM_ORACLE")).toBe(true);
+    expect(registry.hasOracle("MATH_PRIME_CHECK_ORACLE")).toBe(true);
+    expect(registry.hasOracle("RECURSION_FACTORIAL_ORACLE")).toBe(true);
+    expect(registry.hasOracle("SORT_BUBBLE_SORT_ORACLE")).toBe(true);
+    expect(registry.hasOracle("MATRIX_TRANSPOSE_ORACLE")).toBe(true);
+    expect(registry.hasOracle("SIMULATION_BANK_ACCOUNT_ORACLE")).toBe(true);
+    expect(registry.hasOracle("DP_COIN_CHANGE_ORACLE")).toBe(true);
+    expect(registry.hasOracle("LOGIC_SCHEDULING_ORACLE")).toBe(true);
+
+    // Verify 6 LOOP oracles
+    expect(registry.hasOracle("LOOP_STAR_PATTERN_ORACLE")).toBe(true);
+    expect(registry.hasOracle("LOOP_NUMBER_PATTERN_ORACLE")).toBe(true);
+    expect(registry.hasOracle("LOOP_PYRAMID_PATTERN_ORACLE")).toBe(true);
+    expect(registry.hasOracle("LOOP_INVERTED_PATTERN_ORACLE")).toBe(true);
+    expect(registry.hasOracle("LOOP_MULTIPLICATION_TABLE_ORACLE")).toBe(true);
+    expect(registry.hasOracle("LOOP_RANGE_SUM_ORACLE")).toBe(true);
   });
 
-  it("should return safe metadata for all registered oracles", () => {
+  it("should return valid metadata for all registered oracles", () => {
     const metadata = registry.getAllMetadata();
-    expect(metadata.length).toBe(3);
+    expect(metadata.length).toBe(95);
 
-    const customMeta = metadata.find((m) => m.key === "CUSTOM_TEST_ORACLE");
-    expect(customMeta).toBeDefined();
-    expect(customMeta?.category).toBe("TREE");
-    expect(customMeta?.name).toBe("Custom Test Oracle");
-    expect(customMeta?.description).toBe("Custom oracle created during unit testing.");
+    const gradeMeta = metadata.find((m) => m.key === "BASIC_GRADE_CALCULATOR_ORACLE");
+    expect(gradeMeta).toBeDefined();
+    expect(gradeMeta?.category).toBe("BASIC");
+    expect(gradeMeta?.name).toBe("Basic Grade Calculator");
+
+    const loopMeta = metadata.find((m) => m.key === "LOOP_STAR_PATTERN_ORACLE");
+    expect(loopMeta).toBeDefined();
+    expect(loopMeta?.category).toBe("LOOP");
+    expect(loopMeta?.name).toBe("Left-Aligned Star Pattern");
   });
 
-  it("should allow registering a new oracle dynamically without modifying frontend", () => {
-    const dynamicOracle = new CustomTestOracle();
+  it("should allow registering a new oracle dynamically at runtime", () => {
+    const dynamicOracle = new CustomDynamicOracle();
     registry.registerOracle(dynamicOracle);
 
-    expect(registry.hasOracle("CUSTOM_TEST_ORACLE")).toBe(true);
-    const meta = registry.getMetadataByKey("CUSTOM_TEST_ORACLE");
-    expect(meta.key).toBe("CUSTOM_TEST_ORACLE");
+    expect(registry.hasOracle("CUSTOM_DYNAMIC_TEST_ORACLE")).toBe(true);
+    const meta = registry.getMetadataByKey("CUSTOM_DYNAMIC_TEST_ORACLE");
+    expect(meta.key).toBe("CUSTOM_DYNAMIC_TEST_ORACLE");
+    expect(meta.description).toBe("Custom dynamic oracle created during registry testing.");
   });
 
   it("should throw NotFoundException for unregistered oracle keys", () => {
@@ -72,4 +97,3 @@ describe("OracleRegistry", () => {
     expect(() => registry.getOracle("NON_EXISTENT_ORACLE")).toThrow();
   });
 });
-

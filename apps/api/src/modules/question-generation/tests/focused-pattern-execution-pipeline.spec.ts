@@ -12,7 +12,7 @@ import { OracleRegistry } from "../../coding/oracles/oracle.registry";
 import { CodingOracleService } from "../../coding/services/coding-oracle.service";
 import { CodingPatternRepository } from "../../coding/repositories/coding-pattern.repository";
 import { CodingOracleRepository } from "../../coding/repositories/coding-oracle.repository";
-import { ArrayRotationOracle, MathPrimeCheckOracle } from "../../coding/oracles/standard-oracles";
+import { BasicGradeCalculatorOracle } from "../../coding/oracles/basic-grade-calculator.oracle";
 import { SeededParameterGeneratorService } from "../../coding/generators/seeded-parameter-generator.service";
 import { TestSuiteGeneratorService } from "../../coding/generators/test-suite-generator.service";
 import { PatternValidatorService } from "../../coding/validators/pattern-validator.service";
@@ -40,8 +40,7 @@ describe("Focused Phase 2 Integration & Privacy Boundary Test", () => {
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    const arrayRotationOracle = new ArrayRotationOracle();
-    const mathPrimeCheckOracle = new MathPrimeCheckOracle();
+    const gradeOracle = new BasicGradeCalculatorOracle();
 
     moduleRef = await Test.createTestingModule({
       providers: [
@@ -49,11 +48,10 @@ describe("Focused Phase 2 Integration & Privacy Boundary Test", () => {
         CodingPatternRepository,
         CodingOracleRepository,
         CodingOracleService,
-        ArrayRotationOracle,
-        MathPrimeCheckOracle,
+        BasicGradeCalculatorOracle,
         {
           provide: ORACLE_PROVIDERS_TOKEN,
-          useValue: [arrayRotationOracle, mathPrimeCheckOracle],
+          useValue: [gradeOracle],
         },
         OracleRegistry,
         SeededParameterGeneratorService,

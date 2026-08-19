@@ -55,8 +55,10 @@ export class JudgeService {
   private readonly logger = new AppLogger({ name: "JudgeService" });
 
   getJudge0Url(): string {
-    const url = process.env.JUDGE0_URL || "http://localhost:2358";
-    return url.replace(/\/$/, "");
+    let url = (process.env.JUDGE0_URL || "http://localhost:2358").trim();
+    url = url.replace(/\/+$/, "");
+    url = url.replace(/\/submissions$/, "");
+    return url;
   }
 
   getJudge0Headers(): Record<string, string> {
@@ -164,9 +166,11 @@ export class JudgeService {
             response: errText,
           });
           if (attempt >= maxAttempts) {
-            throw new InternalServerErrorException(
-              `Judge0 execution service returned error: ${res.statusText} (${res.status})`,
-            );
+            const detailMsg =
+              res.status === 404
+                ? `Judge0 execution service returned error: Not Found (404) at ${judge0Url}/submissions. If using ngrok or a deployed server, please ensure: 1) ngrok is forwarding to port 2358 ('ngrok http 2358'), NOT port 3000/4000; 2) JUDGE0_URL is the base URL (e.g. 'https://xxxx.ngrok-free.app') without /submissions; 3) Judge0 Docker container is active.`
+                : `Judge0 execution service returned error: ${res.statusText} (${res.status})`;
+            throw new InternalServerErrorException(detailMsg);
           }
           await new Promise((resolve) => setTimeout(resolve, attempt * 500));
           continue;

@@ -27,6 +27,35 @@ export function QuestionRenderer() {
   }
 
   const currentAnswer = answers[currentQuestion.id];
+
+  // Extract saved compiler state for active question
+  let initialCode: string | undefined;
+  let initialLanguage = 'java';
+  let initialRunResponse: any = null;
+  let initialSubmitResponse: any = null;
+  let initialActiveTab: 'editor' | 'results' = 'editor';
+
+  if (currentAnswer?.textResponse) {
+    try {
+      const parsed = JSON.parse(currentAnswer.textResponse);
+      if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.code === 'string') initialCode = parsed.code;
+        if (typeof parsed.language === 'string') initialLanguage = parsed.language;
+        if (parsed.runResponse) initialRunResponse = parsed.runResponse;
+        if (parsed.submitResponse) initialSubmitResponse = parsed.submitResponse;
+        if (parsed.activeTab === 'results' || parsed.activeTab === 'editor') {
+          initialActiveTab = parsed.activeTab;
+        } else if (parsed.submitResponse || parsed.runResponse) {
+          initialActiveTab = 'results';
+        }
+      } else if (typeof parsed === 'string') {
+        initialCode = parsed;
+      }
+    } catch {
+      initialCode = currentAnswer.textResponse;
+    }
+  }
+
   let parsedInstructions: any = null;
   if (currentQuestion.instructions) {
     if (typeof currentQuestion.instructions === 'string') {
@@ -222,9 +251,14 @@ export function QuestionRenderer() {
           <div className='mt-4 w-full flex-1'>
             <EmbeddedCompiler
               key={currentQuestion.id}
-              onChange={(data) =>
-                saveAnswer(currentQuestion.id, { textResponse: JSON.stringify(data) })
-              }
+              questionId={currentQuestion.id}
+              testInstanceId={testInstance?.id}
+              initialCode={initialCode}
+              initialLanguage={initialLanguage}
+              initialRunResponse={initialRunResponse}
+              initialSubmitResponse={initialSubmitResponse}
+              initialActiveTab={initialActiveTab}
+              onChange={handleCompilerChange}
             />
           </div>
         );
@@ -247,6 +281,13 @@ export function QuestionRenderer() {
       (currentQuestion as any).questionStatement ||
       qSnapshot.questionStatement ||
       qSnapshot.questionText ||
+      qSnapshot.stem ||
+      codingData.narrative ||
+      codingData.statement ||
+      codingData.problemStatement ||
+      codingData.description ||
+      parsedInstructions?.narrative ||
+      parsedInstructions?.statement ||
       ''
     ).trim();
 
@@ -332,10 +373,16 @@ export function QuestionRenderer() {
       (currentQuestion as any).constraints ||
       null;
 
-    // Check if qText already embeds "### Sample Input" to avoid redundant duplication
+    // Check if qText already embeds samples or constraints to avoid redundant duplication
     const hasEmbeddedSamples =
       qText.toLowerCase().includes('### sample input') ||
-      qText.toLowerCase().includes('sample input:');
+      qText.toLowerCase().includes('sample input:') ||
+      qText.toLowerCase().includes('### examples') ||
+      qText.toLowerCase().includes('examples:');
+
+    const hasEmbeddedConstraints =
+      qText.toLowerCase().includes('### constraints') ||
+      qText.toLowerCase().includes('constraints:');
 
     return (
       <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
@@ -449,7 +496,7 @@ export function QuestionRenderer() {
             )}
 
             {/* CONSTRAINTS CARD */}
-            {constraints && (
+            {!hasEmbeddedConstraints && constraints && (
               <div className='p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/60 text-xs space-y-1.5 mt-2'>
                 <h4 className='font-bold text-amber-900 text-[11px] uppercase tracking-wider'>
                   CONSTRAINTS
@@ -467,6 +514,11 @@ export function QuestionRenderer() {
               key={currentQuestion.id}
               questionId={currentQuestion.id}
               testInstanceId={testInstance?.id}
+              initialCode={initialCode}
+              initialLanguage={initialLanguage}
+              initialRunResponse={initialRunResponse}
+              initialSubmitResponse={initialSubmitResponse}
+              initialActiveTab={initialActiveTab}
               onChange={handleCompilerChange}
             />
           </div>

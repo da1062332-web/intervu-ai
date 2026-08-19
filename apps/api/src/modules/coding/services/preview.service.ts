@@ -55,21 +55,32 @@ export class PreviewService {
 
     let aiPreviewNarrative = "";
     if (dto.generateStatement !== false) {
-      try {
-        const aiStatement = await this.statementGenerator.generateStatement(
-          {
-            oracleKey,
-            title: pattern?.title || "Coding Challenge",
-            difficulty: difficulty || "MEDIUM",
-            parameterSchema: parameterSchema || {},
-            constraintSchema: constraintSchema || {},
-            description: pattern?.description || "",
-          } as any,
-          result,
-        );
-        aiPreviewNarrative = aiStatement.narrative;
-      } catch (err) {
-        aiPreviewNarrative = `Write a function to solve the problem for the given input parameters and return the expected result.\n\n### Sample Input\n\`\`\`json\n${JSON.stringify(result.generatedInput, null, 2)}\n\`\`\`\n\n### Expected Output\n\`\`\`json\n${JSON.stringify(result.expectedOutput, null, 2)}\n\`\`\``;
+      const spec = (pattern?.statementSpecification as Record<string, any>) || {};
+      const existingNarrative =
+        spec.narrative ||
+        spec.problemStatement ||
+        (pattern?.metadata as Record<string, any>)?.narrative;
+
+      if (existingNarrative && !dto.forceRegenerate) {
+        aiPreviewNarrative = existingNarrative;
+      } else {
+        try {
+          const aiStatement = await this.statementGenerator.generateStatement(
+            {
+              oracleKey,
+              title: pattern?.title || "Coding Challenge",
+              difficulty: difficulty || "MEDIUM",
+              parameterSchema: parameterSchema || {},
+              constraintSchema: constraintSchema || {},
+              description: pattern?.description || "",
+              statementSpecification: pattern?.statementSpecification || {},
+            } as any,
+            result,
+          );
+          aiPreviewNarrative = aiStatement.narrative;
+        } catch (err) {
+          aiPreviewNarrative = `Write a function to solve the problem for the given input parameters and return the expected result.\n\n### Sample Input\n\`\`\`json\n${JSON.stringify(result.generatedInput, null, 2)}\n\`\`\`\n\n### Expected Output\n\`\`\`json\n${JSON.stringify(result.expectedOutput, null, 2)}\n\`\`\``;
+        }
       }
     }
 

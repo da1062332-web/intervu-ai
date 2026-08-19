@@ -1,7 +1,7 @@
 import { SubmissionEvaluatorService } from "../submission-evaluator.service";
 import { JudgeService } from "../judge.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
-import { MathPrimeCheckOracle } from "../../oracles/standard-oracles";
+import { BasicGradeCalculatorOracle } from "../../oracles/basic-grade-calculator.oracle";
 import { SubmitCodeDto } from "../../dto/submit-code.dto";
 
 describe("SubmissionEvaluatorService Unit Tests", () => {
@@ -17,23 +17,30 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
       checkHealth: jest.fn().mockResolvedValue({ healthy: true }),
     } as any;
 
-    const primeOracle = new MathPrimeCheckOracle();
-    oracleRegistry = new OracleRegistry([primeOracle]);
+    const gradeOracle = new BasicGradeCalculatorOracle();
+    oracleRegistry = new OracleRegistry([gradeOracle]);
 
     evaluatorService = new SubmissionEvaluatorService(mockJudgeService, oracleRegistry);
   });
 
   it("should return ACCEPTED and 100% score when all test suites pass", async () => {
     mockJudgeService.submitAndPoll.mockImplementation(async (opts: any) => {
-      // Simulate stdout matching expected stdin
-      const inputStr = opts.stdin.trim();
-      const num = parseInt(inputStr, 10);
-      const isPrime = num === 7 || num === 13 || num === 2 || num === 997 || num === 1000003;
+      const raw = opts.stdin.trim();
+      let score = parseInt(raw, 10);
+      if (isNaN(score)) {
+        try {
+          const parsed = JSON.parse(raw);
+          score = typeof parsed === "number" ? parsed : (parsed.score ?? 85);
+        } catch {
+          score = 85;
+        }
+      }
+      const grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
       return {
         token: "tok-1",
         statusId: 3,
         statusDescription: "Accepted",
-        stdout: isPrime ? "true" : "false",
+        stdout: grade,
         stderr: "",
         compileOutput: "",
         message: "",
@@ -46,19 +53,19 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
     const dto: SubmitCodeDto = {
       questionId: "q10",
       testInstanceId: "inst-1",
-      code: "def is_prime(n):\n    pass\n",
+      code: "def grade(score):\n    pass\n",
       language: "python",
     };
 
     const codingData = {
-      oracleKey: "MATH_PRIME_CHECK_ORACLE",
-      publicTests: [{ input: { n: 7 }, expectedOutput: { result: true } }],
-      hiddenTests: [{ input: { n: 10 }, expectedOutput: { result: false } }],
-      boundaryTests: [{ input: { n: 2 }, expectedOutput: { result: true } }],
-      stressTests: [{ input: { n: 1000003 }, expectedOutput: { result: true } }],
+      oracleKey: "BASIC_GRADE_CALCULATOR_ORACLE",
+      publicTests: [{ input: { score: 85 }, expectedOutput: { grade: "B", result: "B" } }],
+      hiddenTests: [{ input: { score: 55 }, expectedOutput: { grade: "F", result: "F" } }],
+      boundaryTests: [{ input: { score: 90 }, expectedOutput: { grade: "A", result: "A" } }],
+      stressTests: [{ input: { score: 100 }, expectedOutput: { grade: "A", result: "A" } }],
     };
 
-    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Prime Check", false);
+    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Grade Calculator", false);
 
     expect(res.verdict).toBe("ACCEPTED");
     expect(res.score).toBe(100);
@@ -79,15 +86,20 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
 
   it("should return WRONG_ANSWER and score < 100 when one or more test cases fail", async () => {
     mockJudgeService.submitAndPoll.mockImplementation(async (opts: any) => {
-      // Simulate incorrect output for hidden test
-      const inputStr = opts.stdin.trim();
-      const num = parseInt(inputStr, 10);
-      const isPass = num === 7;
+      let score = 85;
+      try {
+        const parsed = JSON.parse(opts.stdin);
+        score = typeof parsed.score === "number" ? parsed.score : 85;
+      } catch {
+        const parsedNum = parseInt(opts.stdin.trim(), 10);
+        if (!isNaN(parsedNum)) score = parsedNum;
+      }
+      const isPass = score === 85;
       return {
         token: "tok-2",
         statusId: 3,
         statusDescription: "Accepted",
-        stdout: isPass ? "true" : "wrong_output",
+        stdout: isPass ? "B" : "WRONG",
         stderr: "",
         compileOutput: "",
         message: "",
@@ -100,17 +112,17 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
     const dto: SubmitCodeDto = {
       questionId: "q10",
       testInstanceId: "inst-1",
-      code: "def is_prime(n):\n    return True\n",
+      code: "def grade(score):\n    return 'A'\n",
       language: "python",
     };
 
     const codingData = {
-      oracleKey: "MATH_PRIME_CHECK_ORACLE",
-      publicTests: [{ input: { n: 7 }, expectedOutput: { result: true } }],
-      hiddenTests: [{ input: { n: 10 }, expectedOutput: { result: false } }],
+      oracleKey: "BASIC_GRADE_CALCULATOR_ORACLE",
+      publicTests: [{ input: { score: 85 }, expectedOutput: { grade: "B", result: "B" } }],
+      hiddenTests: [{ input: { score: 55 }, expectedOutput: { grade: "F", result: "F" } }],
     };
 
-    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Prime Check", false);
+    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Grade Calculator", false);
 
     expect(res.verdict).toBe("WRONG_ANSWER");
     expect(res.score).toBeLessThan(100);
@@ -138,7 +150,12 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
       language: "python",
     };
 
-    const res = await evaluatorService.evaluateSubmission(dto, {}, "Prime Check", false);
+    const codingData = {
+      oracleKey: "BASIC_GRADE_CALCULATOR_ORACLE",
+      publicTests: [{ input: { score: 85 }, expectedOutput: { grade: "B" } }],
+    };
+
+    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Grade Calculator", false);
 
     expect(res.verdict).toBe("COMPILE_ERROR");
     expect(res.score).toBe(0);
@@ -166,7 +183,12 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
       language: "python",
     };
 
-    const res = await evaluatorService.evaluateSubmission(dto, {}, "Prime Check", false);
+    const codingData = {
+      oracleKey: "BASIC_GRADE_CALCULATOR_ORACLE",
+      publicTests: [{ input: { score: 85 }, expectedOutput: { grade: "B" } }],
+    };
+
+    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Grade Calculator", false);
 
     expect(res.verdict).toBe("TIME_LIMIT_EXCEEDED");
     expect(res.score).toBe(0);
@@ -193,7 +215,12 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
       language: "python",
     };
 
-    const res = await evaluatorService.evaluateSubmission(dto, {}, "Prime Check", false);
+    const codingData = {
+      oracleKey: "BASIC_GRADE_CALCULATOR_ORACLE",
+      publicTests: [{ input: { score: 85 }, expectedOutput: { grade: "B" } }],
+    };
+
+    const res = await evaluatorService.evaluateSubmission(dto, codingData, "Grade Calculator", false);
 
     expect(res.verdict).toBe("MEMORY_LIMIT_EXCEEDED");
     expect(res.score).toBe(0);

@@ -78,6 +78,9 @@ export interface EmbeddedCompilerProps {
   onChange?: (data: any) => void;
   initialCode?: string;
   initialLanguage?: string;
+  initialRunResponse?: RunCodeResponse | null;
+  initialSubmitResponse?: SubmitCodeResponse | null;
+  initialActiveTab?: 'editor' | 'results';
 }
 
 const SUPPORTED_LANGUAGES = [
@@ -98,32 +101,50 @@ export function EmbeddedCompiler({
   onChange,
   initialCode,
   initialLanguage = 'java',
+  initialRunResponse = null,
+  initialSubmitResponse = null,
+  initialActiveTab = 'editor',
 }: EmbeddedCompilerProps) {
   const { currentQuestion, testInstance } = useExecutionStore();
 
   const activeQuestionId = propQuestionId || currentQuestion?.id || '';
   const activeTestInstanceId = propTestInstanceId || testInstance?.id || '';
 
-  const [language, setLanguage] = useState<string>(initialLanguage);
+  const [language, setLanguage] = useState<string>(initialLanguage || 'java');
   const [code, setCode] = useState<string>(
-    initialCode || DEFAULT_STARTER_CODE[initialLanguage] || DEFAULT_STARTER_CODE.java,
+    initialCode !== undefined
+      ? initialCode
+      : DEFAULT_STARTER_CODE[initialLanguage || 'java'] || DEFAULT_STARTER_CODE.java,
   );
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [runResponse, setRunResponse] = useState<RunCodeResponse | null>(null);
+  const [runResponse, setRunResponse] = useState<RunCodeResponse | null>(initialRunResponse);
   const [executionError, setExecutionError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'editor' | 'results'>('editor');
+  const [activeTab, setActiveTab] = useState<'editor' | 'results'>(initialActiveTab || 'editor');
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitResponse, setSubmitResponse] = useState<SubmitCodeResponse | null>(null);
+  const [submitResponse, setSubmitResponse] = useState<SubmitCodeResponse | null>(initialSubmitResponse);
   const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
 
-  // Clean execution state whenever active question changes so editor starts fresh
+  // Synchronize state when switching questions or receiving persisted answer
   useEffect(() => {
-    setRunResponse(null);
-    setSubmitResponse(null);
+    if (initialCode !== undefined) {
+      setCode(initialCode);
+    } else {
+      setCode(DEFAULT_STARTER_CODE[initialLanguage || 'java'] || DEFAULT_STARTER_CODE.java);
+    }
+    setLanguage(initialLanguage || 'java');
+    setRunResponse(initialRunResponse || null);
+    setSubmitResponse(initialSubmitResponse || null);
     setExecutionError(null);
-    setActiveTab('editor');
-  }, [activeQuestionId]);
+    setActiveTab(initialActiveTab || (initialSubmitResponse || initialRunResponse ? 'results' : 'editor'));
+  }, [
+    activeQuestionId,
+    initialCode,
+    initialLanguage,
+    initialRunResponse,
+    initialSubmitResponse,
+    initialActiveTab,
+  ]);
 
   const handleLanguageChange = (newLang: string) => {
     setLanguage(newLang);
@@ -131,13 +152,19 @@ export function EmbeddedCompiler({
     setSubmitResponse(null);
     setExecutionError(null);
     const starter = DEFAULT_STARTER_CODE[newLang] || '# Write your solution here\n';
+    let newCode = code;
     if (!code || code === DEFAULT_STARTER_CODE[language]) {
+      newCode = starter;
       setCode(starter);
-      if (onChange) {
-        onChange({ code: starter, language: newLang });
-      }
-    } else if (onChange) {
-      onChange({ code, language: newLang });
+    }
+    if (onChange) {
+      onChange({
+        code: newCode,
+        language: newLang,
+        runResponse: null,
+        submitResponse: null,
+        activeTab: 'editor',
+      });
     }
   };
 
@@ -145,7 +172,13 @@ export function EmbeddedCompiler({
     const val = newCode || '';
     setCode(val);
     if (onChange) {
-      onChange({ code: val, language });
+      onChange({
+        code: val,
+        language,
+        runResponse,
+        submitResponse,
+        activeTab,
+      });
     }
   };
 
@@ -172,10 +205,15 @@ export function EmbeddedCompiler({
         },
       });
       setRunResponse(response);
+      setSubmitResponse(null);
+      setActiveTab('results');
       if (onChange) {
         onChange({
           code,
           language,
+          runResponse: response,
+          submitResponse: null,
+          activeTab: 'results',
           hasRunPublic: true,
           categories: {
             public: {
@@ -226,10 +264,15 @@ export function EmbeddedCompiler({
       });
 
       setSubmitResponse(response);
+      setRunResponse(null);
+      setActiveTab('results');
       if (onChange) {
         onChange({
           code,
           language,
+          runResponse: null,
+          submitResponse: response,
+          activeTab: 'results',
           submissionId: response.submissionId,
           score: response.score,
           verdict: response.verdict,
@@ -247,6 +290,19 @@ export function EmbeddedCompiler({
       setIsSubmitting(false);
     }
   }, [activeQuestionId, activeTestInstanceId, code, language, onChange]);
+
+  const handleTabChange = (tab: 'editor' | 'results') => {
+    setActiveTab(tab);
+    if (onChange) {
+      onChange({
+        code,
+        language,
+        runResponse,
+        submitResponse,
+        activeTab: tab,
+      });
+    }
+  };
 
   const selectedMonacoLang =
     SUPPORTED_LANGUAGES.find((l) => l.id === language)?.monacoLang || 'python';
@@ -309,7 +365,7 @@ export function EmbeddedCompiler({
             }`}
           >
             <button
-              onClick={() => setActiveTab('editor')}
+              onClick={() => handleTabChange('editor')}
               className={`px-3 py-1 rounded-md transition-colors ${
                 activeTab === 'editor'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -321,7 +377,7 @@ export function EmbeddedCompiler({
               Editor
             </button>
             <button
-              onClick={() => setActiveTab('results')}
+              onClick={() => handleTabChange('results')}
               className={`px-3 py-1 rounded-md transition-colors flex items-center space-x-1.5 ${
                 activeTab === 'results'
                   ? 'bg-indigo-600 text-white shadow-sm'

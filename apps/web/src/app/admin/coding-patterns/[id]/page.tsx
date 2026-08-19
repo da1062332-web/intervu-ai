@@ -192,6 +192,9 @@ export default function CodingPatternBuilderPage() {
   useEffect(() => {
     if (existingPattern && !isNew) {
       const meta = (existingPattern.metadata as any) || {};
+      const spec = (existingPattern.statementSpecification as any) || {};
+      const savedNarrative = spec.narrative || spec.problemStatement || meta.narrative;
+
       setFormData((prev) => ({
         ...prev,
         title: existingPattern.title || '',
@@ -212,33 +215,69 @@ export default function CodingPatternBuilderPage() {
         constraintSchema: JSON.stringify(existingPattern.constraintSchema || {}, null, 2),
         starterCode: JSON.stringify(existingPattern.starterCode || {}, null, 2),
       }));
+
+      // If pattern already has a saved narrative, preload it into previewResult
+      if (savedNarrative) {
+        const testCases = existingPattern.testCases || [];
+        const publicTests = testCases.filter((t: any) => t.isPublic);
+        const hiddenTests = testCases.filter(
+          (t: any) => !t.isPublic && !t.isStress && !t.isBoundary,
+        );
+        const stressTests = testCases.filter((t: any) => t.isStress);
+        const boundaryTests = testCases.filter((t: any) => t.isBoundary);
+
+        setPreviewResult({
+          parameters: {},
+          generatedInput: publicTests[0]?.input || {},
+          expectedOutput: publicTests[0]?.expectedOutput || {},
+          publicTests,
+          hiddenTests,
+          stressTests,
+          boundaryTests,
+          validation: { valid: true, errors: [], warnings: [] },
+          aiPreview: {
+            narrative: savedNarrative,
+            codeSkeletons: (existingPattern.starterCode as any) || {},
+          },
+        });
+      }
     }
   }, [existingPattern, isNew, queryTopicId, queryConceptKey]);
 
-  // Auto-sync parameterSchema with selected Oracle if empty or matching default placeholder
+  // Auto-sync parameterSchema and difficulty with selected Oracle
   useEffect(() => {
     const selectedOracle = oracles.find((o) => o.key === formData.oracleKey);
-    if (
-      selectedOracle &&
-      selectedOracle.parameterSchema &&
-      Object.keys(selectedOracle.parameterSchema).length > 0
-    ) {
-      try {
-        const currentParsed = JSON.parse(formData.parameterSchema || '{}');
-        if (
-          !currentParsed ||
-          Object.keys(currentParsed).length === 0 ||
-          (currentParsed.arraySize && selectedOracle.key !== 'ARRAY_ROTATION_ORACLE')
-        ) {
+    if (selectedOracle) {
+      if (
+        selectedOracle.parameterSchema &&
+        Object.keys(selectedOracle.parameterSchema).length > 0
+      ) {
+        try {
+          const currentParsed = JSON.parse(formData.parameterSchema || '{}');
+          if (
+            !currentParsed ||
+            Object.keys(currentParsed).length === 0 ||
+            (currentParsed.arraySize && selectedOracle.key !== 'ARRAY_ROTATION_ORACLE')
+          ) {
+            setFormData((prev) => ({
+              ...prev,
+              parameterSchema: JSON.stringify(selectedOracle.parameterSchema, null, 2),
+            }));
+          }
+        } catch {
           setFormData((prev) => ({
             ...prev,
             parameterSchema: JSON.stringify(selectedOracle.parameterSchema, null, 2),
           }));
         }
-      } catch {
+      }
+
+      // Auto-set difficulty to supported difficulty if current selection is invalid
+      const supported = (selectedOracle.supportedDifficulties || []).map((d) => String(d).toUpperCase());
+      if (supported.length > 0 && !supported.includes(formData.difficulty.toUpperCase())) {
         setFormData((prev) => ({
           ...prev,
-          parameterSchema: JSON.stringify(selectedOracle.parameterSchema, null, 2),
+          difficulty: supported[0],
         }));
       }
     }
@@ -253,13 +292,14 @@ export default function CodingPatternBuilderPage() {
   const isOracleProviderMissing = selectedOracle && selectedOracle.isProviderAvailable === false;
   const isOracleUnavailable = Boolean(isOracleInactive || isOracleProviderMissing);
 
-  const handleRunPreview = async () => {
+  const handleRunPreview = async (forceRegenerate: boolean = false) => {
     try {
       const payload = {
         patternId: isNew ? undefined : patternId,
         oracleKey: formData.oracleKey,
         parameterSchema: JSON.parse(formData.parameterSchema || '{}'),
         constraintSchema: JSON.parse(formData.constraintSchema || '{}'),
+        difficulty: formData.difficulty,
         seed: (() => {
           const str = formData.oracleKey || '';
           let hash = 0;
@@ -270,6 +310,7 @@ export default function CodingPatternBuilderPage() {
           return Math.abs(hash % 90000) + 10000;
         })(),
         generateStatement,
+        forceRegenerate,
       };
       const res = await previewMutation.mutateAsync(payload);
       setPreviewResult(res);
@@ -287,13 +328,54 @@ export default function CodingPatternBuilderPage() {
       !isOracleUnavailable &&
       !previewMutation.isPending
     ) {
-      handleRunPreview();
+      handleRunPreview(false);
     }
   }, [currentStep, formData.oracleKey, previewResult, isOracleUnavailable]);
 
+  const validateStep1 = (): boolean => {
+    if (!formData.title.trim()) {
+      alert('Pattern Title is required.');
+      return false;
+    }
+    if (!formData.slug.trim()) {
+      alert('URL Slug is required.');
+      return false;
+    }
+    if (!formData.topicId || formData.topicId === 'none') {
+      alert('Topic is required. Please select a Topic.');
+      return false;
+    }
+    if (!formData.conceptKey || formData.conceptKey === 'none') {
+      alert('Concept is required. Please select a Concept.');
+      return false;
+    }
+    if (!formData.oracleKey) {
+      alert('Oracle Engine Key is required. Please select an Oracle Engine.');
+      return false;
+    }
+    if (!formData.difficulty) {
+      alert('Target Difficulty is required. Please select a difficulty.');
+      return false;
+    }
+    return true;
+  };
+
   const handleSave = async (publish: boolean = false) => {
+    if (!validateStep1()) {
+      setCurrentStep(1);
+      return;
+    }
+
     setIsSaving(true);
     try {
+      const statementSpec = JSON.parse(formData.statementSpecification || '{}');
+      if (previewResult?.aiPreview?.narrative) {
+        statementSpec.narrative = previewResult.aiPreview.narrative;
+        if (previewResult.aiPreview.codeSkeletons) {
+          statementSpec.codeSkeletons = previewResult.aiPreview.codeSkeletons;
+        }
+      }
+
       const payload = {
         title: formData.title,
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -302,7 +384,7 @@ export default function CodingPatternBuilderPage() {
         status: (publish ? 'PUBLISHED' : formData.status) as any,
         version: Number(formData.version),
         oracleKey: formData.oracleKey,
-        statementSpecification: JSON.parse(formData.statementSpecification || '{}'),
+        statementSpecification: statementSpec,
         parameterSchema: JSON.parse(formData.parameterSchema || '{}'),
         constraintSchema: JSON.parse(formData.constraintSchema || '{}'),
         starterCode: JSON.parse(formData.starterCode || '{}'),
@@ -395,7 +477,12 @@ export default function CodingPatternBuilderPage() {
           return (
             <button
               key={step.id}
-              onClick={() => setCurrentStep(step.id)}
+              onClick={() => {
+                if (currentStep === 1 && step.id > 1 && !validateStep1()) {
+                  return;
+                }
+                setCurrentStep(step.id);
+              }}
               className={`p-2.5 rounded-lg border text-left transition-all ${
                 active
                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
@@ -424,17 +511,41 @@ export default function CodingPatternBuilderPage() {
             </h2>
 
             <div className='space-y-2'>
-              <Label>Pattern Title</Label>
+              <Label>
+                Pattern Title <span className='text-red-500'>*</span>
+              </Label>
               <Input
                 placeholder='e.g. Array Right Rotation by K Positions'
                 value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  handleChange('title', val);
+                  if (
+                    isNew &&
+                    (!formData.slug ||
+                      formData.slug ===
+                        formData.title
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/^-|-$/g, ''))
+                  ) {
+                    handleChange(
+                      'slug',
+                      val
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-|-$/g, ''),
+                    );
+                  }
+                }}
                 className='w-full'
               />
             </div>
 
             <div className='space-y-2'>
-              <Label>URL Slug</Label>
+              <Label>
+                URL Slug <span className='text-red-500'>*</span>
+              </Label>
               <Input
                 placeholder='e.g. array-right-rotation'
                 value={formData.slug}
@@ -446,11 +557,13 @@ export default function CodingPatternBuilderPage() {
             {/* Topic & Concept Mapping */}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Topic (optional)</Label>
+                <Label>
+                  Topic <span className='text-red-500'>*</span>
+                </Label>
                 <Select
-                  value={formData.topicId || 'none'}
+                  value={formData.topicId || ''}
                   onValueChange={(val: string) => {
-                    handleChange('topicId', val === 'none' ? '' : val);
+                    handleChange('topicId', val);
                     handleChange('conceptKey', '');
                   }}
                 >
@@ -458,7 +571,6 @@ export default function CodingPatternBuilderPage() {
                     <SelectValue placeholder='Select a topic...' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='none'>-- No Topic --</SelectItem>
                     {topicsList.map((t: any) => (
                       <SelectItem key={t.id} value={t.id}>
                         {t.name || t.code}
@@ -469,12 +581,12 @@ export default function CodingPatternBuilderPage() {
               </div>
 
               <div className='space-y-2'>
-                <Label>Concept (optional)</Label>
+                <Label>
+                  Concept <span className='text-red-500'>*</span>
+                </Label>
                 <Select
-                  value={formData.conceptKey || 'none'}
-                  onValueChange={(val: string) =>
-                    handleChange('conceptKey', val === 'none' ? '' : val)
-                  }
+                  value={formData.conceptKey || ''}
+                  onValueChange={(val: string) => handleChange('conceptKey', val)}
                   disabled={!formData.topicId || formData.topicId === 'none'}
                 >
                   <SelectTrigger className='w-full'>
@@ -487,7 +599,6 @@ export default function CodingPatternBuilderPage() {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='none'>-- No Concept --</SelectItem>
                     {conceptsList.map((c: any) => (
                       <SelectItem key={c.id || c.code} value={c.code || c.conceptCode || c.id}>
                         {c.name || c.conceptName || c.code}
@@ -501,7 +612,9 @@ export default function CodingPatternBuilderPage() {
             {/* Dynamic Oracle Key Selector - Full Width */}
             <div className='space-y-2'>
               <div className='flex items-center justify-between'>
-                <Label>Oracle Engine Key</Label>
+                <Label>
+                  Oracle Engine Key <span className='text-red-500'>*</span>
+                </Label>
                 {loadingOracles && (
                   <span className='text-[10px] text-muted-foreground flex items-center gap-1'>
                     <Loader2 className='w-3 h-3 animate-spin' /> Fetching backend Oracles...
@@ -547,9 +660,8 @@ export default function CodingPatternBuilderPage() {
                           <span className='font-mono font-semibold text-[11px] text-primary shrink-0'>
                             {oracle.category}
                           </span>
-                          <span className='font-medium'>{oracle.name}</span>
-                          <span className='text-muted-foreground text-[10px] font-mono shrink-0'>
-                            ({oracle.key})
+                          <span className='font-medium'>
+                            {oracle.name.replace(/\s+Oracle(\s+\(Legacy\))?$/i, '')}
                           </span>
                         </div>
                       </SelectItem>
@@ -596,24 +708,46 @@ export default function CodingPatternBuilderPage() {
 
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label>Target Difficulty</Label>
-                <Select
-                  value={formData.difficulty}
-                  onValueChange={(val: string) => handleChange('difficulty', val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='EASY'>EASY</SelectItem>
-                    <SelectItem value='MEDIUM'>MEDIUM</SelectItem>
-                    <SelectItem value='HARD'>HARD</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>
+                  Target Difficulty <span className='text-red-500'>*</span>
+                </Label>
+                {(() => {
+                  const supportedList = (selectedOracle?.supportedDifficulties || []).map((d) =>
+                    String(d).toUpperCase(),
+                  );
+                  return (
+                    <Select
+                      value={formData.difficulty}
+                      onValueChange={(val: string) => handleChange('difficulty', val)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['EASY', 'MEDIUM', 'HARD'].map((diff) => {
+                          const isSupported =
+                            supportedList.length === 0 || supportedList.includes(diff);
+                          return (
+                            <SelectItem
+                              key={diff}
+                              value={diff}
+                              disabled={!isSupported}
+                              className={!isSupported ? 'opacity-40 text-slate-400 cursor-not-allowed' : ''}
+                            >
+                              {diff} {!isSupported ? '(Not Supported)' : ''}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
               </div>
 
               <div className='space-y-2'>
-                <Label>Description</Label>
+                <Label>
+                  Description <span className='text-xs text-muted-foreground font-normal'>(Optional)</span>
+                </Label>
                 <Input
                   placeholder='Short description of the pattern...'
                   value={formData.description}
@@ -810,7 +944,7 @@ export default function CodingPatternBuilderPage() {
                 </div>
                 <Button
                   size='sm'
-                  onClick={handleRunPreview}
+                  onClick={() => handleRunPreview(true)}
                   disabled={previewMutation.isPending || isOracleUnavailable}
                   title={
                     isOracleUnavailable
@@ -1093,8 +1227,8 @@ export default function CodingPatternBuilderPage() {
                 <span className='text-[11px] text-muted-foreground font-medium uppercase tracking-wider block'>
                   Oracle Engine
                 </span>
-                <p className='text-xs font-mono font-semibold text-primary truncate' title={formData.oracleKey}>
-                  {formData.oracleKey || 'None'}
+                <p className='text-xs font-semibold text-primary truncate' title={selectedOracle?.name || formData.oracleKey}>
+                  {selectedOracle?.name ? selectedOracle.name.replace(/\s+Oracle(\s+\(Legacy\))?$/i, '') : formData.oracleKey || 'None'}
                 </p>
               </div>
 
@@ -1279,7 +1413,14 @@ export default function CodingPatternBuilderPage() {
         </Button>
 
         {currentStep < 5 && (
-          <Button onClick={() => setCurrentStep((prev) => Math.min(5, prev + 1))}>
+          <Button
+            onClick={() => {
+              if (currentStep === 1 && !validateStep1()) {
+                return;
+              }
+              setCurrentStep((prev) => Math.min(5, prev + 1));
+            }}
+          >
             Next <ArrowRight className='w-4 h-4 ml-1' />
           </Button>
         )}

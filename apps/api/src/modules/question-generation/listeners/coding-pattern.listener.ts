@@ -68,8 +68,19 @@ export class CodingPatternListener {
         (pattern.statementSpecification as Record<string, any>) || {};
       const statementSpecification = {
         ...patternSpec,
+        narrative: patternSpec.narrative || aiStatement.narrative,
+        title: patternSpec.title || aiStatement.title,
         problemType: oracleCategory,
       };
+
+      if (!patternSpec.narrative && aiStatement.narrative) {
+        await this.prisma.codingPattern.update({
+          where: { id: pattern.id },
+          data: {
+            statementSpecification,
+          },
+        });
+      }
 
       // 4. Resolve topicId from pattern.metadata
       const patternMeta = (pattern.metadata as Record<string, any>) || {};

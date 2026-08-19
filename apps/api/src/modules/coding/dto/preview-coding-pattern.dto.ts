@@ -29,4 +29,8 @@ export class PreviewCodingPatternDto {
   @IsBoolean()
   @IsOptional()
   generateStatement?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  forceRegenerate?: boolean;
 }

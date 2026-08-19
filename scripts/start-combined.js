@@ -1,8 +1,44 @@
-const { execSync } = require("child_process");
+const { execSync, spawn } = require("child_process");
 const http = require("http");
 const path = require("path");
 
 console.log("🚀 Starting Combined API & Worker Bootstrap...");
+
+// Automatically start Judge0 Ngrok Tunnel if running locally or enabled via env
+function autoStartJudge0Tunnel() {
+  const shouldStart =
+    process.env.AUTO_START_NGROK === "true" ||
+    process.env.START_NGROK_TUNNEL === "true" ||
+    (process.env.NODE_ENV !== "production" && process.platform === "win32");
+
+  if (!shouldStart) return;
+
+  const staticDomain =
+    process.env.JUDGE0_NGROK_DOMAIN || "marbled-fifty-unraveled.ngrok-free.dev";
+  const localPort = process.env.JUDGE0_LOCAL_PORT || 2358;
+
+  console.log(
+    `🌐 [Ngrok] Auto-initiating Judge0 tunnel (domain: ${staticDomain}, port: ${localPort})...`
+  );
+
+  try {
+    const tunnel = spawn(
+      "npx",
+      ["ngrok", "http", `--domain=${staticDomain}`, String(localPort)],
+      {
+        shell: true,
+        detached: true,
+        stdio: "ignore",
+      }
+    );
+    tunnel.unref();
+    console.log("✅ [Ngrok] Judge0 tunnel process spawned in background.");
+  } catch (err) {
+    console.warn("⚠️ [Ngrok] Tunnel spawn notice:", err.message);
+  }
+}
+
+autoStartJudge0Tunnel();
 
 // 1. Validate Environment Variables (Item 2)
 const REQUIRED_ENV = [

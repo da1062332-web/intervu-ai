@@ -1,7 +1,7 @@
 import { SubmissionEvaluatorService } from "../apps/api/src/modules/coding/services/submission-evaluator.service";
 import { JudgeService } from "../apps/api/src/modules/coding/services/judge.service";
 import { OracleRegistry } from "../apps/api/src/modules/coding/oracles/oracle.registry";
-import { MathPrimeCheckOracle } from "../apps/api/src/modules/coding/oracles/standard-oracles";
+import { BasicGradeCalculatorOracle } from "../apps/api/src/modules/coding/oracles/basic-grade-calculator.oracle";
 import { CodingEvaluatorService } from "../apps/api/src/modules/evaluation/objective/coding-evaluator.service";
 import { ObjectiveEvaluatorService } from "../apps/api/src/modules/evaluation/objective/objective-evaluator.service";
 import { SectionScoringService } from "../apps/api/src/modules/evaluation/scoring/section-scoring.service";
@@ -14,7 +14,7 @@ async function verifyCompleteResultFlow() {
   console.log("=======================================================================\n");
 
   const judgeService = new JudgeService();
-  const oracleRegistry = new OracleRegistry([new MathPrimeCheckOracle()]);
+  const oracleRegistry = new OracleRegistry([new BasicGradeCalculatorOracle()]);
   const evaluatorService = new SubmissionEvaluatorService(judgeService, oracleRegistry);
 
   // 1. CANDIDATE SUBMITS CODING SOLUTION

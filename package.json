@@ -34,7 +34,8 @@
     "verify:platform": "node --import tsx --env-file=apps/api/.env scripts/verify-platform.ts",
     "test:ai-regression": "node --import tsx --env-file=apps/api/.env scripts/verify-ai-stack.ts",
     "verify-backend": "tsx scripts/verify-backend.ts",
-    "test:repositories": "vitest run packages/database/src/repositories/__tests__/"
+    "test:repositories": "vitest run packages/database/src/repositories/__tests__/",
+    "tunnel:judge0": "npx ngrok http --domain=marbled-fifty-unraveled.ngrok-free.dev 2358"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

@@ -91,7 +91,9 @@ export class CodingOracleRepository {
   }> {
     const where: Prisma.CodingOracleWhereInput = {
       deletedAt: null,
-      ...(options?.category ? { category: options.category } : {}),
+      ...(options?.category
+        ? { category: { equals: options.category, mode: "insensitive" } }
+        : {}),
       ...(options?.isActive !== undefined
         ? { isActive: options.isActive }
         : {}),

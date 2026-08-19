@@ -12,38 +12,8 @@ import { SeededParameterGeneratorService } from "./generators/seeded-parameter-g
 import { TestSuiteGeneratorService } from "./generators/test-suite-generator.service";
 import { OracleRegistry } from "./oracles/oracle.registry";
 import { ORACLE_PROVIDERS_TOKEN } from "./oracles/oracle.constants";
-import { ArrayRotationOracle } from "./oracles/array-rotation.oracle";
-import { PalindromeOracle } from "./oracles/palindrome.oracle";
-import {
-  ArrayReverseOracle,
-  ArrayMaxOracle,
-  ArrayMinOracle,
-  ArraySumOracle,
-  ArrayCountEvenOracle,
-  LinearSearchOracle,
-  ArraySortedCheckOracle,
-  ArrayRemoveDuplicatesOracle,
-  ArraySecondLargestOracle,
-  StringReverseOracle,
-  StringCountVowelsOracle,
-  StringCharacterCountOracle,
-  StringRemoveSpacesOracle,
-  StringAnagramOracle,
-  StringWordCountOracle,
-  StringLargestWordOracle,
-  MathFactorialOracle,
-  MathFibonacciOracle,
-  MathPrimeCheckOracle,
-  MathGcdOracle,
-  MathLcmOracle,
-  MathDigitSumOracle,
-  MathNumberReverseOracle,
-  MathDigitCountOracle,
-  BinarySearchOracle,
-  BubbleSortOracle,
-  SelectionSortOracle,
-  MergeSortedArraysOracle,
-} from "./oracles/standard-oracles";
+import * as StandardOracles from "./oracles/standard-oracles";
+import { BaseOracle } from "./interfaces/oracle.interface";
 import {
   ParameterValidator,
   ConstraintValidator,
@@ -55,52 +25,19 @@ import {
 import { CodingPatternController } from "./controllers/coding-pattern.controller";
 import { CodingOracleController } from "./controllers/coding-oracle.controller";
 import { CodingPreviewController } from "./controllers/coding-preview.controller";
-import { BaseOracle } from "./interfaces/oracle.interface";
+import { CodingExecutionController } from "./controllers/coding-execution.controller";
+import { AdminCodingSubmissionController } from "./controllers/admin-coding-submission.controller";
 
 import { CodingPatternSelectorService } from "./services/coding-pattern-selector.service";
 import { CodingStatementGeneratorService } from "./services/coding-statement-generator.service";
 import { JudgeService } from "./services/judge.service";
 import { CodingExecutionService } from "./services/coding-execution.service";
-import { CodingExecutionController } from "./controllers/coding-execution.controller";
-
 import { CodingContextResolverService } from "./services/coding-context-resolver.service";
-
 import { SubmissionEvaluatorService } from "./services/submission-evaluator.service";
 
-import { AdminCodingSubmissionController } from "./controllers/admin-coding-submission.controller";
-
-const standardOracleProviders = [
-  ArrayRotationOracle,
-  PalindromeOracle,
-  ArrayReverseOracle,
-  ArrayMaxOracle,
-  ArrayMinOracle,
-  ArraySumOracle,
-  ArrayCountEvenOracle,
-  LinearSearchOracle,
-  ArraySortedCheckOracle,
-  ArrayRemoveDuplicatesOracle,
-  ArraySecondLargestOracle,
-  StringReverseOracle,
-  StringCountVowelsOracle,
-  StringCharacterCountOracle,
-  StringRemoveSpacesOracle,
-  StringAnagramOracle,
-  StringWordCountOracle,
-  StringLargestWordOracle,
-  MathFactorialOracle,
-  MathFibonacciOracle,
-  MathPrimeCheckOracle,
-  MathGcdOracle,
-  MathLcmOracle,
-  MathDigitSumOracle,
-  MathNumberReverseOracle,
-  MathDigitCountOracle,
-  BinarySearchOracle,
-  BubbleSortOracle,
-  SelectionSortOracle,
-  MergeSortedArraysOracle,
-];
+const standardOracleProviders = Object.values(StandardOracles).filter(
+  (val) => typeof val === "function" && val.prototype,
+) as any[];
 
 @Module({
   imports: [PrismaModule, forwardRef(() => GenerationAiModule)],
