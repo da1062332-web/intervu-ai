@@ -180,14 +180,16 @@ export class AssembledTestRepository {
       where: {
         configId,
         totalQuestions: { gt: 0 },
-        // Match PUBLISHED or complete DRAFT assemblies that have all questions attached
+        // Accept both PUBLISHED and complete DRAFT assemblies.
+        // PUBLISHED is always preferred (see orderBy below).
+        // DRAFT fallback covers configs assembled but not yet formally published.
         status: { in: [AssemblyStatus.PUBLISHED, AssemblyStatus.DRAFT] },
         sections: {
           // At least one section must exist with questions
           some: {
             questions: { some: {} },
           },
-          // No section is allowed to have zero questions (strictly rejects empty drafts)
+          // No section is allowed to have zero questions (strictly rejects partial drafts)
           none: {
             questions: { none: {} },
           },
@@ -206,7 +208,13 @@ export class AssembledTestRepository {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        // Prefer PUBLISHED over DRAFT: "PUBLISHED" < "DRAFT" alphabetically
+        // so ascending sort puts PUBLISHED first.
+        { status: "asc" },
+        // Among same-status assemblies, pick the newest one
+        { createdAt: "desc" },
+      ],
     });
   }
 

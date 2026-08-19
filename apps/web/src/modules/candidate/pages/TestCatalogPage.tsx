@@ -37,42 +37,12 @@ export function TestCatalogPage() {
     limit: itemsPerPage,
   };
 
-  const { data: tests, pagination, isLoading, error, refetch } = useTestCatalog(queryParams);
+  const { data: tests, pagination, isLoading, isFetching, error, refetch } = useTestCatalog(queryParams);
 
   // Sync hydration for store
   useEffect(() => {
     useTestCatalogStore.persist.rehydrate();
   }, []);
-
-  if (isLoading) {
-    return (
-      <div className='mx-auto w-full max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-16 py-8 sm:py-12 space-y-8 animate-fade-in-up'>
-        <SectionHeader
-          title='Available Assessments'
-          description='Find and prepare for your assigned and recommended assessments.'
-          breadcrumbs={[
-            { label: 'Dashboard', href: '/candidate/dashboard' },
-            { label: 'Assessments' },
-          ]}
-        />
-        <Skeleton className='h-40 w-full rounded-xl border border-border/40' />
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2'>
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <Skeleton key={idx} className='h-64 w-full rounded-xl border border-border/40' />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !tests) {
-    return (
-      <TestDiscoveryError
-        error={new Error(error || 'Failed to load assessments')}
-        reset={refetch}
-      />
-    );
-  }
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
@@ -107,16 +77,29 @@ export function TestCatalogPage() {
         totalResults={pagination.total ?? tests.length}
       />
 
-      {tests.length === 0 ? (
+      {error ? (
+        <TestDiscoveryError
+          error={new Error(error || 'Failed to load assessments')}
+          reset={refetch}
+        />
+      ) : isLoading && tests.length === 0 ? (
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2'>
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <Skeleton key={idx} className='h-64 w-full rounded-xl border border-border/40' />
+          ))}
+        </div>
+      ) : tests.length === 0 ? (
         <EmptyState onReset={handleReset} />
       ) : (
-        <TestCardGrid
-          tests={tests}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          totalItems={pagination.total}
-        />
+        <div className={`transition-opacity duration-200 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
+          <TestCardGrid
+            tests={tests}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            totalItems={pagination.total}
+          />
+        </div>
       )}
     </div>
   );
