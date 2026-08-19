@@ -58,7 +58,6 @@ import { CodingModule } from "./modules/coding/coding.module";
     QuestionGenerationModule,
     DatasetModule,
     ScenarioModule,
-    QuestionGenerationModule,
     EventEmitterModule.forRoot(),
     // Infrastructure — must be first (ConfigModule provides env vars)
     ConfigModule,

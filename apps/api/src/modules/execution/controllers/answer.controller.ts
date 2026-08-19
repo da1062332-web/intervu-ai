@@ -25,7 +25,7 @@ import { SubmissionService } from "../services/submission.service";
 
 import { CandidateAnswerDto } from "../dto";
 
-import { Roles } from "@/modules/auth/decorators/roles.decorator";
+import { Roles } from "../../auth/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 
 @ApiTags("execution")

@@ -15,7 +15,7 @@ export function SectionTabs() {
   const {
     testInstance,
     currentQuestionIndex,
-    jumpToQuestion,
+    requestSectionChange,
     lockedSectionKeys,
     sectionTimingEnabled,
     sectionRemainingTime,
@@ -33,19 +33,13 @@ export function SectionTabs() {
     runningCount += section.questions.length;
   }
 
-  // Determine active section by comparing question index
-  let activeSectionIndex = 0;
-  runningCount = 0;
-  for (let i = 0; i < testInstance.sections.length; i++) {
-    const section = testInstance.sections[i];
-    if (
-      currentQuestionIndex >= runningCount &&
-      currentQuestionIndex < runningCount + section.questions.length
-    ) {
-      activeSectionIndex = i;
-    }
-    runningCount += section.questions.length;
-  }
+  // Active section is authoritatively tracked by currentSectionIndex in the store
+  const activeSectionIndex =
+    typeof currentSectionIndex === 'number' &&
+    currentSectionIndex >= 0 &&
+    currentSectionIndex < testInstance.sections.length
+      ? currentSectionIndex
+      : 0;
 
   const isTimerWarning =
     sectionTimingEnabled && sectionRemainingTime > 0 && sectionRemainingTime <= 60;
@@ -68,7 +62,7 @@ export function SectionTabs() {
             <button
               key={section.id}
               onClick={() =>
-                !isLocked ? jumpToQuestion(sectionStartIndices[section.id]) : undefined
+                !isLocked && !isActive ? requestSectionChange(idx) : undefined
               }
               disabled={isLocked}
               title={isLocked ? 'This section is locked' : section.title}

@@ -234,7 +234,8 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
             }
 
             // Draw bounding box: Orange if still latched in multi-face warning, Green if clean single-face
-            const isLatchedWarning = cleanSingleFaceSecondsRef.current < 3 && multiFaceSecondsRef.current > 0;
+            const isLatchedWarning =
+              cleanSingleFaceSecondsRef.current < 3 && multiFaceSecondsRef.current > 0;
             const { x, y, width, height } = detections[0].box;
             const bx = x * scaleX;
             const by = y * scaleY;
@@ -254,6 +255,12 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
             // ❌ No face detected
             cleanSingleFaceSecondsRef.current = 0;
             multiFaceSecondsRef.current = 0;
+
+            // Do not record violations during initial warmup grace period
+            if (Date.now() < gracePeriodEndTime) {
+              return;
+            }
+
             noFaceSecondsRef.current += 1;
 
             if (noFaceSecondsRef.current >= 5 && !inNoFaceViolationRef.current) {

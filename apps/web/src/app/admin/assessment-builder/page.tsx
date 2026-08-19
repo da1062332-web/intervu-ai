@@ -92,6 +92,9 @@ function AssessmentBuilderContent() {
 
   const handleConfigSelect = (config: ExamConfig) => {
     setSelectedConfig(config);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set('configId', config.id);
+    router.replace(`${pathname}?${newParams.toString()}`);
   };
 
   const handleContinueToPreview = () => {
@@ -262,7 +265,14 @@ function AssessmentBuilderContent() {
             description='Review the generated assessment and its validation results.'
             footer={
               <div className='flex w-full justify-end'>
-                <Button variant='outline' onClick={() => setStep('SELECT_CONFIG')}>
+                <Button variant='outline' onClick={() => {
+                  setSelectedConfig(null);
+                  setStep('SELECT_CONFIG');
+                  const newParams = new URLSearchParams(searchParams.toString());
+                  newParams.delete('configId');
+                  newParams.delete('jobId');
+                  router.replace(`${pathname}?${newParams.toString()}`);
+                }}>
                   Generate Another
                 </Button>
               </div>

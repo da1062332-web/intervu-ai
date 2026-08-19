@@ -9,6 +9,8 @@ import { useParams } from 'next/navigation';
 import { useSaveQuestionDefinition } from '@/services/templates/hooks';
 import toast from 'react-hot-toast';
 
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+
 interface DatasetQuestionDefinitionSectionProps {
   template: any;
 }
@@ -18,40 +20,130 @@ export function DatasetQuestionDefinitionSection({
 }: DatasetQuestionDefinitionSectionProps) {
   const { id } = useParams() as { id: string };
 
-  const [stem, setStem] = useState('');
-  const [instructions, setInstructions] = useState('');
-  const [generationPrompt, setGenerationPrompt] = useState('Generate one MCQ from this passage.');
-  const [showStem, setShowStem] = useState(true);
-  const [showInstructions, setShowInstructions] = useState(true);
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const stem = draftState.datasetQuestionDefinition?.stem ?? '';
+  const instructions = draftState.datasetQuestionDefinition?.instructions ?? '';
+  const generationPrompt = draftState.datasetQuestionDefinition?.generationPrompt ?? 'Generate one MCQ from this passage.';
+  const showStem = draftState.datasetQuestionDefinition?.showStem ?? true;
+  const showInstructions = draftState.datasetQuestionDefinition?.showInstructions ?? true;
+
+  const setStem = (val: string) => {
+    updateDraftState({
+      datasetQuestionDefinition: {
+        ...(draftState.datasetQuestionDefinition || {
+          instructions: '',
+          generationPrompt: 'Generate one MCQ from this passage.',
+          showStem: true,
+          showInstructions: true,
+        }),
+        stem: val,
+      },
+    });
+  };
+
+  const setInstructions = (val: string) => {
+    updateDraftState({
+      datasetQuestionDefinition: {
+        ...(draftState.datasetQuestionDefinition || {
+          stem: '',
+          generationPrompt: 'Generate one MCQ from this passage.',
+          showStem: true,
+          showInstructions: true,
+        }),
+        instructions: val,
+      },
+    });
+  };
+
+  const setGenerationPrompt = (val: string) => {
+    updateDraftState({
+      datasetQuestionDefinition: {
+        ...(draftState.datasetQuestionDefinition || {
+          stem: '',
+          instructions: '',
+          showStem: true,
+          showInstructions: true,
+        }),
+        generationPrompt: val,
+      },
+    });
+  };
+
+  const setShowStem = (val: boolean) => {
+    updateDraftState({
+      datasetQuestionDefinition: {
+        ...(draftState.datasetQuestionDefinition || {
+          stem: '',
+          instructions: '',
+          generationPrompt: 'Generate one MCQ from this passage.',
+          showInstructions: true,
+        }),
+        showStem: val,
+      },
+    });
+  };
+
+  const setShowInstructions = (val: boolean) => {
+    updateDraftState({
+      datasetQuestionDefinition: {
+        ...(draftState.datasetQuestionDefinition || {
+          stem: '',
+          instructions: '',
+          generationPrompt: 'Generate one MCQ from this passage.',
+          showStem: true,
+        }),
+        showInstructions: val,
+      },
+    });
+  };
 
   const { mutate: saveQuestion, isPending: isSaving } = useSaveQuestionDefinition();
 
   useEffect(() => {
-    try {
-      if (template?.structure?.questionTemplate !== undefined) {
-        let parsed = template.structure.questionTemplate;
-        if (typeof parsed === 'string') {
-          try {
-            parsed = JSON.parse(parsed);
-          } catch (e) {
-            // If it's a plain string rather than JSON
-            setStem(parsed);
-            return;
+    if (template && !draftState.datasetQuestionDefinition) {
+      try {
+        let initialStem = '';
+        let initialInstructions = '';
+        let initialGenPrompt = 'Generate one MCQ from this passage.';
+        let initialShowStem = true;
+        let initialShowInstructions = true;
+
+        if (template?.structure?.questionTemplate !== undefined) {
+          let parsed = template.structure.questionTemplate;
+          if (typeof parsed === 'string') {
+            try {
+              parsed = JSON.parse(parsed);
+            } catch (e) {
+              initialStem = parsed;
+            }
+          }
+
+          if (typeof parsed === 'object' && parsed !== null) {
+            if (parsed.stem !== undefined) initialShowStem = parsed.showStem ?? true;
+            if (parsed.instructions !== undefined) initialShowInstructions = parsed.showInstructions ?? true;
+            if (parsed.stem !== undefined) initialStem = parsed.stem;
+            if (parsed.instructions !== undefined) initialInstructions = parsed.instructions;
+            if (parsed.generationPrompt !== undefined) initialGenPrompt = parsed.generationPrompt;
+            if (parsed.showStem !== undefined) initialShowStem = parsed.showStem;
+            if (parsed.showInstructions !== undefined) initialShowInstructions = parsed.showInstructions;
           }
         }
 
-        if (typeof parsed === 'object' && parsed !== null) {
-          if (parsed.stem !== undefined) setStem(parsed.stem);
-          if (parsed.instructions !== undefined) setInstructions(parsed.instructions);
-          if (parsed.generationPrompt !== undefined) setGenerationPrompt(parsed.generationPrompt);
-          if (parsed.showStem !== undefined) setShowStem(parsed.showStem);
-          if (parsed.showInstructions !== undefined) setShowInstructions(parsed.showInstructions);
-        }
+        updateDraftState({
+          datasetQuestionDefinition: {
+            stem: initialStem,
+            instructions: initialInstructions,
+            generationPrompt: initialGenPrompt,
+            showStem: initialShowStem,
+            showInstructions: initialShowInstructions,
+          },
+        });
+      } catch (e) {
+        // Ignore parse errors
       }
-    } catch (e) {
-      // Ignore parse errors
     }
-  }, [template]);
+  }, [template, draftState.datasetQuestionDefinition, updateDraftState]);
 
   const handleSave = () => {
     if (!template?.id) return;

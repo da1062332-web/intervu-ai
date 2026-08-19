@@ -43,8 +43,10 @@ export class AppConfigService {
     const secret =
       this.configService?.get<string>("JWT_SECRET") || process.env.JWT_SECRET;
     if (!secret || secret.length < 32) {
-      if (this.nodeEnv !== "test") {
-        return "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345";
+      if (this.nodeEnv === "production") {
+        throw new Error(
+          "FATAL: JWT_SECRET environment variable is missing or less than 32 characters long. Application refused to boot in production.",
+        );
       }
       return (
         secret || "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345"
@@ -58,8 +60,10 @@ export class AppConfigService {
       this.configService?.get<string>("JWT_REFRESH_SECRET") ||
       process.env.JWT_REFRESH_SECRET;
     if (!secret || secret.length < 32) {
-      if (this.nodeEnv !== "test") {
-        return "dev_jwt_refresh_secret_must_be_at_least_32_chars_long_key_67890";
+      if (this.nodeEnv === "production") {
+        throw new Error(
+          "FATAL: JWT_REFRESH_SECRET environment variable is missing or less than 32 characters long. Application refused to boot in production.",
+        );
       }
       return (
         secret ||

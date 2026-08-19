@@ -13,27 +13,35 @@ export function useExecution(testId: string) {
     let mounted = true;
 
     const loadTest = async () => {
+      const t0 = Date.now();
+      console.log(`[CLIENT-EXECUTION ⏱️] Loading assessment snapshot for instance: ${testId}...`);
       try {
         setLoading(true);
         setError(null);
         const data = await executionService.getTestInstance(testId);
+        const elapsed = Date.now() - t0;
+        console.log(`[CLIENT-EXECUTION ✅] Received snapshot in ${elapsed}ms | Status: ${data.status} | Sections: ${data.sections?.length} | Assessment: "${data.assessmentName}"`);
 
         if (!mounted) return;
 
         if (data.status === 'SUBMITTED' || data.status === 'COMPLETED') {
+          console.log(`[CLIENT-EXECUTION ℹ️] Assessment already completed. Redirecting to results.`);
           clearAssessmentSandboxStorage(testId);
           router.replace(`/candidate/results/${testId}`);
           return;
         }
 
         if (data.status === 'CREATED' || data.status === 'IN_PROGRESS') {
+          console.log(`[CLIENT-EXECUTION 🎯] Initializing execution store and starting test timer...`);
           initializeTest(data);
         } else {
           // E.g., EXPIRED or CANCELLED
+          console.warn(`[CLIENT-EXECUTION ⚠️] Assessment status is ${data.status}. Redirecting to dashboard.`);
           clearAssessmentSandboxStorage(testId);
           router.replace('/candidate/dashboard');
         }
       } catch (err: any) {
+        console.error(`[CLIENT-EXECUTION ❌] Error loading assessment in ${Date.now() - t0}ms:`, err);
         if (mounted) {
           if (err.status === 401) setError('UNAUTHORIZED');
           else if (err.status === 403) setError('FORBIDDEN');

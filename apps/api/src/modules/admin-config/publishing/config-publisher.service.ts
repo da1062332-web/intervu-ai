@@ -157,6 +157,41 @@ export class ConfigPublisherService {
         },
       });
 
+      // ─── Cascade Publish to AssembledTest ──────────────────────────────────
+      // When admin publishes a config, the associated fully-assembled test
+      // must also be promoted to PUBLISHED. Without this, the AssembledTest
+      // stays DRAFT while ExamConfig shows PUBLISHED — causing a status mismatch
+      // on the admin workflow dashboard.
+      // Only affects the single latest complete assembly (all sections have questions).
+      // Safe no-op if no complete assembly exists yet.
+      try {
+        const latestAssembly = await tx.assembledTest.findFirst({
+          where: {
+            configId,
+            sections: {
+              some: { questions: { some: {} } },   // at least one section has questions
+              none: { questions: { none: {} } },   // no section is empty
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, status: true },
+        });
+
+        if (latestAssembly && latestAssembly.status !== "PUBLISHED") {
+          await tx.assembledTest.update({
+            where: { id: latestAssembly.id },
+            data: { status: "PUBLISHED" },
+          });
+        }
+      } catch (assemblyErr) {
+        // Non-blocking: if assembly cascade fails (e.g. no assembly exists), do not
+        // roll back the config publish. Log for visibility only.
+        console.warn(
+          `[ConfigPublisher] Could not cascade PUBLISHED status to AssembledTest for configId ${configId}:`,
+          assemblyErr,
+        );
+      }
+
       // Write Publish Log
       await tx.configPublishLog.create({
         data: {

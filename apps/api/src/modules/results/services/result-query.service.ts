@@ -4,7 +4,7 @@ import {
   CandidateResultDto,
   PerformanceAnalyticsDto,
 } from "@intervu-ai/contracts";
-import { PrismaService } from "@/prisma/prisma.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { RecommendationService } from "../../evaluation/recommendations/recommendation.service";
 import { ResultGeneratorService } from "../../evaluation/services/result-generator.service";
 import { ResultStorageService } from "../../evaluation/services/result-storage.service";

@@ -1,5 +1,4 @@
-'use client';
-
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,7 +20,24 @@ export function TestFilters({
   onDifficultyChange,
   totalResults,
 }: TestFiltersProps) {
+  const [localSearch, setLocalSearch] = useState(searchQuery);
   const difficulties: ('All' | 'Easy' | 'Medium' | 'Hard')[] = ['All', 'Easy', 'Medium', 'Hard'];
+
+  // Sync from external prop changes (e.g. on reset)
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  // Debounce user input by 300ms before calling parent handler
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (localSearch !== searchQuery) {
+        onSearchChange(localSearch);
+      }
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [localSearch, searchQuery, onSearchChange]);
 
   return (
     <Card className='bg-card/80 border border-border/60 shadow-xs'>
@@ -33,8 +49,8 @@ export function TestFilters({
             <Input
               placeholder='Search assessments or company...'
               className='pl-9 h-9 bg-background/60 border-border/60 focus-visible:bg-background text-xs sm:text-sm transition-all'
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
             />
           </div>
 

@@ -38,6 +38,8 @@ const columns: ColumnDef<RecentAssessment>[] = [
   },
 ];
 
+const EMPTY_RECENT_ASSESSMENTS: RecentAssessment[] = [];
+
 export function RecentAssessmentsTable() {
   const { data, isLoading, isError, refetch } = useRecentAssessments();
 
@@ -73,7 +75,7 @@ export function RecentAssessmentsTable() {
       <CardContent className='p-0 flex-1 overflow-hidden'>
         <DataTable
           columns={columns}
-          data={data ?? []}
+          data={data ?? EMPTY_RECENT_ASSESSMENTS}
           isLoading={isLoading}
           disablePagination
           rowKey={(row) => row.id}

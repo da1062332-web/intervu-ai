@@ -1,8 +1,10 @@
 import "reflect-metadata";
 
-// Set database URL to transaction pooler port 6543 before module loading
-process.env.DATABASE_URL = "postgresql://postgres.ayklmzeqfezrlbkdusqc:MARVEL7ace%4077090@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres";
-process.env.DIRECT_URL = "postgresql://postgres.ayklmzeqfezrlbkdusqc:MARVEL7ace%4077090@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres";
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  "postgresql://postgres:postgres@localhost:5432/intervu_ai";
+process.env.DIRECT_URL =
+  process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "../apps/api/src/app.module";

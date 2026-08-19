@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Optional } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { TestInstanceRepository } from "../repositories";
 import { ExecutionValidatorService } from "./execution-validator.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 export type SectionStatus =
   | "UPCOMING"
@@ -47,16 +48,16 @@ export class ExecutionService {
     private readonly prisma: PrismaService,
     private readonly testInstanceRepo: TestInstanceRepository,
     private readonly validator: ExecutionValidatorService,
+    @Optional() private readonly cacheService?: RedisCacheService,
   ) {}
 
   async loadAssessment(
     testInstanceId: string,
     userId: string,
   ): Promise<AssessmentSnapshotResponse> {
-    this.logger.debug("Loading assessment snapshot", {
-      testInstanceId,
-      userId,
-    });
+    const t0 = Date.now();
+    this.logger.info(`[EXECUTION ⏱️] Loading assessment session for instance: ${testInstanceId}, user: ${userId}...`);
+
     // 1. Validate assessment exists
     const testInstance =
       await this.validator.validateAssessment(testInstanceId);
@@ -64,13 +65,45 @@ export class ExecutionService {
     // 2. Validate ownership
     this.validator.validateOwnership(testInstance, userId);
 
+    // 2a. Check Redis cache for cached full snapshot
+    const cacheKey = `assessment-snapshot:${testInstanceId}`;
+    if (this.cacheService) {
+      try {
+        const cached =
+          await this.cacheService.get<AssessmentSnapshotResponse>(cacheKey);
+        if (cached) {
+          const executionState = await this.prisma.executionState.findUnique({
+            where: { testInstanceId },
+          });
+          this.logger.info(`[EXECUTION 💾] Redis cache HIT for ${testInstanceId} in ${Date.now() - t0}ms (Sections: ${cached.sections?.length})`);
+          return {
+            ...cached,
+            currentSectionIndex:
+              (executionState as any)?.currentSectionIndex ??
+              cached.currentSectionIndex ??
+              0,
+            currentQuestionIndex:
+              executionState?.currentQuestionIndex ??
+              cached.currentQuestionIndex ??
+              0,
+            serverTime: new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        this.logger.warn(`[EXECUTION ⚠️] Redis cache get failed for ${cacheKey}: ${err}`);
+      }
+    }
+
     // 3. Load full snapshot (sections, questions)
+    const tDb = Date.now();
     const snapshot =
       await this.testInstanceRepo.loadDeepSnapshot(testInstanceId);
 
     if (!snapshot) {
+      this.logger.error(`[EXECUTION ❌] Assessment snapshot could not be loaded for instance: ${testInstanceId}`);
       throw new NotFoundException("Assessment snapshot could not be loaded");
     }
+    this.logger.info(`[EXECUTION ✅] Deep snapshot loaded from DB in ${Date.now() - tDb}ms (Sections: ${snapshot.sections?.length})`);
 
     // 4. Determine sectionTimingEnabled from ExamConfig -> RuleFlags
     let sectionTimingEnabled = false;
@@ -278,7 +311,7 @@ export class ExecutionService {
       },
     );
 
-    return {
+    const result: AssessmentSnapshotResponse = {
       testInstanceId: snapshot.id,
       testConfigId: snapshot.testConfigId,
       status: snapshot.status,
@@ -294,6 +327,17 @@ export class ExecutionService {
         "Candidate Assessment",
       sections: sectionsWithStatus,
     };
+
+    if (this.cacheService) {
+      try {
+        await this.cacheService.set(cacheKey, result, { ttl: 300 });
+      } catch (err) {
+        this.logger.warn(`Redis cache set failed for ${cacheKey}: ${err}`);
+      }
+    }
+
+    this.logger.info(`[EXECUTION 🚀] Assessment loaded in ${Date.now() - t0}ms | Total sections: ${result.sections?.length}, Current section: ${currentSectionIndex}`);
+    return result;
   }
 
   private _normalizeSectionStatus(raw: string): SectionStatus {

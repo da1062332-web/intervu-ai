@@ -38,6 +38,46 @@ export interface TemplateDraftState {
   constraintForm: ConstraintFormState;
   
   optionStrategy?: OptionStrategyState;
+
+  // FE-01 Tab states
+  questionDefinition?: {
+    statement: string;
+    instructions: string;
+  };
+  solutionLogic?: {
+    solutionTemplate: string;
+    explanationTemplate: string;
+  };
+  datasetConfig?: {
+    selectedDatasetId: string;
+    selectionMethod: 'RANDOM' | 'SEQUENTIAL' | 'SPECIFIC';
+    sampleSize: number;
+    shuffle: boolean;
+    allowReuse: boolean;
+    specificItemId: string;
+    variableMapping: Record<string, string>;
+  };
+  datasetQuestionDefinition?: {
+    stem: string;
+    instructions: string;
+    generationPrompt: string;
+    showStem: boolean;
+    showInstructions: boolean;
+  };
+  generationStrategyUI?: {
+    variableModalOpen: boolean;
+    constraintModalOpen: boolean;
+    derivedModalOpen: boolean;
+    editingVariable: any;
+    editingDerived: any;
+    editingConstraint: any;
+    aiPrompt: string;
+    draftedStrategy: any;
+    showAiSection: boolean;
+    validationWarnings: string[];
+  };
+  // FE-05 preview values
+  previewValues?: Record<string, string>;
 }
 
 interface TemplateBuilderContextType {
@@ -76,27 +116,83 @@ export function TemplateBuilderProvider({ children }: { children: ReactNode }) {
     if (initializedRef.current || !template) return;
     
     // Parse Option Strategy from template logic
-    let initialOptions = ['','','',''];
+    let initialOptions = ['', '', '', ''];
     let initialStrategy = 'static';
     
     try {
       const optionsTemplate = template?.structure?.optionsTemplate;
       if (optionsTemplate && Array.isArray(optionsTemplate) && optionsTemplate.length > 0) {
-        if (optionsTemplate.length === 1 && optionsTemplate[0].startsWith('{')) {
+        if (optionsTemplate.length === 1 && typeof optionsTemplate[0] === 'string' && optionsTemplate[0].startsWith('{')) {
           const parsed = JSON.parse(optionsTemplate[0]);
           if (parsed.strategy) initialStrategy = parsed.strategy;
-          if (parsed.options) initialOptions = parsed.options;
+          if (parsed.options && Array.isArray(parsed.options)) initialOptions = parsed.options;
         } else {
-          initialOptions = optionsTemplate.length === 4 ? optionsTemplate : [...optionsTemplate, '', '', '', ''].slice(0, 4);
+          initialOptions = optionsTemplate.length >= 2 ? optionsTemplate : [...optionsTemplate, ...Array(2 - optionsTemplate.length).fill('')];
           initialStrategy = template?.config?.optionStrategy || 'static';
         }
       } else {
         if (template?.config?.optionStrategy) initialStrategy = template.config.optionStrategy;
-        if (template?.config?.staticOptions && template.config.optionStrategy === 'static') initialOptions = template.config.staticOptions;
-        if (template?.config?.formulas && template.config.optionStrategy === 'formula') initialOptions = template.config.formulas;
+        if (template?.config?.staticOptions && template.config.optionStrategy === 'static' && Array.isArray(template.config.staticOptions)) {
+          initialOptions = template.config.staticOptions;
+        }
+        if (template?.config?.formulas && template.config.optionStrategy === 'formula' && Array.isArray(template.config.formulas)) {
+          initialOptions = template.config.formulas;
+        }
       }
     } catch (e) {
       console.error('Failed to parse options template', e);
+    }
+
+    // Parse Question Definition
+    const questionStatement = template?.structure?.questionStatement ?? template?.structure?.questionTemplate ?? '';
+    const questionInstructions = template?.structure?.instructions ?? '';
+
+    // Parse Solution Logic
+    const solutionTemplate = template?.solutionSchema?.solutionTemplate ?? '';
+    const explanationTemplate = template?.solutionSchema?.explanationTemplate ?? '';
+
+    // Parse Dataset Config
+    const datasetId = template?.datasetId ?? template?.config?.datasetId ?? '';
+    const dsConfig = template?.config?.datasetConfig || {};
+    const selectionMethod = dsConfig.selectionMethod || 'RANDOM';
+    const sampleSize = dsConfig.sampleSize || 1;
+    const shuffle = dsConfig.shuffle ?? true;
+    const allowReuse = dsConfig.allowReuse ?? false;
+    const specificItemId = dsConfig.specificItemId || '';
+    const variableMapping = dsConfig.variableMapping || {};
+
+    // Parse Dataset Question Definition
+    let stem = '';
+    let instructions = '';
+    let generationPrompt = 'Generate one MCQ from this passage.';
+    let showStem = true;
+    let showInstructions = true;
+    if (template?.structure?.questionTemplate !== undefined) {
+      let parsed = template.structure.questionTemplate;
+      if (typeof parsed === 'string') {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch (e) {
+          stem = parsed;
+        }
+      }
+      if (typeof parsed === 'object' && parsed !== null) {
+        if (parsed.stem !== undefined) stem = parsed.stem;
+        if (parsed.instructions !== undefined) instructions = parsed.instructions;
+        if (parsed.generationPrompt !== undefined) generationPrompt = parsed.generationPrompt;
+        if (parsed.showStem !== undefined) showStem = parsed.showStem;
+        if (parsed.showInstructions !== undefined) showInstructions = parsed.showInstructions;
+      }
+    }
+
+    // Parse Preview values
+    const previewValues: Record<string, string> = {};
+    if (template?.variableSchema?.variables && Array.isArray(template.variableSchema.variables)) {
+      for (const v of template.variableSchema.variables) {
+        if (v.name) {
+          previewValues[v.name] = v.defaultValue !== undefined ? String(v.defaultValue) : '';
+        }
+      }
     }
 
     setDraftState((prev) => ({
@@ -104,7 +200,44 @@ export function TemplateBuilderProvider({ children }: { children: ReactNode }) {
       optionStrategy: {
         strategy: initialStrategy,
         options: initialOptions
-      }
+      },
+      questionDefinition: {
+        statement: questionStatement,
+        instructions: questionInstructions,
+      },
+      solutionLogic: {
+        solutionTemplate,
+        explanationTemplate,
+      },
+      datasetConfig: {
+        selectedDatasetId: datasetId,
+        selectionMethod,
+        sampleSize,
+        shuffle,
+        allowReuse,
+        specificItemId,
+        variableMapping,
+      },
+      datasetQuestionDefinition: {
+        stem,
+        instructions,
+        generationPrompt,
+        showStem,
+        showInstructions,
+      },
+      generationStrategyUI: {
+        variableModalOpen: false,
+        constraintModalOpen: false,
+        derivedModalOpen: false,
+        editingVariable: null,
+        editingDerived: null,
+        editingConstraint: null,
+        aiPrompt: '',
+        draftedStrategy: null,
+        showAiSection: true,
+        validationWarnings: [],
+      },
+      previewValues,
     }));
     
     initializedRef.current = true;

@@ -10,11 +10,20 @@ interface AssessmentPreviewProps {
 
 export const AssessmentPreview: React.FC<AssessmentPreviewProps> = ({ assessment }) => {
   // If there are explicit sections, we use them. Otherwise we create a virtual "Default Section"
-  const sections = assessment.sections?.length
-    ? assessment.sections
-    : [{ id: 'default', name: 'Assessment Questions', questions: assessment.questions || [] }];
+  const sections = React.useMemo(() => {
+    return assessment.sections?.length
+      ? assessment.sections
+      : [{ id: 'default', name: 'Assessment Questions', questions: assessment.questions || [] }];
+  }, [assessment.sections, assessment.questions]);
 
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id);
+
+  // Sync activeSectionId when sections update
+  React.useEffect(() => {
+    if (sections.length > 0 && !sections.some((s) => s.id === activeSectionId)) {
+      setActiveSectionId(sections[0]?.id);
+    }
+  }, [sections, activeSectionId]);
 
   const activeSection = sections.find((s) => s.id === activeSectionId);
   const questions = activeSection?.questions || [];

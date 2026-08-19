@@ -77,7 +77,9 @@ export function useAnswerPersistence(testId: string) {
 
           if (isAlreadySubmitted) {
             setAutosaveStatus('SAVED');
-            window.location.href = `/candidate/results/${testId}`;
+            useExecutionStore.getState().setSubmissionStatus('SUCCESS');
+            useExecutionStore.getState().setInteractionBlocked(true);
+            window.location.replace(`/candidate/results/${testId}`);
             return;
           }
 

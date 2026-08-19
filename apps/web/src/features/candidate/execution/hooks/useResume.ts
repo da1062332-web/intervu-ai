@@ -1,16 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
 
 const STORAGE_KEY = 'intervu_execution_autosave';
 
 export function useResume(testId: string | undefined) {
-  const { restoreStateFromStorage, testInstance, setAttemptedResume } = useExecutionStore();
+  const { restoreStateFromStorage, testInstance, setAttemptedResume, hasAttemptedResume } =
+    useExecutionStore();
+  const resumedRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
 
-    if (!testId || !testInstance) return;
+    if (!testId || !testInstance || resumedRef.current || hasAttemptedResume) return;
+    resumedRef.current = true;
 
     const resume = async () => {
       try {
@@ -19,8 +22,6 @@ export function useResume(testId: string | undefined) {
 
         if (!mounted) return;
 
-        // Note: The backend resume / SessionDto would normally contain the answers array,
-        // but currently it just returns the generic object. If it has answers, we parse them:
         if (sessionDto && (sessionDto as any).answers) {
           const formattedAnswers = ((sessionDto as any).answers as any[]).reduce(
             (acc: any, ans: any) => {
@@ -85,5 +86,5 @@ export function useResume(testId: string | undefined) {
     return () => {
       mounted = false;
     };
-  }, [testId, testInstance, restoreStateFromStorage, setAttemptedResume]);
+  }, [testId, testInstance?.id, hasAttemptedResume]);
 }

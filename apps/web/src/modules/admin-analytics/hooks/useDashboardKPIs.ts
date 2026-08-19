@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { dashboardService } from '../services/dashboard.service';
 
@@ -34,19 +35,40 @@ export function useDashboardKPIs() {
   const isLoading = results.some((result) => result.isLoading);
   const isError = results.some((result) => result.isError);
 
-  const data = {
-    totalAssessments: results[0].data,
-    activeAssessments: results[1].data,
-    totalCandidates: results[2].data,
-    completedTests: results[3].data,
-    averageScore: results[4].data,
-    questionBankCount: results[5].data,
-  };
+  const totalAssessments = results[0]?.data;
+  const activeAssessments = results[1]?.data;
+  const totalCandidates = results[2]?.data;
+  const completedTests = results[3]?.data;
+  const averageScore = results[4]?.data;
+  const questionBankCount = results[5]?.data;
+
+  const data = useMemo(
+    () => ({
+      totalAssessments,
+      activeAssessments,
+      totalCandidates,
+      completedTests,
+      averageScore,
+      questionBankCount,
+    }),
+    [
+      totalAssessments,
+      activeAssessments,
+      totalCandidates,
+      completedTests,
+      averageScore,
+      questionBankCount,
+    ],
+  );
+
+  const refetch = useCallback(() => {
+    results.forEach((r) => r.refetch());
+  }, [results]);
 
   return {
     data,
     isLoading,
     isError,
-    refetch: () => results.forEach((r) => r.refetch()),
+    refetch,
   };
 }

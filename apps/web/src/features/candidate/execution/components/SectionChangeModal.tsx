@@ -15,15 +15,14 @@ import { useMemo, useState } from 'react';
 import { Lock, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { executionService } from '../services/execution.service';
 
 export function SectionChangeModal() {
   const {
     testInstance,
-    currentQuestionIndex,
+    currentSectionIndex,
     pendingSectionChangeTarget,
-    confirmSectionChange,
     cancelSectionChange,
-    sectionTimingEnabled,
     advanceSectionLocally,
   } = useExecutionStore();
 
@@ -43,26 +42,34 @@ export function SectionChangeModal() {
       };
     }
 
-    let currentIdx = -1;
-    let targetIdx = -1;
-    let runningCount = 0;
+    const currentIdx = currentSectionIndex;
+    let targetIdx = pendingSectionChangeTarget;
 
-    for (let i = 0; i < testInstance.sections.length; i++) {
-      const section = testInstance.sections[i];
-      const sectionEnd = runningCount + section.questions.length;
-
-      if (currentQuestionIndex >= runningCount && currentQuestionIndex < sectionEnd) {
-        currentName = section.title;
-        currentIdx = i;
+    // If targetIdx is not within sections directly, derive from running count
+    if (targetIdx < 0 || targetIdx >= testInstance.sections.length) {
+      let runningCount = 0;
+      for (let i = 0; i < testInstance.sections.length; i++) {
+        const section = testInstance.sections[i];
+        const sectionEnd = runningCount + section.questions.length;
+        if (pendingSectionChangeTarget >= runningCount && pendingSectionChangeTarget < sectionEnd) {
+          targetIdx = i;
+          break;
+        }
+        runningCount = sectionEnd;
       }
-
-      if (pendingSectionChangeTarget >= runningCount && pendingSectionChangeTarget < sectionEnd) {
-        targetName = section.title;
-        targetIdx = i;
+      if (targetIdx < 0 || targetIdx >= testInstance.sections.length) {
+        targetIdx = Math.min(testInstance.sections.length - 1, currentIdx + 1);
       }
-
-      runningCount = sectionEnd;
     }
+
+    currentName =
+      testInstance.sections[currentIdx]?.title ||
+      (testInstance.sections[currentIdx] as any)?.sectionName ||
+      `Section ${currentIdx + 1}`;
+    targetName =
+      testInstance.sections[targetIdx]?.title ||
+      (testInstance.sections[targetIdx] as any)?.sectionName ||
+      `Section ${targetIdx + 1}`;
 
     forward = targetIdx > currentIdx;
 
@@ -71,38 +78,53 @@ export function SectionChangeModal() {
       targetSectionName: targetName,
       isForwardMove: forward,
     };
-  }, [testInstance, currentQuestionIndex, pendingSectionChangeTarget]);
+  }, [testInstance, currentSectionIndex, pendingSectionChangeTarget]);
 
   // Warning about locking applies when moving forward with section timing enabled
-  const showLockWarning = isForwardMove && sectionTimingEnabled;
+  const showLockWarning = isForwardMove;
 
-  const handleConfirm = async () => {
-    if (showLockWarning && testInstance) {
-      setIsLoading(true);
-      try {
-        // We need to call backend to advance section, since it's locked
-        const result = await import('../services/execution.service').then((m) =>
-          m.executionService.advanceSection(testInstance.id),
-        );
+  const handleConfirm = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (!testInstance) return;
+    setIsLoading(true);
+    try {
+      // Call backend to advance section
+      const result = await executionService.advanceSection(testInstance.id);
 
-        if (result.nextSectionIndex !== null) {
-          const newLockedKeys = testInstance.sections
-            .slice(0, result.nextSectionIndex)
-            .map((s) => s.sectionKey);
-
-          advanceSectionLocally(result.nextSectionIndex, newLockedKeys, result.serverTime);
-        } else {
-          cancelSectionChange();
+      if (result.nextSectionIndex !== null) {
+        let updatedInstance = testInstance;
+        let attempts = 0;
+        while (attempts < 10) {
+          try {
+            const latest = await executionService.getTestInstance(testInstance.id);
+            if (latest) {
+              updatedInstance = latest;
+              const nextSec = latest.sections[result.nextSectionIndex];
+              if (nextSec && nextSec.questions && nextSec.questions.length > 0) {
+                break;
+              }
+            }
+          } catch {
+            // fallback
+          }
+          attempts++;
+          if (attempts < 10) {
+            await new Promise((r) => setTimeout(r, 400));
+          }
         }
-      } catch (err) {
-        console.error('Failed to advance section via modal:', err);
+
+        const newLockedKeys = updatedInstance.sections
+          .slice(0, result.nextSectionIndex)
+          .map((s) => s.sectionKey);
+
+        advanceSectionLocally(result.nextSectionIndex, newLockedKeys, result.serverTime, updatedInstance);
+      } else {
         cancelSectionChange();
-      } finally {
-        setIsLoading(false);
       }
-    } else {
-      setIsLoading(true);
-      confirmSectionChange();
+    } catch (err) {
+      console.error('Failed to advance section via modal:', err);
+      cancelSectionChange();
+    } finally {
       setIsLoading(false);
     }
   };
@@ -180,7 +202,7 @@ export function SectionChangeModal() {
                   {isLoading ? (
                     <>
                       <Loader2 className='size-3.5 animate-spin' />
-                      Loading...
+                      Preparing {targetSectionName}...
                     </>
                   ) : (
                     <>

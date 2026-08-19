@@ -7,31 +7,51 @@ import Editor from '@monaco-editor/react';
 import { useParams } from 'next/navigation';
 import { useTemplateVariables, useUpdateTemplate } from '@/services/templates/hooks';
 
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+
 interface QuestionDefinitionSectionProps {
   template: any;
 }
 
 export function QuestionDefinitionSection({ template }: QuestionDefinitionSectionProps) {
   const { id } = useParams() as { id: string };
-  const [statement, setStatement] = useState(
-    'The price increased from {{oldPrice}} to {{newPrice}}.',
-  );
-  const [instructions, setInstructions] = useState('');
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const statement = draftState.questionDefinition?.statement ?? '';
+  const instructions = draftState.questionDefinition?.instructions ?? '';
+
+  const setStatement = (val: string) => {
+    updateDraftState({
+      questionDefinition: {
+        statement: val,
+        instructions,
+      },
+    });
+  };
+
+  const setInstructions = (val: string) => {
+    updateDraftState({
+      questionDefinition: {
+        statement,
+        instructions: val,
+      },
+    });
+  };
 
   const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
 
   useEffect(() => {
-    if (template?.structure) {
+    if (template?.structure && !draftState.questionDefinition) {
       const existingStatement =
         template.structure.questionStatement ?? template.structure.questionTemplate;
-      if (existingStatement !== undefined) {
-        setStatement(existingStatement);
-      }
-      if (template.structure.instructions !== undefined) {
-        setInstructions(template.structure.instructions);
-      }
+      updateDraftState({
+        questionDefinition: {
+          statement: existingStatement !== undefined ? existingStatement : 'The price increased from {{oldPrice}} to {{newPrice}}.',
+          instructions: template.structure.instructions ?? '',
+        },
+      });
     }
-  }, [template]);
+  }, [template, draftState.questionDefinition, updateDraftState]);
 
   // Fetch variables for validation
   const { data: variablesResponse } = useTemplateVariables(id);

@@ -18,7 +18,7 @@ const regions = [
 ];
 
 const projectRef = "ayklmzeqfezrlbkdusqc";
-const pass = "MARVEL7ace@77090";
+const pass = process.env.DB_PASSWORD || "postgres";
 
 async function testRegion(region) {
   const url = `postgresql://postgres.${projectRef}:${pass}@aws-0-${region}.pooler.supabase.com:6543/postgres`;

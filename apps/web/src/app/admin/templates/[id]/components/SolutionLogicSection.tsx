@@ -6,6 +6,8 @@ import { useSaveSolutionTemplate, useSolutionTemplate } from '@/services/templat
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+
 interface SolutionLogicSectionProps {
   template?: any;
 }
@@ -22,29 +24,55 @@ export function SolutionLogicSection({ template }: SolutionLogicSectionProps) {
   const { data: existingData } = useSolutionTemplate(template?.id || '');
   const { mutate: saveSolution, isPending: isSaving } = useSaveSolutionTemplate();
 
-  const [solutionTemplateStr, setSolutionTemplateStr] = useState('');
-  const [explanationTemplateStr, setExplanationTemplateStr] = useState('');
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+
+  const solutionTemplateStr = draftState.solutionLogic?.solutionTemplate ?? '';
+  const explanationTemplateStr = draftState.solutionLogic?.explanationTemplate ?? '';
+
+  const setSolutionTemplateStr = (val: string) => {
+    updateDraftState({
+      solutionLogic: {
+        solutionTemplate: val,
+        explanationTemplate: explanationTemplateStr,
+      },
+    });
+  };
+
+  const setExplanationTemplateStr = (val: string) => {
+    updateDraftState({
+      solutionLogic: {
+        solutionTemplate: solutionTemplateStr,
+        explanationTemplate: val,
+      },
+    });
+  };
 
   useEffect(() => {
-    // Try to load from master template first, fallback to existingData
-    let initialSolution = '';
-    let initialExplanation = '';
+    if (!draftState.solutionLogic) {
+      // Try to load from master template first, fallback to existingData
+      let initialSolution = '';
+      let initialExplanation = '';
 
-    if (template?.solutionSchema?.solutionTemplate !== undefined) {
-      initialSolution = template.solutionSchema.solutionTemplate;
-    } else if (existingData?.solutionTemplate) {
-      initialSolution = existingData.solutionTemplate;
+      if (template?.solutionSchema?.solutionTemplate !== undefined) {
+        initialSolution = template.solutionSchema.solutionTemplate;
+      } else if (existingData?.solutionTemplate) {
+        initialSolution = existingData.solutionTemplate;
+      }
+
+      if (template?.solutionSchema?.explanationTemplate !== undefined) {
+        initialExplanation = template.solutionSchema.explanationTemplate;
+      } else if (existingData?.explanationTemplate) {
+        initialExplanation = existingData.explanationTemplate;
+      }
+
+      updateDraftState({
+        solutionLogic: {
+          solutionTemplate: initialSolution,
+          explanationTemplate: initialExplanation,
+        },
+      });
     }
-
-    if (template?.solutionSchema?.explanationTemplate !== undefined) {
-      initialExplanation = template.solutionSchema.explanationTemplate;
-    } else if (existingData?.explanationTemplate) {
-      initialExplanation = existingData.explanationTemplate;
-    }
-
-    setSolutionTemplateStr(initialSolution);
-    setExplanationTemplateStr(initialExplanation);
-  }, [template, existingData]);
+  }, [template, existingData, draftState.solutionLogic, updateDraftState]);
 
   const handleSave = () => {
     if (!template?.id) return;

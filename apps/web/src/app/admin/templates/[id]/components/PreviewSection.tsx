@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { Loader2, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -8,19 +8,80 @@ import { useParams } from 'next/navigation';
 import { useGeneratePreview } from '@/services/templates/hooks';
 import { normalizeApiError } from '@/services/api/error';
 import { buildPreviewErrorDisplay } from './preview-error-utils';
+import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export function PreviewSection({ template }: { template?: any }) {
   const { id: templateId } = useParams() as { id: string };
+  const currentStrategy = template?.generationStrategy || 'VARIABLE';
   const { mutateAsync: generatePreview, isPending } = useGeneratePreview();
   const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState<ReturnType<typeof buildPreviewErrorDisplay> | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const { draftState, updateDraftState } = useTemplateBuilderContext();
+  const previewValues = draftState.previewValues || {};
+
+  const variables = useMemo(() => {
+    const rawVars = template?.variableSchema?.variables;
+    return Array.isArray(rawVars) ? rawVars : [];
+  }, [template?.variableSchema?.variables]);
 
   const handlePreview = async () => {
     setError(null);
+    setValidationError(null);
+
+    const payload: Record<string, unknown> = {};
+    if (currentStrategy === 'VARIABLE') {
+      for (const v of variables) {
+        const rawValue = previewValues[v.name];
+        
+        if (rawValue === undefined || rawValue === null || String(rawValue).trim() === '') {
+          setValidationError(`Variable "${v.name}" is required.`);
+          return;
+        }
+
+        const trimmed = String(rawValue).trim();
+
+        if (v.type === 'number' || v.type === 'integer' || v.type === 'decimal') {
+          const num = Number(trimmed);
+          if (isNaN(num)) {
+            setValidationError(`Variable "${v.name}" must be a valid number.`);
+            return;
+          }
+
+          if (v.type === 'integer' && !Number.isInteger(num)) {
+            setValidationError(`Variable "${v.name}" must be a valid integer.`);
+            return;
+          }
+
+          if (v.min !== undefined && num < Number(v.min)) {
+            setValidationError(`Variable "${v.name}" must be at least ${v.min}.`);
+            return;
+          }
+          if (v.max !== undefined && num > Number(v.max)) {
+            setValidationError(`Variable "${v.name}" must be at most ${v.max}.`);
+            return;
+          }
+
+          payload[v.name] = num;
+        } else if (v.type === 'boolean') {
+          if (trimmed !== 'true' && trimmed !== 'false') {
+            setValidationError(`Variable "${v.name}" must be True or False.`);
+            return;
+          }
+          payload[v.name] = trimmed === 'true';
+        } else {
+          payload[v.name] = trimmed;
+        }
+      }
+    }
+
     try {
       const res = await generatePreview({
         templateId,
-        payload: { previewPayload: {} },
+        payload: { previewPayload: payload },
       });
       const previewData = (res as any).previewResult || res;
       setResult(previewData);
@@ -29,8 +90,6 @@ export function PreviewSection({ template }: { template?: any }) {
       setError(buildPreviewErrorDisplay(normalizedError));
     }
   };
-
-  const currentStrategy = template?.generationStrategy || 'VARIABLE';
 
   // Formatting config — show between 2 and 4 decimal places for numeric answers
   const MIN_DECIMALS = 2;
@@ -108,6 +167,81 @@ export function PreviewSection({ template }: { template?: any }) {
               Preview never persists. Click Generate to test your configuration.
             </p>
           </div>
+
+          {/* Dynamic Variable Setup Form (FE-05) */}
+          {currentStrategy === 'VARIABLE' && variables.length > 0 && (
+            <div className='border rounded-lg p-5 bg-white dark:bg-gray-950 shadow-sm space-y-4'>
+              <div>
+                <h3 className='font-semibold text-sm text-gray-950 dark:text-gray-50'>
+                  Variable Inputs Setup
+                </h3>
+                <p className='text-xs text-muted-foreground mt-0.5'>
+                  Specify mock values for the template variables below.
+                </p>
+              </div>
+              <div className='space-y-3.5'>
+                {variables.map((v: any) => {
+                  const val = previewValues[v.name] ?? '';
+                  return (
+                    <div key={v.name} className='space-y-1.5'>
+                      <Label htmlFor={`preview-${v.name}`} className='text-xs font-medium flex items-center justify-between'>
+                        <span>
+                          {v.name} <span className='text-[10px] text-muted-foreground font-mono'>({v.type})</span>
+                        </span>
+                        {v.min !== undefined || v.max !== undefined ? (
+                          <span className='text-[10px] text-muted-foreground font-mono'>
+                            [{v.min ?? '-∞'}, {v.max ?? '∞'}]
+                          </span>
+                        ) : null}
+                      </Label>
+                      {v.type === 'boolean' ? (
+                        <select
+                          id={`preview-${v.name}`}
+                          className='flex h-9 w-full rounded-md border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500'
+                          value={val}
+                          onChange={(e) => {
+                            updateDraftState({
+                              previewValues: {
+                                ...previewValues,
+                                [v.name]: e.target.value,
+                              },
+                            });
+                          }}
+                        >
+                          <option value=''>-- Select --</option>
+                          <option value='true'>True</option>
+                          <option value='false'>False</option>
+                        </select>
+                      ) : (
+                        <Input
+                          id={`preview-${v.name}`}
+                          type={v.type === 'string' ? 'text' : 'text'}
+                          placeholder={v.defaultValue !== undefined ? `Default: ${v.defaultValue}` : 'Enter value...'}
+                          value={val}
+                          className='h-9 text-xs'
+                          onChange={(e) => {
+                            updateDraftState({
+                              previewValues: {
+                                ...previewValues,
+                                [v.name]: e.target.value,
+                              },
+                            });
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {validationError && (
+            <div className='flex items-start gap-2 p-3 text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md'>
+              <AlertCircle className='w-4 h-4 mt-0.5 shrink-0' />
+              <span>{validationError}</span>
+            </div>
+          )}
 
           <Button onClick={handlePreview} disabled={isPending} className='w-full gap-2'>
             {isPending ? <Loader2 className='w-4 h-4 animate-spin' /> : <Eye className='w-4 h-4' />}

@@ -135,6 +135,13 @@ export class SectionAdvanceService {
         userId,
       });
 
+      // Invalidate caches
+      await Promise.allSettled([
+        this.cacheService.delete(`assessment-snapshot:${testInstanceId}`),
+        this.cacheService.delete(`test-instance:meta:${testInstanceId}`),
+        this.cacheService.delete(`execution-state:${testInstanceId}`),
+      ]);
+
       // Fire and forget – we return immediately; submission is idempotent
       this.submissionService
         .submitAssessment(testInstanceId, userId, true)
@@ -157,6 +164,77 @@ export class SectionAdvanceService {
     // 5b. Advance to next section
     const nextSectionIndex = currentSectionIndex + 1;
     const nextSection = sections[nextSectionIndex];
+
+    if (!nextSection) {
+      throw new BadRequestException("Next section not found");
+    }
+
+    // Readiness check: Verify questions exist in TestInstanceQuestion or AssembledTestQuestion
+    let questionCount = await this.prisma.testInstanceQuestion.count({
+      where: { testInstanceId, sectionId: nextSection.id },
+    });
+
+    if (questionCount === 0) {
+      // 1. Check if AssembledTestQuestion already has questions for this section
+      const assembledQuestions =
+        await this.prisma.assembledTestQuestion.findMany({
+          where: {
+            assemblyId: testInstanceId,
+            section: { sectionKey: nextSection.sectionKey },
+          },
+        });
+
+      if (assembledQuestions.length > 0) {
+        await this.prisma.testInstanceQuestion.createMany({
+          data: assembledQuestions.map((q, idx) => ({
+            testInstanceId,
+            sectionId: nextSection.id,
+            questionId: q.questionId,
+            questionOrder: q.questionOrder ?? idx,
+            questionSnapshot: q.questionSnapshot as any,
+          })),
+          skipDuplicates: true,
+        });
+        questionCount = assembledQuestions.length;
+      } else {
+        // 2. Check if a reusable full assembly exists for examConfigId
+        const instanceMeta = await this.prisma.testInstance.findUnique({
+          where: { id: testInstanceId },
+          select: { examConfigId: true },
+        });
+
+        if (instanceMeta?.examConfigId) {
+          const reusableSec = await this.prisma.assembledTestSection.findFirst({
+            where: {
+              assembly: {
+                configId: instanceMeta.examConfigId,
+                status: { in: ["PUBLISHED", "DRAFT"] },
+              },
+              sectionKey: nextSection.sectionKey,
+              questions: { some: {} },
+            },
+            include: {
+              questions: true,
+            },
+            orderBy: { createdAt: "desc" },
+          });
+
+          if (reusableSec && reusableSec.questions.length > 0) {
+            await this.prisma.testInstanceQuestion.createMany({
+              data: reusableSec.questions.map((q, idx) => ({
+                testInstanceId,
+                sectionId: nextSection.id,
+                questionId: q.questionId,
+                questionOrder: q.questionOrder ?? idx,
+                questionSnapshot: (q.questionSnapshot as any) || {},
+              })),
+              skipDuplicates: true,
+            });
+            questionCount = reusableSec.questions.length;
+          }
+        }
+      }
+    }
 
     // 6. Lock previous sections (all sections before nextSectionIndex become LOCKED)
     const previousSectionIds = sections
@@ -213,6 +291,13 @@ export class SectionAdvanceService {
         data: { status: "IN_PROGRESS", startedAt: now },
       });
     }
+
+    // 10. Invalidate assessment snapshot and execution state caches
+    await Promise.allSettled([
+      this.cacheService.delete(`assessment-snapshot:${testInstanceId}`),
+      this.cacheService.delete(`test-instance:meta:${testInstanceId}`),
+      this.cacheService.delete(`execution-state:${testInstanceId}`),
+    ]);
 
     this.logger.info(`Section advanced to index ${nextSectionIndex}`, {
       testInstanceId,

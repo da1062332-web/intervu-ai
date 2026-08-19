@@ -33,13 +33,20 @@ export class StartTestService {
   ) {}
 
   async startTest(userId: string, input: StartTestDto) {
+    const startOverall = Date.now();
+    this.logger.log(`\n================================================================================`);
+    this.logger.log(`[START-TEST 🚀] START TEST INITIATED | User: ${userId} | Config: ${input.testConfigId}`);
+    this.logger.log(`================================================================================`);
+
     // 1. validate(input) -> Fetch Dependencies
+    const t0 = Date.now();
+    this.logger.log(`[START-TEST ⏱️] Step 1/5: Validating candidate eligibility...`);
     const eligibility = await this.eligibilityService.validateEligibility(
       userId,
       input.testConfigId,
     );
-
     const targetConfigId = eligibility.resolvedConfigId || input.testConfigId;
+    this.logger.log(`[START-TEST ✅] Step 1/5: Eligibility validated in ${Date.now() - t0}ms (Eligible: ${eligibility.eligible}, isExamConfig: ${eligibility.isExamConfig})`);
 
     if (!eligibility.eligible) {
       if (
@@ -58,6 +65,7 @@ export class StartTestService {
           if (config) durationSeconds = config.totalDurationSeconds;
         }
 
+        this.logger.log(`[START-TEST ℹ️] Active instance already exists: ${eligibility.activeTestId}. Returning existing instance in ${Date.now() - startOverall}ms.`);
         return {
           testInstanceId: eligibility.activeTestId,
           status: TestInstanceStatus.IN_PROGRESS,
@@ -65,12 +73,15 @@ export class StartTestService {
           durationSeconds,
         };
       }
+      this.logger.warn(`[START-TEST ❌] Eligibility check failed: ${eligibility.reason || eligibility.errorCode}`);
       throw new BadRequestException({
         code: eligibility.errorCode || "USER_NOT_ELIGIBLE",
         message: eligibility.reason || "User not eligible",
       });
     }
 
+    const t1 = Date.now();
+    this.logger.log(`[START-TEST ⏱️] Step 2/5: Fetching test configuration and section blueprint...`);
     let config: any;
     if (eligibility.isExamConfig) {
       config = await this.prisma.examConfig.findUnique({
@@ -126,13 +137,17 @@ export class StartTestService {
     }
 
     if (!config) {
+      this.logger.error(`[START-TEST ❌] Test configuration not found for ID: ${targetConfigId}`);
       throw new BadRequestException({
         code: "TEST_CONFIG_NOT_FOUND",
         message: "Test configuration not found",
       });
     }
+    this.logger.log(`[START-TEST ✅] Step 2/5: Config loaded in ${Date.now() - t1}ms ("${config.name || config.title}", Sections: ${config.sections?.length}, TotalDuration: ${config.totalDurationSeconds}s)`);
 
     // Dynamic candidate-unique assembly ONLY when candidateNoRepeatEnabled flag is active AND candidate is taking a Retest attempt
+    const t2 = Date.now();
+    this.logger.log(`[START-TEST ⏱️] Step 3/5: Checking attempt history & candidateNoRepeat rule flags...`);
     const previousAttempts = await this.prisma.testInstance.findMany({
       where: {
         userId,
@@ -143,12 +158,21 @@ export class StartTestService {
 
     const isRetest = previousAttempts.length > 0;
     const isCandidateNoRepeat = config.ruleFlags?.candidateNoRepeatEnabled ?? false;
+    this.logger.log(`[START-TEST ℹ️] Step 3/5: Checked history in ${Date.now() - t2}ms (PreviousAttempts: ${previousAttempts.length}, isRetest: ${isRetest}, candidateNoRepeat: ${isCandidateNoRepeat})`);
 
     if (isCandidateNoRepeat && isRetest && this.assemblyService) {
-      const candidateInstanceId = await this.assemblyService.assembleTest(targetConfigId, userId);
+      this.logger.log(`[START-TEST 🤖] Flow 2 Active: Dynamic AI Retest Mode triggered. Assembling progressive test instance...`);
+      const tAi = Date.now();
+      const candidateInstanceId = await this.assemblyService.assembleTest(
+        targetConfigId,
+        userId,
+        false,
+        { progressive: true, isRetest: true },
+      );
       const instanceRecord = await this.prisma.testInstance.findUnique({
         where: { id: candidateInstanceId },
       });
+      this.logger.log(`[START-TEST 🚀] Flow 2 Completed in ${Date.now() - tAi}ms! Instance: ${candidateInstanceId} | Total start time: ${Date.now() - startOverall}ms`);
       return {
         testInstanceId: candidateInstanceId,
         status: instanceRecord?.status || TestInstanceStatus.CREATED,
@@ -158,37 +182,52 @@ export class StartTestService {
     }
 
     // 2. Assembly
-    // For candidate delivery, ALWAYS use candidate-specific dynamic assembly.
-    // We pass `forceNew = true` to bypass any existing config-level static snapshots.
     if (!this.assemblyService) {
       throw new InternalServerErrorException({
         code: "ASSEMBLY_SERVICE_UNAVAILABLE",
-        message: "Assembly service is required for dynamic candidate test creation.",
+        message: "Assembly service is required for candidate test creation.",
       });
     }
 
+    const t3 = Date.now();
+    this.logger.log(`[START-TEST ⏱️] Step 4/5: Invoking AssemblyService.assembleTest...`);
     let testInstanceId: string;
     try {
-      testInstanceId = await this.assemblyService.assembleTest(targetConfigId, userId, true);
+      testInstanceId = await this.assemblyService.assembleTest(
+        targetConfigId,
+        userId,
+        false,
+        { progressive: true },
+      );
+      this.logger.log(`[START-TEST ✅] Step 4/5: AssemblyService completed in ${Date.now() - t3}ms -> Instance ID: ${testInstanceId}`);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Failed assembling test for candidate ${userId}, configId: ${targetConfigId}. Cause: ${errorMsg}`,
+        `[START-TEST ❌] Failed assembling test for candidate ${userId}, configId: ${targetConfigId}. Cause: ${errorMsg}`,
         error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException({
         code: "ASSEMBLY_FAILED",
-        message: `Failed to dynamically assemble test: ${errorMsg}`,
+        message: `Failed to assemble test: ${errorMsg}`,
       });
     }
 
+    const t4 = Date.now();
+    this.logger.log(`[START-TEST ⏱️] Step 5/5: Verifying created TestInstance in DB...`);
     const testInstance = await this.testInstanceService.getTestInstance(testInstanceId);
     if (!testInstance) {
+      this.logger.error(`[START-TEST ❌] Test instance record ${testInstanceId} not found in DB!`);
       throw new InternalServerErrorException({
         code: "TEST_INSTANCE_CREATION_FAILED",
         message: "Failed to fetch created test instance after assembly",
       });
     }
+    this.logger.log(`[START-TEST ✅] Step 5/5: Instance verified in ${Date.now() - t4}ms (Status: ${testInstance.status})`);
+
+    const totalMs = Date.now() - startOverall;
+    this.logger.log(`================================================================================`);
+    this.logger.log(`[START-TEST 🚀⚡] TEST START COMPLETE IN ${totalMs}ms (< ${(totalMs / 1000).toFixed(2)}s) | Instance: ${testInstance.id}`);
+    this.logger.log(`================================================================================\n`);
 
     // 4. formatResponse(result)
     return {

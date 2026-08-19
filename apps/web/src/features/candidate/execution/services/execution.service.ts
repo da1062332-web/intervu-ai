@@ -49,7 +49,7 @@ export const executionService = {
       durationSeconds: response.durationSeconds || duration,
 
       // Section timing fields (Feature 5, 6, 7, 8)
-      sectionTimingEnabled: true,
+      sectionTimingEnabled: response.sectionTimingEnabled ?? false,
       currentSectionIndex: response.currentSectionIndex ?? 0,
       currentQuestionIndex: response.currentQuestionIndex ?? 0,
       serverTime: response.serverTime ?? new Date().toISOString(),

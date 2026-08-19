@@ -43,12 +43,14 @@ describe('NavigationControls', () => {
     expect(mockGoNext).toHaveBeenCalled();
   });
 
-  it('shows Submit Assessment on last question', () => {
+  it('shows Submit Assessment on last question of single section test', () => {
     (useExecutionStore as any).mockReturnValue({
       currentQuestionIndex: 1,
       questions: [{}, {}],
       goNext: mockGoNext,
       goPrevious: mockGoPrevious,
+      currentSectionIndex: 0,
+      testInstance: { sections: [{ questions: [{}, {}] }] },
     });
 
     render(<NavigationControls onSubmitClick={mockOnSubmit} />);
@@ -56,5 +58,30 @@ describe('NavigationControls', () => {
     expect(submitButton).toBeInTheDocument();
     fireEvent.click(submitButton);
     expect(mockOnSubmit).toHaveBeenCalled();
+  });
+
+  it('shows Next Section on last question of Section 1 in multi-section test', () => {
+    const mockRequestNextSection = vi.fn();
+    (useExecutionStore as any).mockReturnValue({
+      currentQuestionIndex: 1,
+      questions: [{}, {}, {}, {}],
+      goNext: mockGoNext,
+      goPrevious: mockGoPrevious,
+      requestNextSection: mockRequestNextSection,
+      currentSectionIndex: 0,
+      testInstance: {
+        sections: [
+          { questions: [{}, {}] }, // Section 1 (2 questions)
+          { questions: [{}, {}] }, // Section 2 (2 questions)
+        ],
+      },
+    });
+
+    render(<NavigationControls onSubmitClick={mockOnSubmit} />);
+    const nextSectionButton = screen.getByText(/Next Section/i);
+    expect(nextSectionButton).toBeInTheDocument();
+    fireEvent.click(nextSectionButton);
+    expect(mockRequestNextSection).toHaveBeenCalled();
+    expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 });

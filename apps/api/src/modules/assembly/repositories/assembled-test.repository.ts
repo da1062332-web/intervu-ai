@@ -179,7 +179,21 @@ export class AssembledTestRepository {
     return this.prisma.assembledTest.findFirst({
       where: {
         configId,
-        status: AssemblyStatus.PUBLISHED,
+        totalQuestions: { gt: 0 },
+        // Accept both PUBLISHED and complete DRAFT assemblies.
+        // PUBLISHED is always preferred (see orderBy below).
+        // DRAFT fallback covers configs assembled but not yet formally published.
+        status: { in: [AssemblyStatus.PUBLISHED, AssemblyStatus.DRAFT] },
+        sections: {
+          // At least one section must exist with questions
+          some: {
+            questions: { some: {} },
+          },
+          // No section is allowed to have zero questions (strictly rejects partial drafts)
+          none: {
+            questions: { none: {} },
+          },
+        },
       },
       select: {
         id: true,
@@ -190,18 +204,20 @@ export class AssembledTestRepository {
         examConfig: {
           select: {
             updatedAt: true,
-            ruleFlags: {
-              select: {
-                candidateNoRepeatEnabled: true,
-                runtimeGenerationOnDeficit: true,
-              } as any,
-            },
+            ruleFlags: true,
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        // Prefer PUBLISHED over DRAFT: "PUBLISHED" < "DRAFT" alphabetically
+        // so ascending sort puts PUBLISHED first.
+        { status: "asc" },
+        // Among same-status assemblies, pick the newest one
+        { createdAt: "desc" },
+      ],
     });
   }
+
 
   async updateStatus(id: string, status: AssemblyStatus) {
     return this.prisma.assembledTest.update({

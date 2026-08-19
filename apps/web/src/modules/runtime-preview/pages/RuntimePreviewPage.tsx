@@ -69,7 +69,20 @@ function LazySection({
 
   return (
     <Card className='mt-4 overflow-hidden border-t-4 border-t-primary'>
-      <div className='cursor-pointer bg-muted/30' onClick={() => setIsOpen(!isOpen)}>
+      <div
+        role='button'
+        tabIndex={0}
+        aria-expanded={isOpen}
+        aria-label={`Toggle ${initialSectionData.title} section`}
+        className='cursor-pointer bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
+      >
         <CardHeader className='pb-4'>
           <div className='flex justify-between items-center'>
             <div>
