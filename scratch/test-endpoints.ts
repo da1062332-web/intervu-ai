@@ -8,9 +8,7 @@ const JWT_SECRET =
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url:
-        process.env.DATABASE_URL ||
-        "postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres",
+      url: process.env.DATABASE_URL,
     },
   },
 });

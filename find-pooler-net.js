@@ -40,7 +40,7 @@ async function checkPort(host, port) {
 async function main() {
   console.log("Searching for active Supabase region pooler (port 6543)...");
   const projectRef = "ayklmzeqfezrlbkdusqc";
-  const pass = "MARVEL7ace@77090";
+  const pass = process.env.DB_PASSWORD || "postgres";
 
   for (const region of regions) {
     const host = `aws-0-${region}.pooler.supabase.com`;
