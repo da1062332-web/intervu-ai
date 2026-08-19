@@ -34,9 +34,19 @@ export function QuestionCard({ index, onRemove, onDuplicate, disabled }: Questio
     <div className='relative border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-950 shadow-sm transition-all'>
       {/* Header */}
       <div
-        className='flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-t-xl border-b border-transparent data-[open=true]:border-gray-200 dark:data-[open=true]:border-gray-800'
+        role='button'
+        tabIndex={0}
+        aria-expanded={isOpen}
+        aria-label={`Toggle Question ${index + 1}`}
+        className='flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-t-xl border-b border-transparent data-[open=true]:border-gray-200 dark:data-[open=true]:border-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
         data-open={isOpen}
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
       >
         <h4 className='font-semibold text-lg flex items-center'>
           {isOpen ? (
@@ -51,7 +61,11 @@ export function QuestionCard({ index, onRemove, onDuplicate, disabled }: Questio
             </span>
           )}
         </h4>
-        <div className='flex items-center space-x-2' onClick={(e) => e.stopPropagation()}>
+        <div
+          className='flex items-center space-x-2'
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <Button
             type='button'
             variant='ghost'

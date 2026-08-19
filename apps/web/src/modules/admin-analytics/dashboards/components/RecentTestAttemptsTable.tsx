@@ -103,6 +103,8 @@ const columns: ColumnDef<RecentTestAttempt>[] = [
   },
 ];
 
+const EMPTY_RECENT_ATTEMPTS: RecentTestAttempt[] = [];
+
 export function RecentTestAttemptsTable() {
   const { data, isLoading, isError, refetch } = useRecentTestAttempts();
 
@@ -138,7 +140,7 @@ export function RecentTestAttemptsTable() {
       <CardContent className='p-0 flex-1 overflow-hidden'>
         <DataTable
           columns={columns}
-          data={data ?? []}
+          data={data ?? EMPTY_RECENT_ATTEMPTS}
           isLoading={isLoading}
           disablePagination
           rowKey={(row) => (row.id || row.attemptId) as string}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { CandidateDashboardHeader } from '@/components/candidate/dashboard/CandidateDashboardHeader';
 import {
   useCandidateDashboard,
@@ -21,6 +22,21 @@ export function CandidateDashboard() {
   } = useCandidateDashboard(user?.id);
   const { data: metrics, isLoading: isMetricsLoading } = useCandidateDashboardMetrics(user?.id);
 
+  // Exclude the hero assessment displayed in CandidateOverviewCard from AvailableAssessmentSection
+  const filteredDashboard = useMemo(() => {
+    if (!dashboard) return null;
+    const enrolled = dashboard.availableTests.find(
+      (t) => t.status === 'ENROLLED' || t.hasActiveAttempt,
+    );
+    const heroId = (enrolled || dashboard.availableTests[0])?.id;
+    if (!heroId) return dashboard;
+
+    return {
+      ...dashboard,
+      availableTests: dashboard.availableTests.filter((t) => t.id !== heroId),
+    };
+  }, [dashboard]);
+
   return (
     <div className='mx-auto w-full max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-16 py-6 md:py-8 space-y-7 md:space-y-8 animate-fade-in-up'>
       {/* 1. Big Welcome Header */}
@@ -41,7 +57,7 @@ export function CandidateDashboard() {
         {/* Left Area (7 cols on desktop): Available Assessments 2x2 Grid */}
         <div className='lg:col-span-7 h-full'>
           <AvailableAssessmentSection
-            dashboard={dashboard}
+            dashboard={filteredDashboard}
             isLoading={isDashboardLoading}
             error={dashboardError}
             compact={true}
