@@ -124,6 +124,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
 
     import('@vladmandic/face-api').then((faceapi) => {
       faceapiModule = faceapi;
+      const gracePeriodEndTime = Date.now() + 15000; // 15s warmup grace period
 
       // Prefer SsdMobilenetv1 if weights loaded, otherwise use TinyFaceDetector
       const isSsdReady = faceapi.nets.ssdMobilenetv1.isLoaded;
