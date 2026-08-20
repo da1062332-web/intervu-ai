@@ -47,7 +47,7 @@ export class CodingOracleService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.syncOraclesWithRegistry();
+    // Disabled automatic database sync on startup per configuration requirement
   }
 
   /**

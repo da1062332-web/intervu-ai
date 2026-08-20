@@ -56,13 +56,6 @@ export class CodingOracleController {
     });
   }
 
-  @Post("sync")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Manually trigger synchronization of backend Oracles with Database" })
-  async sync() {
-    return this.oracleService.syncOraclesWithRegistry();
-  }
-
   @Get(":id")
   @ApiOperation({ summary: "Get a Coding Oracle record by ID or Key" })
   async findOne(@Param("id") id: string) {

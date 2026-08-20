@@ -26,7 +26,7 @@ function AssessmentBuilderContent() {
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  
+
   const configId = searchParams.get('configId');
   const urlJobId = searchParams.get('jobId');
 
@@ -157,7 +157,6 @@ function AssessmentBuilderContent() {
     setValidationResult(undefined);
     queryClient.removeQueries({ queryKey: ['generationJob'] });
 
-    // Clear jobId from the URL immediately so polling doesn't restart/hydrate
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.delete('jobId');
     router.replace(`${pathname}?${newParams.toString()}`);

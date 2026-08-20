@@ -27,7 +27,10 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
     // Load models
     const loadModels = async () => {
       try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        await Promise.allSettled([
+          faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+          faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+        ]);
         setModelsLoaded(true);
       } catch (err) {
         console.error('Failed to load face-api models', err);
@@ -62,7 +65,10 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
         }
 
         // Setup audio context
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        audioContextRef.current = new AudioCtx();
         const source = audioContextRef.current.createMediaStreamSource(stream);
         analyserRef.current = audioContextRef.current.createAnalyser();
         analyserRef.current.fftSize = 256;
@@ -115,10 +121,10 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
       // Face Detection
       if (videoRef.current && videoRef.current.readyState === 4) {
         try {
-          const options = new faceapi.TinyFaceDetectorOptions({
-            inputSize: 160,
-            scoreThreshold: 0.5,
-          });
+          const isSsdReady = faceapi.nets.ssdMobilenetv1.isLoaded;
+          const options = isSsdReady
+            ? new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })
+            : new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.2 });
           const detection = await faceapi.detectSingleFace(videoRef.current, options);
 
           if (canvasRef.current && videoRef.current) {
@@ -155,7 +161,7 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
           const faceDetected = !!detection;
           setHasFace(faceDetected);
           onFaceDetected(faceDetected);
-        } catch (e) {
+        } catch {
           // ignore detection errors on unmount
         }
       }

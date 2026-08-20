@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { SectionHeader } from '@/components/ui/section-header';
 import {
@@ -19,37 +20,76 @@ import {
 import {
   Search,
   Cpu,
-  RefreshCw,
   Edit2,
   CheckCircle2,
   AlertTriangle,
-  Power,
   X,
   Loader2,
-  Plus,
   Play,
 } from 'lucide-react';
 import {
   useCodingOracles,
   useToggleCodingOracleStatus,
   useUpdateCodingOracle,
-  useCreateCodingOracle,
-  useSyncCodingOracles,
 } from '@/services/coding-oracles/hooks';
 import { CodingOracleItem } from '@/services/coding-oracles/api';
 
-const EMPTY_CREATE_FORM = {
-  key: '',
-  name: '',
-  category: 'GENERAL',
-  description: '',
-  parameterSchema: '{}',
-  isActive: true,
-};
+export const ORACLE_CATEGORIES = [
+  'BASIC',
+  'ARRAY',
+  'STRING',
+  'MATH',
+  'MATRIX',
+  'LOOP',
+  'LOGIC',
+  'SEARCHING',
+  'SORTING',
+  'SORT',
+  'RECURSION',
+  'SIMULATION',
+  'DYNAMIC_PROGRAMMING',
+  'TREES',
+  'GRAPHS',
+  'GENERAL',
+] as const;
+
+function getCategoryBadgeStyle(category?: string) {
+  const cat = (category || 'GENERAL').toUpperCase();
+  switch (cat) {
+    case 'BASIC':
+      return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300';
+    case 'ARRAY':
+      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300';
+    case 'STRING':
+      return 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950 dark:text-cyan-300';
+    case 'MATH':
+      return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300';
+    case 'MATRIX':
+      return 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300';
+    case 'LOOP':
+      return 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950 dark:text-teal-300';
+    case 'LOGIC':
+      return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300';
+    case 'SORT':
+    case 'SORTING':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300';
+    case 'SEARCHING':
+      return 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-300';
+    case 'RECURSION':
+      return 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-300';
+    case 'SIMULATION':
+      return 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-950 dark:text-pink-300';
+    case 'DYNAMIC_PROGRAMMING':
+    case 'DP':
+      return 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-300';
+    default:
+      return 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900 dark:text-slate-300';
+  }
+}
 
 const EMPTY_EDIT_FORM = {
   name: '',
-  category: 'GENERAL',
+  category: 'BASIC',
   description: '',
   parameterSchema: '{}',
   isActive: true,
@@ -60,7 +100,6 @@ export default function AdminOracleLibraryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [editingOracle, setEditingOracle] = useState<CodingOracleItem | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
 
   const activeFilter = selectedStatus === 'ALL' ? undefined : selectedStatus === 'ACTIVE';
   const categoryFilter = selectedCategory === 'ALL' ? undefined : selectedCategory;
@@ -68,12 +107,8 @@ export default function AdminOracleLibraryPage() {
   const { data, isLoading } = useCodingOracles(categoryFilter, activeFilter, search);
   const toggleMutation = useToggleCodingOracleStatus();
   const updateMutation = useUpdateCodingOracle();
-  const createMutation = useCreateCodingOracle();
-  const syncMutation = useSyncCodingOracles();
 
   const [editForm, setEditForm] = useState(EMPTY_EDIT_FORM);
-  const [createForm, setCreateForm] = useState(EMPTY_CREATE_FORM);
-  const [createError, setCreateError] = useState('');
 
   // ── Edit handlers ──────────────────────────────────────────────
   const handleOpenEdit = (oracle: CodingOracleItem) => {
@@ -108,64 +143,13 @@ export default function AdminOracleLibraryPage() {
     }
   };
 
-  // ── Create handlers ────────────────────────────────────────────
-  const handleOpenCreate = () => {
-    setCreateForm(EMPTY_CREATE_FORM);
-    setCreateError('');
-    setIsCreating(true);
-  };
-
-  const handleCloseCreate = () => setIsCreating(false);
-
-  const handleSaveCreate = async () => {
-    setCreateError('');
-    if (!createForm.key.trim()) {
-      setCreateError('Oracle key is required.');
-      return;
-    }
-    if (!createForm.name.trim()) {
-      setCreateError('Display name is required.');
-      return;
-    }
-    try {
-      JSON.parse(createForm.parameterSchema || '{}');
-    } catch {
-      setCreateError('Parameter Schema is not valid JSON.');
-      return;
-    }
-    try {
-      await createMutation.mutateAsync({
-        key: createForm.key.toUpperCase().trim(),
-        name: createForm.name.trim(),
-        category: createForm.category,
-        description: createForm.description || undefined,
-        parameterSchema: JSON.parse(createForm.parameterSchema || '{}'),
-        isActive: createForm.isActive,
-      });
-      handleCloseCreate();
-    } catch (err: any) {
-      setCreateError(err.message || 'Failed to create oracle.');
-    }
-  };
-
-  // ── Toggle & Sync ──────────────────────────────────────────────
-  const handleToggle = async (idOrKey: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  // ── Toggle Status ──────────────────────────────────────────────
+  const handleToggle = async (idOrKey: string, e?: React.MouseEvent | React.SyntheticEvent) => {
+    if (e) e.stopPropagation();
     try {
       await toggleMutation.mutateAsync(idOrKey);
     } catch (err: any) {
       alert(`Toggle status failed: ${err.message}`);
-    }
-  };
-
-  const handleSync = async () => {
-    try {
-      const res = await syncMutation.mutateAsync();
-      alert(
-        `Oracle sync successful! Synced ${res.syncedCount} of ${res.totalCount} backend Oracles.`,
-      );
-    } catch (err: any) {
-      alert(`Sync failed: ${err.message}`);
     }
   };
 
@@ -176,15 +160,41 @@ export default function AdminOracleLibraryPage() {
       header: 'Oracle Engine & Key',
       cell: (item) => (
         <div>
-          <div className='font-semibold text-foreground flex items-center gap-2'>
+          <div className='font-semibold text-foreground flex items-center gap-2 flex-wrap'>
             <Cpu className='w-4 h-4 text-primary' />
-            {item.name}
+            {item.name.replace(/\s+Oracle(\s+\(Legacy\))?$/i, '')}
             <Badge
               variant='outline'
-              className='font-mono text-[10px] bg-primary/5 text-primary border-primary/20'
+              className={`font-semibold text-[10px] px-2 py-0.5 border ${getCategoryBadgeStyle(item.category)}`}
             >
-              {item.category}
+              {item.category || 'GENERAL'}
             </Badge>
+            {(() => {
+              const diffRaw = item.supportedDifficulties?.[0] || 'EASY';
+              const diff = String(diffRaw).toUpperCase();
+              const label =
+                diff === 'EASY'
+                  ? 'Easy'
+                  : diff === 'MEDIUM'
+                    ? 'Medium'
+                    : diff === 'HARD'
+                      ? 'Hard'
+                      : diff;
+              const badgeStyle =
+                diff === 'EASY'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300'
+                  : diff === 'MEDIUM'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300'
+                    : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-300';
+              return (
+                <Badge
+                  variant='outline'
+                  className={`font-semibold text-[10px] px-2 py-0.5 border ${badgeStyle}`}
+                >
+                  {label}
+                </Badge>
+              );
+            })()}
             <Badge
               variant='secondary'
               className='font-mono text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -225,33 +235,30 @@ export default function AdminOracleLibraryPage() {
     {
       header: 'Active Status',
       cell: (item) => (
-        <Button
-          size='sm'
-          variant={item.isActive ? 'default' : 'secondary'}
-          onClick={(e) => handleToggle(item.id, e)}
-          disabled={toggleMutation.isPending}
-          className='gap-1.5 h-7 text-xs font-mono'
+        <div
+          className='flex items-center gap-2.5'
+          onClick={(e) => e.stopPropagation()}
         >
-          <Power
-            className={`w-3.5 h-3.5 ${item.isActive ? 'text-emerald-300' : 'text-slate-400'}`}
+          <Switch
+            checked={item.isActive}
+            onCheckedChange={() => handleToggle(item.id)}
+            disabled={toggleMutation.isPending}
+            className='data-[state=checked]:bg-emerald-600'
+            aria-label={`Toggle ${item.name} active status`}
           />
-          {item.isActive ? 'ACTIVE' : 'INACTIVE'}
-        </Button>
-      ),
-    },
-    {
-      header: 'Provider Status',
-      cell: (item) => (
-        <Badge
-          variant='outline'
-          className={`font-mono text-xs ${
-            item.isProviderAvailable
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200'
-              : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200'
-          }`}
-        >
-          {item.isProviderAvailable ? 'Provider Ready' : 'No Provider Registered'}
-        </Badge>
+          {item.isActive ? (
+            <Badge className='bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 border gap-1.5 font-medium text-xs shadow-none'>
+              <span className='w-1.5 h-1.5 rounded-full bg-emerald-500' /> Active
+            </Badge>
+          ) : (
+            <Badge
+              variant='outline'
+              className='bg-slate-50 text-slate-600 dark:bg-slate-900/60 dark:text-slate-400 border-slate-300 dark:border-slate-800 gap-1.5 font-medium text-xs'
+            >
+              <span className='w-1.5 h-1.5 rounded-full bg-slate-400' /> Inactive
+            </Badge>
+          )}
+        </div>
       ),
     },
     {
@@ -273,12 +280,7 @@ export default function AdminOracleLibraryPage() {
       header: 'Actions',
       cell: (item) => (
         <div className='flex items-center gap-2'>
-          <Button
-            size='sm'
-            variant='outline'
-            asChild
-            className='gap-1 text-xs'
-          >
+          <Button size='sm' variant='outline' asChild className='gap-1 text-xs'>
             <Link href={`/admin/coding-oracles/${item.id}/playground`}>
               <Play className='w-3.5 h-3.5 text-primary' /> Playground
             </Link>
@@ -301,26 +303,6 @@ export default function AdminOracleLibraryPage() {
       <SectionHeader
         title='Coding Oracle Library'
         description='Manage problem Oracles, database definitions, execution provider readiness, and active statuses.'
-        actions={
-          <div className='flex items-center gap-2'>
-            <Button variant='outline' onClick={handleOpenCreate} className='gap-2 shadow-sm'>
-              <Plus className='w-4 h-4' />
-              New Oracle
-            </Button>
-            <Button
-              onClick={handleSync}
-              disabled={syncMutation.isPending}
-              className='gap-2 shadow-sm'
-            >
-              {syncMutation.isPending ? (
-                <Loader2 className='w-4 h-4 animate-spin' />
-              ) : (
-                <RefreshCw className='w-4 h-4' />
-              )}
-              Sync Backend Providers
-            </Button>
-          </div>
-        }
       />
 
       {/* Filter Header */}
@@ -337,17 +319,16 @@ export default function AdminOracleLibraryPage() {
 
         <div className='flex items-center gap-3'>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className='w-[160px]'>
+            <SelectTrigger className='w-[175px]'>
               <SelectValue placeholder='Category' />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className='max-h-72'>
               <SelectItem value='ALL'>All Categories</SelectItem>
-              <SelectItem value='ARRAY'>ARRAY</SelectItem>
-              <SelectItem value='STRING'>STRING</SelectItem>
-              <SelectItem value='MATH'>MATH</SelectItem>
-              <SelectItem value='SEARCHING'>SEARCHING</SelectItem>
-              <SelectItem value='SORTING'>SORTING</SelectItem>
-              <SelectItem value='GENERAL'>GENERAL</SelectItem>
+              {ORACLE_CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -368,158 +349,6 @@ export default function AdminOracleLibraryPage() {
       <div className='bg-card rounded-xl border shadow-sm overflow-hidden'>
         <DataTable columns={columns} data={oracles} isLoading={isLoading} />
       </div>
-
-      {/* ── Create Oracle Modal ─────────────────────────────────────── */}
-      {isCreating && (
-        <div className='fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 flex justify-center items-start pb-12'>
-          <div className='bg-card border rounded-xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 mt-4 sm:mt-8 flex flex-col max-h-[88vh]'>
-            <div className='flex items-center justify-between border-b p-4 bg-muted/30 shrink-0'>
-              <div>
-                <h3 className='font-semibold text-lg flex items-center gap-2'>
-                  <Plus className='w-5 h-5 text-primary' /> Create New Oracle
-                </h3>
-                <p className='text-xs text-muted-foreground'>
-                  Registers a new Oracle DB record. A matching backend TypeScript provider must
-                  exist for question generation to work.
-                </p>
-              </div>
-              <Button variant='ghost' size='sm' onClick={handleCloseCreate}>
-                <X className='w-4 h-4' />
-              </Button>
-            </div>
-
-            <div className='p-6 space-y-4 overflow-y-auto flex-1'>
-              {createError && (
-                <div className='text-sm text-red-600 bg-red-50 dark:bg-red-950/30 border border-red-200 rounded-lg px-3 py-2'>
-                  {createError}
-                </div>
-              )}
-
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-2'>
-                  <Label>
-                    Oracle Key <span className='text-red-500'>*</span>
-                  </Label>
-                  <Input
-                    placeholder='e.g. ARRAY_ROTATION_ORACLE'
-                    value={createForm.key}
-                    onChange={(e) =>
-                      setCreateForm((prev) => ({ ...prev, key: e.target.value.toUpperCase() }))
-                    }
-                    className='font-mono'
-                  />
-                  <p className='text-[10px] text-muted-foreground'>
-                    Unique identifier. Must match the backend provider key exactly.
-                  </p>
-                </div>
-                <div className='space-y-2'>
-                  <Label>
-                    Display Name <span className='text-red-500'>*</span>
-                  </Label>
-                  <Input
-                    placeholder='e.g. Array Rotation'
-                    value={createForm.name}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, name: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-2'>
-                  <Label>Category</Label>
-                  <Select
-                    value={createForm.category}
-                    onValueChange={(val: any) =>
-                      setCreateForm((prev) => ({ ...prev, category: val }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Category' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='GENERAL'>GENERAL</SelectItem>
-                      <SelectItem value='ARRAY'>ARRAY</SelectItem>
-                      <SelectItem value='STRING'>STRING</SelectItem>
-                      <SelectItem value='MATH'>MATH</SelectItem>
-                      <SelectItem value='SEARCHING'>SEARCHING</SelectItem>
-                      <SelectItem value='SORTING'>SORTING</SelectItem>
-                      <SelectItem value='TREES'>TREES</SelectItem>
-                      <SelectItem value='GRAPHS'>GRAPHS</SelectItem>
-                      <SelectItem value='DP'>DP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className='space-y-2'>
-                  <Label>Description</Label>
-                  <Input
-                    placeholder='Brief description of what this Oracle does'
-                    value={createForm.description}
-                    onChange={(e) =>
-                      setCreateForm((prev) => ({ ...prev, description: e.target.value }))
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className='space-y-2'>
-                <Label>Parameter Schema Defaults (JSON)</Label>
-                <div className='border rounded-md overflow-hidden'>
-                  <Editor
-                    height='140px'
-                    defaultLanguage='json'
-                    value={createForm.parameterSchema}
-                    onChange={(val?: string) =>
-                      setCreateForm((prev) => ({ ...prev, parameterSchema: val || '' }))
-                    }
-                    options={{ minimap: { enabled: false }, fontSize: 12 }}
-                  />
-                </div>
-              </div>
-
-              <div className='flex items-center justify-between p-3 border rounded-lg bg-slate-50 dark:bg-slate-900'>
-                <div className='space-y-0.5'>
-                  <div className='text-sm font-semibold'>Active for Pattern Creation</div>
-                  <div className='text-xs text-muted-foreground'>
-                    When active, admins can select this Oracle when building coding patterns.
-                  </div>
-                </div>
-                <Button
-                  size='sm'
-                  type='button'
-                  variant={createForm.isActive ? 'default' : 'secondary'}
-                  onClick={() => setCreateForm((prev) => ({ ...prev, isActive: !prev.isActive }))}
-                  className='gap-1.5 font-mono text-xs'
-                >
-                  <Power
-                    className={`w-3.5 h-3.5 ${createForm.isActive ? 'text-emerald-300' : 'text-slate-400'}`}
-                  />
-                  {createForm.isActive ? 'ACTIVE' : 'INACTIVE'}
-                </Button>
-              </div>
-
-              <div className='text-xs text-amber-700 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 rounded-lg px-3 py-2'>
-                ⚠️ Creating a DB record alone does <strong>not</strong> enable question generation.
-                A matching TypeScript backend provider class with the same key must be registered in
-                the <code>OracleRegistry</code> by a developer.
-              </div>
-            </div>
-
-            <div className='flex items-center justify-end gap-2 p-4 border-t bg-muted/30 shrink-0'>
-              <Button variant='outline' onClick={handleCloseCreate}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveCreate}
-                disabled={createMutation.isPending}
-                className='gap-2'
-              >
-                {createMutation.isPending && <Loader2 className='w-4 h-4 animate-spin' />}
-                Create Oracle
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Edit Oracle Metadata Modal ──────────────────────────────── */}
       {editingOracle && (
@@ -548,10 +377,23 @@ export default function AdminOracleLibraryPage() {
                 </div>
                 <div className='space-y-2'>
                   <Label>Category</Label>
-                  <Input
+                  <Select
                     value={editForm.category}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}
-                  />
+                    onValueChange={(val: any) =>
+                      setEditForm((prev) => ({ ...prev, category: val }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder='Category' />
+                    </SelectTrigger>
+                    <SelectContent className='max-h-60'>
+                      {ORACLE_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -580,25 +422,38 @@ export default function AdminOracleLibraryPage() {
                 </div>
               </div>
 
-              <div className='flex items-center justify-between p-3 border rounded-lg bg-slate-50 dark:bg-slate-900'>
-                <div className='space-y-0.5'>
-                  <div className='text-sm font-semibold'>Active for Pattern Creation</div>
+              <div className='flex items-center justify-between p-3.5 border rounded-lg bg-slate-50/80 dark:bg-slate-900/80'>
+                <div className='space-y-1'>
+                  <div className='flex items-center gap-2'>
+                    <div className='text-sm font-semibold'>Oracle Status</div>
+                    {editForm.isActive ? (
+                      <Badge className='bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 border text-xs gap-1 font-medium'>
+                        <span className='w-1.5 h-1.5 rounded-full bg-emerald-500' /> Active
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant='outline'
+                        className='bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400 border-slate-300 text-xs gap-1 font-medium'
+                      >
+                        <span className='w-1.5 h-1.5 rounded-full bg-slate-400' /> Inactive
+                      </Badge>
+                    )}
+                  </div>
                   <div className='text-xs text-muted-foreground'>
-                    When active, admins can select this Oracle when building coding patterns.
+                    {editForm.isActive
+                      ? 'Active and available when creating or configuring coding patterns.'
+                      : 'Inactive and hidden from coding pattern creation.'}
                   </div>
                 </div>
-                <Button
-                  size='sm'
-                  type='button'
-                  variant={editForm.isActive ? 'default' : 'secondary'}
-                  onClick={() => setEditForm((prev) => ({ ...prev, isActive: !prev.isActive }))}
-                  className='gap-1.5 font-mono text-xs'
-                >
-                  <Power
-                    className={`w-3.5 h-3.5 ${editForm.isActive ? 'text-emerald-300' : 'text-slate-400'}`}
+                <div className='flex items-center gap-2'>
+                  <Switch
+                    checked={editForm.isActive}
+                    onCheckedChange={(checked) =>
+                      setEditForm((prev) => ({ ...prev, isActive: checked }))
+                    }
+                    className='data-[state=checked]:bg-emerald-600'
                   />
-                  {editForm.isActive ? 'ACTIVE' : 'INACTIVE'}
-                </Button>
+                </div>
               </div>
             </div>
 

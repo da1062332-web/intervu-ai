@@ -27,10 +27,13 @@ public class Main {
     command_line_arguments: '-XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=128m -Xmx256m',
   };
 
-  console.log('Sending Java submission with cmd args...');
-  const res = await fetch('http://localhost:2358/submissions?base64_encoded=true&wait=true', {
+  console.log('Sending Java submission via ngrok...');
+  const res = await fetch('https://marbled-fifty-unraveled.ngrok-free.dev/submissions?base64_encoded=true&wait=true', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+    },
     body: JSON.stringify(payload),
   });
 

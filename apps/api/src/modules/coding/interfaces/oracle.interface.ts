@@ -1,11 +1,20 @@
 export type OracleCategory =
+  | "BASIC"
   | "ARRAY"
   | "STRING"
   | "MATH"
+  | "MATRIX"
+  | "LOOP"
+  | "LOGIC"
   | "SEARCHING"
   | "SORTING"
+  | "SORT"
+  | "RECURSION"
+  | "SIMULATION"
   | "TREE"
+  | "TREES"
   | "GRAPH"
+  | "GRAPHS"
   | "DYNAMIC_PROGRAMMING"
   | "GENERAL";
 

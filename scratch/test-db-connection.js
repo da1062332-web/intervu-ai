@@ -8,7 +8,7 @@ const hosts = [
   "aws-0-ap-southeast-1.pooler.supabase.com",
 ];
 
-const passwords = ["MARVEL7ace@77090", "MARVEL7ace%4077090"];
+const passwords = [process.env.DB_PASSWORD || "postgres"];
 
 async function testConfig(host, port, user, pass) {
   const connectionString = `postgresql://${user}:${encodeURIComponent(pass)}@${host}:${port}/postgres?connect_timeout=5`;

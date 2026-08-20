@@ -66,7 +66,7 @@ describe("JudgeService", () => {
         stdin: "",
       });
 
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledTimes(2); // Submit (1) + Delete/Cleanup (1)
       expect(result.token).toBe("test-token-123");
       expect(result.statusId).toBe(3);
       expect(result.statusDescription).toBe("Accepted");
@@ -99,6 +99,10 @@ describe("JudgeService", () => {
         .mockResolvedValueOnce({
           ok: true,
           json: jest.fn().mockResolvedValue(completedResponse),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
         } as any);
 
       const result = await judgeService.submitAndPoll({
@@ -106,7 +110,7 @@ describe("JudgeService", () => {
         language: "javascript",
       });
 
-      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenCalledTimes(3); // Submit (1) + Poll (1) + Delete/Cleanup (1)
       expect(result.statusId).toBe(3);
       expect(result.stdout).toBe("Hello World");
     });

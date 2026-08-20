@@ -16,7 +16,7 @@ import { TcsHiringStrategy } from "../apps/api/src/modules/evaluation/strategies
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: "postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres?connect_timeout=15",
+      url: process.env.DATABASE_URL,
     },
   },
 });

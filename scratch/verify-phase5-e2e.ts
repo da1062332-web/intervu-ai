@@ -1,7 +1,7 @@
 import { SubmissionEvaluatorService } from "../apps/api/src/modules/coding/services/submission-evaluator.service";
 import { JudgeService } from "../apps/api/src/modules/coding/services/judge.service";
 import { OracleRegistry } from "../apps/api/src/modules/coding/oracles/oracle.registry";
-import { MathPrimeCheckOracle, ArrayRotationOracle } from "../apps/api/src/modules/coding/oracles/standard-oracles";
+import { BasicGradeCalculatorOracle } from "../apps/api/src/modules/coding/oracles/basic-grade-calculator.oracle";
 import { SubmitCodeDto } from "../apps/api/src/modules/coding/dto/submit-code.dto";
 
 async function runPhase5Verification() {
@@ -10,7 +10,7 @@ async function runPhase5Verification() {
   console.log("=================================================\n");
 
   const judgeService = new JudgeService();
-  const oracleRegistry = new OracleRegistry([new MathPrimeCheckOracle(), new ArrayRotationOracle()]);
+  const oracleRegistry = new OracleRegistry([new BasicGradeCalculatorOracle()]);
   const evaluatorService = new SubmissionEvaluatorService(judgeService, oracleRegistry);
 
   const primeQuestionData = {

@@ -156,7 +156,7 @@ export default function OraclePlaygroundPage() {
                 <SelectContent>
                   {allOracles.map((oracle) => (
                     <SelectItem key={oracle.id} value={oracle.id}>
-                      {oracle.name} ({oracle.key})
+                      {oracle.name.replace(/\s+Oracle(\s+\(Legacy\))?$/i, '')}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -176,10 +176,25 @@ export default function OraclePlaygroundPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold">{selectedOracle.name}</h2>
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {selectedOracle.category}
-                  </Badge>
+                  <h2 className="text-xl font-bold">
+                    {selectedOracle.name.replace(/\s+Oracle(\s+\(Legacy\))?$/i, '')}
+                  </h2>
+                  {(() => {
+                    const diffRaw = selectedOracle.supportedDifficulties?.[0] || 'EASY';
+                    const diff = String(diffRaw).toUpperCase();
+                    const label = diff === 'EASY' ? 'Easy' : diff === 'MEDIUM' ? 'Medium' : diff === 'HARD' ? 'Hard' : diff;
+                    const badgeStyle =
+                      diff === 'EASY'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300'
+                        : diff === 'MEDIUM'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300'
+                        : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-300';
+                    return (
+                      <Badge variant="outline" className={`font-semibold text-xs px-2.5 py-0.5 border ${badgeStyle}`}>
+                        {label}
+                      </Badge>
+                    );
+                  })()}
                   <Badge variant="secondary" className="font-mono text-xs">
                     v{selectedOracle.version || 1}
                   </Badge>

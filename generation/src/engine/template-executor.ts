@@ -82,6 +82,9 @@ export function hydrateString(
 export function generateDistractors(correctVal: number): string[] {
   const distractors = new Set<string>();
   const isInt = Number.isInteger(correctVal);
+  const targetRounded = String(
+    roundToPrecision(correctVal, isInt ? 1 : 0.01),
+  );
 
   const perturbations = [
     (v: number) => v + (isInt ? 1 : 0.5),
@@ -101,7 +104,7 @@ export function generateDistractors(correctVal: number): string[] {
     const rawVal = perturb(correctVal);
     const rounded = roundToPrecision(rawVal, isInt ? 1 : 0.01);
     const strVal = String(rounded);
-    if (strVal !== String(correctVal) && rawVal > 0) {
+    if (strVal !== targetRounded && rawVal > 0) {
       distractors.add(strVal);
     }
   }
@@ -109,10 +112,10 @@ export function generateDistractors(correctVal: number): string[] {
   // Fallback if not enough unique positive distractors are found
   let offset = 1;
   while (distractors.size < 3) {
-    const rawVal = correctVal + offset;
+    const rawVal = correctVal + (isInt ? offset : offset * 0.5);
     const rounded = roundToPrecision(rawVal, isInt ? 1 : 0.01);
     const strVal = String(rounded);
-    if (strVal !== String(correctVal)) {
+    if (strVal !== targetRounded) {
       distractors.add(strVal);
     }
     offset += 1;

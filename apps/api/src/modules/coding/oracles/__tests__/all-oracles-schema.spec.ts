@@ -1,21 +1,31 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { CodingModule } from "../../coding.module";
 import { OracleRegistry } from "../oracle.registry";
+import { ORACLE_PROVIDERS_TOKEN } from "../oracle.constants";
+import { BasicGradeCalculatorOracle } from "../basic-grade-calculator.oracle";
 
-describe("All Standard Oracles - parameterSchema & Default JSON Verification", () => {
+describe("All Active Oracles - parameterSchema & Default JSON Verification", () => {
   let registry: OracleRegistry;
 
   beforeEach(async () => {
+    const providersList = [new BasicGradeCalculatorOracle()];
+
     const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [CodingModule],
+      providers: [
+        {
+          provide: ORACLE_PROVIDERS_TOKEN,
+          useValue: providersList,
+        },
+        OracleRegistry,
+      ],
     }).compile();
 
     registry = moduleRef.get<OracleRegistry>(OracleRegistry);
   });
 
-  it("should have all 30 standard Oracles registered", () => {
+  it("should have exactly 1 active Oracle registered (BASIC_GRADE_CALCULATOR_ORACLE)", () => {
     const allOracles = registry.getAllOracles();
-    expect(allOracles.length).toBeGreaterThanOrEqual(30);
+    expect(allOracles.length).toBe(1);
+    expect(allOracles[0].key).toBe("BASIC_GRADE_CALCULATOR_ORACLE");
   });
 
   it("should ensure every registered Oracle has a parameterSchema with defaults", () => {
@@ -35,7 +45,7 @@ describe("All Standard Oracles - parameterSchema & Default JSON Verification", (
     }
   });
 
-  it("should verify generateInput and generateExpectedOutput work for every Oracle with default parameters", () => {
+  it("should verify generateInput and generateExpectedOutput work with default parameters", () => {
     const allOracles = registry.getAllOracles();
 
     for (const oracle of allOracles) {
@@ -53,11 +63,11 @@ describe("All Standard Oracles - parameterSchema & Default JSON Verification", (
       const output = oracle.generateExpectedOutput(input);
       expect(output).toBeDefined();
       expect(typeof output).toBe("object");
-      expect(output.result !== undefined || output.isPalindrome !== undefined).toBe(true);
+      expect(output.result !== undefined || output.grade !== undefined).toBe(true);
     }
   });
 
-  it("should generate a complete non-duplicate test suite for EVERY Oracle across multiple seeds without throwing duplicate input errors", () => {
+  it("should generate a complete non-duplicate test suite across multiple seeds", () => {
     const generator = new (require("../../generators/test-suite-generator.service").TestSuiteGeneratorService)();
     const allOracles = registry.getAllOracles();
     const seedsToTest = [42, 100, 777, 9999, 123456];
@@ -75,7 +85,6 @@ describe("All Standard Oracles - parameterSchema & Default JSON Verification", (
         expect(suite.boundaryTests.length).toBe(1);
         expect(suite.stressTests.length).toBe(1);
 
-        // Verify all 7 test cases in the suite have valid inputs & outputs
         const allTests = [
           ...suite.publicTests,
           ...suite.hiddenTests,

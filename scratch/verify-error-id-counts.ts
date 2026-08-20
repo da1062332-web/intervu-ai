@@ -1,10 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
-const dbUrl =
-  "postgresql://postgres:MARVEL7ace%4077090@db.ayklmzeqfezrlbkdusqc.supabase.co:5432/postgres?connect_timeout=60&connection_limit=1";
-
 const prisma = new PrismaClient({
-  datasources: { db: { url: dbUrl } },
+  datasources: { db: { url: process.env.DATABASE_URL } },
 });
 
 async function verify() {

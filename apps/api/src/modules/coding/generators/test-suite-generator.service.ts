@@ -181,33 +181,21 @@ export class TestSuiteGeneratorService {
           if (min > max) [min, max] = [max, min];
 
           if (mode === "BOUNDARY") {
-            if (key === "n" || key === "num" || key === "val") {
-              const boundaryChoices = [min, Math.max(min, 2), 3, 4, 0, 1];
-              result[key] = boundaryChoices[(attempt - 1) % boundaryChoices.length];
-            } else if (key === "arraySize" || key === "length" || key === "size") {
-              const boundarySizes = [min, Math.max(min, 2), 3];
-              result[key] = boundarySizes[(attempt - 1) % boundarySizes.length];
+            if (key === "marks" || key === "score") {
+              const boundaryMarks = [0, 59, 60, 69, 70, 79, 80, 89, 90, 100, 50, 85].filter((v) => v >= min && v <= max);
+              result[key] = boundaryMarks.length > 0 ? boundaryMarks[(attempt - 1) % boundaryMarks.length] : min;
             } else if (key === "k") {
-              result[key] = Math.max(0, min) + ((attempt - 1) % 3);
+              result[key] = Math.min(max, Math.max(min, min + ((attempt - 1) % 3)));
             } else {
-              result[key] = min + ((attempt - 1) % 5);
+              result[key] = Math.min(max, min + ((attempt - 1) % Math.max(1, max - min + 1)));
             }
           } else if (mode === "STRESS") {
-            const stressMax = typeof spec.max === "number" ? spec.max : (key === "n" || key === "num" ? 9973 : 100);
-            if (key === "n" || key === "num") {
-              const stressPrimes = [9973, 7919, 65537, 10000, 9999];
-              result[key] = stressPrimes[(attempt - 1) % stressPrimes.length];
-            } else {
-              result[key] = stressMax - ((attempt - 1) % 5);
-            }
+            const stressMax = max;
+            const span = Math.max(1, max - min + 1);
+            result[key] = Math.max(min, stressMax - ((attempt - 1) % Math.min(span, 10)));
           } else {
-            // STANDARD mode: vary parameters using PRNG
-            if (key === "n" || key === "num" || key === "val") {
-              const primeSamples = [2, 3, 4, 5, 7, 10, 11, 13, 15, 17, 19, 23, 29, 31, 37, 41, 42, 43, 47, 50, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
-              result[key] = prng.choice(primeSamples);
-            } else {
-              result[key] = prng.nextInt(min, max);
-            }
+            // STANDARD mode: vary parameters using PRNG within [min, max]
+            result[key] = prng.nextInt(min, max);
           }
           break;
         }

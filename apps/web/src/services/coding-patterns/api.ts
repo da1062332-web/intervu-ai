@@ -25,6 +25,14 @@ export interface CodingPattern {
   aiConfiguration?: Record<string, any>;
   starterCode?: Record<string, any>;
   metadata?: Record<string, any>;
+  testCases?: Array<{
+    input: any;
+    expectedOutput: any;
+    isPublic?: boolean;
+    isStress?: boolean;
+    isBoundary?: boolean;
+    explanation?: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +51,8 @@ export interface PreviewCodingPatternPayload {
   constraintSchema?: Record<string, any>;
   seed?: number;
   difficulty?: string;
+  generateStatement?: boolean;
+  forceRegenerate?: boolean;
 }
 
 export interface PatternPreviewResponse {
