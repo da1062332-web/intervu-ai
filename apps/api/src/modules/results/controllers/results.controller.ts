@@ -83,19 +83,17 @@ export class ResultsController {
       throw new ForbiddenException("Authentication required to access assessment attempt");
     }
 
-    if (
-      user.role !== UserRole.ADMIN &&
-      attempt.userId &&
-      attempt.userId !== user.id
-    ) {
-      this.logger.warn("SEC-001: Unauthorized result access attempt", {
-        attemptId,
-        requestingUserId: user?.id,
-        ownerUserId: attempt.userId,
-      });
-      throw new ForbiddenException(
-        "Access denied: you do not have permission to view this assessment result",
-      );
+    if (user.role !== UserRole.ADMIN) {
+      if (!attempt.userId || attempt.userId !== user.id) {
+        this.logger.warn("SEC-001: Unauthorized result access attempt", {
+          attemptId,
+          requestingUserId: user?.id,
+          ownerUserId: attempt.userId,
+        });
+        throw new ForbiddenException(
+          "Access denied: you do not have permission to view this assessment result",
+        );
+      }
     }
 
     return attempt;
@@ -189,7 +187,6 @@ export class ResultsController {
     return this.resultQueryService.getPerformanceDashboard(attemptId);
   }
 
-  @Public()
   @Get(":attemptId/export/pdf")
   @ApiOperation({ summary: "Export result to PDF" })
   @ApiParam({ name: "attemptId", required: true })
@@ -208,7 +205,6 @@ export class ResultsController {
     res.end(pdfBuffer);
   }
 
-  @Public()
   @Get(":attemptId/export/json")
   @ApiOperation({ summary: "Export result to JSON" })
   @ApiParam({ name: "attemptId", required: true })
