@@ -41,11 +41,12 @@ const columns: ColumnDef<RecentAssessment>[] = [
 const EMPTY_RECENT_ASSESSMENTS: RecentAssessment[] = [];
 
 export function RecentAssessmentsTable() {
-  const { data, isLoading, isError, refetch } = useRecentAssessments();
+  const { data, isLoading, isError, refetch } = useRecentAssessments(5);
+  const assessmentsList = Array.isArray(data) ? data.slice(0, 5) : EMPTY_RECENT_ASSESSMENTS;
 
   if (isError) {
     return (
-      <Card className='rounded-xl shadow-sm overflow-hidden flex flex-col h-[400px] items-center justify-center'>
+      <Card className='rounded-xl shadow-sm overflow-hidden flex flex-col h-full min-h-[320px] items-center justify-center'>
         <EmptyState
           variant='error'
           title='Failed to load recent assessments'
@@ -58,7 +59,7 @@ export function RecentAssessmentsTable() {
   }
 
   return (
-    <Card className='rounded-xl shadow-sm overflow-hidden flex flex-col h-[400px]'>
+    <Card className='rounded-xl shadow-sm overflow-hidden flex flex-col h-full'>
       <CardHeader className='py-3 px-5 border-b bg-card z-20 flex flex-row items-center justify-between'>
         <CardTitle className='text-base font-semibold'>Recent Assessments</CardTitle>
         <Button
@@ -75,7 +76,7 @@ export function RecentAssessmentsTable() {
       <CardContent className='p-0 flex-1 overflow-hidden'>
         <DataTable
           columns={columns}
-          data={data ?? EMPTY_RECENT_ASSESSMENTS}
+          data={assessmentsList}
           isLoading={isLoading}
           disablePagination
           rowKey={(row) => row.id}

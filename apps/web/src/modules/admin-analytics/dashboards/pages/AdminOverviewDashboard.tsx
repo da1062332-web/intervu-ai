@@ -1,13 +1,12 @@
 'use client';
 
-import { Database, CheckCircle, Users, FileText, Activity, Library } from 'lucide-react';
+import { CheckCircle, Users, FileText, Activity, Library } from 'lucide-react';
 import Link from 'next/link';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
 import { useDashboardKPIs } from '../../hooks/useDashboardKPIs';
 import { AssessmentCompletionWidget } from '../components/AssessmentCompletionWidget';
-import { RecentActivitiesTimeline } from '../components/RecentActivitiesTimeline';
 import { RecentAssessmentsTable } from '../components/RecentAssessmentsTable';
 import { RecentTestAttemptsTable } from '../components/RecentTestAttemptsTable';
 
@@ -34,21 +33,15 @@ export function AdminOverviewDashboard() {
       />
 
       {/* KPI Cards Grid */}
-      <section className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
+      <section className='grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5'>
         <StatCard
-          title='Total Assessments'
-          value={data.totalAssessments ?? 0}
+          title='Published Assessments'
+          value={data.activeAssessments ?? data.totalAssessments ?? 0}
           icon={<FileText className='size-5' />}
           isLoading={isLoading}
         />
         <StatCard
-          title='Active Assessments'
-          value={data.activeAssessments ?? 0}
-          icon={<CheckCircle className='size-5' />}
-          isLoading={isLoading}
-        />
-        <StatCard
-          title='Total Candidates'
+          title='Active Candidates'
           value={data.totalCandidates ?? 0}
           icon={<Users className='size-5' />}
           isLoading={isLoading}
@@ -73,19 +66,18 @@ export function AdminOverviewDashboard() {
         />
       </section>
 
-      {/* Grid: Completion Widget + Recent Activities */}
-      <section className='grid gap-6 md:grid-cols-1 lg:grid-cols-5'>
-        <div className='lg:col-span-2'>
+      {/* Grid: Completion Widget + Recent Assessments Table */}
+      <section className='grid gap-6 md:grid-cols-1 lg:grid-cols-5 items-stretch'>
+        <div className='lg:col-span-2 flex flex-col'>
           <AssessmentCompletionWidget />
         </div>
-        <div className='lg:col-span-3'>
-          <RecentActivitiesTimeline />
+        <div className='lg:col-span-3 flex flex-col'>
+          <RecentAssessmentsTable />
         </div>
       </section>
 
-      {/* Tables Section */}
-      <section className='space-y-8'>
-        <RecentAssessmentsTable />
+      {/* Recent Test Attempts Table Section */}
+      <section>
         <RecentTestAttemptsTable />
       </section>
     </div>

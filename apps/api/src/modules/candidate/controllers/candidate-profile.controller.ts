@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Put, Patch, UseGuards } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -36,6 +36,7 @@ export class CandidateProfileController {
   }
 
   @Put()
+  @Patch()
   @ApiOperation({ summary: "Update candidate profile" })
   @ApiBody({ type: UpdateCandidateProfileDto })
   @ApiOkResponse({ type: CandidateProfileResponseDto })

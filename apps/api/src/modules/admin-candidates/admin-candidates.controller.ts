@@ -1,10 +1,11 @@
-import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Patch, Param, Query, Body, UseGuards } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
+  ApiBody,
   ApiOkResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -23,6 +24,8 @@ import {
   CandidateStatsResponseDto,
   CandidateTestHistoryQueryDto,
   CandidateTestHistoryResponseDto,
+  UpdateCandidateStatusDto,
+  UpdateAdminCandidateDto,
 } from "./dto/admin-candidates.dto";
 
 @ApiTags("Admin Candidates")
@@ -146,5 +149,41 @@ export class AdminCandidatesController {
     @Query() query: CandidateTestHistoryQueryDto,
   ): Promise<CandidateTestHistoryResponseDto> {
     return this.adminCandidatesService.getCandidateTestHistory(id, query);
+  }
+
+  @Patch(":id/status")
+  @ApiOperation({
+    summary: "Activate or deactivate a candidate account",
+  })
+  @ApiParam({ name: "id", required: true, description: "Candidate User ID" })
+  @ApiBody({ type: UpdateCandidateStatusDto })
+  @ApiOkResponse({ description: "Candidate status updated successfully" })
+  @ApiBadRequestResponse({ description: "Invalid Request" })
+  @ApiUnauthorizedResponse({ description: "Unauthorized" })
+  @ApiForbiddenResponse({ description: "Forbidden - Requires ADMIN role" })
+  @ApiNotFoundResponse({ description: "Candidate Not Found" })
+  async updateCandidateStatus(
+    @Param("id") id: string,
+    @Body() body: UpdateCandidateStatusDto,
+  ) {
+    return this.adminCandidatesService.updateCandidateStatus(id, body.status);
+  }
+
+  @Patch(":id")
+  @ApiOperation({
+    summary: "Update candidate profile information or status (Admin)",
+  })
+  @ApiParam({ name: "id", required: true, description: "Candidate User ID" })
+  @ApiBody({ type: UpdateAdminCandidateDto })
+  @ApiOkResponse({ description: "Candidate updated successfully" })
+  @ApiBadRequestResponse({ description: "Invalid Request" })
+  @ApiUnauthorizedResponse({ description: "Unauthorized" })
+  @ApiForbiddenResponse({ description: "Forbidden - Requires ADMIN role" })
+  @ApiNotFoundResponse({ description: "Candidate Not Found" })
+  async updateCandidate(
+    @Param("id") id: string,
+    @Body() body: UpdateAdminCandidateDto,
+  ) {
+    return this.adminCandidatesService.updateCandidate(id, body);
   }
 }

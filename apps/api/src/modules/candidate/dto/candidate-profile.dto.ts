@@ -40,6 +40,11 @@ export class UpdateCandidateProfileDto {
   @IsString()
   name?: string;
 
+  @ApiPropertyOptional({ example: "John Doe" })
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
   @ApiPropertyOptional({ example: "john@example.com" })
   @IsOptional()
   @IsString()

@@ -191,7 +191,7 @@ export const dashboardService = {
 
   updateProfile: async (data: Partial<AuthUser>): Promise<AuthUser> => {
     return apiClient.request<AuthUser>('/candidate/profile', {
-      method: 'PUT',
+      method: 'PATCH',
       body: data,
     });
   },

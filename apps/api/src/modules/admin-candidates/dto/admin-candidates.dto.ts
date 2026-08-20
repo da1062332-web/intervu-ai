@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, IsInt, Min, IsIn } from "class-validator";
+import { IsOptional, IsString, IsInt, Min, Max, IsIn } from "class-validator";
 import { Type } from "class-transformer";
 
 export class CandidateListQueryDto {
@@ -53,6 +53,7 @@ export class CandidateListQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(100)
   limit?: number = 20;
 }
 
@@ -286,4 +287,51 @@ export class CandidateTestHistoryResponseDto {
     description: "Pagination metadata",
   })
   pagination?: CandidatePaginationDto;
+}
+
+export class UpdateCandidateStatusDto {
+  @ApiProperty({
+    example: "INACTIVE",
+    enum: ["ACTIVE", "INACTIVE"],
+    description: "Status to set for candidate",
+  })
+  @IsString()
+  @IsIn(["ACTIVE", "INACTIVE"])
+  status!: "ACTIVE" | "INACTIVE";
+}
+
+export class UpdateAdminCandidateDto {
+  @ApiPropertyOptional({ example: "John Doe" })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiPropertyOptional({ example: "John Doe" })
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
+  @ApiPropertyOptional({ example: "+91-9876543210" })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiPropertyOptional({ example: "IIT Bombay" })
+  @IsOptional()
+  @IsString()
+  college?: string;
+
+  @ApiPropertyOptional({ example: 2026 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1990)
+  @Max(2040)
+  graduationYear?: number;
+
+  @ApiPropertyOptional({ example: "ACTIVE", enum: ["ACTIVE", "INACTIVE"] })
+  @IsOptional()
+  @IsString()
+  @IsIn(["ACTIVE", "INACTIVE"])
+  status?: "ACTIVE" | "INACTIVE";
 }

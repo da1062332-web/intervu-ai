@@ -93,6 +93,7 @@ export function CandidateProfilePage() {
     updateProfile(
       {
         name: data.name,
+        fullName: data.name,
         phone: data.phone,
         college: data.college,
         graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : undefined,
@@ -105,9 +106,11 @@ export function CandidateProfilePage() {
           // Update the auth/Zustand store immediately
           const currentUser = useAuthStore.getState().user;
           if (currentUser) {
+            const updatedName = updatedUser?.name || data.name || null;
             useAuthStore.getState().setAuthenticated({
               ...currentUser,
-              name: data.name || null,
+              name: updatedName,
+              fullName: updatedName,
               phone: data.phone || null,
               college: data.college || null,
               graduationYear: data.graduationYear ? parseInt(data.graduationYear, 10) : null,

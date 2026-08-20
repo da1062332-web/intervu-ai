@@ -62,6 +62,15 @@ export class AuthService {
 
   async login(dto: LoginDto, meta?: AuthMeta): Promise<AuthResponse> {
     const email = dto.email.trim().toLowerCase();
+
+    // Check if account is deactivated/inactive
+    const rawUser = await this.userRepository.findRawByEmail(email);
+    if (rawUser && rawUser.deletedAt !== null) {
+      throw new UnauthorizedException(
+        "Your candidate account is inactive. Please contact support to reactivate your account.",
+      );
+    }
+
     const user = await this.userRepository.findByEmail(email);
 
     const isValid =
@@ -105,6 +114,16 @@ export class AuthService {
     const email = payload.email.trim().toLowerCase();
     const googleId = payload.sub;
     const fullName = payload.name ?? null;
+
+    // Check if account is deactivated/inactive
+    const rawUser =
+      (await this.userRepository.findRawByGoogleId(googleId)) ||
+      (await this.userRepository.findRawByEmail(email));
+    if (rawUser && rawUser.deletedAt !== null) {
+      throw new UnauthorizedException(
+        "Your candidate account is inactive. Please contact support to reactivate your account.",
+      );
+    }
 
     // 1. Search by googleId
     let user = await this.userRepository.findByGoogleId(googleId);

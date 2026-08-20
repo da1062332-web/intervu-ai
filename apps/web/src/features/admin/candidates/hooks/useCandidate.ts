@@ -10,6 +10,7 @@ export function useCandidate(id: string) {
     queryKey: candidateQueryKeys.details(id),
     queryFn: () => adminCandidateService.getCandidateDetails(id),
     enabled: !!id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
   });
 }

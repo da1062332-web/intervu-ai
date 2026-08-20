@@ -53,9 +53,18 @@ export function GenerationAnalyticsPage() {
     : [];
   const maxTopicCount = topicsArray.length > 0 ? Math.max(...topicsArray.map((t) => t.count)) : 1;
 
-  const difficultyArray = data
-    ? Object.entries(data.questionsGeneratedPerDifficulty).map(([diff, count]) => ({ diff, count }))
-    : [];
+  const normalizedDifficultyMap: Record<string, number> = {};
+  if (data?.questionsGeneratedPerDifficulty) {
+    Object.entries(data.questionsGeneratedPerDifficulty).forEach(([diff, count]) => {
+      const key = diff ? diff.toString().trim().toUpperCase() : 'MEDIUM';
+      normalizedDifficultyMap[key] = (normalizedDifficultyMap[key] || 0) + count;
+    });
+  }
+
+  const difficultyArray = Object.entries(normalizedDifficultyMap).map(([diff, count]) => ({
+    diff,
+    count,
+  }));
   const maxDiffCount =
     difficultyArray.length > 0 ? Math.max(...difficultyArray.map((d) => d.count)) : 1;
 
