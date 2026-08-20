@@ -1,6 +1,7 @@
 import {
   formatDisplayString,
   normalizeDisplayQuestion,
+  synthesizeNumericDistractors,
 } from "../utils/display-value-formatter";
 
 describe("display value formatter", () => {
@@ -53,4 +54,28 @@ describe("display value formatter", () => {
     expect(normalized.explanation).toContain("342.03");
     expect(normalized.metadata.variables).toBe(rawVariables);
   });
+
+  it("synthesizes 4 valid numeric distractors with identical precision", () => {
+    const options = synthesizeNumericDistractors(74.67195767195767);
+    expect(options.length).toBe(4);
+    expect(options).toContain("74.67");
+    // Verify all options have at most 2 decimal places and no 10+ digit floats
+    for (const opt of options) {
+      expect(opt).toMatch(/^-?\d+(\.\d{1,2})?$/);
+    }
+  });
+
+  it("replaces placeholder 'Option A-D' with real numeric options if answer is numeric", () => {
+    const normalized = normalizeDisplayQuestion({
+      questionText: "If 61% of a number is 479, what is the value of the number?",
+      options: ["Option A", "Option B", "Option C", "Option D"],
+      answer: "785.2459016393443",
+    });
+
+    expect(normalized.options?.length).toBe(4);
+    expect(normalized.options).not.toContain("Option A");
+    expect(normalized.options).toContain("785.25");
+    expect(normalized.answer).toBe("785.25");
+  });
 });
+

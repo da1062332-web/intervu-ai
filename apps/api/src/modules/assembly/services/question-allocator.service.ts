@@ -15,6 +15,10 @@ import {
 import { Inject, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { GenerationOrchestratorService } from "../../generation-ai/orchestrators/generation-orchestrator.service";
+import {
+  normalizeDisplayQuestion,
+  synthesizeNumericDistractors,
+} from "../../generation-ai/utils/display-value-formatter";
 
 export interface AllocationConfig {
   distribution: {
@@ -735,23 +739,40 @@ export class QuestionAllocatorService {
         // Use the batch result for this slot (may be undefined if AI failed)
         const questionData: any = batchQuestions[i] ?? null;
 
-        const questionText =
+        const rawQuestionText =
           questionData?.questionText ||
           questionData?.question ||
           `${topicDisplayName}: Question ${currentQuestionNumber} (${difficulty} assessment problem)`;
-        const options = (questionData?.mcqData as any)?.options ||
-          questionData?.options || [
-            "Option A",
-            "Option B",
-            "Option C",
-            "Option D",
-          ];
-        const correctAnswer =
+        const rawOptions =
+          (questionData?.mcqData as any)?.options || questionData?.options || [];
+        const rawAnswer =
           questionData?.correctAnswer || questionData?.answer || "Option A";
-        const solution =
+        const rawSolution =
           questionData?.explanation ||
           questionData?.solution ||
           `Auto-generated step-by-step solution for ${topicDisplayName} question ${currentQuestionNumber}.`;
+
+        const normalizedQ = normalizeDisplayQuestion({
+          questionText: rawQuestionText,
+          options: rawOptions,
+          answer: rawAnswer,
+          explanation: rawSolution,
+        });
+
+        const questionText = normalizedQ.questionText || rawQuestionText;
+        const options =
+          Array.isArray(normalizedQ.options) && normalizedQ.options.length >= 2
+            ? normalizedQ.options
+            : !isNaN(Number(rawAnswer))
+              ? synthesizeNumericDistractors(Number(rawAnswer), 4)
+              : [
+                  "10",
+                  "20",
+                  "30",
+                  "40",
+                ];
+        const correctAnswer = normalizedQ.answer || rawAnswer;
+        const solution = normalizedQ.explanation || rawSolution;
 
         const defaultTemplate = await this.prisma.template.findFirst({
           select: { id: true },

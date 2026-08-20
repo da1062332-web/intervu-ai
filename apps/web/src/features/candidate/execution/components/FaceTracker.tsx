@@ -76,14 +76,22 @@ export function FaceTracker({ onSubmit }: FaceTrackerProps) {
   const [noFaceDismissed, setNoFaceDismissed] = useState(false);
   const [multiFaceDismissed, setMultiFaceDismissed] = useState(false);
 
+  const prevViolationsRef = useRef(violations);
   useEffect(() => {
-    if (isFaceDetected && !isMultipleFaces) {
+    if (violations > prevViolationsRef.current) {
       setNoFaceDismissed(false);
       setMultiFaceDismissed(false);
     }
+    prevViolationsRef.current = violations;
+  }, [violations]);
+
+  useEffect(() => {
     if (isFaceDetected) setNoFaceDismissed(false);
+  }, [isFaceDetected]);
+
+  useEffect(() => {
     if (!isMultipleFaces) setMultiFaceDismissed(false);
-  }, [isFaceDetected, isMultipleFaces]);
+  }, [isMultipleFaces]);
 
   return (
     <>
