@@ -94,18 +94,38 @@ export function QuestionPreviewDrawer({
                   Options
                 </h3>
                 <ul className='list-inside list-decimal space-y-1 bg-gray-50 dark:bg-gray-900 rounded-md border p-4 text-sm whitespace-pre-wrap'>
-                  {question.options.map((opt, idx) => (
-                    <li
-                      key={idx}
-                      className={
-                        opt === question.correctAnswer
-                          ? 'font-bold text-green-600 dark:text-green-400'
-                          : ''
-                      }
-                    >
-                      {opt}
-                    </li>
-                  ))}
+                  {question.options.map((opt, idx) => {
+                    const optText =
+                      typeof opt === 'object' && opt !== null
+                        ? (opt as any).text ??
+                          (opt as any).optionText ??
+                          (opt as any).value ??
+                          (opt as any).label ??
+                          JSON.stringify(opt)
+                        : String(opt);
+                    const isCorrect =
+                      (typeof opt === 'object' &&
+                        opt !== null &&
+                        (opt as any).isCorrect === true) ||
+                      opt === question.correctAnswer ||
+                      optText === question.correctAnswer ||
+                      (typeof opt === 'object' &&
+                        opt !== null &&
+                        (opt as any).id === question.correctAnswer);
+
+                    return (
+                      <li
+                        key={idx}
+                        className={
+                          isCorrect
+                            ? 'font-bold text-green-600 dark:text-green-400'
+                            : ''
+                        }
+                      >
+                        {optText}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}

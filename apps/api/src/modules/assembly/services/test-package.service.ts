@@ -146,11 +146,22 @@ export class TestPackageService {
   }): ExecutionQuestionDto {
     const snapshot = (q.questionSnapshot as Record<string, unknown>) ?? {};
 
+    let questionType =
+      (snapshot["questionType"] as string) ?? "MULTIPLE_CHOICE";
+    if (
+      snapshot["codingData"] ||
+      snapshot["starterCode"] ||
+      snapshot["problemType"] ||
+      questionType === "CODING"
+    ) {
+      questionType = "CODING";
+    }
+
     return {
       questionId: q.questionId,
       questionOrder: q.questionOrder,
       questionText: (snapshot["questionText"] as string) ?? "",
-      questionType: (snapshot["questionType"] as string) ?? "MULTIPLE_CHOICE",
+      questionType,
       difficulty: (snapshot["difficultyLevel"] as string) ?? "MEDIUM",
       topicId: (snapshot["conceptKey"] as string) ?? "",
       options: snapshot["options"],

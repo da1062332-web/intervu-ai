@@ -37,18 +37,31 @@ export class RuntimeMapperService {
   }
 
   private mapQuestion(question: ExecutionQuestionDto): RuntimeQuestionDto {
+    const snapshot =
+      typeof question.snapshot === "object" && question.snapshot !== null
+        ? (question.snapshot as Record<string, unknown>)
+        : {};
+
+    let questionType = question.questionType;
+    if (
+      snapshot["codingData"] ||
+      snapshot["starterCode"] ||
+      snapshot["problemType"] ||
+      questionType === "CODING"
+    ) {
+      questionType = "CODING";
+    }
+
     return {
       questionId: question.questionId,
-      questionType: question.questionType,
+      questionType,
       questionText: question.questionText,
       options: Array.isArray(question.options) ? question.options : [],
       metadata: {
         difficulty: question.difficulty,
         topicId: question.topicId,
         questionOrder: question.questionOrder,
-        ...(typeof question.snapshot === "object" && question.snapshot !== null
-          ? question.snapshot
-          : {}),
+        ...snapshot,
       },
     };
   }
