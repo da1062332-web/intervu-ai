@@ -13,14 +13,28 @@ export const useTemplates = (page = 1, limit = 10) => {
   });
 };
 
-export const useTemplatesByConcept = (conceptKey: string, page = 1, limit = 100) => {
+export const useTemplatesByConcept = (conceptKey: string, page = 1, limit = 500) => {
   return useQuery({
     queryKey: ['templatesByConcept', conceptKey, page, limit],
     queryFn: async () => {
       const response = await templateApi.getTemplates(page, limit, conceptKey);
       const items = response?.items || response?.data || [];
+      const cKey = (conceptKey || '').trim().toLowerCase();
       const filtered = Array.isArray(items)
-        ? items.filter((t: any) => t.conceptKey === conceptKey)
+        ? items.filter((t: any) => {
+            if (!cKey) return true;
+            const tKey = String(t.conceptKey || '').trim().toLowerCase();
+            const tName = String(t.name || '').trim().toLowerCase();
+            const cleanTKey = tKey.replace(/[-_\s]/g, '');
+            const cleanCKey = cKey.replace(/[-_\s]/g, '');
+            return (
+              tKey === cKey ||
+              cleanTKey === cleanCKey ||
+              tName.includes(cKey) ||
+              cKey.includes(tKey) ||
+              tName.includes(cleanCKey)
+            );
+          })
         : [];
       return {
         ...response,

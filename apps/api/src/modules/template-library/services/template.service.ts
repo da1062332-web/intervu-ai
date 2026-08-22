@@ -85,21 +85,24 @@ export class TemplateService {
     limit = 10,
     difficulty?: DifficultyLevel,
     strategy?: GenerationStrategy,
+    conceptKey?: string,
   ): Promise<PaginatedTemplates> {
     // 1. validate()
-    if (page < 1 || limit < 1 || limit > 100) {
+    if (page < 1 || limit < 1 || limit > 1000) {
       throw new BadRequestException({
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: "page must be ≥ 1 and limit must be between 1 and 100",
+          message: "page must be ≥ 1 and limit must be between 1 and 1000",
         },
       });
     }
 
     // 2. fetchDependencies() — check cache first
     const filterHash = createHash("md5")
-      .update(`p${page}l${limit}d${difficulty ?? "all"}s${strategy ?? "all"}`)
+      .update(
+        `p${page}l${limit}d${difficulty ?? "all"}s${strategy ?? "all"}c${conceptKey ?? "all"}`,
+      )
       .digest("hex");
     const cached =
       await this.cacheService.getTemplateList<PaginatedTemplates>(filterHash);
@@ -107,8 +110,14 @@ export class TemplateService {
 
     // 3. coreLogic() — fetch from DB
     const whereClause: Record<string, unknown> = {};
-    if (difficulty) whereClause.difficulty = difficulty;
+    if (difficulty) whereClause.difficultyLevel = difficulty;
     if (strategy) whereClause.generationStrategy = strategy;
+    if (conceptKey) {
+      whereClause.conceptKey = {
+        equals: conceptKey,
+        mode: "insensitive",
+      };
+    }
 
     const result = await this.templateRepository.findPaginated(
       { page, limit },

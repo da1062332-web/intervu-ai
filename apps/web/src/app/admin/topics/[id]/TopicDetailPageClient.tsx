@@ -77,13 +77,13 @@ function ConceptTemplatesRow({
   onAddTemplate: (c: ConceptMapping) => void;
   onAddCodingPattern: (c: ConceptMapping) => void;
 }) {
-  const conceptKey = concept.code || concept.conceptCode || '';
+  const conceptKey = concept.code || concept.conceptCode || concept.name || '';
   const conceptName = concept.name || concept.conceptName || '';
 
   const { data: response, isLoading: isLoadingTpl, isError } = useTemplatesByConcept(conceptKey);
   const templates = response?.items || [];
 
-  const { data: patternsData, isLoading: isLoadingPat } = useCodingPatterns(1, 100);
+  const { data: patternsData, isLoading: isLoadingPat } = useCodingPatterns(1, 500);
   const allPatterns = patternsData?.items || [];
 
   const deleteTemplateMutation = useDeleteTemplate();
