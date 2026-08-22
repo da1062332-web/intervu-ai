@@ -26,7 +26,6 @@ export class AdminAnalyticsSyncService {
       logFailures,
       genLogsAvg,
       questions,
-      generatedQuestions,
       recentJobs,
       recentLogs,
     ] = await Promise.all([
@@ -38,11 +37,7 @@ export class AdminAnalyticsSyncService {
       }),
       this.prisma.generationLog.aggregate({ _avg: { durationMs: true } }),
       this.prisma.question.findMany({
-        where: { source: "GENERATED" },
         include: { topic: true },
-      }),
-      this.prisma.generatedQuestion.findMany({
-        select: { conceptKey: true, difficultyLevel: true, createdAt: true },
       }),
       this.prisma.generationJob.findMany({
         where: {
@@ -70,15 +65,10 @@ export class AdminAnalyticsSyncService {
       const topicName = q.topic?.name || "Unknown";
       questionsGeneratedPerTopic[topicName] =
         (questionsGeneratedPerTopic[topicName] || 0) + 1;
-      questionsGeneratedPerDifficulty[q.difficulty] =
-        (questionsGeneratedPerDifficulty[q.difficulty] || 0) + 1;
-    }
-    for (const gq of generatedQuestions) {
-      const topicName = gq.conceptKey || "General";
-      questionsGeneratedPerTopic[topicName] =
-        (questionsGeneratedPerTopic[topicName] || 0) + 1;
-      questionsGeneratedPerDifficulty[gq.difficultyLevel] =
-        (questionsGeneratedPerDifficulty[gq.difficultyLevel] || 0) + 1;
+
+      const diffKey = (q.difficulty || "MEDIUM").toString().trim().toUpperCase();
+      questionsGeneratedPerDifficulty[diffKey] =
+        (questionsGeneratedPerDifficulty[diffKey] || 0) + 1;
     }
 
     // Live daily trend data from actual generation records
@@ -106,8 +96,8 @@ export class AdminAnalyticsSyncService {
         trendMap[d].failure++;
       }
     }
-    for (const gq of generatedQuestions) {
-      const d = gq.createdAt.toISOString().split("T")[0];
+    for (const q of questions) {
+      const d = q.createdAt.toISOString().split("T")[0];
       if (trendMap[d] && trendMap[d].success === 0) {
         trendMap[d].success++;
       }

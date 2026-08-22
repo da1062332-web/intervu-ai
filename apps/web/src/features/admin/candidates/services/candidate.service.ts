@@ -39,4 +39,18 @@ export const adminCandidateService = {
       query: params as any,
     });
   },
+
+  updateCandidateStatus(id: string, status: 'ACTIVE' | 'INACTIVE'): Promise<{ id: string; status: string }> {
+    return apiClient.request(`${ADMIN_CANDIDATES_PATH}/${id}/status`, {
+      method: 'PATCH',
+      body: { status },
+    });
+  },
+
+  updateCandidate(id: string, data: Record<string, any>): Promise<CandidateDetails> {
+    return apiClient.request<CandidateDetails>(`${ADMIN_CANDIDATES_PATH}/${id}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  },
 };

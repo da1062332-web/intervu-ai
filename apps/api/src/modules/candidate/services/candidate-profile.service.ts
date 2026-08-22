@@ -38,8 +38,10 @@ export class CandidateProfileService {
       throw new NotFoundException("Profile not found");
     }
 
+    const targetName = dto.name !== undefined ? dto.name : dto.fullName;
+
     const updatedUser = await this.profileRepository.updateProfile(userId, {
-      fullName: dto.name,
+      fullName: targetName,
       email: dto.email,
       phone: dto.phone,
       college: dto.college,

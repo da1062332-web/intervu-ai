@@ -64,8 +64,18 @@ export class RuntimeValidationService {
             );
           }
 
+          const isCoding =
+            q.questionType === "CODING" ||
+            Boolean(
+              q.metadata?.codingData ||
+                q.metadata?.starterCode ||
+                q.metadata?.problemType,
+            );
+
           if (
-            q.questionType === "MULTIPLE_CHOICE" &&
+            !isCoding &&
+            (q.questionType === "MULTIPLE_CHOICE" ||
+              q.questionType === "MCQ") &&
             (!q.options || q.options.length === 0)
           ) {
             errors.push(

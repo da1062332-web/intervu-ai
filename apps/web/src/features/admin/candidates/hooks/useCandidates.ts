@@ -18,6 +18,7 @@ export function useCandidates(params: CandidateListParams = {}) {
     queryKey: candidateQueryKeys.list(params as Record<string, unknown>),
     queryFn: () => adminCandidateService.getCandidates(params),
     placeholderData: (previousData) => previousData,
-    staleTime: 60 * 1000,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
   });
 }

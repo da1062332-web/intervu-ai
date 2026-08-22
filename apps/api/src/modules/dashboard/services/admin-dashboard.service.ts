@@ -17,28 +17,30 @@ export class AdminDashboardService {
 
   async getTotalAssessments(): Promise<number> {
     return this.prisma.examConfig.count({
-      where: { isArchived: false },
+      where: {
+        status: ConfigStatus.PUBLISHED,
+        isArchived: false,
+        isActive: true,
+      },
     });
   }
 
   async getActiveAssessments(): Promise<number> {
     return this.prisma.examConfig.count({
       where: {
+        status: ConfigStatus.PUBLISHED,
         isArchived: false,
-        OR: [
-          { status: { in: [ConfigStatus.PUBLISHED, ConfigStatus.ACTIVE] } },
-          {
-            status: { notIn: [ConfigStatus.ARCHIVED, ConfigStatus.DRAFT] },
-            isActive: true,
-          },
-        ],
+        isActive: true,
       },
     });
   }
 
   async getTotalCandidates(): Promise<number> {
     return this.prisma.user.count({
-      where: { role: UserRole.CANDIDATE },
+      where: {
+        role: UserRole.CANDIDATE,
+        deletedAt: null,
+      },
     });
   }
 
@@ -85,7 +87,7 @@ export class AdminDashboardService {
 
   async getRecentAssessments(query: AdminPaginationQueryDto) {
     const page = Number(query.page || 1);
-    const limit = Number(query.limit || 10);
+    const limit = Number(query.limit || 5);
     const skip = (page - 1) * limit;
 
     const where: Prisma.ExamConfigWhereInput = {

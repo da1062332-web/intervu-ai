@@ -111,6 +111,16 @@ export function QuestionRenderer() {
     return [];
   };
 
+  const formatOptionDisplay = (text: string): string => {
+    if (!text) return '';
+    return text.replace(/-?\d+\.\d{3,}/g, (match) => {
+      const num = parseFloat(match);
+      if (isNaN(num)) return match;
+      const rounded = num.toFixed(2);
+      return rounded.endsWith('.00') ? String(Math.round(num)) : rounded;
+    });
+  };
+
   const renderMCQ = () => {
     const selectedOptionId = currentAnswer?.selectedOptionId;
     const optionsList = getOptionsList(currentQuestion);
@@ -124,13 +134,14 @@ export function QuestionRenderer() {
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
           const optKey = `opt-${currentQuestion.id}-${index}`;
-          const optText =
+          const rawOptText =
             typeof option === 'string'
               ? option
               : option?.text || option?.value || option?.label || '';
+          const optText = formatOptionDisplay(rawOptText);
           const optValue =
             typeof option === 'string' ? option : option?.text || option?.id || index.toString();
-          const isSelected = selectedOptionId === optValue;
+          const isSelected = selectedOptionId === optValue || selectedOptionId === optText;
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
@@ -200,13 +211,14 @@ export function QuestionRenderer() {
       <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
-          const optText =
+          const rawOptText =
             typeof option === 'string'
               ? option
               : option?.text || option?.value || option?.label || '';
+          const optText = formatOptionDisplay(rawOptText);
           const optValue =
             typeof option === 'string' ? option : option?.text || option?.id || index.toString();
-          const isSelected = selectedOptionIds.includes(optValue);
+          const isSelected = selectedOptionIds.includes(optValue) || selectedOptionIds.includes(optText);
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 

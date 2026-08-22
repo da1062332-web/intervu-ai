@@ -3,10 +3,10 @@ import { dashboardService } from '../services/dashboard.service';
 import { examConfigsApi } from '@/services/exam-configs/api';
 import { toast } from 'sonner';
 
-export function useRecentAssessments() {
+export function useRecentAssessments(limit: number = 5) {
   return useQuery({
-    queryKey: ['admin-dashboard', 'recent-assessments'],
-    queryFn: dashboardService.getRecentAssessments,
+    queryKey: ['admin-dashboard', 'recent-assessments', limit],
+    queryFn: () => dashboardService.getRecentAssessments({ limit }),
   });
 }
 

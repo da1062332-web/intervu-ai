@@ -933,18 +933,37 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
                               generatedQuestion.question.options.length > 0 && (
                                 <ul className='list-disc pl-5 mt-2 space-y-1'>
                                   {generatedQuestion.question.options.map(
-                                    (opt: string, idx: number) => (
-                                      <li
-                                        key={idx}
-                                        className={
-                                          generatedQuestion.question.correctAnswer === opt
-                                            ? 'font-bold text-emerald-600 dark:text-emerald-400'
-                                            : ''
-                                        }
-                                      >
-                                        {opt}
-                                      </li>
-                                    ),
+                                    (opt: any, idx: number) => {
+                                      const optText =
+                                        typeof opt === 'object' && opt !== null
+                                          ? opt.text ??
+                                            opt.optionText ??
+                                            opt.value ??
+                                            opt.label ??
+                                            JSON.stringify(opt)
+                                          : String(opt);
+                                      const isCorrect =
+                                        (typeof opt === 'object' &&
+                                          opt !== null &&
+                                          opt.isCorrect === true) ||
+                                        generatedQuestion.question
+                                          .correctAnswer === opt ||
+                                        generatedQuestion.question
+                                          .correctAnswer === optText;
+
+                                      return (
+                                        <li
+                                          key={idx}
+                                          className={
+                                            isCorrect
+                                              ? 'font-bold text-emerald-600 dark:text-emerald-400'
+                                              : ''
+                                          }
+                                        >
+                                          {optText}
+                                        </li>
+                                      );
+                                    },
                                   )}
                                 </ul>
                               )}

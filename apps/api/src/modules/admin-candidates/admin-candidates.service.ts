@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { UserRole, Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
 import { UserRepository } from "../users/repositories/user.repository";
 import { CandidateProfileRepository } from "../candidate/repositories/candidate-profile.repository";
 import { AttemptHistoryRepository } from "../candidate/repositories/attempt-history.repository";
@@ -18,6 +19,7 @@ import {
 @Injectable()
 export class AdminCandidatesService {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly userRepository: UserRepository,
     private readonly candidateProfileRepository: CandidateProfileRepository,
     private readonly attemptHistoryRepository: AttemptHistoryRepository,
@@ -62,8 +64,8 @@ export class AdminCandidatesService {
       orderBy = { [sortBy]: sortOrder };
     }
 
-    const page = Math.max(1, query.page || 1);
-    const limit = Math.min(100, Math.max(1, query.limit || 20));
+    const page = Math.max(1, Number(query.page || 1));
+    const limit = Math.min(100, Math.max(1, Number(query.limit || 20)));
     const skip = (page - 1) * limit;
 
     const [{ items, total }, statusCounts] = await Promise.all([
@@ -78,20 +80,31 @@ export class AdminCandidatesService {
 
     const formattedItems = await Promise.all(
       items.map(async (user: any) => {
-        const [perf, res] = await Promise.all([
-          this.performanceRepository.getAggregatedPerformance(user.id),
-          this.candidateResultRepository.findCandidateResults(user.id, 1, 1),
-        ]);
+        let perf: any = {};
+        let res: any = {};
+        try {
+          [perf, res] = await Promise.all([
+            this.performanceRepository
+              .getAggregatedPerformance(user.id)
+              .catch(() => ({})),
+            this.candidateResultRepository
+              .findCandidateResults(user.id, 1, 1)
+              .catch(() => ({ items: [] })),
+          ]);
+        } catch {
+          // Use summary fallbacks
+        }
+
         const summary = user.performanceSummary || {};
         const completedTests =
-          perf.testsCompleted || summary.testsCompleted || 0;
+          perf?.testsCompleted || summary.testsCompleted || 0;
         const averageScore = Math.round(
-          perf.averageScore || summary.averageScore || 0,
+          perf?.averageScore || summary.averageScore || 0,
         );
-        const bestScore = Math.round(perf.bestScore || summary.bestScore || 0);
+        const bestScore = Math.round(perf?.bestScore || summary.bestScore || 0);
         const lastAttemptDate =
-          perf.lastAssessmentDate || summary.lastAssessmentDate;
-        const latestResult = res.items?.[0];
+          perf?.lastAssessmentDate || summary.lastAssessmentDate;
+        const latestResult = res?.items?.[0];
 
         return {
           id: user.id,
@@ -244,6 +257,77 @@ export class AdminCandidatesService {
         total,
         totalPages: Math.ceil(total / limit) || 1,
       },
+    };
+  }
+
+  async updateCandidateStatus(
+    candidateId: string,
+    status: "ACTIVE" | "INACTIVE",
+  ) {
+    const user = await this.userRepository.findById(candidateId);
+    // Find candidate user even if soft-deleted
+    const existingUser =
+      user ||
+      (await this.prisma.user.findUnique({ where: { id: candidateId } }));
+
+    if (!existingUser || existingUser.role !== UserRole.CANDIDATE) {
+      throw new NotFoundException("Candidate not found");
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: candidateId },
+      data: {
+        deletedAt: status === "INACTIVE" ? new Date() : null,
+      },
+    });
+
+    return {
+      id: updatedUser.id,
+      name: updatedUser.fullName || "Unnamed Candidate",
+      email: updatedUser.email,
+      status: updatedUser.deletedAt ? "INACTIVE" : "ACTIVE",
+      updatedAt: updatedUser.updatedAt.toISOString(),
+    };
+  }
+
+  async updateCandidate(
+    candidateId: string,
+    dto: any,
+  ) {
+    const user = await this.userRepository.findById(candidateId);
+    const existingUser =
+      user ||
+      (await this.prisma.user.findUnique({ where: { id: candidateId } }));
+
+    if (!existingUser || existingUser.role !== UserRole.CANDIDATE) {
+      throw new NotFoundException("Candidate not found");
+    }
+
+    const targetName = dto.name !== undefined ? dto.name : dto.fullName;
+    const dataToUpdate: Prisma.UserUpdateInput = {};
+
+    if (targetName !== undefined) dataToUpdate.fullName = targetName;
+    if (dto.phone !== undefined) dataToUpdate.phone = dto.phone;
+    if (dto.college !== undefined) dataToUpdate.college = dto.college;
+    if (dto.graduationYear !== undefined) dataToUpdate.graduationYear = dto.graduationYear;
+    if (dto.status !== undefined) {
+      dataToUpdate.deletedAt = dto.status === "INACTIVE" ? new Date() : null;
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: candidateId },
+      data: dataToUpdate,
+    });
+
+    return {
+      id: updatedUser.id,
+      name: updatedUser.fullName || "Unnamed Candidate",
+      email: updatedUser.email,
+      phone: updatedUser.phone || "",
+      college: updatedUser.college || "",
+      graduationYear: updatedUser.graduationYear || null,
+      status: updatedUser.deletedAt ? "INACTIVE" : "ACTIVE",
+      updatedAt: updatedUser.updatedAt.toISOString(),
     };
   }
 }

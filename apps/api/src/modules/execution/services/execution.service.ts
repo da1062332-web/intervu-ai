@@ -4,6 +4,11 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { TestInstanceRepository } from "../repositories";
 import { ExecutionValidatorService } from "./execution-validator.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import {
+  normalizeDisplayQuestion,
+  synthesizeNumericDistractors,
+  isPlaceholderOptions,
+} from "../../generation-ai/utils/display-value-formatter";
 
 export type SectionStatus =
   | "UPCOMING"
@@ -210,32 +215,49 @@ export class ExecutionService {
             const { correctAnswer, answer, solution, ...candidateSafeSnapshot } =
               rawSnapshot;
 
-            // Enrich options from mcqData if snapshot has incomplete/missing options (< 2)
+            // Enrich options from mcqData if snapshot has incomplete/missing options (< 2) or placeholder options
             let snapshotOptions = candidateSafeSnapshot.options;
-            const hasOptions =
-              Array.isArray(snapshotOptions) && snapshotOptions.length >= 2;
-            if (!hasOptions && questionMcqDataMap.has(q.questionId)) {
+            const hasValidOptions =
+              Array.isArray(snapshotOptions) &&
+              snapshotOptions.length >= 2 &&
+              !isPlaceholderOptions(snapshotOptions);
+
+            if (!hasValidOptions && questionMcqDataMap.has(q.questionId)) {
               const mcqData = questionMcqDataMap.get(q.questionId) as any;
               const mcqOptions = mcqData?.options || mcqData?.choices;
-              if (Array.isArray(mcqOptions) && mcqOptions.length > 0) {
+              if (
+                Array.isArray(mcqOptions) &&
+                mcqOptions.length > 0 &&
+                !isPlaceholderOptions(mcqOptions)
+              ) {
                 candidateSafeSnapshot.options = mcqOptions;
               }
             }
 
-            // Safety net: ensure MCQ questions always have valid options array
+            // Synthesize real numeric/contextual distractors if options are missing or dummy
+            const isMcq =
+              candidateSafeSnapshot.questionType === "MCQ" ||
+              candidateSafeSnapshot.questionType === "MULTIPLE_CHOICE" ||
+              !candidateSafeSnapshot.questionType;
+
             if (
-              (candidateSafeSnapshot.questionType === "MCQ" ||
-                candidateSafeSnapshot.questionType === "MULTIPLE_CHOICE") &&
+              isMcq &&
               (!Array.isArray(candidateSafeSnapshot.options) ||
-                candidateSafeSnapshot.options.length === 0)
+                candidateSafeSnapshot.options.length === 0 ||
+                isPlaceholderOptions(candidateSafeSnapshot.options))
             ) {
-              candidateSafeSnapshot.options = [
-                { id: "opt1", text: "Option A" },
-                { id: "opt2", text: "Option B" },
-                { id: "opt3", text: "Option C" },
-                { id: "opt4", text: "Option D" },
-              ];
+              const targetAnswer = answer ?? correctAnswer;
+              if (targetAnswer && !isNaN(Number(targetAnswer))) {
+                candidateSafeSnapshot.options = synthesizeNumericDistractors(
+                  Number(targetAnswer),
+                  4,
+                );
+              }
             }
+
+            // Normalize question text, options, and numbers for clean 2-decimal presentation
+            const normalizedSnapshot = normalizeDisplayQuestion(candidateSafeSnapshot);
+            Object.assign(candidateSafeSnapshot, normalizedSnapshot);
 
             // Enrich questionStatement and instructions from Question table if missing
             if (

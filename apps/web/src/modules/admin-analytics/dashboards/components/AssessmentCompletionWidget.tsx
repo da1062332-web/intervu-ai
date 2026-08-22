@@ -40,8 +40,8 @@ export function AssessmentCompletionWidget() {
   const strokeDashoffset = circumference - (completionRate / 100) * circumference;
 
   return (
-    <Card className='h-full flex flex-col shadow-sm rounded-xl'>
-      <CardHeader className='pb-0'>
+    <Card className='rounded-xl shadow-sm overflow-hidden flex flex-col h-full'>
+      <CardHeader className='py-3 px-5 border-b bg-card z-20 flex flex-row items-center justify-between'>
         <CardTitle className='text-base font-semibold'>Assessment Completion</CardTitle>
       </CardHeader>
       <CardContent className='flex-1 flex flex-col items-center justify-center gap-8 pt-6 pb-8'>

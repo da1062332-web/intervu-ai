@@ -21,7 +21,7 @@ export default function AdminCandidatesPage() {
 
   const { data, isLoading, isRefetching, error, refetch } = useCandidates({
     page,
-    limit: DEFAULT_PAGE_SIZE,
+    limit: 100,
     search: search.trim() || undefined,
     status: status || undefined,
     sortBy,

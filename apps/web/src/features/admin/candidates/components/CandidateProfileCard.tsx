@@ -48,7 +48,9 @@ export function CandidateProfileCard({ candidate, isLoading = false }: Candidate
             <p className='text-sm text-muted-foreground font-mono mt-0.5'>ID: {candidate.id}</p>
           </div>
         </div>
-        <CandidateStatusBadge status={candidate.status} className='text-sm px-3.5 py-1' />
+        <div className='flex items-center gap-3'>
+          <CandidateStatusBadge status={candidate.status} className='text-sm px-3.5 py-1' />
+        </div>
       </CardHeader>
 
       <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border-t pt-6 border-border/40'>

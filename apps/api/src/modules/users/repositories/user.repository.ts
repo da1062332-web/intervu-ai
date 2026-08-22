@@ -31,6 +31,12 @@ export class UserRepository extends BaseRepository<
     return user;
   }
 
+  async findRawByEmail(email: string): Promise<User | null> {
+    return this.db.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+  }
+
   async findByGoogleId(googleId: string): Promise<User | null> {
     const user = await this.db.user.findUnique({
       where: { googleId },
@@ -39,6 +45,12 @@ export class UserRepository extends BaseRepository<
       return null;
     }
     return user;
+  }
+
+  async findRawByGoogleId(googleId: string): Promise<User | null> {
+    return this.db.user.findUnique({
+      where: { googleId },
+    });
   }
 
   async findCandidatesWithSummary(params: {

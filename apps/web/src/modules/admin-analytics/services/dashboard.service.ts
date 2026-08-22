@@ -86,10 +86,12 @@ export const dashboardService = {
   getAssessmentCompletionRate: () =>
     apiClient.request<AssessmentCompletionRate>('/admin/dashboard/assessment-completion-rate'),
 
-  getRecentAssessments: () =>
-    apiClient
-      .request<{ data: RecentAssessment[] }>('/admin/dashboard/recent-assessments')
-      .then((res) => res.data),
+  getRecentAssessments: (params?: { limit?: number; page?: number }) => {
+    const limit = params?.limit ?? 5;
+    return apiClient
+      .request<{ data: RecentAssessment[] }>(`/admin/dashboard/recent-assessments?limit=${limit}`)
+      .then((res) => res.data);
+  },
 
   getRecentTestAttempts: () =>
     apiClient

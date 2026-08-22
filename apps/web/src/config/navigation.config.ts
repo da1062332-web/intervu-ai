@@ -70,7 +70,6 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       items: [
         { label: 'Question Generator', route: '/admin/question-generation', icon: Sparkles },
         { label: 'Question Bank', route: '/admin/question-bank', icon: Database },
-        { label: 'Generation Failures', route: '/admin/generation/failures', icon: Archive },
       ],
     },
     {

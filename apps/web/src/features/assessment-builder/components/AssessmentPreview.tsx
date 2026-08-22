@@ -170,33 +170,61 @@ const QuestionCard: React.FC<{ question: GeneratedQuestion; index: number }> = (
       <CardContent>
         {question.options && question.options.length > 0 && (
           <div className='pl-11 space-y-2 mt-2'>
-            {question.options.map((opt, i) => (
-              <div
-                key={i}
-                className={`p-3 border rounded-md text-sm ${opt === question.answer ? 'bg-green-50 border-green-200 font-medium text-green-900' : 'bg-background'}`}
-              >
-                {opt}
-                {opt === question.answer && (
-                  <span className='ml-2 text-green-600 text-xs uppercase font-bold tracking-wider'>
-                    (Correct Answer)
-                  </span>
-                )}
-              </div>
-            ))}
+            {question.options.map((opt, i) => {
+              const optText =
+                typeof opt === 'object' && opt !== null
+                  ? (opt as any).text ??
+                    (opt as any).optionText ??
+                    (opt as any).value ??
+                    (opt as any).label ??
+                    JSON.stringify(opt)
+                  : String(opt);
+              const isCorrect =
+                (typeof opt === 'object' &&
+                  opt !== null &&
+                  (opt as any).isCorrect === true) ||
+                opt === question.answer ||
+                optText === question.answer ||
+                (typeof opt === 'object' &&
+                  opt !== null &&
+                  (opt as any).id === question.answer);
+
+              return (
+                <div
+                  key={i}
+                  className={`p-3 border rounded-md text-sm ${isCorrect ? 'bg-green-50 border-green-200 font-medium text-green-900' : 'bg-background'}`}
+                >
+                  {optText}
+                  {isCorrect && (
+                    <span className='ml-2 text-green-600 text-xs uppercase font-bold tracking-wider'>
+                      (Correct Answer)
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
         {!question.options && question.answer && (
           <div className='pl-11 mt-4'>
             <h4 className='text-sm font-semibold mb-1'>Answer:</h4>
-            <div className='p-3 bg-muted rounded-md text-sm'>{question.answer}</div>
+            <div className='p-3 bg-muted rounded-md text-sm'>
+              {typeof question.answer === 'object'
+                ? JSON.stringify(question.answer, null, 2)
+                : String(question.answer)}
+            </div>
           </div>
         )}
 
         {question.explanation && (
           <div className='pl-11 mt-4'>
             <h4 className='text-sm font-semibold mb-1 text-muted-foreground'>Explanation:</h4>
-            <div className='text-sm text-muted-foreground'>{question.explanation}</div>
+            <div className='text-sm text-muted-foreground'>
+              {typeof question.explanation === 'object'
+                ? JSON.stringify(question.explanation, null, 2)
+                : String(question.explanation)}
+            </div>
           </div>
         )}
       </CardContent>
