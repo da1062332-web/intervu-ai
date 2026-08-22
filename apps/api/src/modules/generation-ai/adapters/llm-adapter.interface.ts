@@ -1,3 +1,3 @@
 export interface LLMAdapter {
-  generate(prompt: string): Promise<string>;
+  generate(prompt: string, temperature?: number): Promise<string>;
 }

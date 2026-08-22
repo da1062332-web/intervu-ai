@@ -6,7 +6,7 @@ import { LLMAdapter } from "./llm-adapter.interface";
 export class OpenAIAdapter implements LLMAdapter {
   constructor(private readonly configService: AppConfigService) {}
 
-  async generate(prompt: string): Promise<string> {
+  async generate(prompt: string, temperature: number = 0.7): Promise<string> {
     const apiKey = this.configService.openAiApiKey;
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini"; // Switched to mini for much faster result generation
 
@@ -38,7 +38,7 @@ export class OpenAIAdapter implements LLMAdapter {
                 content: prompt,
               },
             ],
-            temperature: 0.7,
+            temperature,
             max_tokens: 1500,
           }),
         },
