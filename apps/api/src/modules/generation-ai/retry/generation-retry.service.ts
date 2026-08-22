@@ -283,8 +283,12 @@ export class GenerationRetryService {
     const topic = template.conceptKey;
 
     let promptStr = "";
+    const attemptAvoidQuestions: string[] = [];
     while (attempts < maxAttempts) {
       attempts++;
+      this.logger.log(
+        `[GenerationAudit] [Attempt ${attempts}/${maxAttempts}] Generating for template "${template.name || template.id}" (Concept: ${topic}, Difficulty: ${difficulty}, Strategy: ${template.generationStrategy || "VARIABLE"})`,
+      );
       let response = "";
       let parsedQuestion: GeneratedQuestionDto | undefined;
       let validationSuccess = false;
@@ -379,11 +383,13 @@ export class GenerationRetryService {
             logicalGraph: options?.logicalGraph,
             promptConfig: promptConfig || undefined,
             styleProfile,
+            avoidQuestions: attemptAvoidQuestions.length > 0 ? attemptAvoidQuestions : undefined,
           });
 
-          // 1. Generate LLM Output for AI mode
+          // 1. Generate LLM Output for AI mode — escalate temperature on retries to get more variety
+          const attemptTemperature = attempts === 1 ? 0.7 : attempts === 2 ? 0.9 : 1.0;
           try {
-            response = await this.questionGenerator.generate(promptStr);
+            response = await this.questionGenerator.generate(promptStr, attemptTemperature);
           } catch (llmErr) {
             if (isDatasetStrategy && options?.datasetItem) {
               const dsItem = options.datasetItem;
@@ -525,6 +531,8 @@ export class GenerationRetryService {
           const dupResult =
             await this.duplicateDetector.checkDuplicate(parsedQuestion);
           if (dupResult.duplicate) {
+            // Record the duplicate text so the next attempt can avoid it
+            attemptAvoidQuestions.push(parsedQuestion.question || "");
             throw new BadRequestException(
               `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`,
             );
@@ -545,6 +553,9 @@ export class GenerationRetryService {
           }
         }
 
+        this.logger.log(
+          `[GenerationAudit] [Attempt ${attempts}/${maxAttempts}] Question successfully generated and passed all validations.`,
+        );
         validationSuccess = true;
       } catch (e: any) {
         if (e instanceof PreviewGenerationException) {
@@ -554,10 +565,11 @@ export class GenerationRetryService {
         const classified = this.classifyPreviewFailure(e, "generation-retry");
         attemptErrors.push(classified.reason);
 
+        this.logger.warn(
+          `[GenerationAudit] [Attempt ${attempts}/${maxAttempts}] Validation failed: ${classified.reason} | Category: ${classified.category} | Retryable: ${classified.retryable}`,
+        );
+
         if (!classified.retryable) {
-          this.logger.warn(
-            `[preview] ${classified.category} from ${classified.details.source}: ${classified.reason}`,
-          );
           throw new PreviewGenerationException(
             classified.message,
             classified.details,
@@ -645,12 +657,6 @@ export class GenerationRetryService {
       "unresolved template placeholder",
       "constraint",
       "circular",
-      "duplicate question",
-      "quality threshold",
-      "validation failed",
-      "topic alignment check",
-      "difficulty mismatch",
-      "math validation failed",
     ];
 
     const retryablePatterns = [
@@ -665,6 +671,13 @@ export class GenerationRetryService {
       "502",
       "503",
       "504",
+      // Content-level: allow retries so AI can generate a fresh unique question
+      "duplicate question",
+      "quality threshold",
+      "validation failed",
+      "topic alignment check",
+      "difficulty mismatch",
+      "math validation failed",
     ];
 
     const isNonRetryable = nonRetryablePatterns.some((pattern) =>

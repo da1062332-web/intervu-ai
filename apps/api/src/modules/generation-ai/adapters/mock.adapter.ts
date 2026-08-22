@@ -9,7 +9,7 @@ export class MockAdapter implements LLMAdapter {
     return this.lastPrompt;
   }
 
-  async generate(prompt: string): Promise<string> {
+  async generate(prompt: string, _temperature?: number): Promise<string> {
     this.lastPrompt = prompt;
 
     if (prompt.includes("expert AI assessment evaluator")) {
