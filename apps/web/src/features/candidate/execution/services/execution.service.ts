@@ -64,31 +64,45 @@ export const executionService = {
           status: section.status ?? 'UPCOMING',
 
           questions:
-            section.questions?.map((q: any) => ({
-              id: q.questionId,
-              orderIndex: q.questionOrder,
-              questionHash: q.snapshot?.questionHash || '',
-              type: q.snapshot?.questionType || 'MCQ',
-              text: q.snapshot?.questionText || '',
-              stem: q.snapshot?.questionStatement || '',
-              candidateInstructions: q.snapshot?.instructions || '',
-              options: (() => {
-                let rawOptions = [];
-                if (q.snapshot?.options && q.snapshot.options.length > 0) {
-                  rawOptions = q.snapshot.options;
-                } else if (q.snapshot?.mcqData?.options && q.snapshot.mcqData.options.length > 0) {
-                  rawOptions = q.snapshot.mcqData.options;
+            section.questions?.map((q: any) => {
+              const snap = q.snapshot || {};
+              const isCoding =
+                snap.questionType?.toUpperCase() === 'CODING' ||
+                snap.type?.toUpperCase() === 'CODING' ||
+                Boolean(snap.codingData) ||
+                (section.sectionKey || '').toLowerCase().includes('coding');
+
+              const questionType = isCoding ? 'CODING' : (snap.questionType || snap.type || 'MCQ');
+
+              let rawOptions = [];
+              if (Array.isArray(snap.options) && snap.options.length > 0) {
+                rawOptions = snap.options;
+              } else if (Array.isArray(snap.mcqData?.options) && snap.mcqData.options.length > 0) {
+                rawOptions = snap.mcqData.options;
+              } else if (Array.isArray(snap.metadata?.options) && snap.metadata.options.length > 0) {
+                rawOptions = snap.metadata.options;
+              }
+
+              const formattedOptions = rawOptions.map((opt: any, idx: number) => {
+                if (typeof opt === 'string') {
+                  return { id: `opt-${idx}`, text: opt };
                 }
-                return rawOptions.map((opt: any, idx: number) => {
-                  if (typeof opt === 'string') {
-                    // Use index-based ID to avoid duplicate key collisions.
-                    // The text value is stored separately for backend evaluation.
-                    return { id: `opt-${idx}`, text: opt };
-                  }
-                  return opt;
-                });
-              })(),
-            })) || [],
+                return opt;
+              });
+
+              return {
+                id: q.questionId,
+                orderIndex: q.questionOrder,
+                questionHash: snap.questionHash || '',
+                type: questionType,
+                text: snap.questionText || snap.text || '',
+                stem: snap.questionStatement || snap.stem || '',
+                candidateInstructions: snap.instructions || '',
+                codingData: snap.codingData,
+                questionSnapshot: snap,
+                options: formattedOptions,
+              };
+            }) || [],
         })) || [],
     } as TestInstance;
   },

@@ -314,7 +314,10 @@ export function QuestionRenderer() {
     }
   };
 
-  const isCoding = currentQuestion.type?.toUpperCase() === 'CODING';
+  const isCoding =
+    currentQuestion.type?.toUpperCase() === 'CODING' ||
+    Boolean((currentQuestion as any).codingData) ||
+    Boolean((currentQuestion as any).questionSnapshot?.codingData);
 
   if (isCoding) {
     const qSnapshot = (currentQuestion as any).questionSnapshot || {};
@@ -591,14 +594,16 @@ export function QuestionRenderer() {
         {/* Left Pane - Question Statement & Context */}
         <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white shrink-0 custom-scrollbar select-text flex flex-col justify-between'>
           <div className='max-w-2xl text-gray-800 space-y-5 font-sans'>
-            {currentQuestion.stem && (
-              <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line'>
-                <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>
-                  Question Context / Passage:
-                </h4>
-                {currentQuestion.stem}
-              </div>
-            )}
+            {currentQuestion.stem &&
+              currentQuestion.stem.trim().toLowerCase() !==
+                (currentQuestion.text || '').trim().toLowerCase() && (
+                <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line'>
+                  <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>
+                    Question Context / Passage:
+                  </h4>
+                  {currentQuestion.stem}
+                </div>
+              )}
 
             <div className='text-base sm:text-[17px] font-semibold leading-relaxed text-gray-950 font-sans break-words pb-2 border-b border-gray-100'>
               <span className='font-bold text-gray-900'>Question : </span>

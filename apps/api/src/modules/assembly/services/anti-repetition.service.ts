@@ -77,7 +77,7 @@ export class AntiRepetitionService {
           candidateText,
           hqText,
         );
-        if (similarity > 0.85) {
+        if (similarity >= 0.92) {
           this.logger.debug(
             `Semantic match found for ${candidateQuestionId} against ${hq.id} with score ${similarity}`,
           );

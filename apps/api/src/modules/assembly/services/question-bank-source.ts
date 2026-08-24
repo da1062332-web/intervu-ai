@@ -38,6 +38,7 @@ export class QuestionBankSource implements IQuestionSource {
     let resolvedCode = inputConceptKey;
     let topic = await this.prisma.topic.findUnique({
       where: { id: inputConceptKey },
+      include: { concepts: true },
     });
     if (!topic) {
       topic = await this.prisma.topic.findFirst({
@@ -48,6 +49,7 @@ export class QuestionBankSource implements IQuestionSource {
             { name: { contains: inputConceptKey, mode: "insensitive" } },
           ],
         },
+        include: { concepts: true },
       });
     }
     if (topic) {
@@ -157,42 +159,51 @@ export class QuestionBankSource implements IQuestionSource {
 
     // 4. Fetch Manual Questions according to targetManual
     if (targetManual > 0) {
-      const diffDist = hasExplicitDifficulty
+      const easyShare = Math.floor(targetManual / 3);
+      const hardShare = Math.floor(targetManual / 3);
+      const medShare = targetManual - easyShare - hardShare;
+
+      const checkDist = hasExplicitDifficulty
         ? {
             EASY: difficulty === "EASY" ? targetManual : 0,
             MEDIUM: difficulty === "MEDIUM" ? targetManual : 0,
             HARD: difficulty === "HARD" ? targetManual : 0,
           }
-        : { EASY: 0, MEDIUM: 0, HARD: 0 };
+        : { EASY: targetManual, MEDIUM: targetManual, HARD: targetManual };
 
       const request: AssemblyProviderRequest = {
         examId: filters.examId || "assembly-source",
         sectionId: topicId,
         count: targetManual,
-        difficultyDistribution: diffDist,
+        difficultyDistribution: checkDist,
         topicIds: topicId ? [topicId] : undefined,
       };
 
       try {
         const availability =
           await this.rotationService.checkAvailability(request);
-        let actualCount = targetManual;
-        if (
-          availability.status === "INSUFFICIENT_POOL" ||
-          availability.available < targetManual
-        ) {
-          actualCount = Math.max(0, availability.available);
+
+        let remainingToTake = targetManual;
+        const actualDiffDist = { EASY: 0, MEDIUM: 0, HARD: 0 };
+
+        if (hasExplicitDifficulty) {
+          const availForDiff = availability.details.find((d) => d.difficulty === difficulty)?.available || 0;
+          const takeCount = Math.min(availForDiff, targetManual);
+          actualDiffDist[difficulty] = takeCount;
+          remainingToTake -= takeCount;
+        } else {
+          // Sort or distribute across available difficulties
+          for (const d of availability.details) {
+            if (remainingToTake <= 0) break;
+            const takeFromDiff = Math.min(d.available, remainingToTake);
+            actualDiffDist[d.difficulty] = takeFromDiff;
+            remainingToTake -= takeFromDiff;
+          }
         }
 
-        if (actualCount > 0) {
-          const actualDiffDist = hasExplicitDifficulty
-            ? {
-                EASY: difficulty === "EASY" ? actualCount : 0,
-                MEDIUM: difficulty === "MEDIUM" ? actualCount : 0,
-                HARD: difficulty === "HARD" ? actualCount : 0,
-              }
-            : { EASY: 0, MEDIUM: 0, HARD: 0 };
+        const actualCount = targetManual - remainingToTake;
 
+        if (actualCount > 0) {
           const actualReq: AssemblyProviderRequest = {
             ...request,
             count: actualCount,

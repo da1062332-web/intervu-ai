@@ -14,7 +14,7 @@ export class QuestionPoolRepository implements IQuestionSource {
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
     return this.findAvailableQuestions(
       filters.conceptKey || "",
-      (filters.difficultyLevel as DifficultyLevel) || "MEDIUM",
+      filters.difficultyLevel as DifficultyLevel | undefined,
       filters.limit || 10,
       filters.excludeIds || [],
     );
@@ -22,63 +22,49 @@ export class QuestionPoolRepository implements IQuestionSource {
 
   async findAvailableQuestions(
     conceptKey: string,
-    difficulty: DifficultyLevel,
-    limit: number,
+    difficulty?: DifficultyLevel,
+    limit: number = 10,
     excludeIds: string[] = [],
   ) {
     let topicIdsToMatch = [conceptKey];
     if (conceptKey) {
       const topicObj = await this.prisma.topic.findFirst({
         where: { OR: [{ code: conceptKey }, { id: conceptKey }] },
+        include: { concepts: true },
       });
       if (topicObj) {
+        const conceptCodes = topicObj.concepts?.map((c) => c.code) || [];
         topicIdsToMatch = Array.from(
-          new Set([conceptKey, topicObj.id, topicObj.code]),
+          new Set([conceptKey, topicObj.id, topicObj.code, ...conceptCodes]),
         );
       }
     }
 
-    const realQuestions = await this.prisma.question.findMany({
-      where: {
-        topicId: { in: topicIdsToMatch },
-        difficulty,
-        status: "ACTIVE",
-        id: {
-          notIn: excludeIds,
-        },
+    const whereClause: any = {
+      status: "ACTIVE",
+      OR: [
+        { topicId: { in: topicIdsToMatch } },
+        { concept: { topicId: { in: topicIdsToMatch } } },
+        { concept: { code: { in: topicIdsToMatch } } },
+      ],
+      id: {
+        notIn: excludeIds,
       },
-      take: limit,
-      orderBy: { createdAt: "asc" },
-    });
+    };
 
-    if (realQuestions.length >= limit) {
-      return realQuestions
-        .slice(0, limit)
-        .map((question) => this.mapQuestionToGeneratedQuestion(question));
+    if (difficulty) {
+      whereClause.difficulty = difficulty;
     }
 
-    const remaining = limit - realQuestions.length;
-    const legacyQuestions = await this.prisma.generatedQuestion.findMany({
-      where: {
-        conceptKey,
-        difficultyLevel: difficulty,
-        id: {
-          notIn: excludeIds,
-        },
-      },
-      take: remaining,
-      orderBy: { createdAt: "asc" },
+    const realQuestions = await this.prisma.question.findMany({
+      where: whereClause,
+      take: limit,
+      orderBy: { timesUsed: "asc" },
     });
 
-    return [
-      ...realQuestions.map((question) =>
-        this.mapQuestionToGeneratedQuestion(question),
-      ),
-      ...legacyQuestions.map((question) => ({
-        ...question,
-        conceptKey: question.conceptKey || conceptKey,
-      })),
-    ];
+    return realQuestions.map((question) =>
+      this.mapQuestionToGeneratedQuestion(question),
+    );
   }
 
   private mapQuestionToGeneratedQuestion(

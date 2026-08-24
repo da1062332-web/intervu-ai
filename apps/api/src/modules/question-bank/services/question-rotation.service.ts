@@ -223,27 +223,29 @@ export class QuestionRotationService {
       );
 
       // 5. Record config question usage if examId is provided
-      if (request.examId) {
-        for (const qId of selectedQuestionIds) {
-          await tx.examConfigQuestionUsage.upsert({
-            where: {
-              configId_questionId: {
+      if (request.examId && selectedQuestionIds.length > 0) {
+        await Promise.all(
+          selectedQuestionIds.map((qId) =>
+            tx.examConfigQuestionUsage.upsert({
+              where: {
+                configId_questionId: {
+                  configId: request.examId,
+                  questionId: qId,
+                },
+              },
+              create: {
                 configId: request.examId,
                 questionId: qId,
+                timesUsed: 1,
+                lastUsedAt: new Date(),
               },
-            },
-            create: {
-              configId: request.examId,
-              questionId: qId,
-              timesUsed: 1,
-              lastUsedAt: new Date(),
-            },
-            update: {
-              timesUsed: { increment: 1 },
-              lastUsedAt: new Date(),
-            },
-          });
-        }
+              update: {
+                timesUsed: { increment: 1 },
+                lastUsedAt: new Date(),
+              },
+            }),
+          ),
+        );
       }
 
       // Map back to response interface
@@ -269,6 +271,9 @@ export class QuestionRotationService {
         assemblyId,
         expiresAt: expiresAt.toISOString(),
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 
