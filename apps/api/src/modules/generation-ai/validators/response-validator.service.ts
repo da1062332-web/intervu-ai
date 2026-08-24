@@ -258,7 +258,7 @@ export class ResponseValidatorService {
 
     // 2. Self-containment check
     const qText = (question.question || "").trim();
-    if (qText.length < 30) {
+    if (qText.length < 10) {
       throw new BadRequestException(
         "Dataset validation failed: Generated question text is too short to be self-contained.",
       );

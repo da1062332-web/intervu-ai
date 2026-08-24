@@ -30,8 +30,58 @@ export function TemplateListPageClient() {
   const autoTopicId = searchParams?.get('topicId');
   const autoOpen = searchParams?.get('autoOpen');
 
-  const { data: response, isLoading, isError, refetch } = useTemplates(1, 100);
-  const templates = response?.items || [];
+  const { data: response, isLoading, isError, refetch } = useTemplates(1, 500);
+  const rawTemplates = response?.items || [];
+
+  const [search, setSearch] = useState('');
+  const [selectedStrategy, setSelectedStrategy] = useState('ALL');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('ALL');
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
+
+  const filteredTemplates = React.useMemo(() => {
+    return rawTemplates.filter((item: any) => {
+      // 1. Search text filter
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const matchesName = String(item.name || '').toLowerCase().includes(q);
+        const matchesKey = String(item.templateKey || '').toLowerCase().includes(q);
+        const matchesConcept = String(item.conceptKey || '').toLowerCase().includes(q);
+        if (!matchesName && !matchesKey && !matchesConcept) return false;
+      }
+
+      // 2. Strategy filter
+      if (selectedStrategy !== 'ALL' && (item.generationStrategy || 'VARIABLE') !== selectedStrategy) {
+        return false;
+      }
+
+      // 3. Difficulty filter
+      if (selectedDifficulty !== 'ALL') {
+        const diff = (item.difficultyLevel || item.difficulty || 'MEDIUM').toUpperCase();
+        if (diff !== selectedDifficulty) return false;
+      }
+
+      // 4. Status filter
+      if (selectedStatus !== 'ALL') {
+        const isAct = item.isActive ? 'ACTIVE' : 'INACTIVE';
+        if (isAct !== selectedStatus) return false;
+      }
+
+      return true;
+    });
+  }, [rawTemplates, search, selectedStrategy, selectedDifficulty, selectedStatus]);
+
+  const hasActiveFilters =
+    search.trim() !== '' ||
+    selectedStrategy !== 'ALL' ||
+    selectedDifficulty !== 'ALL' ||
+    selectedStatus !== 'ALL';
+
+  const resetFilters = () => {
+    setSearch('');
+    setSelectedStrategy('ALL');
+    setSelectedDifficulty('ALL');
+    setSelectedStatus('ALL');
+  };
 
   const { data: topics = [], isLoading: isLoadingTopics } = useTopics();
   const [selectedTopicId, setSelectedTopicId] = useState('');
@@ -104,7 +154,11 @@ export function TemplateListPageClient() {
     {
       header: 'Concept Key',
       className: 'text-muted-foreground',
-      cell: (row) => row.conceptKey ?? '-',
+      cell: (row) => (
+        <span className='font-mono text-xs px-2 py-0.5 rounded bg-muted/60'>
+          {row.conceptKey ?? '-'}
+        </span>
+      ),
     },
     {
       header: 'Difficulty',
@@ -125,7 +179,7 @@ export function TemplateListPageClient() {
       cell: (row) => (
         <Badge
           variant='outline'
-          className='bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800 uppercase'
+          className='bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800 uppercase text-[10px]'
         >
           {row.generationStrategy ?? 'VARIABLE'}
         </Badge>
@@ -205,7 +259,7 @@ export function TemplateListPageClient() {
     <div className='container mx-auto space-y-6 max-w-7xl'>
       <SectionHeader
         title='Templates'
-        description='Manage generation templates and solutions.'
+        description='Manage generation templates, datasets, variable schemas, and coding patterns.'
         breadcrumbs={[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Templates' }]}
         actions={
           <Button onClick={() => setIsModalOpen(true)}>
@@ -221,7 +275,7 @@ export function TemplateListPageClient() {
         <div className='flex-1'>
           <p className='text-sm font-medium text-blue-800 dark:text-blue-300'>How Templates Work</p>
           <p className='text-sm text-blue-700 dark:text-blue-400 mt-0.5'>
-            Templates define how questions are structured (solution format, variables, rules). Once
+            Templates define how questions are structured (solution format, variables, rules, datasets, or coding patterns). Once
             a template is configured, go to <strong>Test Assembly</strong> to generate a full test
             instance.
           </p>
@@ -233,6 +287,81 @@ export function TemplateListPageClient() {
             <ArrowRight className='w-3.5 h-3.5' />
           </Button>
         </Link>
+      </div>
+
+      {/* ── Filter Bar ─────────────────────────────────────────── */}
+      <div className='bg-card p-4 rounded-xl border shadow-sm space-y-3'>
+        <div className='flex flex-wrap items-center gap-3'>
+          {/* Search Input */}
+          <div className='relative flex-1 min-w-[240px]'>
+            <Input
+              placeholder='Search by template name, key, or concept...'
+              className='bg-background'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {/* Strategy Filter */}
+          <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+            <SelectTrigger className='w-[170px] bg-background'>
+              <SelectValue placeholder='Strategy' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ALL'>All Strategies</SelectItem>
+              <SelectItem value='DATASET'>Dataset</SelectItem>
+              <SelectItem value='VARIABLE'>Variable</SelectItem>
+              <SelectItem value='CODING_PATTERN'>Coding Pattern</SelectItem>
+              <SelectItem value='HYBRID'>Hybrid</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Difficulty Filter */}
+          <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+            <SelectTrigger className='w-[140px] bg-background'>
+              <SelectValue placeholder='Difficulty' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ALL'>All Difficulties</SelectItem>
+              <SelectItem value='EASY'>Easy</SelectItem>
+              <SelectItem value='MEDIUM'>Medium</SelectItem>
+              <SelectItem value='HARD'>Hard</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Status Filter */}
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className='w-[130px] bg-background'>
+              <SelectValue placeholder='Status' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ALL'>All Statuses</SelectItem>
+              <SelectItem value='ACTIVE'>Active</SelectItem>
+              <SelectItem value='INACTIVE'>Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Reset Filters */}
+          {hasActiveFilters && (
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={resetFilters}
+              className='h-9 text-muted-foreground hover:text-foreground'
+            >
+              Reset
+            </Button>
+          )}
+        </div>
+
+        {/* Filter Summary */}
+        <div className='flex items-center justify-between text-xs text-muted-foreground pt-1 border-t'>
+          <span>
+            Showing <strong className='text-foreground'>{filteredTemplates.length}</strong> of{' '}
+            <strong className='text-foreground'>{rawTemplates.length}</strong> templates
+          </span>
+          {hasActiveFilters && <span className='text-primary font-medium'>Filters active</span>}
+        </div>
       </div>
 
       <div className='border rounded-xl bg-card shadow-sm'>
@@ -248,7 +377,7 @@ export function TemplateListPageClient() {
         ) : (
           <DataTable
             columns={columns}
-            data={templates}
+            data={filteredTemplates}
             isLoading={isLoading}
             rowKey={(row) => row.id}
             emptyState={

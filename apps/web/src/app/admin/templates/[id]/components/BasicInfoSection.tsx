@@ -69,8 +69,8 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
   }, [watchedFormString, updateDraftState, draftState.basicInfo]);
 
   // Sync Zustand store when strategy field changes
-  const watchedStrategy = watchedForm.generationStrategy;
-  React.useEffect(() => {
+  const watchedStrategy = watch('generationStrategy');
+  useEffect(() => {
     if (watchedStrategy && watchedStrategy !== currentStrategy) {
       setStrategy(watchedStrategy as GenerationStrategy);
     }

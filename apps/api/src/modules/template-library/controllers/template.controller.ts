@@ -120,18 +120,21 @@ export class TemplateController {
   @ApiQuery({ name: "limit", required: false, example: 10 })
   @ApiQuery({ name: "difficulty", required: false, enum: DifficultyLevel })
   @ApiQuery({ name: "strategy", required: false, enum: GenerationStrategy })
+  @ApiQuery({ name: "conceptKey", required: false, type: String })
   @ApiOkResponse({ description: "Paginated list of templates" })
   async findAll(
     @Query("page") page?: string,
     @Query("limit") limit?: string,
     @Query("difficulty") difficulty?: DifficultyLevel,
     @Query("strategy") strategy?: GenerationStrategy,
+    @Query("conceptKey") conceptKey?: string,
   ) {
     return this.templateService.findAll(
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 10,
       difficulty,
       strategy,
+      conceptKey,
     );
   }
 

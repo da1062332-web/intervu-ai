@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useRef } from 'react';
 
 // Form Definitions
 export interface VariableFormState {
@@ -107,11 +107,11 @@ export function TemplateBuilderProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const initializedRef = useRef(false);
 
-  const updateDraftState = (updates: Partial<TemplateDraftState>) => {
+  const updateDraftState = useCallback((updates: Partial<TemplateDraftState>) => {
     setDraftState((prev) => ({ ...prev, ...updates }));
-  };
+  }, []);
 
-  const initializeDraft = (template: any) => {
+  const initializeDraft = useCallback((template: any) => {
     // Only initialize once to prevent overwriting user edits
     if (initializedRef.current || !template) return;
     
@@ -242,7 +242,7 @@ export function TemplateBuilderProvider({ children }: { children: ReactNode }) {
     
     initializedRef.current = true;
     setIsInitialized(true);
-  };
+  }, []);
 
   return (
     <TemplateBuilderContext.Provider value={{ draftState, updateDraftState, initializeDraft, isInitialized }}>

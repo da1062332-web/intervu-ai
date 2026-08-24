@@ -50,7 +50,8 @@ export class DuplicateDetectorService {
       },
     });
 
-    // 2. Fetch existing questions under that topic
+    // 2. Fetch existing questions under that topic, scoped to same difficulty when available
+    const candidateDifficulty = (generated.difficulty || "").toLowerCase().trim();
     const existingQuestions = await this.prisma.question.findMany({
       where: topic ? { topicId: topic.id } : undefined,
       select: { questionText: true, templateId: true, metadata: true },
@@ -103,6 +104,16 @@ export class DuplicateDetectorService {
       const eqText = (eq.questionText || "").trim();
       if (!eqText) {
         continue;
+      }
+
+      // Skip questions from a different difficulty level when both sides have a difficulty set
+      if (candidateDifficulty) {
+        const eqDifficulty = (
+          (eq.metadata as any)?.difficulty || ""
+        ).toLowerCase().trim();
+        if (eqDifficulty && eqDifficulty !== candidateDifficulty) {
+          continue;
+        }
       }
 
       // Exact Match check on actual question text

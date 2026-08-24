@@ -12,9 +12,12 @@ export class QuestionGeneratorService {
   /**
    * Generates a raw response string from the LLM adapter based on the built prompt.
    */
-  async generate(prompt: string): Promise<string> {
+  async generate(prompt: string, temperature?: number): Promise<string> {
     try {
-      const response = await this.llmAdapter.generate(prompt);
+      const response =
+        temperature !== undefined
+          ? await this.llmAdapter.generate(prompt, temperature)
+          : await this.llmAdapter.generate(prompt);
       if (!response || response.trim().length === 0) {
         throw new Error("Empty response received from LLM adapter");
       }

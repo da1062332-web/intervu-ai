@@ -38,6 +38,8 @@ export interface PromptBuilderInput {
     outputRules?: string | null;
   };
   styleProfile?: any;
+  /** Questions that were already generated and must not be repeated. */
+  avoidQuestions?: string[];
 }
 
 @Injectable()
@@ -251,7 +253,8 @@ CRITICAL:
 - All 4 options must be distinct values
 `;
 
-    return `${systemPrompt}\n\n${templateContext}\n\n${variableValuesText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
+    const avoidBlock = this.buildAvoidRepetitionBlock(input.avoidQuestions);
+    return `${systemPrompt}\n\n${templateContext}\n\n${variableValuesText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${avoidBlock}\n\n${outputFormat}`.trim();
   }
 
   private collectAllowedVariables(
@@ -480,7 +483,8 @@ CRITICAL:
 - All 4 options must be distinct
 `;
 
-    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${presentationContext}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
+    const avoidBlock = this.buildAvoidRepetitionBlock(input.avoidQuestions);
+    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${presentationContext}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${avoidBlock}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
   }
 
   private buildHybridPrompt(input: PromptBuilderInput): string {
@@ -573,7 +577,24 @@ CRITICAL:
 - All 4 options must be distinct logical conclusions
 `;
 
-    return `${systemPrompt}\n\n${templateContext}\n\n${graphSection}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${outputFormat}`.trim();
+    const avoidBlock = this.buildAvoidRepetitionBlock(input.avoidQuestions);
+    return `${systemPrompt}\n\n${templateContext}\n\n${graphSection}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${avoidBlock}\n\n${outputFormat}`.trim();
+  }
+
+  /**
+   * Builds an [AVOID REPETITION] prompt section listing previously generated
+   * duplicate questions that the LLM must not repeat or closely paraphrase.
+   */
+  private buildAvoidRepetitionBlock(avoidQuestions?: string[]): string {
+    if (!avoidQuestions || avoidQuestions.length === 0) {
+      return "";
+    }
+    const list = avoidQuestions
+      .map((q) => `- "${q.replace(/"/g, "'")}"`)
+      .join("\n");
+    return `[AVOID REPETITION]
+The following questions have already been generated and saved. You MUST NOT repeat, copy, or closely paraphrase any of them. Generate a completely new question with different wording, scenario, and structure:
+${list}`;
   }
 
   private compileStyleProfileInstructions(

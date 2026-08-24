@@ -57,7 +57,7 @@ export const getCodingOracles = async (
   isActive?: boolean,
   search?: string,
   page = 1,
-  limit = 50,
+  limit = 500,
 ): Promise<CodingOracleListResponse> => {
   const query = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (category) query.append('category', category);
