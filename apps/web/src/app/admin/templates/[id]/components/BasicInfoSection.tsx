@@ -59,13 +59,14 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
     defaultValues: defaultFormValues,
   });
 
-  // Sync form values back to draft state as user types via subscription
-  useEffect(() => {
-    const subscription = watch((value) => {
-      updateDraftState({ basicInfo: value });
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, updateDraftState]);
+  // Sync entire form back to draft state as user types
+  const watchedForm = watch();
+  const watchedFormString = JSON.stringify(watchedForm);
+  React.useEffect(() => {
+    if (JSON.stringify(draftState.basicInfo) !== watchedFormString) {
+      updateDraftState({ basicInfo: JSON.parse(watchedFormString) });
+    }
+  }, [watchedFormString, updateDraftState, draftState.basicInfo]);
 
   // Sync Zustand store when strategy field changes
   const watchedStrategy = watch('generationStrategy');

@@ -254,6 +254,24 @@ describe("Test Generation Core (Module 2)", () => {
       expect(params.A).not.toEqual(params.B);
     });
 
+    it("should return empty object immediately for templates with zero variables and natural language rules", () => {
+      const verbalMetadata = {
+        variableSchema: {
+          variables: [],
+          formulas: [],
+        },
+        constraints: {
+          rules: [
+            "The cause must occur before and logically explain the effect.",
+            "The cause must be directly related to the stated outcome.",
+          ],
+        },
+      };
+
+      const params = parameterGenerator.generateParameters(verbalMetadata);
+      expect(params).toEqual({});
+    });
+
     it("should generate variables from range-based schemas and compute derived formulas", () => {
       const metadata = {
         variableSchema: {

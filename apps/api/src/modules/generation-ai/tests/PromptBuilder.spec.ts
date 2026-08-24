@@ -181,4 +181,27 @@ describe("PromptBuilderService", () => {
       '"variables": {"principal_amount":10000,"yearly_interest":3245.4016875000007,"growth_rate":12.3456}',
     );
   });
+
+  it("should inject correction instruction when previousAttemptError is provided", () => {
+    const input: PromptBuilderInput = {
+      template: {
+        id: "template_123",
+        name: "Math Sum",
+        conceptKey: "addition",
+        difficultyLevel: "EASY",
+        questionType: "mcq",
+        structure: { questionTemplate: "What is {a} + {b}?" },
+        variableSchema: { variables: [] },
+        constraints: { constraints: [] },
+      },
+      variableValues: { a: 1, b: 2 },
+      previousAttemptError: "MCQ options must not contain duplicate entries",
+    };
+
+    const prompt = service.buildPrompt(input);
+
+    expect(prompt).toContain("[CORRECTION REQUIRED - PREVIOUS ATTEMPT FAILED]");
+    expect(prompt).toContain("MCQ options must not contain duplicate entries");
+    expect(prompt).toContain("STRICT UNIQUENESS");
+  });
 });

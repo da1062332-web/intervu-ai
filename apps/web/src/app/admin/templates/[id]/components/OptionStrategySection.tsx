@@ -58,12 +58,16 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
 
     const cleanOptions = options.filter((o) => typeof o === 'string' && o.trim().length > 0);
 
+    const serializedOptions = strategy === 'static'
+      ? (cleanOptions.length > 0 ? cleanOptions : options)
+      : [JSON.stringify({ strategy, options: strategy === 'formula' ? (cleanOptions.length > 0 ? cleanOptions : options) : [] })];
+
     saveOptionStrategy(
       {
         templateId: template.id,
         payload: {
-          strategy: strategy.toUpperCase() as any,
-          optionsTemplate: cleanOptions.length > 0 ? cleanOptions : options,
+          strategy: template?.generationStrategy || 'VARIABLE',
+          optionsTemplate: serializedOptions,
         },
       },
       {

@@ -444,6 +444,7 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
     difficulty: 'MEDIUM',
     generationStrategy: 'VARIABLE',
   });
+  const [templateError, setTemplateError] = useState<string | null>(null);
 
   // Manual Question modal state
   const [isMqModalOpen, setIsMqModalOpen] = useState(false);
@@ -688,17 +689,19 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
 
   const handleOpenAddTemplate = (concept: ConceptMapping) => {
     setSelectedConceptForTemplate(concept);
+    setTemplateError(null);
     setTemplateFormData({
       name: 'New Template',
       questionType: 'CODING',
       difficulty: 'MEDIUM',
-      generationStrategy: 'CODING_PATTERN',
+      generationStrategy: 'VARIABLE',
     });
     setIsTemplateModalOpen(true);
   };
 
   const handleCreateTemplateSubmit = () => {
     if (!selectedConceptForTemplate) return;
+    setTemplateError(null);
     createTemplateMutation.mutate(
       {
         name: templateFormData.name,
@@ -716,7 +719,13 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           if (data && data.id) {
             setIsTemplateModalOpen(false);
             router.push(`/admin/templates/${data.id}`);
+          } else {
+            setTemplateError('Failed to retrieve the created template ID.');
           }
+        },
+        onError: (err: any) => {
+          const message = err?.response?.data?.message || err?.message || 'Failed to create template';
+          setTemplateError(Array.isArray(message) ? message.join(', ') : message);
         },
       },
     );
@@ -1142,6 +1151,11 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
       {/* Add Template Modal */}
       <Modal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)}>
         <h2 className='text-xl font-semibold mb-4'>Create New Template</h2>
+        {templateError && (
+          <div className='p-3 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm mb-4 whitespace-pre-line'>
+            {templateError}
+          </div>
+        )}
         <div className='space-y-4'>
           <div>
             <Label>Name</Label>
@@ -1206,7 +1220,6 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
               <option value='VARIABLE'>Variable Generation</option>
               <option value='DATASET'>Dataset-backed</option>
               <option value='HYBRID'>Hybrid Scenario</option>
-              <option value='CODING_PATTERN'>Coding Pattern & Oracle Engine</option>
             </select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>

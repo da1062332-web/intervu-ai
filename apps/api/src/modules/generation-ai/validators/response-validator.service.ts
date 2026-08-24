@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
+import { isAnswerReferencedInExplanation } from "../generators/explanation-generator.service";
 
 @Injectable()
 export class ResponseValidatorService {
@@ -108,7 +109,7 @@ export class ResponseValidatorService {
 
     if (
       answerValue &&
-      !explanation.toLowerCase().includes(answerValue.toLowerCase())
+      !isAnswerReferencedInExplanation(explanation, answerValue)
     ) {
       throw new BadRequestException(
         `Explanation alignment check failed: The correct answer "${answerValue}" is not referenced in the explanation body.`,

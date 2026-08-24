@@ -284,6 +284,45 @@ export class GenerationRetryService {
 
     let promptStr = "";
     const attemptAvoidQuestions: string[] = [];
+
+    // Pre-populate avoidQuestions with existing questions from database for this template/topic
+    try {
+      const existingQuestions = await this.prisma.question.findMany({
+        where: {
+          OR: [
+            template.id ? { templateId: template.id } : undefined,
+            topic
+              ? { topic: { name: { equals: topic, mode: "insensitive" } } }
+              : undefined,
+            topic
+              ? { topic: { code: { equals: topic, mode: "insensitive" } } }
+              : undefined,
+          ].filter(Boolean) as any,
+        },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: { questionText: true },
+      });
+      for (const eq of existingQuestions) {
+        if (eq.questionText && eq.questionText.trim()) {
+          attemptAvoidQuestions.push(eq.questionText.trim());
+        }
+      }
+    } catch {
+      // Non-blocking if database query fails
+    }
+
+    // Track all attempt errors across the retry loop so previousAttemptError is correctly passed on retries
+    const allAttemptErrors: string[] = [];
+
+    // For DATASET+AI strategy, track the current dataset item and all tried IDs
+    // so we can reload a DIFFERENT item on duplicate hits (even if SPECIFIC selection mode)
+    let currentDatasetItem = options?.datasetItem;
+    const triedDatasetItemIds: string[] = [];
+    if (currentDatasetItem?.id) {
+      triedDatasetItemIds.push(currentDatasetItem.id);
+    }
+
     while (attempts < maxAttempts) {
       attempts++;
       this.logger.log(
@@ -295,12 +334,11 @@ export class GenerationRetryService {
       const attemptErrors: string[] = [];
 
       try {
-        // For VARIABLE strategy, regenerate parameter values for each attempt
+        // For VARIABLE strategy, always regenerate parameter values on every attempt
+        // This is critical: if we reuse the same variables, hydrateCanonicalQuestion
+        // will produce the same question text and ALL retries will fail duplicate detection.
         let attemptVariables = variableValues;
-        if (
-          (template as any)?.generationStrategy === "VARIABLE" &&
-          (!variableValues || Object.keys(variableValues).length === 0)
-        ) {
+        if ((template as any)?.generationStrategy === "VARIABLE") {
           try {
             attemptVariables = this.parameterGenerator.generateParameters(
               template as any,
@@ -379,15 +417,16 @@ export class GenerationRetryService {
             template,
             variableValues: attemptVariables,
             correctAnswer: options?.correctAnswer,
-            datasetItem: options?.datasetItem,
+            datasetItem: currentDatasetItem,
             logicalGraph: options?.logicalGraph,
             promptConfig: promptConfig || undefined,
             styleProfile,
             avoidQuestions: attemptAvoidQuestions.length > 0 ? attemptAvoidQuestions : undefined,
+            previousAttemptError: allAttemptErrors.length > 0 ? allAttemptErrors[allAttemptErrors.length - 1] : undefined,
           });
 
-          // 1. Generate LLM Output for AI mode — escalate temperature on retries to get more variety
-          const attemptTemperature = attempts === 1 ? 0.7 : attempts === 2 ? 0.9 : 1.0;
+          // 1. Generate LLM Output for AI mode — calibrated temperature for precision & self-correction
+          const attemptTemperature = attempts === 1 ? 0.4 : attempts === 2 ? 0.7 : 0.9;
           try {
             response = await this.questionGenerator.generate(promptStr, attemptTemperature);
           } catch (llmErr) {
@@ -470,12 +509,24 @@ export class GenerationRetryService {
         }
 
         if ((template as any)?.generationStrategy === "VARIABLE") {
-          const canonical = this.hydrateCanonicalQuestion(
-            template,
-            attemptVariables,
+          const rawQTemplate = String(
+            (template.structure &&
+              (template.structure.questionTemplate ||
+                template.structure.questionStatement ||
+                template.structure.prompt)) ||
+              "",
           );
-          if (canonical && canonical.trim().length > 0) {
-            parsedQuestion.question = canonical;
+          const hasPlaceholders = /\{\{[^{}]+\}\}|\{[^{}]+\}/.test(rawQTemplate);
+          const hasVars = Object.keys(attemptVariables || {}).length > 0;
+
+          if (hasPlaceholders && hasVars) {
+            const canonical = this.hydrateCanonicalQuestion(
+              template,
+              attemptVariables,
+            );
+            if (canonical && canonical.trim().length > 0) {
+              parsedQuestion.question = canonical;
+            }
           }
         }
 
@@ -533,6 +584,41 @@ export class GenerationRetryService {
           if (dupResult.duplicate) {
             // Record the duplicate text so the next attempt can avoid it
             attemptAvoidQuestions.push(parsedQuestion.question || "");
+
+            // For DATASET+AI strategy: reload a DIFFERENT dataset item so next attempt
+            // generates a question from different source material.
+            // Pass triedDatasetItemIds so the loader skips all previously-used items.
+            const isDatasetAI =
+              (template as any)?.generationStrategy === "DATASET" &&
+              datasetGenerationMode === "AI" &&
+              template.id;
+            if (isDatasetAI) {
+              try {
+                // Record the current item as tried before reloading
+                if (currentDatasetItem?.id && !triedDatasetItemIds.includes(currentDatasetItem.id)) {
+                  triedDatasetItemIds.push(currentDatasetItem.id);
+                }
+                const freshItem = await this.datasetLoader.loadDatasetItem(
+                  template as any,
+                  triedDatasetItemIds,
+                );
+                // Only switch if we actually got a DIFFERENT item
+                if (freshItem?.id && freshItem.id !== currentDatasetItem?.id) {
+                  currentDatasetItem = freshItem;
+                  triedDatasetItemIds.push(freshItem.id);
+                  this.logger.log(
+                    `[GenerationAudit] [Attempt ${attempts}/${maxAttempts}] Duplicate detected — resampled new dataset item ID: ${freshItem.id}`,
+                  );
+                } else {
+                  this.logger.warn(
+                    `[GenerationAudit] [Attempt ${attempts}/${maxAttempts}] Duplicate detected — no different dataset item available, retrying with same item`,
+                  );
+                }
+              } catch {
+                // Non-blocking — if reload fails, keep the existing item
+              }
+            }
+
             throw new BadRequestException(
               `Duplicate question detected in pool (similarity: ${dupResult.similarity.toFixed(2)}).`,
             );
@@ -564,6 +650,7 @@ export class GenerationRetryService {
 
         const classified = this.classifyPreviewFailure(e, "generation-retry");
         attemptErrors.push(classified.reason);
+        allAttemptErrors.push(classified.reason);
 
         this.logger.warn(
           `[GenerationAudit] [Attempt ${attempts}/${maxAttempts}] Validation failed: ${classified.reason} | Category: ${classified.category} | Retryable: ${classified.retryable}`,
@@ -652,11 +739,10 @@ export class GenerationRetryService {
       "undefined variable",
       "undefined symbol",
       "invalid formula",
-      "formula",
-      "placeholder tokens",
       "unresolved template placeholder",
-      "constraint",
-      "circular",
+      "placeholder tokens",
+      "constraint violation",
+      "circular dependency",
     ];
 
     const retryablePatterns = [
@@ -678,22 +764,51 @@ export class GenerationRetryService {
       "topic alignment check",
       "difficulty mismatch",
       "math validation failed",
+      // Explanation format errors — AI can self-correct on retry
+      "explanation is missing",
+      "explanation alignment",
+      "section headings",
+      "missing required section",
+      "mcq options",
+      "duplicate entries",
+      "options list must contain",
+      "correctanswer",
+      "correct answer",
     ];
 
     const isNonRetryable = nonRetryablePatterns.some((pattern) =>
       lower.includes(pattern),
     );
+    // Retryable check takes precedence over non-retryable for content-level errors
     const isRetryable = retryablePatterns.some((pattern) =>
       lower.includes(pattern),
     );
+
+    // isRetryable takes priority: if the AI produced bad content (format, options, duplicates),
+    // it should always get a retry chance even if the message accidentally matches a non-retryable keyword.
+    if (isRetryable) {
+      return {
+        message: "AI service temporarily unavailable.",
+        retryable: true,
+        category: "AI_SERVICE_ERROR",
+        reason,
+        details: {
+          category: "AI_SERVICE_ERROR",
+          retryable: true,
+          source,
+          reason,
+          context: { originalError: reason },
+        },
+      };
+    }
 
     if (isNonRetryable) {
       const category =
         lower.includes("placeholder") || lower.includes("template")
           ? "TEMPLATE_CONFIGURATION_ERROR"
-          : lower.includes("formula") ||
+          : lower.includes("invalid formula") ||
               lower.includes("variable") ||
-              lower.includes("constraint")
+              lower.includes("constraint violation")
             ? "FORMULA_ERROR"
             : "CONTENT_VALIDATION_ERROR";
 

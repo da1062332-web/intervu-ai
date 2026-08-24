@@ -39,6 +39,7 @@ import toast from 'react-hot-toast';
 import { detectCircularDependencies } from './formula-dependency-validator';
 
 import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 interface VariableDefinition {
   name: string;
@@ -117,8 +118,8 @@ export function GenerationStrategySection() {
       ? variableSchema.variables.map((item: any) => ({
           name: item.name || '',
           type: item.type || 'number',
-          min: item.min,
-          max: item.max,
+          min: item.min !== undefined ? item.min : item.range?.min,
+          max: item.max !== undefined ? item.max : item.range?.max,
           defaultValue: item.defaultValue,
           generator: item.generator,
           range: item.range,
@@ -262,8 +263,8 @@ export function GenerationStrategySection() {
       setVariableForm({
         name: item.name,
         type: item.type,
-        min: item.min !== undefined ? String(item.min) : '',
-        max: item.max !== undefined ? String(item.max) : '',
+        min: item.min !== undefined ? String(item.min) : (item.range?.min !== undefined ? String(item.range.min) : ''),
+        max: item.max !== undefined ? String(item.max) : (item.range?.max !== undefined ? String(item.range.max) : ''),
         defaultValue: item.defaultValue !== undefined ? String(item.defaultValue) : '',
         generator: item.generator || 'random',
       });
@@ -620,8 +621,8 @@ export function GenerationStrategySection() {
     setVariableForm({
       name: variable.name,
       type: variable.type,
-      min: variable.min !== undefined ? String(variable.min) : '',
-      max: variable.max !== undefined ? String(variable.max) : '',
+      min: variable.min !== undefined ? String(variable.min) : (variable.range?.min !== undefined ? String(variable.range.min) : ''),
+      max: variable.max !== undefined ? String(variable.max) : (variable.range?.max !== undefined ? String(variable.range.max) : ''),
       defaultValue: variable.defaultValue !== undefined ? String(variable.defaultValue) : '',
       generator: variable.generator || 'random',
     });
@@ -863,13 +864,21 @@ export function GenerationStrategySection() {
                             >
                               <Edit2 className='h-4 w-4' />
                             </Button>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() => handleDeleteDraftVariable(v.name)}
-                            >
-                              <Trash2 className='h-4 w-4 text-red-600' />
-                            </Button>
+                            <ConfirmationDialog
+                              title='Delete Variable'
+                              description={`Are you sure you want to delete the variable "${v.name}"?`}
+                              confirmLabel='Delete'
+                              destructive
+                              onConfirm={() => handleDeleteDraftVariable(v.name)}
+                              trigger={
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                >
+                                  <Trash2 className='h-4 w-4 text-red-600' />
+                                </Button>
+                              }
+                            />
                           </TableCell>
                         </TableRow>
                       ))
@@ -952,13 +961,21 @@ export function GenerationStrategySection() {
                             >
                               <Edit2 className='h-4 w-4' />
                             </Button>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() => handleDeleteDraftConstraint(c.id)}
-                            >
-                              <Trash2 className='h-4 w-4 text-red-600' />
-                            </Button>
+                            <ConfirmationDialog
+                              title='Delete Constraint'
+                              description="Are you sure you want to delete this constraint?"
+                              confirmLabel='Delete'
+                              destructive
+                              onConfirm={() => handleDeleteDraftConstraint(c.id)}
+                              trigger={
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                >
+                                  <Trash2 className='h-4 w-4 text-red-600' />
+                                </Button>
+                              }
+                            />
                           </TableCell>
                         </TableRow>
                       ))
@@ -1073,13 +1090,23 @@ export function GenerationStrategySection() {
                             >
                               <Edit2 className='h-4 w-4' />
                             </Button>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() => handleDeleteVariable(variable.name)}
-                            >
-                              <Trash2 className='h-4 w-4 text-red-600' />
-                            </Button>
+                            <ConfirmationDialog
+                              title='Delete Variable'
+                              description={`Are you sure you want to delete the variable "${variable.name}"?`}
+                              confirmLabel='Delete'
+                              destructive
+                              isLoading={isUpdatingTemplate}
+                              onConfirm={() => handleDeleteVariable(variable.name)}
+                              trigger={
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  disabled={isUpdatingTemplate}
+                                >
+                                  <Trash2 className='h-4 w-4 text-red-600' />
+                                </Button>
+                              }
+                            />
                           </TableCell>
                         </TableRow>
                       ))
@@ -1131,13 +1158,23 @@ export function GenerationStrategySection() {
                             >
                               <Edit2 className='h-4 w-4' />
                             </Button>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() => handleDeleteDerived(item.name)}
-                            >
-                              <Trash2 className='h-4 w-4 text-red-600' />
-                            </Button>
+                            <ConfirmationDialog
+                              title='Delete Derived Variable'
+                              description={`Are you sure you want to delete the derived variable "${item.name}"?`}
+                              confirmLabel='Delete'
+                              destructive
+                              isLoading={isUpdatingTemplate}
+                              onConfirm={() => handleDeleteDerived(item.name)}
+                              trigger={
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  disabled={isUpdatingTemplate}
+                                >
+                                  <Trash2 className='h-4 w-4 text-red-600' />
+                                </Button>
+                              }
+                            />
                           </TableCell>
                         </TableRow>
                       ))
@@ -1191,13 +1228,23 @@ export function GenerationStrategySection() {
                             >
                               <Edit2 className='h-4 w-4' />
                             </Button>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() => handleDeleteConstraint(item.id)}
-                            >
-                              <Trash2 className='h-4 w-4 text-red-600' />
-                            </Button>
+                            <ConfirmationDialog
+                              title='Delete Constraint'
+                              description="Are you sure you want to delete this constraint?"
+                              confirmLabel='Delete'
+                              destructive
+                              isLoading={isUpdatingTemplate}
+                              onConfirm={() => handleDeleteConstraint(item.id)}
+                              trigger={
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  disabled={isUpdatingTemplate}
+                                >
+                                  <Trash2 className='h-4 w-4 text-red-600' />
+                                </Button>
+                              }
+                            />
                           </TableCell>
                         </TableRow>
                       ))
@@ -1287,7 +1334,10 @@ export function GenerationStrategySection() {
             <Button variant='outline' onClick={() => setVariableModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveVariable} disabled={isUpdatingTemplate}>
+            <Button
+              onClick={draftedStrategy && editingVariable ? handleSaveDraftVariable : handleSaveVariable}
+              disabled={isUpdatingTemplate}
+            >
               {isUpdatingTemplate && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
               Save
             </Button>
@@ -1400,7 +1450,10 @@ export function GenerationStrategySection() {
             <Button variant='outline' onClick={() => setConstraintModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveConstraint} disabled={isUpdatingTemplate}>
+            <Button
+              onClick={draftedStrategy && editingConstraint ? handleSaveDraftConstraint : handleSaveConstraint}
+              disabled={isUpdatingTemplate}
+            >
               {isUpdatingTemplate && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
               Save
             </Button>

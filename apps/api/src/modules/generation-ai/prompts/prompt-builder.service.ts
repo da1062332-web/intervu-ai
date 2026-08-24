@@ -40,6 +40,8 @@ export interface PromptBuilderInput {
   styleProfile?: any;
   /** Questions that were already generated and must not be repeated. */
   avoidQuestions?: string[];
+  /** Error from previous attempt to guide self-correction on retry. */
+  previousAttemptError?: string;
 }
 
 @Injectable()
@@ -95,6 +97,21 @@ export class PromptBuilderService {
         difficulty,
       );
       prompt = `${prompt}\n\n${styleInstructions}`;
+    }
+
+    if (input.previousAttemptError) {
+      const correctionSection = `
+[CORRECTION REQUIRED - PREVIOUS ATTEMPT FAILED]
+Your previous generation attempt failed validation:
+--> "${input.previousAttemptError}"
+
+MANDATORY CORRECTION INSTRUCTIONS:
+1. You MUST explicitly avoid the error above.
+2. If the error was duplicate options: Ensure every single option in the "options" array has a completely distinct and unique value. Never duplicate options.
+3. If the error was missing/unreferenced answer: Ensure the correctAnswer exactly matches one of the 4 options and is referenced in the explanation.
+4. If the error was options count: The "options" array MUST contain exactly 4 separate string elements.
+`.trim();
+      prompt = `${correctionSection}\n\n${prompt}`;
     }
 
     return prompt;
@@ -169,7 +186,11 @@ export class PromptBuilderService {
       ? `- Correct Answer Value = ${correctAnswerVal}`
       : `- Correct Answer Value = [Compute the exact answer from the provided variables and return it in the JSON output]`;
 
-    const variableValuesText = `
+    const hasVariables = Object.keys(variableValues).length > 0;
+    const hasPlaceholders = /\{\{[^{}]+\}\}|\{[^{}]+\}/.test(rawQuestionTemplate);
+
+    const variableValuesText = hasVariables
+      ? `
 [RESOLVED PARAMETERS]
 The math problem has already been solved by the backend. Use the following exact parameter values:
 ${Object.entries(variableValues)
@@ -178,9 +199,16 @@ ${Object.entries(variableValues)
 ${correctAnswerHint}
 
 IMPORTANT: If the correct answer is not already supplied, compute it exactly from the provided parameter values. If a correct answer is supplied, verify that it matches the variables. Do not guess or invent an answer.
+`
+      : `
+[CONCEPT INSTRUCTIONS]
+This question tests the concept "${conceptKey}". No fixed numerical parameters are required.
+Generate a fresh, realistic, and completely unique question scenario adhering to the concept instructions.
 `;
 
-    const questionInstructions = `
+    let questionInstructions = "";
+    if (hasVariables || hasPlaceholders) {
+      questionInstructions = `
 [QUESTION TEXT]
 The pre-rendered question statement is:
 "${interpolatedQuestion}"
@@ -189,17 +217,33 @@ Use this statement as the canonical question text. Do not change the mathematica
 If you add any introductory context, keep it extremely brief and ensure the final question remains semantically equivalent to the original statement.
 Do not rewrite the question into a different story that changes the problem being asked.
 `;
+    } else {
+      questionInstructions = `
+[QUESTION INSTRUCTIONS]
+Concept Topic: ${conceptKey}
+Difficulty: ${difficulty.toUpperCase()}
+
+Reference Sample Pattern:
+"${rawQuestionTemplate}"
+
+TASK: Generate a fresh, original, and realistic assessment question testing the concept "${conceptKey}".
+- Create a brand new, plausible real-world scenario (e.g. workplace, business, science, daily life).
+- Do NOT simply repeat or copy the reference sample word-for-word. It must be unique.
+- Formulate clear statements and a specific question assessing this relationship.
+`;
+    }
 
     let optionStrategyText = "";
     if (questionType === "mcq" || questionType === "multiple_choice") {
       optionStrategyText = `
 [OPTION STRATEGY]
-You must generate exactly 4 options.
+You must generate exactly 4 options as a JSON array of 4 distinct string items: ["opt1", "opt2", "opt3", "opt4"].
 - 1 Option must match the correct answer value: "${correctAnswerVal}".
 - 3 Options must be plausible distractors representing common calculation slipups or conceptual errors.
+- Every option MUST be an individual array element. Do NOT combine multiple options into a single string.
 - Avoid obviously wrong options such as trivial negatives or nonsense values.
-- Do not generate duplicate options.
-- All options must be of balanced characters and similar lengths.
+- STRICT UNIQUENESS: Every option MUST be completely distinct and unique in value and wording. Do NOT output duplicate, identical, or synonymous options.
+- All options must be of balanced characters and similar lengths. Do not include explanation text inside option values.
 `;
     } else {
       optionStrategyText = `
@@ -229,13 +273,18 @@ Final Answer
 <State the final answer clearly, explicitly referencing the correct option: "${correctAnswerVal}">
 `;
 
+    const sampleQuestionInJson =
+      hasVariables || hasPlaceholders
+        ? interpolatedQuestion
+        : "Your newly generated unique question text here";
+
     const outputFormat = `
 [OUTPUT FORMAT]
 You MUST respond with a single JSON object. Do not wrap the JSON in markdown blocks.
 JSON Schema:
 {
-  "question": "${interpolatedQuestion}",
-  "options": ["${correctAnswerVal}", "placeholder1", "placeholder2", "placeholder3"],
+  "question": "${sampleQuestionInJson}",
+  "options": ["${correctAnswerVal}", "distractor1", "distractor2", "distractor3"],
   "correctAnswer": "${correctAnswerVal}",
   "explanation": "Concept\\n\\nFormula / Reasoning\\n\\nStep-by-Step Solution\\n\\nFinal Answer",
   "difficulty": "${difficulty}",
@@ -247,10 +296,10 @@ JSON Schema:
 }
 
 CRITICAL: 
-- The "options" array must contain ACTUAL VALUES (numbers, formulas, or strings), NOT labels like "Option A"
+- The "options" array must contain EXACTLY 4 SEPARATE STRING ITEMS (numbers, formulas, or strings), NOT labels like "Option A" and NOT a single combined string
 - The "correctAnswer" must be the EXACT VALUE from the options array that is correct
 - Do NOT use "Option A", "Option B" as values - those are only labels for display purposes
-- All 4 options must be distinct values
+- All 4 options must be completely distinct values (no duplicate or synonymous options allowed) and balanced in length
 `;
 
     const avoidBlock = this.buildAvoidRepetitionBlock(input.avoidQuestions);
@@ -424,14 +473,36 @@ DIFFICULTY & COGNITIVE COMPLEXITY PRESERVATION RULES (${difficulty.toUpperCase()
       );
     }
 
+    const isJumbledConcept =
+      /jumble|rearrange|arrange|para/i.test(conceptKey) ||
+      /jumble|rearrange|arrange|para/i.test(name);
+
+    let jumbledGuidance = "";
+    if (isJumbledConcept) {
+      jumbledGuidance = `
+[PARA JUMBLE / SENTENCE REARRANGEMENT MANDATORY RULES]
+1. In the "question" field: You MUST include the full question statement AND all 4 labeled statements (A, B, C, D) directly in the text, e.g.:
+"Rearrange the following statements into a coherent and logical paragraph:
+A: [Sentence A]
+B: [Sentence B]
+C: [Sentence C]
+D: [Sentence D]"
+2. In the "options" array: You MUST provide exactly 4 distinct sequence permutations: ["A-B-C-D", "B-A-C-D", "C-A-B-D", "D-C-B-A"].
+3. In the "correctAnswer" field: Provide the exact correct sequence code (e.g. "A-B-C-D").
+- DO NOT put the sentence texts inside the "options" array. The sentences belong inside the "question" text.
+`;
+    }
+
     let optionStrategyText = "";
     if (questionType === "mcq" || questionType === "multiple_choice") {
       optionStrategyText = `
 [OPTION STRATEGY]
-You must generate exactly 4 options:
+You must generate exactly 4 options as a JSON array of 4 distinct string items: ["opt1", "opt2", "opt3", "opt4"].
 - 1 Option must be the correct answer.
 - 3 Options must be plausible distractors that represent realistic misinterpretations or grammatical errors.
-- Avoid obviously wrong options and ensure all options are balanced in length and format.
+- Every option MUST be an individual array element. Do NOT combine multiple options into a single string.
+- STRICT UNIQUENESS: Every option MUST be completely distinct and unique in value and wording. Do NOT output duplicate, identical, or synonymous options.
+- Avoid obviously wrong options and ensure all 4 options are balanced in length, formatting, and conciseness. Do not include explanation text inside options.
 `;
     }
 
@@ -477,14 +548,14 @@ JSON Schema:
 }
 
 CRITICAL:
-- The "options" array must contain ACTUAL VALUES (text, numbers, or concepts), NOT labels
+- The "options" array must contain EXACTLY 4 SEPARATE STRING ITEMS (text, numbers, or concepts), NOT labels like "Option A" and NOT a single combined string
 - The "correctAnswer" must be the EXACT VALUE that appears in the options array
 - Do NOT use "Option A", "Option B" as values - these are only for display labeling
-- All 4 options must be distinct
+- All 4 options must be completely distinct values (no duplicate or synonymous options allowed) and of balanced length
 `;
 
     const avoidBlock = this.buildAvoidRepetitionBlock(input.avoidQuestions);
-    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${presentationContext}\n\n${userPromptText}\n\n${questionInstructions}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${avoidBlock}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
+    return `${systemPrompt}\n\n${templateContext}\n\n${contentSection}\n\n${presentationContext}\n\n${userPromptText}\n\n${questionInstructions}\n\n${jumbledGuidance}\n\n${optionStrategyText}\n\n${explanationRules}\n\n${avoidBlock}\n\n${customOutputRules}\n\n${outputFormat}`.trim();
   }
 
   private buildHybridPrompt(input: PromptBuilderInput): string {
@@ -530,9 +601,12 @@ ${graph.relations.map((r) => `  * ${r.source} is the ${r.type} of ${r.target}`).
     if (questionType === "mcq" || questionType === "multiple_choice") {
       optionStrategyText = `
 [OPTION STRATEGY]
-Generate exactly 4 options:
+Generate exactly 4 options as a JSON array of 4 distinct string items: ["opt1", "opt2", "opt3", "opt4"].
 - 1 Option must be the correct logical deduction.
 - 3 Options must be plausible distractors representing typical logical reasoning errors.
+- Every option MUST be an individual array element. Do NOT combine multiple options into a single string.
+- STRICT UNIQUENESS: Every option MUST be completely distinct and unique in value and wording. Do NOT output duplicate, identical, or synonymous options.
+- All 4 options must be balanced in length and conciseness.
 `;
     }
 
@@ -571,10 +645,10 @@ JSON Schema:
 }
 
 CRITICAL:
-- The "options" array must contain ACTUAL VALUES (text, logical conclusions), NOT labels
+- The "options" array must contain EXACTLY 4 SEPARATE STRING ITEMS (text, logical conclusions), NOT labels like "Option A" and NOT a single combined string
 - The "correctAnswer" must be the EXACT VALUE that appears in the options array
 - Do NOT use "Option A", "Option B" as values - these are only for display labeling
-- All 4 options must be distinct logical conclusions
+- All 4 options must be completely distinct logical conclusions (no duplicates allowed) of balanced length
 `;
 
     const avoidBlock = this.buildAvoidRepetitionBlock(input.avoidQuestions);

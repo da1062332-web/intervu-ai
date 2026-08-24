@@ -70,4 +70,28 @@ describe("ExplanationGeneratorService", () => {
       service.validateExplanation(explanation, correctAnswer),
     ).toThrow("Explanation alignment check failed");
   });
+
+  it("should validate long multi-part parajumble answer when explanation references sequence letters or key segments", () => {
+    const explanation = `
+      Concept:
+      Logical sentence rearrangement and coherence.
+
+      Formula / Reasoning:
+      Sentence C introduces the main topic, sentence A connects with not only, sentence B provides the but also continuation, and sentence D completes the thought.
+
+      Step-by-Step Solution:
+      Step 1: Sentence C starts the paragraph.
+      Step 2: Sentence A follows C logically.
+      Step 3: Sentence B and D complete the sentence.
+
+      Final Answer:
+      The correct order is CABD.
+    `;
+    const correctAnswer =
+      "C. increases productivity levels / A. not only facilitates clear communication / B. but also strengthens relationships / D. within the organization";
+
+    expect(() =>
+      service.validateExplanation(explanation, correctAnswer),
+    ).not.toThrow();
+  });
 });

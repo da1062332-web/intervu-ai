@@ -37,20 +37,25 @@ export function VariableBuilderSection() {
     if (v.type === 'decimal') dataType = 'Decimal';
     if (v.type === 'boolean') dataType = 'Boolean';
 
+    const minVal = v.min !== undefined ? v.min : v.range?.min;
+    const maxVal = v.max !== undefined ? v.max : v.range?.max;
+
     let valueRange = '';
-    if (v.min !== undefined && v.max !== undefined && v.min !== v.max) {
-      valueRange = `${v.min}-${v.max}`;
-    } else if (v.min !== undefined && v.min === v.max) {
-      valueRange = `${v.min}`;
+    if (minVal !== undefined && maxVal !== undefined && minVal !== maxVal) {
+      valueRange = `${minVal}-${maxVal}`;
+    } else if (minVal !== undefined && minVal === maxVal) {
+      valueRange = `${minVal}`;
     } else if (v.defaultValue !== undefined) {
       valueRange = String(v.defaultValue);
     }
+
+    const genRule = v.generationRule || (v.generator ? (v.generator.charAt(0).toUpperCase() + v.generator.slice(1)) : (minVal !== undefined && minVal !== maxVal ? 'Random' : 'Static'));
 
     return {
       id: v.name, // Use name as ID since it's unique in the array
       variableName: v.name,
       dataType,
-      generationRule: v.min !== undefined && v.min !== v.max ? 'Random' : 'Static',
+      generationRule: genRule,
       valueRange,
     };
   });
@@ -145,6 +150,8 @@ export function VariableBuilderSection() {
       name: formData.variableName,
       type: varType,
       required: false,
+      generationRule: formData.generationRule,
+      generator: formData.generationRule?.toLowerCase(),
     };
 
     if (min !== undefined) newVariable.min = min;

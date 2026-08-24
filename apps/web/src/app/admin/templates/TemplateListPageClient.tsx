@@ -2,7 +2,7 @@
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
-import { useTemplates, useCreateTemplate } from '@/services/templates/hooks';
+import { useTemplates, useCreateTemplate, useDeleteTemplate } from '@/services/templates/hooks';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit2, ClipboardList, ArrowRight, Info } from 'lucide-react';
+import { Plus, Edit2, ClipboardList, ArrowRight, Info, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/ui/modal';
@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTopics } from '@/services/topics/hooks';
 import { useConcepts } from '@/services/concept-mapping/hooks';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 export function TemplateListPageClient() {
   const router = useRouter();
@@ -87,6 +88,7 @@ export function TemplateListPageClient() {
   const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(selectedTopicId, true);
 
   const createMutation = useCreateTemplate();
+  const deleteMutation = useDeleteTemplate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -223,6 +225,31 @@ export function TemplateListPageClient() {
               <ClipboardList className='w-4 h-4 mr-1' /> Assemble
             </Link>
           </Button>
+          <ConfirmationDialog
+            title='Delete Template'
+            description={`Are you sure you want to delete the template "${row.name || 'Untitled Template'}"?`}
+            confirmLabel='Delete'
+            destructive
+            isLoading={deleteMutation.isPending}
+            onConfirm={async () => {
+              try {
+                await deleteMutation.mutateAsync(row.id);
+                refetch();
+              } catch (err) {
+                console.error('Failed to delete template:', err);
+              }
+            }}
+            trigger={
+              <Button
+                variant='ghost'
+                size='sm'
+                className='text-red-600 hover:text-red-900 dark:hover:text-red-400'
+                disabled={deleteMutation.isPending}
+              >
+                <Trash2 className='w-4 h-4 mr-1' /> Delete
+              </Button>
+            }
+          />
         </div>
       ),
     },
