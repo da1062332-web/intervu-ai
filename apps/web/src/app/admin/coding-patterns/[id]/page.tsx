@@ -169,10 +169,10 @@ export default function CodingPatternBuilderPage() {
     try {
       setLoadingOracles(true);
       setOracleError(null);
-      const data = await getCodingOracles(undefined, true);
+      const data = await getCodingOracles(undefined, true, undefined, 1, 500);
       const items = data?.items || [];
       setOracles(items);
-      if (items.length > 0) {
+      if (items.length > 0 && isNew) {
         setFormData((prev) => ({
           ...prev,
           oracleKey: prev.oracleKey || items[0].key,
@@ -654,6 +654,16 @@ export default function CodingPatternBuilderPage() {
                     />
                   </SelectTrigger>
                   <SelectContent className='max-h-64 overflow-y-auto w-[var(--radix-select-trigger-width)]'>
+                    {formData.oracleKey && !oracles.some((o) => o.key === formData.oracleKey) && (
+                      <SelectItem key={formData.oracleKey} value={formData.oracleKey}>
+                        <div className='flex items-center gap-2 flex-nowrap whitespace-nowrap'>
+                          <span className='font-mono font-semibold text-[11px] text-primary shrink-0'>
+                            ORACLE
+                          </span>
+                          <span className='font-medium'>{formData.oracleKey}</span>
+                        </div>
+                      </SelectItem>
+                    )}
                     {oracles.map((oracle) => (
                       <SelectItem key={oracle.key} value={oracle.key}>
                         <div className='flex items-center gap-2 flex-nowrap whitespace-nowrap'>
