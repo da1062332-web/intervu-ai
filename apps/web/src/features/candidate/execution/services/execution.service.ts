@@ -87,7 +87,24 @@ export const executionService = {
                 if (typeof opt === 'string') {
                   return { id: `opt-${idx}`, text: opt };
                 }
-                return opt;
+                if (typeof opt === 'object' && opt !== null) {
+                  const extracted =
+                    typeof opt.text === 'string'
+                      ? opt.text
+                      : typeof opt.value === 'string'
+                        ? opt.value
+                        : typeof opt.label === 'string'
+                          ? opt.label
+                          : typeof opt.optionText === 'string'
+                            ? opt.optionText
+                            : String(opt.text || opt.value || opt.label || '');
+                  return {
+                    id: typeof opt.id === 'string' ? opt.id : `opt-${idx}`,
+                    text: extracted,
+                    isCorrect: opt.isCorrect,
+                  };
+                }
+                return { id: `opt-${idx}`, text: String(opt) };
               });
 
               return {

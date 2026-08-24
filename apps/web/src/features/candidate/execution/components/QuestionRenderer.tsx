@@ -104,6 +104,27 @@ export function QuestionRenderer() {
     }
   }
 
+  const extractOptionText = (option: any): string => {
+    if (option === null || option === undefined) return '';
+    if (typeof option === 'string') return option;
+    if (typeof option === 'number' || typeof option === 'boolean') return String(option);
+    if (typeof option === 'object') {
+      if (typeof option.text === 'string') return option.text;
+      if (typeof option.value === 'string') return option.value;
+      if (typeof option.label === 'string') return option.label;
+      if (typeof option.optionText === 'string') return option.optionText;
+      if (typeof option.option === 'string') return option.option;
+      if (typeof option.content === 'string') return option.content;
+      if (typeof option.statement === 'string') return option.statement;
+      if (typeof option.text === 'object' && option.text !== null) return extractOptionText(option.text);
+      if (typeof option.value === 'object' && option.value !== null) return extractOptionText(option.value);
+      for (const key of ['text', 'value', 'label', 'option', 'content', 'title', 'description']) {
+        if (typeof option[key] === 'string') return option[key];
+      }
+    }
+    return String(option);
+  };
+
   const getOptionsList = (q: any): any[] => {
     if (Array.isArray(q.options) && q.options.length > 0) return q.options;
     if (Array.isArray(q.mcqData?.options) && q.mcqData.options.length > 0) return q.mcqData.options;
@@ -111,7 +132,8 @@ export function QuestionRenderer() {
     return [];
   };
 
-  const formatOptionDisplay = (text: string): string => {
+  const formatOptionDisplay = (rawOption: any): string => {
+    const text = extractOptionText(rawOption);
     if (!text) return '';
     return text.replace(/-?\d+\.\d{3,}/g, (match) => {
       const num = parseFloat(match);
@@ -120,6 +142,15 @@ export function QuestionRenderer() {
       return rounded.endsWith('.00') ? String(Math.round(num)) : rounded;
     });
   };
+
+  // Section-relative question numbering for palette alignment
+  const currentSection = testInstance?.sections?.[currentSectionIndex];
+  const sectionQuestions = currentSection?.questions || [];
+  const sectionRelativeIndex = sectionQuestions.findIndex((q) => q.id === currentQuestion.id);
+  const displaySectionQuestionNo =
+    sectionRelativeIndex >= 0 ? sectionRelativeIndex + 1 : currentQuestionIndex + 1;
+  const sectionTotalQuestions = sectionQuestions.length > 0 ? sectionQuestions.length : 1;
+  const overallQuestionNo = currentQuestionIndex + 1;
 
   const renderMCQ = () => {
     const selectedOptionId = currentAnswer?.selectedOptionId;
@@ -134,14 +165,16 @@ export function QuestionRenderer() {
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
           const optKey = `opt-${currentQuestion.id}-${index}`;
-          const rawOptText =
+          const optText = formatOptionDisplay(option);
+          const rawOptValue =
             typeof option === 'string'
               ? option
-              : option?.text || option?.value || option?.label || '';
-          const optText = formatOptionDisplay(rawOptText);
-          const optValue =
-            typeof option === 'string' ? option : option?.text || option?.id || index.toString();
-          const isSelected = selectedOptionId === optValue || selectedOptionId === optText;
+              : option?.id || option?.text || option?.value || index.toString();
+          const optValue = typeof rawOptValue === 'string' ? rawOptValue : String(rawOptValue);
+          const isSelected =
+            selectedOptionId === optValue ||
+            selectedOptionId === optText ||
+            selectedOptionId === (typeof option === 'object' ? option?.id : null);
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
@@ -211,14 +244,16 @@ export function QuestionRenderer() {
       <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
-          const rawOptText =
+          const optText = formatOptionDisplay(option);
+          const rawOptValue =
             typeof option === 'string'
               ? option
-              : option?.text || option?.value || option?.label || '';
-          const optText = formatOptionDisplay(rawOptText);
-          const optValue =
-            typeof option === 'string' ? option : option?.text || option?.id || index.toString();
-          const isSelected = selectedOptionIds.includes(optValue) || selectedOptionIds.includes(optText);
+              : option?.id || option?.text || option?.value || index.toString();
+          const optValue = typeof rawOptValue === 'string' ? rawOptValue : String(rawOptValue);
+          const isSelected =
+            selectedOptionIds.includes(optValue) ||
+            selectedOptionIds.includes(optText) ||
+            (typeof option === 'object' && option?.id && selectedOptionIds.includes(option.id));
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
@@ -440,10 +475,13 @@ export function QuestionRenderer() {
         <div className='bg-white px-4 py-3 border-b border-gray-300 flex items-center justify-between shrink-0'>
           <div className='flex items-center gap-3'>
             <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
-              Question No {currentQuestionIndex + 1}
+              Question {displaySectionQuestionNo} of {sectionTotalQuestions}
             </h2>
+            <span className='text-xs font-semibold text-slate-400 hidden sm:inline'>
+              • (Overall #{overallQuestionNo})
+            </span>
             {qTitle && (
-              <span className='text-xs font-semibold text-slate-500 hidden sm:inline'>
+              <span className='text-xs font-semibold text-slate-600 hidden md:inline'>
                 • {qTitle}
               </span>
             )}
@@ -581,9 +619,14 @@ export function QuestionRenderer() {
     <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
       {/* Question Number Header Bar */}
       <div className='bg-white px-4 py-3 border-b border-gray-300 flex items-center justify-between shrink-0'>
-        <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
-          Question No {currentQuestionIndex + 1}
-        </h2>
+        <div className='flex items-center gap-3'>
+          <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
+            Question {displaySectionQuestionNo} of {sectionTotalQuestions}
+          </h2>
+          <span className='text-xs font-semibold text-slate-400 hidden sm:inline'>
+            • (Overall #{overallQuestionNo})
+          </span>
+        </div>
         <span className='text-xs font-bold text-gray-600 bg-gray-100 border border-gray-300 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
           {currentQuestion.type}
         </span>
