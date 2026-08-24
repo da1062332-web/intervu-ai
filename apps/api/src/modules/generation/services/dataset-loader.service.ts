@@ -11,13 +11,17 @@ export class DatasetLoaderService {
 
   /**
    * Loads a dataset item matching difficulty, topic, tag rules and selection strategy.
+   * @param excludeIds - Optional list of dataset item IDs to exclude (used on retries to guarantee a fresh item)
    */
-  async loadDatasetItem(template: {
-    id: string;
-    difficultyLevel: string;
-    conceptKey: string;
-    datasetConfig?: any;
-  }): Promise<{
+  async loadDatasetItem(
+    template: {
+      id: string;
+      difficultyLevel: string;
+      conceptKey: string;
+      datasetConfig?: any;
+    },
+    excludeIds: string[] = [],
+  ): Promise<{
     id: string;
     content: string;
     metadata: any;
@@ -73,7 +77,8 @@ export class DatasetLoaderService {
     }
 
     // 2. SPECIFIC Item Selection (Fast-path)
-    if (selectionMethod.toUpperCase() === "SPECIFIC" && specificItemId) {
+    // If the specific item is in excludeIds (already tried), fall through to RANDOM selection
+    if (selectionMethod.toUpperCase() === "SPECIFIC" && specificItemId && !excludeIds.includes(specificItemId)) {
       const item = await this.prismaService.datasetItem.findUnique({
         where: { id: specificItemId },
       });
@@ -145,8 +150,18 @@ export class DatasetLoaderService {
       );
     }
 
-    // 4. Record Reuse Filter
+    // 4. Record Reuse Filter + excludeIds filter
     let candidates = items;
+
+    // Always exclude already-tried items from this generation session
+    if (excludeIds.length > 0) {
+      const withoutExcluded = candidates.filter((item) => !excludeIds.includes(item.id));
+      // Only apply exclusion if there are still items remaining; otherwise fall through
+      if (withoutExcluded.length > 0) {
+        candidates = withoutExcluded;
+      }
+    }
+
     if (!allowReuse) {
       const generated = await this.prismaService.question.findMany({
         where: { templateId: template.id },

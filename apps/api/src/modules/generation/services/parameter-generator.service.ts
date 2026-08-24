@@ -96,6 +96,12 @@ export class ParameterGeneratorService {
     const MAX_INTERNAL_ATTEMPTS = 50;
     let attempts = 0;
 
+    // Fast-path: If template defines no variables and no formulas (e.g. Verbal/Concept reasoning),
+    // return an empty parameter map immediately without running mathematical constraint generation.
+    if (variables.length === 0 && formulas.length === 0) {
+      return {};
+    }
+
     while (attempts < MAX_INTERNAL_ATTEMPTS) {
       attempts++;
       const params: Record<string, any> = {};
@@ -475,8 +481,9 @@ export class ParameterGeneratorService {
           return false;
         }
       } catch (err) {
-        // If rule evaluation fails, discard this attempt
-        return false;
+        // If rule evaluation fails due to non-mathematical/descriptive syntax (e.g. natural language rules),
+        // skip the non-mathematical rule rather than discarding the attempt.
+        continue;
       }
     }
 

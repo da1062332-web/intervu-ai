@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { GeneratedQuestionDto } from "../dto/generated-question.dto";
 import { DifficultyValidatorService } from "../validators/difficulty-validator.service";
 import { TopicAlignmentService } from "../validators/topic-alignment.service";
+import { isAnswerReferencedInExplanation } from "../generators/explanation-generator.service";
 
 export interface QualityScore {
   score: number;
@@ -111,7 +112,10 @@ export class QuestionQualityService {
       reasons.push(`Explanation is missing ${missingCount} required headers.`);
     }
 
-    if (cleanAnswer && !cleanExp.includes(cleanAnswer.toLowerCase())) {
+    if (
+      cleanAnswer &&
+      !isAnswerReferencedInExplanation(explanation, cleanAnswer)
+    ) {
       explanationScore = Math.max(0, explanationScore - 30);
       reasons.push("Explanation does not reference the correct answer.");
     }
