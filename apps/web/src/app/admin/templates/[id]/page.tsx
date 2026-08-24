@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, ClipboardList, ArrowRight, FileText, Info } from 'lucide-react';
 import Link from 'next/link';
@@ -61,16 +61,18 @@ function TemplateEditorContent() {
   const strategy = template?.generationStrategy || 'VARIABLE';
   const showLegacyBuilderPages = false; // hide old Variable Builder / Constraint Builder pages in the live editor
 
+  useEffect(() => {
+    if (template && !isInitialized) {
+      initializeDraft(template);
+    }
+  }, [template, isInitialized, initializeDraft]);
+
   if (isLoading) {
     return (
       <div className='mt-8'>
         <DetailPageSkeleton />
       </div>
     );
-  }
-
-  if (template && !isInitialized) {
-    initializeDraft(template);
   }
 
   if (isError || !template) {

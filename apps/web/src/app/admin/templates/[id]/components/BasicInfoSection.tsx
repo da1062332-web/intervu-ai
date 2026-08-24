@@ -61,9 +61,12 @@ export function BasicInfoSection({ template }: BasicInfoSectionProps) {
 
   // Sync entire form back to draft state as user types
   const watchedForm = watch();
+  const watchedFormString = JSON.stringify(watchedForm);
   React.useEffect(() => {
-    updateDraftState({ basicInfo: watchedForm });
-  }, [watchedForm, updateDraftState]);
+    if (JSON.stringify(draftState.basicInfo) !== watchedFormString) {
+      updateDraftState({ basicInfo: JSON.parse(watchedFormString) });
+    }
+  }, [watchedFormString, updateDraftState, draftState.basicInfo]);
 
   // Sync Zustand store when strategy field changes
   const watchedStrategy = watchedForm.generationStrategy;

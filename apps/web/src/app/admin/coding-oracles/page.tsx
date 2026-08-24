@@ -448,7 +448,7 @@ export default function AdminOracleLibraryPage() {
                 <div className='flex items-center gap-2'>
                   <Switch
                     checked={editForm.isActive}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       setEditForm((prev) => ({ ...prev, isActive: checked }))
                     }
                     className='data-[state=checked]:bg-emerald-600'
