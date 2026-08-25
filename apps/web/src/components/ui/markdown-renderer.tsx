@@ -90,7 +90,7 @@ function normalizeMarkdown(rawMarkdown: string): string {
         stmts = stmts
           .split(/(?<=[.!?])\s+/)
           .filter(Boolean)
-          .map((s) => `- ${s}`)
+          .map((s: string) => `- ${s}`)
           .join('\n');
       }
 
@@ -100,7 +100,7 @@ function normalizeMarkdown(rawMarkdown: string): string {
         concs = concs
           .split(/(?<=[.!?])\s+/)
           .filter(Boolean)
-          .map((s) => `- ${s}`)
+          .map((s: string) => `- ${s}`)
           .join('\n');
       }
 
