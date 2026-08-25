@@ -640,17 +640,22 @@ export function QuestionRenderer() {
             {currentQuestion.stem &&
               currentQuestion.stem.trim().toLowerCase() !==
                 (currentQuestion.text || '').trim().toLowerCase() && (
-                <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify whitespace-pre-line'>
+                <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify'>
                   <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>
                     Question Context / Passage:
                   </h4>
-                  {currentQuestion.stem}
+                  <MarkdownRenderer content={currentQuestion.stem} />
                 </div>
               )}
 
-            <div className='text-base sm:text-[17px] font-semibold leading-relaxed text-gray-950 font-sans break-words pb-2 border-b border-gray-100'>
-              <span className='font-bold text-gray-900'>Question : </span>
-              {currentQuestion.text}
+            <div className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-800 font-sans break-words pb-3 border-b border-gray-100'>
+              <div className='font-bold text-gray-900 text-sm mb-2 tracking-tight'>
+                Question :
+              </div>
+              <MarkdownRenderer
+                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim()}
+                className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-800 font-sans'
+              />
             </div>
 
             {parsedInstructions?.constraints && (

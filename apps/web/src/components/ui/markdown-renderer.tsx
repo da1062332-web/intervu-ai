@@ -57,6 +57,72 @@ function normalizeMarkdown(rawMarkdown: string): string {
     '$1\n$2',
   );
 
+  // 1. Format Pseudo-tables: "The table below shows ...: Course A: 120 students Course B: 150 students..."
+  text = text.replace(
+    /(The table below shows[^\n:]*:\s*)([^\n]+(?:\b(?:Course|Year|Item|Category|Company|Department|City|Section|Person|Subject|Day|Month)\s+[A-Z0-9]+:\s*\d+[^.]+)+)(\s*(?:What|Find|Calculate|Which|Determine|How)[^?]*\?)/i,
+    (match, prefix, tableContent, suffix) => {
+      const itemRegex = /\b([A-Za-z0-9\s]+?):\s*([0-9.,]+(?:\s*[A-Za-z%]+)?)/g;
+      const rows: { label: string; value: string }[] = [];
+      let m;
+      while ((m = itemRegex.exec(tableContent)) !== null) {
+        rows.push({ label: m[1].trim(), value: m[2].trim() });
+      }
+      if (rows.length >= 2) {
+        const mdTable = [
+          `\n| Category / Item | Value / Details |`,
+          `| :--- | :--- |`,
+          ...rows.map((r) => `| **${r.label}** | ${r.value} |`),
+          `\n`,
+        ].join('\n');
+        return `${prefix.trim()}\n\n${mdTable}\n\n${suffix.trim()}`;
+      }
+      return match;
+    },
+  );
+
+  // 2. Format Syllogisms & Statements/Conclusions:
+  text = text.replace(
+    /\b(Statements?|Premises?):\s*([^\n]+?)\s*\b(Conclusions?):\s*([^\n]+)/i,
+    (match, stmtLabel, stmtBody, concLabel, concBody) => {
+      let stmts = stmtBody.trim();
+      stmts = stmts.replace(/(\d+\.|\b[A-D]\.)\s*/g, '\n- ');
+      if (!stmts.includes('\n- ')) {
+        stmts = stmts
+          .split(/(?<=[.!?])\s+/)
+          .filter(Boolean)
+          .map((s) => `- ${s}`)
+          .join('\n');
+      }
+
+      let concs = concBody.trim();
+      concs = concs.replace(/\b([I|V|X]+\.|\d+\.|\b[A-D]\.)\s*/g, '\n- **$1** ');
+      if (!concs.includes('\n- ')) {
+        concs = concs
+          .split(/(?<=[.!?])\s+/)
+          .filter(Boolean)
+          .map((s) => `- ${s}`)
+          .join('\n');
+      }
+
+      return `\n\n**${stmtLabel}:**\n${stmts}\n\n**${concLabel}:**\n${concs}\n\n`;
+    },
+  );
+
+  // 3. Format Statement I & Statement II / Cause & Effect / Assertion & Reason:
+  text = text.replace(
+    /(?:\*\*)?(Statement\s+[I|V|X|0-9]+:?|Assertion\s*(?:\([A-Z]\))?:?|Reason\s*(?:\([A-Z]\))?:?)(?:\*\*)?\s*/gi,
+    '\n\n**$1**\n',
+  );
+
+  // 4. Format Numbered/Lettered sequences in Series problems:
+  text = text.replace(
+    /(?<=\s|^)(\d+\.|\([a-e1-5]\))\s+([A-Z0-9\s_:-]{4,})(?=\s+\d+\.|\s+\([a-e1-5]\)|$)/gi,
+    '\n$1 $2',
+  );
+
+  // Clean up duplicate blank lines
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+
   return text;
 }
 
@@ -384,7 +450,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         return (
           <div
             key={idx}
-            className="text-[14px] sm:text-[15px] leading-relaxed text-slate-800 dark:text-slate-200 mb-3 last:mb-0"
+            className="text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-800 dark:text-slate-200 mb-3 last:mb-0"
           >
             {renderParagraphLines(token.lines)}
           </div>
@@ -393,7 +459,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         return (
           <ul
             key={idx}
-            className="list-disc list-inside space-y-1.5 mb-3.5 text-[14px] sm:text-[15px] text-slate-800 dark:text-slate-200 pl-2 leading-relaxed"
+            className="list-disc list-inside space-y-1.5 mb-3.5 text-[15px] sm:text-[16px] font-normal text-slate-800 dark:text-slate-200 pl-2 leading-relaxed"
           >
             {token.items.map((item, j) => (
               <li key={j} className="leading-relaxed">
@@ -406,7 +472,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         return (
           <ol
             key={idx}
-            className="list-decimal list-inside space-y-1.5 mb-3.5 text-[14px] sm:text-[15px] text-slate-800 dark:text-slate-200 pl-2 leading-relaxed"
+            className="list-decimal list-inside space-y-1.5 mb-3.5 text-[15px] sm:text-[16px] font-normal text-slate-800 dark:text-slate-200 pl-2 leading-relaxed"
           >
             {token.items.map((item, j) => (
               <li key={j} className="leading-relaxed">
