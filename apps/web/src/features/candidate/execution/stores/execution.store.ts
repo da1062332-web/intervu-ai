@@ -98,6 +98,13 @@ interface ExecutionState {
     lockedSectionKeys?: string[];
   }) => void;
   cleanupRuntime: () => void;
+  /**
+   * Resets all session-scoped runtime state to initial values.
+   * Must be called at the start of each new exam session load to prevent
+   * stale state (e.g. submissionStatus: 'SUCCESS') leaking across
+   * client-side navigations in the Zustand singleton.
+   */
+  resetExecutionState: () => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -630,4 +637,34 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setPing: (ping) => set({ ping }),
   setUnsavedChanges: (unsaved) => set({ hasUnsavedChanges: unsaved }),
+
+  resetExecutionState: () =>
+    set({
+      // Data
+      testInstance: null,
+      questions: [],
+      // Execution state
+      currentQuestionIndex: 0,
+      currentQuestion: null,
+      answers: {},
+      palette: [],
+      remainingTime: 0,
+      // Application state
+      loading: true,
+      error: null,
+      pendingSectionChangeTarget: null,
+      isInteractionBlocked: false,
+      // Section timing
+      currentSectionIndex: 0,
+      lockedSectionKeys: [],
+      sectionRemainingTime: 0,
+      sectionTimingEnabled: false,
+      // Day 4 runtime state
+      autosaveStatus: 'IDLE',
+      lastSavedAt: null,
+      submissionStatus: 'IDLE',
+      isRecovered: false,
+      hasAttemptedResume: false,
+      hasUnsavedChanges: false,
+    }),
 }));

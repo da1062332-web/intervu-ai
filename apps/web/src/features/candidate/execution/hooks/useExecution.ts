@@ -6,7 +6,7 @@ import { clearAssessmentSandboxStorage } from '@/components/candidate/sandbox/us
 
 export function useExecution(testId: string) {
   const router = useRouter();
-  const { initializeTest, setLoading, setError, loading, error, testInstance } =
+  const { initializeTest, setLoading, setError, resetExecutionState, loading, error, testInstance } =
     useExecutionStore();
 
   useEffect(() => {
@@ -16,7 +16,10 @@ export function useExecution(testId: string) {
       const t0 = Date.now();
       console.log(`[CLIENT-EXECUTION ⏱️] Loading assessment snapshot for instance: ${testId}...`);
       try {
-        setLoading(true);
+        // Reset all session-scoped runtime state before loading a new session.
+        // This prevents stale state (e.g. submissionStatus: 'SUCCESS' from a previous
+        // attempt) from leaking across client-side navigations in the Zustand singleton.
+        resetExecutionState();
         setError(null);
         const data = await executionService.getTestInstance(testId);
         const elapsed = Date.now() - t0;
@@ -65,7 +68,7 @@ export function useExecution(testId: string) {
       mounted = false;
       useExecutionStore.getState().cleanupRuntime();
     };
-  }, [testId, initializeTest, setLoading, setError, router]);
+  }, [testId, initializeTest, setLoading, setError, resetExecutionState, router]);
 
   useEffect(() => {
     // Push a dummy state to trap the user from going back
