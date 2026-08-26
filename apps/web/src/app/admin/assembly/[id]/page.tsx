@@ -192,7 +192,24 @@ export default function AssemblyPreviewPage() {
       header: 'Type',
       cell: (row) => {
         const snap = row.questionSnapshot || {};
-        return <Badge variant='outline'>{snap.questionType || 'Standard'}</Badge>;
+        const isCoding =
+          row.questionType === 'CODING' ||
+          snap.questionType === 'CODING' ||
+          Boolean(snap.codingData) ||
+          (typeof snap.questionText === 'string' && snap.questionText.startsWith('### Problem Statement'));
+        const type = isCoding ? 'CODING' : row.questionType || snap.questionType || 'MCQ';
+        return (
+          <Badge
+            variant='outline'
+            className={
+              type === 'CODING'
+                ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300'
+                : 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'
+            }
+          >
+            {type}
+          </Badge>
+        );
       },
     },
   ];

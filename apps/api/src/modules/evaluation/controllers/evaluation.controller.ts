@@ -131,6 +131,7 @@ export class EvaluationController {
       id: string;
       answer: string;
       questionType: string;
+      options?: any[];
       difficulty: string;
       topicName: string;
       sectionKey: string;
@@ -148,6 +149,7 @@ export class EvaluationController {
           id: q.questionId,
           answer,
           questionType,
+          options: snap.options || snap.mcqData?.options,
           difficulty,
           topicName,
           sectionKey: section.sectionKey,

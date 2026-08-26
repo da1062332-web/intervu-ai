@@ -215,7 +215,6 @@ export class ExecutionService {
             const { correctAnswer, answer, solution, ...candidateSafeSnapshot } =
               rawSnapshot;
 
-            // Enrich options from mcqData if snapshot has incomplete/missing options (< 2) or placeholder options
             let snapshotOptions = candidateSafeSnapshot.options;
             const hasValidOptions =
               Array.isArray(snapshotOptions) &&
@@ -234,7 +233,7 @@ export class ExecutionService {
               }
             }
 
-            // Synthesize real numeric/contextual distractors if options are missing or dummy
+            // Synthesize real numeric/sequence/contextual distractors if options are missing or dummy
             const isMcq =
               candidateSafeSnapshot.questionType === "MCQ" ||
               candidateSafeSnapshot.questionType === "MULTIPLE_CHOICE" ||
@@ -246,12 +245,30 @@ export class ExecutionService {
                 candidateSafeSnapshot.options.length === 0 ||
                 isPlaceholderOptions(candidateSafeSnapshot.options))
             ) {
-              const targetAnswer = answer ?? correctAnswer;
-              if (targetAnswer && !isNaN(Number(targetAnswer))) {
+              const targetAnswer = String(answer ?? correctAnswer ?? "Option A").trim();
+              if (!isNaN(Number(targetAnswer))) {
                 candidateSafeSnapshot.options = synthesizeNumericDistractors(
                   Number(targetAnswer),
                   4,
                 );
+              } else if (/^[A-D]-[A-D]-[A-D]-[A-D]$/i.test(targetAnswer)) {
+                const uniqueSeqs = new Set<string>([
+                  targetAnswer,
+                  "A-B-C-D",
+                  "C-B-A-D",
+                  "B-C-D-A",
+                  "D-A-C-B",
+                  "A-C-B-D",
+                  "D-C-B-A"
+                ]);
+                candidateSafeSnapshot.options = Array.from(uniqueSeqs).slice(0, 4);
+              } else {
+                candidateSafeSnapshot.options = [
+                  targetAnswer,
+                  "Option B",
+                  "Option C",
+                  "Option D"
+                ];
               }
             }
 

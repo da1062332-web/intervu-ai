@@ -306,14 +306,25 @@ export class AssemblyController {
 
         questions: (s.questions ?? []).map((q: any) => {
           const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
+          const isCoding =
+            snap?.questionType === "CODING" ||
+            Boolean(snap?.codingData) ||
+            ((snap?.questionText as string) || "").startsWith("### Problem Statement") ||
+            (s.sectionName || s.displayName || "").toLowerCase().includes("coding");
+          const questionType = isCoding
+            ? "CODING"
+            : (snap?.questionType as string) || "MULTIPLE_CHOICE";
           return {
             questionId: q.questionId,
             questionHash: (snap?.questionHash as string) || "",
             conceptKey: (snap?.conceptKey as string) || "",
             difficultyLevel: (snap?.difficultyLevel as string) || "MEDIUM",
-            questionType: (snap?.questionType as string) || "MULTIPLE_CHOICE",
+            questionType,
             questionOrder: q.questionOrder,
-            questionSnapshot: q.questionSnapshot,
+            questionSnapshot: {
+              ...snap,
+              questionType,
+            },
           };
         }),
       })),
@@ -365,14 +376,25 @@ export class AssemblyController {
 
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
+        const isCoding =
+          snap["questionType"] === "CODING" ||
+          Boolean(snap["codingData"]) ||
+          ((snap["questionText"] as string) || "").startsWith("### Problem Statement") ||
+          (s.sectionName || "").toLowerCase().includes("coding");
+        const questionType = isCoding
+          ? "CODING"
+          : (snap["questionType"] as string) ?? "MULTIPLE_CHOICE";
         return {
           questionId: q.questionId,
           questionHash: (snap["questionHash"] as string) ?? q.questionId,
           conceptKey: (snap["conceptKey"] as string) ?? "",
           difficultyLevel: (snap["difficultyLevel"] as string) ?? "MEDIUM",
-          questionType: (snap["questionType"] as string) ?? "MULTIPLE_CHOICE",
+          questionType,
           questionOrder: q.questionOrder,
-          questionSnapshot: q.questionSnapshot,
+          questionSnapshot: {
+            ...snap,
+            questionType,
+          },
         };
       }),
     }));
@@ -429,14 +451,25 @@ export class AssemblyController {
 
       questions: (s.questions ?? []).map((q: any) => {
         const snap = (q.questionSnapshot ?? {}) as Record<string, unknown>;
+        const isCoding =
+          snap["questionType"] === "CODING" ||
+          Boolean(snap["codingData"]) ||
+          ((snap["questionText"] as string) || "").startsWith("### Problem Statement") ||
+          (s.sectionName || "").toLowerCase().includes("coding");
+        const questionType = isCoding
+          ? "CODING"
+          : (snap["questionType"] as string) ?? "MULTIPLE_CHOICE";
         return {
           questionId: q.questionId,
           questionHash: (snap["questionHash"] as string) ?? q.questionId,
           conceptKey: (snap["conceptKey"] as string) ?? "",
           difficultyLevel: (snap["difficultyLevel"] as string) ?? "MEDIUM",
-          questionType: (snap["questionType"] as string) ?? "MULTIPLE_CHOICE",
+          questionType,
           questionOrder: q.questionOrder,
-          questionSnapshot: q.questionSnapshot,
+          questionSnapshot: {
+            ...snap,
+            questionType,
+          },
         };
       }),
     }));

@@ -233,6 +233,8 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       answers: {},
       loading: false,
       error: null,
+      submissionStatus: 'IDLE',
+      isInteractionBlocked: false,
       isRecovered: false,
       hasAttemptedResume: false,
       currentSectionIndex: serverSectionIndex,

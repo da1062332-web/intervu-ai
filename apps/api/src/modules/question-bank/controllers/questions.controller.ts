@@ -896,6 +896,32 @@ export class QuestionsController {
       });
     }
 
+    // Resolve conceptId for the topic if available
+    let conceptId: string | undefined = undefined;
+    const templateConceptKey = question.template?.conceptKey || question.conceptKey;
+    if (templateConceptKey) {
+      const matchedConcept = await this.prisma.concept.findFirst({
+        where: {
+          topicId,
+          OR: [
+            { code: { equals: templateConceptKey, mode: "insensitive" } },
+            { name: { equals: templateConceptKey, mode: "insensitive" } },
+          ],
+        },
+      });
+      if (matchedConcept) {
+        conceptId = matchedConcept.id;
+      }
+    }
+    if (!conceptId) {
+      const defaultConcept = await this.prisma.concept.findFirst({
+        where: { topicId },
+      });
+      if (defaultConcept) {
+        conceptId = defaultConcept.id;
+      }
+    }
+
     const existingQuestion = await this.prisma.question.findFirst({
       where: {
         OR: [{ questionText: question.questionText }, { id: question.id }],
@@ -908,6 +934,7 @@ export class QuestionsController {
         where: { id: existingQuestion.id },
         data: {
           topicId,
+          conceptId: conceptId || existingQuestion.conceptId,
           sectionId: section.id,
           status: "ACTIVE",
           answer: question.correctAnswer as string,
@@ -922,6 +949,7 @@ export class QuestionsController {
           answer: question.correctAnswer as string,
           explanation: question.solution as string,
           topicId,
+          conceptId,
           sectionId: section.id,
           difficulty: question.difficultyLevel,
           source: "GENERATED",

@@ -14,10 +14,11 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
   const [isFaceDetected, setIsFaceDetected] = useState(true);
   const [isMultipleFaces, setIsMultipleFaces] = useState(false);
   const [hasCameraError, setHasCameraError] = useState(false);
-  const maxViolations = 5;
+  const maxViolations = 25;
 
   const violationsRef = useRef(0);
   const isSubmittedRef = useRef(false);
+  const lastViolationTimeRef = useRef(0);
 
   // Accurate millisecond timestamp markers for ultra-responsive trigger & violation tracking
   const multiFaceStartTimeRef = useRef(0);
@@ -129,7 +130,8 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     import('@vladmandic/face-api').then((faceapi) => {
       if (!isRunning) return;
 
-      const gracePeriodEndTime = Date.now() + 8000; // 8s initial camera warmup
+      const gracePeriodEndTime = Date.now() + 30000; // 30s initial camera warmup
+      const VIOLATION_COOLDOWN_MS = 10000; // 10s cooldown between formal violations
 
       // Prioritize TinyFaceDetector for sub-30ms real-time multi-face detection
       const isTinyReady = faceapi.nets.tinyFaceDetector.isLoaded;
@@ -203,10 +205,19 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
                   ctx.fillText(`Face ${idx + 1}`, bx, Math.max(14, by - 4));
                 });
 
-                // Count formal violation after 1.5 seconds of sustained multi-face presence
+                // Count formal violation after 4 seconds of sustained multi-face presence with 10s cooldown
                 const multiFaceDuration = now - multiFaceStartTimeRef.current;
-                if (multiFaceDuration >= 1500 && !inMultiFaceViolationRef.current) {
+                const canCountViolation =
+                  now - lastViolationTimeRef.current >= VIOLATION_COOLDOWN_MS;
+
+                if (
+                  now >= gracePeriodEndTime &&
+                  multiFaceDuration >= 4000 &&
+                  !inMultiFaceViolationRef.current &&
+                  canCountViolation
+                ) {
                   inMultiFaceViolationRef.current = true;
+                  lastViolationTimeRef.current = now;
 
                   const next = violationsRef.current + 1;
                   violationsRef.current = next;
@@ -230,9 +241,9 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
                   cleanSingleFaceStartTimeRef.current = now;
                 }
 
-                // Clear multi-face warning after 1.0 second of clean single-face
+                // Clear multi-face warning after 1.5 seconds of clean single-face
                 const cleanDuration = now - cleanSingleFaceStartTimeRef.current;
-                if (cleanDuration >= 1000) {
+                if (cleanDuration >= 1500) {
                   multiFaceStartTimeRef.current = 0;
                   if (inMultiFaceViolationRef.current || isMultipleFaces) {
                     inMultiFaceViolationRef.current = false;
@@ -247,7 +258,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
 
                 // Draw bounding box
                 const isLatchedWarning =
-                  cleanDuration < 1000 && multiFaceStartTimeRef.current > 0;
+                  cleanDuration < 1500 && multiFaceStartTimeRef.current > 0;
                 const { x, y, width, height } = detections[0].box;
                 const bx = x * scaleX;
                 const by = y * scaleY;
@@ -274,8 +285,12 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
                   }
 
                   const noFaceDuration = now - noFaceStartTimeRef.current;
-                  if (noFaceDuration >= 3000 && !inNoFaceViolationRef.current) {
+                  const canCountViolation =
+                    now - lastViolationTimeRef.current >= VIOLATION_COOLDOWN_MS;
+
+                  if (noFaceDuration >= 5000 && !inNoFaceViolationRef.current && canCountViolation) {
                     inNoFaceViolationRef.current = true;
+                    lastViolationTimeRef.current = now;
                     setIsFaceDetected(false);
 
                     const next = violationsRef.current + 1;

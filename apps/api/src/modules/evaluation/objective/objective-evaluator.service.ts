@@ -20,6 +20,52 @@ export interface QuestionEvaluationResult {
 @Injectable()
 export class ObjectiveEvaluatorService {
   /**
+   * Resolves a candidate or expected answer (which might be opt-0, opt-1, A, B, C, D, index, etc.)
+   * to its normalized textual representation using the question's options list.
+   */
+  resolveToText(value: string, options?: any[]): string {
+    const clean = (value ?? "").trim();
+    if (!clean) return "";
+
+    // 1. Check if it's opt-0, opt-1, opt-2...
+    const optMatch = clean.match(/^opt-(\d+)$/i);
+    if (optMatch && options && options.length > 0) {
+      const idx = parseInt(optMatch[1], 10);
+      if (idx >= 0 && idx < options.length) {
+        const raw = options[idx];
+        const text =
+          typeof raw === "object" && raw !== null
+            ? raw.text || raw.value || raw.label || raw.optionText || ""
+            : String(raw);
+        if (text) return text.trim().toLowerCase();
+      }
+    }
+
+    // 2. Check if it's a single letter A, B, C, D... or Option A, Option B...
+    const letterMatch = clean.match(/^(?:option\s+)?([a-z])$/i);
+    if (letterMatch && options && options.length > 0) {
+      const idx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+      if (idx >= 0 && idx < options.length) {
+        const raw = options[idx];
+        const text =
+          typeof raw === "object" && raw !== null
+            ? raw.text || raw.value || raw.label || raw.optionText || ""
+            : String(raw);
+        if (text) return text.trim().toLowerCase();
+      }
+    }
+
+    // 3. If it's an object with text/value
+    if (typeof value === "object" && value !== null) {
+      const raw = value as any;
+      const text = raw.text || raw.value || raw.label || "";
+      if (text) return String(text).trim().toLowerCase();
+    }
+
+    return clean.toLowerCase();
+  }
+
+  /**
    * Evaluates individual candidate answers against correct answers.
    * Scoring: 1 mark for correct, 0 for incorrect or skipped. No negative marking.
    */
@@ -29,6 +75,7 @@ export class ObjectiveEvaluatorService {
       id: string;
       answer: string;
       questionType: string;
+      options?: any[];
       metadata?: Record<string, unknown>;
     }>,
   ): QuestionEvaluationResult[] {
@@ -62,6 +109,7 @@ export class ObjectiveEvaluatorService {
         candidateAnswer,
         correctAnswer,
         type,
+        question.options,
       );
 
       // No negative marking — score is always 0 or 1
@@ -83,14 +131,24 @@ export class ObjectiveEvaluatorService {
   }
 
   /**
-   * Compares candidate answer with correct answer based on question type.
+   * Compares candidate answer with correct answer based on question type and options.
    */
-  compareAnswers(candidate: string, expected: string, type: string): boolean {
+  compareAnswers(
+    candidate: string,
+    expected: string,
+    type: string,
+    options?: any[],
+  ): boolean {
     const cleanCand = (candidate ?? "").trim().toLowerCase();
     const cleanExpected = (expected ?? "").trim().toLowerCase();
 
     if (!cleanCand) {
       return false;
+    }
+
+    // 1. Direct literal equality
+    if (cleanCand === cleanExpected) {
+      return true;
     }
 
     if (type === "msq") {
@@ -99,7 +157,9 @@ export class ObjectiveEvaluatorService {
           try {
             const parsed = JSON.parse(val);
             if (Array.isArray(parsed)) {
-              return parsed.map((item) => String(item).trim().toLowerCase());
+              return parsed.map((item) =>
+                this.resolveToText(String(item), options),
+              );
             }
           } catch {
             // ignore JSON parse error, fallback to split
@@ -107,7 +167,7 @@ export class ObjectiveEvaluatorService {
         }
         return val
           .split(",")
-          .map((item) => item.trim().toLowerCase())
+          .map((item) => this.resolveToText(item.trim(), options))
           .filter((item) => item.length > 0);
       };
 
@@ -129,7 +189,29 @@ export class ObjectiveEvaluatorService {
       return Math.abs(candNum - expNum) < 0.0001;
     }
 
-    // Default: MCQ, True/False, Fill in the Blank (case-insensitive string comparison)
-    return cleanCand === cleanExpected;
+    // 2. Resolve both candidate and expected to normalized text
+    const resolvedCand = this.resolveToText(cleanCand, options);
+    const resolvedExpected = this.resolveToText(cleanExpected, options);
+
+    if (
+      resolvedCand === resolvedExpected ||
+      resolvedCand === cleanExpected ||
+      cleanCand === resolvedExpected
+    ) {
+      return true;
+    }
+
+    // 3. Numeric string comparison (e.g., "18" vs "18.00")
+    const candNum = parseFloat(resolvedCand);
+    const expNum = parseFloat(resolvedExpected);
+    if (
+      !isNaN(candNum) &&
+      !isNaN(expNum) &&
+      Math.abs(candNum - expNum) < 0.0001
+    ) {
+      return true;
+    }
+
+    return false;
   }
 }

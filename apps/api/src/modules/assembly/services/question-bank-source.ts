@@ -326,14 +326,21 @@ export class QuestionBankSource implements IQuestionSource {
     },
     difficulty: string,
   ): GeneratedQuestion {
-    const rawOptions = q.mcqData?.options || q.options || [];
+    const isCoding =
+      (q as any).questionType === "CODING" ||
+      Boolean(q.codingData) ||
+      (q.questionText || "").startsWith("### Problem Statement");
+    const questionType = isCoding
+      ? "CODING"
+      : (q as any).questionType || "MULTIPLE_CHOICE";
+    const rawOptions = isCoding ? [] : (q.mcqData?.options || q.options || []);
     return {
       id: q.id,
       // conceptKey maps from topicId — this is the bridge between the two schemas
       conceptKey: q.topicId,
       difficultyLevel: (q.difficulty ??
         difficulty) as GeneratedQuestion["difficultyLevel"],
-      questionType: ((q as any).questionType || "MULTIPLE_CHOICE") as any,
+      questionType: questionType as any,
       questionText: q.questionText,
       // questionHash is not on Question model — use id as stable unique identifier
       questionHash: q.id,

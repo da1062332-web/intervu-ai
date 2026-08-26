@@ -79,8 +79,11 @@ export class DistributionAnalyticsService {
       );
     }
 
-    if (!assembly) {
-      assembly = await this.testInstanceRepository.findById(assemblyId);
+    if (!assembly || !assembly.sections || assembly.sections.length === 0) {
+      const fallback = await this.testInstanceRepository.findById(assemblyId);
+      if (fallback && fallback.sections && fallback.sections.length > 0) {
+        assembly = fallback;
+      }
     }
     if (!assembly) {
       throw new NotFoundException(

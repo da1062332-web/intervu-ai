@@ -2,6 +2,7 @@ import { PublishReadinessService } from "./publish-readiness.service";
 import { AssemblyStatus } from "@prisma/client";
 
 const mockAssembledTestRepository = { findById: jest.fn() };
+const mockTestInstanceRepository = { findById: jest.fn() };
 const mockVersionRepository = { getLatestVersionNumber: jest.fn() };
 const mockPackageService = { generatePackage: jest.fn() };
 const mockValidationV2 = { validate: jest.fn() };
@@ -67,6 +68,7 @@ describe("PublishReadinessService", () => {
       mockPackageService as unknown as import("./test-package.service").TestPackageService,
       mockValidationV2 as unknown as import("./assembly-validation-v2.service").AssemblyValidationV2Service,
       mockBlueprintBuilder as unknown as import("./blueprint-builder.service").BlueprintBuilderService,
+      mockTestInstanceRepository as unknown as import("../repositories/assembly.repository").AssemblyRepository,
     );
   });
 
