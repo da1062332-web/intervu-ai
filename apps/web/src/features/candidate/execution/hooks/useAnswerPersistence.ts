@@ -66,14 +66,10 @@ export function useAnswerPersistence(testId: string) {
         })
         .catch((error: any) => {
           const isAlreadySubmitted =
-            error?.status === 409 ||
-            error?.response?.status === 409 ||
-            String(error?.message || '')
+            (error?.status === 409 || error?.response?.status === 409) &&
+            String(error?.response?.data?.message || error?.message || '')
               .toLowerCase()
-              .includes('already') ||
-            String(error?.response?.data?.message || '')
-              .toLowerCase()
-              .includes('already');
+              .includes('already submitted');
 
           if (isAlreadySubmitted) {
             setAutosaveStatus('SAVED');

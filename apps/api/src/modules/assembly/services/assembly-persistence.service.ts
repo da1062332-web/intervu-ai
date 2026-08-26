@@ -239,8 +239,11 @@ export class AssemblyPersistenceService {
       console.warn(`Fallback to testInstance in persistence for ${id}`);
     }
 
-    if (!assembly) {
-      assembly = await this.testInstanceRepository.findById(id);
+    if (!assembly || !assembly.sections || assembly.sections.length === 0) {
+      const fallback = await this.testInstanceRepository.findById(id);
+      if (fallback && fallback.sections && fallback.sections.length > 0) {
+        assembly = fallback;
+      }
     }
 
     if (!assembly) {

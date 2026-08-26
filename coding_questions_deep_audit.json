@@ -1,0 +1,1962 @@
+[
+  {
+    "num": 1,
+    "id": "cmt4bgczx0009zju67acgpqq6",
+    "title": "Formatted String Output Generator",
+    "topic": "Basic Programming",
+    "functionName": "formattedStringOutputGenerator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 2,
+    "id": "cmt4bggt8000dzju6tz53k9sp",
+    "title": "Eligibility and Grade Evaluation",
+    "topic": "Basic Programming",
+    "functionName": "eligibilityAndGradeEvaluation",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 3,
+    "id": "cmt4bgpif000hzju60biev0in",
+    "title": "Array Sum and Average",
+    "topic": "Array",
+    "functionName": "arraySumAndAverage",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 4,
+    "id": "cmt4bg4230005zju6bpfhw4oa",
+    "title": "Count Even Numbers",
+    "topic": "Coding",
+    "functionName": "countEvenNumbers",
+    "publicTestsCount": 1,
+    "hiddenTestsCount": 1,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 5,
+    "id": "cmt4bjmhl000ntcvt0j6jc82h",
+    "title": "Palindrome Number Check",
+    "topic": "Math",
+    "functionName": "palindromeNumberCheck",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 6,
+    "id": "cmt4bk23k0019tcvtrj205oht",
+    "title": "Flood Fill Algorithm on 2D Grid",
+    "topic": "Matrix",
+    "functionName": "floodFillAlgorithmOn2dGrid",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 7,
+    "id": "cmt4bk3me001btcvtjfs2ps52",
+    "title": "Sum of Natural Numbers via Loop",
+    "topic": "Loop",
+    "functionName": "sumOfNaturalNumbersViaLoop",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 8,
+    "id": "cmt4bkjg5001xtcvta3489ouo",
+    "title": "Binary Search in Sorted Array",
+    "topic": "Searching",
+    "functionName": "binarySearchInSortedArray",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 9,
+    "id": "cmt4bkozt0027tcvt5kzbxkfm",
+    "title": "Merge Two Sorted Lists/Arrays",
+    "topic": "Sorting",
+    "functionName": "mergeTwoSortedListsarrays",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 10,
+    "id": "cmt4blb19002ntcvts02c95co",
+    "title": "Unique Paths in an M x N Grid",
+    "topic": "Dynamic Programming",
+    "functionName": "uniquePathsInAnMXNGrid",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 11,
+    "id": "cmt74ugze000112q4v5fpzaym",
+    "title": "Multiplication Table Print",
+    "topic": "Basic Coding",
+    "functionName": "multiplicationTablePrint",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 12,
+    "id": "cmt4819ok0003zdnovj2fh0m5",
+    "title": "Multiplication Table Print",
+    "topic": "Loop",
+    "functionName": "multiplicationTablePrint",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 13,
+    "id": "cmt4bjtbe000ztcvtsi5ft0p3",
+    "title": "Matrix Row and Column Sums",
+    "topic": "Matrix",
+    "functionName": "matrixRowAndColumnSums",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 14,
+    "id": "cmt4bkcsq001ltcvtf5yda3gq",
+    "title": "Boolean Evaluation with AND/OR Operators",
+    "topic": "Logic",
+    "functionName": "booleanEvaluationWithAndorOperators",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 15,
+    "id": "cmt4bkehh001ptcvtwtptkhf8",
+    "title": "Traffic Light State Transition Machine",
+    "topic": "Logic",
+    "functionName": "trafficLightStateTransitionMachine",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 16,
+    "id": "cmt4blfxb002rtcvtc7zjawll",
+    "title": "Maximum Depth of Binary Tree",
+    "topic": "Trees",
+    "functionName": "maximumDepthOfBinaryTree",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 17,
+    "id": "cmt4bliji002vtcvt9x2e2d80",
+    "title": "Validate Binary Search Tree",
+    "topic": "Trees",
+    "functionName": "validateBinarySearchTree",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 18,
+    "id": "cmt4blqnc0033tcvtbqpmed95",
+    "title": "Two Sum Target Pair Check (O(N) Hash Map)",
+    "topic": "General",
+    "functionName": "twoSumTargetPairCheckOnHashMap",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 19,
+    "id": "cmt4bluzz0037tcvtyb7sm8hv",
+    "title": "Counting Sort on Integer Frequencies",
+    "topic": "Sorting",
+    "functionName": "countingSortOnIntegerFrequencies",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 20,
+    "id": "cmt4bgqtl000jzju6rzqjp0na",
+    "title": "Find Maximum and Minimum Elements",
+    "topic": "Array",
+    "functionName": "findMaximumAndMinimumElements",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 21,
+    "id": "cmt4bjf550009tcvtky6dziqr",
+    "title": "Rotate Array by K Steps",
+    "topic": "Array",
+    "functionName": "rotateArrayByKSteps",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 22,
+    "id": "cmt4bjl1k000jtcvtgb1p21qj",
+    "title": "First Unique Character in a String",
+    "topic": "String",
+    "functionName": "firstUniqueCharacterInAString",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 23,
+    "id": "cmt4bkffo001rtcvtvgfggxcc",
+    "title": "Single Number in Duplicate Array (Bitwise XOR)",
+    "topic": "Logic",
+    "functionName": "singleNumberInDuplicateArrayBitwiseXor",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 24,
+    "id": "cmt4bkkxn001ztcvtlmon4bfn",
+    "title": "Koko Eating Bananas (Binary Search on Answer)",
+    "topic": "Searching",
+    "functionName": "kokoEatingBananasBinarySearchOnAnswer",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 25,
+    "id": "cmt4bkneu0025tcvtpqz5390q",
+    "title": "Bubble Sort Swap Counter",
+    "topic": "Sorting",
+    "functionName": "bubbleSortSwapCounter",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 26,
+    "id": "cmt4blk9l002xtcvtmuic32lx",
+    "title": "Number of Connected Islands in Grid",
+    "topic": "Graphs",
+    "functionName": "numberOfConnectedIslandsInGrid",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 27,
+    "id": "cmt4bg2wz0003zju60mjm50be",
+    "title": "Discount Calculator",
+    "topic": "Coding",
+    "functionName": "discountCalculator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 28,
+    "id": "cmt4bjegn0007tcvt6bgacwdd",
+    "title": "Maximum Subarray Sum (Kadane's Algorithm)",
+    "topic": "Array",
+    "functionName": "maximumSubarraySumKadanesAlgorithm",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 29,
+    "id": "cmt4bjlrz000ltcvt9i8yytzp",
+    "title": "Valid IP Address Validator",
+    "topic": "String",
+    "functionName": "validIpAddressValidator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 30,
+    "id": "cmt4bk1gs0017tcvtu439jxy9",
+    "title": "Search a 2D Matrix II",
+    "topic": "Matrix",
+    "functionName": "searchA2dMatrixIi",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 31,
+    "id": "cmt4bkdi4001ntcvtrs9r8029",
+    "title": "Quadrant Identifier for 2D Point",
+    "topic": "Logic",
+    "functionName": "quadrantIdentifierFor2dPoint",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 32,
+    "id": "cmt4bl3su002htcvtt8su74nt",
+    "title": "Bank Account Transaction Simulation",
+    "topic": "Simulation",
+    "functionName": "bankAccountTransactionSimulation",
+    "publicTestsCount": 1,
+    "hiddenTestsCount": 1,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 33,
+    "id": "cmt4bldkc002ptcvt33a0m6s5",
+    "title": "0/1 Knapsack Maximum Value",
+    "topic": "Dynamic Programming",
+    "functionName": "01KnapsackMaximumValue",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 34,
+    "id": "cmt4bllt20031tcvtafhlsj6d",
+    "title": "FizzBuzz Logic Generator",
+    "topic": "General",
+    "functionName": "fizzbuzzLogicGenerator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 35,
+    "id": "cmt4bpvzj00011wqy4rlfvhg2",
+    "title": "Divide and Conquer Maximum Subarray Crossing Sum",
+    "topic": "Recursion",
+    "functionName": "divideAndConquerMaximumSubarrayCrossingSum",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 36,
+    "id": "cmt4bq5vo00091wqyynyfa3xr",
+    "title": "Longest Common Subsequence Length",
+    "topic": "Dynamic Programming",
+    "functionName": "longestCommonSubsequenceLength",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 37,
+    "id": "cmt4bqag0000h1wqyj2htv6u3",
+    "title": "Path Sum in Binary Tree (Target Sum Exists)",
+    "topic": "Trees",
+    "functionName": "pathSumInBinaryTreeTargetSumExists",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 38,
+    "id": "cmt4bqioz000l1wqy11p1vszf",
+    "title": "Count Connected Components in Undirected Graph (DFS)",
+    "topic": "Graphs",
+    "functionName": "countConnectedComponentsInUndirectedGraphDfs",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 39,
+    "id": "cmt4bqq6o000r1wqyhf53lfxz",
+    "title": "Min Cost to Connect All Points (Kruskal's MST / DSU)",
+    "topic": "Graphs",
+    "functionName": "minCostToConnectAllPointsKruskalsMstDsu",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 40,
+    "id": "cmt74uhqh000312q4wl07qoc6",
+    "title": "Formatted String Output Generator",
+    "topic": "Basic Coding",
+    "functionName": "formattedStringOutputGenerator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 41,
+    "id": "cmt74ui2y000512q4wx4bqrq0",
+    "title": "Eligibility and Grade Evaluation",
+    "topic": "Basic Coding",
+    "functionName": "eligibilityAndGradeEvaluation",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 42,
+    "id": "cmt74uifq000712q4kmauty29",
+    "title": "Array Sum and Average",
+    "topic": "Basic Coding",
+    "functionName": "arraySumAndAverage",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 43,
+    "id": "cmt74uis4000912q4g8ue6ykv",
+    "title": "Count Even Numbers",
+    "topic": "Basic Coding",
+    "functionName": "countEvenNumbers",
+    "publicTestsCount": 1,
+    "hiddenTestsCount": 1,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 44,
+    "id": "cmt4b9sfc000512jwhvt4iuo4",
+    "title": "Array Game of Life Transformation",
+    "topic": "Simulation",
+    "functionName": "arrayGameOfLifeTransformation",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 45,
+    "id": "cmt4bg6x60007zju6d3ylnf05",
+    "title": "Type Casting and Floating Point Precision",
+    "topic": "Basic Programming",
+    "functionName": "typeCastingAndFloatingPointPrecision",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 46,
+    "id": "cmt4bgfpr000bzju610hjqddl",
+    "title": "Arithmetic and Modulo Operations",
+    "topic": "Basic Programming",
+    "functionName": "arithmeticAndModuloOperations",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 47,
+    "id": "cmt4bj5rx0001tcvtl13lpqv0",
+    "title": "Two Sum in Sorted Array",
+    "topic": "Array",
+    "functionName": "twoSumInSortedArray",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 48,
+    "id": "cmt4bj81f0003tcvtfi6jgahg",
+    "title": "Maximum Sum Subarray of Size K",
+    "topic": "Array",
+    "functionName": "maximumSumSubarrayOfSizeK",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 49,
+    "id": "cmt4bjfrx000btcvt1er7y7x0",
+    "title": "Reverse Words in a String",
+    "topic": "String",
+    "functionName": "reverseWordsInAString",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 50,
+    "id": "cmt4bjnxk000rtcvt5m1n8kav",
+    "title": "Greatest Common Divisor and LCM",
+    "topic": "Math",
+    "functionName": "greatestCommonDivisorAndLcm",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 51,
+    "id": "cmt4bjqqq000ttcvtbbt6qorl",
+    "title": "Calculate Combinations nCr Modulo P",
+    "topic": "Math",
+    "functionName": "calculateCombinationsNcrModuloP",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 52,
+    "id": "cmt4bjv100013tcvtzpsm1km3",
+    "title": "Rotate Image / Matrix by 90 Degrees Clockwise",
+    "topic": "Matrix",
+    "functionName": "rotateImageMatrixBy90DegreesClockwise",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 53,
+    "id": "cmt4bkggn001ttcvtytkmrn8t",
+    "title": "Basic Target Search",
+    "topic": "Searching",
+    "functionName": "basicTargetSearch",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 54,
+    "id": "cmt4bklpd0021tcvt4r2v3rev",
+    "title": "Peak Index in a Mountain Array",
+    "topic": "Searching",
+    "functionName": "peakIndexInAMountainArray",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 55,
+    "id": "cmt4bkmg30023tcvtvqhaufk0",
+    "title": "Sort Colors (Dutch National Flag)",
+    "topic": "Sorting",
+    "functionName": "sortColorsDutchNationalFlag",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 56,
+    "id": "cmt4bkwez002btcvt2j8s8s4h",
+    "title": "N-th Fibonacci Number via Recursion",
+    "topic": "Recursion",
+    "functionName": "nthFibonacciNumberViaRecursion",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 57,
+    "id": "cmt4bl895002jtcvtpalg44lm",
+    "title": "Climbing Stairs (Distinct Ways to Top)",
+    "topic": "Dynamic Programming",
+    "functionName": "climbingStairsDistinctWaysToTop",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 58,
+    "id": "cmt4blkzu002ztcvtt572gkjo",
+    "title": "Shortest Path in Unweighted Graph (BFS)",
+    "topic": "Graphs",
+    "functionName": "shortestPathInUnweightedGraphBfs",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 59,
+    "id": "cmt4blvt10039tcvtbmggcpe1",
+    "title": "Custom Sort String by Predefined Order",
+    "topic": "Sorting",
+    "functionName": "customSortStringByPredefinedOrder",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 60,
+    "id": "cmt4blwi6003btcvto3oyep4b",
+    "title": "In-Place Move Zeroes to End",
+    "topic": "Sort",
+    "functionName": "inplaceMoveZeroesToEnd",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 61,
+    "id": "cmt4bly4s003dtcvt6r4clq7r",
+    "title": "Sort Array by Decreasing Frequency",
+    "topic": "Sort",
+    "functionName": "sortArrayByDecreasingFrequency",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 62,
+    "id": "cmt4bm05l003ftcvtgqgejrev",
+    "title": "Kth Largest Element in an Array (QuickSelect)",
+    "topic": "Sort",
+    "functionName": "kthLargestElementInAnArrayQuickselect",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 63,
+    "id": "cmt4bm3zs003htcvtz9e8onkq",
+    "title": "Tail Recursive Factorial with Accumulator",
+    "topic": "Recursion",
+    "functionName": "tailRecursiveFactorialWithAccumulator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 64,
+    "id": "cmt4bfgty0001zju6mm2mesvl",
+    "title": "Sum of Array Element",
+    "topic": "Coding",
+    "functionName": "sumOfArrayElement",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 65,
+    "id": "cmt46kzv60001zdnocjjcu8kf",
+    "title": "Basic Variable Assignment and Sum",
+    "topic": "Basic Programming",
+    "functionName": "basicVariableAssignmentAndSum",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 66,
+    "id": "cmt4bgn6s000fzju63untxp9j",
+    "title": "Function Scope and Counter State",
+    "topic": "Basic Programming",
+    "functionName": "functionScopeAndCounterState",
+    "publicTestsCount": 1,
+    "hiddenTestsCount": 1,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 67,
+    "id": "cmt4bjdqu0005tcvt2l8bxf3t",
+    "title": "Range Sum Query Immutable",
+    "topic": "Array",
+    "functionName": "rangeSumQueryImmutable",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 68,
+    "id": "cmt4bjgh0000dtcvt0bur8125",
+    "title": "String Compression (Run-Length Encoding)",
+    "topic": "String",
+    "functionName": "stringCompressionRunlengthEncoding",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 69,
+    "id": "cmt4bjh6z000ftcvteykjzrzn",
+    "title": "Valid Anagram Verification",
+    "topic": "String",
+    "functionName": "validAnagramVerification",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 70,
+    "id": "cmt4bjjtz000htcvtfrcquk7y",
+    "title": "Find First Occurrence of Needle in Haystack",
+    "topic": "String",
+    "functionName": "findFirstOccurrenceOfNeedleInHaystack",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 71,
+    "id": "cmt4bjn84000ptcvt7n9jl2n0",
+    "title": "Count Primes up to N (Sieve of Eratosthenes)",
+    "topic": "Math",
+    "functionName": "countPrimesUpToNSieveOfEratosthenes",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 72,
+    "id": "cmt4bjrva000vtcvtpuzasto2",
+    "title": "Fast Binary Exponentiation (Pow(x, n) Mod M)",
+    "topic": "Math",
+    "functionName": "fastBinaryExponentiationPowxNModM",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 73,
+    "id": "cmt4bjslj000xtcvte52t5i6d",
+    "title": "Count Set Bits and Power of Two Check",
+    "topic": "Math",
+    "functionName": "countSetBitsAndPowerOfTwoCheck",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 74,
+    "id": "cmt4bju280011tcvtvg4grsts",
+    "title": "Matrix Diagonal Sums",
+    "topic": "Matrix",
+    "functionName": "matrixDiagonalSums",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 75,
+    "id": "cmt4bk09n0015tcvt48pnc6wb",
+    "title": "Spiral Order Matrix Traversal",
+    "topic": "Matrix",
+    "functionName": "spiralOrderMatrixTraversal",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 76,
+    "id": "cmt4bk4a4001dtcvtf6ijfp64",
+    "title": "Generate Right-Angled Number Pyramid",
+    "topic": "Loop",
+    "functionName": "generateRightangledNumberPyramid",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 77,
+    "id": "cmt4bk98y001ftcvt853mtdyp",
+    "title": "First Duplicate Element with Early Exit",
+    "topic": "Loop",
+    "functionName": "firstDuplicateElementWithEarlyExit",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 78,
+    "id": "cmt4bka9m001htcvtq1258s1u",
+    "title": "Collatz Conjecture Step Count",
+    "topic": "Loop",
+    "functionName": "collatzConjectureStepCount",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 79,
+    "id": "cmt4bkbiv001jtcvtkeeoihn4",
+    "title": "Check Leap Year and Validity",
+    "topic": "Logic",
+    "functionName": "checkLeapYearAndValidity",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 80,
+    "id": "cmt4bkh46001vtcvtiunwa3j6",
+    "title": "Linear Search and Last Index",
+    "topic": "Searching",
+    "functionName": "linearSearchAndLastIndex",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 81,
+    "id": "cmt4bkvfl0029tcvtgzsebc1b",
+    "title": "Sort Array by Parity (Even First, Odd Last)",
+    "topic": "Sort",
+    "functionName": "sortArrayByParityEvenFirstOddLast",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 82,
+    "id": "cmt4bkx5p002dtcvtnt48re42",
+    "title": "Recursive Power Function (x^n)",
+    "topic": "Recursion",
+    "functionName": "recursivePowerFunctionXn",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 83,
+    "id": "cmt4bkzb2002ftcvtbxsod884",
+    "title": "Generate Subsets / Power Set",
+    "topic": "Recursion",
+    "functionName": "generateSubsetsPowerSet",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 84,
+    "id": "cmt4bl8xi002ltcvtad4rbgsl",
+    "title": "House Robber (Max Loot without Adjacent Houses)",
+    "topic": "Dynamic Programming",
+    "functionName": "houseRobberMaxLootWithoutAdjacentHouses",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 85,
+    "id": "cmt4blhb8002ttcvtwtmecjva",
+    "title": "Binary Tree Inorder Traversal",
+    "topic": "Trees",
+    "functionName": "binaryTreeInorderTraversal",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 86,
+    "id": "cmt4bltwz0035tcvttgrz8gkd",
+    "title": "Quick Sort with Lomuto Partitioning",
+    "topic": "Sorting",
+    "functionName": "quickSortWithLomutoPartitioning",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 87,
+    "id": "cmt4bpxer00031wqyqsqrylj3",
+    "title": "Tic-Tac-Toe Game State Validator",
+    "topic": "Simulation",
+    "functionName": "tictactoeGameStateValidator",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 88,
+    "id": "cmt4bpzl500051wqyum4y9h22",
+    "title": "Robot Movement in Bounded Grid",
+    "topic": "Simulation",
+    "functionName": "robotMovementInBoundedGrid",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 89,
+    "id": "cmt4bq2k700071wqyu84g7nb3",
+    "title": "Process Scheduling Priority Queue Simulator",
+    "topic": "Simulation",
+    "functionName": "processSchedulingPriorityQueueSimulator",
+    "publicTestsCount": 1,
+    "hiddenTestsCount": 1,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 90,
+    "id": "cmt4bq6ou000b1wqy6lzqleen",
+    "title": "Travelling Salesperson / Min Cost Hamiltonian Path",
+    "topic": "Dynamic Programming",
+    "functionName": "travellingSalespersonMinCostHamiltonianPath",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 91,
+    "id": "cmt4bq7h3000d1wqycbmhtmrt",
+    "title": "Diameter of Binary Tree",
+    "topic": "Trees",
+    "functionName": "diameterOfBinaryTree",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 92,
+    "id": "cmt4bq86i000f1wqyzitwzplk",
+    "title": "Lowest Common Ancestor of Binary Tree",
+    "topic": "Trees",
+    "functionName": "lowestCommonAncestorOfBinaryTree",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 93,
+    "id": "cmt4bqdcy000j1wqywu4trc66",
+    "title": "Convert Edge List to Adjacency List",
+    "topic": "Graphs",
+    "functionName": "convertEdgeListToAdjacencyList",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 94,
+    "id": "cmt4bqme1000n1wqymfhcre6p",
+    "title": "Dijkstra Algorithm Single-Source Shortest Path",
+    "topic": "Graphs",
+    "functionName": "dijkstraAlgorithmSinglesourceShortestPath",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 95,
+    "id": "cmt4bqn66000p1wqyhir5n79m",
+    "title": "Course Schedule / Cycle Detection in DAG (Kahn's BFS)",
+    "topic": "Graphs",
+    "functionName": "courseScheduleCycleDetectionInDagKahnsBfs",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 96,
+    "id": "cmt4bqupz000t1wqyuozp6bby",
+    "title": "Majority Element (Boyer-Moore Voting)",
+    "topic": "General",
+    "functionName": "majorityElementBoyermooreVoting",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 97,
+    "id": "cmt4bqx1s000v1wqy4rig5mow",
+    "title": "Integer to Roman Numeral Conversion",
+    "topic": "General",
+    "functionName": "integerToRomanNumeralConversion",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  },
+  {
+    "num": 98,
+    "id": "cmt4br223000x1wqy78nbp4if",
+    "title": "Gas Station Circular Tour (Greedy / Ad-Hoc)",
+    "topic": "General",
+    "functionName": "gasStationCircularTourGreedyAdhoc",
+    "publicTestsCount": 2,
+    "hiddenTestsCount": 2,
+    "boundaryTestsCount": 1,
+    "stressTestsCount": 1,
+    "languagesSupported": [
+      "cpp",
+      "java",
+      "python",
+      "javascript",
+      "typescript"
+    ],
+    "status": "VALID",
+    "issues": []
+  }
+]

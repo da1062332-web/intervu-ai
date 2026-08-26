@@ -50,7 +50,7 @@ export function SectionTabs() {
         Sections
       </span>
 
-      <div className='flex gap-2 overflow-x-auto hide-scrollbar items-center py-0.5'>
+      <div className='flex gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar items-center py-0.5'>
         {testInstance.sections.map((section, idx) => {
           const isActive = idx === activeSectionIndex;
           const isLocked =
@@ -67,7 +67,7 @@ export function SectionTabs() {
               disabled={isLocked}
               title={isLocked ? 'This section is locked' : section.title}
               className={cn(
-                'px-6 py-1.5 text-sm font-bold rounded-sm transition-all whitespace-nowrap border shadow-xs flex items-center gap-2 tracking-wide shrink-0',
+                'px-3.5 sm:px-4 py-1.5 text-xs sm:text-[13px] font-bold rounded-sm transition-all whitespace-nowrap border shadow-xs flex items-center gap-1.5 tracking-wide shrink-0',
                 isActive
                   ? 'bg-[#27783f] hover:bg-[#206333] text-white border-[#195027]'
                   : isLocked
@@ -75,7 +75,7 @@ export function SectionTabs() {
                     : 'bg-[#d6eafb] hover:bg-[#c2e0f5] text-[#1c4068] border-[#93bae3] font-semibold cursor-pointer',
               )}
             >
-              {isLocked ? <Lock className='size-3.5 shrink-0 opacity-70' /> : null}
+              {isLocked ? <Lock className='size-3 shrink-0 opacity-70' /> : null}
 
               <span>{section.title || section.sectionName || `Section ${idx + 1}`}</span>
 

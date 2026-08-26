@@ -85,18 +85,26 @@ export class QuestionPoolRepository implements IQuestionSource {
       options = mcqData.options;
     }
 
+    const isCoding =
+      question.questionType === "CODING" ||
+      Boolean(codingData) ||
+      (question.questionText || "").startsWith("### Problem Statement");
+    const questionType = isCoding
+      ? "CODING"
+      : question.questionType || "MULTIPLE_CHOICE";
+
     return {
       id: question.id,
       templateId: question.templateId ?? "",
       questionHash: question.id,
       conceptKey: question.topicId,
       difficultyLevel: question.difficulty as DifficultyLevel,
-      questionType: question.questionType || "MULTIPLE_CHOICE",
+      questionType,
       questionText: question.questionText,
       options:
         Array.isArray(options) && options.length >= 4
           ? options
-          : mcqData?.options || [question.answer],
+          : mcqData?.options || (isCoding ? [] : [question.answer]),
       mcqData,
       codingData,
       correctAnswer: question.answer as GeneratedQuestion["correctAnswer"],

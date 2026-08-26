@@ -43,15 +43,20 @@ export class TestPackageService {
    */
   async generatePackage(assemblyId: string): Promise<ExecutionReadyTestDto> {
     // 1. Load assembly with full question data (with fallback to TestInstance)
-    let assembly: any = await this.assembledTestRepository.findById(assemblyId);
+    let assembly: any = null;
+    try {
+      assembly = await this.assembledTestRepository.findById(assemblyId);
+    } catch {
+      this.logger.warn(`AssembledTest lookup failed for ${assemblyId}`);
+    }
 
-    if (!assembly) {
+    if (!assembly || !assembly.sections || assembly.sections.length === 0) {
       this.logger.warn(
-        `AssembledTest lookup failed for ${assemblyId}, falling back to TestInstance`,
+        `AssembledTest lookup failed or empty for ${assemblyId}, falling back to TestInstance`,
       );
       const testInstance =
         await this.testInstanceRepository.findById(assemblyId);
-      if (testInstance) {
+      if (testInstance && testInstance.sections && testInstance.sections.length > 0) {
         const totalQuestions = (testInstance.sections ?? []).reduce(
           (sum: number, s: any) =>
             sum + (s.questionCount || s.questions?.length || 0),
@@ -63,7 +68,7 @@ export class TestPackageService {
         );
         assembly = {
           id: testInstance.id,
-          configId: testInstance.testConfigId,
+          configId: testInstance.examConfigId ?? testInstance.testConfigId,
           status: testInstance.status || "DRAFT",
           totalDurationSeconds,
           totalQuestions,

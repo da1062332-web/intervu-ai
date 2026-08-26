@@ -43,7 +43,7 @@ export class AssemblyPublisherService {
       );
     }
 
-    if (!assembly) {
+    if (!assembly || !assembly.sections || assembly.sections.length === 0) {
       assembly = await this.testInstanceRepository.findById(assemblyId);
     }
 

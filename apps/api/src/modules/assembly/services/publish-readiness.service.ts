@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AssemblyVersionRepository } from "../repositories/assembly-version.repository";
 import { TestPackageService } from "./test-package.service";
 import { AssemblyValidationV2Service } from "./assembly-validation-v2.service";
@@ -51,6 +52,7 @@ export class PublishReadinessService {
     private readonly packageService: TestPackageService,
     private readonly validationV2: AssemblyValidationV2Service,
     private readonly blueprintBuilder: BlueprintBuilderService,
+    private readonly testInstanceRepository: AssemblyRepository,
   ) {}
 
   /**
@@ -63,16 +65,36 @@ export class PublishReadinessService {
     const checks: ReadinessCheck[] = [];
 
     // --- Check 1: Assembly exists ---
-    let assembly: Awaited<
-      ReturnType<typeof this.assembledTestRepository.findById>
-    > = null;
+    let assembly: any = null;
     try {
       assembly = await this.assembledTestRepository.findById(assemblyId);
+      if (!assembly || !assembly.sections || assembly.sections.length === 0) {
+        const fallback = await this.testInstanceRepository.findById(assemblyId);
+        if (fallback && fallback.sections && fallback.sections.length > 0) {
+          const totalQuestions = (fallback.sections ?? []).reduce(
+            (sum: number, s: any) =>
+              sum + (s.questionCount || s.questions?.length || 0),
+            0,
+          );
+          const totalDurationSeconds = (fallback.sections ?? []).reduce(
+            (sum: number, s: any) => sum + (s.durationSeconds || 0),
+            0,
+          );
+          assembly = {
+            id: fallback.id,
+            configId: fallback.examConfigId ?? fallback.testConfigId,
+            status: fallback.status || "DRAFT",
+            totalDurationSeconds,
+            totalQuestions,
+            sections: fallback.sections,
+          };
+        }
+      }
       checks.push({
         name: "Assembly Exists",
         passed: !!assembly,
         message: assembly
-          ? `Assembly ${assemblyId} found with ${assembly.totalQuestions} questions`
+          ? `Assembly ${assemblyId} found with ${assembly.totalQuestions || 0} questions`
           : `Assembly ${assemblyId} not found`,
       });
     } catch (err) {

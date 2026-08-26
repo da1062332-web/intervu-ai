@@ -158,7 +158,7 @@ export const QuestionPalette = memo(function QuestionPalette() {
           {/* Scrollable Question Grid */}
           <div className='relative flex flex-1 overflow-hidden mt-1'>
             <div className='flex-1 overflow-y-auto custom-scrollbar max-h-full py-1'>
-              <div className='grid grid-cols-4 gap-2.5 px-1 pb-4'>
+              <div className='grid grid-cols-5 gap-2 px-1 pb-2'>
                 {visiblePalette.length === 0 ? (
                   <div className='col-span-4 text-center py-6 text-xs text-gray-400 font-medium'>
                     Loading questions...
@@ -208,17 +208,17 @@ export const QuestionPalette = memo(function QuestionPalette() {
         </div>
 
         {/* Footer Buttons: Only Instructions and Next Section */}
-        <div className='p-3 bg-[#e3f2fb] border-t border-[#b8daee] grid grid-cols-2 gap-2 shrink-0'>
+        <div className='p-2 sm:p-2.5 bg-[#e3f2fb] border-t border-[#b8daee] grid grid-cols-2 gap-1.5 shrink-0'>
           <button
             onClick={() => setIsInstructionsOpen(true)}
-            className='bg-[#d6eafb] hover:bg-[#c1dff6] text-[#1c3e66] border border-[#96bae0] shadow-sm font-semibold text-xs py-2.5 px-2 rounded-sm transition-colors text-center truncate cursor-pointer flex items-center justify-center tracking-wide'
+            className='bg-[#d6eafb] hover:bg-[#c1dff6] text-[#1c3e66] border border-[#96bae0] shadow-2xs font-bold text-[11px] sm:text-xs py-2 px-1 rounded-sm transition-colors text-center truncate cursor-pointer flex items-center justify-center tracking-wide'
           >
             Instructions
           </button>
           <button
             onClick={handleNextSectionClick}
             disabled={!hasNextSection}
-            className='bg-[#d6eafb] hover:bg-[#c1dff6] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:border-gray-300 disabled:text-gray-400 text-[#1c3e66] border border-[#96bae0] shadow-sm font-semibold text-xs py-2.5 px-2 rounded-sm transition-colors text-center truncate cursor-pointer flex items-center justify-center tracking-wide'
+            className='bg-[#d6eafb] hover:bg-[#c1dff6] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:border-gray-300 disabled:text-gray-400 text-[#1c3e66] border border-[#96bae0] shadow-2xs font-bold text-[11px] sm:text-xs py-2 px-1 rounded-sm transition-colors text-center truncate cursor-pointer flex items-center justify-center tracking-wide'
           >
             Next Section
           </button>

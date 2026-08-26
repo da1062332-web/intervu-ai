@@ -89,6 +89,7 @@ export class ResultGeneratorService {
       id: string;
       answer: string;
       questionType: string;
+      options?: any[];
       difficulty: string;
       topicName: string;
       sectionKey: string;
@@ -184,6 +185,7 @@ export class ResultGeneratorService {
             id: q.questionId,
             answer,
             questionType,
+            options: snap.options || snap.mcqData?.options,
             difficulty,
             topicName,
             sectionKey: section.sectionKey,

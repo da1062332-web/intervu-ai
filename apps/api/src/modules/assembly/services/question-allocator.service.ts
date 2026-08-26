@@ -804,6 +804,10 @@ export class QuestionAllocatorService {
           });
 
           if (topicRecord) {
+            const conceptRecord = await this.prisma.concept.findFirst({
+              where: { topicId: topicRecord.id },
+            });
+
             await this.prisma.question.create({
               data: {
                 id: newQ.id,
@@ -811,6 +815,7 @@ export class QuestionAllocatorService {
                 answer: String(correctAnswer),
                 explanation: String(solution),
                 topicId: topicRecord.id,
+                conceptId: conceptRecord?.id || null,
                 difficulty: String(difficulty),
                 source: "RUNTIME_AI_GENERATED",
                 questionSource: "AI_GENERATED" as any,

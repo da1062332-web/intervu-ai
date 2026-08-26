@@ -121,14 +121,23 @@ export function QuestionRenderer() {
       for (const key of ['text', 'value', 'label', 'option', 'content', 'title', 'description']) {
         if (typeof option[key] === 'string') return option[key];
       }
+      for (const [k, v] of Object.entries(option)) {
+        if (k !== 'id' && k !== 'isCorrect' && typeof v === 'string' && v.trim() !== '') {
+          return v;
+        }
+      }
     }
-    return String(option);
+    const str = String(option);
+    return str === '[object Object]' ? '' : str;
   };
 
   const getOptionsList = (q: any): any[] => {
     if (Array.isArray(q.options) && q.options.length > 0) return q.options;
     if (Array.isArray(q.mcqData?.options) && q.mcqData.options.length > 0) return q.mcqData.options;
     if (Array.isArray(q.mcqData?.choices) && q.mcqData.choices.length > 0) return q.mcqData.choices;
+    if (Array.isArray(q.metadata?.options) && q.metadata.options.length > 0) return q.metadata.options;
+    if (Array.isArray(q.metadata?.choices) && q.metadata.choices.length > 0) return q.metadata.choices;
+    if (Array.isArray(q.choices) && q.choices.length > 0) return q.choices;
     return [];
   };
 
