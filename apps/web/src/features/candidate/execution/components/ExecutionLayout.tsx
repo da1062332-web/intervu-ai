@@ -20,7 +20,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
 import { FloatingToolbar } from '@/components/candidate/sandbox/FloatingToolbar';
@@ -31,6 +31,27 @@ export function ExecutionLayout() {
   const { testInstance, isInteractionBlocked, submissionStatus } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+
+  // Force light mode on sandbox/execution viewport to ensure readability
+  useEffect(() => {
+    const root = document.documentElement;
+    const isDark = root.classList.contains('dark');
+    if (isDark) {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    }
+    // Also set color-scheme style to light to ensure scrollbars and browser controls adapt
+    const originalColorScheme = root.style.colorScheme;
+    root.style.colorScheme = 'light';
+
+    return () => {
+      if (isDark) {
+        root.classList.remove('light');
+        root.classList.add('dark');
+      }
+      root.style.colorScheme = originalColorScheme;
+    };
+  }, []);
 
   // Initialize day 4 hooks
   useConnectionMonitor();
