@@ -212,8 +212,15 @@ export class ExecutionService {
           startedAt: section.startedAt ? section.startedAt.toISOString() : null,
           questions: section.questions.map((q) => {
             const rawSnapshot = (q.questionSnapshot || {}) as any;
-            const { correctAnswer, answer, solution, ...candidateSafeSnapshot } =
-              rawSnapshot;
+            const rawAnswer =
+              rawSnapshot.correctAnswer ??
+              rawSnapshot.answer ??
+              rawSnapshot.correct_answer ??
+              rawSnapshot.correctOption ??
+              rawSnapshot.solution;
+
+            // Deep clone to avoid mutating the original in-memory snapshot
+            const candidateSafeSnapshot = structuredClone(rawSnapshot);
 
             let snapshotOptions = candidateSafeSnapshot.options;
             const hasValidOptions =
@@ -245,7 +252,7 @@ export class ExecutionService {
                 candidateSafeSnapshot.options.length === 0 ||
                 isPlaceholderOptions(candidateSafeSnapshot.options))
             ) {
-              const targetAnswer = String(answer ?? correctAnswer ?? "Option A").trim();
+              const targetAnswer = String(rawAnswer ?? "Option A").trim();
               if (!isNaN(Number(targetAnswer))) {
                 candidateSafeSnapshot.options = synthesizeNumericDistractors(
                   Number(targetAnswer),
@@ -259,7 +266,7 @@ export class ExecutionService {
                   "B-C-D-A",
                   "D-A-C-B",
                   "A-C-B-D",
-                  "D-C-B-A"
+                  "D-C-B-A",
                 ]);
                 candidateSafeSnapshot.options = Array.from(uniqueSeqs).slice(0, 4);
               } else {
@@ -267,7 +274,7 @@ export class ExecutionService {
                   targetAnswer,
                   "Option B",
                   "Option C",
-                  "Option D"
+                  "Option D",
                 ];
               }
             }
@@ -299,6 +306,8 @@ export class ExecutionService {
                 answer: codingAnswer,
                 correctAnswer: codingCorrectAnswer,
                 solution: codingSolution,
+                oracleSolution,
+                referenceSolution,
                 ...safeCodingData
               } = candidateSafeSnapshot.codingData as any;
 
@@ -338,6 +347,81 @@ export class ExecutionService {
                   // ignore parse error
                 }
               }
+            }
+
+            // Strip correctness indicators from options array
+            if (Array.isArray(candidateSafeSnapshot.options)) {
+              candidateSafeSnapshot.options = candidateSafeSnapshot.options.map((opt: any) => {
+                if (opt && typeof opt === "object") {
+                  const { isCorrect, is_correct, correct, isAnswer, ...safeOpt } = opt;
+                  return safeOpt;
+                }
+                return opt;
+              });
+            }
+
+            // Strip ALL answer/solution/explanation fields from candidate snapshot & nested objects
+            delete candidateSafeSnapshot.correctAnswer;
+            delete candidateSafeSnapshot.correct_answer;
+            delete candidateSafeSnapshot.correctOption;
+            delete candidateSafeSnapshot.correct_option;
+            delete candidateSafeSnapshot.correctAnswerId;
+            delete candidateSafeSnapshot.answer;
+            delete candidateSafeSnapshot.answerKey;
+            delete candidateSafeSnapshot.solution;
+            delete candidateSafeSnapshot.solutionText;
+            delete candidateSafeSnapshot.solution_text;
+            delete candidateSafeSnapshot.explanation;
+            delete candidateSafeSnapshot.hints;
+            delete candidateSafeSnapshot.hint;
+
+            if (candidateSafeSnapshot.metadata) {
+              const {
+                correctAnswer: _ca,
+                correct_answer: _ca2,
+                answer: _ans,
+                solution: _sol,
+                explanation: _exp,
+                hiddenTests: _ht,
+                stressTests: _st,
+                boundaryTests: _bt,
+                expectedOutput: _eo,
+                ...safeMeta
+              } = candidateSafeSnapshot.metadata as any;
+              candidateSafeSnapshot.metadata = safeMeta;
+            }
+
+            if (candidateSafeSnapshot.mcqData) {
+              const {
+                correctAnswer: _ca,
+                correct_answer: _ca2,
+                answer: _ans,
+                solution: _sol,
+                explanation: _exp,
+                options: mcqOpts,
+                choices: mcqChoices,
+                ...safeMcq
+              } = candidateSafeSnapshot.mcqData as any;
+
+              if (Array.isArray(mcqOpts)) {
+                safeMcq.options = mcqOpts.map((opt: any) => {
+                  if (opt && typeof opt === "object") {
+                    const { isCorrect, is_correct, correct, isAnswer, ...safeOpt } = opt;
+                    return safeOpt;
+                  }
+                  return opt;
+                });
+              }
+              if (Array.isArray(mcqChoices)) {
+                safeMcq.choices = mcqChoices.map((opt: any) => {
+                  if (opt && typeof opt === "object") {
+                    const { isCorrect, is_correct, correct, isAnswer, ...safeOpt } = opt;
+                    return safeOpt;
+                  }
+                  return opt;
+                });
+              }
+              candidateSafeSnapshot.mcqData = safeMcq;
             }
 
             return {

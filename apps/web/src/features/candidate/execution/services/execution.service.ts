@@ -101,7 +101,6 @@ export const executionService = {
                   return {
                     id: typeof opt.id === 'string' ? opt.id : `opt-${idx}`,
                     text: extracted,
-                    isCorrect: opt.isCorrect,
                   };
                 }
                 return { id: `opt-${idx}`, text: String(opt) };
