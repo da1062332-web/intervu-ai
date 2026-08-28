@@ -150,6 +150,29 @@ export class ExamConfigUsageService {
       },
     });
 
+    const uniqueOtherConfigIds = Array.from(
+      new Set(otherMappedSections.map((st) => st.section.examConfigId)),
+    );
+
+    const allocatedCounts =
+      uniqueOtherConfigIds.length > 0
+        ? await this.prisma.examConfigQuestionUsage.groupBy({
+            by: ["configId"],
+            where: {
+              configId: { in: uniqueOtherConfigIds },
+              question: templateQuestionFilter,
+            },
+            _count: {
+              questionId: true,
+            },
+          })
+        : [];
+
+    const allocatedMap = new Map<string, number>();
+    for (const item of allocatedCounts) {
+      allocatedMap.set(item.configId, item._count.questionId);
+    }
+
     let templateClaimedByOtherConfigs = 0;
     const processedOtherConfigIds = new Set<string>();
 
@@ -158,13 +181,7 @@ export class ExamConfigUsageService {
       if (processedOtherConfigIds.has(otherConfigId)) continue;
       processedOtherConfigIds.add(otherConfigId);
 
-      const alreadyAllocatedCount =
-        await this.prisma.examConfigQuestionUsage.count({
-          where: {
-            configId: otherConfigId,
-            question: templateQuestionFilter,
-          },
-        });
+      const alreadyAllocatedCount = allocatedMap.get(otherConfigId) || 0;
 
       const sectionTopicCount = st.section.sectionTopics.length || 1;
       const sectionRequiredForTopic = Math.ceil(
