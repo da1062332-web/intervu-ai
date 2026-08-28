@@ -296,7 +296,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
 
     try {
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('intervu-cleanup-runtime'));
+        window.dispatchEvent(new CustomEvent('SkillitriX-cleanup-runtime'));
       }
     } catch (e) {
       console.error('Failed to dispatch cleanup event:', e);

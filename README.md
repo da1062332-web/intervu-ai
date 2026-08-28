@@ -1,5 +1,5 @@
 ---
-title: InterVu AI Backend
+title: SkillitriX Backend
 emoji: 🚀
 colorFrom: blue
 colorTo: indigo
@@ -8,9 +8,9 @@ app_port: 7860
 pinned: false
 ---
 
-# InterVu AI
+# SkillitriX
 
-InterVu AI is a monorepo for an interview preparation platform built with:
+SkillitriX is a monorepo for an interview preparation platform built with:
 
 - Next.js for the web app
 - NestJS for the API

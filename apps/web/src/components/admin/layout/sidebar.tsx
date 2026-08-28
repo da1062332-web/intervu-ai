@@ -135,9 +135,7 @@ export function Sidebar() {
         >
           <Logo className='size-8 shrink-0' />
           {!collapsed && (
-            <span className='font-heading font-bold text-lg tracking-tight truncate'>
-              InterVu AI
-            </span>
+            <span className='font-heading font-bold text-lg tracking-tight truncate'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
           )}
         </Link>
       </div>

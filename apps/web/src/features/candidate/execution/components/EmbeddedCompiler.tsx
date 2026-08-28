@@ -331,7 +331,7 @@ export function EmbeddedCompiler({
             }`}
           >
             <Code2 className='w-4 h-4' />
-            <span>IntervuAI Compiler</span>
+            <span>SkillitriX Compiler</span>
           </div>
 
           {/* Language Selector */}

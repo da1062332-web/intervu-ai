@@ -59,7 +59,7 @@ export const useUIStore = create<UIState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'intervu-ui-store',
+      name: 'SkillitriX-ui-store',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         theme: state.theme,

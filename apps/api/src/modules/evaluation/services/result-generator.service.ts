@@ -116,13 +116,29 @@ export class ResultGeneratorService {
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
         const snap = (q.questionSnapshot || {}) as any;
-        const answer = snap.answer || snap.correctAnswer || "";
+        const meta = dbQuestionsMap.get(q.questionId) as any;
+        const answer =
+          snap.answer ||
+          snap.correctAnswer ||
+          snap.metadata?.answer ||
+          snap.mcqData?.correctAnswer ||
+          snap.expectedAnswer ||
+          meta?.answer ||
+          meta?.mcqData?.correctAnswer ||
+          "";
+        const options =
+          snap.options ||
+          snap.mcqData?.options ||
+          snap.metadata?.options ||
+          meta?.mcqData?.options ||
+          meta?.metadata?.options ||
+          [];
         const questionType = (
           snap.questionType ||
           snap.type ||
           "MCQ"
         ).toUpperCase();
-        const difficulty = snap.difficulty || snap.difficultyLevel || "MEDIUM";
+        const difficulty = snap.difficulty || snap.difficultyLevel || meta?.difficulty || "MEDIUM";
 
         // Resolve topic display name
         let topicName = "General";
@@ -185,7 +201,7 @@ export class ResultGeneratorService {
             id: q.questionId,
             answer,
             questionType,
-            options: snap.options || snap.mcqData?.options,
+            options: options,
             difficulty,
             topicName,
             sectionKey: section.sectionKey,

@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/client';
-import type { UpdateRuleFlags, RuleFlagsResponseDto } from '@intervu/shared';
+import type { UpdateRuleFlags, RuleFlagsResponseDto } from '@SkillitriX/shared';
 
 export const ruleFlagsService = {
   getRuleFlags: async (configId: string): Promise<RuleFlagsResponseDto> => {

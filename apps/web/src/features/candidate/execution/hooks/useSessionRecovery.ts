@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { useTestSessionStore } from '@/modules/session/stores/test-session.store';
 
-const STORAGE_KEY = 'intervu_execution_autosave';
+const STORAGE_KEY = 'SkillitriX_execution_autosave';
 
 export function useSessionRecovery(testId: string) {
   const { restoreStateFromStorage, testInstance } = useExecutionStore();

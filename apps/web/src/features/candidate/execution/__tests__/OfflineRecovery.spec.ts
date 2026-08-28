@@ -70,6 +70,6 @@ describe('useOfflineRecovery', () => {
       });
     });
 
-    expect(global.indexedDB.open).toHaveBeenCalledWith('IntervuOfflineDB', 1);
+    expect(global.indexedDB.open).toHaveBeenCalledWith('SkillitriXOfflineDB', 1);
   });
 });

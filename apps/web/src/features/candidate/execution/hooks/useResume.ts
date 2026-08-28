@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
 
-const STORAGE_KEY = 'intervu_execution_autosave';
+const STORAGE_KEY = 'SkillitriX_execution_autosave';
 
 export function useResume(testId: string | undefined) {
   const { restoreStateFromStorage, testInstance, setAttemptedResume, hasAttemptedResume } =

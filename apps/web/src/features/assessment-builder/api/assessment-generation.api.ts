@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/client';
-import type { GenerationRequest } from '@intervu-ai/contracts';
+import type { GenerationRequest } from '@SkillitriX-ai/contracts';
 import type { Assessment, GeneratedQuestion } from '../types';
 
 export const assessmentGenerationApi = {

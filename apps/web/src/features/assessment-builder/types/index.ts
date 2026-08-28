@@ -1,6 +1,6 @@
 import type { ExamConfig } from '@/services/exam-configs/types';
 
-// API DTOs (Mapped from @intervu-ai/contracts if not fully available there)
+// API DTOs (Mapped from @SkillitriX-ai/contracts if not fully available there)
 export interface GeneratedQuestion {
   id: string;
   questionText: string;

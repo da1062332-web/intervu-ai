@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, Bell, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LogOut, Moon, Sun, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 import { authApi } from '@/services/api/auth.api';
 import { notifySuccess } from '@/services/notifications/toast';
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/ui/logo';
 
 export function Navbar() {
   const router = useRouter();
@@ -112,10 +113,17 @@ export function Navbar() {
           <div className='hidden md:block mx-1 h-5 w-px bg-border' aria-hidden='true' />
         )}
 
-        {/* Page title */}
-        <h1 className='text-lg font-heading font-semibold text-foreground leading-none ml-1'>
-          {pageTitle}
-        </h1>
+        {/* Page title or Logo/Project Name for Candidate */}
+        {isCandidate ? (
+          <div className='flex items-center gap-2.5 ml-1.5'>
+            <Logo className='size-8 text-primary' />
+            <span className='font-heading font-bold text-xl tracking-tight text-foreground'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+          </div>
+        ) : (
+          <h1 className='text-lg font-heading font-semibold text-foreground leading-none ml-1'>
+            {pageTitle}
+          </h1>
+        )}
       </div>
 
       {/* ── Right: Actions ── */}
@@ -137,25 +145,7 @@ export function Navbar() {
           <TooltipContent>Toggle theme</TooltipContent>
         </Tooltip>
 
-        {/* Notifications */}
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='rounded-xl text-muted-foreground hover:text-foreground relative'
-              aria-label='View notifications'
-            >
-              <Bell className='size-4.5' />
-              {/* Notification dot — replace with real count */}
-              <span
-                className='absolute top-2 right-2 size-1.5 rounded-full bg-primary'
-                aria-hidden='true'
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Notifications</TooltipContent>
-        </Tooltip>
+
 
         {/* Divider */}
         <div className='mx-1.5 h-6 w-px bg-border' aria-hidden='true' />

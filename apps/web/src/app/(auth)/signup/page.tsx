@@ -135,7 +135,7 @@ export default function SignupPage() {
       <div className='flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 relative'>
         <div className='absolute top-8 left-8 flex items-center gap-2 lg:hidden'>
           <Logo className='size-8' />
-          <span className='font-heading font-bold text-xl tracking-tight'>InterVu AI</span>
+          <span className='font-heading font-bold text-xl tracking-tight'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
         </div>
 
         <div className='max-w-[400px] w-full mx-auto space-y-8 animate-fade-in-up'>
@@ -144,7 +144,7 @@ export default function SignupPage() {
             <h1 className='text-3xl md:text-4xl font-heading font-bold tracking-tight text-foreground'>
               Create an account
             </h1>
-            <p className='text-muted-foreground mt-3 text-base'>Join InterVu AI to get started.</p>
+            <p className='text-muted-foreground mt-3 text-base'>Join SkillitriX to get started.</p>
           </div>
 
           <div className='flex justify-center w-full'>
@@ -325,7 +325,7 @@ export default function SignupPage() {
             Hire smarter, not harder.
           </h2>
           <p className='text-lg xl:text-xl text-muted-foreground dark:text-indigo-100/80 max-w-lg leading-relaxed'>
-            Join thousands of recruiters and hiring managers who use InterVu AI to transform their
+            Join thousands of recruiters and hiring managers who use SkillitriX to transform their
             hiring pipeline today.
           </p>
         </div>

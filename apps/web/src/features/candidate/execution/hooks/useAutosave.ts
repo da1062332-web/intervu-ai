@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 
 const AUTOSAVE_INTERVAL = 15000;
-const STORAGE_KEY = 'intervu_execution_autosave';
+const STORAGE_KEY = 'SkillitriX_execution_autosave';
 
 // FE-001: Max consecutive local storage failures before giving up on localStorage
 const MAX_LOCAL_STORAGE_FAILURES = 3;

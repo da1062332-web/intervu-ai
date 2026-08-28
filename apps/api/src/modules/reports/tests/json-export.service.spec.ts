@@ -32,7 +32,7 @@ describe("JsonExportService", () => {
 
   it("should format report data correctly into export structure", async () => {
     const mockReportData = {
-      candidate: { fullName: "Bob Smith", email: "bob@intervu.ai" },
+      candidate: { fullName: "Bob Smith", email: "bob@skillitrix.com" },
       assessment: { title: "C++ Systems", totalDurationSeconds: 1800 },
       score: 88,
       accuracy: 90,

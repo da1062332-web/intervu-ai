@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRuleFlags, useSaveRules } from '../hooks/use-rule-flags';
 import { useConfigRulesStore } from '@/store/config-rules.store';
 import { z } from 'zod';
-import type { UpdateRuleFlags } from '@intervu/shared';
+import type { UpdateRuleFlags } from '@SkillitriX/shared';
 
 const UpdateRuleFlagsSchema = z.object({
   negativeMarkingEnabled: z.boolean(),

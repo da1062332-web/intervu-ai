@@ -78,7 +78,7 @@ describe("CandidateReportService", () => {
       id: "attempt-1",
       userId: "user-1",
       testConfigId: "config-1",
-      user: { fullName: "Test User", email: "test@intervu.ai" },
+      user: { fullName: "Test User", email: "test@skillitrix.com" },
       testConfig: { displayName: "JS Test", totalDurationSeconds: 1800 },
     };
 

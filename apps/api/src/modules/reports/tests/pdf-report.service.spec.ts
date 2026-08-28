@@ -32,7 +32,7 @@ describe("PdfReportService", () => {
 
   it("should generate a PDF buffer cleanly", async () => {
     const mockReportData = {
-      candidate: { fullName: "Jane Doe", email: "jane@intervu.ai" },
+      candidate: { fullName: "Jane Doe", email: "jane@skillitrix.com" },
       assessment: { title: "Python Advanced", totalDurationSeconds: 3600 },
       score: 92,
       accuracy: 95,

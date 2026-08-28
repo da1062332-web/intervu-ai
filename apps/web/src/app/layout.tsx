@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { fontSans, fontHeading, fontMono } from '@/lib/fonts';
 
 export const metadata: Metadata = {
-  title: 'InterVu AI',
+  title: 'SkillitriX',
   description: 'AI-powered interview platform',
 };
 

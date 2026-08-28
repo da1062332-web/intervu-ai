@@ -32,7 +32,7 @@ export class ResultExportService {
     const candidateEmail =
       attemptRecord?.user?.email ||
       (result as any)?.candidate?.email ||
-      "candidate@intervu.ai";
+      "candidate@skillitrix.com";
     const assessmentName =
       dashboard?.assessmentName ||
       attemptRecord?.testConfig?.displayName ||
@@ -162,7 +162,7 @@ export class ResultExportService {
           .fillColor(COLORS.primary)
           .fontSize(22)
           .font("Helvetica-Bold")
-          .text("InterVu AI", 36, currentY);
+          .text("SkillitriX", 36, currentY);
 
         doc
           .fillColor(COLORS.textMuted)
@@ -863,7 +863,7 @@ export class ResultExportService {
           doc.page.margins.bottom = 0; // Fix directly on page
           doc.fillColor(COLORS.textMuted).fontSize(7.5).font("Helvetica");
           doc.text(
-            "InterVu AI  •  Verified Candidate Performance & Evaluation Report",
+            "SkillitriX  •  Verified Candidate Performance & Evaluation Report",
             36,
             812,
             { align: "left", lineBreak: false },

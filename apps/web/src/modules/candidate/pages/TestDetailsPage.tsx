@@ -124,7 +124,7 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
               <EnrollmentCard
                 testId={testId}
                 testName={test.title}
-                company={test.company || 'InterVu'}
+                company={test.company || 'SkillitriX'}
                 status={(test as any).status || enrollmentStatus}
               />
             </div>

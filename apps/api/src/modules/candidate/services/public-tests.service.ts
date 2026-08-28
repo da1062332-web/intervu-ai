@@ -73,7 +73,7 @@ export class PublicTestsService {
         return {
           configId: t.id,
           name: t.isExam ? t.name : t.displayName,
-          company: t.isExam ? "Intervu" : t.companyName || "Unknown Company",
+          company: t.isExam ? "SkillitriX" : t.companyName || "Unknown Company",
           duration: durationSeconds,
           durationMinutes,
           questionCount,

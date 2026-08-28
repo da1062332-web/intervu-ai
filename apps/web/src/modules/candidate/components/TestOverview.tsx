@@ -106,7 +106,7 @@ export function TestOverview({
         <div className='flex justify-between items-start gap-2'>
           <div className='flex items-center gap-1.5 text-muted-foreground text-xs font-semibold'>
             <Building2 className='size-4 text-primary/80 shrink-0' />
-            <span className='truncate max-w-[200px]'>{test.company || 'Intervu'}</span>
+            <span className='truncate max-w-[200px]'>{test.company || 'SkillitriX'}</span>
           </div>
 
           <div className='flex items-center gap-1.5 shrink-0'>

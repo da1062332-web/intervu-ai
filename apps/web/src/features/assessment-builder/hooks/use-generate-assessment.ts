@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { assessmentGenerationApi } from '../api/assessment-generation.api';
-import type { GenerationRequest } from '@intervu-ai/contracts';
+import type { GenerationRequest } from '@SkillitriX-ai/contracts';
 import { toast } from 'sonner';
 import type { Assessment, GeneratedQuestion } from '../types';
 

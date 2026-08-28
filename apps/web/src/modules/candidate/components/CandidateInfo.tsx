@@ -9,7 +9,7 @@ export function CandidateInfo() {
 
   const displayName =
     user?.fullName || (user as any)?.name || user?.email?.split('@')[0] || 'Candidate';
-  const displayEmail = user?.email || 'candidate@intervu.ai';
+  const displayEmail = user?.email || 'candidate@skillitrix.com';
 
   return (
     <Card className='glass-card border border-border/60 shadow-sm'>

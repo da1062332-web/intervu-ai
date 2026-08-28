@@ -124,7 +124,7 @@ export class CandidateDashboardService {
         return {
           configId: t.id,
           name: t.isExam ? t.name : t.displayName,
-          company: t.isExam ? "Intervu" : t.companyName,
+          company: t.isExam ? "SkillitriX" : t.companyName,
           durationSeconds,
           durationMinutes,
           questionCount,

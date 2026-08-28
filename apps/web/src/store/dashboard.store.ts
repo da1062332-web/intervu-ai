@@ -27,7 +27,7 @@ export const useDashboardStore = create<DashboardState>()(
       reset: () => set(initialState),
     }),
     {
-      name: 'intervu-dashboard-store',
+      name: 'SkillitriX-dashboard-store',
     },
   ),
 );

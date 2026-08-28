@@ -7,8 +7,8 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 export const metadata: Metadata = {
-  title: 'Settings — InterVu AI',
-  description: 'Configure your InterVu AI account preferences and settings.',
+  title: 'Settings — SkillitriX',
+  description: 'Configure your SkillitriX account preferences and settings.',
 };
 
 // ─── Settings Section ─────────────────────────────────────────────────────────

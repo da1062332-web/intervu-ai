@@ -4,7 +4,7 @@ import {
   CreateTestRequest,
   ApiSuccessResponseSchema,
   ApiSuccessResponse,
-} from '@intervu-ai/contracts';
+} from '@SkillitriX-ai/contracts';
 
 export const TestApi = {
   createTest: async (payload: CreateTestRequest): Promise<ApiSuccessResponse> => {

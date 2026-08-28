@@ -113,20 +113,50 @@ export class SubmissionEvaluatorService {
         (match, className) => (className !== "Main" ? "public class Main" : match),
       );
     } else if (isPython) {
+      if (!sourceCodeToSubmit.includes("__future__")) {
+        sourceCodeToSubmit = "from __future__ import annotations\n" + sourceCodeToSubmit;
+      }
       const hasMain = sourceCodeToSubmit.includes("__main__") || sourceCodeToSubmit.includes("sys.stdin");
       if (!hasMain) {
-        let funcName = "is_prime";
-        if (sourceCodeToSubmit.includes("def isPrime")) funcName = "isPrime";
-        else if (sourceCodeToSubmit.includes("def solution")) funcName = "solution";
-        else if (sourceCodeToSubmit.includes("def solve")) funcName = "solve";
-        else if (sourceCodeToSubmit.includes("def rotate_array")) funcName = "rotate_array";
-        else if (sourceCodeToSubmit.includes("def rotateArray")) funcName = "rotateArray";
-        else {
-          const match = sourceCodeToSubmit.match(/def\s+([A-Za-z0-9_]+)\s*\(/);
-          if (match && match[1]) funcName = match[1];
+        let funcName = "solution";
+        const match = sourceCodeToSubmit.match(/def\s+([A-Za-z0-9_]+)\s*\(/);
+        if (match && match[1]) {
+          funcName = match[1];
         }
 
-        sourceCodeToSubmit += `\n\nif __name__ == '__main__':\n    import sys, json\n    _raw = sys.stdin.read().strip()\n    if _raw:\n        try:\n            _val = json.loads(_raw)\n        except Exception:\n            _val = int(_raw) if _raw.lstrip('-').isdigit() else _raw\n        _res = ${funcName}(_val)\n        if isinstance(_res, bool):\n            print(str(_res).lower())\n        else:\n            print(_res)\n`;
+        sourceCodeToSubmit += `\n\nif __name__ == '__main__':
+    import sys, json
+    _raw = sys.stdin.read().strip()
+    if _raw:
+        try:
+            _val = json.loads(_raw)
+        except Exception:
+            _val = int(_raw) if _raw.lstrip('-').isdigit() else _raw
+        
+        _res = None
+        if isinstance(_val, dict):
+            try:
+                _res = ${funcName}(**_val)
+            except TypeError:
+                try:
+                    _res = ${funcName}(_val)
+                except Exception:
+                    _res = ${funcName}(*list(_val.values()))
+        elif isinstance(_val, (list, tuple)):
+            try:
+                _res = ${funcName}(*_val)
+            except TypeError:
+                _res = ${funcName}(_val)
+        else:
+            _res = ${funcName}(_val)
+
+        if isinstance(_res, bool):
+            print(str(_res).lower())
+        elif isinstance(_res, (dict, list)):
+            print(json.dumps(_res))
+        elif _res is not None:
+            print(_res)
+`;
       }
     }
 
@@ -287,9 +317,7 @@ export class SubmissionEvaluatorService {
     if (typeof input === "number" || typeof input === "boolean") return String(input);
     if (typeof input === "object") {
       if (typeof input.stdin === "string") return input.stdin.trim();
-      const values = Object.values(input);
-      const isSimple = values.every((v) => typeof v === "number" || typeof v === "string" || typeof v === "boolean");
-      if (isSimple) return values.join("\n");
+      return JSON.stringify(input);
     }
     return JSON.stringify(input);
   }
@@ -312,10 +340,21 @@ export class SubmissionEvaluatorService {
       return expectedObj === "" || expectedObj === null || expectedObj === undefined;
     }
 
-    // Helper to unwrap { result: ... } if present
-    const unwrap = (val: any) => {
-      if (typeof val === "object" && val !== null && "result" in val) {
-        return val.result;
+    // Helper to unwrap single-key result wrappers if present (e.g. { result: ... }, { indices: ... }, { index: ... }, { count: ... })
+    const unwrap = (val: any): any => {
+      if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+        const keys = Object.keys(val);
+        if (keys.length === 1) {
+          return val[keys[0]];
+        }
+        if ("result" in val) return val.result;
+        if ("indices" in val) return val.indices;
+        if ("index" in val) return val.index;
+        if ("count" in val) return val.count;
+        if ("ans" in val) return val.ans;
+        if ("answer" in val) return val.answer;
+        if ("finalBalance" in val) return val.finalBalance;
+        if ("averageWaitingTime" in val) return val.averageWaitingTime;
       }
       return val;
     };

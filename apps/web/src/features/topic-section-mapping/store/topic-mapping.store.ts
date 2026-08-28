@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SectionTopicResponse } from '@intervu-ai/contracts';
+import type { SectionTopicResponse } from '@SkillitriX-ai/contracts';
 
 interface TopicMappingState {
   selectedSectionId: string | null;

@@ -139,7 +139,6 @@ export class JudgeService {
       cpu_time_limit: options.cpuTimeLimit ?? 5,
       memory_limit: options.memoryLimit ?? 2048000,
       compiler_options: compilerOptions,
-      run_options: languageId === 62 ? "-XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=128m -Xmx256m" : undefined,
     };
 
     let responseData: any;

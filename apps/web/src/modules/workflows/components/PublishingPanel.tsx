@@ -123,7 +123,7 @@ export const PublishingPanel: React.FC<PublishingPanelProps> = ({ examId, status
                   <LinkIcon className='w-4 h-4' /> Candidate Access Links
                 </div>
                 <div className='flex gap-2 items-center bg-background border p-2 rounded text-sm font-mono text-muted-foreground'>
-                  <span className='truncate flex-1'>https://app.intervu.ai/take/test_29f8a84b</span>
+                  <span className='truncate flex-1'>https://app.skillitrix.com/take/test_29f8a84b</span>
                   <Button variant='ghost' size='icon' className='h-6 w-6'>
                     <Copy className='w-3 h-3' />
                   </Button>

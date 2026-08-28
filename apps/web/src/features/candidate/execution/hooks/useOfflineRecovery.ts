@@ -15,7 +15,7 @@ interface QueuedOperation {
   timestamp: number;
 }
 
-const DB_NAME = 'IntervuOfflineDB';
+const DB_NAME = 'SkillitriXOfflineDB';
 const STORE_NAME = 'syncQueue';
 
 export function useOfflineRecovery() {

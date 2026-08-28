@@ -52,7 +52,7 @@ export const useTestCatalogStore = create<TestCatalogState>()(
         }),
     }),
     {
-      name: 'intervu-candidate-catalog-store',
+      name: 'SkillitriX-candidate-catalog-store',
       storage: createJSONStorage(() => {
         if (typeof window !== 'undefined') {
           return localStorage;

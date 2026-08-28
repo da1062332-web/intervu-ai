@@ -57,7 +57,7 @@ export class TestsService {
 
       return {
         configId: tc.id,
-        company: isExam ? "Intervu" : tc.companyName || "Platform Assessment",
+        company: isExam ? "SkillitriX" : tc.companyName || "Platform Assessment",
         name: isExam ? tc.name : tc.displayName,
         difficulty: tc.difficulty || "MEDIUM",
         duration: totalDurationMins * 60,
