@@ -236,8 +236,8 @@ class ApiClient {
         if (!token) {
           try {
             const rawAuth =
-              localStorage.getItem('intervu-session-store') ||
-              localStorage.getItem('intervu-auth-store');
+              localStorage.getItem('SkillitriX-session-store') ||
+              localStorage.getItem('SkillitriX-auth-store');
             if (rawAuth) {
               const parsed = JSON.parse(rawAuth);
               token = parsed?.state?.accessToken || parsed?.state?.token || null;

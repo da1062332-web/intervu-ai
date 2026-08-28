@@ -4,7 +4,7 @@ import type {
   CreateSolutionTemplateRequest,
   UpdateSolutionTemplateRequest,
   GenerateTemplatePreviewRequest,
-} from '@intervu/shared';
+} from '@SkillitriX/shared';
 
 export const useTemplates = (page = 1, limit = 10) => {
   return useQuery({

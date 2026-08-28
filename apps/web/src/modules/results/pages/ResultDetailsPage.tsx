@@ -146,7 +146,7 @@ export const ResultDetailsPage = () => {
         pdf.setFontSize(8);
         pdf.setTextColor(120, 120, 120);
         const footerY = pdfHeight - 8;
-        pdf.text('InterVu AI', margin, footerY);
+        pdf.text('SkillitriX', margin, footerY);
         pdf.text(
           `Candidate Performance Report • ${new Date().toLocaleDateString()}`,
           pdfWidth / 2,
@@ -360,7 +360,7 @@ export const ResultDetailsPage = () => {
         className='hidden print:flex fixed bottom-0 left-0 right-0 w-full justify-between items-center text-[10px] text-gray-500 bg-white pt-2 border-t border-gray-200'
         data-html2canvas-ignore='true'
       >
-        <div className='font-semibold text-gray-800'>InterVu AI</div>
+        <div className='font-semibold text-gray-800'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></div>
         <div>
           Candidate Performance Report • {new Date().toLocaleDateString()}{' '}
           {new Date().toLocaleTimeString()}

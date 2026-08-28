@@ -84,7 +84,7 @@ export class PdfReportService {
           .fillColor(COLORS.primary)
           .fontSize(28)
           .font("Helvetica-Bold")
-          .text("InterVu AI", 40, 60);
+          .text("SkillitriX", 40, 60);
         doc
           .fillColor(COLORS.textMuted)
           .fontSize(12)
@@ -423,7 +423,7 @@ export class PdfReportService {
               align: "left",
               lineBreak: false,
             });
-            doc.text("InterVu AI - Confidential Report", 40, 810, {
+            doc.text("SkillitriX - Confidential Report", 40, 810, {
               align: "right",
               lineBreak: false,
             });

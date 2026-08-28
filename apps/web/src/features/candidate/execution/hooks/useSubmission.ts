@@ -4,7 +4,7 @@ import { executionService } from '../services/execution.service';
 import { clearAssessmentSandboxStorage } from '@/components/candidate/sandbox/useCalculator';
 import { useQueryClient } from '@tanstack/react-query';
 
-const STORAGE_KEY = 'intervu_execution_autosave';
+const STORAGE_KEY = 'SkillitriX_execution_autosave';
 
 export function useSubmission(testId: string) {
   const router = useRouter();
@@ -29,7 +29,7 @@ export function useSubmission(testId: string) {
         remainingTime: useExecutionStore.getState().remainingTime,
         questions: useExecutionStore.getState().questions,
       };
-      localStorage.setItem(`intervu_execution_summary_${testId}`, JSON.stringify(summarySnapshot));
+      localStorage.setItem(`SkillitriX_execution_summary_${testId}`, JSON.stringify(summarySnapshot));
 
       // On success, clear the local storage so it doesn't resume later
       localStorage.removeItem(`${STORAGE_KEY}_${testId}`);

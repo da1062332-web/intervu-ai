@@ -9,13 +9,13 @@ import {
 
 export class SignupDto {
   @ApiProperty({
-    example: "candidate@intervu.ai",
+    example: "candidate@skillitrix.com",
     description: "Candidate email address for registration",
   })
   email!: string;
 
   @ApiProperty({
-    example: "Intervu123!",
+    example: "SkillitriX123!",
     description: "Secure account password (minimum 8 characters)",
   })
   password!: string;
@@ -36,13 +36,13 @@ export class SignupDto {
 
 export class LoginDto {
   @ApiProperty({
-    example: "candidate@intervu.ai",
+    example: "candidate@skillitrix.com",
     description: "Registered email address",
   })
   email!: string;
 
   @ApiProperty({
-    example: "Intervu123!",
+    example: "SkillitriX123!",
     description: "Account password",
   })
   password!: string;

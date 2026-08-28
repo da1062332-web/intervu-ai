@@ -85,9 +85,7 @@ export function ExecutionHeader() {
               V
             </div>
             <div className='flex flex-col text-white leading-none'>
-              <span className='font-extrabold text-sm tracking-wide uppercase font-sans'>
-                InterVu AI
-              </span>
+              <span className='font-extrabold text-sm tracking-wide uppercase font-sans'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
               <span className='text-[9px] font-semibold tracking-wider text-green-100 uppercase mt-0.5'>
                 Skill Sandbox
               </span>

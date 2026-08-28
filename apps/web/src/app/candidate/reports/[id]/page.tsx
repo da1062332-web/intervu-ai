@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { CandidateReportPage } from '@/modules/candidate/pages/CandidateReportPage';
 
 export const metadata: Metadata = {
-  title: 'Assessment Report | Intervu',
+  title: 'Assessment Report | SkillitriX',
   description: 'View your detailed assessment report.',
 };
 

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/services/api/client';
-import { SectionTopicResponse } from '@intervu-ai/contracts';
+import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
 import { toast } from 'sonner';
 
 export const topicSectionKeys = {

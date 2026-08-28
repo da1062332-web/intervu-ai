@@ -110,7 +110,7 @@ async function bootstrap() {
 
   // Swagger documentation
   const configBuilder = new DocumentBuilder()
-    .setTitle("InterVu AI API")
+    .setTitle("SkillitriX API")
     .setDescription("Interview preparation AI platform - REST API")
     .setVersion("1.0.0")
     .addBearerAuth(

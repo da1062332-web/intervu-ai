@@ -66,12 +66,12 @@ describe("ReportsController", () => {
     const attemptId = "attempt-123";
     const candidateUser: AuthUser = {
       id: "user-1",
-      email: "c@intervu.ai",
+      email: "c@skillitrix.com",
       role: "CANDIDATE",
     };
     const adminUser: AuthUser = {
       id: "admin-1",
-      email: "a@intervu.ai",
+      email: "a@skillitrix.com",
       role: "ADMIN",
     };
 
@@ -128,12 +128,12 @@ describe("ReportsController", () => {
   describe("getCandidateProgress", () => {
     const candidateUser: AuthUser = {
       id: "user-1",
-      email: "c@intervu.ai",
+      email: "c@skillitrix.com",
       role: "CANDIDATE",
     };
     const adminUser: AuthUser = {
       id: "admin-1",
-      email: "a@intervu.ai",
+      email: "a@skillitrix.com",
       role: "ADMIN",
     };
 

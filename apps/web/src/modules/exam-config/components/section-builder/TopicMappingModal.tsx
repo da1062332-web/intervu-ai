@@ -14,7 +14,7 @@ import {
   useUpdateWeightage,
   useCreateWeightage,
 } from '@/services/topic-weightages/hooks';
-import { SectionTopicResponse } from '@intervu-ai/contracts';
+import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
 import { ExamSection } from '@/services/exam-sections/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

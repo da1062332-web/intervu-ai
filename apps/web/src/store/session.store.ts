@@ -46,7 +46,7 @@ export const useSessionStore = create<SessionState>()(
       setHydrated: (hydrated) => set({ hydrated }),
     }),
     {
-      name: 'intervu-session-store',
+      name: 'SkillitriX-session-store',
       storage: createJSONStorage(() => {
         if (typeof window !== 'undefined') {
           return localStorage;

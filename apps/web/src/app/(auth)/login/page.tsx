@@ -135,7 +135,7 @@ export default function LoginPage() {
         <div className='absolute inset-0'>
           <Image
             src='/images/login-hero.jpg'
-            alt='InterVu AI Platform'
+            alt='SkillitriX Platform'
             fill
             sizes='(max-width: 1024px) 100vw, 50vw'
             className='object-cover object-center opacity-90 transition-transform duration-10000 hover:scale-105 ease-out'
@@ -172,18 +172,14 @@ export default function LoginPage() {
         {/* Absolute Logo for Desktop */}
         <div className='hidden lg:flex absolute top-10 left-10 items-center gap-3'>
           <Logo className='size-9' />
-          <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>
-            InterVu AI
-          </span>
+          <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
         </div>
 
         <div className='w-full max-w-[420px] mx-auto bg-background/85 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none p-8 sm:p-10 lg:p-0 rounded-3xl lg:rounded-none shadow-2xl lg:shadow-none border border-border/40 lg:border-none animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out'>
           {/* Logo inside card for mobile */}
           <div className='flex lg:hidden items-center justify-center gap-3 mb-8'>
             <Logo className='size-9' />
-            <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>
-              InterVu AI
-            </span>
+            <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
           </div>
 
           <div className='text-center lg:text-left mb-10'>
@@ -263,7 +259,7 @@ export default function LoginPage() {
                 <Input
                   id='email'
                   type='email'
-                  placeholder='hello@intervu.ai'
+                  placeholder='hello@skillitrix.com'
                   className='h-12 pl-11 rounded-xl transition-all border-border/60 hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/30 bg-background/50 lg:bg-background shadow-sm'
                   {...form.register('email')}
                 />

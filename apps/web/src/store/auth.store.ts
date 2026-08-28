@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: 'intervu-auth-store',
+      name: 'SkillitriX-auth-store',
       storage: createJSONStorage(() => {
         if (typeof window !== 'undefined') {
           return localStorage;

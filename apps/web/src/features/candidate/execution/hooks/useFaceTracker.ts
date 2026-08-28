@@ -83,13 +83,13 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     };
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('intervu-cleanup-runtime', handleCleanup);
+      window.addEventListener('SkillitriX-cleanup-runtime', handleCleanup);
     }
 
     return () => {
       mounted = false;
       if (typeof window !== 'undefined') {
-        window.removeEventListener('intervu-cleanup-runtime', handleCleanup);
+        window.removeEventListener('SkillitriX-cleanup-runtime', handleCleanup);
       }
       stopStream();
     };

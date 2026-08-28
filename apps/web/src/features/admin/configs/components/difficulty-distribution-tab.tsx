@@ -7,7 +7,7 @@ import {
 } from '../hooks/use-difficulty-distribution';
 import { useConfigRulesStore } from '@/store/config-rules.store';
 import { z } from 'zod';
-import type { UpdateDifficultyDistributionDto } from '@intervu/shared';
+import type { UpdateDifficultyDistributionDto } from '@SkillitriX/shared';
 
 const UpdateDifficultyDistributionSchema = z.object({
   easyPercentage: z.number().int().min(0).max(100),

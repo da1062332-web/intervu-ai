@@ -51,7 +51,7 @@ export const useLayoutStore = create<LayoutState>()(
         })),
     }),
     {
-      name: 'intervu-layout-store',
+      name: 'SkillitriX-layout-store',
       storage: createJSONStorage(() => {
         if (typeof window !== 'undefined') {
           return localStorage;

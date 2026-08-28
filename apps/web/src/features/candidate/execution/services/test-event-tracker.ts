@@ -17,7 +17,7 @@ export interface TestEvent {
 
 class TestEventTracker {
   private events: TestEvent[] = [];
-  private readonly STORAGE_KEY = 'intervu_test_events';
+  private readonly STORAGE_KEY = 'SkillitriX_test_events';
 
   constructor() {
     this.loadEvents();

@@ -119,7 +119,7 @@ export function MobileNav() {
               onClick={() => setMobileNavOpen(false)}
             >
               <Logo className='size-8 shrink-0' />
-              <span className='font-heading font-bold text-lg tracking-tight'>InterVu AI</span>
+              <span className='font-heading font-bold text-lg tracking-tight'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
             </Link>
           </SheetTitle>
         </SheetHeader>

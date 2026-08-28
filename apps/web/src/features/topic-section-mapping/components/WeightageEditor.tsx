@@ -8,7 +8,7 @@ import {
   useCreateWeightage,
 } from '@/services/topic-weightages/hooks';
 import { Input } from '@/components/ui/input';
-import { SectionTopicResponse } from '@intervu-ai/contracts';
+import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
