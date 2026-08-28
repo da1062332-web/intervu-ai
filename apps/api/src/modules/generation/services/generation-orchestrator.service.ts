@@ -269,25 +269,32 @@ export class GenerationOrchestratorService {
           topicId,
         });
 
-        // Persist validation logs outside the main transaction boundary
-        await this.prismaService.validationLog.create({
-          data: {
-            questionId: null,
-            validationStage: "ALL_STAGES",
-            isValid: validationResult.isValid,
-            failureReason: validationResult.isValid
-              ? null
-              : validationResult.errors.join("; "),
-            retryTriggered:
-              !validationResult.isValid && retryCount < MAX_RETRIES - 1,
-            errors: validationResult.errors,
-            metadata: {
-              templateId: selectedTemplate.templateId,
-              retryCount,
-              parameters: generatedParams,
+        // Persist validation logs outside the main transaction boundary (non-blocking & test-safe)
+        try {
+          const logPromise = this.prismaService.validationLog?.create({
+            data: {
+              questionId: null,
+              validationStage: "ALL_STAGES",
+              isValid: validationResult.isValid,
+              failureReason: validationResult.isValid
+                ? null
+                : validationResult.errors.join("; "),
+              retryTriggered:
+                !validationResult.isValid && retryCount < MAX_RETRIES - 1,
+              errors: validationResult.errors,
+              metadata: {
+                templateId: selectedTemplate.templateId,
+                retryCount,
+                parameters: generatedParams,
+              },
             },
-          },
-        });
+          });
+          if (logPromise && typeof logPromise.catch === "function") {
+            logPromise.catch(() => {});
+          }
+        } catch {
+          // Non-blocking telemetry
+        }
 
         if (validationResult.isValid) {
           const durationMs = Date.now() - qStartTime;

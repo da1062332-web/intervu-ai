@@ -331,6 +331,7 @@ export class GenerationRetryService {
       let response = "";
       let parsedQuestion: GeneratedQuestionDto | undefined;
       let validationSuccess = false;
+      let cachedQualityScore: number | undefined;
       const attemptErrors: string[] = [];
 
       try {
@@ -626,6 +627,7 @@ export class GenerationRetryService {
         }
 
         // 5c. Run quality scorer (Task Group 7)
+        let cachedQualityScore: number | undefined;
         if (!isDirect) {
           const qScore = await this.qualityScorer.score(
             parsedQuestion,
@@ -637,6 +639,7 @@ export class GenerationRetryService {
               `Quality threshold check failed (Score: ${qScore.score}): ${qScore.reasons.join("; ")}`,
             );
           }
+          cachedQualityScore = qScore.score;
         }
 
         this.logger.log(
@@ -664,7 +667,7 @@ export class GenerationRetryService {
         }
       }
 
-      // 6. Calculate quality score for log
+      // 6. Calculate quality score for log (reusing cached score to avoid duplicate async execution)
       let finalScore = 0.0;
       if (validationSuccess && parsedQuestion) {
         const isDirect =
@@ -672,6 +675,8 @@ export class GenerationRetryService {
           parsedQuestion.metadata?.datasetGenerationMode === "DIRECT";
         if (isDirect) {
           finalScore = 100.0;
+        } else if (cachedQualityScore !== undefined) {
+          finalScore = cachedQualityScore;
         } else {
           try {
             const qScore = await this.qualityScorer.score(
@@ -686,9 +691,9 @@ export class GenerationRetryService {
         }
       }
 
-      // Save audit logs
+      // Save audit logs asynchronously (non-blocking)
       try {
-        await this.auditService.log({
+        const logPromise = this.auditService.log({
           prompt: promptStr,
           response: response || "ERROR",
           qualityScore: finalScore,
@@ -698,8 +703,13 @@ export class GenerationRetryService {
             errors: attemptErrors,
           },
         });
-      } catch (logErr) {
-        console.error("Auditing log persistence error:", logErr);
+        if (logPromise && typeof logPromise.catch === "function") {
+          logPromise.catch((logErr) => {
+            this.logger.warn("Auditing log persistence error:", logErr);
+          });
+        }
+      } catch {
+        // Non-blocking telemetry
       }
 
       if (validationSuccess && parsedQuestion) {

@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { QueueService, QueueType } from "../../../queue";
 import { TestRepository } from "../repositories/test.repository";
 import { AssembledTestRepository } from "../../assembly/repositories/assembled-test.repository";
+import { PrismaService } from "../../../prisma/prisma.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { GenerationRequest } from "@intervu-ai/contracts";
 import { createHash, randomUUID } from "crypto";
@@ -14,6 +15,7 @@ export class TestAssemblyService {
     private readonly queueService: QueueService,
     private readonly testRepository: TestRepository,
     private readonly assembledRepo: AssembledTestRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async getTest(id: string) {
@@ -101,15 +103,12 @@ export class TestAssemblyService {
       .digest("hex");
 
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-      const existingActiveJob = await prisma.generationJob.findFirst({
+      const existingActiveJob = await this.prisma.generationJob.findFirst({
         where: {
           idempotencyKey,
           status: { in: ["QUEUED", "RUNNING"] },
         },
       });
-      await prisma.$disconnect();
 
       if (existingActiveJob) {
         this.logger.info("Reusing active generation job for identical request", {
@@ -138,9 +137,7 @@ export class TestAssemblyService {
     let topicId = body.topicId;
     if (topicId === "default-topic" || !topicId) {
       try {
-        const { PrismaClient } = await import("@prisma/client");
-        const prisma = new PrismaClient();
-        const blueprint = await prisma.blueprint.findFirst({
+        const blueprint = await this.prisma.blueprint.findFirst({
           where: { configId: body.blueprintId },
         });
         if (blueprint) {
@@ -152,7 +149,6 @@ export class TestAssemblyService {
             }
           }
         }
-        await prisma.$disconnect();
       } catch (err) {
         this.logger.error(
           "Failed to resolve topicId from blueprint",
@@ -170,9 +166,7 @@ export class TestAssemblyService {
     );
 
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-      await prisma.generationJob.create({
+      await this.prisma.generationJob.create({
         data: {
           id: jobId,
           topic: topicId || body.topicId || "default-topic",
@@ -182,7 +176,6 @@ export class TestAssemblyService {
           idempotencyKey,
         },
       });
-      await prisma.$disconnect();
     } catch (persistError) {
       const errorMessage =
         persistError instanceof Error ? persistError.message : String(persistError);
@@ -224,13 +217,10 @@ export class TestAssemblyService {
       );
 
       try {
-        const { PrismaClient } = await import("@prisma/client");
-        const prisma = new PrismaClient();
-        await prisma.generationJob.update({
+        await this.prisma.generationJob.update({
           where: { id: jobId },
           data: { status: "FALLBACK" },
         });
-        await prisma.$disconnect();
       } catch (updateError) {
         this.logger.error(
           "Failed to update generation job record after enqueue failure",
@@ -244,14 +234,11 @@ export class TestAssemblyService {
 
     // Direct DB Question Assembly Fallback
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-      const dbQuestions = await prisma.question.findMany({
+      const dbQuestions = await this.prisma.question.findMany({
         where: { status: "ACTIVE" },
         take: body.quantity || 5,
         orderBy: { createdAt: "desc" },
       });
-      await prisma.$disconnect();
 
       if (dbQuestions.length > 0) {
         const questions = dbQuestions.map((q: any) => {
@@ -296,12 +283,9 @@ export class TestAssemblyService {
 
   async getJobStatus(jobId: string) {
     try {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-      const dbJob = await prisma.generationJob.findUnique({
+      const dbJob = await this.prisma.generationJob.findUnique({
         where: { id: jobId },
       });
-      await prisma.$disconnect();
 
       if (dbJob) {
         return {

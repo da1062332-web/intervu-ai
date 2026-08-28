@@ -163,7 +163,7 @@ export class QuestionGenerationController {
     });
 
     try {
-      for (let i = 0; i < loopCount; i++) {
+      const generateSingle = async () => {
         // 2. Resolve strategy context
         const context = await this.strategyResolver.resolve(templateId);
 
@@ -189,8 +189,7 @@ export class QuestionGenerationController {
               sectionId,
             );
             const q = await this.questionRepo.save(assembled);
-            generated.push(q);
-            continue;
+            return q;
           }
         }
 
@@ -299,7 +298,19 @@ export class QuestionGenerationController {
           },
         });
 
-        generated.push(q);
+        return q;
+      };
+
+      const CHUNK_SIZE = 5;
+      for (let i = 0; i < loopCount; i += CHUNK_SIZE) {
+        const chunkSize = Math.min(CHUNK_SIZE, loopCount - i);
+        const chunkPromises = Array.from({ length: chunkSize }).map(() =>
+          generateSingle(),
+        );
+        const chunkResults = await Promise.all(chunkPromises);
+        for (const item of chunkResults) {
+          if (item) generated.push(item);
+        }
       }
 
       await this.prisma.generationJob.update({

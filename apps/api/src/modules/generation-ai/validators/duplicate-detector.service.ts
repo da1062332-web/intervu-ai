@@ -55,6 +55,8 @@ export class DuplicateDetectorService {
     const existingQuestions = await this.prisma.question.findMany({
       where: topic ? { topicId: topic.id } : undefined,
       select: { questionText: true, templateId: true, metadata: true },
+      take: 500,
+      orderBy: { createdAt: "desc" },
     });
 
     const candidateTemplateId = (generated.metadata as any)?.templateId || null;

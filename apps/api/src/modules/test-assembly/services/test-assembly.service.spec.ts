@@ -32,11 +32,17 @@ describe("TestAssemblyService (published snapshot)", () => {
     const mockAssembledRepo: any = {
       findByConfigId: jest.fn().mockResolvedValue(published),
     };
+    const mockPrisma: any = {
+      generationJob: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn(), findUnique: jest.fn() },
+      blueprint: { findFirst: jest.fn() },
+      question: { findMany: jest.fn() },
+    };
 
     const svc = new TestAssemblyService(
       mockQueueService,
       mockTestRepo,
       mockAssembledRepo,
+      mockPrisma,
     );
 
     const req: any = {

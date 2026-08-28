@@ -898,7 +898,7 @@ export class QuestionsController {
 
     // Resolve conceptId for the topic if available
     let conceptId: string | undefined = undefined;
-    const templateConceptKey = question.template?.conceptKey || question.conceptKey;
+    const templateConceptKey = (question as any).template?.conceptKey || question.conceptKey;
     if (templateConceptKey) {
       const matchedConcept = await this.prisma.concept.findFirst({
         where: {

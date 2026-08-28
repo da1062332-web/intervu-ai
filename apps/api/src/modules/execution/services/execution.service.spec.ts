@@ -12,29 +12,29 @@ describe("ExecutionService - Security & Answer Sanitization", () => {
   beforeEach(() => {
     mockPrisma = {
       executionState: {
-        findUnique: vi.fn().mockResolvedValue({
+        findUnique: jest.fn().mockResolvedValue({
           currentSectionIndex: 0,
           currentQuestionIndex: 0,
         }),
       },
       question: {
-        findMany: vi.fn().mockResolvedValue([]),
+        findMany: jest.fn().mockResolvedValue([]),
       },
       template: {
-        findMany: vi.fn().mockResolvedValue([]),
+        findMany: jest.fn().mockResolvedValue([]),
       },
       examConfig: {
-        findUnique: vi.fn().mockResolvedValue(null),
+        findUnique: jest.fn().mockResolvedValue(null),
       },
     };
 
     mockTestInstanceRepo = {
-      loadDeepSnapshot: vi.fn(),
+      loadDeepSnapshot: jest.fn(),
     };
 
     mockValidator = {
-      validateAssessment: vi.fn().mockResolvedValue({ id: "inst-1", userId: "user-1" }),
-      validateOwnership: vi.fn(),
+      validateAssessment: jest.fn().mockResolvedValue({ id: "inst-1", userId: "user-1" }),
+      validateOwnership: jest.fn(),
     };
 
     executionService = new ExecutionService(
