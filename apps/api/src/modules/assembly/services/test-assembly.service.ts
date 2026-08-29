@@ -80,7 +80,10 @@ export class AssemblyService {
       }
     }
 
+    const tBp = Date.now();
+    this.logger.log(`  [ASSEMBLY ⏱️] Step B: Generating blueprint for configId: ${configId}...`);
     const blueprint = await this.blueprintBuilder.generateBlueprint(configId);
+    this.logger.log(`  [ASSEMBLY ✅] Step B: Blueprint generated in ${Date.now() - tBp}ms (Sections: ${blueprint.sections?.length}, TotalQuestions: ${blueprint.totalQuestions})`);
 
     // Pre-Assembly Hard Gate: Validate blueprint & config readiness before question allocation
     if (!blueprint || !blueprint.sections || blueprint.sections.length === 0) {
@@ -102,8 +105,10 @@ export class AssemblyService {
     const sections: SectionDto[] = [];
     const allocatedQuestionIds = new Set<string>();
 
+    const tHist = Date.now();
     const historyIds =
       await this.poolRepository.findRecentUsedQuestions(userId);
+    this.logger.log(`  [ASSEMBLY ⏱️] Step C: Fetched ${historyIds.length} recent question history IDs in ${Date.now() - tHist}ms`);
 
     const isRetestOrProgressive =
       options?.progressive === true || options?.isRetest === true;
@@ -111,6 +116,7 @@ export class AssemblyService {
     if (isRetestOrProgressive && this.progressiveWorker) {
       // --- Progressive Retest Mode ---
       // 1. Allocate & build Section 1 (index 0) synchronously for instant candidate test start (< 0.4s)
+      const tSec1 = Date.now();
       const sec1Blueprint = blueprint.sections[0];
       const sec1Questions = await this.allocator.allocateQuestions(
         sec1Blueprint,
@@ -121,6 +127,7 @@ export class AssemblyService {
       );
       const sec1 = this.sectionBuilder.buildSection(sec1Blueprint, sec1Questions);
       sections.push(sec1);
+      this.logger.log(`  [ASSEMBLY ⏱️] Step D (Progressive): Section 1 allocated & built in ${Date.now() - tSec1}ms (${sec1Questions.length} questions)`);
 
       // 2. Add placeholder section wrappers for remaining sections
       for (let i = 1; i < blueprint.sections.length; i++) {
@@ -136,11 +143,13 @@ export class AssemblyService {
       }
 
       // 3. Save initial test instance with Section 1 ready
+      const tSave = Date.now();
       const testInstanceId = await this.persistenceService.saveAssembly(
         configId,
         sections,
         userId,
       );
+      this.logger.log(`  [ASSEMBLY ⏱️] Step E (Progressive): Saved initial assembly in DB in ${Date.now() - tSave}ms -> Instance ID: ${testInstanceId}`);
 
       // 4. Kick off background worker to populate Sections 2..N asynchronously
       const remainingBpSections = blueprint.sections.slice(1);
@@ -163,7 +172,11 @@ export class AssemblyService {
     }
 
     // --- Standard Full Assembly Mode ---
-    for (const blueprintSection of blueprint.sections) {
+    this.logger.log(`  [ASSEMBLY ⏱️] Step D: Allocating questions across ${blueprint.sections.length} section(s)...`);
+    const tAllSec = Date.now();
+    for (let sIdx = 0; sIdx < blueprint.sections.length; sIdx++) {
+      const blueprintSection = blueprint.sections[sIdx];
+      const tSec = Date.now();
       const allocatedQuestions = await this.allocator.allocateQuestions(
         blueprintSection,
         allocatedQuestionIds,
@@ -177,20 +190,26 @@ export class AssemblyService {
         allocatedQuestions,
       );
       sections.push(section);
+      this.logger.log(`    [SECTION ⏱️ ${sIdx + 1}/${blueprint.sections.length}] "${blueprintSection.displayName || blueprintSection.sectionKey}" allocated ${allocatedQuestions.length} questions in ${Date.now() - tSec}ms`);
     }
+    this.logger.log(`  [ASSEMBLY ✅] Step D: All sections allocated in ${Date.now() - tAllSec}ms (Total allocated questions: ${allocatedQuestionIds.size})`);
 
+    const tVal = Date.now();
     const validation = this.validator.validate(blueprint, sections);
     if (!validation.valid) {
       throw new InternalServerErrorException(
         `Assembly validation failed: ${validation.errors.join(", ")}`,
       );
     }
+    this.logger.log(`  [ASSEMBLY ✅] Step E: Assembly validation passed in ${Date.now() - tVal}ms`);
 
+    const tPersist = Date.now();
     const testInstanceId = await this.persistenceService.saveAssembly(
       configId,
       sections,
       userId,
     );
+    this.logger.log(`  [ASSEMBLY ✅] Step F: Assembly saved to DB in ${Date.now() - tPersist}ms -> Instance: ${testInstanceId}`);
 
     return testInstanceId;
   }

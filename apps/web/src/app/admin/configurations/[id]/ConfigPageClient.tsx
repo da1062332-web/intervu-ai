@@ -113,15 +113,22 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
   };
 
   const generateAssembly = async () => {
+    console.log(`\n================================================================================`);
+    console.log(`[UI 🚀 START] "Generate Test Assembly" button clicked for configId: ${configId}`);
+    console.log(`================================================================================`);
     setGenerating(true);
     try {
       // 1. Pre-flight config validation
+      const tVal = performance.now();
+      console.log(`[UI ⏱️] Step 0: Pre-flight validating configuration ${configId}...`);
       const validation = await apiClient.request<any>(`/admin/configs/${configId}/validate`, {
         method: 'POST',
         skipErrorToast: true,
       });
+      console.log(`[UI ✅] Step 0: Pre-flight validation finished in ${(performance.now() - tVal).toFixed(0)}ms (Valid: ${validation?.valid})`);
 
       if (!validation.valid) {
+        console.warn(`[UI ❌] Validation failed with errors:`, validation.errors);
         toast.error('Cannot generate assembly. Validation failed:', {
           description: (
             <ul className='list-disc pl-4 mt-1 space-y-1'>
@@ -139,16 +146,21 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
       }
 
       // 2. Publish config to create version and auto-ensure blueprint
+      const tPublish = performance.now();
+      console.log(`[UI ⏱️] Step 1: Publishing configuration ${configId}...`);
       try {
         await apiClient.request<any>(`/admin/configs/${configId}/publish`, {
           method: 'POST',
           skipErrorToast: true,
         });
+        console.log(`[UI ✅] Step 1: Config published in ${(performance.now() - tPublish).toFixed(0)}ms`);
       } catch (e) {
-        console.warn('Publish notice before assembly generation:', e);
+        console.warn(`[UI ⚠️] Publish notice before assembly generation (${(performance.now() - tPublish).toFixed(0)}ms):`, e);
       }
 
       // 3. Generate Assembly
+      const tAssembly = performance.now();
+      console.log(`[UI ⏱️] Step 2: Requesting Test Assembly generation (/assembly/tests/generate)...`);
       const response = await apiClient.request<{ testInstanceId: string }>(
         '/assembly/tests/generate',
         {
@@ -156,6 +168,7 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
           body: { configId },
         },
       );
+      console.log(`[UI 🚀] Step 2: Assembly generated in ${(performance.now() - tAssembly).toFixed(0)}ms! Test Instance ID: ${response?.testInstanceId}`);
 
       if (response && response.testInstanceId) {
         toast.success('Successfully assembled test instance.');

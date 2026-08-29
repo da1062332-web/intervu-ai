@@ -164,8 +164,6 @@ export class ResultGeneratorService {
             .join(" ");
         }
 
-        const meta = dbQuestionsMap.get(q.questionId);
-
         if (questionType === "CODING") {
           // Parse instructions JSON to extract constraints and testCases
           let constraints: string | undefined;

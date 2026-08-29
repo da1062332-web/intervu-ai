@@ -69,10 +69,20 @@ export class AssemblyController {
     @Body() dto: CreateAssemblyDto,
     @CurrentUser() user: AuthUser,
   ): Promise<AssemblyBuildResponseDto> {
+    const t0 = Date.now();
+    console.log(`\n================================================================================`);
+    console.log(`[TEST-GEN ⏱️ START] Starting Test Generation request for configId: ${dto.configId}, user: ${user.id}`);
+    console.log(`================================================================================`);
+
     const testInstanceId = await this.assemblyService.assembleTest(
       dto.configId,
       user.id,
     );
+
+    const totalMs = Date.now() - t0;
+    console.log(`================================================================================`);
+    console.log(`[TEST-GEN 🚀 COMPLETE] Total Generation & Assembly Time: ${totalMs}ms (${(totalMs / 1000).toFixed(2)}s) | Instance ID: ${testInstanceId}`);
+    console.log(`================================================================================\n`);
 
     return {
       success: true,
