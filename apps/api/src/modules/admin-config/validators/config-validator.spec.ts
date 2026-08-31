@@ -6,9 +6,11 @@ import { FullExamConfig } from "../types";
 const mockPrisma = {
   template: {
     count: jest.fn(),
+    findMany: jest.fn(),
   },
   question: {
     count: jest.fn(),
+    findMany: jest.fn(),
   },
 };
 
@@ -83,6 +85,12 @@ describe("ConfigurationValidatorService", () => {
     jest.clearAllMocks();
     mockPrisma.template.count.mockResolvedValue(5);
     mockPrisma.question.count.mockResolvedValue(10);
+    mockPrisma.template.findMany.mockResolvedValue([
+      { conceptKey: "ARRAY_MANIPULATION" },
+    ]);
+    mockPrisma.question.findMany.mockResolvedValue([
+      { conceptId: "concept-1", topicId: "topic-1" },
+    ]);
   });
 
   it("should be defined", () => {
@@ -207,6 +215,8 @@ describe("ConfigurationValidatorService", () => {
     it("should fail if no templates exist in the system for configured concepts", async () => {
       mockPrisma.template.count.mockResolvedValue(0);
       mockPrisma.question.count.mockResolvedValue(0);
+      mockPrisma.template.findMany.mockResolvedValue([]);
+      mockPrisma.question.findMany.mockResolvedValue([]);
       const result = await service.validate(makeConfig());
       expect(result.valid).toBe(false);
       expect(result.errors).toEqual(

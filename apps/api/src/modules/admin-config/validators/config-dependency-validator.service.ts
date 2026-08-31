@@ -19,6 +19,8 @@ import { FullExamConfig } from "../types";
  */
 @Injectable()
 export class ConfigDependencyValidatorService {
+  private readonly logger = new Logger(ConfigDependencyValidatorService.name);
+
   constructor(
     @Optional() @Inject(PrismaService) private readonly prisma?: PrismaService,
   ) {}
@@ -55,145 +57,40 @@ export class ConfigDependencyValidatorService {
       errors.push("DEPENDENCY_FAIL: No sections defined");
     }
 
-    // Pre-fetch active templates and questions in a single batch for all topics
-    const allConceptCodes: string[] = [];
-    const allConceptIds: string[] = [];
-    const allTopicIdsAndCodes = new Set<string>();
-
-    for (const section of config.sections || []) {
-      for (const st of section.sectionTopics || []) {
-        if (!st.topic) continue;
-        allTopicIdsAndCodes.add(st.topic.id);
-        if (st.topic.code) allTopicIdsAndCodes.add(st.topic.code);
-        for (const c of st.topic.concepts || []) {
-          if (c.code) allConceptCodes.push(c.code);
-          if (c.id) allConceptIds.push(c.id);
-        }
-      }
-    }
-
-    const [activeTemplates, activeQuestions] = await Promise.all([
-      this.prisma && allConceptCodes.length > 0
-        ? this.prisma.template.findMany({
-            where: {
-              isActive: true,
-              deletedAt: null,
-              conceptKey: { in: Array.from(new Set(allConceptCodes)) },
-            },
-            select: { conceptKey: true },
-          })
-        : Promise.resolve([]),
-      this.prisma && (allConceptIds.length > 0 || allTopicIdsAndCodes.size > 0)
-        ? this.prisma.question.findMany({
-            where: {
-              status: "ACTIVE",
-              OR: [
-                ...(allConceptIds.length > 0
-                  ? [{ conceptId: { in: Array.from(new Set(allConceptIds)) } }]
-                  : []),
-                ...(allTopicIdsAndCodes.size > 0
-                  ? [{ topicId: { in: Array.from(allTopicIdsAndCodes) } }]
-                  : []),
-              ],
-            },
-            select: { conceptId: true, topicId: true },
-          })
-        : Promise.resolve([]),
-    ]);
-
-    const activeTemplateKeys = new Set(
-      activeTemplates.map((t) => t.conceptKey),
-    );
-    const activeQuestionConceptIds = new Set(
-      activeQuestions.map((q) => q.conceptId).filter(Boolean),
-    );
-    const activeQuestionTopicIds = new Set(
-      activeQuestions.map((q) => q.topicId).filter(Boolean),
-    );
-
-    // Pre-fetch active templates and questions in a single batch for all topics
-    const allConceptCodes: string[] = [];
-    const allConceptIds: string[] = [];
-    const allTopicIdsAndCodes = new Set<string>();
-
-    for (const section of config.sections || []) {
-      for (const st of section.sectionTopics || []) {
-        if (!st.topic) continue;
-        allTopicIdsAndCodes.add(st.topic.id);
-        if (st.topic.code) allTopicIdsAndCodes.add(st.topic.code);
-        for (const c of st.topic.concepts || []) {
-          if (c.code) allConceptCodes.push(c.code);
-          if (c.id) allConceptIds.push(c.id);
-        }
-      }
-    }
-
-    const [activeTemplates, activeQuestions] = await Promise.all([
-      this.prisma && allConceptCodes.length > 0
-        ? this.prisma.template.findMany({
-            where: {
-              isActive: true,
-              deletedAt: null,
-              conceptKey: { in: Array.from(new Set(allConceptCodes)) },
-            },
-            select: { conceptKey: true },
-          })
-        : Promise.resolve([]),
-      this.prisma && (allConceptIds.length > 0 || allTopicIdsAndCodes.size > 0)
-        ? this.prisma.question.findMany({
-            where: {
-              status: "ACTIVE",
-              OR: [
-                ...(allConceptIds.length > 0
-                  ? [{ conceptId: { in: Array.from(new Set(allConceptIds)) } }]
-                  : []),
-                ...(allTopicIdsAndCodes.size > 0
-                  ? [{ topicId: { in: Array.from(allTopicIdsAndCodes) } }]
-                  : []),
-              ],
-            },
-            select: { conceptId: true, topicId: true },
-          })
-        : Promise.resolve([]),
-    ]);
-
-    const activeTemplateKeys = new Set(
-      activeTemplates.map((t) => t.conceptKey),
-    );
-    const activeQuestionConceptIds = new Set(
-      activeQuestions.map((q) => q.conceptId).filter(Boolean),
-    );
-    const activeQuestionTopicIds = new Set(
-      activeQuestions.map((q) => q.topicId).filter(Boolean),
-    );
-
     // ── Collect all concept codes / concept IDs / topic IDs across ALL sections
-    // so we can fire exactly 2 batch DB queries instead of N*2 sequential ones.
+    // so we can fire exactly 2 batch DB queries in parallel instead of N*2 sequential ones.
     const allConceptCodes: string[] = [];
     const allConceptIds: string[] = [];
     const allTopicIds: string[] = [];
 
-    for (const section of config.sections) {
+    for (const section of config.sections || []) {
       if (!section.sectionTopics) continue;
       for (const st of section.sectionTopics) {
         if (!st.topic) continue;
-        const topicConcepts = st.topic.concepts || [];
-        for (const c of topicConcepts) {
-          allConceptCodes.push(c.code);
-          allConceptIds.push(c.id);
-        }
         allTopicIds.push(st.topic.id);
         if (st.topic.code) allTopicIds.push(st.topic.code);
+        for (const c of st.topic.concepts || []) {
+          if (c.code) allConceptCodes.push(c.code);
+          if (c.id) allConceptIds.push(c.id);
+        }
       }
     }
 
+    const uniqueConceptCodes = [...new Set(allConceptCodes)];
+    const uniqueTopicIds = [...new Set(allTopicIds)];
+    const uniqueConceptIds = [...new Set(allConceptIds)];
+
+    const orClauses: any[] = [];
+    if (uniqueConceptIds.length > 0)
+      orClauses.push({ conceptId: { in: uniqueConceptIds } });
+    if (uniqueTopicIds.length > 0)
+      orClauses.push({ topicId: { in: uniqueTopicIds } });
+
     const tBatch = Date.now();
 
-    // ── Batch Query 1: Which concept codes have at least 1 active template? ──
-    const uniqueConceptCodes = [...new Set(allConceptCodes)];
-    const activeTemplates =
-      uniqueConceptCodes.length > 0
-        ? await this.prisma.template.findMany({
+    const [activeTemplates, activeQuestions] = await Promise.all([
+      this.prisma && uniqueConceptCodes.length > 0
+        ? this.prisma.template.findMany({
             where: {
               isActive: true,
               deletedAt: null,
@@ -201,27 +98,18 @@ export class ConfigDependencyValidatorService {
             },
             select: { conceptKey: true },
           })
-        : [];
-    const templateConceptSet = new Set(
-      activeTemplates.map((t) => t.conceptKey),
-    );
-
-    // ── Batch Query 2: Which topic IDs / concept IDs have active questions? ──
-    const uniqueTopicIds = [...new Set(allTopicIds)];
-    const uniqueConceptIds = [...new Set(allConceptIds)];
-    const orClauses: any[] = [];
-    if (uniqueConceptIds.length > 0)
-      orClauses.push({ conceptId: { in: uniqueConceptIds } });
-    if (uniqueTopicIds.length > 0)
-      orClauses.push({ topicId: { in: uniqueTopicIds } });
-
-    const activeQuestions =
-      orClauses.length > 0
-        ? await this.prisma.question.findMany({
+        : Promise.resolve([]),
+      this.prisma && orClauses.length > 0
+        ? this.prisma.question.findMany({
             where: { status: "ACTIVE", OR: orClauses },
             select: { topicId: true, conceptId: true },
           })
-        : [];
+        : Promise.resolve([]),
+    ]);
+
+    const templateConceptSet = new Set(
+      activeTemplates.map((t) => t.conceptKey),
+    );
     const questionTopicSet = new Set(
       activeQuestions.map((q) => q.topicId).filter(Boolean),
     );
@@ -265,7 +153,7 @@ export class ConfigDependencyValidatorService {
         );
         const hasQuestion =
           questionTopicSet.has(st.topic.id) ||
-          questionTopicSet.has(st.topic.code) ||
+          (st.topic.code ? questionTopicSet.has(st.topic.code) : false) ||
           conceptIds.some((id) => questionConceptSet.has(id));
 
         if (!hasTemplate && !hasQuestion) {

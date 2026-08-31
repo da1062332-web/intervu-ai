@@ -3,6 +3,7 @@ import { AssemblyPersistenceService } from "./assembly-persistence.service";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AssemblyAuditService } from "./assembly-audit.service";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 describe("AssemblyPersistenceService", () => {
   let service: AssemblyPersistenceService;
@@ -41,6 +42,17 @@ describe("AssemblyPersistenceService", () => {
           provide: AssemblyAuditService,
           useValue: {
             log: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            testInstance: { create: jest.fn().mockResolvedValue({}) },
+            assembledTest: { create: jest.fn().mockResolvedValue({}) },
+            testInstanceSection: { create: jest.fn().mockResolvedValue({}) },
+            testInstanceQuestion: { createMany: jest.fn().mockResolvedValue({}) },
+            executionState: { create: jest.fn().mockResolvedValue({}) },
+            $transaction: jest.fn().mockResolvedValue([]),
           },
         },
       ],

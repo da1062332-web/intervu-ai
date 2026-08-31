@@ -116,7 +116,12 @@ describe("Assembly Module Integration Layer - End to End", () => {
 
     mockRotationService.checkAvailability.mockResolvedValue({
       status: "AVAILABLE",
-      available: 1,
+      available: 3,
+      details: [
+        { difficulty: "EASY", available: 10 },
+        { difficulty: "MEDIUM", available: 10 },
+        { difficulty: "HARD", available: 10 },
+      ],
     });
 
     mockRotationService.retrieveAndReserve.mockImplementation(

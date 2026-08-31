@@ -83,7 +83,7 @@ export class ConfigurationValidatorService {
     );
 
     const [activeTemplates, activeQuestions] = await Promise.all([
-      conceptCodes.length > 0 && this.prisma
+      conceptCodes.length > 0 && this.prisma?.template?.findMany
         ? this.prisma.template.findMany({
             where: {
               conceptKey: { in: conceptCodes },
@@ -93,12 +93,15 @@ export class ConfigurationValidatorService {
             select: { conceptKey: true },
           })
         : Promise.resolve([]),
-      (conceptIds.length > 0 || allTopicIdsAndCodes.size > 0) && this.prisma
+      (conceptIds.length > 0 || allTopicIdsAndCodes.size > 0) &&
+      this.prisma?.question?.findMany
         ? this.prisma.question.findMany({
             where: {
               status: "ACTIVE",
               OR: [
-                ...(conceptIds.length > 0 ? [{ conceptId: { in: conceptIds } }] : []),
+                ...(conceptIds.length > 0
+                  ? [{ conceptId: { in: conceptIds } }]
+                  : []),
                 ...(allTopicIdsAndCodes.size > 0
                   ? [{ topicId: { in: Array.from(allTopicIdsAndCodes) } }]
                   : []),

@@ -14,6 +14,7 @@ const mockTransaction = {
   examConfig: { update: jest.fn() },
   configPublishLog: { create: jest.fn() },
   blueprint: { findUnique: jest.fn().mockResolvedValue({ id: "bp-1" }), create: jest.fn() },
+  assembledTest: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
 };
 
 const mockPrisma = {
