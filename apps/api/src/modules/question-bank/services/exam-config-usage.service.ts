@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionStatus, QuestionSourceType, Prisma } from "@prisma/client";
 import { AppLogger } from "@intervu-ai/shared-logger";
@@ -9,7 +9,8 @@ export class ExamConfigUsageService {
   private readonly logger = new AppLogger({ name: "ExamConfigUsageService" });
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(TransactionalOutboxService)
     private readonly outboxService: TransactionalOutboxService,
   ) {}
 

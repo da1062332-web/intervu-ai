@@ -273,8 +273,27 @@ describe("QuestionAllocatorService", () => {
 
   it("should generate questions at runtime when runtimeGenerationOnDeficit flag is enabled", async () => {
     const mockPrisma = {
+      topic: {
+        findFirst: jest.fn().mockResolvedValue({ id: "top-1", name: "Arrays" }),
+      },
       ruleFlags: {
         findUnique: jest.fn().mockResolvedValue({ runtimeGenerationOnDeficit: true }),
+      },
+      blueprint: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
+      styleProfile: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
+      template: {
+        findFirst: jest.fn().mockResolvedValue({ id: "tmpl-1" }),
+      },
+      concept: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
+      question: {
+        findMany: jest.fn().mockResolvedValue([]),
+        create: jest.fn().mockResolvedValue({}),
       },
       generatedQuestion: {
         create: jest.fn().mockImplementation(({ data }) => ({

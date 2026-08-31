@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
 } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ConfigurationValidatorService } from "../validators/configuration-validator.service";
@@ -38,11 +39,16 @@ export interface PublishResult {
 @Injectable()
 export class ConfigPublisherService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(ConfigurationValidatorService)
     private readonly validator: ConfigurationValidatorService,
+    @Inject(ConfigDependencyValidatorService)
     private readonly dependencyValidator: ConfigDependencyValidatorService,
+    @Inject(ConfigVersionService)
     private readonly versionService: ConfigVersionService,
+    @Inject(ExamConfigReadinessService)
     private readonly readinessService: ExamConfigReadinessService,
+    @Inject(RedisCacheService)
     private readonly cacheService: RedisCacheService,
   ) {}
 

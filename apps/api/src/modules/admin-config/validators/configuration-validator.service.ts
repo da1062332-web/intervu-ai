@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { FullExamConfig } from "../types";
 
@@ -16,7 +16,9 @@ export interface ConfigurationValidationResult {
  */
 @Injectable()
 export class ConfigurationValidatorService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Optional() @Inject(PrismaService) private readonly prisma?: PrismaService,
+  ) {}
 
   async validate(
     config: FullExamConfig | null,
@@ -81,7 +83,7 @@ export class ConfigurationValidatorService {
     );
 
     const [activeTemplates, activeQuestions] = await Promise.all([
-      conceptCodes.length > 0
+      conceptCodes.length > 0 && this.prisma
         ? this.prisma.template.findMany({
             where: {
               conceptKey: { in: conceptCodes },
@@ -91,7 +93,7 @@ export class ConfigurationValidatorService {
             select: { conceptKey: true },
           })
         : Promise.resolve([]),
-      conceptIds.length > 0 || allTopicIdsAndCodes.size > 0
+      (conceptIds.length > 0 || allTopicIdsAndCodes.size > 0) && this.prisma
         ? this.prisma.question.findMany({
             where: {
               status: "ACTIVE",

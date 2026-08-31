@@ -23,6 +23,7 @@ describe("AssemblyService", () => {
   beforeEach(async () => {
     persistenceService = {
       saveAssembly: jest.fn(),
+      cloneReusableAssemblyForCandidate: jest.fn(),
     } as unknown as jest.Mocked<AssemblyPersistenceService>;
 
     blueprintBuilder = {
@@ -141,10 +142,16 @@ describe("AssemblyService", () => {
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
       examConfig: { updatedAt: new Date("2023-12-31T00:00:00.000Z") },
     } as any);
+    persistenceService.cloneReusableAssemblyForCandidate.mockResolvedValueOnce(
+      "cloned-instance-id",
+    );
 
     const result = await service.assembleTest("config-1");
 
-    expect(result).toBe("existing-assembly-id");
+    expect(result).toBe("cloned-instance-id");
+    expect(
+      persistenceService.cloneReusableAssemblyForCandidate,
+    ).toHaveBeenCalledWith("existing-assembly-id", "config-1", "system-user");
     expect(blueprintBuilder.generateBlueprint).not.toHaveBeenCalled();
     expect(persistenceService.saveAssembly).not.toHaveBeenCalled();
   });

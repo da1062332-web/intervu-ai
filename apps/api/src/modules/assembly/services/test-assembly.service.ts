@@ -3,6 +3,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
   Logger,
+  Inject,
+  Optional,
 } from "@nestjs/common";
 
 import { AssemblyPersistenceService } from "./assembly-persistence.service";
@@ -17,7 +19,6 @@ import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { ProgressiveAssemblyWorkerService } from "./progressive-assembly-worker.service";
-import { Optional } from "@nestjs/common";
 
 @Injectable()
 export class AssemblyService {
@@ -30,14 +31,22 @@ export class AssemblyService {
     },
   };
   constructor(
+    @Inject(AssemblyPersistenceService)
     private readonly persistenceService: AssemblyPersistenceService,
+    @Inject(BlueprintBuilderService)
     private readonly blueprintBuilder: BlueprintBuilderService,
+    @Inject(QuestionAllocatorService)
     private readonly allocator: QuestionAllocatorService,
+    @Inject(SectionBuilderService)
     private readonly sectionBuilder: SectionBuilderService,
+    @Inject(AssemblyValidatorService)
     private readonly validator: AssemblyValidatorService,
+    @Inject(QuestionPoolRepository)
     private readonly poolRepository: QuestionPoolRepository,
+    @Inject(AssembledTestRepository)
     private readonly assembledTestRepository: AssembledTestRepository,
     @Optional()
+    @Inject(ProgressiveAssemblyWorkerService)
     private readonly progressiveWorker?: ProgressiveAssemblyWorkerService,
   ) {}
 

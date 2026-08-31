@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ExamConfigUsageService } from "../../question-bank/services/exam-config-usage.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
@@ -30,7 +30,8 @@ export class ExamConfigReadinessService {
   });
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(ExamConfigUsageService)
     private readonly usageService: ExamConfigUsageService,
   ) {}
 
