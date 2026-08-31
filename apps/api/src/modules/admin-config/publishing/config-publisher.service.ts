@@ -140,68 +140,49 @@ export class ConfigPublisherService {
     const publishedAt = new Date();
 
     // ─── Step 3-5: Execute Mutations in Transaction ─────────────────────────
-    await this.prisma.$transaction(async (tx) => {
-      // Auto-generate Blueprint shell if missing to break circular deadlock & ensure readiness
-      await this.autoEnsureBlueprint(tx, config);
+    await this.prisma.$transaction(
+      async (tx) => {
+        // Auto-generate Blueprint shell if missing to break circular deadlock & ensure readiness
+        await this.autoEnsureBlueprint(tx, config);
 
-      // Create version using the pre-fetched graph
-      const versionEntry = await this.versionService.createVersion(config, tx);
-      finalVersionStr = `v${versionEntry.versionNumber}`;
+        // Create version using the pre-fetched graph
+        const versionEntry = await this.versionService.createVersion(config, tx);
+        finalVersionStr = `v${versionEntry.versionNumber}`;
 
-      // Update status → PUBLISHED
-      await tx.examConfig.update({
-        where: { id: configId },
-        data: {
-          status: "PUBLISHED",
-          isActive: true,
-        },
-      });
-
-      // ─── Cascade Publish to AssembledTest ──────────────────────────────────
-      // When admin publishes a config, the associated fully-assembled test
-      // must also be promoted to PUBLISHED. Without this, the AssembledTest
-      // stays DRAFT while ExamConfig shows PUBLISHED — causing a status mismatch
-      // on the admin workflow dashboard.
-      // Only affects the single latest complete assembly (all sections have questions).
-      // Safe no-op if no complete assembly exists yet.
-      try {
-        const latestAssembly = await tx.assembledTest.findFirst({
-          where: {
-            configId,
-            sections: {
-              some: { questions: { some: {} } },   // at least one section has questions
-              none: { questions: { none: {} } },   // no section is empty
-            },
+        // Update status → PUBLISHED
+        await tx.examConfig.update({
+          where: { id: configId },
+          data: {
+            status: "PUBLISHED",
+            isActive: true,
           },
-          orderBy: { createdAt: "desc" },
-          select: { id: true, status: true },
         });
 
-        if (latestAssembly && latestAssembly.status !== "PUBLISHED") {
-          await tx.assembledTest.update({
-            where: { id: latestAssembly.id },
+        // ─── Cascade Publish to AssembledTest ──────────────────────────────────
+        try {
+          await tx.assembledTest.updateMany({
+            where: { configId, status: { not: "PUBLISHED" } },
             data: { status: "PUBLISHED" },
           });
+        } catch (assemblyErr) {
+          console.warn(
+            `[ConfigPublisher] Could not cascade PUBLISHED status to AssembledTest for configId ${configId}:`,
+            assemblyErr,
+          );
         }
-      } catch (assemblyErr) {
-        // Non-blocking: if assembly cascade fails (e.g. no assembly exists), do not
-        // roll back the config publish. Log for visibility only.
-        console.warn(
-          `[ConfigPublisher] Could not cascade PUBLISHED status to AssembledTest for configId ${configId}:`,
-          assemblyErr,
-        );
-      }
 
-      // Write Publish Log
-      await tx.configPublishLog.create({
-        data: {
-          configId,
-          publishedBy: publishedBy ?? null,
-          version: finalVersionStr,
-          publishedAt,
-        },
-      });
-    });
+        // Write Publish Log
+        await tx.configPublishLog.create({
+          data: {
+            configId,
+            publishedBy: publishedBy ?? null,
+            version: finalVersionStr,
+            publishedAt,
+          },
+        });
+      },
+      { timeout: 30000, maxWait: 10000 },
+    );
 
     await this.cacheService.delete("dashboard:examConfigs:available:v2");
 

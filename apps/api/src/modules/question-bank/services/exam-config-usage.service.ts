@@ -65,6 +65,12 @@ export class ExamConfigUsageService {
     );
   }
 
+  private readonly topicMatchCache = new Map<
+    string,
+    { topicIdsToMatch: string[]; conceptIdsToMatch: string[] }
+  >();
+  private readonly otherMappedSectionsCache = new Map<string, any[]>();
+
   /**
    * Calculates unused question capacity for a topic and difficulty for a specific Exam Config,
    * proactively subtracting questions allocated to or claimed by OTHER active configs.
@@ -79,15 +85,25 @@ export class ExamConfigUsageService {
     let conceptIdsToMatch: string[] = [];
 
     if (topicId) {
-      const topicObj = await this.prisma.topic.findFirst({
-        where: { OR: [{ code: topicId }, { id: topicId }] },
-        include: { concepts: true },
-      });
-      if (topicObj) {
-        topicIdsToMatch = Array.from(
-          new Set([topicId, topicObj.id, topicObj.code]),
-        );
-        conceptIdsToMatch = topicObj.concepts.map((c) => c.id);
+      if (this.topicMatchCache.has(topicId)) {
+        const cached = this.topicMatchCache.get(topicId)!;
+        topicIdsToMatch = cached.topicIdsToMatch;
+        conceptIdsToMatch = cached.conceptIdsToMatch;
+      } else {
+        const topicObj = await this.prisma.topic.findFirst({
+          where: { OR: [{ code: topicId }, { id: topicId }] },
+          include: { concepts: true },
+        });
+        if (topicObj) {
+          topicIdsToMatch = Array.from(
+            new Set([topicId, topicObj.id, topicObj.code]),
+          );
+          conceptIdsToMatch = topicObj.concepts.map((c) => c.id);
+        }
+        this.topicMatchCache.set(topicId, {
+          topicIdsToMatch,
+          conceptIdsToMatch,
+        });
       }
     }
 
@@ -102,56 +118,71 @@ export class ExamConfigUsageService {
       ],
     };
 
-    // 1. Total active MANUAL questions (reusable across configs without deduction)
-    const manualActiveCount = await this.prisma.question.count({
-      where: {
-        ...baseQuestionFilter,
-        questionSource: QuestionSourceType.MANUAL,
-      },
-    });
-
-    // 2. Filter for VARIABLE_TEMPLATE (or non-manual) questions
+    // 1-3. Run manualActiveCount, templateActiveCount, and templateAllocatedToOtherConfigsCount concurrently
     const templateQuestionFilter: Prisma.QuestionWhereInput = {
       ...baseQuestionFilter,
       questionSource: { not: QuestionSourceType.MANUAL },
     };
 
-    const templateActiveCount = await this.prisma.question.count({
-      where: templateQuestionFilter,
-    });
+    const otherMappedCacheKey = topicIdsToMatch.slice().sort().join(",");
+    let otherMappedSectionsPromise: Promise<any[]>;
+    if (this.otherMappedSectionsCache.has(otherMappedCacheKey)) {
+      otherMappedSectionsPromise = Promise.resolve(
+        this.otherMappedSectionsCache.get(otherMappedCacheKey)!,
+      );
+    } else {
+      otherMappedSectionsPromise = this.prisma.sectionTopic
+        .findMany({
+          where: {
+            topicId: { in: topicIdsToMatch },
+            section: {
+              examConfig: {
+                id: { not: configId },
+                isArchived: false,
+                status: { not: "ARCHIVED" },
+              },
+            },
+          },
+          include: {
+            section: {
+              include: {
+                sectionTopics: true,
+              },
+            },
+          },
+        })
+        .then((res) => {
+          this.otherMappedSectionsCache.set(otherMappedCacheKey, res);
+          return res;
+        });
+    }
 
-    // 3. Count template questions used by OTHER configs
-    const templateAllocatedToOtherConfigsCount =
-      await this.prisma.examConfigQuestionUsage.count({
+    const [
+      manualActiveCount,
+      templateActiveCount,
+      templateAllocatedToOtherConfigsCount,
+      otherMappedSections,
+    ] = await Promise.all([
+      this.prisma.question.count({
+        where: {
+          ...baseQuestionFilter,
+          questionSource: QuestionSourceType.MANUAL,
+        },
+      }),
+      this.prisma.question.count({
+        where: templateQuestionFilter,
+      }),
+      this.prisma.examConfigQuestionUsage.count({
         where: {
           configId: { not: configId },
           question: templateQuestionFilter,
         },
-      });
-
-    // 4. Calculate template questions claimed by OTHER active/validated exam configs
-    const otherMappedSections = await this.prisma.sectionTopic.findMany({
-      where: {
-        topicId: { in: topicIdsToMatch },
-        section: {
-          examConfig: {
-            id: { not: configId },
-            isArchived: false,
-            status: { not: "ARCHIVED" },
-          },
-        },
-      },
-      include: {
-        section: {
-          include: {
-            sectionTopics: true,
-          },
-        },
-      },
-    });
+      }),
+      otherMappedSectionsPromise,
+    ]);
 
     const uniqueOtherConfigIds = Array.from(
-      new Set(otherMappedSections.map((st) => st.section.examConfigId)),
+      new Set(otherMappedSections.map((st: any) => st.section.examConfigId)),
     );
 
     const allocatedCounts =

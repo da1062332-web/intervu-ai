@@ -79,12 +79,12 @@ export class TestInstanceRepository {
     return this.findById(instanceId);
   }
 
-  async findById(id: string) {
+  async findById(id: string, includeQuestions = true) {
     return this.prisma.testInstance.findUnique({
       where: { id },
       include: {
         sections: {
-          include: { questions: true },
+          include: { questions: includeQuestions },
         },
       },
     });

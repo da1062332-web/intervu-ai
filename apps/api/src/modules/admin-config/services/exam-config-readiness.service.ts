@@ -160,6 +160,19 @@ export class ExamConfigReadinessService {
     let conflictingTopicsCount = 0;
     const isManualDifficultyMode = easy + medium + hard === 100;
 
+    // Cache pool count across identical topic+tier evaluations
+    const poolCountCache = new Map<string, number>();
+    const getCachedPoolCount = async (tId: string, diff?: string) => {
+      const cacheKey = `${tId}:${diff || "ANY"}`;
+      if (!poolCountCache.has(cacheKey)) {
+        poolCountCache.set(
+          cacheKey,
+          await this.usageService.getUnusedPoolCount(configId, tId, diff),
+        );
+      }
+      return poolCountCache.get(cacheKey)!;
+    };
+
     for (const section of config.sections) {
       const sectionTopics = section.sectionTopics;
       const topicCount = sectionTopics.length;
@@ -201,8 +214,7 @@ export class ExamConfigReadinessService {
             totalChecksCount++;
             totalRequired += tier.required;
 
-            const poolCount = await this.usageService.getUnusedPoolCount(
-              configId,
+            const poolCount = await getCachedPoolCount(
               st.topic.id,
               tier.level,
             );
@@ -265,8 +277,7 @@ export class ExamConfigReadinessService {
           totalChecksCount++;
           totalRequired += questionsPerTopic;
 
-          const totalTopicCount = await this.usageService.getUnusedPoolCount(
-            configId,
+          const totalTopicCount = await getCachedPoolCount(
             st.topic.id,
             undefined,
           );

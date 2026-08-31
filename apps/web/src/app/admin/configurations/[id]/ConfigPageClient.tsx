@@ -138,14 +138,16 @@ export function ConfigPageClient({ configId }: ConfigPageClientProps) {
         return;
       }
 
-      // 2. Publish config to create version and auto-ensure blueprint
-      try {
-        await apiClient.request<any>(`/admin/configs/${configId}/publish`, {
-          method: 'POST',
-          skipErrorToast: true,
-        });
-      } catch (e) {
-        console.warn('Publish notice before assembly generation:', e);
+      // 2. Publish config to create version and auto-ensure blueprint if not already published
+      if (config?.status !== 'PUBLISHED') {
+        try {
+          await apiClient.request<any>(`/admin/configs/${configId}/publish`, {
+            method: 'POST',
+            skipErrorToast: true,
+          });
+        } catch (e) {
+          console.warn('Publish notice before assembly generation:', e);
+        }
       }
 
       // 3. Generate Assembly

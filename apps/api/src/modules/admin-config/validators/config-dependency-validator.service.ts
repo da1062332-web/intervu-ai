@@ -49,6 +49,60 @@ export class ConfigDependencyValidatorService {
       errors.push("DEPENDENCY_FAIL: No sections defined");
     }
 
+    // Pre-fetch active templates and questions in a single batch for all topics
+    const allConceptCodes: string[] = [];
+    const allConceptIds: string[] = [];
+    const allTopicIdsAndCodes = new Set<string>();
+
+    for (const section of config.sections || []) {
+      for (const st of section.sectionTopics || []) {
+        if (!st.topic) continue;
+        allTopicIdsAndCodes.add(st.topic.id);
+        if (st.topic.code) allTopicIdsAndCodes.add(st.topic.code);
+        for (const c of st.topic.concepts || []) {
+          if (c.code) allConceptCodes.push(c.code);
+          if (c.id) allConceptIds.push(c.id);
+        }
+      }
+    }
+
+    const [activeTemplates, activeQuestions] = await Promise.all([
+      allConceptCodes.length > 0
+        ? this.prisma.template.findMany({
+            where: {
+              isActive: true,
+              deletedAt: null,
+              conceptKey: { in: Array.from(new Set(allConceptCodes)) },
+            },
+            select: { conceptKey: true },
+          })
+        : Promise.resolve([]),
+      allConceptIds.length > 0 || allTopicIdsAndCodes.size > 0
+        ? this.prisma.question.findMany({
+            where: {
+              status: "ACTIVE",
+              OR: [
+                ...(allConceptIds.length > 0
+                  ? [{ conceptId: { in: Array.from(new Set(allConceptIds)) } }]
+                  : []),
+                ...(allTopicIdsAndCodes.size > 0
+                  ? [{ topicId: { in: Array.from(allTopicIdsAndCodes) } }]
+                  : []),
+              ],
+            },
+            select: { conceptId: true, topicId: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    const activeTemplateKeys = new Set(activeTemplates.map((t) => t.conceptKey));
+    const activeQuestionConceptIds = new Set(
+      activeQuestions.map((q) => q.conceptId).filter(Boolean),
+    );
+    const activeQuestionTopicIds = new Set(
+      activeQuestions.map((q) => q.topicId).filter(Boolean),
+    );
+
     for (const section of config.sections) {
       if (!section.sectionTopics || section.sectionTopics.length === 0) {
         errors.push(
@@ -69,33 +123,18 @@ export class ConfigDependencyValidatorService {
           if (!st.topic) continue;
 
           const topicConcepts = st.topic.concepts || [];
-          const conceptCodes = topicConcepts.map((c) => c.code);
+          const hasTemplate = topicConcepts.some((c) =>
+            activeTemplateKeys.has(c.code),
+          );
+          const hasQuestion =
+            activeQuestionTopicIds.has(st.topic.id) ||
+            (st.topic.code ? activeQuestionTopicIds.has(st.topic.code) : false) ||
+            topicConcepts.some((c) => activeQuestionConceptIds.has(c.id));
 
-          // Check if templates or manual questions exist specifically for this topic's concepts
-          const templateCount = await this.prisma.template.count({
-            where: {
-              isActive: true,
-              deletedAt: null,
-              conceptKey: { in: conceptCodes },
-            },
-          });
-          const conceptIds = topicConcepts.map((c) => c.id);
-          const manualQuestionsCount = await this.prisma.question.count({
-            where: {
-              status: "ACTIVE",
-              OR: [
-                { conceptId: { in: conceptIds } },
-                { topicId: st.topic.id },
-                { topicId: st.topic.code },
-              ],
-            },
-          });
-
-          if (templateCount === 0 && manualQuestionsCount === 0) {
+          if (!hasTemplate && !hasQuestion) {
             warnings.push(
               `DEPENDENCY_WARN: No templates or manual questions found mapped to concepts of topic "${st.topic.name}" — question generation may fail`,
             );
-            // We do not break here because we want to warn for each topic
           }
         }
       }

@@ -370,15 +370,36 @@ export class ResultQueryService {
             testId: testInstance.id,
             status: "submitted",
             submittedAt: testInstance.submittedAt || new Date(),
-            answers: answers.map((a) => ({
-              questionId: a.questionId,
-              answer:
-                typeof a.answer === "object" && a.answer !== null
-                  ? JSON.stringify(a.answer)
-                  : String(a.answer || ""),
-              timeSpentSeconds: a.timeSpentSeconds || 0,
-              isMarkedForReview: a.isMarkedForReview || false,
-            })),
+            answers: answers.map((a) => {
+              let answerStr = "";
+              if (typeof a.answer === "string") {
+                answerStr = a.answer;
+              } else if (typeof a.answer === "object" && a.answer !== null) {
+                const ansObj = a.answer as Record<string, any>;
+                if (
+                  ansObj.code !== undefined ||
+                  ansObj.sourceCode !== undefined ||
+                  ansObj.files !== undefined
+                ) {
+                  answerStr = JSON.stringify(a.answer);
+                } else {
+                  answerStr =
+                    ansObj.selectedOptionId ||
+                    ansObj.answer ||
+                    ansObj.textResponse ||
+                    ansObj.value ||
+                    JSON.stringify(a.answer);
+                }
+              } else {
+                answerStr = String(a.answer || "");
+              }
+              return {
+                questionId: a.questionId,
+                answer: answerStr,
+                timeSpentSeconds: a.timeSpentSeconds || 0,
+                isMarkedForReview: a.isMarkedForReview || false,
+              };
+            }),
           };
           const generated = await this.resultGenerator?.generateResult(
             executionResult as any,
@@ -426,18 +447,29 @@ export class ResultQueryService {
     let correct = evaluation?.correctAnswers || 0;
     let wrong = evaluation?.incorrectAnswers || 0;
 
-    // Use fallback calculation if evaluation metrics are zeroed out
+    // Use actual per-question evaluation data when available
     if (
       correct === 0 &&
       wrong === 0 &&
       (percentage > 0 || answers.length > 0 || !evaluation)
     ) {
-      correct = Math.round((percentage / 100) * totalQuestions);
-      const answeredCount = answers.length;
-      if (answeredCount > 0) {
-        wrong = Math.max(0, answeredCount - correct);
+      // Try to extract from evaluationResult's questionResults JSON
+      const questionResults = (evaluation as any)?.questionResults;
+      if (Array.isArray(questionResults) && questionResults.length > 0) {
+        correct = questionResults.filter((r: any) => r.isCorrect).length;
+        const attempted = questionResults.filter(
+          (r: any) => r.candidateAnswer && r.candidateAnswer.trim() !== "",
+        ).length;
+        wrong = Math.max(0, attempted - correct);
       } else {
-        wrong = Math.max(0, totalQuestions - correct);
+        // Last resort: approximate from percentage (legacy fallback)
+        correct = Math.round((percentage / 100) * totalQuestions);
+        const answeredCount = answers.length;
+        if (answeredCount > 0) {
+          wrong = Math.max(0, answeredCount - correct);
+        } else {
+          wrong = Math.max(0, totalQuestions - correct);
+        }
       }
     }
 

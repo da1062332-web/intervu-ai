@@ -143,10 +143,29 @@ export class EvaluationQueueService {
 
     const answersMap: Record<string, string> = {};
     answers.forEach((ans) => {
-      answersMap[ans.questionId] =
-        typeof ans.answer === "object" && ans.answer !== null
-          ? JSON.stringify(ans.answer)
-          : String(ans.answer || "");
+      let answerStr = "";
+      if (typeof ans.answer === "string") {
+        answerStr = ans.answer;
+      } else if (typeof ans.answer === "object" && ans.answer !== null) {
+        const ansObj = ans.answer as Record<string, any>;
+        if (
+          ansObj.code !== undefined ||
+          ansObj.sourceCode !== undefined ||
+          ansObj.files !== undefined
+        ) {
+          answerStr = JSON.stringify(ans.answer);
+        } else {
+          answerStr =
+            ansObj.selectedOptionId ||
+            ansObj.answer ||
+            ansObj.textResponse ||
+            ansObj.value ||
+            JSON.stringify(ans.answer);
+        }
+      } else {
+        answerStr = String(ans.answer || "");
+      }
+      answersMap[ans.questionId] = answerStr;
     });
 
     // Reset error, increment retryCount, and enqueue

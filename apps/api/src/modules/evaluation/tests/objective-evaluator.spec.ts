@@ -97,4 +97,34 @@ describe("ObjectiveEvaluatorService Unit Tests", () => {
     expect(results[1].isCorrect).toBe(false);
     expect(results[1].score).toBe(0);
   });
+  it("should correctly handle JSON-wrapped answers and option index normalization", () => {
+    const options = [
+      { text: "Paris", value: "opt-0" },
+      { text: "London", value: "opt-1" },
+      { text: "Berlin", value: "opt-2" },
+      { text: "Madrid", value: "opt-3" },
+    ];
+
+    // Case 1: Candidate answer is JSON string '{"selectedOptionId":"opt-1"}' and expected is "opt-1"
+    expect(
+      service.compareAnswers('{"selectedOptionId":"opt-1"}', "opt-1", "MCQ", options),
+    ).toBe(true);
+
+    // Case 2: Candidate answer is JSON string '{"selectedOptionId":"opt-1"}' and expected is "London"
+    expect(
+      service.compareAnswers('{"selectedOptionId":"opt-1"}', "London", "MCQ", options),
+    ).toBe(true);
+
+    // Case 3: Candidate answer is "opt-0" and expected is "Paris"
+    expect(service.compareAnswers("opt-0", "Paris", "MCQ", options)).toBe(true);
+
+    // Case 4: Candidate answer is "Option B" and expected is "opt-1"
+    expect(service.compareAnswers("Option B", "opt-1", "MCQ", options)).toBe(true);
+
+    // Case 5: Candidate answer is index "2" and expected is "opt-2"
+    expect(service.compareAnswers("2", "opt-2", "MCQ", options)).toBe(true);
+
+    // Case 6: Candidate answer is wrong
+    expect(service.compareAnswers("opt-0", "London", "MCQ", options)).toBe(false);
+  });
 });
