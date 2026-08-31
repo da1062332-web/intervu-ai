@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 @Injectable()
 export class BlueprintRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async getExamConfigForBlueprint(configId: string) {
     const config = await this.prisma.examConfig.findUnique({

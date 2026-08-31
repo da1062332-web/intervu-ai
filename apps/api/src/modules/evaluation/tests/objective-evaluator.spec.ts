@@ -127,4 +127,37 @@ describe("ObjectiveEvaluatorService Unit Tests", () => {
     // Case 6: Candidate answer is wrong
     expect(service.compareAnswers("opt-0", "London", "MCQ", options)).toBe(false);
   });
+
+  it("should NOT match non-numeric strings with same leading numbers (prevent unit/noun false-positives)", () => {
+    const options = [
+      { text: "20 km", value: "opt-0" },
+      { text: "20 miles", value: "opt-1" },
+      { text: "30 km", value: "opt-2" },
+      { text: "40 km", value: "opt-3" },
+    ];
+
+    // "20 km" vs "20 miles" must NOT be treated as equal
+    expect(service.compareAnswers("20 km", "20 miles", "MCQ", options)).toBe(false);
+    expect(service.compareAnswers("2 hours", "2 days", "MCQ")).toBe(false);
+    expect(service.compareAnswers("5 red balls", "5 blue balls", "MCQ")).toBe(false);
+
+    // Pure numeric strings should match
+    expect(service.compareAnswers("42", "42.00", "MCQ")).toBe(true);
+    expect(service.compareAnswers("-15.5", "-15.500", "MCQ")).toBe(true);
+  });
+
+  it("should handle literal letter option texts without index collisions", () => {
+    const options = [
+      { text: "A", value: "opt-0" },
+      { text: "B", value: "opt-1" },
+      { text: "C", value: "opt-2" },
+      { text: "D", value: "opt-3" },
+    ];
+
+    // Selecting literal "A" when expected is "A" should be true
+    expect(service.compareAnswers("A", "A", "MCQ", options)).toBe(true);
+
+    // Selecting literal "A" when expected is "B" should be false
+    expect(service.compareAnswers("A", "B", "MCQ", options)).toBe(false);
+  });
 });

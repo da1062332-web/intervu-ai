@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Injectable, BadRequestException, Inject, Optional } from "@nestjs/common";
 import { BlueprintDto, BlueprintSectionDto } from "@intervu/shared";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
@@ -6,14 +6,18 @@ import { RedisCacheService } from "../../../cache/redis-cache.service";
 @Injectable()
 export class BlueprintBuilderService {
   constructor(
+    @Inject(BlueprintRepository)
     private readonly blueprintRepository: BlueprintRepository,
-    private readonly redisCacheService: RedisCacheService,
+    @Optional()
+    @Inject(RedisCacheService)
+    private readonly redisCacheService?: RedisCacheService,
   ) {}
 
   async generateBlueprint(configId: string): Promise<BlueprintDto> {
     const t0 = Date.now();
-    const cached =
-      await this.redisCacheService.getBlueprint<BlueprintDto>(configId);
+    const cached = this.redisCacheService
+      ? await this.redisCacheService.getBlueprint<BlueprintDto>(configId)
+      : null;
     if (cached) {
       console.log(`    [BLUEPRINT 💾 HIT] Cached blueprint retrieved in ${Date.now() - t0}ms for ${configId}`);
       return cached;
@@ -112,7 +116,9 @@ export class BlueprintBuilderService {
       process.env.ASSEMBLY_BLUEPRINT_CACHE_TTL_SECONDS || "3600",
       10,
     );
-    await this.redisCacheService.setBlueprint(configId, blueprint, ttl);
+    if (this.redisCacheService) {
+      await this.redisCacheService.setBlueprint(configId, blueprint, ttl);
+    }
 
     return blueprint;
   }

@@ -1,4 +1,4 @@
-import { Injectable, Logger, Optional } from "@nestjs/common";
+import { Injectable, Logger, Optional, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { QuestionAllocatorService, AllocationConfig } from "./question-allocator.service";
 import { SectionBuilderService } from "./section-builder.service";
@@ -6,6 +6,7 @@ import { QuestionPoolRepository } from "../repositories/question-pool.repository
 import { BlueprintSectionDto, AllocatedQuestionDto, AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { Prisma } from "@prisma/client";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { AssemblyValidatorService } from "../validators/assembly-validator.service";
 
 @Injectable()
 export class ProgressiveAssemblyWorkerService {
@@ -15,11 +16,12 @@ export class ProgressiveAssemblyWorkerService {
   };
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly allocator: QuestionAllocatorService,
-    private readonly sectionBuilder: SectionBuilderService,
-    private readonly poolRepository: QuestionPoolRepository,
-    @Optional() private readonly cacheService?: RedisCacheService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QuestionAllocatorService) private readonly allocator: QuestionAllocatorService,
+    @Inject(SectionBuilderService) private readonly sectionBuilder: SectionBuilderService,
+    @Inject(QuestionPoolRepository) private readonly poolRepository: QuestionPoolRepository,
+    @Optional() @Inject(AssemblyValidatorService) private readonly validator?: AssemblyValidatorService,
+    @Optional() @Inject(RedisCacheService) private readonly cacheService?: RedisCacheService,
   ) {}
 
   /**
@@ -53,6 +55,18 @@ export class ProgressiveAssemblyWorkerService {
           blueprintSection,
           allocatedQuestions,
         );
+
+        if (this.validator) {
+          const valResult = this.validator.validate(
+            { configId, sections: [blueprintSection] } as any,
+            [section],
+          );
+          if (!valResult.valid) {
+            this.logger.warn(
+              `Section '${blueprintSection.displayName}' validation warning for assembly ${assemblyId}: ${valResult.errors.join("; ")}`,
+            );
+          }
+        }
 
         // Find or create AssembledTestSection
         let assembledSection = await this.prisma.assembledTestSection.findFirst({
@@ -130,7 +144,16 @@ export class ProgressiveAssemblyWorkerService {
       } catch (err: any) {
         this.logger.error(
           `Failed populating section '${blueprintSection.displayName}' for assembly ${assemblyId}: ${err?.message || err}`,
+          err?.stack,
         );
+        try {
+          await this.prisma.testInstanceSection.updateMany({
+            where: { testInstanceId: assemblyId, sectionKey: blueprintSection.sectionKey },
+            data: { status: "FAILED" },
+          });
+        } catch {
+          // ignore if record not yet created
+        }
       }
     }
 

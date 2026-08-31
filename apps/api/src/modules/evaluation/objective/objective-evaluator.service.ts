@@ -217,7 +217,23 @@ export class ObjectiveEvaluatorService {
 
     // Letter A-Z or "Option A"
     const letterMatch = clean.match(/^(?:option\s+)?([a-z])$/i);
-    if (letterMatch) return letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+    if (letterMatch) {
+      const letter = letterMatch[1].toLowerCase();
+      const letterIdx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+
+      // Ensure the letter is not itself the literal text/value of an option (e.g. Option text is "A")
+      const isLiteralOptionText = options.some((opt) => {
+        const optText =
+          typeof opt === "object" && opt !== null
+            ? String(opt.text || opt.label || opt.value || "").trim().toLowerCase()
+            : String(opt).trim().toLowerCase();
+        return optText === letter;
+      });
+
+      if (!isLiteralOptionText && letterIdx >= 0 && letterIdx < options.length) {
+        return letterIdx;
+      }
+    }
 
     // Pure numeric index
     const num = parseInt(clean, 10);
@@ -280,12 +296,13 @@ export class ObjectiveEvaluatorService {
     }
 
     if (type === "numeric") {
-      const candNum = parseFloat(cleanCand);
-      const expNum = parseFloat(cleanExpected);
-      if (isNaN(candNum) || isNaN(expNum)) {
-        return false;
+      const isNumericPattern = (s: string) => /^-?\d+(?:\.\d+)?$/.test(s.trim());
+      if (isNumericPattern(cleanCand) && isNumericPattern(cleanExpected)) {
+        const candNum = Number(cleanCand);
+        const expNum = Number(cleanExpected);
+        return !isNaN(candNum) && !isNaN(expNum) && Math.abs(candNum - expNum) < 0.0001;
       }
-      return Math.abs(candNum - expNum) < 0.0001;
+      return false;
     }
 
     // 2. Resolve both candidate and expected to normalized text
@@ -309,15 +326,22 @@ export class ObjectiveEvaluatorService {
       }
     }
 
-    // 4. Numeric string comparison (e.g., "18" vs "18.00")
-    const candNum = parseFloat(resolvedCand);
-    const expNum = parseFloat(resolvedExpected);
-    if (
-      !isNaN(candNum) &&
-      !isNaN(expNum) &&
-      Math.abs(candNum - expNum) < 0.0001
-    ) {
-      return true;
+    // 4. Strict numeric string comparison (e.g., "18" vs "18.00")
+    // Only apply when both strings are purely numeric to prevent false-positives
+    // on unit mismatches like "20 km" vs "20 miles" or "2 hours" vs "2 days"
+    const isStrictNumeric = (s: string): boolean =>
+      /^-?\d+(?:\.\d+)?$/.test(s.trim());
+
+    if (isStrictNumeric(resolvedCand) && isStrictNumeric(resolvedExpected)) {
+      const candNum = Number(resolvedCand);
+      const expNum = Number(resolvedExpected);
+      if (
+        !isNaN(candNum) &&
+        !isNaN(expNum) &&
+        Math.abs(candNum - expNum) < 0.0001
+      ) {
+        return true;
+      }
     }
 
     return false;

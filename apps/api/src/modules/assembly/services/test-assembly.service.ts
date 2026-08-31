@@ -138,6 +138,18 @@ export class AssemblyService {
       sections.push(sec1);
       this.logger.log(`  [ASSEMBLY ⏱️] Step D (Progressive): Section 1 allocated & built in ${Date.now() - tSec1}ms (${sec1Questions.length} questions)`);
 
+      // Validate Section 1 synchronously before persisting
+      const sec1Validation = this.validator.validate(
+        { ...blueprint, sections: [sec1Blueprint] },
+        [sec1],
+      );
+      if (!sec1Validation.valid) {
+        this.logger.error(`Section 1 progressive validation failed: ${sec1Validation.errors.join("; ")}`);
+        throw new InternalServerErrorException(
+          `Section 1 progressive validation failed: ${sec1Validation.errors.join("; ")}`,
+        );
+      }
+
       // 2. Add placeholder section wrappers for remaining sections
       for (let i = 1; i < blueprint.sections.length; i++) {
         const remainingBpSec = blueprint.sections[i];

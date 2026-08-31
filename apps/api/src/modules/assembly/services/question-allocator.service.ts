@@ -47,6 +47,23 @@ export class QuestionAllocatorService {
     @Optional() private readonly orchestrator?: GenerationOrchestratorService,
   ) {}
 
+  private buildNormalizedSnapshot(q: any): Record<string, any> {
+    const rawOptions =
+      q.options ||
+      q.mcqData?.options ||
+      q.metadata?.options ||
+      q.choices ||
+      [];
+    const normalizedOptions = Array.isArray(rawOptions) ? rawOptions : [];
+
+    return {
+      ...q,
+      options: normalizedOptions,
+      answer: q.answer ?? q.correctAnswer ?? q.correct_answer ?? q.solution,
+      explanation: q.explanation ?? q.solution ?? "",
+    };
+  }
+
   private calculateSectionDifficultyTargets(
     totalQuestions: number,
     diffConfig: AllocationConfig["distribution"],
@@ -357,7 +374,7 @@ export class QuestionAllocatorService {
             difficultyLevel: q.difficultyLevel,
             questionType: q.questionType,
             questionOrder: orderCounter++,
-            questionSnapshot: q,
+            questionSnapshot: this.buildNormalizedSnapshot(q),
           };
           selectedForTopic.push(allocatedQ);
           allocatedQuestions.push(allocatedQ);
@@ -482,7 +499,7 @@ export class QuestionAllocatorService {
               difficultyLevel: q.difficultyLevel,
               questionType: q.questionType,
               questionOrder: orderCounter++,
-              questionSnapshot: q,
+              questionSnapshot: this.buildNormalizedSnapshot(q),
             };
             selectedForTopic.push(allocatedQ);
             allocatedQuestions.push(allocatedQ);
@@ -535,7 +552,7 @@ export class QuestionAllocatorService {
                   difficultyLevel: q.difficultyLevel,
                   questionType: q.questionType,
                   questionOrder: orderCounter++,
-                  questionSnapshot: q,
+                  questionSnapshot: this.buildNormalizedSnapshot(q),
                 };
                 selectedForTopic.push(allocatedQ);
                 allocatedQuestions.push(allocatedQ);
@@ -782,19 +799,24 @@ export class QuestionAllocatorService {
         });
 
         const questionText = normalizedQ.questionText || rawQuestionText;
-        const options =
+        const correctAnswer = normalizedQ.answer || rawAnswer;
+        const solution = normalizedQ.explanation || rawSolution;
+
+        let options: any[] =
           Array.isArray(normalizedQ.options) && normalizedQ.options.length >= 2
             ? normalizedQ.options
             : !isNaN(Number(rawAnswer))
               ? synthesizeNumericDistractors(Number(rawAnswer), 4)
-              : [
-                  "10",
-                  "20",
-                  "30",
-                  "40",
-                ];
-        const correctAnswer = normalizedQ.answer || rawAnswer;
-        const solution = normalizedQ.explanation || rawSolution;
+              : [];
+
+        if (options.length < 2) {
+          options = [
+            String(correctAnswer),
+            `Alternative choice A for ${topicDisplayName}`,
+            `Alternative choice B for ${topicDisplayName}`,
+            `Alternative choice C for ${topicDisplayName}`,
+          ];
+        }
 
         const defaultTemplate = await this.prisma.template.findFirst({
           select: { id: true },
@@ -864,12 +886,21 @@ export class QuestionAllocatorService {
           difficultyLevel: newQ.difficultyLevel,
           questionType: newQ.questionType,
           questionOrder: orderCounter++,
-          questionSnapshot: newQ as any,
+          questionSnapshot: this.buildNormalizedSnapshot({
+            ...newQ,
+            options,
+            answer: correctAnswer,
+            explanation: solution,
+          }),
         });
       }
 
       return generatedAllocations;
-    } catch (err) {
+    } catch (err: any) {
+      this.logger.error(
+        `Deficit generation error for topic ${topicId}: ${err?.message || err}`,
+        err?.stack,
+      );
       return [];
     }
   }
