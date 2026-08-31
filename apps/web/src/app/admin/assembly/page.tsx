@@ -21,6 +21,7 @@ export default function AssemblyDashboardPage() {
   const { data: topics } = useTopics(false);
 
   const generateAssembly = async (config: ExamConfig) => {
+    console.log(`[ASSEMBLY-PAGE 🚀] generateAssembly clicked for config: ${config.id} (${config.name})`);
     // FE-09: Pre-Assembly Validation guard
     if (config.status === 'DRAFT') {
       toast.error('Draft configurations cannot be assembled. Please validate or publish the configuration first.');
@@ -32,7 +33,9 @@ export default function AssemblyDashboardPage() {
     }
 
     setGenerating(config.id);
+    const t0 = performance.now();
     try {
+      console.log(`[ASSEMBLY-PAGE ⏱️] Requesting /assembly/tests/generate for config ${config.id}...`);
       const response = await apiClient.request<{ testInstanceId: string }>(
         '/assembly/tests/generate',
         {
@@ -40,6 +43,7 @@ export default function AssemblyDashboardPage() {
           body: { configId: config.id },
         },
       );
+      console.log(`[ASSEMBLY-PAGE 🚀] Assembly generated in ${(performance.now() - t0).toFixed(0)}ms! TestInstance: ${response?.testInstanceId}`);
 
       if (response && response.testInstanceId) {
         toast.success('Successfully assembled test instance.');

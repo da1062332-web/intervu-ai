@@ -163,7 +163,11 @@ export class ResultGeneratorService {
           snap.type ||
           "MCQ"
         ).toUpperCase();
-        const difficulty = snap.difficulty || snap.difficultyLevel || questionMeta?.difficulty || "MEDIUM";
+        const difficulty =
+          snap.difficulty ||
+          snap.difficultyLevel ||
+          questionMeta?.difficulty ||
+          "MEDIUM";
 
         // Resolve topic display name
         let topicName = "General";
@@ -352,7 +356,9 @@ export class ResultGeneratorService {
       (r) => r.candidateAnswer && r.candidateAnswer.trim() !== "",
     ).length;
     const totalIncorrect = totalAttempted - totalCorrect;
-    const codingSolvedCount = codingEvalResults.filter((r) => r.passed || r.isCorrect).length;
+    const codingSolvedCount = codingEvalResults.filter(
+      (r) => r.passed || r.isCorrect,
+    ).length;
 
     // 13. Evaluate Generic Hiring Qualification if enabled
     const hiringOutcome = await this.hiringEngine.evaluateAttempt(
@@ -397,7 +403,8 @@ export class ResultGeneratorService {
           }
         : {
             qualification: "NOT_APPLICABLE",
-            qualificationReason: "No qualification criteria configured for this assessment",
+            qualificationReason:
+              "No qualification criteria configured for this assessment",
           }),
     };
   }

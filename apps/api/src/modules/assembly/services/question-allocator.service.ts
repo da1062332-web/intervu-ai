@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   BadRequestException,
+  Logger,
 } from "@nestjs/common";
 import { BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedQuestionDto } from "@intervu/shared";
@@ -36,6 +37,8 @@ interface DifficultyTargetMap {
 
 @Injectable()
 export class QuestionAllocatorService {
+  private readonly logger = new Logger(QuestionAllocatorService.name);
+
   constructor(
     @Inject(QUESTION_SOURCE_TOKEN)
     private readonly questionSource: IQuestionSource,
@@ -324,7 +327,7 @@ export class QuestionAllocatorService {
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
         const selectedForTopic: AllocatedQuestionDto[] = [];
 
-        // Fetch using Natural Ratio ({ EASY: 0, MEDIUM: 0, HARD: 0 })
+        const tFetch = Date.now();
         const questions = await this.questionSource.fetchQuestions({
           conceptKey: topicAlloc.topicId,
           difficultyLevel: undefined,
@@ -333,12 +336,16 @@ export class QuestionAllocatorService {
           examId,
           questionType: "",
         });
+        const fetchMs = Date.now() - tFetch;
 
+        const tFilt = Date.now();
         const filtered = await this.antiRepetitionService.filterPool(
           questions,
           historyIds,
           Array.from(allocatedQuestionIds),
         );
+        const filtMs = Date.now() - tFilt;
+        this.logger.log(`      [TOPIC ⏱️] Topic "${topicAlloc.topicId}": fetched ${questions.length} questions in ${fetchMs}ms, filtered to ${filtered.length} in ${filtMs}ms (Needed: ${topicCount})`);
 
         const selected = filtered.slice(0, topicCount);
         for (const q of selected) {
@@ -366,6 +373,8 @@ export class QuestionAllocatorService {
           const topicName = (topicAlloc as any).topicName || topicAlloc.topicId;
           const deficit = topicCount - selectedForTopic.length;
 
+          const tDeficit = Date.now();
+          this.logger.warn(`      [DEFICIT ⚠️] Deficit of ${deficit} question(s) for topic "${topicName}". Running deficit generation...`);
           const runtimeGenerated = await this.handleDeficitGeneration(
             deficit,
             topicAlloc.topicId,
@@ -374,6 +383,7 @@ export class QuestionAllocatorService {
             orderCounter,
             examId,
           );
+          this.logger.log(`      [DEFICIT ✅] Deficit generation completed in ${Date.now() - tDeficit}ms (Produced ${runtimeGenerated.length} questions)`);
 
           if (runtimeGenerated.length > 0) {
             selectedForTopic.push(...runtimeGenerated);
@@ -430,12 +440,14 @@ export class QuestionAllocatorService {
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
         const selectedForTopic: AllocatedQuestionDto[] = [];
 
+        const tDiff = Date.now();
         while (
           selectedForTopic.length < requiredForTopic &&
           attempts < maxAttempts
         ) {
           const shortage = requiredForTopic - selectedForTopic.length;
 
+          const tFetch = Date.now();
           const questions = await this.questionSource.fetchQuestions({
             conceptKey: topicAlloc.topicId,
             difficultyLevel: diff.level,
@@ -444,16 +456,19 @@ export class QuestionAllocatorService {
             examId,
             questionType: "",
           });
+          const fetchMs = Date.now() - tFetch;
 
           for (const q of questions) {
             currentlyExcludedIds.add(q.id);
           }
 
+          const tFilt = Date.now();
           const filteredQuestions = await this.antiRepetitionService.filterPool(
             questions,
             historyIds,
             Array.from(allocatedQuestionIds),
           );
+          const filtMs = Date.now() - tFilt;
 
           const toAddCount = Math.min(shortage, filteredQuestions.length);
           const selected = filteredQuestions.slice(0, toAddCount);
@@ -475,6 +490,7 @@ export class QuestionAllocatorService {
 
           attempts++;
         }
+        this.logger.log(`      [TOPIC-TIER ⏱️] Topic "${topicAlloc.topicId}" [${diff.level}]: allocated ${selectedForTopic.length}/${requiredForTopic} questions in ${Date.now() - tDiff}ms`);
 
         if (selectedForTopic.length < requiredForTopic) {
           const fallbackLevels: DifficultyLevel[] = [
@@ -545,6 +561,8 @@ export class QuestionAllocatorService {
             .trim();
           const deficit = requiredForTopic - selectedForTopic.length;
 
+          const tDeficit = Date.now();
+          this.logger.warn(`      [DEFICIT ⚠️] Deficit of ${deficit} ${diff.level} question(s) for topic "${topicName}". Running deficit generation...`);
           const runtimeGenerated = await this.handleDeficitGeneration(
             deficit,
             topicAlloc.topicId,
@@ -553,6 +571,7 @@ export class QuestionAllocatorService {
             orderCounter,
             examId,
           );
+          this.logger.log(`      [DEFICIT ✅] Deficit generation completed in ${Date.now() - tDeficit}ms (Produced ${runtimeGenerated.length} questions)`);
 
           if (runtimeGenerated.length > 0) {
             selectedForTopic.push(...runtimeGenerated);
@@ -719,16 +738,19 @@ export class QuestionAllocatorService {
       // ──────────────────────────────────────────────────────────────────────
       let batchQuestions: any[] = [];
       if (this.orchestrator && deficit > 0) {
+        const tAiCall = Date.now();
+        this.logger.log(`        [AI-GEN 🤖 ⏱️] Requesting ${deficit} question(s) for topic "${topicDisplayName}" (${difficulty}) from AI Orchestrator...`);
         try {
           const aiRes = await this.orchestrator.generateQuestions({
             topic: topicDisplayName,
-            count: deficit,          // ← single batch instead of loop
+            count: deficit, // ← single batch instead of loop
             difficulty: difficulty,
             styleProfile,
           } as any);
           batchQuestions = aiRes?.questions || [];
+          this.logger.log(`        [AI-GEN 🤖 ✅] AI Orchestrator responded in ${Date.now() - tAiCall}ms with ${batchQuestions.length} question(s)`);
         } catch (err) {
-          // LLM adapter failed — batchQuestions stays empty, fallback below handles it
+          this.logger.warn(`        [AI-GEN 🤖 ❌] AI Orchestrator failed in ${Date.now() - tAiCall}ms: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
 

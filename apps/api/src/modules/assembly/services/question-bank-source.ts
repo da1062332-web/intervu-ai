@@ -32,6 +32,7 @@ export class QuestionBankSource implements IQuestionSource {
   ) {}
 
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
+    const tStart = Date.now();
     const inputConceptKey = (filters.conceptKey || "").replace(/^"|"$/g, "").trim();
 
     // 1. Resolve UUID, Code, or Name
@@ -273,6 +274,7 @@ export class QuestionBankSource implements IQuestionSource {
       }
     }
 
+    this.logger.log(`    [QUESTION-SOURCE ⏱️] fetchQuestions("${inputConceptKey}", limit: ${limit}) returned ${assembledResults.length} questions in ${Date.now() - tStart}ms`);
     return assembledResults;
   }
 

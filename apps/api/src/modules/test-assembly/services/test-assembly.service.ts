@@ -23,6 +23,8 @@ export class TestAssemblyService {
   }
 
   async generateQuestions(body: GenerationRequest) {
+    const t0 = Date.now();
+    this.logger.info(`[TEST-ASSEMBLY-GEN ⏱️ START] generateQuestions received with blueprintId: "${body.blueprintId}", topicId: "${body.topicId}", quantity: ${body.quantity}`);
     // If a published/created assembled test exists for this blueprint, return it directly
     try {
       if (body.blueprintId) {
@@ -30,6 +32,7 @@ export class TestAssemblyService {
           body.blueprintId,
         );
         if (existing) {
+          this.logger.info(`[TEST-ASSEMBLY-GEN ⚡] Returning existing assembled test (${existing.id}) in ${Date.now() - t0}ms`);
           // Map assembledTest -> Assessment-like result used by frontend
           const questions: any[] = [];
           for (const s of existing.sections || []) {

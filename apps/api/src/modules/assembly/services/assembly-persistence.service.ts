@@ -166,12 +166,14 @@ export class AssemblyPersistenceService {
       0,
     );
 
+    const t0 = Date.now();
     const assemblyId = await this.repository.createAssemblyWithTransaction(
       configId,
       sections,
       totalDuration,
       totalQuestions,
     );
+    this.logger.log(`    [SAVE-ASSEMBLY ⏱️] AssembledTest created in ${Date.now() - t0}ms (ID: ${assemblyId})`);
 
     await this.auditService.log(assemblyId, "CREATED", userId, {
       configId,
@@ -181,6 +183,7 @@ export class AssemblyPersistenceService {
 
     // Create candidate test instance and nested sections & questions in testInstance table for execution controller session resolution
     try {
+      const tTi = Date.now();
       const expiresAt = new Date(Date.now() + (totalDuration || 3600) * 1000);
       const queries: Prisma.PrismaPromise<unknown>[] = [];
 
@@ -228,6 +231,7 @@ export class AssemblyPersistenceService {
       }
 
       await this.prisma.$transaction(queries);
+      this.logger.log(`    [SAVE-ASSEMBLY ⏱️] TestInstance snapshot committed to DB in ${Date.now() - tTi}ms!`);
     } catch (e: any) {
       console.error("AssemblyPersistenceService testInstance transaction error:", e?.message || e);
     }

@@ -11,14 +11,18 @@ export class BlueprintBuilderService {
   ) {}
 
   async generateBlueprint(configId: string): Promise<BlueprintDto> {
+    const t0 = Date.now();
     const cached =
       await this.redisCacheService.getBlueprint<BlueprintDto>(configId);
     if (cached) {
+      console.log(`    [BLUEPRINT 💾 HIT] Cached blueprint retrieved in ${Date.now() - t0}ms for ${configId}`);
       return cached;
     }
 
+    const tDb = Date.now();
     const config =
       await this.blueprintRepository.getExamConfigForBlueprint(configId);
+    console.log(`    [BLUEPRINT 🗄️ DB] Fetched ExamConfig & sections in ${Date.now() - tDb}ms (Sections: ${config.sections?.length})`);
 
     if (!config.sections || config.sections.length === 0) {
       throw new BadRequestException(

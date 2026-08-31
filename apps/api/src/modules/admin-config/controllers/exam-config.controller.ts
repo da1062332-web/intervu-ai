@@ -127,7 +127,11 @@ export class ExamConfigController {
   @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiOkResponse({ description: "Validation result with errors and warnings" })
   async validate(@Param("id") id: string) {
-    return this.configPublisher.validateOnly(id);
+    const t0 = Date.now();
+    console.log(`[CONFIG-VALIDATE ⏱️] Validating exam config ${id}...`);
+    const result = await this.configPublisher.validateOnly(id);
+    console.log(`[CONFIG-VALIDATE ✅] Validated exam config ${id} in ${Date.now() - t0}ms (Valid: ${result?.valid})`);
+    return result;
   }
 
   // ─── Publishing ────────────────────────────────────────────────────────────
@@ -145,7 +149,11 @@ export class ExamConfigController {
   @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiOkResponse({ description: "Publish result with version and timestamp" })
   async publish(@Param("id") id: string, @CurrentUser() user: AuthUser) {
-    return this.configPublisher.publish(id, user.id);
+    const t0 = Date.now();
+    console.log(`[CONFIG-PUBLISH ⏱️] Publishing exam config ${id} for user ${user.id}...`);
+    const result = await this.configPublisher.publish(id, user.id);
+    console.log(`[CONFIG-PUBLISH ✅] Published exam config ${id} in ${Date.now() - t0}ms (Status: ${result?.status})`);
+    return result;
   }
 
   // ─── Preview ───────────────────────────────────────────────────────────────
