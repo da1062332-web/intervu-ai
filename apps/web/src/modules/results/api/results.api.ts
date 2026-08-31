@@ -7,7 +7,7 @@ import type {
   StrengthWeaknessResponse,
   PerformanceDashboardResponse,
 } from '../types/results.types';
-import type { PerformanceAnalyticsDto } from '@SkillitriX-ai/contracts';
+import type { PerformanceAnalyticsDto } from '@intervu-ai/contracts';
 
 const BASE_PATH = '/results';
 

@@ -4,7 +4,7 @@ import {
   ValidationResult,
 } from '../utils/validationEngine';
 import { topicsApi, conceptsApi, templatesApi, weightagesApi } from './api';
-import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
+import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { ConceptMapping } from '@/services/concept-mapping';
 
 export class ConfigurationReadinessService {

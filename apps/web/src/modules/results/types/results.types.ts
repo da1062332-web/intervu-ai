@@ -1,4 +1,4 @@
-import { CandidateResultDto, PerformanceAnalyticsDto } from '@SkillitriX-ai/contracts';
+import { CandidateResultDto, PerformanceAnalyticsDto } from '@intervu-ai/contracts';
 
 export type ResultDetails = {
   attemptId: string;

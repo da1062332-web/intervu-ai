@@ -917,7 +917,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (ansIndex === -1) {
     issues.push({
       type: "CRITICAL_MISSING_ANSWER",
-      desc: \`Correct answer "\${q.answer}" does not exist in the options list: [\${q.options.map(o => \`"\${o}"\`).join(", ")}]\`
+      desc: `Correct answer "${q.answer}" does not exist in the options list: [${q.options.map(o => '"' + o + '"').join(", ")}]`
     });
   }
 
@@ -925,7 +925,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (q.options.length !== 4) {
     issues.push({
       type: "INVALID_OPTION_COUNT",
-      desc: \`Options count is \${q.options.length}, expected 4\`
+      desc: `Options count is ${q.options.length}, expected 4`
     });
   }
 
@@ -934,7 +934,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (uniqueOpts.size !== q.options.length) {
     issues.push({
       type: "DUPLICATE_OPTIONS",
-      desc: \`Contains duplicate options: \${q.options.join(" | ")}\`
+      desc: `Contains duplicate options: ${q.options.join(" | ")}`
     });
   }
 
@@ -953,25 +953,25 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (explLower.includes("engineer") && !optsLower.includes("engineer") && !qLower.includes("engineer")) {
     issues.push({
       type: "EXPLANATION_MISMATCH",
-      desc: \`Explanation hallucinates about "She is an engineer" / article rules, but the question is actually about "\${q.answer}"\`
+      desc: `Explanation hallucinates about "She is an engineer" / article rules, but the question is actually about "${q.answer}"`
     });
   }
   if (explLower.includes("gym") && !optsLower.includes("gym")) {
     issues.push({
       type: "EXPLANATION_MISMATCH",
-      desc: \`Explanation hallucinates about "She doesn't like going to the gym", but the question is about "\${q.answer}"\`
+      desc: `Explanation hallucinates about "She doesn't like going to the gym", but the question is about "${q.answer}"`
     });
   }
   if (explLower.includes("reading books") && !optsLower.includes("reading") && !optsLower.includes("book")) {
     issues.push({
       type: "EXPLANATION_MISMATCH",
-      desc: \`Explanation hallucinates about "She enjoys reading books", but the question is about "\${q.answer}"\`
+      desc: `Explanation hallucinates about "She enjoys reading books", but the question is about "${q.answer}"`
     });
   }
   if (explLower.includes("neither the manager nor the employees were informed") && !optsLower.includes("informed")) {
     issues.push({
       type: "EXPLANATION_MISMATCH",
-      desc: \`Explanation hallucinates about "Neither the manager nor the employees were informed", but options are conditional "If she had known..."\`
+      desc: `Explanation hallucinates about "Neither the manager nor the employees were informed", but options are conditional "If she had known..."`
     });
   }
 
@@ -988,7 +988,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
     if (statedIdx !== -1 && statedIdx !== ansIndex) {
       warnings.push({
         type: "OPTION_LETTER_MISMATCH",
-        desc: \`Explanation refers to option "\${stated}" (index \${statedIdx + 1}), but the answer is located at option "\${String.fromCharCode(65 + ansIndex)}" (index \${ansIndex + 1})\`
+        desc: `Explanation refers to option "${stated}" (index ${statedIdx + 1}), but the answer is located at option "${String.fromCharCode(65 + ansIndex)}" (index ${ansIndex + 1})`
       });
     }
   }
@@ -998,7 +998,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (q.options.includes("The team was excited about the project.") && q.options.includes("The team is excited about the project.")) {
     issues.push({
       type: "MULTIPLE_VALID_ANSWERS",
-      desc: \`Both "The team was excited about the project." (past) and "The team is excited about the project." (present) are grammatically correct standard English.\`
+      desc: `Both "The team was excited about the project." (past) and "The team is excited about the project." (present) are grammatically correct standard English.`
     });
   }
 
@@ -1006,7 +1006,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (q.options.includes("Last week, the project manager discussed with the team.") && q.options.includes("The manager discussed the project with the team last week.")) {
     warnings.push({
       type: "DISTRACTOR_AMBIGUITY",
-      desc: \`Distractor "Last week, the project manager discussed with the team." is also a grammatically valid sentence.\`
+      desc: `Distractor "Last week, the project manager discussed with the team." is also a grammatically valid sentence.`
     });
   }
 
@@ -1014,7 +1014,7 @@ for (let idx = 0; idx < parsedQuestions.length; idx++) {
   if (q.options.includes("Every team member submits their reports.")) {
     warnings.push({
       type: "DISTRACTOR_AMBIGUITY",
-      desc: \`Distractor "Every team member submits their reports." is grammatically valid in simple present tense.\`
+      desc: `Distractor "Every team member submits their reports." is grammatically valid in simple present tense.`
     });
   }
 

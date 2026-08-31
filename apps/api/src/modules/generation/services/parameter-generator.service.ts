@@ -289,8 +289,8 @@ export class ParameterGeneratorService {
       .map((entry) => `${entry.name} = ${entry.expression}`);
 
     const formulas = [
-      ...(metadata.formulas || []),
-      ...(variableSchema.formulas || []),
+      ...(Array.isArray(metadata.formulas) ? metadata.formulas : []),
+      ...(Array.isArray(variableSchema.formulas) ? variableSchema.formulas : []),
       ...formulasFromDerived,
     ];
     const formulaTargets = new Set(
