@@ -19,7 +19,7 @@ export class TestInstanceService {
     }
   }
 
-  async getTestInstance(id: string) {
-    return this.repository.findById(id);
+  async getTestInstance(id: string, includeQuestions = true) {
+    return this.repository.findById(id, includeQuestions);
   }
 }

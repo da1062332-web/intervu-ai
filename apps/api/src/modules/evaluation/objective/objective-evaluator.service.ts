@@ -27,8 +27,25 @@ export class ObjectiveEvaluatorService {
     const clean = (value ?? "").trim();
     if (!clean) return "";
 
-    // 1. Check if it's opt-0, opt-1, opt-2...
-    const optMatch = clean.match(/^opt-(\d+)$/i);
+    // 0. If it's a JSON string, extract first
+    const extracted = this.extractFromJsonAnswer(clean);
+    const target = (extracted || clean).trim();
+
+    // 1. Direct ID/value match in options (e.g. opt.id === "opt-1" or opt.value === "opt-1")
+    if (options && options.length > 0) {
+      for (const opt of options) {
+        if (typeof opt === "object" && opt !== null) {
+          const optId = String(opt.id || opt.value || "").trim().toLowerCase();
+          if (optId && optId === target.toLowerCase()) {
+            const text = opt.text || opt.label || opt.optionText || "";
+            if (text) return String(text).trim().toLowerCase();
+          }
+        }
+      }
+    }
+
+    // 2. Check if it's opt-0, opt-1, opt-2...
+    const optMatch = target.match(/^opt-(\d+)$/i);
     if (optMatch && options && options.length > 0) {
       const idx = parseInt(optMatch[1], 10);
       if (idx >= 0 && idx < options.length) {
@@ -41,8 +58,22 @@ export class ObjectiveEvaluatorService {
       }
     }
 
-    // 2. Check if it's a single letter A, B, C, D... or Option A, Option B...
-    const letterMatch = clean.match(/^(?:option\s+)?([a-z])$/i);
+    // 3. Check if it's a numeric index: 0, 1, 2...
+    const numMatch = target.match(/^(\d+)$/);
+    if (numMatch && options && options.length > 0) {
+      const idx = parseInt(numMatch[1], 10);
+      if (idx >= 0 && idx < options.length) {
+        const raw = options[idx];
+        const text =
+          typeof raw === "object" && raw !== null
+            ? raw.text || raw.value || raw.label || raw.optionText || ""
+            : String(raw);
+        if (text) return text.trim().toLowerCase();
+      }
+    }
+
+    // 4. Check if it's a single letter A, B, C, D... or Option A, Option B...
+    const letterMatch = target.match(/^(?:option\s+)?([a-z])$/i);
     if (letterMatch && options && options.length > 0) {
       const idx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
       if (idx >= 0 && idx < options.length) {
@@ -55,14 +86,14 @@ export class ObjectiveEvaluatorService {
       }
     }
 
-    // 3. If it's an object with text/value
+    // 5. If it's an object with text/value
     if (typeof value === "object" && value !== null) {
       const raw = value as any;
       const text = raw.text || raw.value || raw.label || "";
       if (text) return String(text).trim().toLowerCase();
     }
 
-    return clean.toLowerCase();
+    return target.toLowerCase();
   }
 
   /**
@@ -131,16 +162,84 @@ export class ObjectiveEvaluatorService {
   }
 
   /**
-   * Compares candidate answer with correct answer based on question type and options.
+   * Extracts a clean option ID or text from a candidate answer that
+   * may have been saved as a JSON object (e.g., '{"selectedOptionId":"opt-1"}').
    */
+  private extractFromJsonAnswer(raw: string): string {
+    const trimmed = (raw ?? "").trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (typeof parsed === "object" && parsed !== null) {
+          for (const [k, v] of Object.entries(parsed)) {
+            const kLower = k.toLowerCase();
+            if (
+              kLower === "selectedoptionid" ||
+              kLower === "answer" ||
+              kLower === "textresponse" ||
+              kLower === "value"
+            ) {
+              if (typeof v === "string" || typeof v === "number") {
+                return String(v).trim();
+              }
+            }
+          }
+        }
+      } catch {
+        // not valid JSON — return as-is
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Resolves an option index (opt-0, opt-1, A, B, 0, 1) to the actual
+   * index number. Returns -1 if not an index-like value.
+   */
+  private resolveToIndex(value: string, options?: any[]): number {
+    const clean = (value ?? "").trim();
+    if (!clean || !options || options.length === 0) return -1;
+
+    // Check if clean matches opt.id or opt.value directly
+    for (let i = 0; i < options.length; i++) {
+      const opt = options[i];
+      if (typeof opt === "object" && opt !== null) {
+        const optId = String(opt.id || opt.value || "").trim().toLowerCase();
+        if (optId && optId === clean.toLowerCase()) {
+          return i;
+        }
+      }
+    }
+
+    // opt-N format
+    const optMatch = clean.match(/^opt-(\d+)$/i);
+    if (optMatch) return parseInt(optMatch[1], 10);
+
+    // Letter A-Z or "Option A"
+    const letterMatch = clean.match(/^(?:option\s+)?([a-z])$/i);
+    if (letterMatch) return letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+
+    // Pure numeric index
+    const num = parseInt(clean, 10);
+    if (!isNaN(num) && num >= 0 && num < options.length && String(num) === clean) {
+      return num;
+    }
+
+    return -1;
+  }
+
   compareAnswers(
     candidate: string,
     expected: string,
     type: string,
     options?: any[],
   ): boolean {
-    const cleanCand = (candidate ?? "").trim().toLowerCase();
-    const cleanExpected = (expected ?? "").trim().toLowerCase();
+    // 0. Extract from JSON-wrapped answers before lowercasing
+    const extractedCand = this.extractFromJsonAnswer(candidate) || candidate;
+    const extractedExp = this.extractFromJsonAnswer(expected) || expected;
+
+    const cleanCand = (extractedCand ?? "").trim().toLowerCase();
+    const cleanExpected = (extractedExp ?? "").trim().toLowerCase();
 
     if (!cleanCand) {
       return false;
@@ -201,7 +300,16 @@ export class ObjectiveEvaluatorService {
       return true;
     }
 
-    // 3. Numeric string comparison (e.g., "18" vs "18.00")
+    // 3. Index-based matching: resolve both to option indices and compare
+    if (options && options.length > 0) {
+      const candIdx = this.resolveToIndex(cleanCand, options);
+      const expIdx = this.resolveToIndex(cleanExpected, options);
+      if (candIdx >= 0 && expIdx >= 0 && candIdx === expIdx) {
+        return true;
+      }
+    }
+
+    // 4. Numeric string comparison (e.g., "18" vs "18.00")
     const candNum = parseFloat(resolvedCand);
     const expNum = parseFloat(resolvedExpected);
     if (

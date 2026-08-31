@@ -49,11 +49,38 @@ export class ReEvaluationService {
         testId: attemptId,
         status: "submitted",
         submittedAt: attempt.submittedAt || new Date(),
-        answers: attempt.candidateAnswers.map((a) => ({
-          questionId: a.questionId,
-          answer: String(a.answer),
-          timeSpentSeconds: a.timeSpentSeconds || 0,
-        })),
+        answers: attempt.candidateAnswers.map((a) => {
+          // Safely extract the answer string from the Prisma Json field
+          let answerStr = "";
+          if (typeof a.answer === "string") {
+            answerStr = a.answer;
+          } else if (typeof a.answer === "object" && a.answer !== null) {
+            const ansObj = a.answer as Record<string, any>;
+            // For coding submissions, preserve the complete JSON payload
+            if (
+              ansObj.code !== undefined ||
+              ansObj.sourceCode !== undefined ||
+              ansObj.files !== undefined
+            ) {
+              answerStr = JSON.stringify(a.answer);
+            } else {
+              // For MCQs, extract the specific option value
+              answerStr =
+                ansObj.selectedOptionId ||
+                ansObj.answer ||
+                ansObj.textResponse ||
+                ansObj.value ||
+                JSON.stringify(a.answer);
+            }
+          } else {
+            answerStr = String(a.answer ?? "");
+          }
+          return {
+            questionId: a.questionId,
+            answer: answerStr,
+            timeSpentSeconds: a.timeSpentSeconds || 0,
+          };
+        }),
       };
 
       // 3. Generate candidate result DTO (critical path)

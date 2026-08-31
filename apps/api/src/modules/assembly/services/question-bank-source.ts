@@ -188,16 +188,25 @@ export class QuestionBankSource implements IQuestionSource {
         const actualDiffDist = { EASY: 0, MEDIUM: 0, HARD: 0 };
 
         if (hasExplicitDifficulty) {
-          const availForDiff = availability.details.find((d) => d.difficulty === difficulty)?.available || 0;
+          const availForDiff =
+            availability?.details?.find((d) => d.difficulty === difficulty)
+              ?.available ?? availability?.available ?? 0;
           const takeCount = Math.min(availForDiff, targetManual);
           actualDiffDist[difficulty] = takeCount;
           remainingToTake -= takeCount;
         } else {
           // Sort or distribute across available difficulties
-          for (const d of availability.details) {
-            if (remainingToTake <= 0) break;
-            const takeFromDiff = Math.min(d.available, remainingToTake);
-            actualDiffDist[d.difficulty] = takeFromDiff;
+          if (Array.isArray(availability?.details)) {
+            for (const d of availability.details) {
+              if (remainingToTake <= 0) break;
+              const takeFromDiff = Math.min(d.available, remainingToTake);
+              actualDiffDist[d.difficulty] = takeFromDiff;
+              remainingToTake -= takeFromDiff;
+            }
+          } else {
+            const availCount = availability?.available ?? targetManual;
+            const takeFromDiff = Math.min(availCount, remainingToTake);
+            actualDiffDist["MEDIUM"] = takeFromDiff;
             remainingToTake -= takeFromDiff;
           }
         }

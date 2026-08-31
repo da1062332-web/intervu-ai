@@ -26,6 +26,7 @@ describe("ExamConfigService", () => {
 
     redisCacheService = {
       invalidateBlueprint: jest.fn().mockResolvedValue(true),
+      delete: jest.fn().mockResolvedValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({

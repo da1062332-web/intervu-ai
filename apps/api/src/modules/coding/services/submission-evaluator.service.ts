@@ -311,25 +311,120 @@ export class SubmissionEvaluatorService {
     };
   }
 
-  private formatStdin(input: any): string {
+  private convertObjectToStdin(input: any): string {
     if (input === null || input === undefined) return "";
     if (typeof input === "string") return input.trim();
     if (typeof input === "number" || typeof input === "boolean") return String(input);
-    if (typeof input === "object") {
-      if (typeof input.stdin === "string") return input.stdin.trim();
-      return JSON.stringify(input);
+
+    if (Array.isArray(input)) {
+      if (input.length === 0) return "0";
+      // Array of objects (e.g. operations [{ op: "ADD", val: 5 }])
+      if (typeof input[0] === "object" && input[0] !== null) {
+        const lines: string[] = [String(input.length)];
+        for (const item of input) {
+          lines.push(Object.values(item).join(" "));
+        }
+        return lines.join("\n");
+      }
+      // Array of primitives (e.g. [1, 2, 3]) -> space-separated
+      return input.join(" ");
     }
-    return JSON.stringify(input);
+
+    if (typeof input === "object") {
+      if (typeof input.stdin === "string") {
+        return input.stdin.trim();
+      }
+
+      const lines: string[] = [];
+      for (const key of Object.keys(input)) {
+        const val = input[key];
+        if (val === null || val === undefined) continue;
+
+        if (Array.isArray(val)) {
+          if (val.length === 0) {
+            lines.push("0");
+          } else if (typeof val[0] === "object" && val[0] !== null) {
+            // e.g. operations: [{ op: "ADD", val: 5 }, { op: "MULTIPLY", val: 2 }]
+            lines.push(String(val.length));
+            for (const item of val) {
+              lines.push(Object.values(item).join(" "));
+            }
+          } else {
+            // e.g. numbers: [2, 7, 11, 15] -> space separated
+            lines.push(val.join(" "));
+          }
+        } else if (typeof val === "object") {
+          lines.push(Object.values(val).join(" "));
+        } else {
+          lines.push(String(val));
+        }
+      }
+      return lines.join("\n");
+    }
+
+    return String(input).trim();
+  }
+
+  private formatStdin(input: any): string {
+    if (input === null || input === undefined) return "";
+    if (typeof input === "string") {
+      const trimmed = input.trim();
+      // If it is a stringified JSON object/array, parse it first and convert to plain text!
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]"))
+      ) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return this.convertObjectToStdin(parsed);
+        } catch {
+          return trimmed;
+        }
+      }
+      return trimmed;
+    }
+    if (typeof input === "number" || typeof input === "boolean") return String(input);
+    if (typeof input === "object") {
+      return this.convertObjectToStdin(input);
+    }
+    return String(input).trim();
   }
 
   private formatExpectedOutput(expected: any): string {
     if (expected === null || expected === undefined) return "";
-    if (typeof expected === "string") return expected.trim();
-    if (typeof expected === "boolean" || typeof expected === "number") return String(expected);
-    if (typeof expected === "object" && expected !== null && "result" in expected) {
-      return typeof expected.result === "string" ? expected.result.trim() : String(expected.result);
+    if (typeof expected === "string") {
+      const trimmed = expected.trim();
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]"))
+      ) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return this.formatExpectedOutput(parsed);
+        } catch {
+          return trimmed;
+        }
+      }
+      return trimmed;
     }
-    return JSON.stringify(expected);
+    if (typeof expected === "boolean" || typeof expected === "number") return String(expected);
+    if (typeof expected === "object" && expected !== null) {
+      const keys = Object.keys(expected);
+      if (keys.length === 1) {
+        return this.formatExpectedOutput(expected[keys[0]]);
+      }
+      if ("result" in expected) return this.formatExpectedOutput(expected.result);
+      if ("indices" in expected) return this.formatExpectedOutput(expected.indices);
+      if ("index" in expected) return this.formatExpectedOutput(expected.index);
+      if ("ans" in expected) return this.formatExpectedOutput(expected.ans);
+      if ("answer" in expected) return this.formatExpectedOutput(expected.answer);
+      if ("output" in expected) return this.formatExpectedOutput(expected.output);
+      if (Array.isArray(expected)) {
+        return expected.map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x))).join(" ");
+      }
+      return Object.values(expected).join(" ");
+    }
+    return String(expected);
   }
 
   private compareOutputs(actualRaw: string, expectedObj: any): boolean {

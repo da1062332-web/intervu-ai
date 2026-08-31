@@ -19,8 +19,9 @@ export function useConfigurationValidation(configId: string) {
       }
     },
     enabled: !!configId,
-    staleTime: 0, // Always fetch fresh
-    refetchInterval: 5000, // Poll every 5s to keep it updated automatically
+    staleTime: 30000,
+    refetchInterval: 60000, // Poll every 60s instead of 5s to prevent query storms
+    refetchOnWindowFocus: false,
   });
 
   const refreshMutation = useMutation({

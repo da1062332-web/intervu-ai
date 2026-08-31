@@ -8,11 +8,13 @@ import { ConfigVersionService } from "../versioning/config-version.service";
 import { FullExamConfig } from "../types";
 
 import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 const mockTransaction = {
   examConfig: { update: jest.fn() },
   configPublishLog: { create: jest.fn() },
   blueprint: { findUnique: jest.fn().mockResolvedValue({ id: "bp-1" }), create: jest.fn() },
+  assembledTest: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
 };
 
 const mockPrisma = {
@@ -40,6 +42,12 @@ const mockReadinessService = {
   checkReadiness: jest.fn(),
 };
 
+const mockCacheService = {
+  delete: jest.fn().mockResolvedValue(true),
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue(true),
+};
+
 const DRAFT_CONFIG = {
   id: "config-1",
   name: "Test Config",
@@ -62,6 +70,7 @@ describe("ConfigPublisherService", () => {
         },
         { provide: ConfigVersionService, useValue: mockVersionService },
         { provide: ExamConfigReadinessService, useValue: mockReadinessService },
+        { provide: RedisCacheService, useValue: mockCacheService },
       ],
     }).compile();
 

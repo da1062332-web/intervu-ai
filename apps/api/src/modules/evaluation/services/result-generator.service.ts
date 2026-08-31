@@ -66,20 +66,42 @@ export class ResultGeneratorService {
       }
     }
 
-    // 3. Batch fetch question metadata (instructions, questionStatement) in one query
+    // 3. Batch fetch question metadata (instructions, questionStatement, answer, options) in one query
     const dbQuestionsMap = new Map<
       string,
-      { instructions: string | null; questionStatement: string | null }
+      {
+        instructions: string | null;
+        questionStatement: string | null;
+        answer: string | null;
+        correctAnswer: string | null;
+        metadata: any;
+        mcqData: any;
+        options: any;
+      }
     >();
     if (questionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
         where: { id: { in: Array.from(questionIds) } },
-        select: { id: true, instructions: true, questionStatement: true },
+        select: {
+          id: true,
+          instructions: true,
+          questionStatement: true,
+          answer: true,
+          metadata: true,
+          mcqData: true,
+        },
       });
       for (const q of dbQuestions) {
+        const mcq = q.mcqData as any;
+        const meta = q.metadata as any;
         dbQuestionsMap.set(q.id, {
           instructions: q.instructions,
           questionStatement: q.questionStatement,
+          answer: q.answer || mcq?.correctAnswer || meta?.answer || null,
+          correctAnswer: mcq?.correctAnswer || meta?.answer || null,
+          metadata: meta ?? null,
+          mcqData: mcq ?? null,
+          options: mcq?.options || meta?.options || null,
         });
       }
     }
@@ -116,29 +138,36 @@ export class ResultGeneratorService {
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
         const snap = (q.questionSnapshot || {}) as any;
-        const meta = dbQuestionsMap.get(q.questionId) as any;
+        const questionMeta = dbQuestionsMap.get(q.questionId) as any;
         const answer =
           snap.answer ||
           snap.correctAnswer ||
           snap.metadata?.answer ||
           snap.mcqData?.correctAnswer ||
           snap.expectedAnswer ||
-          meta?.answer ||
-          meta?.mcqData?.correctAnswer ||
+          questionMeta?.answer ||
+          questionMeta?.correctAnswer ||
+          questionMeta?.mcqData?.correctAnswer ||
+          questionMeta?.metadata?.answer ||
           "";
         const options =
           snap.options ||
           snap.mcqData?.options ||
           snap.metadata?.options ||
-          meta?.mcqData?.options ||
-          meta?.metadata?.options ||
+          questionMeta?.options ||
+          questionMeta?.mcqData?.options ||
+          questionMeta?.metadata?.options ||
           [];
         const questionType = (
           snap.questionType ||
           snap.type ||
           "MCQ"
         ).toUpperCase();
-        const difficulty = snap.difficulty || snap.difficultyLevel || meta?.difficulty || "MEDIUM";
+        const difficulty =
+          snap.difficulty ||
+          snap.difficultyLevel ||
+          questionMeta?.difficulty ||
+          "MEDIUM";
 
         // Resolve topic display name
         let topicName = "General";
@@ -164,14 +193,16 @@ export class ResultGeneratorService {
             .join(" ");
         }
 
+        // questionMeta already declared above — reuse it (no redeclaration)
+
         if (questionType === "CODING") {
           // Parse instructions JSON to extract constraints and testCases
           let constraints: string | undefined;
           let testCases: string | undefined;
 
-          if (meta?.instructions) {
+          if (questionMeta?.instructions) {
             try {
-              const inst = JSON.parse(meta.instructions);
+              const inst = JSON.parse(questionMeta.instructions);
               constraints = inst.constraints || undefined;
               testCases = inst.testCases || undefined;
             } catch {
@@ -183,7 +214,7 @@ export class ResultGeneratorService {
             id: q.questionId,
             questionType,
             problemStatement:
-              meta?.questionStatement ||
+              questionMeta?.questionStatement ||
               snap.questionStatement ||
               snap.questionText ||
               "",
@@ -217,18 +248,49 @@ export class ResultGeneratorService {
       };
     });
 
-    // 5. Map candidate answers
-    const submissionAnswers = executionResult.answers.map((a) => ({
-      questionId: a.questionId,
-      selectedOptionId: a.answer,
-      selectedOptionIds:
-        a.answer.startsWith("[") && a.answer.endsWith("]")
-          ? JSON.parse(a.answer)
-          : undefined,
-      textResponse: a.answer,
-      status: "ANSWERED" as const,
-      timeSpentSeconds: a.timeSpentSeconds || 0,
-    }));
+    // 5. Map candidate answers — safely extract answer value from potentially structured data
+    const submissionAnswers = executionResult.answers.map((a) => {
+      let answerVal = a.answer ?? "";
+
+      // If the answer is a JSON-wrapped object string, extract the actual answer for MCQs
+      if (answerVal.startsWith("{") && answerVal.endsWith("}")) {
+        try {
+          const parsed = JSON.parse(answerVal);
+          if (typeof parsed === "object" && parsed !== null) {
+            // For coding submissions (containing code, sourceCode, files),
+            // preserve the full JSON payload so CodingEvaluatorService can extract code, language, test cases & scores!
+            if (
+              parsed.code !== undefined ||
+              parsed.sourceCode !== undefined ||
+              parsed.files !== undefined
+            ) {
+              // Leave answerVal intact as full JSON for CodingEvaluatorService
+            } else {
+              answerVal =
+                parsed.selectedOptionId ||
+                parsed.answer ||
+                parsed.textResponse ||
+                parsed.value ||
+                answerVal;
+            }
+          }
+        } catch {
+          // Not valid JSON — use as-is
+        }
+      }
+
+      return {
+        questionId: a.questionId,
+        selectedOptionId: answerVal,
+        selectedOptionIds:
+          answerVal.startsWith("[") && answerVal.endsWith("]")
+            ? JSON.parse(answerVal)
+            : undefined,
+        textResponse: answerVal,
+        status: "ANSWERED" as const,
+        timeSpentSeconds: a.timeSpentSeconds || 0,
+      };
+    });
 
     // 6. Run evaluators — objective is synchronous, coding is parallel async
     const objectiveEvalResults = this.evaluator.evaluateAnswers(
@@ -294,7 +356,9 @@ export class ResultGeneratorService {
       (r) => r.candidateAnswer && r.candidateAnswer.trim() !== "",
     ).length;
     const totalIncorrect = totalAttempted - totalCorrect;
-    const codingSolvedCount = codingEvalResults.filter((r) => r.passed || r.isCorrect).length;
+    const codingSolvedCount = codingEvalResults.filter(
+      (r) => r.passed || r.isCorrect,
+    ).length;
 
     // 13. Evaluate Generic Hiring Qualification if enabled
     const hiringOutcome = await this.hiringEngine.evaluateAttempt(
@@ -339,7 +403,8 @@ export class ResultGeneratorService {
           }
         : {
             qualification: "NOT_APPLICABLE",
-            qualificationReason: "No qualification criteria configured for this assessment",
+            qualificationReason:
+              "No qualification criteria configured for this assessment",
           }),
     };
   }

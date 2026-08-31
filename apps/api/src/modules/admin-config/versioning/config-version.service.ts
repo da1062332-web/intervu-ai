@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { FullExamConfig } from "../types";
@@ -27,7 +28,7 @@ export interface ConfigVersionEntry {
  */
 @Injectable()
 export class ConfigVersionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   /**
    * Create a new version entry with the full config snapshot.

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger, Inject } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
@@ -12,9 +12,13 @@ export class AssemblyPersistenceService {
   private readonly logger = new Logger(AssemblyPersistenceService.name);
 
   constructor(
+    @Inject(AssembledTestRepository)
     private readonly repository: AssembledTestRepository,
+    @Inject(AssemblyRepository)
     private readonly testInstanceRepository: AssemblyRepository,
+    @Inject(AssemblyAuditService)
     private readonly auditService: AssemblyAuditService,
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
   ) {}
 

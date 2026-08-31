@@ -439,20 +439,103 @@ export function QuestionRenderer() {
     const sampleCases = rawTestCases.map((tc: any) => {
       let inp = tc.input;
       if (typeof inp === 'object' && inp !== null) {
-        try {
-          inp = JSON.stringify(inp, null, 2);
-        } catch {
-          inp = String(inp);
+        if (typeof inp.stdin === 'string') {
+          inp = inp.stdin.trim();
+        } else {
+          // Convert object to clean plain-text competitive programming lines instead of JSON
+          const lines: string[] = [];
+          for (const key of Object.keys(inp)) {
+            const val = inp[key];
+            if (val === null || val === undefined) continue;
+            if (Array.isArray(val)) {
+              if (val.length === 0) {
+                lines.push('0');
+              } else if (typeof val[0] === 'object' && val[0] !== null) {
+                lines.push(String(val.length));
+                for (const item of val) {
+                  lines.push(Object.values(item).join(' '));
+                }
+              } else {
+                lines.push(val.join(' '));
+              }
+            } else if (typeof val === 'object') {
+              lines.push(Object.values(val).join(' '));
+            } else {
+              lines.push(String(val));
+            }
+          }
+          inp = lines.join('\n');
+        }
+      } else if (typeof inp === 'string') {
+        const trimmed = inp.trim();
+        if (
+          (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']'))
+        ) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === 'object') {
+              if (typeof parsed.stdin === 'string') {
+                inp = parsed.stdin.trim();
+              } else {
+                const lines: string[] = [];
+                for (const key of Object.keys(parsed)) {
+                  const val = parsed[key];
+                  if (val === null || val === undefined) continue;
+                  if (Array.isArray(val)) {
+                    if (val.length === 0) {
+                      lines.push('0');
+                    } else if (typeof val[0] === 'object' && val[0] !== null) {
+                      lines.push(String(val.length));
+                      for (const item of val) {
+                        lines.push(Object.values(item).join(' '));
+                      }
+                    } else {
+                      lines.push(val.join(' '));
+                    }
+                  } else if (typeof val === 'object') {
+                    lines.push(Object.values(val).join(' '));
+                  } else {
+                    lines.push(String(val));
+                  }
+                }
+                inp = lines.join('\n');
+              }
+            }
+          } catch {
+            // Keep as-is
+          }
         }
       }
+
       let out = tc.output ?? tc.expectedOutput ?? tc.result;
       if (typeof out === 'object' && out !== null) {
-        try {
-          out = JSON.stringify(out, null, 2);
-        } catch {
-          out = String(out);
+        if ('result' in out) out = out.result;
+        else if ('indices' in out && Array.isArray(out.indices)) out = out.indices.join(' ');
+        else if ('index' in out) out = out.index;
+        else if ('ans' in out) out = out.ans;
+        else if ('answer' in out) out = out.answer;
+        else if (Array.isArray(out)) out = out.join(' ');
+        else out = Object.values(out).join(' ');
+      } else if (typeof out === 'string') {
+        const trimmed = out.trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === 'object') {
+              if ('result' in parsed) out = parsed.result;
+              else if ('indices' in parsed && Array.isArray(parsed.indices)) out = parsed.indices.join(' ');
+              else if ('index' in parsed) out = parsed.index;
+              else if ('ans' in parsed) out = parsed.ans;
+              else if ('answer' in parsed) out = parsed.answer;
+              else out = Object.values(parsed).join(' ');
+            }
+          } catch {
+            // Keep as-is
+          }
         }
       }
+
       return {
         input: String(inp ?? ''),
         output: String(out ?? ''),

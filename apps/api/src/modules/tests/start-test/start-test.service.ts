@@ -214,7 +214,7 @@ export class StartTestService {
 
     const t4 = Date.now();
     this.logger.log(`[START-TEST ⏱️] Step 5/5: Verifying created TestInstance in DB...`);
-    const testInstance = await this.testInstanceService.getTestInstance(testInstanceId);
+    const testInstance = await this.testInstanceService.getTestInstance(testInstanceId, false);
     if (!testInstance) {
       this.logger.error(`[START-TEST ❌] Test instance record ${testInstanceId} not found in DB!`);
       throw new InternalServerErrorException({

@@ -65,7 +65,7 @@ describe("BlueprintBuilderService", () => {
     } as never);
 
     await expect(service.generateBlueprint("cfg-1")).rejects.toThrow(
-      "Difficulty total != 100%",
+      /Difficulty distribution total must equal 100%/i,
     );
   });
 });

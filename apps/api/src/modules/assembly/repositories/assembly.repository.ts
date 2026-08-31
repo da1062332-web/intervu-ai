@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { TestInstanceStatus, Prisma } from "@prisma/client";
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
@@ -6,7 +6,7 @@ import { AllocatedQuestionDto } from "@intervu/shared";
 
 @Injectable()
 export class AssemblyRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async createTestInstanceWithTransaction(
     userId: string,

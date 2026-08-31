@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { DifficultyLevel, GeneratedQuestion, Question } from "@prisma/client";
 
@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class QuestionPoolRepository implements IQuestionSource {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
     return this.findAvailableQuestions(

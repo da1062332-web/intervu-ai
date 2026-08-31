@@ -6,9 +6,11 @@ import { FullExamConfig } from "../types";
 const mockPrisma = {
   template: {
     count: jest.fn(),
+    findMany: jest.fn(),
   },
   question: {
     count: jest.fn(),
+    findMany: jest.fn(),
   },
 };
 
@@ -59,8 +61,12 @@ describe("ConfigDependencyValidatorService", () => {
       ConfigDependencyValidatorService,
     );
     jest.clearAllMocks();
-    mockPrisma.template.count.mockResolvedValue(5);
-    mockPrisma.question.count.mockResolvedValue(10);
+    mockPrisma.template.findMany.mockResolvedValue([
+      { conceptKey: "array-manipulation" },
+    ]);
+    mockPrisma.question.findMany.mockResolvedValue([
+      { conceptId: "c-1", topicId: "t-1" },
+    ]);
   });
 
   it("should be defined", () => {
@@ -141,8 +147,8 @@ describe("ConfigDependencyValidatorService", () => {
   });
 
   it("should warn when no templates exist for the topic concepts", async () => {
-    mockPrisma.template.count.mockResolvedValue(0);
-    mockPrisma.question.count.mockResolvedValue(0);
+    mockPrisma.template.findMany.mockResolvedValue([]);
+    mockPrisma.question.findMany.mockResolvedValue([]);
     const result = await service.validateDependencies(makeConfig());
     expect(result.valid).toBe(true);
     expect(result.warnings).toEqual(
