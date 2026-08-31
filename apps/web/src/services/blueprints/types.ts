@@ -1,4 +1,4 @@
-import type { ExamBlueprint, StyleProfile, GenerationRequest } from '@SkillitriX-ai/contracts';
+import type { ExamBlueprint, StyleProfile, GenerationRequest } from '@intervu-ai/contracts';
 
 export type { ExamBlueprint, StyleProfile, GenerationRequest };
 

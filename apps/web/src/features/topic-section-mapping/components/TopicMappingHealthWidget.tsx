@@ -1,7 +1,7 @@
 'use client';
 
 import { useTopicMappingStore } from '../store/topic-mapping.store';
-import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
+import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface TopicMappingHealthWidgetProps {

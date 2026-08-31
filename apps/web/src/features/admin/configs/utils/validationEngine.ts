@@ -1,5 +1,5 @@
 import { ConceptMapping } from '@/services/concept-mapping';
-import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
+import { SectionTopicResponse } from '@intervu-ai/contracts';
 import { TopicWeightage } from '@/services/topic-weightages/api';
 
 export interface ValidationState {

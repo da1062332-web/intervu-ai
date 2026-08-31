@@ -2,7 +2,7 @@ import { apiClient } from '@/services/api/client';
 import type {
   DifficultyDistributionResponse,
   UpdateDifficultyDistributionDto,
-} from '@SkillitriX/shared';
+} from '@intervu/shared';
 
 const BASE_PATH = '/admin/configs';
 

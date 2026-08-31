@@ -1,5 +1,5 @@
 import { ConfigurationReadinessService } from '../services/ConfigurationReadinessService';
-import { SectionTopicResponse } from '@SkillitriX-ai/contracts';
+import { SectionTopicResponse } from '@intervu-ai/contracts';
 import * as api from '../services/api';
 import { vi } from 'vitest';
 

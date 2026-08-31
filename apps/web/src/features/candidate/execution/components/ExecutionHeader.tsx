@@ -82,7 +82,7 @@ export function ExecutionHeader() {
           {/* Right - Company Logo Emblem */}
           <div className='hidden sm:flex items-center gap-2.5 pl-3 border-l border-[#348b4f]'>
             <div className='w-8 h-8 rounded-sm bg-white text-[#26773e] font-black text-xl flex items-center justify-center shadow-xs border border-green-200'>
-              V
+              S
             </div>
             <div className='flex flex-col text-white leading-none'>
               <span className='font-extrabold text-sm tracking-wide uppercase font-sans'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>

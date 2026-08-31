@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ruleFlagsService } from '../services/rule-flags.service';
-import type { UpdateRuleFlags } from '@SkillitriX/shared';
+import type { UpdateRuleFlags } from '@intervu/shared';
 import { toast } from 'sonner';
 
 export const useRuleFlags = (configId: string) => {
