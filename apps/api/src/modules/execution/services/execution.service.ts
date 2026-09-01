@@ -240,46 +240,7 @@ export class ExecutionService {
               }
             }
 
-            // Synthesize real numeric/sequence/contextual distractors if options are missing or dummy
-            const isMcq =
-              candidateSafeSnapshot.questionType === "MCQ" ||
-              candidateSafeSnapshot.questionType === "MULTIPLE_CHOICE" ||
-              !candidateSafeSnapshot.questionType;
-
-            if (
-              isMcq &&
-              (!Array.isArray(candidateSafeSnapshot.options) ||
-                candidateSafeSnapshot.options.length === 0 ||
-                isPlaceholderOptions(candidateSafeSnapshot.options))
-            ) {
-              const targetAnswer = String(rawAnswer ?? "Option A").trim();
-              if (!isNaN(Number(targetAnswer))) {
-                candidateSafeSnapshot.options = synthesizeNumericDistractors(
-                  Number(targetAnswer),
-                  4,
-                );
-              } else if (/^[A-D]-[A-D]-[A-D]-[A-D]$/i.test(targetAnswer)) {
-                const uniqueSeqs = new Set<string>([
-                  targetAnswer,
-                  "A-B-C-D",
-                  "C-B-A-D",
-                  "B-C-D-A",
-                  "D-A-C-B",
-                  "A-C-B-D",
-                  "D-C-B-A",
-                ]);
-                candidateSafeSnapshot.options = Array.from(uniqueSeqs).slice(0, 4);
-              } else {
-                candidateSafeSnapshot.options = [
-                  targetAnswer,
-                  "Option B",
-                  "Option C",
-                  "Option D",
-                ];
-              }
-            }
-
-            // Normalize question text, options, and numbers for clean 2-decimal presentation
+            // Normalize question text, options, and numbers for clean presentation
             const normalizedSnapshot = normalizeDisplayQuestion(candidateSafeSnapshot);
             Object.assign(candidateSafeSnapshot, normalizedSnapshot);
 
