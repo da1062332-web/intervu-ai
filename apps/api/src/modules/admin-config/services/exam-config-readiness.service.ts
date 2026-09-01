@@ -161,18 +161,35 @@ export class ExamConfigReadinessService {
     let conflictingTopicsCount = 0;
     const isManualDifficultyMode = easy + medium + hard === 100;
 
-    // Cache pool count across identical topic+tier evaluations
-    const poolCountCache = new Map<string, number>();
-    const getCachedPoolCount = async (tId: string, diff?: string) => {
+    // Cache pool count promises across identical topic+tier evaluations
+    const poolCountCache = new Map<string, Promise<number>>();
+    const getCachedPoolCount = (tId: string, diff?: string) => {
       const cacheKey = `${tId}:${diff || "ANY"}`;
       if (!poolCountCache.has(cacheKey)) {
         poolCountCache.set(
           cacheKey,
-          await this.usageService.getUnusedPoolCount(configId, tId, diff),
+          this.usageService.getUnusedPoolCount(configId, tId, diff),
         );
       }
       return poolCountCache.get(cacheKey)!;
     };
+
+    // Pre-fetch all necessary pool counts in parallel
+    const prefetchPromises: Promise<number>[] = [];
+    for (const section of config.sections) {
+      if (!section.sectionTopics) continue;
+      for (const st of section.sectionTopics) {
+        if (!st.topic) continue;
+        if (isManualDifficultyMode) {
+          prefetchPromises.push(getCachedPoolCount(st.topic.id, "EASY"));
+          prefetchPromises.push(getCachedPoolCount(st.topic.id, "MEDIUM"));
+          prefetchPromises.push(getCachedPoolCount(st.topic.id, "HARD"));
+        } else {
+          prefetchPromises.push(getCachedPoolCount(st.topic.id, undefined));
+        }
+      }
+    }
+    await Promise.all(prefetchPromises);
 
     for (const section of config.sections) {
       const sectionTopics = section.sectionTopics;

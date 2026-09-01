@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+
 import {
   useGeneratedQuestions,
   useApproveQuestion,
@@ -11,10 +11,11 @@ import {
   useRegenerateQuestion,
 } from '@/services/question-pool/hooks';
 import { ReviewTable } from './components/ReviewTable';
-import { QuestionPreviewDrawer } from './components/QuestionPreviewDrawer';
 import { BulkActionToolbar } from './components/BulkActionToolbar';
 import { GeneratedQuestion } from '@/services/question-generation/types';
 import { SectionHeader } from '@/components/ui/section-header';
+import { Button } from '@/components/ui/button';
+import { Modal } from '@/components/ui/modal';
 import { toast } from 'sonner';
 
 export default function QuestionReviewPage() {
@@ -29,32 +30,8 @@ export default function QuestionReviewPage() {
   const [previewQuestion, setPreviewQuestion] = useState<GeneratedQuestion | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
-  const searchParams = useSearchParams();
 
-  // If navigated with ?focus=<id>, fetch that specific question and open preview
-  React.useEffect(() => {
-    const focusId = searchParams?.get?.('focus');
-    if (!focusId) return;
 
-    let mounted = true;
-    (async () => {
-      try {
-        // lazy import to avoid circular imports
-        const { questionPoolApi } = await import('@/services/question-pool/api');
-        const q = await questionPoolApi.getQuestion(focusId);
-        if (mounted) {
-          setPreviewQuestion(q);
-        }
-      } catch (err) {
-        // ignore – if question isn't found, the list will show available items
-        console.debug('Focused generated question not found', err);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, [searchParams]);
 
   // Filter only generated (pending review) questions for this view
   const draftQuestions = questions.filter(
@@ -182,17 +159,112 @@ export default function QuestionReviewPage() {
         processingId={processingId}
       />
 
-      <QuestionPreviewDrawer
-        question={previewQuestion}
+      <Modal
         isOpen={!!previewQuestion}
         onClose={() => setPreviewQuestion(null)}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onRegenerate={handleRegenerate}
-        isApproving={processingId === previewQuestion?.id}
-        isRejecting={processingId === previewQuestion?.id}
-        isRegenerating={processingId === previewQuestion?.id}
-      />
+        className='max-w-4xl max-h-[90vh]'
+      >
+        {previewQuestion && (
+          <div className='space-y-6'>
+            <div className='flex items-center justify-between border-b pb-4'>
+              <div className="flex items-center gap-3">
+                <h2 className='text-xl font-bold'>Question Preview</h2>
+                {previewQuestion.difficulty && (
+                  <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border ${
+                    previewQuestion.difficulty.toUpperCase() === 'HARD' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30' :
+                    previewQuestion.difficulty.toUpperCase() === 'MEDIUM' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30' :
+                    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30'
+                  }`}>
+                    {previewQuestion.difficulty}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className='space-y-2 flex-grow'>
+              <h3 className='font-semibold text-sm text-gray-500 uppercase tracking-wider'>
+                Statement
+              </h3>
+              <div className='p-4 bg-gray-50 dark:bg-gray-950 rounded-md border text-sm whitespace-pre-wrap'>
+                {previewQuestion.questionText}
+              </div>
+            </div>
+
+            {previewQuestion.options && previewQuestion.options.length > 0 && (
+              <div className='space-y-2'>
+                <h3 className='font-semibold text-sm text-gray-500 uppercase tracking-wider'>
+                  Options
+                </h3>
+                <ul className='list-inside list-decimal space-y-1 bg-gray-50 dark:bg-gray-950 rounded-md border p-4 text-sm whitespace-pre-wrap'>
+                  {previewQuestion.options.map((opt: any, idx: number) => {
+                    const optText =
+                      typeof opt === 'object' && opt !== null
+                        ? opt.text ?? opt.optionText ?? opt.value ?? opt.label ?? JSON.stringify(opt)
+                        : String(opt);
+                    const isCorrect =
+                      (typeof opt === 'object' && opt !== null && opt.isCorrect === true) ||
+                      opt === previewQuestion.correctAnswer ||
+                      optText === previewQuestion.correctAnswer ||
+                      (typeof opt === 'object' && opt !== null && opt.id === previewQuestion.correctAnswer);
+
+                    return (
+                      <li key={idx} className={isCorrect ? 'font-bold text-green-600 dark:text-green-400' : ''}>
+                        {optText}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            <div className='pt-4 border-t'>
+              <h3 className='font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4'>
+                Solution
+              </h3>
+              <div className='p-4 bg-gray-50 dark:bg-gray-950 rounded-md border text-sm whitespace-pre-wrap'>
+                {typeof previewQuestion.correctAnswer === 'string'
+                  ? previewQuestion.correctAnswer.replace(/^"|"$/g, '')
+                  : JSON.stringify(previewQuestion.correctAnswer, null, 2)}
+              </div>
+            </div>
+
+            {previewQuestion.explanation && (
+              <div className='pt-4 border-t'>
+                <h3 className='font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4'>
+                  Explanation
+                </h3>
+                <div className='p-4 bg-gray-50 dark:bg-gray-950 rounded-md border text-sm whitespace-pre-wrap'>
+                  {previewQuestion.explanation}
+                </div>
+              </div>
+            )}
+
+            <div className='pt-6 border-t flex flex-wrap gap-2 justify-end'>
+              <Button
+                variant='destructive'
+                onClick={() => handleReject(previewQuestion.id)}
+                disabled={processingId === previewQuestion.id}
+              >
+                {processingId === previewQuestion.id ? 'Processing...' : 'Reject'}
+              </Button>
+              <Button
+                variant='secondary'
+                onClick={() => handleRegenerate(previewQuestion.id)}
+                disabled={processingId === previewQuestion.id}
+              >
+                {processingId === previewQuestion.id ? 'Processing...' : 'Regenerate'}
+              </Button>
+              <Button
+                variant='default'
+                onClick={() => handleApprove(previewQuestion.id)}
+                disabled={processingId === previewQuestion.id}
+              >
+                {processingId === previewQuestion.id ? 'Processing...' : 'Approve'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

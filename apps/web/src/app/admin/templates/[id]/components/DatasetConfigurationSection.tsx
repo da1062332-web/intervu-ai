@@ -369,7 +369,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
         toast.success('Preview generated successfully');
       },
       onError: () => {
-        toast.error('Failed to generate preview');
+        // The error is already toasted by the global ApiClient with a user-friendly message.
       },
     });
   };
@@ -382,7 +382,7 @@ export function DatasetConfigurationSection({ template }: DatasetConfigurationSe
         toast.success('Question generated successfully');
       },
       onError: (err: any) => {
-        toast.error('Failed to generate question');
+        // The error is already toasted by the global ApiClient with a user-friendly message.
       },
     });
   };

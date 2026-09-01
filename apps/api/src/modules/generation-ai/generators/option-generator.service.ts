@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
+import { DistractorGenerationError } from "../../../core/exceptions";
 
 export interface NormalizedOptionsResult {
   options: string[];
@@ -312,7 +313,7 @@ export class OptionGeneratorService {
     }
 
     if (!options || (!Array.isArray(options) && typeof options !== "object")) {
-      throw new BadRequestException("MCQ options must be a valid array");
+      throw new DistractorGenerationError("MCQ options must be a valid array");
     }
 
     // Auto-normalize and extract options
@@ -322,26 +323,26 @@ export class OptionGeneratorService {
 
     // 1. Validation Rules
     if (cleanOptions.length !== 4) {
-      throw new BadRequestException(
+      throw new DistractorGenerationError(
         `MCQ options list must contain exactly 4 options, but got ${cleanOptions.length}`,
       );
     }
 
     if (cleanOptions.some((opt) => opt === "")) {
-      throw new BadRequestException("MCQ options cannot contain empty strings");
+      throw new DistractorGenerationError("MCQ options cannot contain empty strings");
     }
 
     // Check duplicates
     const uniqueOptions = new Set(cleanOptions);
     if (uniqueOptions.size !== cleanOptions.length) {
-      throw new BadRequestException(
+      throw new DistractorGenerationError(
         "MCQ options must not contain duplicate entries",
       );
     }
 
     // Verify correct answer exists in options
     if (!cleanOptions.includes(cleanCorrect)) {
-      throw new BadRequestException(
+      throw new DistractorGenerationError(
         `The correctAnswer "${cleanCorrect}" must be present in the options list: [${cleanOptions.join(", ")}]`,
       );
     }
@@ -361,7 +362,7 @@ export class OptionGeneratorService {
 
     if (!hasCodeSyntax && !allShort && minLen > 0) {
       if (maxLen / minLen > 6.0) {
-        throw new BadRequestException(
+        throw new DistractorGenerationError(
           `Option length mismatch: the options are not of balanced lengths (longest option is more than 6x the length of the shortest option). Longest: ${maxLen} chars, Shortest: ${minLen} chars.`,
         );
       }
