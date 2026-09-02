@@ -33,6 +33,10 @@ export class RuleFlagsService {
         maxAttempts: 3,
         candidateNoRepeatEnabled: false,
         runtimeGenerationOnDeficit: false,
+        poolEnabled: false,
+        poolTargetSize: 10,
+        poolMinThreshold: 3,
+        poolRefillBatchSize: 5,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       } as any;
@@ -67,6 +71,10 @@ export class RuleFlagsService {
       maxAttempts: entity.maxAttempts,
       candidateNoRepeatEnabled: (entity as any).candidateNoRepeatEnabled ?? false,
       runtimeGenerationOnDeficit: (entity as any).runtimeGenerationOnDeficit ?? false,
+      poolEnabled: (entity as any).poolEnabled ?? false,
+      poolTargetSize: (entity as any).poolTargetSize ?? 10,
+      poolMinThreshold: (entity as any).poolMinThreshold ?? 3,
+      poolRefillBatchSize: (entity as any).poolRefillBatchSize ?? 5,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
     } as any;

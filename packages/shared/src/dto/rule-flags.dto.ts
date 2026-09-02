@@ -30,6 +30,18 @@ export class UpdateRuleFlagsDto implements UpdateRuleFlags {
   @ApiProperty({ example: false, required: false })
   runtimeGenerationOnDeficit?: boolean;
 
+  @ApiProperty({ example: false, required: false, description: "Whether pre-generated pool is enabled for this exam" })
+  poolEnabled?: boolean;
+
+  @ApiProperty({ example: 10, required: false, description: "Target number of pre-generated ready pool instances to maintain" })
+  poolTargetSize?: number;
+
+  @ApiProperty({ example: 3, required: false, description: "Minimum pool threshold that triggers background refill" })
+  poolMinThreshold?: number;
+
+  @ApiProperty({ example: 5, required: false, description: "Number of instances generated per refill batch" })
+  poolRefillBatchSize?: number;
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, UpdateRuleFlagsDto> {

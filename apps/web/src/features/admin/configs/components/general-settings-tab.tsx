@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useConfig } from '@/services/exam-configs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Edit2 } from 'lucide-react';
-import Link from 'next/link';
+import { Modal } from '@/components/ui/modal';
+import { ConfigForm } from '@/components/admin/config/config-form';
+import { Edit2, X } from 'lucide-react';
 
 interface GeneralSettingsTabProps {
   configId: string;
@@ -14,6 +15,7 @@ interface GeneralSettingsTabProps {
 
 export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps) {
   const { data: config, isLoading } = useConfig(configId);
+  const [isEditing, setIsEditing] = useState(false);
 
   if (isLoading) {
     return (
@@ -77,18 +79,32 @@ export function GeneralSettingsTab({ configId, onNext }: GeneralSettingsTabProps
       </div>
 
       <div className='flex items-center justify-end gap-3 p-4 rounded-lg bg-muted/30'>
-        <Button variant='outline' asChild disabled={config.status === 'ARCHIVED'}>
-          <Link href={`/admin/configurations/${configId}/edit`}>
-            <Edit2 className='w-4 h-4 mr-2' />
-            Edit Configuration
-          </Link>
+        <Button
+          variant='outline'
+          onClick={() => setIsEditing(true)}
+          disabled={config.status === 'ARCHIVED'}
+        >
+          <Edit2 className='w-4 h-4 mr-2' />
+          Edit Configuration
         </Button>
         {onNext && (
           <Button onClick={onNext} size='lg' className='shadow-sm'>
-            Continue to Sections
+            Continue to Blueprint
           </Button>
         )}
       </div>
+
+      <Modal isOpen={isEditing} onClose={() => setIsEditing(false)} className='max-w-xl'>
+        <div className='flex items-center justify-between pb-4 border-b'>
+          <h4 className='text-lg font-semibold'>Edit General Settings</h4>
+          <Button variant='ghost' size='icon' onClick={() => setIsEditing(false)}>
+            <X className='w-4 h-4' />
+          </Button>
+        </div>
+        <div className='pt-4'>
+          <ConfigForm initialData={config} onSuccess={() => setIsEditing(false)} />
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -13,13 +13,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly configService: AppConfigService,
     private readonly userRepository: UserRepository,
   ) {
+    const secret =
+      configService?.jwtSecret ||
+      process.env.JWT_SECRET ||
+      (process.env.NODE_ENV !== "production"
+        ? "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345"
+        : undefined);
+
+    if (!secret) {
+      throw new Error(
+        "CRITICAL SECURITY CONFIG ERROR: JWT_SECRET environment variable is missing in production!",
+      );
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        configService?.jwtSecret ||
-        process.env.JWT_SECRET ||
-        "dev_jwt_secret_must_be_at_least_32_chars_long_key_12345",
+      secretOrKey: secret,
     });
   }
 

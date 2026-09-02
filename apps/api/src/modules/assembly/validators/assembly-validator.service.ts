@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { BlueprintDto, BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 
@@ -9,6 +9,8 @@ export interface ValidationResult {
 
 @Injectable()
 export class AssemblyValidatorService {
+  private readonly logger = new Logger(AssemblyValidatorService.name);
+
   validate(blueprint: BlueprintDto, sections: SectionDto[]): ValidationResult {
     const errors: string[] = [];
 
@@ -91,10 +93,49 @@ export class AssemblyValidatorService {
             `AVL-009: Invalid question type for questionId: ${q.questionId}`,
           );
         }
+
+        // AVL-014 Question Content Integrity Gate
+        const snapshot = q.questionSnapshot as Record<string, any> | undefined;
+        if (snapshot) {
+          const qText = snapshot.questionText || snapshot.questionStatement || snapshot.question;
+          if (!qText || String(qText).trim().length === 0) {
+            errors.push(
+              `AVL-014: Question ${q.questionId} has empty question statement`,
+            );
+          }
+
+          const qType = String(q.questionType || snapshot.questionType || "").toUpperCase();
+          const isObjective = ["MCQ", "MULTIPLE_CHOICE", "MSQ"].includes(qType);
+
+          if (isObjective) {
+            const rawOpts = snapshot.options || snapshot.mcqData?.options || [];
+            if (!Array.isArray(rawOpts) || rawOpts.length < 2) {
+              errors.push(
+                `AVL-014: Objective question ${q.questionId} has fewer than 2 options (got ${Array.isArray(rawOpts) ? rawOpts.length : 0})`,
+              );
+            } else {
+              // Check uniqueness of option texts
+              const optTexts = rawOpts.map((o) => (typeof o === "string" ? o.trim() : o?.text?.trim() || ""));
+              const uniqueTexts = new Set(optTexts.filter((t) => t.length > 0));
+              if (uniqueTexts.size < optTexts.length) {
+                errors.push(
+                  `AVL-014: Objective question ${q.questionId} contains duplicate option texts`,
+                );
+              }
+
+              // Verify answer is present
+              const rawAns = String(snapshot.correctAnswer ?? snapshot.answer ?? "").trim();
+              if (rawAns.length === 0) {
+                errors.push(
+                  `AVL-014: Objective question ${q.questionId} is missing correct answer`,
+                );
+              }
+            }
+          }
+        }
       }
 
       // AVL-011 Difficulty Distribution
-      // Enforce strict AVL-011 only when section has an explicit non-flexible difficulty distribution and no fallback occurred
       const diffDistribution =
         blueprintSection.difficultyDistribution ||
         blueprint.difficultyDistribution;
@@ -105,7 +146,7 @@ export class AssemblyValidatorService {
             diffDistribution.MEDIUM === 0 &&
             diffDistribution.HARD === 0);
 
-        if (!isFlexible && blueprintSection.difficultyDistribution) {
+        if (!isFlexible && blueprintSection.difficultyDistribution && section.questions.length > 0) {
           const expectedEasy =
             (diffDistribution.EASY / 100) * blueprintSection.questionCount;
           const expectedMedium =
@@ -123,28 +164,33 @@ export class AssemblyValidatorService {
             (q) => q.difficultyLevel === "HARD",
           ).length;
 
-          // Only block if total question count is also zero or severely corrupted
+          // Flag severe difficulty deviation (> 4 questions variance when pool has questions)
           if (
-            section.questions.length > 0 &&
-            (Math.abs(actualEasy - expectedEasy) > 2 ||
-              Math.abs(actualMedium - expectedMedium) > 2 ||
-              Math.abs(actualHard - expectedHard) > 2)
+            Math.abs(actualEasy - expectedEasy) > 4 ||
+            Math.abs(actualMedium - expectedMedium) > 4 ||
+            Math.abs(actualHard - expectedHard) > 4
           ) {
-            // Log notice without blocking valid question fallback
+            this.logger.warn(
+              `AVL-011: Noticeable difficulty deviation in section ${section.sectionKey}. Expected [E:${expectedEasy}, M:${expectedMedium}, H:${expectedHard}], Got [E:${actualEasy}, M:${actualMedium}, H:${actualHard}]`,
+            );
           }
         }
       }
 
       // AVL-012 Topic Distribution
-      for (const topicAlloc of blueprintSection.topicAllocations) {
-        const expectedTopicCount =
-          (topicAlloc.percentage / 100) * blueprintSection.questionCount;
-        const actualTopicCount = section.questions.filter(
-          (q) => q.conceptKey === topicAlloc.topicId,
-        ).length;
+      if (blueprintSection.topicAllocations && blueprintSection.topicAllocations.length > 0) {
+        for (const topicAlloc of blueprintSection.topicAllocations) {
+          const expectedTopicCount =
+            (topicAlloc.percentage / 100) * blueprintSection.questionCount;
+          const actualTopicCount = section.questions.filter(
+            (q) => q.conceptKey === topicAlloc.topicId,
+          ).length;
 
-        if (Math.abs(actualTopicCount - expectedTopicCount) > 2) {
-          // Soft distribution tolerance
+          if (expectedTopicCount >= 1 && actualTopicCount === 0 && section.questions.length > 0) {
+            this.logger.warn(
+              `AVL-012: Topic '${topicAlloc.topicId}' in section ${section.sectionKey} received 0 questions (expected ~${Math.round(expectedTopicCount)})`,
+            );
+          }
         }
       }
 

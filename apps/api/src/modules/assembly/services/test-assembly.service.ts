@@ -19,6 +19,7 @@ import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
 import { QuestionPoolRepository } from "../repositories/question-pool.repository";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { ProgressiveAssemblyWorkerService } from "./progressive-assembly-worker.service";
+import { PregeneratedTestRepository } from "../repositories/pregenerated-test.repository";
 
 @Injectable()
 export class AssemblyService {
@@ -48,6 +49,9 @@ export class AssemblyService {
     @Optional()
     @Inject(ProgressiveAssemblyWorkerService)
     private readonly progressiveWorker?: ProgressiveAssemblyWorkerService,
+    @Optional()
+    @Inject(PregeneratedTestRepository)
+    private readonly pregeneratedRepo?: PregeneratedTestRepository,
   ) {}
 
   async assembleTest(
@@ -57,6 +61,24 @@ export class AssemblyService {
     options?: { progressive?: boolean; isRetest?: boolean },
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
+
+    // Flow 0: Atomic Pre-Generated Pool Claim (< 10ms claim, < 25ms materialize)
+    if (!forceNew && this.pregeneratedRepo) {
+      try {
+        const claimed = await this.pregeneratedRepo.claimAtomicInstance(configId, userId);
+        if (claimed) {
+          const tClaim = Date.now();
+          const instanceId = await this.persistenceService.materializePregeneratedInstanceForCandidate(
+            claimed,
+            userId,
+          );
+          this.logger.log(`  [ASSEMBLY ⚡🚀] FLOW 0 (PRE-GEN POOL) COMPLETE in ${Date.now() - tClaim}ms -> Instance: ${instanceId}`);
+          return instanceId;
+        }
+      } catch (poolErr: any) {
+        this.logger.warn(`  [ASSEMBLY ⚠️] Pre-generated pool claim failed (${poolErr?.message || poolErr}). Falling back to standard flows.`);
+      }
+    }
 
     const tStart = Date.now();
     this.logger.log(`  [ASSEMBLY ⏱️] Step A: Querying published reusable assembly for configId: ${configId}...`);

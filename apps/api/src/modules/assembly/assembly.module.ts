@@ -34,6 +34,9 @@ import { TestPackageService } from "./services/test-package.service";
 import { PublishReadinessService } from "./services/publish-readiness.service";
 import { AssessmentVersionValidatorService } from "./services/assessment-version-validator.service";
 import { ProgressiveAssemblyWorkerService } from "./services/progressive-assembly-worker.service";
+import { FinalShufflerService } from "../tests/start-test/final-shuffler.service";
+import { PregeneratedTestRepository } from "./repositories/pregenerated-test.repository";
+import { TestPoolManagerService } from "./services/test-pool-manager.service";
 
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 
@@ -68,6 +71,9 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
     AssemblyPublisherService,
     BlueprintSimulationService,
     ProgressiveAssemblyWorkerService,
+    FinalShufflerService,
+    PregeneratedTestRepository,
+    TestPoolManagerService,
     // --- New Integration Layer Services ---
     QuestionBankSource,
     DuplicateDetectionService,
@@ -96,12 +102,15 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
     BlueprintBuilderService,
     QuestionAllocatorService,
     QuestionPoolRepository,
+    PregeneratedTestRepository,
+    TestPoolManagerService,
     // Export new services for Module 4 / other consumers
     TestPackageService,
     PublishReadinessService,
     AssemblyValidationV2Service,
     DuplicateDetectionService,
     ProgressiveAssemblyWorkerService,
+    FinalShufflerService,
   ],
 })
 export class AssemblyModule {}

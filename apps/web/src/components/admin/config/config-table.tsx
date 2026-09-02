@@ -120,7 +120,7 @@ export function ConfigTable({ configs, isLoading }: ConfigTableProps) {
             disabled={row.status === 'ARCHIVED'}
             asChild
           >
-            <Link href={`/admin/configurations/${row.id}/edit`}>
+            <Link href={`/admin/configurations/${row.id}`}>
               <Edit2 className='w-4 h-4' />
             </Link>
           </Button>

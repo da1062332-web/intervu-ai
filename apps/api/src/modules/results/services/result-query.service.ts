@@ -808,6 +808,10 @@ export class ResultQueryService {
       };
     });
 
+    const questionResultsList = Array.isArray((evaluation as any)?.questionResults)
+      ? ((evaluation as any).questionResults as any[])
+      : null;
+
     const sectionAccuracy = sections.map((sec) => {
       let acc = sectionAccData[sec.sectionKey];
       if (acc === undefined) acc = sectionAccData[sec.sectionName];
@@ -827,9 +831,23 @@ export class ResultQueryService {
       let secCorrect = 0;
       let secWrong = 0;
 
-      if (attemptedInSection > 0) {
-        secCorrect = Math.round((acc / 100) * attemptedInSection);
-        secWrong = attemptedInSection - secCorrect;
+      if (questionResultsList && questionResultsList.length > 0) {
+        const secResults = questionResultsList.filter((r: any) => {
+          const mappedSec = questionToSectionMap[r.questionId];
+          return mappedSec === sec.sectionName || mappedSec === sec.sectionKey;
+        });
+        secCorrect = secResults.filter((r: any) => r.isCorrect).length;
+        const attempted = secResults.filter(
+          (r: any) => r.candidateAnswer && String(r.candidateAnswer).trim() !== "",
+        ).length;
+        secWrong = Math.max(0, attempted - secCorrect);
+        acc = qCount > 0 ? Math.round((secCorrect / qCount) * 100) : 0;
+      } else {
+        secCorrect = Math.round((acc / 100) * qCount);
+        if (secCorrect === 0) {
+          acc = 0;
+        }
+        secWrong = Math.max(0, attemptedInSection - secCorrect);
       }
 
       if (acc >= 60) strengths.push(sec.sectionName);

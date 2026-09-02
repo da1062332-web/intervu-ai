@@ -492,10 +492,28 @@ model ExamConfig {
   readinessReports       ReadinessReport[]
   questionUsages         ExamConfigQuestionUsage[]
   hiringEvaluationConfig HiringEvaluationConfig?
+  pregeneratedTests      PregeneratedTestInstance[]
 
   @@index([createdAt])
   @@index([role])
   @@index([status])
+}
+
+model PregeneratedTestInstance {
+  id                String      @id @default(cuid())
+  configId          String      @map("config_id")
+  status            String      @default("READY") // READY, CLAIMED, EXPIRED
+  configVersionHash String?     @map("config_version_hash")
+  sectionsJson      Json        @map("sections_json")
+  claimedBy         String?     @map("claimed_by")
+  claimedAt         DateTime?   @map("claimed_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  examConfig        ExamConfig  @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, status])
+  @@map("pregenerated_test_instances")
 }
 
 model ExamSection {
@@ -557,6 +575,10 @@ model RuleFlags {
   maxAttempts                Int        @default(3) @map("max_attempts")
   candidateNoRepeatEnabled   Boolean    @default(false) @map("candidate_no_repeat_enabled")
   runtimeGenerationOnDeficit Boolean    @default(false) @map("runtime_generation_on_deficit")
+  poolEnabled                Boolean    @default(false) @map("pool_enabled")
+  poolTargetSize             Int        @default(10) @map("pool_target_size")
+  poolMinThreshold           Int        @default(3) @map("pool_min_threshold")
+  poolRefillBatchSize        Int        @default(5) @map("pool_refill_batch_size")
   createdAt                  DateTime   @default(now())
   updatedAt                  DateTime   @updatedAt
   examConfig                 ExamConfig @relation(fields: [examConfigId], references: [id], onDelete: Cascade)

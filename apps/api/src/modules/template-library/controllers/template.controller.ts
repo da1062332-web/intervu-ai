@@ -112,7 +112,6 @@ export class TemplateController {
     private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
 
-  @Public()
   @Get()
   @ValidateResponse(TemplatePaginatedSchema)
   @ApiOperation({ summary: "List all templates (paginated)" })

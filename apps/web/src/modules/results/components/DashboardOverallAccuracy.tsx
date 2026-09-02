@@ -67,7 +67,6 @@ export const DashboardOverallAccuracy: React.FC<Props> = ({ data }) => {
           {/* Right Column: Section Accuracy Bars */}
           <div className='space-y-5 py-1'>
             {(data.sectionAccuracy || []).map((sec, idx) => {
-              const acc = Math.round(sec.accuracy || 0);
               const matchedSecTime = (data.sectionTime || []).find(
                 (st) => st.sectionName.toLowerCase() === sec.sectionName.toLowerCase(),
               );
@@ -75,6 +74,11 @@ export const DashboardOverallAccuracy: React.FC<Props> = ({ data }) => {
                 sec.questionCount ??
                 matchedSecTime?.questionCount ??
                 sec.correct + sec.wrong + (sec.skipped || 0);
+
+              const acc =
+                totalQ > 0
+                  ? Math.round((sec.correct / totalQ) * 100)
+                  : Math.round(sec.accuracy || 0);
 
               return (
                 <div key={idx} className='space-y-2'>

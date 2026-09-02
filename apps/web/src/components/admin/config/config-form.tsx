@@ -34,9 +34,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface ConfigFormProps {
   initialData?: ExamConfig;
+  onSuccess?: (config?: ExamConfig) => void;
 }
 
-export function ConfigForm({ initialData }: ConfigFormProps) {
+export function ConfigForm({ initialData, onSuccess }: ConfigFormProps) {
   const router = useRouter();
   const createMutation = useCreateConfig();
   const updateMutation = useUpdateConfig(initialData?.id || '');
@@ -71,11 +72,17 @@ export function ConfigForm({ initialData }: ConfigFormProps) {
   const onSubmit = async (data: FormValues) => {
     try {
       if (isEditMode) {
-        await updateMutation.mutateAsync(data);
-        router.push(`/admin/configurations/${initialData.id}`);
+        const updated = await updateMutation.mutateAsync(data);
+        if (onSuccess) {
+          onSuccess(updated as any);
+        } else {
+          router.push(`/admin/configurations/${initialData.id}`);
+        }
       } else {
         const response = await createMutation.mutateAsync(data);
-        if (response && response.id) {
+        if (onSuccess) {
+          onSuccess(response as any);
+        } else if (response && response.id) {
           router.push(`/admin/configurations/${response.id}`);
         } else {
           router.push('/admin/configurations');
