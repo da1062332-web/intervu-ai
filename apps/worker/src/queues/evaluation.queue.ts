@@ -25,7 +25,7 @@ export class EvaluationQueueProcessor {
   constructor(connection: ConnectionOptions, logger: AppLogger) {
     this.logger = logger;
     this.apiBaseUrl =
-      process.env.INTERNAL_API_URL || "http://localhost:3000";
+      process.env.INTERNAL_API_URL || "http://localhost:4000";
     this.internalServiceToken =
       process.env.INTERNAL_SERVICE_TOKEN || "";
 

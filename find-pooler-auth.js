@@ -20,7 +20,7 @@ const regions = [
 ];
 
 const projectRef = "ayklmzeqfezrlbkdusqc";
-const pass = process.env.DB_PASSWORD || "postgres";
+const pass = process.env.DB_PASSWORD || "MARVEL7ace@77090";
 
 async function checkAuth(region) {
   const host = `aws-0-${region}.pooler.supabase.com`;
@@ -34,6 +34,7 @@ async function checkAuth(region) {
     await client.end();
     return url;
   } catch (err) {
+    process.stdout.write(`(${err.message}) `);
     return null;
   }
 }

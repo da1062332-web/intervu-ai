@@ -231,7 +231,7 @@ export class QuestionGenerationController {
 
         if (!result.success || !result.question) {
           throw new BadRequestException(
-            `SGE AI generation failed: ${result.errors?.join("; ") || "Unknown error"}`,
+            "The AI struggled to generate a question that perfectly matches your mathematical constraints and formulas. Please review your template logic and try again."
           );
         }
 
@@ -499,7 +499,7 @@ export class QuestionGenerationController {
 
     if (!result.success || !result.question) {
       throw new BadRequestException(
-        `SGE AI generation failed: ${result.errors?.join("; ") || "Unknown error"}`,
+        "The AI struggled to generate a question that perfectly matches your mathematical constraints and formulas. Please review your template logic and try again."
       );
     }
 

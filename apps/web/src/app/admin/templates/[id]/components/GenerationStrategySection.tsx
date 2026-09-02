@@ -235,7 +235,22 @@ export function GenerationStrategySection() {
     updateDraftState({ constraintForm: typeof val === 'function' ? val(constraintForm) : val });
   };
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{title: string, message: string, code?: string} | null>(null);
+
+  const handleError = (e: any) => {
+    const code = e?.code || e?.raw?.error_code || (e?.response?.data && e?.response?.data?.error_code);
+    if (code && code !== 'UNKNOWN_ERROR') {
+      setError({
+        title: 'Validation Error',
+        message: e?.message || e?.raw?.message || 'Failed to save configuration.',
+        code: code,
+      });
+      toast.error(e?.message || e?.raw?.message || 'Failed to save configuration.');
+    } else {
+      setError({ title: 'Error', message: e?.message || 'An unknown error occurred.' });
+      toast.error('Failed to save configuration.');
+    }
+  };
 
   const resetVariableForm = () => {
     setVariableForm({
@@ -309,7 +324,7 @@ export function GenerationStrategySection() {
   const handleSaveVariable = () => {
     setError(null);
     if (!variableForm.name.trim()) {
-      setError('Variable name is required');
+      setError({ title: 'Validation Error', message: 'Variable name is required' });
       return;
     }
 
@@ -386,13 +401,19 @@ export function GenerationStrategySection() {
       },
     };
 
-    updateTemplate({ templateId, payload }, { onSuccess: () => setVariableModalOpen(false) });
+    updateTemplate(
+      { templateId, payload },
+      {
+        onSuccess: () => setVariableModalOpen(false),
+        onError: handleError,
+      }
+    );
   };
 
   const handleSaveDerived = () => {
     setError(null);
     if (!derivedForm.name.trim() || !derivedForm.expression.trim()) {
-      setError('Both derived variable name and expression are required');
+      setError({ title: 'Validation Error', message: 'Both derived variable name and expression are required' });
       return;
     }
 
@@ -414,12 +435,12 @@ export function GenerationStrategySection() {
       if (validation.cycle && validation.cycle.length > 0) {
         const isSelf = validation.cycle.length === 2 && validation.cycle[0] === validation.cycle[1];
         if (isSelf) {
-          setError(`Variable "${validation.cycle[0]}" cannot reference itself.`);
+          setError({ title: 'Validation Error', message: `Variable "${validation.cycle[0]}" cannot reference itself.` });
         } else {
-          setError(`Circular dependency detected:\n${validation.cycle.join(' → ')}`);
+          setError({ title: 'Validation Error', message: `Circular dependency detected:\n${validation.cycle.join(' → ')}` });
         }
       } else {
-        setError('Circular dependency detected in formulas.');
+        setError({ title: 'Validation Error', message: 'Circular dependency detected in formulas.' });
       }
       return;
     }
@@ -438,7 +459,13 @@ export function GenerationStrategySection() {
       },
     };
 
-    updateTemplate({ templateId, payload }, { onSuccess: () => setDerivedModalOpen(false) });
+    updateTemplate(
+      { templateId, payload },
+      {
+        onSuccess: () => setDerivedModalOpen(false),
+        onError: handleError,
+      }
+    );
   };
 
   const handleSaveConstraint = () => {
@@ -449,12 +476,12 @@ export function GenerationStrategySection() {
       constraintForm.operator === 'Regex';
 
     if (!constraintForm.value.trim()) {
-      setError('Value is required');
+      setError({ title: 'Validation Error', message: 'Value is required' });
       return;
     }
 
     if (!isCustomOperator && !constraintForm.target.trim()) {
-      setError('Target is required');
+      setError({ title: 'Validation Error', message: 'Target is required' });
       return;
     }
 
@@ -505,7 +532,13 @@ export function GenerationStrategySection() {
       },
     };
 
-    updateTemplate({ templateId, payload }, { onSuccess: () => setConstraintModalOpen(false) });
+    updateTemplate(
+      { templateId, payload },
+      {
+        onSuccess: () => setConstraintModalOpen(false),
+        onError: handleError,
+      }
+    );
   };
 
   const handleDeleteVariable = (name: string) => {
@@ -718,8 +751,13 @@ export function GenerationStrategySection() {
     >
       <div className='space-y-6'>
         {error && (
-          <div className='rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
-            {error}
+          <div className='flex items-start gap-2 p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md'>
+            <AlertCircle className='w-4 h-4 mt-0.5 shrink-0' />
+            <div className='space-y-1'>
+              <p className='font-semibold'>{error.title}</p>
+              <p>{error.message}</p>
+              {error.code && <p className='text-xs opacity-80 mt-1 font-mono'>Code: {error.code}</p>}
+            </div>
           </div>
         )}
 
@@ -1352,7 +1390,7 @@ export function GenerationStrategySection() {
           </h2>
           {error && (
             <div className='rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 whitespace-pre-line'>
-              {error}
+              {error.message}
             </div>
           )}
           <div className='space-y-2'>

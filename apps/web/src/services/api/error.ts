@@ -132,6 +132,16 @@ export function normalizeApiError(input: unknown, fallbackStatus = 500): Normali
     });
   }
 
+  // Handle flat { error_code, message } format from TemplateGenerationException
+  if (isRecord(input) && typeof input.error_code === 'string') {
+    return buildNormalizedError({
+      code: input.error_code,
+      message: typeof input.message === 'string' ? input.message : FALLBACK_ERROR_MESSAGE,
+      status: fallbackStatus,
+      raw: input,
+    });
+  }
+
   return buildNormalizedError({
     code: FALLBACK_ERROR_CODE,
     message: FALLBACK_ERROR_MESSAGE,

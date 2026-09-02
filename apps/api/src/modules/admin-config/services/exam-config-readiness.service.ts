@@ -62,23 +62,27 @@ export class ExamConfigReadinessService {
       return this.inFlight.get(configId)!;
     }
 
-    const promise = this.computeReadiness(configId).then((res) => {
-      this.cache.set(configId, {
-        data: res,
-        expiresAt: Date.now() + 15000, // 15s TTL
+    const promise = this.computeReadiness(configId)
+      .then((res) => {
+        this.cache.set(configId, {
+          data: res,
+          expiresAt: Date.now() + 15000, // 15s TTL
+        });
+        this.inFlight.delete(configId);
+        return res;
+      })
+      .catch((err) => {
+        this.inFlight.delete(configId);
+        throw err;
       });
-      this.inFlight.delete(configId);
-      return res;
-    }).catch((err) => {
-      this.inFlight.delete(configId);
-      throw err;
-    });
 
     this.inFlight.set(configId, promise);
     return promise;
   }
 
-  private async computeReadiness(configId: string): Promise<ExamConfigReadinessResponse> {
+  private async computeReadiness(
+    configId: string,
+  ): Promise<ExamConfigReadinessResponse> {
     const config = await this.prisma.examConfig.findUnique({
       where: { id: configId },
       include: {
@@ -203,10 +207,10 @@ export class ExamConfigReadinessService {
     let availableUnusedCapacity = 0;
     let conflictingTopicsCount = 0;
     const isManualDifficultyMode = easy + medium + hard === 100;
-
     // Collect all topics across sections for high-performance single-pass batch lookup
     const allTopics: Array<{ id: string; code?: string; name?: string }> = [];
     for (const section of config.sections) {
+      if (!section.sectionTopics) continue;
       for (const st of section.sectionTopics) {
         if (st.topic) {
           allTopics.push({

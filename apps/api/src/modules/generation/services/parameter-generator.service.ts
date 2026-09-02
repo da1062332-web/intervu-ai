@@ -1,6 +1,11 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import * as math from "mathjs";
-import { PreviewGenerationException } from "../../../core/exceptions";
+import {
+  PreviewGenerationException,
+  VariableGenerationError,
+  ConstraintValidationError,
+  FormulaEvaluationError,
+} from "../../../core/exceptions";
 
 interface VariableDefinition {
   name: string;
@@ -93,7 +98,7 @@ export class ParameterGeneratorService {
     const formulas = resolved.formulas;
     const constraints = resolved.constraints;
 
-    const MAX_INTERNAL_ATTEMPTS = 50;
+    const MAX_INTERNAL_ATTEMPTS = 10;
     let attempts = 0;
 
     // Fast-path: If template defines no variables and no formulas (e.g. Verbal/Concept reasoning),
@@ -131,13 +136,7 @@ export class ParameterGeneratorService {
 
         if (type === "number" || type === "decimal" || type === "integer") {
           if (min > max) {
-            throw new BadRequestException({
-              success: false,
-              error: {
-                code: "INVALID_SCHEMA",
-                message: `Min value (${min}) cannot be greater than max value (${max}) for variable ${v.name}`,
-              },
-            });
+            throw new VariableGenerationError(`Min value (${min}) cannot be greater than max value (${max}) for variable ${v.name}`, `variable:${v.name}`);
           }
 
           const precision =
@@ -215,7 +214,9 @@ export class ParameterGeneratorService {
           this.validateFormulaReferences(normalized, params, variables);
 
           if (normalized.includes("=")) {
-            const [lhs, rhs] = normalized.split("=").map((part) => part.trim());
+            const eqIndex = normalized.indexOf("=");
+            const lhs = normalized.substring(0, eqIndex).trim();
+            const rhs = normalized.substring(eqIndex + 1).trim();
             if (lhs && rhs) {
               const result = math.evaluate(rhs, params);
               params[lhs] = this.normalizeMathValue(result);
@@ -229,12 +230,13 @@ export class ParameterGeneratorService {
           }
         }
       } catch (err) {
-        if (err instanceof PreviewGenerationException) {
+        if (err instanceof FormulaEvaluationError) {
           throw err;
         }
-
-        // If formula chain evaluation fails (e.g. division by zero), we retry with new parameters
-        continue;
+        if (err instanceof PreviewGenerationException) {
+          throw new FormulaEvaluationError(err.message, "formulas");
+        }
+        throw new FormulaEvaluationError(err instanceof Error ? err.message : String(err), "formulas");
       }
 
       // 3. Validate Constraints
@@ -248,14 +250,9 @@ export class ParameterGeneratorService {
       }
     }
 
-    throw new BadRequestException({
-      success: false,
-      error: {
-        code: "CONSTRAINT_VIOLATION",
-        message:
-          "Failed to generate variables satisfying all template constraints after 50 attempts",
-      },
-    });
+    throw new ConstraintValidationError(
+      `Failed to generate variables satisfying all template constraints after ${MAX_INTERNAL_ATTEMPTS} attempts`
+    );
   }
 
   private resolveStrategyDefinition(metadata: TemplateMetadata): {
@@ -370,17 +367,10 @@ export class ParameterGeneratorService {
       ? normalized.split("=")[0].trim()
       : "derived variable";
 
-    throw new PreviewGenerationException("Template configuration error.", {
-      category: "FORMULA_ERROR",
-      retryable: false,
-      source: "parameter-generator",
-      reason: `Unknown variable '${unknownReference}' in formula '${formula}'`,
-      context: {
-        variable: target,
-        formula: formula,
-        unknownSymbol: unknownReference,
-      },
-    });
+    throw new FormulaEvaluationError(
+      `Unknown variable '${unknownReference}' in formula '${formula}'`,
+      `formula:${target}`
+    );
   }
 
   private extractReferencedVariables(expression: string): string[] {

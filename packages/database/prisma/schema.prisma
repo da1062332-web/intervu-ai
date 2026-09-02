@@ -87,6 +87,9 @@ model Template {
   deletedAt                  DateTime?
   datasetConfig              Json                         @default("{}")
   generationStrategy         GenerationStrategy           @default(VARIABLE)
+  readinessStatus            String                       @default("UNKNOWN")
+  lastReadinessCheckAt       DateTime?
+  lastReadinessError         String?
   hybridConfig               Json                         @default("{}")
   generatedQuestions         GeneratedQuestion[]
   QuestionGenerationAuditLog QuestionGenerationAuditLog[]

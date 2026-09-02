@@ -19,9 +19,16 @@ export function useConfigurationValidation(configId: string) {
       }
     },
     enabled: !!configId,
-    staleTime: 30000,
-    refetchInterval: 60000, // Poll every 60s instead of 5s to prevent query storms
-    refetchOnWindowFocus: false,
+    staleTime: 10000,
+    // Poll aggressively if not ready (asynchronous generation running in background)
+    refetchInterval: (query: any) => {
+      const data = query.state?.data || query.data;
+      if (data && data.status !== 'READY') {
+        return 5000;
+      }
+      return 60000;
+    },
+    refetchOnWindowFocus: true,
   });
 
   const refreshMutation = useMutation({

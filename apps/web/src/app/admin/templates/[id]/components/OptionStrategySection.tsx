@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2, AlertCircle } from 'lucide-react';
 import { useSaveOptionStrategy } from '@/services/templates/hooks';
 import toast from 'react-hot-toast';
 import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
@@ -16,6 +16,22 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
   const { draftState, updateDraftState } = useTemplateBuilderContext();
   const strategy = draftState.optionStrategy?.strategy || 'static';
   const options = draftState.optionStrategy?.options || ['', '', '', ''];
+  const [error, setError] = useState<{title: string, message: string, code?: string} | null>(null);
+
+  const handleError = (e: any) => {
+    const code = e?.code || e?.raw?.error_code || (e?.response?.data && e?.response?.data?.error_code);
+    if (code && code !== 'UNKNOWN_ERROR') {
+      setError({
+        title: 'Validation Error',
+        message: e?.message || e?.raw?.message || 'Failed to save configuration.',
+        code: code,
+      });
+      toast.error(e?.message || e?.raw?.message || 'Failed to save configuration.');
+    } else {
+      setError({ title: 'Error', message: e?.message || 'An unknown error occurred.' });
+      toast.error('Failed to save configuration.');
+    }
+  };
 
   const setStrategy = (val: string) => {
     updateDraftState({ optionStrategy: { strategy: val, options } });
@@ -44,6 +60,7 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
   const { mutate: saveOptionStrategy, isPending: isSaving } = useSaveOptionStrategy();
 
   const handleSave = () => {
+    setError(null);
     if (!template?.id) return;
 
     if (options.length < 2) {
@@ -74,9 +91,7 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
         onSuccess: () => {
           toast.success('Option strategy saved successfully');
         },
-        onError: () => {
-          toast.error('Failed to save option strategy');
-        },
+        onError: handleError,
       },
     );
   };
@@ -97,6 +112,16 @@ export function OptionStrategySection({ template }: OptionStrategySectionProps) 
       }
     >
       <div className='space-y-6'>
+        {error && (
+          <div className='flex items-start gap-2 p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md'>
+            <AlertCircle className='w-4 h-4 mt-0.5 shrink-0' />
+            <div className='space-y-1'>
+              <p className='font-semibold'>{error.title}</p>
+              <p>{error.message}</p>
+              {error.code && <p className='text-xs opacity-80 mt-1 font-mono'>Code: {error.code}</p>}
+            </div>
+          </div>
+        )}
         <div className='space-y-4'>
           <Label className='text-base font-semibold'>Generation Strategy</Label>
           <RadioGroup

@@ -8,6 +8,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import {
   PreviewErrorDetails,
   PreviewGenerationException,
+  TemplateGenerationException,
 } from "../../../core/exceptions";
 import { PromptBuilderService } from "../prompts/prompt-builder.service";
 import { QuestionGeneratorService } from "../generators/question-generator.service";
@@ -206,6 +207,12 @@ export class GenerationRetryService {
           template as any,
         );
       } catch (error) {
+        if (error instanceof TemplateGenerationException) {
+          error.templateId = template?.id;
+          const res = typeof error.getResponse === "function" ? (error.getResponse() as any) : {};
+          if (typeof res === "object" && res !== null) res.template_id = template?.id;
+          throw error;
+        }
         if (error instanceof PreviewGenerationException) {
           throw error;
         }
@@ -345,6 +352,12 @@ export class GenerationRetryService {
               template as any,
             );
           } catch (error) {
+            if (error instanceof TemplateGenerationException) {
+              error.templateId = template?.id;
+              const res = typeof error.getResponse === "function" ? (error.getResponse() as any) : {};
+              if (typeof res === "object" && res !== null) res.template_id = template?.id;
+              throw error;
+            }
             if (error instanceof PreviewGenerationException) {
               const details = error.details as PreviewErrorDetails | undefined;
               this.logger.warn(
@@ -647,6 +660,12 @@ export class GenerationRetryService {
         );
         validationSuccess = true;
       } catch (e: any) {
+        if (e instanceof TemplateGenerationException) {
+          e.templateId = template?.id;
+          const res = typeof e.getResponse === "function" ? (e.getResponse() as any) : {};
+          if (typeof res === "object" && res !== null) res.template_id = template?.id;
+          throw e;
+        }
         if (e instanceof PreviewGenerationException) {
           throw e;
         }

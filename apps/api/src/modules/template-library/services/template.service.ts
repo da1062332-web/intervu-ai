@@ -29,6 +29,13 @@ import {
   analyzeMathjsExpression,
   getUnsupportedMathjsFunctions,
 } from "./expression-utils";
+import {
+  TemplateGenerationException,
+  VariableGenerationError,
+  ConstraintValidationError,
+  FormulaEvaluationError,
+  DistractorGenerationError,
+} from "../../../core/exceptions";
 
 import { RedisCacheService } from "../../../cache";
 import { TemplateRepository } from "../repositories/template.repository";
@@ -237,15 +244,14 @@ export class TemplateService {
         validated.constraints,
       );
       if (validationErrors.length > 0) {
-        throw new BadRequestException({
-          success: false,
-          error: {
-            code: "INVALID_STRATEGY_DEFINITION",
-            message:
-              "Template strategy contains invalid variables, derived variables, or constraints.",
-            details: validationErrors,
-          },
-        });
+        const msg = validationErrors[0];
+        if (msg.toLowerCase().includes("formula") || msg.toLowerCase().includes("expression")) {
+          throw new FormulaEvaluationError("unknown", msg, "formulas");
+        } else if (msg.toLowerCase().includes("constraint")) {
+          throw new ConstraintValidationError("constraints", msg);
+        } else {
+          throw new VariableGenerationError("unknown", msg, "variables");
+        }
       }
     }
 
@@ -304,6 +310,12 @@ export class TemplateService {
     } else {
       await this.cacheService.clear("template:list:*");
     }
+
+    // Trigger incremental readiness check in the background
+    this.generateQuestionForTemplate(template.id).catch(() => {
+      // Errors are handled and update readinessStatus to ERROR
+    });
+
     return template;
   }
 
@@ -390,15 +402,14 @@ export class TemplateService {
         validated.constraints,
       );
       if (validationErrors.length > 0) {
-        throw new BadRequestException({
-          success: false,
-          error: {
-            code: "INVALID_STRATEGY_DEFINITION",
-            message:
-              "Template strategy contains invalid variables, derived variables, or constraints.",
-            details: validationErrors,
-          },
-        });
+        const msg = validationErrors[0];
+        if (msg.toLowerCase().includes("formula") || msg.toLowerCase().includes("expression")) {
+          throw new FormulaEvaluationError("unknown", msg, "formulas");
+        } else if (msg.toLowerCase().includes("constraint")) {
+          throw new ConstraintValidationError("constraints", msg);
+        } else {
+          throw new VariableGenerationError("unknown", msg, "variables");
+        }
       }
     }
 
@@ -420,15 +431,25 @@ export class TemplateService {
         finalVariableSchema,
       );
       if (solutionErrors.length > 0) {
-        throw new BadRequestException({
-          success: false,
-          error: {
-            code: "INVALID_SOLUTION_SCHEMA",
-            message:
-              "Template solution schema contains invalid expression or invalid variable references.",
-            details: solutionErrors,
-          },
-        });
+        throw new FormulaEvaluationError(
+          "unknown",
+          solutionErrors[0],
+          "solutionSchema",
+        );
+      }
+    }
+
+    // Validate optionsTemplate if updated
+    const finalStructure: any = validated.structure !== undefined ? validated.structure : existing.structure;
+    if (finalStructure && finalStructure.optionsTemplate) {
+      try {
+        parseOptionsTemplate(finalStructure.optionsTemplate);
+      } catch (e: any) {
+        throw new DistractorGenerationError(
+          "unknown",
+          e.message || "Invalid option strategy definition",
+          "optionsTemplate"
+        );
       }
     }
     if ((validated as any).isActive !== undefined)
@@ -443,6 +464,13 @@ export class TemplateService {
     } else {
       await this.cacheService.clear("template:list:*");
     }
+
+    // Trigger incremental readiness check in the background
+    this.generateQuestionForTemplate(id).catch(() => {
+      // Errors are already logged in generateQuestionForTemplate and
+      // the template readinessStatus will be updated to ERROR.
+    });
+
     return updated;
   }
 
@@ -1386,6 +1414,15 @@ export class TemplateService {
     }
 
     if (!isConstraintValid) {
+      await this.prisma.template.update({
+        where: { id: template.id },
+        data: {
+          readinessStatus: "ERROR",
+          lastReadinessCheckAt: new Date(),
+          lastReadinessError: "Failed to generate variables satisfying constraints after 20 attempts",
+        },
+      });
+
       throw new BadRequestException({
         success: false,
         error: {
@@ -1414,6 +1451,15 @@ export class TemplateService {
           _generationSeed: prngSeed,
           _templateVersion: template.version,
         },
+      },
+    });
+
+    await this.prisma.template.update({
+      where: { id: template.id },
+      data: {
+        readinessStatus: "READY",
+        lastReadinessCheckAt: new Date(),
+        lastReadinessError: null,
       },
     });
 
