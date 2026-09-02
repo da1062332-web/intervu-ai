@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger, Inject } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger, Inject, Optional } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
@@ -6,6 +6,7 @@ import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AllocatedSectionDto } from "@intervu/shared";
 import { AssemblyAuditService } from "./assembly-audit.service";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { FinalShufflerService } from "../../tests/start-test/final-shuffler.service";
 
 @Injectable()
 export class AssemblyPersistenceService {
@@ -20,11 +21,15 @@ export class AssemblyPersistenceService {
     private readonly auditService: AssemblyAuditService,
     @Inject(PrismaService)
     private readonly prisma: PrismaService,
+    @Optional()
+    @Inject(FinalShufflerService)
+    private readonly finalShuffler?: FinalShufflerService,
   ) {}
 
   /**
    * Instantly clones pre-attached sections & questions from a published AssembledTest
-   * directly into a new candidate TestInstance in a single fast DB transaction (< 50ms).
+   * directly into a new candidate TestInstance in a single fast DB transaction (< 50ms),
+   * applying answer-safe question & option shuffling per candidate.
    */
   async cloneReusableAssemblyForCandidate(
     reusableAssemblyId: string,
@@ -46,6 +51,18 @@ export class AssemblyPersistenceService {
     const expiresAt = new Date(
       Date.now() + (durationSeconds || reusable.totalDurationSeconds || 3600) * 1000,
     );
+
+    const shuffleQuestions = (reusable as any)?.examConfig?.ruleFlags?.shuffleQuestionsEnabled ?? true;
+    const shuffleOptions = (reusable as any)?.examConfig?.ruleFlags?.shuffleOptionsEnabled ?? true;
+
+    let sectionsToClone: any[] = reusable.sections;
+    if (this.finalShuffler && (shuffleQuestions || shuffleOptions)) {
+      sectionsToClone = this.finalShuffler.shuffleSections(
+        reusable.sections as any,
+        { shuffleQuestionsEnabled: shuffleQuestions, shuffleOptionsEnabled: shuffleOptions },
+      );
+      this.logger.log(`    [CLONE-SERVICE 🔀] Applied candidate shuffle (Questions: ${shuffleQuestions}, Options: ${shuffleOptions})`);
+    }
 
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
@@ -77,8 +94,8 @@ export class AssemblyPersistenceService {
 
     let totalClonedQuestions = 0;
     // 2. Clone sections & questions
-    for (let i = 0; i < reusable.sections.length; i++) {
-      const sec = reusable.sections[i];
+    for (let i = 0; i < sectionsToClone.length; i++) {
+      const sec = sectionsToClone[i];
       const instanceSectionId = `sec_inst_${testInstanceId}_${sec.sectionKey}`;
 
       queries.push(
@@ -149,6 +166,110 @@ export class AssemblyPersistenceService {
     }
 
     this.logger.log(`    [CLONE-SERVICE 🚀] Clone completed in ${Date.now() - t0}ms! Created candidate instance: ${testInstanceId}`);
+    return testInstanceId;
+  }
+
+  /**
+   * Materializes a claimed pregenerated pool instance into a candidate TestInstance in < 25ms,
+   * applying answer-safe question & option shuffling per candidate.
+   */
+  async materializePregeneratedInstanceForCandidate(
+    claimedInstance: {
+      id: string;
+      configId: string;
+      sectionsJson: any;
+    },
+    userId: string,
+    durationSeconds: number = 3600,
+  ): Promise<string> {
+    const t0 = Date.now();
+    const testInstanceId = createId();
+    const expiresAt = new Date(Date.now() + (durationSeconds || 3600) * 1000);
+
+    const rawSections = Array.isArray(claimedInstance.sectionsJson)
+      ? claimedInstance.sectionsJson
+      : (claimedInstance.sectionsJson as any)?.sections || [];
+
+    let sectionsToPersist = rawSections;
+    if (this.finalShuffler) {
+      sectionsToPersist = this.finalShuffler.shuffleSections(
+        rawSections as any,
+        { shuffleQuestionsEnabled: true, shuffleOptionsEnabled: true },
+      );
+    }
+
+    const queries: Prisma.PrismaPromise<unknown>[] = [];
+
+    // 1. Create candidate TestInstance
+    queries.push(
+      this.prisma.testInstance.create({
+        data: {
+          id: testInstanceId,
+          userId,
+          examConfigId: claimedInstance.configId,
+          status: "CREATED",
+          expiresAt,
+        },
+      }),
+    );
+
+    let totalClonedQuestions = 0;
+    // 2. Persist sections & questions
+    for (let i = 0; i < sectionsToPersist.length; i++) {
+      const sec = sectionsToPersist[i];
+      const instanceSectionId = `sec_inst_${testInstanceId}_${sec.sectionKey}`;
+
+      queries.push(
+        this.prisma.testInstanceSection.create({
+          data: {
+            id: instanceSectionId,
+            testInstanceId,
+            sectionKey: sec.sectionKey,
+            sectionName: sec.sectionName || sec.displayName || `Section ${i + 1}`,
+            durationSeconds: sec.durationSeconds || 600,
+            questionCount: sec.questionCount || sec.questions?.length || 0,
+            orderIndex: sec.orderIndex ?? i,
+            status: i === 0 ? "ACTIVE" : "UPCOMING",
+          },
+        }),
+      );
+
+      if (sec.questions && sec.questions.length > 0) {
+        totalClonedQuestions += sec.questions.length;
+        queries.push(
+          this.prisma.testInstanceQuestion.createMany({
+            data: sec.questions.map((q: any, qIdx: number) => ({
+              testInstanceId,
+              sectionId: instanceSectionId,
+              questionId: q.questionId,
+              questionOrder: q.questionOrder ?? qIdx,
+              questionSnapshot: (q.questionSnapshot as Prisma.InputJsonValue) || {},
+            })),
+          }),
+        );
+      }
+    }
+
+    // 3. Initialize ExecutionState for session
+    const firstSection = sectionsToPersist[0];
+    queries.push(
+      this.prisma.executionState.create({
+        data: {
+          testInstanceId,
+          currentQuestionIndex: 0,
+          currentSectionIndex: 0,
+          currentSectionKey: firstSection?.sectionKey || "default",
+          remainingTimeSeconds: durationSeconds || 3600,
+          lockedSectionKeys: [],
+          markedQuestions: [],
+          visitedQuestions: [],
+        },
+      }),
+    );
+
+    await this.prisma.$transaction(queries);
+    this.logger.log(`    [POOL-MATERIALIZE ⚡] Materialized candidate instance ${testInstanceId} (${totalClonedQuestions} Qs) in ${Date.now() - t0}ms!`);
+
     return testInstanceId;
   }
 

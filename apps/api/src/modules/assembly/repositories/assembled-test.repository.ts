@@ -184,10 +184,8 @@ export class AssembledTestRepository {
       where: {
         configId,
         totalQuestions: { gt: 0 },
-        // Accept both PUBLISHED and complete DRAFT assemblies.
-        // PUBLISHED is always preferred (see orderBy below).
-        // DRAFT fallback covers configs assembled but not yet formally published.
-        status: { in: [AssemblyStatus.PUBLISHED, AssemblyStatus.DRAFT] },
+        // Strictly only accept formally PUBLISHED master assemblies
+        status: AssemblyStatus.PUBLISHED,
         sections: {
           // At least one section must exist with questions
           some: {
@@ -212,13 +210,7 @@ export class AssembledTestRepository {
           },
         },
       },
-      orderBy: [
-        // Prefer PUBLISHED over DRAFT: "PUBLISHED" < "DRAFT" alphabetically
-        // so ascending sort puts PUBLISHED first.
-        { status: "asc" },
-        // Among same-status assemblies, pick the newest one
-        { createdAt: "desc" },
-      ],
+      orderBy: { createdAt: "desc" },
     });
   }
 

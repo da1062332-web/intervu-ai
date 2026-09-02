@@ -16,6 +16,10 @@ interface RuleFlagsState {
   maxAttempts?: number;
   candidateNoRepeatEnabled?: boolean;
   runtimeGenerationOnDeficit?: boolean;
+  poolEnabled?: boolean;
+  poolTargetSize?: number;
+  poolMinThreshold?: number;
+  poolRefillBatchSize?: number;
 }
 
 interface ConfigRulesState {

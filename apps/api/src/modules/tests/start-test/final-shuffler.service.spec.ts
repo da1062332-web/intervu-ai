@@ -163,4 +163,69 @@ describe("FinalShufflerService", () => {
       originalQ1Options,
     );
   });
+
+  it("should re-map index-form answers to exact option text before shuffling options", () => {
+    const sections: ShufflerSectionData[] = [
+      {
+        sectionKey: "S1",
+        sectionName: "Section 1",
+        durationSeconds: 300,
+        questionCount: 1,
+        orderIndex: 0,
+        questions: [
+          {
+            questionId: "q_index",
+            questionOrder: 0,
+            questionSnapshot: {
+              questionType: "MCQ",
+              options: ["Paris", "London", "Berlin", "Madrid"],
+              correctAnswer: "0", // Index-form answer representing "Paris"
+            },
+          },
+        ],
+      },
+    ];
+
+    const result = service.shuffleSections(sections, {
+      shuffleQuestionsEnabled: false,
+      shuffleOptionsEnabled: true,
+    });
+
+    // Options are shuffled: Paris, London, Berlin, Madrid -> London, Berlin, Paris, Madrid (or similar deterministic shuffle)
+    // The correctAnswer must now be the actual target string "Paris"
+    expect(result[0].questions[0].questionSnapshot.correctAnswer).toBe("Paris");
+    expect(result[0].questions[0].questionSnapshot.answer).toBe("Paris");
+    expect(result[0].questions[0].questionSnapshot.options).toContain("Paris");
+  });
+
+  it("should re-map letter-form answers like 'Option B' to option text before shuffling", () => {
+    const sections: ShufflerSectionData[] = [
+      {
+        sectionKey: "S1",
+        sectionName: "Section 1",
+        durationSeconds: 300,
+        questionCount: 1,
+        orderIndex: 0,
+        questions: [
+          {
+            questionId: "q_letter",
+            questionOrder: 0,
+            questionSnapshot: {
+              questionType: "MCQ",
+              options: ["Paris", "London", "Berlin", "Madrid"],
+              correctAnswer: "Option B", // Letter-form answer representing "London" (index 1)
+            },
+          },
+        ],
+      },
+    ];
+
+    const result = service.shuffleSections(sections, {
+      shuffleQuestionsEnabled: false,
+      shuffleOptionsEnabled: true,
+    });
+
+    expect(result[0].questions[0].questionSnapshot.correctAnswer).toBe("London");
+    expect(result[0].questions[0].questionSnapshot.options).toContain("London");
+  });
 });

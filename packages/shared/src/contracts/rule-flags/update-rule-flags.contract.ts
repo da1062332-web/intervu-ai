@@ -10,6 +10,10 @@ export const UpdateRuleFlagsSchema = z.object({
   maxAttempts: z.number().int().min(1).max(10).optional(),
   candidateNoRepeatEnabled: z.boolean().optional(),
   runtimeGenerationOnDeficit: z.boolean().optional(),
+  poolEnabled: z.boolean().optional(),
+  poolTargetSize: z.number().int().min(1).max(500).optional(),
+  poolMinThreshold: z.number().int().min(1).max(100).optional(),
+  poolRefillBatchSize: z.number().int().min(1).max(50).optional(),
 });
 
 export type UpdateRuleFlags = z.infer<typeof UpdateRuleFlagsSchema>;

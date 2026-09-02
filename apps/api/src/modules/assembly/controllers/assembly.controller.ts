@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Param,
   Body,
   HttpCode,
@@ -27,6 +28,7 @@ import { PublishReadinessService } from "../services/publish-readiness.service";
 import { AssemblyValidationV2Service } from "../services/assembly-validation-v2.service";
 import { BlueprintBuilderService } from "../services/blueprint-builder.service";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
+import { TestPoolManagerService, UpdatePoolConfigDto } from "../services/test-pool-manager.service";
 import {
   CreateAssemblyDto,
   AssemblyBuildResponseDto,
@@ -58,6 +60,7 @@ export class AssemblyController {
     private readonly validationV2Service: AssemblyValidationV2Service,
     private readonly blueprintBuilder: BlueprintBuilderService,
     private readonly assembledTestRepository: AssembledTestRepository,
+    private readonly poolManagerService: TestPoolManagerService,
   ) {}
 
   // --- NEW ROUTES ---
@@ -505,4 +508,50 @@ export class AssemblyController {
     const report = await this.readinessService.check(id);
     return { success: true, data: report, error: null, meta: null };
   }
+
+  /**
+   * GET /assembly/pool/:configId/status
+   * Returns live dynamic pool depth, target size, and health status for an exam configuration.
+   */
+  @Get("pool/:configId/status")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get dynamic pre-generated pool status and depth for an exam config" })
+  @ApiResponse({ status: 200, description: "PoolStatusResponse" })
+  async getPoolStatus(@Param("configId") configId: string) {
+    const status = await this.poolManagerService.getPoolStatus(configId);
+    return { success: true, data: status, error: null, meta: null };
+  }
+
+  /**
+   * PATCH /assembly/pool/:configId/config
+   * Adjusts the dynamic pool capacity (increase/decrease target pool count or thresholds).
+   */
+  @Patch("pool/:configId/config")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update dynamic pool target size, refill threshold, and enable status" })
+  @ApiResponse({ status: 200, description: "Updated PoolStatusResponse" })
+  async updatePoolConfig(
+    @Param("configId") configId: string,
+    @Body() dto: UpdatePoolConfigDto,
+  ) {
+    const updated = await this.poolManagerService.updatePoolConfig(configId, dto);
+    return { success: true, data: updated, error: null, meta: null };
+  }
+
+  /**
+   * POST /assembly/pool/:configId/refill
+   * Manually triggers background pre-generated pool refill up to the target pool capacity.
+   */
+  @Post("pool/:configId/refill")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Refill pre-generated test pool for an exam config" })
+  @ApiResponse({ status: 200, description: "Refill summary" })
+  async refillPool(
+    @Param("configId") configId: string,
+    @Body("count") count?: number,
+  ) {
+    const result = await this.poolManagerService.refillPool(configId, count);
+    return { success: true, data: result, error: null, meta: null };
+  }
 }
+

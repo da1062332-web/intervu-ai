@@ -57,7 +57,7 @@ export default function AssemblyDashboardPage() {
       if (isNoSections) {
         toast.error(displayMessage, { duration: 4000 });
         setTimeout(() => {
-          router.push(`/admin/configurations/${config.id}/edit`);
+          router.push(`/admin/configurations/${config.id}`);
         }, 1500);
       } else {
         toast.error(displayMessage);

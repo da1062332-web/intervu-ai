@@ -16,11 +16,16 @@ const UpdateRuleFlagsSchema = z.object({
   maxAttempts: z.number().int().min(1).max(10).optional(),
   candidateNoRepeatEnabled: z.boolean().optional(),
   runtimeGenerationOnDeficit: z.boolean().optional(),
+  poolEnabled: z.boolean().optional(),
+  poolTargetSize: z.number().int().min(1).max(500).optional(),
+  poolMinThreshold: z.number().int().min(1).max(100).optional(),
+  poolRefillBatchSize: z.number().int().min(1).max(50).optional(),
 });
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { Zap, Layers, RefreshCw } from 'lucide-react';
 
 interface RuleFlagsTabProps {
   configId: string;
@@ -40,6 +45,10 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
   const [maxAttempts, setMaxAttempts] = useState<number>(3);
   const [candidateNoRepeatEnabled, setCandidateNoRepeatEnabled] = useState(false);
   const [runtimeGenerationOnDeficit, setRuntimeGenerationOnDeficit] = useState(false);
+  const [poolEnabled, setPoolEnabled] = useState(false);
+  const [poolTargetSize, setPoolTargetSize] = useState<number>(10);
+  const [poolMinThreshold, setPoolMinThreshold] = useState<number>(3);
+  const [poolRefillBatchSize, setPoolRefillBatchSize] = useState<number>(5);
 
   const { setRules, setDirty } = useConfigRulesStore();
 
@@ -60,6 +69,18 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       if ((ruleFlags as any).runtimeGenerationOnDeficit !== undefined) {
         setRuntimeGenerationOnDeficit((ruleFlags as any).runtimeGenerationOnDeficit);
       }
+      if ((ruleFlags as any).poolEnabled !== undefined) {
+        setPoolEnabled((ruleFlags as any).poolEnabled);
+      }
+      if ((ruleFlags as any).poolTargetSize !== undefined) {
+        setPoolTargetSize((ruleFlags as any).poolTargetSize);
+      }
+      if ((ruleFlags as any).poolMinThreshold !== undefined) {
+        setPoolMinThreshold((ruleFlags as any).poolMinThreshold);
+      }
+      if ((ruleFlags as any).poolRefillBatchSize !== undefined) {
+        setPoolRefillBatchSize((ruleFlags as any).poolRefillBatchSize);
+      }
     }
   }, [ruleFlags]);
 
@@ -75,6 +96,10 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       maxAttempts,
       candidateNoRepeatEnabled,
       runtimeGenerationOnDeficit,
+      poolEnabled,
+      poolTargetSize,
+      poolMinThreshold,
+      poolRefillBatchSize,
     });
   }, [
     negativeMarkingEnabled,
@@ -86,6 +111,10 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
     maxAttempts,
     candidateNoRepeatEnabled,
     runtimeGenerationOnDeficit,
+    poolEnabled,
+    poolTargetSize,
+    poolMinThreshold,
+    poolRefillBatchSize,
     setRules,
   ]);
 
@@ -105,6 +134,10 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
       maxAttempts,
       candidateNoRepeatEnabled,
       runtimeGenerationOnDeficit,
+      poolEnabled,
+      poolTargetSize,
+      poolMinThreshold,
+      poolRefillBatchSize,
     };
 
     const validation = UpdateRuleFlagsSchema.safeParse(payload);
@@ -117,6 +150,7 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
     saveRules(validation.data, {
       onSuccess: () => {
         setDirty(false);
+        toast.success('Rules and Pool Configuration saved successfully!');
         if (onNext) onNext();
       },
     });
@@ -284,6 +318,106 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
             />
           </div>
         </div>
+      </div>
+
+      {/* Pre-Generated Test Pool & Dynamic Capacity Configuration */}
+      <div className='p-6 border border-amber-500/30 bg-amber-500/5 rounded-xl shadow-sm space-y-6'>
+        <div className='flex items-start justify-between'>
+          <div className='flex items-start gap-3'>
+            <div className='p-2 bg-amber-500/10 rounded-lg text-amber-600 dark:text-amber-400 mt-0.5'>
+              <Zap className='h-5 w-5' />
+            </div>
+            <div>
+              <h4 className='text-lg font-semibold flex items-center gap-2'>
+                Pre-Generated Test Pool Engine
+                <span className='text-xs px-2 py-0.5 font-medium rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'>
+                  Ultra-Fast &lt;10ms Starts
+                </span>
+              </h4>
+              <p className='text-sm text-muted-foreground mt-1'>
+                Pre-assembles ready test instances in PostgreSQL. Eliminates candidate start lag during high concurrency with atomic row locking.
+              </p>
+            </div>
+          </div>
+          <Switch
+            id='pool-enabled'
+            checked={poolEnabled}
+            onCheckedChange={(val: boolean) => handleToggle(setPoolEnabled, val)}
+          />
+        </div>
+
+        {poolEnabled && (
+          <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-amber-500/20'>
+            <div className='space-y-1.5 p-3.5 bg-background/80 border rounded-lg'>
+              <Label htmlFor='pool-target-size' className='text-sm font-medium flex items-center gap-1.5'>
+                <Layers className='h-4 w-4 text-primary' />
+                Target Pool Capacity
+              </Label>
+              <p className='text-xs text-muted-foreground'>Target count of pre-generated tests to maintain.</p>
+              <input
+                id='pool-target-size'
+                type='number'
+                min={1}
+                max={500}
+                value={poolTargetSize}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) {
+                    setPoolTargetSize(val);
+                    setDirty(true);
+                  }
+                }}
+                className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              />
+            </div>
+
+            <div className='space-y-1.5 p-3.5 bg-background/80 border rounded-lg'>
+              <Label htmlFor='pool-min-threshold' className='text-sm font-medium flex items-center gap-1.5'>
+                <RefreshCw className='h-4 w-4 text-amber-500' />
+                Refill Threshold
+              </Label>
+              <p className='text-xs text-muted-foreground'>Triggers auto-refill when pool depth drops below this.</p>
+              <input
+                id='pool-min-threshold'
+                type='number'
+                min={1}
+                max={100}
+                value={poolMinThreshold}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) {
+                    setPoolMinThreshold(val);
+                    setDirty(true);
+                  }
+                }}
+                className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              />
+            </div>
+
+            <div className='space-y-1.5 p-3.5 bg-background/80 border rounded-lg'>
+              <Label htmlFor='pool-refill-batch' className='text-sm font-medium flex items-center gap-1.5'>
+                <Zap className='h-4 w-4 text-emerald-500' />
+                Refill Batch Size
+              </Label>
+              <p className='text-xs text-muted-foreground'>Number of instances assembled per refill cycle.</p>
+              <input
+                id='pool-refill-batch'
+                type='number'
+                min={1}
+                max={50}
+                value={poolRefillBatchSize}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) {
+                    setPoolRefillBatchSize(val);
+                    setDirty(true);
+                  }
+                }}
+                className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className='flex items-center justify-between p-4 rounded-lg bg-muted/30'>

@@ -95,6 +95,7 @@ export class ExamConfigController {
     @Body() dto: UpdateExamConfigDto,
     @CurrentUser() user: AuthUser,
   ) {
+    this.readinessService.invalidateCache(id);
     if ((dto as any).status === "PUBLISHED") {
       await this.configPublisher.publish(id, user?.id);
       return this.examConfigService.findOne(id);
@@ -109,6 +110,7 @@ export class ExamConfigController {
   @ApiParam({ name: "id", description: "Exam configuration ID" })
   @ApiOkResponse({ description: "Configuration archived successfully" })
   async archive(@Param("id") id: string) {
+    this.readinessService.invalidateCache(id);
     return this.examConfigService.archive(id);
   }
 
