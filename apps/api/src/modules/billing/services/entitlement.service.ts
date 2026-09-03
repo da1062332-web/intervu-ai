@@ -115,7 +115,10 @@ export class EntitlementService {
         planDef = {
           ...PLAN_ENTITLEMENT_DEFINITIONS.FREE,
           ...dynamicFeats,
-          monthlyRoundsLimit: dynamicFeats.monthlyRoundsLimit !== undefined ? dynamicFeats.monthlyRoundsLimit : null,
+          monthlyRoundsLimit:
+            dynamicFeats.monthlyRoundsLimit !== undefined
+              ? dynamicFeats.monthlyRoundsLimit
+              : (PLAN_ENTITLEMENT_DEFINITIONS[String(planTier)]?.monthlyRoundsLimit ?? 3),
           roundFormats: dynamicFeats.allowedFormats || dynamicFeats.roundFormats || ['all'],
         };
       } else if (PLAN_ENTITLEMENT_DEFINITIONS[String(planTier)]) {
@@ -145,11 +148,16 @@ export class EntitlementService {
           const val = override.overrideValue as any;
           if (val?.unlimited) {
             planDef.monthlyRoundsLimit = null;
-          } else if (typeof val?.bonusRounds === 'number' && planDef.monthlyRoundsLimit !== null) {
-            planDef.monthlyRoundsLimit += val.bonusRounds;
+          } else if (typeof val?.bonusRounds === 'number') {
+            const base = typeof planDef.monthlyRoundsLimit === 'number' ? planDef.monthlyRoundsLimit : 0;
+            planDef.monthlyRoundsLimit = base + val.bonusRounds;
           } else if (typeof val === 'number') {
             planDef.monthlyRoundsLimit = val;
           }
+        } else {
+          const camelKey = override.featureKey.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
+          (planDef as any)[camelKey] = override.overrideValue;
+          (planDef as any)[override.featureKey] = override.overrideValue;
         }
       }
     } catch (err) {

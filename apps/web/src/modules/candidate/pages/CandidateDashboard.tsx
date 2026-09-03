@@ -13,6 +13,7 @@ import { AvailableAssessmentSection } from '../components/AvailableAssessmentSec
 import { CandidateHistorySection } from '../components/CandidateHistorySection';
 import { CandidateProgressSection } from '../components/CandidateProgressSection';
 import { CandidateSubscriptionSection } from '../components/CandidateSubscriptionSection';
+import { CandidateReferralCard } from '../components/CandidateReferralCard';
 
 export function CandidateDashboard() {
   const { user } = useAuth();
@@ -76,6 +77,9 @@ export function CandidateDashboard() {
 
       {/* 7. Plans & Subscription Status Section */}
       <CandidateSubscriptionSection />
+
+      {/* 8. Dynamic Referral Program Section */}
+      <CandidateReferralCard />
     </div>
   );
 }

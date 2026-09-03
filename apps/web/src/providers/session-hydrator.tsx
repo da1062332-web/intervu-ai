@@ -39,9 +39,16 @@ export function SessionHydrator({ children }: { children: ReactNode }) {
       try {
         const user = await userApi.getCurrentUser();
         authStoreState.setAuthenticated(user);
-      } catch {
-        clearAuthData();
-        queryClient.clear();
+      } catch (err: any) {
+        if (err?.status === 401 || err?.statusCode === 401 || err?.code === 'UNAUTHORIZED') {
+          clearAuthData();
+          queryClient.clear();
+        } else if (authStoreState.user) {
+          authStoreState.setAuthenticated(authStoreState.user);
+        } else {
+          clearAuthData();
+          queryClient.clear();
+        }
       } finally {
         authStoreState.setLoading(false);
         setReady(true);

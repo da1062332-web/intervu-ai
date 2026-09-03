@@ -26,6 +26,7 @@ import {
   CreditCard,
   DollarSign,
   Clock,
+  Gift,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -90,6 +91,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
         { label: 'Plans & Limitations', route: '/admin/billing/plans', icon: Layers },
         { label: 'Payments & Revenue', route: '/admin/billing/payments', icon: DollarSign },
         { label: 'Candidate Subscriptions', route: '/admin/billing/subscriptions', icon: Users },
+        { label: 'Referral Campaigns', route: '/admin/billing/referrals', icon: Gift },
         { label: 'Webhook Logs', route: '/admin/billing/webhooks', icon: Clock },
       ],
     },
@@ -113,6 +115,7 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
         { label: 'Assessments', route: '/candidate/tests', icon: Briefcase },
         { label: 'Results', route: '/candidate/results', icon: BarChart3 },
         { label: 'Progress', route: '/candidate/progress', icon: LineChart },
+        { label: 'Referrals', route: '/candidate/referrals', icon: Gift },
       ],
     },
     {
@@ -131,6 +134,7 @@ export const PLAN_MANAGER_NAV_CONFIG: NavConfig = {
         { label: 'Plans & Limitations', route: '/admin/billing/plans', icon: Layers },
         { label: 'Payments & Revenue', route: '/admin/billing/payments', icon: DollarSign },
         { label: 'Candidate Subscriptions', route: '/admin/billing/subscriptions', icon: Users },
+        { label: 'Referral Campaigns', route: '/admin/billing/referrals', icon: Gift },
         { label: 'Webhook Logs', route: '/admin/billing/webhooks', icon: Clock },
       ],
     },

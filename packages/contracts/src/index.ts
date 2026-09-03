@@ -82,3 +82,5 @@ export * from "./result-submission.contract";
 // Subscription & Entitlements
 export * from "./subscription.dto";
 
+// Referral System
+export * from './referral.dto';

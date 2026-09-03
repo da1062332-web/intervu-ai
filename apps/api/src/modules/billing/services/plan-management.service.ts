@@ -60,18 +60,53 @@ export class PlanManagementService {
    * Get all active assessment configurations available for assignment
    */
   async getAvailableAssessments() {
-    return this.prisma.examConfig.findMany({
-      where: { isArchived: false },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        code: true,
-        durationMinutes: true,
-        totalQuestions: true,
-      },
-      orderBy: { name: "asc" },
-    });
+    const [exams, testConfigs] = await Promise.all([
+      this.prisma.examConfig.findMany({
+        where: { isArchived: false },
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          code: true,
+          durationMinutes: true,
+          totalQuestions: true,
+        },
+        orderBy: { name: "asc" },
+      }),
+      this.prisma.testConfig.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          displayName: true,
+          configKey: true,
+          totalDurationSeconds: true,
+          totalQuestions: true,
+        },
+        orderBy: { displayName: "asc" },
+      }),
+    ]);
+
+    const examList = exams.map((e: any) => ({
+      id: e.id,
+      name: e.name,
+      role: e.role,
+      code: e.code,
+      durationMinutes: e.durationMinutes,
+      totalQuestions: e.totalQuestions,
+    }));
+
+    const configList = testConfigs
+      .filter((tc: any) => !exams.some((e: any) => e.code === tc.configKey || e.id === tc.id))
+      .map((tc: any) => ({
+        id: tc.id,
+        name: tc.displayName,
+        role: 'Standard Assessment',
+        code: tc.configKey,
+        durationMinutes: Math.round((tc.totalDurationSeconds || 0) / 60),
+        totalQuestions: tc.totalQuestions,
+      }));
+
+    return [...examList, ...configList];
   }
 
   /**

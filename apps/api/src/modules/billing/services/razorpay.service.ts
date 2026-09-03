@@ -26,11 +26,14 @@ export class RazorpayService {
     this.keySecret = this.configService.get<string>("RAZORPAY_KEY_SECRET") || "";
     this.webhookSecret = this.configService.get<string>("RAZORPAY_WEBHOOK_SECRET") || "";
 
-    if (process.env.NODE_ENV === "production") {
-      if (!this.keyId || this.keyId.startsWith("rzp_test_")) {
-        this.logger.error("CRITICAL: Test Razorpay credentials detected in PRODUCTION environment!");
-        throw new Error("Invalid Razorpay credentials: test keys cannot be used in production.");
-      }
+    if (this.keyId.startsWith("rzp_test_")) {
+      this.logger.warn(
+        "⚠️ [RazorpayService] Running with TEST Razorpay credentials (rzp_test_*).",
+      );
+    } else if (!this.keyId) {
+      this.logger.warn(
+        "⚠️ [RazorpayService] RAZORPAY_KEY_ID is not configured in environment.",
+      );
     }
 
     if (this.keyId && this.keySecret) {

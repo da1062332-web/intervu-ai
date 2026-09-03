@@ -169,7 +169,10 @@ export class EligibilityService {
             const isAllowed =
               allowedList.includes(testConfigId) ||
               (config.code && allowedList.includes(config.code)) ||
-              (config.name && allowedList.includes(config.name));
+              (config.configKey && allowedList.includes(config.configKey)) ||
+              (config.name && allowedList.includes(config.name)) ||
+              (config.displayName && allowedList.includes(config.displayName)) ||
+              (config.title && allowedList.includes(config.title));
             if (!isAllowed) {
               return {
                 eligible: false,

@@ -52,6 +52,7 @@ import { ScenarioModule } from "./modules/scenario/scenario.module";
 import { QuestionGenerationModule } from "./modules/question-generation/question-generation.module";
 import { CodingModule } from "./modules/coding/coding.module";
 import { BillingModule } from "./modules/billing/billing.module";
+import { ReferralsModule } from "./modules/referrals/referrals.module";
 
 @Module({
   imports: [
@@ -107,6 +108,7 @@ import { BillingModule } from "./modules/billing/billing.module";
     RuntimeModule,
     AdminAnalyticsModule,
     AdminCandidatesModule,
+    ReferralsModule,
   ],
   providers: [
     {
