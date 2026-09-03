@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-import { Logo } from '@/components/ui/logo';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -132,19 +132,21 @@ export default function SignupPage() {
   return (
     <div className='min-h-screen w-full flex bg-background'>
       {/* Left side: Form */}
-      <div className='flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 relative'>
-        <div className='absolute top-8 left-8 flex items-center gap-2 lg:hidden'>
-          <Logo className='size-8' />
-          <span className='font-heading font-bold text-xl tracking-tight'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+      <div className='flex-1 w-full md:w-1/2 flex flex-col justify-center px-6 md:px-16 lg:px-24 bg-background z-10 py-12 md:py-0'>
+        {/* Mobile Header Logo */}
+        <div className='flex md:hidden items-center justify-center gap-3 mb-8'>
+          <BrandLogo logoClassName='size-12' textClassName='text-3xl ml-2' />
         </div>
 
         <div className='max-w-[400px] w-full mx-auto space-y-8 animate-fade-in-up'>
           <div className='text-center md:text-left'>
-            <Logo className='hidden lg:block size-12 mb-6 drop-shadow-xl' />
+            <div className='hidden md:flex mb-6'>
+              <BrandLogo />
+            </div>
             <h1 className='text-3xl md:text-4xl font-heading font-bold tracking-tight text-foreground'>
               Create an account
             </h1>
-            <p className='text-muted-foreground mt-3 text-base'>Join SkillitriX to get started.</p>
+            <p className='text-muted-foreground mt-3 text-base'>Join Intervu to get started.</p>
           </div>
 
           <div className='flex justify-center w-full'>
@@ -325,7 +327,7 @@ export default function SignupPage() {
             Hire smarter, not harder.
           </h2>
           <p className='text-lg xl:text-xl text-muted-foreground dark:text-indigo-100/80 max-w-lg leading-relaxed'>
-            Join thousands of recruiters and hiring managers who use SkillitriX to transform their
+            Join thousands of recruiters and hiring managers who use Intervu to transform their
             hiring pipeline today.
           </p>
         </div>

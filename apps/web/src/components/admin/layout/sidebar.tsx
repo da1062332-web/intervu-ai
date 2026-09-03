@@ -12,6 +12,7 @@ import { useLayoutStore } from '@/store/layout.store';
 import { useAuthStore } from '@/store/auth.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
 import { Logo } from '@/components/ui/logo';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ─── Sidebar Nav Item ──────────────────────────────────────────────────────────
@@ -143,14 +144,17 @@ export function Sidebar() {
         )}
       >
         <Link
-          href={dashboardHref}
-          className='flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-lg'
-          aria-label='Go to dashboard'
-        >
-          <Logo className='size-8 shrink-0' />
-          {!collapsed && (
-            <span className='font-heading font-bold text-lg tracking-tight truncate'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+          href='/admin/dashboard'
+          className={cn(
+            'flex items-center w-full transition-all duration-300',
+            collapsed ? 'justify-center' : 'px-3'
           )}
+        >
+          <BrandLogo 
+            showText={!collapsed} 
+            logoClassName='w-8 h-8' 
+            textClassName='text-white text-lg ml-1'
+          />
         </Link>
       </div>
 
