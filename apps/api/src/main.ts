@@ -70,6 +70,8 @@ async function bootstrap() {
     "http://127.0.0.1:3001",
     "https://intervu-frontend.vercel.app",
     "https://*.vercel.app",
+    "https://www.skillitrix.com",
+    "https://skillitrix.com",
   ];
 
   const envOrigins = configService.corsAllowedOrigins;
