@@ -35,6 +35,8 @@ export default function LoginPage() {
 
       if (data.user.role === 'CANDIDATE') {
         router.replace('/candidate/dashboard');
+      } else if (data.user.role === 'PLAN_MANAGER') {
+        router.replace('/admin/billing');
       } else {
         router.replace('/admin/dashboard');
       }
@@ -52,6 +54,8 @@ export default function LoginPage() {
 
       if (data.user.role === 'CANDIDATE') {
         router.replace('/candidate/dashboard');
+      } else if (data.user.role === 'PLAN_MANAGER') {
+        router.replace('/admin/billing');
       } else {
         router.replace('/admin/dashboard');
       }

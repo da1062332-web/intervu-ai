@@ -11,6 +11,7 @@ import { ArrowLeft, Download, Share2, CheckCircle2, Target, XCircle } from 'luci
 import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsDashboard';
 
 import { resultApi } from '../api/results.api';
+import { useSubscriptionStore } from '@/store/subscription.store';
 
 export const ResultDetailsPage = () => {
   const params = useParams();
@@ -19,6 +20,9 @@ export const ResultDetailsPage = () => {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
   const navigate = router.push;
+  const entitlements = useSubscriptionStore((state) => state.entitlements);
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
+
   const {
     data: result,
     isLoading: detailsLoading,
@@ -39,6 +43,20 @@ export const ResultDetailsPage = () => {
   }, [detailsLoading, result]);
 
   const handleExportPdf = async () => {
+    const rawFeats = (entitlements?.features as any) || {};
+    const transcriptExport = rawFeats.transcriptExport ?? rawFeats.transcript_export;
+    const isProOrTeams = entitlements?.plan === 'PRO' || entitlements?.plan === 'TEAMS';
+    const canExportPdf =
+      isAdminRoute ||
+      isProOrTeams ||
+      (Array.isArray(transcriptExport) &&
+        transcriptExport.some((v: any) => String(v).toLowerCase().includes('pdf')));
+
+    if (!canExportPdf) {
+      toast.error('PDF Report generation is available on the Pro plan. Upgrade to unlock full PDF export.');
+      openPricingModal();
+      return;
+    }
     try {
       setIsExportingPdf(true);
       toast.info('Preparing your PDF report... Please hold on.', { duration: 3000 });

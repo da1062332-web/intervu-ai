@@ -78,3 +78,9 @@ export * from "./schemas/assembly-provider.schema";
 // Execution-Ready Contracts (Module 3 → Module 4 handoff)
 export * from "./execution-ready.dto";
 export * from "./result-submission.contract";
+
+// Subscription & Entitlements
+export * from "./subscription.dto";
+
+// Referral System
+export * from './referral.dto';

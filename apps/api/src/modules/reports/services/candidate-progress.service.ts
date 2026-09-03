@@ -1,22 +1,51 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { ReportAuditService } from "./report-audit.service";
+import { EntitlementService } from "../../billing/services/entitlement.service";
 
 @Injectable()
 export class CandidateProgressService {
   private readonly logger = new AppLogger({ name: "CandidateProgressService" });
-  private readonly CACHE_PREFIX = "progress:candidate:v6";
+  private readonly CACHE_PREFIX = "progress:candidate:v8";
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheService: RedisCacheService,
     private readonly auditService: ReportAuditService,
+    @Optional() private readonly entitlementService?: EntitlementService,
   ) {}
 
   async getCandidateProgress(userId: string): Promise<any> {
     this.logger.debug("Retrieving candidate progress analytics", { userId });
+
+    if (this.entitlementService) {
+      let entitlements = null;
+      try {
+        entitlements = await this.entitlementService.getUserEntitlements(userId);
+      } catch {}
+
+      if (!entitlements || !entitlements.hasActivePlan) {
+        return {
+          trend: [],
+          skills: [],
+          difficulty: {
+            easy: { attempted: 0, correct: 0 },
+            medium: { attempted: 0, correct: 0 },
+            hard: { attempted: 0, correct: 0 },
+          },
+          overview: {
+            averageScore: 0,
+            peerAverageScore: 0,
+            topPercentileScore: 0,
+            totalAssessments: 0,
+            completionRate: 0,
+          },
+          isLocked: true,
+        };
+      }
+    }
 
     const cacheKey = `${userId}`;
     const cachedData = await this.cacheService.get<any>(cacheKey, {

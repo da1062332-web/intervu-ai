@@ -8,7 +8,8 @@ import dynamic from 'next/dynamic';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, Target, Brain, Award, ArrowRight, BarChart2, Users } from 'lucide-react';
+import { TrendingUp, Target, Brain, Award, ArrowRight, BarChart2, Users, Lock, Zap } from 'lucide-react';
+import { useSubscriptionStore } from '@/store/subscription.store';
 
 const ScoreTrendChart = dynamic(
   () => import('./analytics/ScoreTrendChart').then((m) => m.ScoreTrendChart),
@@ -95,6 +96,8 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
   const router = useRouter();
   const { user } = useAuth();
   const { data, isLoading, error } = useProgress(user?.id);
+  const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
 
   if (isLoading) {
     return (
@@ -112,6 +115,42 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
         >
           <Skeleton className='h-[350px] w-full rounded-[28px] border border-border/40' />
           <Skeleton className='h-[350px] w-full rounded-[28px] border border-border/40' />
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasActivePlan || (data as any)?.isLocked) {
+    return (
+      <div className='space-y-4'>
+        {compact && (
+          <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
+            <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
+              Progress & Skill Mastery
+            </h3>
+          </div>
+        )}
+        <div className='rounded-[28px] border-2 border-indigo-500/20 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 dark:from-indigo-950/20 dark:via-background dark:to-purple-950/20 p-8 sm:p-10 text-center space-y-4 shadow-sm'>
+          <div className='inline-flex items-center justify-center p-3.5 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 mb-1'>
+            <Lock className='size-6' />
+          </div>
+          <div className='max-w-md mx-auto space-y-1.5'>
+            <h3 className='text-lg sm:text-xl font-bold text-foreground'>
+              Progress Analytics & Skill Mastery
+            </h3>
+            <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
+              Subscribe to an active plan to track your score timeline trends, domain competencies, and performance diagnostics.
+            </p>
+          </div>
+          <div className='pt-2 flex justify-center'>
+            <button
+              onClick={openPricingModal}
+              className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-indigo-500/20'
+            >
+              <Zap className='size-4' />
+              Choose a Plan to Unlock Analytics
+            </button>
+          </div>
         </div>
       </div>
     );

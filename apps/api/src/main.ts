@@ -19,6 +19,7 @@ async function bootstrap() {
   const bootstrapLogger = new Logger("Bootstrap");
   const app = await NestFactory.create(AppModule, {
     logger: ["debug", "error", "log", "warn", "verbose"],
+    rawBody: true,
   });
 
   // Enable graceful shutdown hooks
@@ -69,6 +70,8 @@ async function bootstrap() {
     "http://127.0.0.1:3001",
     "https://intervu-frontend.vercel.app",
     "https://*.vercel.app",
+    "https://www.skillitrix.com",
+    "https://skillitrix.com",
   ];
 
   const envOrigins = configService.corsAllowedOrigins;

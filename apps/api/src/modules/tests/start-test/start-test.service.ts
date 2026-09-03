@@ -1,6 +1,7 @@
 import {
   Injectable,
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
   Logger,
   Optional,
@@ -16,6 +17,8 @@ import { TestInstanceStatus, Prisma } from "@prisma/client";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { FinalShufflerService } from "./final-shuffler.service";
 import { AssemblyService } from "../../assembly/services/test-assembly.service";
+import { EntitlementService } from "../../billing/services/entitlement.service";
+import { UsageQuotaService } from "../../billing/services/usage-quota.service";
 
 @Injectable()
 export class StartTestService {
@@ -30,6 +33,8 @@ export class StartTestService {
     private readonly prisma: PrismaService,
     private readonly finalShufflerService: FinalShufflerService,
     @Optional() @Inject(AssemblyService) private readonly assemblyService?: AssemblyService,
+    @Optional() private readonly entitlementService?: EntitlementService,
+    @Optional() private readonly usageQuotaService?: UsageQuotaService,
   ) {}
 
   async startTest(userId: string, input: StartTestDto) {
@@ -53,7 +58,7 @@ export class StartTestService {
         eligibility.errorCode === "ACTIVE_TEST_EXISTS" &&
         eligibility.activeTestId
       ) {
-        // Return existing active instance for idempotency
+        // Return existing active instance for idempotency without consuming new quota
         let durationSeconds = 3600;
         if (eligibility.isExamConfig) {
           const config = await this.prisma.examConfig.findUnique({ where: { id: targetConfigId } });
@@ -78,6 +83,18 @@ export class StartTestService {
         code: eligibility.errorCode || "USER_NOT_ELIGIBLE",
         message: eligibility.reason || "User not eligible",
       });
+    }
+
+    // 2. Atomic Round Quota Consumption (Prevents concurrent over-consumption)
+    if (this.entitlementService) {
+      const quotaResult = await this.entitlementService.consumeRound(userId);
+      if (!quotaResult.allowed) {
+        this.logger.warn(`[START-TEST ❌] User ${userId} has exhausted monthly assessment rounds`);
+        throw new ForbiddenException({
+          code: "MONTHLY_QUOTA_EXCEEDED",
+          message: "You have reached your monthly assessment round limit. Please upgrade to Pro for unlimited assessments.",
+        });
+      }
     }
 
     const t1 = Date.now();

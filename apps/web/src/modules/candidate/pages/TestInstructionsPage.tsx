@@ -11,6 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronLeft, ArrowRight, BookOpen, Navigation, Laptop, CheckSquare } from 'lucide-react';
 import { InstructionsSkeleton } from '@/features/candidate/tests/components/TestDiscoveryLoaders';
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
+import { useSubscriptionStore } from '@/store/subscription.store';
+import { toast } from 'sonner';
 
 interface TestInstructionsPageProps {
   testId: string;
@@ -18,6 +20,8 @@ interface TestInstructionsPageProps {
 
 export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
   const router = useRouter();
+  const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
   const { data: config, isLoading, error, refetch } = useInstructions(testId);
   const { acceptedInstructions, acceptInstructions } = useDashboardStore();
 
@@ -33,6 +37,15 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
 
   const handleCheckboxChange = (checked: boolean) => {
     acceptInstructions(testId, checked);
+  };
+
+  const handleProceed = () => {
+    if (!hasActivePlan) {
+      toast.error('An active subscription plan is required to start this assessment.');
+      openPricingModal();
+      return;
+    }
+    router.push(`/candidate/tests/${testId}/launch`);
   };
 
   if (isLoading) {
@@ -172,7 +185,7 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
           {/* Action Buttons */}
           <div className='flex justify-end pt-6 border-t border-border/40'>
             <Button
-              onClick={() => router.push(`/candidate/tests/${testId}/launch`)}
+              onClick={handleProceed}
               disabled={!isAccepted}
               size='lg'
               className='px-8 shadow-md hover:shadow-lg transition-shadow'

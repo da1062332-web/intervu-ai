@@ -23,6 +23,10 @@ import {
   Activity,
   Code2,
   Cpu,
+  CreditCard,
+  DollarSign,
+  Clock,
+  Gift,
 } from 'lucide-react';
 
 import type { NavConfig } from '@/types/navigation.types';
@@ -82,6 +86,16 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       ],
     },
     {
+      heading: 'Plans & Payments',
+      items: [
+        { label: 'Plans & Limitations', route: '/admin/billing/plans', icon: Layers },
+        { label: 'Payments & Revenue', route: '/admin/billing/payments', icon: DollarSign },
+        { label: 'Candidate Subscriptions', route: '/admin/billing/subscriptions', icon: Users },
+        { label: 'Referral Campaigns', route: '/admin/billing/referrals', icon: Gift },
+        { label: 'Webhook Logs', route: '/admin/billing/webhooks', icon: Clock },
+      ],
+    },
+    {
       heading: 'Account',
       items: [
         { label: 'Profile', route: '/admin/profile', icon: User },
@@ -101,6 +115,7 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
         { label: 'Assessments', route: '/candidate/tests', icon: Briefcase },
         { label: 'Results', route: '/candidate/results', icon: BarChart3 },
         { label: 'Progress', route: '/candidate/progress', icon: LineChart },
+        { label: 'Referrals', route: '/candidate/referrals', icon: Gift },
       ],
     },
     {
@@ -111,11 +126,36 @@ export const CANDIDATE_NAV_CONFIG: NavConfig = {
   secondary: [{ label: 'Settings', route: '/candidate/settings', icon: Settings }],
 };
 
+export const PLAN_MANAGER_NAV_CONFIG: NavConfig = {
+  primary: [
+    {
+      heading: 'Plans & Payments',
+      items: [
+        { label: 'Plans & Limitations', route: '/admin/billing/plans', icon: Layers },
+        { label: 'Payments & Revenue', route: '/admin/billing/payments', icon: DollarSign },
+        { label: 'Candidate Subscriptions', route: '/admin/billing/subscriptions', icon: Users },
+        { label: 'Referral Campaigns', route: '/admin/billing/referrals', icon: Gift },
+        { label: 'Webhook Logs', route: '/admin/billing/webhooks', icon: Clock },
+      ],
+    },
+    {
+      heading: 'Account',
+      items: [
+        { label: 'Profile', route: '/admin/profile', icon: User },
+        { label: 'Settings', route: '/admin/settings', icon: Settings },
+      ],
+    },
+  ],
+  secondary: [],
+};
+
 export const NAV_CONFIG = ADMIN_NAV_CONFIG; // For backwards compatibility if any other place imports it
 
 export const ALL_NAV_ITEMS = [
   ...ADMIN_NAV_CONFIG.primary.flatMap((g) => g.items),
   ...ADMIN_NAV_CONFIG.secondary,
+  ...PLAN_MANAGER_NAV_CONFIG.primary.flatMap((g) => g.items),
+  ...PLAN_MANAGER_NAV_CONFIG.secondary,
   ...CANDIDATE_NAV_CONFIG.primary.flatMap((g) => g.items),
   ...CANDIDATE_NAV_CONFIG.secondary,
 ];

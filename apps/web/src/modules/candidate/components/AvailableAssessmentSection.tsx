@@ -6,6 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, ArrowRight, Code, Palette, Cloud, Compass } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
 import { useTestCatalog } from '../hooks/useTestCatalog';
+import { useSubscriptionStore } from '@/store/subscription.store';
+import { Lock } from 'lucide-react';
 
 interface AvailableAssessmentSectionProps {
   dashboard?: CandidateDashboardData | null;
@@ -21,6 +23,8 @@ export function AvailableAssessmentSection({
   compact = true,
 }: AvailableAssessmentSectionProps) {
   const router = useRouter();
+  const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
   const { pagination } = useTestCatalog({ limit: 1 });
   const totalCount = pagination?.total || 0;
 
@@ -44,7 +48,7 @@ export function AvailableAssessmentSection({
     return null;
   }
 
-  if (!dashboard.availableTests || dashboard.availableTests.length === 0) {
+  if (!hasActivePlan || !dashboard.availableTests || dashboard.availableTests.length === 0) {
     return (
       <div className='flex flex-col h-full space-y-4'>
         <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
@@ -53,19 +57,23 @@ export function AvailableAssessmentSection({
           </h3>
         </div>
         <div className='rounded-[24px] border border-border/50 bg-card p-6 shadow-2xs flex flex-col items-center justify-center text-center h-full min-h-[240px] flex-1'>
-          <Compass className='size-8 text-[#6366f1] mb-3 animate-pulse' />
+          <div className='w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 flex items-center justify-center mb-3 shadow-2xs border border-indigo-100 dark:border-indigo-900/50'>
+            <Lock className='size-6' />
+          </div>
           <h4 className='font-bold text-base text-foreground tracking-tight'>
-            No assessments available
+            {!hasActivePlan ? 'Subscription Plan Required' : 'No Assessments in Your Plan'}
           </h4>
-          <p className='text-xs text-muted-foreground font-normal mt-1.5 max-w-[240px] leading-relaxed'>
-            You have no active assessments assigned to you. Click below to browse the full catalog.
+          <p className='text-xs text-muted-foreground font-normal mt-1.5 max-w-[280px] leading-relaxed'>
+            {!hasActivePlan
+              ? 'Choose an active subscription plan to unlock and practice full-length assessments.'
+              : 'Your current subscription plan does not include any active assessments at this time.'}
           </p>
           <button
             type='button'
-            className='mt-4 rounded-xl font-bold text-xs h-9 px-4 border border-indigo-200 text-[#6366f1] hover:bg-indigo-50/50 transition-colors'
-            onClick={() => router.push('/candidate/assessments')}
+            className='mt-4 rounded-xl font-bold text-xs h-9 px-5 bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-sm transition-all'
+            onClick={openPricingModal}
           >
-            Explore assessments
+            {!hasActivePlan ? 'Choose a Plan' : 'Upgrade Plan'}
           </button>
         </div>
       </div>
@@ -73,7 +81,7 @@ export function AvailableAssessmentSection({
   }
 
   const testsToRender = compact
-    ? dashboard.availableTests.slice(0, 3)
+    ? dashboard.availableTests.slice(0, 4)
     : dashboard.availableTests;
 
   const actualTests = testsToRender.map((t, index) => {
@@ -119,10 +127,20 @@ export function AvailableAssessmentSection({
         {actualTests.map((test: any) => {
           const IconComponent =
             test.iconType === 'palette' ? Palette : test.iconType === 'cloud' ? Cloud : Code;
+          const isLocked = !hasActivePlan || test.isLocked || test.canReattempt === false;
+
+          const handleCardClick = () => {
+            if (!hasActivePlan) {
+              openPricingModal();
+              return;
+            }
+            router.push(`/candidate/tests/${test.id}`);
+          };
+
           return (
             <div
               key={test.id}
-              onClick={() => router.push(`/candidate/tests/${test.id}`)}
+              onClick={handleCardClick}
               className='rounded-[24px] border border-border/50 bg-card p-6 shadow-2xs hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all cursor-pointer group flex flex-col justify-between h-full min-h-[240px]'
             >
               <div>
@@ -132,9 +150,16 @@ export function AvailableAssessmentSection({
                   >
                     <IconComponent className='size-5' />
                   </div>
-                  <span className='px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground border border-border/40'>
-                    {test.difficulty}
-                  </span>
+                  <div className='flex items-center gap-1.5'>
+                    {!hasActivePlan && (
+                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1'>
+                        <Lock className='size-3' /> Plan Required
+                      </span>
+                    )}
+                    <span className='px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground border border-border/40'>
+                      {test.difficulty}
+                    </span>
+                  </div>
                 </div>
 
                 <h4 className='font-bold text-base text-foreground group-hover:text-[#6366f1] dark:group-hover:text-indigo-400 transition-colors tracking-tight truncate'>
@@ -157,11 +182,15 @@ export function AvailableAssessmentSection({
                     </span>
                   )}
                 </div>
-                {(test as any).canReattempt !== false && (
+                {!hasActivePlan ? (
+                  <span className='text-xs font-bold text-indigo-600 flex items-center gap-1'>
+                    Unlock <ArrowRight className='size-3.5' />
+                  </span>
+                ) : (test as any).canReattempt !== false ? (
                   <span className='text-[#6366f1] dark:text-indigo-400 group-hover:translate-x-1 transition-transform font-extrabold'>
                     <ArrowRight className='size-4' />
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
           );

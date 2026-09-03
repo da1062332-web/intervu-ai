@@ -34,8 +34,8 @@ export function ProtectedRoute({
         // Redirect based on user's actual role
         if (user?.role === 'CANDIDATE') {
           router.replace('/candidate/dashboard');
-        } else if (user?.role === 'ADMIN') {
-          router.replace('/admin/dashboard');
+        } else if (user?.role === 'ADMIN' || user?.role === 'PLAN_MANAGER') {
+          router.replace(user?.role === 'PLAN_MANAGER' ? '/admin/billing' : '/admin/dashboard');
         } else {
           router.replace('/403');
         }
