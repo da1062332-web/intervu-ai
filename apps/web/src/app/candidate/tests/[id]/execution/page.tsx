@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useExecution } from '@/features/candidate/execution/hooks/useExecution';
-import { ExecutionLayout } from '@/features/candidate/execution/components/ExecutionLayout';
+import { SandboxRenderer } from '@/features/candidate/execution/components/SandboxRenderer';
 import { ExecutionSkeleton } from '@/features/candidate/execution/components/ExecutionSkeleton';
 import { ExecutionError } from '@/features/candidate/execution/components/ExecutionError';
 import { AssessmentErrorBoundary } from '@/features/candidate/execution/components/errors/AssessmentErrorBoundary';
@@ -41,7 +41,7 @@ export default function AssessmentExecutionPage() {
 
   return (
     <AssessmentErrorBoundary>
-      <ExecutionLayout />
+      <SandboxRenderer />
     </AssessmentErrorBoundary>
   );
 }

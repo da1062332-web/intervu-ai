@@ -482,6 +482,7 @@ model ExamConfig {
   description            String?
   isArchived             Boolean                   @default(false)
   status                 ConfigStatus              @default(DRAFT)
+  sandboxUi              SandboxUIType             @default(DEFAULT)
   publishLogs            ConfigPublishLog[]
   difficultyDistribution DifficultyDistribution?
   versions               ExamConfigVersion[]
@@ -1789,4 +1790,11 @@ model CodingTestCase {
   @@index([patternId])
   @@index([isPublic])
   @@map("coding_test_cases")
+}
+
+
+enum SandboxUIType {
+  DEFAULT
+  SANDBOX_2
+  SANDBOX_3
 }

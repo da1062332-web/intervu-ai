@@ -1,9 +1,86 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useExecutionStore } from '@/features/candidate/execution/stores/execution.store';
-import { ExecutionLayout } from '@/features/candidate/execution/components/ExecutionLayout';
+import { SandboxRenderer } from '@/features/candidate/execution/components/SandboxRenderer';
 import { TestInstance } from '@/features/candidate/execution/types/execution.types';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Monitor,
+  Layout,
+  Terminal,
+  ArrowRight,
+  RotateCcw,
+  CheckCircle2,
+} from 'lucide-react';
+
+interface SandboxOption {
+  id: 'DEFAULT' | 'SANDBOX_2' | 'SANDBOX_3';
+  name: string;
+  badge: string;
+  icon: React.ReactNode;
+  tagline: string;
+  description: string;
+  features: string[];
+  themeColor: string;
+  buttonClass: string;
+}
+
+const SANDBOX_OPTIONS: SandboxOption[] = [
+  {
+    id: 'DEFAULT',
+    name: 'Default Sandbox UI',
+    badge: 'Standard CBT • TCS NQT Simulation',
+    icon: <Monitor className='w-6 h-6 text-primary' />,
+    tagline: 'Standard full-featured proctored candidate interface',
+    description:
+      'The comprehensive examination interface with multi-section tabs, split problem statement / candidate instructions pane, question palette, real-time proctored timer, scratchpad, calculator, and integrated code compiler.',
+    features: [
+      'Split Question Stem & Instructions Pane',
+      'Interactive Question Matrix Palette',
+      'Embedded Monaco Code Editor & Compiler',
+      'Floating Scratchpad & Scientific Calculator',
+    ],
+    themeColor: 'border-primary/30 hover:border-primary',
+    buttonClass: 'bg-primary text-primary-foreground hover:bg-primary/90',
+  },
+  {
+    id: 'SANDBOX_2',
+    name: 'Sandbox UI 2',
+    badge: 'Variant 2 • Streamlined Modern',
+    icon: <Layout className='w-6 h-6 text-indigo-600' />,
+    tagline: 'Focused, card-based modern assessment layout',
+    description:
+      'A sleek, distraction-free interface optimized for multiple-choice questions, screening rounds, and fast navigation with an intuitive question matrix and clean time tracking.',
+    features: [
+      'Minimalist Card-Based Question Presentation',
+      'Streamlined Header Time-Tracking',
+      'Compact Question Status Matrix',
+      'Distraction-Free Candidate Flow',
+    ],
+    themeColor: 'border-indigo-300 hover:border-indigo-600',
+    buttonClass: 'bg-indigo-600 text-white hover:bg-indigo-700',
+  },
+  {
+    id: 'SANDBOX_3',
+    name: 'Sandbox UI 3',
+    badge: 'Variant 3 • Developer Dark Theme',
+    icon: <Terminal className='w-6 h-6 text-emerald-400' />,
+    tagline: 'Immersive dark terminal & IDE environment',
+    description:
+      'A developer-centric dark theme layout specifically designed for coding rounds, algorithmic challenges, and terminal test execution with syntax highlighting and live test case feedback.',
+    features: [
+      'Full Dark-Mode Code IDE Environment',
+      'Dual-Pane Problem & Terminal Output',
+      'Monospace Typography & Syntax Highlighting',
+      'Live Test Case Execution & Status Indicators',
+    ],
+    themeColor: 'border-emerald-500/30 hover:border-emerald-500',
+    buttonClass: 'bg-emerald-600 text-slate-950 font-bold hover:bg-emerald-500',
+  },
+];
 
 const mockTestInstance: TestInstance = {
   id: 'demo-sandbox-test-id',
@@ -242,14 +319,131 @@ const mockTestInstance: TestInstance = {
 };
 
 export default function DemoSandboxPage() {
+  const [selectedSandbox, setSelectedSandbox] = useState<
+    'DEFAULT' | 'SANDBOX_2' | 'SANDBOX_3' | null
+  >(null);
   const { initializeTest, setLoading, setError } = useExecutionStore();
 
-  useEffect(() => {
-    // Instantiate store directly with rich demo exam data
-    initializeTest(mockTestInstance);
+  const handleSelectSandbox = (
+    sandboxId: 'DEFAULT' | 'SANDBOX_2' | 'SANDBOX_3',
+  ) => {
+    setSelectedSandbox(sandboxId);
+    initializeTest({
+      ...mockTestInstance,
+      sandboxUi: sandboxId,
+    });
     setLoading(false);
     setError(null);
-  }, [initializeTest, setLoading, setError]);
+  };
 
-  return <ExecutionLayout />;
+  if (!selectedSandbox) {
+    return (
+      <div className='min-h-screen bg-slate-50/80 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 font-sans'>
+        <div className='max-w-6xl mx-auto space-y-8'>
+          {/* Header */}
+          <div className='text-center space-y-3 max-w-2xl mx-auto'>
+            <Badge
+              variant='outline'
+              className='px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-white dark:bg-slate-900'
+            >
+              Live Demo Environment
+            </Badge>
+            <h1 className='text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white'>
+              Candidate Assessment Sandboxes
+            </h1>
+            <p className='text-slate-600 dark:text-slate-400 text-sm sm:text-base'>
+              Choose an assessment UI variant below to explore and test the proctored candidate execution experience.
+            </p>
+          </div>
+
+          {/* Cards Grid */}
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-6 pt-4'>
+            {SANDBOX_OPTIONS.map((sandbox) => (
+              <Card
+                key={sandbox.id}
+                className={`p-6 flex flex-col justify-between transition-all duration-200 hover:shadow-lg border-2 cursor-pointer ${sandbox.themeColor} bg-white dark:bg-slate-900`}
+                onClick={() => handleSelectSandbox(sandbox.id)}
+              >
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <div className='w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center'>
+                      {sandbox.icon}
+                    </div>
+                    <Badge variant='secondary' className='text-[11px] font-medium'>
+                      {sandbox.badge}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <h2 className='text-xl font-bold text-slate-900 dark:text-white'>
+                      {sandbox.name}
+                    </h2>
+                    <p className='text-xs font-medium text-slate-500 mt-1'>
+                      {sandbox.tagline}
+                    </p>
+                  </div>
+
+                  <p className='text-xs text-slate-600 dark:text-slate-300 leading-relaxed'>
+                    {sandbox.description}
+                  </p>
+
+                  <div className='pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2'>
+                    <span className='text-[11px] font-semibold text-slate-400 uppercase tracking-wider'>
+                      Key Highlights:
+                    </span>
+                    <ul className='space-y-1.5'>
+                      {sandbox.features.map((feat, idx) => (
+                        <li
+                          key={idx}
+                          className='text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2'
+                        >
+                          <CheckCircle2 className='w-3.5 h-3.5 text-emerald-500 shrink-0' />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className='pt-6'>
+                  <Button
+                    className={`w-full gap-2 font-semibold text-xs h-10 ${sandbox.buttonClass}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectSandbox(sandbox.id);
+                    }}
+                  >
+                    Launch {sandbox.name} <ArrowRight className='w-4 h-4' />
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='relative'>
+      {/* Floating UI Switcher Control */}
+      <div className='fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-slate-900/90 text-white px-3.5 py-2 rounded-full shadow-2xl border border-slate-700/80 backdrop-blur-md text-xs font-sans animate-in fade-in slide-in-from-bottom-2'>
+        <span className='w-2 h-2 rounded-full bg-emerald-400 animate-pulse' />
+        <span className='text-slate-300'>
+          Active:{' '}
+          <strong className='text-white'>
+            {SANDBOX_OPTIONS.find((s) => s.id === selectedSandbox)?.name}
+          </strong>
+        </span>
+        <button
+          onClick={() => setSelectedSandbox(null)}
+          className='ml-1.5 px-3 py-1 bg-white/15 hover:bg-white/25 text-white font-medium rounded-full transition-colors flex items-center gap-1.5'
+        >
+          <RotateCcw className='w-3 h-3' /> Switch Sandbox
+        </button>
+      </div>
+
+      <SandboxRenderer />
+    </div>
+  );
 }

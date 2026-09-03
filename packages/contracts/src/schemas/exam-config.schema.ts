@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export enum SandboxUIType {
+  DEFAULT = "DEFAULT",
+  SANDBOX_2 = "SANDBOX_2",
+  SANDBOX_3 = "SANDBOX_3",
+}
+
 export const ExamConfigBaseSchema = z.object({
   name: z
     .string()
@@ -23,6 +29,7 @@ export const ExamConfigBaseSchema = z.object({
     .number()
     .int()
     .positive("Total questions must be greater than 0"),
+  sandboxUi: z.nativeEnum(SandboxUIType).default(SandboxUIType.DEFAULT).optional(),
 });
 
 export const CreateExamConfigSchema = ExamConfigBaseSchema;

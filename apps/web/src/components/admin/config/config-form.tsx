@@ -28,6 +28,7 @@ const formSchema = z.object({
   role: z.string().min(1, 'Role is required').max(100, 'Role must be less than 100 characters'),
   durationMinutes: z.coerce.number().positive('Duration must be a positive number'),
   totalQuestions: z.coerce.number().positive('Total Questions must be a positive number'),
+  sandboxUi: z.enum(['DEFAULT', 'SANDBOX_2', 'SANDBOX_3']).default('DEFAULT').optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,6 +55,7 @@ export function ConfigForm({ initialData, onSuccess }: ConfigFormProps) {
       role: initialData?.role || '',
       durationMinutes: initialData?.durationMinutes || undefined,
       totalQuestions: initialData?.totalQuestions || undefined,
+      sandboxUi: (initialData?.sandboxUi as 'DEFAULT' | 'SANDBOX_2' | 'SANDBOX_3') || 'DEFAULT',
     },
   });
 
@@ -65,6 +67,7 @@ export function ConfigForm({ initialData, onSuccess }: ConfigFormProps) {
         role: initialData.role,
         durationMinutes: initialData.durationMinutes,
         totalQuestions: initialData.totalQuestions,
+        sandboxUi: (initialData.sandboxUi as 'DEFAULT' | 'SANDBOX_2' | 'SANDBOX_3') || 'DEFAULT',
       });
     }
   }, [initialData, form]);
@@ -171,6 +174,23 @@ export function ConfigForm({ initialData, onSuccess }: ConfigFormProps) {
             )}
           />
         </div>
+
+        <CustomFormField
+          control={form.control}
+          name='sandboxUi'
+          label='Sandbox UI'
+          render={(field) => (
+            <select
+              {...field}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isSubmitting}
+            >
+              <option value="DEFAULT">Default Sandbox UI</option>
+              <option value="SANDBOX_2">Streamlined Layout</option>
+              <option value="SANDBOX_3">Terminal IDE Layout</option>
+            </select>
+          )}
+        />
 
         <div className='pt-4 flex items-center justify-end'>
           <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting}>

@@ -8,6 +8,7 @@ export const ExamConfigResponseSchema = z.object({
   description: z.string().nullable().optional(),
   durationMinutes: z.number().int().positive(),
   totalQuestions: z.number().int().positive(),
+  sandboxUi: z.enum(["DEFAULT", "SANDBOX_2", "SANDBOX_3"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED", "VALIDATED", "PUBLISHED"]),
   isArchived: z.boolean(),
   createdBy: z.string().nullable().optional(),

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-export interface CustomFormCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CustomFormCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode;
   description?: string;
   children: React.ReactNode;
