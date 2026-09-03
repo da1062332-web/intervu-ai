@@ -58,6 +58,9 @@ describe("Question Generation Engine Unit Tests", () => {
       generationStrategy: "VARIABLE",
       datasetConfig: {},
       hybridConfig: {},
+      readinessStatus: "READY",
+      lastReadinessCheckAt: new Date(),
+      lastReadinessError: null,
     },
   ];
 
