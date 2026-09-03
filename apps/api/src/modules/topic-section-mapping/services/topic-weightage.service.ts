@@ -6,7 +6,6 @@ import { ExamConfigRepository } from "../../admin-config/repositories/exam-confi
 import {
   SectionNotFoundError,
   WeightageNotFoundError,
-  WeightageTotalExceededError,
   WeightageTotalInvalidError,
   TopicNotMappedToSectionError,
 } from "@intervu/shared";
@@ -61,13 +60,8 @@ export class TopicWeightageService {
       );
     }
 
-    // 4. Validate sum does not exceed 100%
+    // 4. Validate sum does not exceed 100% - Removed to allow intermediate configuration states
     const currentSum = await this.repository.sumWeightagesBySection(sectionId);
-    if (currentSum + percentage > 100) {
-      throw new WeightageTotalExceededError(
-        `Adding this weightage (${percentage}%) exceeds the 100% limit (current: ${currentSum}%)`,
-      );
-    }
 
     const weightage = await this.repository.createWeightage(
       sectionId,
@@ -100,16 +94,11 @@ export class TopicWeightageService {
     // 2. Validate section & archive config
     await this.validateSectionAndGetConfig(existing.sectionId);
 
-    // 3. Validate sum does not exceed 100%
+    // 3. Removed > 100% check to allow intermediate configuration states
     const currentSum = await this.repository.sumWeightagesBySection(
       existing.sectionId,
     );
     const newSum = currentSum - existing.weightagePercentage + percentage;
-    if (newSum > 100) {
-      throw new WeightageTotalExceededError(
-        `Updating this weightage to ${percentage}% exceeds the 100% limit (new total: ${newSum}%)`,
-      );
-    }
 
     const updated = await this.repository.updateWeightage(
       weightageId,

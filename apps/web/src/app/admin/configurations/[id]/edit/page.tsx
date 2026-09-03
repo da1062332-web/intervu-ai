@@ -1,9 +1,6 @@
 'use client';
-
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { ConfigPageClient } from '../ConfigPageClient';
-
+import { useParams } from 'next/navigation';
+import { EditConfigClient } from './EditConfigClient';
 export default function EditConfigPage() {
   const params = useParams();
   const router = useRouter();

@@ -6,7 +6,6 @@ import { ExamSectionRepository } from "../../admin-config/repositories/exam-sect
 import { ExamConfigRepository } from "../../admin-config/repositories/exam-config.repository";
 import {
   WeightageNotFoundError,
-  WeightageTotalExceededError,
   WeightageTotalInvalidError,
   TopicNotMappedToSectionError,
 } from "@intervu/shared";
@@ -123,24 +122,7 @@ describe("TopicWeightageService", () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it("should throw WeightageTotalExceededError if sum exceeds 100%", async () => {
-      sectionRepo.findById.mockResolvedValue({
-        id: "section1",
-        examConfigId: "config1",
-      } as any);
-      configRepo.findById.mockResolvedValue({
-        id: "config1",
-        isArchived: false,
-        status: "DRAFT",
-      } as any);
-      mappingRepository.exists.mockResolvedValue(true);
-      repository.findWeightageBySectionAndTopic.mockResolvedValue(null);
-      repository.sumWeightagesBySection.mockResolvedValue(80);
 
-      await expect(
-        service.addWeightage("section1", "topic1", 30),
-      ).rejects.toThrow(WeightageTotalExceededError);
-    });
   });
 
   describe("updateWeightage", () => {
