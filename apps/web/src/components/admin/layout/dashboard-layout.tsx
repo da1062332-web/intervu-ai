@@ -1,12 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Navbar } from './navbar';
 import { Sidebar } from './sidebar';
 import { MobileNav } from './mobile-nav';
+import { useAuthStore } from '@/store/auth.store';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -14,6 +14,17 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    if (user?.role === 'PLAN_MANAGER') {
+      const allowed = ['/admin/billing', '/admin/profile', '/admin/settings'];
+      if (!allowed.some((prefix) => pathname.startsWith(prefix))) {
+        router.replace('/admin/billing');
+      }
+    }
+  }, [user, pathname, router]);
 
   if (
     pathname.includes('/execution') ||
@@ -23,6 +34,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   ) {
     return <div className='min-h-screen bg-background'>{children}</div>;
   }
+
   return (
     <div className='flex min-h-screen bg-background'>
       {/* ── Desktop Sidebar ── */}

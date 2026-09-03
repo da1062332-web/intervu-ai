@@ -51,9 +51,11 @@ import { DatasetModule } from "./modules/dataset/dataset.module";
 import { ScenarioModule } from "./modules/scenario/scenario.module";
 import { QuestionGenerationModule } from "./modules/question-generation/question-generation.module";
 import { CodingModule } from "./modules/coding/coding.module";
+import { BillingModule } from "./modules/billing/billing.module";
 
 @Module({
   imports: [
+    BillingModule,
     CodingModule,
     QuestionGenerationModule,
     DatasetModule,

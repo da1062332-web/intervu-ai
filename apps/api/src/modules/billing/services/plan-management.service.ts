@@ -1,0 +1,222 @@
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { PrismaService } from "../../../prisma/prisma.service";
+import {
+  CreatePlanDto,
+  UpdatePlanDto,
+  CreatePlanFeatureDto,
+  UpdatePlanFeatureDto,
+} from "@intervu-ai/contracts";
+
+@Injectable()
+export class PlanManagementService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Get all plans with features (for Plan Manager / Admin)
+   */
+  async getAllPlans(includeInactive = true) {
+    const where = includeInactive ? {} : { isActive: true };
+    return this.prisma.plan.findMany({
+      where,
+      include: {
+        features: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+
+  /**
+   * Get active public plans (for Candidate Pricing Modal & Dashboard)
+   */
+  async getPublicPlans() {
+    return this.prisma.plan.findMany({
+      where: { isActive: true },
+      include: {
+        features: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+
+  /**
+   * Get a plan by its unique slug
+   */
+  async getPlanBySlug(slug: string) {
+    return this.prisma.plan.findUnique({
+      where: { slug: slug.toLowerCase().trim() },
+      include: {
+        features: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+  }
+
+  /**
+   * Get all active assessment configurations available for assignment
+   */
+  async getAvailableAssessments() {
+    return this.prisma.examConfig.findMany({
+      where: { isArchived: false },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        code: true,
+        durationMinutes: true,
+        totalQuestions: true,
+      },
+      orderBy: { name: "asc" },
+    });
+  }
+
+  /**
+   * Create a new Plan
+   */
+  async createPlan(dto: CreatePlanDto) {
+    const existing = await this.prisma.plan.findUnique({
+      where: { slug: dto.slug.toLowerCase().trim() },
+    });
+
+    if (existing) {
+      throw new BadRequestException(`Plan with slug '${dto.slug}' already exists`);
+    }
+
+    const { features, ...planData } = dto;
+
+    return this.prisma.plan.create({
+      data: {
+        ...planData,
+        slug: dto.slug.toLowerCase().trim(),
+        features: features && features.length > 0 ? {
+          create: features.map((f, idx) => ({
+            featureKey: f.featureKey,
+            featureName: f.featureName,
+            valueType: f.valueType,
+            valueJson: f.valueJson,
+            description: f.description,
+            sortOrder: f.sortOrder ?? idx,
+          })),
+        } : undefined,
+      },
+      include: {
+        features: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+  }
+
+  /**
+   * Update an existing Plan
+   */
+  async updatePlan(id: string, dto: UpdatePlanDto) {
+    const plan = await this.prisma.plan.findUnique({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException(`Plan with ID '${id}' not found`);
+    }
+
+    const { features, ...updateData } = dto;
+
+    return this.prisma.plan.update({
+      where: { id },
+      data: {
+        ...updateData,
+        slug: updateData.slug ? updateData.slug.toLowerCase().trim() : undefined,
+      },
+      include: {
+        features: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+  }
+
+  /**
+   * Delete / Archive a Plan
+   */
+  async deletePlan(id: string) {
+    const plan = await this.prisma.plan.findUnique({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException(`Plan with ID '${id}' not found`);
+    }
+
+    return this.prisma.plan.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * Add a Feature / Limitation to a Plan
+   */
+  async addFeature(planId: string, dto: CreatePlanFeatureDto) {
+    const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan) {
+      throw new NotFoundException(`Plan with ID '${planId}' not found`);
+    }
+
+    return this.prisma.planFeature.upsert({
+      where: {
+        planId_featureKey: {
+          planId,
+          featureKey: dto.featureKey,
+        },
+      },
+      update: {
+        featureName: dto.featureName,
+        valueType: dto.valueType,
+        valueJson: dto.valueJson,
+        description: dto.description,
+        sortOrder: dto.sortOrder ?? 0,
+      },
+      create: {
+        planId,
+        featureKey: dto.featureKey,
+        featureName: dto.featureName,
+        valueType: dto.valueType,
+        valueJson: dto.valueJson,
+        description: dto.description,
+        sortOrder: dto.sortOrder ?? 0,
+      },
+    });
+  }
+
+  /**
+   * Update an existing feature / limitation rule
+   */
+  async updateFeature(planId: string, featureId: string, dto: UpdatePlanFeatureDto) {
+    const feature = await this.prisma.planFeature.findFirst({
+      where: { id: featureId, planId },
+    });
+
+    if (!feature) {
+      throw new NotFoundException(`Feature limitation with ID '${featureId}' not found on plan`);
+    }
+
+    return this.prisma.planFeature.update({
+      where: { id: featureId },
+      data: dto,
+    });
+  }
+
+  /**
+   * Delete a feature limitation from a plan
+   */
+  async deleteFeature(planId: string, featureId: string) {
+    const feature = await this.prisma.planFeature.findFirst({
+      where: { id: featureId, planId },
+    });
+
+    if (!feature) {
+      throw new NotFoundException(`Feature limitation with ID '${featureId}' not found on plan`);
+    }
+
+    return this.prisma.planFeature.delete({
+      where: { id: featureId },
+    });
+  }
+}

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, HelpCircle, ArrowRight, Sparkles, CheckCircle2, BarChart2 } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
+import { useSubscriptionStore } from '@/store/subscription.store';
 
 interface CandidateOverviewCardProps {
   dashboard?: CandidateDashboardData | null;
@@ -14,6 +15,8 @@ interface CandidateOverviewCardProps {
 
 export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOverviewCardProps) {
   const router = useRouter();
+  const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
 
   const latestAssessment = useMemo(() => {
     if (!dashboard) return null;
@@ -85,6 +88,10 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
   const difficulty = (latestAssessment as any)?.difficulty || 'N/A';
 
   const handleAction = () => {
+    if (!hasActivePlan) {
+      openPricingModal();
+      return;
+    }
     if (isInProgress) {
       const launchId = activeAttempt?.instanceId || activeAttempt?.id || latestAssessment?.id;
       router.push(`/candidate/tests/${launchId}/launch?resume=true`);
@@ -132,7 +139,7 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
             className='w-full sm:w-auto px-8 py-6 font-bold text-sm rounded-2xl bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5'
             onClick={handleAction}
           >
-            {isInProgress ? 'Resume Assessment' : 'Start Assessment'}
+            {!hasActivePlan ? 'Choose a Plan to Start' : isInProgress ? 'Resume Assessment' : 'Start Assessment'}
             <ArrowRight className='size-4' />
           </Button>
         </div>

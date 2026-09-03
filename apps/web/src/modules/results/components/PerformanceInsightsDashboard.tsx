@@ -11,7 +11,8 @@ import { DashboardRecommendations } from './DashboardRecommendations';
 import { DashboardSectionTime } from './DashboardSectionTime';
 import { ShareableResultCard } from './ShareableResultCard';
 import { HiringEvaluationCard } from '@/features/candidate/results/components/HiringEvaluationCard';
-import { Activity, BarChart3, Clock, Compass, Share2, Sparkles, Trophy } from 'lucide-react';
+import { Activity, BarChart3, Clock, Compass, Share2, Sparkles, Trophy, Lock, Zap } from 'lucide-react';
+import { useSubscriptionStore } from '@/store/subscription.store';
 
 interface Props {
   attemptId: string;
@@ -21,6 +22,17 @@ interface Props {
 
 export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resultDetails }) => {
   const { data, isLoading, isError } = usePerformanceDashboard(attemptId);
+  const entitlements = useSubscriptionStore((state) => state.entitlements);
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
+
+  const rawFeats = (entitlements?.features as any) || {};
+  const isProOrTeams = entitlements?.plan === 'PRO' || entitlements?.plan === 'TEAMS';
+  const hasDetailedAnalytics =
+    typeof rawFeats.detailedAnalytics === 'boolean'
+      ? rawFeats.detailedAnalytics
+      : typeof rawFeats.detailed_analytics === 'boolean'
+        ? rawFeats.detailed_analytics
+        : isProOrTeams;
 
   if (isLoading) {
     return (
@@ -86,61 +98,90 @@ export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resul
         )}
       </section>
 
-      {/* SECTION 2: PERFORMANCE VECTORS */}
-      <section className='space-y-4'>
-        <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
-          <Activity className='w-4 h-4 text-emerald-500' />
-          <span>Multidimensional CompetENCY Analysis</span>
-        </div>
+      {/* SECTIONS 2-5: DETAILED PERFORMANCE VECTORS (PRO/TEAMS OR DETAILED ANALYTICS ENABLED) */}
+      {hasDetailedAnalytics ? (
+        <>
+          {/* SECTION 2: PERFORMANCE VECTORS */}
+          <section className='space-y-4'>
+            <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
+              <Activity className='w-4 h-4 text-emerald-500' />
+              <span>Multidimensional Competency Analysis</span>
+            </div>
 
-        <div className='pdf-section'>
-          <DashboardOverallAccuracy data={data} />
-        </div>
+            <div className='pdf-section'>
+              <DashboardOverallAccuracy data={data} />
+            </div>
 
-        <div className='pdf-section'>
-          <DashboardCodingCard data={data} attemptId={attemptId} />
-        </div>
-      </section>
+            <div className='pdf-section'>
+              <DashboardCodingCard data={data} attemptId={attemptId} />
+            </div>
+          </section>
 
-      {/* SECTION 3: SECTION-WISE EVALUATION TABLES */}
-      <section className='space-y-4'>
-        <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
-          <BarChart3 className='w-4 h-4 text-indigo-500' />
-          <span>Section Breakdown & Scoring Details</span>
-        </div>
+          {/* SECTION 3: SECTION-WISE EVALUATION TABLES */}
+          <section className='space-y-4'>
+            <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
+              <BarChart3 className='w-4 h-4 text-indigo-500' />
+              <span>Section Breakdown & Scoring Details</span>
+            </div>
 
-        <div className='pdf-section'>
-          <DashboardSectionAccuracy data={data} attemptId={attemptId} />
-        </div>
-      </section>
+            <div className='pdf-section'>
+              <DashboardSectionAccuracy data={data} attemptId={attemptId} />
+            </div>
+          </section>
 
-      {/* SECTION 4: TIME & PACING ANALYTICS */}
-      <section className='space-y-4'>
-        <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
-          <Clock className='w-4 h-4 text-blue-500' />
-          <span>Time Utilization & Pacing Diagnostics</span>
-        </div>
+          {/* SECTION 4: TIME & PACING ANALYTICS */}
+          <section className='space-y-4'>
+            <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
+              <Clock className='w-4 h-4 text-blue-500' />
+              <span>Time Utilization & Pacing Diagnostics</span>
+            </div>
 
-        <div className='pdf-section'>
-          <DashboardSectionTime data={data} />
-        </div>
-      </section>
+            <div className='pdf-section'>
+              <DashboardSectionTime data={data} />
+            </div>
+          </section>
 
-      {/* SECTION 5: AI RECOMMENDATIONS & STRATEGY */}
-      <section className='space-y-4'>
-        <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
-          <Compass className='w-4 h-4 text-amber-500' />
-          <span>Personalized Improvement Strategy & Competency Breakdown</span>
-        </div>
+          {/* SECTION 5: AI RECOMMENDATIONS & STRATEGY */}
+          <section className='space-y-4'>
+            <div className='flex items-center gap-2 px-1 text-sm font-extrabold text-foreground tracking-tight'>
+              <Compass className='w-4 h-4 text-amber-500' />
+              <span>Personalized Improvement Strategy & Competency Breakdown</span>
+            </div>
 
-        <div className='pdf-section'>
-          <DashboardStrengthWeakness data={data} attemptId={attemptId} />
-        </div>
+            <div className='pdf-section'>
+              <DashboardStrengthWeakness data={data} attemptId={attemptId} />
+            </div>
 
-        <div className='pdf-section'>
-          <DashboardRecommendations data={data} attemptId={attemptId} />
+            <div className='pdf-section'>
+              <DashboardRecommendations data={data} attemptId={attemptId} />
+            </div>
+          </section>
+        </>
+      ) : (
+        /* FREE TIER LOCKED DETAILED ANALYTICS CTA */
+        <div className='rounded-2xl border-2 border-indigo-500/20 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 dark:from-indigo-950/20 dark:via-background dark:to-purple-950/20 p-6 sm:p-8 text-center space-y-4 shadow-sm my-6'>
+          <div className='inline-flex items-center justify-center p-3 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 mb-1'>
+            <Lock className='size-6' />
+          </div>
+          <div className='max-w-md mx-auto space-y-1.5'>
+            <h3 className='text-lg sm:text-xl font-bold text-foreground'>
+              Detailed Topic Analytics & Skill Radar
+            </h3>
+            <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
+              Upgrade to Pro to unlock section-by-section accuracy, time utilization pacing diagnostics, and AI-powered weakness remediation.
+            </p>
+          </div>
+          <div className='pt-2 flex justify-center'>
+            <button
+              onClick={openPricingModal}
+              className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-indigo-500/20'
+            >
+              <Zap className='size-4' />
+              Upgrade to Pro for Detailed Insights
+            </button>
+          </div>
         </div>
-      </section>
+      )}
 
       {/* SECTION 6: SHARE & EXPORT ACTIONS */}
       <section className='space-y-4 print:hidden' data-html2canvas-ignore='true'>

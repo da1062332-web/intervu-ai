@@ -1,8 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 import { UserRepository } from "../users/repositories/user.repository";
 import { TestConfigRepository } from "../tests/repositories/test-config.repository";
 import { TestInstanceRepository } from "../tests/test-instance/test-instance.repository";
 import { PrismaService } from "../../prisma/prisma.service";
+import { EntitlementService } from "../billing/services/entitlement.service";
 
 export interface EligibilityResult {
   eligible: boolean;
@@ -20,12 +21,29 @@ export class EligibilityService {
     private readonly testConfigRepository: TestConfigRepository,
     private readonly testInstanceRepository: TestInstanceRepository,
     private readonly prisma: PrismaService,
+    @Optional() private readonly entitlementService?: EntitlementService,
   ) {}
 
   async validateEligibility(
     userId: string,
     testConfigId: string,
   ): Promise<EligibilityResult> {
+    // 1. Validate User Subscription Plan & Entitlements
+    if (this.entitlementService) {
+      let entitlements = null;
+      try {
+        entitlements = await this.entitlementService.getUserEntitlements(userId);
+      } catch {}
+
+      if (!entitlements || !entitlements.hasActivePlan) {
+        return {
+          eligible: false,
+          errorCode: "NO_ACTIVE_PLAN",
+          reason: "An active subscription plan is required to start this assessment. Please choose a plan to continue.",
+        };
+      }
+    }
+
     // Validate User Exists and Account Active (Assuming all non-deleted users are active)
     const user = await this.userRepository.findById(userId);
 
@@ -122,22 +140,58 @@ export class EligibilityService {
       });
     }
 
-    // Attempt Limit – use configurable maxAttempts from ruleFlags if available, otherwise default 3
-    const maxAttempts: number =
+    // Attempt Limit – check plan override first, then ruleFlags from config, default 3
+    let effectiveMaxAttempts: number =
       isExamConfig && config.ruleFlags?.maxAttempts != null
         ? config.ruleFlags.maxAttempts
         : 3;
+
+    if (this.entitlementService) {
+      try {
+        const entitlements = await this.entitlementService.getUserEntitlements(userId);
+        const features = (entitlements?.features as any) || {};
+        const allowedAssessmentsVal = features.allowedAssessments || features.allowed_assessments;
+
+        if (allowedAssessmentsVal) {
+          let allowedList: string[] | null = null;
+          if (typeof allowedAssessmentsVal === "object" && !Array.isArray(allowedAssessmentsVal)) {
+            if (Array.isArray(allowedAssessmentsVal.assessments)) {
+              allowedList = allowedAssessmentsVal.assessments;
+            }
+            if (typeof allowedAssessmentsVal.attemptsPerExam === "number") {
+              effectiveMaxAttempts = allowedAssessmentsVal.attemptsPerExam;
+            }
+          } else if (Array.isArray(allowedAssessmentsVal)) {
+            allowedList = allowedAssessmentsVal;
+          }
+
+          if (allowedList && !allowedList.includes("all")) {
+            const isAllowed =
+              allowedList.includes(testConfigId) ||
+              (config.code && allowedList.includes(config.code)) ||
+              (config.name && allowedList.includes(config.name));
+            if (!isAllowed) {
+              return {
+                eligible: false,
+                errorCode: "ASSESSMENT_NOT_IN_PLAN",
+                reason: "This assessment is not included in your active subscription plan.",
+              };
+            }
+          }
+        }
+      } catch {}
+    }
 
     const previousAttempts = await this.testInstanceRepository.countAttempts(
       userId,
       testConfigId,
     );
 
-    if (previousAttempts >= maxAttempts) {
+    if (previousAttempts >= effectiveMaxAttempts) {
       return {
         eligible: false,
         errorCode: "ATTEMPT_LIMIT_REACHED",
-        reason: `Maximum attempts (${maxAttempts}) reached for this test`,
+        reason: `Maximum attempts (${effectiveMaxAttempts}) reached for this test`,
       };
     }
 

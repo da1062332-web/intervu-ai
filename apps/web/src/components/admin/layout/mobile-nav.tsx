@@ -4,7 +4,11 @@ import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
-import { ADMIN_NAV_CONFIG, CANDIDATE_NAV_CONFIG } from '@/config/navigation.config';
+import {
+  ADMIN_NAV_CONFIG,
+  CANDIDATE_NAV_CONFIG,
+  PLAN_MANAGER_NAV_CONFIG,
+} from '@/config/navigation.config';
 import { useLayoutStore } from '@/store/layout.store';
 import { useAuthStore } from '@/store/auth.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
@@ -96,8 +100,18 @@ export function MobileNav() {
     setMobileNavOpen(false);
   }, [pathname, setMobileNavOpen]);
 
-  const navConfig = user?.role === 'CANDIDATE' ? CANDIDATE_NAV_CONFIG : ADMIN_NAV_CONFIG;
-  const dashboardHref = user?.role === 'CANDIDATE' ? '/candidate/dashboard' : '/admin/dashboard';
+  const navConfig =
+    user?.role === 'CANDIDATE'
+      ? CANDIDATE_NAV_CONFIG
+      : user?.role === 'PLAN_MANAGER'
+      ? PLAN_MANAGER_NAV_CONFIG
+      : ADMIN_NAV_CONFIG;
+  const dashboardHref =
+    user?.role === 'CANDIDATE'
+      ? '/candidate/dashboard'
+      : user?.role === 'PLAN_MANAGER'
+      ? '/admin/billing'
+      : '/admin/dashboard';
 
   const userInitial = (user?.name ?? user?.fullName ?? user?.email ?? 'U')[0].toUpperCase();
   const userName = user?.name ?? user?.fullName ?? user?.email ?? 'User';

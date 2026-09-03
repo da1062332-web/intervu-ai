@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { AttemptHistoryRepository } from "../repositories/attempt-history.repository";
 import { AttemptHistoryResponseDto } from "../dto/attempt-history.dto";
+import { EntitlementService } from "../../billing/services/entitlement.service";
 
 @Injectable()
 export class AttemptHistoryService {
   constructor(
     private readonly attemptHistoryRepository: AttemptHistoryRepository,
+    private readonly entitlementService: EntitlementService,
   ) {}
 
   async getAttemptHistory(
@@ -15,16 +17,60 @@ export class AttemptHistoryService {
   ): Promise<AttemptHistoryResponseDto> {
     const skip = (page - 1) * limit;
 
+    // 1. Fetch user entitlements from active subscription plan
+    let entitlements = null;
+    try {
+      entitlements = await this.entitlementService.getUserEntitlements(userId);
+    } catch {}
+
+    const hasActivePlan = Boolean(entitlements?.hasActivePlan);
+    const features = (entitlements?.features as any) || {};
+    const historyLimit = features.roundHistoryLimit ?? features.history_limit ?? null;
+
+    if (!hasActivePlan) {
+      return {
+        attempts: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 1,
+        },
+      };
+    }
+
+    // Resolve attemptsPerExam override
+    const allowedAssessmentsVal = features.allowedAssessments || features.allowed_assessments;
+    let attemptsPerExamOverride: number | null = null;
+    if (allowedAssessmentsVal && typeof allowedAssessmentsVal === "object" && !Array.isArray(allowedAssessmentsVal)) {
+      if (typeof allowedAssessmentsVal.attemptsPerExam === "number") {
+        attemptsPerExamOverride = allowedAssessmentsVal.attemptsPerExam;
+      }
+    }
+
     const result = await this.attemptHistoryRepository.findAttemptsByUser({
       userId,
       skip,
       take: limit,
     });
 
-    const totalPages = Math.ceil(result.total / limit);
+    let effectiveTotal = result.total;
+    let items = result.items;
+
+    if (typeof historyLimit === "number" && historyLimit > 0) {
+      effectiveTotal = Math.min(result.total, historyLimit);
+      if (skip >= historyLimit) {
+        items = [];
+      } else {
+        const allowedTake = Math.min(limit, historyLimit - skip);
+        items = items.slice(0, allowedTake);
+      }
+    }
+
+    const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
     const attemptsWithCounts = await Promise.all(
-      result.items.map(async (t: any, index: number) => {
+      items.map(async (t: any) => {
         const rawScore =
           t.candidateResult?.percentage ??
           t.candidateResult?.score ??
@@ -54,7 +100,9 @@ export class AttemptHistoryService {
             ? "COMPLETED"
             : t.status;
 
-        const maxAttempts = (t.examConfig?.ruleFlags?.maxAttempts as number) || 3;
+        const maxAttempts =
+          attemptsPerExamOverride ??
+          ((t.examConfig?.ruleFlags?.maxAttempts as number) || 3);
         const attemptCount = await this.attemptHistoryRepository.countAttemptsByConfig(userId, t.examConfigId, t.testConfigId);
         const remainingAttempts = Math.max(0, maxAttempts - attemptCount);
         const canReAttempt = remainingAttempts > 0;
@@ -107,7 +155,7 @@ export class AttemptHistoryService {
       pagination: {
         page,
         limit,
-        total: result.total,
+        total: effectiveTotal,
         totalPages,
       },
     };

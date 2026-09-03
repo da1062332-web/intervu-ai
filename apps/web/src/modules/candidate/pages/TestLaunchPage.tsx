@@ -15,6 +15,8 @@ import {
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { ChevronLeft, Play, AlertCircle } from 'lucide-react';
 import { testService } from '@/services/candidate/test.service';
+import { useSubscriptionStore } from '@/store/subscription.store';
+import { toast } from 'sonner';
 
 interface TestLaunchPageProps {
   testId: string;
@@ -66,6 +68,13 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   }
 
   const handleStartAssessment = async () => {
+    const hasActivePlan = useSubscriptionStore.getState().hasActivePlan;
+    if (!hasActivePlan) {
+      toast.error('An active subscription plan is required to start this assessment.');
+      useSubscriptionStore.getState().openPricingModal();
+      return;
+    }
+
     const t0 = Date.now();
     console.log(`[CLIENT-LAUNCH 🚀] User clicked "Start Assessment" for testId: ${testId}`);
     try {

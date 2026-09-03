@@ -30,6 +30,10 @@ model User {
   testInstances      TestInstance[]
   enrollments        CandidateEnrollment[]
   candidateResults   CandidateResult[]
+  subscription       Subscription?
+  paymentTransactions PaymentTransaction[]
+  usageQuotas        UsageQuota[]
+  quotaOverrides     UserQuotaOverride[]
 
   @@index([deletedAt])
   @@index([role])
@@ -1462,6 +1466,7 @@ enum ConceptStatus {
 enum UserRole {
   CANDIDATE
   ADMIN
+  PLAN_MANAGER
 }
 
 enum DifficultyLevel {
@@ -1790,3 +1795,158 @@ model CodingTestCase {
   @@index([isPublic])
   @@map("coding_test_cases")
 }
+
+enum PlanTier {
+  FREE
+  PRO
+  TEAMS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+  INCOMPLETE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   PlanTier           @default(FREE)
+  status                 SubscriptionStatus @default(ACTIVE)
+  billingCycle           String             @default("monthly")
+  currentPeriodStart     DateTime           @default(now())
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  
+  razorpayCustomerId     String?
+  razorpaySubscriptionId String?            @unique
+  razorpayPlanId         String?
+  
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  
+  payments               PaymentTransaction[]
+  usageQuotas            UsageQuota[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model PaymentTransaction {
+  id                String        @id @default(cuid())
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  razorpayPaymentId String        @unique
+  razorpayOrderId   String?
+  razorpaySignature String?
+  amount            Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  eventPayload      Json?
+  createdAt         DateTime      @default(now())
+
+  @@index([subscriptionId])
+  @@index([userId])
+  @@index([razorpayPaymentId])
+  @@map("payment_transactions")
+}
+
+model UsageQuota {
+  id                 String        @id @default(cuid())
+  subscriptionId     String?
+  subscription       Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periodKey          String        // YYYY-MM
+  roundsUsed         Int           @default(0)
+  questionsAttempted Int           @default(0)
+  exportsUsed        Int           @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([userId, periodKey])
+  @@index([userId, periodKey])
+  @@map("usage_quotas")
+}
+
+model ProcessedWebhookEvent {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  eventType String
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@map("processed_webhook_events")
+}
+
+model Plan {
+  id            String        @id @default(cuid())
+  slug          String        @unique // "free", "pro", "teams", "custom"
+  name          String        // "Free", "Pro", "Teams"
+  description   String?
+  priceMonthly  Int           @default(0) // in paise (e.g. 240000 = ₹2,400)
+  priceYearly   Int?          // in paise
+  originalPrice Int?          // in paise (e.g. 499900 = ₹4,999)
+  currency      String        @default("INR")
+  badge         String?       // "POPULAR", "BEST VALUE"
+  isHighlighted Boolean       @default(false)
+  buttonText    String        @default("Get Started")
+  isActive      Boolean       @default(true)
+  sortOrder     Int           @default(0)
+  
+  features      PlanFeature[]
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("plans")
+}
+
+model PlanFeature {
+  id          String   @id @default(cuid())
+  planId      String
+  plan        Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  featureKey  String   // e.g. "monthly_rounds_limit", "detailed_analytics", "attempt_history_limit"
+  featureName String   // e.g. "Monthly Practice Tests", "Full Skill Mastery"
+  valueType   String   @default("STRING") // "BOOLEAN", "NUMBER", "ARRAY", "STRING"
+  valueJson   Json     // e.g. 3, null, true, ["markdown", "pdf"]
+  description String?
+  sortOrder   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([planId, featureKey])
+  @@index([planId])
+  @@map("plan_features")
+}
+
+model UserQuotaOverride {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  featureKey    String    // e.g. "monthly_rounds_limit"
+  overrideValue Json      // e.g. { "bonusRounds": 5, "unlimited": true }
+  reason        String?   // e.g. "Admin promotional grant"
+  expiresAt     DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId, featureKey])
+  @@map("user_quota_overrides")
+}
+
+

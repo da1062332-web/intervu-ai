@@ -19,6 +19,7 @@ async function bootstrap() {
   const bootstrapLogger = new Logger("Bootstrap");
   const app = await NestFactory.create(AppModule, {
     logger: ["debug", "error", "log", "warn", "verbose"],
+    rawBody: true,
   });
 
   // Enable graceful shutdown hooks

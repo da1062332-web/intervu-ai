@@ -49,11 +49,6 @@ export class CandidateDashboardRepository {
           where: {
             userId,
             status: { in: ["COMPLETED", "SUBMITTED"] },
-            examConfig: {
-              status: "PUBLISHED",
-              isActive: true,
-              isArchived: false,
-            },
           },
           include: {
             testConfig: {
@@ -61,6 +56,8 @@ export class CandidateDashboardRepository {
             },
             examConfig: {
               select: {
+                id: true,
+                code: true,
                 name: true,
                 durationMinutes: true,
                 totalQuestions: true,
@@ -99,6 +96,7 @@ export class CandidateDashboardRepository {
             examConfig: {
               select: {
                 id: true,
+                code: true,
                 name: true,
                 durationMinutes: true,
                 totalQuestions: true,
@@ -163,7 +161,7 @@ export class CandidateDashboardRepository {
   }
 
   private async getCachedExamConfigs() {
-    const key = "dashboard:examConfigs:available:v2";
+    const key = "dashboard:examConfigs:available:v4";
     let data = await this.cacheService.get<any>(key);
     if (!data) {
       data = await this.prisma.examConfig.findMany({
@@ -172,6 +170,7 @@ export class CandidateDashboardRepository {
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
+          code: true,
           name: true,
           durationMinutes: true,
           totalQuestions: true,

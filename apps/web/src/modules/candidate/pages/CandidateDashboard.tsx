@@ -12,6 +12,7 @@ import { CandidateKpiSection } from '../components/CandidateKpiSection';
 import { AvailableAssessmentSection } from '../components/AvailableAssessmentSection';
 import { CandidateHistorySection } from '../components/CandidateHistorySection';
 import { CandidateProgressSection } from '../components/CandidateProgressSection';
+import { CandidateSubscriptionSection } from '../components/CandidateSubscriptionSection';
 
 export function CandidateDashboard() {
   const { user } = useAuth();
@@ -57,7 +58,7 @@ export function CandidateDashboard() {
         {/* Left Area (7 cols on desktop): Available Assessments 2x2 Grid */}
         <div className='lg:col-span-7 h-full'>
           <AvailableAssessmentSection
-            dashboard={filteredDashboard}
+            dashboard={dashboard}
             isLoading={isDashboardLoading}
             error={dashboardError}
             compact={true}
@@ -72,6 +73,9 @@ export function CandidateDashboard() {
 
       {/* 6. Progress Analytics (Side-by-side cards at the bottom) */}
       <CandidateProgressSection compact={true} />
+
+      {/* 7. Plans & Subscription Status Section */}
+      <CandidateSubscriptionSection />
     </div>
   );
 }
