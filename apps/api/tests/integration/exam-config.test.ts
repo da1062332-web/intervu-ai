@@ -114,7 +114,6 @@ describe("Exam Config & Section Integration Tests", () => {
       createdBy: "admin-1",
       createdAt: new Date(),
       updatedAt: new Date(),
-      sandboxUi: "DEFAULT",
     };
 
     const mockSection: ExamSection = {
