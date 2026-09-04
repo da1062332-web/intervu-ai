@@ -57,6 +57,29 @@ export class PlanManagementService {
   }
 
   /**
+   * Resolve the canonical, admin-configured price for a plan slug.
+   * This is the single source of truth for how much a plan costs -
+   * callers must never accept a client-supplied amount instead.
+   */
+  async resolvePlanPricing(slug: string): Promise<{ plan: any; amount: number }> {
+    const dbPlan = await this.getPlanBySlug(String(slug || "").toLowerCase().trim());
+
+    if (!dbPlan || !dbPlan.isActive) {
+      throw new BadRequestException(
+        `Plan '${slug}' is not currently available. Please contact support.`,
+      );
+    }
+
+    if (typeof dbPlan.priceMonthly !== "number" || dbPlan.priceMonthly < 100) {
+      throw new BadRequestException(
+        `Plan '${slug}' does not have a valid price configured. Please contact support.`,
+      );
+    }
+
+    return { plan: dbPlan, amount: dbPlan.priceMonthly };
+  }
+
+  /**
    * Get all active assessment configurations available for assignment
    */
   async getAvailableAssessments() {

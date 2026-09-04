@@ -24,7 +24,7 @@ export class CandidateDashboardRepository {
             status: { in: ["IN_PROGRESS", "CREATED"] },
             expiresAt: { gt: new Date() },
             examConfig: {
-              status: "PUBLISHED",
+              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
               isActive: true,
               isArchived: false,
             },
@@ -79,7 +79,7 @@ export class CandidateDashboardRepository {
           where: {
             candidateId: userId,
             examConfig: {
-              status: "PUBLISHED",
+              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
               isActive: true,
               isArchived: false,
             },
@@ -160,11 +160,11 @@ export class CandidateDashboardRepository {
   }
 
   private async getCachedExamConfigs() {
-    const key = "dashboard:examConfigs:available:v5";
+    const key = "dashboard:examConfigs:available:v8";
     let data = await this.cacheService.get<any>(key);
     if (!data) {
       data = await this.prisma.examConfig.findMany({
-        where: { isArchived: false, isActive: true, status: "PUBLISHED" },
+        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -183,7 +183,7 @@ export class CandidateDashboardRepository {
           createdAt: true,
         },
       });
-      await this.cacheService.set(key, data, { ttl: 300 });
+      await this.cacheService.set(key, data, { ttl: 60 });
     }
     return data;
   }

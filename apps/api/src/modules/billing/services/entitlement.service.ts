@@ -70,19 +70,104 @@ export class EntitlementService {
 
     const subscription = await this.subscriptionService.getUserSubscription(userId);
 
-    // Default Fallback when no subscription exists
+    // Fallback when no subscription exists (check for referral pass)
     if (!subscription) {
-      const freeDef = PLAN_ENTITLEMENT_DEFINITIONS.FREE;
+      const freeDef = { ...PLAN_ENTITLEMENT_DEFINITIONS.FREE };
+      const now = new Date();
+      let hasRemainingReferralReward = false;
+      let referralRewardReason = '';
+      let remainingAttemptsCount = 0;
+      let latestOverrideExpiry: Date | null = null;
+
+      try {
+        const activeOverrides = await this.prisma.userQuotaOverride.findMany({
+          where: {
+            userId,
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: now } },
+            ],
+          },
+        });
+
+        for (const override of activeOverrides) {
+          if (override.expiresAt && (!latestOverrideExpiry || override.expiresAt > latestOverrideExpiry)) {
+            latestOverrideExpiry = override.expiresAt;
+          }
+
+          const camelKey = override.featureKey.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
+          (freeDef as any)[camelKey] = override.overrideValue;
+          (freeDef as any)[override.featureKey] = override.overrideValue;
+
+          if (override.featureKey === 'allowed_assessments' || override.featureKey === 'allowedAssessments') {
+            const val = override.overrideValue as any;
+            const maxAttempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+            const targetAssessments = Array.isArray(val?.assessments) ? val.assessments : [];
+
+            let completedAttempts = 0;
+            if (targetAssessments.length > 0) {
+              completedAttempts = await this.prisma.testInstance.count({
+                where: {
+                  userId,
+                  status: { in: ['SUBMITTED', 'COMPLETED'] },
+                  OR: [
+                    { examConfigId: { in: targetAssessments } },
+                    { testConfigId: { in: targetAssessments } },
+                    { examConfig: { code: { in: targetAssessments } } },
+                    { examConfig: { name: { in: targetAssessments } } },
+                  ],
+                },
+              });
+            } else {
+              completedAttempts = await this.prisma.testInstance.count({
+                where: {
+                  userId,
+                  status: { in: ['SUBMITTED', 'COMPLETED'] },
+                },
+              });
+            }
+
+            if (completedAttempts < maxAttempts) {
+              hasRemainingReferralReward = true;
+              remainingAttemptsCount = maxAttempts - completedAttempts;
+              referralRewardReason = override.reason || 'Referral Access Pass';
+            }
+          } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+            const hasAllowedAssessments = activeOverrides.some(
+              (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+            );
+            if (
+              hasAllowedAssessments &&
+              (override.reason?.includes('Bonus Round') || override.reason?.includes('Bonus Practice Round'))
+            ) {
+              continue;
+            }
+
+            const val = override.overrideValue as any;
+            const bonus = typeof val?.bonusRounds === 'number' ? val.bonusRounds : (typeof val === 'number' ? val : 0);
+            if (bonus > 0) {
+              hasRemainingReferralReward = true;
+              remainingAttemptsCount = bonus;
+              referralRewardReason = override.reason || 'Bonus Practice Rounds';
+            }
+          }
+        }
+      } catch (err) {
+        this.logger.warn(`Failed to check overrides for user without subscription ${userId}: ${err}`);
+      }
+
       return {
         plan: "FREE",
-        status: "INCOMPLETE",
-        hasActivePlan: false,
-        currentPeriodEnd: null,
+        planName: hasRemainingReferralReward ? (referralRewardReason || 'Referral Access Pass') : 'Free Plan',
+        planSlug: hasRemainingReferralReward ? 'referral-pass' : 'free',
+        status: hasRemainingReferralReward ? ("ACTIVE" as any) : "INCOMPLETE",
+        hasActivePlan: hasRemainingReferralReward,
+        currentPeriodEnd: latestOverrideExpiry ? latestOverrideExpiry.toISOString() : null,
         features: {
           ...freeDef,
-          monthlyRoundsLimit: 0,
+          monthlyRoundsLimit: remainingAttemptsCount,
           monthlyRoundsUsed: 0,
-          monthlyRoundsRemaining: 0,
+          monthlyRoundsRemaining: remainingAttemptsCount,
         },
       };
     }
@@ -99,6 +184,7 @@ export class EntitlementService {
 
     const hasActivePlan = effectiveStatus === "ACTIVE" && !isExpired;
     const planTier: PlanTier = (subscription.plan as PlanTier) || "FREE";
+    const isPaid = planTier !== "FREE";
 
     // 1. Try to fetch dynamic plan and features from Database
     let planDef: PlanFeatures = { ...PLAN_ENTITLEMENT_DEFINITIONS.FREE };
@@ -138,8 +224,9 @@ export class EntitlementService {
         }
       }
 
-      // If still not found, check if there is an active dynamic plan configured in DB
-      if (!dbPlan) {
+      // If still not found, check if there is a single active dynamic plan configured in DB.
+      // Only applies to paid tiers - a FREE-tier user must never inherit a paid plan's features.
+      if (!dbPlan && isPaid) {
         const activePlans = await this.prisma.plan.findMany({
           where: { isActive: true },
           include: { features: true },
@@ -178,7 +265,11 @@ export class EntitlementService {
       }
     }
 
-    // 2. Check for active user quota overrides (Admin / Plan Manager grants)
+    // 2. Check for active user quota overrides (Admin / Plan Manager grants / Referral rewards)
+    let hasRemainingReferralReward = false;
+    let referralRewardReason = '';
+    let remainingAttemptsCount = 0;
+
     try {
       const activeOverrides = await this.prisma.userQuotaOverride.findMany({
         where: {
@@ -196,8 +287,11 @@ export class EntitlementService {
           if (val?.unlimited) {
             planDef.monthlyRoundsLimit = null;
           } else if (typeof val?.bonusRounds === 'number') {
-            const base = typeof planDef.monthlyRoundsLimit === 'number' ? planDef.monthlyRoundsLimit : 0;
-            planDef.monthlyRoundsLimit = base + val.bonusRounds;
+            // A plan already at null (unlimited) must stay unlimited - a bonus can only
+            // add to a finite cap, never collapse an unlimited plan down to a small one.
+            if (planDef.monthlyRoundsLimit !== null) {
+              planDef.monthlyRoundsLimit = planDef.monthlyRoundsLimit + val.bonusRounds;
+            }
           } else if (typeof val === 'number') {
             planDef.monthlyRoundsLimit = val;
           }
@@ -205,6 +299,58 @@ export class EntitlementService {
           const camelKey = override.featureKey.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
           (planDef as any)[camelKey] = override.overrideValue;
           (planDef as any)[override.featureKey] = override.overrideValue;
+        }
+
+        if (override.featureKey === 'allowed_assessments' || override.featureKey === 'allowedAssessments') {
+          const val = override.overrideValue as any;
+          const maxAttempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+          const targetAssessments = Array.isArray(val?.assessments) ? val.assessments : [];
+
+          let completedAttempts = 0;
+          if (targetAssessments.length > 0) {
+            completedAttempts = await this.prisma.testInstance.count({
+              where: {
+                userId,
+                status: { in: ['SUBMITTED', 'COMPLETED'] },
+                OR: [
+                  { examConfigId: { in: targetAssessments } },
+                  { testConfigId: { in: targetAssessments } },
+                  { examConfig: { code: { in: targetAssessments } } },
+                  { examConfig: { name: { in: targetAssessments } } },
+                ],
+              },
+            });
+          } else {
+            completedAttempts = await this.prisma.testInstance.count({
+              where: {
+                userId,
+                status: { in: ['SUBMITTED', 'COMPLETED'] },
+              },
+            });
+          }
+
+          if (completedAttempts < maxAttempts) {
+            hasRemainingReferralReward = true;
+            remainingAttemptsCount = maxAttempts - completedAttempts;
+            referralRewardReason = override.reason || 'Referral Access Pass';
+          }
+        } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+          const hasAllowedAssessments = activeOverrides.some(
+            (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+          );
+          if (
+            hasAllowedAssessments &&
+            (override.reason?.includes('Bonus Round') || override.reason?.includes('Bonus Practice Round'))
+          ) {
+            continue;
+          }
+
+          const val = override.overrideValue as any;
+          const bonus = typeof val?.bonusRounds === 'number' ? val.bonusRounds : (typeof val === 'number' ? val : 0);
+          if (bonus > 0) {
+            hasRemainingReferralReward = true;
+            referralRewardReason = override.reason || 'Bonus Practice Rounds';
+          }
         }
       }
     } catch (err) {
@@ -223,15 +369,38 @@ export class EntitlementService {
         ? null
         : Math.max(0, planDef.monthlyRoundsLimit - roundsUsed);
 
-    const planDisplayName = dbPlan?.name || (planTier !== "FREE" ? `${planTier} Plan` : "Free Plan");
-    const planSlugName = dbPlan?.slug || String(planTier).toLowerCase();
+    // For paid subscribers: active if subscription status is ACTIVE and period not expired.
+    // For FREE plan tier: active only while referral reward quota is remaining.
+    const finalHasActivePlan = isPaid
+      ? subscription.status === 'ACTIVE' && !isExpired
+      : hasRemainingReferralReward;
+
+    const finalStatus: SubscriptionStatus = isExpired
+      ? 'EXPIRED'
+      : isPaid
+        ? (subscription.status as SubscriptionStatus)
+        : hasRemainingReferralReward
+          ? 'ACTIVE'
+          : 'INCOMPLETE';
+
+    const planDisplayName = isPaid
+      ? (dbPlan?.name || `${planTier} Plan`)
+      : hasRemainingReferralReward
+        ? (referralRewardReason || 'Referral Access Pass')
+        : 'Free Tier (No Active Plan)';
+
+    const planSlugName = isPaid
+      ? (dbPlan?.slug || String(planTier).toLowerCase())
+      : hasRemainingReferralReward
+        ? 'referral-pass'
+        : 'free';
 
     return {
       plan: planTier,
       planName: planDisplayName,
       planSlug: planSlugName,
-      status: effectiveStatus,
-      hasActivePlan,
+      status: finalStatus,
+      hasActivePlan: finalHasActivePlan,
       currentPeriodEnd: subscription.currentPeriodEnd
         ? subscription.currentPeriodEnd.toISOString()
         : null,

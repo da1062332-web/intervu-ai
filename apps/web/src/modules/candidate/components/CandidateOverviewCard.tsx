@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, HelpCircle, ArrowRight, Sparkles, CheckCircle2, BarChart2 } from 'lucide-react';
+import { Clock, HelpCircle, ArrowRight, Sparkles, CheckCircle2, BarChart2, Gift } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
 import { useSubscriptionStore } from '@/store/subscription.store';
 
@@ -16,7 +16,18 @@ interface CandidateOverviewCardProps {
 export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOverviewCardProps) {
   const router = useRouter();
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
+  const planSlug = useSubscriptionStore((state) => state.planSlug);
+  const planName = useSubscriptionStore((state) => state.planName);
+  const entitlements = useSubscriptionStore((state) => state.entitlements);
   const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
+
+  const isReferralUnlocked = useMemo(() => {
+    if (!hasActivePlan) return false;
+    return (
+      planSlug === 'referral-pass' ||
+      Boolean(planName?.toLowerCase().includes('referral'))
+    );
+  }, [hasActivePlan, planSlug, planName]);
 
   const latestAssessment = useMemo(() => {
     if (!dashboard) return null;
@@ -86,6 +97,8 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
   const questionCount = latestAssessment?.questionCount;
   const isInProgress = Boolean(latestAssessment?.hasActiveAttempt || activeAttempt);
   const difficulty = (latestAssessment as any)?.difficulty || 'N/A';
+  const maxAttempts = latestAssessment?.maxAttempts;
+  const attemptCount = latestAssessment?.attemptCount ?? 0;
 
   const handleAction = () => {
     if (!hasActivePlan) {
@@ -104,16 +117,29 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
     <div className='rounded-[28px] border border-indigo-100/80 dark:border-indigo-900/40 bg-gradient-to-r from-[#eff2ff] via-[#f7eefe] to-[#f4ebff] dark:from-purple-950/30 dark:via-indigo-950/20 dark:to-purple-950/30 p-7 sm:p-9 shadow-sm transition-all hover:shadow-md relative overflow-hidden'>
       <div className='flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10'>
         <div className='space-y-4 min-w-0 flex-1'>
-          <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#fff3e0] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 text-[11px] font-bold border border-amber-200/50 dark:border-amber-800/40'>
-            <Sparkles className='size-3.5 fill-current' />
-            <span>{isInProgress ? 'Active Assessment in Progress' : 'Recommended Next Step'}</span>
-          </div>
+          {isReferralUnlocked ? (
+            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200/50 dark:border-emerald-800/40 shadow-2xs'>
+              <Gift className='size-3.5 text-emerald-600 dark:text-emerald-400' />
+              <span>🎁 Free Assessment Unlocked via Referral</span>
+            </div>
+          ) : (
+            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#fff3e0] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 text-[11px] font-bold border border-amber-200/50 dark:border-amber-800/40'>
+              <Sparkles className='size-3.5 fill-current' />
+              <span>{isInProgress ? 'Active Assessment in Progress' : 'Recommended Next Step'}</span>
+            </div>
+          )}
 
           <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight truncate'>
             {title}
           </h2>
 
           <div className='flex flex-wrap items-center gap-2.5 pt-1'>
+            {isReferralUnlocked && maxAttempts && (
+              <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-300/60 dark:border-emerald-800/60'>
+                <Sparkles className='size-3.5 text-emerald-600 dark:text-emerald-400' />
+                <span>{attemptCount} / {maxAttempts} Free Attempts Used</span>
+              </span>
+            )}
             <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
               <BarChart2 className='size-3.5 text-muted-foreground/80' />
               Difficulty: <strong className='text-foreground font-bold ml-0.5'>{difficulty}</strong>
@@ -139,7 +165,13 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
             className='w-full sm:w-auto px-8 py-6 font-bold text-sm rounded-2xl bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5'
             onClick={handleAction}
           >
-            {!hasActivePlan ? 'Choose a Plan to Start' : isInProgress ? 'Resume Assessment' : 'Start Assessment'}
+            {!hasActivePlan
+              ? 'Choose a Plan to Start'
+              : isInProgress
+                ? 'Resume Assessment'
+                : isReferralUnlocked
+                  ? 'Start Free Assessment'
+                  : 'Start Assessment'}
             <ArrowRight className='size-4' />
           </Button>
         </div>

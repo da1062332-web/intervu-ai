@@ -45,6 +45,11 @@ export class CandidateDashboardService {
       }
     }
 
+    const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
+    if (isVip) {
+      allowedList = ['all'];
+    }
+
     // Active / in-progress tests
     const activeAttempts = data.activeAttempts.map((t: any) => {
       const totalDuration = t.examConfig
@@ -94,9 +99,11 @@ export class CandidateDashboardService {
         const configId = e.examConfigId || e.testId;
         const attemptCount = attemptsByConfig[configId] || 0;
         const maxAttempts =
-          attemptsPerExamOverride ??
-          (e.examConfig?.ruleFlags?.maxAttempts ?? 3);
-        const canReattempt = attemptCount < maxAttempts;
+          isVip
+            ? null
+            : (attemptsPerExamOverride ??
+              (e.examConfig?.ruleFlags?.maxAttempts ?? 3));
+        const canReattempt = isVip || (maxAttempts ? attemptCount < maxAttempts : true);
         const hasActiveAttempt = data.activeAttempts.some(
           (a: any) => a.examConfigId === configId || a.testConfigId === configId,
         );

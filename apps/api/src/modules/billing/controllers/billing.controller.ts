@@ -33,7 +33,7 @@ import { PlanManagementService } from "../services/plan-management.service";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { Public } from "../../auth/decorators/public.decorator";
-import { UserRole, PlanTier } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 @ApiTags("billing")
 @Controller("billing")
@@ -96,11 +96,12 @@ export class BillingController {
     @Body() dto: CreateOrderDto,
   ): Promise<CreateOrderResponse> {
     const planType: any = dto.plan || "PRO";
+    // Note: dto.amount is intentionally ignored - RazorpayService always resolves the
+    // price from the database Plan table, never from client input.
     const order = await this.razorpayService.createOrder({
       userId: user.id,
       email: user.email,
       plan: planType,
-      amount: dto.amount,
       currency: dto.currency,
       receipt: dto.receipt,
     });
@@ -148,37 +149,27 @@ export class BillingController {
         throw new BadRequestException("Invalid payment signature. Verification failed.");
       }
 
-      // Safe plan tier normalization
-      let plan: PlanTier = PlanTier.PRO;
-      if (dto.plan) {
-        const upper = String(dto.plan).toUpperCase();
-        if (upper === "TEAMS") plan = PlanTier.TEAMS;
-        else if (upper === "FREE") plan = PlanTier.FREE;
-        else plan = PlanTier.PRO;
-      }
-
-      let amount = plan === PlanTier.PRO ? 240000 : 650000;
-      try {
-        if (dto.plan) {
-          const dbPlan = await this.planManagementService.getPlanBySlug(String(dto.plan).toLowerCase());
-          if (dbPlan && typeof dbPlan.priceMonthly === "number") {
-            amount = dbPlan.priceMonthly;
-          }
-        }
-      } catch {
-        // Fallback to default tier amount
+      // Resolve the plan & amount from the order record created server-side at
+      // create-order time (itself priced from the database). dto.plan is never
+      // trusted here - a client could otherwise request a cheap order and claim
+      // a more expensive plan tier on verification.
+      const orderRecord = await this.subscriptionService.getOrderPlan(razorpay_order_id);
+      if (!orderRecord) {
+        throw new BadRequestException(
+          "No matching order was found for this payment. Please retry checkout.",
+        );
       }
 
       const subscription = await this.subscriptionService.processPaymentSuccess({
         userId: user.id,
-        plan,
+        plan: orderRecord.plan,
         razorpayPaymentId: razorpay_payment_id,
         razorpayOrderId: razorpay_order_id,
         razorpaySignature: razorpay_signature,
-        amount,
-        currency: "INR",
+        amount: orderRecord.amount,
+        currency: orderRecord.currency,
         source: "CLIENT_CALLBACK",
-        eventPayload: { verificationType: "client_signature_verified", ...dto },
+        eventPayload: { verificationType: "client_signature_verified" },
       });
 
       const entitlements = await this.entitlementService.getUserEntitlements(user.id);

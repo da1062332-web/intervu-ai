@@ -44,6 +44,7 @@ describe("AdminPlansController & PlanManagementService", () => {
     },
     planFeature: {
       create: jest.fn().mockResolvedValue(mockPlan.features[0]),
+      upsert: jest.fn().mockResolvedValue(mockPlan.features[0]),
       findFirst: jest.fn().mockResolvedValue(mockPlan.features[0]),
       update: jest.fn().mockResolvedValue(mockPlan.features[0]),
       delete: jest.fn().mockResolvedValue(mockPlan.features[0]),

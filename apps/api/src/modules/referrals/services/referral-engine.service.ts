@@ -155,8 +155,8 @@ export class ReferralEngineService {
         reward: refereeRewardConfig,
       };
     }, {
-      maxWait: 15000,
-      timeout: 30000,
+      maxWait: 30000,
+      timeout: 90000,
     });
   }
 

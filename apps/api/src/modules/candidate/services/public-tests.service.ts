@@ -39,6 +39,11 @@ export class PublicTestsService {
       }
     }
 
+    const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
+    if (isVip) {
+      allowedList = ['all'];
+    }
+
     const hasActivePlan = Boolean(entitlements?.hasActivePlan);
 
     const result = await this.publicTestsRepository.findPublicTests({
@@ -106,12 +111,14 @@ export class PublicTestsService {
           })) || [];
 
         const maxAttempts =
-          attemptsPerExamOverride ??
-          ((t.ruleFlags && typeof t.ruleFlags === "object" && "maxAttempts" in t.ruleFlags)
-            ? Number((t.ruleFlags as any).maxAttempts)
-            : 3);
+          isVip
+            ? null
+            : (attemptsPerExamOverride ??
+              ((t.ruleFlags && typeof t.ruleFlags === "object" && "maxAttempts" in t.ruleFlags)
+                ? Number((t.ruleFlags as any).maxAttempts)
+                : 3));
         const attemptCount = t.testInstances ? t.testInstances.length : 0;
-        const canReattempt = attemptCount < maxAttempts;
+        const canReattempt = isVip || (maxAttempts ? attemptCount < maxAttempts : true);
 
         return {
           configId: t.id,

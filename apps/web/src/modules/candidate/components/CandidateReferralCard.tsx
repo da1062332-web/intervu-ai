@@ -1,15 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Copy, Check, Gift, Users, Award, RefreshCw, Sparkles, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { referralsApi } from '@/services/api/referrals.api';
+import { useSubscriptionStore } from '@/store/subscription.store';
 import { notifySuccess, notifyApiError } from '@/services/notifications/toast';
 
 export function CandidateReferralCard() {
+  const queryClient = useQueryClient();
+  const checkSubscription = useSubscriptionStore((state) => state.checkSubscription);
+  const loadEntitlements = useSubscriptionStore((state) => state.loadEntitlements);
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [redeemCode, setRedeemCode] = useState('');
@@ -47,7 +52,15 @@ export function CandidateReferralCard() {
       if (result.success) {
         notifySuccess(result.message || 'Code redeemed successfully!');
         setRedeemCode('');
-        load();
+        await Promise.all([
+          load(),
+          checkSubscription(),
+          loadEntitlements(),
+        ]);
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-overview'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-enrollments'] });
       }
     } catch (err) {
       notifyApiError(err);

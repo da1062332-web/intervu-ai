@@ -79,7 +79,7 @@ export class PublicTestsRepository {
     } = params;
 
     const examWhere: Prisma.ExamConfigWhereInput = { 
-      status: "PUBLISHED",
+      status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
       isArchived: false,
       isActive: true,
     };
