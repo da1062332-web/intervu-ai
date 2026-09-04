@@ -54,21 +54,20 @@ export class ReferralRewardService {
       (idempotencyKey ? `Referral reward [${idempotencyKey}]` : 'Referral reward');
 
     // Ensure candidate has an active subscription record so EntitlementService recognizes the account
-    if (db?.subscription?.findUnique) {
-      const existingSub = await db.subscription.findUnique({ where: { userId } });
-      if (!existingSub) {
-        await db.subscription.create({
-          data: {
-            userId,
-            plan: 'FREE',
-            status: 'ACTIVE',
-            billingCycle: 'monthly',
-            currentPeriodStart: new Date(),
-            currentPeriodEnd: null,
-            cancelAtPeriodEnd: false,
-          },
-        });
-      }
+    if (db?.subscription?.upsert) {
+      await db.subscription.upsert({
+        where: { userId },
+        create: {
+          userId,
+          plan: 'FREE',
+          status: 'ACTIVE',
+          billingCycle: 'monthly',
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+        },
+        update: {},
+      });
     }
 
     const override = await db.userQuotaOverride.create({

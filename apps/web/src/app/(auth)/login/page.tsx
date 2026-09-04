@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,10 +18,21 @@ import { normalizeApiError } from '@/services/api/error';
 import { notifySuccess } from '@/services/notifications/toast';
 import { loginSchema, type LoginInput } from '@/lib/validations/auth';
 
-export default function LoginPage() {
+function LoginFormContent() {
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refCode = searchParams?.get('ref') || searchParams?.get('code');
+
+  useEffect(() => {
+    if (refCode) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('intervu_ref', refCode);
+      }
+      router.replace(`/signup?ref=${encodeURIComponent(refCode)}`);
+    }
+  }, [refCode, router]);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -335,7 +346,7 @@ export default function LoginPage() {
           <p className='text-center text-[0.95rem] text-muted-foreground pt-6 font-medium'>
             Don't have an account?{' '}
             <Link
-              href='/signup'
+              href={refCode ? `/signup?ref=${encodeURIComponent(refCode)}` : '/signup'}
               className='text-primary hover:text-primary/80 transition-colors font-bold ml-1 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-primary after:origin-bottom-right after:scale-x-0 hover:after:origin-bottom-left hover:after:scale-x-100 after:transition-transform after:duration-300'
             >
               Sign up today
@@ -344,5 +355,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

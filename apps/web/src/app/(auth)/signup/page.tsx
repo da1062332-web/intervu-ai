@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Gift, CheckCircle2 } from 'lucide-react';
 
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -17,19 +17,40 @@ import { normalizeApiError } from '@/services/api/error';
 import { notifySuccess } from '@/services/notifications/toast';
 import { signupSchema, type SignupInput } from '@/lib/validations/auth';
 
-export default function SignupPage() {
+function SignupFormContent() {
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlRef = searchParams?.get('ref') || searchParams?.get('code') || '';
+  const [detectedRef, setDetectedRef] = useState<string>('');
 
   const form = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', referralCode: '' },
   });
+
+  useEffect(() => {
+    let ref = urlRef;
+    if (!ref && typeof window !== 'undefined') {
+      ref = sessionStorage.getItem('intervu_ref') || '';
+    }
+    if (ref) {
+      ref = ref.trim().toUpperCase();
+      setDetectedRef(ref);
+      form.setValue('referralCode', ref);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('intervu_ref', ref);
+      }
+    }
+  }, [urlRef, form]);
 
   const signupMutation = useMutation({
     mutationFn: authApi.signup,
     onSuccess: (data) => {
       notifySuccess('Account created successfully.');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('intervu_ref');
+      }
       if (data.user.role === 'CANDIDATE') {
         router.push('/candidate/dashboard');
       } else {
@@ -46,7 +67,9 @@ export default function SignupPage() {
     mutationFn: authApi.googleLogin,
     onSuccess: (data) => {
       notifySuccess('Welcome.');
-
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('intervu_ref');
+      }
       if (data.user.role === 'CANDIDATE') {
         router.replace('/candidate/dashboard');
       } else {
@@ -73,7 +96,8 @@ export default function SignupPage() {
             if (res.credential) {
               setFormError(null);
               try {
-                await performGoogleLogin({ idToken: res.credential });
+                const appliedCode = form.getValues('referralCode')?.trim() || detectedRef || undefined;
+                await performGoogleLogin({ idToken: res.credential, referralCode: appliedCode });
               } catch {}
             }
           },
@@ -116,7 +140,7 @@ export default function SignupPage() {
         script.removeEventListener('load', initGoogle);
       }
     };
-  }, [performGoogleLogin]);
+  }, [performGoogleLogin, detectedRef, form]);
 
   const onSubmit = async (data: SignupInput) => {
     setFormError(null);
@@ -125,6 +149,7 @@ export default function SignupPage() {
         fullName: data.fullName?.trim() || undefined,
         email: data.email,
         password: data.password,
+        referralCode: data.referralCode?.trim() || detectedRef || undefined,
       });
     } catch {}
   };
@@ -281,6 +306,39 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {/* Referral Code (Optional) */}
+            <div className='space-y-2'>
+              <div className='flex items-center justify-between'>
+                <Label htmlFor='referralCode' className='font-semibold text-foreground flex items-center gap-1.5'>
+                  <Gift className='size-4 text-purple-600 dark:text-purple-400' />
+                  Referral Code (Optional)
+                </Label>
+                {detectedRef && (
+                  <span className='text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1'>
+                    <CheckCircle2 className='size-3' /> Invite Applied
+                  </span>
+                )}
+              </div>
+              <div className='relative'>
+                <Input
+                  id='referralCode'
+                  type='text'
+                  placeholder='e.g. TCSBUZZ or CAMPUS2025'
+                  className='h-12 uppercase tracking-widest font-mono font-bold transition-all focus:ring-primary/50 bg-card border-border/50 pl-10'
+                  {...form.register('referralCode')}
+                  onChange={(e) => {
+                    const val = e.target.value.toUpperCase();
+                    form.setValue('referralCode', val);
+                    setDetectedRef(val);
+                  }}
+                />
+                <Gift className='size-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none' />
+              </div>
+              <p className='text-xs text-muted-foreground'>
+                Have an invite code from a peer or company drive? Enter it here to unlock bonus assessments immediately.
+              </p>
+            </div>
+
             <Button
               type='submit'
               className='w-full h-12 bg-gradient-to-r from-primary to-violet-500 hover:opacity-90 transition-opacity text-white text-base font-semibold shadow-lg shadow-primary/25 mt-4'
@@ -331,5 +389,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <SignupFormContent />
+    </Suspense>
   );
 }

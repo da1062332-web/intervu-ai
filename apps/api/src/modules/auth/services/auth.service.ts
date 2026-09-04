@@ -1,6 +1,10 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
+  Logger,
+  Optional,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -11,8 +15,9 @@ import { OAuth2Client } from "google-auth-library";
 import { AppConfigService } from "../../../config";
 import { UserRepository } from "../../users/repositories/user.repository";
 import { SessionRepository } from "../../users/repositories/session.repository";
-import { LoginDto, SignupDto } from "@intervu/shared";
-import { GoogleLoginDto } from "../dto/auth.dto";
+import { ReferralEngineService } from "../../referrals/services/referral-engine.service";
+import { LoginDto } from "@intervu/shared";
+import { GoogleLoginDto, SignupDto } from "../dto/auth.dto";
 import { AuthUserRole } from "../interfaces/auth-user.interface";
 import { JwtTokenData } from "../interfaces/jwt-payload.interface";
 
@@ -35,11 +40,16 @@ export interface AuthResponse {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userRepository: UserRepository,
     private readonly sessionRepository: SessionRepository,
     private readonly jwtService: JwtService,
     private readonly configService: AppConfigService,
+    @Optional()
+    @Inject(forwardRef(() => ReferralEngineService))
+    private readonly referralEngine?: ReferralEngineService,
   ) {}
 
   async signup(dto: SignupDto, meta?: AuthMeta): Promise<AuthResponse> {
@@ -56,6 +66,17 @@ export class AuthService {
       passwordHash: await argon2.hash(dto.password),
       fullName: dto.fullName ?? null,
     });
+
+    // Auto-redeem referral code if candidate provided one during signup
+    if (dto.referralCode?.trim() && this.referralEngine) {
+      try {
+        await this.referralEngine.redeemCode(user.id, dto.referralCode.trim().toUpperCase());
+      } catch (err: any) {
+        this.logger.warn(
+          `Failed to auto-redeem referral code "${dto.referralCode}" for new user ${user.id}: ${err.message}`,
+        );
+      }
+    }
 
     return this.buildAuthResponse(user, meta);
   }
@@ -146,6 +167,17 @@ export class AuthService {
           fullName,
           role: "CANDIDATE",
         });
+
+        // Auto-redeem referral code if new user signed up via Google with referral
+        if (dto.referralCode?.trim() && this.referralEngine) {
+          try {
+            await this.referralEngine.redeemCode(user.id, dto.referralCode.trim().toUpperCase());
+          } catch (err: any) {
+            this.logger.warn(
+              `Failed to auto-redeem referral code "${dto.referralCode}" for new Google user ${user.id}: ${err.message}`,
+            );
+          }
+        }
       }
     }
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LogOut, Moon, Sun, ChevronDown, PanelLeftClose, PanelLeftOpen, Gift, User, Settings } from 'lucide-react';
 
 import { authApi } from '@/services/api/auth.api';
 import { notifySuccess } from '@/services/notifications/toast';
@@ -188,16 +188,34 @@ export function Navbar() {
             <DropdownMenuItem asChild>
               <Link
                 href={isCandidate ? '/candidate/profile' : '/profile'}
-                className='cursor-pointer'
+                className='cursor-pointer flex items-center gap-2'
               >
+                <User className='size-4 text-muted-foreground' />
                 Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
-                href={isCandidate ? '/candidate/settings' : '/settings'}
-                className='cursor-pointer'
+                href={isCandidate ? '/candidate/referrals' : '/admin/billing/referrals'}
+                className='cursor-pointer flex items-center justify-between w-full'
               >
+                <span className='flex items-center gap-2'>
+                  <Gift className='size-4 text-purple-600 dark:text-purple-400' />
+                  <span>{isCandidate ? 'Referral Program' : 'Referral Campaigns'}</span>
+                </span>
+                {isCandidate && (
+                  <span className='text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'>
+                    Earn Rewards
+                  </span>
+                )}
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                href={isCandidate ? '/candidate/settings' : '/settings'}
+                className='cursor-pointer flex items-center gap-2'
+              >
+                <Settings className='size-4 text-muted-foreground' />
                 Settings
               </Link>
             </DropdownMenuItem>

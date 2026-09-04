@@ -44,6 +44,13 @@ export class SignupDto {
   })
   fullName?: string;
 
+  @ApiProperty({
+    example: "TCSBUZZ",
+    required: false,
+    description: "Optional referral code applied during signup",
+  })
+  referralCode?: string;
+
   static validate(data: unknown): z.SafeParseReturnType<unknown, SignupDto> {
     return AuthSignupSchema.safeParse(data) as unknown as z.SafeParseReturnType<
       unknown,

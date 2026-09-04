@@ -7,6 +7,7 @@ export const AuthLoginSchema = z.object({
 
 export const AuthSignupSchema = AuthLoginSchema.extend({
   fullName: z.string().optional(),
+  referralCode: z.string().optional(),
 });
 
 export const RefreshTokenSchema = z.object({
@@ -34,4 +35,5 @@ export const AuthResponseSchema = z.object({
 
 export const GoogleLoginSchema = z.object({
   idToken: z.string().min(1),
+  referralCode: z.string().optional(),
 });

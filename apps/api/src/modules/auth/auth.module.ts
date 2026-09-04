@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 
 import { AppConfigService, ConfigModule } from "../../config";
 import { UsersModule } from "../users";
+import { ReferralsModule } from "../referrals/referrals.module";
 import { AuthController } from "./controllers/auth.controller";
 import { AuthService } from "./services/auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
@@ -14,6 +15,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
   imports: [
     ConfigModule,
     UsersModule,
+    forwardRef(() => ReferralsModule),
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

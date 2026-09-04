@@ -26,6 +26,12 @@ export class SignupDto {
   })
   fullName?: string;
 
+  @ApiPropertyOptional({
+    example: "TCSBUZZ",
+    description: "Optional referral code applied during registration",
+  })
+  referralCode?: string;
+
   static validate(data: unknown): z.SafeParseReturnType<unknown, SignupDto> {
     return AuthSignupSchema.safeParse(data) as unknown as z.SafeParseReturnType<
       unknown,
@@ -77,6 +83,12 @@ export class GoogleLoginDto {
     description: "Google OAuth2 ID Token received from client side",
   })
   idToken!: string;
+
+  @ApiPropertyOptional({
+    example: "TCSBUZZ",
+    description: "Optional referral code applied during Google sign-in/up",
+  })
+  referralCode?: string;
 
   static validate(
     data: unknown,

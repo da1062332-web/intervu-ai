@@ -183,6 +183,7 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
   const [assignedAttempts, setAssignedAttempts] = useState('1');
   const [includeBonusRound, setIncludeBonusRound] = useState(true);
   const [assignedExpiryDays, setAssignedExpiryDays] = useState('30');
+  const [customCode, setCustomCode] = useState('');
 
   const [refereeRewardJson, setRefereeRewardJson] = useState(
     existing?.refereeRewardConfig
@@ -301,8 +302,20 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
         await referralsApi.adminUpdateCampaign(existing.id, payload);
         notifySuccess('Campaign updated successfully');
       } else {
-        await referralsApi.adminCreateCampaign(payload);
-        notifySuccess('Campaign created successfully');
+        const created = await referralsApi.adminCreateCampaign(payload);
+        if (customCode.trim()) {
+          try {
+            await referralsApi.adminGenerateCode(created.id, {
+              code: customCode.trim().toUpperCase(),
+              maxUses: totalLimit ? Number(totalLimit) : undefined,
+            });
+            notifySuccess(`Campaign created with custom code: ${customCode.trim().toUpperCase()}`);
+          } catch (codeErr) {
+            notifyApiError(codeErr);
+          }
+        } else {
+          notifySuccess('Campaign created successfully');
+        }
       }
       onSave();
     } catch (err) {
@@ -392,35 +405,74 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
                 />
               </div>
             </div>
+            {/* Custom Referral Code Input */}
+            {!existing && (
+              <div className="p-3.5 rounded-xl bg-purple-500/5 border border-purple-500/20 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-foreground block text-xs">
+                    Custom Referral Code (Optional)
+                  </label>
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wider">
+                    Vanity Code
+                  </span>
+                </div>
+                <div className="relative">
+                  <Input
+                    value={customCode}
+                    onChange={(e) => setCustomCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
+                    placeholder="e.g. CAMPUS2025, TCSNQT25, WELCOMEFREE (leave blank for random)"
+                    className="h-10 rounded-xl font-mono font-bold tracking-widest uppercase pl-9 bg-background"
+                    maxLength={30}
+                  />
+                  <Code2 className="w-4 h-4 text-purple-600 dark:text-purple-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Specify an easy-to-remember custom code for candidates, or leave blank to automatically generate an 8-character code.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Reward Strategy Selector */}
           <div className="p-4 rounded-xl bg-muted/40 border border-border/80 space-y-3">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-foreground flex items-center gap-1.5">
+              <label className="font-bold text-foreground flex items-center gap-1.5 text-xs">
                 <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                Candidate Reward Strategy
+                Candidate Reward Strategy *
               </label>
             </div>
 
-            {/* Switcher Tabs */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-card border border-border text-xs font-semibold">
-              <button
-                type="button"
+            {/* 2 Big Visual Selection Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Card 1: General Rounds */}
+              <div
                 onClick={() => {
                   setRewardMode('ROUNDS');
                   applyPreset(PRESET_REWARDS[0], 'referee');
                 }}
-                className={`flex-1 py-2 px-3 rounded-lg transition-all ${
+                className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                   rewardMode === 'ROUNDS'
-                    ? 'bg-purple-600 text-white shadow-sm font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'border-purple-600 bg-purple-500/10 shadow-sm ring-2 ring-purple-500/20'
+                    : 'border-border bg-card hover:border-purple-300'
                 }`}
               >
-                🎁 General Bonus Tests (Any Test)
-              </button>
-              <button
-                type="button"
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="rewardStrategy"
+                    checked={rewardMode === 'ROUNDS'}
+                    onChange={() => {}}
+                    className="text-purple-600 focus:ring-purple-500 size-4"
+                  />
+                  <span className="font-bold text-foreground text-xs">🎁 General Assessment Quota</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1.5 pl-6">
+                  Candidate receives test attempt rounds usable across any assessment in the platform.
+                </p>
+              </div>
+
+              {/* Card 2: Specific Assessment */}
+              <div
                 onClick={() => {
                   setRewardMode('SPECIFIC_ASSESSMENT');
                   const first = selectedAssessmentCode || availableAssessments[0]?.code || availableAssessments[0]?.id || '';
@@ -429,21 +481,33 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
                     applySpecificAssessment(first, assignedAttempts, includeBonusRound, assignedExpiryDays, 'referee');
                   }
                 }}
-                className={`flex-1 py-2 px-3 rounded-lg transition-all ${
+                className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                   rewardMode === 'SPECIFIC_ASSESSMENT'
-                    ? 'bg-purple-600 text-white shadow-sm font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'border-purple-600 bg-purple-500/10 shadow-sm ring-2 ring-purple-500/20'
+                    : 'border-border bg-card hover:border-purple-300'
                 }`}
               >
-                🎯 Specific Assigned Assessment
-              </button>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="rewardStrategy"
+                    checked={rewardMode === 'SPECIFIC_ASSESSMENT'}
+                    onChange={() => {}}
+                    className="text-purple-600 focus:ring-purple-500 size-4"
+                  />
+                  <span className="font-bold text-foreground text-xs">🎯 Specific Assigned Assessment</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1.5 pl-6">
+                  Directly unlock access to a designated test blueprint (e.g. TCS NQT, Cognizant, Infosys).
+                </p>
+              </div>
             </div>
 
             {/* Option A: General Bonus Tests */}
             {rewardMode === 'ROUNDS' && (
-              <div className="space-y-2 pt-1">
-                <p className="text-[11px] text-muted-foreground">
-                  Candidate can use their granted assessment quota on any test available in the platform:
+              <div className="space-y-2 pt-2 border-t border-border/60">
+                <p className="text-[11px] text-muted-foreground font-semibold">
+                  Choose a preset or configure custom bonus rounds:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {PRESET_REWARDS.map((p) => (
@@ -463,13 +527,11 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
 
             {/* Option B: Specific Assigned Assessment */}
             {rewardMode === 'SPECIFIC_ASSESSMENT' && (
-              <div className="space-y-3 pt-1">
-                <p className="text-[11px] text-muted-foreground">
-                  Grant direct access to a specific assessment blueprint (e.g. TCS NQT, Cognizant, Infosys):
-                </p>
-
+              <div className="space-y-3 pt-2 border-t border-border/60">
                 <div>
-                  <label className="font-bold text-foreground block mb-1">Select Target Assessment *</label>
+                  <label className="font-bold text-foreground block mb-1">
+                    Select Target Assessment Blueprint *
+                  </label>
                   <select
                     value={selectedAssessmentCode}
                     onChange={(e) => {
@@ -477,12 +539,12 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
                       setSelectedAssessmentCode(code);
                       applySpecificAssessment(code, assignedAttempts, includeBonusRound, assignedExpiryDays, 'referee');
                     }}
-                    className="w-full h-10 px-3 rounded-xl border border-border bg-card font-semibold text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full h-11 px-3 rounded-xl border-2 border-purple-500/50 bg-background font-bold text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
                   >
                     <option value="">-- Choose an Assessment to Unlock --</option>
                     {availableAssessments.map((a) => (
                       <option key={a.id} value={a.code || a.id}>
-                        {a.name} ({a.code || a.id}) {a.durationMinutes ? `• ${a.durationMinutes}m` : ''}
+                        {a.name} ({a.code || a.id}) {a.durationMinutes ? `• ${a.durationMinutes}m` : ''} {a.role ? `[${a.role}]` : ''}
                       </option>
                     ))}
                   </select>
@@ -500,7 +562,7 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
                         setAssignedAttempts(val);
                         applySpecificAssessment(selectedAssessmentCode, val, includeBonusRound, assignedExpiryDays, 'referee');
                       }}
-                      className="h-9 rounded-xl text-xs"
+                      className="h-9 rounded-xl text-xs font-semibold"
                       placeholder="e.g. 1"
                     />
                   </div>
@@ -516,7 +578,7 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
                         setAssignedExpiryDays(val);
                         applySpecificAssessment(selectedAssessmentCode, assignedAttempts, includeBonusRound, val, 'referee');
                       }}
-                      className="h-9 rounded-xl text-xs"
+                      className="h-9 rounded-xl text-xs font-semibold"
                       placeholder="e.g. 30 (blank = never)"
                     />
                   </div>
@@ -670,6 +732,7 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
   const [expanded, setExpanded] = useState(false);
   const [codes, setCodes] = useState<any[]>(campaign.codes || []);
   const [generatingCode, setGeneratingCode] = useState(false);
+  const [newCodeCustom, setNewCodeCustom] = useState('');
   const [newCodeMaxUses, setNewCodeMaxUses] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -684,10 +747,12 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
     setGeneratingCode(true);
     try {
       const code = await referralsApi.adminGenerateCode(campaign.id, {
+        code: newCodeCustom.trim() ? newCodeCustom.trim().toUpperCase() : undefined,
         maxUses: newCodeMaxUses ? Number(newCodeMaxUses) : undefined,
       });
       notifySuccess(`Generated code: ${code.code}`);
       setCodes((prev) => [code, ...prev]);
+      setNewCodeCustom('');
       setNewCodeMaxUses('');
     } catch (err) {
       notifyApiError(err);
@@ -859,22 +924,29 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
               </div>
 
               {/* Code Generation Form */}
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-card border border-border/80">
+              <div className="flex flex-col sm:flex-row items-center gap-2 p-3 rounded-xl bg-card border border-border/80">
+                <Input
+                  placeholder="Custom code (e.g. CAMPUS25) or leave blank"
+                  value={newCodeCustom}
+                  onChange={(e) => setNewCodeCustom(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
+                  className="h-9 text-xs font-mono font-bold tracking-wider rounded-lg flex-1 uppercase"
+                  maxLength={30}
+                />
                 <Input
                   type="number"
                   placeholder="Max uses (blank = ∞)"
                   value={newCodeMaxUses}
                   onChange={(e) => setNewCodeMaxUses(e.target.value)}
-                  className="h-8 text-xs rounded-lg flex-1"
+                  className="h-9 text-xs rounded-lg w-full sm:w-36"
                 />
                 <Button
                   size="sm"
                   onClick={handleGenerateCode}
                   disabled={generatingCode}
-                  className="h-8 px-3 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-lg gap-1 shrink-0"
+                  className="h-9 px-4 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-lg gap-1.5 shrink-0 w-full sm:w-auto"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  {generatingCode ? 'Generating...' : 'Generate Code'}
+                  {generatingCode ? 'Creating...' : 'Create Code'}
                 </Button>
               </div>
 

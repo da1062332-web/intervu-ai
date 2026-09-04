@@ -51,7 +51,10 @@ export const referralsApi = {
     });
   },
 
-  async adminGenerateCode(campaignId: string, payload?: { maxUses?: number; expiresAt?: string }) {
+  async adminGenerateCode(
+    campaignId: string,
+    payload?: { maxUses?: number; expiresAt?: string; code?: string },
+  ) {
     return apiClient.request<any>(
       `${ADMIN_REFERRALS_PATH}/campaigns/${campaignId}/codes`,
       { method: 'POST', body: payload || {} },

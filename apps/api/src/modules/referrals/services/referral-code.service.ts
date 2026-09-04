@@ -18,26 +18,38 @@ export class ReferralCodeService {
 
   async generateAdminCode(
     campaignId: string,
-    opts: { maxUses?: number; expiresAt?: string } = {},
+    opts: { maxUses?: number; expiresAt?: string; code?: string } = {},
   ) {
-    // @ts-ignore — Prisma model added by DB migration subagent; types may not be generated yet
+    // @ts-ignore
     const campaign = await this.prisma.referralCampaign.findUnique({ where: { id: campaignId } });
     if (!campaign) throw new NotFoundException('Campaign not found');
 
     let code: string;
-    let attempts = 0;
-    do {
-      code = this.generateRandomCode();
-      attempts++;
-      if (attempts > 20) throw new BadRequestException('Could not generate unique code');
+    if (opts.code && opts.code.trim()) {
+      code = opts.code.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      if (code.length < 2 || code.length > 30) {
+        throw new BadRequestException('Custom referral code must be between 2 and 30 alphanumeric characters');
+      }
       // @ts-ignore
-    } while (await this.prisma.referralCode.findUnique({ where: { code } }));
+      const existing = await this.prisma.referralCode.findUnique({ where: { code } });
+      if (existing) {
+        throw new BadRequestException(`Referral code "${code}" is already in use. Please enter a different code.`);
+      }
+    } else {
+      let attempts = 0;
+      do {
+        code = this.generateRandomCode();
+        attempts++;
+        if (attempts > 20) throw new BadRequestException('Could not generate unique code');
+        // @ts-ignore
+      } while (await this.prisma.referralCode.findUnique({ where: { code } }));
+    }
 
     // @ts-ignore
     return this.prisma.referralCode.create({
       data: {
         campaignId,
-        code: code!,
+        code,
         isActive: true,
         maxUses: opts.maxUses ?? null,
         expiresAt: opts.expiresAt ? new Date(opts.expiresAt) : null,

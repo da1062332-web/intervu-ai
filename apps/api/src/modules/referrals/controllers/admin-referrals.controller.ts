@@ -74,7 +74,7 @@ export class AdminReferralsController {
   @ApiOperation({ summary: 'Generate a new referral code for a campaign' })
   async generateCode(
     @Param('campaignId') campaignId: string,
-    @Body() body: { maxUses?: number; expiresAt?: string },
+    @Body() body: { maxUses?: number; expiresAt?: string; code?: string },
   ) {
     return this.codeService.generateAdminCode(campaignId, body);
   }

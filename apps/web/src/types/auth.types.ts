@@ -24,6 +24,7 @@ export interface SignupRequest {
   email: string;
   password: string;
   fullName?: string;
+  referralCode?: string;
 }
 
 export interface AuthResponseData extends TokenSession {
@@ -48,4 +49,5 @@ export interface UserSession {
 
 export interface GoogleLoginRequest {
   idToken: string;
+  referralCode?: string;
 }

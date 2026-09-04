@@ -23,7 +23,8 @@ export class ReferralEngineService {
    * Fully idempotent: second call for same user+code returns success without double-granting.
    */
   async redeemCode(userId: string, code: string) {
-    return this.prisma.$transaction(async (tx: any) => {
+    return this.prisma.$transaction(
+      async (tx: any) => {
       // 1. Find the referral code
       const referralCode = await tx.referralCode.findUnique({
         where: { code },
@@ -255,7 +256,7 @@ export class ReferralEngineService {
       }
 
       personalCode = existingCode.code;
-      referralLink = `${baseUrl}/login?ref=${existingCode.code}`;
+      referralLink = `${baseUrl}/signup?ref=${existingCode.code}`;
     }
 
     // Count referral events
