@@ -12,7 +12,7 @@ import {
 import { useLayoutStore } from '@/store/layout.store';
 import { useAuthStore } from '@/store/auth.store';
 import { useActiveRoute } from '@/hooks/use-active-route';
-import { Logo } from '@/components/ui/logo';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -127,13 +127,8 @@ export function MobileNav() {
         {/* ── Header ── */}
         <SheetHeader className='h-16 flex-row items-center border-b border-border px-5'>
           <SheetTitle asChild>
-            <Link
-              href={dashboardHref}
-              className='flex items-center gap-2.5'
-              onClick={() => setMobileNavOpen(false)}
-            >
-              <Logo className='size-8 shrink-0' />
-              <span className='font-heading font-bold text-lg tracking-tight'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+            <Link href={dashboardHref} className='flex items-center gap-2 mb-6 ml-2' onClick={() => setMobileNavOpen(false)}>
+              <BrandLogo logoClassName='w-8 h-8' textClassName='text-slate-900 text-xl' />
             </Link>
           </SheetTitle>
         </SheetHeader>

@@ -7,6 +7,7 @@ export const CreateExamConfigSchema = z.object({
   description: z.string().max(1000).nullable().optional(),
   durationMinutes: z.number().int().positive(),
   totalQuestions: z.number().int().positive(),
+  sandboxUi: z.enum(["DEFAULT", "SANDBOX_2", "SANDBOX_3"]).default("DEFAULT").optional(),
 });
 
 export type CreateExamConfig = z.infer<typeof CreateExamConfigSchema>;

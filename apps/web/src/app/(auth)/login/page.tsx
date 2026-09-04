@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Sparkles, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 
-import { Logo } from '@/components/ui/logo';
+import { BrandLogo } from '@/components/ui/brand-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -150,7 +150,7 @@ function LoginFormContent() {
         <div className='absolute inset-0'>
           <Image
             src='/images/login-hero.jpg'
-            alt='SkillitriX Platform'
+            alt='Intervu Platform'
             fill
             sizes='(max-width: 1024px) 100vw, 50vw'
             className='object-cover object-center opacity-90 transition-transform duration-10000 hover:scale-105 ease-out'
@@ -183,18 +183,15 @@ function LoginFormContent() {
       </div>
 
       {/* Form Container (Center card on mobile, Left half on desktop) */}
-      <div className='flex-1 lg:flex-none lg:w-1/2 w-full flex flex-col justify-center items-center lg:items-stretch lg:justify-center px-4 md:px-12 lg:px-24 relative z-10 lg:order-1 lg:bg-background'>
-        {/* Absolute Logo for Desktop */}
-        <div className='hidden lg:flex absolute top-10 left-10 items-center gap-3'>
-          <Logo className='size-9' />
-          <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+      <div className='flex flex-col justify-center items-center lg:items-start lg:col-span-4 p-8 w-full max-w-[500px] mx-auto z-10'>
+        <div className='mb-8 w-full flex justify-center lg:justify-start'>
+          <BrandLogo logoClassName='size-12' textClassName='text-3xl ml-2' />
         </div>
 
         <div className='w-full max-w-[420px] mx-auto bg-background/85 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none p-8 sm:p-10 lg:p-0 rounded-3xl lg:rounded-none shadow-2xl lg:shadow-none border border-border/40 lg:border-none animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out'>
           {/* Logo inside card for mobile */}
           <div className='flex lg:hidden items-center justify-center gap-3 mb-8'>
-            <Logo className='size-9' />
-            <span className='font-heading font-bold text-2xl tracking-tight text-foreground'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+            <BrandLogo logoClassName='size-12' textClassName='text-3xl ml-2' />
           </div>
 
           <div className='text-center lg:text-left mb-10'>
@@ -274,7 +271,7 @@ function LoginFormContent() {
                 <Input
                   id='email'
                   type='email'
-                  placeholder='hello@skillitrix.com'
+                  placeholder='hello@intervu.ai'
                   className='h-12 pl-11 rounded-xl transition-all border-border/60 hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/30 bg-background/50 lg:bg-background shadow-sm'
                   {...form.register('email')}
                 />

@@ -40,17 +40,6 @@ export class PublicTestsService {
     }
 
     const hasActivePlan = Boolean(entitlements?.hasActivePlan);
-    if (!hasActivePlan) {
-      return {
-        tests: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 1,
-        },
-      };
-    }
 
     const result = await this.publicTestsRepository.findPublicTests({
       userId,

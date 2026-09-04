@@ -53,6 +53,7 @@ export const executionService = {
       currentSectionIndex: response.currentSectionIndex ?? 0,
       currentQuestionIndex: response.currentQuestionIndex ?? 0,
       serverTime: response.serverTime ?? new Date().toISOString(),
+      sandboxUi: response.sandboxUi ?? 'DEFAULT',
 
       sections:
         response.sections?.map((section: any) => ({

@@ -2,6 +2,7 @@
 
 import { useExecutionStore } from '../stores/execution.store';
 import { Wifi, WifiOff, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 export function ExecutionHeader() {
   const {
@@ -81,15 +82,7 @@ export function ExecutionHeader() {
 
           {/* Right - Company Logo Emblem */}
           <div className='hidden sm:flex items-center gap-2.5 pl-3 border-l border-[#348b4f]'>
-            <div className='w-8 h-8 rounded-sm bg-white text-[#26773e] font-black text-xl flex items-center justify-center shadow-xs border border-green-200'>
-              S
-            </div>
-            <div className='flex flex-col text-white leading-none'>
-              <span className='font-extrabold text-sm tracking-wide uppercase font-sans'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
-              <span className='text-[9px] font-semibold tracking-wider text-green-100 uppercase mt-0.5'>
-                Skill Sandbox
-              </span>
-            </div>
+            <BrandLogo logoClassName='w-8 h-8 bg-white rounded p-1' textClassName='text-white text-lg' />
           </div>
         </div>
       </div>

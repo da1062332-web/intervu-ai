@@ -8,6 +8,7 @@ export function Logo({ className, ...props }: React.SVGProps<SVGSVGElement> & { 
         src="/logo.png" 
         alt="Logo" 
         fill 
+        sizes="(max-width: 768px) 100vw, 250px"
         className="object-contain" 
       />
     </div>

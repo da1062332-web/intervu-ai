@@ -65,4 +65,5 @@ export interface TestInstance {
   currentQuestionIndex?: number;
   /** Server timestamp (ISO string) — used for clock-sync on section timers */
   serverTime?: string;
+  sandboxUi?: string;
 }

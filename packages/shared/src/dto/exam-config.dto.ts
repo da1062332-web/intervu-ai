@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { CreateExamConfig, UpdateExamConfig } from "@intervu-ai/contracts";
+import { CreateExamConfig, UpdateExamConfig, SandboxUIType } from "@intervu-ai/contracts";
 import {
   CreateExamConfigSchema,
   UpdateExamConfigSchema,
@@ -28,6 +28,9 @@ export class CreateExamConfigDto implements CreateExamConfig {
   @ApiProperty({ example: 30, minimum: 1 })
   totalQuestions!: number;
 
+  @ApiPropertyOptional({ example: "DEFAULT", enum: ["DEFAULT", "SANDBOX_2", "SANDBOX_3"] })
+  sandboxUi?: SandboxUIType;
+
   static validate(
     data: unknown,
   ): z.SafeParseReturnType<unknown, CreateExamConfigDto> {
@@ -55,6 +58,9 @@ export class UpdateExamConfigDto implements UpdateExamConfig {
 
   @ApiPropertyOptional({ example: 45 })
   totalQuestions?: number;
+
+  @ApiPropertyOptional({ example: "DEFAULT", enum: ["DEFAULT", "SANDBOX_2", "SANDBOX_3"] })
+  sandboxUi?: SandboxUIType;
 
   @ApiPropertyOptional({
     enum: ["DRAFT", "ACTIVE", "ARCHIVED", "VALIDATED", "PUBLISHED"],

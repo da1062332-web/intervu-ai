@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Logo } from '@/components/ui/logo';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 export function Navbar() {
   const router = useRouter();
@@ -115,9 +115,8 @@ export function Navbar() {
 
         {/* Page title or Logo/Project Name for Candidate */}
         {isCandidate ? (
-          <div className='flex items-center gap-2.5 ml-1.5'>
-            <Logo className='size-8 text-primary' />
-            <span className='font-heading font-bold text-xl tracking-tight text-foreground'>Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span></span>
+          <div className='flex items-center gap-1.5'>
+            <BrandLogo logoClassName='w-8 h-8' textClassName='text-slate-900 text-xl' />
           </div>
         ) : (
           <h1 className='text-lg font-heading font-semibold text-foreground leading-none ml-1'>

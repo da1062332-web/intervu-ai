@@ -42,6 +42,7 @@ export interface AssessmentSnapshotResponse {
   serverTime: string;
   candidateName?: string;
   assessmentName?: string;
+  sandboxUi?: string;
   sections: SectionSnapshot[];
 }
 
@@ -110,15 +111,26 @@ export class ExecutionService {
     }
     this.logger.info(`[EXECUTION ✅] Deep snapshot loaded from DB in ${Date.now() - tDb}ms (Sections: ${snapshot.sections?.length})`);
 
-    // 4. Determine sectionTimingEnabled from ExamConfig -> RuleFlags
+    // 4. Determine sectionTimingEnabled and sandboxUi from ExamConfig -> RuleFlags
     let sectionTimingEnabled = false;
-    if ((testInstance as any).examConfigId) {
+    let sandboxUi = "DEFAULT";
+    const configId =
+      (testInstance as any).examConfigId ||
+      (snapshot as any).examConfigId ||
+      (snapshot as any).examConfig?.id ||
+      (testInstance as any).testConfigId ||
+      (snapshot as any).testConfigId;
+
+    if (configId) {
       const examConfig = await this.prisma.examConfig.findUnique({
-        where: { id: (testInstance as any).examConfigId },
+        where: { id: configId },
         include: { ruleFlags: true },
       });
       sectionTimingEnabled =
         examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
+      sandboxUi = (examConfig as any)?.sandboxUi ?? "DEFAULT";
+    } else if (snapshot.examConfig?.sandboxUi) {
+      sandboxUi = snapshot.examConfig.sandboxUi;
     }
 
     // 5. Load execution state for current section index
@@ -409,6 +421,7 @@ export class ExecutionService {
         snapshot.examConfig?.name ||
         snapshot.testConfig?.name ||
         "Candidate Assessment",
+      sandboxUi,
       sections: sectionsWithStatus,
     };
 

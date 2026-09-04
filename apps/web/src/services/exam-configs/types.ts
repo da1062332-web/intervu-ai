@@ -8,6 +8,7 @@ export interface ExamConfig {
   isActive: boolean;
   isArchived?: boolean;
   status?: 'DRAFT' | 'VALIDATED' | 'ACTIVE' | 'PUBLISHED' | 'ARCHIVED';
+  sandboxUi?: string;
   createdAt: string;
   updatedAt?: string;
 }

@@ -1,7 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 async function main() {
-  const count = await prisma.user.count();
-  console.log("User count:", count);
+  const exams = await prisma.examConfig.findMany({
+    select: { id: true, name: true, status: true, isArchived: true, isActive: true },
+  });
+  console.table(exams);
 }
-main().finally(() => prisma.$disconnect());
+main().catch(console.error).finally(() => prisma.());

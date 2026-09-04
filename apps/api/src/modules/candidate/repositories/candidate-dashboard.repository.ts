@@ -135,8 +135,7 @@ export class CandidateDashboardRepository {
           isExam: true,
           createdAt: new Date(ec.createdAt),
         }))
-        .sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime())
-        .slice(0, 8);
+        .sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime());
 
       return {
         activeAttempts,
@@ -161,12 +160,11 @@ export class CandidateDashboardRepository {
   }
 
   private async getCachedExamConfigs() {
-    const key = "dashboard:examConfigs:available:v4";
+    const key = "dashboard:examConfigs:available:v5";
     let data = await this.cacheService.get<any>(key);
     if (!data) {
       data = await this.prisma.examConfig.findMany({
         where: { isArchived: false, isActive: true, status: "PUBLISHED" },
-        take: 10,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,

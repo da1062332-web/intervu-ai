@@ -77,6 +77,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: "DEFAULT",
     };
 
     it("should successfully create a new section", async () => {
@@ -199,6 +200,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: "DEFAULT",
     };
 
     it("should return sections list for a valid config id", async () => {
@@ -257,6 +259,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: "DEFAULT",
     };
 
     it("should update section successfully", async () => {
@@ -420,6 +423,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: "DEFAULT",
     };
 
     it("should delete section successfully", async () => {
