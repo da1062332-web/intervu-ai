@@ -20,7 +20,54 @@ export class EntitlementService {
     private readonly prisma: PrismaService,
   ) {}
 
+  private async isVipUser(userId: string): Promise<boolean> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, role: true },
+      });
+      if (!user) return false;
+      const email = user.email?.toLowerCase().trim();
+      return email === "candidate@intervu.ai" || email === "admin@intervu.ai";
+    } catch {
+      return false;
+    }
+  }
+
   async getUserEntitlements(userId: string): Promise<UserEntitlements> {
+    if (await this.isVipUser(userId)) {
+      const proDef = PLAN_ENTITLEMENT_DEFINITIONS.PRO || PLAN_ENTITLEMENT_DEFINITIONS.TEAMS || {};
+      return {
+        plan: "VIP_UNLIMITED" as any,
+        planName: "VIP Tester (All Access)",
+        planSlug: "vip-unlimited",
+        status: "ACTIVE" as any,
+        hasActivePlan: true,
+        currentPeriodEnd: "2099-12-31T23:59:59.999Z",
+        features: {
+          ...proDef,
+          monthlyRoundsLimit: null, // Unlimited assessments
+          monthlyRoundsUsed: 0,
+          monthlyRoundsRemaining: null, // Unlimited
+          roundFormats: ["all"],
+          allowedAssessments: ["all"],
+          roundHistoryLimit: null,
+          detailedAnalytics: true,
+          codeOracles: true,
+          advancedAnalytics: true,
+          priorityEvaluation: true,
+          proctoringAudio: true,
+          proctoringVideo: true,
+          proctoringScreenshare: true,
+          exportPdf: true,
+          benchmarkPercentiles: true,
+          customPacing: true,
+          instantFeedback: true,
+          aiGeneration: true,
+        },
+      };
+    }
+
     const subscription = await this.subscriptionService.getUserSubscription(userId);
 
     // Default Fallback when no subscription exists
@@ -201,6 +248,10 @@ export class EntitlementService {
     feature: string,
     requiredValue?: any,
   ): Promise<boolean> {
+    if (await this.isVipUser(userId)) {
+      return true;
+    }
+
     const entitlements = await this.getUserEntitlements(userId);
     if (!entitlements.hasActivePlan) {
       return false;
@@ -221,6 +272,10 @@ export class EntitlementService {
   }
 
   async hasRoundQuota(userId: string): Promise<boolean> {
+    if (await this.isVipUser(userId)) {
+      return true;
+    }
+
     const entitlements = await this.getUserEntitlements(userId);
     if (!entitlements.hasActivePlan) {
       return false;
@@ -238,6 +293,10 @@ export class EntitlementService {
    * Concurrency-safe against race conditions.
    */
   async consumeRound(userId: string): Promise<{ allowed: boolean; remaining: number | null }> {
+    if (await this.isVipUser(userId)) {
+      return { allowed: true, remaining: null };
+    }
+
     const entitlements = await this.getUserEntitlements(userId);
     if (!entitlements.hasActivePlan) {
       return { allowed: false, remaining: 0 };

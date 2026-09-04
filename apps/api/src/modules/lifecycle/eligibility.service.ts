@@ -24,12 +24,28 @@ export class EligibilityService {
     @Optional() private readonly entitlementService?: EntitlementService,
   ) {}
 
+  private async isVipUser(userId: string): Promise<boolean> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, role: true },
+      });
+      if (!user) return false;
+      const email = user.email?.toLowerCase().trim();
+      return email === "candidate@intervu.ai" || email === "admin@intervu.ai";
+    } catch {
+      return false;
+    }
+  }
+
   async validateEligibility(
     userId: string,
     testConfigId: string,
   ): Promise<EligibilityResult> {
-    // 1. Validate User Subscription Plan & Entitlements
-    if (this.entitlementService) {
+    const isVip = await this.isVipUser(userId);
+
+    // 1. Validate User Subscription Plan & Entitlements (bypassed for VIP / Test accounts)
+    if (!isVip && this.entitlementService) {
       let entitlements = null;
       try {
         entitlements = await this.entitlementService.getUserEntitlements(userId);
@@ -183,6 +199,10 @@ export class EligibilityService {
           }
         }
       } catch {}
+    }
+
+    if (isVip) {
+      return { eligible: true, isExamConfig, resolvedConfigId: testConfigId };
     }
 
     const previousAttempts = await this.testInstanceRepository.countAttempts(

@@ -21,7 +21,33 @@ export class SubscriptionService {
     });
   }
 
+  private async isVipUser(userId: string): Promise<boolean> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, role: true },
+      });
+      if (!user) return false;
+      const email = user.email?.toLowerCase().trim();
+      return email === "candidate@intervu.ai" || email === "admin@intervu.ai";
+    } catch {
+      return false;
+    }
+  }
+
   async getSubscriptionStatus(userId: string): Promise<SubscriptionStatusResponse> {
+    if (await this.isVipUser(userId)) {
+      return {
+        hasActivePlan: true,
+        plan: "VIP_UNLIMITED" as any,
+        planName: "VIP Tester (All Access)",
+        planSlug: "vip-unlimited",
+        status: SubscriptionStatus.ACTIVE,
+        currentPeriodEnd: "2099-12-31T23:59:59.999Z",
+        cancelAtPeriodEnd: false,
+      };
+    }
+
     const subscription = await this.prisma.subscription.findUnique({
       where: { userId },
     });
