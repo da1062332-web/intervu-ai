@@ -125,12 +125,40 @@ export class EligibilityService {
     }
 
     if (isExamConfig) {
-      if (config.status !== "PUBLISHED") {
-        return {
-          eligible: false,
-          errorCode: "TEST_NOT_PUBLISHED",
-          reason: "This assessment is not published and is unavailable.",
-        };
+      const isPlayableStatus =
+        config.status === "PUBLISHED" ||
+        config.status === "ACTIVE" ||
+        config.status === "VALIDATED";
+
+      if (!isPlayableStatus) {
+        // Check if candidate has an explicit allowed_assessments quota override
+        const explicitOverride = await this.prisma.userQuotaOverride.findFirst({
+          where: {
+            userId,
+            featureKey: { in: ["allowed_assessments", "allowedAssessments"] },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+        });
+        const isAllowedByOverride = (() => {
+          if (!explicitOverride) return false;
+          const val = explicitOverride.overrideValue as any;
+          const list = Array.isArray(val)
+            ? val
+            : Array.isArray(val?.assessments)
+              ? val.assessments
+              : [];
+          return (
+            list.includes(config.id) || (config.code && list.includes(config.code))
+          );
+        })();
+
+        if (!isAllowedByOverride) {
+          return {
+            eligible: false,
+            errorCode: "TEST_NOT_PUBLISHED",
+            reason: "This assessment is not published and is unavailable.",
+          };
+        }
       }
     }
 

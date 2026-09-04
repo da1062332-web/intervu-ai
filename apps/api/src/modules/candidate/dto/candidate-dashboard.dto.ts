@@ -28,8 +28,8 @@ export class DashboardTestItemDto {
   @ApiProperty({ example: 2 })
   attemptCount!: number;
 
-  @ApiProperty({ example: 3 })
-  maxAttempts!: number;
+  @ApiProperty({ example: 3, nullable: true })
+  maxAttempts!: number | null;
 
   @ApiProperty({ example: true })
   canReattempt!: boolean;

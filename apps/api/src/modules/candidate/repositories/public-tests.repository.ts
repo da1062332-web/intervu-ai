@@ -78,8 +78,43 @@ export class PublicTestsRepository {
       sortOrder,
     } = params;
 
-    const examWhere: Prisma.ExamConfigWhereInput = { 
-      status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
+    const explicitCodes: string[] = [];
+    if (userId) {
+      const overrides = await this.prisma.userQuotaOverride.findMany({
+        where: {
+          userId,
+          featureKey: { in: ["allowed_assessments", "allowedAssessments"] },
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+      });
+      for (const ov of overrides) {
+        const val = ov.overrideValue as any;
+        const list = Array.isArray(val)
+          ? val
+          : Array.isArray(val?.assessments)
+            ? val.assessments
+            : [];
+        for (const item of list) {
+          if (typeof item === "string" && item.trim()) {
+            explicitCodes.push(item.trim());
+          }
+        }
+      }
+    }
+
+    const baseStatusFilter: Prisma.ExamConfigWhereInput =
+      explicitCodes.length > 0
+        ? {
+            OR: [
+              { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
+              { id: { in: explicitCodes } },
+              { code: { in: explicitCodes } },
+            ],
+          }
+        : { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } };
+
+    const examWhere: Prisma.ExamConfigWhereInput = {
+      ...baseStatusFilter,
       isArchived: false,
       isActive: true,
     };

@@ -63,6 +63,8 @@ export class SubscriptionService {
     let referralRewardReason = '';
     let remainingAttemptsCount = 0;
     let latestOverrideExpiry: Date | null = null;
+    let totalRemainingAttempts = 0;
+    const reasons: string[] = [];
 
     try {
       const activeOverrides = await this.prisma.userQuotaOverride.findMany({
@@ -110,8 +112,8 @@ export class SubscriptionService {
 
           if (completedAttempts < maxAttempts) {
             hasRemainingReferralReward = true;
-            remainingAttemptsCount = maxAttempts - completedAttempts;
-            referralRewardReason = override.reason || 'Referral Access Pass';
+            totalRemainingAttempts += (maxAttempts - completedAttempts);
+            if (override.reason) reasons.push(override.reason);
           }
         } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
           // If this bonus round is auxiliary to an allowed_assessments reward, the assessment attempt limit above governs
@@ -120,7 +122,11 @@ export class SubscriptionService {
           );
           if (
             hasAllowedAssessments &&
-            (override.reason?.includes('Bonus Round') || override.reason?.includes('Bonus Practice Round'))
+            (override.reason?.includes('Bonus Round') ||
+             override.reason?.includes('Bonus Practice Round') ||
+             override.reason?.includes('Referral') ||
+             override.reason?.includes('reward') ||
+             override.reason?.includes('Assigned Access'))
           ) {
             continue;
           }
@@ -149,10 +155,18 @@ export class SubscriptionService {
 
           if (bonus > used) {
             hasRemainingReferralReward = true;
-            remainingAttemptsCount = bonus - used;
-            referralRewardReason = override.reason || 'Bonus Practice Rounds';
+            totalRemainingAttempts += (bonus - used);
+            if (override.reason) reasons.push(override.reason);
           }
         }
+      }
+
+      remainingAttemptsCount = totalRemainingAttempts;
+      if (reasons.length > 0) {
+        referralRewardReason =
+          reasons.length === 1
+            ? reasons[0]
+            : `${reasons.length} Referral Rewards Active`;
       }
     } catch (err) {
       this.logger.warn(`Error checking referral overrides for ${userId}: ${err}`);

@@ -112,9 +112,69 @@ export class CandidateDashboardRepository {
         this.getCachedExamConfigs(),
       ]);
 
+      const now = new Date();
+      const overrides = await this.prisma.userQuotaOverride.findMany({
+        where: {
+          userId,
+          featureKey: { in: ["allowed_assessments", "allowedAssessments"] },
+          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        },
+      });
+
+      const explicitCodes: string[] = [];
+      for (const ov of overrides) {
+        const val = ov.overrideValue as any;
+        const list = Array.isArray(val)
+          ? val
+          : Array.isArray(val?.assessments)
+            ? val.assessments
+            : [];
+        for (const item of list) {
+          if (typeof item === "string" && item.trim()) {
+            explicitCodes.push(item.trim());
+          }
+        }
+      }
+
+      let extraExamConfigs: any[] = [];
+      if (explicitCodes.length > 0) {
+        const missingCodes = explicitCodes.filter(
+          (c) => !examConfigs.some((ec: any) => ec.id === c || ec.code === c),
+        );
+        if (missingCodes.length > 0) {
+          extraExamConfigs = await this.prisma.examConfig.findMany({
+            where: {
+              isArchived: false,
+              OR: [
+                { id: { in: missingCodes } },
+                { code: { in: missingCodes } },
+              ],
+            },
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              durationMinutes: true,
+              totalQuestions: true,
+              sections: {
+                select: {
+                  name: true,
+                  questionCount: true,
+                  sectionDurationMinutes: true,
+                },
+              },
+              ruleFlags: { select: { id: true, maxAttempts: true } },
+              createdAt: true,
+            },
+          });
+        }
+      }
+
+      const combinedExamConfigs = [...examConfigs, ...extraExamConfigs];
+
       const allUserInstances = await this.prisma.testInstance.findMany({
         where: { userId },
-        select: { examConfigId: true, testConfigId: true }
+        select: { examConfigId: true, testConfigId: true },
       });
 
       // Build per-config attempt counts for the current user
@@ -129,7 +189,7 @@ export class CandidateDashboardRepository {
         }
       });
 
-      const upcomingTests = examConfigs
+      const upcomingTests = combinedExamConfigs
         .map((ec: any) => ({
           ...ec,
           isExam: true,

@@ -57,10 +57,14 @@ export function CandidateReferralCard() {
           checkSubscription(),
           loadEntitlements(),
         ]);
-        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
-        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
-        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-overview'] });
-        queryClient.invalidateQueries({ queryKey: ['candidate-enrollments'] });
+        await Promise.all([
+          queryClient.refetchQueries({ queryKey: ['candidate-dashboard-modular'] }),
+          queryClient.refetchQueries({ queryKey: ['candidate-dashboard-metrics'] }),
+          queryClient.refetchQueries({ queryKey: ['candidate-dashboard-overview'] }),
+          queryClient.refetchQueries({ queryKey: ['candidate-enrollments'] }),
+          queryClient.refetchQueries({ queryKey: ['public-tests'] }),
+          queryClient.refetchQueries({ queryKey: ['candidate', 'tests'] }),
+        ]);
       }
     } catch (err) {
       notifyApiError(err);
