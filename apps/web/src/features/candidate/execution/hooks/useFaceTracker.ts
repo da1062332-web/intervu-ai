@@ -49,6 +49,16 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
       }
     };
 
+    if (
+      typeof navigator === 'undefined' ||
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getUserMedia !== 'function'
+    ) {
+      console.warn('[FaceTracker] Media devices or getUserMedia not supported in this environment');
+      setHasCameraError(true);
+      return;
+    }
+
     navigator.mediaDevices
       .getUserMedia({
         video: {
@@ -71,9 +81,21 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
         }
         setHasCameraError(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!mounted) return;
-        console.error('[FaceTracker] Camera error', err);
+        const errorName = (err as Error)?.name || '';
+        const errorMessage = (err as Error)?.message || String(err);
+        if (
+          errorName === 'NotFoundError' ||
+          errorName === 'DevicesNotFoundError' ||
+          errorName === 'NotAllowedError' ||
+          errorName === 'PermissionDeniedError' ||
+          errorName === 'OverconstrainedError'
+        ) {
+          console.warn(`[FaceTracker] Camera unavailable (${errorName}): ${errorMessage}`);
+        } else {
+          console.warn('[FaceTracker] Camera error:', errorMessage);
+        }
         setHasCameraError(true);
       });
 
@@ -111,7 +133,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
           setIsModelLoaded(true);
         }
       } catch (err: unknown) {
-        console.error('[FaceTracker] Model load error', err);
+        console.warn('[FaceTracker] Model load error:', err);
       }
     });
     return () => {
@@ -309,7 +331,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
               }
             }
           } catch (err) {
-            console.error('[FaceTracker] Detection error', err);
+            console.warn('[FaceTracker] Detection warning:', err);
           } finally {
             isProcessing = false;
           }

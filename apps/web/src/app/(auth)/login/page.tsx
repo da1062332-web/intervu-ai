@@ -144,72 +144,35 @@ function LoginFormContent() {
   };
 
   return (
-    <div className='min-h-screen w-full flex relative overflow-hidden bg-background'>
-      {/* Background Image (Full width absolute on mobile, relative flex-1 on desktop) */}
-      <div className='absolute inset-0 lg:relative lg:flex-1 lg:order-2 z-0 bg-zinc-950'>
-        <div className='absolute inset-0'>
-          <Image
-            src='/images/login-hero.jpg'
-            alt='Intervu Platform'
-            fill
-            sizes='(max-width: 1024px) 100vw, 50vw'
-            className='object-cover object-center opacity-90 transition-transform duration-10000 hover:scale-105 ease-out'
-            priority
-          />
+    <div className='min-h-screen w-full flex flex-col lg:flex-row bg-background overflow-x-hidden'>
+      {/* Left Form Section */}
+      <div className='w-full lg:w-[50%] xl:w-[46%] 2xl:w-[42%] lg:min-w-[500px] xl:min-w-[560px] flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 z-10 shrink-0 min-h-screen'>
+        {/* Top Header Logo */}
+        <div className='w-full flex items-center justify-between'>
+          <Link href='/' className='inline-flex items-center gap-2 group'>
+            <BrandLogo logoClassName='size-10 transition-transform group-hover:scale-105' textClassName='text-2xl font-bold tracking-tight' />
+          </Link>
         </div>
 
-        {/* Overlay gradient for contrast */}
-        <div className='absolute inset-0 bg-black/60 lg:bg-gradient-to-t lg:from-black/90 lg:via-black/40 lg:to-transparent' />
-        <div className='hidden lg:block absolute inset-0 bg-gradient-to-r from-background/90 via-background/20 to-transparent' />
-
-        {/* Content overlaid on image (Desktop only) */}
-        <div className='hidden lg:flex relative z-10 flex-col justify-end p-20 h-full max-w-2xl text-white'>
-          <div className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8 w-max animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both'>
-            <Sparkles className='size-4 text-violet-300' />
-            <span className='text-sm font-semibold tracking-wide text-violet-50'>
-              AI-Powered Assessment Platform
-            </span>
-          </div>
-
-          <h2 className='text-5xl xl:text-[3.5rem] font-heading font-bold leading-[1.1] mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-500 fill-mode-both'>
-            Test your knowledge & showcase your expertise.
-          </h2>
-
-          <p className='text-lg xl:text-xl text-white/80 max-w-lg leading-relaxed font-medium mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both'>
-            Take interactive AI-powered assessments, participate in real-time interviews, and
-            demonstrate your problem-solving abilities with intelligent instant insights.
-          </p>
-        </div>
-      </div>
-
-      {/* Form Container (Center card on mobile, Left half on desktop) */}
-      <div className='flex flex-col justify-center items-center lg:items-start lg:col-span-4 p-8 w-full max-w-[500px] mx-auto z-10'>
-        <div className='mb-8 w-full flex justify-center lg:justify-start'>
-          <BrandLogo logoClassName='size-12' textClassName='text-3xl ml-2' />
-        </div>
-
-        <div className='w-full max-w-[420px] mx-auto bg-background/85 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none p-8 sm:p-10 lg:p-0 rounded-3xl lg:rounded-none shadow-2xl lg:shadow-none border border-border/40 lg:border-none animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out'>
-          {/* Logo inside card for mobile */}
-          <div className='flex lg:hidden items-center justify-center gap-3 mb-8'>
-            <BrandLogo logoClassName='size-12' textClassName='text-3xl ml-2' />
-          </div>
-
-          <div className='text-center lg:text-left mb-10'>
-            <h1 className='text-3xl lg:text-4xl font-heading font-bold tracking-tight text-foreground'>
+        {/* Form Body Container */}
+        <div className='w-full max-w-[460px] mx-auto lg:mx-0 my-auto py-8 sm:py-10 animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out'>
+          <div className='mb-8'>
+            <h1 className='text-3xl sm:text-4xl font-heading font-bold tracking-tight text-foreground'>
               Welcome back
             </h1>
-            <p className='text-muted-foreground mt-3 text-[1.05rem] font-medium'>
+            <p className='text-muted-foreground mt-2.5 text-base font-medium'>
               Enter your credentials to access your account.
             </p>
           </div>
 
+          {/* Google Sign In */}
           <div className='flex justify-center w-full mb-6'>
             <div id='google-login-btn' className='flex justify-center w-full'>
               {!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
                 <Button
                   type='button'
                   variant='outline'
-                  className='w-full h-12 bg-card text-foreground hover:bg-muted font-semibold border-border shadow-sm rounded-xl transition-all'
+                  className='w-full h-12 bg-card hover:bg-muted/80 text-foreground font-semibold border-border/80 shadow-sm rounded-xl transition-all flex items-center justify-center gap-3'
                   onClick={() =>
                     notifySuccess(
                       'Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env.local to enable Google Login',
@@ -217,7 +180,7 @@ function LoginFormContent() {
                   }
                 >
                   <svg
-                    className='w-5 h-5 mr-3'
+                    className='w-5 h-5 shrink-0'
                     viewBox='0 0 24 24'
                     xmlns='http://www.w3.org/2000/svg'
                   >
@@ -238,25 +201,25 @@ function LoginFormContent() {
                       fill='#EA4335'
                     />
                   </svg>
-                  Sign in with Google
+                  <span>Sign in with Google</span>
                 </Button>
               )}
             </div>
           </div>
 
           <div className='relative flex items-center mb-6'>
-            <div className='flex-grow border-t border-border'></div>
+            <div className='flex-grow border-t border-border/70'></div>
             <span className='flex-shrink-0 mx-4 text-xs font-semibold uppercase text-muted-foreground tracking-widest'>
               Or sign in with email
             </span>
-            <div className='flex-grow border-t border-border'></div>
+            <div className='flex-grow border-t border-border/70'></div>
           </div>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
             {formError && (
               <div className='rounded-xl bg-destructive/10 p-4 text-sm text-destructive border border-destructive/20 font-semibold flex items-center gap-3'>
-                <div className='size-2 rounded-full bg-destructive animate-pulse' />
-                {formError}
+                <div className='size-2 rounded-full bg-destructive animate-pulse shrink-0' />
+                <span>{formError}</span>
               </div>
             )}
 
@@ -271,8 +234,8 @@ function LoginFormContent() {
                 <Input
                   id='email'
                   type='email'
-                  placeholder='hello@intervu.ai'
-                  className='h-12 pl-11 rounded-xl transition-all border-border/60 hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/30 bg-background/50 lg:bg-background shadow-sm'
+                  placeholder='candidate@intervu.ai'
+                  className='h-12 pl-11 rounded-xl transition-all border-border/70 hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 bg-card/60 backdrop-blur-sm text-foreground shadow-sm'
                   {...form.register('email')}
                 />
               </div>
@@ -306,7 +269,7 @@ function LoginFormContent() {
                   id='password'
                   type={showPassword ? 'text' : 'password'}
                   placeholder='••••••••'
-                  className='h-12 pl-11 pr-11 rounded-xl transition-all border-border/60 hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/30 bg-background/50 lg:bg-background shadow-sm'
+                  className='h-12 pl-11 pr-11 rounded-xl transition-all border-border/70 hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 bg-card/60 backdrop-blur-sm text-foreground shadow-sm'
                   {...form.register('password')}
                 />
                 <button
@@ -326,7 +289,7 @@ function LoginFormContent() {
 
             <Button
               type='submit'
-              className='w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white text-base font-bold shadow-xl shadow-primary/20 transition-all group mt-4'
+              className='w-full h-12 rounded-xl bg-gradient-to-r from-primary via-primary/95 to-violet-600 hover:opacity-95 text-white text-base font-bold shadow-xl shadow-primary/25 transition-all group mt-6'
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
@@ -349,6 +312,62 @@ function LoginFormContent() {
               Sign up today
             </Link>
           </p>
+        </div>
+
+        {/* Bottom subtle note / footer */}
+        <div className='pt-4 pb-2 text-xs text-muted-foreground/60 text-center lg:text-left'>
+          &copy; {new Date().getFullYear()} SkillitriX. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right Hero Section with curved left edge at middle divider and square right edge */}
+      <div className='hidden lg:flex flex-1 relative lg:rounded-l-[36px] xl:rounded-l-[48px] rounded-r-none overflow-hidden border-l border-white/10 shadow-2xl bg-zinc-950 flex-col justify-end p-12 lg:p-14 xl:p-18 2xl:p-20 text-white'>
+        {/* Background Hero Image */}
+        <div className='absolute inset-0'>
+          <Image
+            src='/images/login-hero.jpg'
+            alt='Intervu Platform'
+            fill
+            sizes='(max-width: 1024px) 100vw, 55vw'
+            className='object-cover object-center opacity-90 transition-transform duration-10000 hover:scale-105 ease-out rounded-l-[36px] xl:rounded-l-[48px] rounded-r-none'
+            priority
+          />
+        </div>
+
+        {/* Ambient Gradient Overlays: lighter on top to show artwork, rich at bottom for text contrast */}
+        <div className='absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none' />
+        <div className='absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-transparent pointer-events-none' />
+        <div className='absolute inset-0 ring-1 ring-inset ring-white/10 rounded-l-[36px] xl:rounded-l-[48px] rounded-r-none pointer-events-none' />
+
+        {/* Content overlaid on image */}
+        <div className='relative z-10 max-w-2xl text-white'>
+          <div className='inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 w-max animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both shadow-sm'>
+            <Sparkles className='size-4 text-violet-300' />
+            <span className='text-xs sm:text-sm font-semibold tracking-wide text-violet-50'>
+              AI-Powered Assessment Platform
+            </span>
+          </div>
+
+          <h2 className='text-4xl xl:text-5xl 2xl:text-[3.25rem] font-heading font-extrabold leading-[1.14] mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white/95 to-white/70 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-500 fill-mode-both'>
+            Test your knowledge &amp; showcase your expertise.
+          </h2>
+
+          <p className='text-base xl:text-lg 2xl:text-xl text-white/85 leading-relaxed font-normal max-w-xl mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both'>
+            Take interactive AI-powered assessments, participate in real-time interviews, and
+            demonstrate your problem-solving abilities with intelligent instant insights.
+          </p>
+
+          {/* Feature Highlights Bar */}
+          <div className='flex flex-wrap items-center gap-4 sm:gap-6 pt-6 border-t border-white/15 text-xs sm:text-sm text-white/80 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-900 fill-mode-both'>
+            <div className='flex items-center gap-2'>
+              <div className='size-2 rounded-full bg-emerald-400 animate-pulse' />
+              <span className='font-medium'>Live Adaptive AI</span>
+            </div>
+            <div className='flex items-center gap-2'>
+              <div className='size-2 rounded-full bg-violet-400' />
+              <span className='font-medium'>Instant Scoring &amp; Feedback</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

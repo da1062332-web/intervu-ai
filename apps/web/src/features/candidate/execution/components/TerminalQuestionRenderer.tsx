@@ -170,7 +170,7 @@ export function TerminalQuestionRenderer() {
     }
 
     return (
-      <div className='space-y-2 mt-4' role='radiogroup' aria-label='Select an option'>
+      <div className='space-y-3 mt-3' role='radiogroup' aria-label='Select an option'>
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
           const optKey = `opt-${currentQuestion.id}-${index}`;
@@ -192,11 +192,11 @@ export function TerminalQuestionRenderer() {
               key={optKey}
               htmlFor={htmlId}
               className={`
-                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
+                flex items-center p-3.5 border rounded-xl cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-emerald-500/50 shadow-xs
                 ${
                   isSelected
-                    ? 'border-blue-600 bg-blue-900\/20/80 ring-1 ring-blue-500 text-blue-950 font-medium'
-                    : 'border-slate-700 hover:border-blue-400 hover:bg-slate-50 bg-[#090d13] text-slate-300'
+                    ? 'border-emerald-500 bg-emerald-950/60 ring-1 ring-emerald-500/50 text-emerald-100 font-medium'
+                    : 'border-slate-800 hover:border-slate-700 hover:bg-[#161b22] bg-[#0d1117] text-slate-300'
                 }
               `}
             >
@@ -212,11 +212,11 @@ export function TerminalQuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-7 h-7 rounded-full border mr-3.5 text-xs font-bold shrink-0
+                flex items-center justify-center w-8 h-8 rounded-lg border mr-3.5 text-xs font-mono font-bold shrink-0 transition-colors
                 ${
                   isSelected
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
-                    : 'bg-slate-900 border-slate-700 text-slate-400'
+                    ? 'bg-emerald-500 border-emerald-400 text-slate-950 shadow-xs'
+                    : 'bg-[#161b22] border-slate-700 text-emerald-400'
                 }
               `}
                 aria-hidden='true'
@@ -250,7 +250,7 @@ export function TerminalQuestionRenderer() {
     };
 
     return (
-      <div className='space-y-2 mt-4' role='group' aria-label='Select multiple options'>
+      <div className='space-y-3 mt-3' role='group' aria-label='Select multiple options'>
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
           const optText = formatOptionDisplay(option);
@@ -271,11 +271,11 @@ export function TerminalQuestionRenderer() {
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
-                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
+                flex items-center p-3.5 border rounded-xl cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-emerald-500/50 shadow-xs
                 ${
                   isSelected
-                    ? 'border-blue-600 bg-blue-900\/20/80 ring-1 ring-blue-500 text-blue-950 font-medium'
-                    : 'border-slate-700 hover:border-blue-400 hover:bg-slate-50 bg-[#090d13] text-slate-300'
+                    ? 'border-emerald-500 bg-emerald-950/60 ring-1 ring-emerald-500/50 text-emerald-100 font-medium'
+                    : 'border-slate-800 hover:border-slate-700 hover:bg-[#161b22] bg-[#0d1117] text-slate-300'
                 }
               `}
             >
@@ -289,11 +289,11 @@ export function TerminalQuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-7 h-7 rounded border mr-3.5 text-xs font-bold shrink-0
+                flex items-center justify-center w-8 h-8 rounded-lg border mr-3.5 text-xs font-mono font-bold shrink-0 transition-colors
                 ${
                   isSelected
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
-                    : 'bg-slate-900 border-slate-700 text-slate-400'
+                    ? 'bg-emerald-500 border-emerald-400 text-slate-950 shadow-xs'
+                    : 'bg-[#161b22] border-slate-700 text-emerald-400'
                 }
               `}
                 aria-hidden='true'
@@ -314,17 +314,22 @@ export function TerminalQuestionRenderer() {
     const textResponse = currentAnswer?.textResponse || '';
 
     return (
-      <div className='mt-4 p-4 rounded-sm border border-slate-800 bg-gray-50/50 shadow-2xs max-w-sm'>
-        <label className='block text-xs font-bold text-slate-400 uppercase mb-2'>
-          Enter Numeric Value:
-        </label>
-        <Input
-          type='number'
-          placeholder='Type your numerical answer...'
-          value={textResponse}
-          onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
-          className='w-full border-gray-400 bg-[#090d13] font-mono text-base font-semibold shadow-xs rounded-sm h-10 px-3 focus:ring-1 focus:ring-green-700'
-        />
+      <div className='mt-3 space-y-4 max-w-md'>
+        <div className='p-4 rounded-xl border border-slate-800 bg-[#161b22] shadow-xs'>
+          <label className='block text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mb-2.5'>
+            &gt; Enter Numeric Value:
+          </label>
+          <Input
+            type='number'
+            placeholder='Type numeric value...'
+            value={textResponse}
+            onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
+            className='w-full border-slate-700 bg-[#0d1117] text-emerald-400 font-mono text-base font-bold shadow-inner rounded-lg h-11 px-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+          />
+        </div>
+        <p className='text-xs text-slate-500 font-mono'>
+          Integer or floating point values supported.
+        </p>
       </div>
     );
   };
@@ -562,46 +567,46 @@ export function TerminalQuestionRenderer() {
       qText.toLowerCase().includes('constraints:');
 
     return (
-      <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-[#090d13] select-none'>
-        {/* Question Number Header Bar */}
-        <div className='bg-[#090d13] px-4 py-3 border-b border-slate-800 flex items-center justify-between shrink-0'>
+      <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-[#0d1117] border border-slate-800 rounded-xl shadow-xs select-none'>
+        {/* Question Header Bar */}
+        <div className='bg-[#161b22] px-5 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0'>
           <div className='flex items-center gap-3'>
-            <h2 className='text-base md:text-lg font-bold text-slate-200 tracking-tight font-sans'>
-              Question {displaySectionQuestionNo} of {sectionTotalQuestions}
-            </h2>
-            <span className='text-xs font-semibold text-slate-400 hidden sm:inline'>
-              • (Overall #{overallQuestionNo})
+            <span className='bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold px-2.5 py-1 rounded'>
+              Q {displaySectionQuestionNo} / {sectionTotalQuestions}
+            </span>
+            <span className='text-xs font-mono text-slate-400 hidden sm:inline'>
+              [Overall #{overallQuestionNo}]
             </span>
             {qTitle && (
-              <span className='text-xs font-semibold text-slate-600 hidden md:inline'>
+              <span className='text-xs font-mono font-semibold text-slate-300 hidden md:inline'>
                 • {qTitle}
               </span>
             )}
           </div>
-          <span className='text-xs font-bold text-slate-400 bg-slate-800 border border-slate-800 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
+          <span className='text-xs font-mono font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded uppercase tracking-wider'>
             {currentQuestion.type}
           </span>
         </div>
 
         <div className='flex flex-col flex-1 w-full overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar select-text'>
           {/* Structured Coding Problem Statement Card */}
-          <div className='bg-[#090d13] p-5 sm:p-6 rounded-xl border border-slate-800 shadow-2xs space-y-4 shrink-0 text-slate-300 font-sans'>
+          <div className='bg-[#161b22] p-5 sm:p-6 rounded-xl border border-slate-800 space-y-4 shrink-0 text-slate-200 font-sans'>
             {qText ? (
               <MarkdownRenderer
                 content={qText}
-                className='text-sm sm:text-base font-normal leading-relaxed text-slate-400'
+                className='text-sm sm:text-base font-normal leading-relaxed text-slate-200'
               />
             ) : (
-              <p className='text-slate-400 italic text-sm'>No question statement available.</p>
+              <p className='text-slate-500 italic text-sm font-mono'>No question statement available.</p>
             )}
 
             {/* FUNCTION SIGNATURE */}
             {funcSig && (
               <div className='space-y-1.5 pt-1'>
-                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
-                  FUNCTION SIGNATURE
+                <h4 className='text-[11px] font-mono font-bold tracking-wider uppercase text-slate-400'>
+                  &gt; FUNCTION SIGNATURE
                 </h4>
-                <div className='inline-block bg-indigo-50 border border-indigo-100 text-indigo-700 font-mono text-xs sm:text-sm font-semibold px-3 py-1 rounded-md shadow-2xs'>
+                <div className='inline-block bg-[#0d1117] border border-emerald-500/30 text-emerald-400 font-mono text-xs sm:text-sm font-semibold px-3 py-1 rounded shadow-inner'>
                   {funcSig}
                 </div>
               </div>
@@ -610,10 +615,10 @@ export function TerminalQuestionRenderer() {
             {/* INPUT DESCRIPTION */}
             {inputDesc && (
               <div className='space-y-1.5'>
-                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
-                  INPUT FORMAT
+                <h4 className='text-[11px] font-mono font-bold tracking-wider uppercase text-slate-400'>
+                  &gt; INPUT FORMAT
                 </h4>
-                <div className='text-xs sm:text-sm text-slate-400 bg-slate-50 p-2.5 rounded-lg border border-slate-800/80'>
+                <div className='text-xs sm:text-sm text-slate-300 bg-[#0d1117] p-3 rounded-lg border border-slate-800 font-mono'>
                   {inputDesc}
                 </div>
               </div>
@@ -622,10 +627,10 @@ export function TerminalQuestionRenderer() {
             {/* OUTPUT DESCRIPTION */}
             {outputDesc && (
               <div className='space-y-1.5'>
-                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
-                  OUTPUT FORMAT
+                <h4 className='text-[11px] font-mono font-bold tracking-wider uppercase text-slate-400'>
+                  &gt; OUTPUT FORMAT
                 </h4>
-                <div className='text-xs sm:text-sm text-slate-400 bg-slate-50 p-2.5 rounded-lg border border-slate-800/80'>
+                <div className='text-xs sm:text-sm text-slate-300 bg-[#0d1117] p-3 rounded-lg border border-slate-800 font-mono'>
                   {outputDesc}
                 </div>
               </div>
@@ -634,16 +639,16 @@ export function TerminalQuestionRenderer() {
             {/* SAMPLE TEST CASES / EXAMPLES */}
             {!hasEmbeddedSamples && sampleCases.length > 0 && (
               <div className='space-y-3 pt-2'>
-                <h4 className='text-[11px] font-bold tracking-wider uppercase text-slate-500'>
-                  SAMPLE TEST CASES
+                <h4 className='text-[11px] font-mono font-bold tracking-wider uppercase text-slate-400'>
+                  &gt; SAMPLE TEST CASES
                 </h4>
                 <div className='space-y-3'>
                   {sampleCases.map((sample, idx) => (
                     <div
                       key={idx}
-                      className='rounded-xl border border-slate-800 bg-slate-50/70 p-3.5 space-y-2.5 text-xs font-sans'
+                      className='rounded-xl border border-slate-800 bg-[#0d1117] p-3.5 space-y-2.5 text-xs font-mono'
                     >
-                      <span className='font-bold text-slate-400'>
+                      <span className='font-bold text-emerald-400'>
                         Sample Case #{idx + 1}
                       </span>
                       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
@@ -651,7 +656,7 @@ export function TerminalQuestionRenderer() {
                           <span className='text-[10px] font-bold uppercase tracking-wider text-slate-500'>
                             Sample Input:
                           </span>
-                          <pre className='bg-[#090d13] p-2.5 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto whitespace-pre-wrap select-all'>
+                          <pre className='bg-[#161b22] p-2.5 rounded-lg border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap select-all'>
                             {sample.input || '(empty)'}
                           </pre>
                         </div>
@@ -659,14 +664,14 @@ export function TerminalQuestionRenderer() {
                           <span className='text-[10px] font-bold uppercase tracking-wider text-slate-500'>
                             Sample Output:
                           </span>
-                          <pre className='bg-[#090d13] p-2.5 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto whitespace-pre-wrap select-all'>
+                          <pre className='bg-[#161b22] p-2.5 rounded-lg border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap select-all'>
                             {sample.output || '(empty)'}
                           </pre>
                         </div>
                       </div>
                       {sample.explanation && (
-                        <p className='text-slate-600 text-xs italic pt-0.5'>
-                          <span className='font-semibold'>Explanation:</span> {sample.explanation}
+                        <p className='text-slate-400 text-xs italic pt-0.5'>
+                          <span className='font-semibold text-slate-300'>Explanation:</span> {sample.explanation}
                         </p>
                       )}
                     </div>
@@ -677,11 +682,11 @@ export function TerminalQuestionRenderer() {
 
             {/* CONSTRAINTS CARD */}
             {!hasEmbeddedConstraints && constraints && (
-              <div className='p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/60 text-xs space-y-1.5 mt-2'>
-                <h4 className='font-bold text-amber-900 text-[11px] uppercase tracking-wider'>
-                  CONSTRAINTS
+              <div className='p-3.5 rounded-xl border border-amber-500/30 bg-amber-950/30 text-xs space-y-1.5 mt-2'>
+                <h4 className='font-mono font-bold text-amber-400 text-[11px] uppercase tracking-wider'>
+                  &gt; CONSTRAINTS
                 </h4>
-                <div className='font-mono text-slate-300 text-xs font-semibold whitespace-pre-wrap'>
+                <div className='font-mono text-amber-200 text-xs font-semibold whitespace-pre-wrap'>
                   {constraints}
                 </div>
               </div>
@@ -708,79 +713,81 @@ export function TerminalQuestionRenderer() {
   }
 
   return (
-    <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-[#090d13] select-none'>
-      {/* Question Number Header Bar */}
-      <div className='bg-[#090d13] px-4 py-3 border-b border-slate-800 flex items-center justify-between shrink-0'>
-        <div className='flex items-center gap-3'>
-          <h2 className='text-base md:text-lg font-bold text-slate-200 tracking-tight font-sans'>
-            Question {displaySectionQuestionNo} of {sectionTotalQuestions}
-          </h2>
-          <span className='text-xs font-semibold text-slate-400 hidden sm:inline'>
-            • (Overall #{overallQuestionNo})
+    <div className='flex flex-col md:flex-row flex-1 w-full h-full overflow-hidden gap-4 select-none bg-transparent'>
+      {/* Left Pane - Question Statement & Context */}
+      <div className='w-full md:w-1/2 flex flex-col bg-[#0d1117] border border-slate-800 rounded-xl overflow-hidden shadow-xs shrink-0'>
+        {/* Header Bar */}
+        <div className='bg-[#161b22] px-5 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0'>
+          <div className='flex items-center gap-3'>
+            <span className='bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold px-2.5 py-1 rounded'>
+              Q {displaySectionQuestionNo} / {sectionTotalQuestions}
+            </span>
+            <span className='text-xs font-mono text-slate-400 hidden sm:inline'>
+              [Overall #{overallQuestionNo}]
+            </span>
+          </div>
+          <span className='text-xs font-mono font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded uppercase tracking-wider'>
+            {currentQuestion.type}
           </span>
         </div>
-        <span className='text-xs font-bold text-slate-400 bg-slate-800 border border-slate-800 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
-          {currentQuestion.type}
-        </span>
-      </div>
 
-      {/* Two-Column Split Pane (Question & Context on Left, Options / Actions on Right) */}
-      <div className='flex flex-1 w-full overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-300 min-h-[420px]'>
-        {/* Left Pane - Question Statement & Context */}
-        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-[#090d13] shrink-0 custom-scrollbar select-text flex flex-col justify-between'>
-          <div className='max-w-2xl text-slate-300 space-y-5 font-sans'>
+        {/* Content Body */}
+        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col justify-between space-y-5'>
+          <div className='space-y-4'>
             {currentQuestion.stem &&
               currentQuestion.stem.trim().toLowerCase() !==
                 (currentQuestion.text || '').trim().toLowerCase() && (
-                <div className='bg-slate-50 border border-slate-800 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-slate-300 font-normal space-y-3 text-justify'>
-                  <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>
-                    Question Context / Passage:
+                <div className='bg-[#161b22] border border-slate-800 rounded-lg p-4 text-sm leading-relaxed text-slate-300 font-normal space-y-2'>
+                  <h4 className='font-mono font-bold text-xs text-emerald-400 uppercase tracking-wider'>
+                    &gt; Passage / Context:
                   </h4>
                   <MarkdownRenderer content={currentQuestion.stem} />
                 </div>
               )}
 
-            <div className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-300 font-sans break-words pb-3 border-b border-gray-100'>
-              <div className='font-bold text-slate-200 text-sm mb-2 tracking-tight'>
-                Question :
+            <div className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-100 font-sans break-words space-y-2'>
+              <div className='font-mono font-bold text-xs text-slate-400 uppercase tracking-wider'>
+                &gt; Problem Statement:
               </div>
               <MarkdownRenderer
                 content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim()}
-                className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-300 font-sans'
+                className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-100 font-sans'
               />
             </div>
 
             {parsedInstructions?.constraints && (
-              <div className='p-4 rounded-md border border-amber-200 bg-amber-50/50 text-sm'>
-                <h4 className='font-semibold text-amber-900 mb-2'>Constraints</h4>
-                <div className='font-mono text-slate-300 whitespace-pre-wrap'>
+              <div className='p-3.5 rounded-lg border border-amber-500/30 bg-amber-950/30 text-xs font-mono'>
+                <h4 className='font-bold text-amber-400 mb-1'>&gt; Constraints:</h4>
+                <div className='text-amber-200 whitespace-pre-wrap font-semibold'>
                   {parsedInstructions.constraints}
                 </div>
               </div>
             )}
           </div>
 
-          <p className='text-slate-500 text-xs pt-4 mt-6 border-t border-gray-100'>
-            Note: You may click{' '}
-            <span className='font-semibold text-slate-400'>Mark for Review & Next</span> if you wish
-            to re-evaluate your response later before completing this section.
+          <p className='text-slate-500 text-xs pt-4 border-t border-slate-800 font-mono'>
+            * Hint: Use &quot;Mark For Review&quot; to flag questions for re-evaluation before section timeout.
           </p>
         </div>
+      </div>
 
-        {/* Right Pane - Options / Response Box */}
-        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-slate-50/30 flex flex-col justify-between custom-scrollbar select-text'>
-          <div className='space-y-4 max-w-2xl w-full'>
-            <div className='text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between pb-2 border-b border-gray-200'>
-              <span>
-                {currentQuestion.type === 'CODING'
-                  ? 'Code Solution'
-                  : currentQuestion.type === 'NUMERIC'
-                    ? 'Numeric Answer'
-                    : 'Select Response'}
-              </span>
-            </div>
-            <div className='pt-1'>{renderQuestionContent()}</div>
-          </div>
+      {/* Right Pane - Options / Response Box */}
+      <div className='w-full md:w-1/2 flex flex-col bg-[#0d1117] border border-slate-800 rounded-xl overflow-hidden shadow-xs shrink-0'>
+        <div className='bg-[#161b22] px-5 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0'>
+          <span className='font-mono text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2'>
+            <span>&gt;</span>
+            {currentQuestion.type === 'CODING'
+              ? 'CODE SOLUTION'
+              : currentQuestion.type === 'NUMERIC'
+                ? 'NUMERIC RESPONSE'
+                : currentQuestion.type === 'MSQ'
+                  ? 'SELECT MULTIPLE OPTIONS'
+                  : 'SELECT OPTION'}
+          </span>
+        </div>
+
+        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col'>
+          <div className='w-full'>{renderQuestionContent()}</div>
         </div>
       </div>
     </div>

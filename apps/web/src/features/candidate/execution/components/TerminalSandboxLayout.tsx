@@ -3,7 +3,22 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, CheckCircle2, Code2, ChevronRight, ChevronLeft } from 'lucide-react';
+import {
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  ChevronRight,
+  ChevronLeft,
+  Bookmark,
+  RotateCcw,
+  Terminal,
+  Lock,
+  LayoutGrid,
+  ShieldAlert,
+} from 'lucide-react';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
 import { useAutosave } from '../hooks/useAutosave';
@@ -22,6 +37,15 @@ import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalcu
 import { FaceTracker } from './FaceTracker';
 import { TimerWidget } from './TimerWidget';
 import { TerminalQuestionRenderer } from './TerminalQuestionRenderer';
+import { BrandLogo } from '@/components/ui/brand-logo';
+import { cn } from '@/lib/utils';
+
+function formatTime(seconds: number): string {
+  if (seconds <= 0) return '00:00';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
 
 export interface SandboxLayoutProps {
   onSubmit?: () => void;
@@ -42,9 +66,18 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
     goNext,
     goPrevious,
     requestNextSection,
+    requestSectionChange,
+    lockedSectionKeys,
+    sectionTimingEnabled,
+    sectionRemainingTime,
     currentQuestion,
     saveAnswer,
     toggleReview,
+    connectionStatus,
+    autosaveStatus,
+    hasUnsavedChanges,
+    ping,
+    lastSavedAt,
   } = useExecutionStore();
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -58,7 +91,7 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
     });
   };
 
-  // Force dark mode for terminal
+  // Force dark mode for terminal sandbox
   useEffect(() => {
     const root = document.documentElement;
     root.classList.add('dark');
@@ -67,7 +100,7 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
     root.style.colorScheme = 'dark';
     return () => {
       root.classList.remove('dark');
-      root.classList.add('light'); // default back to light
+      root.classList.add('light');
       root.style.colorScheme = originalColorScheme;
     };
   }, []);
@@ -96,11 +129,12 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
   };
 
   const isSubmitting = submissionStatus === 'SUBMITTING' || submissionStatus === 'SUCCESS';
+  const isOffline = connectionStatus === 'OFFLINE';
 
   const { startIndex, endIndex, currentSectionTitle } = useMemo(() => {
     let start = 0;
     let end = questions.length;
-    let title = 'Terminal Section';
+    let title = 'Section 1';
     let secIdx = typeof currentSectionIndex === 'number' ? currentSectionIndex : 0;
 
     if (testInstance?.sections && testInstance.sections.length > 0) {
@@ -125,6 +159,25 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
   const totalQuestions = questions.length;
   const isLastQuestionOverall = currentQuestionIndex === totalQuestions - 1;
 
+  const answeredCount = visiblePalette.filter((_, idx) => {
+    const ans = answers[questions[startIndex + idx]?.id];
+    const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
+    return hasAns && ans?.status !== 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const markedCount = visiblePalette.filter((status, idx) => {
+    const ans = answers[questions[startIndex + idx]?.id];
+    return status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const notAnsweredCount = visiblePalette.filter((status, idx) => {
+    const ans = answers[questions[startIndex + idx]?.id];
+    const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
+    return !hasAns && (startIndex + idx <= currentQuestionIndex || status === 'CURRENT') && ans?.status !== 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const unvisitedCount = Math.max(0, visiblePalette.length - answeredCount - markedCount - notAnsweredCount);
+
   const handleNextAction = () => {
     if (currentQuestionIndex === endIndex - 1 && !isLastQuestionOverall) {
       requestNextSection();
@@ -133,20 +186,31 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
     }
   };
 
+  const activeSectionIndex =
+    typeof currentSectionIndex === 'number' &&
+    currentSectionIndex >= 0 &&
+    testInstance?.sections &&
+    currentSectionIndex < testInstance.sections.length
+      ? currentSectionIndex
+      : 0;
+
+  const isTimerWarning =
+    sectionTimingEnabled && sectionRemainingTime > 0 && sectionRemainingTime <= 60;
+
   return (
     <div 
-      className='flex flex-col min-h-screen bg-[#0d1117] text-slate-200 font-mono'
+      className='flex flex-col min-h-screen bg-[#090d13] text-slate-100 font-sans select-none antialiased'
       onCopy={handleCopyPaste}
       onCut={handleCopyPaste}
       onPaste={handleCopyPaste}
       style={isInteractionBlocked || isSubmitting ? { pointerEvents: 'none' } : undefined}
     >
       {isSubmitting && (
-        <div className='fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
+        <div className='fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
           <div className='w-14 h-14 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-5 shadow-lg' />
-          <h2 className='text-2xl font-bold tracking-tight font-sans'>Evaluating Submission</h2>
-          <p className='text-slate-400 text-sm mt-2 max-w-sm font-sans'>
-            Compiling results and securely finalizing assessment...
+          <h2 className='text-2xl font-bold tracking-tight font-mono text-emerald-400'>[SYS_EXEC: SUBMITTING]</h2>
+          <p className='text-slate-400 text-sm mt-2 max-w-sm'>
+            Your assessment answers are being evaluated and securely finalized...
           </p>
         </div>
       )}
@@ -154,114 +218,260 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
       <FullscreenOverlay />
       <TabWarningModal />
 
-      {/* Top Navigation */}
-      <header className='h-14 bg-[#161b22] border-b border-slate-800 px-6 flex items-center justify-between shrink-0'>
-        <div className='flex items-center gap-3'>
-          <div className='w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center overflow-hidden'>
-            <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
-          </div>
-          <div>
-            <h1 className='text-xs font-bold text-slate-200 tracking-wider uppercase'>
-              Terminal CBT
-            </h1>
-            <span className='text-[11px] text-emerald-400'>
-              Terminal IDE Layout
+      {/* Top Terminal Header */}
+      <header className='h-16 bg-[#0d1117] border-b border-slate-800 px-4 md:px-6 flex items-center justify-between shadow-md shrink-0'>
+        {/* Left: Branding & Assessment Title */}
+        <div className='flex items-center gap-4 min-w-0'>
+          <div className='flex items-center gap-2.5 bg-[#161b22] px-3 py-1.5 rounded-lg border border-slate-800 shadow-inner shrink-0'>
+            <BrandLogo logoClassName='w-6 h-6' textClassName='text-slate-100 text-base font-bold font-mono tracking-tight' />
+            <span className='hidden sm:inline-block text-[10px] font-mono font-bold bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 px-1.5 py-0.5 rounded'>
+              DEV_IDE
             </span>
+          </div>
+
+          <div className='hidden md:flex flex-col min-w-0'>
+            <h2 className='text-sm font-bold text-slate-100 truncate font-mono'>
+              {testInstance?.assessmentName || 'Assessment'}
+            </h2>
+            <p className='text-xs text-slate-400 truncate'>
+              Active Section: <span className='text-emerald-400 font-semibold'>{currentSectionTitle}</span>
+            </p>
           </div>
         </div>
 
-        <div className='flex items-center gap-4'>
-          <div className='flex items-center gap-2 bg-slate-900 border border-slate-700/60 px-3 py-1 rounded text-xs text-emerald-400'>
-            <Clock className='w-3.5 h-3.5' />
+        {/* Right: Sync Status, Face Tracker, Timer, Submit */}
+        <div className='flex items-center gap-3 shrink-0'>
+          {/* Connection & Autosave Status */}
+          <div className='hidden lg:flex items-center gap-2 bg-[#161b22] border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-mono'>
+            <div className='flex items-center gap-1.5'>
+              {isOffline ? (
+                <>
+                  <WifiOff className='w-3.5 h-3.5 text-rose-400' />
+                  <span className='text-rose-400'>Offline</span>
+                </>
+              ) : (
+                <>
+                  <Wifi className='w-3.5 h-3.5 text-emerald-400' />
+                  <span className='text-emerald-400 font-semibold'>{ping !== null ? `${ping}ms` : 'Online'}</span>
+                </>
+              )}
+            </div>
+            <span className='text-slate-600'>|</span>
+            <div className='flex items-center gap-1 text-slate-300'>
+              {autosaveStatus === 'SAVING' || hasUnsavedChanges ? (
+                <>
+                  <RefreshCw className='w-3 h-3 text-amber-400 animate-spin' />
+                  <span className='text-amber-400'>Syncing</span>
+                </>
+              ) : autosaveStatus === 'FAILED' ? (
+                <>
+                  <AlertCircle className='w-3 h-3 text-rose-400' />
+                  <span className='text-rose-400'>Sync Error</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className='w-3 h-3 text-emerald-400' />
+                  <span className='text-slate-400'>Synced</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Camera Proctoring */}
+          <div className='w-10 h-10 rounded-lg bg-[#161b22] border border-slate-700/80 flex items-center justify-center overflow-hidden shrink-0 shadow-inner'>
+            <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+          </div>
+
+          {/* Timer Widget */}
+          <div className='flex items-center gap-2 bg-[#161b22] border border-emerald-500/30 px-3.5 py-1.5 rounded-lg text-emerald-400 font-mono text-sm font-bold shadow-xs'>
+            <Clock className='w-4 h-4 text-emerald-400 shrink-0' />
             <TimerWidget />
           </div>
+
+          {/* Submit Button */}
           <Button
             size='sm'
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className='bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs h-8 px-4'
+            className='bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 h-9 shadow-sm'
           >
-            {isSubmitting ? 'Evaluating...' : 'Submit & Exit'}
+            {isSubmitting ? 'Evaluating...' : 'Submit'}
           </Button>
         </div>
       </header>
 
-      {/* Main IDE Layout */}
-      <main className='flex-1 flex flex-col lg:flex-row overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-slate-800'>
-        {/* Left Pane: Question Palette & Navigation */}
-        <div className='lg:w-64 flex flex-col bg-[#161b22] shrink-0'>
-          <div className='p-4 border-b border-slate-800'>
-            <h3 className='text-xs font-bold uppercase tracking-wider text-slate-500 mb-3'>
-              {currentSectionTitle}
-            </h3>
-            <div className='flex flex-wrap gap-2'>
+      {/* Top Section Navigation Tabs */}
+      {testInstance?.sections && testInstance.sections.length > 0 && (
+        <div className='bg-[#161b22] border-b border-slate-800 px-4 md:px-6 py-2 flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0 select-none'>
+          <span className='text-[11px] font-mono font-bold uppercase text-slate-400 tracking-wider mr-1 shrink-0 flex items-center gap-1.5'>
+            <Terminal className='w-3.5 h-3.5 text-emerald-400' />
+            Sections:
+          </span>
+
+          {testInstance.sections.map((section, idx) => {
+            const isActive = idx === activeSectionIndex;
+            const isLocked =
+              lockedSectionKeys.includes(section.sectionKey) ||
+              (sectionTimingEnabled && idx < currentSectionIndex);
+            const isCurrentActive = idx === currentSectionIndex && sectionTimingEnabled;
+
+            return (
+              <button
+                key={section.id}
+                onClick={() => (!isLocked && !isActive ? requestSectionChange(idx) : undefined)}
+                disabled={isLocked}
+                title={isLocked ? 'This section is locked' : section.title}
+                className={cn(
+                  'px-3.5 py-1.5 text-xs font-mono font-semibold rounded-lg transition-all whitespace-nowrap flex items-center gap-2 shrink-0 border cursor-pointer',
+                  isActive
+                    ? 'bg-emerald-950/70 border-emerald-500 text-emerald-300 shadow-sm ring-1 ring-emerald-500/40'
+                    : isLocked
+                      ? 'bg-[#0d1117] border-slate-800/80 text-slate-600 cursor-not-allowed'
+                      : 'bg-[#0d1117] border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-800/40',
+                )}
+              >
+                {isLocked && <Lock className='w-3 h-3 text-slate-500 shrink-0' />}
+                <span>
+                  {idx + 1}. {section.title || section.sectionName || `Section ${idx + 1}`}
+                </span>
+
+                {isCurrentActive && isActive && sectionRemainingTime > 0 && (
+                  <span
+                    className={cn(
+                      'ml-1 text-[11px] font-mono font-bold px-1.5 py-0.5 rounded',
+                      isTimerWarning
+                        ? 'bg-rose-600 text-white animate-pulse'
+                        : 'bg-emerald-900/80 text-emerald-200 border border-emerald-500/30',
+                    )}
+                  >
+                    {formatTime(sectionRemainingTime)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Main Viewport Container */}
+      <main className='flex-1 w-full p-4 md:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0 overflow-hidden'>
+        {/* Left / Center Area: Question Renderer & Footer Action Bar */}
+        <div className='flex-1 flex flex-col min-w-0 min-h-[500px] lg:min-h-0 overflow-hidden'>
+          {/* Question Renderer */}
+          <div className='flex-1 flex overflow-hidden'>
+            <TerminalQuestionRenderer />
+          </div>
+
+          {/* Bottom Action Footer Bar */}
+          <div className='flex items-center justify-between pt-4 mt-2 shrink-0 border-t border-slate-800/80'>
+            <Button
+              variant='outline'
+              className='gap-2 bg-[#161b22] text-slate-200 hover:bg-slate-800 hover:text-white border-slate-700 rounded-lg h-10 px-4 font-mono text-xs font-semibold'
+              onClick={goPrevious}
+              disabled={currentQuestionIndex === 0}
+            >
+              <ChevronLeft className='w-4 h-4' /> &lt; Prev
+            </Button>
+
+            <div className='flex items-center gap-3'>
+              <Button
+                variant='outline'
+                className='gap-2 bg-amber-950/40 text-amber-400 hover:bg-amber-900/60 hover:text-amber-300 border-amber-500/40 rounded-lg h-10 px-4 font-mono text-xs font-semibold'
+                onClick={() => currentQuestion && toggleReview(currentQuestion.id)}
+              >
+                <Bookmark className='w-3.5 h-3.5 fill-amber-400 text-amber-400' /> Mark For Review
+              </Button>
+              <Button
+                variant='outline'
+                className='gap-2 bg-[#161b22] text-slate-400 hover:bg-slate-800 hover:text-slate-200 border-slate-700 rounded-lg h-10 px-4 font-mono text-xs font-semibold'
+                onClick={handleClearResponse}
+              >
+                <RotateCcw className='w-3.5 h-3.5' /> Clear Input
+              </Button>
+            </div>
+
+            <Button
+              className='bg-emerald-600 hover:bg-emerald-500 text-slate-950 gap-2 rounded-lg h-10 px-6 font-mono text-xs font-bold'
+              onClick={handleNextAction}
+            >
+              {isLastQuestionOverall ? 'Save & Finish' : 'Save & Next'} <ChevronRight className='w-4 h-4' />
+            </Button>
+          </div>
+        </div>
+
+        {/* Right Area: Question Matrix Palette */}
+        <div className='w-full lg:w-[320px] shrink-0 flex flex-col'>
+          <div className='bg-[#161b22] border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col h-full overflow-hidden'>
+            <div className='flex items-center justify-between mb-4 pb-3 border-b border-slate-800'>
+              <div className='flex items-center gap-2'>
+                <LayoutGrid className='w-4 h-4 text-emerald-400' />
+                <h3 className='text-xs font-bold uppercase tracking-wider text-slate-200 font-mono'>
+                  Question Matrix
+                </h3>
+              </div>
+              <span className='text-[11px] font-mono text-slate-400'>
+                Total: {visiblePalette.length}
+              </span>
+            </div>
+
+            {/* Status Legend */}
+            <div className='grid grid-cols-2 gap-y-2.5 gap-x-2 mb-4 p-3 bg-[#0d1117] rounded-lg border border-slate-800 text-[11px] font-mono font-medium text-slate-300'>
+              <div className='flex items-center gap-2'>
+                <span className='w-3 h-3 rounded-full bg-emerald-500 shrink-0' /> Answered ({answeredCount})
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='w-3 h-3 rounded-full bg-amber-400 shrink-0' /> Review ({markedCount})
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='w-3 h-3 rounded-full bg-rose-500 shrink-0' /> Visited ({notAnsweredCount})
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='w-3 h-3 rounded-full bg-slate-700 shrink-0' /> Left ({unvisitedCount})
+              </div>
+            </div>
+
+            {/* Matrix Button Grid */}
+            <div className='grid grid-cols-5 gap-2 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1'>
               {visiblePalette.map((status, idx) => {
                 const absIdx = startIndex + idx;
                 const isCurrent = absIdx === currentQuestionIndex;
                 const ans = answers[questions[absIdx]?.id];
                 const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
-                
-                let btnClass = 'bg-[#0d1117] text-slate-400 border border-slate-800 hover:border-slate-600';
+
+                let btnClass = 'bg-[#0d1117] border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200';
+                let indicator = null;
+
+                if (hasAns) {
+                  btnClass = 'bg-emerald-950/80 border-emerald-500 text-emerald-300 font-bold';
+                } else if (status === 'CURRENT' || ans?.status === 'UNANSWERED' || (ans && !hasAns)) {
+                  btnClass = 'bg-rose-950/30 border-rose-500/50 text-rose-400';
+                }
+
                 if (isCurrent) {
-                  btnClass = 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/50';
-                } else if (status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW') {
-                  btnClass = 'bg-amber-500/20 text-amber-400 border border-amber-500/50';
-                } else if (hasAns) {
-                  btnClass = 'bg-slate-800 text-slate-300 border border-slate-600';
+                  btnClass += ' ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#161b22] text-white font-bold';
+                }
+
+                if (status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW') {
+                  btnClass = 'bg-amber-950/60 border-amber-500 text-amber-300 font-bold relative';
+                  indicator = <span className='absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400' />;
                 }
 
                 return (
                   <button
                     key={absIdx}
                     onClick={() => jumpToQuestion(absIdx)}
-                    className={`w-8 h-8 rounded text-[11px] font-bold flex items-center justify-center transition-all ${btnClass}`}
+                    className={cn(
+                      'h-9 rounded-lg text-xs font-mono font-semibold flex items-center justify-center transition-all border relative cursor-pointer',
+                      btnClass,
+                    )}
                   >
                     {idx + 1}
+                    {indicator}
                   </button>
                 );
               })}
             </div>
           </div>
-          
-          <div className='mt-auto p-4 flex flex-col gap-2 border-t border-slate-800'>
-            <div className='flex gap-2'>
-              <Button 
-                variant='outline' 
-                className='flex-1 bg-[#0d1117] border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xs h-8'
-                onClick={goPrevious}
-                disabled={currentQuestionIndex === 0}
-              >
-                <ChevronLeft className='w-4 h-4 mr-1' /> Prev
-              </Button>
-              <Button 
-                className='flex-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs h-8'
-                onClick={handleNextAction}
-              >
-                Next <ChevronRight className='w-4 h-4 ml-1' />
-              </Button>
-            </div>
-            <div className='flex gap-2'>
-              <Button 
-                variant='outline' 
-                className='flex-1 bg-[#0d1117] border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xs h-8'
-                onClick={handleClearResponse}
-              >
-                Clear
-              </Button>
-              <Button 
-                variant='outline' 
-                className='flex-1 bg-[#0d1117] border-amber-500/50 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 text-xs h-8'
-                onClick={() => currentQuestion && toggleReview(currentQuestion.id)}
-              >
-                Review
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Pane: Question Renderer */}
-        <div className='flex-1 flex flex-col bg-[#090d13] overflow-hidden min-h-[500px]'>
-          <TerminalQuestionRenderer />
         </div>
       </main>
 
@@ -280,3 +490,4 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
     </div>
   );
 }
+

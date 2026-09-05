@@ -335,17 +335,22 @@ export function StreamlinedQuestionRenderer() {
     const textResponse = currentAnswer?.textResponse || '';
 
     return (
-      <div className='mt-4 p-4 rounded-sm border border-gray-300 bg-gray-50/50 shadow-2xs max-w-sm'>
-        <label className='block text-xs font-bold text-gray-700 uppercase mb-2'>
-          Enter Numeric Value:
-        </label>
-        <Input
-          type='number'
-          placeholder='Type your numerical answer...'
-          value={textResponse}
-          onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
-          className='w-full border-gray-400 bg-white font-mono text-base font-semibold shadow-xs rounded-sm h-10 px-3 focus:ring-1 focus:ring-green-700'
-        />
+      <div className='space-y-4 mt-2'>
+        <div className='bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-xs'>
+          <label className='block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2'>
+            Enter Numeric Value:
+          </label>
+          <Input
+            type='number'
+            placeholder='Type your numerical answer...'
+            value={textResponse}
+            onChange={(e) => saveAnswer(currentQuestion.id, { textResponse: e.target.value })}
+            className='w-full border-slate-300 bg-white font-mono text-base font-semibold shadow-xs rounded-lg h-11 px-3.5 focus:ring-2 focus:ring-[#4939a3] focus:border-[#4939a3]'
+          />
+        </div>
+        <p className='text-xs text-slate-500'>
+          Please enter the exact numerical answer (decimals or integers allowed).
+        </p>
       </div>
     );
   };
@@ -583,30 +588,27 @@ export function StreamlinedQuestionRenderer() {
       qText.toLowerCase().includes('constraints:');
 
     return (
-      <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
+      <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white border border-slate-200 rounded-xl shadow-sm select-none'>
         {/* Question Number Header Bar */}
-        <div className='bg-white px-4 py-3 border-b border-gray-300 flex items-center justify-between shrink-0'>
-          <div className='flex items-center gap-3'>
-            <h2 className='text-base md:text-lg font-bold text-gray-900 tracking-tight font-sans'>
-              Question {displaySectionQuestionNo} of {sectionTotalQuestions}
-            </h2>
-            <span className='text-xs font-semibold text-slate-400 hidden sm:inline'>
-              • (Overall #{overallQuestionNo})
-            </span>
+        <div className='flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 shrink-0'>
+          <div className='bg-[#4939a3] text-white text-xs font-bold px-4 py-1.5 rounded-r-full -ml-5 shadow-sm'>
+            Q {displaySectionQuestionNo} OF {sectionTotalQuestions}
+          </div>
+          <div className='flex items-center gap-2'>
             {qTitle && (
               <span className='text-xs font-semibold text-slate-600 hidden md:inline'>
                 • {qTitle}
               </span>
             )}
+            <span className='text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-md uppercase tracking-wider'>
+              {currentQuestion.type}
+            </span>
           </div>
-          <span className='text-xs font-bold text-gray-600 bg-gray-100 border border-gray-300 px-3 py-0.5 rounded-sm uppercase tracking-wider'>
-            {currentQuestion.type}
-          </span>
         </div>
 
         <div className='flex flex-col flex-1 w-full overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar select-text'>
           {/* Structured Coding Problem Statement Card */}
-          <div className='bg-white p-5 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4 shrink-0 text-slate-800 font-sans'>
+          <div className='bg-slate-50 p-5 sm:p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4 shrink-0 text-slate-800 font-sans'>
             {qText ? (
               <MarkdownRenderer
                 content={qText}
@@ -781,11 +783,27 @@ export function StreamlinedQuestionRenderer() {
         </div>
       </div>
 
-      {/* Right Pane - Options Card */}
+      {/* Right Pane - Options / Response Card */}
       <div className='w-full md:w-1/2 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0'>
         <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col'>
           <div className='bg-[#f8f6ff] text-[#4939a3] font-bold text-sm rounded-lg px-4 py-3 flex items-center gap-2 mb-5'>
-            <span className='text-lg'>✨</span> Choose the correct option
+            {currentQuestion.type?.toUpperCase() === 'NUMERIC' ? (
+              <>
+                <span className='text-lg'>🔢</span> Enter the numerical value
+              </>
+            ) : currentQuestion.type?.toUpperCase() === 'MSQ' ? (
+              <>
+                <span className='text-lg'>✨</span> Select one or more options
+              </>
+            ) : currentQuestion.type?.toUpperCase() === 'CODING' ? (
+              <>
+                <span className='text-lg'>💻</span> Code Solution
+              </>
+            ) : (
+              <>
+                <span className='text-lg'>✨</span> Choose the correct option
+              </>
+            )}
           </div>
           
           <div className='w-full'>
