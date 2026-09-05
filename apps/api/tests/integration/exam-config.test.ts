@@ -18,7 +18,9 @@ import { ExamSectionRepository } from "../../src/modules/admin-config/repositori
 import { ConfigPublisherService } from "../../src/modules/admin-config/publishing/config-publisher.service";
 import { ConfigVersionService } from "../../src/modules/admin-config/versioning/config-version.service";
 import { ConfigPreviewService } from "../../src/modules/admin-config/services/config-preview.service";
+import { ExamConfigReadinessService } from "../../src/modules/admin-config/services/exam-config-readiness.service";
 import { JwtAuthGuard } from "../../src/modules/auth/guards/jwt-auth.guard";
+import { RedisCacheService } from "../../src/cache/redis-cache.service";
 import { ConfigStatus, ExamConfig, ExamSection, SandboxUIType } from "@prisma/client";
 
 describe("Exam Config & Section Integration Tests", () => {
@@ -65,6 +67,21 @@ describe("Exam Config & Section Integration Tests", () => {
         { provide: ConfigPreviewService, useValue: { getPreview: vi.fn() } },
         { provide: ExamConfigRepository, useValue: configRepoMock },
         { provide: ExamSectionRepository, useValue: sectionRepoMock },
+        {
+          provide: RedisCacheService,
+          useValue: {
+            invalidateBlueprint: vi.fn().mockResolvedValue(true),
+            delete: vi.fn().mockResolvedValue(true),
+          },
+        },
+        {
+          provide: ExamConfigReadinessService,
+          useValue: {
+            evaluateReadiness: vi.fn(),
+            getIssues: vi.fn(),
+            invalidateCache: vi.fn(),
+          },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -111,10 +128,10 @@ describe("Exam Config & Section Integration Tests", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin-1",
       createdAt: new Date(),
       updatedAt: new Date(),
-      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     const mockSection: ExamSection = {

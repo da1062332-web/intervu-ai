@@ -66,10 +66,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findByCode.mockResolvedValueOnce(null);
@@ -97,10 +97,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ACTIVE,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findByCode.mockResolvedValueOnce(existingConfig);
@@ -127,10 +127,10 @@ describe("ExamConfigService", () => {
           status: ConfigStatus.ACTIVE,
           isArchived: false,
           isActive: true,
+          sandboxUi: SandboxUIType.DEFAULT,
           createdBy: "admin-1",
           createdAt: new Date(),
           updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
         },
       ];
 
@@ -159,10 +159,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ACTIVE,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(activeConfig);
@@ -194,10 +194,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: false,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(inactiveConfig);
@@ -228,10 +228,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       const updatedConfig: ExamConfig = {
@@ -271,10 +271,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ARCHIVED,
         isArchived: true,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(archivedConfig);
@@ -296,10 +296,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       const otherConfig: ExamConfig = {
@@ -313,10 +313,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(existingConfig);
@@ -341,10 +341,10 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
-        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       const archivedConfig: ExamConfig = {

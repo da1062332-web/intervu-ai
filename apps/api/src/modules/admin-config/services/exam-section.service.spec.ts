@@ -74,10 +74,10 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
-      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should successfully create a new section", async () => {
@@ -197,10 +197,10 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
-      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should return sections list for a valid config id", async () => {
@@ -256,10 +256,10 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
-      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should update section successfully", async () => {
@@ -420,10 +420,10 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
-      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should delete section successfully", async () => {
