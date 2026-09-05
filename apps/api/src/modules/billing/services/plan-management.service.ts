@@ -14,9 +14,33 @@ export class PlanManagementService {
   /**
    * Get all plans with features (for Plan Manager / Admin)
    */
+  private static adminPlansCache: { data: any; expiresAt: number } | null = null;
+  private static publicPlansCache: { data: any; expiresAt: number } | null = null;
+
+  static invalidateAllPlansCaches() {
+    PlanManagementService.publicPlansCache = null;
+    PlanManagementService.adminPlansCache = null;
+  }
+
+  static invalidatePublicPlansCache() {
+    PlanManagementService.invalidateAllPlansCaches();
+  }
+
+  /**
+   * Get all plans with features (for Plan Manager / Admin)
+   */
   async getAllPlans(includeInactive = true) {
+    const now = Date.now();
+    if (
+      includeInactive &&
+      PlanManagementService.adminPlansCache &&
+      PlanManagementService.adminPlansCache.expiresAt > now
+    ) {
+      return PlanManagementService.adminPlansCache.data;
+    }
+
     const where = includeInactive ? {} : { isActive: true };
-    return this.prisma.plan.findMany({
+    const data = await this.prisma.plan.findMany({
       where,
       include: {
         features: {
@@ -25,13 +49,30 @@ export class PlanManagementService {
       },
       orderBy: { sortOrder: "asc" },
     });
+
+    if (includeInactive) {
+      PlanManagementService.adminPlansCache = {
+        data,
+        expiresAt: now + 60 * 1000, // 1 min in-memory cache
+      };
+    }
+
+    return data;
   }
 
   /**
    * Get active public plans (for Candidate Pricing Modal & Dashboard)
    */
   async getPublicPlans() {
-    return this.prisma.plan.findMany({
+    const now = Date.now();
+    if (
+      PlanManagementService.publicPlansCache &&
+      PlanManagementService.publicPlansCache.expiresAt > now
+    ) {
+      return PlanManagementService.publicPlansCache.data;
+    }
+
+    const data = await this.prisma.plan.findMany({
       where: { isActive: true },
       include: {
         features: {
@@ -40,6 +81,12 @@ export class PlanManagementService {
       },
       orderBy: { sortOrder: "asc" },
     });
+
+    PlanManagementService.publicPlansCache = {
+      data,
+      expiresAt: now + 5 * 60 * 1000, // 5 minutes in-memory cache
+    };
+    return data;
   }
 
   /**
@@ -146,7 +193,7 @@ export class PlanManagementService {
 
     const { features, ...planData } = dto;
 
-    return this.prisma.plan.create({
+    const result = await this.prisma.plan.create({
       data: {
         ...planData,
         slug: dto.slug.toLowerCase().trim(),
@@ -167,6 +214,8 @@ export class PlanManagementService {
         },
       },
     });
+    PlanManagementService.invalidatePublicPlansCache();
+    return result;
   }
 
   /**
@@ -180,7 +229,7 @@ export class PlanManagementService {
 
     const { features, ...updateData } = dto;
 
-    return this.prisma.plan.update({
+    const result = await this.prisma.plan.update({
       where: { id },
       data: {
         ...updateData,
@@ -192,6 +241,8 @@ export class PlanManagementService {
         },
       },
     });
+    PlanManagementService.invalidatePublicPlansCache();
+    return result;
   }
 
   /**
@@ -203,9 +254,11 @@ export class PlanManagementService {
       throw new NotFoundException(`Plan with ID '${id}' not found`);
     }
 
-    return this.prisma.plan.delete({
+    const result = await this.prisma.plan.delete({
       where: { id },
     });
+    PlanManagementService.invalidatePublicPlansCache();
+    return result;
   }
 
   /**
@@ -217,7 +270,7 @@ export class PlanManagementService {
       throw new NotFoundException(`Plan with ID '${planId}' not found`);
     }
 
-    return this.prisma.planFeature.upsert({
+    const result = await this.prisma.planFeature.upsert({
       where: {
         planId_featureKey: {
           planId,
@@ -241,6 +294,8 @@ export class PlanManagementService {
         sortOrder: dto.sortOrder ?? 0,
       },
     });
+    PlanManagementService.invalidatePublicPlansCache();
+    return result;
   }
 
   /**
@@ -255,10 +310,12 @@ export class PlanManagementService {
       throw new NotFoundException(`Feature limitation with ID '${featureId}' not found on plan`);
     }
 
-    return this.prisma.planFeature.update({
+    const result = await this.prisma.planFeature.update({
       where: { id: featureId },
       data: dto,
     });
+    PlanManagementService.invalidatePublicPlansCache();
+    return result;
   }
 
   /**
@@ -273,8 +330,10 @@ export class PlanManagementService {
       throw new NotFoundException(`Feature limitation with ID '${featureId}' not found on plan`);
     }
 
-    return this.prisma.planFeature.delete({
+    const result = await this.prisma.planFeature.delete({
       where: { id: featureId },
     });
+    PlanManagementService.invalidatePublicPlansCache();
+    return result;
   }
 }

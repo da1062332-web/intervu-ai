@@ -23,7 +23,7 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
 }: CandidateKpiSectionProps) {
   const { pagination, isLoading: isCatalogLoading } = useTestCatalog({ limit: 1 });
 
-  if (isLoading || isCatalogLoading) {
+  if ((isLoading && !dashboard && !metrics) || (!dashboard && !metrics && isCatalogLoading)) {
     return (
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6'>
         {[1, 2, 3, 4].map((i) => (
@@ -40,13 +40,26 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
     );
   }
 
-  const hasAttempts = (metrics?.attemptCount ?? 0) > 0 || (dashboard?.completedAttempts?.length ?? 0) > 0;
-  const bestScoreVal = metrics?.bestScore;
-  const bestScore = bestScoreVal !== undefined && bestScoreVal !== null ? `${Math.round(bestScoreVal)}%` : 'No score yet';
-  const avgAccuracyVal = metrics?.averageAccuracy;
-  const avgAccuracy = avgAccuracyVal !== undefined && avgAccuracyVal !== null ? `${Math.round(avgAccuracyVal)}%` : '0%';
+  const completedScores = (dashboard?.completedAttempts || [])
+    .map((a) => a.score)
+    .filter((s): s is number => typeof s === 'number');
+
+  const bestScore =
+    metrics?.bestScore !== undefined && metrics?.bestScore !== null
+      ? `${Math.round(metrics.bestScore)}%`
+      : completedScores.length > 0
+      ? `${Math.round(Math.max(...completedScores))}%`
+      : 'No score yet';
+
+  const avgAccuracy =
+    metrics?.averageAccuracy !== undefined && metrics?.averageAccuracy !== null
+      ? `${Math.round(metrics.averageAccuracy)}%`
+      : completedScores.length > 0
+      ? `${Math.round(completedScores.reduce((a, b) => a + b, 0) / completedScores.length)}%`
+      : '0%';
+
   const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 0;
-  const totalAssessments = pagination?.total || 0;
+  const totalAssessments = pagination?.total || dashboard?.availableTests?.length || 0;
 
   const cards = [
     {

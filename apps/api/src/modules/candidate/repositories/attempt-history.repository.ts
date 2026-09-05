@@ -56,6 +56,13 @@ export class AttemptHistoryRepository {
     return { total, items };
   }
 
+  async getUserAttemptConfigs(userId: string): Promise<Array<{ examConfigId: string | null; testConfigId: string | null }>> {
+    return this.prisma.testInstance.findMany({
+      where: { userId },
+      select: { examConfigId: true, testConfigId: true },
+    });
+  }
+
   async countAttemptsByConfig(userId: string, examConfigId?: string | null, testConfigId?: string | null): Promise<number> {
     if (!examConfigId && !testConfigId) return 0;
     
@@ -70,3 +77,4 @@ export class AttemptHistoryRepository {
     });
   }
 }
+

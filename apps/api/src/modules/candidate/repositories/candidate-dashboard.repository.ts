@@ -4,25 +4,59 @@ import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 @Injectable()
 export class CandidateDashboardRepository {
+  private static examConfigsMemCache: { data: any; expiresAt: number } | null = null;
+  private static dashboardMemCache = new Map<string, { data: any; expiresAt: number }>();
+  private static inFlightRequests = new Map<string, Promise<any>>();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheService: RedisCacheService,
   ) {}
 
   async getDashboardData(userId: string) {
+    const now = Date.now();
+    const cached = CandidateDashboardRepository.dashboardMemCache.get(userId);
+    if (cached && cached.expiresAt > now) {
+      return cached.data;
+    }
+
+    const inFlight = CandidateDashboardRepository.inFlightRequests.get(userId);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const promise = this.fetchDashboardData(userId);
+    CandidateDashboardRepository.inFlightRequests.set(userId, promise);
+
     try {
+      const data = await promise;
+      CandidateDashboardRepository.dashboardMemCache.set(userId, {
+        data,
+        expiresAt: Date.now() + 30 * 1000, // 30s TTL
+      });
+      return data;
+    } finally {
+      CandidateDashboardRepository.inFlightRequests.delete(userId);
+    }
+  }
+
+  private async fetchDashboardData(userId: string) {
+    try {
+      const now = new Date();
       const [
         activeAttempts,
         completedTests,
         enrollments,
         examConfigs,
+        allUserInstances,
+        overrides,
       ] = await Promise.all([
         // Active attempts (IN_PROGRESS or CREATED)
         this.prisma.testInstance.findMany({
           where: {
             userId,
             status: { in: ["IN_PROGRESS", "CREATED"] },
-            expiresAt: { gt: new Date() },
+            expiresAt: { gt: now },
             examConfig: {
               status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
               isActive: true,
@@ -71,7 +105,7 @@ export class CandidateDashboardRepository {
             },
           },
           orderBy: { createdAt: "desc" },
-          take: 50, // PERF-001: Dashboard only needs recent history; full history is paginated elsewhere
+          take: 50,
         }),
 
         // User's enrollments – PERF-001: limit to 20 most recent
@@ -106,20 +140,24 @@ export class CandidateDashboardRepository {
             },
           },
           orderBy: { createdAt: "desc" },
-          take: 20, // PERF-001: Dashboard enrollment list is capped
+          take: 20,
         }),
 
         this.getCachedExamConfigs(),
-      ]);
 
-      const now = new Date();
-      const overrides = await this.prisma.userQuotaOverride.findMany({
-        where: {
-          userId,
-          featureKey: { in: ["allowed_assessments", "allowedAssessments"] },
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-      });
+        this.prisma.testInstance.findMany({
+          where: { userId },
+          select: { examConfigId: true, testConfigId: true },
+        }),
+
+        this.prisma.userQuotaOverride.findMany({
+          where: {
+            userId,
+            featureKey: { in: ["allowed_assessments", "allowedAssessments"] },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          },
+        }),
+      ]);
 
       const explicitCodes: string[] = [];
       for (const ov of overrides) {
@@ -172,11 +210,6 @@ export class CandidateDashboardRepository {
 
       const combinedExamConfigs = [...examConfigs, ...extraExamConfigs];
 
-      const allUserInstances = await this.prisma.testInstance.findMany({
-        where: { userId },
-        select: { examConfigId: true, testConfigId: true },
-      });
-
       // Build per-config attempt counts for the current user
       const attemptsByConfig = new Map<string, number>();
       allUserInstances.forEach((t: any) => {
@@ -220,8 +253,20 @@ export class CandidateDashboardRepository {
   }
 
   private async getCachedExamConfigs() {
+    const now = Date.now();
+    if (
+      CandidateDashboardRepository.examConfigsMemCache &&
+      CandidateDashboardRepository.examConfigsMemCache.expiresAt > now
+    ) {
+      return CandidateDashboardRepository.examConfigsMemCache.data;
+    }
+
     const key = "dashboard:examConfigs:available:v8";
-    let data = await this.cacheService.get<any>(key);
+    let data: any = null;
+    try {
+      data = await this.cacheService.get<any>(key);
+    } catch {}
+
     if (!data) {
       data = await this.prisma.examConfig.findMany({
         where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
@@ -243,10 +288,15 @@ export class CandidateDashboardRepository {
           createdAt: true,
         },
       });
-      await this.cacheService.set(key, data, { ttl: 60 });
+      try {
+        await this.cacheService.set(key, data, { ttl: 120 });
+      } catch {}
     }
+
+    CandidateDashboardRepository.examConfigsMemCache = {
+      data,
+      expiresAt: now + 120 * 1000, // 2 minutes in-memory cache
+    };
     return data;
   }
-
-
 }

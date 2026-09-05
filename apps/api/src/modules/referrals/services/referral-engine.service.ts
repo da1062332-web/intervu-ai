@@ -23,7 +23,7 @@ export class ReferralEngineService {
    * Fully idempotent: second call for same user+code returns success without double-granting.
    */
   async redeemCode(userId: string, code: string) {
-    return this.prisma.$transaction(
+    const result = await this.prisma.$transaction(
       async (tx: any) => {
       // 1. Find the referral code
       const referralCode = await tx.referralCode.findUnique({
@@ -158,6 +158,9 @@ export class ReferralEngineService {
       maxWait: 30000,
       timeout: 90000,
     });
+
+    ReferralEngineService.invalidateCandidateReferralCache(userId);
+    return result;
   }
 
   /**
@@ -209,9 +212,52 @@ export class ReferralEngineService {
   }
 
   /**
+   * In-memory cache & deduplication for candidate referral status
+   */
+  private static referralStatusMemCache = new Map<string, { data: any; expiresAt: number }>();
+  private static inFlightReferralStatus = new Map<string, Promise<any>>();
+
+  public static invalidateCandidateReferralCache(userId?: string) {
+    if (userId) {
+      ReferralEngineService.referralStatusMemCache.delete(userId);
+    } else {
+      ReferralEngineService.referralStatusMemCache.clear();
+    }
+  }
+
+  /**
    * Get a candidate's referral status: their personal code, stats, events.
    */
   async getCandidateReferralStatus(userId: string, baseUrl: string) {
+    const cached = ReferralEngineService.referralStatusMemCache.get(userId);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
+    }
+
+    const existingPromise = ReferralEngineService.inFlightReferralStatus.get(userId);
+    if (existingPromise) {
+      return existingPromise;
+    }
+
+    const requestPromise = this.computeCandidateReferralStatus(userId, baseUrl)
+      .then((data) => {
+        ReferralEngineService.referralStatusMemCache.set(userId, {
+          data,
+          expiresAt: Date.now() + 30_000, // 30s cache
+        });
+        ReferralEngineService.inFlightReferralStatus.delete(userId);
+        return data;
+      })
+      .catch((err) => {
+        ReferralEngineService.inFlightReferralStatus.delete(userId);
+        throw err;
+      });
+
+    ReferralEngineService.inFlightReferralStatus.set(userId, requestPromise);
+    return requestPromise;
+  }
+
+  private async computeCandidateReferralStatus(userId: string, baseUrl: string) {
     // Find active CANDIDATE-type campaign
     // @ts-ignore — Prisma models added by DB migration subagent; types may not be generated yet
     const candidateCampaign = await this.prisma.referralCampaign.findFirst({
@@ -259,31 +305,33 @@ export class ReferralEngineService {
       referralLink = `${baseUrl}/signup?ref=${existingCode.code}`;
     }
 
-    // Count referral events
-    const [totalReferrals, pendingReferrals, rewardedReferrals] = await Promise.all([
+    // Run counts, event history, and redemptions in parallel
+    const [
+      totalReferrals,
+      pendingReferrals,
+      rewardedReferrals,
+      events,
+      redemptions,
+    ] = await Promise.all([
       // @ts-ignore
       this.prisma.referralEvent.count({ where: { referrerId: userId } }),
       // @ts-ignore
       this.prisma.referralEvent.count({ where: { referrerId: userId, status: 'PENDING' } }),
       // @ts-ignore
       this.prisma.referralEvent.count({ where: { referrerId: userId, status: 'REWARDED' } }),
+      // @ts-ignore
+      this.prisma.referralEvent.findMany({
+        where: { referrerId: userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+      // @ts-ignore
+      this.prisma.referralRedemption.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
     ]);
-
-    // List events
-    // @ts-ignore
-    const events = await this.prisma.referralEvent.findMany({
-      where: { referrerId: userId },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    });
-
-    // List redemptions by this user
-    // @ts-ignore
-    const redemptions = await this.prisma.referralRedemption.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    });
 
     return {
       personalCode,

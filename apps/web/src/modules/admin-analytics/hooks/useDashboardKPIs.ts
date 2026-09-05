@@ -8,31 +8,43 @@ export function useDashboardKPIs() {
       {
         queryKey: ['admin-dashboard', 'total-assessments'],
         queryFn: dashboardService.getTotalAssessments,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ['admin-dashboard', 'active-assessments'],
         queryFn: dashboardService.getActiveAssessments,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ['admin-dashboard', 'total-candidates'],
         queryFn: dashboardService.getTotalCandidates,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ['admin-dashboard', 'completed-tests'],
         queryFn: dashboardService.getCompletedTests,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ['admin-dashboard', 'average-score'],
         queryFn: dashboardService.getAverageScore,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ['admin-dashboard', 'question-bank-count'],
         queryFn: dashboardService.getQuestionBankCount,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
       },
     ],
   });
 
-  const isLoading = results.some((result) => result.isLoading);
+  const isLoading = results.every((result) => result.isLoading);
   const isError = results.some((result) => result.isError);
 
   const totalAssessments = results[0]?.data;
@@ -70,5 +82,13 @@ export function useDashboardKPIs() {
     isLoading,
     isError,
     refetch,
+    loadingStates: {
+      totalAssessments: results[0]?.isLoading,
+      activeAssessments: results[1]?.isLoading,
+      totalCandidates: results[2]?.isLoading,
+      completedTests: results[3]?.isLoading,
+      averageScore: results[4]?.isLoading,
+      questionBankCount: results[5]?.isLoading,
+    },
   };
 }

@@ -6,6 +6,8 @@ export function useCandidateDashboard(candidateId?: string) {
     queryKey: ['candidate-dashboard-modular', candidateId],
     queryFn: dashboardService.getDashboard,
     enabled: !!candidateId,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   return {
@@ -21,6 +23,8 @@ export function useCandidateDashboardMetrics(candidateId?: string) {
     queryKey: ['candidate-dashboard-metrics', candidateId],
     queryFn: dashboardService.getDashboardMetrics,
     enabled: !!candidateId,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   return {

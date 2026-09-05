@@ -35,7 +35,15 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       isPricingModalOpen: false,
       isLoading: false,
 
-      checkSubscription: async () => {
+      lastCheckedAt: 0,
+
+      checkSubscription: async (force = false) => {
+        const now = Date.now();
+        const current = get() as any;
+        if (!force && current.hasActivePlan !== null && now - (current.lastCheckedAt || 0) < 2 * 60 * 1000) {
+          return current.hasActivePlan;
+        }
+
         set({ isLoading: true });
         try {
           const status = await billingApi.getStatus();
@@ -47,7 +55,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             status: status.status,
             currentPeriodEnd: status.currentPeriodEnd,
             isLoading: false,
-          });
+            lastCheckedAt: Date.now(),
+          } as any);
 
           if (status.hasActivePlan) {
             get().loadEntitlements();

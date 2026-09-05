@@ -51,7 +51,7 @@ export function CandidateDashboard() {
       <CandidateKpiSection
         dashboard={dashboard}
         metrics={metrics}
-        isLoading={isDashboardLoading || isMetricsLoading}
+        isLoading={isDashboardLoading && isMetricsLoading}
       />
 
       {/* Side-by-side Layout: Available Assessments & Attempt History with matched heights */}

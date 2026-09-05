@@ -25,6 +25,7 @@ import {
   Layers,
   ArrowUpRight,
   Info,
+  Share2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -998,6 +999,15 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
   const [newCodeCustom, setNewCodeCustom] = useState('');
   const [newCodeMaxUses, setNewCodeMaxUses] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
+  const getShareableLink = (codeStr: string) => {
+    const origin =
+      typeof window !== 'undefined' && window.location.origin && window.location.origin.includes('skillitrix.com')
+        ? window.location.origin
+        : 'https://app.skillitrix.com';
+    return `${origin}/signup?ref=${codeStr}`;
+  };
 
   // Sync codes when campaign codes update
   useEffect(() => {
@@ -1037,7 +1047,16 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
   const copyCode = (codeStr: string) => {
     navigator.clipboard.writeText(codeStr);
     setCopiedCode(codeStr);
+    notifySuccess(`Copied code: ${codeStr}`);
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const copyShareableLink = (codeStr: string) => {
+    const link = getShareableLink(codeStr);
+    navigator.clipboard.writeText(link);
+    setCopiedLink(codeStr);
+    notifySuccess(`Copied shareable link: ${link}`);
+    setTimeout(() => setCopiedLink(null), 2000);
   };
 
   const rewardSummary = formatRewardSummary(campaign.refereeRewardConfig);
@@ -1244,9 +1263,29 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => copyShareableLink(c.code)}
+                          className="h-7 px-2.5 text-xs font-semibold rounded-md border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 gap-1"
+                          title="Copy shareable campaign signup link"
+                        >
+                          {copiedLink === c.code ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span className="text-emerald-600 text-[10px]">Link Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-3 h-3" />
+                              <span className="text-[10px]">Copy Link</span>
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => copyCode(c.code)}
                           className="h-7 px-2 text-xs font-semibold rounded-md border-border gap-1"
-                          title="Copy referral code"
+                          title="Copy referral code only"
                         >
                           {copiedCode === c.code ? (
                             <>
@@ -1256,7 +1295,7 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
                           ) : (
                             <>
                               <Copy className="w-3 h-3" />
-                              <span className="text-[10px]">Copy</span>
+                              <span className="text-[10px]">Code</span>
                             </>
                           )}
                         </Button>
@@ -1275,6 +1314,18 @@ function CampaignRow({ campaign, onEdit, onDelete, onToggleStatus }: CampaignRow
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {codes.length > 0 && (
+                <div className="p-2.5 rounded-xl bg-purple-500/5 border border-purple-500/15 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5 font-medium text-foreground">
+                    <Info className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                    Shareable Link Format:
+                  </span>
+                  <code className="font-mono text-purple-600 dark:text-purple-400 font-bold">
+                    https://app.skillitrix.com/signup?ref=CODE
+                  </code>
                 </div>
               )}
             </div>

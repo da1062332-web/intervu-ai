@@ -3,6 +3,14 @@ import { PublicTestsRepository } from "../repositories/public-tests.repository";
 import { PublicTestsQueryDto } from "../dto/public-tests-query.dto";
 import { EntitlementService } from "../../billing/services/entitlement.service";
 
+interface CachedPublicTests {
+  data: any;
+  expiresAt: number;
+}
+
+const publicTestsMemCache = new Map<string, CachedPublicTests>();
+const inFlightPublicTests = new Map<string, Promise<any>>();
+
 @Injectable()
 export class PublicTestsService {
   constructor(
@@ -15,11 +23,57 @@ export class PublicTestsService {
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // 1. Fetch user entitlements from active subscription plan
-    let entitlements = null;
-    try {
-      entitlements = await this.entitlementService.getUserEntitlements(userId);
-    } catch {}
+    const cacheKey = `${userId}:${page}:${limit}:${query.search || ''}:${query.difficulty || ''}:${query.status || ''}:${query.sortBy || ''}:${query.sortOrder || ''}`;
+    const cached = publicTestsMemCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
+    }
+
+    const existingPromise = inFlightPublicTests.get(cacheKey);
+    if (existingPromise) {
+      return existingPromise;
+    }
+
+    const requestPromise = this.computePublicTests(userId, query, page, limit, skip)
+      .then((data) => {
+        publicTestsMemCache.set(cacheKey, {
+          data,
+          expiresAt: Date.now() + 30_000, // 30s cache
+        });
+        inFlightPublicTests.delete(cacheKey);
+        return data;
+      })
+      .catch((err) => {
+        inFlightPublicTests.delete(cacheKey);
+        throw err;
+      });
+
+    inFlightPublicTests.set(cacheKey, requestPromise);
+    return requestPromise;
+  }
+
+  private async computePublicTests(
+    userId: string,
+    query: PublicTestsQueryDto,
+    page: number,
+    limit: number,
+    skip: number,
+  ) {
+    // Run entitlements and public tests queries in parallel
+    const [entitlements, result] = await Promise.all([
+      this.entitlementService.getUserEntitlements(userId).catch(() => null),
+      this.publicTestsRepository.findPublicTests({
+        userId,
+        company: query.company,
+        difficulty: query.difficulty,
+        status: query.status,
+        search: query.search,
+        skip,
+        take: limit,
+        sortBy: query.sortBy === "displayName" ? "name" : query.sortBy || "name",
+        sortOrder: query.sortOrder || "asc",
+      }),
+    ]);
 
     const features = (entitlements?.features as any) || {};
     const allowedAssessmentsVal = features.allowedAssessments || features.allowed_assessments;
@@ -46,18 +100,6 @@ export class PublicTestsService {
 
     const hasActivePlan = Boolean(entitlements?.hasActivePlan);
 
-    const result = await this.publicTestsRepository.findPublicTests({
-      userId,
-      company: query.company,
-      difficulty: query.difficulty,
-      status: query.status,
-      search: query.search,
-      skip,
-      take: limit,
-      sortBy: query.sortBy === "displayName" ? "name" : query.sortBy || "name",
-      sortOrder: query.sortOrder || "asc",
-    });
-
     const filteredItems = result.items.filter((t: any) => {
       if (!allowedList || allowedList.includes("all")) return true;
       return (
@@ -68,6 +110,7 @@ export class PublicTestsService {
     });
 
     const totalPages = Math.max(1, Math.ceil(filteredItems.length / limit));
+
 
     return {
       tests: filteredItems.map((t: any) => {

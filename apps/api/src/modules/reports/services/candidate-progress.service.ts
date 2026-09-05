@@ -17,8 +17,15 @@ export class CandidateProgressService {
     @Optional() private readonly entitlementService?: EntitlementService,
   ) {}
 
+  private static progressMemCache = new Map<string, { data: any; expiresAt: number }>();
+
   async getCandidateProgress(userId: string): Promise<any> {
     this.logger.debug("Retrieving candidate progress analytics", { userId });
+
+    const memCached = CandidateProgressService.progressMemCache.get(userId);
+    if (memCached && Date.now() < memCached.expiresAt) {
+      return memCached.data;
+    }
 
     if (this.entitlementService) {
       let entitlements = null;
@@ -53,7 +60,11 @@ export class CandidateProgressService {
     });
     if (cachedData) {
       this.logger.debug("Progress analytics cache hit", { userId });
-      await this.auditService.logProgressViewed(userId);
+      CandidateProgressService.progressMemCache.set(userId, {
+        data: cachedData,
+        expiresAt: Date.now() + 60_000,
+      });
+      this.auditService.logProgressViewed(userId).catch(() => {});
       return cachedData;
     }
 
@@ -85,13 +96,19 @@ export class CandidateProgressService {
       ttl: 600,
     });
 
-    await this.auditService.logProgressViewed(userId);
+    CandidateProgressService.progressMemCache.set(userId, {
+      data: report,
+      expiresAt: Date.now() + 60_000,
+    });
+
+    this.auditService.logProgressViewed(userId).catch(() => {});
 
     return report;
   }
 
   async invalidateCache(userId: string): Promise<void> {
     this.logger.debug("Invalidating progress cache", { userId });
+    CandidateProgressService.progressMemCache.delete(userId);
     await this.cacheService.delete(`${userId}`, { prefix: this.CACHE_PREFIX });
   }
 

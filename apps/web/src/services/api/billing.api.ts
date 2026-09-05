@@ -21,16 +21,36 @@ const ADMIN_PLANS_PATH = '/admin/plans';
 const ADMIN_PAYMENTS_PATH = '/admin/payments';
 const ADMIN_SUBS_PATH = '/admin/subscriptions';
 
+let cachedPlans: { data: PlanDto[]; expiresAt: number } | null = null;
+let inFlightPlansPromise: Promise<PlanDto[]> | null = null;
+
 export const billingApi = {
   // ==========================================
   // CANDIDATE / PUBLIC ENDPOINTS
   // ==========================================
 
   async getPublicPlans(): Promise<PlanDto[]> {
-    return apiClient.request<PlanDto[]>(`${BILLING_BASE_PATH}/plans`, {
-      method: 'GET',
-      skipErrorToast: true,
-    });
+    if (cachedPlans && Date.now() < cachedPlans.expiresAt) {
+      return cachedPlans.data;
+    }
+    if (inFlightPlansPromise) {
+      return inFlightPlansPromise;
+    }
+    inFlightPlansPromise = apiClient
+      .request<PlanDto[]>(`${BILLING_BASE_PATH}/plans`, {
+        method: 'GET',
+        skipErrorToast: true,
+      })
+      .then((data) => {
+        cachedPlans = { data, expiresAt: Date.now() + 5 * 60 * 1000 };
+        inFlightPlansPromise = null;
+        return data;
+      })
+      .catch((err) => {
+        inFlightPlansPromise = null;
+        throw err;
+      });
+    return inFlightPlansPromise;
   },
 
   async getStatus(): Promise<SubscriptionStatusResponse> {

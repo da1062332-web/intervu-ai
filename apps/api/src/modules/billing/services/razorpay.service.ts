@@ -25,17 +25,19 @@ export class RazorpayService {
     private readonly configService: ConfigService,
     private readonly planManagementService: PlanManagementService,
   ) {
-    this.keyId = this.configService.get<string>("RAZORPAY_KEY_ID") || "";
-    this.keySecret = this.configService.get<string>("RAZORPAY_KEY_SECRET") || "";
-    this.webhookSecret = this.configService.get<string>("RAZORPAY_WEBHOOK_SECRET") || "";
+    this.keyId =
+      this.configService.get<string>("RAZORPAY_KEY_ID") ||
+      "rzp_live_TX7JsRywgX7pvg";
+    this.keySecret =
+      this.configService.get<string>("RAZORPAY_KEY_SECRET") ||
+      "EpkObpbLlEH9KwLQtu1Gv6aq";
+    this.webhookSecret =
+      this.configService.get<string>("RAZORPAY_WEBHOOK_SECRET") ||
+      "EpkObpbLlEH9KwLQtu1Gv6aq";
 
     if (this.keyId.startsWith("rzp_test_")) {
       this.logger.warn(
         "⚠️ [RazorpayService] Running with TEST Razorpay credentials (rzp_test_*).",
-      );
-    } else if (!this.keyId) {
-      this.logger.warn(
-        "⚠️ [RazorpayService] RAZORPAY_KEY_ID is not configured in environment.",
       );
     }
 
@@ -45,6 +47,7 @@ export class RazorpayService {
           key_id: this.keyId,
           key_secret: this.keySecret,
         });
+        this.logger.log(`Initialized Razorpay client with key: ${this.keyId}`);
       } catch (err) {
         this.logger.warn("Could not instantiate Razorpay SDK client:", err);
       }
@@ -63,7 +66,7 @@ export class RazorpayService {
   async createOrder(params: {
     userId: string;
     email?: string;
-    plan?: "PRO" | "TEAMS";
+    plan?: string;
     amount?: number; // Ignored - price is always resolved server-side from the Plan table
     currency?: string;
     receipt?: string;
@@ -78,31 +81,32 @@ export class RazorpayService {
       params.receipt || `rcpt_${plan.toLowerCase()}_${Date.now()}_${userId.slice(-6)}`;
 
     try {
-      let orderId = `order_${plan.toLowerCase()}_${Date.now()}_${userId.slice(-6)}`;
-
-      if (this.razorpayInstance) {
-        const order = await this.razorpayInstance.orders.create({
-          amount,
-          currency,
-          receipt,
-          notes: {
-            userId,
-            email: email || "",
-            plan,
-          },
-        });
-        orderId = order.id;
+      if (!this.razorpayInstance) {
+        throw new InternalServerErrorException(
+          "Razorpay payment gateway is not initialized. Please verify configuration.",
+        );
       }
 
-      this.logger.log(`Created Razorpay order ${orderId} for user ${userId} (${plan}: ₹${amount / 100})`);
+      const order = await this.razorpayInstance.orders.create({
+        amount,
+        currency,
+        receipt,
+        notes: {
+          userId,
+          email: email || "",
+          plan,
+        },
+      });
+
+      this.logger.log(`Created Razorpay order ${order.id} for user ${userId} (${plan}: ₹${amount / 100})`);
 
       return {
-        order_id: orderId,
-        orderId,
+        order_id: order.id,
+        orderId: order.id,
         amount,
         currency,
         keyId: this.keyId,
-        plan,
+        plan: plan as any,
       };
     } catch (error: any) {
       this.logger.error("Razorpay order creation failed:", error);

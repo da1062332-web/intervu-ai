@@ -42,8 +42,8 @@ function createQueryClient(): QueryClient {
     defaultOptions: {
       queries: {
         staleTime: 5 * 60_000,
-        gcTime: 5 * 60_000,
-        refetchOnWindowFocus: true,
+        gcTime: 10 * 60_000,
+        refetchOnWindowFocus: false,
         refetchOnReconnect: true,
         networkMode: 'offlineFirst',
         retry: shouldRetry,

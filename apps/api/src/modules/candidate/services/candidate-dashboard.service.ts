@@ -13,15 +13,12 @@ export class CandidateDashboardService {
   async getDashboardData(
     userId: string,
   ): Promise<CandidateDashboardResponseDto> {
-    const data = await this.dashboardRepository.getDashboardData(userId);
+    const [data, entitlements] = await Promise.all([
+      this.dashboardRepository.getDashboardData(userId),
+      this.entitlementService.getUserEntitlements(userId).catch(() => null),
+    ]);
     const attemptsByConfig: Record<string, number> =
       (data as any).attemptsByConfig || {};
-
-    // 1. Fetch user entitlements from active subscription plan
-    let entitlements = null;
-    try {
-      entitlements = await this.entitlementService.getUserEntitlements(userId);
-    } catch {}
 
     const hasActivePlan = Boolean(entitlements?.hasActivePlan);
     const features = (entitlements?.features as any) || {};

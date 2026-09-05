@@ -11,7 +11,7 @@ import { RecentAssessmentsTable } from '../components/RecentAssessmentsTable';
 import { RecentTestAttemptsTable } from '../components/RecentTestAttemptsTable';
 
 export function AdminOverviewDashboard() {
-  const { data, isLoading, isError } = useDashboardKPIs();
+  const { data, isLoading, isError, loadingStates } = useDashboardKPIs();
 
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-8 animate-fade-in-up pb-8'>
@@ -38,31 +38,31 @@ export function AdminOverviewDashboard() {
           title='Published Assessments'
           value={data.activeAssessments ?? data.totalAssessments ?? 0}
           icon={<FileText className='size-5' />}
-          isLoading={isLoading}
+          isLoading={loadingStates?.activeAssessments ?? isLoading}
         />
         <StatCard
           title='Active Candidates'
           value={data.totalCandidates ?? 0}
           icon={<Users className='size-5' />}
-          isLoading={isLoading}
+          isLoading={loadingStates?.totalCandidates ?? isLoading}
         />
         <StatCard
           title='Completed Tests'
           value={data.completedTests ?? 0}
           icon={<CheckCircle className='size-5' />}
-          isLoading={isLoading}
+          isLoading={loadingStates?.completedTests ?? isLoading}
         />
         <StatCard
           title='Average Score'
           value={data.averageScore ? `${data.averageScore}/100` : '0/100'}
           icon={<Activity className='size-5' />}
-          isLoading={isLoading}
+          isLoading={loadingStates?.averageScore ?? isLoading}
         />
         <StatCard
           title='Question Bank Count'
           value={data.questionBankCount ?? 0}
           icon={<Library className='size-5' />}
-          isLoading={isLoading}
+          isLoading={loadingStates?.questionBankCount ?? isLoading}
         />
       </section>
 

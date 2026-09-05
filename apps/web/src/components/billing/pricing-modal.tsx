@@ -108,13 +108,25 @@ export function PricingModal() {
       }
 
       // Step 3: Open Razorpay Modal with order_id
+      const razorpayKey =
+        order.keyId ||
+        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+        'rzp_live_TX7JsRywgX7pvg';
+
+      const orderId = order.order_id || order.orderId;
+      if (!orderId) {
+        notifyApiError('Failed to generate a valid checkout order. Please try again.');
+        setLoadingPlan(null);
+        return;
+      }
+
       const options = {
-        key: order.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: order.amount,
         currency: order.currency,
         name: 'SkillitriX InterVu AI',
         description: `${planSlug.toUpperCase()} Plan Subscription`,
-        order_id: order.order_id || order.orderId,
+        order_id: orderId,
         prefill: {
           name: user?.fullName || 'Candidate',
           email: user?.email || '',
@@ -128,6 +140,8 @@ export function PricingModal() {
           razorpay_order_id: string;
           razorpay_signature: string;
         }) => {
+          setLoadingPlan(planSlug);
+          notifySuccess('Payment received! Activating your subscription...');
           try {
             const verifyRes = await billingApi.verifyPayment({
               razorpay_order_id: response.razorpay_order_id,

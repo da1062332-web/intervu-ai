@@ -31,5 +31,7 @@ export const useProgress = (candidateId?: string) => {
       }
     },
     enabled: !!candidateId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };

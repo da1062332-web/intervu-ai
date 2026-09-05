@@ -7,6 +7,8 @@ export function useRecentAssessments(limit: number = 5) {
   return useQuery({
     queryKey: ['admin-dashboard', 'recent-assessments', limit],
     queryFn: () => dashboardService.getRecentAssessments({ limit }),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
