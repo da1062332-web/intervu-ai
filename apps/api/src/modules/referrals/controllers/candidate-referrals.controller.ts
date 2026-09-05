@@ -27,7 +27,10 @@ export class CandidateReferralsController {
   })
   async getReferralStatus(@Request() req: any) {
     const userId: string = req.user.id;
-    const baseUrl = process.env.FRONTEND_URL || 'https://www.skillitrix.com';
+    let baseUrl = process.env.FRONTEND_URL || 'https://app.skillitrix.com';
+    if (baseUrl.includes('www.skillitrix.com')) {
+      baseUrl = baseUrl.replace('www.skillitrix.com', 'app.skillitrix.com');
+    }
     return this.engine.getCandidateReferralStatus(userId, baseUrl);
   }
 

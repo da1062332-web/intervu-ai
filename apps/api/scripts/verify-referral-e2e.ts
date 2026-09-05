@@ -277,7 +277,7 @@ async function runE2E() {
   });
 
   // Candidate A retrieves personal code
-  const statusA = await engineService.getCandidateReferralStatus(candA.id, 'https://www.skillitrix.com');
+  const statusA = await engineService.getCandidateReferralStatus(candA.id, 'https://app.skillitrix.com');
   const codeA = statusA.personalCode;
   if (!codeA) throw new Error('Failed to generate personal code for Candidate A');
   logPass(`Candidate A received personal shareable referral code: ${codeA}`);
