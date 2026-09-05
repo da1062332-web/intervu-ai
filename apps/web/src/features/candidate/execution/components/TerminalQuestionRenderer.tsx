@@ -131,13 +131,61 @@ export function TerminalQuestionRenderer() {
     return str === '[object Object]' ? '' : str;
   };
 
+  const normalizeOptionsCandidate = (raw: any): any[] => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      if (raw.length === 1 && typeof raw[0] === 'string') {
+        const single = raw[0].trim();
+        if (single.includes('\n') || /\b[A-Da-d][).:-]\s+/.test(single)) {
+          const lines = single.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+          if (lines.length >= 2) return lines;
+        }
+      }
+      return raw.filter((item) => item !== null && item !== undefined);
+    }
+    if (typeof raw === 'object') {
+      const entries = Object.entries(raw);
+      entries.sort(([k1], [k2]) => k1.localeCompare(k2, undefined, { numeric: true }));
+      const values = entries.map(([, v]) => v).filter(Boolean);
+      if (values.length > 0) return values;
+    }
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {}
+      }
+      if (trimmed.includes('\n')) {
+        const lines = trimmed.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (lines.length >= 2) return lines;
+      }
+    }
+    return [];
+  };
+
   const getOptionsList = (q: any): any[] => {
-    if (Array.isArray(q.options) && q.options.length > 0) return q.options;
-    if (Array.isArray(q.mcqData?.options) && q.mcqData.options.length > 0) return q.mcqData.options;
-    if (Array.isArray(q.mcqData?.choices) && q.mcqData.choices.length > 0) return q.mcqData.choices;
-    if (Array.isArray(q.metadata?.options) && q.metadata.options.length > 0) return q.metadata.options;
-    if (Array.isArray(q.metadata?.choices) && q.metadata.choices.length > 0) return q.metadata.choices;
-    if (Array.isArray(q.choices) && q.choices.length > 0) return q.choices;
+    if (!q) return [];
+    const candidates = [
+      q.options,
+      q.mcqData?.options,
+      q.mcqData?.choices,
+      q.metadata?.options,
+      q.metadata?.choices,
+      q.choices,
+      q.questionSnapshot?.options,
+      q.questionSnapshot?.mcqData?.options,
+      q.questionSnapshot?.mcqData?.choices,
+      q.questionSnapshot?.metadata?.options,
+      q.questionSnapshot?.metadata?.choices,
+      q.questionSnapshot?.choices,
+    ];
+
+    for (const cand of candidates) {
+      const normalized = normalizeOptionsCandidate(cand);
+      if (normalized.length > 0) return normalized;
+    }
     return [];
   };
 

@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, ChevronRight, ChevronLeft, Layout, LayoutGrid, Bookmark, RefreshCw } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Layout, LayoutGrid, Bookmark, RefreshCw, HelpCircle } from 'lucide-react';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
 import { useAutosave } from '../hooks/useAutosave';
@@ -17,6 +17,8 @@ import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SubmissionModal } from './SubmissionModal';
 import { SectionChangeModal } from './SectionChangeModal';
+import { InstructionsModal } from './InstructionsModal';
+import { FloatingToolbar } from '@/components/candidate/sandbox/FloatingToolbar';
 import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScratchPad';
 import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalculator';
 import { FaceTracker } from './FaceTracker';
@@ -47,9 +49,11 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
     currentQuestion,
     saveAnswer,
     toggleReview,
+    sectionTimingEnabled,
   } = useExecutionStore();
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
   const handleClearResponse = () => {
     if (!currentQuestion) return;
@@ -104,8 +108,18 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
 
   const isSubmitting = submissionStatus === 'SUBMITTING' || submissionStatus === 'SUCCESS';
 
+  const totalSections = testInstance?.sections?.length ?? 1;
+
   // Compute section and palette boundaries
-  const { startIndex, endIndex, currentSectionTitle } = useMemo(() => {
+  const {
+    startIndex,
+    endIndex,
+    currentSectionTitle,
+    isLastQuestionOfSection,
+    isLastSection,
+    isFinalAssessmentQuestion,
+    isPreviousDisabled,
+  } = useMemo(() => {
     let start = 0;
     let end = questions.length;
     let title = 'General';
@@ -116,7 +130,7 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
       let runningCount = 0;
       for (let i = 0; i < testInstance.sections.length; i++) {
         const section = testInstance.sections[i];
-        const sectionLength = section.questions.length;
+        const sectionLength = section.questions?.length ?? 0;
         if (i === secIdx) {
           start = runningCount;
           end = runningCount + sectionLength;
@@ -126,33 +140,99 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
         runningCount += sectionLength;
       }
     }
-    return { startIndex: start, endIndex: end, currentSectionTitle: title };
-  }, [testInstance, currentSectionIndex, questions.length]);
+
+    const lastQOfSec = currentQuestionIndex >= end - 1;
+    const lastSec = secIdx >= totalSections - 1;
+    const finalQ = lastSec && lastQOfSec;
+    const prevDisabled =
+      currentQuestionIndex === 0 ||
+      (Boolean(sectionTimingEnabled) && currentQuestionIndex === start);
+
+    return {
+      startIndex: start,
+      endIndex: end,
+      currentSectionTitle: title,
+      isLastQuestionOfSection: lastQOfSec,
+      isLastSection: lastSec,
+      isFinalAssessmentQuestion: finalQ,
+      isPreviousDisabled: prevDisabled,
+    };
+  }, [testInstance, currentSectionIndex, questions.length, currentQuestionIndex, totalSections, sectionTimingEnabled]);
 
   const visiblePalette = palette.slice(startIndex, endIndex);
 
-  const answeredCount = visiblePalette.filter((_, idx) => {
-    const ans = answers[questions[startIndex + idx]?.id];
-    const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
-    return hasAns && ans?.status !== 'MARKED_FOR_REVIEW';
-  }).length;
-
-  const notAnsweredCount = visiblePalette.filter((status, idx) => {
-    const ans = answers[questions[startIndex + idx]?.id];
-    const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
-    return !hasAns && (startIndex + idx <= currentQuestionIndex || status === 'CURRENT') && ans?.status !== 'MARKED_FOR_REVIEW';
-  }).length;
-
-  const totalQuestions = questions.length;
-  const isLastQuestionOverall = currentQuestionIndex === totalQuestions - 1;
+  // Dynamic next button label based on section & test boundaries
+  let nextButtonLabel = 'Save & Next';
+  if (isFinalAssessmentQuestion) {
+    nextButtonLabel = 'Submit Assessment';
+  } else if (isLastQuestionOfSection && !isLastSection) {
+    nextButtonLabel = 'Next Section';
+  }
 
   const handleNextAction = () => {
-    if (currentQuestionIndex === endIndex - 1 && !isLastQuestionOverall) {
+    if (isFinalAssessmentQuestion) {
+      handleSubmit();
+    } else if (isLastQuestionOfSection && !isLastSection) {
       requestNextSection();
     } else {
       goNext();
     }
   };
+
+  const handleMarkForReviewAndNext = () => {
+    if (!currentQuestion) return;
+    toggleReview(currentQuestion.id);
+    if (!isLastQuestionOfSection) {
+      goNext();
+    }
+  };
+
+  // Calculate accurate counts for current section legend
+  const answeredCount = visiblePalette.filter((_, idx) => {
+    const qId = questions[startIndex + idx]?.id;
+    const ans = answers[qId];
+    const hasAns = qId
+      ? !!(
+          ans?.selectedOptionId ||
+          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+          ans?.textResponse
+        )
+      : false;
+    return hasAns && ans?.status !== 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const markedCount = visiblePalette.filter((status, idx) => {
+    const qId = questions[startIndex + idx]?.id;
+    const ans = answers[qId];
+    return ans?.status === 'MARKED_FOR_REVIEW' || status === 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const notAnsweredCount = visiblePalette.filter((status, idx) => {
+    const absIdx = startIndex + idx;
+    const qId = questions[absIdx]?.id;
+    const ans = answers[qId];
+    const hasAns = qId
+      ? !!(
+          ans?.selectedOptionId ||
+          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+          ans?.textResponse
+        )
+      : false;
+    return (
+      !hasAns &&
+      (absIdx <= currentQuestionIndex || status === 'CURRENT') &&
+      ans?.status !== 'MARKED_FOR_REVIEW'
+    );
+  }).length;
+
+  const notVisitedCount = Math.max(
+    0,
+    visiblePalette.length - answeredCount - markedCount - notAnsweredCount,
+  );
+
+  const hasNextSection = Boolean(
+    testInstance && testInstance.sections && currentSectionIndex + 1 < testInstance.sections.length,
+  );
 
   return (
     <div 
@@ -213,7 +293,7 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
         </div>
       </header>
 
-      {/* Section Tabs (Same as default as requested) */}
+      {/* Section Tabs */}
       <div className='px-4 md:px-6 pt-4'>
         <SectionTabs />
       </div>
@@ -228,12 +308,12 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
           </div>
 
           {/* Navigation Footer */}
-          <div className='flex items-center justify-between pt-4 mt-2 shrink-0'>
+          <div className='flex items-center justify-between pt-4 mt-2 shrink-0 flex-wrap gap-2'>
             <Button 
               variant='outline' 
               className='gap-2 bg-white text-slate-700 hover:bg-slate-50 border-slate-300 rounded-lg h-11 px-5 font-semibold'
               onClick={goPrevious}
-              disabled={currentQuestionIndex === 0}
+              disabled={isPreviousDisabled}
             >
               <ChevronLeft className='w-4 h-4' /> Previous
             </Button>
@@ -242,7 +322,7 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
               <Button 
                 variant='outline' 
                 className='gap-2 bg-[#f1edfc] text-[#4939a3] hover:bg-[#e4dcfb] border-transparent rounded-lg h-11 px-5 font-semibold'
-                onClick={() => currentQuestion && toggleReview(currentQuestion.id)}
+                onClick={handleMarkForReviewAndNext}
               >
                 <Bookmark className='w-4 h-4' /> Mark for Review & Next
               </Button>
@@ -256,66 +336,95 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
             </div>
 
             <Button 
-              className='bg-[#4939a3] hover:bg-[#3c2f86] text-white gap-2 rounded-lg h-11 px-8 font-semibold'
+              className='bg-[#4939a3] hover:bg-[#3c2f86] text-white gap-2 rounded-lg h-11 px-8 font-semibold shadow-sm'
               onClick={handleNextAction}
             >
-              {isLastQuestionOverall ? 'Save & Finish' : 'Save & Next'} <ChevronRight className='w-4 h-4' />
+              {nextButtonLabel} <ChevronRight className='w-4 h-4' />
             </Button>
           </div>
         </div>
 
-        {/* Right Section: Palette (Fixed Width) */}
+        {/* Right Section: Productivity Tools + Question Palette (Fixed Width) */}
         <div className='w-full md:w-[320px] lg:w-[350px] shrink-0 flex flex-col'>
-          <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col h-full overflow-hidden'>
-            <div className='flex items-center justify-between mb-4'>
+          <div className='bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-full overflow-hidden'>
+            
+            {/* Productivity Tools (Scratchpad & Calculator) */}
+            {testInstance && (
+              <div className='mb-3'>
+                <FloatingToolbar assessmentId={testInstance.id} />
+              </div>
+            )}
+
+            <div className='flex items-center justify-between mb-3 px-1'>
               <h3 className='text-sm font-bold text-slate-800 font-sans'>
-                Questions
+                Question Palette
               </h3>
               <LayoutGrid className='w-4 h-4 text-slate-400' />
             </div>
 
             {/* Legend */}
-            <div className='grid grid-cols-2 gap-y-4 gap-x-2 mb-6 text-[11px] font-semibold text-slate-600'>
+            <div className='grid grid-cols-2 gap-y-3 gap-x-2 mb-4 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-[11px] font-semibold text-slate-700'>
               <div className='flex items-center gap-2'>
-                <span className='w-4 h-4 rounded-full bg-[#6be0b3]' /> Answered
+                <span className='w-4 h-4 rounded-full bg-[#6be0b3] shadow-xs' />
+                <span>Answered ({answeredCount})</span>
               </div>
               <div className='flex items-center gap-2'>
-                <span className='w-4 h-4 rounded-full bg-white border border-[#4939a3] relative flex items-center justify-center'>
+                <span className='w-4 h-4 rounded-full bg-[#fecaca] shadow-xs' />
+                <span>Not Answered ({notAnsweredCount})</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='w-4 h-4 rounded-full bg-white border border-[#4939a3] relative flex items-center justify-center shadow-xs'>
                   <Bookmark className='w-2.5 h-2.5 text-[#4939a3] fill-current' />
-                </span> Marked
+                </span>
+                <span>Marked ({markedCount})</span>
               </div>
               <div className='flex items-center gap-2'>
-                <span className='w-4 h-4 rounded-full bg-[#e2e8f0]' /> Not Visited
-              </div>
-              <div className='flex items-center gap-2'>
-                <span className='w-4 h-4 rounded-full bg-[#fecaca]' /> Not Answered
+                <span className='w-4 h-4 rounded-full bg-[#e2e8f0] shadow-xs' />
+                <span>Not Visited ({notVisitedCount})</span>
               </div>
             </div>
 
-            {/* Grid */}
-            <div className='grid grid-cols-5 gap-2.5 overflow-y-auto custom-scrollbar pr-2 pb-2'>
+            {/* Questions Grid */}
+            <div className='grid grid-cols-5 gap-2.5 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1'>
               {visiblePalette.map((status, idx) => {
                 const absIdx = startIndex + idx;
                 const isCurrent = absIdx === currentQuestionIndex;
-                const ans = answers[questions[absIdx]?.id];
-                const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
+                const questionId = questions[absIdx]?.id;
+                const ans = answers[questionId];
+                const hasAns = questionId
+                  ? !!(
+                      ans?.selectedOptionId ||
+                      (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+                      ans?.textResponse
+                    )
+                  : false;
+                const isMarked = ans?.status === 'MARKED_FOR_REVIEW' || status === 'MARKED_FOR_REVIEW';
                 
-                let btnClass = 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300';
+                let btnClass = 'bg-white border-slate-200 text-slate-700 hover:border-slate-300';
                 let indicator = null;
 
-                if (hasAns) {
-                  btnClass = 'bg-[#6be0b3] border-[#6be0b3] text-white';
-                } else if (status === 'CURRENT' || ans?.status === 'UNANSWERED' || (ans && !hasAns)) {
+                if (isMarked) {
+                  if (hasAns) {
+                    btnClass = 'bg-[#6be0b3] border-[#4939a3] text-white relative';
+                    indicator = (
+                      <Bookmark className='absolute -top-1.5 -right-1.5 w-3.5 h-3.5 text-[#4939a3] fill-[#4939a3] bg-white rounded-full' />
+                    );
+                  } else {
+                    btnClass = 'bg-white border-[#4939a3] text-[#4939a3] relative';
+                    indicator = (
+                      <Bookmark className='absolute -top-1.5 -right-1.5 w-3.5 h-3.5 text-[#4939a3] fill-[#4939a3] bg-white rounded-full' />
+                    );
+                  }
+                } else if (hasAns) {
+                  btnClass = 'bg-[#6be0b3] border-[#6be0b3] text-white shadow-xs';
+                } else if (status === 'CURRENT' || ans?.status === 'UNANSWERED' || absIdx <= currentQuestionIndex) {
                   btnClass = 'bg-white border-[#fca5a5] text-[#dc2626]'; // Visited/Current but not answered
+                } else {
+                  btnClass = 'bg-white border-slate-200 text-slate-700 hover:border-slate-300';
                 }
 
                 if (isCurrent) {
-                  btnClass += ' ring-2 ring-slate-400 ring-offset-1';
-                }
-
-                if (status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW') {
-                  btnClass = 'bg-white border-[#4939a3] text-[#4939a3] relative';
-                  indicator = <Bookmark className='absolute -top-1.5 -right-1.5 w-3.5 h-3.5 text-[#4939a3] fill-[#4939a3] bg-white rounded-full' />;
+                  btnClass += ' ring-2 ring-[#4939a3] ring-offset-1 font-bold';
                 }
 
                 return (
@@ -329,6 +438,27 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
                   </button>
                 );
               })}
+            </div>
+
+            {/* Palette Footer Buttons: Instructions and Next Section */}
+            <div className='pt-3 mt-2 border-t border-slate-200 grid grid-cols-2 gap-2 shrink-0'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setIsInstructionsOpen(true)}
+                className='bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs py-2 h-9'
+              >
+                <HelpCircle className='w-3.5 h-3.5 mr-1.5' /> Instructions
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={requestNextSection}
+                disabled={!hasNextSection}
+                className='bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs py-2 h-9 disabled:opacity-40 disabled:cursor-not-allowed'
+              >
+                Next Section
+              </Button>
             </div>
           </div>
         </div>
@@ -344,8 +474,13 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
             testId={testInstance.id}
           />
           <SectionChangeModal />
+          <InstructionsModal
+            isOpen={isInstructionsOpen}
+            onClose={() => setIsInstructionsOpen(false)}
+          />
         </>
       )}
     </div>
   );
 }
+

@@ -19,6 +19,7 @@ import { GenerationOrchestratorService } from "../../generation-ai/orchestrators
 import {
   normalizeDisplayQuestion,
   synthesizeNumericDistractors,
+  extractAndNormalizeOptions,
 } from "../../generation-ai/utils/display-value-formatter";
 
 export interface AllocationConfig {
@@ -48,18 +49,29 @@ export class QuestionAllocatorService {
   ) {}
 
   private buildNormalizedSnapshot(q: any): Record<string, any> {
+    const rawAnswer =
+      q.answer ?? q.correctAnswer ?? q.correct_answer ?? q.solution;
     const rawOptions =
       q.options ||
       q.mcqData?.options ||
+      q.mcqData?.choices ||
       q.metadata?.options ||
+      q.metadata?.choices ||
       q.choices ||
       [];
-    const normalizedOptions = Array.isArray(rawOptions) ? rawOptions : [];
+
+    let normalizedOptions: any[] = [];
+    if (rawOptions) {
+      const extracted = extractAndNormalizeOptions(rawOptions, rawAnswer);
+      if (extracted.options && extracted.options.length > 0) {
+        normalizedOptions = extracted.options;
+      }
+    }
 
     return {
       ...q,
       options: normalizedOptions,
-      answer: q.answer ?? q.correctAnswer ?? q.correct_answer ?? q.solution,
+      answer: rawAnswer,
       explanation: q.explanation ?? q.solution ?? "",
     };
   }

@@ -19,7 +19,7 @@ import { ConfigPublisherService } from "../../src/modules/admin-config/publishin
 import { ConfigVersionService } from "../../src/modules/admin-config/versioning/config-version.service";
 import { ConfigPreviewService } from "../../src/modules/admin-config/services/config-preview.service";
 import { JwtAuthGuard } from "../../src/modules/auth/guards/jwt-auth.guard";
-import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
+import { ConfigStatus, ExamConfig, ExamSection, SandboxUIType } from "@prisma/client";
 
 describe("Exam Config & Section Integration Tests", () => {
   let app: INestApplication;
@@ -114,6 +114,7 @@ describe("Exam Config & Section Integration Tests", () => {
       createdBy: "admin-1",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     const mockSection: ExamSection = {

@@ -8,6 +8,7 @@ import {
   normalizeDisplayQuestion,
   synthesizeNumericDistractors,
   isPlaceholderOptions,
+  extractAndNormalizeOptions,
 } from "../../generation-ai/utils/display-value-formatter";
 
 export type SectionStatus =
@@ -183,6 +184,7 @@ export class ExecutionService {
         questionMetaMap.set(q.id, {
           questionStatement: q.questionStatement,
           instructions: q.instructions,
+          metadata: q.metadata,
         });
       }
     }
@@ -240,15 +242,54 @@ export class ExecutionService {
               snapshotOptions.length >= 2 &&
               !isPlaceholderOptions(snapshotOptions);
 
-            if (!hasValidOptions && questionMcqDataMap.has(q.questionId)) {
-              const mcqData = questionMcqDataMap.get(q.questionId) as any;
-              const mcqOptions = mcqData?.options || mcqData?.choices;
+            if (!hasValidOptions) {
+              const rawChoices =
+                candidateSafeSnapshot.choices ||
+                (candidateSafeSnapshot.metadata as any)?.options ||
+                (candidateSafeSnapshot.metadata as any)?.choices ||
+                (candidateSafeSnapshot.mcqData as any)?.options ||
+                (candidateSafeSnapshot.mcqData as any)?.choices;
+
+              let extractedFromSnapshot = rawChoices
+                ? extractAndNormalizeOptions(rawChoices, rawAnswer).options
+                : [];
+
               if (
-                Array.isArray(mcqOptions) &&
-                mcqOptions.length > 0 &&
-                !isPlaceholderOptions(mcqOptions)
+                extractedFromSnapshot.length >= 2 &&
+                !isPlaceholderOptions(extractedFromSnapshot)
               ) {
-                candidateSafeSnapshot.options = mcqOptions;
+                candidateSafeSnapshot.options = extractedFromSnapshot;
+              } else if (questionMcqDataMap.has(q.questionId)) {
+                const mcqData = questionMcqDataMap.get(q.questionId) as any;
+                const mcqOptions = mcqData?.options || mcqData?.choices;
+                if (mcqOptions) {
+                  const extracted = extractAndNormalizeOptions(
+                    mcqOptions,
+                    rawAnswer,
+                  );
+                  if (
+                    extracted.options.length >= 2 &&
+                    !isPlaceholderOptions(extracted.options)
+                  ) {
+                    candidateSafeSnapshot.options = extracted.options;
+                  }
+                }
+              } else if (questionMetaMap.has(q.questionId)) {
+                const meta = questionMetaMap.get(q.questionId)?.metadata as any;
+                const metaOptions =
+                  meta?.options || meta?.choices || meta?.mcqData?.options;
+                if (metaOptions) {
+                  const extracted = extractAndNormalizeOptions(
+                    metaOptions,
+                    rawAnswer,
+                  );
+                  if (
+                    extracted.options.length >= 2 &&
+                    !isPlaceholderOptions(extracted.options)
+                  ) {
+                    candidateSafeSnapshot.options = extracted.options;
+                  }
+                }
               }
             }
 

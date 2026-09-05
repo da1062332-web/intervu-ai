@@ -18,6 +18,9 @@ import {
   Lock,
   LayoutGrid,
   ShieldAlert,
+  HelpCircle,
+  FileEdit,
+  Calculator,
 } from 'lucide-react';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
@@ -32,8 +35,12 @@ import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SubmissionModal } from './SubmissionModal';
 import { SectionChangeModal } from './SectionChangeModal';
+import { InstructionsModal } from './InstructionsModal';
 import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScratchPad';
 import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalculator';
+import { useScratchPad } from '@/components/candidate/sandbox/useScratchPad';
+import { useCalculator } from '@/components/candidate/sandbox/useCalculator';
+import { useSandboxZIndex } from '@/components/candidate/sandbox/useSandboxZIndex';
 import { FaceTracker } from './FaceTracker';
 import { TimerWidget } from './TimerWidget';
 import { TerminalQuestionRenderer } from './TerminalQuestionRenderer';
@@ -81,6 +88,33 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
   } = useExecutionStore();
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+
+  // ScratchPad and Calculator hooks
+  const { initialize: initScratchPad, toggleOpen: toggleScratchPad, isOpen: isScratchOpen } = useScratchPad();
+  const { initialize: initCalc, toggleOpen: toggleCalc, isOpen: isCalcOpen } = useCalculator();
+  const { bringToFront } = useSandboxZIndex();
+
+  useEffect(() => {
+    if (testInstance?.id) {
+      initScratchPad(testInstance.id);
+      initCalc(testInstance.id);
+    }
+  }, [testInstance?.id, initScratchPad, initCalc]);
+
+  const handleOpenScratchPad = () => {
+    toggleScratchPad();
+    if (!isScratchOpen) {
+      bringToFront('scratchpad');
+    }
+  };
+
+  const handleOpenCalc = () => {
+    toggleCalc();
+    if (!isCalcOpen) {
+      bringToFront('calculator');
+    }
+  };
 
   const handleClearResponse = () => {
     if (!currentQuestion) return;
@@ -131,7 +165,17 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
   const isSubmitting = submissionStatus === 'SUBMITTING' || submissionStatus === 'SUCCESS';
   const isOffline = connectionStatus === 'OFFLINE';
 
-  const { startIndex, endIndex, currentSectionTitle } = useMemo(() => {
+  const totalSections = testInstance?.sections?.length || 1;
+
+  const {
+    startIndex,
+    endIndex,
+    currentSectionTitle,
+    isLastQuestionOfSection,
+    isLastSection,
+    isFinalAssessmentQuestion,
+    isPreviousDisabled,
+  } = useMemo(() => {
     let start = 0;
     let end = questions.length;
     let title = 'Section 1';
@@ -152,39 +196,95 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
         runningCount += sectionLength;
       }
     }
-    return { startIndex: start, endIndex: end, currentSectionTitle: title };
-  }, [testInstance, currentSectionIndex, questions.length]);
+
+    const lastQOfSec = currentQuestionIndex === end - 1;
+    const lastSec = secIdx === totalSections - 1;
+    const finalQ = currentQuestionIndex === questions.length - 1 || (lastSec && lastQOfSec);
+    const prevDisabled =
+      currentQuestionIndex === 0 ||
+      (sectionTimingEnabled && currentQuestionIndex === start);
+
+    return {
+      startIndex: start,
+      endIndex: end,
+      currentSectionTitle: title,
+      isLastQuestionOfSection: lastQOfSec,
+      isLastSection: lastSec,
+      isFinalAssessmentQuestion: finalQ,
+      isPreviousDisabled: prevDisabled,
+    };
+  }, [testInstance, currentSectionIndex, questions.length, currentQuestionIndex, totalSections, sectionTimingEnabled]);
 
   const visiblePalette = palette.slice(startIndex, endIndex);
-  const totalQuestions = questions.length;
-  const isLastQuestionOverall = currentQuestionIndex === totalQuestions - 1;
 
-  const answeredCount = visiblePalette.filter((_, idx) => {
-    const ans = answers[questions[startIndex + idx]?.id];
-    const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
-    return hasAns && ans?.status !== 'MARKED_FOR_REVIEW';
-  }).length;
-
-  const markedCount = visiblePalette.filter((status, idx) => {
-    const ans = answers[questions[startIndex + idx]?.id];
-    return status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW';
-  }).length;
-
-  const notAnsweredCount = visiblePalette.filter((status, idx) => {
-    const ans = answers[questions[startIndex + idx]?.id];
-    const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
-    return !hasAns && (startIndex + idx <= currentQuestionIndex || status === 'CURRENT') && ans?.status !== 'MARKED_FOR_REVIEW';
-  }).length;
-
-  const unvisitedCount = Math.max(0, visiblePalette.length - answeredCount - markedCount - notAnsweredCount);
+  // Dynamic next button label based on section & test boundaries
+  let nextButtonLabel = 'Save & Next';
+  if (isFinalAssessmentQuestion) {
+    nextButtonLabel = 'Submit Assessment';
+  } else if (isLastQuestionOfSection && !isLastSection) {
+    nextButtonLabel = 'Next Section';
+  }
 
   const handleNextAction = () => {
-    if (currentQuestionIndex === endIndex - 1 && !isLastQuestionOverall) {
+    if (isFinalAssessmentQuestion) {
+      handleSubmit();
+    } else if (isLastQuestionOfSection && !isLastSection) {
       requestNextSection();
     } else {
       goNext();
     }
   };
+
+  const handleMarkForReviewAndNext = () => {
+    if (!currentQuestion) return;
+    toggleReview(currentQuestion.id);
+    if (!isLastQuestionOfSection) {
+      goNext();
+    }
+  };
+
+  // Calculate accurate counts for current section legend
+  const answeredCount = visiblePalette.filter((_, idx) => {
+    const qId = questions[startIndex + idx]?.id;
+    const ans = answers[qId];
+    const hasAns = qId
+      ? !!(
+          ans?.selectedOptionId ||
+          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+          ans?.textResponse
+        )
+      : false;
+    return hasAns && ans?.status !== 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const markedCount = visiblePalette.filter((status, idx) => {
+    const qId = questions[startIndex + idx]?.id;
+    const ans = answers[qId];
+    return ans?.status === 'MARKED_FOR_REVIEW' || status === 'MARKED_FOR_REVIEW';
+  }).length;
+
+  const notAnsweredCount = visiblePalette.filter((status, idx) => {
+    const absIdx = startIndex + idx;
+    const qId = questions[absIdx]?.id;
+    const ans = answers[qId];
+    const hasAns = qId
+      ? !!(
+          ans?.selectedOptionId ||
+          (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) ||
+          ans?.textResponse
+        )
+      : false;
+    return (
+      !hasAns &&
+      (absIdx <= currentQuestionIndex || status === 'CURRENT') &&
+      ans?.status !== 'MARKED_FOR_REVIEW'
+    );
+  }).length;
+
+  const notVisitedCount = Math.max(
+    0,
+    visiblePalette.length - answeredCount - markedCount - notAnsweredCount,
+  );
 
   const activeSectionIndex =
     typeof currentSectionIndex === 'number' &&
@@ -239,8 +339,19 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
           </div>
         </div>
 
-        {/* Right: Sync Status, Face Tracker, Timer, Submit */}
-        <div className='flex items-center gap-3 shrink-0'>
+        {/* Right: Sync Status, Face Tracker, Instructions, Timer, Submit */}
+        <div className='flex items-center gap-2.5 sm:gap-3 shrink-0'>
+          {/* Instructions Modal Button */}
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => setIsInstructionsOpen(true)}
+            className='bg-[#161b22] border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 h-9 px-3 gap-1.5 font-mono text-xs cursor-pointer'
+          >
+            <HelpCircle className='w-3.5 h-3.5 text-emerald-400' />
+            <span className='hidden sm:inline'>Instructions</span>
+          </Button>
+
           {/* Connection & Autosave Status */}
           <div className='hidden lg:flex items-center gap-2 bg-[#161b22] border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-mono'>
             <div className='flex items-center gap-1.5'>
@@ -293,7 +404,7 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
             size='sm'
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className='bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 h-9 shadow-sm'
+            className='bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold font-mono text-xs px-4 h-9 shadow-sm cursor-pointer'
           >
             {isSubmitting ? 'Evaluating...' : 'Submit'}
           </Button>
@@ -366,43 +477,92 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
           <div className='flex items-center justify-between pt-4 mt-2 shrink-0 border-t border-slate-800/80'>
             <Button
               variant='outline'
-              className='gap-2 bg-[#161b22] text-slate-200 hover:bg-slate-800 hover:text-white border-slate-700 rounded-lg h-10 px-4 font-mono text-xs font-semibold'
+              className='gap-2 bg-[#161b22] text-slate-200 hover:bg-slate-800 hover:text-white border-slate-700 rounded-lg h-10 px-4 font-mono text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer'
               onClick={goPrevious}
-              disabled={currentQuestionIndex === 0}
+              disabled={isPreviousDisabled}
             >
               <ChevronLeft className='w-4 h-4' /> &lt; Prev
             </Button>
 
-            <div className='flex items-center gap-3'>
+            <div className='flex items-center gap-2 sm:gap-3'>
               <Button
                 variant='outline'
-                className='gap-2 bg-amber-950/40 text-amber-400 hover:bg-amber-900/60 hover:text-amber-300 border-amber-500/40 rounded-lg h-10 px-4 font-mono text-xs font-semibold'
-                onClick={() => currentQuestion && toggleReview(currentQuestion.id)}
+                className='gap-1.5 bg-amber-950/40 text-amber-400 hover:bg-amber-900/60 hover:text-amber-300 border-amber-500/40 rounded-lg h-10 px-3 sm:px-4 font-mono text-xs font-semibold cursor-pointer'
+                onClick={handleMarkForReviewAndNext}
               >
-                <Bookmark className='w-3.5 h-3.5 fill-amber-400 text-amber-400' /> Mark For Review
+                <Bookmark className='w-3.5 h-3.5 fill-amber-400 text-amber-400' />
+                <span className='hidden xs:inline'>Mark & Next</span>
+                <span className='xs:hidden'>Review</span>
               </Button>
               <Button
                 variant='outline'
-                className='gap-2 bg-[#161b22] text-slate-400 hover:bg-slate-800 hover:text-slate-200 border-slate-700 rounded-lg h-10 px-4 font-mono text-xs font-semibold'
+                className='gap-1.5 bg-[#161b22] text-slate-400 hover:bg-slate-800 hover:text-slate-200 border-slate-700 rounded-lg h-10 px-3 sm:px-4 font-mono text-xs font-semibold cursor-pointer'
                 onClick={handleClearResponse}
               >
-                <RotateCcw className='w-3.5 h-3.5' /> Clear Input
+                <RotateCcw className='w-3.5 h-3.5' />
+                <span>Clear</span>
               </Button>
             </div>
 
             <Button
-              className='bg-emerald-600 hover:bg-emerald-500 text-slate-950 gap-2 rounded-lg h-10 px-6 font-mono text-xs font-bold'
+              className={cn(
+                'gap-2 rounded-lg h-10 px-5 sm:px-6 font-mono text-xs font-bold transition-all shadow-sm cursor-pointer',
+                isFinalAssessmentQuestion
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white'
+                  : isLastQuestionOfSection && !isLastSection
+                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950',
+              )}
               onClick={handleNextAction}
             >
-              {isLastQuestionOverall ? 'Save & Finish' : 'Save & Next'} <ChevronRight className='w-4 h-4' />
+              <span>{nextButtonLabel}</span>
+              <ChevronRight className='w-4 h-4' />
             </Button>
           </div>
         </div>
 
-        {/* Right Area: Question Matrix Palette */}
+        {/* Right Area: Productivity Tools & Question Matrix Palette */}
         <div className='w-full lg:w-[320px] shrink-0 flex flex-col'>
-          <div className='bg-[#161b22] border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col h-full overflow-hidden'>
-            <div className='flex items-center justify-between mb-4 pb-3 border-b border-slate-800'>
+          <div className='bg-[#161b22] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col h-full overflow-hidden'>
+            {/* Productivity Tools Bar */}
+            <div className='p-3 bg-[#0d1117] border border-slate-800 rounded-lg mb-4 shrink-0 select-none'>
+              <div className='flex items-center justify-between text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-2'>
+                <span>Productivity Tools</span>
+                <span className='text-[10px] text-slate-500 lowercase'>scratch & calc</span>
+              </div>
+              <div className='grid grid-cols-2 gap-2'>
+                <button
+                  onClick={handleOpenScratchPad}
+                  className={cn(
+                    'py-2 px-2 rounded-lg border font-mono font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs',
+                    isScratchOpen
+                      ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500 shadow-inner ring-1 ring-emerald-500/40'
+                      : 'bg-[#161b22] hover:bg-slate-800 text-slate-300 border-slate-700',
+                  )}
+                  title='Toggle Rough Paper (Scratch Pad)'
+                  aria-pressed={isScratchOpen}
+                >
+                  <FileEdit className='w-3.5 h-3.5 text-emerald-400' />
+                  <span>Scratch Pad</span>
+                </button>
+                <button
+                  onClick={handleOpenCalc}
+                  className={cn(
+                    'py-2 px-2 rounded-lg border font-mono font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs',
+                    isCalcOpen
+                      ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500 shadow-inner ring-1 ring-emerald-500/40'
+                      : 'bg-[#161b22] hover:bg-slate-800 text-slate-300 border-slate-700',
+                  )}
+                  title='Toggle Scientific Calculator'
+                  aria-pressed={isCalcOpen}
+                >
+                  <Calculator className='w-3.5 h-3.5 text-emerald-400' />
+                  <span>Calculator</span>
+                </button>
+              </div>
+            </div>
+
+            <div className='flex items-center justify-between mb-3 pb-2 border-b border-slate-800'>
               <div className='flex items-center gap-2'>
                 <LayoutGrid className='w-4 h-4 text-emerald-400' />
                 <h3 className='text-xs font-bold uppercase tracking-wider text-slate-200 font-mono'>
@@ -415,18 +575,18 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
             </div>
 
             {/* Status Legend */}
-            <div className='grid grid-cols-2 gap-y-2.5 gap-x-2 mb-4 p-3 bg-[#0d1117] rounded-lg border border-slate-800 text-[11px] font-mono font-medium text-slate-300'>
+            <div className='grid grid-cols-2 gap-y-2 gap-x-2 mb-3.5 p-2.5 bg-[#0d1117] rounded-lg border border-slate-800 text-[11px] font-mono font-medium text-slate-300'>
               <div className='flex items-center gap-2'>
-                <span className='w-3 h-3 rounded-full bg-emerald-500 shrink-0' /> Answered ({answeredCount})
+                <span className='w-3 h-3 rounded-md bg-emerald-500 shrink-0' /> Answered ({answeredCount})
               </div>
               <div className='flex items-center gap-2'>
-                <span className='w-3 h-3 rounded-full bg-amber-400 shrink-0' /> Review ({markedCount})
+                <span className='w-3 h-3 rounded-md bg-amber-400 shrink-0' /> Review ({markedCount})
               </div>
               <div className='flex items-center gap-2'>
-                <span className='w-3 h-3 rounded-full bg-rose-500 shrink-0' /> Visited ({notAnsweredCount})
+                <span className='w-3 h-3 rounded-md bg-rose-500 shrink-0' /> Visited ({notAnsweredCount})
               </div>
               <div className='flex items-center gap-2'>
-                <span className='w-3 h-3 rounded-full bg-slate-700 shrink-0' /> Left ({unvisitedCount})
+                <span className='w-3 h-3 rounded-md bg-slate-700 shrink-0' /> Left ({notVisitedCount})
               </div>
             </div>
 
@@ -437,23 +597,25 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
                 const isCurrent = absIdx === currentQuestionIndex;
                 const ans = answers[questions[absIdx]?.id];
                 const hasAns = !!(ans?.selectedOptionId || (ans?.selectedOptionIds && ans.selectedOptionIds.length > 0) || ans?.textResponse);
+                const isMarked = status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW';
 
                 let btnClass = 'bg-[#0d1117] border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200';
                 let indicator = null;
 
-                if (hasAns) {
+                if (hasAns && isMarked) {
+                  btnClass = 'bg-purple-950/80 border-purple-500 text-purple-300 font-bold';
+                  indicator = <span className='absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-black' />;
+                } else if (hasAns) {
                   btnClass = 'bg-emerald-950/80 border-emerald-500 text-emerald-300 font-bold';
+                } else if (isMarked) {
+                  btnClass = 'bg-amber-950/60 border-amber-500 text-amber-300 font-bold';
+                  indicator = <span className='absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-black' />;
                 } else if (status === 'CURRENT' || ans?.status === 'UNANSWERED' || (ans && !hasAns)) {
                   btnClass = 'bg-rose-950/30 border-rose-500/50 text-rose-400';
                 }
 
                 if (isCurrent) {
                   btnClass += ' ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#161b22] text-white font-bold';
-                }
-
-                if (status === 'MARKED_FOR_REVIEW' || ans?.status === 'MARKED_FOR_REVIEW') {
-                  btnClass = 'bg-amber-950/60 border-amber-500 text-amber-300 font-bold relative';
-                  indicator = <span className='absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400' />;
                 }
 
                 return (
@@ -485,6 +647,10 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
             testId={testInstance.id}
           />
           <SectionChangeModal />
+          <InstructionsModal
+            isOpen={isInstructionsOpen}
+            onClose={() => setIsInstructionsOpen(false)}
+          />
         </>
       )}
     </div>

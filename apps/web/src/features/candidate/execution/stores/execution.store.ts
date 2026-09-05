@@ -537,12 +537,21 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   saveAnswer: (questionId, answerData) => {
     set((state) => {
       const newAnswers = { ...state.answers };
-      newAnswers[questionId] = {
+      const merged = {
         ...newAnswers[questionId],
         questionId,
         ...answerData,
-        status:
-          newAnswers[questionId]?.status === 'MARKED_FOR_REVIEW' ? 'MARKED_FOR_REVIEW' : 'ANSWERED',
+      };
+
+      const hasAnswer = !!(
+        merged.selectedOptionId ||
+        (merged.selectedOptionIds && merged.selectedOptionIds.length > 0) ||
+        (merged.textResponse && merged.textResponse !== '')
+      );
+
+      newAnswers[questionId] = {
+        ...merged,
+        status: hasAnswer ? 'ANSWERED' : 'UNANSWERED',
       };
 
       return {

@@ -8,7 +8,7 @@ import { ExamSectionService } from "./exam-section.service";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
-import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
+import { ConfigStatus, ExamConfig, ExamSection, SandboxUIType } from "@prisma/client";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 describe("ExamSectionService", () => {
@@ -77,6 +77,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should successfully create a new section", async () => {
@@ -199,6 +200,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should return sections list for a valid config id", async () => {
@@ -257,6 +259,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should update section successfully", async () => {
@@ -420,6 +423,7 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      sandboxUi: SandboxUIType.DEFAULT,
     };
 
     it("should delete section successfully", async () => {

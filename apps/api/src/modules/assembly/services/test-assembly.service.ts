@@ -162,7 +162,12 @@ export class AssemblyService {
 
       // Validate Section 1 synchronously before persisting
       const sec1Validation = this.validator.validate(
-        { ...blueprint, sections: [sec1Blueprint] },
+        {
+          ...blueprint,
+          totalQuestions: sec1Blueprint.questionCount,
+          totalDurationSeconds: sec1Blueprint.durationSeconds,
+          sections: [sec1Blueprint],
+        },
         [sec1],
       );
       if (!sec1Validation.valid) {
