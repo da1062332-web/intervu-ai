@@ -70,6 +70,7 @@ describe("ExamConfigService", () => {
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findByCode.mockResolvedValueOnce(null);
@@ -101,6 +102,7 @@ describe("ExamConfigService", () => {
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findByCode.mockResolvedValueOnce(existingConfig);
@@ -131,6 +133,7 @@ describe("ExamConfigService", () => {
           createdBy: "admin-1",
           createdAt: new Date(),
           updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
         },
       ];
 
@@ -163,6 +166,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(activeConfig);
@@ -198,6 +202,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(inactiveConfig);
@@ -232,6 +237,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       const updatedConfig: ExamConfig = {
@@ -275,6 +281,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(archivedConfig);
@@ -300,6 +307,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       const otherConfig: ExamConfig = {
@@ -317,6 +325,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       repository.findById.mockResolvedValueOnce(existingConfig);
@@ -345,6 +354,7 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        sandboxUi: SandboxUIType.DEFAULT,
       };
 
       const archivedConfig: ExamConfig = {

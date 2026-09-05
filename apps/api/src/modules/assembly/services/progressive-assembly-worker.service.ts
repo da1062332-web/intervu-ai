@@ -58,7 +58,12 @@ export class ProgressiveAssemblyWorkerService {
 
         if (this.validator) {
           const valResult = this.validator.validate(
-            { configId, sections: [blueprintSection] } as any,
+            {
+              testConfigId: configId,
+              totalQuestions: blueprintSection.questionCount,
+              totalDurationSeconds: blueprintSection.durationSeconds,
+              sections: [blueprintSection],
+            } as any,
             [section],
           );
           if (!valResult.valid) {
