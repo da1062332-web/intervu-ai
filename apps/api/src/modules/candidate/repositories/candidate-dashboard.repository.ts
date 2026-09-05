@@ -261,7 +261,7 @@ export class CandidateDashboardRepository {
       return CandidateDashboardRepository.examConfigsMemCache.data;
     }
 
-    const key = "dashboard:examConfigs:available:v8";
+    const key = "dashboard:examConfigs:available:v9";
     let data: any = null;
     try {
       data = await this.cacheService.get<any>(key);
@@ -269,7 +269,7 @@ export class CandidateDashboardRepository {
 
     if (!data) {
       data = await this.prisma.examConfig.findMany({
-        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
+        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE"] } },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,

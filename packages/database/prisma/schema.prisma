@@ -1809,6 +1809,7 @@ enum SandboxUIType {
 }
 enum PlanTier {
   FREE
+  STARTER
   PRO
   TEAMS
 }

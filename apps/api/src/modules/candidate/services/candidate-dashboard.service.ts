@@ -146,6 +146,16 @@ export class CandidateDashboardService {
             (t.name && allowedList.includes(t.name))
           );
         }
+        // If user does not have an active allowedList, exclude referral-exclusive reward assessments
+        if (!allowedList) {
+          if (
+            t.code === "ASM_TCS_NQT_SHORT_001" ||
+            t.code === "TCS_NQT_SHORT_ASSESSMENT" ||
+            t.name === "TCS NQT Short Assessment"
+          ) {
+            return false;
+          }
+        }
         return true;
       })
       .map((t: any) => {

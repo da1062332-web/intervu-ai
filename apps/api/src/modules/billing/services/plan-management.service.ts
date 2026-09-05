@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { PlanTier } from "@prisma/client";
 import {
   CreatePlanDto,
   UpdatePlanDto,
@@ -183,8 +184,22 @@ export class PlanManagementService {
    * Create a new Plan
    */
   async createPlan(dto: CreatePlanDto) {
+    const slug = dto.slug.toLowerCase().trim();
+
+    // A subscription can only ever be tagged with one of the fixed PlanTier enum
+    // values, so a plan whose slug doesn't match one is impossible to activate:
+    // checkout would succeed and take the customer's money, but verify-payment's
+    // subscription upsert would reject the plan value and the purchase could never
+    // be honored. Require the enum to be extended (schema + migration) first.
+    if (!Object.values(PlanTier).some((tier) => tier.toLowerCase() === slug)) {
+      throw new BadRequestException(
+        `Plan slug '${dto.slug}' has no matching PlanTier enum value (${Object.values(PlanTier).join(", ")}). ` +
+          `Add it to the PlanTier enum in schema.prisma with a migration before creating this plan.`,
+      );
+    }
+
     const existing = await this.prisma.plan.findUnique({
-      where: { slug: dto.slug.toLowerCase().trim() },
+      where: { slug },
     });
 
     if (existing) {

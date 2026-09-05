@@ -5,6 +5,8 @@ import {
   Post,
   UseGuards,
   BadRequestException,
+  HttpException,
+  InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
 import {
@@ -185,10 +187,15 @@ export class BillingController {
         `Error during payment verification for user ${user.id} and order ${razorpay_order_id}: ${err.message}`,
         err.stack,
       );
-      if (err instanceof BadRequestException) {
+      // Preserve the original status (e.g. 403 for ownership mismatches) instead of
+      // flattening every failure into a 400 - that previously hid real server/DB
+      // errors behind a client-error status, masking genuine bugs from monitoring.
+      if (err instanceof HttpException) {
         throw err;
       }
-      throw new BadRequestException(err.message || "Payment verification failed");
+      throw new InternalServerErrorException(
+        "Payment verification failed due to an unexpected server error. Please contact support with your payment ID.",
+      );
     }
   }
 

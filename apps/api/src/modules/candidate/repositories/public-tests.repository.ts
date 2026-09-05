@@ -106,12 +106,12 @@ export class PublicTestsRepository {
       explicitCodes.length > 0
         ? {
             OR: [
-              { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
+              { status: { in: ["PUBLISHED", "ACTIVE"] } },
               { id: { in: explicitCodes } },
               { code: { in: explicitCodes } },
             ],
           }
-        : { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } };
+        : { status: { in: ["PUBLISHED", "ACTIVE"] } };
 
     const examWhere: Prisma.ExamConfigWhereInput = {
       ...baseStatusFilter,

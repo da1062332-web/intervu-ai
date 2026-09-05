@@ -31,11 +31,39 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
 
   const latestAssessment = useMemo(() => {
     if (!dashboard) return null;
-    const enrolled = dashboard.availableTests.find(
-      (t) => t.status === 'ENROLLED' || t.hasActiveAttempt,
+
+    // 1. Any active in-progress attempt takes highest priority
+    const activeTest = dashboard.availableTests.find(
+      (t) =>
+        t.hasActiveAttempt ||
+        (dashboard.activeTests &&
+          dashboard.activeTests.some((a) => a.testId === t.id || a.id === t.id)),
     );
-    return enrolled || dashboard.availableTests[0] || null;
-  }, [dashboard]);
+    if (activeTest) return activeTest;
+
+    // 2. Candidate has specifically enrolled in an assessment
+    const enrolled = dashboard.availableTests.find((t) => t.status === 'ENROLLED');
+    if (enrolled) return enrolled;
+
+    // 3. User entered a referral code / has an active referral reward pass
+    if (isReferralUnlocked) {
+      const referralTest = dashboard.availableTests.find(
+        (t) => t.status === 'ENROLLED' || t.canReattempt,
+      );
+      if (referralTest) return referralTest;
+      return dashboard.availableTests[0] || null;
+    }
+
+    // 4. If user is a paid subscriber (Pro / VIP) but hasn't chosen an assessment yet,
+    // show the top available test from their plan so they can start right away
+    if (hasActivePlan && dashboard.availableTests.length > 0) {
+      return dashboard.availableTests[0];
+    }
+
+    // 5. If user has NO active plan, NO enrollments, and did NOT enter any code:
+    // Do NOT force an un-enrolled or locked assessment onto the hero banner!
+    return null;
+  }, [dashboard, isReferralUnlocked, hasActivePlan]);
 
   const activeAttempt = useMemo(() => {
     if (!dashboard) return null;
@@ -70,10 +98,9 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
         <div className='p-3.5 bg-card rounded-2xl mb-3 text-muted-foreground shadow-2xs'>
           <CheckCircle2 className='size-6 text-[#6366f1]' />
         </div>
-        <h3 className='text-base font-bold text-foreground'>No Immediate Evaluations Assigned</h3>
+        <h3 className='text-base font-bold text-foreground'>No Immediate Assessments Assigned</h3>
         <p className='text-sm text-muted-foreground max-w-md mt-1 font-normal'>
-          You have cleared all mandatory assignments. Browse our catalog below to enhance your
-          credentials.
+          You don&apos;t have any pending assessments assigned right now. Browse our catalog below to explore and get started.
         </p>
         <Button
           variant='outline'

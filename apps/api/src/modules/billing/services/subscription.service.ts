@@ -333,27 +333,26 @@ export class SubscriptionService {
     currency: string;
     plan: PlanTier;
   }) {
-    try {
-      await this.prisma.paymentTransaction.upsert({
-        where: { razorpayPaymentId: `pending_${params.razorpayOrderId}` },
-        create: {
-          userId: params.userId,
-          razorpayOrderId: params.razorpayOrderId,
-          razorpayPaymentId: `pending_${params.razorpayOrderId}`,
-          amount: params.amount,
-          currency: params.currency,
-          status: PaymentStatus.PENDING,
-          eventPayload: { plan: params.plan, initiatedAt: new Date() },
-        },
-        update: {
-          amount: params.amount,
-          currency: params.currency,
-          eventPayload: { plan: params.plan, updatedAt: new Date() },
-        },
-      });
-    } catch (error) {
-      this.logger.warn(`Could not persist pending order transaction: ${(error as Error).message}`);
-    }
+    // Intentionally not caught: if this write fails, create-order must fail too -
+    // otherwise the client proceeds to charge the user for an order verify-payment
+    // can never find (getOrderPlan returns null), leaving them paid with no subscription.
+    await this.prisma.paymentTransaction.upsert({
+      where: { razorpayPaymentId: `pending_${params.razorpayOrderId}` },
+      create: {
+        userId: params.userId,
+        razorpayOrderId: params.razorpayOrderId,
+        razorpayPaymentId: `pending_${params.razorpayOrderId}`,
+        amount: params.amount,
+        currency: params.currency,
+        status: PaymentStatus.PENDING,
+        eventPayload: { plan: params.plan, initiatedAt: new Date() },
+      },
+      update: {
+        amount: params.amount,
+        currency: params.currency,
+        eventPayload: { plan: params.plan, updatedAt: new Date() },
+      },
+    });
   }
 
   /**
