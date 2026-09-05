@@ -1,7 +1,6 @@
 import {
   Injectable,
   Logger,
-  BadRequestException,
   InternalServerErrorException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -12,6 +11,7 @@ import {
   CreateOrderResponse,
   PlanTier,
 } from "@intervu-ai/contracts";
+import { PlanManagementService } from "./plan-management.service";
 
 @Injectable()
 export class RazorpayService {
@@ -21,7 +21,10 @@ export class RazorpayService {
   private readonly webhookSecret: string;
   private readonly razorpayInstance: Razorpay | null = null;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly planManagementService: PlanManagementService,
+  ) {
     this.keyId = this.configService.get<string>("RAZORPAY_KEY_ID") || "";
     this.keySecret = this.configService.get<string>("RAZORPAY_KEY_SECRET") || "";
     this.webhookSecret = this.configService.get<string>("RAZORPAY_WEBHOOK_SECRET") || "";
@@ -61,20 +64,15 @@ export class RazorpayService {
     userId: string;
     email?: string;
     plan?: "PRO" | "TEAMS";
-    amount?: number; // In paise
+    amount?: number; // Ignored - price is always resolved server-side from the Plan table
     currency?: string;
     receipt?: string;
   }): Promise<CreateOrderResponse> {
     const { userId, email, plan = "PRO" } = params;
 
-    // Default prices in paise: Pro = 240000 paise (₹2,400), Teams = 650000 paise (₹6,500)
-    const defaultAmount = plan === "PRO" ? 240000 : 650000;
-    const amount = params.amount || defaultAmount;
+    // Price is always the admin-configured value in the database - never trust a client-supplied amount.
+    const { amount } = await this.planManagementService.resolvePlanPricing(plan);
     const currency = params.currency || "INR";
-
-    if (amount < 100) {
-      throw new BadRequestException("Minimum order amount must be at least 100 paise (₹1)");
-    }
 
     const receipt =
       params.receipt || `rcpt_${plan.toLowerCase()}_${Date.now()}_${userId.slice(-6)}`;

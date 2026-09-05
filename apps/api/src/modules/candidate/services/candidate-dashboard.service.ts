@@ -31,6 +31,7 @@ export class CandidateDashboardService {
     const allowedAssessmentsVal = features.allowedAssessments || features.allowed_assessments;
     let allowedList: string[] | null = null;
     let attemptsPerExamOverride: number | null = null;
+    let attemptsByConfigOverride: Record<string, number> = {};
 
     if (allowedAssessmentsVal) {
       if (typeof allowedAssessmentsVal === "object" && !Array.isArray(allowedAssessmentsVal)) {
@@ -40,9 +41,17 @@ export class CandidateDashboardService {
         if (typeof allowedAssessmentsVal.attemptsPerExam === "number") {
           attemptsPerExamOverride = allowedAssessmentsVal.attemptsPerExam;
         }
+        if (allowedAssessmentsVal.attemptsByExam && typeof allowedAssessmentsVal.attemptsByExam === "object") {
+          attemptsByConfigOverride = allowedAssessmentsVal.attemptsByExam;
+        }
       } else if (Array.isArray(allowedAssessmentsVal)) {
         allowedList = allowedAssessmentsVal;
       }
+    }
+
+    const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
+    if (isVip) {
+      allowedList = ['all'];
     }
 
     // Active / in-progress tests
@@ -94,9 +103,14 @@ export class CandidateDashboardService {
         const configId = e.examConfigId || e.testId;
         const attemptCount = attemptsByConfig[configId] || 0;
         const maxAttempts =
-          attemptsPerExamOverride ??
-          (e.examConfig?.ruleFlags?.maxAttempts ?? 3);
-        const canReattempt = attemptCount < maxAttempts;
+          isVip
+            ? null
+            : (attemptsByConfigOverride[configId] ??
+              (e.examConfig?.code && attemptsByConfigOverride[e.examConfig.code]) ??
+              (e.examConfig?.name && attemptsByConfigOverride[e.examConfig.name]) ??
+              attemptsPerExamOverride ??
+              (e.examConfig?.ruleFlags?.maxAttempts ?? 3));
+        const canReattempt = isVip || (maxAttempts ? attemptCount < maxAttempts : true);
         const hasActiveAttempt = data.activeAttempts.some(
           (a: any) => a.examConfigId === configId || a.testConfigId === configId,
         );
@@ -179,8 +193,13 @@ export class CandidateDashboardService {
           })) || [];
 
         const maxAttempts =
-          attemptsPerExamOverride ??
-          (t.ruleFlags?.maxAttempts ?? 3);
+          isVip
+            ? null
+            : (attemptsByConfigOverride[t.id] ??
+              (t.code && attemptsByConfigOverride[t.code]) ??
+              (t.name && attemptsByConfigOverride[t.name]) ??
+              attemptsPerExamOverride ??
+              (t.ruleFlags?.maxAttempts ?? 3));
 
         return {
           configId: t.id,

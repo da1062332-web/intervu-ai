@@ -185,6 +185,19 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
   const [assignedExpiryDays, setAssignedExpiryDays] = useState('30');
   const [customCode, setCustomCode] = useState('');
 
+  const [selectedRefereePreset, setSelectedRefereePreset] = useState<string | null>(
+    existing ? null : PRESET_REWARDS[0].label,
+  );
+  const [selectedReferrerPreset, setSelectedReferrerPreset] = useState<string | null>(
+    existing ? null : PRESET_REWARDS[1].label,
+  );
+
+  const [referrerRewardMode, setReferrerRewardMode] = useState<'ROUNDS' | 'SPECIFIC_ASSESSMENT'>('ROUNDS');
+  const [referrerSelectedAssessmentCode, setReferrerSelectedAssessmentCode] = useState('');
+  const [referrerAssignedAttempts, setReferrerAssignedAttempts] = useState('1');
+  const [referrerIncludeBonusRound, setReferrerIncludeBonusRound] = useState(true);
+  const [referrerAssignedExpiryDays, setReferrerAssignedExpiryDays] = useState('30');
+
   const [refereeRewardJson, setRefereeRewardJson] = useState(
     existing?.refereeRewardConfig
       ? prettyJson(existing.refereeRewardConfig)
@@ -219,8 +232,16 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
   }, []);
 
   useEffect(() => {
-    if (existing?.refereeRewardConfig?.featureKey === 'allowed_assessments') {
+    if (!existing) {
+      setSelectedRefereePreset(PRESET_REWARDS[0].label);
+      setSelectedReferrerPreset(PRESET_REWARDS[1].label);
+      return;
+    }
+
+    // Referee Reward Config parsing
+    if (existing.refereeRewardConfig?.featureKey === 'allowed_assessments') {
       setRewardMode('SPECIFIC_ASSESSMENT');
+      setSelectedRefereePreset(null);
       const val = existing.refereeRewardConfig.overrideValue;
       const list = Array.isArray(val) ? val : val?.assessments || [];
       if (list.length > 0) setSelectedAssessmentCode(list[0]);
@@ -229,14 +250,48 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
         setAssignedExpiryDays(String(existing.refereeRewardConfig.expiresInDays));
       }
       setIncludeBonusRound(existing.refereeRewardConfig.bonusRounds !== 0);
+    } else if (existing.refereeRewardConfig?.featureKey === 'monthly_rounds_limit') {
+      setRewardMode('ROUNDS');
+      const match = PRESET_REWARDS.find(
+        (p) =>
+          p.config.overrideValue.bonusRounds === existing.refereeRewardConfig?.overrideValue?.bonusRounds &&
+          p.config.expiresInDays === existing.refereeRewardConfig?.expiresInDays,
+      );
+      setSelectedRefereePreset(match ? match.label : null);
+    }
+
+    // Referrer Reward Config parsing
+    if (existing.referrerRewardConfig?.featureKey === 'allowed_assessments') {
+      setReferrerRewardMode('SPECIFIC_ASSESSMENT');
+      setSelectedReferrerPreset(null);
+      const val = existing.referrerRewardConfig.overrideValue;
+      const list = Array.isArray(val) ? val : val?.assessments || [];
+      if (list.length > 0) setReferrerSelectedAssessmentCode(list[0]);
+      if (val?.attemptsPerExam) setReferrerAssignedAttempts(String(val.attemptsPerExam));
+      if (existing.referrerRewardConfig.expiresInDays) {
+        setReferrerAssignedExpiryDays(String(existing.referrerRewardConfig.expiresInDays));
+      }
+      setReferrerIncludeBonusRound(existing.referrerRewardConfig.bonusRounds !== 0);
+    } else if (existing.referrerRewardConfig?.featureKey === 'monthly_rounds_limit') {
+      setReferrerRewardMode('ROUNDS');
+      const match = PRESET_REWARDS.find(
+        (p) =>
+          p.config.overrideValue.bonusRounds === existing.referrerRewardConfig?.overrideValue?.bonusRounds &&
+          p.config.expiresInDays === existing.referrerRewardConfig?.expiresInDays,
+      );
+      setSelectedReferrerPreset(match ? match.label : null);
     }
   }, [existing]);
 
   const applyPreset = (preset: typeof PRESET_REWARDS[0], target: 'referee' | 'referrer') => {
     if (target === 'referee') {
       setRefereeRewardJson(prettyJson(preset.config));
+      setSelectedRefereePreset(preset.label);
+      setRewardMode('ROUNDS');
     } else {
       setReferrerRewardJson(prettyJson(preset.config));
+      setSelectedReferrerPreset(preset.label);
+      setReferrerRewardMode('ROUNDS');
     }
   };
 
@@ -262,8 +317,10 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
     };
     if (target === 'referee') {
       setRefereeRewardJson(prettyJson(cfg));
+      setSelectedRefereePreset(null);
     } else {
       setReferrerRewardJson(prettyJson(cfg));
+      setSelectedReferrerPreset(null);
     }
   };
 
@@ -510,17 +567,29 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
                   Choose a preset or configure custom bonus rounds:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {PRESET_REWARDS.map((p) => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      onClick={() => applyPreset(p, 'referee')}
-                      className="p-2.5 rounded-lg border border-border bg-card hover:border-purple-500 hover:bg-purple-500/5 text-left text-xs font-semibold text-foreground transition-all flex flex-col justify-between"
-                    >
-                      <span>{p.label}</span>
-                      <span className="text-[10px] text-muted-foreground mt-1">Click to apply</span>
-                    </button>
-                  ))}
+                  {PRESET_REWARDS.map((p) => {
+                    const isSelected = rewardMode === 'ROUNDS' && selectedRefereePreset === p.label;
+                    return (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={() => applyPreset(p, 'referee')}
+                        className={`p-2.5 rounded-lg border text-left text-xs font-semibold transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-purple-600 bg-purple-500/15 ring-2 ring-purple-500/30 text-purple-700 dark:text-purple-300 shadow-sm font-bold'
+                            : 'border-border bg-card hover:border-purple-500 hover:bg-purple-500/5 text-foreground'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span>{p.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground mt-1">
+                          {isSelected ? 'Selected' : 'Click to apply'}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -604,23 +673,217 @@ function CampaignFormDialog({ open, onClose, onSave, existing }: CampaignFormDia
           {/* Candidate-to-Candidate Referrer Reward */}
           {type === 'CANDIDATE' && (
             <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20 space-y-3">
-              <label className="font-bold text-foreground flex items-center gap-1.5">
-                <Gift className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                Referrer Reward Presets (Candidate who shares code)
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {PRESET_REWARDS.map((p) => (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => applyPreset(p, 'referrer')}
-                    className="p-2.5 rounded-lg border border-border bg-card hover:border-purple-500 hover:bg-purple-500/5 text-left text-xs font-semibold text-foreground transition-all flex flex-col justify-between"
-                  >
-                    <span>{p.label}</span>
-                    <span className="text-[10px] text-muted-foreground mt-1">Apply for referrer</span>
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-foreground flex items-center gap-1.5 text-xs sm:text-sm">
+                  <Gift className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  Referrer Reward Strategy (Candidate who shares code) *
+                </label>
               </div>
+
+              {/* 2 Big Visual Selection Cards for Referrer */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Card 1: General Rounds */}
+                <div
+                  onClick={() => {
+                    setReferrerRewardMode('ROUNDS');
+                    applyPreset(PRESET_REWARDS[1], 'referrer');
+                  }}
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    referrerRewardMode === 'ROUNDS'
+                      ? 'border-purple-600 bg-purple-500/10 shadow-sm ring-2 ring-purple-500/20'
+                      : 'border-border bg-card hover:border-purple-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="referrerRewardStrategy"
+                      checked={referrerRewardMode === 'ROUNDS'}
+                      onChange={() => {}}
+                      className="text-purple-600 focus:ring-purple-500 size-4"
+                    />
+                    <span className="font-bold text-foreground text-xs">🎁 General Assessment Quota</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1.5 pl-6">
+                    Referrer receives bonus test round quota usable for any assessment.
+                  </p>
+                </div>
+
+                {/* Card 2: Specific Assessment */}
+                <div
+                  onClick={() => {
+                    setReferrerRewardMode('SPECIFIC_ASSESSMENT');
+                    setSelectedReferrerPreset(null);
+                    const first =
+                      referrerSelectedAssessmentCode ||
+                      availableAssessments[0]?.code ||
+                      availableAssessments[0]?.id ||
+                      '';
+                    if (first) {
+                      setReferrerSelectedAssessmentCode(first);
+                      applySpecificAssessment(
+                        first,
+                        referrerAssignedAttempts,
+                        referrerIncludeBonusRound,
+                        referrerAssignedExpiryDays,
+                        'referrer',
+                      );
+                    }
+                  }}
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    referrerRewardMode === 'SPECIFIC_ASSESSMENT'
+                      ? 'border-purple-600 bg-purple-500/10 shadow-sm ring-2 ring-purple-500/20'
+                      : 'border-border bg-card hover:border-purple-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="referrerRewardStrategy"
+                      checked={referrerRewardMode === 'SPECIFIC_ASSESSMENT'}
+                      onChange={() => {}}
+                      className="text-purple-600 focus:ring-purple-500 size-4"
+                    />
+                    <span className="font-bold text-foreground text-xs">🎯 Specific Assigned Assessment</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1.5 pl-6">
+                    Unlock a designated test blueprint specifically for the referrer candidate.
+                  </p>
+                </div>
+              </div>
+
+              {/* Referrer Option A: General Bonus Tests */}
+              {referrerRewardMode === 'ROUNDS' && (
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <p className="text-[11px] text-muted-foreground font-semibold">
+                    Referrer Reward Presets (Candidate who shares code):
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {PRESET_REWARDS.map((p) => {
+                      const isSelected = referrerRewardMode === 'ROUNDS' && selectedReferrerPreset === p.label;
+                      return (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => applyPreset(p, 'referrer')}
+                          className={`p-2.5 rounded-lg border text-left text-xs font-semibold transition-all flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-purple-600 bg-purple-500/15 ring-2 ring-purple-500/30 text-purple-700 dark:text-purple-300 shadow-sm font-bold'
+                              : 'border-border bg-card hover:border-purple-500 hover:bg-purple-500/5 text-foreground'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span>{p.label}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground mt-1">
+                            {isSelected ? 'Selected for referrer' : 'Apply for referrer'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Referrer Option B: Specific Assigned Assessment */}
+              {referrerRewardMode === 'SPECIFIC_ASSESSMENT' && (
+                <div className="space-y-3 pt-2 border-t border-border/60">
+                  <div>
+                    <label className="font-bold text-foreground block mb-1">
+                      Select Target Assessment Blueprint for Referrer *
+                    </label>
+                    <select
+                      value={referrerSelectedAssessmentCode}
+                      onChange={(e) => {
+                        const code = e.target.value;
+                        setReferrerSelectedAssessmentCode(code);
+                        applySpecificAssessment(
+                          code,
+                          referrerAssignedAttempts,
+                          referrerIncludeBonusRound,
+                          referrerAssignedExpiryDays,
+                          'referrer',
+                        );
+                      }}
+                      className="w-full h-11 px-3 rounded-xl border-2 border-purple-500/50 bg-background font-bold text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                    >
+                      <option value="">-- Choose an Assessment to Unlock for Referrer --</option>
+                      {availableAssessments.map((a) => (
+                        <option key={a.id} value={a.code || a.id}>
+                          {a.name} ({a.code || a.id}) {a.durationMinutes ? `• ${a.durationMinutes}m` : ''} {a.role ? `[${a.role}]` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-foreground block mb-1">Max Attempts Allowed</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={referrerAssignedAttempts}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReferrerAssignedAttempts(val);
+                          applySpecificAssessment(
+                            referrerSelectedAssessmentCode,
+                            val,
+                            referrerIncludeBonusRound,
+                            referrerAssignedExpiryDays,
+                            'referrer',
+                          );
+                        }}
+                        className="h-9 rounded-xl text-xs font-semibold"
+                        placeholder="e.g. 1"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-foreground block mb-1">Validity (Days)</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={referrerAssignedExpiryDays}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReferrerAssignedExpiryDays(val);
+                          applySpecificAssessment(
+                            referrerSelectedAssessmentCode,
+                            referrerAssignedAttempts,
+                            referrerIncludeBonusRound,
+                            val,
+                            'referrer',
+                          );
+                        }}
+                        className="h-9 rounded-xl text-xs font-semibold"
+                        placeholder="e.g. 30 (blank = never)"
+                      />
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer pt-1 text-xs text-foreground font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={referrerIncludeBonusRound}
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setReferrerIncludeBonusRound(val);
+                        applySpecificAssessment(
+                          referrerSelectedAssessmentCode,
+                          referrerAssignedAttempts,
+                          val,
+                          referrerAssignedExpiryDays,
+                          'referrer',
+                        );
+                      }}
+                      className="rounded text-purple-600 focus:ring-purple-500 size-4"
+                    />
+                    <span>Also grant 1 assessment attempt quota to the referrer</span>
+                  </label>
+                </div>
+              )}
             </div>
           )}
 

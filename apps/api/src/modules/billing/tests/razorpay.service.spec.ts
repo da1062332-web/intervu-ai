@@ -2,6 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 import { RazorpayService } from "../services/razorpay.service";
+import { PlanManagementService } from "../services/plan-management.service";
 
 describe("RazorpayService", () => {
   let service: RazorpayService;
@@ -20,6 +21,16 @@ describe("RazorpayService", () => {
               if (key === "RAZORPAY_KEY_SECRET") return keySecret;
               if (key === "RAZORPAY_WEBHOOK_SECRET") return webhookSecret;
               return null;
+            }),
+          },
+        },
+        {
+          provide: PlanManagementService,
+          useValue: {
+            resolvePlanPricing: jest.fn(async (slug: string) => {
+              const upper = String(slug).toUpperCase();
+              const amount = upper === "TEAMS" ? 650000 : 240000;
+              return { plan: { slug: upper.toLowerCase(), priceMonthly: amount }, amount };
             }),
           },
         },

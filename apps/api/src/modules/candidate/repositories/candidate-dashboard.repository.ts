@@ -24,7 +24,7 @@ export class CandidateDashboardRepository {
             status: { in: ["IN_PROGRESS", "CREATED"] },
             expiresAt: { gt: new Date() },
             examConfig: {
-              status: "PUBLISHED",
+              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
               isActive: true,
               isArchived: false,
             },
@@ -79,7 +79,7 @@ export class CandidateDashboardRepository {
           where: {
             candidateId: userId,
             examConfig: {
-              status: "PUBLISHED",
+              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
               isActive: true,
               isArchived: false,
             },
@@ -112,9 +112,69 @@ export class CandidateDashboardRepository {
         this.getCachedExamConfigs(),
       ]);
 
+      const now = new Date();
+      const overrides = await this.prisma.userQuotaOverride.findMany({
+        where: {
+          userId,
+          featureKey: { in: ["allowed_assessments", "allowedAssessments"] },
+          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        },
+      });
+
+      const explicitCodes: string[] = [];
+      for (const ov of overrides) {
+        const val = ov.overrideValue as any;
+        const list = Array.isArray(val)
+          ? val
+          : Array.isArray(val?.assessments)
+            ? val.assessments
+            : [];
+        for (const item of list) {
+          if (typeof item === "string" && item.trim()) {
+            explicitCodes.push(item.trim());
+          }
+        }
+      }
+
+      let extraExamConfigs: any[] = [];
+      if (explicitCodes.length > 0) {
+        const missingCodes = explicitCodes.filter(
+          (c) => !examConfigs.some((ec: any) => ec.id === c || ec.code === c),
+        );
+        if (missingCodes.length > 0) {
+          extraExamConfigs = await this.prisma.examConfig.findMany({
+            where: {
+              isArchived: false,
+              OR: [
+                { id: { in: missingCodes } },
+                { code: { in: missingCodes } },
+              ],
+            },
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              durationMinutes: true,
+              totalQuestions: true,
+              sections: {
+                select: {
+                  name: true,
+                  questionCount: true,
+                  sectionDurationMinutes: true,
+                },
+              },
+              ruleFlags: { select: { id: true, maxAttempts: true } },
+              createdAt: true,
+            },
+          });
+        }
+      }
+
+      const combinedExamConfigs = [...examConfigs, ...extraExamConfigs];
+
       const allUserInstances = await this.prisma.testInstance.findMany({
         where: { userId },
-        select: { examConfigId: true, testConfigId: true }
+        select: { examConfigId: true, testConfigId: true },
       });
 
       // Build per-config attempt counts for the current user
@@ -129,7 +189,7 @@ export class CandidateDashboardRepository {
         }
       });
 
-      const upcomingTests = examConfigs
+      const upcomingTests = combinedExamConfigs
         .map((ec: any) => ({
           ...ec,
           isExam: true,
@@ -160,11 +220,11 @@ export class CandidateDashboardRepository {
   }
 
   private async getCachedExamConfigs() {
-    const key = "dashboard:examConfigs:available:v5";
+    const key = "dashboard:examConfigs:available:v8";
     let data = await this.cacheService.get<any>(key);
     if (!data) {
       data = await this.prisma.examConfig.findMany({
-        where: { isArchived: false, isActive: true, status: "PUBLISHED" },
+        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -183,7 +243,7 @@ export class CandidateDashboardRepository {
           createdAt: true,
         },
       });
-      await this.cacheService.set(key, data, { ttl: 300 });
+      await this.cacheService.set(key, data, { ttl: 60 });
     }
     return data;
   }

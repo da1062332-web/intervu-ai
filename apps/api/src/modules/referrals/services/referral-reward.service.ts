@@ -81,17 +81,24 @@ export class ReferralRewardService {
     });
 
     // If specific assessment was assigned AND bonus round was provided, also grant rounds quota
+    const attempts = rewardConfig.overrideValue?.attemptsPerExam;
+    const bonusRounds =
+      typeof (rewardConfig as any).bonusRounds === 'number'
+        ? (rewardConfig as any).bonusRounds
+        : typeof attempts === 'number'
+          ? attempts
+          : 0;
+
     if (
       rewardConfig.featureKey === 'allowed_assessments' &&
-      typeof (rewardConfig as any).bonusRounds === 'number' &&
-      (rewardConfig as any).bonusRounds > 0
+      bonusRounds > 0
     ) {
       await db.userQuotaOverride.create({
         data: {
           userId,
           featureKey: 'monthly_rounds_limit',
-          overrideValue: { bonusRounds: (rewardConfig as any).bonusRounds },
-          reason: `${reason} (+${(rewardConfig as any).bonusRounds} Bonus Round)`,
+          overrideValue: { bonusRounds },
+          reason: `${reason} (+${bonusRounds} Bonus ${bonusRounds > 1 ? 'Rounds' : 'Round'})`,
           expiresAt,
         },
       });

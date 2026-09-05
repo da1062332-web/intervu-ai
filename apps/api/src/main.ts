@@ -72,6 +72,8 @@ async function bootstrap() {
     "https://*.vercel.app",
     "https://www.skillitrix.com",
     "https://skillitrix.com",
+    "https://app.skillitrix.com",
+    "https://*.skillitrix.com",
   ];
 
   const envOrigins = configService.corsAllowedOrigins;

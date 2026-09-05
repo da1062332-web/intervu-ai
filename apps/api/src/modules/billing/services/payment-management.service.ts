@@ -99,13 +99,26 @@ export class PaymentManagementService {
       }),
     ]);
 
-    // Active paid subscribers for MRR estimation
-    const activePaidCount = await this.prisma.subscription.count({
+    // Active paid subscribers for MRR estimation, grouped by plan tier so each
+    // tier is weighted by its actual admin-configured price (never a flat guess).
+    const activeByPlan = await this.prisma.subscription.groupBy({
+      by: ["plan"],
       where: {
         status: "ACTIVE",
         plan: { in: ["PRO", "TEAMS"] },
       },
+      _count: { _all: true },
     });
+
+    const activePaidCount = activeByPlan.reduce((sum, g) => sum + g._count._all, 0);
+
+    let mrrEstimatePaise = 0;
+    for (const group of activeByPlan) {
+      const dbPlan = await this.prisma.plan.findFirst({
+        where: { slug: String(group.plan).toLowerCase() },
+      });
+      mrrEstimatePaise += (dbPlan?.priceMonthly || 0) * group._count._all;
+    }
 
     return {
       totalVolumePaise: totalVolume._sum.amount || 0,
@@ -113,7 +126,7 @@ export class PaymentManagementService {
       pendingCount,
       failedCount,
       activePaidCount,
-      mrrEstimatePaise: activePaidCount * 240000,
+      mrrEstimatePaise,
     };
   }
 

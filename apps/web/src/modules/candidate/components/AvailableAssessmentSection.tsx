@@ -3,11 +3,10 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, ArrowRight, Code, Palette, Cloud, Compass } from 'lucide-react';
+import { Clock, ArrowRight, Code, Palette, Cloud, Compass, Lock, Gift } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
 import { useTestCatalog } from '../hooks/useTestCatalog';
 import { useSubscriptionStore } from '@/store/subscription.store';
-import { Lock } from 'lucide-react';
 
 interface AvailableAssessmentSectionProps {
   dashboard?: CandidateDashboardData | null;
@@ -24,7 +23,15 @@ export function AvailableAssessmentSection({
 }: AvailableAssessmentSectionProps) {
   const router = useRouter();
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
+  const planSlug = useSubscriptionStore((state) => state.planSlug);
+  const planName = useSubscriptionStore((state) => state.planName);
+  const entitlements = useSubscriptionStore((state) => state.entitlements);
   const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
+
+  const isReferralUnlocked =
+    hasActivePlan &&
+    (planSlug === 'referral-pass' ||
+      Boolean(planName?.toLowerCase().includes('referral')));
   const { pagination } = useTestCatalog({ limit: 1 });
   const totalCount = pagination?.total || 0;
 
@@ -63,9 +70,9 @@ export function AvailableAssessmentSection({
           <h4 className='font-bold text-base text-foreground tracking-tight'>
             {!hasActivePlan ? 'Subscription Plan Required' : 'No Assessments in Your Plan'}
           </h4>
-          <p className='text-xs text-muted-foreground font-normal mt-1.5 max-w-[280px] leading-relaxed'>
+          <p className='text-xs text-muted-foreground font-normal mt-1.5 max-w-[320px] leading-relaxed'>
             {!hasActivePlan
-              ? 'Choose an active subscription plan to unlock and practice full-length assessments.'
+              ? 'You do not have an active subscription or your free referral attempts have concluded. Choose a plan to unlock full access to all mock tests and assessments.'
               : 'Your current subscription plan does not include any active assessments at this time.'}
           </p>
           <button
@@ -81,7 +88,7 @@ export function AvailableAssessmentSection({
   }
 
   const testsToRender = compact
-    ? dashboard.availableTests.slice(0, 4)
+    ? dashboard.availableTests.slice(0, 3)
     : dashboard.availableTests;
 
   const actualTests = testsToRender.map((t, index) => {
@@ -154,6 +161,11 @@ export function AvailableAssessmentSection({
                     {!hasActivePlan && (
                       <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1'>
                         <Lock className='size-3' /> Plan Required
+                      </span>
+                    )}
+                    {hasActivePlan && isReferralUnlocked && (
+                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1'>
+                        <Gift className='size-3' /> Referral Reward
                       </span>
                     )}
                     <span className='px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground border border-border/40'>

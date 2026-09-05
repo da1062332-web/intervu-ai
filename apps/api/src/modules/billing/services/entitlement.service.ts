@@ -70,19 +70,175 @@ export class EntitlementService {
 
     const subscription = await this.subscriptionService.getUserSubscription(userId);
 
-    // Default Fallback when no subscription exists
+    // Fallback when no subscription exists (check for referral pass)
     if (!subscription) {
-      const freeDef = PLAN_ENTITLEMENT_DEFINITIONS.FREE;
+      const freeDef = { ...PLAN_ENTITLEMENT_DEFINITIONS.FREE };
+      const now = new Date();
+      let hasRemainingReferralReward = false;
+      let referralRewardReason = '';
+      let remainingAttemptsCount = 0;
+      let latestOverrideExpiry: Date | null = null;
+
+      try {
+        const activeOverrides = await this.prisma.userQuotaOverride.findMany({
+          where: {
+            userId,
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: now } },
+            ],
+          },
+        });
+
+        // Merge multiple allowed_assessments overrides into a combined whitelist & attempt map
+        const allowedOverrides = activeOverrides.filter(
+          (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+        );
+        if (allowedOverrides.length > 0) {
+          const mergedAssessments: string[] = [];
+          const attemptsByExam: Record<string, number> = {};
+          let maxAttemptsFallback = 1;
+
+          for (const ov of allowedOverrides) {
+            const val = ov.overrideValue as any;
+            const list = Array.isArray(val) ? val : Array.isArray(val?.assessments) ? val.assessments : [];
+            const attempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+            maxAttemptsFallback = Math.max(maxAttemptsFallback, attempts);
+
+            for (const code of list) {
+              if (typeof code === 'string' && code.trim()) {
+                const trimmed = code.trim();
+                if (!mergedAssessments.includes(trimmed)) {
+                  mergedAssessments.push(trimmed);
+                }
+                attemptsByExam[trimmed] = Math.max(attemptsByExam[trimmed] || 0, attempts);
+              }
+            }
+          }
+
+          const examRecords = await this.prisma.examConfig.findMany({
+            where: {
+              OR: [
+                { id: { in: mergedAssessments } },
+                { code: { in: mergedAssessments } },
+              ],
+            },
+            select: { id: true, code: true, name: true },
+          });
+          const examNameMap = new Map<string, string>();
+          for (const er of examRecords) {
+            if (er.id) examNameMap.set(er.id, er.name);
+            if (er.code) examNameMap.set(er.code, er.name);
+          }
+
+          const unlockedRewards = mergedAssessments.map((code) => ({
+            code,
+            name: examNameMap.get(code) || code,
+            attempts: attemptsByExam[code] || maxAttemptsFallback,
+          }));
+
+          const mergedConfig = {
+            assessments: mergedAssessments,
+            attemptsPerExam: maxAttemptsFallback,
+            attemptsByExam,
+            unlockedRewards,
+          };
+          freeDef.allowedAssessments = mergedConfig as any;
+          (freeDef as any)['allowed_assessments'] = mergedConfig;
+        }
+
+        let totalRemainingAttempts = 0;
+        const reasons: string[] = [];
+
+        for (const override of activeOverrides) {
+          if (override.expiresAt && (!latestOverrideExpiry || override.expiresAt > latestOverrideExpiry)) {
+            latestOverrideExpiry = override.expiresAt;
+          }
+
+          if (override.featureKey !== 'allowed_assessments' && override.featureKey !== 'allowedAssessments') {
+            const camelKey = override.featureKey.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
+            (freeDef as any)[camelKey] = override.overrideValue;
+            (freeDef as any)[override.featureKey] = override.overrideValue;
+          }
+
+          if (override.featureKey === 'allowed_assessments' || override.featureKey === 'allowedAssessments') {
+            const val = override.overrideValue as any;
+            const maxAttempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+            const targetAssessments = Array.isArray(val?.assessments) ? val.assessments : [];
+
+            let completedAttempts = 0;
+            if (targetAssessments.length > 0) {
+              completedAttempts = await this.prisma.testInstance.count({
+                where: {
+                  userId,
+                  status: { in: ['SUBMITTED', 'COMPLETED'] },
+                  OR: [
+                    { examConfigId: { in: targetAssessments } },
+                    { testConfigId: { in: targetAssessments } },
+                    { examConfig: { code: { in: targetAssessments } } },
+                    { examConfig: { name: { in: targetAssessments } } },
+                  ],
+                },
+              });
+            } else {
+              completedAttempts = await this.prisma.testInstance.count({
+                where: {
+                  userId,
+                  status: { in: ['SUBMITTED', 'COMPLETED'] },
+                },
+              });
+            }
+
+            if (completedAttempts < maxAttempts) {
+              hasRemainingReferralReward = true;
+              totalRemainingAttempts += (maxAttempts - completedAttempts);
+              if (override.reason) reasons.push(override.reason);
+            }
+          } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+            const hasAllowedAssessments = activeOverrides.some(
+              (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+            );
+            if (
+              hasAllowedAssessments &&
+              (override.reason?.includes('Bonus Round') ||
+               override.reason?.includes('Bonus Practice Round') ||
+               override.reason?.includes('Referral') ||
+               override.reason?.includes('reward') ||
+               override.reason?.includes('Assigned Access'))
+            ) {
+              continue;
+            }
+
+            const val = override.overrideValue as any;
+            const bonus = typeof val?.bonusRounds === 'number' ? val.bonusRounds : (typeof val === 'number' ? val : 0);
+            if (bonus > 0) {
+              hasRemainingReferralReward = true;
+              totalRemainingAttempts += bonus;
+              if (override.reason) reasons.push(override.reason);
+            }
+          }
+        }
+
+        remainingAttemptsCount = totalRemainingAttempts;
+        if (reasons.length > 0) {
+          referralRewardReason = reasons.length === 1 ? reasons[0] : `${reasons.length} Referral Rewards Unlocked`;
+        }
+      } catch (err) {
+        this.logger.warn(`Failed to check overrides for user without subscription ${userId}: ${err}`);
+      }
+
       return {
         plan: "FREE",
-        status: "INCOMPLETE",
-        hasActivePlan: false,
-        currentPeriodEnd: null,
+        planName: hasRemainingReferralReward ? (referralRewardReason || 'Referral Access Pass') : 'Free Plan',
+        planSlug: hasRemainingReferralReward ? 'referral-pass' : 'free',
+        status: hasRemainingReferralReward ? ("ACTIVE" as any) : "INCOMPLETE",
+        hasActivePlan: hasRemainingReferralReward,
+        currentPeriodEnd: latestOverrideExpiry ? latestOverrideExpiry.toISOString() : null,
         features: {
           ...freeDef,
-          monthlyRoundsLimit: 0,
+          monthlyRoundsLimit: remainingAttemptsCount,
           monthlyRoundsUsed: 0,
-          monthlyRoundsRemaining: 0,
+          monthlyRoundsRemaining: remainingAttemptsCount,
         },
       };
     }
@@ -99,6 +255,7 @@ export class EntitlementService {
 
     const hasActivePlan = effectiveStatus === "ACTIVE" && !isExpired;
     const planTier: PlanTier = (subscription.plan as PlanTier) || "FREE";
+    const isPaid = planTier !== "FREE";
 
     // 1. Try to fetch dynamic plan and features from Database
     let planDef: PlanFeatures = { ...PLAN_ENTITLEMENT_DEFINITIONS.FREE };
@@ -138,8 +295,9 @@ export class EntitlementService {
         }
       }
 
-      // If still not found, check if there is an active dynamic plan configured in DB
-      if (!dbPlan) {
+      // If still not found, check if there is a single active dynamic plan configured in DB.
+      // Only applies to paid tiers - a FREE-tier user must never inherit a paid plan's features.
+      if (!dbPlan && isPaid) {
         const activePlans = await this.prisma.plan.findMany({
           where: { isActive: true },
           include: { features: true },
@@ -178,7 +336,11 @@ export class EntitlementService {
       }
     }
 
-    // 2. Check for active user quota overrides (Admin / Plan Manager grants)
+    // 2. Check for active user quota overrides (Admin / Plan Manager grants / Referral rewards)
+    let hasRemainingReferralReward = false;
+    let referralRewardReason = '';
+    let remainingAttemptsCount = 0;
+
     try {
       const activeOverrides = await this.prisma.userQuotaOverride.findMany({
         where: {
@@ -190,23 +352,146 @@ export class EntitlementService {
         },
       });
 
-      for (const override of activeOverrides) {
-        if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
-          const val = override.overrideValue as any;
-          if (val?.unlimited) {
-            planDef.monthlyRoundsLimit = null;
-          } else if (typeof val?.bonusRounds === 'number') {
-            const base = typeof planDef.monthlyRoundsLimit === 'number' ? planDef.monthlyRoundsLimit : 0;
-            planDef.monthlyRoundsLimit = base + val.bonusRounds;
-          } else if (typeof val === 'number') {
-            planDef.monthlyRoundsLimit = val;
+        // Merge multiple allowed_assessments overrides into a combined whitelist & attempt map
+        const allowedOverrides = activeOverrides.filter(
+          (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+        );
+        if (allowedOverrides.length > 0) {
+          const mergedAssessments: string[] = [];
+          const attemptsByExam: Record<string, number> = {};
+          let maxAttemptsFallback = 1;
+
+          for (const ov of allowedOverrides) {
+            const val = ov.overrideValue as any;
+            const list = Array.isArray(val) ? val : Array.isArray(val?.assessments) ? val.assessments : [];
+            const attempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+            maxAttemptsFallback = Math.max(maxAttemptsFallback, attempts);
+
+            for (const code of list) {
+              if (typeof code === 'string' && code.trim()) {
+                const trimmed = code.trim();
+                if (!mergedAssessments.includes(trimmed)) {
+                  mergedAssessments.push(trimmed);
+                }
+                attemptsByExam[trimmed] = Math.max(attemptsByExam[trimmed] || 0, attempts);
+              }
+            }
           }
-        } else {
-          const camelKey = override.featureKey.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
-          (planDef as any)[camelKey] = override.overrideValue;
-          (planDef as any)[override.featureKey] = override.overrideValue;
+
+          const examRecords = await this.prisma.examConfig.findMany({
+            where: {
+              OR: [
+                { id: { in: mergedAssessments } },
+                { code: { in: mergedAssessments } },
+              ],
+            },
+            select: { id: true, code: true, name: true },
+          });
+          const examNameMap = new Map<string, string>();
+          for (const er of examRecords) {
+            if (er.id) examNameMap.set(er.id, er.name);
+            if (er.code) examNameMap.set(er.code, er.name);
+          }
+
+          const unlockedRewards = mergedAssessments.map((code) => ({
+            code,
+            name: examNameMap.get(code) || code,
+            attempts: attemptsByExam[code] || maxAttemptsFallback,
+          }));
+
+          const mergedConfig = {
+            assessments: mergedAssessments,
+            attemptsPerExam: maxAttemptsFallback,
+            attemptsByExam,
+            unlockedRewards,
+          };
+          planDef.allowedAssessments = mergedConfig as any;
+          (planDef as any)['allowed_assessments'] = mergedConfig;
         }
-      }
+
+        let totalRemainingAttempts = 0;
+        const reasons: string[] = [];
+
+        for (const override of activeOverrides) {
+          if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+            const val = override.overrideValue as any;
+            if (val?.unlimited) {
+              planDef.monthlyRoundsLimit = null;
+            } else if (typeof val?.bonusRounds === 'number') {
+              if (planDef.monthlyRoundsLimit !== null) {
+                planDef.monthlyRoundsLimit = planDef.monthlyRoundsLimit + val.bonusRounds;
+              }
+            } else if (typeof val === 'number') {
+              planDef.monthlyRoundsLimit = val;
+            }
+          } else if (override.featureKey !== 'allowed_assessments' && override.featureKey !== 'allowedAssessments') {
+            const camelKey = override.featureKey.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
+            (planDef as any)[camelKey] = override.overrideValue;
+            (planDef as any)[override.featureKey] = override.overrideValue;
+          }
+
+          if (override.featureKey === 'allowed_assessments' || override.featureKey === 'allowedAssessments') {
+            const val = override.overrideValue as any;
+            const maxAttempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+            const targetAssessments = Array.isArray(val?.assessments) ? val.assessments : [];
+
+            let completedAttempts = 0;
+            if (targetAssessments.length > 0) {
+              completedAttempts = await this.prisma.testInstance.count({
+                where: {
+                  userId,
+                  status: { in: ['SUBMITTED', 'COMPLETED'] },
+                  OR: [
+                    { examConfigId: { in: targetAssessments } },
+                    { testConfigId: { in: targetAssessments } },
+                    { examConfig: { code: { in: targetAssessments } } },
+                    { examConfig: { name: { in: targetAssessments } } },
+                  ],
+                },
+              });
+            } else {
+              completedAttempts = await this.prisma.testInstance.count({
+                where: {
+                  userId,
+                  status: { in: ['SUBMITTED', 'COMPLETED'] },
+                },
+              });
+            }
+
+            if (completedAttempts < maxAttempts) {
+              hasRemainingReferralReward = true;
+              totalRemainingAttempts += (maxAttempts - completedAttempts);
+              if (override.reason) reasons.push(override.reason);
+            }
+          } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+            const hasAllowedAssessments = activeOverrides.some(
+              (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+            );
+            if (
+              hasAllowedAssessments &&
+              (override.reason?.includes('Bonus Round') ||
+               override.reason?.includes('Bonus Practice Round') ||
+               override.reason?.includes('Referral') ||
+               override.reason?.includes('reward') ||
+               override.reason?.includes('Assigned Access'))
+            ) {
+              continue;
+            }
+
+            const val = override.overrideValue as any;
+            const bonus = typeof val?.bonusRounds === 'number' ? val.bonusRounds : (typeof val === 'number' ? val : 0);
+            if (bonus > 0) {
+              hasRemainingReferralReward = true;
+              totalRemainingAttempts += bonus;
+              if (override.reason) reasons.push(override.reason);
+            }
+          }
+        }
+
+        remainingAttemptsCount = totalRemainingAttempts;
+        if (reasons.length > 0) {
+          referralRewardReason = reasons.length === 1 ? reasons[0] : `${reasons.length} Referral Rewards Unlocked`;
+        }
     } catch (err) {
       this.logger.warn(`Failed to fetch user quota overrides for '${userId}': ${err}`);
     }
@@ -223,15 +508,38 @@ export class EntitlementService {
         ? null
         : Math.max(0, planDef.monthlyRoundsLimit - roundsUsed);
 
-    const planDisplayName = dbPlan?.name || (planTier !== "FREE" ? `${planTier} Plan` : "Free Plan");
-    const planSlugName = dbPlan?.slug || String(planTier).toLowerCase();
+    // For paid subscribers: active if subscription status is ACTIVE and period not expired.
+    // For FREE plan tier: active only while referral reward quota is remaining.
+    const finalHasActivePlan = isPaid
+      ? subscription.status === 'ACTIVE' && !isExpired
+      : hasRemainingReferralReward;
+
+    const finalStatus: SubscriptionStatus = isExpired
+      ? 'EXPIRED'
+      : isPaid
+        ? (subscription.status as SubscriptionStatus)
+        : hasRemainingReferralReward
+          ? 'ACTIVE'
+          : 'INCOMPLETE';
+
+    const planDisplayName = isPaid
+      ? (dbPlan?.name || `${planTier} Plan`)
+      : hasRemainingReferralReward
+        ? (referralRewardReason || 'Referral Access Pass')
+        : 'Free Tier (No Active Plan)';
+
+    const planSlugName = isPaid
+      ? (dbPlan?.slug || String(planTier).toLowerCase())
+      : hasRemainingReferralReward
+        ? 'referral-pass'
+        : 'free';
 
     return {
       plan: planTier,
       planName: planDisplayName,
       planSlug: planSlugName,
-      status: effectiveStatus,
-      hasActivePlan,
+      status: finalStatus,
+      hasActivePlan: finalHasActivePlan,
       currentPeriodEnd: subscription.currentPeriodEnd
         ? subscription.currentPeriodEnd.toISOString()
         : null,

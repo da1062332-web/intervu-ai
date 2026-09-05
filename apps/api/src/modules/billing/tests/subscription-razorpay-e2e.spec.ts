@@ -5,6 +5,7 @@ import { SubscriptionService } from "../services/subscription.service";
 import { EntitlementService } from "../services/entitlement.service";
 import { UsageQuotaService } from "../services/usage-quota.service";
 import { RazorpayService } from "../services/razorpay.service";
+import { PlanManagementService } from "../services/plan-management.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { PlanTier, SubscriptionStatus, PaymentStatus } from "@prisma/client";
 import { ForbiddenException } from "@nestjs/common";
@@ -23,6 +24,10 @@ describe("Subscription & Razorpay E2E Lifecycle Integration", () => {
     paymentTransactions: new Map<string, any>(),
     usageQuotas: new Map<string, any>(),
     processedWebhookEvents: new Set<string>(),
+    plans: new Map<string, any>([
+      ["pro", { id: "plan-pro", slug: "pro", name: "Pro", priceMonthly: 240000, isActive: true }],
+      ["teams", { id: "plan-teams", slug: "teams", name: "Teams", priceMonthly: 650000, isActive: true }],
+    ]),
   };
 
   const mockPrisma: any = {
@@ -170,6 +175,18 @@ describe("Subscription & Razorpay E2E Lifecycle Integration", () => {
         return Promise.resolve(data);
       }),
     },
+    plan: {
+      findUnique: jest.fn(({ where }) => {
+        if (where.slug) return Promise.resolve(mockDb.plans.get(where.slug.toLowerCase()) || null);
+        return Promise.resolve(null);
+      }),
+      findFirst: jest.fn(({ where }) => {
+        const slug = where?.slug || where?.OR?.find((c: any) => c.slug)?.slug;
+        if (slug) return Promise.resolve(mockDb.plans.get(String(slug).toLowerCase()) || null);
+        return Promise.resolve(null);
+      }),
+      findMany: jest.fn(() => Promise.resolve(Array.from(mockDb.plans.values()))),
+    },
     $transaction: jest.fn((callback) => callback(mockPrisma)),
   };
 
@@ -184,6 +201,7 @@ describe("Subscription & Razorpay E2E Lifecycle Integration", () => {
         EntitlementService,
         UsageQuotaService,
         RazorpayService,
+        PlanManagementService,
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: ConfigService,

@@ -9,6 +9,7 @@ import {
   Crown,
   CheckCircle2,
   ArrowUpRight,
+  Gift,
 } from 'lucide-react';
 import { PlanCard } from '@/components/billing/plan-card';
 import { useSubscriptionStore } from '@/store/subscription.store';
@@ -204,15 +205,44 @@ export function CandidateSubscriptionSection() {
     (entitlements?.features as any)?.allowedAssessments ||
     (entitlements?.features as any)?.allowed_assessments;
 
-  const overallQuota =
-    typeof allowedAssessmentsVal === 'object' && allowedAssessmentsVal !== null
-      ? allowedAssessmentsVal.overallAttempts ?? allowedAssessmentsVal.attemptsPerExam ?? null
+  const rawUnlocked = allowedAssessmentsVal?.unlockedRewards;
+  const attemptsByExam = allowedAssessmentsVal?.attemptsByExam || {};
+  const assessmentList: string[] = Array.isArray(allowedAssessmentsVal?.assessments)
+    ? allowedAssessmentsVal.assessments
+    : Array.isArray(allowedAssessmentsVal)
+    ? allowedAssessmentsVal
+    : Object.keys(attemptsByExam);
+
+  const examFriendlyNames: Record<string, string> = {
+    TCS_NQT_PLACEMENT_ASSESSMENT: 'TCS NQT Placement Assessment – Full Length Mock Test',
+    ASM_TCS_NQT_SHORT_001: 'TCS NQT Short — Free Readiness Check',
+  };
+
+  const unlockedRewards: Array<{ code: string; name: string; attempts: number }> =
+    Array.isArray(rawUnlocked) && rawUnlocked.length > 0
+      ? rawUnlocked
+      : assessmentList.map((code: string) => ({
+          code,
+          name: examFriendlyNames[code] || code,
+          attempts:
+            typeof attemptsByExam[code] === 'number'
+              ? attemptsByExam[code]
+              : (allowedAssessmentsVal?.attemptsPerExam ?? 1),
+        }));
+
+  const totalReferralAttempts =
+    unlockedRewards.length > 0
+      ? unlockedRewards.reduce((sum, r) => sum + r.attempts, 0)
       : null;
 
   const roundsUsed = entitlements?.features?.monthlyRoundsUsed ?? 0;
   const rawRoundsLimit = entitlements?.features?.monthlyRoundsLimit ?? null;
-  const effectiveLimit = overallQuota !== null ? overallQuota : rawRoundsLimit;
-  const quotaLabel = overallQuota !== null ? 'Exam Attempts Used' : 'Monthly Tests Used';
+  const effectiveLimit =
+    totalReferralAttempts !== null
+      ? totalReferralAttempts
+      : rawRoundsLimit;
+
+  const quotaLabel = totalReferralAttempts !== null ? 'Exam Attempts Used' : 'Monthly Tests Used';
   const percentUsed = effectiveLimit ? Math.min(100, Math.round((roundsUsed / effectiveLimit) * 100)) : 0;
 
   return (
@@ -328,6 +358,41 @@ export function CandidateSubscriptionSection() {
                 </div>
               )}
             </div>
+
+            {/* Unlocked Referral Rewards List */}
+            {unlockedRewards && unlockedRewards.length > 0 && (
+              <div className='pt-3 border-t border-border/60 space-y-2.5'>
+                <div className='flex items-center justify-between'>
+                  <span className='text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5'>
+                    <Sparkles className='size-3.5 text-indigo-600' /> Unlocked Referral Rewards
+                  </span>
+                  <span className='text-[11px] font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200/60'>
+                    {unlockedRewards.length} {unlockedRewards.length === 1 ? 'Assessment' : 'Assessments'}
+                  </span>
+                </div>
+                <div className='space-y-2'>
+                  {unlockedRewards.map((reward) => (
+                    <div
+                      key={reward.code}
+                      className='flex items-center justify-between p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors border border-border/60 text-xs'
+                    >
+                      <div className='flex items-center gap-2 min-w-0 pr-2'>
+                        <CheckCircle2 className='size-4 text-emerald-600 shrink-0' />
+                        <span className='font-medium text-foreground truncate' title={reward.name}>
+                          {reward.name}
+                        </span>
+                      </div>
+                      <Badge
+                        variant='outline'
+                        className='bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800 text-[11px] font-bold shrink-0'
+                      >
+                        {reward.attempts} {reward.attempts === 1 ? 'Attempt' : 'Attempts'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 

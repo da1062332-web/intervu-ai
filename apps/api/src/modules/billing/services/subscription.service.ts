@@ -2,12 +2,16 @@ import { Injectable, Logger, ConflictException, NotFoundException, ForbiddenExce
 import { PrismaService } from "../../../prisma/prisma.service";
 import { PlanTier, SubscriptionStatus, PaymentStatus } from "@prisma/client";
 import { SubscriptionStatusResponse } from "@intervu-ai/contracts";
+import { PlanManagementService } from "./plan-management.service";
 
 @Injectable()
 export class SubscriptionService {
   private readonly logger = new Logger(SubscriptionService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planManagementService: PlanManagementService,
+  ) {}
 
   async getUserSubscription(userId: string) {
     return this.prisma.subscription.findUnique({
@@ -52,7 +56,134 @@ export class SubscriptionService {
       where: { userId },
     });
 
+    const now = new Date();
+
+    // Check active user quota overrides (e.g. referral rewards)
+    let hasRemainingReferralReward = false;
+    let referralRewardReason = '';
+    let remainingAttemptsCount = 0;
+    let latestOverrideExpiry: Date | null = null;
+    let totalRemainingAttempts = 0;
+    const reasons: string[] = [];
+
+    try {
+      const activeOverrides = await this.prisma.userQuotaOverride.findMany({
+        where: {
+          userId,
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: now } },
+          ],
+        },
+      });
+
+      for (const override of activeOverrides) {
+        if (override.expiresAt && (!latestOverrideExpiry || override.expiresAt > latestOverrideExpiry)) {
+          latestOverrideExpiry = override.expiresAt;
+        }
+
+        if (override.featureKey === 'allowed_assessments' || override.featureKey === 'allowedAssessments') {
+          const val = override.overrideValue as any;
+          const maxAttempts = typeof val?.attemptsPerExam === 'number' ? val.attemptsPerExam : 1;
+          const targetAssessments = Array.isArray(val?.assessments) ? val.assessments : [];
+
+          let completedAttempts = 0;
+          if (targetAssessments.length > 0) {
+            completedAttempts = await this.prisma.testInstance.count({
+              where: {
+                userId,
+                status: { in: ['SUBMITTED', 'COMPLETED'] },
+                OR: [
+                  { examConfigId: { in: targetAssessments } },
+                  { testConfigId: { in: targetAssessments } },
+                  { examConfig: { code: { in: targetAssessments } } },
+                  { examConfig: { name: { in: targetAssessments } } },
+                ],
+              },
+            });
+          } else {
+            completedAttempts = await this.prisma.testInstance.count({
+              where: {
+                userId,
+                status: { in: ['SUBMITTED', 'COMPLETED'] },
+              },
+            });
+          }
+
+          if (completedAttempts < maxAttempts) {
+            hasRemainingReferralReward = true;
+            totalRemainingAttempts += (maxAttempts - completedAttempts);
+            if (override.reason) reasons.push(override.reason);
+          }
+        } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+          // If this bonus round is auxiliary to an allowed_assessments reward, the assessment attempt limit above governs
+          const hasAllowedAssessments = activeOverrides.some(
+            (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
+          );
+          if (
+            hasAllowedAssessments &&
+            (override.reason?.includes('Bonus Round') ||
+             override.reason?.includes('Bonus Practice Round') ||
+             override.reason?.includes('Referral') ||
+             override.reason?.includes('reward') ||
+             override.reason?.includes('Assigned Access'))
+          ) {
+            continue;
+          }
+
+          const val = override.overrideValue as any;
+          const bonus = typeof val?.bonusRounds === 'number' ? val.bonusRounds : (typeof val === 'number' ? val : 0);
+          let used = 0;
+          const periodKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          const q = await this.prisma.usageQuota.findFirst({
+            where: {
+              userId,
+              OR: [
+                { periodKey },
+                { subscriptionId: subscription?.id },
+              ],
+            },
+          });
+          used = q?.roundsUsed || 0;
+          const instanceCount = await this.prisma.testInstance.count({
+            where: {
+              userId,
+              status: { in: ['SUBMITTED', 'COMPLETED'] },
+            },
+          });
+          used = Math.max(used, instanceCount);
+
+          if (bonus > used) {
+            hasRemainingReferralReward = true;
+            totalRemainingAttempts += (bonus - used);
+            if (override.reason) reasons.push(override.reason);
+          }
+        }
+      }
+
+      remainingAttemptsCount = totalRemainingAttempts;
+      if (reasons.length > 0) {
+        referralRewardReason =
+          reasons.length === 1
+            ? reasons[0]
+            : `${reasons.length} Referral Rewards Active`;
+      }
+    } catch (err) {
+      this.logger.warn(`Error checking referral overrides for ${userId}: ${err}`);
+    }
+
     if (!subscription) {
+      if (hasRemainingReferralReward) {
+        return {
+          hasActivePlan: true,
+          plan: 'REFERRAL_PASS' as any,
+          planName: referralRewardReason || 'Referral Access Pass',
+          planSlug: 'referral-pass',
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodEnd: latestOverrideExpiry ? latestOverrideExpiry.toISOString() : null,
+          cancelAtPeriodEnd: false,
+        };
+      }
       return {
         hasActivePlan: false,
         plan: null,
@@ -62,14 +193,17 @@ export class SubscriptionService {
       };
     }
 
-    const now = new Date();
+    const isPaid = subscription.plan !== PlanTier.FREE;
     const isExpired =
-      subscription.plan !== PlanTier.FREE &&
+      isPaid &&
       subscription.currentPeriodEnd &&
       subscription.currentPeriodEnd < now;
 
-    const isActive =
-      subscription.status === SubscriptionStatus.ACTIVE && !isExpired;
+    // For paid subscribers: active if status is ACTIVE and period not expired.
+    // For FREE plan tier: active only while referral reward quota is remaining.
+    const isActive = isPaid
+      ? subscription.status === SubscriptionStatus.ACTIVE && !isExpired
+      : hasRemainingReferralReward;
 
     // Resolve dynamic plan details from database
     let planSlug = String(subscription.plan).toLowerCase();
@@ -105,7 +239,7 @@ export class SubscriptionService {
         }
       }
 
-      if (!dbPlan) {
+      if (!dbPlan && isPaid) {
         const activePlans = await this.prisma.plan.findMany({
           where: { isActive: true },
         });
@@ -114,21 +248,39 @@ export class SubscriptionService {
         }
       }
 
-      if (dbPlan) {
+      if (dbPlan && isPaid) {
         planSlug = dbPlan.slug;
         planDisplayName = dbPlan.name;
+      } else if (!isPaid) {
+        if (hasRemainingReferralReward) {
+          planSlug = 'referral-pass';
+          planDisplayName = referralRewardReason || 'Referral Access Pass';
+        } else {
+          planSlug = 'free';
+          planDisplayName = 'Free Tier (No Active Plan)';
+        }
       }
     } catch {}
+
+    const effectiveStatus = isExpired
+      ? ("EXPIRED" as any)
+      : isPaid
+        ? (subscription.status as any)
+        : hasRemainingReferralReward
+          ? SubscriptionStatus.ACTIVE
+          : SubscriptionStatus.INCOMPLETE;
 
     return {
       hasActivePlan: isActive,
       plan: planSlug.toUpperCase() as any,
       planName: planDisplayName,
       planSlug: planSlug,
-      status: isExpired ? ("EXPIRED" as any) : (subscription.status as any),
-      currentPeriodEnd: subscription.currentPeriodEnd
-        ? subscription.currentPeriodEnd.toISOString()
-        : null,
+      status: effectiveStatus,
+      currentPeriodEnd: latestOverrideExpiry
+        ? latestOverrideExpiry.toISOString()
+        : subscription.currentPeriodEnd
+          ? subscription.currentPeriodEnd.toISOString()
+          : null,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
     };
   }
@@ -218,6 +370,30 @@ export class SubscriptionService {
     }
 
     return true;
+  }
+
+  /**
+   * Resolves the authoritative plan & price that were recorded server-side when the
+   * order was created (recordPendingOrder). This is the only trustworthy source for
+   * what a client should be granted after payment - a client-supplied plan/amount on
+   * the verify-payment call must never be used to decide entitlements.
+   */
+  async getOrderPlan(
+    razorpayOrderId: string,
+  ): Promise<{ plan: PlanTier; amount: number; currency: string } | null> {
+    const tx = await this.prisma.paymentTransaction.findFirst({
+      where: { razorpayOrderId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!tx) {
+      return null;
+    }
+
+    const payloadPlan = (tx.eventPayload as any)?.plan;
+    const plan = (String(payloadPlan || "PRO").toUpperCase() as PlanTier);
+
+    return { plan, amount: tx.amount, currency: tx.currency };
   }
 
   /**
@@ -413,6 +589,7 @@ export class SubscriptionService {
     currentPeriodEnd?: Date;
     billingCycle?: string;
   }) {
+    const amount = await this.resolvePlanAmount(params.plan);
     return this.processPaymentSuccess({
       userId: params.userId,
       plan: params.plan,
@@ -420,9 +597,23 @@ export class SubscriptionService {
       razorpayOrderId: params.razorpaySubscriptionId,
       razorpayCustomerId: params.razorpayCustomerId,
       currentPeriodEnd: params.currentPeriodEnd,
-      amount: params.plan === PlanTier.PRO ? 240000 : 650000,
+      amount,
       source: "CLIENT_CALLBACK",
     });
+  }
+
+  /**
+   * Looks up the admin-configured price for a plan tier from the database.
+   * Falls back to 0 (rather than a guessed number) if no matching Plan row exists,
+   * so bookkeeping never silently records a fabricated price.
+   */
+  private async resolvePlanAmount(plan: PlanTier): Promise<number> {
+    try {
+      const dbPlan = await this.planManagementService.getPlanBySlug(String(plan).toLowerCase());
+      return typeof dbPlan?.priceMonthly === "number" ? dbPlan.priceMonthly : 0;
+    } catch {
+      return 0;
+    }
   }
 
   async cancelSubscriptionByRazorpayId(razorpaySubscriptionId: string) {
