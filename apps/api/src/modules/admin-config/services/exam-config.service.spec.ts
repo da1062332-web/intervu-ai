@@ -7,7 +7,7 @@ import {
 import { ExamConfigService } from "./exam-config.service";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamConfigDto, UpdateExamConfigDto } from "@intervu/shared";
-import { ConfigStatus, ExamConfig } from "@prisma/client";
+import { ConfigStatus, ExamConfig, SandboxUIType } from "@prisma/client";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 describe("ExamConfigService", () => {
@@ -66,6 +66,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -96,6 +97,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ACTIVE,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -125,6 +127,7 @@ describe("ExamConfigService", () => {
           status: ConfigStatus.ACTIVE,
           isArchived: false,
           isActive: true,
+          sandboxUi: SandboxUIType.DEFAULT,
           createdBy: "admin-1",
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -156,6 +159,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ACTIVE,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -190,6 +194,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: false,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -223,6 +228,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -265,6 +271,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.ARCHIVED,
         isArchived: true,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -289,6 +296,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -305,6 +313,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -332,6 +341,7 @@ describe("ExamConfigService", () => {
         status: ConfigStatus.DRAFT,
         isArchived: false,
         isActive: true,
+        sandboxUi: SandboxUIType.DEFAULT,
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),

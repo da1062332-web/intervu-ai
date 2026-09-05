@@ -8,7 +8,7 @@ import { ExamSectionService } from "./exam-section.service";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
-import { ConfigStatus, ExamConfig, ExamSection } from "@prisma/client";
+import { ConfigStatus, ExamConfig, ExamSection, SandboxUIType } from "@prisma/client";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 describe("ExamSectionService", () => {
@@ -74,6 +74,7 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -196,6 +197,7 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -254,6 +256,7 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -417,6 +420,7 @@ describe("ExamSectionService", () => {
       status: ConfigStatus.DRAFT,
       isArchived: false,
       isActive: true,
+      sandboxUi: SandboxUIType.DEFAULT,
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
