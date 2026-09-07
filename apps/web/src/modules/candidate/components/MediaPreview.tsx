@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as faceapi from '@vladmandic/face-api';
-import { Mic, MicOff, UserCheck, UserX } from 'lucide-react';
+import { Mic, MicOff, UserCheck, UserX, Users } from 'lucide-react';
 
 interface MediaPreviewProps {
   onFaceDetected: (detected: boolean) => void;
@@ -17,7 +17,7 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
   const rafRef = useRef<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [hasFace, setHasFace] = useState(false);
+  const [faceCount, setFaceCount] = useState(0);
   const [micActive, setMicActive] = useState(false);
   const [volume, setVolume] = useState(0);
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -119,21 +119,22 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
       }
 
       // Face Detection
-      if (videoRef.current && videoRef.current.readyState === 4) {
+      if (videoRef.current && videoRef.current.readyState >= 2) {
         try {
           const isSsdReady = faceapi.nets.ssdMobilenetv1.isLoaded;
+          const isTinyReady = faceapi.nets.tinyFaceDetector.isLoaded;
           const options = isSsdReady
-            ? new faceapi.SsdMobilenetv1Options({ minConfidence: 0.2 })
-            : new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.2 });
-          const detection = await faceapi.detectSingleFace(videoRef.current, options);
+            ? new faceapi.SsdMobilenetv1Options({ minConfidence: 0.25 })
+            : isTinyReady
+              ? new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.2 })
+              : null;
 
-          if (canvasRef.current && videoRef.current) {
+          if (options && canvasRef.current && videoRef.current) {
             const displaySize = {
               width: videoRef.current.videoWidth,
               height: videoRef.current.videoHeight,
             };
 
-            // Only match dimensions if they differ to prevent clearing the canvas unnecessarily
             if (
               canvasRef.current.width !== displaySize.width ||
               canvasRef.current.height !== displaySize.height
@@ -141,26 +142,40 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
               faceapi.matchDimensions(canvasRef.current, displaySize);
             }
 
+            const rawDetections = await faceapi.detectAllFaces(videoRef.current, options);
+            const detections = faceapi.resizeResults(rawDetections, displaySize);
+            const count = detections.length;
+
+            setFaceCount(count);
+            // Exactly 1 face is considered a successful test readiness state
+            onFaceDetected(count === 1);
+
             const ctx = canvasRef.current.getContext('2d');
             if (ctx) {
               ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-              if (detection) {
-                const resizedDetections = faceapi.resizeResults(detection, displaySize);
-                ctx.strokeStyle = '#ef4444'; // Red-500
-                ctx.lineWidth = 2; // Thin
-                ctx.strokeRect(
-                  resizedDetections.box.x,
-                  resizedDetections.box.y,
-                  resizedDetections.box.width,
-                  resizedDetections.box.height,
-                );
+
+              if (count === 1) {
+                const det = detections[0];
+                ctx.strokeStyle = '#22c55e'; // Green
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(det.box.x, det.box.y, det.box.width, det.box.height);
+
+                ctx.fillStyle = '#16a34a';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText('1 Face Detected', det.box.x, Math.max(14, det.box.y - 4));
+              } else if (count > 1) {
+                detections.forEach((det, idx) => {
+                  ctx.strokeStyle = '#f97316'; // Orange-500
+                  ctx.lineWidth = 2.5;
+                  ctx.strokeRect(det.box.x, det.box.y, det.box.width, det.box.height);
+
+                  ctx.fillStyle = '#ea580c';
+                  ctx.font = 'bold 12px sans-serif';
+                  ctx.fillText(`Face ${idx + 1}`, det.box.x, Math.max(14, det.box.y - 4));
+                });
               }
             }
           }
-
-          const faceDetected = !!detection;
-          setHasFace(faceDetected);
-          onFaceDetected(faceDetected);
         } catch {
           // ignore detection errors on unmount
         }
@@ -169,7 +184,7 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
       // Continue loop with a timeout to reduce CPU usage
       timerRef.current = setTimeout(() => {
         rafRef.current = requestAnimationFrame(detect);
-      }, 500);
+      }, 350);
     };
 
     detect();
@@ -231,10 +246,30 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
 
             {/* Face Indicator */}
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${hasFace ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${
+                faceCount === 1
+                  ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                  : faceCount > 1
+                    ? 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+                    : 'bg-red-500/20 text-red-300 border-red-500/30'
+              }`}
             >
-              {hasFace ? <UserCheck className='w-3.5 h-3.5' /> : <UserX className='w-3.5 h-3.5' />}
-              {hasFace ? 'Face Detected' : 'No Face Detected'}
+              {faceCount === 1 ? (
+                <>
+                  <UserCheck className='w-3.5 h-3.5' />
+                  <span>1 Face Detected</span>
+                </>
+              ) : faceCount > 1 ? (
+                <>
+                  <Users className='w-3.5 h-3.5' />
+                  <span>Multiple Faces Detected ({faceCount})</span>
+                </>
+              ) : (
+                <>
+                  <UserX className='w-3.5 h-3.5' />
+                  <span>No Face Detected</span>
+                </>
+              )}
             </div>
           </div>
         </>
