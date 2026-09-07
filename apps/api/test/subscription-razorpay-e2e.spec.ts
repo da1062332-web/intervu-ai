@@ -6,8 +6,15 @@ import { EntitlementService } from "../src/modules/billing/services/entitlement.
 import { UsageQuotaService } from "../src/modules/billing/services/usage-quota.service";
 import { RazorpayService } from "../src/modules/billing/services/razorpay.service";
 import { PrismaService } from "../src/prisma/prisma.service";
-import { PlanTier, SubscriptionStatus, PaymentStatus } from "@prisma/client";
+import { SubscriptionStatus, PaymentStatus } from "@prisma/client";
 import { ForbiddenException, BadRequestException } from "@nestjs/common";
+
+const PlanTier = {
+  FREE: "FREE",
+  STARTER: "STARTER",
+  PRO: "PRO",
+  TEAMS: "TEAMS",
+} as const;
 
 describe("Subscription & Razorpay E2E Lifecycle Integration", () => {
   let module: TestingModule;

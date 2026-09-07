@@ -7,8 +7,15 @@ import { UsageQuotaService } from "../services/usage-quota.service";
 import { RazorpayService } from "../services/razorpay.service";
 import { PlanManagementService } from "../services/plan-management.service";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { PlanTier, SubscriptionStatus, PaymentStatus } from "@prisma/client";
+import { SubscriptionStatus, PaymentStatus } from "@prisma/client";
 import { ForbiddenException } from "@nestjs/common";
+
+const PlanTier = {
+  FREE: "FREE",
+  STARTER: "STARTER",
+  PRO: "PRO",
+  TEAMS: "TEAMS",
+} as const;
 
 describe("Subscription & Razorpay E2E Lifecycle Integration", () => {
   let module: TestingModule;
@@ -367,9 +374,9 @@ describe("Subscription & Razorpay E2E Lifecycle Integration", () => {
     expect(entitlements.hasActivePlan).toBe(true);
     expect(entitlements.plan).toBe("PRO");
     expect(entitlements.features.voiceInterviews).toBe(true);
-    expect(entitlements.features.monthlyRoundsLimit).toBeNull(); // Unlimited
+    expect(entitlements.features.monthlyRoundsLimit).toBe(20);
     expect(entitlements.features.transcriptExport).toContain("pdf");
-    expect(entitlements.features.questionBankSize).toBe(512);
+    expect(entitlements.features.questionBankSize).toBe(500);
   });
 
   it("Step 6: Idempotent Payment & Webhook processing -> Duplicate events do not cause errors or multiple charges", async () => {

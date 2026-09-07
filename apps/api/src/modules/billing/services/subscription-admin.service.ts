@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { PlanTier, SubscriptionStatus } from "@prisma/client";
+import { SubscriptionStatus } from "@prisma/client";
 
 @Injectable()
 export class SubscriptionAdminService {
@@ -102,11 +102,13 @@ export class SubscriptionAdminService {
       throw new NotFoundException(`User with ID '${userId}' not found`);
     }
 
-    const normalizedPlan = (planSlug.toUpperCase() as PlanTier) || "PRO";
+    const normalizedPlan = (planSlug || "PRO").trim();
 
     const currentPeriodStart = new Date();
     const currentPeriodEnd = new Date();
     currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+
+    const isFree = normalizedPlan.toUpperCase() === "FREE";
 
     return this.prisma.subscription.upsert({
       where: { userId },
@@ -115,13 +117,13 @@ export class SubscriptionAdminService {
         plan: normalizedPlan,
         status: "ACTIVE",
         currentPeriodStart,
-        currentPeriodEnd: normalizedPlan === "FREE" ? null : currentPeriodEnd,
+        currentPeriodEnd: isFree ? null : currentPeriodEnd,
       },
       update: {
         plan: normalizedPlan,
         status: "ACTIVE",
         currentPeriodStart,
-        currentPeriodEnd: normalizedPlan === "FREE" ? null : currentPeriodEnd,
+        currentPeriodEnd: isFree ? null : currentPeriodEnd,
       },
     });
   }
