@@ -54,6 +54,24 @@ export const PLAN_ENTITLEMENT_DEFINITIONS: Record<string, PlanFeatures> = {
     detailedAnalytics: false,
     supportTier: 'community',
   },
+  STARTER: {
+    monthlyRoundsLimit: 10,
+    roundFormats: ['behavioral', 'technical'],
+    voiceInterviews: true,
+    timedConditions: true,
+    rubricScoring: 'per_criterion',
+    markedTranscript: true,
+    roundHistoryLimit: 10,
+    transcriptExport: ['markdown'],
+    questionBankSize: 200,
+    roleTracksLimit: 3,
+    customQuestionPacks: false,
+    seats: 1,
+    cohortDashboard: false,
+    detailedAnalytics: true,
+    supportTier: 'email_1bd',
+    allowedAssessments: ['all'],
+  },
   PRO: {
     monthlyRoundsLimit: 20,
     roundFormats: ['behavioral', 'technical', 'case_study'],
@@ -70,6 +88,7 @@ export const PLAN_ENTITLEMENT_DEFINITIONS: Record<string, PlanFeatures> = {
     cohortDashboard: false,
     detailedAnalytics: true,
     supportTier: 'email_1bd',
+    allowedAssessments: ['all'],
   },
   TEAMS: {
     monthlyRoundsLimit: null,
@@ -87,6 +106,7 @@ export const PLAN_ENTITLEMENT_DEFINITIONS: Record<string, PlanFeatures> = {
     cohortDashboard: true,
     detailedAnalytics: true,
     supportTier: 'named_contact',
+    allowedAssessments: ['all'],
   },
 };
 

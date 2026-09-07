@@ -94,11 +94,11 @@ export class PublicTestsService {
     }
 
     const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
-    if (isVip) {
+    const hasActivePlan = Boolean(entitlements?.hasActivePlan);
+    const isPaidSubscriber = hasActivePlan || isVip || ['STARTER', 'PRO', 'TEAMS'].includes(String(entitlements?.plan).toUpperCase());
+    if (isPaidSubscriber && (!allowedList || allowedList.length === 0)) {
       allowedList = ['all'];
     }
-
-    const hasActivePlan = Boolean(entitlements?.hasActivePlan);
 
     const filteredItems = result.items.filter((t: any) => {
       if (!allowedList || allowedList.includes("all")) return true;

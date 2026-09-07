@@ -72,14 +72,8 @@ export function CandidateReferralCard() {
       }
     }
 
-    if (status?.personalCode) {
-      return `${domain}/signup?ref=${status.personalCode}`;
-    }
-    if (status?.referralLink) {
-      return status.referralLink.replace(/https?:\/\/[^/]+/, domain);
-    }
-    return '';
-  }, [status]);
+    return `${domain}/signup`;
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -98,7 +92,7 @@ export function CandidateReferralCard() {
   }, []);
 
   const copyLink = () => {
-    const link = effectiveReferralLink || status?.referralLink;
+    const link = effectiveReferralLink;
     if (!link) return;
     navigator.clipboard.writeText(link);
     setCopied(true);
@@ -107,7 +101,7 @@ export function CandidateReferralCard() {
   };
 
   const handleNativeShare = async () => {
-    const link = effectiveReferralLink || status?.referralLink;
+    const link = effectiveReferralLink;
     if (!link) return;
 
     if (typeof navigator !== 'undefined' && navigator.share) {
@@ -226,16 +220,11 @@ export function CandidateReferralCard() {
                 <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 Your Personal Referral Link
               </span>
-              {status.personalCode && (
-                <span className="text-xs text-muted-foreground">
-                  Code: <code className="font-mono font-bold text-purple-600 dark:text-purple-400">{status.personalCode}</code>
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-background border border-border rounded-xl px-3 py-2 overflow-hidden shadow-inner">
-                <p className="font-mono text-xs text-foreground truncate">{effectiveReferralLink || status.referralLink}</p>
+                <p className="font-mono text-xs text-foreground truncate">{effectiveReferralLink}</p>
               </div>
               <Button
                 size="sm"
@@ -274,7 +263,7 @@ export function CandidateReferralCard() {
                   type="button"
                   onClick={() =>
                     window.open(
-                      `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareCampaignMessage} ${effectiveReferralLink || status.referralLink}`)}`,
+                      `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareCampaignMessage} ${effectiveReferralLink}`)}`,
                       '_blank',
                       'noopener,noreferrer'
                     )
@@ -290,7 +279,7 @@ export function CandidateReferralCard() {
                   type="button"
                   onClick={() =>
                     window.open(
-                      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(effectiveReferralLink || status.referralLink)}`,
+                      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(effectiveReferralLink)}`,
                       '_blank',
                       'noopener,noreferrer'
                     )
@@ -306,7 +295,7 @@ export function CandidateReferralCard() {
                   type="button"
                   onClick={() =>
                     window.open(
-                      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareCampaignMessage)}&url=${encodeURIComponent(effectiveReferralLink || status.referralLink)}`,
+                      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareCampaignMessage)}&url=${encodeURIComponent(effectiveReferralLink)}`,
                       '_blank',
                       'noopener,noreferrer'
                     )
@@ -322,7 +311,7 @@ export function CandidateReferralCard() {
                   type="button"
                   onClick={() =>
                     window.open(
-                      `https://t.me/share/url?url=${encodeURIComponent(effectiveReferralLink || status.referralLink)}&text=${encodeURIComponent(shareCampaignMessage)}`,
+                      `https://t.me/share/url?url=${encodeURIComponent(effectiveReferralLink)}&text=${encodeURIComponent(shareCampaignMessage)}`,
                       '_blank',
                       'noopener,noreferrer'
                     )
@@ -349,7 +338,7 @@ export function CandidateReferralCard() {
                     type="button"
                     onClick={() =>
                       window.open(
-                        `mailto:?subject=${encodeURIComponent(shareCampaignTitle)}&body=${encodeURIComponent(`${shareCampaignMessage}\n\n${effectiveReferralLink || status.referralLink}`)}`,
+                        `mailto:?subject=${encodeURIComponent(shareCampaignTitle)}&body=${encodeURIComponent(`${shareCampaignMessage}\n\n${effectiveReferralLink}`)}`,
                         '_self'
                       )
                     }
@@ -382,8 +371,8 @@ export function CandidateReferralCard() {
             <Input
               value={redeemCode}
               onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
-              placeholder="Enter 8-digit code (e.g. BR534D46)"
-              className="font-mono tracking-widest uppercase h-10 rounded-xl flex-1 text-xs"
+              placeholder="Enter your referral code"
+              className="font-mono tracking-widest uppercase placeholder:normal-case placeholder:font-sans placeholder:tracking-normal h-10 rounded-xl flex-1 text-xs"
               maxLength={16}
               onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
             />
