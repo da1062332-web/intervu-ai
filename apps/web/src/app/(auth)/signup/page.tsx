@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
@@ -83,28 +83,54 @@ function SignupFormContent() {
   });
 
   const { mutateAsync: performGoogleLogin } = googleLoginMutation;
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef<boolean>(false);
+  const performGoogleLoginRef = useRef(performGoogleLogin);
+  performGoogleLoginRef.current = performGoogleLogin;
+  const formRef = useRef(form);
+  formRef.current = form;
+  const detectedRefVal = useRef(detectedRef);
+  detectedRefVal.current = detectedRef;
 
   useEffect(() => {
-    const initGoogle = () => {
-      const google = (window as any).google;
-      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
+    if (!clientId) return;
 
-      if (google && clientId) {
+    let isMounted = true;
+
+    const initGoogle = () => {
+      if (!isMounted || isInitializedRef.current) return;
+      const google = (window as any).google;
+      const btnContainer = googleBtnRef.current || document.getElementById('google-login-btn');
+
+      if (google?.accounts?.id && btnContainer) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Google OAuth] origin:', typeof window !== 'undefined' ? window.location.origin : '');
+          console.log('[Google OAuth] href:', typeof window !== 'undefined' ? window.location.href : '');
+          console.log('[Google OAuth] clientId:', clientId);
+          console.log('[Google OAuth] top:', typeof window !== 'undefined' ? window.self === window.top : true);
+          console.log('[Google OAuth] initialize');
+          console.log('[Google OAuth] renderButton');
+        }
+
+        isInitializedRef.current = true;
+        btnContainer.innerHTML = '';
+
         google.accounts.id.initialize({
           client_id: clientId,
           callback: async (res: any) => {
             if (res.credential) {
               setFormError(null);
               try {
-                const appliedCode = form.getValues('referralCode')?.trim() || detectedRef || undefined;
-                await performGoogleLogin({ idToken: res.credential, referralCode: appliedCode });
+                const appliedCode = formRef.current.getValues('referralCode')?.trim() || detectedRefVal.current || undefined;
+                await performGoogleLoginRef.current({ idToken: res.credential, referralCode: appliedCode });
               } catch {}
             }
           },
           auto_select: false,
         });
 
-        google.accounts.id.renderButton(document.getElementById('google-login-btn'), {
+        google.accounts.id.renderButton(btnContainer, {
           theme: 'outline',
           size: 'large',
           width: 400,
@@ -112,35 +138,43 @@ function SignupFormContent() {
           shape: 'rectangular',
           logo_alignment: 'center',
         });
-
-        google.accounts.id.prompt();
       }
     };
 
-    let script = document.querySelector(
-      'script[src="https://accounts.google.com/gsi/client"]',
-    ) as HTMLScriptElement;
-    if (!script) {
-      script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = initGoogle;
-      document.body.appendChild(script);
+    const handleScriptLoad = () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Google OAuth] script loaded');
+      }
+      initGoogle();
+    };
+
+    if ((window as any).google?.accounts?.id) {
+      initGoogle();
     } else {
-      if ((window as any).google) {
-        initGoogle();
+      let script = document.querySelector(
+        'script[src="https://accounts.google.com/gsi/client"]',
+      ) as HTMLScriptElement;
+
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.addEventListener('load', handleScriptLoad, { once: true });
+        document.body.appendChild(script);
       } else {
-        script.addEventListener('load', initGoogle);
+        script.addEventListener('load', handleScriptLoad, { once: true });
       }
     }
 
     return () => {
-      if (script) {
-        script.removeEventListener('load', initGoogle);
+      isMounted = false;
+      isInitializedRef.current = false;
+      if (googleBtnRef.current) {
+        googleBtnRef.current.innerHTML = '';
       }
     };
-  }, [performGoogleLogin, detectedRef, form]);
+  }, []);
 
   const onSubmit = async (data: SignupInput) => {
     setFormError(null);
@@ -175,7 +209,7 @@ function SignupFormContent() {
           </div>
 
           <div className='flex justify-center w-full'>
-            <div id='google-login-btn' className='flex justify-center w-full'>
+            <div id='google-login-btn' ref={googleBtnRef} className='flex justify-center w-full'>
               {/* Fallback button when client ID is missing */}
               {!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
                 <Button

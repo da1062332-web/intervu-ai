@@ -62,6 +62,8 @@ describe("AuthService - Google Login", () => {
     const mockUserRepo = {
       findByGoogleId: jest.fn(),
       findByEmail: jest.fn(),
+      findRawByGoogleId: jest.fn().mockResolvedValue(null),
+      findRawByEmail: jest.fn().mockResolvedValue(null),
       update: jest.fn(),
       create: jest.fn(),
       findById: jest.fn(),
