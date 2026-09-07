@@ -65,6 +65,7 @@ export class AssemblyController {
 
   // --- NEW ROUTES ---
   @Post("tests/generate")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Build a new Test Instance from a Config" })
   @ApiResponse({ status: 201, type: AssemblyBuildResponseDto })
@@ -211,6 +212,7 @@ export class AssemblyController {
 
   // --- DEPRECATED ROUTES ---
   @Post("generate")
+  @Roles(UserRole.ADMIN, UserRole.CANDIDATE)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: "Build a new Test Instance from a Config",

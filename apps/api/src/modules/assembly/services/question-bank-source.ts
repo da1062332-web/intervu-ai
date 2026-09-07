@@ -344,7 +344,13 @@ export class QuestionBankSource implements IQuestionSource {
     const questionType = isCoding
       ? "CODING"
       : (q as any).questionType || "MULTIPLE_CHOICE";
-    const rawOptions = isCoding ? [] : (q.mcqData?.options || q.options || []);
+    const rawOptions = isCoding
+      ? []
+      : q.mcqData?.options ||
+        q.options ||
+        (q as any).metadata?.options ||
+        (q as any).choices ||
+        [];
     return {
       id: q.id,
       // conceptKey maps from topicId — this is the bridge between the two schemas

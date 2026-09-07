@@ -172,9 +172,11 @@ export class AssemblyService {
       );
       if (!sec1Validation.valid) {
         this.logger.error(`Section 1 progressive validation failed: ${sec1Validation.errors.join("; ")}`);
-        throw new InternalServerErrorException(
-          `Section 1 progressive validation failed: ${sec1Validation.errors.join("; ")}`,
-        );
+        throw new BadRequestException({
+          code: "PROGRESSIVE_SECTION_VALIDATION_FAILED",
+          message: `Section 1 progressive validation failed: ${sec1Validation.errors.join("; ")}`,
+          errors: sec1Validation.errors,
+        });
       }
 
       // 2. Add placeholder section wrappers for remaining sections
@@ -245,9 +247,11 @@ export class AssemblyService {
     const tVal = Date.now();
     const validation = this.validator.validate(blueprint, sections);
     if (!validation.valid) {
-      throw new InternalServerErrorException(
-        `Assembly validation failed: ${validation.errors.join(", ")}`,
-      );
+      throw new BadRequestException({
+        code: "ASSEMBLY_VALIDATION_FAILED",
+        message: `Assembly validation failed: ${validation.errors.join(", ")}`,
+        errors: validation.errors,
+      });
     }
     this.logger.log(`  [ASSEMBLY ✅] Step E: Assembly validation passed in ${Date.now() - tVal}ms`);
 

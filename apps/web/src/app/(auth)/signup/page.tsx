@@ -321,8 +321,8 @@ function SignupFormContent() {
                 <Input
                   id='referralCode'
                   type='text'
-                  placeholder='e.g. TCSBUZZ or CAMPUS2025'
-                  className='h-12 uppercase tracking-widest font-mono font-bold transition-all focus:ring-primary/50 bg-card border-border/50 pl-10'
+                  placeholder='Enter your referral code'
+                  className='h-12 uppercase tracking-widest font-mono font-bold placeholder:normal-case placeholder:font-sans placeholder:tracking-normal transition-all focus:ring-primary/50 bg-card border-border/50 pl-10'
                   {...form.register('referralCode')}
                   onChange={(e) => {
                     const val = e.target.value.toUpperCase();

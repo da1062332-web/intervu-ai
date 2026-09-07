@@ -47,7 +47,8 @@ export class CandidateDashboardService {
     }
 
     const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
-    if (isVip) {
+    const isPaidSubscriber = hasActivePlan || isVip || ['STARTER', 'PRO', 'TEAMS'].includes(String(entitlements?.plan).toUpperCase());
+    if (isPaidSubscriber && (!allowedList || allowedList.length === 0)) {
       allowedList = ['all'];
     }
 
@@ -149,9 +150,7 @@ export class CandidateDashboardService {
         // If user does not have an active allowedList, exclude referral-exclusive reward assessments
         if (!allowedList) {
           if (
-            t.code === "ASM_TCS_NQT_SHORT_001" ||
-            t.code === "TCS_NQT_SHORT_ASSESSMENT" ||
-            t.name === "TCS NQT Short Assessment"
+            t.code === "ASM_TCS_NQT_SHORT_001"
           ) {
             return false;
           }
