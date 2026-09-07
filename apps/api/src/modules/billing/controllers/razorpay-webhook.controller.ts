@@ -13,7 +13,6 @@ import { Public } from "../../auth/decorators/public.decorator";
 import { RazorpayService } from "../services/razorpay.service";
 import { SubscriptionService } from "../services/subscription.service";
 import { PlanManagementService } from "../services/plan-management.service";
-import { PlanTier } from "@prisma/client";
 
 @ApiTags("webhooks")
 @Controller("webhooks")
@@ -30,7 +29,7 @@ export class RazorpayWebhookController {
    * Looks up the admin-configured price for a plan tier from the database.
    * Used only as a last resort when Razorpay's own payload doesn't carry an amount.
    */
-  private async resolvePlanAmount(plan: PlanTier): Promise<number> {
+  private async resolvePlanAmount(plan: string): Promise<number> {
     try {
       const dbPlan = await this.planManagementService.getPlanBySlug(String(plan).toLowerCase());
       return typeof dbPlan?.priceMonthly === "number" ? dbPlan.priceMonthly : 0;
@@ -83,7 +82,7 @@ export class RazorpayWebhookController {
             // The order record (created server-side, priced from the Plan table) is the
             // authoritative source for plan tier - notes.plan is only a fallback.
             const orderRecord = orderId ? await this.subscriptionService.getOrderPlan(orderId) : null;
-            const plan = orderRecord?.plan || (notes?.plan?.toUpperCase() as PlanTier) || PlanTier.PRO;
+            const plan = orderRecord?.plan || notes?.plan || "PRO";
             // payment.amount is the actual amount Razorpay captured - always prefer it for
             // bookkeeping; only fall back to the DB-configured plan price if it's absent.
             const amount = payment?.amount || orderRecord?.amount || (await this.resolvePlanAmount(plan));
@@ -126,7 +125,7 @@ export class RazorpayWebhookController {
           const sub = event.payload?.subscription?.entity;
           const notes = sub?.notes || {};
           const userId = notes?.userId || notes?.user_id;
-          const plan = (notes?.plan?.toUpperCase() as PlanTier) || PlanTier.PRO;
+          const plan = notes?.plan || "PRO";
 
           if (userId) {
             const periodEnd = sub?.current_end

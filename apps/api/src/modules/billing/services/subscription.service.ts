@@ -1,7 +1,7 @@
 import { Injectable, Logger, ConflictException, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { PlanTier, SubscriptionStatus, PaymentStatus } from "@prisma/client";
-import { SubscriptionStatusResponse } from "@intervu-ai/contracts";
+import { SubscriptionStatus, PaymentStatus } from "@prisma/client";
+import { SubscriptionStatusResponse, PlanTier } from "@intervu-ai/contracts";
 import { PlanManagementService } from "./plan-management.service";
 
 @Injectable()
@@ -193,7 +193,7 @@ export class SubscriptionService {
       };
     }
 
-    const isPaid = subscription.plan !== PlanTier.FREE;
+    const isPaid = subscription.plan !== "FREE";
     const isExpired =
       isPaid &&
       subscription.currentPeriodEnd &&
@@ -295,7 +295,7 @@ export class SubscriptionService {
       where: { userId },
     });
 
-    if (existing && existing.status === SubscriptionStatus.ACTIVE && existing.plan !== PlanTier.FREE) {
+    if (existing && existing.status === SubscriptionStatus.ACTIVE && existing.plan !== "FREE") {
       throw new ConflictException("User already has an active paid subscription");
     }
 
@@ -303,7 +303,7 @@ export class SubscriptionService {
       where: { userId },
       create: {
         userId,
-        plan: PlanTier.FREE,
+        plan: "FREE",
         status: SubscriptionStatus.ACTIVE,
         billingCycle: "monthly",
         currentPeriodStart: new Date(),
@@ -311,7 +311,7 @@ export class SubscriptionService {
         cancelAtPeriodEnd: false,
       },
       update: {
-        plan: PlanTier.FREE,
+        plan: "FREE",
         status: SubscriptionStatus.ACTIVE,
         currentPeriodStart: new Date(),
         currentPeriodEnd: null,
@@ -331,7 +331,7 @@ export class SubscriptionService {
     razorpayOrderId: string;
     amount: number;
     currency: string;
-    plan: PlanTier;
+    plan: string;
   }) {
     // Intentionally not caught: if this write fails, create-order must fail too -
     // otherwise the client proceeds to charge the user for an order verify-payment
@@ -379,7 +379,7 @@ export class SubscriptionService {
    */
   async getOrderPlan(
     razorpayOrderId: string,
-  ): Promise<{ plan: PlanTier; amount: number; currency: string } | null> {
+  ): Promise<{ plan: string; amount: number; currency: string } | null> {
     const tx = await this.prisma.paymentTransaction.findFirst({
       where: { razorpayOrderId },
       orderBy: { createdAt: "desc" },
@@ -390,7 +390,7 @@ export class SubscriptionService {
     }
 
     const payloadPlan = (tx.eventPayload as any)?.plan;
-    const plan = (String(payloadPlan || "PRO").toUpperCase() as PlanTier);
+    const plan = String(payloadPlan || "PRO");
 
     return { plan, amount: tx.amount, currency: tx.currency };
   }
@@ -401,7 +401,7 @@ export class SubscriptionService {
    */
   async processPaymentSuccess(params: {
     userId: string;
-    plan: PlanTier;
+    plan: string;
     razorpayPaymentId: string;
     razorpayOrderId?: string;
     razorpaySignature?: string;
@@ -551,7 +551,7 @@ export class SubscriptionService {
 
     // Mark subscription PAST_DUE if user had an active paid plan
     const sub = await this.prisma.subscription.findUnique({ where: { userId } });
-    if (sub && sub.plan !== PlanTier.FREE) {
+    if (sub && sub.plan !== "FREE") {
       await this.prisma.subscription.update({
         where: { userId },
         data: { status: SubscriptionStatus.PAST_DUE },
@@ -564,7 +564,7 @@ export class SubscriptionService {
     const existing = await this.prisma.processedWebhookEvent.findUnique({
       where: { eventId },
     });
-    return Boolean(existing);
+    return !!existing;
   }
 
   async recordWebhookEvent(eventId: string, eventType: string): Promise<void> {
@@ -582,7 +582,7 @@ export class SubscriptionService {
 
   async activatePaidSubscription(params: {
     userId: string;
-    plan: PlanTier;
+    plan: string;
     razorpaySubscriptionId?: string;
     razorpayCustomerId?: string;
     currentPeriodEnd?: Date;
@@ -606,7 +606,7 @@ export class SubscriptionService {
    * Falls back to 0 (rather than a guessed number) if no matching Plan row exists,
    * so bookkeeping never silently records a fabricated price.
    */
-  private async resolvePlanAmount(plan: PlanTier): Promise<number> {
+  private async resolvePlanAmount(plan: string): Promise<number> {
     try {
       const dbPlan = await this.planManagementService.getPlanBySlug(String(plan).toLowerCase());
       return typeof dbPlan?.priceMonthly === "number" ? dbPlan.priceMonthly : 0;

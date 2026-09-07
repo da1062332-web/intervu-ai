@@ -1832,7 +1832,7 @@ model Subscription {
   id                     String             @id @default(cuid())
   userId                 String             @unique
   user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan                   PlanTier           @default(FREE)
+  plan                   String             @default("FREE")
   status                 SubscriptionStatus @default(ACTIVE)
   billingCycle           String             @default("monthly")
   currentPeriodStart     DateTime           @default(now())

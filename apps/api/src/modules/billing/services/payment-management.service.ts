@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { SubscriptionService } from "./subscription.service";
-import { PaymentStatus, PlanTier } from "@prisma/client";
+import { PaymentStatus } from "@prisma/client";
 
 @Injectable()
 export class PaymentManagementService {
@@ -146,7 +146,7 @@ export class PaymentManagementService {
       return { success: true, message: "Transaction is already marked as SUCCESS" };
     }
 
-    const plan: PlanTier = ((transaction.eventPayload as any)?.plan as PlanTier) || "PRO";
+    const plan: string = String((transaction.eventPayload as any)?.plan || "PRO");
 
     const subscription = await this.subscriptionService.processPaymentSuccess({
       userId: transaction.userId,

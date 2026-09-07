@@ -509,16 +509,16 @@ export class EntitlementService {
         : Math.max(0, planDef.monthlyRoundsLimit - roundsUsed);
 
     // For paid subscribers: active if subscription status is ACTIVE and period not expired.
-    // For FREE plan tier: active only while referral reward quota is remaining.
+    // For FREE plan tier: active if subscription exists and is ACTIVE, or while referral reward quota is remaining.
     const finalHasActivePlan = isPaid
       ? subscription.status === 'ACTIVE' && !isExpired
-      : hasRemainingReferralReward;
+      : (subscription.status === 'ACTIVE' || hasRemainingReferralReward);
 
     const finalStatus: SubscriptionStatus = isExpired
       ? 'EXPIRED'
       : isPaid
         ? (subscription.status as SubscriptionStatus)
-        : hasRemainingReferralReward
+        : (subscription.status === 'ACTIVE' || hasRemainingReferralReward)
           ? 'ACTIVE'
           : 'INCOMPLETE';
 
