@@ -21,7 +21,7 @@ interface TestInstructionsPageProps {
 export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
   const router = useRouter();
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
-  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
+  const openQuotaExhaustedModal = useSubscriptionStore((state) => state.openQuotaExhaustedModal);
   const { data: config, isLoading, error, refetch } = useInstructions(testId);
   const { acceptedInstructions, acceptInstructions } = useDashboardStore();
 
@@ -41,8 +41,7 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
 
   const handleProceed = () => {
     if (!hasActivePlan) {
-      toast.error('An active subscription plan is required to start this assessment.');
-      openPricingModal();
+      openQuotaExhaustedModal();
       return;
     }
     router.push(`/candidate/tests/${testId}/launch`);

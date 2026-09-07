@@ -323,7 +323,11 @@ export class EntitlementService {
           monthlyRoundsLimit:
             dynamicFeats.monthlyRoundsLimit !== undefined
               ? dynamicFeats.monthlyRoundsLimit
-              : (PLAN_ENTITLEMENT_DEFINITIONS[String(planTier)]?.monthlyRoundsLimit ?? 3),
+              : dynamicFeats.roundsLimit !== undefined
+                ? dynamicFeats.roundsLimit
+                : dynamicFeats.totalRoundsLimit !== undefined
+                  ? dynamicFeats.totalRoundsLimit
+                  : (PLAN_ENTITLEMENT_DEFINITIONS[String(planTier)]?.monthlyRoundsLimit ?? 3),
           roundFormats: dynamicFeats.allowedFormats || dynamicFeats.roundFormats || ['all'],
         };
       } else if (PLAN_ENTITLEMENT_DEFINITIONS[String(planTier)]) {
@@ -413,7 +417,7 @@ export class EntitlementService {
         const reasons: string[] = [];
 
         for (const override of activeOverrides) {
-          if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+          if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit' || override.featureKey === 'rounds_limit') {
             const val = override.overrideValue as any;
             if (val?.unlimited) {
               planDef.monthlyRoundsLimit = null;
@@ -463,7 +467,7 @@ export class EntitlementService {
               totalRemainingAttempts += (maxAttempts - completedAttempts);
               if (override.reason) reasons.push(override.reason);
             }
-          } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit') {
+          } else if (override.featureKey === 'monthly_rounds_limit' || override.featureKey === 'monthlyRoundsLimit' || override.featureKey === 'rounds_limit') {
             const hasAllowedAssessments = activeOverrides.some(
               (o) => o.featureKey === 'allowed_assessments' || o.featureKey === 'allowedAssessments',
             );
@@ -496,25 +500,29 @@ export class EntitlementService {
       this.logger.warn(`Failed to fetch user quota overrides for '${userId}': ${err}`);
     }
 
-    // 3. Load monthly quota consumption
+    // 3. Load persistent quota consumption
     const quota = await this.usageQuotaService.getOrCreateCurrentQuota(
       userId,
       subscription.id,
     );
 
     const roundsUsed = quota?.roundsUsed || 0;
+    const rawLimit = planDef.monthlyRoundsLimit;
     const roundsRemaining =
-      planDef.monthlyRoundsLimit === null
+      rawLimit === null
         ? null
-        : Math.max(0, planDef.monthlyRoundsLimit - roundsUsed);
+        : Math.max(0, rawLimit - roundsUsed);
 
-    // For paid subscribers: active if subscription status is ACTIVE and period not expired.
-    // For FREE plan tier: active if subscription exists and is ACTIVE, or while referral reward quota is remaining.
+    // Quota-Driven Plan Lifecycle:
+    // The plan remains ACTIVE as long as assessment attempts are available (roundsRemaining > 0 or unlimited).
+    // Once the allocated quota reaches 0, the plan is marked EXPIRED/CONSUMED.
+    const isQuotaAvailable = roundsRemaining === null || roundsRemaining > 0;
+
     const finalHasActivePlan = isPaid
-      ? subscription.status === 'ACTIVE' && !isExpired
-      : (subscription.status === 'ACTIVE' || hasRemainingReferralReward);
+      ? subscription.status === 'ACTIVE' && isQuotaAvailable
+      : (subscription.status === 'ACTIVE' && isQuotaAvailable) || hasRemainingReferralReward;
 
-    const finalStatus: SubscriptionStatus = isExpired
+    const finalStatus: SubscriptionStatus = !isQuotaAvailable
       ? 'EXPIRED'
       : isPaid
         ? (subscription.status as SubscriptionStatus)
@@ -611,7 +619,8 @@ export class EntitlementService {
     }
 
     const limit = entitlements.features.monthlyRoundsLimit;
-    const result = await this.usageQuotaService.consumeRoundQuota(userId, limit);
+    const subscription = await this.subscriptionService.getUserSubscription(userId);
+    const result = await this.usageQuotaService.consumeRoundQuota(userId, limit, subscription?.id);
     return { allowed: result.allowed, remaining: result.remaining };
   }
 }

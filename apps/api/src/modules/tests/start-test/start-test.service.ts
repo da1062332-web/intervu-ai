@@ -89,10 +89,10 @@ export class StartTestService {
     if (this.entitlementService) {
       const quotaResult = await this.entitlementService.consumeRound(userId);
       if (!quotaResult.allowed) {
-        this.logger.warn(`[START-TEST ❌] User ${userId} has exhausted monthly assessment rounds`);
+        this.logger.warn(`[START-TEST ❌] User ${userId} has exhausted assessment quota`);
         throw new ForbiddenException({
-          code: "MONTHLY_QUOTA_EXCEEDED",
-          message: "You have reached your monthly assessment round limit. Please upgrade to Pro for unlimited assessments.",
+          code: "QUOTA_EXHAUSTED",
+          message: "Your assessment quota has been exhausted. Purchase a new plan to continue.",
         });
       }
     }

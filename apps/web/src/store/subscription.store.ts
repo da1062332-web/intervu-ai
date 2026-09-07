@@ -12,12 +12,15 @@ interface SubscriptionState {
   currentPeriodEnd: string | null;
   entitlements: UserEntitlements | null;
   isPricingModalOpen: boolean;
+  isQuotaExhaustedModalOpen: boolean;
   isLoading: boolean;
   
   checkSubscription: () => Promise<boolean>;
   loadEntitlements: () => Promise<UserEntitlements | null>;
   openPricingModal: () => void;
   closePricingModal: () => void;
+  openQuotaExhaustedModal: () => void;
+  closeQuotaExhaustedModal: () => void;
   setHasActivePlan: (hasActive: boolean) => void;
   clearSubscription: () => void;
 }
@@ -33,6 +36,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       currentPeriodEnd: null,
       entitlements: null,
       isPricingModalOpen: false,
+      isQuotaExhaustedModalOpen: false,
       isLoading: false,
 
       lastCheckedAt: 0,
@@ -95,6 +99,14 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         set({ isPricingModalOpen: false });
       },
 
+      openQuotaExhaustedModal: () => {
+        set({ isQuotaExhaustedModalOpen: true });
+      },
+
+      closeQuotaExhaustedModal: () => {
+        set({ isQuotaExhaustedModalOpen: false });
+      },
+
       setHasActivePlan: (hasActive: boolean) => {
         set({ hasActivePlan: hasActive });
       },
@@ -107,6 +119,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           currentPeriodEnd: null,
           entitlements: null,
           isPricingModalOpen: false,
+          isQuotaExhaustedModalOpen: false,
           isLoading: false,
         });
       },

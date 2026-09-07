@@ -14,10 +14,17 @@ export class UsageQuotaService {
     return `${year}-${month}`;
   }
 
+  getQuotaKey(subscriptionId?: string): string {
+    if (subscriptionId) {
+      return `sub_${subscriptionId}`;
+    }
+    return this.getCurrentPeriodKey();
+  }
+
   async getOrCreateCurrentQuota(userId: string, subscriptionId?: string) {
-    const periodKey = this.getCurrentPeriodKey();
+    const periodKey = this.getQuotaKey(subscriptionId);
     try {
-      const existing = await this.prisma.usageQuota.findUnique({
+      let existing = await this.prisma.usageQuota.findUnique({
         where: {
           userId_periodKey: {
             userId,
@@ -25,6 +32,21 @@ export class UsageQuotaService {
           },
         },
       });
+
+      if (!existing && subscriptionId) {
+        // Fallback check for periodKey YYYY-MM
+        const legacy = await this.prisma.usageQuota.findUnique({
+          where: {
+            userId_periodKey: {
+              userId,
+              periodKey: this.getCurrentPeriodKey(),
+            },
+          },
+        });
+        if (legacy) {
+          existing = legacy;
+        }
+      }
 
       if (existing) {
         return existing;
@@ -56,39 +78,49 @@ export class UsageQuotaService {
 
   /**
    * Truly Atomic Round Quota Reservation
-   * Prevents race conditions where concurrent requests exceed Free round limits.
+   * Prevents race conditions where concurrent requests exceed package/plan round limits.
    */
   async consumeRoundQuota(
     userId: string,
     maxAllowedRounds: number | null,
+    subscriptionId?: string,
   ): Promise<{ allowed: boolean; roundsUsed: number; remaining: number | null }> {
-    const periodKey = this.getCurrentPeriodKey();
+    const periodKey = this.getQuotaKey(subscriptionId);
 
     // 1. Unlimited plans (Pro / Teams)
     if (maxAllowedRounds === null) {
-      const roundsUsed = await this.incrementRoundsUsed(userId);
+      const roundsUsed = await this.incrementRoundsUsed(userId, subscriptionId);
       return { allowed: true, roundsUsed, remaining: null };
     }
 
     // 2. Atomic transaction with check-and-increment for limited plans
     return this.prisma.$transaction(async (tx) => {
-      // Ensure record exists
-      await tx.usageQuota.upsert({
+      // Find existing quota record either by subscription key or fallback
+      let current = await tx.usageQuota.findUnique({
         where: { userId_periodKey: { userId, periodKey } },
-        create: {
-          userId,
-          periodKey,
-          roundsUsed: 0,
-          questionsAttempted: 0,
-          exportsUsed: 0,
-        },
-        update: {},
       });
 
-      // Query current quota inside transaction
-      const current = await tx.usageQuota.findUnique({
-        where: { userId_periodKey: { userId, periodKey } },
-      });
+      if (!current && subscriptionId) {
+        const legacy = await tx.usageQuota.findUnique({
+          where: { userId_periodKey: { userId, periodKey: this.getCurrentPeriodKey() } },
+        });
+        if (legacy) {
+          current = legacy;
+        }
+      }
+
+      if (!current) {
+        current = await tx.usageQuota.create({
+          data: {
+            userId,
+            subscriptionId,
+            periodKey,
+            roundsUsed: 0,
+            questionsAttempted: 0,
+            exportsUsed: 0,
+          },
+        });
+      }
 
       const currentUsed = current?.roundsUsed ?? 0;
 
@@ -105,7 +137,7 @@ export class UsageQuotaService {
 
       // Increment atomically within the transaction
       const updated = await tx.usageQuota.update({
-        where: { userId_periodKey: { userId, periodKey } },
+        where: { id: current.id },
         data: {
           roundsUsed: {
             increment: 1,
@@ -125,8 +157,8 @@ export class UsageQuotaService {
     });
   }
 
-  async incrementRoundsUsed(userId: string): Promise<number> {
-    const periodKey = this.getCurrentPeriodKey();
+  async incrementRoundsUsed(userId: string, subscriptionId?: string): Promise<number> {
+    const periodKey = this.getQuotaKey(subscriptionId);
     const quota = await this.prisma.usageQuota.upsert({
       where: {
         userId_periodKey: {

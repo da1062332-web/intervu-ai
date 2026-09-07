@@ -138,7 +138,7 @@ export function AvailableAssessmentSection({
 
           const handleCardClick = () => {
             if (!hasActivePlan) {
-              openPricingModal();
+              useSubscriptionStore.getState().openQuotaExhaustedModal();
               return;
             }
             router.push(`/candidate/tests/${test.id}`);
@@ -160,7 +160,7 @@ export function AvailableAssessmentSection({
                   <div className='flex items-center gap-1.5'>
                     {!hasActivePlan && (
                       <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1'>
-                        <Lock className='size-3' /> Plan Required
+                        <Lock className='size-3' /> Quota Exhausted
                       </span>
                     )}
                     {hasActivePlan && isReferralUnlocked && (

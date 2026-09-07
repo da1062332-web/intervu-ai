@@ -120,10 +120,12 @@ export const dashboardService = {
 
   getDashboardMetrics: async () => {
     try {
-      return await apiClient.request<any>('/candidate/dashboard/metrics');
+      return await apiClient.request<any>('/candidate/dashboard/metrics', {
+        skipErrorToast: true,
+      });
     } catch (error) {
-      console.error('Failed to fetch dashboard metrics', error);
-      throw error;
+      console.warn('Dashboard metrics unavailable, falling back to local calculation', error);
+      return null;
     }
   },
 

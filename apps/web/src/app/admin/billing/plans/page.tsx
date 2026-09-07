@@ -26,12 +26,12 @@ const PRESET_LIMITATIONS = [
   {
     id: 'monthly_rounds_limit',
     key: 'monthly_rounds_limit',
-    name: 'Monthly Practice Tests',
+    name: 'Assessment Practice Tests',
     type: 'NUMBER' as const,
     defaultValue: '3',
     presets: ['3', '5', '10', 'null'],
-    presetLabels: ['3 Tests / Month', '5 Tests / Month', '10 Tests / Month', 'Unlimited Tests'],
-    description: 'Maximum number of assessment rounds candidate can start per month',
+    presetLabels: ['3 Assessment Tests', '5 Assessment Tests', '10 Assessment Tests', 'Unlimited Tests'],
+    description: 'Total number of assessment rounds candidate can start in this package',
   },
   {
     id: 'allowed_assessments',
@@ -542,9 +542,6 @@ export default function PlansPage() {
                       <span className='text-3xl font-extrabold text-foreground'>
                         {plan.priceMonthly === 0 ? 'Free' : `₹${(plan.priceMonthly / 100).toLocaleString('en-IN')}`}
                       </span>
-                      {plan.priceMonthly > 0 && (
-                        <span className='text-xs text-muted-foreground font-medium'>/ month</span>
-                      )}
                     </div>
 
                     <div className='flex items-center gap-2 pt-2'>
@@ -1040,7 +1037,7 @@ export default function PlansPage() {
                   <Input
                     value={featureForm.featureName}
                     onChange={(e) => setFeatureForm({ ...featureForm, featureName: e.target.value })}
-                    placeholder='e.g. 5 Practice Tests / Month, Full Skill Mastery'
+                    placeholder='e.g. 5 Assessment Practice Tests, Full Skill Mastery'
                   />
                 </div>
 

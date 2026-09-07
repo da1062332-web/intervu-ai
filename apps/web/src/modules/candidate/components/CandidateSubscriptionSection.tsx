@@ -413,13 +413,11 @@ export function CandidateSubscriptionSection() {
         {/* Right Column: Plans Cards in a Row */}
         <div className='xl:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch'>
           {dynamicPlans.length > 0 ? (
-            dynamicPlans.map((plan) => {
+            dynamicPlans.map((plan: PlanDto) => {
               const isCurrent =
-                Boolean(hasActivePlan) &&
-                (plan.slug.toLowerCase() === (effectiveSlug || '').toLowerCase() ||
-                 plan.slug.toLowerCase() === (currentPlan || '').toLowerCase() ||
-                 plan.name.toLowerCase() === (activePlanName || '').toLowerCase() ||
-                 (currentPlan?.toUpperCase() === 'PRO' && (plan.slug.toLowerCase() === 'starter' || plan.slug.toLowerCase() === 'pro')));
+                hasActivePlan &&
+                (entitlements?.planSlug === plan.slug ||
+                 entitlements?.plan?.toLowerCase() === plan.slug.toLowerCase());
 
               const priceFormatted =
                 plan.priceMonthly === 0
@@ -430,7 +428,7 @@ export function CandidateSubscriptionSection() {
                 if (plan.slug === 'free') {
                   handleSelectFree();
                 } else if (plan.slug === 'teams') {
-                  handleSelectTeams();
+                  window.open('mailto:sales@skillitrix.com?subject=InterVu%20Enterprise%20Inquiry', '_blank');
                 } else {
                   handleSelectPaid(plan.slug, plan.priceMonthly);
                 }
@@ -444,7 +442,7 @@ export function CandidateSubscriptionSection() {
                 ? `${Math.round(((plan.originalPrice! - plan.priceMonthly) / plan.originalPrice!) * 100)}%`
                 : undefined;
 
-              const displayFeatures = plan.features.map((f) => {
+              const displayFeatures = plan.features.map((f: any) => {
                 if (f.featureKey === 'allowed_assessments' && typeof f.valueJson === 'object' && f.valueJson !== null) {
                   const list = f.valueJson.assessments;
                   const attempts = f.valueJson.overallAttempts ?? f.valueJson.attemptsPerExam;
@@ -454,7 +452,15 @@ export function CandidateSubscriptionSection() {
                     return `${list.length} Specific Assigned Assessment${list.length > 1 ? 's' : ''}${attemptsSuffix}`;
                   }
                 }
-                return f.featureName;
+                if (f.featureKey === 'monthly_rounds_limit' || f.featureKey === 'rounds_limit') {
+                  if (typeof f.valueJson === 'number') {
+                    return `${f.valueJson} Assessment Practice Tests`;
+                  }
+                  if (f.valueJson === null) {
+                    return 'Unlimited Assessment Practice Tests';
+                  }
+                }
+                return f.featureName ? f.featureName.replace(/^Monthly\s+/i, '') : '';
               });
 
               return (
@@ -464,13 +470,12 @@ export function CandidateSubscriptionSection() {
                   price={priceFormatted}
                   originalPrice={originalPriceFormatted}
                   discountPercent={discountPercentFormatted}
-                  period={plan.priceMonthly > 0 ? '/ month' : undefined}
                   badge={plan.badge || undefined}
-                  highlighted={plan.isHighlighted && !isCurrent}
+                  highlighted={Boolean(plan.isHighlighted && !isCurrent)}
                   description={plan.description || ''}
                   features={displayFeatures}
                   buttonText={isCurrent ? 'Current Plan' : plan.buttonText}
-                  disabled={isCurrent}
+                  disabled={Boolean(isCurrent)}
                   isLoading={loadingPlan === plan.slug}
                   onSelect={handlePlanSelect}
                 />

@@ -254,6 +254,27 @@ export function PricingModal() {
                   ? `${Math.round(((plan.originalPrice! - plan.priceMonthly) / plan.originalPrice!) * 100)}%`
                   : undefined;
 
+                const displayFeatures = plan.features.map((f) => {
+                  if (f.featureKey === 'allowed_assessments' && typeof f.valueJson === 'object' && f.valueJson !== null) {
+                    const list = f.valueJson.assessments;
+                    const attempts = f.valueJson.overallAttempts ?? f.valueJson.attemptsPerExam;
+                    const attemptsSuffix = attempts ? ` (${attempts} Attempts Overall)` : ' (Unlimited Attempts)';
+                    if (Array.isArray(list)) {
+                      if (list.includes('all')) return `All System Assessments Access${attemptsSuffix}`;
+                      return `${list.length} Specific Assigned Assessment${list.length > 1 ? 's' : ''}${attemptsSuffix}`;
+                    }
+                  }
+                  if (f.featureKey === 'monthly_rounds_limit' || f.featureKey === 'rounds_limit') {
+                    if (typeof f.valueJson === 'number') {
+                      return `${f.valueJson} Assessment Practice Tests`;
+                    }
+                    if (f.valueJson === null) {
+                      return 'Unlimited Assessment Practice Tests';
+                    }
+                  }
+                  return f.featureName.replace(/^Monthly\s+/i, '');
+                });
+
                 return (
                   <PlanCard
                     key={plan.id}
@@ -261,11 +282,10 @@ export function PricingModal() {
                     price={priceFormatted}
                     originalPrice={originalPriceFormatted}
                     discountPercent={discountPercentFormatted}
-                    period={plan.priceMonthly > 0 ? '/ month' : undefined}
                     badge={plan.badge || undefined}
                     highlighted={plan.isHighlighted}
                     description={plan.description || ''}
-                    features={plan.features.map((f) => f.featureName)}
+                    features={displayFeatures}
                     buttonText={isCurrent ? 'Current Plan' : plan.buttonText}
                     disabled={isCurrent}
                     isLoading={loadingPlan === plan.slug}

@@ -129,7 +129,7 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
 
   const handleAction = () => {
     if (!hasActivePlan) {
-      openPricingModal();
+      useSubscriptionStore.getState().openQuotaExhaustedModal();
       return;
     }
     if (isInProgress) {

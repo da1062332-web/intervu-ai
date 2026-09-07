@@ -26,7 +26,7 @@ export function PlanCard({
   price,
   originalPrice,
   discountPercent,
-  period = '/ month',
+  period,
   description,
   features,
   buttonText,
@@ -72,7 +72,7 @@ export function PlanCard({
           <span className='text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900'>
             {price}
           </span>
-          {price !== 'Free' && (
+          {price !== 'Free' && period && (
             <span className='text-xs font-medium text-slate-500'>{period}</span>
           )}
         </div>
