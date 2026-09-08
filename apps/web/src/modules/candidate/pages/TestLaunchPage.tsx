@@ -17,6 +17,7 @@ import { ChevronLeft, Play, AlertCircle } from 'lucide-react';
 import { testService } from '@/services/candidate/test.service';
 import { useSubscriptionStore } from '@/store/subscription.store';
 import { toast } from 'sonner';
+import { TestAssemblyLoader } from '../components/TestAssemblyLoader';
 
 interface TestLaunchPageProps {
   testId: string;
@@ -100,6 +101,7 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
 
   return (
     <div className='flex flex-col min-h-screen bg-slate-50/50 dark:bg-slate-950/50 pb-20'>
+      {isStarting && <TestAssemblyLoader isResume={isResume} />}
       <div className='border-b border-border/40 bg-background/80 backdrop-blur-xl sticky top-0 z-10'>
         <div className='container max-w-6xl mx-auto py-4 px-4 sm:px-6 lg:px-8'>
           <div className='flex items-center justify-between'>
