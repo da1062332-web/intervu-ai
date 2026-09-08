@@ -58,22 +58,26 @@ export function PricingModal() {
 
   if (!isPricingModalOpen || (user && user.role !== 'CANDIDATE')) return null;
 
-  const handleSelectFree = async () => {
+  const handleSelectFree = async (planSlug: string = 'free') => {
     try {
-      setLoadingPlan('free');
-      await billingApi.subscribeFree();
+      setLoadingPlan(planSlug);
+      await billingApi.subscribeFree(planSlug);
       setHasActivePlan(true);
       await loadEntitlements();
-      notifySuccess('Free plan activated successfully! Welcome to InterVu.');
+      notifySuccess('Plan activated successfully! Welcome to InterVu.');
       handleClose();
     } catch (err: any) {
-      notifyApiError(err, 'Failed to activate Free plan');
+      notifyApiError(err, 'Failed to activate plan');
     } finally {
       setLoadingPlan(null);
     }
   };
 
   const handleSelectPaid = async (planSlug: string, amountPaise: number) => {
+    if (amountPaise === 0 || planSlug === 'free' || planSlug === 'starter') {
+      return handleSelectFree(planSlug);
+    }
+
     try {
       setLoadingPlan(planSlug);
       
@@ -83,6 +87,15 @@ export function PricingModal() {
         amount: amountPaise,
         currency: 'INR',
       });
+
+      if (order.amount === 0 || (order as any).isFree) {
+        setHasActivePlan(true);
+        await loadEntitlements();
+        notifySuccess('Plan activated successfully! Welcome to InterVu.');
+        handleClose();
+        setLoadingPlan(null);
+        return;
+      }
 
       // Step 2: Load Razorpay Checkout SDK Script
       const loadScript = () => {
@@ -237,8 +250,8 @@ export function PricingModal() {
                     : `₹${(plan.priceMonthly / 100).toLocaleString('en-IN')}`;
 
                 const handlePlanSelect = () => {
-                  if (plan.slug === 'free') {
-                    handleSelectFree();
+                  if (plan.priceMonthly === 0 || plan.slug === 'free' || plan.slug === 'starter') {
+                    handleSelectFree(plan.slug);
                   } else if (plan.slug === 'teams') {
                     handleSelectTeams();
                   } else {

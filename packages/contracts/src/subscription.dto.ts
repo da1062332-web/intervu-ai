@@ -146,7 +146,7 @@ export const CheckoutSessionResponseSchema = z.object({
 export type CheckoutSessionResponse = z.infer<typeof CheckoutSessionResponseSchema>;
 
 export const CreateOrderDtoSchema = z.object({
-  amount: z.number().min(100).optional(),
+  amount: z.number().min(0).optional(),
   currency: z.string().default('INR'),
   plan: z.string().default('PRO'),
   receipt: z.string().optional(),
@@ -156,11 +156,13 @@ export type CreateOrderDto = z.infer<typeof CreateOrderDtoSchema>;
 
 export const CreateOrderResponseSchema = z.object({
   order_id: z.string(),
-  orderId: z.string(),
+  orderId: z.string().optional(),
   amount: z.number(),
   currency: z.string(),
-  keyId: z.string(),
+  keyId: z.string().optional(),
+  key_id: z.string().optional(),
   plan: z.string(),
+  isFree: z.boolean().optional(),
 });
 
 export type CreateOrderResponse = z.infer<typeof CreateOrderResponseSchema>;

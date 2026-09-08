@@ -59,29 +59,21 @@ export class PublicTestsService {
     limit: number,
     skip: number,
   ) {
-    // Run entitlements and public tests queries in parallel
-    const [entitlements, result] = await Promise.all([
-      this.entitlementService.getUserEntitlements(userId).catch(() => null),
-      this.publicTestsRepository.findPublicTests({
-        userId,
-        company: query.company,
-        difficulty: query.difficulty,
-        status: query.status,
-        search: query.search,
-        skip,
-        take: limit,
-        sortBy: query.sortBy === "displayName" ? "name" : query.sortBy || "name",
-        sortOrder: query.sortOrder || "asc",
-      }),
-    ]);
+    const entitlements = await this.entitlementService
+      .getUserEntitlements(userId)
+      .catch(() => null);
 
     const features = (entitlements?.features as any) || {};
-    const allowedAssessmentsVal = features.allowedAssessments || features.allowed_assessments;
+    const allowedAssessmentsVal =
+      features.allowedAssessments || features.allowed_assessments;
     let allowedList: string[] | null = null;
     let attemptsPerExamOverride: number | null = null;
 
     if (allowedAssessmentsVal) {
-      if (typeof allowedAssessmentsVal === "object" && !Array.isArray(allowedAssessmentsVal)) {
+      if (
+        typeof allowedAssessmentsVal === "object" &&
+        !Array.isArray(allowedAssessmentsVal)
+      ) {
         if (Array.isArray(allowedAssessmentsVal.assessments)) {
           allowedList = allowedAssessmentsVal.assessments;
         }
@@ -93,27 +85,38 @@ export class PublicTestsService {
       }
     }
 
-    const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
+    const isVip =
+      entitlements?.plan === "VIP_UNLIMITED" ||
+      entitlements?.planSlug === "vip-unlimited";
     const hasActivePlan = Boolean(entitlements?.hasActivePlan);
-    const isPaidSubscriber = hasActivePlan || isVip || ['STARTER', 'PRO', 'TEAMS'].includes(String(entitlements?.plan).toUpperCase());
+    const isPaidSubscriber =
+      hasActivePlan ||
+      isVip ||
+      ["STARTER", "PRO", "TEAMS"].includes(
+        String(entitlements?.plan).toUpperCase(),
+      );
     if (isPaidSubscriber && (!allowedList || allowedList.length === 0)) {
-      allowedList = ['all'];
+      allowedList = ["all"];
     }
 
-    const filteredItems = result.items.filter((t: any) => {
-      if (!allowedList || allowedList.includes("all")) return true;
-      return (
-        allowedList.includes(t.id) ||
-        (t.code && allowedList.includes(t.code)) ||
-        (t.name && allowedList.includes(t.name))
-      );
+    const result = await this.publicTestsRepository.findPublicTests({
+      userId,
+      company: query.company,
+      difficulty: query.difficulty,
+      status: query.status,
+      search: query.search,
+      skip,
+      take: limit,
+      sortBy: query.sortBy === "displayName" ? "name" : query.sortBy || "name",
+      sortOrder: query.sortOrder || "asc",
+      allowedAssessments: allowedList,
     });
 
-    const totalPages = Math.max(1, Math.ceil(filteredItems.length / limit));
+    const totalPages = Math.max(1, Math.ceil(result.total / limit));
 
 
     return {
-      tests: filteredItems.map((t: any) => {
+      tests: result.items.map((t: any) => {
         const sumSectionQuestions =
           t.sections?.reduce(
             (sum: number, s: any) => sum + (s.questionCount || 0),
@@ -182,7 +185,7 @@ export class PublicTestsService {
       pagination: {
         page,
         limit,
-        total: filteredItems.length,
+        total: result.total,
         totalPages,
       },
     };

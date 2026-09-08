@@ -39,22 +39,26 @@ export default function PlansPage() {
     }
   };
 
-  const handleSelectFree = async () => {
+  const handleSelectFree = async (planSlug: string = 'free') => {
     try {
-      setLoadingPlan('free');
-      await billingApi.subscribeFree();
+      setLoadingPlan(planSlug);
+      await billingApi.subscribeFree(planSlug);
       setHasActivePlan(true);
       await loadEntitlements();
-      notifySuccess('Free plan activated successfully! Welcome to InterVu.');
+      notifySuccess('Plan activated successfully! Welcome to InterVu.');
       router.push('/candidate/dashboard');
     } catch (err: any) {
-      notifyApiError(err, 'Failed to activate Free plan');
+      notifyApiError(err, 'Failed to activate plan');
     } finally {
       setLoadingPlan(null);
     }
   };
 
   const handleSelectPaid = async (planSlug: string, amountPaise: number) => {
+    if (amountPaise === 0 || planSlug === 'free' || planSlug === 'starter') {
+      return handleSelectFree(planSlug);
+    }
+
     try {
       setLoadingPlan(planSlug);
       
@@ -63,6 +67,15 @@ export default function PlansPage() {
         amount: amountPaise,
         currency: 'INR',
       });
+
+      if (order.amount === 0 || (order as any).isFree) {
+        setHasActivePlan(true);
+        await loadEntitlements();
+        notifySuccess('Plan activated successfully! Welcome to InterVu.');
+        router.push('/candidate/dashboard');
+        setLoadingPlan(null);
+        return;
+      }
 
       const loadScript = () => {
         return new Promise<boolean>((resolve) => {
@@ -200,8 +213,8 @@ export default function PlansPage() {
                   : `₹${(plan.priceMonthly / 100).toLocaleString('en-IN')}`;
 
               const handlePlanSelect = () => {
-                if (plan.slug === 'free') {
-                  handleSelectFree();
+                if (plan.priceMonthly === 0 || plan.slug === 'free' || plan.slug === 'starter') {
+                  handleSelectFree(plan.slug);
                 } else if (plan.slug === 'teams') {
                   window.open('mailto:sales@skillitrix.com?subject=InterVu%20Teams%20Inquiry', '_blank');
                 } else {

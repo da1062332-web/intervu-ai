@@ -77,6 +77,20 @@ export class RazorpayService {
     const { amount } = await this.planManagementService.resolvePlanPricing(plan);
     const currency = params.currency || "INR";
 
+    // If it's a free tier (amount === 0), bypass Razorpay orders API (Razorpay requires amount >= 100 paise)
+    if (amount === 0) {
+      this.logger.log(`Free plan requested for user ${userId} (${plan}). Bypassing Razorpay order creation.`);
+      return {
+        order_id: `free_${userId}_${Date.now()}`,
+        orderId: `free_${userId}_${Date.now()}`,
+        amount: 0,
+        currency,
+        keyId: this.keyId,
+        plan: plan as any,
+        isFree: true,
+      } as any;
+    }
+
     const receipt =
       params.receipt || `rcpt_${plan.toLowerCase()}_${Date.now()}_${userId.slice(-6)}`;
 

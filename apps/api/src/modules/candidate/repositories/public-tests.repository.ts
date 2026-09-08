@@ -65,6 +65,7 @@ export class PublicTestsRepository {
     take: number;
     sortBy: string;
     sortOrder: "asc" | "desc";
+    allowedAssessments?: string[] | null;
   }) {
     const {
       userId,
@@ -76,6 +77,7 @@ export class PublicTestsRepository {
       take,
       sortBy,
       sortOrder,
+      allowedAssessments,
     } = params;
 
     const explicitCodes: string[] = [];
@@ -106,12 +108,12 @@ export class PublicTestsRepository {
       explicitCodes.length > 0
         ? {
             OR: [
-              { status: { in: ["PUBLISHED", "ACTIVE"] } },
+              { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
               { id: { in: explicitCodes } },
               { code: { in: explicitCodes } },
             ],
           }
-        : { status: { in: ["PUBLISHED", "ACTIVE"] } };
+        : { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } };
 
     const examWhere: Prisma.ExamConfigWhereInput = {
       ...baseStatusFilter,
@@ -148,6 +150,16 @@ export class PublicTestsRepository {
       isExam: true,
       difficulty: computeDifficulty(e, true),
     }));
+
+    if (allowedAssessments && !allowedAssessments.includes("all")) {
+      combined = combined.filter((item: any) => {
+        return (
+          allowedAssessments.includes(item.id) ||
+          (item.code && allowedAssessments.includes(item.code)) ||
+          (item.name && allowedAssessments.includes(item.name))
+        );
+      });
+    }
 
     if (difficulty && difficulty.toLowerCase() !== "all") {
       combined = combined.filter(

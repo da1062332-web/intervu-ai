@@ -1,25 +1,37 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { PublicTestsService } from "./public-tests.service";
 import { PublicTestsRepository } from "../repositories/public-tests.repository";
+import { EntitlementService } from "../../billing/services/entitlement.service";
 
 describe("PublicTestsService", () => {
   let service: PublicTestsService;
   let repository: PublicTestsRepository;
+  let entitlementService: EntitlementService;
 
   beforeEach(async () => {
     const mockRepository = {
       findPublicTests: jest.fn(),
     };
 
+    const mockEntitlementService = {
+      getUserEntitlements: jest.fn().mockResolvedValue({
+        plan: "VIP_UNLIMITED",
+        hasActivePlan: true,
+        features: { allowedAssessments: ["all"] },
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PublicTestsService,
         { provide: PublicTestsRepository, useValue: mockRepository },
+        { provide: EntitlementService, useValue: mockEntitlementService },
       ],
     }).compile();
 
     service = module.get<PublicTestsService>(PublicTestsService);
     repository = module.get<PublicTestsRepository>(PublicTestsRepository);
+    entitlementService = module.get<EntitlementService>(EntitlementService);
   });
 
   it("should paginate, search, and format public tests", async () => {
@@ -53,6 +65,8 @@ describe("PublicTestsService", () => {
     expect(result.pagination.total).toBe(2);
     expect(result.tests).toHaveLength(1);
     expect(result.tests[0].name).toBe("React Basics");
-    expect(result.tests[0].sections).toEqual(["Coding"]);
+    expect(result.tests[0].sections).toEqual([
+      expect.objectContaining({ name: "Coding" }),
+    ]);
   });
 });

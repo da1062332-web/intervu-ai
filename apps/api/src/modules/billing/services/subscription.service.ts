@@ -1,4 +1,4 @@
-import { Injectable, Logger, ConflictException, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { Injectable, Logger, ConflictException, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { SubscriptionStatus, PaymentStatus } from "@prisma/client";
 import { SubscriptionStatusResponse, PlanTier, PLAN_ENTITLEMENT_DEFINITIONS } from "@intervu-ai/contracts";
@@ -322,25 +322,56 @@ export class SubscriptionService {
     };
   }
 
-  async subscribeFree(userId: string) {
+  async subscribeFree(userId: string, planSlug: string = "FREE") {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException("User not found");
+    }
+
+    const targetPlan = (planSlug || "FREE").toUpperCase();
+    const targetSlug = targetPlan.toLowerCase();
+
+    // Verify that the requested plan is indeed free if it exists in DB
+    if (targetPlan !== "FREE") {
+      const dbPlan = await this.prisma.plan.findFirst({
+        where: {
+          OR: [
+            { slug: targetSlug },
+            { name: { equals: planSlug, mode: "insensitive" } },
+          ],
+        },
+      });
+      if (dbPlan && dbPlan.priceMonthly > 0) {
+        throw new BadRequestException(`Plan '${targetPlan}' is a paid plan and cannot be activated via free subscription`);
+      }
     }
 
     const existing = await this.prisma.subscription.findUnique({
       where: { userId },
     });
 
-    if (existing && existing.status === SubscriptionStatus.ACTIVE && existing.plan !== "FREE") {
-      throw new ConflictException("User already has an active paid subscription");
+    const now = new Date();
+    if (
+      existing &&
+      existing.status === SubscriptionStatus.ACTIVE &&
+      existing.plan !== "FREE" &&
+      existing.plan !== targetPlan
+    ) {
+      // Check if existing plan is an active paid plan
+      const existingDbPlan = await this.prisma.plan.findFirst({
+        where: { slug: existing.plan.toLowerCase() },
+      });
+      const isPaid = (existingDbPlan && existingDbPlan.priceMonthly > 0) || (existing.currentPeriodEnd && existing.currentPeriodEnd > now);
+      if (isPaid) {
+        throw new ConflictException("User already has an active paid subscription");
+      }
     }
 
     const subscription = await this.prisma.subscription.upsert({
       where: { userId },
       create: {
         userId,
-        plan: "FREE",
+        plan: targetPlan,
         status: SubscriptionStatus.ACTIVE,
         billingCycle: "monthly",
         currentPeriodStart: new Date(),
@@ -348,15 +379,16 @@ export class SubscriptionService {
         cancelAtPeriodEnd: false,
       },
       update: {
-        plan: "FREE",
+        plan: targetPlan,
         status: SubscriptionStatus.ACTIVE,
+        billingCycle: "monthly",
         currentPeriodStart: new Date(),
         currentPeriodEnd: null,
         cancelAtPeriodEnd: false,
       },
     });
 
-    this.logger.log(`Free subscription activated for user ${userId}`);
+    this.logger.log(`Free subscription to '${targetPlan}' activated for user ${userId}`);
     return subscription;
   }
 
